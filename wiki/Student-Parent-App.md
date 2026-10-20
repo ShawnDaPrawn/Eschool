@@ -209,9 +209,9 @@ A gateway is offered when its object is present in `payment_options` (the server
 sequenceDiagram
     participant U as FeesDetailsScreen
     participant F as FeesPaymentCubit
-    participant G as "Gateway SDK / WebView"
-    participant V as "FeesPaymentVerification + PostFeesPaymentCubit"
-    participant API as "Laravel API"
+    participant G as Gateway SDK or WebView
+    participant V as FeesPaymentVerification and PostFeesPaymentCubit
+    participant API as Laravel API
     U->>F: addFeesTransaction(amount, type_of_fee, payment_method, ...)
     F->>API: POST add-fees-transaction
     API-->>F: payment_gateway_details (payment_transaction_id, id, response)
@@ -221,7 +221,7 @@ sequenceDiagram
     U->>V: push paymentVerify (transactionId, status, paymentId, signature, paymentIntentId)
     alt Stripe
         V->>API: POST get-payment-status (payment_intent_id)
-        API-->>V: "succeeded" or other
+        API-->>V: succeeded or another status
     end
     alt success
         V->>API: POST store-fees (transaction_id, payment_id, payment_signature, child_id)

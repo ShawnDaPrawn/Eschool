@@ -36,7 +36,8 @@ Steps, in order:
 2. `composer install --no-interaction --prefer-dist --no-progress`
 3. `cp .env.example .env && php artisan key:generate --force` – `.env.example` ships with an empty `APP_KEY`, so a key has to be generated before Laravel will boot.
 4. **Routes load**: `php artisan route:list > /dev/null` – a smoke test that every route file parses and every controller class referenced by a route can be loaded. A typo in `routes/web.php` or `routes/api.php`, or a missing controller class, fails here before any test runs.
-5. `php artisan test` – the PHPUnit suites below.
+5. **Config, routes and views cache**: `php artisan config:cache && php artisan route:cache && php artisan view:cache && php artisan optimize:clear` – production installs may run `php artisan optimize`, so every cache must build. This fails on, for example, two routes with the same name (which breaks `route:cache`) or a Blade view that does not compile. The caches are cleared again before the tests run.
+6. `php artisan test` – the PHPUnit suites below.
 
 ### `apps`: Flutter app (matrix)
 
@@ -120,7 +121,7 @@ Because the server runs with `APP_ENV=production` and `APP_DEBUG=false`, these t
 
 ## Admin panel feature tests
 
-All 14 classes are in [admin-panel/tests/Feature](https://github.com/ShawnDaPrawn/Eschool/tree/main/admin-panel/tests/Feature).
+All 15 classes are in [admin-panel/tests/Feature](https://github.com/ShawnDaPrawn/Eschool/tree/main/admin-panel/tests/Feature).
 
 | Class | Database / server | What it covers |
 |---|---|---|

@@ -525,7 +525,7 @@ No parameters. The student's `fees_paids` rows for the current session with `ses
 
 ### `GET /api/student/fees-paid-receipt-pdf`
 
-No parameters. Renders `resources/views/fees/fees_receipt.blade.php` with DomPDF and returns it base64-encoded in the top-level `pdf` key. It uses the first `fees_paids` row of the student (any session; `No Fees Paid Found`, code `103`, if none), the `LOGO2` and `APP_NAME` env values and the `school_address` setting.
+No parameters. Renders `resources/views/fees/fees_receipt.blade.php` with DomPDF and returns it base64-encoded in the top-level `pdf` key. It uses the first `fees_paids` row of the student (any session; `No Fees Paid Found`, code `103`, if none), the `logo2` setting (`schoolSetting('logo2')`, a path on the public disk), `config('app.name')` (the `school_name` setting when set, applied by `SettingsConfigService`; otherwise `APP_NAME`) and the `school_address` setting. Before `e13ac7d` it read `env('LOGO2')` and `env('APP_NAME')`, which return `null` once the config is cached.
 
 ### `GET /api/student/fees-report`
 
@@ -637,7 +637,7 @@ No parameters. `IdCardService::buildPdf([student id])`, base64 in the top-level 
 
 ### `GET /api/student/academic-calendar-pdf`
 
-No parameters. `AcademicCalendarService::generate([class id])` for the class of the student's current session: holidays, semester breaks, events and that class's exams, grouped by month, rendered with DomPDF and returned base64 in the top-level `pdf` key.
+No parameters. `AcademicCalendarService::generate([class id])` for the class of the student's current session: holidays, semester breaks, events and that class's exams, grouped by month, rendered with DomPDF and returned base64 in the top-level `pdf` key. The header uses `config('app.name')` and the `logo2` setting (since `e13ac7d`; previously `env()` values).
 
 ## Hardening history
 
