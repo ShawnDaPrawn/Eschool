@@ -223,6 +223,21 @@ The system includes RESTful APIs for mobile app integration:
 - Parent API endpoints
 - Authentication APIs
 
+## 🧪 Running Tests
+
+The tests need MySQL or MariaDB (the migrations use MySQL-specific SQL) and a
+database whose name ends in `_test`; they refuse to run against any other
+database because they drop every table.
+
+```bash
+mysql -u root -e "CREATE DATABASE eschool_test"
+php artisan test
+```
+
+The database host, user and password come from `.env`. GitHub Actions runs the
+same tests on every pull request, together with `flutter analyze` for both apps
+and the documentation build (`.github/workflows/ci.yml`).
+
 ## 🤝 Contributing
 
 1. Fork the repository
