@@ -1,22 +1,62 @@
 # Eschool
 
-School management system. This repository holds the admin panel, the two mobile apps, and the documentation site. Each directory is its own project. Install and run commands from that directory, not from the repository root.
+One Laravel application runs the school: the admin panel, the public website, and the API behind two Flutter apps. On a phone those apps are **NavigateEd** (students and parents) and **NavigateEd Teacher**.
 
-## Layout
+[![CI](https://github.com/ShawnDaPrawn/Eschool/actions/workflows/ci.yml/badge.svg)](https://github.com/ShawnDaPrawn/Eschool/actions/workflows/ci.yml)
+·
+[Documentation](https://shawndaprawn.github.io/Eschool/)
+·
+[Developer wiki](wiki/Home.md)
 
-| Directory | Project |
+## How the pieces connect
+
+```mermaid
+flowchart LR
+    subgraph Clients
+        A["Admin panel"]
+        W["Public website"]
+        S["NavigateEd"]
+        T["NavigateEd Teacher"]
+    end
+    subgraph Server["admin-panel"]
+        WEB["Web routes"]
+        API["REST API"]
+        DB[("MySQL")]
+    end
+    A --> WEB
+    W --> WEB
+    S -->|Bearer token| API
+    T -->|Bearer token| API
+    WEB --> DB
+    API --> DB
+```
+
+## Repository
+
+| Directory | What it is | Stack |
+| --- | --- | --- |
+| [`admin-panel/`](admin-panel) | Admin panel, public website, and API | Laravel 12, PHP 8.3 |
+| [`e-school/`](e-school) | Student and parent app. Dart package `eschool`. The name on the phone is NavigateEd. | Flutter 3.44.9 |
+| [`e-school-teacher/`](e-school-teacher) | Teacher app. Dart package `eschool_teacher`. The name on the phone is NavigateEd Teacher. | Flutter 3.44.9 |
+| [`documentation/`](documentation) | End-user guides, published to GitHub Pages | Docusaurus 3 |
+| [`wiki/`](wiki) | Developer wiki. The Wiki tab is published from this folder. | Markdown |
+| [`.github/workflows/`](.github/workflows) | Tests, analysis, the docs build, the dependency audit, and wiki publishing | GitHub Actions |
+
+Each directory is its own project. Run install and start commands inside that directory. Leave the Dart package names as they are. Every import in an app uses them.
+
+## Where to go next
+
+| You want to… | Start here |
 | --- | --- |
-| `admin-panel/` | Laravel admin panel and API |
-| `e-school/` | Flutter student app (Dart package `eschool`) |
-| `e-school-teacher/` | Flutter teacher app (Dart package `eschool_teacher`) |
-| `documentation/` | Documentation site |
-| `.github/workflows/` | Continuous integration |
+| Understand the system | [Architecture](wiki/Architecture.md), then [Repository layout](wiki/Repository-Layout.md) |
+| Run it locally | [Getting started](wiki/Getting-Started.md) |
+| Follow a setup guide | [Documentation site](https://shawndaprawn.github.io/Eschool/) |
+| Read what changed | [Changelog](documentation/changelog/index.md) |
+| Change the code | [Contributing](CONTRIBUTING.md) |
 
-The product changelog lives in [`documentation/changelog`](documentation/changelog/index.md).
+## Run it
 
-## Admin panel
-
-Requires PHP 8.3, Composer, and MySQL or MariaDB.
+**Admin panel.** PHP 8.3, Composer, and MySQL or MariaDB.
 
 ```bash
 cd admin-panel
@@ -25,11 +65,9 @@ cp .env.example .env
 php artisan key:generate
 ```
 
-Set the database credentials in `.env`, then run `php artisan migrate`. Full setup notes are in [`admin-panel/README.md`](admin-panel/README.md).
+Set the database credentials in `.env`, then run `php artisan migrate`. Details are in [admin-panel/README.md](admin-panel/README.md).
 
-## Mobile apps
-
-Requires Flutter 3.44.9. Do not rename the Dart packages (`eschool` and `eschool_teacher`); those names are used by the import paths.
+**Mobile apps.** Flutter 3.44.9.
 
 ```bash
 cd e-school
@@ -37,15 +75,9 @@ flutter pub get
 flutter run
 ```
 
-```bash
-cd e-school-teacher
-flutter pub get
-flutter run
-```
+Use the same commands in `e-school-teacher` for the teacher app.
 
-## Documentation
-
-Requires Node.js 20 or newer. The site is built with npm. Sidebar configuration is in `documentation/sidebars/`.
+**Documentation.** Node.js 20 or newer.
 
 ```bash
 cd documentation
@@ -53,4 +85,4 @@ npm ci
 npm start
 ```
 
-The site is served at `http://localhost:3000`.
+The site is served at `http://localhost:3000/Eschool/`.

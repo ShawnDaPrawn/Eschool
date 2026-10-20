@@ -41,16 +41,16 @@ All names from `Routes` in [e-school-teacher/lib/app/routes.dart](https://github
 | `subject` | `/subject` | `SubjectScreen` | `subjectScreen.dart` |
 | `assignments` | `/assignments` | `AssignmentsScreen` | `assignments/assignmentsScreen.dart` |
 | `assignment` | `/assignment` | `AssignmentScreen` (submissions review) | `assignment/assignmentScreen.dart` |
-| `addAssignment` | `/addAssignment` | `AddAssignmentScreen` | `add&editAssignmentScreen.dart` |
+| `addAssignment` | `/addAssignment` | `AddAssignmentScreen` | `addOrEditAssignmentScreen.dart` |
 | `announcements` | `/announcements` | `AnnouncementsScreen` | `announcementsScreen.dart` |
 | `addOrEditAnnouncement` | `/addOrEditAnnouncement` | `AddOrEditAnnouncementScreen` | `addOrEditAnnouncementScreen.dart` |
 | `lessons` | `/lessons` | `LessonsScreen` | `lessonsScreen.dart` |
 | `addOrEditLesson` | `/addOrEditLesson` | `AddOrEditLessonScreen` | `addOrEditLessonScreen.dart` |
 | `topics` | `/topics` | `TopicsScreen` | `topicsScreen.dart` |
-| `topicsByLesson` | `/topicsByLesson` | `TopcisByLessonScreen` | `topcisByLessonScreen.dart` |
+| `topicsByLesson` | `/topicsByLesson` | `TopcisByLessonScreen` | `topicsByLessonScreen.dart` |
 | `addOrEditTopic` | `/addOrEditTopic` | `AddOrEditTopicScreen` | `addOrEditTopicScreen.dart` |
 | `attendance` | `/attendance` | `AttendanceScreen` (class attendance) | `attendanceScreen.dart` |
-| `teacherAttendence` | `/teacherAttendence` | `TeacherAttendenceScreen` (own attendance) | `teacherAttendence/teacherAttendenceScreen.dart` |
+| `teacherAttendence` | `/teacherAttendence` | `TeacherAttendenceScreen` (own attendance) | `teacherAttendance/teacherAttendanceScreen.dart` |
 | `searchStudent` | `/searchStudent` | `SearchStudentScreen` | `searchStudentScreen.dart` |
 | `studentDetails` | `/studentDetails` | `StudentDetailsScreen` | `studentDetails/studentDetailsScreen.dart` |
 | `resultList` | `/resultList` | `ResultListScreen` | `result/resultScreen.dart` |
@@ -177,7 +177,7 @@ Teachers chat with both students and parents. `ChatUsersCubit` is abstract with 
 
 ## Changes in 3.5.0
 
-From `eSchoolTeacher_3_5_0_changelog.txt`:
+What changed in the teacher app for 3.5.0:
 
 - Android build moved to the Kotlin DSL (`build.gradle.kts`, `settings.gradle.kts`).
 - New teacher attendance feature: `teacherAttendanceCubit.dart`, `teacherAttendanceRepository.dart`, `teacherAttendance.dart`, `attendanceEnums.dart`, `TeacherAttendenceScreen` and its widgets, `assets/images/attendence.svg`, the `teacherAttendence` route and the `getTeacherAttendanceReport` endpoint in `api.dart`.

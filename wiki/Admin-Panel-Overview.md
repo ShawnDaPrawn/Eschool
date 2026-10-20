@@ -230,12 +230,11 @@ Everything the admin panel and public site load is committed under [public/asset
 
 One script is loaded from a CDN: the jQuery Validate message localisation from `cdnjs.cloudflare.com`.
 
-## Front-end build (Vite, Mix)
+## Front-end build (Vite)
 
-Neither build tool is used by the running application:
+The Vite toolchain is not used by the running application:
 
 - [package.json](https://github.com/ShawnDaPrawn/Eschool/blob/main/admin-panel/package.json) and [vite.config.js](https://github.com/ShawnDaPrawn/Eschool/blob/main/admin-panel/vite.config.js) are the Laravel 12 skeleton defaults: Vite 6, `laravel-vite-plugin` and Tailwind 4, compiling `resources/css/app.css` and `resources/js/app.js` (which only sets up axios). No Blade view contains `@vite`, and there is no `public/build`.
-- [webpack.mix.js](https://github.com/ShawnDaPrawn/Eschool/blob/main/admin-panel/webpack.mix.js) refers to `laravel-mix`, which is not in `package.json`, and to `resources/sass/app.scss`, which does not exist.
 - The Composer `dev` script (`composer run dev`) starts `php artisan serve`, `queue:listen`, `pail` and `npm run dev` together; the Vite server it starts serves nothing the pages use.
 
 So `npm install` is not needed to run or deploy the admin panel. To change the UI, edit the files in `public/assets/` directly. The wizard installer has its own Tailwind build (`packages/laravel-wizard-installer/public/styles.css`, published to `public/vendor/installer/styles.css`).

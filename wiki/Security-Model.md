@@ -180,7 +180,7 @@ flowchart LR
 
 No `Content-Security-Policy` is sent for application pages (only for SVG/HTML/XML files under `/storage` on Apache, see above).
 
-The project-root [.htaccess](https://github.com/ShawnDaPrawn/Eschool/blob/main/admin-panel/.htaccess) denies dotfiles, `composer.json/lock`, `package(-lock).json`, `artisan`, `phpunit.xml`, `vite.config.js` and `webpack.mix.js`, and answers 404 for `/.git` and `/.env` paths, even when `mod_rewrite` is off or the project root is the document root.
+The project-root [.htaccess](https://github.com/ShawnDaPrawn/Eschool/blob/main/admin-panel/.htaccess) denies dotfiles, `composer.json/lock`, `package(-lock).json`, `artisan`, `phpunit.xml` and `vite.config.js`, and answers 404 for `/.git` and `/.env` paths, even when `mod_rewrite` is off or the project root is the document root.
 
 ## TLS and HTTPS
 
