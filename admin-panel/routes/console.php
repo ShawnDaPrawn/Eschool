@@ -10,3 +10,4 @@ Artisan::command('inspire', function () {
 
 // Runs daily to purge old chat messages and keep the table size manageable.
 Schedule::command('app:cleanup-old-chat-messages')->daily()->withoutOverlapping();
+Schedule::command('sanctum:prune-expired --hours=24')->daily();
