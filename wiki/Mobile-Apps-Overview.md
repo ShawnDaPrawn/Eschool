@@ -31,7 +31,7 @@ Both apps use the same folder structure under `lib/`:
 | `lib/cubits/` | Feature Cubits (one file per Cubit, state classes in the same file). Sub-folders `chat/` and `gallery/`. Some screen-private Cubits live next to their screen, e.g. `e-school/lib/ui/screens/reports/cubits/`. |
 | `lib/data/models/` | Plain Dart model classes with `fromJson` / `toJson`. |
 | `lib/data/repositories/` | One class per domain (`AuthRepository`, `StudentRepository`, `SystemRepository`, ...). Repositories are the only layer that calls `Api`. |
-| `lib/ui/screens/` | Screens. Each screen exposes `static Route route(RouteSettings)` which builds a `CupertinoPageRoute` and provides the screen-local Cubits. |
+| `lib/ui/screens/` | Screens. Most screens expose `static Route route(RouteSettings)`, which builds a `CupertinoPageRoute` and provides the screen-local Cubits; a few are wrapped in a `CupertinoPageRoute` directly in `routes.dart`. |
 | `lib/ui/widgets/` | Reusable widgets (error containers, shimmer loaders, bottom sheets, force-update dialog, ...). |
 | `lib/ui/styles/colors.dart` | Theme colour constants (`primaryColor`, `secondaryColor`, ...). |
 | `lib/utils/api.dart` | `Api` (Dio wrapper with every endpoint URL) and `ApiException`. |
@@ -51,7 +51,7 @@ The student app also has `lib/utils/stripeService.dart` (Stripe payment sheet) a
 
 ## Startup sequence
 
-`initializeApp()` in [e-school/lib/app/app.dart](https://github.com/ShawnDaPrawn/Eschool/blob/main/e-school/lib/app/app.dart) (the teacher copy is the same apart from box names):
+`initializeApp()` in [e-school/lib/app/app.dart](https://github.com/ShawnDaPrawn/Eschool/blob/main/e-school/lib/app/app.dart) (the teacher copy has the same steps, with the orientation lock after the notification setup and without the `showCaseBox`):
 
 1. `WidgetsFlutterBinding.ensureInitialized()`; in release mode `debugPrint` is replaced with a no-op.
 2. Registers `google_fonts/OFL.txt` with `LicenseRegistry`.
@@ -85,17 +85,17 @@ All state is held in `flutter_bloc` Cubits (`flutter_bloc` 9.1.1, `bloc` 9.2.1);
 
 ```mermaid
 sequenceDiagram
-    participant S as "Screen (BlocConsumer)"
+    participant S as Screen (BlocConsumer)
     participant C as Cubit
     participant R as Repository
-    participant A as "Api (lib/utils/api.dart)"
-    participant L as "Laravel /api"
+    participant A as Api (lib/utils/api.dart)
+    participant L as Laravel /api
     S->>C: e.g. fetchAppConfiguration()
     C->>C: emit(...InProgress)
     C->>R: fetchSettings(type)
     R->>A: Api.get(url, queryParameters, useAuthToken)
-    A->>L: HTTP GET with "Authorization: Bearer token"
-    L-->>A: JSON {error, message, code, data}
+    A->>L: HTTP GET with Bearer token header
+    L-->>A: JSON with error, message, code, data
     A-->>R: Map or ApiException
     R-->>C: model objects
     C->>C: emit(...Success / ...Failure)
@@ -126,7 +126,7 @@ Response and error handling:
 
 API error codes mapped in `ErrorMessageKeysAndCode.getErrorMessageKeyFromCode()`: `101` invalid login credentials, `104` assignment already submitted, `105` online exam already attended (student app), `106` online exam not started (student app), `107` invalid user details, `108` cannot send reset-password request, `109` invalid password, `112` feature disabled in demo mode, `113` student not in the current session year. Any other code shows the default error message. The server side of this envelope is described on [API-Overview](API-Overview).
 
-Repositories catch exceptions and rethrow `ApiException(e.toString())`, so Cubits only ever see `ApiException`.
+Most repository methods catch exceptions and rethrow `ApiException(e.toString())`, and Cubits wrap anything else with `ApiException.fromException()`, so failure states carry an `ApiException`.
 
 ## Session and token storage
 
@@ -145,9 +145,9 @@ Hive boxes and keys (`lib/utils/hiveBoxKeys.dart`):
 | `settings` | `allowNotification` | Student app only. |
 | `showCaseBox` | `showHomeScreenGuide` | Student app only. |
 
-SharedPreferences keys `notificationCount` and `chatNotificationsBackgroundItem` are used for data written from the FCM background isolate (which cannot share Hive boxes safely).
+SharedPreferences keys `notificationCount` and `chatNotificationsBackgroundItem` hold data that is also written by the FCM background handler `onBackgroundMessage()`, which runs in its own isolate; `SettingsRepository` calls `prefs.reload()` before every read and write.
 
-Sign-out (`AuthRepository.signOutUser()`) posts to `logout` (fire and forget; the server deletes the current token), then clears `isLogIn`, `jwtToken` and the cached profiles, and unsubscribes from the FCM topics. Tokens expire on the server after `SANCTUM_EXPIRATION` minutes (default `60 * 24 * 30`, i.e. 30 days, in `admin-panel/config/sanctum.php`); the next request then gets a 401 and the app logs out.
+Sign-out (`AuthCubit.signOut()`) unsubscribes from the FCM topics and calls `AuthRepository.signOutUser()`, which posts to `logout` (fire and forget; the server deletes the current token) and clears `isLogIn`, `jwtToken` and the cached profiles. Tokens expire on the server after `SANCTUM_EXPIRATION` minutes (default `60 * 24 * 30`, i.e. 30 days, in `admin-panel/config/sanctum.php`); the next request then gets a 401 and the app logs out.
 
 Data protection on Android: both apps set `android:allowBackup="false"` and use `res/xml/data_extraction_rules.xml` to exclude all app data from cloud backup and device transfer, so the token is not copied to other devices. The student app's release `network_security_config.xml` allows HTTPS only; see [Mobile-App-Configuration](Mobile-App-Configuration#https-requirement).
 
@@ -185,7 +185,7 @@ Both home screens check the configuration on every build:
 - The `x.y.z` parts are compared one position at a time, and any position where the server number is larger triggers an update. This means a server value of `3.4.1` triggers the dialog for an installed `3.5.0`. Always set the server value to the exact version you released.
 - If both sides have a `+build` suffix, a larger server build number also triggers an update, independently of the version part.
 - Each part must be an integer; a two-part value such as `3.5` makes the check throw and no dialog is shown.
-- On iOS `PackageInfo` reads `CFBundleShortVersionString`/`CFBundleVersion`. The Xcode projects hard-code `FLUTTER_BUILD_NUMBER = 3` (see [Building-and-Releasing-Apps](Building-and-Releasing-Apps#versioning)), so an `ios_app_version` with a `+39` suffix makes the dialog appear on every launch.
+- On iOS `PackageInfo` reads `CFBundleShortVersionString`/`CFBundleVersion`. The Xcode projects hard-code `FLUTTER_BUILD_NUMBER = 3` (see [Building-and-Releasing-Apps](Building-and-Releasing-Apps#versioning)), so with force update on, an `ios_app_version` with a `+39` suffix makes the dialog appear on every launch.
 
 ## Push notifications
 

@@ -33,7 +33,7 @@ Two middleware aliases differ only by case and do different things: `Role` is `A
 | Staff role required on every admin page | `CheckRole` (alias `Role`) on the main group `['Role', 'auth']` in [routes/web.php](https://github.com/ShawnDaPrawn/Eschool/blob/main/admin-panel/routes/web.php) | A signed-in user needs at least one role other than `Parent`/`Student`; anyone else is signed out, the session invalidated and the CSRF token regenerated |
 | No self-registration | the `/register` route was removed (commit [439395d](https://github.com/ShawnDaPrawn/Eschool/commit/439395d)) | Accounts are only created by staff, or through the public online registration form, which creates students awaiting approval |
 | Password reset | `password/email` has `throttle:login` | Reset-link requests are rate limited like app logins (see below) |
-| Change password | admin profile page | The current password must be given |
+| Change password | `HomeController` password change (`old_password`) | The current password must match (`Hash::check`) before the new one is saved |
 | Session cookie | [config/session.php](https://github.com/ShawnDaPrawn/Eschool/blob/main/admin-panel/config/session.php) | `http_only` true, `same_site` `lax`, lifetime `SESSION_LIFETIME` (default 120 minutes); `secure` defaults to true when `APP_URL` starts with `https://` (`SESSION_SECURE_COOKIE` overrides) |
 | CSRF | Laravel's CSRF check in the `web` group; `validateCsrfTokens(except: ['webhook/*'])` | Every state-changing web request needs the session's token, except the payment gateway webhooks, which are authenticated by signature instead |
 
@@ -139,7 +139,7 @@ See [API-Overview](API-Overview), [API-Student](API-Student), [API-Parent](API-P
 |---|---|---|
 | Email templates are never compiled | [EmailTemplateService::render()](https://github.com/ShawnDaPrawn/Eschool/blob/main/admin-panel/app/Services/EmailTemplateService.php), used by `StudentController`, `StaffController`, `TeacherController` | `{$name}` / `{name}` placeholders are replaced with `e()`-escaped values; Blade and PHP in a template are left as text. Unknown placeholders stay as they are |
 | Email template editing | `email-setting-create` checked in `EmailController::index/store` and `SettingController::email_index/email_update/verifyEmailConfigration` | Only staff with that permission can change templates or mail settings |
-| `.env` writes | `changeEnv()` in [app/Helpers/settings_helper.php](https://github.com/ShawnDaPrawn/Eschool/blob/main/admin-panel/app/Helpers/settings_helper.php) | `\r`, `\n` and `\0` are stripped from values, so a settings field cannot add another `.env` line |
+| `.env` is never written from admin forms | settings pages save to the `settings` table only; [SettingsConfigService::apply()](https://github.com/ShawnDaPrawn/Eschool/blob/main/admin-panel/app/Services/SettingsConfigService.php) (called from `AppServiceProvider::boot()`) applies the school name, timezone, mail server and Paystack keys over the `.env` config on every boot | No admin settings form adds or changes `.env` entries (only the installation wizard writes `.env`, during installation). The old `changeEnv()` helper, which rewrote `.env` from settings forms, was removed in [e13ac7d](https://github.com/ShawnDaPrawn/Eschool/commit/e13ac7d); `SettingsConfigTest` checks that saving mail settings leaves `.env` unchanged |
 | Language codes | `LanguageController::CODE_RULE` `^[A-Za-z]{2,3}([-_][A-Za-z0-9]{2,8})?$`; `Controller::readLanguageFile()` uses `basename()` and falls back to `en.json` | An uploaded language file cannot be written outside `resources/lang`, and `/common/js/lang` cannot read other files |
 | Settings image removal | `remove-image/{type}` | Needs the setting permission and only deletes ID-card images, not arbitrary `settings` rows |
 
@@ -227,6 +227,8 @@ Details are on the [Payments](Payments) page; the security-relevant rules are:
 | Paystack | `POST webhook/paystack` | HMAC-SHA512 of the raw body vs `x-paystack-signature` | `paystack_secret_key`, `services.paystack.secret_key` (`PAYSTACK_SECRET_KEY`) |
 | Flutterwave | `POST webhook/flutterwave` | `verif-hash` header equals the secret hash | `flutterwave_hash_key`, `services.flutterwave.secret_hash` (`FLW_SECRET_HASH`) |
 
+`PaymentService::webhookSecret()` reads the `settings` row saved by the fees settings page first and falls back to the config key only when that row is empty. The fees page no longer copies these values into `.env`, so the `.env` keys only matter if someone sets them by hand.
+
 | Control | Where | Guarantee |
 |---|---|---|
 | Fail closed | `WebhookController::validHmac()`, `PaymentService::webhookSecret()` | No configured secret or no signature means 401; comparisons use `hash_equals()` |
@@ -254,22 +256,22 @@ The admin steps for configuring webhooks are at https://shawndaprawn.github.io/E
 | Control | Where | Guarantee |
 |---|---|---|
 | Maintenance URLs | `routes/web.php` | `/clear` needs a logged-in user; `/storage-link`, `/migrate` and `/seeder_install` need Super Admin; `migrate` and `seeder_install` pass `--force`. The old unauthenticated `delete-chat-message/cron-job` URL is gone; old chat messages are deleted by the scheduled `app:cleanup-old-chat-messages` command |
-| Demo mode | [DemoMiddleware](https://github.com/ShawnDaPrawn/Eschool/blob/main/admin-panel/app/Http/Middleware/DemoMiddleware.php) in the `web` group, enabled by `DEMO_MODE` | When on, every non-GET request by a signed-in user is refused (API: `code` 112; AJAX: HTTP 403; pages: redirect back with "This is not allowed in the Demo Version.") except the login endpoints, chat send/read, leave lists and a few export/certificate URLs listed in `$exclude_uri`, and except for the user `demomodeoff@gmail.com`. The fees configuration page also masks gateway keys. `GET api/settings` reports it as `is_demo` |
+| Demo mode | [DemoMiddleware](https://github.com/ShawnDaPrawn/Eschool/blob/main/admin-panel/app/Http/Middleware/DemoMiddleware.php) in the `web` group, enabled by `config('app.demo_mode')` (`DEMO_MODE` in `.env`, default false) | When on, every non-GET request by a signed-in user is refused (API: `code` 112; AJAX: HTTP 403; pages: redirect back with "This is not allowed in the Demo Version.") except the login endpoints, chat send/read, leave lists and a few export/certificate URLs listed in `$exclude_uri`, and except for the user `demomodeoff@gmail.com`. The fees configuration page also masks gateway keys. `GET api/settings` reports it as `is_demo` |
 | APP_KEY | `.env.example` has `APP_KEY=` (empty); the installer runs `key:generate --force` (`config/installer.php`); CI runs `php artisan key:generate --force` | Laravel refuses to start without a key, so no two installs share one. The key encrypts cookies and sessions and signs URLs. `InstallationTest` fails if `.env.example` gets a key again |
 
-`DemoMiddleware`, the fees page and `api/settings` read `env('DEMO_MODE')` directly. After `php artisan config:cache`, `env()` returns `null` outside config files, so demo mode switches off on a config-cached install.
+Code outside `config/` reads configuration through `config()` and school settings through `getSettings()` / `schoolSetting()`, never `env()`, so demo mode, mail settings and webhook secrets keep working after `php artisan config:cache` / `optimize` (enforced by `SettingsConfigTest`).
 
 ## Security checklist for deployers
 
 1. Serve the admin panel over HTTPS only, with a complete certificate chain from a public CA. The student/parent app's release build refuses plain HTTP and user-installed certificates, and both apps validate certificates.
-2. Set `APP_URL` to the `https://` address (this makes session cookies `Secure`), `APP_ENV=production`, `APP_DEBUG=false`, `LOG_LEVEL=error`.
+2. Set `APP_URL` to the `https://` address (this makes session cookies `Secure`), `APP_ENV=production`, `APP_DEBUG=false`, `LOG_LEVEL=error`. After installation the application no longer writes `.env` (the installation wizard needs it writable only while it runs), so it can be made read-only for the web server user. You can cache the configuration with `php artisan optimize` (re-run it after editing `.env` or updating); admin settings are read from the database and still apply.
 3. Make sure `APP_KEY` is set and unique (the installer generates it). Never copy a key between installs or commit `.env`.
 4. Point the web server's document root at `admin-panel/public/`. If the project root must be the document root, keep the root `.htaccess` (Apache) or add equivalent rules that deny dotfiles, `.env`, `.git`, `vendor/` and project metadata.
 5. On Nginx or any non-Apache server, make sure nothing under `/storage` is executed as PHP and that `storage/app/public/` is served as static files only; the `.htaccess` there only works on Apache.
 6. Change the seeded Super Admin login (`superadmin@gmail.com` / `superadmin`) straight after installation.
 7. If the server sits behind a reverse proxy or load balancer that terminates TLS, configure Laravel's trusted proxies, otherwise HSTS is not sent and the request is treated as HTTP.
 8. Add the scheduler cron (`* * * * * php /path/to/admin-panel/artisan schedule:run`) so expired app tokens and old chat messages are deleted; see [Scheduled-Tasks-and-Commands](Scheduled-Tasks-and-Commands).
-9. For each enabled payment gateway, set its webhook secret (Razorpay webhook secret, Stripe signing secret, Paystack secret key, Flutterwave secret hash) and register the `webhook/<gateway>` URL in the gateway dashboard. Without the secret, webhooks are refused and payments are never confirmed.
+9. For each enabled payment gateway, set its webhook secret (Razorpay webhook secret, Stripe signing secret, Paystack secret key, Flutterwave secret hash) on the fees settings page, and register the `webhook/<gateway>` URL in the gateway dashboard. Without the secret, webhooks are refused and payments are never confirmed.
 10. Rotate any secret that may have been exposed by an older version: the Razorpay webhook secret (an older public `api/settings` returned it) and the Firebase service account key (older versions stored it on the public disk).
 11. Upload the Firebase service account file through the notification settings page so it lands on the private disk; do not place it under `public/` or `storage/app/public/`.
 12. Keep `DEMO_MODE=false` on a real school install.
@@ -287,12 +289,13 @@ The admin steps for configuring webhooks are at https://shawndaprawn.github.io/E
 6. **Never concatenate input into SQL.** Use the query builder; in `whereRaw`/`orWhereRaw`/`selectRaw` use `?` placeholders and a bindings array. Group `OR` search conditions in a closure.
 7. **Escape output.** Use `{{ }}` in Blade; use `{!! !!}` only for HTML that staff wrote on purpose. In JavaScript that builds HTML, wrap every row field in `escapeHtml()` and every link in `safeUrl()`; add `data-escape="true"` to new bootstrap-table tables and `data-escape="false"` only on columns that return HTML you built safely. Pass PHP values to scripts with `@json`.
 8. **Do not compile stored content as Blade.** Fill email templates with `EmailTemplateService::render()`.
-9. **Validate uploads** with `mimes:` and `max:` rules for the field, and store them under generated names, not the client's file name. Leave `RejectDangerousUploads` on both groups. Keep secrets such as service-account files on the `local` disk.
-10. **Do not leak internals.** Do not return exception messages, `$e`, stack traces or `dd()` output; use `ResponseService::errorResponse('error_occurred', null, <code>, $e)`, which logs details with secrets redacted. Never log tokens, passwords or keys.
-11. **Do not send secrets to the apps.** Public endpoints such as `api/settings` may only carry publishable keys.
-12. **Keep TLS verification on** in PHP (curl, Guzzle) and Dart; never add `CURLOPT_SSL_VERIFYPEER => false`, `'verify' => false`, or a `badCertificateCallback`.
-13. **In the apps, open only http(s) links** (`UiUtils.launchWebUrl()`), sanitise file names (`sanitizeFileName()`), and do not print tokens or responses.
-14. **Add a test** for each new permission check or scoping rule, following `AcademicAuthorizationTest` (in-process) or the `*ApiSecurityTest` classes with `RunsAppServer` (API endpoints that `exit()`).
+9. **Never call `env()` outside `config/`, and never write `.env` from a request.** Read configuration with `config()` and admin-edited settings with `getSettings()` / `schoolSetting()`; store new settings in the `settings` table (and, if they must override a config value, add them to `SettingsConfigService::CONFIG_KEYS`). `SettingsConfigTest` fails on any `env()` call outside `config/`.
+10. **Validate uploads** with `mimes:` and `max:` rules for the field, and store them under generated names, not the client's file name. Leave `RejectDangerousUploads` on both groups. Keep secrets such as service-account files on the `local` disk.
+11. **Do not leak internals.** Do not return exception messages, `$e`, stack traces or `dd()` output; use `ResponseService::errorResponse('error_occurred', null, <code>, $e)`, which logs details with secrets redacted. Never log tokens, passwords or keys.
+12. **Do not send secrets to the apps.** Public endpoints such as `api/settings` may only carry publishable keys.
+13. **Keep TLS verification on** in PHP (curl, Guzzle) and Dart; never add `CURLOPT_SSL_VERIFYPEER => false`, `'verify' => false`, or a `badCertificateCallback`.
+14. **In the apps, open only http(s) links** (`UiUtils.launchWebUrl()`), sanitise file names (`sanitizeFileName()`), and do not print tokens or responses.
+15. **Add a test** for each new permission check or scoping rule, following `AcademicAuthorizationTest` (in-process) or the `*ApiSecurityTest` classes with `RunsAppServer` (API endpoints that `exit()`).
 
 ## See also
 

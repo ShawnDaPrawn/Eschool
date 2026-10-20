@@ -23,7 +23,7 @@ There is no global "selected child". The parent profile returned by `parent/logi
 
 - `ParentHomeScreen` (`lib/ui/screens/parentHomeScreen.dart`) shows a card per child. Tapping a card pushes `Routes.studentDetails` (`'parent/studentDetails'`, `ChildDetailsScreen`) with that `Student` as the argument. If compulsory fee payment mode is on and that child has `isFeePaymentDue`, the tap opens `Routes.feesDetails` for the child instead.
 - `ChildDetailsScreen` lists the child's subjects (`ChildSubjectsCubit` → `ParentRepository`, GET `parent/subjects`) and a menu built in `lib/ui/widgets/childInformationItemsContainer.dart`: assignments, teachers, attendance, timetable, academic calendar, exams, results, reports, fees and manage leaves.
-- Every screen opened from that menu receives the child's id and sends it as `child_id`. On the server, the routes inside the `CheckChild` middleware group reject a `child_id` that is not one of the parent's children (see [API-Parent](API-Parent)).
+- Every screen opened from that menu receives the child's id and sends it as `child_id`. On the server, the routes inside the `CheckChild` middleware group reject a `child_id` that is not one of the parent's children with `error: true`, `code: 105`, message `Invalid Child ID Passed.` (see [API-Parent](API-Parent)). Because the app maps code `105` to the `examOnlineAttended` label, that rejection is displayed as "Student already attempted exam" (English text).
 
 Parents reach chat through a floating action button on `ParentHomeScreen` (opens `ChatUsersScreen`), and their own profile through `Routes.parentProfile`.
 
@@ -209,9 +209,9 @@ A gateway is offered when its object is present in `payment_options` (the server
 sequenceDiagram
     participant U as FeesDetailsScreen
     participant F as FeesPaymentCubit
-    participant G as "Gateway SDK / WebView"
-    participant V as "FeesPaymentVerification + PostFeesPaymentCubit"
-    participant API as "Laravel API"
+    participant G as Gateway SDK or WebView
+    participant V as FeesPaymentVerification and PostFeesPaymentCubit
+    participant API as Laravel API
     U->>F: addFeesTransaction(amount, type_of_fee, payment_method, ...)
     F->>API: POST add-fees-transaction
     API-->>F: payment_gateway_details (payment_transaction_id, id, response)
@@ -221,7 +221,7 @@ sequenceDiagram
     U->>V: push paymentVerify (transactionId, status, paymentId, signature, paymentIntentId)
     alt Stripe
         V->>API: POST get-payment-status (payment_intent_id)
-        API-->>V: "succeeded" or other
+        API-->>V: succeeded or another status
     end
     alt success
         V->>API: POST store-fees (transaction_id, payment_id, payment_signature, child_id)

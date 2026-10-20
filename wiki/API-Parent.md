@@ -573,7 +573,7 @@ The intent must be the `order_id` of a transaction of one of the parent's childr
 |---|---|---|
 | `fees_paid_id` | integer | yes |
 
-The `fees_paids` row must belong to one of the parent's children; otherwise code 103, "No Fees Paid Found". The `fees.fees_receipt` view is rendered with DomPDF and returned base64-encoded in the top-level `pdf` key. The receipt lists paid installments, paid optional fees and compulsory fee types, with the `school_address` and `currency_symbol` settings. The logo and school name are read with `env('LOGO2')` and `env('APP_NAME')`.
+The `fees_paids` row must belong to one of the parent's children; otherwise code 103, "No Fees Paid Found". The `fees.fees_receipt` view is rendered with DomPDF and returned base64-encoded in the top-level `pdf` key. The receipt lists paid installments, paid optional fees and compulsory fee types, with the `school_address` and `currency_symbol` settings. The logo comes from the `logo2` setting (`schoolSetting('logo2')`) and the school name from `config('app.name')`. `SettingsConfigService` fills that config value from the `school_name` setting.
 
 ### GET `fees-report`
 
@@ -770,7 +770,6 @@ These live in `ApiController` without the `parent/` prefix and are documented on
 - `get-exam-list` does not validate `status`, and its `exam_timetable` is not filtered to the child's class.
 - `announcements` without `type` returns every announcement of the session year.
 - `fail-payment-transaction` and the one-hour pending timeout set `payment_status` 0 without removing the pending `fees_choiceables` and `paid_installment_fees` rows. The webhook's `markFailed()` does remove them.
-- `fees-paid-receipt-pdf` reads `LOGO2` and `APP_NAME` with `env()`. After `php artisan config:cache` these return `null` unless they are set as real environment variables.
 - Responses are sent from inside `ResponseService` and end with `exit()`, so response middleware such as `SecurityHeaders` does not add its headers to them.
 
 ## See also

@@ -11,6 +11,7 @@ The admin panel serves a JSON REST API under `/api` that both Flutter apps use. 
 | Authentication | Laravel Sanctum personal access tokens, `Authorization: Bearer <token>` |
 | Token lifetime | `SANCTUM_EXPIRATION` minutes, default `43200` (30 days) from creation |
 | Request bodies | Form fields (`multipart/form-data` from the apps); query string for `GET` |
+| Server time | `app.timezone`, which `SettingsConfigService::apply()` (called from `AppServiceProvider`) sets from the `time_zone` setting on every boot, falling back to `TIMEZONE` in `.env` (default `UTC`). Exam windows, due dates and "today" in the API use it, except where the code asks for UTC explicitly. |
 | Response | JSON object with `error`, `message`, `data`, `code` (see [Response envelope](#response-envelope)) |
 | Route count | 155: 1 logout, 49 student, 41 parent, 51 teacher, 13 general |
 
@@ -66,7 +67,7 @@ All aliases are defined in `bootstrap/app.php` (`$middleware->alias([...])`).
 | `CheckChild` | parent child-scoped routes | Validates `child_id` as an integer and looks it up through `Parents::children()`; stores the student model on the request as attribute `child` | HTTP 200 `{"error":true,"message":"Invalid Child ID Passed.","code":105}` |
 | `CheckStudent` | `teacher/get-student-result`, `teacher/get-student-marks` | `student_id` must be in a class section where the teacher is a class teacher (`class_teachers.class_teacher_id`) | HTTP 200 `{"error":true,"message":"Invalid Student ID Passed.","code":105}` |
 
-`LanguageManager` (session locale) and `DemoMiddleware` (demo-mode write block, code `112`) are only in the `web` group, so they never run on API routes. `DemoMiddleware` still lists `/api/...` paths in its allow-list, but that list has no effect on the API.
+`LanguageManager` (session locale) and `DemoMiddleware` (blocks writes with code `112` when `config('app.demo_mode')` is true) are only in the `web` group, so they never run on API routes. `DemoMiddleware` still lists `/api/...` paths in its allow-list, but that list has no effect on the API.
 
 ## Authentication
 
@@ -142,7 +143,7 @@ Things to know about this envelope:
 - **HTTP status is always 200.** `successResponse` and `errorResponse` call `response()->json(...)->send()` without a status, so clients must branch on `error`, not on the status code. Real non-200 statuses only come from middleware (401, 403, 422, 429) and from uncaught framework errors.
 - **`config/constants.php` does not exist** in this repo, so `config('constants.RESPONSE_CODE.*')` is `null`. Every `validationError()` and every `errorResponse()` without an explicit code therefore returns `"code": null`. The apps rely on this: when `code` is `null` they show `message` verbatim.
 - **`details`** holds the exception message, file and line only when `APP_DEBUG=true`; otherwise it is `""`.
-- **The script exits inside the controller.** Both helpers end with `exit()`. The response is sent before the middleware stack unwinds, so after-middleware does not touch it: CORS headers from `HandleCors`, the `SecurityHeaders` headers and throttle headers are not added to these responses. Endpoints that `return response()->json(...)` instead (gallery, `get-events-details`, the middleware errors above) go through the full stack. The feature tests run the API against a real `php -S` server for this reason (see [Testing-and-CI](Testing-and-CI)).
+- **The script exits inside the controller.** Both helpers end with `exit()`. The response is sent before the middleware stack unwinds, so after-middleware does not touch it: CORS headers from `HandleCors`, the `SecurityHeaders` headers and throttle headers are not added to these responses. Endpoints that `return response()->json(...)` instead (gallery, `get-events-details`, the middleware errors above) go through the full stack. For the same reason the feature tests cannot call these endpoints in-process; they serve the app from a separate `php -S` process ([`tests/Concerns/RunsAppServer.php`](https://github.com/ShawnDaPrawn/Eschool/blob/main/admin-panel/tests/Concerns/RunsAppServer.php), see [Testing-and-CI](Testing-and-CI)).
 
 Examples taken from the code:
 
@@ -292,7 +293,7 @@ Updates the hash and deletes all of the user's other tokens. Returns `Password c
 
 ### `POST /api/forgot-password`
 
-Middleware `throttle:login`. Field `email` (required, email). Calls `Password::sendResetLink()` (the standard Laravel reset email; needs mail configured, see [Configuration](Configuration)). Always answers `If an account exists for this email, a password reset link has been sent.`; mail errors are logged, not shown. Students use `student/forgot-password` instead (see [API-Student](API-Student#forgot-password)).
+Middleware `throttle:login`. Field `email` (required, email). Calls `Password::sendResetLink()` (the standard Laravel reset email). It needs a working mail server: the admin panel's email settings are stored in the `settings` table and applied over the `.env` mail config on every boot by `SettingsConfigService::apply()` (see [Configuration](Configuration)). Always answers `If an account exists for this email, a password reset link has been sent.`; mail errors are logged, not shown. Students use `student/forgot-password` instead (see [API-Student](API-Student#forgot-password)).
 
 ### `GET /api/settings`
 
@@ -309,7 +310,7 @@ For any type other than `app_settings`, `data` is the raw settings value with th
 | `school_name`, `school_tagline` | school identity |
 | `session_year` | the current `session_years` row |
 | `online_payment` | setting value, default `"1"` |
-| `is_demo` | `env('DEMO_MODE')` |
+| `is_demo` | `config('app.demo_mode')`, defined in `config/app.php` as `(bool) env('DEMO_MODE', false)`, so it is a JSON boolean and survives `php artisan config:cache` |
 | `compulsory_fee_payment_mode`, `is_student_can_pay_fees` | fee settings |
 | `chat_settings` | `max_files_or_images_in_one_message` (default 10), `max_file_size_in_bytes` (setting in MB times 1,000,000; default 10,000,000), `max_characters_in_text_message` (default 500), `automatically_messages_removed_days` (default 30) |
 | `holiday_days` | `leave_masters.holiday_days` for the current session |
