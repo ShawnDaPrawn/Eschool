@@ -89,7 +89,7 @@ Laravel Sanctum's command, scheduled with `--hours=24`.
 | Signature | `sanctum:prune-expired {--hours=24 : The number of hours to retain expired Sanctum tokens}` |
 | Deletes | `personal_access_tokens` rows whose `expires_at` is more than `--hours` in the past, and, because `config('sanctum.expiration')` is set (`SANCTUM_EXPIRATION`, default 43200 minutes), rows whose `created_at` is older than `expiration + hours * 60` minutes |
 
-With the defaults that is any app token created more than 30 days and 24 hours ago. Expired tokens are already rejected at login time by Sanctum (`SecurityTest::test_expired_app_tokens_are_rejected`); the prune only keeps the table small. The apps log the user out when they get a 401. See [Security-Model](Security-Model).
+With the defaults that is any app token created more than 30 days and 24 hours ago. Expired tokens are already rejected whenever they are used (`SecurityTest::test_expired_app_tokens_are_rejected`); the prune only keeps the table small. The apps log the user out when they get a 401. See [Security-Model](Security-Model).
 
 ```bash
 php artisan sanctum:prune-expired --hours=24
