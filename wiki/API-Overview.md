@@ -38,7 +38,7 @@ The Flutter apps hard-code the server address in one constant each:
 | `/api/teacher/*` | e-school-teacher | `login` | `auth:sanctum`, `role:Teacher`; two routes add `CheckStudent` | 51 |
 | `/api/*` (general) | all apps | 12 read-only/info endpoints plus `forgot-password` | `change-password` only: `auth:sanctum` | 13 |
 
-The role middleware was added in commit `439395d`. Before it, teacher endpoints accepted student and parent tokens.
+The role middleware was added in commit `439395d`. Before it, teacher endpoints accepted student and parent tokens. A later commit (`92e28d7`) added [`app/Http/Middleware/EnsureUserIsTeacher.php`](https://github.com/ShawnDaPrawn/Eschool/blob/main/admin-panel/app/Http/Middleware/EnsureUserIsTeacher.php) for the same check, but no route or alias uses it: the teacher group still relies on `role:Teacher`.
 
 ## Request pipeline
 
@@ -143,7 +143,7 @@ Things to know about this envelope:
 - **HTTP status is always 200.** `successResponse` and `errorResponse` call `response()->json(...)->send()` without a status, so clients must branch on `error`, not on the status code. Real non-200 statuses only come from middleware (401, 403, 422, 429) and from uncaught framework errors.
 - **`config/constants.php` does not exist** in this repo, so `config('constants.RESPONSE_CODE.*')` is `null`. Every `validationError()` and every `errorResponse()` without an explicit code therefore returns `"code": null`. The apps rely on this: when `code` is `null` they show `message` verbatim.
 - **`details`** holds the exception message, file and line only when `APP_DEBUG=true`; otherwise it is `""`.
-- **The script exits inside the controller.** Both helpers end with `exit()`. The response is sent before the middleware stack unwinds, so after-middleware does not touch it: CORS headers from `HandleCors`, the `SecurityHeaders` headers and throttle headers are not added to these responses. Endpoints that `return response()->json(...)` instead (gallery, `get-events-details`, the middleware errors above) go through the full stack. For the same reason the feature tests cannot call these endpoints in-process; they serve the app from a separate `php -S` process ([`tests/Concerns/RunsAppServer.php`](https://github.com/ShawnDaPrawn/Eschool/blob/main/admin-panel/tests/Concerns/RunsAppServer.php), see [Testing-and-CI](Testing-and-CI)).
+- **The script exits inside the controller.** Both helpers end with `exit()`. The response is sent before the middleware stack unwinds, so after-middleware does not touch it: CORS headers from `HandleCors`, the `SecurityHeaders` headers and throttle headers are not added to these responses. Endpoints that `return response()->json(...)` instead (gallery, `get-events-details`, the middleware errors above) go through the full stack. For the same reason the feature tests cannot call these endpoints in-process; they serve the app from a separate `php -S` process. `AdminPagesTest` uses the [`tests/Concerns/RunsAppServer.php`](https://github.com/ShawnDaPrawn/Eschool/blob/main/admin-panel/tests/Concerns/RunsAppServer.php) trait, `PermissionsTest` uses [`tests/Concerns/ServesApp.php`](https://github.com/ShawnDaPrawn/Eschool/blob/main/admin-panel/tests/Concerns/ServesApp.php), and `StudentApiSecurityTest`, `ParentApiSecurityTest` and `TeacherApiSecurityTest` each start their own server with a private `startServer()` (see [Testing-and-CI](Testing-and-CI)).
 
 Examples taken from the code:
 
