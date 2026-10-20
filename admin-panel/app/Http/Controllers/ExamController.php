@@ -21,6 +21,7 @@ use App\Models\Students;
 use App\Models\StudentSessions;
 use App\Models\StudentSubject;
 use App\Models\Subject;
+use App\Models\SubjectTeacher;
 use App\Services\ResponseService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -407,6 +408,13 @@ class ExamController extends Controller
 
     public function publishExamResult($id)
     {
+        // The publish button is on the exam list, which is gated on exam-create.
+        if (! Auth::user()->can('exam-create')) {
+            return response()->json([
+                'error' => true,
+                'message' => trans('no_permission_message'),
+            ]);
+        }
         try {
             $exam_marks_db = ExamTimetable::where('exam_id', $id)->with('exam_marks')->get();
 
@@ -641,6 +649,12 @@ class ExamController extends Controller
 
     public function getExamSubjects($exam_id)
     {
+        if (! Auth::user()->can('exam-upload-marks')) {
+            return response()->json([
+                'error' => true,
+                'message' => trans('no_permission_message'),
+            ]);
+        }
         try {
             $teacher_id = Auth::user()->teacher->id;
             $class_section_id = ClassTeacher::where('class_teacher_id', $teacher_id)->pluck('class_section_id');
@@ -695,6 +709,14 @@ class ExamController extends Controller
 
         $exam = Exam::findOrFail($request->exam_id);
         $session_year_id = $exam->session_year_id;
+
+        $allowed_class_section_ids = $this->teacherMarksClassSectionIds($session_year_id, $request->subject_id);
+        if ($allowed_class_section_ids !== null && ! $allowed_class_section_ids->contains($request->class_section_id)) {
+            return response()->json([
+                'error' => true,
+                'message' => trans('no_permission_message'),
+            ]);
+        }
 
         $exam_timetable_id = ExamTimetable::where(['exam_id' => $request->exam_id, 'class_id' => $request->class_id, 'subject_id' => $request->subject_id])->pluck('id')->first();
 
@@ -808,6 +830,12 @@ class ExamController extends Controller
 
     public function submitMarks(Request $request)
     {
+        if (! Auth::user()->can('exam-upload-marks')) {
+            return response()->json([
+                'error' => true,
+                'message' => trans('no_permission_message'),
+            ]);
+        }
 
         $validator = Validator::make($request->all(), [
             'exam_id' => 'required|numeric',
@@ -828,6 +856,27 @@ class ExamController extends Controller
         try {
             $teacher_id = Auth::user()->teacher->id;
             $exam_timetable = ExamTimetable::where(['exam_id' => $request->exam_id, 'class_id' => $request->class_id])->where('subject_id', $request->subject_id)->firstOrFail();
+
+            $submitted_marks = (array) $request->exam_marks;
+            // Teachers may only submit marks for students of their own class sections.
+            if (! $this->canManageStudentMarks(array_column($submitted_marks, 'student_id'), $exam_timetable->session_year_id, $request->subject_id)) {
+                return response()->json([
+                    'error' => true,
+                    'message' => trans('no_permission_message'),
+                ]);
+            }
+            // An existing marks row may only be overwritten with marks of the same timetable and student.
+            foreach ($submitted_marks as $exam_marks) {
+                if (! empty($exam_marks['exam_marks_id']) && ! ExamMarks::where('id', $exam_marks['exam_marks_id'])
+                    ->where('exam_timetable_id', $exam_timetable->id)
+                    ->where('student_id', $exam_marks['student_id'])
+                    ->exists()) {
+                    return response()->json([
+                        'error' => true,
+                        'message' => trans('no_permission_message'),
+                    ]);
+                }
+            }
 
             foreach ($request->exam_marks as $exam_marks) {
                 $passing_marks = $exam_timetable->passing_marks;
@@ -858,10 +907,10 @@ class ExamController extends Controller
                 'message' => trans('data_store_successfully'),
             ];
         } catch (Throwable $e) {
+            report($e);
             $response = [
                 'error' => true,
                 'message' => trans('error_occurred'),
-                'data' => $e,
             ];
         }
 
@@ -1068,6 +1117,13 @@ class ExamController extends Controller
 
     public function getGradesBySessionYear($sessionYearId)
     {
+        // Used by the grades page, which is gated on grade-create.
+        if (! Auth::user()->can('grade-create')) {
+            return response()->json([
+                'error' => true,
+                'message' => trans('no_permission_message'),
+            ]);
+        }
         $grades = Grade::where('session_year_id', $sessionYearId)
             ->orderBy('starting_range')
             ->get([
@@ -1326,9 +1382,11 @@ class ExamController extends Controller
                 'rows' => $rows,
             ]);
         } catch (\Throwable $e) {
+            report($e);
+
             return response()->json([
                 'error' => true,
-                'message' => $e->getMessage(),
+                'message' => trans('error_occurred'),
                 'total' => 0,
                 'rows' => [],
             ]);
@@ -1483,9 +1541,11 @@ class ExamController extends Controller
                 ]);
             }
         } catch (Throwable $e) {
+            report($e);
+
             return response()->json([
                 'error' => true,
-                'message' => 'Error loading exam results: '.$e->getMessage(),
+                'message' => trans('error_occurred'),
                 'total' => 0,
                 'rows' => [],
             ]);
@@ -1515,6 +1575,21 @@ class ExamController extends Controller
         }
         try {
             $teacher_id = Auth::user()->teacher->id;
+
+            foreach ((array) $request->edit as $data) {
+                $mark = ExamMarks::with('timetable')->find($data['marks_id'] ?? null);
+                // The marks row must belong to the submitted student and exam, and Teachers
+                // may only edit marks of students in their own class sections.
+                if (! $mark || ! $mark->timetable
+                    || (int) $mark->student_id !== (int) ($data['student_id'] ?? 0)
+                    || (int) $mark->timetable->exam_id !== (int) ($data['exam_id'] ?? 0)
+                    || ! $this->canManageStudentMarks([$mark->student_id], $mark->timetable->session_year_id, $mark->subject_id)) {
+                    return response()->json([
+                        'error' => true,
+                        'message' => trans('no_permission_message'),
+                    ]);
+                }
+            }
 
             foreach ($request->edit as $data) {
                 $class_id = ExamClass::where('exam_id', $data['exam_id'])->pluck('class_id')->first();
@@ -1742,7 +1817,19 @@ class ExamController extends Controller
 
     public function deleteExamClass($exam_id, $class_id)
     {
+        if (! Auth::user()->can('exam-create')) {
+            return response()->json([
+                'error' => true,
+                'message' => trans('no_permission_message'),
+            ]);
+        }
         $exam_class = ExamClass::where('exam_id', $exam_id)->where('class_id', $class_id)->first();
+        if (! $exam_class) {
+            return response()->json([
+                'error' => true,
+                'message' => trans('error_occurred'),
+            ]);
+        }
 
         $exam_class->delete();
         $response = [
@@ -1751,5 +1838,53 @@ class ExamController extends Controller
         ];
 
         return response()->json($response);
+    }
+
+    /**
+     * Class sections a Teacher may handle marks of the subject in: those they are
+     * the class teacher of (as showExamResult checks) or teach the subject in.
+     * Returns null for other roles, which are limited by their permissions alone.
+     */
+    private function teacherMarksClassSectionIds($session_year_id, $subject_id): ?\Illuminate\Support\Collection
+    {
+        $user = Auth::user();
+        if (! $user->hasRole('Teacher')) {
+            return null;
+        }
+        $teacher_id = $user->teacher->id ?? null;
+        if (! $teacher_id) {
+            return collect();
+        }
+        $inSessionYear = function ($query) use ($session_year_id) {
+            $query->where('session_year_id', $session_year_id)->orWhereNull('session_year_id');
+        };
+
+        return ClassTeacher::where('class_teacher_id', $teacher_id)->where($inSessionYear)->pluck('class_section_id')
+            ->merge(SubjectTeacher::where('teacher_id', $teacher_id)->where('subject_id', $subject_id)->where($inSessionYear)->pluck('class_section_id'))
+            ->unique()
+            ->values();
+    }
+
+    /**
+     * Whether the user may handle the marks of these students: for Teachers, every
+     * student must be in one of their class sections in that session year.
+     */
+    private function canManageStudentMarks(array $student_ids, $session_year_id, $subject_id): bool
+    {
+        $class_section_ids = $this->teacherMarksClassSectionIds($session_year_id, $subject_id);
+        if ($class_section_ids === null) {
+            return true;
+        }
+        $student_ids = array_values(array_unique(array_map('intval', $student_ids)));
+        if (empty($student_ids) || $class_section_ids->isEmpty()) {
+            return false;
+        }
+        $assigned = StudentSessions::whereIn('student_id', $student_ids)
+            ->where('session_year_id', $session_year_id)
+            ->whereIn('class_section_id', $class_section_ids)
+            ->distinct()
+            ->count('student_id');
+
+        return $assigned === count($student_ids);
     }
 }

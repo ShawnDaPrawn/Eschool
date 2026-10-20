@@ -40,6 +40,13 @@ class AttendanceController extends Controller
      */
     public function monthlyView()
     {
+        if (! Auth::user()->can('attendance-staff')) {
+            $response = [
+                'message' => trans('no_permission_message'),
+            ];
+
+            return redirect(route('home'))->withErrors($response);
+        }
         $session_year = getSettings('session_year');
         $session_year_id = $session_year['session_year'];
 
@@ -60,6 +67,9 @@ class AttendanceController extends Controller
 
     public function getSessionYearMonths(Request $request)
     {
+        if (! Auth::user()->can('attendance-staff')) {
+            return response()->json(['error' => true, 'message' => trans('no_permission_message')]);
+        }
         $session_year = SessionYear::FindOrFail($request->session_year_id);
         $start = Carbon::parse($session_year->start_date)->startOfMonth();
         $end = Carbon::parse($session_year->end_date)->startOfMonth();
@@ -81,6 +91,9 @@ class AttendanceController extends Controller
 
     public function monthlyAjax(Request $request)
     {
+        if (! Auth::user()->can('attendance-staff')) {
+            return response()->json(['error' => true, 'message' => trans('no_permission_message')]);
+        }
         $session_year_id = $request->get('session_year_id');
 
         if (empty($session_year_id)) {
@@ -257,9 +270,15 @@ class AttendanceController extends Controller
 
     public function getAttendanceData(Request $request)
     {
+        if (! Auth::user()->can('attendance-list')) {
+            return response()->json(['error' => true, 'message' => trans('no_permission_message')]);
+        }
         $date = $request->date ? date('Y-m-d', strtotime($request->date)) : Carbon::now()->toDateString();
         $response = Attendance::select('type')->where(['date' => $date, 'class_section_id' => $request->class_section_id])->pluck('type')->first();
         if ($request->holiday == 3) {
+            if (! Auth::user()->can('attendance-create')) {
+                return response()->json(['error' => true, 'message' => trans('no_permission_message')]);
+            }
 
             $students = StudentSession::where('class_section_id', $request->class_section_id)
                 ->where('session_year_id', $sessionYearId)
@@ -410,10 +429,10 @@ class AttendanceController extends Controller
                 'message' => trans('data_store_successfully'),
             ];
         } catch (\Exception $e) {
+            report($e);
             $response = [
                 'error' => true,
                 'message' => trans('error_occurred'),
-                'data' => $e->getMessage(),
             ];
         }
 
@@ -486,7 +505,7 @@ class AttendanceController extends Controller
             $sql->where(function ($query) use ($search) {
                 $query->where('id', 'LIKE', "%$search%")
                     ->orWhereHas('user', function ($q) use ($search) {
-                        $q->whereRaw("concat(first_name,' ',last_name) LIKE '%".$search."%'")
+                        $q->whereRaw("concat(first_name,' ',last_name) LIKE ?", ['%'.$search.'%'])
                             ->orWhere('first_name', 'LIKE', "%$search%")
                             ->orWhere('last_name', 'LIKE', "%$search%");
                     });
@@ -625,19 +644,22 @@ class AttendanceController extends Controller
 
         if (isset($_GET['search']) && ! empty($_GET['search'])) {
             $search = $_GET['search'];
-            $sql->where('id', 'LIKE', "%$search%")
-                ->orwhere('student_id', 'LIKE', "%$search%")
-                ->orWhereHas('student.user', function ($q) use ($search) {
-                    $q->whereRaw("concat(users.first_name,' ',users.last_name) LIKE '%".$search."%'")
-                        ->orwhere('users.first_name', 'LIKE', "%$search%")
-                        ->orwhere('users.last_name', 'LIKE', "%$search%");
-                })
-                ->orWhereHas('student', function ($q) use ($search) {
-                    $q->where('admission_no', 'LIKE', "%$search%")
-                        ->orwhere('id', 'LIKE', "%$search%")
-                        ->orwhere('user_id', 'LIKE', "%$search%")
-                        ->orwhere('roll_number', 'LIKE', "%$search%");
-                });
+            // Grouped so the search cannot widen the date/class-section filters above.
+            $sql->where(function ($query) use ($search) {
+                $query->where('id', 'LIKE', "%$search%")
+                    ->orwhere('student_id', 'LIKE', "%$search%")
+                    ->orWhereHas('student.user', function ($q) use ($search) {
+                        $q->whereRaw("concat(users.first_name,' ',users.last_name) LIKE ?", ['%'.$search.'%'])
+                            ->orwhere('users.first_name', 'LIKE', "%$search%")
+                            ->orwhere('users.last_name', 'LIKE', "%$search%");
+                    })
+                    ->orWhereHas('student', function ($q) use ($search) {
+                        $q->where('admission_no', 'LIKE', "%$search%")
+                            ->orwhere('id', 'LIKE', "%$search%")
+                            ->orwhere('user_id', 'LIKE', "%$search%")
+                            ->orwhere('roll_number', 'LIKE', "%$search%");
+                    });
+            });
         }
         if (isset($attendance_type) && $attendance_type != '') {
             $sql->where('type', $attendance_type);
@@ -735,6 +757,9 @@ class AttendanceController extends Controller
 
     public function studentExport(Request $request)
     {
+        if (! Auth::user()->can('attendance-list')) {
+            return response()->json(['error' => true, 'message' => trans('no_permission_message')]);
+        }
         $validator = Validator::make($request->all(), [
             'class_section_id' => 'required',
             'date' => 'required',
@@ -948,7 +973,7 @@ class AttendanceController extends Controller
             $sql->where(function ($query) use ($search) {
                 $query->where('students.id', 'LIKE', "%$search%")
                     ->orWhereHas('student.user', function ($q) use ($search) {
-                        $q->whereRaw("concat(first_name,' ',last_name) LIKE '%".$search."%'")
+                        $q->whereRaw("concat(first_name,' ',last_name) LIKE ?", ['%'.$search.'%'])
                             ->orWhere('first_name', 'LIKE', "%$search%")
                             ->orWhere('last_name', 'LIKE', "%$search%");
                     });
@@ -1049,6 +1074,9 @@ class AttendanceController extends Controller
 
     public function checkStaffLeave(Request $request)
     {
+        if (! Auth::user()->can('attendance-staff')) {
+            return response()->json(['on_leave' => []]);
+        }
         $staffIds = $request->input('staff_ids', []);
         $date = $request->input('date');
         $sessionYearId = $request->input('session_year_id');

@@ -44,6 +44,10 @@ class SubjectController extends Controller
      */
     public function update(Request $request, $id)
     {
+        if (! Auth::user()->can('subject-edit')) {
+            return response()->json(['error' => true, 'message' => trans('no_permission_message')]);
+        }
+
         $validator = Validator::make($request->all(), [
             'medium_id' => 'required|numeric',
             'name' => 'required',
@@ -116,10 +120,10 @@ class SubjectController extends Controller
                 );
             }
         } catch (\Throwable $e) {
+            report($e);
             $response = array(
                 'error' => true,
-                'message' => trans('error_occurred'),
-                'data' => $e
+                'message' => trans('error_occurred')
             );
         }
         return response()->json($response);
@@ -133,6 +137,10 @@ class SubjectController extends Controller
      */
     public function store(Request $request)
     {
+        if (! Auth::user()->can('subject-create')) {
+            return response()->json(['error' => true, 'message' => trans('no_permission_message')]);
+        }
+
         $validator = Validator::make($request->all(), [
             'medium_id' => 'required|numeric',
             'name' => 'required',
@@ -198,10 +206,10 @@ class SubjectController extends Controller
                 );
             }
         } catch (\Throwable $e) {
+            report($e);
             $response = array(
                 'error' => true,
-                'message' => trans('error_occurred'),
-                'data' => $e
+                'message' => trans('error_occurred')
             );
         }
         return response()->json($response);
@@ -213,6 +221,10 @@ class SubjectController extends Controller
      */
     public function destroy($id)
     {
+        if (! Auth::user()->can('subject-delete')) {
+            return response()->json(['error' => true, 'message' => trans('no_permission_message')]);
+        }
+
         try {
             $subject = Subject::findOrFail($id);
 
@@ -235,6 +247,10 @@ class SubjectController extends Controller
 
     public function show()
     {
+        if (! Auth::user()->canany(['subject-list', 'subject-create'])) {
+            return response()->json(['error' => true, 'message' => trans('no_permission_message')]);
+        }
+
         $offset = 0;
         $limit = 10;
         $sort = 'id';

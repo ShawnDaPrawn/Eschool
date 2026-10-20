@@ -600,7 +600,7 @@ class AssignmentController extends Controller
                         })->orWhereHas('assignment', function ($query) use ($search) {
                             $query->where('name', 'LIKE', "%$search%");
                         })->orWhereHas('student.user', function ($query) use ($search) {
-                            $query->whereRaw("concat(users.first_name,' ',users.last_name) LIKE '%".$search."%'");
+                            $query->whereRaw("concat(users.first_name,' ',users.last_name) LIKE ?", ['%'.$search.'%']);
                         });
                 });
             })
@@ -736,10 +736,10 @@ class AssignmentController extends Controller
                 'message' => trans('data_update_successfully'),
             ];
         } catch (\Throwable $e) {
+            report($e);
             $response = [
                 'error' => true,
                 'message' => trans('error_occurred'),
-                'data' => $e,
             ];
         }
 

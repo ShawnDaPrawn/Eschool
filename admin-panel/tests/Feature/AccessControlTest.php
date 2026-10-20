@@ -6,6 +6,7 @@ use App\Models\EmailTempalate;
 use App\Models\Parents;
 use App\Models\Staff;
 use App\Models\Students;
+use App\Models\Subject;
 use App\Models\StudentSessions;
 use App\Models\User;
 use App\Services\EmailTemplateService;
@@ -94,6 +95,17 @@ class AccessControlTest extends TestCase
             ->assertForbidden();
 
         $this->assertSame($before, EmailTempalate::where('type', 'staff_registration')->value('content'));
+    }
+
+    public function test_subjects_need_subject_permissions(): void
+    {
+        $subject = Subject::forceCreate(['name' => 'Maths', 'bg_color' => '#fff', 'image' => 'x.png', 'medium_id' => 1, 'type' => 'Theory']);
+
+        $this->actingAs($this->user('Teacher', 'teacher@example.com'))
+            ->deleteJson('/subject/'.$subject->id)
+            ->assertJson(['error' => true]);
+
+        $this->assertNotNull(Subject::find($subject->id));
     }
 
     public function test_email_templates_fill_placeholders_without_running_blade(): void

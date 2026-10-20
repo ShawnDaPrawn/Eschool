@@ -88,10 +88,10 @@ class FeesTypeController extends Controller
                 'message' => trans('data_store_successfully'),
             ];
         } catch (Throwable $e) {
+            report($e);
             $response = [
                 'error' => true,
                 'message' => trans('error_occurred'),
-                'data' => $e,
             ];
         }
 
@@ -448,10 +448,10 @@ class FeesTypeController extends Controller
                 'message' => trans('data_store_successfully'),
             ];
         } catch (\Throwable $e) {
+            report($e);
             $response = [
                 'error' => true,
                 'message' => trans('error_occurred'),
-                'data' => $e,
             ];
         }
 
@@ -2252,10 +2252,10 @@ class FeesTypeController extends Controller
                 ];
             } else {
                 DB::rollBack();
+                report($e);
                 $response = [
                     'error' => true,
                     'message' => trans('error_occurred'),
-                    'data' => $e->getMessage(),
                 ];
             }
         }

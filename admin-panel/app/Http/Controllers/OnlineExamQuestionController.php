@@ -356,7 +356,7 @@ class OnlineExamQuestionController extends Controller
                                     });
                             })
                                 ->orWhereHas('subject', function ($c) use ($search) {
-                                    $c->whereRaw("concat(name,' - ',type) LIKE '%".$search."%'");
+                                    $c->whereRaw("concat(name,' - ',type) LIKE ?", ['%'.$search.'%']);
                                 });
                         })
                         ->orWhereHas('options', function ($p) use ($search) {
@@ -530,6 +530,12 @@ class OnlineExamQuestionController extends Controller
      */
     public function update(Request $request, $id)
     {
+        if (! Auth::user()->can('manage-online-exam')) {
+            return response()->json([
+                'error' => true,
+                'message' => trans('no_permission_message'),
+            ]);
+        }
         $validator = Validator::make(
             $request->all(),
             [
@@ -754,10 +760,11 @@ class OnlineExamQuestionController extends Controller
                 'message' => trans('data_delete_successfully'),
             ]);
         } catch (\Throwable $e) {
+            report($e);
+
             return response()->json([
                 'error' => true,
                 'message' => trans('error_occurred'),
-                'data' => $e,
             ]);
         }
     }
@@ -778,10 +785,10 @@ class OnlineExamQuestionController extends Controller
                 'message' => trans('data_delete_successfully'),
             ];
         } catch (Throwable $e) {
+            report($e);
             $response = [
                 'error' => true,
                 'message' => trans('error_occurred'),
-                'data' => $e,
             ];
         }
 
@@ -804,10 +811,10 @@ class OnlineExamQuestionController extends Controller
                 'message' => trans('data_delete_successfully'),
             ];
         } catch (Throwable $e) {
+            report($e);
             $response = [
                 'error' => true,
                 'message' => trans('error_occurred'),
-                'data' => $e,
             ];
         }
 

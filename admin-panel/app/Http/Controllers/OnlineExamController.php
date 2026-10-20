@@ -761,7 +761,8 @@ class OnlineExamController extends Controller
                     }
                     $question_store->save();
                 } catch (Throwable $e) {
-                    dd($e->getMessage());
+                    // Handled by the outer catch, which returns a generic error.
+                    throw $e;
                 }
 
                 // store options
