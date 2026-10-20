@@ -9,31 +9,26 @@ use Illuminate\Foundation\Bus\DispatchesJobs;
 use Illuminate\Foundation\Validation\ValidatesRequests;
 use Illuminate\Routing\Controller as BaseController;
 use Illuminate\Support\Facades\Session;
-use App\Services\ResponseService;
 use Illuminate\Support\Facades\File;
-use Throwable;
+use Illuminate\Http\Response;
 
 class Controller extends BaseController {
     use AuthorizesRequests, DispatchesJobs, ValidatesRequests;
 
 
-    public function readLanguageFile() {
-        try {
-            //    https://medium.com/@serhii.matrunchyk/using-laravel-localization-with-javascript-and-vuejs-23064d0c210e
-            header('Content-Type: text/javascript');
-            //        $labels = Cache::remember('lang.js', 3600, static function () {
-            //            $lang = app()->getLocale();
-            $lang = Session::get('language');
-            //            $lang = app()->getLocale();
-            $test = $lang->code ?? "en";
-            $files = resource_path('lang/' . $test . '.json');
-            //            return File::get($files);
-            //        });]
-            echo ('window.languageLabels = ' . File::get($files));
-            // http_response_code(200);
-            exit();
-        } catch (Throwable $th) {
-            ResponseService::errorResponse($th->getMessage());
+    /**
+     * The current language's labels for the admin panel's JavaScript, as
+     * window.languageLabels. Falls back to English when the language has no
+     * file (for example a languages row whose upload was removed).
+     */
+    public function readLanguageFile(): Response
+    {
+        $code = Session::get('language')->code ?? 'en';
+        $file = resource_path('lang/'.basename((string) $code).'.json');
+        if (! File::exists($file)) {
+            $file = resource_path('lang/en.json');
         }
+
+        return response('window.languageLabels = '.File::get($file), 200, ['Content-Type' => 'text/javascript']);
     }
 }
