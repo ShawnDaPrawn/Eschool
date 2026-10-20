@@ -1,0 +1,11 @@
+{
+  "hosting": {
+    "public": "documentation/build",
+    "ignore": ["**/.*"],
+    "trailingSlash": true,
+    "predeploy": [
+      "npm --prefix \"$PROJECT_DIR/documentation\" ci --no-audit --no-fund",
+      "DOCS_URL=\"https://$GCLOUD_PROJECT.web.app\" DOCS_BASE_URL=/ npm --prefix \"$PROJECT_DIR/documentation\" run build"
+    ]
+  }
+}

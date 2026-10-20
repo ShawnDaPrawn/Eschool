@@ -14,9 +14,10 @@ const config = {
   tagline: 'Comprehensive documentation for eSchool covering installation, setup, features, and support.',
   favicon: 'images/logo/logo.png',
 
-  // Set the production url of your site here
-  url: 'https://shawndaprawn.github.io', // Your GitHub Pages URL
-  baseUrl: '/Eschool/', // The repository name, preceded by a slash
+  // Set the production url of your site here. DOCS_URL and DOCS_BASE_URL
+  // override both for other hosts, e.g. Firebase Hosting serves from '/'.
+  url: process.env.DOCS_URL || 'https://shawndaprawn.github.io', // Your GitHub Pages URL
+  baseUrl: process.env.DOCS_BASE_URL || '/Eschool/', // The repository name, preceded by a slash
   organizationName: 'ShawnDaPrawn', // Your GitHub username
   projectName: 'Eschool', // Your repository name
   trailingSlash: true,
