@@ -114,7 +114,7 @@ Who is recorded as the parent: for the student endpoint `father_id`, else `guard
 
 ### Gateway adapters
 
-`PaymentService::create($payment_method)` builds the adapter with keys from the `settings` table (`getSettings()`), except Paystack, which the `Unicodeveloper\Paystack\Paystack` base class configures from `config/paystack.php` (`PAYSTACK_SECRET_KEY`, `PAYSTACK_PAYMENT_URL` in `.env`). `PaymentService::currencyCode()` uses the gateway's own `*_currency_code` setting, else `currency_code`, upper-cased.
+`PaymentService::create($payment_method)` builds the adapter with keys from the `settings` table (`getSettings()`), except Paystack, which the `Unicodeveloper\Paystack\Paystack` base class configures from `config('paystack.secretKey')` and `config('paystack.paymentUrl')`. `App\Services\SettingsConfigService::apply()` (called from `AppServiceProvider::boot()`) overwrites those config values with the `paystack_secret_key` and `paystack_payment_url` settings on every request, so the `.env` values in `config/paystack.php` only matter while the settings are empty. `PaymentService::currencyCode()` uses the gateway's own `*_currency_code` setting, else `currency_code`, upper-cased.
 
 | Gateway | What `createPaymentIntent` creates | Stored as `order_id` | Amount sent | Notes |
 |---|---|---|---|---|
@@ -135,7 +135,7 @@ Routes (in `routes/web.php`, outside every auth group; `bootstrap/app.php` exemp
 | `POST /webhook/flutterwave` | `flutterwave` | `verif-hash` header must equal `webhookSecret('flutterwave')` (`hash_equals`); refused when either is empty | `data.status` `successful` (paid) or `failed` | `payment_transaction_id` from `meta_data` (or `data.meta`) and `payment_gateway = 4`, because the stored `order_id` is the checkout link |
 | `GET /response/paystack/success` (`paystack.success`), `GET /response/flutterwave/success` (`flutterwave.success`) | `paystackSuccessCallback`, `flutterwaveSuccessCallback` | none | none | none: fixed JSON reply only |
 
-`PaymentService::webhookSecret($gateway)` reads the settings row first (`razorpay_webhook_secret`, `stripe_webhook_secret`, `paystack_secret_key`, `flutterwave_hash_key`), then the config value (`services.razorpay.webhook_secret`, `services.stripe.webhook_secret`, `services.paystack.secret_key`, `services.flutterwave.secret_hash`, defined in [`config/services.php`](https://github.com/ShawnDaPrawn/Eschool/blob/main/admin-panel/config/services.php) from `.env`). It returns `''` when neither is set, and every handler then refuses the call. All comparisons use `hash_equals`.
+`PaymentService::webhookSecret($gateway)` reads the settings row first (`razorpay_webhook_secret`, `stripe_webhook_secret`, `paystack_secret_key`, `flutterwave_hash_key`), then the config value (`services.razorpay.webhook_secret`, `services.stripe.webhook_secret`, `services.paystack.secret_key`, `services.flutterwave.secret_hash`, defined in [`config/services.php`](https://github.com/ShawnDaPrawn/Eschool/blob/main/admin-panel/config/services.php) from `.env` keys that the admin panel never writes, so they are only a manual fallback). It returns `''` when neither is set, and every handler then refuses the call. All comparisons use `hash_equals`.
 
 After the signature, every handler does the same thing:
 
@@ -164,7 +164,7 @@ The admin panel's **Fees > Fees Paid** page (`fees.paid.index`, view `fees/fees_
 | `DELETE fees/paid/remove-choiceable-fees/{id}` | `feesPaidRemoveChoiceableFees` | Deletes one optional fee payment and subtracts it from the transaction and `fees_paids` (deleting them when they reach 0). |
 | `DELETE fees/paid/remove-installment-fees/{id}` | `feesPaidRemoveInstallmentFees` | Same for one installment; sets `is_fully_paid` to 0. |
 | `DELETE fees/paid/clear-data/{id}` | `clearFeesPaidData` | Deletes a `fees_paids` row and all `fees_choiceables`, `paid_installment_fees` and `payment_transactions` of that student, class and session year. |
-| `GET fees/paid/receipt-pdf/{id}` (`fees.paid.receipt.pdf`) | `feesPaidReceiptPDF` | Streams the receipt PDF for one `fees_paids` row, built with `Pdf::loadView('fees.fees_receipt', ...)` using the `LOGO2` and `APP_NAME` env values and the `school_address` and `currency_symbol` settings. |
+| `GET fees/paid/receipt-pdf/{id}` (`fees.paid.receipt.pdf`) | `feesPaidReceiptPDF` | Streams the receipt PDF for one `fees_paids` row, built with `Pdf::loadView('fees.fees_receipt', ...)` using the `logo2` setting (`schoolSetting('logo2')`), `config('app.name')` (the school name, see [Configuration](Configuration)) and the `school_address` and `currency_symbol` settings. The app receipt endpoints use the same sources. |
 
 Unlike the app endpoints, staff-entered amounts are taken from the request (staff are trusted). Both store methods require the student to have a father or guardian (`no_parent_or_guardian_assigned` otherwise), because `payment_transactions.parent_id` and `paid_installment_fees.parent_id` reference `parents`. Both send a "Payment Success" push with type `Online` to that parent, even for cash.
 
@@ -179,21 +179,23 @@ Other fee pages (all in `FeesTypeController`, views in `resources/views/fees/`):
 
 ## Settings reference
 
-Everything below is stored in the `settings` table (`type`/`message` pairs, read with `getSettings()`). The fees configuration page (`FeesTypeController::feesConfigUpdate`, view `fees/fees_config.blade.php`) writes the gateway keys and also mirrors some into `.env` with `changeEnv()` (line breaks stripped). A gateway's keys are only saved while its status is 1, and `required_if:<gateway>_status,1` makes its keys, webhook secret, webhook URL and currency mandatory when enabling it.
+Everything below is stored only in the `settings` table (`type`/`message` pairs, read with `getSettings()`). The fees configuration page (`FeesTypeController::feesConfigUpdate`, view `fees/fees_config.blade.php`) writes the gateway keys there. It no longer copies anything into `.env`: commit `e13ac7d` removed the `changeEnv()` helper, so the checkout and the webhooks read the same settings rows. A gateway's keys are only saved while its status is 1, and `required_if:<gateway>_status,1` makes its keys, webhook secret, webhook URL and currency mandatory when enabling it. With `DEMO_MODE=true` (`config('app.demo_mode')`) the form shows `x` placeholders instead of the stored keys.
 
-| Setting key | Written by | `.env` key | Used by |
+| Setting key | Written by | `.env` fallback (only when the setting is empty) | Used by |
 |---|---|---|---|
 | `currency_code`, `currency_symbol` | Fees configuration | none | Default currency; receipts; `/api/settings` |
 | `default_due_charges`, `enable_fees_installment` | Fees configuration | none | Defaults shown on the session-year form |
 | `compulsory_fee_payment_mode` | Fees configuration | none | When 1, login/profile APIs return `is_fee_payment_due` (from `free_app_use_date`, `fee_due_date`, installments) so the app can block use until fees are paid |
 | `is_student_can_pay_fees` | Fees configuration | none | Sent to the app; the student payment endpoints do not check it |
 | `online_payment` | General settings (`SettingController::update`) | none | Sent to the app; not checked by the payment endpoints |
-| `razorpay_status`, `razorpay_api_key`, `razorpay_secret_key`, `razorpay_webhook_secret`, `razorpay_webhook_url`, `razorpay_currency_code` | Fees configuration | `RAZORPAY_API_KEY`, `RAZORPAY_SECRET_KEY`, `RAZORPAY_WEBHOOK_SECRET`, `RAZORPAY_WEBHOOK_URL` | API keys from settings; webhook secret from settings, then `services.razorpay.webhook_secret` |
-| `stripe_status`, `stripe_publishable_key`, `stripe_secret_key`, `stripe_webhook_secret`, `stripe_webhook_url`, `stripe_currency_code` | Fees configuration | `STRIPE_PUBLISHABLE_KEY`, `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`, `STRIPE_WEBHOOK_URL` | Secret key from settings; webhook secret from settings, then `services.stripe.webhook_secret` |
-| `paystack_status`, `paystack_public_key`, `paystack_secret_key`, `paystack_webhook_url`, `paystack_payment_url`, `paystack_currency_code` | Fees configuration | `PAYSTACK_PUBLIC_KEY`, `PAYSTACK_SECRET_KEY`, `PAYSTACK_WEBHOOK_URL`, `PAYSTACK_PAYMENT_URL` | API calls use `config/paystack.php` (env); webhook HMAC key from the `paystack_secret_key` setting, then `services.paystack.secret_key` |
-| `flutterwave_status`, `flutterwave_public_key`, `flutterwave_secret_key`, `flutterwave_hash_key`, `flutterwave_webhook_url`, `flutterwave_currency_code` | Fees configuration | `FLW_PUBLIC_KEY`, `FLW_SECRET_KEY`, `FLW_SECRET_HASH`, `FLW_WEBHOOK_URL` | Secret key from settings; `verif-hash` compared with `flutterwave_hash_key`, then `services.flutterwave.secret_hash` |
+| `razorpay_status`, `razorpay_api_key`, `razorpay_secret_key`, `razorpay_webhook_secret`, `razorpay_webhook_url`, `razorpay_currency_code` | Fees configuration | `RAZORPAY_WEBHOOK_SECRET` (`services.razorpay.webhook_secret`) | API keys from settings only; webhook secret from the setting, then the config fallback |
+| `stripe_status`, `stripe_publishable_key`, `stripe_secret_key`, `stripe_webhook_secret`, `stripe_webhook_url`, `stripe_currency_code` | Fees configuration | `STRIPE_WEBHOOK_SECRET` (`services.stripe.webhook_secret`) | Secret key from settings only; webhook secret from the setting, then the config fallback |
+| `paystack_status`, `paystack_public_key`, `paystack_secret_key`, `paystack_webhook_url`, `paystack_payment_url`, `paystack_currency_code` | Fees configuration | `PAYSTACK_PUBLIC_KEY`, `PAYSTACK_SECRET_KEY`, `PAYSTACK_PAYMENT_URL` (`config/paystack.php`); `PAYSTACK_SECRET_KEY` also as `services.paystack.secret_key` | API calls: `SettingsConfigService` copies `paystack_public_key`, `paystack_secret_key`, `paystack_payment_url` onto `paystack.publicKey`, `paystack.secretKey`, `paystack.paymentUrl` on every boot. Webhook HMAC key: the `paystack_secret_key` setting, then `services.paystack.secret_key` |
+| `flutterwave_status`, `flutterwave_public_key`, `flutterwave_secret_key`, `flutterwave_hash_key`, `flutterwave_webhook_url`, `flutterwave_currency_code` | Fees configuration | `FLW_SECRET_HASH` (`services.flutterwave.secret_hash`) | Secret key from settings only; `verif-hash` compared with `flutterwave_hash_key`, then the config fallback |
 
-The `*_webhook_url` fields are pre-filled with `<scheme://host>/webhook/<gateway>` and only stored for reference; the gateway dashboards must point at those URLs. The Docusaurus webhook page covers Razorpay, Stripe and Paystack; it has no Flutterwave section.
+`config/services.php` also defines `services.razorpay.key/secret`, `services.stripe.key/secret` and `services.flutterwave.public_key/secret_key` from `.env`, but no payment code reads them, and its comment that "the fee settings page writes these .env keys" predates commit `e13ac7d`. The `paystack_payment_url` field is read-only and always submits `https://api.paystack.co`.
+
+The `*_webhook_url` fields are read-only, pre-filled with `<scheme://host>/webhook/<gateway>`, and only stored for reference; the gateway dashboards must point at those URLs. The Docusaurus webhook page covers Razorpay, Stripe and Paystack; it has no Flutterwave section.
 
 ### Flutterwave secret hash
 
@@ -247,8 +249,8 @@ That commit rewrote the payment path. The behaviour it guarantees, and that `Pay
 
 ## Gotchas
 
-- A webhook secret saved in the admin panel is used immediately (settings table); the `.env` copies matter only as a fallback and only after `php artisan config:clear` if config is cached. Paystack API calls themselves read `.env` through `config/paystack.php`, so a cached config keeps old Paystack keys.
-- `changeEnv()` rewrites `.env` in place; the web server user needs write access to it.
+- Gateway keys and webhook secrets saved in the admin panel take effect on the next request, including with `php artisan config:cache`, because they are read from the settings table (Paystack's through `SettingsConfigService` at boot). `.env` payment keys are only consulted while the matching setting is empty; with cached config they are whatever was in `.env` when the cache was built.
+- Older installs may still have payment keys in `.env` from when the panel copied them there; they are no longer updated, so a stale `.env` webhook secret is harmless only as long as the setting is filled in.
 - An enabled gateway with a missing webhook secret leaves every payment pending: the app shows the gateway's success, but nothing is recorded until a valid webhook arrives.
 - Paystack payments need a payer email (father's or guardian's for the student app, the parent's own for the parent app).
 - The student app's receipt endpoint uses the student's first `fees_paids` row, not one for a chosen session year.
