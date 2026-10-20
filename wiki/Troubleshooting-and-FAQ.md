@@ -2,6 +2,12 @@ Common problems when installing, running and building eSchool, with the cause be
 
 ## Installation and first run
 
+**Every page, `/install` included, returns a 500 error.**
+`.env.example` ships with an empty `APP_KEY`, and the session and cookie middleware can't run without one. Run `php artisan key:generate` before you open the wizard. `storage/logs/laravel.log` shows "No application encryption key has been specified."
+
+**The app won't boot after `composer install --no-dev`.**
+`config/app.php` registers `Barryvdh\Debugbar\ServiceProvider`, which is a dev dependency. Install with dev packages for now. See [Deployment](Deployment#composer-dependencies).
+
 **Every page redirects to `/install`.**
 The installer's `ToInstallMiddleware` runs on every web request until the file `admin-panel/storage/installed` exists. Normally the wizard's last step writes it. After a command-line install, create it yourself: `echo '{}' > storage/installed`. The file's contents are never read. See [Installation Wizard](Installation-Wizard#installed-state).
 
@@ -19,6 +25,15 @@ The `public/storage` symlink is missing. Run `php artisan storage:link`. The wiz
 
 **I changed `.env` and nothing happened.**
 The config is cached. Run `php artisan optimize` again, or `php artisan optimize:clear` to turn caching off. Settings saved in the admin panel are not affected: they live in the database, and `SettingsConfigService` applies them on every request. See [Configuration](Configuration).
+
+**Dates and times are in Indian Standard Time.**
+The settings migration seeds the `time_zone` setting as `Asia/Kolkata`, and that setting overrides `TIMEZONE` in `.env`. Set your own time zone in General Settings.
+
+**Picking "Amazon SES" in Email Settings fails with "Mailer [amazon_ses] is not defined".**
+The form saves `amazon_ses`, but `config/mail.php` names that mailer `ses`. Use SMTP with your SES SMTP credentials instead.
+
+**Links are `http://` behind a load balancer or reverse proxy.**
+No proxies are trusted, so Laravel treats requests as plain HTTP when TLS ends at the proxy. Links come out as `http://` and the HSTS header is not sent. Add a `trustProxies()` call in `bootstrap/app.php`. See [Deployment](Deployment#https-proxies-and-hosts).
 
 **Logos, the school name or demo mode were lost after `php artisan optimize`.**
 That happened on code older than commit [e13ac7d](https://github.com/ShawnDaPrawn/Eschool/commit/e13ac7d), where views read these values with `env()`. Update to current `main`.

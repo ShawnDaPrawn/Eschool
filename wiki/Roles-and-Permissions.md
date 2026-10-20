@@ -200,7 +200,8 @@ The API group also has the default `throttle:api` limiter: 60 requests a minute 
 
 ### Middleware
 
-- **`CheckChild`** reads `child_id`, validates it as an integer and looks it up with `$parent->children()->whereKey($childId)` (father, mother or guardian in one OR query). On failure it returns `{"error": true, "message": "Invalid Child ID Passed.", "code": 105}`. On success the resolved child is stored as the request attribute `child`.
+- **`CheckChild`** reads `child_id`, validates it as an integer and looks it up with `$parent->children()->whereKey($childId)` (father, mother or guardian in one OR query). On failure it returns `{"error": true, "message": "Invalid Child ID Passed.", "code": 105}`. On success the resolved child is stored as the request attribute `child`. `Parents::children()` was a UNION before commit `439395d`, and a `where()` added to it only filtered the father branch; it is now a single query. `Parents::hasChild($studentId)` (added in `92e28d7`) answers the same question with one `exists()` query and is used by `ParentApiController::feesPaidReceiptPDF`.
+- **`EnsureUserIsTeacher`** (`app/Http/Middleware/EnsureUserIsTeacher.php`, added in `92e28d7`) returns HTTP 403 for a user without the `Teacher` role. It is not registered as an alias or used on any route; the teacher group is protected by spatie's `role:Teacher` instead.
 - **`CheckStudent`** (teacher API) finds the caller's teacher id, the class sections they are class teacher of (`class_teachers`, any session year) and the `students.class_section_id` of `student_id`; if it is not one of them it returns `Invalid Student ID Passed.` with code 105.
 - **`EnsureStudentSessionIsActive`**, **`EnsureParentChildrenSessionIsActive`**: see [Academic Structure](Academic-Structure#session-middleware-for-the-apps).
 
@@ -247,6 +248,10 @@ These commits changed authorization behaviour; the rules above describe the resu
 | `c890813` | Parent API limited to the parent's own children and transactions |
 | `6b9f7dd` | Missing permission checks added across academic pages (student deletion, online registrations, elective groups, class teachers, exam publishing, settings image removal, ID cards, result history, attendance, exports); teacher marks limited to their sections; SQL injection in eight list searches fixed |
 | `839c9eb` | Payment webhooks fail closed and are idempotent, server-side fee pricing, online exam answer hiding and exact-set scoring, student API ownership checks |
+| `5c48b13` | (Parallel branch, merged in pull request #8.) Removed `/register` with its controller and view; `CheckRole` signs out accounts with no role or only Student/Parent; routes that had no check now use their sibling methods' permission (subjects, sliders, email templates, staff attendance, student deletion and status, assigning new students, ID cards, student reports, exam publishing and marks, exam timetable, form fields, admin leave, timetable link, `edit($id)` loaders); `ResponseService` redirect guards throw `HttpResponseException`; credentials redacted from the API error log |
+| `92e28d7` | (Same branch.) Added `Parents::hasChild()`; teacher API group requires the Teacher role; parents can only download their own children's fee receipts; students and parents can only fail or update their own payment transactions; Razorpay webhook secret removed from `/api/settings`; Flutterwave webhook checks the `verif-hash` header |
+
+Several fixes in `5c48b13` and `92e28d7` overlap with `439395d`, `6b9f7dd` and `839c9eb`; where both branches changed the same code, the merge kept one version, and this page describes the merged result.
 
 ## Permission migrations
 

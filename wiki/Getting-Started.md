@@ -22,10 +22,11 @@ There are two ways to install the panel. Use the web installer for a normal inst
 cd admin-panel
 composer install
 cp .env.example .env
+php artisan key:generate   # .env.example ships with an empty APP_KEY
 php artisan serve          # http://127.0.0.1:8000
 ```
 
-Open `http://127.0.0.1:8000/install` and follow the wizard. It checks the server and folder permissions, writes the database settings to `.env`, runs the migrations, seeds roles, permissions, settings and the super admin, generates `APP_KEY` and creates the `storage` symlink. See [Installation Wizard](Installation-Wizard) for each step.
+The key step comes first because without an `APP_KEY` every page, `/install` included, fails with a 500 error ("No application encryption key has been specified"). Then open `http://127.0.0.1:8000/install` and follow the wizard. It checks the server and folder permissions, writes the database settings to `.env`, runs the migrations, seeds roles, permissions, settings and the super admin, replaces `APP_KEY` with a fresh one and creates the `storage` symlink. See [Installation Wizard](Installation-Wizard) for each step.
 
 ### Option B: command line
 

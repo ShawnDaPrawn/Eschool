@@ -116,9 +116,9 @@ Statuses in `leaves.status`: 0 pending, 1 approved, 3 rejected (migration commen
 
 | Item | Routes | Controller / views | Permissions | Notes |
 |---|---|---|---|---|
-| Create Timetable | resource `timetable` (`index`, `store`, `destroy`), `checkTimetable`, `get-subject-by-class-section`, `get-class-semesters`, `get-class-sections-with-semesters`, `getteacherbysubject`, `get-timetable-data/{id}` | `TimetableController`, `timetable/index.blade.php` | `timetable-list`, `timetable-create`, `timetable-delete` | |
+| Create Timetable | resource `timetable` (`index`, `store`, `destroy`), `checkTimetable`, `get-subject-by-class-section`, `get-class-semesters`, `get-class-sections-with-semesters`, `getteacherbysubject` | `TimetableController`, `timetable/index.blade.php` | `timetable-list`, `timetable-create`, `timetable-delete` | |
 | Class Timetable | `class-timetable`, `gettimetablebyclass` (`get.timetable.class`) | `TimetableController`, `timetable/class_timetable.blade.php` | `class-timetable` (sidebar also for `class-teacher`) | |
-| Teacher Timetable | `teacher-timetable`, `gettimetablebyteacher`, `get-timetable-by-subject-teacher-class` | `TimetableController`, `timetable/teacher_timetable.blade.php` | `teacher-timetable` | |
+| Teacher Timetable | `teacher-timetable`, `gettimetablebyteacher`, `get-timetable-by-subject-teacher-class`, `get-timetable-data/{id}` | `TimetableController`, `timetable/teacher_timetable.blade.php` | `teacher-timetable` | |
 | Live class link | `POST link-url-update` | `TimetableController::linkUpdate` | `timetable-edit` | Only the period's teacher may set it, and only an http(s) URL (tested in `AcademicAuthorizationTest`) |
 
 ## Attendance
