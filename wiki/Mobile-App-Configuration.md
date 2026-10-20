@@ -5,10 +5,10 @@ This page lists every value a deployer has to set before shipping the two Flutte
 | # | Setting | Student/parent app | Teacher app |
 |---|---|---|---|
 | 1 | Admin panel URL | `lib/utils/constants.dart` → `baseUrl` | `lib/utils/constants.dart` → `baseUrl` |
-| 2 | Android app name | `android/app/src/main/AndroidManifest.xml` → `android:label="eSchool"` | same file → `android:label="eschool Teacher"` |
-| 3 | iOS app name | `ios/Runner/Info.plist` → `CFBundleDisplayName` `eSchool`, `CFBundleName` `eSchool`; also `INFOPLIST_KEY_CFBundleDisplayName` in `ios/Runner.xcodeproj/project.pbxproj` | `CFBundleDisplayName` `eSchool Teacher`, `CFBundleName` `eSchool_teacher`; also `INFOPLIST_KEY_CFBundleDisplayName` in `project.pbxproj` |
-| 4 | Android package | `android/app/build.gradle.kts` → `namespace` and `applicationId` = `za.co.example.eschool`; manifest `package`; `android/app/src/main/kotlin/za/co/example/eschool/MainActivity.kt` | `za.co.example.eschool.teacher`; `android/app/src/main/kotlin/za/co/example/eschool/teacher/MainActivity.kt` |
-| 5 | iOS bundle id | `PRODUCT_BUNDLE_IDENTIFIER = za.co.example.eschool` (Debug/Release/Profile) in `ios/Runner.xcodeproj/project.pbxproj` | `za.co.example.eschool.teacher` |
+| 2 | Android app name | `android/app/src/main/AndroidManifest.xml` → `android:label="NavigateEd"` | same file → `android:label="NavigateEd Teacher"` |
+| 3 | iOS app name | `ios/Runner/Info.plist` → `CFBundleDisplayName` `NavigateEd`, `CFBundleName` `NavigateEd`; also `INFOPLIST_KEY_CFBundleDisplayName` in `ios/Runner.xcodeproj/project.pbxproj` | `CFBundleDisplayName` `NavigateEd Teacher`, `CFBundleName` `NavigateEd Teacher`; also `INFOPLIST_KEY_CFBundleDisplayName` in `project.pbxproj` |
+| 4 | Android package | `android/app/build.gradle.kts` → `namespace` and `applicationId` = `tech.tokensoft.navigateed`; manifest `package`; `android/app/src/main/kotlin/tech/tokensoft/navigateed/MainActivity.kt` | `tech.tokensoft.navigateed.teacher`; `android/app/src/main/kotlin/tech/tokensoft/navigateed/teacher/MainActivity.kt` |
+| 5 | iOS bundle id | `PRODUCT_BUNDLE_IDENTIFIER = tech.tokensoft.navigateed` (Debug/Release/Profile) in `ios/Runner.xcodeproj/project.pbxproj` | `tech.tokensoft.navigateed.teacher` |
 | 6 | Firebase Android | add `android/app/google-services.json` | add `android/app/google-services.json` |
 | 7 | Firebase iOS | add `ios/Runner/GoogleService-Info.plist` | add `ios/Runner/GoogleService-Info.plist` |
 | 8 | Branding | `assets/images/branding/` | `assets/images/branding/` |

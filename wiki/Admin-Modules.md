@@ -8,7 +8,7 @@ For end-user steps see the Docusaurus [Admin Panel](https://shawndaprawn.github.
 
 | Group in `routes/web.php` | Middleware | Contents |
 |---|---|---|
-| Top level | `guest` on `GET/POST login`; `throttle:login` on `POST password/email` | Login, logout, password reset, `web-set-language/{lang}` |
+| Top level | `guest` on `GET/POST login`; `throttle:login` on `POST password/email` | Login, logout, password reset, `web-set-language/{lang}`. There is no `/register` route: commit `5c48b13` removed Laravel's leftover sign-up route, controller and view, which let anyone create an account and reach the panel. |
 | `['middleware' => 'language']` | `language` (`LanguageManager`) | Public website; see [Public-Website](Public-Website) |
 | `['middleware' => ['Role', 'auth']]` | `Role` = `App\Http\Middleware\CheckRole`, `auth` = `App\Http\Middleware\Authenticate` | `POST set-session-year`, and a nested `language` group with every admin module below |
 | Top level | none (CSRF exempt) | `webhook/*`, `response/*/success` ([Payments](Payments)) |
