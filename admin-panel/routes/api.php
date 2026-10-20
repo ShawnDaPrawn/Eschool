@@ -29,13 +29,14 @@ Route::group(['middleware' => 'auth:sanctum'], function () {
 Route::group(['prefix' => 'student'], function () {
 
     // Non Authenticated APIs
-    Route::post('login', [StudentApiController::class, 'login']);
-    Route::post('forgot-password', [StudentApiController::class, 'forgotPassword']);
+    Route::post('login', [StudentApiController::class, 'login'])->middleware('throttle:login');
+    Route::post('forgot-password', [StudentApiController::class, 'forgotPassword'])->middleware('throttle:login');
 
     // Authenticated APIs
     Route::group([
         'middleware' => [
             'auth:sanctum',
+            'role:Student',
             'student.session.active',
         ],
     ], function () {
@@ -108,11 +109,12 @@ Route::group(['prefix' => 'student'], function () {
  **/
 Route::group(['prefix' => 'parent'], function () {
     // Non Authenticated APIs
-    Route::post('login', [ParentApiController::class, 'login']);
+    Route::post('login', [ParentApiController::class, 'login'])->middleware('throttle:login');
     // Authenticated APIs
     Route::group([
         'middleware' => [
             'auth:sanctum',
+            'role:Parent',
             'parent.children.session.active',
         ],
     ], function () {
@@ -179,9 +181,9 @@ Route::group(['prefix' => 'parent'], function () {
  **/
 Route::group(['prefix' => 'teacher'], function () {
     // Non Authenticated APIs
-    Route::post('login', [TeacherApiController::class, 'login']);
+    Route::post('login', [TeacherApiController::class, 'login'])->middleware('throttle:login');
     // Authenticated APIs
-    Route::group(['middleware' => ['auth:sanctum']], function () {
+    Route::group(['middleware' => ['auth:sanctum', 'role:Teacher']], function () {
         Route::get('dashboard', [TeacherApiController::class, 'dashboard']);
         Route::get('classes', [TeacherApiController::class, 'classes']);
 
@@ -276,7 +278,7 @@ Route::get('holidays', [ApiController::class, 'getHolidays']);
 Route::get('sliders', [ApiController::class, 'getSliders']);
 Route::get('current-session-year', [ApiController::class, 'getCurrentSessionYear']);
 Route::get('settings', [ApiController::class, 'getSettings']);
-Route::post('forgot-password', [ApiController::class, 'forgotPassword']);
+Route::post('forgot-password', [ApiController::class, 'forgotPassword'])->middleware('throttle:login');
 Route::get('get-events-list', [ApiController::class, 'getEvents']);
 Route::post('get-events-details', [ApiController::class, 'getEventsDetails']);
 Route::get('get-session-year', [ApiController::class, 'getSessionYear']);
