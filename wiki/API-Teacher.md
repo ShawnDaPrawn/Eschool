@@ -86,7 +86,7 @@ All routes after `login` run under `auth:sanctum` and `role:Teacher` (Spatie). S
 | `attendance-create` or `attendance-edit` | `submit-attendance` (`noAnyPermissionThenSendJson`) |
 | `student-leave-approve` | `student-leave-status-update` (checked with `Auth::user()->can()`) |
 
-Every other endpoint, including `update-file`, `delete-file`, exam marks and chat, checks only the role and the scope helpers.
+Every other endpoint, including `update-file`, `delete-file`, exam marks and chat, checks only the role and the scope helpers. The role check is what keeps student and parent tokens out of these; `SecurityTest::test_teacher_api_needs_a_teacher_account` asserts HTTP 403 for a student token on `teacher/classes`. `app/Http/Middleware/EnsureUserIsTeacher.php` (commit `92e28d7`) duplicates that check but is not attached to any route.
 
 ```mermaid
 flowchart TD
@@ -763,7 +763,7 @@ These come straight from the current code and are worth knowing before changing 
 - **App points at a missing route.** `Api.examResults` in the teacher app is `teacher/exam-marks`, which has no route. The only method that uses it, `StudentRepository.fetchExamResults`, is never called.
 - **`apply-leave` is strict about keys.** Clients must send only `reason`, `leave_details` and `files`.
 
-The scope rules are covered by [`TeacherApiSecurityTest.php`](https://github.com/ShawnDaPrawn/Eschool/blob/main/admin-panel/tests/Feature/TeacherApiSecurityTest.php). It sends requests to a separate `php -S` process (the `RunsAppServer` trait in `tests/Concerns`) and expects every refusal to arrive as HTTP 200 with `error: true`. Add a case there when you change a scope helper. See [Testing-and-CI](Testing-and-CI).
+The scope rules are covered by [`TeacherApiSecurityTest.php`](https://github.com/ShawnDaPrawn/Eschool/blob/main/admin-panel/tests/Feature/TeacherApiSecurityTest.php). It sends requests to a separate `php -S` process, started by its own private `startServer()` once for the whole class (it does not use the `RunsAppServer` or `ServesApp` traits in `tests/Concerns`), and expects every refusal to arrive as HTTP 200 with `error: true`. Add a case there when you change a scope helper. See [Testing-and-CI](Testing-and-CI).
 
 ## See also
 

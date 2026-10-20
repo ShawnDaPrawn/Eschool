@@ -240,7 +240,7 @@ RateLimiter::for('login', function (Request $request) {
 
 ## Roles and scoping
 
-- Each group requires its role (`role:Student`, `role:Parent`, `role:Teacher`), so a token from one app cannot call another app's endpoints. Covered by `test_app_tokens_only_work_for_their_own_role` in [`tests/Feature/AccessControlTest.php`](https://github.com/ShawnDaPrawn/Eschool/blob/main/admin-panel/tests/Feature/AccessControlTest.php).
+- Each group requires its role (`role:Student`, `role:Parent`, `role:Teacher`), so a token from one app cannot call another app's endpoints. Covered by `test_app_tokens_only_work_for_their_own_role` in [`tests/Feature/AccessControlTest.php`](https://github.com/ShawnDaPrawn/Eschool/blob/main/admin-panel/tests/Feature/AccessControlTest.php) and, for the teacher API, `test_teacher_api_needs_a_teacher_account` in [`tests/Feature/SecurityTest.php`](https://github.com/ShawnDaPrawn/Eschool/blob/main/admin-panel/tests/Feature/SecurityTest.php) (a student token gets HTTP 403 on `teacher/classes`).
 - Inside a role, controllers scope queries to the caller: students to their own `student_sessions` class section, subjects and records; parents to their own children; teachers to their class-teacher and subject-teacher assignments. These checks were added in commits `439395d`, `77fe8ed`, `a09dfe8`, `c890813` and `839c9eb`. Details per endpoint are on the role pages; the overall model is on [Security-Model](Security-Model) and [Roles-and-Permissions](Roles-and-Permissions).
 - The "current session year" used everywhere is the `session_year` setting (`getSettings('session_year')['session_year']`).
 
@@ -249,7 +249,7 @@ RateLimiter::for('login', function (Request $request) {
 One parent account can have several children. Child-specific parent endpoints take a `child_id` (query string for `GET`, form field for `POST`) and are grouped under `CheckChild`:
 
 1. `CheckChild` reads `$request->child_id`, validates it with `FILTER_VALIDATE_INT`, and looks it up with `$parent->children()->whereKey($childId)`.
-2. `Parents::children()` matches students where `father_id`, `mother_id` or `guardian_id` is the parent's id. It was a `UNION` before `439395d`, and a chained `where('id', ...)` only filtered the father branch, so mothers and guardians could pass any `child_id`.
+2. `Parents::children()` matches students where `father_id`, `mother_id` or `guardian_id` is the parent's id. It was a `UNION` before `439395d`, and a chained `where('id', ...)` only filtered the father branch, so mothers and guardians could pass any `child_id`. `Parents::hasChild($studentId)` (added in `92e28d7`) runs the same father/mother/guardian test as an `exists()` query; only `ParentApiController::feesPaidReceiptPDF` calls it, and `CheckChild` does not. Its docblock still calls `children()` a `UNION`, which is no longer true. `SecurityTest::test_child_check_only_accepts_the_parents_own_children` checks both with a mother account.
 3. The resolved student is stored as request attribute `child`; `ParentApiController::resolveChild()` reuses it (or repeats the lookup for routes outside the group).
 4. A missing or foreign `child_id` returns `{"error": true, "message": "Invalid Child ID Passed.", "code": 105}`.
 
@@ -319,7 +319,7 @@ For any type other than `app_settings`, `data` is the raw settings value with th
 | `current_semester` | the semester whose `current` attribute is true, or `null` |
 | `semester_breaks` | list of `{start, end}` gaps between consecutive semesters inside the session year, or `null` |
 
-Secret keys and webhook secrets are never included. Until commit `839c9eb` this public endpoint returned the Razorpay webhook secret; installs that ran older code should rotate it (see [Payments](Payments)). The admin UI for these values: https://shawndaprawn.github.io/Eschool/admin-panel/app-settings/ and https://shawndaprawn.github.io/Eschool/admin-panel/chat-settings/ .
+Secret keys and webhook secrets are never included. Until commit `839c9eb` this public endpoint returned the Razorpay webhook secret; installs that ran older code should rotate it (see [Payments](Payments)). `PermissionsTest::test_settings_api_does_not_expose_the_razorpay_webhook_secret` and `StudentApiSecurityTest::test_public_settings_do_not_include_payment_secrets` check this. The admin UI for these values: https://shawndaprawn.github.io/Eschool/admin-panel/app-settings/ and https://shawndaprawn.github.io/Eschool/admin-panel/chat-settings/ .
 
 ### Other public endpoints
 

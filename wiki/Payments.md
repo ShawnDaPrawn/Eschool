@@ -245,7 +245,16 @@ That commit rewrote the payment path. The behaviour it guarantees, and that `Pay
 | `test_flutterwave_webhook_requires_the_secret_hash_header` | Missing or wrong `verif-hash` refused; duplicate delivery recorded once |
 | `test_compulsory_payment_with_due_charges_records_them_from_the_stored_total` | Due charges recorded from the stored total, not metadata |
 
-`StudentApiSecurityTest::test_public_settings_do_not_include_payment_secrets` and `test_fee_payments_use_server_amounts_and_own_transactions`, and `ParentApiSecurityTest::test_fee_receipt_and_payment_endpoints_refuse_another_familys_records`, cover the app side. See [Testing-and-CI](Testing-and-CI).
+`StudentApiSecurityTest::test_public_settings_do_not_include_payment_secrets` and `test_fee_payments_use_server_amounts_and_own_transactions`, and `ParentApiSecurityTest::test_fee_receipt_and_payment_endpoints_refuse_another_familys_records`, cover the app side.
+
+[`tests/Feature/PermissionsTest.php`](https://github.com/ShawnDaPrawn/Eschool/blob/main/admin-panel/tests/Feature/PermissionsTest.php) (commit `9601d6f`) adds two checks against a real `php -S` server (`Tests\Concerns\ServesApp`). It writes `FLW_SECRET_HASH` to a `.env.webhook-test` file and starts the server with `APP_ENV=webhook-test`, the way a real install loads it, because the pre-`839c9eb` check compared that value with `$_SERVER['FLW_SECRET_HASH']`, which Laravel fills from the same env file:
+
+| Test | Checks |
+|---|---|
+| `test_settings_api_does_not_expose_the_razorpay_webhook_secret` | `GET /api/settings?type=app_settings` returns `razorpay_api_key` but not the stored `razorpay_webhook_secret` |
+| `test_flutterwave_webhook_needs_the_secret_hash` | A Flutterwave webhook with no `verif-hash` header, or a wrong one, leaves the pending transaction at `payment_status` 2 |
+
+See [Testing-and-CI](Testing-and-CI).
 
 ## Gotchas
 
