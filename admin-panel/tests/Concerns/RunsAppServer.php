@@ -2,6 +2,7 @@
 
 namespace Tests\Concerns;
 
+use GuzzleHttp\Cookie\CookieJar;
 use Illuminate\Foundation\Testing\RefreshDatabaseState;
 use Illuminate\Http\Client\PendingRequest;
 use Illuminate\Support\Facades\Artisan;
@@ -78,6 +79,8 @@ trait RunsAppServer
                 'DB_PASSWORD' => (string) $db['password'],
                 'SESSION_DRIVER' => 'file',
                 'CACHE_STORE' => 'array',
+                // config/cache.php reads CACHE_DRIVER, not CACHE_STORE.
+                'CACHE_DRIVER' => 'array',
                 'MAIL_MAILER' => 'array',
                 'QUEUE_CONNECTION' => 'sync',
                 'LOG_CHANNEL' => 'single',
@@ -127,6 +130,37 @@ trait RunsAppServer
         return Http::baseUrl(self::$appServerUrl)
             ->withOptions(['allow_redirects' => false])
             ->timeout(60);
+    }
+
+    /**
+     * A client signed in to the admin panel, sending the CSRF token in a header
+     * like the panel's AJAX calls do.
+     */
+    protected function adminPanelClient(string $email, string $password): PendingRequest
+    {
+        $client = $this->appClient()->withOptions(['cookies' => new CookieJar]);
+
+        $form = $client->get('/login');
+        $this->assertSame(200, $form->status(), 'Login page did not load');
+        $login = $client->asForm()->post('/login', [
+            '_token' => $this->csrfToken($form->body()),
+            'email' => $email,
+            'password' => $password,
+        ]);
+        $this->assertStringEndsWith('/home', (string) $login->header('Location'), "Login failed for $email");
+
+        return $client->asMultipart()->withHeaders([
+            'X-CSRF-TOKEN' => $this->csrfToken($client->get('/home')->body()),
+            'X-Requested-With' => 'XMLHttpRequest',
+        ]);
+    }
+
+    private function csrfToken(string $html): string
+    {
+        preg_match('/name="_token" value="([^"]+)"|name="csrf-token" content="([^"]+)"/', $html, $token);
+        $this->assertNotEmpty($token, 'No CSRF token on the page');
+
+        return $token[1] ?: $token[2];
     }
 
     /** A client for the mobile-app API, optionally signed in with a Sanctum token. */
