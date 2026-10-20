@@ -1468,9 +1468,12 @@ class ParentApiController extends Controller
         $validator = Validator::make($request->all(), [
             'child_id' => 'required',
             'payment_method' => 'required|in:1,2,3,4',
-            'amount' => 'required',
+            'amount' => 'required|numeric',
             'type_of_fee' => 'required|in:0,1,2',
-            'is_fully_paid' => 'required|in:0,1',
+            // Still sent by the app; the server works it out itself.
+            'is_fully_paid' => 'nullable|in:0,1',
+            'optional_fees_data' => 'nullable|array',
+            'installment_data' => 'nullable|array',
         ]);
         if ($validator->fails()) {
             ResponseService::validationError($validator->errors()->first());
@@ -1490,87 +1493,35 @@ class ParentApiController extends Controller
             $session_year = getSettings('session_year');
             $session_year_id = $session_year['session_year'];
 
-            // variables for storing the data
-            $payment_gateway_details = [];
+            // What is being paid, its amount, due charges and whether it completes
+            // the compulsory fees are all worked out on the server
+            // (FeesPaymentService); the app's amount must match.
+            $feesPaymentService = app(\App\Services\Payment\FeesPaymentService::class);
+            try {
+                $plan = $feesPaymentService->prepare(
+                    (int) $child_id,
+                    (int) $session_year_id,
+                    (int) $request->type_of_fee,
+                    (array) ($request->optional_fees_data ?? []),
+                    (array) ($request->installment_data ?? []),
+                    $request->amount
+                );
+            } catch (\Illuminate\Validation\ValidationException $e) {
+                ResponseService::validationError($e->validator->errors()->first());
+            }
 
-            $class_id = StudentSessions::where('student_id', $child_id)->where('session_year_id', $session_year_id)->with('class_section')->first()->class_section->class_id;
+            DB::beginTransaction();
+            $pending = $feesPaymentService->createPendingTransaction($plan, $parent_id, (int) $request->payment_method);
+            $payment_transaction_db = $pending['transaction'];
 
-            // variables for storing the data
-            $optional_fees_store = [];
-            $installment_fees_store = [];
-            $paid_installment_id = [];
-            $optional_fees_id = [];
+            $paymentIntent = PaymentService::create($request->payment_method)->createAndFormatPaymentIntent(
+                $plan['total_amount'],
+                $feesPaymentService->gatewayMetadata($plan, $pending, $parent_id, ['email' => $email, 'name' => $name, 'mobile' => $mobile])
+            );
 
-            // add the data to transaction table local
-            $payment_transaction_db = new PaymentTransaction;
-            $payment_transaction_db->student_id = $child_id;
-            $payment_transaction_db->class_id = $class_id;
-            $payment_transaction_db->parent_id = $parent_id;
-            $payment_transaction_db->mode = 2;
-            $payment_transaction_db->type_of_fee = $request->type_of_fee;
-            $payment_transaction_db->payment_gateway = $request->payment_method;
-            $payment_transaction_db->payment_status = 2;
-            $payment_transaction_db->total_amount = $request->amount;
-            $payment_transaction_db->date = date('Y-m-d H:i:s');
-            $payment_transaction_db->session_year_id = $session_year_id;
+            $payment_transaction_db->order_id = $paymentIntent['id'];
             $payment_transaction_db->save();
-
-            // If Optional Fees Passed then insert data
-            if (isset($request->optional_fees_data) && ! empty($request->optional_fees_data)) {
-                foreach ($request->optional_fees_data as $data) {
-                    $optional_fees_store = [
-                        'student_id' => $child_id,
-                        'class_id' => $class_id,
-                        'fees_type_id' => $data['id'],
-                        'is_due_charges' => 0,
-                        'total_amount' => $data['amount'],
-                        'session_year_id' => $session_year_id,
-                        'date' => date('Y-m-d'),
-                        'payment_transaction_id' => $payment_transaction_db->id,
-                        'status' => 0,
-                    ];
-                    $optional_fees_id[] = FeesChoiceable::insertGetId($optional_fees_store);
-                }
-            }
-
-            // If Installment Fees Passed then insert data
-            if (isset($request->installment_data) && ! empty($request->installment_data)) {
-                foreach ($request->installment_data as $data) {
-                    $installment_fees_store = [
-                        'class_id' => $class_id,
-                        'student_id' => $child_id,
-                        'parent_id' => $parent_id,
-                        'installment_fee_id' => $data['id'],
-                        'session_year_id' => $session_year_id,
-                        'amount' => $data['amount'],
-                        'due_charges' => $data['due_charges'] ?? null,
-                        'date' => date('Y-m-d'),
-                        'payment_transaction_id' => $payment_transaction_db->id,
-                        'status' => 0,
-                    ];
-                    $paid_installment_id[] = PaidInstallmentFee::insertGetId($installment_fees_store);
-                }
-            }
-            $paymentIntent = PaymentService::create($request->payment_method)->createAndFormatPaymentIntent(round((float) $request->amount, 2), [
-                'student_id' => $child_id,
-                'parent_id' => $parent_id,
-                'class_id' => $class_id,
-                'email' => $email,
-                'name' => $name,
-                'mobile' => $mobile,
-                'session_year_id' => $session_year_id,
-                'payment_transaction_id' => $payment_transaction_db->id,
-                'is_fully_paid' => $request->is_fully_paid,
-                'type_of_fee' => $request->type_of_fee,
-                'is_due_charges' => (isset($request->due_charges) && $request->due_charges >= 0) ? 1 : 0,
-                'due_charges' => $request->due_charges,
-                'optional_fees_paid' => json_encode($optional_fees_id) ?? '',
-                'installment_fees_paid' => json_encode($paid_installment_id) ?? '',
-            ]);
-
-            $payment_transaction_update = PaymentTransaction::find($payment_transaction_db->id);
-            $payment_transaction_update->order_id = $paymentIntent['id'];
-            $payment_transaction_update->save();
+            DB::commit();
 
             $payment_gateway_details = [
                 ...$paymentIntent,
@@ -1578,6 +1529,7 @@ class ParentApiController extends Controller
             ];
             ResponseService::successResponse('Fees Transaction Stored Successfully', [], ['payment_gateway_details' => $payment_gateway_details], 200);
         } catch (Throwable $e) {
+            DB::rollBack();
             ResponseService::errorResponse('error_occurred', null, 103, $e);
         }
     }
@@ -1818,7 +1770,7 @@ class ParentApiController extends Controller
                             'name' => $data['subject']['name'].' - '.$data['subject']['type'],
                         ],
                         'title' => $data['title'],
-                        'exam_key' => $data['exam_key'],
+                        // exam_key is not sent: the teacher gives it to students when the exam starts.
                         'duration' => $data['duration'],
                         'start_date' => $data['start_date'],
                         'end_date' => $data['end_date'],
@@ -1917,26 +1869,13 @@ class ParentApiController extends Controller
             }
             $exam_list_data = [];
             foreach ($online_exam_db['data'] as $data) {
-                // get the choice question id
-                $exam_submitted_question_ids = OnlineExamStudentAnswer::where(['student_id' => $student->id, 'online_exam_id' => $data['id']])->pluck('question_id');
                 $exam_submitted_date = OnlineExamStudentAnswer::where(['student_id' => $student->id, 'online_exam_id' => $data['id']])->pluck('submitted_date')->first();
 
-                $question_ids = OnlineExamQuestionChoice::whereIn('id', $exam_submitted_question_ids)->pluck('question_id');
-
-                $exam_attempted_answers = OnlineExamStudentAnswer::where(['student_id' => $student->id, 'online_exam_id' => $data['id']])->pluck('option_id');
-
-                // removes the question id of the question if one of the answer of particular question is wrong
-                foreach ($question_ids as $question_id) {
-                    $check_questions_answers_exists = OnlineExamQuestionAnswer::where('question_id', $question_id)->whereNotIn('answer', $exam_attempted_answers)->count();
-                    if ($check_questions_answers_exists) {
-                        unset($question_ids[array_search($question_id, $question_ids->toArray())]);
-                    }
-                }
-
-                $exam_correct_answers_question_id = OnlineExamQuestionAnswer::whereIn('question_id', $question_ids)->whereIn('answer', $exam_attempted_answers)->pluck('question_id');
+                // a question counts only when exactly its correct options were picked
+                $score = app(\App\Services\OnlineExamScoringService::class)->score((int) $student->id, (int) $data['id']);
 
                 // get the data of only attempted data
-                $total_obtained_marks_exam = OnlineExamQuestionChoice::select(DB::raw('sum(marks)'))->where('online_exam_id', $data['id'])->whereIn('question_id', $exam_correct_answers_question_id)->first();
+                $total_obtained_marks_exam = OnlineExamQuestionChoice::select(DB::raw('sum(marks)'))->where('online_exam_id', $data['id'])->whereIn('id', $score['correct_choice_ids'])->first();
                 $total_obtained_marks_exam = $total_obtained_marks_exam['sum(marks)'];
                 $total_marks_exam = OnlineExamQuestionChoice::select(DB::raw('sum(marks)'))->where('online_exam_id', $data['id'])->first();
                 $total_marks_exam = $total_marks_exam['sum(marks)'];
@@ -2000,65 +1939,36 @@ class ParentApiController extends Controller
             // get the total questions count
             $total_questions = OnlineExamQuestionChoice::where('online_exam_id', $request->online_exam_id)->count();
 
-            // get the exam's choiced question id
-            $exam_choiced_question_ids = OnlineExamStudentAnswer::where(['student_id' => $student->id, 'online_exam_id' => $request->online_exam_id])->pluck('question_id');
-
-            // get the questions id
-            $question_ids = OnlineExamQuestionChoice::whereIn('id', $exam_choiced_question_ids)->pluck('question_id');
-
-            // get the options submitted by student
-            $exam_attempted_answers = OnlineExamStudentAnswer::where(['student_id' => $student->id, 'online_exam_id' => $request->online_exam_id])->pluck('option_id');
-
-            // removes the question id of the question if one of the answer of particular question is wrong
-            foreach ($question_ids as $question_id) {
-                $check_questions_answers_exists = OnlineExamQuestionAnswer::where('question_id', $question_id)->whereNotIn('answer', $exam_attempted_answers)->count();
-                if ($check_questions_answers_exists) {
-                    unset($question_ids[array_search($question_id, $question_ids->toArray())]);
-                }
-            }
+            // a question counts only when exactly its correct options were picked
+            $score = app(\App\Services\OnlineExamScoringService::class)->score((int) $student->id, (int) $request->online_exam_id);
+            $choice_marks = OnlineExamQuestionChoice::where('online_exam_id', $request->online_exam_id)->pluck('marks', 'id');
 
             // get the correct answers counter
-            $exam_correct_answers = OnlineExamQuestionAnswer::whereIn('question_id', $question_ids)->whereIn('answer', $exam_attempted_answers)->groupby('question_id')->pluck('question_id')->count();
-
-            // question id of correct answers
-            $exam_correct_answers_question_id = OnlineExamQuestionAnswer::whereIn('question_id', $question_ids)->whereIn('answer', $exam_attempted_answers)->pluck('question_id');
-
-            // data of correct answers
-            $exam_correct_answers_data = OnlineExamQuestionAnswer::whereIn('question_id', $question_ids)->whereIn('answer', $exam_attempted_answers)->groupby('question_id')->get();
+            $exam_correct_answers = count($score['correct_choice_ids']);
 
             // array of correct answer with choiced exam id and marks
             $correct_answers_data = [];
-            foreach ($exam_correct_answers_data as $correct_data) {
-                $choice_questions = OnlineExamQuestionChoice::where(['online_exam_id' => $request->online_exam_id, 'question_id' => $correct_data->question_id])->first();
+            foreach ($score['correct_choice_ids'] as $choice_id) {
                 $correct_answers_data[] = [
-                    'question_id' => $choice_questions->id,
-                    'marks' => $choice_questions->marks,
+                    'question_id' => $choice_id,
+                    'marks' => $choice_marks[$choice_id] ?? null,
                 ];
             }
 
-            // get questions ids
-            $all_questions_ids = OnlineExamQuestionChoice::whereNotIn('question_id', $question_ids)->where('online_exam_id', $request->online_exam_id)->pluck('question_id');
-
             // get the incorrect answers && unattempted counter
-            $exam_in_correct_answers = OnlineExamQuestionAnswer::whereIn('question_id', $all_questions_ids)->whereNotIn('answer', $exam_attempted_answers)->groupby('question_id')->pluck('question_id')->count();
-
-            // data of in correct && unattempted answers
-            $exam_in_correct_answers_data = OnlineExamQuestionAnswer::whereIn('question_id', $all_questions_ids)->whereNotIn('answer', $exam_attempted_answers)->groupby('question_id')->get();
+            $exam_in_correct_answers = count($score['incorrect_choice_ids']);
 
             // array of in correct answer && unattempted with choiced exam id and marks
             $in_correct_answers_data = [];
-            foreach ($exam_in_correct_answers_data as $in_correct_data) {
-                $choice_questions = OnlineExamQuestionChoice::where(['online_exam_id' => $request->online_exam_id, 'question_id' => $in_correct_data->question_id])->first();
-                if (isset($choice_questions) && ! empty($choice_questions)) {
-                    $in_correct_answers_data[] = [
-                        'question_id' => $choice_questions->id,
-                        'marks' => $choice_questions->marks,
-                    ];
-                }
+            foreach ($score['incorrect_choice_ids'] as $choice_id) {
+                $in_correct_answers_data[] = [
+                    'question_id' => $choice_id,
+                    'marks' => $choice_marks[$choice_id] ?? null,
+                ];
             }
 
             // total obtained and total marks
-            $total_obtained_marks = OnlineExamQuestionChoice::select(DB::raw('sum(marks)'))->where('online_exam_id', $request->online_exam_id)->whereIn('question_id', $exam_correct_answers_question_id)->first();
+            $total_obtained_marks = OnlineExamQuestionChoice::select(DB::raw('sum(marks)'))->where('online_exam_id', $request->online_exam_id)->whereIn('id', $score['correct_choice_ids'])->first();
             $total_obtained_marks = $total_obtained_marks['sum(marks)'];
             $total_marks = OnlineExamQuestionChoice::select(DB::raw('sum(marks)'))->where('online_exam_id', $request->online_exam_id)->first();
             $total_marks = $total_marks['sum(marks)'];

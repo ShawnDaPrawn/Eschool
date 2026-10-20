@@ -16,6 +16,7 @@ use App\Models\ClassSchool;
 use App\Models\ClassSection;
 use App\Models\ClassSessionConfig;
 use App\Models\ClassTeacher;
+use App\Models\ElectiveSubjectGroup;
 use App\Models\Event;
 use App\Models\Exam;
 use App\Models\ExamClass;
@@ -64,6 +65,8 @@ use App\Services\FeesReportService;
 use App\Services\GalleryService;
 use App\Services\IdCardService;
 use App\Services\LeaveReportService;
+use App\Services\OnlineExamScoringService;
+use App\Services\Payment\FeesPaymentService;
 use App\Services\Payment\PaymentService;
 use App\Services\ResponseService;
 use Barryvdh\DomPDF\Facade\Pdf;
@@ -74,10 +77,15 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Str;
+use Illuminate\Validation\ValidationException;
 use Throwable;
 
 class StudentApiController extends Controller
 {
+    /** Minutes allowed after an online exam's end (or the student's time) for the answers to arrive. */
+    private const ONLINE_EXAM_GRACE_MINUTES = 5;
+
     public function login(Request $request)
     {
         $validator = Validator::make($request->all(), [
@@ -108,10 +116,12 @@ class StudentApiController extends Controller
             //        if (Auth::attempt(['email' => $request->email, 'password' => $request->password])) {
             // Here Email Field is referenced as a GR Number for Student
             $auth = Auth::user();
-            if (! $auth->hasRole('Student')) {
+            if (! $auth->hasRole('Student') || ! $auth->student) {
                 ResponseService::errorResponse('Invalid Login Credentials', null, 101);
             }
-            $token = $auth->createToken($auth->first_name)->plainTextToken;
+            if ((int) $auth->status !== 1) {
+                ResponseService::errorResponse('Your Account is Deactivate Please contact Admin for Further Help.', null, null);
+            }
             $user = $auth->load(['student.class_section', 'student.category']);
 
             // if new session is not activated for student
@@ -124,6 +134,9 @@ class StudentApiController extends Controller
             if ($studentSession->status == 0) {
                 ResponseService::errorResponse('Your Account is Deactivate Please contact Admin for Further Help.', null, null);
             } else {
+                // Only now that the account and its session are active.
+                $token = $auth->createToken($auth->first_name)->plainTextToken;
+
                 if ($request->fcm_id) {
                     $auth->fcm_id = $request->fcm_id;
                     $auth->save();
@@ -558,13 +571,12 @@ class StudentApiController extends Controller
                 if ($user) {
                     $user->reset_request = 1;
                     $user->save();
-                    ResponseService::successResponse('Request Send Successfully');
-                } else {
-                    ResponseService::errorResponse('Invalid user Details', null, 107);
                 }
-            } else {
-                ResponseService::errorResponse('Invalid user Details', null, 107);
             }
+
+            // Same answer whether or not the details matched a student, so the
+            // endpoint can't be used to find out GR numbers and birth dates.
+            ResponseService::successResponse('Request Send Successfully');
         } catch (Throwable $e) {
             ResponseService::errorResponse('error_occurred', null, 103, $e);
         }
@@ -600,8 +612,10 @@ class StudentApiController extends Controller
     public function selectSubjects(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'subject_group.*.id' => 'required',
+            'subject_group' => 'required|array',
+            'subject_group.*.id' => 'required|integer',
             'subject_group.*.subject_id' => 'required|array',
+            'subject_group.*.subject_id.*' => 'required|integer',
         ]);
 
         if ($validator->fails()) {
@@ -623,6 +637,43 @@ class StudentApiController extends Controller
             if ($include_semester == 1) {
                 $semester_id = $currentSemester->id;
             }
+
+            // The elective groups the class offers this session (and semester),
+            // as classSubjects() lists them to the app.
+            $elective_groups = ElectiveSubjectGroup::where('class_id', $class_id)
+                ->where('session_year_id', $session_year_id)
+                ->when($semester_id, fn ($q) => $q->where('semester_id', $semester_id))
+                ->with('electiveSubjects')
+                ->get()
+                ->keyBy('id');
+
+            $seen_groups = [];
+            foreach ($request->subject_group as $subject_group) {
+                $group = $elective_groups->get((int) $subject_group['id']);
+                if (! $group || in_array($group->id, $seen_groups)) {
+                    ResponseService::validationError('Invalid subject group.');
+                }
+                $seen_groups[] = $group->id;
+
+                $group_subject_ids = $group->electiveSubjects->pluck('subject_id')->map(fn ($id) => (int) $id)->all();
+                $selected_ids = array_map('intval', $subject_group['subject_id']);
+                if (count($selected_ids) !== count(array_unique($selected_ids)) || array_diff($selected_ids, $group_subject_ids)) {
+                    ResponseService::validationError('Invalid subject selected.');
+                }
+
+                // Together with what the student already picked in this group,
+                // no more than the group allows.
+                $already_selected = StudentSubject::where([
+                    'student_id' => $student->id,
+                    'semester_id' => $semester_id ?? null,
+                    'class_section_id' => $class_section->id,
+                    'session_year_id' => intval($session_year_id),
+                ])->whereIn('subject_id', $group_subject_ids)->pluck('subject_id')->map(fn ($id) => (int) $id)->all();
+                if (count(array_unique(array_merge($already_selected, $selected_ids))) > (int) $group->total_selectable_subjects) {
+                    ResponseService::validationError('You can select only '.$group->total_selectable_subjects.' subjects in this group.');
+                }
+            }
+
             $student_subject = [];
             foreach ($request->subject_group as $key => $subject_group) {
                 // $subject_group_id = $subject_group['id'];
@@ -881,9 +932,12 @@ class StudentApiController extends Controller
                 $session_year_id
             );
 
-            // Base query
+            // Base query: only lessons of the student's own class section
             $query = LessonTopic::with(['lesson', 'file'])
-                ->where('lesson_id', $request->lesson_id);
+                ->where('lesson_id', $request->lesson_id)
+                ->whereHas('lesson', function ($q) use ($studentSession) {
+                    $q->where('class_section_id', $studentSession->class_section_id);
+                });
 
             // Semester filter via lesson relation
             if ($isClassHaveSemester && $currentSemester) {
@@ -1011,7 +1065,16 @@ class StudentApiController extends Controller
             $session_year_id = $session_year['session_year'];
 
             $student_class_section_id = StudentSessions::where('student_id', $student->id)->where('session_year_id', $session_year_id)->first()->class_section_id;
-            $assignment = Assignment::where('id', $request->assignment_id)->where('class_section_id', $student_class_section_id)->firstOrFail();
+            // Only an assignment the student can see: their class section, this
+            // session, and one of their subjects (as getAssignments lists them).
+            $assignment = Assignment::where('id', $request->assignment_id)
+                ->where('class_section_id', $student_class_section_id)
+                ->where('session_year_id', $session_year_id)
+                ->whereIn('subject_id', $this->studentSubjectIds($student))
+                ->first();
+            if (! $assignment) {
+                ResponseService::errorResponse('Invalid assignment', null, 103);
+            }
 
             $assignment_submission = AssignmentSubmission::where('assignment_id', $request->assignment_id)->where('student_id', $student->id)->first();
             if (empty($assignment_submission)) {
@@ -1211,6 +1274,20 @@ class StudentApiController extends Controller
             }
 
             $data = Announcement::with('file')->where('session_year_id', $session_year_id)->latest();
+
+            if (! isset($request->type)) {
+                // Everything this student may see: the noticeboard, their class and
+                // class section, and their own subjects in their class section.
+                $subject_teacher_ids = SubjectTeacher::where('class_section_id', $student_class_section_id)
+                    ->whereIn('subject_id', $this->studentSubjectIds($student))
+                    ->pluck('id');
+                $data = $data->where(function ($query) use ($class_id, $student_class_section_id, $subject_teacher_ids) {
+                    $query->where('table_type', '')
+                        ->orWhere(fn ($q) => $q->where('table_type', "App\Models\ClassSchool")->where('table_id', $class_id))
+                        ->orWhere(fn ($q) => $q->where('table_type', "App\Models\ClassSection")->where('table_id', $student_class_section_id))
+                        ->orWhere(fn ($q) => $q->where('table_type', "App\Models\SubjectTeacher")->whereIn('table_id', $subject_teacher_ids));
+                });
+            }
 
             if (isset($request->type) && $request->type == 'noticeboard') {
                 $data = $data->where('table_type', '');
@@ -1791,7 +1868,7 @@ class StudentApiController extends Controller
                                 'name' => $data['subject']['name'] . ' - ' . $data['subject']['type'],
                             ],
                             'title' => $data['title'],
-                            'exam_key' => $data['exam_key'],
+                            // exam_key is not sent: the student must get it from the teacher.
                             'duration' => $data['duration'],
                             'start_date' => $data['start_date'],
                             'end_date' => $data['end_date'],
@@ -1833,38 +1910,39 @@ class StudentApiController extends Controller
         try {
             $student = $request->user()->student;
 
-            // checks Exam key
-            $check_key = OnlineExam::where(['id' => $request->exam_id, 'exam_key' => $request->exam_key])->count();
-            if ($check_key == 0) {
+            // Only an exam of the student's own class/section, subjects and session, with the right key
+            $exam = is_numeric($request->exam_id) ? $this->findStudentOnlineExam($student, (int) $request->exam_id) : null;
+            if (! $exam || ! is_scalar($request->exam_key) || ! hash_equals((string) $exam->exam_key, (string) $request->exam_key)) {
                 ResponseService::errorResponse('Invalid Exam Key', null, 103);
             }
 
             // checks student exam status
-            $check_student_status = StudentOnlineExamStatus::where(['online_exam_id' => $request->exam_id, 'student_id' => $student->id])->count();
+            $check_student_status = StudentOnlineExamStatus::where(['online_exam_id' => $exam->id, 'student_id' => $student->id])->count();
             if ($check_student_status != 0) {
                 ResponseService::errorResponse('student_already_attempted_exam', null, 105);
             }
 
-            // checks the exam started or not
-            $time_data = Carbon::now()->toArray();
-            $current_date_time = $time_data['formatted'];
-            $check_start_date = OnlineExam::where('id', $request->exam_id)->where('start_date', '>', $current_date_time)->count();
-            if ($check_start_date != 0) {
+            // checks the exam started or not, and has not ended
+            $now = Carbon::now();
+            if ($now->lt(Carbon::parse($exam->start_date))) {
                 ResponseService::errorResponse('exam_not_started_yet', null, 106);
+            }
+            if ($now->gt(Carbon::parse($exam->end_date))) {
+                ResponseService::errorResponse('This exam has ended.', null, null);
             }
 
             // add the exam status
             $student_exam_status = new StudentOnlineExamStatus;
-            $student_exam_status->online_exam_id = $request->exam_id;
+            $student_exam_status->online_exam_id = $exam->id;
             $student_exam_status->student_id = $student->id;
             $student_exam_status->status = 1;
             $student_exam_status->save();
 
             // get total questions
-            $total_questions = OnlineExamQuestionChoice::where('online_exam_id', $request->exam_id)->count();
+            $total_questions = OnlineExamQuestionChoice::where('online_exam_id', $exam->id)->count();
 
             // get the questions data
-            $get_exam_questions_db = OnlineExamQuestionChoice::where('online_exam_id', $request->exam_id)->with('questions')->get();
+            $get_exam_questions_db = OnlineExamQuestionChoice::where('online_exam_id', $exam->id)->with('questions')->get();
             $questions_data = [];
             $total_marks = 0;
             foreach ($get_exam_questions_db as $exam_questions) {
@@ -1879,15 +1957,10 @@ class StudentApiController extends Controller
                     ];
                 }
 
-                // make answers array
-                $answers_data = [];
-                foreach ($exam_questions->questions->answers as $question_answers) {
-                    $answers_data[] = [
-                        'id' => $question_answers->id,
-                        'option_id' => $question_answers->answer,
-                        'answer' => safe_htmlspecialchars_decode($question_answers->options->option),
-                    ];
-                }
+                // The correct answers are never sent before the exam is submitted;
+                // only how many to pick. Older app builds read the number of entries
+                // in 'answers', so it keeps that many placeholders.
+                $answers_count = $exam_questions->questions->answers->count();
 
                 // make question array
                 $questions_data[] = [
@@ -1895,7 +1968,8 @@ class StudentApiController extends Controller
                     'question' => safe_htmlspecialchars_decode($exam_questions->questions->question),
                     'question_type' => $exam_questions->questions->question_type,
                     'options' => $options_data,
-                    'answers' => $answers_data,
+                    'answers' => array_fill(0, $answers_count, ['id' => 0, 'option_id' => 0, 'answer' => '']),
+                    'answers_count' => $answers_count,
                     'marks' => $exam_questions->marks,
                     'image' => $exam_questions->questions->image_url,
                     'note' => $exam_questions->questions->note,
@@ -1907,7 +1981,7 @@ class StudentApiController extends Controller
         }
     }
 
-    public function submitOnlineExamAnswers(Request $request)
+    public function submitOnlineExamAnswers(Request $request, OnlineExamScoringService $scoring)
     {
         $validator = Validator::make($request->all(), [
             'online_exam_id' => 'required|numeric',
@@ -1921,58 +1995,67 @@ class StudentApiController extends Controller
         try {
             $student = $request->user()->student;
 
-            // checks the online exam exists
-            $check_online_exam_id = OnlineExam::where('id', $request->online_exam_id)->count();
-            if ($check_online_exam_id) {
-
-                $answers_exists = OnlineExamStudentAnswer::where(['student_id' => $student->id, 'online_exam_id' => $request->online_exam_id])->count();
-                if ($answers_exists) {
-                    ResponseService::errorResponse('Answers already submitted', null, 103);
-                }
-
-                foreach ($request->answers_data as $answer_data) {
-
-                    // checks the question exists with provided exam id
-                    $check_question_exists = OnlineExamQuestionChoice::where(['id' => $answer_data['question_id']])->count();
-                    if ($check_question_exists) {
-
-                        // get the question id from question choiced
-                        $question_id = OnlineExamQuestionChoice::where(['id' => $answer_data['question_id'], 'online_exam_id' => $request->online_exam_id])->pluck('question_id')->first();
-
-                        // checks the option exists with provided question
-                        $check_option_exists = OnlineExamQuestionOption::where(['id' => $answer_data['option_id'], 'question_id' => $question_id])->count();
-
-                        // get the current date
-                        $currentTime = Carbon::now();
-                        $current_date = date($currentTime->toDateString());
-
-                        if ($check_option_exists) {
-                            foreach ($answer_data['option_id'] as $options) {
-                                // add the data of answers
-                                $store_answers = new OnlineExamStudentAnswer;
-                                $store_answers->student_id = $student->id;
-                                $store_answers->online_exam_id = $request->online_exam_id;
-                                $store_answers->question_id = $answer_data['question_id'];
-                                $store_answers->option_id = $options;
-                                $store_answers->submitted_date = $current_date;
-                                $store_answers->save();
-                            }
-
-                            $student_exam_status_id = StudentOnlineExamStatus::where(['student_id' => $student->id, 'online_exam_id' => $request->online_exam_id])->pluck('id')->first();
-                            if (isset($student_exam_status_id) && ! empty($student_exam_status_id)) {
-                                $update_status = StudentOnlineExamStatus::find($student_exam_status_id);
-                                $update_status->status = 2;
-                                $update_status->save();
-                            }
-                        }
-                    } else {
-                        ResponseService::errorResponse('invalid_question_id', null, 103);
-                    }
-                }
-                ResponseService::successResponse('data_store_successfully');
-            } else {
+            // checks the online exam exists for this student
+            $exam = $this->findStudentOnlineExam($student, (int) $request->online_exam_id);
+            if (! $exam) {
                 ResponseService::errorResponse('invalid_online_exam_id', null, 103);
             }
+
+            // Only while the exam is open (with a little slack for the upload)
+            $now = Carbon::now();
+            if ($now->lt(Carbon::parse($exam->start_date))) {
+                ResponseService::errorResponse('exam_not_started_yet', null, 106);
+            }
+            if ($now->gt(Carbon::parse($exam->end_date)->addMinutes(self::ONLINE_EXAM_GRACE_MINUTES))) {
+                ResponseService::errorResponse('This exam has ended.', null, null);
+            }
+
+            // Every question must be one of the exam's, every option one of that question's
+            try {
+                $answers = $scoring->validateSubmission($exam->id, $request->answers_data);
+            } catch (ValidationException $e) {
+                ResponseService::errorResponse($e->validator->errors()->first(), null, null);
+            }
+
+            $error = DB::transaction(function () use ($student, $exam, $answers, $now) {
+                // The exam must have been started (questions fetched), and only once submitted
+                $status = StudentOnlineExamStatus::where(['student_id' => $student->id, 'online_exam_id' => $exam->id])
+                    ->lockForUpdate()
+                    ->first();
+                if (! $status) {
+                    return 'Start the exam before submitting answers.';
+                }
+                if ($status->status == 2 || OnlineExamStudentAnswer::where(['student_id' => $student->id, 'online_exam_id' => $exam->id])->exists()) {
+                    return 'Answers already submitted';
+                }
+                if ($exam->duration > 0 && $now->gt(Carbon::parse($status->created_at)->addMinutes((int) $exam->duration + self::ONLINE_EXAM_GRACE_MINUTES))) {
+                    return 'The time for this exam is over.';
+                }
+
+                $current_date = $now->toDateString();
+                foreach ($answers as $choice_id => $option_ids) {
+                    foreach ($option_ids as $option_id) {
+                        // add the data of answers
+                        $store_answers = new OnlineExamStudentAnswer;
+                        $store_answers->student_id = $student->id;
+                        $store_answers->online_exam_id = $exam->id;
+                        $store_answers->question_id = $choice_id;
+                        $store_answers->option_id = $option_id;
+                        $store_answers->submitted_date = $current_date;
+                        $store_answers->save();
+                    }
+                }
+
+                $status->status = 2;
+                $status->save();
+
+                return null;
+            });
+
+            if ($error) {
+                ResponseService::errorResponse($error, null, null);
+            }
+            ResponseService::successResponse('data_store_successfully');
         } catch (Throwable $e) {
             ResponseService::errorResponse('error_occurred', null, 103, $e);
         }
@@ -2026,27 +2109,15 @@ class StudentApiController extends Controller
                 })->with('subject')->paginate(10)->toArray();
             }
             $exam_list_data = [];
+            $scoring = app(OnlineExamScoringService::class);
             foreach ($online_exam_db['data'] as $data) {
-                // get the choice question id
-                $exam_submitted_question_ids = OnlineExamStudentAnswer::where(['student_id' => $student->id, 'online_exam_id' => $data['id']])->pluck('question_id');
                 $exam_submitted_date = OnlineExamStudentAnswer::where(['student_id' => $student->id, 'online_exam_id' => $data['id']])->pluck('submitted_date')->first();
 
-                $question_ids = OnlineExamQuestionChoice::whereIn('id', $exam_submitted_question_ids)->pluck('question_id');
-
-                $exam_attempted_answers = OnlineExamStudentAnswer::where(['student_id' => $student->id, 'online_exam_id' => $data['id']])->pluck('option_id');
-
-                // removes the question id of the question if one of the answer of particular question is wrong
-                foreach ($question_ids as $question_id) {
-                    $check_questions_answers_exists = OnlineExamQuestionAnswer::where('question_id', $question_id)->whereNotIn('answer', $exam_attempted_answers)->count();
-                    if ($check_questions_answers_exists) {
-                        unset($question_ids[array_search($question_id, $question_ids->toArray())]);
-                    }
-                }
-
-                $exam_correct_answers_question_id = OnlineExamQuestionAnswer::whereIn('question_id', $question_ids)->whereIn('answer', $exam_attempted_answers)->pluck('question_id');
+                // a question counts only when exactly its correct options were picked
+                $score = $scoring->score($student->id, (int) $data['id']);
 
                 // get the data of only attempted data
-                $total_obtained_marks_exam = OnlineExamQuestionChoice::select(DB::raw('sum(marks)'))->where('online_exam_id', $data['id'])->whereIn('question_id', $exam_correct_answers_question_id)->first();
+                $total_obtained_marks_exam = OnlineExamQuestionChoice::select(DB::raw('sum(marks)'))->where('online_exam_id', $data['id'])->whereIn('id', $score['correct_choice_ids'])->first();
                 $total_obtained_marks_exam = $total_obtained_marks_exam['sum(marks)'];
                 $total_marks_exam = OnlineExamQuestionChoice::select(DB::raw('sum(marks)'))->where('online_exam_id', $data['id'])->first();
                 $total_marks_exam = $total_marks_exam['sum(marks)'];
@@ -2093,65 +2164,36 @@ class StudentApiController extends Controller
             // get the total questions count
             $total_questions = OnlineExamQuestionChoice::where('online_exam_id', $request->online_exam_id)->count();
 
-            // get the exam's choiced question id
-            $exam_choiced_question_ids = OnlineExamStudentAnswer::where(['student_id' => $student->id, 'online_exam_id' => $request->online_exam_id])->pluck('question_id');
-
-            // get the questions id
-            $question_ids = OnlineExamQuestionChoice::whereIn('id', $exam_choiced_question_ids)->pluck('question_id');
-
-            // get the options submitted by student
-            $exam_attempted_answers = OnlineExamStudentAnswer::where(['student_id' => $student->id, 'online_exam_id' => $request->online_exam_id])->pluck('option_id');
-
-            // removes the question id of the question if one of the answer of particular question is wrong
-            foreach ($question_ids as $question_id) {
-                $check_questions_answers_exists = OnlineExamQuestionAnswer::where('question_id', $question_id)->whereNotIn('answer', $exam_attempted_answers)->count();
-                if ($check_questions_answers_exists) {
-                    unset($question_ids[array_search($question_id, $question_ids->toArray())]);
-                }
-            }
+            // a question counts only when exactly its correct options were picked
+            $score = app(OnlineExamScoringService::class)->score($student->id, (int) $request->online_exam_id);
+            $choice_marks = OnlineExamQuestionChoice::where('online_exam_id', $request->online_exam_id)->pluck('marks', 'id');
 
             // get the correct answers counter
-            $exam_correct_answers = OnlineExamQuestionAnswer::whereIn('question_id', $question_ids)->whereIn('answer', $exam_attempted_answers)->groupby('question_id')->pluck('question_id')->count();
-
-            // question id of correct answers
-            $exam_correct_answers_question_id = OnlineExamQuestionAnswer::whereIn('question_id', $question_ids)->whereIn('answer', $exam_attempted_answers)->pluck('question_id');
-
-            // data of correct answers
-            $exam_correct_answers_data = OnlineExamQuestionAnswer::whereIn('question_id', $question_ids)->whereIn('answer', $exam_attempted_answers)->groupby('question_id')->get();
+            $exam_correct_answers = count($score['correct_choice_ids']);
 
             // array of correct answer with choiced exam id and marks
             $correct_answers_data = [];
-            foreach ($exam_correct_answers_data as $correct_data) {
-                $choice_questions = OnlineExamQuestionChoice::where(['online_exam_id' => $request->online_exam_id, 'question_id' => $correct_data->question_id])->first();
+            foreach ($score['correct_choice_ids'] as $choice_id) {
                 $correct_answers_data[] = [
-                    'question_id' => $choice_questions->id,
-                    'marks' => $choice_questions->marks,
+                    'question_id' => $choice_id,
+                    'marks' => $choice_marks[$choice_id] ?? null,
                 ];
             }
 
-            // get questions ids
-            $all_questions_ids = OnlineExamQuestionChoice::whereNotIn('question_id', $question_ids)->where('online_exam_id', $request->online_exam_id)->pluck('question_id');
-
             // get the incorrect answers && unattempted counter
-            $exam_in_correct_answers = OnlineExamQuestionAnswer::whereIn('question_id', $all_questions_ids)->whereNotIn('answer', $exam_attempted_answers)->groupby('question_id')->pluck('question_id')->count();
-
-            // data of in correct && unattempted answers
-            $exam_in_correct_answers_data = OnlineExamQuestionAnswer::whereIn('question_id', $all_questions_ids)->whereNotIn('answer', $exam_attempted_answers)->groupby('question_id')->get();
+            $exam_in_correct_answers = count($score['incorrect_choice_ids']);
 
             // array of in correct answer && unattempted with choiced exam id and marks
             $in_correct_answers_data = [];
-            foreach ($exam_in_correct_answers_data as $in_correct_data) {
-                $choice_questions = OnlineExamQuestionChoice::where(['online_exam_id' => $request->online_exam_id, 'question_id' => $in_correct_data->question_id])->first();
-                if (isset($choice_questions) && ! empty($choice_questions)) {
-                    $in_correct_answers_data[] = [
-                        'question_id' => $choice_questions->id,
-                        'marks' => $choice_questions->marks,
-                    ];
-                }
+            foreach ($score['incorrect_choice_ids'] as $choice_id) {
+                $in_correct_answers_data[] = [
+                    'question_id' => $choice_id,
+                    'marks' => $choice_marks[$choice_id] ?? null,
+                ];
             }
 
             // total obtained and total marks
-            $total_obtained_marks = OnlineExamQuestionChoice::select(DB::raw('sum(marks)'))->where('online_exam_id', $request->online_exam_id)->whereIn('question_id', $exam_correct_answers_question_id)->first();
+            $total_obtained_marks = OnlineExamQuestionChoice::select(DB::raw('sum(marks)'))->where('online_exam_id', $request->online_exam_id)->whereIn('id', $score['correct_choice_ids'])->first();
             $total_obtained_marks = $total_obtained_marks['sum(marks)'];
             $total_marks = OnlineExamQuestionChoice::select(DB::raw('sum(marks)'))->where('online_exam_id', $request->online_exam_id)->first();
             $total_marks = $total_marks['sum(marks)'];
@@ -2432,45 +2474,7 @@ class StudentApiController extends Controller
                 return ResponseService::errorResponse('Student session not found for the current year.');
             }
 
-            $class_section_id = $studentSession->class_section_id;
-
-            $student_subject = $user->student->subjects();
-
-            $core_subjects = array_column($student_subject['core_subject'], 'subject_id');
-
-            $elective_subjects = $student_subject['elective_subject'] ?? [];
-            if ($elective_subjects) {
-                $elective_subjects = $elective_subjects->pluck('subject_id')->toArray();
-            }
-            $subject_id = array_merge($core_subjects, $elective_subjects);
-
-            $currentSemester = Semester::get()->first(function ($semester) {
-                return $semester->current;
-            });
-
-            $isClassHaveSemester = ClassSessionConfig::classHasSemester(
-                $studentSession->class_section->class_id,
-                $session_year_id
-            );
-
-            $class_teachers_id = ClassTeacher::where('class_section_id', $class_section_id)
-                ->where('session_year_id', $session_year_id)
-                ->when($isClassHaveSemester && $currentSemester, function ($query) use ($currentSemester) {
-                    $query->where('semester_id', $currentSemester->id);
-                })
-                ->pluck('class_teacher_id')
-                ->toArray();
-
-            $subject_teacher_id = SubjectTeacher::where('class_section_id', $class_section_id)
-                ->where('session_year_id', $session_year_id)
-                ->when($isClassHaveSemester && $currentSemester, function ($query) use ($currentSemester) {
-                    $query->where('semester_id', $currentSemester->id);
-                })
-                ->whereIn('subject_id', $subject_id)
-                ->pluck('teacher_id')
-                ->toArray();
-
-            $teacher_ids = array_unique(array_merge($class_teachers_id, $subject_teacher_id));
+            $teacher_ids = $this->chatTeacherIds($studentSession, $user->student, $session_year_id);
 
             // return response()->json([$subject_teacher_id, $teacher_ids]);
 
@@ -2576,17 +2580,36 @@ class StudentApiController extends Controller
 
     public function sendMessage(Request $request)
     {
+        // Limits from the chat settings (the same values the app is given).
+        $chatSettings = getSettings();
+        $maxFiles = max(1, (int) ($chatSettings['max_files_or_images_in_one_message'] ?? 10));
+        $maxFileKb = max(1, (int) ceil(((float) ($chatSettings['max_file_size_in_bytes'] ?? 10)) * 1000000 / 1024));
+
         $validator = Validator::make($request->all(), [
-            'receiver_id' => 'required|numeric',
+            'receiver_id' => 'required|integer',
             'message' => 'required_without:file',
-            'file.*' => 'nullable',
+            'file' => 'nullable|array|max:'.$maxFiles,
+            'file.*' => 'file|max:'.$maxFileKb,
         ]);
         if ($validator->fails()) {
             ResponseService::validationError($validator->errors()->first());
         }
         try {
             $sender_id = $request->user()->id;
-            $receiver_id = $request->receiver_id;
+            $receiver_id = (int) $request->receiver_id;
+
+            // Only the teachers getChatUserList offers this student.
+            $session_year_id = getSettings('session_year')['session_year'];
+            $studentSession = StudentSessions::where('session_year_id', $session_year_id)
+                ->where('student_id', $request->user()->student->id)
+                ->with('class_section')
+                ->first();
+            $allowed_user_ids = ($studentSession && $studentSession->class_section)
+                ? Teacher::whereIn('id', $this->chatTeacherIds($studentSession, $request->user()->student, $session_year_id))->pluck('user_id')->map(fn ($id) => (int) $id)->all()
+                : [];
+            if (! in_array($receiver_id, $allowed_user_ids, true)) {
+                ResponseService::errorResponse('You can not send a message to this user', null, 103);
+            }
 
             $message = new ChatMessage;
             $message->modal_id = $receiver_id;
@@ -2600,9 +2623,14 @@ class StudentApiController extends Controller
 
             if ($request->hasFile('file')) {
                 foreach ($request->file('file') as $uploadedFile) {
-
-                    $originalName = $uploadedFile->getClientOriginalName();
-                    $filePath = $uploadedFile->storeAs('chatfile', $originalName, 'public');
+                    // Each file gets its own generated folder, so a client-chosen name can't
+                    // overwrite another file or leave chatfile/. The app shows the last URL
+                    // segment, so a cleaned-up original name is kept as the file name.
+                    $originalName = preg_replace('/[^A-Za-z0-9._-]+/', '_', basename(str_replace('\\', '/', $uploadedFile->getClientOriginalName())));
+                    $originalName = ltrim(mb_substr((string) $originalName, -120), '._');
+                    $filePath = $originalName !== ''
+                        ? $uploadedFile->storeAs('chatfile/'.Str::random(32), $originalName, 'public')
+                        : $uploadedFile->store('chatfile', 'public');
 
                     $file = new ChatFile;
                     $file->file_type = 1;
@@ -2714,8 +2742,9 @@ class StudentApiController extends Controller
     public function getUserChatMessage(Request $request)
     {
         try {
-            $offset = $request->offset;
-            $limit = $request->limit;
+            $offset = max((int) $request->offset, 0);
+            // At most 100 messages per page.
+            $limit = min(max((int) ($request->limit ?? 100), 1), 100);
 
             $messages = ChatMessage::with(['file' => function ($query) {
                 $query->select('message_id', 'file_name');
@@ -2902,19 +2931,26 @@ class StudentApiController extends Controller
     }
 
     // Store Fees Transaction
-    public function storeFeesTransaction(Request $request)
+    public function storeFeesTransaction(Request $request, FeesPaymentService $feesPaymentService)
     {
         $validator = Validator::make($request->all(), [
             'payment_method' => 'required|in:1,2,3,4',
-            'amount' => 'required',
+            'amount' => 'required|numeric',
             'type_of_fee' => 'required|in:0,1,2',
-            'is_fully_paid' => 'required|in:0,1',
+            // Still sent by the app; the server works it out itself.
+            'is_fully_paid' => 'nullable|in:0,1',
+            'optional_fees_data' => 'nullable|array',
+            'installment_data' => 'nullable|array',
         ]);
         if ($validator->fails()) {
             ResponseService::validationError($validator->errors()->first());
         }
+        // Only a payment gateway the school has switched on.
+        $gatewayStatusSetting = [1 => 'razorpay_status', 2 => 'stripe_status', 3 => 'paystack_status', 4 => 'flutterwave_status'][(int) $request->payment_method];
+        if (empty(getSettings($gatewayStatusSetting)[$gatewayStatusSetting] ?? null)) {
+            ResponseService::validationError('The selected payment method is not available.');
+        }
         try {
-            DB::beginTransaction();
             $student = $request->user()->student;
             $mobile = Auth::user()->mobile ?? '';
             $name = Auth::user()->full_name;
@@ -2927,89 +2963,34 @@ class StudentApiController extends Controller
             }
             $session_year = getSettings('session_year');
             $session_year_id = $session_year['session_year'];
+            $parent_id = $student->father_id ?: $student->guardian_id;
 
-            // variables for storing the data
-            $payment_gateway_details = [];
+            // What is being paid, its amount, due charges and whether it completes
+            // the compulsory fees are all worked out here; the app's amount must match.
+            try {
+                $plan = $feesPaymentService->prepare(
+                    (int) $student->id,
+                    (int) $session_year_id,
+                    (int) $request->type_of_fee,
+                    (array) ($request->optional_fees_data ?? []),
+                    (array) ($request->installment_data ?? []),
+                    $request->amount
+                );
+            } catch (ValidationException $e) {
+                ResponseService::validationError($e->validator->errors()->first());
+            }
 
-            $class_id = StudentSessions::where('student_id', $student->id)
-                ->where('session_year_id', $session_year_id)
-                ->with('class_section')->first()->class_section->class_id;
+            DB::beginTransaction();
+            $pending = $feesPaymentService->createPendingTransaction($plan, $parent_id, (int) $request->payment_method);
+            $payment_transaction_db = $pending['transaction'];
 
-            // variables for storing the data
-            $optional_fees_store = [];
-            $installment_fees_store = [];
-            $paid_installment_id = [];
-            $optional_fees_id = [];
+            $paymentIntent = PaymentService::create($request->payment_method)->createAndFormatPaymentIntent(
+                $plan['total_amount'],
+                $feesPaymentService->gatewayMetadata($plan, $pending, $parent_id, ['email' => $email, 'name' => $name, 'mobile' => $mobile])
+            );
 
-            $payment_transaction_db = new PaymentTransaction;
-            $payment_transaction_db->student_id = $student->id;
-            $payment_transaction_db->parent_id = $student->father_id ?: $student->guardian_id;
-            $payment_transaction_db->class_id = $class_id;
-            $payment_transaction_db->mode = 2;
-            $payment_transaction_db->type_of_fee = $request->type_of_fee;
-            $payment_transaction_db->payment_gateway = $request->payment_method;
-            $payment_transaction_db->payment_status = 2;
-            $payment_transaction_db->total_amount = $request->amount;
-            $payment_transaction_db->date = date('Y-m-d H:i:s');
-            $payment_transaction_db->session_year_id = $session_year_id;
+            $payment_transaction_db->order_id = $paymentIntent['id'];
             $payment_transaction_db->save();
-
-            // If Optional Fees Passed then insert data
-            if (isset($request->optional_fees_data) && ! empty($request->optional_fees_data)) {
-                foreach ($request->optional_fees_data as $data) {
-                    $optional_fees_store = [
-                        'student_id' => $student->id,
-                        'class_id' => $class_id,
-                        'fees_type_id' => $data['id'],
-                        'is_due_charges' => 0,
-                        'total_amount' => $data['amount'],
-                        'session_year_id' => $session_year_id,
-                        'date' => date('Y-m-d'),
-                        'payment_transaction_id' => $payment_transaction_db->id,
-                        'status' => 0,
-                    ];
-                    $optional_fees_id[] = FeesChoiceable::insertGetId($optional_fees_store);
-                }
-            }
-            // If Installment Fees Passed then insert data
-            if (isset($request->installment_data) && ! empty($request->installment_data)) {
-                foreach ($request->installment_data as $data) {
-                    $installment_fees_store = [
-                        'class_id' => $class_id,
-                        'student_id' => $student->id,
-                        'parent_id' => $student->father_id ?: $student->guardian_id,
-                        'installment_fee_id' => $data['id'],
-                        'session_year_id' => $session_year_id,
-                        'amount' => $data['amount'],
-                        'due_charges' => $data['due_charges'] ?? null,
-                        'date' => date('Y-m-d'),
-                        'payment_transaction_id' => $payment_transaction_db->id,
-                        'status' => 0,
-                    ];
-                    $paid_installment_id[] = PaidInstallmentFee::insertGetId($installment_fees_store);
-                }
-            }
-
-            $paymentIntent = PaymentService::create($request->payment_method)->createAndFormatPaymentIntent(round((float) $request->amount, 2), [
-                'student_id' => $student->id,
-                'parent_id' => $student->father_id ?: $student->guardian_id,
-                'class_id' => $class_id,
-                'email' => $email,
-                'name' => $name,
-                'mobile' => $mobile,
-                'session_year_id' => $session_year_id,
-                'payment_transaction_id' => $payment_transaction_db->id,
-                'is_fully_paid' => $request->is_fully_paid,
-                'type_of_fee' => $request->type_of_fee,
-                'is_due_charges' => (isset($request->due_charges) && $request->due_charges >= 0) ? 1 : 0,
-                'due_charges' => $request->due_charges,
-                'optional_fees_paid' => json_encode($optional_fees_id) ?? '',
-                'installment_fees_paid' => json_encode($paid_installment_id) ?? '',
-            ]);
-
-            $payment_transaction_update = PaymentTransaction::find($payment_transaction_db->id);
-            $payment_transaction_update->order_id = $paymentIntent['id'];
-            $payment_transaction_update->save();
 
             $payment_gateway_details = [
                 ...$paymentIntent,
@@ -3037,12 +3018,19 @@ class StudentApiController extends Controller
             ResponseService::validationError($validator->errors()->first());
         }
         try {
-            // Updating the Payment Transaction
-            $transaction_db = PaymentTransaction::findOrFail($request->transaction_id);
-            if ($request->payment_id) {
+            // Updating the student's own pending Payment Transaction. This only
+            // notes the gateway ids; payments are recorded from the webhooks.
+            $transaction_db = PaymentTransaction::where('id', $request->transaction_id)
+                ->where('student_id', $request->user()->student->id)
+                ->where('payment_status', 2)
+                ->first();
+            if (! $transaction_db) {
+                ResponseService::errorResponse('Invalid transaction', null, 103);
+            }
+            if ($request->payment_id && empty($transaction_db->payment_id)) {
                 $transaction_db->payment_id = $request->payment_id;
             }
-            if ($request->payment_signature) {
+            if ($request->payment_signature && empty($transaction_db->payment_signature)) {
                 $transaction_db->payment_signature = $request->payment_signature;
             }
             $transaction_db->save();
@@ -3289,12 +3277,19 @@ class StudentApiController extends Controller
     public function failPaymentTransactionStatus(Request $request)
     {
         try {
-            $update_status = PaymentTransaction::findOrFail($request->payment_transaction_id);
-            $total_amount = $update_status->total_amount;
-            $update_status->payment_status = 0;
-            $update_status->save();
-
             $student = $request->user()->student;
+
+            // Only the student's own transaction, and only while it is pending
+            // (a paid transaction can't be marked failed).
+            $update_status = PaymentTransaction::where('id', $request->payment_transaction_id)
+                ->where('student_id', $student->id)
+                ->where('payment_status', 2)
+                ->first();
+            // Conditional update, so a webhook marking it paid meanwhile wins.
+            if (! $update_status || ! PaymentTransaction::whereKey($update_status->id)->where('payment_status', 2)->update(['payment_status' => 0])) {
+                ResponseService::errorResponse('Invalid transaction', null, 103);
+            }
+            $total_amount = $update_status->total_amount;
 
             $user[] = $student->user_id;
             $body = 'Amount :- ' . $total_amount;
@@ -3597,5 +3592,98 @@ class StudentApiController extends Controller
         } catch (Throwable $e) {
             ResponseService::errorResponse('error_occurred', null, 103, $e);
         }
+    }
+
+    /**
+     * The teachers a student may chat with: the class teachers and the
+     * teachers of their subjects in their current class section (semester aware).
+     *
+     * @return list<int> teacher ids
+     */
+    private function chatTeacherIds(StudentSessions $studentSession, Students $student, $session_year_id): array
+    {
+        $class_section_id = $studentSession->class_section_id;
+        $subject_id = $this->studentSubjectIds($student);
+
+        $currentSemester = Semester::get()->first(function ($semester) {
+            return $semester->current;
+        });
+
+        $isClassHaveSemester = ClassSessionConfig::classHasSemester(
+            $studentSession->class_section->class_id,
+            $session_year_id
+        );
+
+        $class_teachers_id = ClassTeacher::where('class_section_id', $class_section_id)
+            ->where('session_year_id', $session_year_id)
+            ->when($isClassHaveSemester && $currentSemester, function ($query) use ($currentSemester) {
+                $query->where('semester_id', $currentSemester->id);
+            })
+            ->pluck('class_teacher_id')
+            ->toArray();
+
+        $subject_teacher_id = SubjectTeacher::where('class_section_id', $class_section_id)
+            ->where('session_year_id', $session_year_id)
+            ->when($isClassHaveSemester && $currentSemester, function ($query) use ($currentSemester) {
+                $query->where('semester_id', $currentSemester->id);
+            })
+            ->whereIn('subject_id', $subject_id)
+            ->pluck('teacher_id')
+            ->toArray();
+
+        return array_values(array_unique(array_merge($class_teachers_id, $subject_teacher_id)));
+    }
+
+    /**
+     * Ids of the student's subjects this session: core plus chosen electives.
+     *
+     * @return list<int>
+     */
+    private function studentSubjectIds(Students $student): array
+    {
+        $student_subject = $student->subjects();
+        $core_subjects = array_column($student_subject['core_subject'], 'subject_id');
+        $elective_subjects = $student_subject['elective_subject'] ?? [];
+        if ($elective_subjects) {
+            $elective_subjects = $elective_subjects->pluck('subject_id')->toArray();
+        }
+
+        return array_values(array_map('intval', array_merge($core_subjects, $elective_subjects ?: [])));
+    }
+
+    /**
+     * An online exam the student may take: their class section (or class),
+     * one of their subjects, this session and the current semester, as
+     * getOnlineExamList lists them.
+     */
+    private function findStudentOnlineExam(Students $student, int $online_exam_id): ?OnlineExam
+    {
+        $session_year_id = getSettings('session_year')['session_year'];
+        $student_session = StudentSessions::where('student_id', $student->id)
+            ->where('session_year_id', $session_year_id)
+            ->with('class_section')
+            ->first();
+        if (! $student_session || ! $student_session->class_section) {
+            return null;
+        }
+        $class_section_id = $student_session->class_section_id;
+        $class_id = $student_session->class_section->class_id;
+
+        $currentSemester = null;
+        if (ClassSessionConfig::classHasSemester($class_id, $session_year_id)) {
+            $currentSemester = Semester::where('session_year_id', $session_year_id)
+                ->get()
+                ->first(fn($s) => $s->current);
+        }
+
+        return OnlineExam::where('id', $online_exam_id)
+            ->where('session_year_id', $session_year_id)
+            ->whereIn('subject_id', $this->studentSubjectIds($student))
+            ->where(function ($query) use ($class_section_id, $class_id) {
+                $query->where(fn ($q) => $q->where('model_type', 'App\Models\ClassSection')->where('model_id', $class_section_id))
+                    ->orWhere(fn ($q) => $q->where('model_type', 'App\Models\ClassSchool')->where('model_id', $class_id));
+            })
+            ->when($currentSemester, fn ($query) => $query->where('semester_id', $currentSemester->id))
+            ->first();
     }
 }

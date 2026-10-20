@@ -540,30 +540,11 @@ class StudentController extends Controller
             // total marks possible for this exam
             $totalMarks = OnlineExamQuestionChoice::where('online_exam_id', $onlineExam->id)->sum('marks');
 
-            // questions belonging to this exam
-            $questionIds = OnlineExamQuestionChoice::where('online_exam_id', $onlineExam->id)->pluck('question_id');
-
-            // options the student picked for this exam
-            $attemptedAnswers = OnlineExamStudentAnswer::where([
-                'student_id' => $request->id,
-                'online_exam_id' => $onlineExam->id,
-            ])->pluck('option_id');
-
-            // drop any question that has a correct-answer row not covered by the student's picks
-            $correctQuestionIds = $questionIds->toArray();
-
-            foreach ($questionIds as $questionId) {
-                $hasUnmatchedAnswer = OnlineExamQuestionAnswer::where('question_id', $questionId)
-                    ->whereNotIn('answer', $attemptedAnswers)
-                    ->exists();
-
-                if ($hasUnmatchedAnswer) {
-                    $correctQuestionIds = array_diff($correctQuestionIds, [$questionId]);
-                }
-            }
+            // a question counts only when exactly its correct options were picked
+            $score = app(\App\Services\OnlineExamScoringService::class)->score((int) $request->id, (int) $onlineExam->id);
 
             $obtainedMarks = OnlineExamQuestionChoice::where('online_exam_id', $onlineExam->id)
-                ->whereIn('question_id', $correctQuestionIds)
+                ->whereIn('id', $score['correct_choice_ids'])
                 ->sum('marks');
 
             $onlineExamData[] = [
