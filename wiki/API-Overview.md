@@ -174,7 +174,7 @@ The numeric `code` values used by the API controllers and middleware:
 | Code | HTTP | Meaning | Where |
 | --- | --- | --- | --- |
 | `200` | 200 | Success (default) | `successResponse` |
-| `100` | 200 | Success of parent and teacher login | `ParentApiController::login`, `TeacherApiController::login` |
+| `100` | 200 | Success (used instead of 200 by a few endpoints) | parent and teacher `login`, teacher `get-user-list` and `get-user-message` |
 | `101` | 200 | Invalid login credentials, or the account does not have the role of that app | all three `login` methods |
 | `102` | 200 / 422 | Validation failure (only where set explicitly) | student `login`, `get-events-details`; `RejectDangerousUploads` (HTTP 422) |
 | `103` | 200 | Generic error: caught exception (`error_occurred`), record not found or not owned, invalid online exam key, invalid transaction | most endpoints |
@@ -193,7 +193,13 @@ How the apps read codes: `lib/utils/errorMessageKeysAndCodes.dart` (both apps) m
 
 ## Validation errors
 
-Controllers validate with `Validator::make($request->all(), [...])` and on failure send only the first message (`$validator->errors()->first()`), through `validationError()` (code `null`) or, in a few places, `errorResponse(..., 102)`. There is no field-keyed `errors` object. Messages come from `resources/lang/en/validation.php`. Two endpoints use `$request->validate()` (`student/delete-leave` and others), which throws a Laravel `ValidationException`; with `Accept: application/json` that becomes Laravel's standard HTTP 422 `{"message": ..., "errors": {...}}`, without it a redirect.
+Controllers validate with `Validator::make($request->all(), [...])` and on failure send only the first message (`$validator->errors()->first()`), through `validationError()` (code `null`) or, in a few places, `errorResponse(..., 102)`. There is no field-keyed `errors` object. Messages come from `resources/lang/en/validation.php`. For example, `GET /api/settings` without `type` returns exactly:
+
+```json
+{"error":true,"message":"The type field is required.","data":null,"code":null,"details":""}
+```
+
+Three methods use `$request->validate()` instead. In `student/delete-leave` and `teacher/delete-leave` the call sits inside the `try`, so a failure is caught and answered as `error_occurred` with code `103`. In `teacher/student-leave-status-update` it is outside the `try`, so Laravel's own `ValidationException` handling applies: HTTP 422 `{"message": ..., "errors": {...}}` with `Accept: application/json`, a redirect without it.
 
 `student/apply-leave` is stricter than the rest: it rejects any field other than `reason`, `leave_details` and `files` (`Unknown fields: ...`).
 
@@ -206,7 +212,7 @@ There is no single convention; each endpoint uses one of these:
 | Laravel paginator, 15 per page | `page` | Full paginator object as `data`: `current_page`, `data`, `first_page_url`, `from`, `last_page`, `last_page_url`, `links`, `next_page_url`, `path`, `per_page`, `prev_page_url`, `to`, `total` | `student/assignments`, `student/announcements`, `student/get-notification`, parent assignments/announcements/notifications, several teacher lists |
 | Trimmed paginator | `page` | `current_page`, `data`, `from`, `last_page`, `per_page`, `to`, `total` (online exam list also adds `current_date`) | `get-online-exam-list` (15), `get-online-exam-result-list` (10), `fees-transactions-list` (15, rows under `transaction-data`) |
 | `per_page` + `page` | `per_page` 1 to 100 (default 10), `page` >= 1 | `{data, current_page, last_page}` | `get-gallery-albums`, `get-gallery-videos` |
-| `offset` + `limit` | `offset` >= 0, `limit` | `{items, total_items}` | chat user list (no limit when `limit` is absent or not positive) and chat messages (student: `limit` 1 to 100, default 100) |
+| `offset` + `limit` | `offset`, `limit` | `{items, total_items}` (user list also `total_unread_users`) | chat `get-user-list` and `get-user-message` in all three roles. On the student side the user list returns everything when `limit` is absent or not positive, and messages are capped at `limit` 1 to 100 (default 100) |
 
 ## Rate limiting
 
@@ -337,9 +343,11 @@ Every route in `routes/api.php`, in file order. All paths are relative to `/api/
 | --- | --- |
 | **S** | `auth:sanctum`, `role:Student`, `student.session.active` |
 | **P** | `auth:sanctum`, `role:Parent`, `parent.children.session.active` |
-| **P+C** | **P** plus `auth:sanctum`, `CheckChild` |
+| **P+C** | **P** plus `CheckChild` (the inner group repeats `auth:sanctum`; Laravel de-duplicates it) |
 | **T** | `auth:sanctum`, `role:Teacher` |
-| **T+S** | **T** plus `auth:sanctum`, `CheckStudent` |
+| **T+S** | **T** plus `CheckStudent` (same de-duplication) |
+
+The table matches `php artisan route:list --path=api`, which reports 155 routes; `GET` routes also answer `HEAD`.
 
 Controller names are shortened: `Api` = `ApiController`, `Student` = `StudentApiController`, `Parent` = `ParentApiController`, `Teacher` = `TeacherApiController`.
 
@@ -527,11 +535,11 @@ Several "read" endpoints are `POST` (`get-user-message`, `get-leave-list`, `get-
 
 ## Gotchas
 
-- **Send `Accept: application/json` when testing.** Without it an invalid or expired token is answered by a redirect to `/login` (`App\Http\Middleware\Authenticate::redirectTo`) instead of HTTP 401, and role failures render an HTML 403 page. The shipped apps do not send this header (`Api.headers()` returns only `Authorization`), so their "log out on 401" branch fires for the session-check middleware (which always returns JSON 401) but not for an expired token.
+- **Send `Accept: application/json` when testing.** Without it (or with `Accept: */*`) a missing, invalid or expired token is answered by HTTP 302 to `/login` (`App\Http\Middleware\Authenticate::redirectTo`) instead of HTTP 401 `{"message":"Unauthenticated."}`, and role failures render an HTML 403 page. The shipped apps do not send this header (`Api.headers()` returns only `Authorization`), so their "log out on 401" branch fires for the session-check middleware (which always returns JSON 401) but not for an expired token.
 - **Check `error`, not the HTTP status.** Business errors come back with HTTP 200.
 - **`code: null` is normal** for validation errors because `config/constants.php` is missing.
 - **No current session year, no API.** Most endpoints, including the public `settings`, read the `session_year` setting and the matching `session_years` row; if it is missing they fail with `error_occurred` (code `103`), and student/parent logins are refused until students are promoted into the current session (see [Academic-Structure](Academic-Structure)).
-- **Route caching.** Routes are registered by both `bootstrap/app.php` and `RouteServiceProvider`; they are identical, but if you add an API route make sure it is in `routes/api.php`, not in the provider.
+- **Browser clients and response headers.** Responses sent by `ResponseService` carry no `Access-Control-Allow-Origin`, `X-RateLimit-*`, `X-Frame-Options`, `X-Content-Type-Options` or `Referrer-Policy` headers, while `response()->json(...)` responses do (checked against a local `php -S` server: `GET /api/settings` vs `GET /api/get-gallery-images`).
 - **Token rows pile up** if the scheduler is not running, because only `sanctum:prune-expired` deletes expired tokens.
 
 ## See also

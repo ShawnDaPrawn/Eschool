@@ -157,14 +157,14 @@ Data protection on Android: both apps set `android:allowBackup="false"` and use 
 
 | JSON field | Used for | App |
 |---|---|---|
-| `app_link`, `ios_app_link` (`teacher_app_link`, `teacher_ios_app_link`) | Store link opened by the force-update dialog and the share/rate entries. | both |
+| `app_link`, `ios_app_link` (`teacher_app_link`, `teacher_ios_app_link`) | Store link opened by the force-update dialog and by the share/rate entries in settings. | both |
 | `app_version`, `ios_app_version` (`teacher_*`) | Version compared with the installed one; also shown as "app version" in settings. | both |
 | `force_app_update` (`teacher_force_app_update`) | `'1'` enables the force-update check. | both |
 | `app_maintenance` (`teacher_app_maintenance`) | `'1'` replaces the home screen with `AppUnderMaintenanceContainer`. | both |
 | `school_name`, `school_tagline` | Login screen text, Stripe merchant name. | both |
 | `session_year`, `current_semester`, `semester_breaks`, `holiday_days` | Calendars, leave forms, filters. | both |
 | `chat_settings` | `max_files_or_images_in_one_message` (default 10), `max_file_size_in_bytes` (default 10000000), `max_characters_in_text_message` (default 500), `automatically_messages_removed_days`. | both |
-| `is_demo` | Value of the server's `DEMO_MODE` env; `UiUtils.isDemoVersionEnable()` blocks some actions. | both |
+| `is_demo` | Value of the server's `DEMO_MODE` env; `UiUtils.isDemoVersionEnable()` is checked on the login screens and before changing the password. | both |
 | `online_payment` | `'1'` shows the "pay" buttons. | student |
 | `compulsory_fee_payment_mode`, `is_student_can_pay_fees` | Compulsory-fee gate and whether students may pay their own fees. | student |
 | `payment_options` | Currency code/symbol, due date/charges and the public keys of each enabled gateway (`razorpay`, `stripe`, `paystack`, `flutterwave`). Secret keys are never sent. | student |
@@ -220,7 +220,7 @@ Constraint from `pubspec.yaml`, resolved version from `pubspec.lock`.
 | `lottie` | `^3.3.3` | 3.6.1 | yes | yes | `assets/animations/*.json`. |
 | `flutter_animate` | `^4.5.2` | 4.5.2 | yes | yes | List/item appearance effects. |
 | `cached_network_image` | `^3.4.1` | 3.4.1 | yes | yes | Remote images. |
-| `flutter_html` | `^3.0.0` | 3.0.0 | yes | yes | HTML content (policies, announcements). |
+| `flutter_html` | `^3.0.0` | 3.0.0 | yes | yes | HTML from the server (about/privacy/terms/contact pages, online exam rules). |
 | `url_launcher` | `^6.3.2` | 6.3.3 | yes | yes | External links (only http/https via `UiUtils.launchWebUrl`). |
 | `webview_flutter` | `^4.13.1` | 4.14.1 | yes | yes | Paystack/Flutterwave checkout (student), web content. |
 | `youtube_player_iframe` | `^6.0.2` | 6.0.2 | yes | yes | YouTube study material and gallery videos. |
@@ -241,7 +241,7 @@ Constraint from `pubspec.yaml`, resolved version from `pubspec.lock`.
 | `fl_chart` | `^1.2.0` | 1.2.0 | yes | no | Report charts. |
 | `carousel_slider` | `^5.1.2` | 5.1.2 | yes | no | Home sliders. |
 | `equatable` | `^2.0.8` | 2.1.0 | yes | no | State equality. |
-| `webview_flutter_plus` | override `0.4.7` | 0.4.7 | yes | no | `dependency_overrides` entry (pulled in by `flutter_tex`). |
+| `webview_flutter_plus` | override `0.4.7` | 0.4.7 | yes | no | Pinned through `dependency_overrides`. |
 | `showcaseview` | `^5.0.2` | 5.1.0 | no | yes | Declared; not referenced in Dart code. |
 | `dotted_line` | `^3.3.0` | 3.3.0 | no | yes | UI separators. |
 

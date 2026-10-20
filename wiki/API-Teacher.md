@@ -1,15 +1,15 @@
-This page documents every endpoint under `/api/teacher/`, all served by [`TeacherApiController.php`](https://github.com/ShawnDaPrawn/Eschool/blob/main/admin-panel/app/Http/Controllers/Api/TeacherApiController.php) and used by the `e-school-teacher` Flutter app. It starts with how the controller decides which classes, subjects, students and records a teacher may touch, because that is the part most changes have to respect. The master route index for all API groups is on [API-Overview](API-Overview).
+This page documents every endpoint under `/api/teacher/`, all served by [`TeacherApiController.php`](https://github.com/ShawnDaPrawn/Eschool/blob/main/admin-panel/app/Http/Controllers/Api/TeacherApiController.php) and used by the `e-school-teacher` Flutter app. It starts with how the controller decides which classes, subjects, students and records a teacher may touch, because that is the part most changes have to respect. The master route index for all API groups is on [API-Overview](API-Overview#master-route-index).
 
 ## How teacher scope is determined
 
-A teacher is linked to classes through two tables. Every scope check in the teacher API reads one or both of them.
+A teacher is linked to classes through two tables. Nearly every scope check in the teacher API reads one or both of them.
 
 | Table | Columns that matter | Meaning |
 |---|---|---|
 | `class_teachers` | `class_section_id`, `class_teacher_id` (a `teachers.id`), `session_year_id`, `semester_id` (nullable), soft deletes | The teacher is **class teacher** of that section |
 | `subject_teachers` | `class_section_id`, `subject_id`, `teacher_id`, `session_year_id`, `semester_id` (nullable), soft deletes | The teacher is **subject teacher** of that subject in that section |
 
-"Current session year" always means `getSettings('session_year')['session_year']`, the session year selected in the admin panel's settings. A `semester_id` of `NULL` on either table means "all semesters". The `2026_04_28_165603_semester_id_backfill` migration pins existing rows to semesters, so on upgraded installs most rows carry a semester. See [Academic-Structure](Academic-Structure) for sessions, semesters and class sections.
+"Current session year" always means `getSettings('session_year')['session_year']`, the session year selected in the admin panel's settings. A `semester_id` of `NULL` on either table means "all semesters". When it runs on an install that has a current semester, the `2026_04_28_165603_semester_id_backfill` migration pins the current session year's `NULL` rows to semesters (subject teachers to the current semester, class teachers to every semester). See [Academic-Structure](Academic-Structure) for sessions, semesters and class sections.
 
 ### Controller helpers
 
@@ -108,9 +108,9 @@ When a semester is running (`Semester::current`), `classes`, `teacher_timetable`
 - **Authentication:** `POST /api/teacher/login` returns a Sanctum token. Send it as `Authorization: Bearer <token>`. Tokens expire after `SANCTUM_EXPIRATION` minutes (default `60 * 24 * 30`, set to 43200 in `.env.example`).
 - **Rate limits** (defined in `RouteServiceProvider::configureRateLimiting`): `throttle:api` allows 60 requests a minute per user (or IP). `throttle:login` on `login` allows 5 a minute per path and email, and 20 a minute per IP.
 - **Parameters:** handlers read `$request->all()`, so query-string and body fields are interchangeable. Uploads must be `multipart/form-data`.
-- **Envelope:** handlers answer through [`ResponseService`](https://github.com/ShawnDaPrawn/Eschool/blob/main/admin-panel/app/Services/ResponseService.php): `{"error": bool, "message": string, "data": ..., "code": int|null}`, sometimes with extra top-level keys (shown below as "extra keys"). `successResponse()` and `errorResponse()` send the response and call `exit()`, so nothing after them runs. See [API-Overview](API-Overview) for the shared envelope.
-- **HTTP status:** handler responses are always HTTP 200, including refusals. Clients must check `error` and `code`. The real HTTP errors are 401 from `auth:sanctum`, 403 from `role:Teacher`, 429 from throttling, and 422 from `RejectDangerousUploads` (code 102, for script or web-page uploads anywhere in the API).
-- **Codes used by this controller:** 100 (login, chat list), 101 (invalid login), 103 (caught exception, message `error_occurred`), 400 (business rule, for example exam not finished), 403 (outside the teacher's scope), 105 (`CheckStudent`). Validation errors and failed permission checks have `"code": null`, because `ResponseService` reads `config('constants.RESPONSE_CODE...')` and the repo has no `config/constants.php`.
+- **Envelope:** handlers answer through [`ResponseService`](https://github.com/ShawnDaPrawn/Eschool/blob/main/admin-panel/app/Services/ResponseService.php): `{"error": bool, "message": string, "data": ..., "code": int|null}`, sometimes with extra top-level keys (shown below as "extra keys"). `successResponse()` and `errorResponse()` send the response and call `exit()`, so nothing after them runs. See [the response envelope on API-Overview](API-Overview#response-envelope) and [its error codes](API-Overview#error-codes).
+- **HTTP status:** responses built by `ResponseService` are always HTTP 200, including refusals. Clients must check `error` and `code`. The real HTTP errors are 401 from `auth:sanctum`, 403 from `role:Teacher`, 429 from throttling, 422 from `RejectDangerousUploads` (code 102, for script or web-page uploads anywhere in the API) and from `$request->validate()` in `student-leave-status-update` (Laravel's 422 when the client sends `Accept: application/json`), and 500 for errors the handlers do not catch.
+- **Codes used by this controller:** 100 (login, chat list and messages), 101 (invalid login), 103 (caught exception, message `error_occurred`), 400 (business rule, for example exam not finished), 403 (outside the teacher's scope), 105 (`CheckStudent`). Validation errors and failed permission checks have `"code": null`, because `ResponseService` reads `config('constants.RESPONSE_CODE...')` and the repo has no `config/constants.php`.
 - **Messages** are passed through `trans()`, so keys such as `data_store_successfully` arrive translated.
 
 ## Endpoint index
@@ -169,7 +169,7 @@ When a semester is running (`Semester::current`), `classes`, `teacher_timetable`
 | POST | `get-student-leave-list` | `getStudentLeaveList` | | `isClassTeacherOf` |
 | POST | `student-leave-status-update` | `studentLeaveStatusUpdate` | `student-leave-approve` | class teacher of the student |
 
-The teacher app also calls these shared endpoints from `ApiController`, documented on [API-Overview](API-Overview): `POST /api/logout` (clears `fcm_id`, deletes the current token), `POST /api/change-password`, `POST /api/forgot-password`, `GET /api/settings`, `GET /api/holidays`, `GET /api/get-events-list`, `POST /api/get-events-details`, `GET /api/get-session-year`, and `GET /api/get-gallery-albums` / `get-gallery-images` / `get-gallery-videos`. The app's list of URLs is in [`e-school-teacher/lib/utils/api.dart`](https://github.com/ShawnDaPrawn/Eschool/blob/main/e-school-teacher/lib/utils/api.dart).
+The teacher app also calls these shared endpoints from `ApiController`, documented under [General endpoints on API-Overview](API-Overview#general-endpoints-apicontroller): `POST /api/logout` (clears `fcm_id`, deletes the current token), `POST /api/change-password`, `POST /api/forgot-password`, `GET /api/settings`, `GET /api/holidays`, `GET /api/get-events-list`, `POST /api/get-events-details`, `GET /api/get-session-year`, and `GET /api/get-gallery-albums` / `get-gallery-images` / `get-gallery-videos`. The app's list of URLs is in [`e-school-teacher/lib/utils/api.dart`](https://github.com/ShawnDaPrawn/Eschool/blob/main/e-school-teacher/lib/utils/api.dart).
 
 ## Authentication and profile
 
@@ -201,7 +201,7 @@ No parameters. Calls `IdCardService::buildStaffPdf([user id])` and returns the P
 No parameters. Uses `getTeacherClassSections()`.
 
 - **Response:** `data.class_teacher`, the class sections where the teacher is class teacher, or `{}` when there are none. `data.other`, the sections where they only teach subjects. Each section loads `class.medium`, `section`, `class.streams` and `class.shifts`.
-- Does not use `currentTeacher()`, so a Teacher-role user without a teacher record hits an unhandled error instead of a 403.
+- Does not use `currentTeacher()`, so a Teacher-role user without a teacher record gets code 103 instead of a 403.
 
 #### GET subjects
 
@@ -226,7 +226,7 @@ No parameters. Uses `getTeacherClassSections()`.
 |---|---|
 | `class_teacher` | Sections from the teacher's `class_teachers` rows in the current session year (no semester filter) |
 | `other_classes` | Sections from `subject_teachers` rows in the session year, minus the class-teacher ones |
-| `student_leave_request` | Pending (`status = 0`) leaves in the session year with `to_date >= today`, each with `leave_detail`, `user.student.class_section`, `file` and a computed `total_days` (Full = 1, anything else = 0.5). For each `class_teachers` row it matches students currently in that section. A row with a semester also requires `from_date` between the semester start and the day before the next semester starts. |
+| `student_leave_request` | Pending (`status = 0`) leaves in the session year with `to_date >= today`, each with `leave_detail`, `user.student.class_section`, `file` and a computed `total_days` (Full = 1, anything else = 0.5). For each `class_teachers` row it matches students currently in that section. A row with a semester also requires `from_date` between the semester start and the day before the next semester starts (or the semester end for the last semester). |
 | `timetable` | Today's `timetables` rows (`day_name` equals the current weekday name) for the teacher's `subject_teachers` rows, with `class_section` and `subject`, ordered by `start_time` |
 | `upcoming_exams` | Exams for class-teacher classes whose timetable has not started yet (`exam_status` `0`), sorted by start date, each with `exam_timetable` |
 | `staff_leaves` | Approved leaves of other non-student users with `to_date >= today`, grouped into `today`, `tomorrow` and `upcoming` (dates after tomorrow). Each entry has `user_name`, `image`, `date` (d-m-Y), `role`, `type`. No permission is checked. |
@@ -253,7 +253,7 @@ No parameters. Uses `getTeacherClassSections()`.
 | `student_id` | numeric | yes |
 
 - **Scope:** `teachesStudent()`. Class teacher or subject teacher of one of the student's sections.
-- **Response:** `data` is `null`. Extra keys: `father_data` and `mother_data` (arrays of `parents` rows), `gurdian_data` (spelled this way, present only when `guardian_id` is not 0), `total_present` and `total_absent` for the current session year (a half-day counts as 0.5 of each), and `today_attendance` (`Present` for type 1, `Absent` for any other recorded type, or `Not Taken`).
+- **Response:** `data` is `null`. Extra keys: `father_data` and `mother_data` (arrays of `parents` rows), `gurdian_data` (spelled this way, present only when `guardian_id` is set and not 0), `total_present` and `total_absent` for the current session year (a half-day counts as 0.5 of each), and `today_attendance` (`Present` for type 1, `Absent` for any other recorded type, or `Not Taken`).
 
 ## Attendance
 
@@ -269,7 +269,7 @@ Attendance types differ between the database and the app. The database (`Attenda
 
 - **Scope:** `isClassTeacherOf()` for the current session year. Otherwise `You are not assigned to this class section` (403).
 - **Response** `data`:
-  - `is_holiday`: true if a `holidays` row has that date. `holiday` holds those rows when it is a holiday, otherwise `null`.
+  - `is_holiday`: true if a `holidays` row has that date. `holiday` holds those rows when it is a holiday, otherwise it is `null` or omitted.
   - `leave_details`: `[{student_id, leave_type}]` for students of the section with an approved leave on the date, from `Leave::approvedTypesForDate()`. `leave_type` is 1 Full, 2 First Half, 3 Second Half.
   - `attendance_reports`: the `attendances` rows for the section and date, with `type` converted to roster codes. Holiday becomes 1.
 - The message is `Attendance not recorded` when there are no rows.
@@ -422,7 +422,7 @@ Edits one study-material, assignment, announcement or leave file directly.
 | Parameter | Type | Required | Notes |
 |---|---|---|---|
 | `file_id` | numeric | yes | |
-| `name` | string | no | Written to `file_name` (set to `null` if omitted) |
+| `name` | string | no | Written to `file_name` as sent, so omitting it clears the name |
 | `file` | upload | no | Types 1 and 3 |
 | `thumbnail` | upload | no | Types 2 and 3 |
 | `link` | string | no | Type 2 |
@@ -547,7 +547,7 @@ Scope: `ownsAnnouncement()`, then the announcement is re-attached to the teacher
 
 #### POST delete-announcement
 
-`announcement_id` (numeric, required). Scope: `ownsAnnouncement()`. Soft-deletes the announcement and its `files` rows.
+`announcement_id` (numeric, required). Scope: `ownsAnnouncement()`. Soft-deletes the announcement and deletes its `files` rows.
 
 ## Exams, marks and results
 
@@ -573,7 +573,7 @@ Exam status is computed from `exam_timetables` dates for the class: 0 upcoming (
 | `class_id` | integer | yes |
 
 - **Scope:** some section of `class_id` must be in `teacherClassSectionIds()` (403 otherwise).
-- **Response:** `data` is the exam (current session year) with `timetable` for that class. The exam's `semester` is copied into each `timetable[].subject.semester`. Extra keys: `class_id`, `class_section_id` (the first section of the class), `class_name`, `stream_name`, and `code` 200.
+- **Response:** `data` is a one-element list holding the exam (current session year) with `timetable` for that class. The exam's `semester` is copied into each `timetable[].subject.semester`. Extra keys: `class_id`, `class_section_id` (the first section of the class), `class_name`, `stream_name`, and `code` 200.
 
 #### POST submit-exam-marks/subject
 
@@ -679,11 +679,11 @@ Messages are `chat_messages` rows (`sender_id`, `modal_id` = the receiver's `use
 
 | Parameter | Type | Notes |
 |---|---|---|
-| `isParent` | `0` or `1` | 0 lists students, 1 lists parents |
+| `isParent` | `0` or `1` | 0 (or omitted) lists students, 1 lists parents |
 | `offset`, `limit` | int | Applied after sorting by last message date |
 | `search` | string | Case-insensitive match on first and last name |
 
-- Students come from class-teacher sections (current session year) and from subject-teacher sections. For an `Elective` subject, only students enrolled in it are listed.
+- Students come from class-teacher sections and subject-teacher sections in the current session year, and must have a `student_sessions` row for it. In a subject-teacher section whose subject is `Elective`, only students enrolled in that subject are listed.
 - **Response** (code 100): `items`, `total_items` (counted before search and paging) and `total_unread_users`. A student item has `id`, `user_id`, `first_name`, `last_name`, `image`, `roll_no`, `admission_no`, `gender`, `dob`, `subjects`, `address`, `last_message`, `class_name`, `isParent`, `unread_message`. A parent item has `id`, `user_id`, `first_name`, `last_name`, `email`, `mobile_no`, `occupation`, `image`, `last_message`, `children` (each with subjects), `isParent`, `unread_message`.
 
 #### POST send-message
@@ -721,7 +721,7 @@ No parameters. A Laravel paginator (15 per page, newest first) of `notifications
 | `update-assignment` | yes | `assignment` | All section students |
 | `update-assignment-submission` | yes | `assignment` | The submitting student |
 | `send-announcement`, `update-announcement` | no | `class_section` | Section students |
-| `submit-attendance` | yes, one per absent student | `attendance` | Father and mother users |
+| `submit-attendance` | yes, one per absent student (see [gotchas](#known-gaps-and-gotchas)) | `attendance` | Father and mother users |
 | `student-leave-status-update` | yes (status 1 or 2) | `leave` | Father, mother and guardian users |
 | `send-message` | no | `chat` | The receiver |
 
@@ -756,18 +756,18 @@ These come straight from the current code and are worth knowing before changing 
 - **Topic files are missing from `get-topic`.** The query does not load `file`. The teacher app's `Topic.fromJson` reads `file` and falls back to an empty list.
 - **Thumbnail replacement deletes the wrong file.** In `updateFile`, `updateLesson` and `updateTopic`, uploading a new `thumbnail` deletes the file at the stored `file_url`, not the old thumbnail. For a type 3 (video upload) file with only a new thumbnail, this deletes the video while `file_url` still points to it.
 - **Physical files are not removed on delete.** The `deleting` hooks of `File`, `Lesson`, `LessonTopic` and `Assignment` call `Storage::disk('public')->exists($file->file_url)`. For types 1 and 3 the accessor returns a full URL rather than a disk path, so the check fails. `Lesson` deletes topics with a query-level `delete()`, so the topics' own `files` rows stay behind.
-- **`createTopic` type 4.** The branch compares `$data['type'] == 'other_link'` instead of `'4'`, so a type 4 entry is saved without `type`, `file_url` or thumbnail.
+- **`createTopic` type 4.** The branch compares `$data['type'] == 'other_link'` instead of `'4'`, so a type 4 entry reaches `$file->save()` without `type` or `file_url`. Both are NOT NULL columns in `files`, so the request fails (code 103) after the topic itself has been saved.
 - **Subject-teacher parents in chat.** For subject-teacher sections, `getChatUserList` collects parent ids with `groupBy(['father_id', 'mother_id', 'guardian_id'])->keys()`, which returns only the top-level `father_id` keys. Mothers and guardians of those students are not listed, although `canChatWith` lets the teacher message them.
 - **`applySemesterFilter` fallback.** When the class uses semesters and no `semester_id` is sent, it falls back to `Semester::all()->first(fn ($s) => $s->current)`. That passes a `Semester` model (from any session year) to `where('semester_id', ...)` instead of an id, so treat lesson filtering by section without `semester_id` as unreliable.
-- **Null-teacher handling is uneven.** Endpoints that go through `currentTeacher()` refuse a Teacher-role user without a `teachers` row with 403. Older handlers (`classes`, `subjects`, `dashboard`, `get-exam-list`, `student-list`, `get-user-list`, `send-announcement`, `get-announcement`) read `Auth::user()->teacher` directly and fail with an unhandled error.
+- **Null-teacher handling is uneven.** Endpoints that go through `currentTeacher()` refuse a Teacher-role user without a `teachers` row with 403. Older handlers (`classes`, `dashboard`, `get-exam-list`, `student-list`, `get-user-list`, `send-announcement`, `get-announcement`) read `Auth::user()->teacher` directly; reading a property of `null` becomes an `ErrorException`, so they answer code 103 `error_occurred`. `subjects` calls a method on `null` first, which throws an `Error` that its `catch (\Exception)` does not catch, so that request ends in an uncaught error.
 - **App points at a missing route.** `Api.examResults` in the teacher app is `teacher/exam-marks`, which has no route. The only method that uses it, `StudentRepository.fetchExamResults`, is never called.
 - **`apply-leave` is strict about keys.** Clients must send only `reason`, `leave_details` and `files`.
 
-The scope rules are covered by [`TeacherApiSecurityTest.php`](https://github.com/ShawnDaPrawn/Eschool/blob/main/admin-panel/tests/Feature/TeacherApiSecurityTest.php). It runs the API through a real `php -S` server and expects every refusal to arrive as HTTP 200 with `error: true`. Add a case there when you change a scope helper. See [Testing-and-CI](Testing-and-CI).
+The scope rules are covered by [`TeacherApiSecurityTest.php`](https://github.com/ShawnDaPrawn/Eschool/blob/main/admin-panel/tests/Feature/TeacherApiSecurityTest.php). It sends requests to a separate `php -S` process (the `RunsAppServer` trait in `tests/Concerns`) and expects every refusal to arrive as HTTP 200 with `error: true`. Add a case there when you change a scope helper. See [Testing-and-CI](Testing-and-CI).
 
 ## See also
 
-- [API-Overview](API-Overview): envelope, shared endpoints and the master route index
+- [API-Overview](API-Overview): envelope, shared endpoints and the [master route index](API-Overview#master-route-index)
 - [API-Student](API-Student) and [API-Parent](API-Parent): the other app APIs
 - [Teacher-App](Teacher-App): the Flutter client for this API
 - [Roles-and-Permissions](Roles-and-Permissions): the Teacher role and its permissions
