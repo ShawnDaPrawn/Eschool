@@ -5,35 +5,35 @@ import 'package:eschool_teacher/data/repositories/reviewAssignmentRepository.dar
 import 'package:flutter/foundation.dart';
 
 @immutable
-abstract class EditReviewAssignmetState {}
+abstract class EditReviewAssignmentState {}
 
-class EditReviewAssignmetInitial extends EditReviewAssignmetState {}
+class EditReviewAssignmentInitial extends EditReviewAssignmentState {}
 
-class EditReviewAssignmetInProgress extends EditReviewAssignmetState {}
+class EditReviewAssignmentInProgress extends EditReviewAssignmentState {}
 
-class EditReviewAssignmetSuccess extends EditReviewAssignmetState {}
+class EditReviewAssignmentSuccess extends EditReviewAssignmentState {}
 
-class EditReviewAssignmetFailure extends EditReviewAssignmetState {
-  EditReviewAssignmetFailure({
+class EditReviewAssignmentFailure extends EditReviewAssignmentState {
+  EditReviewAssignmentFailure({
     required this.errorMessage,
   });
   final String errorMessage;
 }
 
-class EditReviewAssignmetCubit extends Cubit<EditReviewAssignmetState> {
-  EditReviewAssignmetCubit(
+class EditReviewAssignmentCubit extends Cubit<EditReviewAssignmentState> {
+  EditReviewAssignmentCubit(
     this._reviewAssignmentRepository,
-  ) : super(EditReviewAssignmetInitial());
+  ) : super(EditReviewAssignmentInitial());
   final ReviewAssignmentRepository _reviewAssignmentRepository;
 
-  Future<void> updateReviewAssignmet({
+  Future<void> updateReviewAssignment({
     required int reviewAssignmetId,
     required int reviewAssignmentStatus,
     String? reviewAssignmentPoints,
     String? reviewAssignmentFeedBack,
   }) async {
     try {
-      emit(EditReviewAssignmetInProgress());
+      emit(EditReviewAssignmentInProgress());
       await _reviewAssignmentRepository.updateReviewAssignment(
         reviewAssignmetId: reviewAssignmetId,
         reviewAssignmentStatus: reviewAssignmentStatus,
@@ -42,9 +42,9 @@ class EditReviewAssignmetCubit extends Cubit<EditReviewAssignmetState> {
             : 0,
         reviewAssignmentFeedBack: reviewAssignmentFeedBack!,
       );
-      emit(EditReviewAssignmetSuccess());
+      emit(EditReviewAssignmentSuccess());
     } catch (e) {
-      emit(EditReviewAssignmetFailure(errorMessage: e.toString()));
+      emit(EditReviewAssignmentFailure(errorMessage: e.toString()));
     }
   }
 }

@@ -10,7 +10,7 @@ import 'package:eschool_teacher/data/repositories/announcementRepository.dart';
 import 'package:eschool_teacher/data/repositories/teacherRepository.dart';
 import 'package:eschool_teacher/ui/widgets/addedFileContainer.dart';
 import 'package:eschool_teacher/ui/widgets/announcementAttachmentContainer.dart';
-import 'package:eschool_teacher/ui/widgets/bottomSheetTextFiledContainer.dart';
+import 'package:eschool_teacher/ui/widgets/bottomSheetTextFieldContainer.dart';
 import 'package:eschool_teacher/ui/widgets/bottomsheetAddFilesDottedBorderContainer.dart';
 import 'package:eschool_teacher/ui/widgets/classSubjectsDropDownMenu.dart';
 import 'package:eschool_teacher/ui/widgets/customAppbar.dart';

@@ -138,7 +138,7 @@ Commands from Laravel and packages that the app's own code runs, or that operato
 | `migrate --force` | Installer, System Update, `/migrate` URL, manual updates |
 | `db:seed --class=InstallationSeeder --force` | Installer, System Update, `/seeder_install` URL |
 | `db:seed --class=AddSuperAdminSeeder --force` | Installer (once only) |
-| `db:seed --class=emailseeder --force` | Installer, System Update |
+| `db:seed --class=EmailSeeder --force` | Installer, System Update |
 | `key:generate` | Before the first web request; the installer runs it again with `--force` |
 | `storage:link` | Installer, `/storage-link` URL |
 | `view:clear`, `route:clear`, `config:clear`, `cache:clear` | `InstallationSeeder`, `/clear`, `/migrate`, `/seeder_install`, installer finish step (which also runs `optimize:clear`) |

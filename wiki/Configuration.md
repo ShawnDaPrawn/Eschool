@@ -185,7 +185,7 @@ Besides the usual keys, `timezone` reads `TIMEZONE` (not `APP_TIMEZONE`) and `de
 | `server.*` | `pdo_mysql`, `mbstring`, `fileinfo`, `openssl`, `tokenizer`, `json`, `curl` | Extension checks. |
 | `folders` | `../storage/framework`, `../storage/logs`, `../bootstrap/cache` | Permission checks (paths relative to `public/`). |
 | `database.seeders` | `false` | `migrate` runs without `--seed`. |
-| `commands` | `db:seed --class=InstallationSeeder --force`, `db:seed --class=AddSuperAdminSeeder --force`, `db:seed --class=emailseeder --force`, `key:generate --force` | Run after the Keys step. |
+| `commands` | `db:seed --class=InstallationSeeder --force`, `db:seed --class=AddSuperAdminSeeder --force`, `db:seed --class=EmailSeeder --force`, `key:generate --force` | Run after the Keys step. |
 | `admin_area.user` | `superadmin@gmail.com` / `superadmin` | Shown on the finish page. These are the credentials `AddSuperAdminSeeder` creates; change the password after the first login. |
 | `login` | `/login` | Login link on the finish page. |
 

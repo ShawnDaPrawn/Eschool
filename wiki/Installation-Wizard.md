@@ -64,7 +64,7 @@ flowchart LR
 5. Runs each entry of `config('installer.commands')`:
    - `db:seed --class=InstallationSeeder --force`
    - `db:seed --class=AddSuperAdminSeeder --force`
-   - `db:seed --class=emailseeder --force`
+   - `db:seed --class=EmailSeeder --force`
    - `key:generate --force`, which gives the install its own `APP_KEY` in place of whatever key was used to start the wizard.
 
 Any exception sends the browser back to the Keys page with the message. Because the last command replaces `APP_KEY`, the browser's current session cookie can no longer be decrypted after this step; that does not matter for the wizard, which needs no login.
@@ -119,9 +119,9 @@ The permission lists are documented in [Roles-and-Permissions](Roles-and-Permiss
 
 Warning: these are well-known demo credentials, and the installer's finish page displays them. Change the Super Admin password (and email) immediately after installing. Then create a current session year and select it in General Settings; the seeded one is 2022-23.
 
-### emailseeder
+### EmailSeeder
 
-[database/seeders/emailseeder.php](https://github.com/ShawnDaPrawn/Eschool/blob/main/admin-panel/database/seeders/emailseeder.php) creates the default email templates in the `email_tempalates` table with `firstOrCreate` on `type`: `student_registration` (subject "Student Admission Confirmation"), `staff_registration` and `student_application_regect`. Existing templates are left alone.
+[database/seeders/EmailSeeder.php](https://github.com/ShawnDaPrawn/Eschool/blob/main/admin-panel/database/seeders/EmailSeeder.php) creates the default email templates in the `email_tempalates` table with `firstOrCreate` on `type`: `student_registration` (subject "Student Admission Confirmation"), `staff_registration` and `student_application_regect`. Existing templates are left alone.
 
 ### Seeders the installer does not run
 
@@ -130,7 +130,7 @@ Warning: these are well-known demo credentials, and the installer's finish page 
 
 ## How InstallationTest covers it
 
-[tests/Feature/InstallationTest.php](https://github.com/ShawnDaPrawn/Eschool/blob/main/admin-panel/tests/Feature/InstallationTest.php) uses `RefreshDatabase`. The base `TestCase` calls `withoutMiddleware(ToInstallMiddleware::class)` so tests run against an "installed" app, and its `seedLikeInstaller()` helper seeds `InstallationSeeder`, `AddSuperAdminSeeder` and `emailseeder`, the same as `config/installer.php`.
+[tests/Feature/InstallationTest.php](https://github.com/ShawnDaPrawn/Eschool/blob/main/admin-panel/tests/Feature/InstallationTest.php) uses `RefreshDatabase`. The base `TestCase` calls `withoutMiddleware(ToInstallMiddleware::class)` so tests run against an "installed" app, and its `seedLikeInstaller()` helper seeds `InstallationSeeder`, `AddSuperAdminSeeder` and `EmailSeeder`, the same as `config/installer.php`.
 
 | Test | Asserts |
 |---|---|
@@ -164,7 +164,7 @@ php artisan key:generate
 php artisan migrate --force
 php artisan db:seed --class=InstallationSeeder --force
 php artisan db:seed --class=AddSuperAdminSeeder --force
-php artisan db:seed --class=emailseeder --force
+php artisan db:seed --class=EmailSeeder --force
 php artisan storage:link
 
 # mark the app as installed, otherwise every web page redirects to /install

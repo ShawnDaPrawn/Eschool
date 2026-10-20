@@ -134,7 +134,7 @@ The form displays the effective config values (`config('mail.default')`, `config
 
 Because welcome emails carry generated passwords in `$data`, a failed send writes those passwords to `storage/logs`. The log redaction added in commit `ee49250` applies to `ResponseService` error logs, not to `MailService`.
 
-Editable templates live in the `email_tempalates` table (model `App\Models\EmailTempalate`, columns `type` unique, `subject`, `content`). [`database/seeders/emailseeder.php`](https://github.com/ShawnDaPrawn/Eschool/blob/main/admin-panel/database/seeders/emailseeder.php) creates three with `firstOrCreate` (so admin edits survive), and both the installer (`config/installer.php`) and the system updater run it.
+Editable templates live in the `email_tempalates` table (model `App\Models\EmailTempalate`, columns `type` unique, `subject`, `content`). [`database/seeders/EmailSeeder.php`](https://github.com/ShawnDaPrawn/Eschool/blob/main/admin-panel/database/seeders/EmailSeeder.php) creates three with `firstOrCreate` (so admin edits survive), and both the installer (`config/installer.php`) and the system updater run it.
 
 | `type` | Used for | Placeholders in the seeded HTML |
 |---|---|---|

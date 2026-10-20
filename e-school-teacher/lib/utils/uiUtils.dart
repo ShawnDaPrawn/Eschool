@@ -4,7 +4,7 @@ import 'package:eschool_teacher/app/appLocalization.dart';
 import 'package:eschool_teacher/app/routes.dart';
 import 'package:eschool_teacher/cubits/appConfigurationCubit.dart';
 import 'package:eschool_teacher/cubits/appLocalizationCubit.dart';
-import 'package:eschool_teacher/cubits/downloadfileCubit.dart';
+import 'package:eschool_teacher/cubits/downloadFileCubit.dart';
 import 'package:eschool_teacher/data/models/studyMaterial.dart';
 import 'package:eschool_teacher/data/repositories/studyMaterialRepositoy.dart';
 import 'package:eschool_teacher/ui/styles/colors.dart';
