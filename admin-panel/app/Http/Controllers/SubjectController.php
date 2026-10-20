@@ -14,6 +14,7 @@ use App\Models\StudentSubject;
 use App\Models\SubjectTeacher;
 use App\Services\ResponseService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
 
@@ -26,7 +27,9 @@ class SubjectController extends Controller
      */
     public function index()
     {
-        ResponseService::noPermissionThenRedirect('subject-create');
+        if (! Auth::user()->can('subject-create')) {
+            return redirect(route('home'))->withErrors(['message' => trans('no_permission_message')]);
+        }
         $subjects = Subject::orderBy('id', 'DESC')->get();
         $mediums = Mediums::orderBy('id', 'DESC')->get();
         return response(view('subject.index', compact('subjects', 'mediums')));
