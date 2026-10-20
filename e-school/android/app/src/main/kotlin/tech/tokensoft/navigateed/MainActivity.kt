@@ -1,4 +1,4 @@
-package za.co.example.eschool
+package tech.tokensoft.navigateed
 
 import io.flutter.embedding.android.FlutterFragmentActivity
 

@@ -18,7 +18,7 @@ if (keystorePropertiesFile.exists()) {
 
 
 android {
-    namespace = "za.co.example.eschool"
+    namespace = "tech.tokensoft.navigateed"
     compileSdk = flutter.compileSdkVersion
     ndkVersion = flutter.ndkVersion
 
@@ -29,7 +29,7 @@ android {
 
     defaultConfig {
         // TODO: Specify your own unique Application ID (https://developer.android.com/studio/build/application-id.html).
-        applicationId = "za.co.example.eschool"
+        applicationId = "tech.tokensoft.navigateed"
         // You can update the following values to match your application needs.
         // For more information, see: https://flutter.dev/to/review-gradle-config.
         minSdk = flutter.minSdkVersion

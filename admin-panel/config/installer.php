@@ -5,7 +5,7 @@ return [
 
     //    'background' => 'assets/logo.svg',
 
-    'support_url' => 'mailto:support@example.com',
+    'support_url' => 'mailto:info@tokensoft.tech',
 
     'server' => [
         'php' => [
