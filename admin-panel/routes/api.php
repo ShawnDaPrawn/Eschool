@@ -171,8 +171,10 @@ Route::group(['prefix' => 'parent'], function () {
 
             Route::post('apply-leave', [ParentApiController::class, 'applyLeave']);
             Route::post('get-leave-list', [ParentApiController::class, 'getMyLeave']);
-            Route::post('delete-leave', [ParentApiController::class, 'deleteLeave']);
         });
+
+        // Checks that the leave belongs to one of the parent's children itself; the app sends no child_id.
+        Route::post('delete-leave', [ParentApiController::class, 'deleteLeave']);
     });
 });
 
