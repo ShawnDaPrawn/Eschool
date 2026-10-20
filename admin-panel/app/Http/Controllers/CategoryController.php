@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers;
 
+use App\Services\ResponseService;
 use Throwable;
 use App\Models\Category;
 use App\Models\Students;
@@ -143,6 +144,7 @@ class CategoryController extends Controller
      */
     public function edit($id)
     {
+        ResponseService::noPermissionThenSendJson('category-edit');
         $category = Category::find($id);
         return response($category);
     }

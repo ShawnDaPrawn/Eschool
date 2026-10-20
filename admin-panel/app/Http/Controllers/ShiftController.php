@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers;
 
+use App\Services\ResponseService;
 use App\Models\Shift;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -162,6 +163,7 @@ class ShiftController extends Controller
      */
     public function edit($id)
     {
+        ResponseService::noPermissionThenSendJson('shift-edit');
         //
     }
 

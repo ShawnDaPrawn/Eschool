@@ -2,11 +2,16 @@
 
 namespace Tests\Feature;
 
+use App\Http\Middleware\CheckChild;
+use App\Models\Parents;
 use App\Models\Staff;
+use App\Models\Students;
 use App\Models\User;
+use App\Services\ResponseService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Log;
 use Tests\TestCase;
 
 class SecurityTest extends TestCase
@@ -59,6 +64,90 @@ class SecurityTest extends TestCase
         $this->assertDatabaseMissing('users', ['email' => 'new.admin@example.com']);
     }
 
+    public function test_public_registration_is_gone(): void
+    {
+        // Anyone could sign up here and was logged straight into the admin panel.
+        $this->get('/register')->assertNotFound();
+        $this->post('/register', [
+            'name' => 'Test',
+            'email' => 'signup@example.com',
+            'password' => 'secret123',
+            'password_confirmation' => 'secret123',
+        ])->assertNotFound();
+
+        $this->assertDatabaseMissing('users', ['email' => 'signup@example.com']);
+    }
+
+    public function test_only_staff_accounts_can_use_the_panel(): void
+    {
+        $noRole = $this->user('no.role@example.com');
+        $this->actingAs($noRole)->get('/home')->assertRedirect(route('login'));
+        $this->assertGuest();
+
+        $student = $this->user('student.test@example.com');
+        $student->assignRole('Student');
+        $this->actingAs($student)->get('/home')->assertRedirect(route('login'));
+        $this->assertGuest();
+    }
+
+    public function test_teacher_api_needs_a_teacher_account(): void
+    {
+        $student = $this->user('student.test@example.com');
+        $student->assignRole('Student');
+
+        $this->withToken($student->createToken('test')->plainTextToken)
+            ->getJson('/api/teacher/classes')
+            ->assertForbidden();
+    }
+
+    public function test_child_check_only_accepts_the_parents_own_children(): void
+    {
+        $parent = Parents::forceCreate([
+            'user_id' => $this->user('parent.test@example.com')->id,
+            'first_name' => 'Test', 'last_name' => 'Parent', 'gender' => 'Female',
+            'mobile' => '0000000000', 'occupation' => 'Test',
+        ]);
+        $ownChild = $this->student('own.child@example.com', ['mother_id' => $parent->id]);
+        $otherChild = $this->student('other.child@example.com');
+
+        $this->assertTrue($parent->hasChild($ownChild->id));
+        $this->assertFalse($parent->hasChild($otherChild->id));
+
+        // children() is a UNION, so the old where() only filtered the father part
+        // and a mother passed the check for any child_id.
+        $passes = function (int $childId) use ($parent) {
+            $request = Request::create('/api/parent/subjects', 'GET', ['child_id' => $childId]);
+            $request->setUserResolver(fn () => $parent->user);
+
+            return (new CheckChild)->handle($request, fn () => 'passed') === 'passed';
+        };
+        $this->assertTrue($passes($ownChild->id));
+        $this->assertFalse($passes($otherChild->id));
+    }
+
+    public function test_request_log_hides_credentials(): void
+    {
+        Log::spy();
+        $request = Request::create('/api/change-password', 'POST', [
+            'current_password' => 'old-secret', 'new_password' => 'new-secret', 'name' => 'visible',
+        ], server: ['HTTP_AUTHORIZATION' => 'Bearer token-secret']);
+        $this->app->instance('request', $request);
+
+        ResponseService::logCurlRequest();
+        ResponseService::logErrorResponse(new \Exception('Test error'));
+
+        $logged = '';
+        Log::shouldHaveReceived('error')->withArgs(function (string $message, array $context = []) use (&$logged) {
+            $logged .= $message.json_encode($context);
+
+            return true;
+        });
+        $this->assertStringContainsString('visible', $logged);
+        foreach (['old-secret', 'new-secret', 'token-secret'] as $secret) {
+            $this->assertStringNotContainsString($secret, $logged);
+        }
+    }
+
     public function test_expired_app_tokens_are_rejected(): void
     {
         $teacher = $this->teacher();
@@ -86,6 +175,28 @@ class SecurityTest extends TestCase
         return $this->app['auth']->guard('sanctum')
             ->setRequest(Request::create('/api/teacher/classes', 'GET', server: ['HTTP_AUTHORIZATION' => "Bearer $token"]))
             ->user();
+    }
+
+    private function user(string $email): User
+    {
+        return User::create([
+            'first_name' => 'Test',
+            'last_name' => 'User',
+            'email' => $email,
+            'password' => Hash::make('secret123'),
+            'gender' => 'Male',
+            'mobile' => '0000000000',
+        ]);
+    }
+
+    private function student(string $email, array $parents = []): Students
+    {
+        return Students::forceCreate(array_merge([
+            'user_id' => $this->user($email)->id,
+            'category_id' => 1,
+            'admission_no' => $email,
+            'admission_date' => now(),
+        ], $parents));
     }
 
     private function teacher(): User

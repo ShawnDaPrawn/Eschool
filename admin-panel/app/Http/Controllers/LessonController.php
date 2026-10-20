@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers;
 
+use App\Services\ResponseService;
 use App\Http\Requests\StoreLessonRequest;
 use App\Http\Requests\UpdateLessonRequest;
 use App\Models\Assignment;
@@ -538,6 +539,7 @@ class LessonController extends Controller
 
     public function deleteFile($id)
     {
+        ResponseService::noPermissionThenSendJson('lesson-delete');
         try {
             $file = File::findOrFail($id);
             // Only the lesson, topic and assignment pages remove files through this route.

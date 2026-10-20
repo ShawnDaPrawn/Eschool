@@ -138,26 +138,14 @@
     @section('script')
 
     @section('script')
-<script src="{{ asset('assets/tinymce/tinymce.min.js') }}"></script>
 <script>
     var storeUrl  = "{{ route('email.store') }}";
     var csrfToken = "{{ csrf_token() }}";
+    var editors   = {};
 
     function initEditor(id) {
-        if (tinymce.get(id)) return;
-
-        tinymce.init({
-            selector: '#' + id,
-            height: 450,
-            menubar: true,
-            plugins: 'lists link image table code',
-            toolbar: 'undo redo | bold italic underline | alignleft aligncenter alignright | bullist numlist | link image table | code',
-            setup: function(editor) {
-                editor.on('change keyup', function() {
-                    editor.save();
-                });
-            }
-        });
+        if (editors[id]) return;
+        editors[id] = createRichTextEditor(document.getElementById(id), 450);
     }
 
     $(document).on('submit', 'form', function(e) {
@@ -167,7 +155,7 @@
 
         $btn.prop('disabled', true).html("<span class='spinner-border spinner-border-sm mr-2' role='status' aria-hidden='true'></span>{{ __('saving_dot') }}");
 
-        tinymce.triggerSave();
+        syncRichTextEditors();
         var formData = new FormData(this);
 
         $.ajax({
@@ -213,10 +201,10 @@
         $(document).on('click', '.custom-tag-btn', function() {
             var editorId = $(this).data('editor');
             var tag      = $(this).data('tag');
-            var editor   = tinymce.get(editorId);
+            var editor   = editors[editorId];
 
             if (editor) {
-                editor.insertContent(tag);
+                editor.s.insertHTML(tag);
             } else {
                 var $ta = $('#' + editorId);
                 if ($ta.length) $ta.val($ta.val() + tag);

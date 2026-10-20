@@ -1619,8 +1619,8 @@ class ParentApiController extends Controller
                 ->whereIn('student_id', $this->parentChildIds($request))
                 ->with('student.user:id,first_name,last_name', 'class', 'session_year')->first();
 
-            // Check That Fees Paid Data Exists Or Not
-            if (! $fees_paid) {
+            // Check That Fees Paid Data Exists Or Not, and is for this parent's child
+            if (! $fees_paid || ! $parent->parent->hasChild($fees_paid->student_id)) {
                 ResponseService::errorResponse('No Fees Paid Found', null, 103);
             }
 

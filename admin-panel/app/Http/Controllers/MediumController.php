@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers;
 
+use App\Services\ResponseService;
 use App\Models\ClassSchool;
 use App\Models\Mediums;
 use App\Models\Subject;
@@ -56,6 +57,7 @@ class MediumController extends Controller
 
     public function edit($id)
     {
+        ResponseService::noPermissionThenSendJson('medium-edit');
         $medium = Mediums::find($id);
         return response($medium);
     }

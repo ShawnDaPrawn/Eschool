@@ -292,7 +292,6 @@ class ApiController extends Controller
      */
     protected function changePassword(Request $request)
     {
-        ResponseService::logCurlRequest();
         $validator = Validator::make($request->all(), [
             'current_password' => 'required',
             'new_password' => 'required|min:8',

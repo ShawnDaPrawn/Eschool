@@ -21,7 +21,7 @@
               <div class="form-group col-md-12 col-sm-12">
                 {{-- <label>{{__('contact_us')}}</label> --}}
                 <input type="hidden" name="type" id="type" value="{{$type}}">
-                <textarea id="tinymce_message" name="setting_message" required placeholder="{{__('contact_us')}}">{{isset($settings->message) ? $settings->message : ''}}</textarea>
+                <textarea id="rich_text_message" name="setting_message" required placeholder="{{__('contact_us')}}">{{isset($settings->message) ? $settings->message : ''}}</textarea>
               </div>
             </div>
             <input class="btn btn-theme" type="submit" value="{{__('submit')}}">

@@ -422,18 +422,47 @@ function destroyEquationEditors() {
     equationEditors = [];
 }
 
-// Copy each editor's content into its textarea before the form is read.
+// Copy an editor's content into its textarea before the form is read.
 // Jodit's synchronizeValues() is throttled and can miss the last keystrokes,
 // so the value is copied directly.
+function saveEditorValue(editor) {
+    var value = editor.value;
+    // An empty editor holds <p><br></p>; keep the textarea empty so the
+    // required checks still apply.
+    var body = new DOMParser().parseFromString(value, "text/html").body;
+    var empty = !$.trim(body.textContent) && !body.querySelector("img, table, hr");
+    editor.element.value = empty ? "" : value;
+}
+
 function syncEquationEditors() {
-    equationEditors.forEach(function (editor) {
-        var value = editor.value;
-        // An empty editor holds <p><br></p>; keep the textarea empty so the
-        // required checks still apply.
-        var body = new DOMParser().parseFromString(value, "text/html").body;
-        var empty = !$.trim(body.textContent) && !body.querySelector("img, table, hr");
-        editor.element.value = empty ? "" : value;
+    equationEditors.forEach(saveEditorValue);
+}
+
+// Rich text editors on the settings pages: privacy policy, terms, about us,
+// contact us, online exam terms and the email templates.
+var richTextEditors = [];
+
+function createRichTextEditor(textarea, height) {
+    var editor = Jodit.make(textarea, {
+        height: height || 400,
+        toolbarAdaptive: false,
+        askBeforePasteHTML: false,
+        askBeforePasteFromWord: false,
+        buttons: [
+            "paragraph", "font", "fontsize", "|",
+            "undo", "redo", "|",
+            "bold", "italic", "underline", "|",
+            "align", "ul", "ol", "outdent", "indent", "|",
+            "link", "image", "table", "hr", "|",
+            "source",
+        ],
     });
+    richTextEditors.push(editor);
+    return editor;
+}
+
+function syncRichTextEditors() {
+    richTextEditors.forEach(saveEditorValue);
 }
 
 function clearEquationEditors() {

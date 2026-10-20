@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers;
 
+use App\Services\ResponseService;
 use App\Models\ClassTeacher;
 use App\Models\EmailTempalate;
 use App\Models\FormField;
@@ -526,6 +527,7 @@ class TeacherController extends Controller
      */
     public function edit($id)
     {
+        ResponseService::noPermissionThenSendJson('teacher-edit');
         $teacher = Teacher::find($id);
 
         return response($teacher);

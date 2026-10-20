@@ -6,6 +6,7 @@ namespace App\Services;
 
 use Exception;
 use Illuminate\Contracts\Foundation\Application;
+use Illuminate\Http\Exceptions\HttpResponseException;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Routing\Redirector;
 use Illuminate\Support\Facades\Auth;
@@ -21,9 +22,11 @@ class ResponseService
     public static function noPermissionThenRedirect($permission)
     {
         if (! Auth::user()->can($permission)) {
-            return redirect(route('home'))->withErrors([
+            // Throw so the controller stops here. send() alone let it carry on
+            // and output the protected page after the redirect.
+            throw new HttpResponseException(redirect(route('home'))->withErrors([
                 'message' => trans('no_permission_message'),
-            ])->send();
+            ]));
         }
 
         return true;
@@ -48,9 +51,9 @@ class ResponseService
     public static function noRoleThenRedirect($role)
     {
         if (! Auth::user()->hasRole($role)) {
-            return redirect(route('home'))->withErrors([
+            throw new HttpResponseException(redirect(route('home'))->withErrors([
                 'message' => trans('no_permission_message'),
-            ])->send();
+            ]));
         }
 
         return true;
@@ -62,9 +65,9 @@ class ResponseService
     public static function noAnyRoleThenRedirect(array $role)
     {
         if (! Auth::user()->hasAnyRole($role)) {
-            return redirect(route('home'))->withErrors([
+            throw new HttpResponseException(redirect(route('home'))->withErrors([
                 'message' => trans('no_permission_message'),
-            ])->send();
+            ]));
         }
 
         return true;
@@ -90,9 +93,9 @@ class ResponseService
     public static function noAnyPermissionThenRedirect(array $permissions)
     {
         if (! Auth::user()->canany($permissions)) {
-            return redirect()->back()->withErrors([
+            throw new HttpResponseException(redirect()->back()->withErrors([
                 'message' => trans('no_permission_message'),
-            ])->send();
+            ]));
         }
 
         return true;
@@ -245,6 +248,7 @@ class ResponseService
         $url = $request->fullUrl();
         $headers = [];
 
+        // Never write credentials to the log.
         foreach ($request->headers->all() as $key => $values) {
             foreach ($values as $value) {
                 $headers[] = "-H '".$key.': '.(self::isSensitiveKey($key) ? '[redacted]' : $value)."'";

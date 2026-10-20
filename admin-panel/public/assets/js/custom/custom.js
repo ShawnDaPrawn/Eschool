@@ -325,17 +325,9 @@ $(function () {
             reader.readAsDataURL(selectedFile);
         }
     });
-    tinymce.init({
-        height: "400",
-        selector: "#tinymce_message",
-        menubar: "file edit view formate tools",
-        toolbar: [
-            "styleselect fontselect fontsizeselect",
-            "undo redo | cut copy paste | bold italic | alignleft aligncenter alignright alignjustify",
-            "bullist numlist | outdent indent | blockquote autolink | lists |  code",
-        ],
-        plugins: "autolink link image lists code",
-    });
+    if ($("#rich_text_message").length) {
+        createRichTextEditor($("#rich_text_message")[0]);
+    }
 
     $(".modal").on("hidden.bs.modal", function () {
         //Reset input file on modal close
@@ -1837,9 +1829,7 @@ parentSearch(
 );
 $(document).on("submit", ".setting-form", function (e) {
     e.preventDefault();
-    if (typeof tinymce !== "undefined") {
-        tinymce.triggerSave();
-    }
+    syncRichTextEditors();
     var data = new FormData(this);
     var message = data.get("setting_message");
     var requiredMessageKey = $(this).data("required-message");

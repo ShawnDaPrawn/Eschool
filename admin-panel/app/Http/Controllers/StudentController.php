@@ -564,6 +564,7 @@ class StudentController extends Controller
 
     public function showStudentReport(Request $request, $id)
     {
+        ResponseService::noPermissionThenRedirect('student-report');
         $tab = $request->get('tab', 'personal');
 
         $student = $this->getStudent($id);
