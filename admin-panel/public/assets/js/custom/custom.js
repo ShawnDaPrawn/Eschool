@@ -266,7 +266,7 @@ $(function () {
                 $("#sortable-row").append(li);
             }
         });
-        createCkeditor();
+        createEquationEditors();
     });
     $("#table_list_exam_questions").on("uncheck.bs.table", function (e, row) {
         $("#sortable-row > div").each(function () {
@@ -3876,9 +3876,7 @@ $(document).on("click", ".remove-option", function (e) {
 });
 $("#create-online-exam-questions-form").on("submit", function (e) {
     e.preventDefault();
-    for (var equation_editor in CKEDITOR.instances) {
-        CKEDITOR.instances[equation_editor].updateElement();
-    }
+    syncEquationEditors();
     let formElement = $(this);
     let submitButtonElement = $(this).find(":submit");
     let url = $(this).attr("action");
@@ -3950,7 +3948,7 @@ $("#add-new-eqation-option").on("click", function (e) {
     $(".equation-option-container")
         .append(option_html)
         .ready(function () {
-            createCkeditor();
+            createEquationEditors();
         });
     let select_answer_option =
         "<option value=" +
@@ -4117,34 +4115,16 @@ $(document).on("click", ".remove-answers", function (e) {
 });
 $("#add-new-question-online-exam").on("submit", function (e) {
     e.preventDefault();
-    for (var equation_editor in CKEDITOR.instances) {
-        CKEDITOR.instances[equation_editor].updateElement();
-    }
+    syncEquationEditors();
     let formElement = $(this);
     let submitButtonElement = $(this).find(":submit");
     let url = $(this).attr("action");
     let data = new FormData(this);
 
     function successCallback(response) {
-        // Get the CKEditor instance
-        var editors = Object.values(CKEDITOR.instances);
+        clearEquationEditors();
 
-        // Loop through each instance
-        editors
-            .filter((editor) => editor.element.hasClass("editor_question"))
-            .forEach((editor) => {
-                editor.setData(""); // clear the text
-                editor.resetDirty(); // reset the points to save the changes
-            });
-
-        editors
-            .filter((editor) => editor.element.hasClass("editor_options"))
-            .forEach((editor) => {
-                editor.setData(""); // clear the text
-                editor.resetDirty(); // reset the points to save the changes
-            });
-
-        // remove the extra options of ckeditors
+        // remove the extra options
         $(document).find(".equation-editor-options-extra").remove();
         $(document).find(".extra_answers_options").remove();
 
@@ -4214,6 +4194,7 @@ $("#add-new-question-online-exam").on("submit", function (e) {
         var pasteItem = checkList("sortable-row", li);
         if (pasteItem) {
             $("#sortable-row").append(li);
+            renderEquations(li);
         }
     }
 
@@ -4331,9 +4312,7 @@ $("#store-assign-questions-form").on("submit", function (e) {
 
 $("#edit-question-form").on("submit", function (e) {
     e.preventDefault();
-    for (var equation_editor in CKEDITOR.instances) {
-        CKEDITOR.instances[equation_editor].updateElement();
-    }
+    syncEquationEditors();
     let formElement = $(this);
     let submitButtonElement = $(this).find(":submit");
     let data = new FormData(this);
@@ -4412,18 +4391,16 @@ $(document).on("click", ".delete-question-form", function (e) {
     });
 });
 $("#table_list_questions").on("load-success.bs.table", function () {
-    createCkeditor();
+    createEquationEditors();
 });
 $("#table_list_exam_questions").on("load-success.bs.table", function () {
-    createCkeditor();
+    createEquationEditors();
 });
 $(document).on("click", ".add-new-edit-eoption", function (e) {
     e.preventDefault();
 
-    // destroy the editors for no cloning the last ckeditor
-    for (var equation_editor in CKEDITOR.instances) {
-        CKEDITOR.instances[equation_editor].destroy();
-    }
+    // destroy the editors so the clone doesn't copy the last one
+    destroyEquationEditors();
     let html = $(".edit_eoption_container").find(".form-group:last").clone();
     html.find(".editor_options").val("");
     html.find(".error").remove();
@@ -4460,7 +4437,7 @@ $(document).on("click", ".add-new-edit-eoption", function (e) {
     $(".edit_eoption_container")
         .append(html)
         .ready(function () {
-            createCkeditor();
+            createEquationEditors();
         });
 
     let select_answer_option =
