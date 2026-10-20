@@ -42,7 +42,6 @@ use App\Http\Controllers\SubjectTeacherController;
 use App\Http\Controllers\SystemUpdateController;
 use App\Http\Controllers\TeacherController;
 use App\Http\Controllers\TimetableController;
-use App\Http\Controllers\UserController;
 use App\Http\Controllers\WebController;
 use App\Http\Controllers\WebhookController;
 use App\Http\Controllers\WebSettingController;
@@ -67,9 +66,8 @@ Route::get('login', [App\Http\Controllers\Auth\LoginController::class, 'showLogi
 Route::post('login', [App\Http\Controllers\Auth\LoginController::class, 'login'])->middleware('guest');
 Route::post('logout', [App\Http\Controllers\Auth\LoginController::class, 'logout'])->name('logout');
 
-// Registration Routes (if needed)
-Route::get('register', [App\Http\Controllers\Auth\RegisterController::class, 'showRegistrationForm'])->name('register');
-Route::post('register', [App\Http\Controllers\Auth\RegisterController::class, 'register']);
+// There is no public sign-up: accounts are created by the school (staff,
+// teachers, students, parents) and always carry a role.
 
 // Password Reset Routes (if needed)
 Route::get('password/reset', [App\Http\Controllers\Auth\ForgotPasswordController::class, 'showLinkRequestForm'])->name('password.request');
@@ -120,7 +118,6 @@ Route::group(['middleware' => ['Role', 'auth']], function () {
         Route::get('roles-list/{id}', [RoleController::class, 'showList'])->name('roles-list');
         Route::get('roles-data', [RoleController::class, 'show'])->name('roles.data');
         Route::resource('roles', RoleController::class);
-        Route::resource('users', UserController::class);
 
         Route::get('settings', [SettingController::class, 'index']);
         Route::post('settings', [SettingController::class, 'update']);

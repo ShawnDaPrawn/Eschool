@@ -78,7 +78,6 @@ class AdminPagesTest extends TestCase
         'terms-conditions',
         'timetable-list',
         'timetable/create',
-        'users',
         'video-gallery',
     ];
 
