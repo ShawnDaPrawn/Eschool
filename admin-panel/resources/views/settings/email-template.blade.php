@@ -50,7 +50,7 @@
                                 <input type="hidden" name="type" value="student">
 
                                 <div class="form-group mb-3">
-                                    <textarea id="student_content" name="content" rows="10" class="form-control">{!! $template->content ?? '' !!}</textarea>
+                                    <textarea id="student_content" name="content" rows="10" class="form-control">{{ $template->content ?? '' }}</textarea>
                                 </div>
 
                                 <div class="d-flex flex-wrap align-items-center bg-light p-3 border rounded mb-3">
@@ -80,7 +80,7 @@
                                 <input type="hidden" name="type" value="staff">
 
                                 <div class="form-group mb-3">
-                                    <textarea id="staff_content" name="content" rows="10" class="form-control">{!! $stafftemplate->content ?? '' !!}</textarea>
+                                    <textarea id="staff_content" name="content" rows="10" class="form-control">{{ $stafftemplate->content ?? '' }}</textarea>
                                 </div>
 
                                 <div class="d-flex flex-wrap align-items-center bg-light p-3 border rounded mb-3">
@@ -107,7 +107,7 @@
                                 <input type="hidden" name="type" value="rejection">
 
                                 <div class="form-group mb-3">
-                                    <textarea id="rejection_content" name="content">{!! $rejectionTempplate->content ?? '' !!}</textarea>
+                                    <textarea id="rejection_content" name="content">{{ $rejectionTempplate->content ?? '' }}</textarea>
                                 </div>
 
                                 <div class="d-flex flex-wrap align-items-center bg-white p-3 border rounded shadow-sm mb-3" style="gap: 8px;">

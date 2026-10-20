@@ -211,7 +211,7 @@
 @if (Session::has('error'))
     <script type='text/javascript'>
         $.toast({
-            text: '{{ Session::get('error') }}',
+            text: $('<div>').text(@json(Session::get('error'))).html(),
             showHideTransition: 'slide',
             icon: 'error',
             loaderBg: '#f2a654',
@@ -224,7 +224,7 @@
     @foreach ($errors->all() as $error)
         <script type='text/javascript'>
             $.toast({
-                text: '{{ $error }}',
+                text: $('<div>').text(@json($error)).html(),
                 showHideTransition: 'slide',
                 icon: 'error',
                 loaderBg: '#f2a654',

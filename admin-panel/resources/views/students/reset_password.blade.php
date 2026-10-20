@@ -84,7 +84,7 @@
                                 }
                             },
                             error: function(xhr) {
-                                showErrorToast(xhr.responseJSON?.message || '{{ __('error_occurred') }}');
+                                showErrorToast(xhr.responseJSON?.message || @json(__('error_occurred')));
                             }
                         })
                     }

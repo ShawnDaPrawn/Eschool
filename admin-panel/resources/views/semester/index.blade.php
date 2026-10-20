@@ -369,7 +369,7 @@
 
             $('#btn-configure-classes').on('click', function() {
                 if (!hasSemesters) {
-                    showWarningToast('{{ __('create_semester_before_configuring') }}');
+                    showWarningToast(@json(__('create_semester_before_configuring')));
                     return;
                 }
                 // Reset search
@@ -455,7 +455,7 @@
                     },
                     error: function(xhr) {
                         showErrorToast(xhr.responseJSON?.message ||
-                            '{{ __('error_occurred') }}');
+                            @json(__('error_occurred')));
                     },
                     complete: function() {
                         btn.prop('disabled', false).text('{{ __('save') }}');
@@ -526,7 +526,7 @@
                     },
                     error: function(xhr) {
                         showErrorToast(xhr.responseJSON?.message ||
-                            '{{ __('error_occurred') }}');
+                            @json(__('error_occurred')));
                     },
                     complete: function() {
                         btn.prop('disabled', false);
@@ -579,7 +579,7 @@
                     },
                     error: function(xhr) {
                         showErrorToast(xhr.responseJSON?.message ||
-                            '{{ __('error_occurred') }}');
+                            @json(__('error_occurred')));
                     }
                 });
             });
@@ -629,7 +629,7 @@
                             },
                             error: function(xhr) {
                                 showErrorToast(xhr.responseJSON?.message ||
-                                    '{{ __('error_occurred') }}');
+                                    @json(__('error_occurred')));
                             }
                         });
                     }
@@ -671,7 +671,7 @@
 
             function showSuccessToast(msg) {
                 $.toast({
-                    text: msg,
+                    text: escapeToastText(msg),
                     showHideTransition: 'slide',
                     icon: 'success',
                     position: 'top-right'
@@ -680,7 +680,7 @@
 
             function showErrorToast(msg) {
                 $.toast({
-                    text: msg,
+                    text: escapeToastText(msg),
                     showHideTransition: 'slide',
                     icon: 'error',
                     position: 'top-right'
@@ -689,7 +689,7 @@
 
             function showWarningToast(msg) {
                 $.toast({
-                    text: msg,
+                    text: escapeToastText(msg),
                     showHideTransition: 'slide',
                     icon: 'warning',
                     position: 'top-right',

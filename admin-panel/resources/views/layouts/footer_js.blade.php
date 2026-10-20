@@ -37,14 +37,14 @@
 
 <script src="{{ asset('/assets/color-picker/jquery-asColor.min.js') }}"></script>
 <script src="{{ asset('/assets/color-picker/color.min.js') }}"></script>
-<script src="{{ asset('/assets/js/custom/function.js') }}"></script>
+<script src="{{ asset('/assets/js/custom/function.js') }}?v={{ filemtime(public_path('assets/js/custom/function.js')) }}"></script>
 <script src="{{ asset('/assets/js/custom/validate.js') }}"></script>
 <script src="{{ asset('/assets/js/jquery-additional-methods.min.js') }}"></script>
 
-<script src="{{ asset('/assets/js/custom/custom.js') }}"></script>
+<script src="{{ asset('/assets/js/custom/custom.js') }}?v={{ filemtime(public_path('assets/js/custom/custom.js')) }}"></script>
 <script src="{{ asset('/assets/js/custom/queryParams.js') }}"></script>
-<script src="{{ asset('/assets/js/custom/formatter.js') }}"></script>
-<script src="{{ asset('/assets/js/custom/custom-bootstrap-table.js') }}"></script>
+<script src="{{ asset('/assets/js/custom/formatter.js') }}?v={{ filemtime(public_path('assets/js/custom/formatter.js')) }}"></script>
+<script src="{{ asset('/assets/js/custom/custom-bootstrap-table.js') }}?v={{ filemtime(public_path('assets/js/custom/custom-bootstrap-table.js')) }}"></script>
 <script src="{{ asset('/assets/js/custom/bootstrap-table-locale.js') }}"></script>
 
 <script src="{{ asset('/assets/ckeditor-4/ckeditor.js') }}"></script>
@@ -54,7 +54,7 @@
     @foreach ($errors->all() as $error)
         <script type='text/javascript'>
             $.toast({
-                text: '{{ $error }}',
+                text: escapeHtml(@json($error)),
                 showHideTransition: 'slide',
                 icon: 'error',
                 loaderBg: '#f2a654',
@@ -67,7 +67,7 @@
 @if (Session::has('success'))
     <script>
         $.toast({
-            text: '{{ Session::get('success') }}',
+            text: escapeHtml(@json(Session::get('success'))),
             showHideTransition: 'slide',
             icon: 'success',
             loaderBg: '#f96868',
@@ -136,7 +136,7 @@
                         }
                     },
                     error: function(xhr) {
-                        showErrorToast(xhr.responseJSON?.message || '{{ __('error_occurred') }}');
+                        showErrorToast(xhr.responseJSON?.message || @json(__('error_occurred')));
                     }
                 });
             }

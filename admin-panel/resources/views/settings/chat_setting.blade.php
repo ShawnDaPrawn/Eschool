@@ -178,7 +178,7 @@
 
                 var onCopied = function() {
                     if (typeof showSuccessToast === 'function') {
-                        showSuccessToast("{{ __('copied_to_clipboard') }}");
+                        showSuccessToast(@json(__('copied_to_clipboard')));
                     }
                 };
 
