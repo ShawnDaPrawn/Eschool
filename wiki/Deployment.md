@@ -240,7 +240,7 @@ For hosts without SSH, `routes/web.php` exposes:
 | `GET /migrate` | `auth`, `role:Super Admin` | the four clears, then `migrate --force` |
 | `GET /seeder_install` | `auth`, `role:Super Admin` | the four clears, then `db:seed --class=InstallationSeeder --force` |
 
-`SecurityTest` checks that guests are redirected to login and other roles get 403 on the Super Admin ones.
+`SecurityTest` checks that guests are redirected to login from all four, that a Teacher gets 403 on the three Super Admin ones, and that a signed-in user can use `/clear`.
 
 ## Deploying an update
 
