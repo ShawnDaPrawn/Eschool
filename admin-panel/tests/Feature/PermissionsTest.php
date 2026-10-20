@@ -8,12 +8,12 @@ use App\Models\User;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Hash;
-use Tests\Concerns\ServesApp;
+use Tests\Concerns\RunsAppServer;
 use Tests\TestCase;
 
 class PermissionsTest extends TestCase
 {
-    use ServesApp;
+    use RunsAppServer;
 
     /** Admin actions a teacher has no permission for. */
     private const ADMIN_ONLY = [
@@ -40,12 +40,13 @@ class PermissionsTest extends TestCase
         // which Laravel also copies into $_SERVER. With APP_ENV set, Laravel
         // loads .env.{APP_ENV} instead of .env.
         File::put(base_path('.env.webhook-test'), "FLW_SECRET_HASH=flutterwave-secret\n");
-        $this->startApp(['APP_ENV' => 'webhook-test']);
+        $this->freshInstall();
+        $this->startAppServer(['APP_ENV' => 'webhook-test']);
     }
 
     protected function tearDown(): void
     {
-        $this->stopApp();
+        $this->stopAppServer();
         File::delete(base_path('.env.webhook-test'));
         parent::tearDown();
     }
@@ -63,7 +64,7 @@ class PermissionsTest extends TestCase
         $teacher->assignRole('Teacher');
         Staff::forceCreate(['user_id' => $teacher->id]);
         Teacher::forceCreate(['user_id' => $teacher->id]);
-        $client = $this->loggedInClient('teacher.test@example.com', 'secret123');
+        $client = $this->adminPanelClient('teacher.test@example.com', 'secret123');
 
         $allowed = [];
         foreach (self::ADMIN_ONLY as [$method, $uri]) {
@@ -93,7 +94,7 @@ class PermissionsTest extends TestCase
             ['type' => 'razorpay_webhook_secret', 'message' => 'webhook-signing-secret'],
         ]);
 
-        $response = $this->client()->get('/api/settings', ['type' => 'app_settings']);
+        $response = $this->appClient()->get('/api/settings', ['type' => 'app_settings']);
 
         $this->assertSame('rzp_test_key', $response->json('data.payment_options.razorpay.razorpay_api_key'));
         $this->assertStringNotContainsString('webhook-signing-secret', $response->body());
@@ -114,8 +115,8 @@ class PermissionsTest extends TestCase
             ],
         ];
 
-        $this->client()->post('/webhook/flutterwave', $payload);
-        $this->client()->withHeaders(['verif-hash' => 'wrong'])->post('/webhook/flutterwave', $payload);
+        $this->appClient()->post('/webhook/flutterwave', $payload);
+        $this->appClient()->withHeaders(['verif-hash' => 'wrong'])->post('/webhook/flutterwave', $payload);
 
         $this->assertSame(2, (int) DB::table('payment_transactions')->where('id', $transactionId)->value('payment_status'));
     }

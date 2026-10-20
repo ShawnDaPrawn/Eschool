@@ -1,0 +1,14 @@
+{
+    "request": "POST /api/student/delete-assignment-submission",
+    "status": 200,
+    "error": true,
+    "message": "You can not delete assignment",
+    "code": 110,
+    "shape": {
+        "code": "number",
+        "data": "null",
+        "details": "string",
+        "error": "bool",
+        "message": "string"
+    }
+}

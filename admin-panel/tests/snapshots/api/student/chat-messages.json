@@ -1,0 +1,24 @@
+{
+    "request": "POST /api/student/get-user-message",
+    "status": 200,
+    "error": false,
+    "message": "Data Fetched Successfully",
+    "code": 200,
+    "shape": {
+        "code": "number",
+        "data": {
+            "items": [
+                {
+                    "body": "string",
+                    "date": "string",
+                    "files": [],
+                    "id": "number",
+                    "sender_id": "number"
+                }
+            ],
+            "total_items": "number"
+        },
+        "error": "bool",
+        "message": "string"
+    }
+}

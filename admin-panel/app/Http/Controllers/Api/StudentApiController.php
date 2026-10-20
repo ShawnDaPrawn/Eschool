@@ -281,7 +281,7 @@ class StudentApiController extends Controller
                 $user['class_section_id'] = $studentSession->class_section_id;
 
                 if (! empty($dynamicField)) {
-                    $data = json_decode($dynamicField, true);
+                    $data = json_decode($dynamicField ?? '[]', true);
                     if (is_array($data)) {
                         foreach ($data as $item) {
                             if ($item != null) {
@@ -2292,12 +2292,12 @@ class StudentApiController extends Controller
                         if ($isInstallment == 0) {
                             if ($fees_paid) {
                                 if (isset($fees_paid) && $fees_paid->is_fully_paid == 0) {
-                                    $child->is_fee_payment_due = ($current_date >= $due_date) ? 1 : 0;
+                                    $user->is_fee_payment_due = ($current_date >= $due_date) ? 1 : 0;
                                 } else {
-                                    $child->is_fee_payment_due = 0;
+                                    $user->is_fee_payment_due = 0;
                                 }
                             } else {
-                                $child->is_fee_payment_due = ($current_date >= $due_date) ? 1 : 0;
+                                $user->is_fee_payment_due = ($current_date >= $due_date) ? 1 : 0;
                             }
                         } else {
 
@@ -2385,7 +2385,7 @@ class StudentApiController extends Controller
             $user['class_id'] = $class_id;
             $user['class_section_id'] = $studentSession->class_section_id;
 
-            $data = json_decode($dynamicField, true);
+            $data = json_decode($dynamicField ?? '[]', true);
             if (is_array($data)) {
                 foreach ($data as $item) {
                     if (! empty($item)) {

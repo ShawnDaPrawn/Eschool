@@ -1,0 +1,13 @@
+{
+    "request": "POST /api/teacher/student-leave-status-update",
+    "status": 200,
+    "error": false,
+    "message": "Data Updated Successfully",
+    "code": 200,
+    "shape": {
+        "code": "number",
+        "data": "null",
+        "error": "bool",
+        "message": "string"
+    }
+}

@@ -276,33 +276,6 @@ class AttendanceController extends Controller
         }
         $date = $request->date ? date('Y-m-d', strtotime($request->date)) : Carbon::now()->toDateString();
         $response = Attendance::select('type')->where(['date' => $date, 'class_section_id' => $request->class_section_id])->pluck('type')->first();
-        if ($request->holiday == 3) {
-            if (! Auth::user()->can('attendance-create')) {
-                return response()->json(['error' => true, 'message' => trans('no_permission_message')]);
-            }
-
-            $students = StudentSession::where('class_section_id', $request->class_section_id)
-                ->where('session_year_id', $sessionYearId)
-                ->get();
-
-            foreach ($students as $student) {
-
-                Attendance::updateOrCreate(
-                    [
-                        'student_id' => $student->student_id,
-                        'date' => $request->date,
-                    ],
-                    [
-                        'type' => 3, // Holiday
-                    ]
-                );
-            }
-
-            return response()->json([
-                'error' => false,
-                'message' => 'Holiday attendance marked successfully.',
-            ]);
-        }
 
         return response()->json($response);
     }

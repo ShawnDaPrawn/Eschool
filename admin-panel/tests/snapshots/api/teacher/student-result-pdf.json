@@ -1,0 +1,14 @@
+{
+    "request": "GET /api/teacher/get-student-result-pdf",
+    "status": 200,
+    "error": false,
+    "message": "Data Fetched Successfully",
+    "code": 200,
+    "shape": {
+        "code": "number",
+        "data": "null",
+        "error": "bool",
+        "message": "string",
+        "pdf": "string"
+    }
+}

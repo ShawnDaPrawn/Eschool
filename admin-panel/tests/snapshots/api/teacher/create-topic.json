@@ -1,0 +1,13 @@
+{
+    "request": "POST /api/teacher/create-topic",
+    "status": 200,
+    "error": false,
+    "message": "Data Saved Successfully",
+    "code": 200,
+    "shape": {
+        "code": "number",
+        "data": "null",
+        "error": "bool",
+        "message": "string"
+    }
+}

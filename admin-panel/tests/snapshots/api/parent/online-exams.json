@@ -1,0 +1,21 @@
+{
+    "request": "GET /api/parent/get-online-exam-list",
+    "status": 200,
+    "error": false,
+    "message": "Exam List Fetched Successfully",
+    "code": 200,
+    "shape": {
+        "code": "number",
+        "data": {
+            "current_page": "number",
+            "data": [],
+            "from": "null",
+            "last_page": "number",
+            "per_page": "number",
+            "to": "null",
+            "total": "number"
+        },
+        "error": "bool",
+        "message": "string"
+    }
+}

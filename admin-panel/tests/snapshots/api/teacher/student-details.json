@@ -1,0 +1,48 @@
+{
+    "request": "GET /api/teacher/student-details",
+    "status": 200,
+    "error": false,
+    "message": "Student Details Fetched Successfully",
+    "code": 200,
+    "shape": {
+        "code": "number",
+        "data": "null",
+        "error": "bool",
+        "father_data": [
+            {
+                "dob": "null",
+                "dynamic_fields": "null",
+                "email": "string",
+                "first_name": "string",
+                "full_name": "string",
+                "gender": "string",
+                "id": "number",
+                "image": "string",
+                "last_name": "string",
+                "mobile": "string",
+                "occupation": "string",
+                "user_id": "number"
+            }
+        ],
+        "message": "string",
+        "mother_data": [
+            {
+                "dob": "null",
+                "dynamic_fields": "null",
+                "email": "string",
+                "first_name": "string",
+                "full_name": "string",
+                "gender": "string",
+                "id": "number",
+                "image": "string",
+                "last_name": "string",
+                "mobile": "string",
+                "occupation": "string",
+                "user_id": "number"
+            }
+        ],
+        "today_attendance": "string",
+        "total_absent": "number",
+        "total_present": "number"
+    }
+}

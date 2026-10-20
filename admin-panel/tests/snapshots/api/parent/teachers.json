@@ -1,0 +1,25 @@
+{
+    "request": "GET /api/parent/teachers",
+    "status": 200,
+    "error": false,
+    "message": "Teacher Details Fetched Successfully",
+    "code": 200,
+    "shape": {
+        "code": "number",
+        "data": [
+            {
+                "email": "string",
+                "first_name": "string",
+                "id": "number",
+                "image": "string",
+                "last_name": "string",
+                "mobile_no": "string",
+                "qualification": "string",
+                "subjects": "string",
+                "user_id": "number"
+            }
+        ],
+        "error": "bool",
+        "message": "string"
+    }
+}

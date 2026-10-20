@@ -1,0 +1,20 @@
+{
+    "request": "GET /api/student/fees-report",
+    "status": 200,
+    "error": false,
+    "message": "Data fetched successfully",
+    "code": 200,
+    "shape": {
+        "code": "number",
+        "data": {
+            "instalments": "null",
+            "last_payment_date": "string",
+            "next_due_date": "null",
+            "total_fee_payable": "number",
+            "total_paid": "number",
+            "total_pending": "number"
+        },
+        "error": "bool",
+        "message": "string"
+    }
+}

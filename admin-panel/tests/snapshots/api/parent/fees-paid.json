@@ -1,0 +1,45 @@
+{
+    "request": "GET /api/parent/fees-paid-list",
+    "status": 200,
+    "error": false,
+    "message": "Fees Paid List Fetched Successfully",
+    "code": 200,
+    "shape": {
+        "code": "number",
+        "data": [
+            {
+                "cheque_no": "null",
+                "class": {
+                    "educational_program_id": "null",
+                    "full_name": "string",
+                    "id": "number",
+                    "medium": {
+                        "id": "number",
+                        "name": "string"
+                    },
+                    "medium_id": "number",
+                    "name": "string",
+                    "shift_id": "null",
+                    "stream_id": "null"
+                },
+                "class_id": "number",
+                "date": "string",
+                "due_charges": "null",
+                "id": "number",
+                "is_fully_paid": "number",
+                "mode": "number",
+                "parent_id": "number",
+                "payment_transaction_id": "string",
+                "session_year": {
+                    "id": "number",
+                    "name": "string"
+                },
+                "session_year_id": "number",
+                "student_id": "number",
+                "total_amount": "number"
+            }
+        ],
+        "error": "bool",
+        "message": "string"
+    }
+}

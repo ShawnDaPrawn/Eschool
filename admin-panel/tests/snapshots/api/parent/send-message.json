@@ -1,0 +1,19 @@
+{
+    "request": "POST /api/parent/send-message",
+    "status": 200,
+    "error": false,
+    "message": "Message Sent Successfully",
+    "code": 200,
+    "shape": {
+        "code": "number",
+        "data": {
+            "body": "string",
+            "date": "string",
+            "files": [],
+            "id": "number",
+            "sender_id": "number"
+        },
+        "error": "bool",
+        "message": "string"
+    }
+}

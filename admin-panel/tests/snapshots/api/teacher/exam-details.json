@@ -1,0 +1,50 @@
+{
+    "request": "GET /api/teacher/get-exam-details",
+    "status": 200,
+    "error": false,
+    "message": "Data Fetched Successfully",
+    "code": 200,
+    "shape": {
+        "class_id": "string",
+        "class_name": "string",
+        "class_section_id": "number",
+        "code": "number",
+        "data": [
+            {
+                "description": "string",
+                "id": "number",
+                "name": "string",
+                "publish": "number",
+                "semester_id": "null",
+                "session_year_id": "number",
+                "timetable": [
+                    {
+                        "class_id": "number",
+                        "date": "string",
+                        "end_time": "string",
+                        "exam_id": "number",
+                        "id": "number",
+                        "passing_marks": "number",
+                        "session_year_id": "number",
+                        "start_time": "string",
+                        "subject": {
+                            "bg_color": "string",
+                            "code": "string",
+                            "id": "number",
+                            "image": "string",
+                            "medium_id": "number",
+                            "name": "string",
+                            "semester": "null",
+                            "type": "string"
+                        },
+                        "subject_id": "number",
+                        "total_marks": "number"
+                    }
+                ]
+            }
+        ],
+        "error": "bool",
+        "message": "string",
+        "stream_name": "null"
+    }
+}

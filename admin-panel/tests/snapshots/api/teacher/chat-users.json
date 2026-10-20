@@ -1,0 +1,46 @@
+{
+    "request": "GET /api/teacher/get-user-list",
+    "status": 200,
+    "error": false,
+    "message": "Data Fetched Successfully",
+    "code": 100,
+    "shape": {
+        "code": "number",
+        "data": {
+            "items": [
+                {
+                    "address": "null",
+                    "admission_no": "string",
+                    "class_name": "string",
+                    "dob": "string",
+                    "first_name": "string",
+                    "gender": "string",
+                    "id": "number",
+                    "image": "string",
+                    "isParent": "null",
+                    "last_message": {
+                        "(or null)": true,
+                        "body": "string",
+                        "date": "string",
+                        "file": [],
+                        "id": "number"
+                    },
+                    "last_name": "string",
+                    "roll_no": "number",
+                    "subjects": [
+                        {
+                            "id": "number",
+                            "name": "string"
+                        }
+                    ],
+                    "unread_message": "number",
+                    "user_id": "number"
+                }
+            ],
+            "total_items": "number",
+            "total_unread_users": "number"
+        },
+        "error": "bool",
+        "message": "string"
+    }
+}

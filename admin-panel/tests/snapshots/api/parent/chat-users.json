@@ -1,0 +1,47 @@
+{
+    "request": "GET /api/parent/get-user-list",
+    "status": 200,
+    "error": false,
+    "message": "Data Fetched Successfully",
+    "code": 200,
+    "shape": {
+        "code": "number",
+        "data": {
+            "items": [
+                {
+                    "class_teacher": [
+                        "string"
+                    ],
+                    "email": "string",
+                    "first_name": "string",
+                    "id": "number",
+                    "image": "string",
+                    "last_message": {
+                        "(or null)": true,
+                        "body": "string",
+                        "date": "string",
+                        "id": "number"
+                    },
+                    "last_name": "string",
+                    "mobile_no": "string",
+                    "qualification": "string",
+                    "student_name": [
+                        "string"
+                    ],
+                    "subjects": [
+                        {
+                            "id": "number",
+                            "name": "string"
+                        }
+                    ],
+                    "unread_message": "number",
+                    "user_id": "number"
+                }
+            ],
+            "total_items": "number",
+            "total_unread_users": "number"
+        },
+        "error": "bool",
+        "message": "string"
+    }
+}

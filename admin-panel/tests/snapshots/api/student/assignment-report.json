@@ -1,0 +1,21 @@
+{
+    "request": "GET /api/student/assignment-report",
+    "status": 200,
+    "error": false,
+    "message": "Data fetched successfully",
+    "code": 200,
+    "shape": {
+        "code": "number",
+        "data": {
+            "average_completion_rate": "number",
+            "late_submission": "number",
+            "missed_count": "number",
+            "on_time_submission": "number",
+            "pass_count": "number",
+            "pending_count": "number",
+            "total_assignments": "number"
+        },
+        "error": "bool",
+        "message": "string"
+    }
+}

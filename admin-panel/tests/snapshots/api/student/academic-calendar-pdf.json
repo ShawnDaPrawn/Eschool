@@ -1,0 +1,14 @@
+{
+    "request": "GET /api/student/academic-calendar-pdf",
+    "status": 200,
+    "error": false,
+    "message": "Academic Calendar PDF fetched successfully",
+    "code": 200,
+    "shape": {
+        "code": "number",
+        "data": "null",
+        "error": "bool",
+        "message": "string",
+        "pdf": "string"
+    }
+}

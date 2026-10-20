@@ -1,0 +1,14 @@
+{
+    "request": "POST /api/parent/store-fees",
+    "status": 200,
+    "error": true,
+    "message": "No Payment Transaction Found",
+    "code": 103,
+    "shape": {
+        "code": "number",
+        "data": "null",
+        "details": "string",
+        "error": "bool",
+        "message": "string"
+    }
+}

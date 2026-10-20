@@ -1,0 +1,18 @@
+{
+    "request": "GET /api/student/leave-report",
+    "status": 200,
+    "error": false,
+    "message": "Data fetched successfully",
+    "code": 200,
+    "shape": {
+        "code": "number",
+        "data": {
+            "completed": "number",
+            "pending": "number",
+            "rejected": "number",
+            "total_leaves": "number"
+        },
+        "error": "bool",
+        "message": "string"
+    }
+}

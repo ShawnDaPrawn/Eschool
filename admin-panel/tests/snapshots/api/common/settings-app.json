@@ -1,0 +1,72 @@
+{
+    "request": "GET /api/settings",
+    "status": 200,
+    "error": false,
+    "message": "Data Fetched Successfully",
+    "code": 200,
+    "shape": {
+        "code": "number",
+        "data": {
+            "app_link": "string",
+            "app_maintenance": "string",
+            "app_version": "string",
+            "chat_settings": {
+                "automatically_messages_removed_days": "number",
+                "max_characters_in_text_message": "number",
+                "max_file_size_in_bytes": "number",
+                "max_files_or_images_in_one_message": "number"
+            },
+            "compulsory_fee_payment_mode": "string",
+            "current_semester": {
+                "created_at": "string",
+                "current": "bool",
+                "deleted_at": "null",
+                "end_date": "string",
+                "end_month_name": "string",
+                "id": "number",
+                "name": "string",
+                "session_year_id": "number",
+                "start_date": "string",
+                "start_month_name": "string",
+                "updated_at": "string"
+            },
+            "force_app_update": "string",
+            "holiday_days": "string",
+            "ios_app_link": "string",
+            "ios_app_version": "string",
+            "is_demo": "bool",
+            "is_student_can_pay_fees": "string",
+            "online_exam_terms_condition": "string",
+            "online_payment": "string",
+            "payment_options": {
+                "currency_code": "string",
+                "currency_symbol": "string"
+            },
+            "school_name": "string",
+            "school_tagline": "string",
+            "semester_breaks": "null",
+            "session_year": {
+                "created_at": "string",
+                "default": "number",
+                "deleted_at": "null",
+                "end_date": "string",
+                "fee_due_charges": "number",
+                "fee_due_date": "string",
+                "free_app_use_date": "string",
+                "id": "number",
+                "include_fee_installments": "number",
+                "name": "string",
+                "start_date": "string",
+                "updated_at": "string"
+            },
+            "teacher_app_link": "string",
+            "teacher_app_maintenance": "string",
+            "teacher_app_version": "string",
+            "teacher_force_app_update": "string",
+            "teacher_ios_app_link": "string",
+            "teacher_ios_app_version": "string"
+        },
+        "error": "bool",
+        "message": "string"
+    }
+}

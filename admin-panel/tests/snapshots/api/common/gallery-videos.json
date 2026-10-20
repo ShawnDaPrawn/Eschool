@@ -1,0 +1,17 @@
+{
+    "request": "GET /api/get-gallery-videos",
+    "status": 200,
+    "error": false,
+    "message": null,
+    "code": null,
+    "shape": {
+        "data": {
+            "current_page": "number",
+            "data": [
+                "string"
+            ],
+            "last_page": "number"
+        },
+        "error": "bool"
+    }
+}

@@ -1,0 +1,13 @@
+{
+    "request": "POST /api/student/submit-online-exam-answers",
+    "status": 200,
+    "error": false,
+    "message": "Data Saved Successfully",
+    "code": 200,
+    "shape": {
+        "code": "number",
+        "data": "null",
+        "error": "bool",
+        "message": "string"
+    }
+}

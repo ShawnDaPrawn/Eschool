@@ -1,0 +1,235 @@
+parameters:
+	ignoreErrors:
+		-
+			message: '#^Result of static method App\\Services\\ResponseService\:\:errorResponse\(\) \(void\) is used\.$#'
+			identifier: staticMethod.void
+			count: 2
+			path: app/Http/Controllers/Api/ParentApiController.php
+
+		-
+			message: '#^Result of static method App\\Services\\ResponseService\:\:successResponse\(\) \(void\) is used\.$#'
+			identifier: staticMethod.void
+			count: 2
+			path: app/Http/Controllers/Api/ParentApiController.php
+
+		-
+			message: '#^Result of static method App\\Services\\ResponseService\:\:validationError\(\) \(void\) is used\.$#'
+			identifier: staticMethod.void
+			count: 2
+			path: app/Http/Controllers/Api/ParentApiController.php
+
+		-
+			message: '#^Result of static method App\\Services\\ResponseService\:\:errorResponse\(\) \(void\) is used\.$#'
+			identifier: staticMethod.void
+			count: 8
+			path: app/Http/Controllers/Api/StudentApiController.php
+
+		-
+			message: '#^Result of static method App\\Services\\ResponseService\:\:successResponse\(\) \(void\) is used\.$#'
+			identifier: staticMethod.void
+			count: 7
+			path: app/Http/Controllers/Api/StudentApiController.php
+
+		-
+			message: '#^Result of static method App\\Services\\ResponseService\:\:validationError\(\) \(void\) is used\.$#'
+			identifier: staticMethod.void
+			count: 2
+			path: app/Http/Controllers/Api/StudentApiController.php
+
+		-
+			message: '#^Result of static method App\\Services\\ResponseService\:\:errorResponse\(\) \(void\) is used\.$#'
+			identifier: staticMethod.void
+			count: 8
+			path: app/Http/Controllers/Api/TeacherApiController.php
+
+		-
+			message: '#^Result of static method App\\Services\\ResponseService\:\:successResponse\(\) \(void\) is used\.$#'
+			identifier: staticMethod.void
+			count: 6
+			path: app/Http/Controllers/Api/TeacherApiController.php
+
+		-
+			message: '#^Result of static method App\\Services\\ResponseService\:\:validationError\(\) \(void\) is used\.$#'
+			identifier: staticMethod.void
+			count: 2
+			path: app/Http/Controllers/Api/TeacherApiController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\EventController\:\:create\(\) should return Illuminate\\Http\\Response but return statement is missing\.$#'
+			identifier: return.missing
+			count: 1
+			path: app/Http/Controllers/EventController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\EventController\:\:edit\(\) should return Illuminate\\Http\\Response but return statement is missing\.$#'
+			identifier: return.missing
+			count: 1
+			path: app/Http/Controllers/EventController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\ExamController\:\:store\(\) should return Illuminate\\Http\\JsonResponse but return statement is missing\.$#'
+			identifier: return.missing
+			count: 1
+			path: app/Http/Controllers/ExamController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\ExamTimetableController\:\:create\(\) should return Illuminate\\Http\\Response but return statement is missing\.$#'
+			identifier: return.missing
+			count: 1
+			path: app/Http/Controllers/ExamTimetableController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\ExamTimetableController\:\:edit\(\) should return Illuminate\\Http\\Response but return statement is missing\.$#'
+			identifier: return.missing
+			count: 1
+			path: app/Http/Controllers/ExamTimetableController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\ExamTimetableController\:\:update\(\) should return Illuminate\\Http\\Response but return statement is missing\.$#'
+			identifier: return.missing
+			count: 1
+			path: app/Http/Controllers/ExamTimetableController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\FormFieldController\:\:create\(\) should return Illuminate\\Http\\Response but return statement is missing\.$#'
+			identifier: return.missing
+			count: 1
+			path: app/Http/Controllers/FormFieldController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\FormFieldController\:\:edit\(\) should return Illuminate\\Http\\Response but return statement is missing\.$#'
+			identifier: return.missing
+			count: 1
+			path: app/Http/Controllers/FormFieldController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\LeaveMasterController\:\:create\(\) should return Illuminate\\Http\\Response but return statement is missing\.$#'
+			identifier: return.missing
+			count: 1
+			path: app/Http/Controllers/LeaveMasterController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\LeaveMasterController\:\:edit\(\) should return Illuminate\\Http\\Response but return statement is missing\.$#'
+			identifier: return.missing
+			count: 1
+			path: app/Http/Controllers/LeaveMasterController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\OnlineExamQuestionController\:\:edit\(\) should return Illuminate\\Http\\Response but return statement is missing\.$#'
+			identifier: return.missing
+			count: 1
+			path: app/Http/Controllers/OnlineExamQuestionController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\ShiftController\:\:create\(\) should return Illuminate\\Http\\Response but return statement is missing\.$#'
+			identifier: return.missing
+			count: 1
+			path: app/Http/Controllers/ShiftController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\ShiftController\:\:edit\(\) should return Illuminate\\Http\\Response but return statement is missing\.$#'
+			identifier: return.missing
+			count: 1
+			path: app/Http/Controllers/ShiftController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\StaffController\:\:create\(\) should return Illuminate\\Http\\Response but return statement is missing\.$#'
+			identifier: return.missing
+			count: 1
+			path: app/Http/Controllers/StaffController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\StaffController\:\:destroy\(\) should return Illuminate\\Http\\Response but return statement is missing\.$#'
+			identifier: return.missing
+			count: 1
+			path: app/Http/Controllers/StaffController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\StaffController\:\:edit\(\) should return Illuminate\\Http\\Response but return statement is missing\.$#'
+			identifier: return.missing
+			count: 1
+			path: app/Http/Controllers/StaffController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\StaffController\:\:store\(\) should return Illuminate\\Http\\Response but return statement is missing\.$#'
+			identifier: return.missing
+			count: 1
+			path: app/Http/Controllers/StaffController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\StaffController\:\:update\(\) should return Illuminate\\Http\\Response but return statement is missing\.$#'
+			identifier: return.missing
+			count: 1
+			path: app/Http/Controllers/StaffController.php
+
+		-
+			message: '#^Result of static method App\\Services\\ResponseService\:\:successResponse\(\) \(void\) is used\.$#'
+			identifier: staticMethod.void
+			count: 1
+			path: app/Http/Controllers/StaffController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\StreamController\:\:create\(\) should return Illuminate\\Http\\Response but return statement is missing\.$#'
+			identifier: return.missing
+			count: 1
+			path: app/Http/Controllers/StreamController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\StreamController\:\:edit\(\) should return Illuminate\\Http\\Response but return statement is missing\.$#'
+			identifier: return.missing
+			count: 1
+			path: app/Http/Controllers/StreamController.php
+
+		-
+			message: '#^Result of static method App\\Services\\ResponseService\:\:validationError\(\) \(void\) is used\.$#'
+			identifier: staticMethod.void
+			count: 1
+			path: app/Http/Controllers/StudentController.php
+
+		-
+			message: '#^Trait Illuminate\\Database\\Eloquent\\SoftDeletes referenced with incorrect case\: Illuminate\\Database\\Eloquent\\softDeletes\.$#'
+			identifier: trait.nameCase
+			count: 2
+			path: app/Models/Shift.php
+
+		-
+			message: '#^Trait Illuminate\\Database\\Eloquent\\SoftDeletes referenced with incorrect case\: Illuminate\\Database\\Eloquent\\softDeletes\.$#'
+			identifier: trait.nameCase
+			count: 2
+			path: app/Models/Stream.php
+
+		-
+			message: '#^Access to an undefined property App\\Rules\\uniqueLessonInClass\:\:\$class_section_id\.$#'
+			identifier: property.notFound
+			count: 3
+			path: app/Rules/uniqueLessonInClass.php
+
+		-
+			message: '#^Access to an undefined property App\\Rules\\uniqueLessonInClass\:\:\$lesson_id\.$#'
+			identifier: property.notFound
+			count: 2
+			path: app/Rules/uniqueLessonInClass.php
+
+		-
+			message: '#^Access to an undefined property App\\Rules\\uniqueLessonInClass\:\:\$subject_id\.$#'
+			identifier: property.notFound
+			count: 3
+			path: app/Rules/uniqueLessonInClass.php
+
+		-
+			message: '#^Access to an undefined property App\\Rules\\uniqueTopicInLesson\:\:\$lesson_id\.$#'
+			identifier: property.notFound
+			count: 3
+			path: app/Rules/uniqueTopicInLesson.php
+
+		-
+			message: '#^Access to an undefined property App\\Rules\\uniqueTopicInLesson\:\:\$topic_id\.$#'
+			identifier: property.notFound
+			count: 2
+			path: app/Rules/uniqueTopicInLesson.php
+
+		-
+			message: '#^Attribute class JetBrains\\PhpStorm\\NoReturn does not exist\.$#'
+			identifier: attribute.notFound
+			count: 4
+			path: app/Services/ResponseService.php

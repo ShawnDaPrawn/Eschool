@@ -1,0 +1,14 @@
+{
+    "request": "GET /api/settings",
+    "status": 200,
+    "error": true,
+    "message": "The selected type is invalid.",
+    "code": null,
+    "shape": {
+        "code": "null",
+        "data": "null",
+        "details": "string",
+        "error": "bool",
+        "message": "string"
+    }
+}

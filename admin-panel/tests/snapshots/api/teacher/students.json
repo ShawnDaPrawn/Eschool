@@ -1,0 +1,70 @@
+{
+    "request": "GET /api/teacher/student-list",
+    "status": 200,
+    "error": false,
+    "message": "Student Details Fetched Successfully",
+    "code": 200,
+    "shape": {
+        "code": "number",
+        "data": [
+            {
+                "admission_date": "string",
+                "admission_no": "string",
+                "application_type": "string",
+                "blood_group": "string",
+                "caste": "null",
+                "category_id": "number",
+                "class_id": "number",
+                "class_section": {
+                    "class": {
+                        "educational_program_id": "null",
+                        "full_name": "string",
+                        "id": "number",
+                        "medium": {
+                            "id": "number",
+                            "name": "string"
+                        },
+                        "medium_id": "number",
+                        "name": "string",
+                        "shift_id": "null",
+                        "stream_id": "null"
+                    },
+                    "class_id": "number",
+                    "full_name": "string",
+                    "id": "number",
+                    "name": "string",
+                    "section": {
+                        "id": "number",
+                        "name": "string"
+                    },
+                    "section_id": "number"
+                },
+                "class_section_id": "number",
+                "dynamic_fields": "null",
+                "father_id": "null|number",
+                "guardian_id": "null|number",
+                "height": "null",
+                "id": "number",
+                "is_new_admission": "number",
+                "mother_id": "null|number",
+                "religion": "null",
+                "roll_number": "number",
+                "user": {
+                    "current_address": "null",
+                    "dob": "string",
+                    "first_name": "string",
+                    "full_name": "string",
+                    "gender": "string",
+                    "id": "number",
+                    "image": "string",
+                    "last_name": "string",
+                    "permanent_address": "null"
+                },
+                "user_id": "number",
+                "weight": "null"
+            }
+        ],
+        "error": "bool",
+        "message": "string"
+    }
+}

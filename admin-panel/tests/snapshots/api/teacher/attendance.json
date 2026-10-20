@@ -1,0 +1,27 @@
+{
+    "request": "GET /api/teacher/get-attendance",
+    "status": 200,
+    "error": false,
+    "message": "Data Fetched Successfully",
+    "code": 200,
+    "shape": {
+        "code": "number",
+        "data": {
+            "attendance_reports": [
+                {
+                    "class_section_id": "number",
+                    "date": "string",
+                    "id": "number",
+                    "session_year_id": "number",
+                    "status": "number",
+                    "student_id": "number",
+                    "type": "number"
+                }
+            ],
+            "is_holiday": "bool",
+            "leave_details": []
+        },
+        "error": "bool",
+        "message": "string"
+    }
+}
