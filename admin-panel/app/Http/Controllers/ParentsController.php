@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers;
 
+use App\Services\ResponseService;
 use App\Models\FormField;
 use App\Models\Parents;
 use App\Models\User;
@@ -270,6 +271,7 @@ class ParentsController extends Controller
 
     public function search(Request $request)
     {
+        ResponseService::noAnyPermissionThenSendJson(['student-create', 'student-edit']);
         if ($request->type == 'father') {
             $parent = Parents::where(function ($query) use ($request) {
                 $query->orWhere('email', 'like', '%'.$request->email.'%')

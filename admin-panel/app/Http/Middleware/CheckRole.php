@@ -21,12 +21,21 @@ class CheckRole
     */
     public function handle(Request $request, Closure $next)
     {
-        if (Auth::user()) 
-        {
-            
+        $user = Auth::user();
+        if (! $user) {
+            return response()->view('auth.login');
+        }
+
+        // The panel is for staff. Students and parents use the apps, and an
+        // account without any role must not get in either.
+        if ($user->getRoleNames()->diff(['Student', 'Parent'])->isNotEmpty()) {
             return $next($request);
         }
-        return response()->view('auth.login');
-        
+
+        Auth::logout();
+        $request->session()->invalidate();
+        $request->session()->regenerateToken();
+
+        return redirect()->route('login')->with('error', trans('no_permission_message'));
     }
 }

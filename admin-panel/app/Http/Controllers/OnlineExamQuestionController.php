@@ -519,6 +519,7 @@ class OnlineExamQuestionController extends Controller
      */
     public function edit($id)
     {
+        ResponseService::noPermissionThenSendJson('manage-online-exam');
         //
     }
 
@@ -530,6 +531,7 @@ class OnlineExamQuestionController extends Controller
      */
     public function update(Request $request, $id)
     {
+        ResponseService::noPermissionThenSendJson('manage-online-exam');
         $validator = Validator::make(
             $request->all(),
             [

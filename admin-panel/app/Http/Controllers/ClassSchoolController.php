@@ -971,6 +971,7 @@ class ClassSchoolController extends Controller
 
     public function subject_group_destroy($id)
     {
+        ResponseService::noPermissionThenSendJson('assign-class-subject');
         try {
             $group = ElectiveSubjectGroup::findOrFail($id);
 

@@ -407,6 +407,7 @@ class ExamController extends Controller
 
     public function publishExamResult($id)
     {
+        ResponseService::noPermissionThenSendJson('exam-create');
         try {
             $exam_marks_db = ExamTimetable::where('exam_id', $id)->with('exam_marks')->get();
 
@@ -808,6 +809,7 @@ class ExamController extends Controller
 
     public function submitMarks(Request $request)
     {
+        ResponseService::noPermissionThenSendJson('exam-upload-marks');
 
         $validator = Validator::make($request->all(), [
             'exam_id' => 'required|numeric',
@@ -1742,6 +1744,7 @@ class ExamController extends Controller
 
     public function deleteExamClass($exam_id, $class_id)
     {
+        ResponseService::noPermissionThenSendJson('exam-create');
         $exam_class = ExamClass::where('exam_id', $exam_id)->where('class_id', $class_id)->first();
 
         $exam_class->delete();

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers;
 
+use App\Services\ResponseService;
 use Throwable;
 use App\Models\Subject;
 use App\Models\Teacher;
@@ -504,6 +505,7 @@ class TimetableController extends Controller
 
     public function linkUpdate(Request $request)
     {
+        ResponseService::noPermissionThenSendJson('teacher-timetable');
         try {
             $timetable = Timetable::where('id', $request->edit_id)->first();
             $timetable->live_class_url = $request->live_class_url;

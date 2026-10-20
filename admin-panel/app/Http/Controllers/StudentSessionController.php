@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers;
 
+use App\Services\ResponseService;
 use App\Models\ClassSchool;
 use App\Models\ClassSection;
 use App\Models\SessionYear;
@@ -134,6 +135,7 @@ class StudentSessionController extends Controller
 
     public function getPromoteData(Request $request)
     {
+        ResponseService::noPermissionThenSendJson('promote-student-list');
         $response = StudentSessions::where(['class_section_id' => $request->class_section_id])->get();
 
         return response()->json($response);

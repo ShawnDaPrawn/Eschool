@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers;
 
+use App\Services\ResponseService;
 use App\Http\Requests\StoreSessionYearRequest;
 use Throwable;
 use App\Models\Exam;
@@ -349,6 +350,7 @@ class SessionYearController extends Controller
      */
     public function edit($id)
     {
+        ResponseService::noPermissionThenSendJson('session-year-edit');
         $session_year = SessionYear::find($id);
         return response($session_year);
     }

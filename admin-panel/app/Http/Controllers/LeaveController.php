@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers;
 
+use App\Services\ResponseService;
 use App\Models\ClassSection;
 use App\Models\ClassTeacher;
 use App\Models\File;
@@ -623,6 +624,7 @@ class LeaveController extends Controller
 
     public function adminLeaveStore(Request $request)
     {
+        ResponseService::noPermissionThenSendJson('leave-approve');
         $validator = Validator::make($request->all(), [
             'staff_id' => 'required|integer|exists:users,id',
             'reason' => 'required',

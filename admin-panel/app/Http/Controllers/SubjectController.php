@@ -41,6 +41,7 @@ class SubjectController extends Controller
      */
     public function update(Request $request, $id)
     {
+        ResponseService::noPermissionThenSendJson('subject-edit');
         $validator = Validator::make($request->all(), [
             'medium_id' => 'required|numeric',
             'name' => 'required',
@@ -130,6 +131,7 @@ class SubjectController extends Controller
      */
     public function store(Request $request)
     {
+        ResponseService::noPermissionThenSendJson('subject-create');
         $validator = Validator::make($request->all(), [
             'medium_id' => 'required|numeric',
             'name' => 'required',
@@ -210,6 +212,7 @@ class SubjectController extends Controller
      */
     public function destroy($id)
     {
+        ResponseService::noPermissionThenSendJson('subject-delete');
         try {
             $subject = Subject::findOrFail($id);
 
@@ -232,6 +235,7 @@ class SubjectController extends Controller
 
     public function show()
     {
+        ResponseService::noPermissionThenSendJson('subject-list');
         $offset = 0;
         $limit = 10;
         $sort = 'id';

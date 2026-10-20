@@ -583,6 +583,7 @@ class StudentController extends Controller
 
     public function showStudentReport(Request $request, $id)
     {
+        ResponseService::noPermissionThenRedirect('student-report');
         $tab = $request->get('tab', 'personal');
 
         $student = $this->getStudent($id);
@@ -2299,6 +2300,7 @@ class StudentController extends Controller
 
     public function newStudentList(Request $request)
     {
+        ResponseService::noPermissionThenSendJson('assign-class-to-new-student');
         $sort = 'id';
         $order = 'DESC';
         $class_id = $request->class_id;
@@ -2373,6 +2375,7 @@ class StudentController extends Controller
 
     public function assignClass_store(Request $request)
     {
+        ResponseService::noPermissionThenSendJson('assign-class-to-new-student');
         $validator = Validator::make($request->all(), [
             'class_section_id' => 'required',
             'selected_id' => 'required',
@@ -2832,6 +2835,7 @@ class StudentController extends Controller
 
     public function deleteImage(Request $request)
     {
+        ResponseService::noPermissionThenSendJson('id-card-setting');
         try {
             $setting = Settings::where('type', $request->type)->first();
 
@@ -2857,6 +2861,7 @@ class StudentController extends Controller
 
     public function generateIdCard(Request $request, IdCardService $idCardService)
     {
+        ResponseService::noPermissionThenSendJson('generate-id-card');
         $ids = explode(',', $request->user_id);
 
         try {
@@ -3683,6 +3688,7 @@ class StudentController extends Controller
 
     public function updateStatus(Request $request)
     {
+        ResponseService::noPermissionThenSendJson('student-edit');
         $request->validate([
     'status' => 'required',
 ]);
@@ -3937,6 +3943,7 @@ class StudentController extends Controller
 
     public function permanentDelete($id)
     {
+        ResponseService::noPermissionThenSendJson('student-delete');
         try {
             $student = Students::with('user')->where('id', $id)->first();
 
@@ -3986,6 +3993,7 @@ class StudentController extends Controller
 
     public function getStudentResultDetails(Request $request)
     {
+        ResponseService::noPermissionThenSendJson('promote-student-list');
         $validator = Validator::make($request->all(), [
             'student_id' => 'required',
             'class_section_id' => 'required',

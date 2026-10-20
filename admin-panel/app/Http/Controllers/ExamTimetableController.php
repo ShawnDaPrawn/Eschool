@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers;
 
+use App\Services\ResponseService;
 use Throwable;
 use Carbon\Carbon;
 use App\Models\Exam;
@@ -293,6 +294,7 @@ class ExamTimetableController extends Controller
      */
     public function update(Request $request, $id)
     {
+        ResponseService::noPermissionThenSendJson('exam-timetable-create');
         //
     }
 

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers;
 
+use App\Services\ResponseService;
 use App\Models\Slider;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
@@ -18,6 +19,7 @@ class SliderController extends Controller
      */
     public function index()
     {
+        ResponseService::noPermissionThenRedirect('slider-list');
         return response(view('sliders.index'));
     }
 
@@ -28,6 +30,7 @@ class SliderController extends Controller
      */
     public function store(Request $request)
     {
+        ResponseService::noPermissionThenSendJson('slider-create');
         $validator = Validator::make($request->all(), [
             'type' => 'required',
             'image' => 'required|mimes:jpeg,png,jpg|image|max:2048',
@@ -88,6 +91,7 @@ class SliderController extends Controller
      */
     public function show()
     {
+        ResponseService::noPermissionThenSendJson('slider-list');
         $offset = 0;
         $limit = 10;
         $sort = 'id';
@@ -149,6 +153,7 @@ class SliderController extends Controller
      */
     public function update(Request $request, $id)
     {
+        ResponseService::noPermissionThenSendJson('slider-edit');
         $validator = Validator::make($request->all(), [
             'type' => 'required|in:1,2,3',
             'image' => 'mimes:jpeg,png,jpg|image|max:2048',
@@ -213,6 +218,7 @@ class SliderController extends Controller
      */
     public function destroy($id)
     {
+        ResponseService::noPermissionThenSendJson('slider-delete');
         try {
             $slider = Slider::find($id);
             if (Storage::disk('public')->exists($slider->image)) {

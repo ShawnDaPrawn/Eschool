@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers;
 
+use App\Services\ResponseService;
 use Throwable;
 use App\Models\Subject;
 use App\Models\Teacher;
@@ -275,6 +276,7 @@ class SubjectTeacherController extends Controller
      */
     public function edit($id)
     {
+        ResponseService::noPermissionThenSendJson('subject-teacher-edit');
         $subject_teacher = SubjectTeacher::find($id);
         return response($subject_teacher);
     }

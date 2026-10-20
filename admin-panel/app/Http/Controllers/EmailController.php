@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Services\ResponseService;
 use App\Models\EmailTempalate;
 use Illuminate\Http\Request;
 
@@ -9,6 +10,7 @@ class EmailController extends Controller
 {
     public function index()
     {
+        ResponseService::noPermissionThenRedirect('email-setting-create');
         $Emailtemplate = EmailTempalate::whereIn('type', ['student_registration', 'staff_registration', 'student_application_regect'])
             ->get()->keyBy('type');
 
@@ -22,6 +24,7 @@ class EmailController extends Controller
 
     public function store(Request $request)
     {
+        ResponseService::noPermissionThenSendJson('email-setting-create');
         $request->validate([
             'type' => 'required|in:student,staff,rejection',
             'content' => 'required|string',

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers;
 
+use App\Services\ResponseService;
 use App\Models\FormField;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -298,6 +299,7 @@ class FormFieldController extends Controller
 
     public function changeRank(Request $request): JsonResponse
     {
+        ResponseService::noPermissionThenSendJson('form-field-edit');
         try {
             $ids = $request->ids;
             $update = [];

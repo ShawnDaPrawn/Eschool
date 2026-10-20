@@ -36,6 +36,7 @@ class StaffController extends Controller
      */
     public function staffattendanceData(Request $request)
     {
+        ResponseService::noPermissionThenSendJson('attendance-staff');
         $selectedDate = $request->get('date') ?? $request->get('month') ?? now()->format('Y-m-d');
 
         $carbonDate = \Carbon\Carbon::parse($selectedDate);
@@ -143,11 +144,13 @@ class StaffController extends Controller
 
     public function staffList()
     {
+        ResponseService::noPermissionThenRedirect('attendance-staff');
         return view('staff.demoattendance');
     }
 
     public function staffListData(Request $request)
     {
+        ResponseService::noPermissionThenSendJson('attendance-staff');
         $selectedDate = $request->get('date', now()->format('Y-m-d'));
         $carbonDate = \Carbon\Carbon::parse($selectedDate);
 
@@ -355,6 +358,7 @@ class StaffController extends Controller
 
     public function storeAttendance(Request $request)
     {
+        ResponseService::noPermissionThenSendJson('attendance-staff');
         $validated = $request->validate([
             'staff_id' => 'nullable|integer|exists:users,id',
             'staff_ids' => 'nullable|array',

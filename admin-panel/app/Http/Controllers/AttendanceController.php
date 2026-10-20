@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers;
 
+use App\Services\ResponseService;
 use App\Exports\StudentsExport;
 use App\Imports\AttendanceImport;
 use App\Models\Attendance;
@@ -40,6 +41,7 @@ class AttendanceController extends Controller
      */
     public function monthlyView()
     {
+        ResponseService::noPermissionThenRedirect('attendance-staff');
         $session_year = getSettings('session_year');
         $session_year_id = $session_year['session_year'];
 
@@ -81,6 +83,7 @@ class AttendanceController extends Controller
 
     public function monthlyAjax(Request $request)
     {
+        ResponseService::noPermissionThenSendJson('attendance-staff');
         $session_year_id = $request->get('session_year_id');
 
         if (empty($session_year_id)) {
@@ -257,6 +260,7 @@ class AttendanceController extends Controller
 
     public function getAttendanceData(Request $request)
     {
+        ResponseService::noPermissionThenSendJson('attendance-list');
         $date = $request->date ? date('Y-m-d', strtotime($request->date)) : Carbon::now()->toDateString();
         $response = Attendance::select('type')->where(['date' => $date, 'class_section_id' => $request->class_section_id])->pluck('type')->first();
         if ($request->holiday == 3) {
@@ -735,6 +739,7 @@ class AttendanceController extends Controller
 
     public function studentExport(Request $request)
     {
+        ResponseService::noPermissionThenSendJson('attendance-create');
         $validator = Validator::make($request->all(), [
             'class_section_id' => 'required',
             'date' => 'required',
@@ -1049,6 +1054,7 @@ class AttendanceController extends Controller
 
     public function checkStaffLeave(Request $request)
     {
+        ResponseService::noPermissionThenSendJson('attendance-staff');
         $staffIds = $request->input('staff_ids', []);
         $date = $request->input('date');
         $sessionYearId = $request->input('session_year_id');
