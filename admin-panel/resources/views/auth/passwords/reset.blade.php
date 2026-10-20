@@ -103,7 +103,7 @@
                     <div class="col-lg-4 mx-auto">
                         <div class="auth-form-light text-left p-5">
                             <div class="brand-logo text-center">
-                                <img src="{{ asset('storage/' . env('LOGO1')) }}" alt="logo">
+                                <img src="{{ asset('storage/' . schoolSetting('logo1')) }}" alt="logo">
                             </div>
 
                             <form method="POST" action="{{ route('password.update') }}">

@@ -180,7 +180,7 @@ class ApiController extends Controller
                 $data['teacher_force_app_update'] = $settings['teacher_force_app_update'] ?? "";
                 $data['teacher_app_maintenance'] = $settings['teacher_app_maintenance'] ?? "";
                 $data['online_payment'] = $settings['online_payment'] ?? "1";
-                $data['is_demo'] = env('DEMO_MODE');
+                $data['is_demo'] = config('app.demo_mode');
 
                 $data['compulsory_fee_payment_mode'] =  $settings['compulsory_fee_payment_mode'] ?? "";
                 $data['is_student_can_pay_fees'] = $settings['is_student_can_pay_fees'] ?? "";

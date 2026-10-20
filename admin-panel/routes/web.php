@@ -505,7 +505,7 @@ Route::group(['middleware' => ['Role', 'auth']], function () {
         Route::get('student-attendance-report', [AttendanceController::class, 'attendanceReportShow']);
 
         Route::get('view-schedule/{id}', [EventController::class, 'viewScheduleIndex'])->name('view_schedule.index');
-        Route::post('events-update', [EventController::class, 'updateEvents'])->name('events.update');
+        Route::post('events-update', [EventController::class, 'updateEvents'])->name('events.update-schedules');
 
         Route::get('online-registration', [StudentController::class, 'onlineRegistrationIndex'])->name('online-registration.index');
         Route::get('online-registration-list', [StudentController::class, 'onlineRegistrationList'])->name('online-registration.list');

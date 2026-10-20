@@ -306,7 +306,7 @@
                             <div class="row" id="parents_div" style="display:none;">
                                 <div class="form-group col-sm-12 col-md-12">
                                     <label>{{ __('father_email') }} <span class="text-danger">*</span></label>
-                                    @if (env('DEMO_MODE'))
+                                    @if (config('app.demo_mode'))
                                         <select class="father-search w-100" id="father_email" name="father_email"
                                             disabled></select>
                                     @else
@@ -489,7 +489,7 @@
 
                                 <div class="form-group col-sm-12 col-md-12">
                                     <label>{{ __('mother_email') }} <span class="text-danger">*</span></label>
-                                    @if (env('DEMO_MODE'))
+                                    @if (config('app.demo_mode'))
                                         <select class="mother-search w-100" id="mother_email" name="mother_email"
                                             disabled></select>
                                     @else
@@ -680,7 +680,7 @@
                                 <div class="form-group col-sm-12 col-md-12">
                                     <label>{{ __('guardian') . ' ' . __('email') }} <span
                                             class="text-danger">*</span></label>
-                                    @if (env('DEMO_MODE'))
+                                    @if (config('app.demo_mode'))
                                         <select class="guardian-search form-control" id="guardian_email"
                                             name="guardian_email" disabled></select>
                                     @else

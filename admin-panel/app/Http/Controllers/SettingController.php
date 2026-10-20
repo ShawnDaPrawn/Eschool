@@ -232,32 +232,10 @@ class SettingController extends Controller
                 }
             }
 
-            $logo1 = Settings::select('message')->where('type', 'logo1')->pluck('message')->first();
-            $logo2 = Settings::select('message')->where('type', 'logo2')->pluck('message')->first();
-            $favicon = Settings::select('message')->where('type', 'favicon')->pluck('message')->first();
-            $app_name = Settings::select('message')->where('type', 'school_name')->pluck('message')->first();
-            $timezone = Settings::select('message')->where('type', 'time_zone')->pluck('message')->first();
-            $login_image = Settings::select('message')->where('type', 'login_image')->pluck('message')->first();
-            $recaptcha_site_key = Settings::select('message')->where('type', 'recaptcha_site_key')->pluck('message')->first();
-            $recaptcha_secret_key = Settings::select('message')->where('type', 'recaptcha_secret_key')->pluck('message')->first();
-
-            $env_update = changeEnv([
-                'LOGO1' => $logo1,
-                'LOGO2' => $logo2,
-                'FAVICON' => $favicon,
-                'LOGIN_IMAGE' => $login_image,
-                'APP_NAME' => '"'.$app_name.'"',
-                'TIMEZONE' => "'".$timezone."'",
-                'SITE_KEY' => $recaptcha_site_key,
-                'SECRET_KEY' => $recaptcha_secret_key,
-
-            ]);
-            if ($env_update) {
-                $response = [
-                    'error' => false,
-                    'message' => trans('data_update_successfully'),
-                ];
-            }
+            $response = [
+                'error' => false,
+                'message' => trans('data_update_successfully'),
+            ];
         } catch (Throwable $e) {
             report($e);
             $response = [
@@ -350,27 +328,10 @@ class SettingController extends Controller
                     ['type' => 'email_configration_verification', 'message' => 0]
                 );
             }
-            $env_update = changeEnv([
-                'MAIL_MAILER' => $request->mail_mailer,
-                'MAIL_HOST' => $request->mail_host,
-                'MAIL_PORT' => $request->mail_port,
-                'MAIL_USERNAME' => $request->mail_username,
-                'MAIL_PASSWORD' => $request->mail_password,
-                'MAIL_ENCRYPTION' => $request->mail_encryption,
-                'MAIL_FROM_ADDRESS' => $request->mail_send_from,
-
-            ]);
-            if ($env_update) {
-                $response = [
-                    'error' => false,
-                    'message' => trans('data_update_successfully'),
-                ];
-            } else {
-                $response = [
-                    'error' => false,
-                    'message' => trans('error_occurred'),
-                ];
-            }
+            $response = [
+                'error' => false,
+                'message' => trans('data_update_successfully'),
+            ];
         } catch (Throwable $e) {
             report($e);
             $response = [
@@ -406,7 +367,7 @@ class SettingController extends Controller
             $data = [
                 'email' => $request->verify_email,
             ];
-            $admin_mail = env('MAIL_FROM_ADDRESS', config('mail.from.address'));
+            $admin_mail = config('mail.from.address');
             if (! filter_var($request->verify_email, FILTER_VALIDATE_EMAIL)) {
                 $response = [
                     'error' => true,
@@ -712,18 +673,10 @@ class SettingController extends Controller
                 Settings::updateOrCreate(['type' => 'service_account_file'], ['message' => $newFile]);
             }
 
-            $sender_id = Settings::select('message')->where('type', 'sender_id')->pluck('message')->first();
-            $firebase_project_id = Settings::select('message')->where('type', 'project_id')->pluck('message')->first();
-            $env_update = changeEnv([
-                'SENDER_ID' => $sender_id,
-                'FIREBASE_PROJECT_ID' => $firebase_project_id,
-            ]);
-            if ($env_update) {
-                $response = [
-                    'error' => false,
-                    'message' => trans('data_update_successfully'),
-                ];
-            }
+            $response = [
+                'error' => false,
+                'message' => trans('data_update_successfully'),
+            ];
         } catch (\Throwable $e) {
             report($e);
             $response = [

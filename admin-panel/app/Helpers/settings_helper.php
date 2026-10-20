@@ -4,6 +4,7 @@ use App\Models\Grade;
 use App\Models\Language;
 use App\Models\Settings;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Storage;
 use Intervention\Image\Drivers\Gd\Driver;
 use Intervention\Image\ImageManager;
 function getSettings($type = '')
@@ -21,6 +22,25 @@ function getSettings($type = '')
     }
 
     return $settingList;
+}
+
+/**
+ * One school setting, e.g. schoolSetting('logo1') or schoolSetting('school_name').
+ * Use this instead of env(): env() returns null once config is cached.
+ */
+function schoolSetting(string $type, $default = null)
+{
+    $value = getSettings($type)[$type] ?? null;
+
+    return ($value === null || $value === '') ? $default : $value;
+}
+
+/** URL of an uploaded school logo ('logo1' or 'logo2'), or the default eSchool logo. */
+function schoolLogoUrl(string $type = 'logo1'): string
+{
+    $path = schoolSetting($type);
+
+    return $path ? url(Storage::url($path)) : url('assets/logo.svg');
 }
 
 function get_language()
@@ -120,61 +140,6 @@ function flattenMyModel($model)
     return $data;
 }
 
-function changeEnv($data = [])
-{
-    if (count($data) > 0) {
-
-        // Read .env-file
-        $env = file_get_contents(base_path().'/.env');
-        // Split string on every " " and write into array
-        $env = explode(PHP_EOL, $env);
-        // $env = preg_split('/\s+/', $env);
-        foreach ($env as $env_key => $env_value) {
-            $entry = explode('=', $env_value);
-            $temp_env_keys[] = $entry[0];
-        }
-        // Loop through given data
-        foreach ((array) $data as $key => $value) {
-            // Values come from settings forms: a line break would let one add any other .env entry.
-            $value = str_replace(["\r", "\n", "\0"], '', (string) $value);
-            $key_value = $key.'='.$value;
-
-            if (in_array($key, $temp_env_keys)) {
-                // Loop through .env-data
-                foreach ($env as $env_key => $env_value) {
-                    // Turn the value into an array and stop after the first split
-                    // So it's not possible to split e.g. the App-Key by accident
-                    $entry = explode('=', $env_value);
-                    // // Check, if new key fits the actual .env-key
-                    if ($entry[0] == $key) {
-
-                        // If yes, overwrite it with the new one
-
-                        if ($key != 'APP_NAME') {
-                            $env[$env_key] = $key.'='.str_replace('"', '', $value);
-                        } else {
-                            $env[$env_key] = $key.'='.$value;
-                        }
-                    } else {
-                        // If not, keep the old one
-                        $env[$env_key] = $env_value;
-                    }
-                }
-            } else {
-                $env[] = $key_value;
-            }
-        }
-        // Turn the array back to an String
-        $env = implode("\n", $env);
-
-        // And overwrite the .env with the new data
-        file_put_contents(base_path().'/.env', $env);
-
-        return true;
-    } else {
-        return false;
-    }
-}
 function findExamGrade($session_year_id, $percentage)
 {
     $grades = Grade::where('session_year_id', $session_year_id)->get();

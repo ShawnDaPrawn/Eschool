@@ -13,7 +13,7 @@
 
     <link rel="stylesheet" href="{{ asset('/assets/css/style.css') }}">
     <!-- End layout styles -->
-    <link rel="shortcut icon" href="{{ url(Storage::url(env('FAVICON'))) }}"/>
+    <link rel="shortcut icon" href="{{ url(Storage::url(schoolSetting('favicon'))) }}"/>
   </head>
     @php
         $theme_color = getSettings('theme_color');
