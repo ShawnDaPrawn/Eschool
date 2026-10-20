@@ -17,6 +17,8 @@ return Application::configure(basePath: dirname(__DIR__))
             'webhook/*',
         ]);
 
+        $middleware->append(\App\Http\Middleware\SecurityHeaders::class);
+
         // Web middleware group
         $middleware->web(append: [
             \App\Http\Middleware\LanguageManager::class,
