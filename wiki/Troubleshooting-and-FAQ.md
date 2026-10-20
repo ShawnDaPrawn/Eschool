@@ -135,6 +135,18 @@ See [Building and Releasing Apps](Building-and-Releasing-Apps#versioning).
 
 ## Admin panel
 
+**The "download sample file" link on Students → bulk upload returns 404.**
+The view links to `storage/dummy_file.xlsx`, but the repo doesn't ship that file. Online-exam question import has the same problem with `online_exam_questions_sample.csv`. Make a sheet with the columns the importer expects (`app/Imports/StudentsImport.php`, `app/Imports/OnlineExamQuestionsImport.php`) and put it on the public disk.
+
+**A custom notification sent to specific users never arrives as a push.**
+In `NotificationController::store`, the `sendSimpleNotification()` call for chosen users is commented out. Only the topic broadcast to everyone is sent. The notification still appears in the users' in-app lists.
+
+**Long notification titles or messages are cut off.**
+`notifications.title` and `notifications.message` are 128-character columns, and the MySQL connection runs with `strict => false`, so longer text is truncated without an error.
+
+**Uploading a language file fails.**
+`LanguageController` writes `resources/lang/<code>.json`, so the web server user needs write access to `resources/lang`.
+
 **A language falls back to English after its code was edited.**
 `LanguageController::update` renames the language without moving its JSON file. Upload the file again after you change a language code.
 
