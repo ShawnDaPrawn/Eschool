@@ -1,0 +1,50 @@
+name: Publish wiki
+
+# The wiki pages live in wiki/ in this repo. Each push to main that touches them
+# copies wiki/ into the GitHub Wiki tab, replacing what is there, so edit the
+# files here rather than in the wiki's web editor.
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'wiki/**'
+      - '.github/workflows/wiki.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: wiki
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    name: Sync wiki/ to the Wiki tab
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Clone the wiki repository
+        env:
+          TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          # GitHub only creates the wiki repository once its first page has been saved.
+          if ! git clone --depth 1 "https://x-access-token:${TOKEN}@github.com/${GITHUB_REPOSITORY}.wiki.git" wiki-repo; then
+            echo "::error::Could not clone ${GITHUB_REPOSITORY}.wiki.git. Enable the wiki (Settings > General > Features > Wikis), save any first page in the Wiki tab, then re-run this workflow."
+            exit 1
+          fi
+
+      - name: Copy pages and push
+        working-directory: wiki-repo
+        run: |
+          rsync -a --delete --exclude .git ../wiki/ ./
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          if git diff --cached --quiet; then
+            echo "Wiki is already up to date."
+            exit 0
+          fi
+          git commit -m "Sync wiki from ${GITHUB_SHA::7}"
+          git push origin HEAD
