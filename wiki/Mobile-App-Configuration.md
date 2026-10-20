@@ -60,11 +60,11 @@ Places that hold the Android package (student values shown; the teacher app adds
 
 | File | Value |
 |---|---|
-| `android/app/build.gradle.kts` | `namespace = "za.co.example.eschool"` |
-| `android/app/build.gradle.kts` | `applicationId = "za.co.example.eschool"` |
-| `android/app/src/main/AndroidManifest.xml` | `package="za.co.example.eschool"` |
-| `android/app/src/main/kotlin/za/co/example/eschool/MainActivity.kt` | `package za.co.example.eschool` (folder path must match) |
-| `ios/Runner.xcodeproj/project.pbxproj` | `PRODUCT_BUNDLE_IDENTIFIER = za.co.example.eschool;` (three build configurations) |
+| `android/app/build.gradle.kts` | `namespace = "tech.tokensoft.navigateed"` |
+| `android/app/build.gradle.kts` | `applicationId = "tech.tokensoft.navigateed"` |
+| `android/app/src/main/AndroidManifest.xml` | `package="tech.tokensoft.navigateed"` |
+| `android/app/src/main/kotlin/tech/tokensoft/navigateed/MainActivity.kt` | `package tech.tokensoft.navigateed` (folder path must match) |
+| `ios/Runner.xcodeproj/project.pbxproj` | `PRODUCT_BUNDLE_IDENTIFIER = tech.tokensoft.navigateed;` (three build configurations) |
 
 Both apps list `change_app_package_name` (1.5.0) as a dev dependency. The docs page uses `flutter pub run change_app_package_name:main your_new_package_name` for Android and Xcode for iOS: https://shawndaprawn.github.io/Eschool/mobile-app/change-package-name/. After running it, check every row of the table above, because the Gradle files are Kotlin DSL (`.kts`) since 3.5.0. The `google-services.json` and `GoogleService-Info.plist` you download must be registered in Firebase for the new ids.
 

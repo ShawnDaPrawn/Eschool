@@ -20,7 +20,7 @@ Both apps ship the same nine languages. Files are in `assets/languages/` (declar
 
 Each file is a flat JSON object of label key to text: 428 keys per file in `e-school/`, 427 in `e-school-teacher/`. The keys are also declared as Dart constants in `lib/utils/labelKeys.dart` (for example `const String homeKey = 'home';`), and error messages use keys from `lib/utils/errorMessageKeysAndCodes.dart`. Sixteen keys starting with `timeago` (`timeagoPrefixAgo`, `timeagoSuffixAgo`, `timeagoMinutes`, ...) feed the relative-time strings.
 
-The 3.5.0 changelogs list `ar`, `es`, `fr` (student app), `id`, `pt-BR` and `tr` as added in that release. The teacher changelog also lists `assets/languages/er.json`, which does not exist in the repository.
+The 3.5.0 changed-file lists ([student](https://github.com/ShawnDaPrawn/Eschool/blob/b3d925d/eSchool_3_5_0_changelog.txt), [teacher](https://github.com/ShawnDaPrawn/Eschool/blob/b3d925d/eSchoolTeacher_3_5_0_changelog.txt); both since removed from the repository) list `ar`, `es`, `fr` (student app), `id`, `pt-BR` and `tr` as added in that release. The teacher changelog also lists `assets/languages/er.json`, which does not exist in the repository.
 
 ### How the app loads a language
 

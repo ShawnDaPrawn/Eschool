@@ -11,6 +11,7 @@ This page describes the architecture the two Flutter apps share: the student/par
 | SDK floor recorded in `pubspec.lock` | `dart: >=3.12.0 <4.0.0`, `flutter: >=3.44.0` | same |
 | Flutter used by CI | 3.44.9 (stable) | 3.44.9 (stable) |
 | Entry point | `lib/main.dart` → `initializeApp()` in `lib/app/app.dart` | same |
+| App name shown on the device (`android:label`, `CFBundleDisplayName`) | `NavigateEd` | `NavigateEd Teacher` |
 | Android `applicationId` | `tech.tokensoft.navigateed` | `tech.tokensoft.navigateed.teacher` |
 | iOS bundle id | `tech.tokensoft.navigateed` | `tech.tokensoft.navigateed.teacher` |
 | Logs in as | student (GR number) or parent (email) | teacher (email) |

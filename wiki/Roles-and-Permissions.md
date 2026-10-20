@@ -80,7 +80,7 @@ Columns: **SA** = granted to Super Admin, **T** = granted to Teacher. "Checked i
 | `form-field-list`, `form-field-create`, `form-field-edit`, `form-field-delete` | Yes | | `FormFieldController` (custom registration fields) |
 | `generate-id-card` | Yes | Yes | Student and staff ID cards (`StudentController`, `StaffController`) |
 | `generate-document` | Yes | | Bonafide and leaving certificates (`StudentController`) |
-| `student-report` | Yes | | Menu only (Reports menu) |
+| `student-report` | Yes | | `StudentController::showStudentReport` (per-student report page) and the Reports menu |
 
 ### Attendance, lessons and assignments
 
@@ -129,7 +129,7 @@ Columns: **SA** = granted to Super Admin, **T** = granted to Teacher. "Checked i
 | `leave-edit` | | Yes | Menu only |
 | `leave-delete` | Yes | Yes | `LeaveController::destroy` |
 | `leave-list` | Yes | Yes | Own leave list, leave report, dashboard widget |
-| `leave-approve` | Yes | | Approving staff and teacher leave requests (`LeaveController::leaveRequestIndex`, `leaveStatusUpdate`) |
+| `leave-approve` | Yes | | Approving staff and teacher leave requests (`LeaveController::leaveRequestIndex`, `leaveStatusUpdate`) and adding a leave on someone's behalf (`adminLeaveStore`, route `leave-add-admin`) |
 | `student-leave-approve` | Yes | Yes | Student leave requests (`LeaveController`, teacher API); also granted directly to class teachers |
 | `staff-leave-list` | | Yes | `LeaveController::staffLeaveIndex`, `staffLeaveList` |
 | `slider-*`, `event-*`, `program-*`, `media-*`, `faq-*` (list/create/edit/delete) | Yes | | `SliderController`, `EventController`, `WebSettingController`, `MediaController` |
@@ -149,7 +149,7 @@ Two flows write to `model_has_permissions` instead of a role:
 
 ## How checks are written
 
-The admin panel does not use route-level `permission:` middleware except in `RoleController`. Almost every controller action starts with an explicit check (about 380 `can()` calls under `app/Http`):
+The admin panel does not use route-level `permission:` middleware except in `RoleController`. Almost every controller action starts with an explicit check (about 390 `can()` / `canAny()` calls under `app/Http`):
 
 ```php
 if (! Auth::user()->can('exam-create')) {
@@ -163,14 +163,14 @@ Other forms in use:
 |---|---|
 | `$this->middleware('permission:role-list\|role-create\|...', ['only' => [...]])` | `RoleController` constructor |
 | `Auth::user()->canAny([...])` | `MediumController`, `SliderController`, `FormFieldController`, `EventController`, `StaffController` (ID cards), `SemesterController::getClassConfig` |
-| `ResponseService::noPermissionThenSendJson('perm')` | Teacher API (assignments, lessons, topics, announcements, attendance), `ClassSchoolController`, `HomeController` widgets. Sends the JSON error and calls `exit()` |
-| `ResponseService::noPermissionThenRedirect('perm')` | Redirects to `home` with `no_permission_message` and `send()`s immediately |
+| `ResponseService::noPermissionThenSendJson('perm')` | Teacher API (assignments, lessons, topics, announcements, attendance), `ClassSchoolController`, `HomeController` widgets, and the JSON `edit($id)` loaders of `CategoryController`, `MediumController`, `ShiftController`, `StreamController`, `SessionYearController`, `SubjectTeacherController`, `TeacherController`, `OnlineExamQuestionController` (each checks its `-edit` permission, or `manage-online-exam`), plus `ExamTimetableController::update`, `FormFieldController::changeRank`, `LeaveController::adminLeaveStore`, `LessonController::deleteFile`. Sends the JSON error and calls `exit()` |
+| `ResponseService::noPermissionThenRedirect('perm')` | Throws an `HttpResponseException` that redirects to `home` with `no_permission_message`, so the controller stops. Used by `StudentController::showStudentReport` |
 | `ResponseService::noAnyPermissionThenSendJson([...])` | Teacher API `submitAttendance` (`attendance-create` or `attendance-edit`) |
 | `$user->hasRole('Super Admin')` | `SystemUpdateController`, dashboard branches, a few list pages |
 | Form request `authorize()` | `StoreSessionYearRequest` (`session-year-create`) |
 | Blade `@can` / `@canany` | `resources/views/layouts/sidebar.blade.php` and page buttons decide what is shown; the controller check is what enforces it |
 
-`ResponseService` also has `noRoleThenRedirect()` and `noAnyRoleThenRedirect()`; they are not called anywhere.
+`noRoleThenRedirect()`, `noAnyRoleThenRedirect()` (redirect to `home`) and `noAnyPermissionThenRedirect()` (redirect back) also throw `HttpResponseException`; none of them is called anywhere. Before commit `5c48b13` the redirect guards only called `send()`, so the controller kept running and could still output the protected page after the redirect.
 
 ## Admin panel access
 

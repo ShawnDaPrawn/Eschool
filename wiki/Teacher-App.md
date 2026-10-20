@@ -177,7 +177,7 @@ Teachers chat with both students and parents. `ChatUsersCubit` is abstract with 
 
 ## Changes in 3.5.0
 
-From `eSchoolTeacher_3_5_0_changelog.txt`:
+From [`eSchoolTeacher_3_5_0_changelog.txt`](https://github.com/ShawnDaPrawn/Eschool/blob/b3d925d/eSchoolTeacher_3_5_0_changelog.txt) (a list of changed files, since removed from the repository; the release notes are in [documentation/changelog/index.md](https://github.com/ShawnDaPrawn/Eschool/blob/main/documentation/changelog/index.md)):
 
 - Android build moved to the Kotlin DSL (`build.gradle.kts`, `settings.gradle.kts`).
 - New teacher attendance feature: `teacherAttendanceCubit.dart`, `teacherAttendanceRepository.dart`, `teacherAttendance.dart`, `attendanceEnums.dart`, `TeacherAttendenceScreen` and its widgets, `assets/images/attendence.svg`, the `teacherAttendence` route and the `getTeacherAttendanceReport` endpoint in `api.dart`.

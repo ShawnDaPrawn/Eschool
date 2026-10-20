@@ -133,6 +133,7 @@ Every class in [app/Http/Middleware](https://github.com/ShawnDaPrawn/Eschool/tre
 | `EncryptCookies` | appended to `web`; `config/sanctum.php` `encrypt_cookies` | Subclass of the framework class with an empty `$except`. |
 | `EnsureParentChildrenSessionIsActive` | alias `parent.children.session.active` | Parent API: 403 if the user has no parent record; 401 `SESSION_NOT_ACTIVE` if no child has a `student_sessions` row for the current `session_year` setting; 401 `ACCOUNT_DEACTIVATED` if none of those rows has `status = 1`. |
 | `EnsureStudentSessionIsActive` | alias `student.session.active` | Student API: 403 unless the user has the `Student` role, `status = 1` and a student record; 401 `SESSION_NOT_ACTIVE` if there is no `student_sessions` row for the current session year or its status is 0. |
+| `EnsureUserIsTeacher` | not registered and not referenced by any route | Returns 403 JSON (`no_permission_message`, code 403) unless the user has the `Teacher` role. The teacher API group enforces the same thing with Spatie's `role:Teacher`. |
 | `LanguageManager` | appended to `web`; alias `language` | Calls `app()->setLocale(Session::get('locale'))` when the session has a locale. |
 | `PreventRequestsDuringMaintenance` | not registered | The framework's class is in the global stack instead. |
 | `RedirectIfAuthenticated` | alias `guest` | Redirects signed-in users to `RouteServiceProvider::HOME` (`/home`). |
