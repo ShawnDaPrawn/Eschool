@@ -66,8 +66,8 @@ Route::get('login', [App\Http\Controllers\Auth\LoginController::class, 'showLogi
 Route::post('login', [App\Http\Controllers\Auth\LoginController::class, 'login'])->middleware('guest');
 Route::post('logout', [App\Http\Controllers\Auth\LoginController::class, 'logout'])->name('logout');
 
-// There is no self-registration: accounts are created by staff, and students
-// apply through the public online registration form.
+// There is no public sign-up. Staff create accounts, and those accounts always
+// have a role. Students apply through the public online registration form.
 
 // Password Reset Routes (if needed)
 Route::get('password/reset', [App\Http\Controllers\Auth\ForgotPasswordController::class, 'showLinkRequestForm'])->name('password.request');
