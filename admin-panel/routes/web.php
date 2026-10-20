@@ -85,9 +85,10 @@ Route::group(['middleware' => 'language'], function () {
     Route::get('photo-gallery/{id}', [WebController::class, 'photo_details'])->name('photo.gallery');
     Route::get('video', [WebController::class, 'video'])->name('video');
     Route::get('video-gallery', [WebController::class, 'video_details'])->name('video.gallery');
-    Route::post('contact-us/store', [WebController::class, 'contact_us_store'])->name('contact_us.store');
+    // Public forms: limited per address so they can't be used to flood the school with messages or accounts.
+    Route::post('contact-us/store', [WebController::class, 'contact_us_store'])->middleware('throttle:5,1')->name('contact_us.store');
     Route::get('registration', [WebController::class, 'registrationIndex'])->name('student-registration.index');
-    Route::post('student-register', [WebController::class, 'studentRegistration'])->name('student-registration-store');
+    Route::post('student-register', [WebController::class, 'studentRegistration'])->middleware('throttle:10,1')->name('student-registration-store');
     Route::get('error-page', [WebController::class, 'errorPage'])->name('error-page');
 });
 
@@ -546,7 +547,7 @@ Route::group(['middleware' => ['Role', 'auth']], function () {
     });
 });
 
-Route::get('delete-chat-message/cron-job', [SettingController::class, 'cron_job']);
+// Old chat messages are deleted daily by the scheduler (routes/console.php), not by a public URL.
 
 // webhooks
 Route::post('webhook/razorpay', [WebhookController::class, 'razorpay']);
