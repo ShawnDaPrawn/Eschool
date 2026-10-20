@@ -46,18 +46,29 @@ class LoginController extends Controller
      * The user has been authenticated. Parents/Guardians and Students are
      * restricted to the mobile app only, so block them from the Laravel web
      * panel by logging them straight back out and returning to the login
-     * screen with an error.
+     * screen with an error. Accounts without any role are refused too: every
+     * account the school creates has one, so a role-less account was not
+     * created by the school.
      */
     protected function authenticated(Request $request, $user): ?RedirectResponse
     {
         if ($user->hasAnyRole(['Parent', 'Student'])) {
-            $this->guard()->logout();
-            $request->session()->invalidate();
-            $request->session()->regenerateToken();
+            return $this->refuseLogin($request, 'app_only_login_not_allowed_on_web');
+        }
 
-            return redirect()->route('login')->with('error', trans('app_only_login_not_allowed_on_web'));
+        if ($user->roles->isEmpty()) {
+            return $this->refuseLogin($request, 'no_permission_message');
         }
 
         return null;
+    }
+
+    private function refuseLogin(Request $request, string $message): RedirectResponse
+    {
+        $this->guard()->logout();
+        $request->session()->invalidate();
+        $request->session()->regenerateToken();
+
+        return redirect()->route('login')->with('error', trans($message));
     }
 }

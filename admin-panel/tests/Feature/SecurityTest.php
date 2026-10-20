@@ -44,6 +44,56 @@ class SecurityTest extends TestCase
         }
     }
 
+    public function test_there_is_no_public_sign_up(): void
+    {
+        $this->get('/register')->assertNotFound();
+        $this->post('/register', [
+            'name' => 'Stranger',
+            'email' => 'stranger@example.com',
+            'password' => 'password123',
+            'password_confirmation' => 'password123',
+        ])->assertNotFound();
+
+        $this->assertGuest();
+        $this->assertDatabaseMissing('users', ['email' => 'stranger@example.com']);
+    }
+
+    public function test_users_cannot_be_created_outside_the_school_screens(): void
+    {
+        // The removed tutorial user manager let any logged-in account create a Super Admin.
+        $this->actingAs($this->teacher())->post('/users', [
+            'name' => 'Intruder',
+            'email' => 'intruder@example.com',
+            'password' => 'password123',
+            'confirm-password' => 'password123',
+            'roles' => ['Super Admin'],
+        ])->assertNotFound();
+
+        $this->assertDatabaseMissing('users', ['email' => 'intruder@example.com']);
+        $this->assertSame(1, User::role('Super Admin')->count());
+    }
+
+    public function test_accounts_without_a_role_cannot_log_in(): void
+    {
+        User::create([
+            'first_name' => 'No',
+            'last_name' => 'Role',
+            'email' => 'no.role@example.com',
+            'password' => Hash::make('secret123'),
+            'gender' => 'Male',
+            'mobile' => '0000000000',
+        ]);
+
+        $this->post('/login', ['email' => 'no.role@example.com', 'password' => 'secret123'])
+            ->assertRedirect(route('login'))
+            ->assertSessionHas('error');
+        $this->assertGuest();
+
+        $this->post('/login', ['email' => $this->teacher()->email, 'password' => 'secret123'])
+            ->assertRedirect(route('home'));
+        $this->assertAuthenticated();
+    }
+
     public function test_logged_in_user_can_clear_the_cache(): void
     {
         $this->actingAs($this->superAdmin())->get('/clear')->assertRedirect();
