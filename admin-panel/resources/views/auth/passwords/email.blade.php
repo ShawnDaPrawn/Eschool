@@ -81,7 +81,7 @@
                     <div class="col-lg-4 mx-auto">
                         <div class="auth-form-light text-left p-5">
                             <div class="brand-logo text-center">
-                                <img src="{{asset('storage/'.env('LOGO1')) }}" alt="logo">
+                                <img src="{{asset('storage/'.schoolSetting('logo1')) }}" alt="logo">
                             </div>
                             @if (session('status'))
                                 <div class="alert alert-success" role="alert">
@@ -133,7 +133,7 @@
 @if (Session::has('error'))
     <script type='text/javascript'>
         $.toast({
-            text: '{{ Session::get('error') }}',
+            text: $('<div>').text(@json(Session::get('error'))).html(),
             showHideTransition: 'slide',
             icon: 'error',
             loaderBg: '#f2a654',
@@ -146,7 +146,7 @@
     @foreach ($errors->all() as $error)
         <script type='text/javascript'>
             $.toast({
-                text: '{{ $error }}',
+                text: $('<div>').text(@json($error)).html(),
                 showHideTransition: 'slide',
                 icon: 'error',
                 loaderBg: '#f2a654',

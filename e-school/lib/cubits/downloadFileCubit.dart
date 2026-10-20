@@ -72,7 +72,7 @@ class DownloadFileCubit extends Cubit<DownloadFileState> {
         //storing the fie temp
         final Directory tempDir = await getTemporaryDirectory();
         final tempFileSavePath =
-            '${tempDir.path}/${studyMaterial.fileName}.${studyMaterial.fileExtension}';
+            '${tempDir.path}/${studyMaterial.localFileName}';
 
         //if same name file is already there, just open it by emitting success
         if (await File(tempFileSavePath).exists()) {
@@ -95,7 +95,7 @@ class DownloadFileCubit extends Cubit<DownloadFileState> {
             : (await getApplicationDocumentsDirectory()).path;
 
         downloadFilePath =
-            '$downloadFilePath/${studyMaterial.fileName}.${studyMaterial.fileExtension}';
+            '$downloadFilePath/${studyMaterial.localFileName}';
 
         await writeFileFromTempStorage(
           sourcePath: tempFileSavePath,

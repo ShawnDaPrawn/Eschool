@@ -88,10 +88,11 @@ class SemesterController extends Controller
                 'message' => trans('data_store_successfully'),
             ]);
         } catch (\Throwable $e) {
+            report($e);
+
             return response()->json([
                 'error' => true,
                 'message' => trans('error_occurred'),
-                'data' => $e->getMessage(),
             ]);
         }
     }
@@ -228,10 +229,11 @@ class SemesterController extends Controller
                 'message' => trans('data_update_successfully'),
             ]);
         } catch (\Throwable $e) {
+            report($e);
+
             return response()->json([
                 'error' => true,
                 'message' => trans('error_occurred'),
-                'data' => $e->getMessage(),
             ]);
         }
     }
@@ -293,11 +295,11 @@ class SemesterController extends Controller
         } catch (\Throwable $e) {
 
             DB::rollBack();
+            report($e);
 
             return response()->json([
                 'error' => true,
                 'message' => trans('error_occurred'),
-                'data' => $e->getMessage(),
             ]);
         }
     }
@@ -307,6 +309,10 @@ class SemesterController extends Controller
      */
     public function getClassConfig(Request $request)
     {
+        // Used by the semester, exam and elective-subject pages.
+        if (! Auth::user()->canAny(['semester-list', 'exam-create', 'assign-elective-subjects'])) {
+            return response()->json(['error' => true, 'message' => trans('no_permission_message')]);
+        }
         $sessionYearId = $request->session_year_id;
 
         $configuredClassIds = ClassSessionConfig::where('session_year_id', $sessionYearId)
@@ -360,10 +366,11 @@ class SemesterController extends Controller
                 'message' => trans('data_update_successfully'),
             ]);
         } catch (\Throwable $e) {
+            report($e);
+
             return response()->json([
                 'error' => true,
                 'message' => trans('error_occurred'),
-                'data' => $e->getMessage(),
             ]);
         }
     }

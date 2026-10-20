@@ -12,7 +12,6 @@ import 'package:eschool/utils/uiUtils.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:url_launcher/url_launcher.dart';
 
 class SingleChatMessageItem extends StatefulWidget {
 
@@ -131,12 +130,7 @@ class _SingleChatMessageItemState extends State<SingleChatMessageItem> {
                           text: data,
                           recognizer: TapGestureRecognizer()
                             ..onTap = () async {
-                              if (await canLaunchUrl(Uri.parse(data))) {
-                                await launchUrl(
-                                  Uri.parse(data),
-                                  mode: LaunchMode.externalApplication,
-                                );
-                              }
+                              await UiUtils.launchWebUrl(data);
                             },
                           style: TextStyle(
                             decoration: TextDecoration.underline,

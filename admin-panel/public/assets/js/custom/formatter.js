@@ -18,44 +18,44 @@ function fileFormatter(value, row) {
             // 1 = File Ulopad
             file_upload +=
                 "<a href='" +
-                data.file_url +
+                escapeHtml(safeUrl(data.file_url)) +
                 "' target='_blank' >" +
                 file_upload_counter +
                 ". " +
-                data.file_name +
+                escapeHtml(data.file_name) +
                 "</a><br>";
             file_upload_counter++;
         } else if (data.type == 2) {
             // 2 = Youtube Link
             youtube_link +=
                 "<a href='" +
-                data.file_url +
+                escapeHtml(safeUrl(data.file_url)) +
                 "' target='_blank' >" +
                 youtube_link_counter +
                 ". " +
-                data.file_name +
+                escapeHtml(data.file_name) +
                 "</a><br>";
             youtube_link_counter++;
         } else if (data.type == 3) {
             // 3 = Uploaded Video
             video_upload +=
                 "<a href='" +
-                data.file_url +
+                escapeHtml(safeUrl(data.file_url)) +
                 "' target='_blank' >" +
                 video_upload_counter +
                 ". " +
-                data.file_name +
+                escapeHtml(data.file_name) +
                 "</a><br>";
             video_upload_counter++;
         } else if (data.type == 4) {
             // 4 = Other Link
             other_link +=
                 "<a href='" +
-                data.file_url +
+                escapeHtml(safeUrl(data.file_url)) +
                 "' target='_blank' >" +
                 other_link_counter +
                 ". " +
-                data.file_name +
+                escapeHtml(data.file_name) +
                 "</a><br>";
             other_link_counter++;
         }
@@ -92,7 +92,11 @@ function resubmissionFormatter(value, row) {
 
 function assignmentFileFormatter(value, row) {
     let html =
-        "<a target='_blank' href='" + row.file + "'>" + row.name + "</a>";
+        "<a target='_blank' href='" +
+        escapeHtml(safeUrl(row.file)) +
+        "'>" +
+        escapeHtml(row.name) +
+        "</a>";
     return html;
 }
 
@@ -123,9 +127,9 @@ function imageFormatter(value, row) {
     if (row.image) {
         return (
             "<a data-toggle='lightbox' href='" +
-            row.image +
+            escapeHtml(row.image) +
             "'><img src='" +
-            row.image +
+            escapeHtml(row.image) +
             "' class='img-fluid'  alt='image' onerror='onErrorImage(event)'  /></a>"
         );
     } else {
@@ -134,22 +138,20 @@ function imageFormatter(value, row) {
 }
 
 function renderPersonCell(name, subtitle, image, url = null) {
-    const safeName = $("<div>")
-        .text(name || "-")
-        .html();
-    const safeSubtitle = $("<div>")
-        .text(subtitle || "-")
-        .html();
+    // escapeHtml (not $("<div>").text().html()) because these values are also
+    // placed inside single-quoted title/alt attributes, so quotes must be escaped.
+    const safeName = escapeHtml(name || "-");
+    const safeSubtitle = escapeHtml(subtitle || "-");
 
     const truncate =
         "overflow:hidden;text-overflow:ellipsis;white-space:nowrap;display:block;";
 
     const avatar = image
         ? "<a data-toggle='lightbox' href='" +
-          image +
+          escapeHtml(image) +
           "' style='margin-right:8px;flex:none;line-height:0;'>" +
           "<img src='" +
-          image +
+          escapeHtml(image) +
           "' alt='" +
           safeName +
           "' class='rounded-circle' " +
@@ -160,7 +162,7 @@ function renderPersonCell(name, subtitle, image, url = null) {
 
     const nameHtml = url
         ? "<a href='" +
-          url +
+          escapeHtml(url) +
           "' class='font-weight-medium' style='" +
           truncate +
           "' title='" +
@@ -193,8 +195,15 @@ function renderPersonCell(name, subtitle, image, url = null) {
     );
 }
 
-function studentSubmissionNameFormatter(value, row) {
-    const name = value || row.student_name || "";
+function studentSubmissionNameFormatter(value, row, index, field) {
+    // Read the raw field from the row (bootstrap-table pre-escapes `value` on tables with
+    // data-escape="true"), then escape once below.
+    const rawValue =
+        field && row && Object.prototype.hasOwnProperty.call(row, field)
+            ? row[field]
+            : value;
+    const name = String(rawValue || row.student_name || "");
+    const safeName = escapeHtml(name);
     const imageUrl = row.student_image;
 
     const hasImage =
@@ -211,14 +220,15 @@ function studentSubmissionNameFormatter(value, row) {
     } else {
         initials = "?";
     }
+    initials = escapeHtml(initials);
 
     const initialsHtml = `<div class="d-flex align-items-center justify-content-center rounded-circle mr-2 bg-primary text-white font-weight-bold" style="width:36px;height:36px;font-size:14px;flex-shrink:0;">${initials}</div>`;
 
     if (hasImage) {
         const hiddenInitialsHtml = `<div class="align-items-center justify-content-center rounded-circle mr-2 bg-primary text-white font-weight-bold" style="width:36px;height:36px;font-size:14px;flex-shrink:0;display:none;">${initials}</div>`;
-        return `<div class="d-flex align-items-center"><img src="${imageUrl}" class="rounded-circle mr-2" width="36" height="36" style="object-fit:cover;flex-shrink:0;" onerror="this.style.display='none';$(this).next().css('display', 'flex');">${hiddenInitialsHtml}<span>${name}</span></div>`;
+        return `<div class="d-flex align-items-center"><img src="${escapeHtml(imageUrl)}" class="rounded-circle mr-2" width="36" height="36" style="object-fit:cover;flex-shrink:0;" onerror="this.style.display='none';$(this).next().css('display', 'flex');">${hiddenInitialsHtml}<span>${safeName}</span></div>`;
     } else {
-        return `<div class="d-flex align-items-center">${initialsHtml}<span>${name}</span></div>`;
+        return `<div class="d-flex align-items-center">${initialsHtml}<span>${safeName}</span></div>`;
     }
 }
 
@@ -268,12 +278,10 @@ function parentGuardianInfoFormatter(value, row) {
 }
 
 function renderPersonText(name, subtitle) {
-    const safeName = $("<div>")
-        .text(name || "-")
-        .html();
-    const safeSubtitle = $("<div>")
-        .text(subtitle || "-")
-        .html();
+    // escapeHtml (not $("<div>").text().html()) because these values are also
+    // placed inside single-quoted title/alt attributes, so quotes must be escaped.
+    const safeName = escapeHtml(name || "-");
+    const safeSubtitle = escapeHtml(subtitle || "-");
     const truncate =
         "overflow:hidden;text-overflow:ellipsis;white-space:nowrap;display:block;";
     return (
@@ -325,9 +333,9 @@ function notificationImageFormatter(value, row) {
         const imageURL = "storage/" + row.image;
         return (
             "<a data-toggle='lightbox' href='" +
-            imageURL +
+            escapeHtml(imageURL) +
             "'><img src='" +
-            imageURL +
+            escapeHtml(imageURL) +
             "' class='img-fluid'  alt='image' onerror='onErrorImage(event)'  /></a>"
         );
     } else {
@@ -339,9 +347,9 @@ function thumbnailFormatter(value, row) {
     if (row.thumbnail) {
         return (
             "<a data-toggle='lightbox' href='" +
-            row.thumbnail +
+            escapeHtml(row.thumbnail) +
             "'><img src='" +
-            row.thumbnail +
+            escapeHtml(row.thumbnail) +
             "' class='img-fluid'  alt='image' onerror='onErrorImage(event)'  /></a>"
         );
     } else {
@@ -353,9 +361,9 @@ function fatherImageFormatter(value, row) {
     if (row.father_image) {
         return (
             "<a data-toggle='lightbox' href='" +
-            row.father_image +
+            escapeHtml(row.father_image) +
             "'><img src='" +
-            row.father_image +
+            escapeHtml(row.father_image) +
             "' class='img-fluid'  alt='image' onerror='onErrorImage(event)'/></a>"
         );
     }
@@ -365,9 +373,9 @@ function motherImageFormatter(value, row) {
     if (row.mother_image) {
         return (
             "<a data-toggle='lightbox' href='" +
-            row.mother_image +
+            escapeHtml(row.mother_image) +
             "'><img src='" +
-            row.mother_image +
+            escapeHtml(row.mother_image) +
             "' class='img-fluid'  alt='image' onerror='onErrorImage(event)'/></a>"
         );
     }
@@ -377,9 +385,9 @@ function guardianImageFormatter(value, row) {
     if (row.guardian_image) {
         return (
             "<a data-toggle='lightbox' href='" +
-            row.guardian_image +
+            escapeHtml(row.guardian_image) +
             "'><img src='" +
-            row.guardian_image +
+            escapeHtml(row.guardian_image) +
             "' class='img-fluid'  alt='image' onerror='onErrorImage(event)'/></a>"
         );
     }
@@ -391,17 +399,17 @@ function examTimetableFormatter(value, row) {
         $.each(row.timetable, function (key, timetable) {
             html.push(
                 "<p>" +
-                    timetable.subject.name +
+                    escapeHtml(timetable.subject.name) +
                     "(" +
-                    timetable.subject.type +
+                    escapeHtml(timetable.subject.type) +
                     ")  - " +
-                    timetable.total_marks +
+                    escapeHtml(timetable.total_marks) +
                     "/" +
-                    timetable.passing_marks +
+                    escapeHtml(timetable.passing_marks) +
                     " - " +
-                    timetable.start_time +
+                    escapeHtml(timetable.start_time) +
                     " - " +
-                    timetable.end_time +
+                    escapeHtml(timetable.end_time) +
                     " - " +
                     moment(timetable.date, "YYYY-MM-DD").format("DD-MM-YYYY") +
                     "</p>",
@@ -413,20 +421,20 @@ function examTimetableFormatter(value, row) {
 
 function examSubjectFormatter(index, row) {
     if (row.subject_name) {
-        return row.subject_name;
+        return escapeHtml(row.subject_name);
     } else {
-        return $("#subject_id :selected").text();
+        return escapeHtml($("#subject_id :selected").text());
     }
 }
 
 function examStudentNameFormatter(index, row) {
     return (
         "<input type='hidden' name='exam_marks[" +
-        row.no +
+        escapeHtml(row.no) +
         "][student_id]' class='form-control' value='" +
-        row.student_id +
+        escapeHtml(row.student_id) +
         "' />" +
-        row.student_name
+        escapeHtml(row.student_name)
     );
 }
 
@@ -434,17 +442,17 @@ function obtainedMarksFormatter(index, row) {
     if (row.obtained_marks) {
         return (
             "<input type='hidden' name='exam_marks[" +
-            row.no +
+            escapeHtml(row.no) +
             "][exam_marks_id]' class='form-control' value='" +
-            row.exam_marks_id +
+            escapeHtml(row.exam_marks_id) +
             "' />" +
             "<input type='number' name='exam_marks[" +
-            row.no +
+            escapeHtml(row.no) +
             "][obtained_marks]' class='form-control' min='0' value='" +
-            row.obtained_marks +
+            escapeHtml(row.obtained_marks) +
             "' />" +
             "<input type='hidden' name='exam_marks[" +
-            row.no +
+            escapeHtml(row.no) +
             "][total_marks]' class='form-control' value='" +
             parseInt(row.total_marks) +
             "' />"
@@ -452,17 +460,17 @@ function obtainedMarksFormatter(index, row) {
     } else {
         return (
             "<input type='hidden' name='exam_marks[" +
-            row.no +
+            escapeHtml(row.no) +
             "][exam_marks_id]' class='form-control' value='" +
-            row.exam_marks_id +
+            escapeHtml(row.exam_marks_id) +
             "' />" +
             "<input type='number' name='exam_marks[" +
-            row.no +
+            escapeHtml(row.no) +
             "][obtained_marks]' class='form-control' min='0' value='" +
             " " +
             "' />" +
             "<input type='hidden' name='exam_marks[" +
-            row.no +
+            escapeHtml(row.no) +
             "][total_marks]' class='form-control' value='" +
             parseInt(row.total_marks) +
             "' />"
@@ -474,15 +482,15 @@ function teacherReviewFormatter(index, row) {
     if (row.teacher_review) {
         return (
             "<textarea name='exam_marks[" +
-            row.no +
+            escapeHtml(row.no) +
             "][teacher_review]' class='form-control'>" +
-            row.teacher_review +
+            escapeHtml(row.teacher_review) +
             "</textarea>"
         );
     } else {
         return (
             "<textarea name='exam_marks[" +
-            row.no +
+            escapeHtml(row.no) +
             "][teacher_review]' class='form-control'>" +
             " " +
             "</textarea>"
@@ -507,11 +515,11 @@ function eventFormatter(value, row) {
                 "<br>" +
                 count +
                 ". " +
-                value.title +
+                escapeHtml(value.title) +
                 ". " +
-                value.start_time +
+                escapeHtml(value.start_time) +
                 " - " +
-                value.end_time;
+                escapeHtml(value.end_time);
             count++;
         }
     });
@@ -525,12 +533,12 @@ function descriptionFormatter(value, row) {
     if (row.type == "multiple") {
         $.each(row.timing, function (key, value) {
             if (value) {
-                html += "<br>" + count + ". " + value.description;
+                html += "<br>" + count + ". " + escapeHtml(value.description);
                 count++;
             }
         });
     } else {
-        html += "<br>" + row.description;
+        html += "<br>" + escapeHtml(row.description);
     }
 
     html += "</div>";
@@ -542,7 +550,7 @@ function classTeacherFormatter(value, row) {
     let html = "<div style='line-height: 20px;'>";
     $.each(row.teachers, function (key, value) {
         if (value) {
-            html += "<br>" + class_teacher_count + ". " + value;
+            html += "<br>" + class_teacher_count + ". " + escapeHtml(value);
             class_teacher_count++;
         }
     });
@@ -560,7 +568,7 @@ function coreSubjectFormatter(value, row) {
         $.each(row.core_subjects, function (key, value) {
             if (value.semester_id !== previous_sem_id) {
                 // Add the semester name only if it's different from the previous one
-                html += `<br><strong>${value?.semester?.name ?? ""}</strong><br>`;
+                html += `<br><strong>${escapeHtml(value?.semester?.name ?? "")}</strong><br>`;
                 previous_sem_id = value.semester_id; // Update the previous_sem_id
                 core_subject_count = 1;
             }
@@ -570,9 +578,9 @@ function coreSubjectFormatter(value, row) {
                 html +=
                     core_subject_count +
                     ". " +
-                    value.subject.name +
+                    escapeHtml(value.subject.name) +
                     " - " +
-                    value.subject.type;
+                    escapeHtml(value.subject.type);
                 core_subject_count++;
             }
             html += "<br>";
@@ -590,9 +598,9 @@ function coreSubjectFormatter(value, row) {
                     "<br>" +
                     core_subject_count +
                     ". " +
-                    value.subject.name +
+                    escapeHtml(value.subject.name) +
                     " - " +
-                    value.subject.type;
+                    escapeHtml(value.subject.type);
                 core_subject_count++;
             }
         });
@@ -630,7 +638,7 @@ function electiveSubjectFormatter(value, row) {
                     semesterGroupCounts[semester_name]++;
                     html +=
                         "<br><strong>" +
-                        semester_name +
+                        escapeHtml(semester_name) +
                         "</strong> (<b>Group " +
                         semesterGroupCounts[semester_name] +
                         "</b>)<br>";
@@ -641,17 +649,20 @@ function electiveSubjectFormatter(value, row) {
                 html +=
                     elective_subject_count +
                     ". " +
-                    elective_subject.subject.name +
+                    escapeHtml(elective_subject.subject.name) +
                     " - " +
-                    elective_subject.subject.type +
+                    escapeHtml(elective_subject.subject.type) +
                     "<br>";
                 elective_subject_count++;
             });
 
-            html += "<b>Total Subjects : </b>" + group.total_subjects + "<br>";
+            html +=
+                "<b>Total Subjects : </b>" +
+                escapeHtml(group.total_subjects) +
+                "<br>";
             html +=
                 "<b>Total Selectable Subjects : </b>" +
-                group.total_selectable_subjects +
+                escapeHtml(group.total_selectable_subjects) +
                 "<br><br>";
         });
 
@@ -667,17 +678,20 @@ function electiveSubjectFormatter(value, row) {
                 html +=
                     elective_subject_count +
                     ". " +
-                    elective_subject.subject.name +
+                    escapeHtml(elective_subject.subject.name) +
                     " - " +
-                    elective_subject.subject.type +
+                    escapeHtml(elective_subject.subject.type) +
                     "<br>";
                 elective_subject_count++;
             });
 
-            html += "<b>Total Subjects : </b>" + group.total_subjects + "<br>";
+            html +=
+                "<b>Total Subjects : </b>" +
+                escapeHtml(group.total_subjects) +
+                "<br>";
             html +=
                 "<b>Total Selectable Subjects : </b>" +
-                group.total_selectable_subjects +
+                escapeHtml(group.total_selectable_subjects) +
                 "<br><br>";
         });
         html += "</div>";
@@ -874,9 +888,9 @@ function feesTypeFormatter(index, row) {
                 "<span>" +
                     no +
                     ". " +
-                    value.fees_name +
+                    escapeHtml(value.fees_name) +
                     " - " +
-                    value.amount +
+                    escapeHtml(value.amount) +
                     "</span><br>",
             );
             no++;
@@ -941,13 +955,24 @@ function questionTypeFormatter(index, row) {
     }
 }
 
+// Online-exam question text. Equation questions (question_type = 1) are CKEditor/MathJax
+// markup that the server wraps in an .equation-editor-inline div, so they stay as HTML;
+// simple questions are plain text and are escaped.
+function onlineExamQuestionText(text, row) {
+    return row && row.question_type ? text : escapeHtml(text);
+}
+
+function onlineExamQuestionFormatter(value, row) {
+    return onlineExamQuestionText(row.question, row);
+}
+
 function optionsFormatter(index, row) {
     let html = "";
     $.each(row.options, function (index, value) {
         html += "<div class='row'>";
         html +=
             "<div class= 'col-md-1 text-center'><i class='fa fa-arrow-right small' aria-hidden='true'></i></div><div class='col-md-6'>" +
-            value.option +
+            onlineExamQuestionText(value.option, row) +
             "</div><br>";
         html += "</div>";
     });
@@ -960,7 +985,7 @@ function answersFormatter(index, row) {
         html += "<div class='row'>";
         html +=
             "<span class= 'col-md-1 text-center'><i class='fa fa-arrow-right small' aria-hidden='true'></i></span><div class='col-md-6'>" +
-            value.answer +
+            onlineExamQuestionText(value.answer, row) +
             "</div><br>";
         html += "</div>";
     });
@@ -982,9 +1007,9 @@ function feesPaidStatusFormatter(value, row, index) {
 function textFormatter(value, row) {
     if (row.text) {
         if (row.text.length > 20) {
-            return "<p>" + row.text.substring(0, 100) + "..." + "</p>";
+            return "<p>" + escapeHtml(row.text.substring(0, 100)) + "..." + "</p>";
         } else {
-            return "<p>" + row.text + "</p>";
+            return "<p>" + escapeHtml(row.text) + "</p>";
         }
     } else {
         return "-";
@@ -992,11 +1017,14 @@ function textFormatter(value, row) {
 }
 
 function messageFormatter(value, row) {
+    // Contact-us messages come from the public website form: always escape.
     if (row.message) {
         if (row.message.length > 20) {
-            return "<p>" + row.message.substring(0, 50) + "..." + "</p>";
+            return (
+                "<p>" + escapeHtml(row.message.substring(0, 50)) + "..." + "</p>"
+            );
         } else {
-            return "<p>" + row.message + "</p>";
+            return "<p>" + escapeHtml(row.message) + "</p>";
         }
     } else {
         return "-";
@@ -1084,9 +1112,9 @@ $("#filter-view-question-class-id").on("change", function () {
 function reasonFormatter(value, row) {
     if (row.reason) {
         if (row.reason.length > 20) {
-            return "<p>" + row.reason.substring(0, 30) + "..." + "</p>";
+            return "<p>" + escapeHtml(row.reason.substring(0, 30)) + "..." + "</p>";
         } else {
-            return "<p>" + row.reason + "</p>";
+            return "<p>" + escapeHtml(row.reason) + "</p>";
         }
     } else {
         return "-";
@@ -1201,7 +1229,7 @@ function typeFormFormatter(index, row) {
         textarea: trans("Textarea"),
         file: trans("File Upload"),
     };
-    return typeLabels[row.type] || row.type || "-";
+    return typeLabels[row.type] || escapeHtml(row.type) || "-";
 }
 
 function formFieldDefaultValuesFormatter(index, row) {
@@ -1212,7 +1240,7 @@ function formFieldDefaultValuesFormatter(index, row) {
             if (value != null) {
                 html +=
                     "<i class='fa fa-arrow-right' aria-hidden='true'></i> " +
-                    value +
+                    escapeHtml(value) +
                     "<br>";
             }
         });
@@ -1231,9 +1259,9 @@ function formFieldOtherValueFormatter(index, row) {
             Object.entries(value).forEach(([key, data]) => {
                 html +=
                     "<i class='fa fa-arrow-right' aria-hidden='true'></i> " +
-                    key +
+                    escapeHtml(key) +
                     " - " +
-                    data +
+                    escapeHtml(data) +
                     "<br>";
             });
         });
@@ -1304,7 +1332,7 @@ function holidayDaysFormatter(value, row) {
 }
 
 function eventDescriptionFormatter(value, row) {
-    return `<div class="text-wrap">${row.description}</div>`;
+    return `<div class="text-wrap">${escapeHtml(row.description)}</div>`;
 }
 function studentResultFormatterold(value, row, index) {
     const val = row.studentResult;
@@ -1334,12 +1362,12 @@ function studentResultFormatter(value, row, index) {
 
     return `
         <div class="d-flex align-items-center gap-2">
-            <span>${percent}% (${grade})</span>
+            <span>${escapeHtml(percent)}% (${escapeHtml(grade)})</span>
             <button
               class="btn btn-sm p-0 text-primary view-exam-result ml-1" 
               id="view-exam-result"
-              data-student-id="${row.id}"
-              data-class_section-id="${val.class_section_id}"
+              data-student-id="${escapeHtml(row.id)}"
+              data-class_section-id="${escapeHtml(val.class_section_id)}"
             >
                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-eye" viewBox="0 0 16 16">
                   <path d="M16 8s-3-5.5-8-5.5S0 8 0 8s3 5.5 8 5.5S16 8 16 8M1.173 8a13 13 0 0 1 1.66-2.043C4.12 4.668 5.88 3.5 8 3.5s3.879 1.168 5.168 2.457A13 13 0 0 1 14.828 8q-.086.13-.195.288c-.335.48-.83 1.12-1.465 1.755C11.879 11.332 10.119 12.5 8 12.5s-3.879-1.168-5.168-2.457A13 13 0 0 1 1.172 8z"/>

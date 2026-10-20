@@ -104,10 +104,10 @@ class MediaController extends Controller
                 'message' => trans('data_store_successfully'),
             );
         } catch (\Throwable $e) {
+            report($e);
             $response = array(
                 'error' => true,
                 'message' => trans('error_occurred'),
-                'data' => $e
             );
         }
         return response()->json($response);
@@ -232,10 +232,10 @@ class MediaController extends Controller
                 'message' => trans('data_update_successfully'),
             );
         } catch (\Throwable $e) {
+            report($e);
             $response = array(
                 'error' => true,
                 'message' => trans('error_occurred'),
-                'data' => $e
             );
         }
         return response()->json($response);
@@ -320,10 +320,10 @@ class MediaController extends Controller
                 'message' => trans('data_store_successfully'),
             );
         } catch (\Throwable $e) {
+            report($e);
             $response = array(
                 'error' => true,
                 'message' => trans('error_occurred'),
-                'data' => $e
             );
         }
         return response()->json($response);
@@ -387,10 +387,10 @@ class MediaController extends Controller
                 'message' => trans('data_store_successfully'),
             );
         } catch (\Throwable $e) {
+            report($e);
             $response = array(
                 'error' => true,
                 'message' => trans('error_occurred'),
-                'data' => $e
             );
         }
         return response()->json($response);
@@ -485,10 +485,10 @@ class MediaController extends Controller
                 'message' => trans('data_store_successfully'),
             );
         } catch (\Throwable $e) {
+            report($e);
             $response = array(
                 'error' => true,
                 'message' => trans('error_occurred'),
-                'data' => $e
             );
         }
         return response()->json($response);

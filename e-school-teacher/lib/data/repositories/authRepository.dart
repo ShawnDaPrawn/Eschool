@@ -4,7 +4,6 @@ import 'package:eschool_teacher/data/models/teacher.dart';
 import 'package:eschool_teacher/utils/api.dart';
 import 'package:eschool_teacher/utils/hiveBoxKeys.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
-import 'package:flutter/foundation.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 
 class AuthRepository {
@@ -70,8 +69,6 @@ class AuthRepository {
         return '';
       }
     }();
-
-    debugPrint('FCM Token: $fcmToken');
 
     final body = {
       'password': password,

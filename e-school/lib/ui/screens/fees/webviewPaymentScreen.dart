@@ -1,4 +1,5 @@
 import 'package:eschool/ui/widgets/customAppbar.dart';
+import 'package:eschool/utils/constants.dart';
 import 'package:eschool/utils/labelKeys.dart';
 import 'package:eschool/utils/uiUtils.dart';
 import 'package:flutter/cupertino.dart';
@@ -23,11 +24,72 @@ class WebViewPaymentScreen extends StatefulWidget {
 }
 
 class _WebViewPaymentScreenState extends State<WebViewPaymentScreen> {
+  //Pages of the school's own server that the payment gateways send the payer
+  //back to when the payment is done (see routes/web.php of the admin panel)
+  static const String _paystackCallbackPath = '/response/paystack/success';
+  static const String _flutterwaveCallbackPath =
+      '/response/flutterwave/success';
+
+  static final String _apiHost = Uri.parse(baseUrl).host.toLowerCase();
+
   late final WebViewController _controller;
 
   DateTime? currentBackPressTime;
 
   double opacity = 0;
+
+  bool _hasFinishedPayment = false;
+
+  //true: paid, false: failed or cancelled,
+  //null: unknown, leave it to the gateway's webhook
+  void _finishPayment(bool? isPaymentSuccessful) {
+    if (_hasFinishedPayment || !mounted) {
+      return;
+    }
+    _hasFinishedPayment = true;
+    Navigator.pop(context, isPaymentSuccessful);
+  }
+
+  NavigationDecision _onNavigationRequest(NavigationRequest request) {
+    //Frames inside the payment page (e.g. the bank's card verification page)
+    //are left to the gateway, only the page itself is checked
+    if (!request.isMainFrame) {
+      return NavigationDecision.navigate;
+    }
+
+    final Uri? uri = Uri.tryParse(request.url);
+
+    //Do not let the payment page open other apps, local files or scripts
+    if (uri == null || !(uri.isScheme('https') || uri.isScheme('http'))) {
+      return NavigationDecision.prevent;
+    }
+
+    //Only the callback pages on the school's own server end the payment
+    if (uri.host.toLowerCase() != _apiHost) {
+      return NavigationDecision.navigate;
+    }
+
+    if (uri.path.endsWith(_paystackCallbackPath)) {
+      //Paystack sends the payer to its callback once the payment is complete
+      _finishPayment(true);
+      return NavigationDecision.prevent;
+    }
+
+    if (uri.path.endsWith(_flutterwaveCallbackPath)) {
+      final String status = (uri.queryParameters['status'] ?? '')
+          .toLowerCase();
+      if (status == 'successful') {
+        _finishPayment(true);
+      } else if (status == 'cancelled' || status == 'failed') {
+        _finishPayment(false);
+      } else {
+        _finishPayment(null);
+      }
+      return NavigationDecision.prevent;
+    }
+
+    return NavigationDecision.navigate;
+  }
 
   @override
   void initState() {
@@ -53,23 +115,7 @@ class _WebViewPaymentScreenState extends State<WebViewPaymentScreen> {
               });
             }
           },
-          onNavigationRequest: (final request) {
-            if (request.url.contains('paystack') ||
-                request.url.contains('flutterwave')) {
-              final url = request.url;
-              if ((request.url.contains('flutterwave') &&
-                      url.contains('status=successful')) ||
-                  (request.url.contains('paystack') &&
-                      url.contains('success'))) {
-                Navigator.pop(context, true);
-                return NavigationDecision.prevent;
-              } else if (url.contains('failure')) {
-                Navigator.pop(context, false);
-                return NavigationDecision.prevent;
-              }
-            }
-            return NavigationDecision.navigate;
-          },
+          onNavigationRequest: _onNavigationRequest,
         ),
       )
       ..loadRequest(Uri.parse(widget.paymentUrl));

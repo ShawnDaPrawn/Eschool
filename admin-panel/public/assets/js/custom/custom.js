@@ -242,7 +242,7 @@ $(function () {
                         value.question_id +
                         ".</span>" +
                         '<span class="question-text">' +
-                        value.question +
+                        escapeHtml(value.question) +
                         "</span>" +
                         "</div>" +
                         '<div class="d-flex align-items-center">' +
@@ -1143,9 +1143,9 @@ $("#topic_subject_id").on("change", function () {
             response.data.forEach(function (data) {
                 html +=
                     "<option value='" +
-                    data.id +
+                    escapeHtml(data.id) +
                     "'>" +
-                    data.name +
+                    escapeHtml(data.name) +
                     "</option>";
             });
         } else {
@@ -1243,9 +1243,9 @@ $("#edit_topic_subject_id").on("change", function () {
             response.data.forEach(function (data) {
                 html +=
                     "<option value='" +
-                    data.id +
+                    escapeHtml(data.id) +
                     "'>" +
-                    data.name +
+                    escapeHtml(data.name) +
                     "</option>";
             });
         } else {
@@ -3402,24 +3402,24 @@ $("#class_timetable_class_section").on("change", function (e) {
                             periods +=
                                 '<div class="timetable-period">' +
                                 '<div class="timetable-period__time">' +
-                                tt["start_time"] +
+                                escapeHtml(tt["start_time"]) +
                                 " – " +
-                                tt["end_time"] +
+                                escapeHtml(tt["end_time"]) +
                                 "</div>" +
                                 '<div class="timetable-period__subject">' +
-                                subject["name"] +
+                                escapeHtml(subject["name"]) +
                                 (subject["type"]
                                     ? ' <span class="badge ' +
                                       typeClass +
                                       ' timetable-period__type">' +
-                                      trans(subject["type"]) +
+                                      escapeHtml(trans(subject["type"])) +
                                       "</span>"
                                     : "") +
                                 "</div>" +
                                 '<div class="timetable-period__teacher">' +
-                                teacher["first_name"] +
+                                escapeHtml(teacher["first_name"]) +
                                 " " +
-                                teacher["last_name"] +
+                                escapeHtml(teacher["last_name"]) +
                                 "</div>" +
                                 "</div>";
                         }
@@ -3555,36 +3555,36 @@ function loadTeacherTimetable(session_year_id, class_section_id, semester_id) {
                             periods +=
                                 '<div class="timetable-period">' +
                                 '<div class="timetable-period__class">' +
-                                cs["class"]["name"] +
+                                escapeHtml(cs["class"]["name"]) +
                                 " - " +
-                                cs["section"]["name"] +
+                                escapeHtml(cs["section"]["name"]) +
                                 "</div>" +
                                 '<div class="timetable-period__time">' +
-                                tt["start_time"] +
+                                escapeHtml(tt["start_time"]) +
                                 " – " +
-                                tt["end_time"] +
+                                escapeHtml(tt["end_time"]) +
                                 "</div>" +
                                 '<div class="timetable-period__subject">' +
-                                subject["name"] +
+                                escapeHtml(subject["name"]) +
                                 (subject["type"]
                                     ? ' <span class="badge ' +
                                       typeClass +
                                       ' timetable-period__type">' +
-                                      trans(subject["type"]) +
+                                      escapeHtml(trans(subject["type"])) +
                                       "</span>"
                                     : "") +
                                 (semesterName
                                     ? ' <span class="badge badge-soft-secondary">' +
-                                      semesterName +
+                                      escapeHtml(semesterName) +
                                       "</span>"
                                     : "") +
                                 "</div>";
                             if (tt["link_name"] !== null) {
                                 periods +=
                                     '<a class="timetable-period__link" href="' +
-                                    tt["live_class_url"] +
+                                    escapeHtml(safeUrl(tt["live_class_url"])) +
                                     '">' +
-                                    tt["link_name"] +
+                                    escapeHtml(tt["link_name"]) +
                                     "</a>";
                             }
                             periods +=
@@ -3681,27 +3681,27 @@ $("#teacher_timetable_teacher_id").on("change", function (e) {
                                     periods +=
                                         '<div class="timetable-period">' +
                                         '<div class="timetable-period__class">' +
-                                        cs["class"]["name"] +
+                                        escapeHtml(cs["class"]["name"]) +
                                         " - " +
-                                        cs["section"]["name"] +
+                                        escapeHtml(cs["section"]["name"]) +
                                         "</div>" +
                                         '<div class="timetable-period__time">' +
-                                        tt["start_time"] +
+                                        escapeHtml(tt["start_time"]) +
                                         " – " +
-                                        tt["end_time"] +
+                                        escapeHtml(tt["end_time"]) +
                                         "</div>" +
                                         '<div class="timetable-period__subject">' +
-                                        subject["name"] +
+                                        escapeHtml(subject["name"]) +
                                         (subject["type"]
                                             ? ' <span class="badge ' +
                                               typeClass +
                                               ' timetable-period__type">' +
-                                              trans(subject["type"]) +
+                                              escapeHtml(trans(subject["type"])) +
                                               "</span>"
                                             : "") +
                                         (semesterName
                                             ? ' <span class="badge badge-soft-secondary">' +
-                                              semesterName +
+                                              escapeHtml(semesterName) +
                                               "</span>"
                                             : "") +
                                         "</div>" +
@@ -4183,11 +4183,11 @@ $("#add-new-question-online-exam").on("submit", function (e) {
                     response.data.question_id +
                     ". " +
                     '<span class="text-center">' +
-                    response.data.question +
+                    escapeHtml(response.data.question) +
                     '</span> <span class="text-right row"><input type="number" class="list-group-item col-md-6" name="assign_questions[' +
                     response.data.question_id +
                     '][marks]" style="width: 10rem"><a class="btn btn-danger btn-sm remove-row ml-2" data-id="' +
-                    response.data.question +
+                    escapeHtml(response.data.question) +
                     '"><i class="fa fa-times" aria-hidden="true"></i></a></span></li></div>',
             );
         }
@@ -6712,10 +6712,12 @@ $(document).ready(function () {
         $("#assignModal").attr("data-bulk", "true");
         $("#studentDetails").html(`
             <strong>${selections.length} students selected</strong><br>
-            <small>${selections
-                .map((s) => s.full_name)
-                .join(", ")
-                .substring(0, 100)}${selections.length > 5 ? "..." : ""}</small>
+            <small>${escapeHtml(
+                selections
+                    .map((s) => s.full_name)
+                    .join(", ")
+                    .substring(0, 100),
+            )}${selections.length > 5 ? "..." : ""}</small>
         `);
 
         loadElectiveGroups(classId);
@@ -7166,8 +7168,8 @@ $(document).on("change", "#session_year_id", function () {
                 $("#session_warning")
                     .show()
                     .html(
-                        `<strong>Warning:</strong> You are selecting a previous academic year (${res.data.name}) 
-                        which is older than the current session (${currentSessionYear.name}). 
+                        `<strong>Warning:</strong> You are selecting a previous academic year (${escapeHtml(res.data.name)}) 
+                        which is older than the current session (${escapeHtml(currentSessionYear.name)}). 
                         This appears to be a demotion or backdated entry.`,
                     );
             } else {
@@ -7280,7 +7282,7 @@ $("#bulkPromoteBtn").on("click", function () {
     // Build student list
     const names = selections.map((s) => s.name).join(", ");
     $("#studentDetails").html(
-        `<strong>${selections.length} students selected</strong><br>${names.substring(0, 120)}...`,
+        `<strong>${selections.length} students selected</strong><br>${escapeHtml(names.substring(0, 120))}...`,
     );
 
     // ========================= SET CURRENT CLASS =========================
@@ -7473,9 +7475,11 @@ function populateResultModal(data) {
     } else {
         $("#result_avatar").html(
             '<div style="font-size: 24px; font-weight: 600; color: #9CA3AF;">' +
-                (data.student.name
-                    ? data.student.name.charAt(0).toUpperCase()
-                    : "?") +
+                escapeHtml(
+                    data.student.name
+                        ? data.student.name.charAt(0).toUpperCase()
+                        : "?",
+                ) +
                 "</div>",
         );
     }
@@ -7508,15 +7512,15 @@ function renderExamHistory(examHistory) {
                 <div class="exam-history-item ${activeClass}" data-exam-index="${index}">
                     <div class="exam-header">
                         <div class="exam-name">
-                            ${exam.name}
+                            ${escapeHtml(exam.name)}
                             ${isLatest ? '<span class="exam-badge badge-latest">Latest</span>' : ""}
                         </div>
-                        <span class="exam-grade-badge grade-${exam.grade.replace("+", "-plus")}">${exam.grade}</span>
+                        <span class="exam-grade-badge grade-${escapeHtml(exam.grade.replace("+", "-plus"))}">${escapeHtml(exam.grade)}</span>
                     </div>
-                    <div class="exam-date">${exam.date}</div>
+                    <div class="exam-date">${escapeHtml(exam.date)}</div>
                     <div class="exam-result">
-                        <span class="exam-percentage">${exam.percentage}%</span>
-                        <span class="exam-marks">${exam.obtained_marks} / ${exam.total_marks}</span>
+                        <span class="exam-percentage">${escapeHtml(exam.percentage)}%</span>
+                        <span class="exam-marks">${escapeHtml(exam.obtained_marks)} / ${escapeHtml(exam.total_marks)}</span>
                     </div>
                 </div>
             `;
@@ -7569,15 +7573,15 @@ function updateSubjectBreakdown(examData) {
             subjectHtml += `
                 <div class="subject-item">
                     <div class="subject-header-row">
-                        <h6 class="subject-name">${subject.name}</h6>
-                        <span class="subject-grade">${subject.grade}</span>
+                        <h6 class="subject-name">${escapeHtml(subject.name)}</h6>
+                        <span class="subject-grade">${escapeHtml(subject.grade)}</span>
                     </div>
                     <div class="subject-progress-bar">
                         <div class="subject-progress-fill ${progressColor}" style="width: ${subject.percentage}%"></div>
                     </div>
                     <div class="subject-marks">
-                        <span class="marks-obtained">${subject.obtained_marks} / ${subject.total_marks}</span>
-                        <span class="marks-percentage">${subject.percentage}%</span>
+                        <span class="marks-obtained">${escapeHtml(subject.obtained_marks)} / ${escapeHtml(subject.total_marks)}</span>
+                        <span class="marks-percentage">${escapeHtml(subject.percentage)}%</span>
                     </div>
                 </div>
             `;

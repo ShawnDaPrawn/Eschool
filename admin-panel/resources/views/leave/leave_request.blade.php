@@ -417,7 +417,7 @@ $('#createLeaveModal').on('shown.bs.modal', function() {
     var $btn = $(this);
 
     @if(!isset($leaveMaster) || !$leaveMaster)
-        showErrorToast("{{ __('Kindly contact the school admin to configure Leave Settings for the current session year') }}");
+        showErrorToast(@json(__('Kindly contact the school admin to configure Leave Settings for the current session year')));
         return;
     @endif
 
@@ -462,7 +462,7 @@ $('#createLeaveModal').on('shown.bs.modal', function() {
         success: function(response) {
     $('#createLeaveModal').modal('hide');
     $('#table_list').bootstrapTable('refresh');
-    showSuccessToast(response && response.message ? response.message : "{{ __('leave_added_successfully') }}");
+    showSuccessToast(response && response.message ? response.message : @json(__('leave_added_successfully')));
 },
         error: function(xhr) {
             var msg = "{{ __('something_went_wrong') }}";

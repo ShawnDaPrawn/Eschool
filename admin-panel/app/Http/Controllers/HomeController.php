@@ -88,6 +88,14 @@ class HomeController extends Controller
             'confirm_password' => 'required|same:new_password',
         ]);
 
+        $user = User::find($id);
+        if (! $user || ! Hash::check((string) $request->input('old_password'), $user->password)) {
+            return response()->json([
+                'error' => true,
+                'message' => trans('current_password_incorrect'),
+            ]);
+        }
+
         try {
             $data = ['password' => Hash::make($request->input('new_password'))];
             User::where('id', $id)->update($data);

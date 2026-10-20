@@ -15,7 +15,6 @@ import 'package:eschool/utils/uiUtils.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:url_launcher/url_launcher.dart';
 
 class TimeTableContainer extends StatefulWidget {
   const TimeTableContainer({super.key, this.childId});
@@ -277,12 +276,7 @@ class _TimeTableContainerState extends State<TimeTableContainer>
                     timeTableSlot.linkName != null)
                   GestureDetector(
                     onTap: () {
-                      try {
-                        launchUrl(
-                          Uri.parse(timeTableSlot.linkCustomUrl!),
-                          mode: LaunchMode.externalApplication,
-                        );
-                      } catch (_) {}
+                      UiUtils.launchWebUrl(timeTableSlot.linkCustomUrl ?? '');
                     },
                     child: Text(
                       timeTableSlot.linkName!,

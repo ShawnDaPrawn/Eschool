@@ -21,6 +21,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Password;
 use Illuminate\Support\Facades\Validator;
+use Laravel\Sanctum\PersonalAccessToken;
 use Throwable;
 
 class ApiController extends Controller
@@ -179,7 +180,7 @@ class ApiController extends Controller
                 $data['teacher_force_app_update'] = $settings['teacher_force_app_update'] ?? "";
                 $data['teacher_app_maintenance'] = $settings['teacher_app_maintenance'] ?? "";
                 $data['online_payment'] = $settings['online_payment'] ?? "1";
-                $data['is_demo'] = env('DEMO_MODE');
+                $data['is_demo'] = config('app.demo_mode');
 
                 $data['compulsory_fee_payment_mode'] =  $settings['compulsory_fee_payment_mode'] ?? "";
                 $data['is_student_can_pay_fees'] = $settings['is_student_can_pay_fees'] ?? "";
@@ -206,10 +207,9 @@ class ApiController extends Controller
                 }
 
                 if (isset($settings['razorpay_status']) && $settings['razorpay_status']) {
+                    // Public keys only: secret keys and webhook secrets never leave the server.
                     $data['payment_options']['razorpay'] = array(
                         'razorpay_status' => $settings['razorpay_status'] ?? "",
-                        'razorpay_api_key' => $settings['razorpay_api_key'] ?? "",
-                        'razorpay_webhook_secret' => $settings['razorpay_webhook_secret'] ?? "",
                         'razorpay_api_key' => $settings['razorpay_api_key'] ?? "",
                         'razorpay_currency_code' => $settings['razorpay_currency_code'] ?? $settings['currency_code']
                     );
@@ -271,11 +271,17 @@ class ApiController extends Controller
         }
 
         try {
-            $response = Password::sendResetLink($request->only('email'));
+            try {
+                Password::sendResetLink($request->only('email'));
+            } catch (Throwable $e) {
+                // Only reached for real accounts (e.g. mail not configured): logged,
+                // but not shown, or the error would give the account away.
+                ResponseService::logErrorResponse($e);
+            }
 
-            $response === Password::RESET_LINK_SENT
-                ? ResponseService::successResponse('Password reset link sent to your email.')
-                : ResponseService::errorResponse('Unable to send password reset link.');
+            // Same answer whether or not the email belongs to an account (or was
+            // throttled), so the endpoint can't be used to find registered emails.
+            ResponseService::successResponse('If an account exists for this email, a password reset link has been sent.');
         } catch (Throwable $e) {
             ResponseService::errorResponse('error_occurred', null, 103, $e);
         }
@@ -307,6 +313,12 @@ class ApiController extends Controller
             $user->update([
                 'password' => Hash::make($request->input('new_password'))
             ]);
+
+            // Sign out every other device: their tokens stop working.
+            $currentToken = $user->currentAccessToken();
+            $user->tokens()
+                ->when($currentToken instanceof PersonalAccessToken, fn ($query) => $query->whereKeyNot($currentToken->getKey()))
+                ->delete();
 
             ResponseService::successResponse('Password changed successfully.');
         } catch (Throwable $e) {
@@ -431,8 +443,8 @@ class ApiController extends Controller
     {
         try {
             $albums = $galleryService->paginateAlbums(
-                (int) $request->input('per_page', 10),
-                (int) $request->input('page', 1)
+                $this->perPage($request),
+                max((int) $request->input('page', 1), 1)
             );
 
             return response()->json([
@@ -480,8 +492,8 @@ class ApiController extends Controller
     {
         try {
             $videos = $galleryService->paginateVideos(
-                (int) $request->input('per_page', 10),
-                (int) $request->input('page', 1)
+                $this->perPage($request),
+                max((int) $request->input('page', 1), 1)
             );
 
             return response()->json([
@@ -513,5 +525,11 @@ class ApiController extends Controller
         } catch (Throwable $e) {
             ResponseService::errorResponse('error_occurred', null, 103, $e);
         }
+    }
+
+    /** Page size from the request, between 1 and 100 (default 10). */
+    private function perPage(Request $request): int
+    {
+        return min(max((int) $request->input('per_page', 10), 1), 100);
     }
 }

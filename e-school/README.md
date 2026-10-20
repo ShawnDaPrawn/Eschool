@@ -1,52 +1,44 @@
-# eschool
+# Student app
 
-//to run the application
+Flutter app for students. The Dart package name is `eschool`. Leave that name as it is. Changing it means updating every import in `lib/`.
+
+## Run
+
 ```shell
+flutter pub get
 flutter run
 ```
 
-//To update iOS pods
+## Android release build
+
+```shell
+flutter build apk --split-per-abi
+```
+
+APKs are written to `build/app/outputs/flutter-apk/`.
+
+## iOS pods
+
 ```shell
 cd ios
-pod init
-pod update
 pod install
 cd ..
 ```
 
-//To clean the pub cache
+## When the toolchain gets stuck
+
 ```shell
 flutter clean
-flutter pub cache clean
 flutter pub get
 ```
 
-//To repair the pub cache
+If iOS pods are stale:
+
 ```shell
 flutter clean
-flutter pub cache repair
+rm -rf ios/Pods ios/.symlinks ios/Flutter/Flutter.framework ios/Flutter/Flutter.podspec ios/Podfile.lock
 flutter pub get
-```
-
-//to generate android application
-```shell
-flutter build apk --split-per-abi
-open  build/app/outputs/flutter-apk/
-```
-
-// to solve most common iOS errors
-```shell
-flutter clean
-rm -Rf ios/Pods
-rm -Rf ios/.symlinks
-rm -Rf ios/Flutter/Flutter.framework
-rm -Rf Flutter/Flutter.podspec
-rm ios/podfile.lock
-cd ios 
-pod deintegrate
-sudo rm -rf ~/Library/Developer/Xcode/DerivedData
-flutter pub cache repair
-flutter pub get 
-pod install 
-pod update 
+cd ios
+pod install
+cd ..
 ```

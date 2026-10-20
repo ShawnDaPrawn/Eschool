@@ -182,19 +182,19 @@
                             </div>
                             <div class="form-group col-md-6">
                                 <label>{{ __('api_key') }}</label>
-                                <input name="razorpay_api_key" value="{{ !env('DEMO_MODE') ? ($settings['razorpay_api_key'] ?? '') : 'xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx' }}" type="text" placeholder="{{ __('api_key') }}" class="form-control" />
+                                <input name="razorpay_api_key" value="{{ !config('app.demo_mode') ? ($settings['razorpay_api_key'] ?? '') : 'xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx' }}" type="text" placeholder="{{ __('api_key') }}" class="form-control" />
                             </div>
                             <div class="form-group col-md-6">
                                 <label>{{ __('secret_key') }}</label>
-                                <input name="razorpay_secret_key" value="{{ !env('DEMO_MODE') ? ($settings['razorpay_secret_key'] ?? '') : 'xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx' }}" type="text" placeholder="{{ __('secret_key') }}" class="form-control" />
+                                <input name="razorpay_secret_key" value="{{ !config('app.demo_mode') ? ($settings['razorpay_secret_key'] ?? '') : 'xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx' }}" type="text" placeholder="{{ __('secret_key') }}" class="form-control" />
                             </div>
                             <div class="form-group col-md-6">
                                 <label>{{ __('razoray_webhook_secret') }}</label>
-                                <input name="razorpay_webhook_secret" value="{{ !env('DEMO_MODE') ? ($settings['razorpay_webhook_secret'] ?? '') : 'xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx' }}" type="text" placeholder="{{ __('razoray_webhook_secret') }}" class="form-control" />
+                                <input name="razorpay_webhook_secret" value="{{ !config('app.demo_mode') ? ($settings['razorpay_webhook_secret'] ?? '') : 'xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx' }}" type="text" placeholder="{{ __('razoray_webhook_secret') }}" class="form-control" />
                             </div>
                             <div class="form-group col-md-6">
                                 <label>{{ __('razorpay') }} {{ __('webhook_url') }}</label>
-                                <input name="razorpay_webhook_url" value="{{ !env('DEMO_MODE') ? ($domain.'/webhook/razorpay' ?? '') : 'xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx' }}" type="text" placeholder="{{ __('webhook_url') }}" class="form-control" readonly />
+                                <input name="razorpay_webhook_url" value="{{ !config('app.demo_mode') ? ($domain.'/webhook/razorpay' ?? '') : 'xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx' }}" type="text" placeholder="{{ __('webhook_url') }}" class="form-control" readonly />
                             </div>
                         </div>
                     </div>
@@ -228,19 +228,19 @@
                             </div>
                             <div class="form-group col-md-6">
                                 <label>{{ __('stripe_publishable_key') }}</label>
-                                <input name="stripe_publishable_key" value="{{ !env('DEMO_MODE') ? ($settings['stripe_publishable_key'] ?? '') : 'xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx' }}" type="text" placeholder="{{ __('stripe_publishable_key') }}" class="form-control" />
+                                <input name="stripe_publishable_key" value="{{ !config('app.demo_mode') ? ($settings['stripe_publishable_key'] ?? '') : 'xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx' }}" type="text" placeholder="{{ __('stripe_publishable_key') }}" class="form-control" />
                             </div>
                             <div class="form-group col-md-6">
                                 <label>{{ __('stripe_secret_key') }}</label>
-                                <input name="stripe_secret_key" value="{{ !env('DEMO_MODE') ? ($settings['stripe_secret_key'] ?? '') : 'xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx' }}" type="text" placeholder="{{ __('stripe_secret_key') }}" class="form-control" />
+                                <input name="stripe_secret_key" value="{{ !config('app.demo_mode') ? ($settings['stripe_secret_key'] ?? '') : 'xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx' }}" type="text" placeholder="{{ __('stripe_secret_key') }}" class="form-control" />
                             </div>
                             <div class="form-group col-md-6">
                                 <label>{{ __('stripe_webhook_secret') }}</label>
-                                <input name="stripe_webhook_secret" value="{{ !env('DEMO_MODE') ? ($settings['stripe_webhook_secret'] ?? '') : 'xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx' }}" type="text" placeholder="{{ __('stripe_webhook_secret') }}" class="form-control" />
+                                <input name="stripe_webhook_secret" value="{{ !config('app.demo_mode') ? ($settings['stripe_webhook_secret'] ?? '') : 'xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx' }}" type="text" placeholder="{{ __('stripe_webhook_secret') }}" class="form-control" />
                             </div>
                             <div class="form-group col-md-6">
                                 <label>{{ __('stripe') }} {{ __('webhook_url') }}</label>
-                                <input name="stripe_webhook_url" value="{{ !env('DEMO_MODE') ? ($domain.'/webhook/stripe' ?? '') : 'xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx' }}" type="text" placeholder="{{ __('webhook_url') }}" class="form-control" readonly />
+                                <input name="stripe_webhook_url" value="{{ !config('app.demo_mode') ? ($domain.'/webhook/stripe' ?? '') : 'xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx' }}" type="text" placeholder="{{ __('webhook_url') }}" class="form-control" readonly />
                             </div>
                         </div>
                     </div>
@@ -274,19 +274,19 @@
                             </div>
                             <div class="form-group col-md-6">
                                 <label>{{ __('paystack_public_key') }}</label>
-                                <input name="paystack_public_key" value="{{ !env('DEMO_MODE') ? (isset($settings['paystack_public_key']) ? $settings['paystack_public_key'] : '') : 'xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx' }}" type="text" placeholder="{{ __('paystack_public_key') }}" class="form-control" />
+                                <input name="paystack_public_key" value="{{ !config('app.demo_mode') ? (isset($settings['paystack_public_key']) ? $settings['paystack_public_key'] : '') : 'xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx' }}" type="text" placeholder="{{ __('paystack_public_key') }}" class="form-control" />
                             </div>
                             <div class="form-group col-md-6">
                                 <label>{{ __('paystack_secret_key') }}</label>
-                                <input name="paystack_secret_key" value="{{ !env('DEMO_MODE') ? (isset($settings['paystack_secret_key']) ? $settings['paystack_secret_key'] : '') : 'xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx' }}" type="text" placeholder="{{ __('paystack_secret_key') }}" class="form-control" />
+                                <input name="paystack_secret_key" value="{{ !config('app.demo_mode') ? (isset($settings['paystack_secret_key']) ? $settings['paystack_secret_key'] : '') : 'xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx' }}" type="text" placeholder="{{ __('paystack_secret_key') }}" class="form-control" />
                             </div>
                             <div class="form-group col-md-6">
                                 <label>{{__('paystack')}} {{ __('webhook_url') }}</label>
-                                <input name="paystack_webhook_url" value="{{ !env('DEMO_MODE') ? (isset($domain) ? $domain.'/webhook/paystack' : '' ) : 'xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx'}}" type="text" placeholder="{{ __('paystack').' '.__('webhook_url')}}" class="form-control" readonly />
+                                <input name="paystack_webhook_url" value="{{ !config('app.demo_mode') ? (isset($domain) ? $domain.'/webhook/paystack' : '' ) : 'xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx'}}" type="text" placeholder="{{ __('paystack').' '.__('webhook_url')}}" class="form-control" readonly />
                             </div>
                             <div class="form-group col-md-6">
                                 <label>{{__('paystack')}} {{ __('payment_url') }}</label>
-                                <input name="paystack_payment_url" value="{{ !env('DEMO_MODE') ? (isset($domain) ? 'https://api.paystack.co': '' ) : 'xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx'}}" type="text" placeholder="{{ __('paystack').' '.__('payment_url')}}" class="form-control" readonly />
+                                <input name="paystack_payment_url" value="{{ !config('app.demo_mode') ? (isset($domain) ? 'https://api.paystack.co': '' ) : 'xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx'}}" type="text" placeholder="{{ __('paystack').' '.__('payment_url')}}" class="form-control" readonly />
                             </div>
                         </div>
                     </div>
@@ -320,19 +320,20 @@
                             </div>
                             <div class="form-group col-md-6">
                                 <label>{{ __('flutterwave_public_key') }}</label>
-                                <input name="flutterwave_public_key" value="{{ !env('DEMO_MODE') ? (isset($settings['flutterwave_public_key']) ? $settings['flutterwave_public_key'] : '') : 'xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx' }}" type="text" placeholder="{{ __('flutterwave_public_key') }}" class="form-control" />
+                                <input name="flutterwave_public_key" value="{{ !config('app.demo_mode') ? (isset($settings['flutterwave_public_key']) ? $settings['flutterwave_public_key'] : '') : 'xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx' }}" type="text" placeholder="{{ __('flutterwave_public_key') }}" class="form-control" />
                             </div>
                             <div class="form-group col-md-6">
                                 <label>{{ __('flutterwave_secret_key') }}</label>
-                                <input name="flutterwave_secret_key" value="{{ !env('DEMO_MODE') ? (isset($settings['flutterwave_secret_key']) ? $settings['flutterwave_secret_key'] : '') : 'xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx' }}" type="text" placeholder="{{ __('flutterwave_secret_key') }}" class="form-control" />
+                                <input name="flutterwave_secret_key" value="{{ !config('app.demo_mode') ? (isset($settings['flutterwave_secret_key']) ? $settings['flutterwave_secret_key'] : '') : 'xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx' }}" type="text" placeholder="{{ __('flutterwave_secret_key') }}" class="form-control" />
                             </div>
                             <div class="form-group col-md-6">
-                                <label>{{ __('flutterwave_encryption_key') }}</label>
-                                <input name="flutterwave_hash_key" value="{{ !env('DEMO_MODE') ? (isset($settings['flutterwave_hash_key']) ? $settings['flutterwave_hash_key'] : '') : 'xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx' }}" type="text" placeholder="{{ __('flutterwave_encryption_key') }}" class="form-control" />
+                                <label>{{ __('Flutterwave Webhook Secret Hash') }}</label>
+                                <input name="flutterwave_hash_key" value="{{ !config('app.demo_mode') ? (isset($settings['flutterwave_hash_key']) ? $settings['flutterwave_hash_key'] : '') : 'xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx' }}" type="text" placeholder="{{ __('Flutterwave Webhook Secret Hash') }}" class="form-control" />
+                                <small class="form-text text-muted">{{ __('Must match the Secret hash under Settings > Webhooks in your Flutterwave dashboard (not the encryption key).') }}</small>
                             </div>
                             <div class="form-group col-md-6">
                                 <label>{{__('flutterwave')}} {{ __('webhook_url') }}</label>
-                                <input name="flutterwave_webhook_url" value="{{ !env('DEMO_MODE') ? (isset($domain) ? $domain.'/webhook/flutterwave' : '' ) : 'xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx'}}" type="text" placeholder="{{ __('flutterwave').' '.__('webhook_url')}}" class="form-control" readonly />
+                                <input name="flutterwave_webhook_url" value="{{ !config('app.demo_mode') ? (isset($domain) ? $domain.'/webhook/flutterwave' : '' ) : 'xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx'}}" type="text" placeholder="{{ __('flutterwave').' '.__('webhook_url')}}" class="form-control" readonly />
                             </div>
                         </div>
                     </div>

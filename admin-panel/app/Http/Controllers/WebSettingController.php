@@ -206,6 +206,7 @@ class WebSettingController extends Controller
                 'message' => trans('data_update_successfully'),
             );
         } catch (\Throwable $e) {
+            report($e);
             $message = trans('error_occurred');
             $exceptionMessage = strtolower((string) $e->getMessage());
             if (str_contains($exceptionMessage, 'file') && str_contains($exceptionMessage, 'image')) {
@@ -214,7 +215,6 @@ class WebSettingController extends Controller
             $response = array(
                 'error' => true,
                 'message' => $message,
-                'data' => $e
             );
         }
         return response()->json($response);
@@ -271,10 +271,10 @@ class WebSettingController extends Controller
                 'message' => trans('data_store_successfully'),
             );
         } catch (\Throwable $e) {
+            report($e);
             $response = array(
                 'error' => true,
                 'message' => trans('error_occurred'),
-                'data' => $e
             );
         }
         return response()->json($response);
@@ -380,10 +380,10 @@ class WebSettingController extends Controller
                 'message' => trans('data_update_successfully'),
             );
         } catch (\Throwable $e) {
+            report($e);
             $response = array(
                 'error' => true,
                 'message' => trans('error_occurred'),
-                'data' => $e
             );
         }
         return response()->json($response);
@@ -465,10 +465,10 @@ class WebSettingController extends Controller
                 'message' => trans('data_store_successfully'),
             );
         } catch (\Throwable $e) {
+            report($e);
             $response = array(
                 'error' => true,
                 'message' => trans('error_occurred'),
-                'data' => $e
             );
         }
         return response()->json($response);
@@ -570,10 +570,10 @@ class WebSettingController extends Controller
                 'message' => trans('data_update_successfully'),
             );
         } catch (\Throwable $e) {
+            report($e);
             $response = array(
                 'error' => true,
                 'message' => trans('error_occurred'),
-                'data' => $e
             );
         }
         return response()->json($response);
@@ -688,8 +688,8 @@ class WebSettingController extends Controller
             return redirect(route('home'))->withErrors($response);
         }
         try {
-            $admin_mail = env('MAIL_FROM_ADDRESS');
-            $school_name = env('APP_NAME');
+            $admin_mail = config('mail.from.address');
+            $school_name = config('app.name');
 
             $attachments = [];
 
@@ -734,10 +734,10 @@ class WebSettingController extends Controller
                 'message' => trans('email_sent_successfully'),
             );
         } catch (\Throwable $e) {
+            report($e);
             $response = array(
                 'error' => true,
                 'message' => trans('error_occurred'),
-                'data' => $e
             );
         }
         return response()->json($response);

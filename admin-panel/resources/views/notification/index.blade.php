@@ -224,7 +224,8 @@
                                     data-export-types='["txt","excel"]'
                                     data-export-options='{ "fileName": "{{ __('notifications') }}-<?= date(' d-m-y') ?>"
                                     ,"ignoreColumn":["operate"]}' data-show-export="true"
-                                    data-query-params="notificationQueryParams">
+                                    data-query-params="notificationQueryParams" data-escape="true"
+                                    data-escape-title="false">
                                     <thead>
                                         <tr>
                                             <th scope="col" data-field="id" data-sortable="true"
@@ -250,7 +251,8 @@
                                                 data-visible="false">{{ __('created_at') }}</th>
                                             <th scope="col" data-field="updated_at" data-sortable="true"
                                                 data-visible="false">{{ __('updated_at') }}</th>
-                                            <th scope="col" data-field="operate" data-sortable="false">
+                                            <th scope="col" data-field="operate" data-sortable="false"
+                                                data-escape="false">
                                                 {{ __('action') }}
                                             </th>
                                         </tr>
@@ -490,9 +492,9 @@
                 var values = ($sendTo.val() || []);
                 var msg = null;
                 if (values.length === 0) {
-                    msg = "{{ __('please_select_send_to_group') }}";
+                    msg = @json(__('please_select_send_to_group'));
                 } else if (!broadcastMode && totalSelected() === 0) {
-                    msg = "{{ __('please_select_at_least_one_user') }}";
+                    msg = @json(__('please_select_at_least_one_user'));
                 }
                 if (msg) {
                     e.preventDefault();

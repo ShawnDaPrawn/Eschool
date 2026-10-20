@@ -43,7 +43,7 @@
 <script src="{{ route('common.language.read') }}"></script>
 
 {{-- <link rel="shortcut icon" href="{{asset(config('global.LOGO_SM')) }}" /> --}}
-<link rel="shortcut icon" href="{{ url(Storage::url(env('FAVICON'))) }}" />
+<link rel="shortcut icon" href="{{ url(Storage::url(schoolSetting('favicon'))) }}" />
 @php
     $theme_color = getSettings('theme_color');
     $secondary_color = getSettings('secondary_color');

@@ -18,7 +18,6 @@ import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:url_launcher/url_launcher.dart';
 
 class AssignmentScreen extends StatefulWidget {
   const AssignmentScreen({required this.assignment, super.key});
@@ -462,12 +461,7 @@ class _AssignmentScreenState extends State<AssignmentScreen> {
                               text: data,
                               recognizer: TapGestureRecognizer()
                                 ..onTap = () async {
-                                  if (await canLaunchUrl(Uri.parse(data))) {
-                                    await launchUrl(
-                                      Uri.parse(data),
-                                      mode: LaunchMode.externalApplication,
-                                    );
-                                  }
+                                  await UiUtils.launchWebUrl(data);
                                 },
                               style: const TextStyle(
                                 decoration: TextDecoration.underline,

@@ -64,7 +64,7 @@ A comprehensive School Management System built with Laravel 12, designed to stre
 1. **Clone the repository**
    ```bash
    git clone <repository-url>
-   cd eschool-v12
+   cd Eschool/admin-panel
    ```
 
 2. **Install PHP dependencies**
@@ -190,7 +190,7 @@ MAIL_ENCRYPTION=tls
 ## 📁 Project Structure
 
 ```
-eschool-v12/
+admin-panel/
 ├── app/
 │   ├── Http/Controllers/      # Application controllers
 │   ├── Models/               # Eloquent models

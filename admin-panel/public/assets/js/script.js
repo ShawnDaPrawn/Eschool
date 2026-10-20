@@ -5,9 +5,11 @@ $.ajaxSetup({
         'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
     }
 });
+// $.toast renders its text with .html(): escape it (escapeToastText lives in custom/function.js,
+// which web/footer.blade.php loads before this file).
 function showErrorToast(message) {
     $.toast({
-        text: message,
+        text: escapeToastText(message),
         showHideTransition: 'slide',
         icon: 'error',
         loaderBg: '#f2a654',
@@ -18,7 +20,7 @@ function showErrorToast(message) {
 
 function showSuccessToast(message) {
     $.toast({
-        text: message,
+        text: escapeToastText(message),
         showHideTransition: 'slide',
         icon: 'success',
         loaderBg: '#f96868',

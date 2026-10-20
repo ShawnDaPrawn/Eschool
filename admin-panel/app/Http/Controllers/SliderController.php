@@ -6,6 +6,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Slider;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
 
@@ -18,6 +19,14 @@ class SliderController extends Controller
      */
     public function index()
     {
+        if (! Auth::user()->canAny(['slider-list', 'slider-create', 'slider-edit', 'slider-delete'])) {
+            $response = [
+                'message' => trans('no_permission_message'),
+            ];
+
+            return redirect(route('home'))->withErrors($response);
+        }
+
         return response(view('sliders.index'));
     }
 
@@ -28,6 +37,10 @@ class SliderController extends Controller
      */
     public function store(Request $request)
     {
+        if (! Auth::user()->can('slider-create')) {
+            return response()->json($this->noPermissionResponse());
+        }
+
         $validator = Validator::make($request->all(), [
             'type' => 'required',
             'image' => 'required|mimes:jpeg,png,jpg|image|max:2048',
@@ -46,8 +59,8 @@ class SliderController extends Controller
             $slider = new Slider;
             $slider->type = $request->type;
             $image = $request->file('image');
-            // made file name with combination of current time
-            $file_name = time().'-'.$image->getClientOriginalName();
+            // random file name; the client's file name is never used on disk
+            $file_name = $image->hashName();
             // made file path to store in database
             $file_path = 'sliders/'.$file_name;
             // resized image
@@ -70,10 +83,10 @@ class SliderController extends Controller
             if (str_contains($exceptionMessage, 'file') && str_contains($exceptionMessage, 'image')) {
                 $message = trans('please_select_valid_image');
             }
+            report($e);
             $response = [
                 'error' => true,
                 'message' => $message,
-                'data' => $e,
             ];
         }
 
@@ -88,6 +101,10 @@ class SliderController extends Controller
      */
     public function show()
     {
+        if (! Auth::user()->can('slider-list')) {
+            return response()->json($this->noPermissionResponse());
+        }
+
         $offset = 0;
         $limit = 10;
         $sort = 'id';
@@ -149,6 +166,10 @@ class SliderController extends Controller
      */
     public function update(Request $request, $id)
     {
+        if (! Auth::user()->can('slider-edit')) {
+            return response()->json($this->noPermissionResponse());
+        }
+
         $validator = Validator::make($request->all(), [
             'type' => 'required|in:1,2,3',
             'image' => 'mimes:jpeg,png,jpg|image|max:2048',
@@ -171,8 +192,8 @@ class SliderController extends Controller
                     Storage::disk('public')->delete($slider->getRawOriginal('image'));
                 }
                 $image = $request->file('image');
-                // made file name with combination of current time
-                $file_name = time().'-'.$image->getClientOriginalName();
+                // random file name; the client's file name is never used on disk
+                $file_name = $image->hashName();
                 // made file path to store in database
                 $file_path = 'sliders/'.$file_name;
                 // resized image
@@ -195,10 +216,10 @@ class SliderController extends Controller
             if (str_contains($exceptionMessage, 'file') && str_contains($exceptionMessage, 'image')) {
                 $message = trans('please_select_valid_image');
             }
+            report($e);
             $response = [
                 'error' => true,
                 'message' => $message,
-                'data' => $e,
             ];
         }
 
@@ -213,6 +234,10 @@ class SliderController extends Controller
      */
     public function destroy($id)
     {
+        if (! Auth::user()->can('slider-delete')) {
+            return response()->json($this->noPermissionResponse());
+        }
+
         try {
             $slider = Slider::find($id);
             if (Storage::disk('public')->exists($slider->image)) {
@@ -231,5 +256,13 @@ class SliderController extends Controller
         }
 
         return response()->json($response);
+    }
+
+    private function noPermissionResponse(): array
+    {
+        return [
+            'error' => true,
+            'message' => trans('no_permission_message'),
+        ];
     }
 }

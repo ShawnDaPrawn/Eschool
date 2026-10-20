@@ -222,7 +222,8 @@
                                     </th>
                                     <th scope="col" data-field="subject_name" data-sortable="false">
                                         {{ __('subject') }}</th>
-                                    <th scope="col" data-field="question" data-sortable="false">{{ __('question') }}
+                                    <th scope="col" data-field="question" data-sortable="false"
+                                        data-formatter="onlineExamQuestionFormatter">{{ __('question') }}
                                     </th>
                                     <th scope="col" data-field="options" data-sortable="false"
                                         data-formatter="optionsFormatter">{{ __('option') }}</th>
