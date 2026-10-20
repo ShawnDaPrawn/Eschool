@@ -5,6 +5,7 @@ import 'dart:io';
 import 'package:bloc/bloc.dart';
 import 'package:eschool/data/repositories/systemInfoRepository.dart';
 import 'package:eschool/utils/api.dart';
+import 'package:eschool/utils/fileNameUtils.dart';
 import 'package:eschool/utils/labelKeys.dart';
 import 'package:path_provider/path_provider.dart';
 
@@ -42,7 +43,8 @@ class DownloadIdCardCubit extends Cubit<DownloadIdCardState> {
         .downloadIdCardPDF(childId: childId)
         .then((value) async {
           final path = (await getApplicationDocumentsDirectory()).path;
-          String filePath = '$path/ID_Card/$childName ID Card.pdf';
+          final String name = sanitizeFileName(childName ?? '', fallback: 'My');
+          String filePath = '$path/ID_Card/$name ID Card.pdf';
 
           final File file = File(filePath);
           await file.create(recursive: true);

@@ -288,6 +288,34 @@ class UiUtils {
     return 'Other';
   }
 
+  /// Whether [url] is a web (http/https) link. Links that come from other
+  /// users or from the server are only opened when they are, because other
+  /// schemes (intent:, file:, custom app schemes, ...) could start other apps
+  /// or open local files.
+  static bool isWebUrl(String url) {
+    final Uri? uri = Uri.tryParse(url.trim());
+    return uri != null &&
+        (uri.isScheme('https') || uri.isScheme('http')) &&
+        uri.host.isNotEmpty;
+  }
+
+  /// Opens a link that came from other users or from the server (chat
+  /// messages, assignment answers, timetable links, videos), but only if it
+  /// is a web link. Returns whether the link was opened.
+  static Future<bool> launchWebUrl(
+    String url, {
+    LaunchMode mode = LaunchMode.externalApplication,
+  }) async {
+    if (!isWebUrl(url)) {
+      return false;
+    }
+    try {
+      return await launchUrl(Uri.parse(url.trim()), mode: mode);
+    } catch (_) {
+      return false;
+    }
+  }
+
   static void viewOrDownloadStudyMaterial({
     required BuildContext context,
     required bool storeInExternalStorage,
@@ -310,7 +338,7 @@ class UiUtils {
         if (studyMaterial.studyMaterialType ==
                 StudyMaterialType.uploadedVideoUrl ||
             studyMaterial.studyMaterialType == StudyMaterialType.youtubeVideo) {
-          launchUrl(Uri.parse(studyMaterial.fileUrl));
+          launchWebUrl(studyMaterial.fileUrl, mode: LaunchMode.platformDefault);
         } else {
           UiUtils.openDownloadBottomsheet(
             context: context,

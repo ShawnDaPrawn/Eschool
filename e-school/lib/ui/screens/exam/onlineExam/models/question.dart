@@ -1,12 +1,11 @@
 import 'package:eschool/ui/screens/exam/onlineExam/models/answerOption.dart';
-import 'package:eschool/ui/screens/exam/onlineExam/models/answers.dart';
 
 class Question {
 
   Question({
     this.questionType,
     this.answerOptions,
-    this.correctAnswer,
+    this.answersCount = 1,
     this.id,
     this.note,
     this.question,
@@ -18,7 +17,9 @@ class Question {
   final String? question;
   final int? id;
   final String? imageUrl;
-  final List<Answers>? correctAnswer;
+  //How many options the student has to select. The correct answers themselves
+  //are not sent to the app before the exam is submitted.
+  final int answersCount;
   final String? note;
   final List<int>? submittedAnswerId;
   final int? questionType;
@@ -33,14 +34,10 @@ class Question {
 
     options.shuffle();
 
-    final List<Answers> trueAns = (questionJson['answers'] as List)
-        .map((e) => Answers.fromJson(Map.from(e)))
-        .toList();
-
     return Question(
       id: questionJson['id'],
       imageUrl: questionJson['image'],
-      correctAnswer: trueAns,
+      answersCount: _answersCountFromJson(questionJson),
       question: questionJson['question'],
       note: questionJson['note'] ?? '',
       questionType: questionJson['question_type'] ?? 0,
@@ -50,13 +47,27 @@ class Question {
     );
   }
 
+  //Uses answers_count, or the number of (placeholder) answers for servers that
+  //do not send it yet
+  static int _answersCountFromJson(Map questionJson) {
+    final dynamic answersCount = questionJson['answers_count'];
+    final int? count = answersCount is num
+        ? answersCount.toInt()
+        : int.tryParse(answersCount?.toString() ?? '');
+    final int fallbackCount = questionJson['answers'] is List
+        ? (questionJson['answers'] as List).length
+        : 0;
+    final int result = count ?? fallbackCount;
+    return result < 1 ? 1 : result;
+  }
+
   Question updateQuestionWithAnswer({required List<int> submittedAnswerId}) {
     return Question(
       marks: marks,
       submittedAnswerId: submittedAnswerId,
       answerOptions: answerOptions,
       attempted: submittedAnswerId.isNotEmpty,
-      correctAnswer: correctAnswer,
+      answersCount: answersCount,
       id: id,
       imageUrl: imageUrl,
       note: note,

@@ -51,7 +51,8 @@ class ExamOnlineRepository {
         'totalQuestions': result['total_questions'],
       };
     } catch (e) {
-      throw ApiException(e.toString());
+      //Keep the server's message (e.g. for a wrong exam key)
+      throw ApiException.fromException(e);
     }
   }
 

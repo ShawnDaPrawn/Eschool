@@ -77,7 +77,7 @@ class PdfFileSaveCubit extends Cubit<PdfFileSaveState> {
           //storing the fie temp
           final Directory tempDir = await getTemporaryDirectory();
           final tempFileSavePath =
-              '${tempDir.path}/${studyMaterial.fileName}.${studyMaterial.fileExtension}';
+              '${tempDir.path}/${studyMaterial.localFileName}';
 
           await _subjectRepository.downloadStudyMaterialFile(
             cancelToken: _cancelToken,
@@ -94,7 +94,7 @@ class PdfFileSaveCubit extends Cubit<PdfFileSaveState> {
               : (await getApplicationDocumentsDirectory()).path;
 
           pdfFilePath =
-              '$pdfFilePath/${studyMaterial.fileName}.${studyMaterial.fileExtension}';
+              '$pdfFilePath/${studyMaterial.localFileName}';
 
           await writeFileFromTempStorage(
             sourcePath: tempFileSavePath,
@@ -132,7 +132,7 @@ class PdfFileSaveCubit extends Cubit<PdfFileSaveState> {
         //download file for just to see
         final Directory tempDir = await getTemporaryDirectory();
         final savePath =
-            '${tempDir.path}/${studyMaterial.fileName}.${studyMaterial.fileExtension}';
+            '${tempDir.path}/${studyMaterial.localFileName}';
 
         await _subjectRepository.downloadStudyMaterialFile(
           cancelToken: _cancelToken,
