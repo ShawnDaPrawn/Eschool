@@ -634,8 +634,10 @@ class WebhookController extends Controller
         // Flutterwave sends the secret hash in the verif-hash header. This used to
         // read $_SERVER['FLW_SECRET_HASH'], which is the secret itself, so any
         // request passed the check.
+        // The fees settings page saves the hash both as a setting and in .env;
+        // env() returns nothing once the config is cached.
         $signature = (string) $request->header('verif-hash');
-        $secretHash = (string) env('FLW_SECRET_HASH');
+        $secretHash = (string) (getSettings('flutterwave_hash_key')['flutterwave_hash_key'] ?? env('FLW_SECRET_HASH'));
 
         if ($secretHash === '' || ! hash_equals($secretHash, $signature)) {
             exit();

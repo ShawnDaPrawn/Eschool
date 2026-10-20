@@ -214,9 +214,19 @@ class ResponseService
     public static function logErrorResponse(Throwable|Exception $e)
     {
         report($e);
-        $token = request()->bearerToken();
 
-        Log::error($e->getMessage().'---> '.$e->getFile().' At Line : '.$e->getLine()."\n\n".request()->method().' : '.request()->fullUrl()."\nToken : ".$token."\nParams : ", request()->all());
+        Log::error($e->getMessage().'---> '.$e->getFile().' At Line : '.$e->getLine()."\n\n".request()->method().' : '.request()->fullUrl()."\nParams : ", self::loggableInput());
+    }
+
+    /**
+     * The request input with passwords, tokens and secrets hidden, so they are
+     * never written to the log.
+     */
+    private static function loggableInput(): array
+    {
+        return collect(request()->input())
+            ->map(fn ($value, $key) => preg_match('/password|token|secret|otp/i', (string) $key) ? '[hidden]' : $value)
+            ->all();
     }
 
     public static function logCurlRequest()
@@ -241,9 +251,7 @@ class ResponseService
         if (in_array($method, ['POST', 'PUT', 'PATCH', 'DELETE'])) {
             // Multipart (e.g., file upload)
             $parts = [];
-            $inputs = collect($request->input())
-                ->map(fn ($value, $key) => preg_match('/password|token|secret|otp/i', (string) $key) ? '[hidden]' : $value);
-            foreach ($inputs as $key => $value) {
+            foreach (self::loggableInput() as $key => $value) {
                 if (is_array($value)) {
                     foreach ($value as $k => $v) {
                         if (is_array($v)) {

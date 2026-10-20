@@ -134,11 +134,18 @@ class SecurityTest extends TestCase
         $this->app->instance('request', $request);
 
         ResponseService::logCurlRequest();
+        ResponseService::logErrorResponse(new \Exception('Test error'));
 
-        Log::shouldHaveReceived('error')->withArgs(fn (string $message) => str_contains($message, 'visible')
-            && ! str_contains($message, 'old-secret')
-            && ! str_contains($message, 'new-secret')
-            && ! str_contains($message, 'token-secret'));
+        $logged = '';
+        Log::shouldHaveReceived('error')->withArgs(function (string $message, array $context = []) use (&$logged) {
+            $logged .= $message.json_encode($context);
+
+            return true;
+        });
+        $this->assertStringContainsString('visible', $logged);
+        foreach (['old-secret', 'new-secret', 'token-secret'] as $secret) {
+            $this->assertStringNotContainsString($secret, $logged);
+        }
     }
 
     public function test_expired_app_tokens_are_rejected(): void
