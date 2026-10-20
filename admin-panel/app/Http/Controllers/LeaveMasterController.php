@@ -134,8 +134,7 @@ class LeaveMasterController extends Controller
         if (isset($_GET['order']))
             $order = $_GET['order'];
 
-        if (isset($_GET['session_year_id']))
-            $session_year_id = $_GET['session_year_id'];
+        $session_year_id = $_GET['session_year_id'] ?? getSettings('session_year')['session_year'];
 
         $sql = LeaveMaster::where('session_year_id', $session_year_id)->where('id', '!=', 0)->with('session_year');
 

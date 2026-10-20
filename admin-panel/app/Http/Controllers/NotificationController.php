@@ -236,7 +236,7 @@ class NotificationController extends Controller
         if (isset($_GET['order']))
             $order = $_GET['order'];
 
-        $session_year_id = $_GET['session_year_id'];
+        $session_year_id = $_GET['session_year_id'] ?? getSettings('session_year')['session_year'];
 
         $sql = Notification::where('id', '!=', 0)->where('is_custom', 1)->where('session_year_id', $session_year_id);
         if (isset($_GET['search']) && !empty($_GET['search'])) {

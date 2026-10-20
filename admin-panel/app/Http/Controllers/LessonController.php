@@ -218,7 +218,7 @@ class LessonController extends Controller
                     });
             });
         }
-        if ($_GET['subject_id']) {
+        if (! empty($_GET['subject_id'])) {
             $sql = $sql->where('subject_id', $_GET['subject_id']);
         }
         if (! empty($_GET['class_id'])) {
@@ -256,7 +256,7 @@ class LessonController extends Controller
                 $relatedData[] = 'lesson files';
             }
 
-            $operate = '<a href='.route('lesson.edit', $row->id).' class="btn btn-xs btn-gradient-primary btn-rounded btn-icon edit-data" data-id='.$row->id.' title="Edit" data-toggle="modal" data-target="#editModal"><i class="fa fa-edit"></i></a>&nbsp;&nbsp;';
+            $operate = '<a href="#" class="btn btn-xs btn-gradient-primary btn-rounded btn-icon edit-data" data-id='.$row->id.' title="Edit" data-toggle="modal" data-target="#editModal"><i class="fa fa-edit"></i></a>&nbsp;&nbsp;';
             $operate .= '
                 <a
                     href="'.route('lesson.destroy', $row->id).'"

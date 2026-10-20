@@ -1404,7 +1404,7 @@ window.onlineExamQuestionsEvents = {
             $('.edit_question').html('')
             $('.edit_option_container').html('')
             // set data in question text area
-            CKEDITOR.instances['edit_equestion'].setData(row.question_row)
+            setEquationEditorValue('edit_equestion', row.question_row)
 
             $('#edit-simple-question').hide(100)
             $('#edit-equation-question').show(300);
@@ -1420,7 +1420,7 @@ window.onlineExamQuestionsEvents = {
                     $('.edit_eoption_container').html(html_option);
                 }
             });
-            createCkeditor();
+            createEquationEditors();
         } else {
             $('#edit-equation-question').hide(100);
             $('#edit-simple-question').show(300);
