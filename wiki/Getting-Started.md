@@ -84,7 +84,7 @@ Both apps work the same way. The steps below use `e-school`. For the teacher app
    - `android/app/google-services.json`
    - `ios/Runner/GoogleService-Info.plist`
 
-   Register the Android package names `za.co.example.eschool` and `za.co.example.eschool.teacher`, or your own names after renaming (see [Mobile App Configuration](Mobile-App-Configuration)). To send push notifications, the panel also needs the service-account JSON from the same Firebase project (see [Notifications](Notifications)).
+   Register the Android package names `tech.tokensoft.navigateed` and `tech.tokensoft.navigateed.teacher`, or your own names after renaming (see [Mobile App Configuration](Mobile-App-Configuration)). To send push notifications, the panel also needs the service-account JSON from the same Firebase project (see [Notifications](Notifications)).
 3. **Fetch packages and run:**
    ```bash
    cd e-school

@@ -1,6 +1,6 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
 xmlns:tools="http://schemas.android.com/tools"
-    package="za.co.example.eschool.teacher">
+    package="tech.tokensoft.navigateed.teacher">
 
     <uses-permission android:name="android.permission.INTERNET"/>
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"/>
@@ -24,7 +24,7 @@ xmlns:tools="http://schemas.android.com/tools"
    <!-- Backups are off: app data (including the saved login token) must not be copied
         to cloud backups or to another device. -->
    <application
-        android:label="eschool Teacher"
+        android:label="NavigateEd Teacher"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher"
         android:allowBackup="false"
