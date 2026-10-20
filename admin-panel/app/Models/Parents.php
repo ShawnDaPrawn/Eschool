@@ -75,6 +75,22 @@ class Parents extends Model
         return $this->fatherRelationChild()->union($this->motherRelationChild())->union($this->guardianRelationChild());
     }
 
+    /**
+     * Whether the student is this parent's child. Use this rather than
+     * children()->where(...): children() is a UNION, and a where() added to it
+     * only filters the father part.
+     */
+    public function hasChild($studentId): bool
+    {
+        return Students::where('id', $studentId)
+            ->where(function ($query) {
+                $query->where('father_id', $this->id)
+                    ->orWhere('mother_id', $this->id)
+                    ->orWhere('guardian_id', $this->id);
+            })
+            ->exists();
+    }
+
     //Getter Attributes
     public function getImageAttribute($value)
     {

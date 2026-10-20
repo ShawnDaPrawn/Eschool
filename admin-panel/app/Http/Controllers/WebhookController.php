@@ -631,11 +631,13 @@ class WebhookController extends Controller
         $body = file_get_contents('php://input');
         $data = json_decode($body);
 
-        $signature = (isset($_SERVER['FLW_SECRET_HASH'])) ? $_SERVER['FLW_SECRET_HASH'] : '';
-        // Your secret hash from environment variables
-        $secretHash = env('FLW_SECRET_HASH');
+        // Flutterwave sends the secret hash in the verif-hash header. This used to
+        // read $_SERVER['FLW_SECRET_HASH'], which is the secret itself, so any
+        // request passed the check.
+        $signature = (string) $request->header('verif-hash');
+        $secretHash = (string) env('FLW_SECRET_HASH');
 
-        if ($signature !==  $secretHash) {
+        if ($secretHash === '' || ! hash_equals($secretHash, $signature)) {
             exit();
         }
         // Retrieve the payment details

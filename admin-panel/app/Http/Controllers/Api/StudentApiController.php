@@ -3038,7 +3038,8 @@ class StudentApiController extends Controller
         }
         try {
             // Updating the Payment Transaction
-            $transaction_db = PaymentTransaction::findOrFail($request->transaction_id);
+            $transaction_db = PaymentTransaction::where('student_id', $request->user()->student->id)
+                ->findOrFail($request->transaction_id);
             if ($request->payment_id) {
                 $transaction_db->payment_id = $request->payment_id;
             }
@@ -3289,7 +3290,8 @@ class StudentApiController extends Controller
     public function failPaymentTransactionStatus(Request $request)
     {
         try {
-            $update_status = PaymentTransaction::findOrFail($request->payment_transaction_id);
+            $update_status = PaymentTransaction::where('student_id', $request->user()->student->id)
+                ->findOrFail($request->payment_transaction_id);
             $total_amount = $update_status->total_amount;
             $update_status->payment_status = 0;
             $update_status->save();

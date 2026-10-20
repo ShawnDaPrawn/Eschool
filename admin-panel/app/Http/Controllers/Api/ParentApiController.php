@@ -1597,6 +1597,9 @@ class ParentApiController extends Controller
         try {
             // Updating the Payment Transaction
             $transaction_db = PaymentTransaction::findOrFail($request->transaction_id);
+            if (! $request->user()->parent->hasChild($transaction_db->student_id)) {
+                ResponseService::errorResponse('Invalid Child ID Passed.', null, 105);
+            }
             if ($request->payment_id) {
                 $transaction_db->payment_id = $request->payment_id;
             }
@@ -1649,8 +1652,8 @@ class ParentApiController extends Controller
             // Getting the Fees Paid Data
             $fees_paid = FeesPaid::where('id', $request->fees_paid_id)->with('student.user:id,first_name,last_name', 'class', 'session_year')->get()->first();
 
-            // Check That Fees Paid Data Exists Or Not
-            if (! $fees_paid) {
+            // Check That Fees Paid Data Exists Or Not, and is for this parent's child
+            if (! $fees_paid || ! $parent->parent->hasChild($fees_paid->student_id)) {
                 ResponseService::errorResponse('No Fees Paid Found', null, 103);
             }
 
@@ -2174,8 +2177,7 @@ class ParentApiController extends Controller
 
             $parent_id = Auth::user()->parent->id;
             if ($request->filled('child_id')) {
-                $owns = Auth::user()->parent->children()->where('id', $request->child_id)->exists();
-                if (! $owns) {
+                if (! Auth::user()->parent->hasChild($request->child_id)) {
                     ResponseService::errorResponse('Invalid Child ID Passed.', null, 105);
                 }
                 $child_id = [(int) $request->child_id];
@@ -2471,6 +2473,9 @@ class ParentApiController extends Controller
     {
         try {
             $update_status = PaymentTransaction::findOrFail($request->payment_transaction_id);
+            if (! Auth::user()->parent->hasChild($update_status->student_id)) {
+                ResponseService::errorResponse('Invalid Child ID Passed.', null, 105);
+            }
             $total_amount = $update_status->total_amount;
             $update_status->payment_status = 0;
             $update_status->save();
@@ -2531,7 +2536,6 @@ class ParentApiController extends Controller
 
     public function getPaymentStatus(Request $request)
     {
-        ResponseService::logCurlRequest();
         $validator = Validator::make($request->all(), [
             'payment_intent_id' => 'required',
         ]);
@@ -3287,7 +3291,8 @@ class ParentApiController extends Controller
 
         try {
             // child_id ownership is already enforced by the CheckChild middleware.
-            $child = $request->user()->parent->children()->where('id', $request->child_id)->first();
+            // children() is a UNION, so pick the child from the loaded collection.
+            $child = $request->user()->parent->children()->get()->firstWhere('id', $request->child_id);
 
             $output = $idCardService->buildPdf([$child->id])->output();
 

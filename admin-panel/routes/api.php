@@ -180,7 +180,7 @@ Route::group(['prefix' => 'teacher'], function () {
     // Non Authenticated APIs
     Route::post('login', [TeacherApiController::class, 'login']);
     // Authenticated APIs
-    Route::group(['middleware' => ['auth:sanctum']], function () {
+    Route::group(['middleware' => ['auth:sanctum', \App\Http\Middleware\EnsureUserIsTeacher::class]], function () {
         Route::get('dashboard', [TeacherApiController::class, 'dashboard']);
         Route::get('classes', [TeacherApiController::class, 'classes']);
 

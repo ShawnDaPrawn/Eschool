@@ -209,7 +209,6 @@ class ApiController extends Controller
                     $data['payment_options']['razorpay'] = array(
                         'razorpay_status' => $settings['razorpay_status'] ?? "",
                         'razorpay_api_key' => $settings['razorpay_api_key'] ?? "",
-                        'razorpay_webhook_secret' => $settings['razorpay_webhook_secret'] ?? "",
                         'razorpay_api_key' => $settings['razorpay_api_key'] ?? "",
                         'razorpay_currency_code' => $settings['razorpay_currency_code'] ?? $settings['currency_code']
                     );
@@ -286,7 +285,6 @@ class ApiController extends Controller
      */
     protected function changePassword(Request $request)
     {
-        ResponseService::logCurlRequest();
         $validator = Validator::make($request->all(), [
             'current_password' => 'required',
             'new_password' => 'required|min:8',
