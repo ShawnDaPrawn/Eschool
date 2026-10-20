@@ -108,16 +108,19 @@ See [Documentation Site](Documentation-Site).
 
 ## 4. Run the checks CI runs
 
+Run these from the repository root. Each line uses a subshell, so the working directory does not change between them.
+
 ```bash
 # Admin panel: needs a MySQL/MariaDB database; set DB_* in .env first
-cd admin-panel && php artisan route:list > /dev/null && php artisan test
+(cd admin-panel && php artisan route:list > /dev/null && php artisan test)
 
 # Each app
-cd e-school && flutter analyze --no-fatal-infos && flutter test
+(cd e-school && flutter analyze --no-fatal-infos && flutter test)
+(cd e-school-teacher && flutter analyze --no-fatal-infos && flutter test)
 
 # Dependency audits
-cd admin-panel && composer audit --locked
-cd documentation && npm audit --audit-level=critical
+(cd admin-panel && composer audit --locked)
+(cd documentation && npm audit --audit-level=critical)
 ```
 
 [Testing and CI](Testing-and-CI) has the details, including how to create the test database.
