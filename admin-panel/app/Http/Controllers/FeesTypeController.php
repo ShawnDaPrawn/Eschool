@@ -1212,6 +1212,8 @@ class FeesTypeController extends Controller
             'flutterwave_status' => 'required',
             'flutterwave_public_key' => 'required_if:flutterwave_status,1|nullable',
             'flutterwave_secret_key' => 'required_if:flutterwave_status,1|nullable',
+            // Webhooks are refused without it, so payments would never be confirmed.
+            'flutterwave_hash_key' => 'required_if:flutterwave_status,1|nullable',
             'flutterwave_webhook_url' => 'required_if:flutterwave_status,1|nullable',
             'flutterwave_currency_code' => 'required_if:flutterwave_status,1|nullable',
             'currency_code' => 'required',
@@ -1555,7 +1557,7 @@ class FeesTypeController extends Controller
                     $setting->save();
                 }
 
-                // flutterwave_encryption_key
+                // flutterwave_hash_key (the webhook secret hash)
                 if (Settings::where('type', 'flutterwave_hash_key')->exists()) {
                     $data = [
                         'message' => trim($request->flutterwave_hash_key),

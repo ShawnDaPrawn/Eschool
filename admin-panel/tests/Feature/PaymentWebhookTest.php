@@ -63,6 +63,21 @@ class PaymentWebhookTest extends TestCase
 
     // ---- Server-side fee computation -------------------------------------------------
 
+
+    public function test_flutterwave_cannot_be_enabled_without_its_webhook_secret_hash(): void
+    {
+        $response = $this->actingAs($this->superAdmin())->postJson('/fees-config/update', [
+            'razorpay_status' => 0, 'stripe_status' => 0, 'paystack_status' => 0,
+            'flutterwave_status' => 1,
+            'flutterwave_public_key' => 'FLWPUBK-x', 'flutterwave_secret_key' => 'FLWSECK-x',
+            'flutterwave_webhook_url' => 'https://school.test/webhook/flutterwave', 'flutterwave_currency_code' => 'NGN',
+            'currency_code' => 'NGN', 'currency_symbol' => 'N', 'compulsory_fee_payment_mode' => 0, 'is_student_can_pay_fees' => 1,
+        ]);
+
+        // Without the hash every Flutterwave webhook would be refused and payments never confirmed.
+        $response->assertJson(['error' => true]);
+        $this->assertStringContainsString('flutterwave hash key', strtolower($response->json('message')));
+    }
     public function test_compulsory_fees_are_priced_on_the_server(): void
     {
         $this->assertRejected(fn () => $this->prepare(FeesPaymentService::COMPULSORY, amount: 1));

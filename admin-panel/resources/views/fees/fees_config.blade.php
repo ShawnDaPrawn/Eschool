@@ -327,8 +327,9 @@
                                 <input name="flutterwave_secret_key" value="{{ !env('DEMO_MODE') ? (isset($settings['flutterwave_secret_key']) ? $settings['flutterwave_secret_key'] : '') : 'xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx' }}" type="text" placeholder="{{ __('flutterwave_secret_key') }}" class="form-control" />
                             </div>
                             <div class="form-group col-md-6">
-                                <label>{{ __('flutterwave_encryption_key') }}</label>
-                                <input name="flutterwave_hash_key" value="{{ !env('DEMO_MODE') ? (isset($settings['flutterwave_hash_key']) ? $settings['flutterwave_hash_key'] : '') : 'xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx' }}" type="text" placeholder="{{ __('flutterwave_encryption_key') }}" class="form-control" />
+                                <label>{{ __('Flutterwave Webhook Secret Hash') }}</label>
+                                <input name="flutterwave_hash_key" value="{{ !env('DEMO_MODE') ? (isset($settings['flutterwave_hash_key']) ? $settings['flutterwave_hash_key'] : '') : 'xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx' }}" type="text" placeholder="{{ __('Flutterwave Webhook Secret Hash') }}" class="form-control" />
+                                <small class="form-text text-muted">{{ __('Must match the Secret hash under Settings > Webhooks in your Flutterwave dashboard (not the encryption key).') }}</small>
                             </div>
                             <div class="form-group col-md-6">
                                 <label>{{__('flutterwave')}} {{ __('webhook_url') }}</label>
