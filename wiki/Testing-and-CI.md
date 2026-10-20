@@ -200,6 +200,7 @@ You need PHP 8.3 with the extensions CI installs (`mbstring, intl, gd, zip, pdo_
 
    ```bash
    php artisan route:list > /dev/null     # routes load
+   php artisan config:cache && php artisan route:cache && php artisan view:cache && php artisan optimize:clear   # every cache builds
    php artisan config:clear               # a cached config would ignore phpunit.xml's variables
    php artisan test                        # or: composer test (runs config:clear, then artisan test)
    ```

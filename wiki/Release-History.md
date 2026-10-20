@@ -63,7 +63,7 @@ All fork work below landed on 20 October 2026 (UTC).
 | [#6](https://github.com/ShawnDaPrawn/Eschool/pull/6) | 2026-10-20 23:22 | [a1a671b](https://github.com/ShawnDaPrawn/Eschool/commit/a1a671b) | Phase 2: Read admin settings from the database so config caching works | e13ac7d, 7af6b74 |
 | [#9](https://github.com/ShawnDaPrawn/Eschool/pull/9) | 2026-10-20 23:28 | [ff82b30](https://github.com/ShawnDaPrawn/Eschool/commit/ff82b30) | Add a project wiki and publish it to the Wiki tab | dce1a32 … 957a95a (6 commits) |
 
-PR #3 was opened before #4 and merged last. Its merge of `main` ([0ce6bac](https://github.com/ShawnDaPrawn/Eschool/commit/0ce6bac)) dropped the branch's hardened `UserController` (main had already removed the users demo code in [97e6bff](https://github.com/ShawnDaPrawn/Eschool/commit/97e6bff)), kept main's `DB_PERSISTENT` handling, and kept both main's removal of the `video-gallery` route and the branch's contact-form throttle.
+PR #3 was opened before #4 but merged after #4 and #5. Its merge of `main` ([0ce6bac](https://github.com/ShawnDaPrawn/Eschool/commit/0ce6bac)) dropped the branch's hardened `UserController` (main had already removed the users demo code in [97e6bff](https://github.com/ShawnDaPrawn/Eschool/commit/97e6bff)), kept main's `DB_PERSISTENT` handling, and kept both main's removal of the `video-gallery` route and the branch's contact-form throttle.
 
 ### Security hardening
 
@@ -126,6 +126,7 @@ Before this change, rewriting `.env` also changed the session cookie name (deriv
 | [bfb73dd](https://github.com/ShawnDaPrawn/Eschool/commit/bfb73dd) | #3 | Same persistent-connection fix on the security branch (merged into main's version) |
 | [ab36b16](https://github.com/ShawnDaPrawn/Eschool/commit/ab36b16) | #5 | The `php -S` test server moved out of `AdminPagesTest` into `Tests\Concerns\RunsAppServer` with `appClient()` / `apiClient()` |
 | [ef07de7](https://github.com/ShawnDaPrawn/Eschool/commit/ef07de7) | #5 | `test/translations_test.dart` in both apps, run in CI with `flutter test`; `flutter_test` added to the student app |
+| [e13ac7d](https://github.com/ShawnDaPrawn/Eschool/commit/e13ac7d) | #6 | CI step "Config, routes and views cache" (`config:cache`, `route:cache`, `view:cache`, then `optimize:clear`); `SettingsConfigTest` |
 
 Security commits in #3 each added their own feature tests (`AccessControlTest`, `AdminAuthorizationTest`, `AcademicAuthorizationTest`, `ParentApiSecurityTest`, `TeacherApiSecurityTest`, `StudentApiSecurityTest`, `PaymentWebhookTest`, `UploadSecurityTest`). See [Testing-and-CI](Testing-and-CI).
 
