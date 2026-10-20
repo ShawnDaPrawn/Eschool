@@ -1,6 +1,8 @@
-# 📘 Documentation Setup Guide
+# Documentation
 
-Follow these simple steps to set up and run this documentation locally on your machine.
+Documentation site for this repository. Page content is grouped by area (`mobile-app/`, `admin-panel/`, `web-page/`, `features/`, `support/`, `faqs/`, `changelog/`). Sidebar configuration is in `sidebars/`.
+
+Follow these steps to run the site locally.
 
 ---
 
