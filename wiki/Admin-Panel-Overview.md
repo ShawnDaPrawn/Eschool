@@ -13,7 +13,7 @@ This page explains how the Laravel application in `admin-panel/` is put together
 | Entry points | `public/index.php` (HTTP), `artisan` (CLI) |
 | Route files | `routes/web.php` (admin panel, public site, webhooks, maintenance URLs), `routes/api.php` (mobile apps, prefix `/api`), `routes/console.php` (closure commands and the schedule) |
 | Health check | `GET /up` (registered by `withRouting(health: '/up')`, outside the `web` group) |
-| Size | 46 controller files in `app/Http/Controllers` plus 4 API and 6 auth controllers, 76 models, 91 migrations, 668 registered routes |
+| Size | 46 controller files in `app/Http/Controllers` plus 4 API and 5 auth controllers, 76 models, 91 migrations, 668 registered routes |
 
 ## Request lifecycle
 
@@ -40,9 +40,10 @@ flowchart TD
    - `->withProviders([...])` in `bootstrap/app.php` (Spatie Permission, Sanctum and the wizard installer, again);
    - package auto-discovery (for example `Unicodeveloper\Paystack\PaystackServiceProvider`, `Laravel\Ui\UiServiceProvider`, `dacoto\EnvSet\EnvSetServiceProvider`).
 3. The installer's service provider prepends `ToInstallMiddleware` to the `web` group. Until `storage/installed` exists, every web route except `install/*` redirects to the wizard (see [Installation-Wizard](Installation-Wizard)).
-4. Global middleware runs, then the route's group (`web` or `api`), then route middleware.
-5. Controllers do most authorisation themselves: almost every action starts with `if (! Auth::user()->can('some-permission'))` and returns a redirect or JSON error.
-6. The response is a Blade view, a redirect with flashed `success`/errors, or JSON. API controllers send JSON through `ResponseService`, which calls `exit()` (see [ResponseService conventions](#responseservice-conventions)).
+4. While providers boot, `AppServiceProvider::boot()` calls `SettingsConfigService::apply()`, which overwrites `app.name`, `app.timezone`, the SMTP settings and the Paystack keys with the values saved in the `settings` table (see [Configuration](Configuration#settings-that-override-env)).
+5. Global middleware runs, then the route's group (`web` or `api`), then route middleware.
+6. Controllers do most authorisation themselves: almost every action starts with `if (! Auth::user()->can('some-permission'))` and returns a redirect or JSON error.
+7. The response is a Blade view, a redirect with flashed `success`/errors, or JSON. API controllers send JSON through `ResponseService`, which calls `exit()` (see [ResponseService conventions](#responseservice-conventions)).
 
 `App\Providers\RouteServiceProvider` is still registered through `config/app.php`. It defines the rate limiters and `HOME = '/home'`, and its `boot()` also calls `$this->routes(...)` for `routes/api.php` and `routes/web.php`, so the route files are loaded more than once. Later definitions overwrite earlier ones with the same method and URI, so the result is the same route table.
 
@@ -126,7 +127,7 @@ Every class in [app/Http/Middleware](https://github.com/ShawnDaPrawn/Eschool/tre
 |---|---|---|
 | `Authenticate` | alias `auth` | Redirects to `route('login')` unless the request expects JSON (then a 401). Used as `auth` on admin routes and `auth:sanctum` on API routes. |
 | `CheckChild` | alias `checkChild`; also referenced by class in `routes/api.php` | Parent API: reads `child_id`, looks it up among `$request->user()->parent->children()`, stores it as the request attribute `child`. Otherwise returns `{"error":true,"message":"Invalid Child ID Passed.","code":105}`. |
-| `CheckRole` | alias `Role` | Admin panel gate. Lets a signed-in user through only if they have a role other than `Parent` or `Student`; otherwise logs them out and redirects to login with `no_permission_message`. For a guest it renders `auth.login` directly. |
+| `CheckRole` | alias `Role` | Admin panel gate. Lets a signed-in user through only if they have at least one role other than `Parent` or `Student`; an account with no role, or only those roles, is logged out and redirects to login with `no_permission_message`. For a guest it renders `auth.login` directly. |
 | `CheckStudent` | alias `checkStudent`; referenced by class in the teacher API group | Teacher API: the `student_id` must belong to a class section where the signed-in teacher is a class teacher (`class_teachers.class_teacher_id`), else error code 105. |
 | `DemoMiddleware` | appended to `web`; alias `demo` | When `config('app.demo_mode')` (`DEMO_MODE`) is true, blocks every non-GET request from a signed-in user except a fixed list of URIs (logins, ID cards, certificates, chat and leave list endpoints) unless the user's email is `demomodeoff@gmail.com`. Returns error code 112. |
 | `EncryptCookies` | appended to `web`; `config/sanctum.php` `encrypt_cookies` | Subclass of the framework class with an empty `$except`. |
@@ -155,7 +156,7 @@ Route-level usage, in short (details in [Security-Model](Security-Model) and [AP
 |---|---|
 | `app/Http/Controllers` | 46 controllers for the admin panel and public site, one per module (`StudentController`, `FeesTypeController`, `ExamController`, `SettingController`, `SystemUpdateController`, `WebController` for the public website, `WebhookController` for payment gateways, and so on). The base `Controller` also serves `GET /common/js/lang`, which returns `window.languageLabels = {...}` from `resources/lang/<code>.json` (falling back to `en.json`). See [Admin-Modules](Admin-Modules). |
 | `app/Http/Controllers/Api` | `ApiController` (shared endpoints: settings, holidays, sliders, session years, events, gallery, forgot/change password, logout), `StudentApiController`, `ParentApiController`, `TeacherApiController`. See [API-Overview](API-Overview). |
-| `app/Http/Controllers/Auth` | laravel/ui controllers using the framework's `AuthenticatesUsers` and related traits. `LoginController::authenticated()` signs out users with the `Parent` or `Student` role, because those roles may only use the apps. There is no register route. |
+| `app/Http/Controllers/Auth` | laravel/ui controllers using the framework's `AuthenticatesUsers` and related traits: `LoginController`, `ForgotPasswordController`, `ResetPasswordController`, `ConfirmPasswordController`, `VerificationController`. `LoginController::authenticated()` signs out users with the `Parent` or `Student` role, because those roles may only use the apps. The old `RegisterController`, its view and the `/register` route were removed; student admissions go through the public `/registration` form. |
 | `app/Http/Middleware` | See the table above. |
 | `app/Http/Requests` | Form requests: `StoreLessonRequest`, `UpdateLessonRequest`, `StoreLessonTopicRequest`, `UpdateLessonTopicRequest`, `StoreSessionYearRequest`. Most other validation is inline with `$request->validate()` or `Validator::make()`. |
 | `app/Http/Resources` | `UserResource`, `TimetableCollection`. |
@@ -216,7 +217,7 @@ Forms submit over AJAX with `formAjaxRequest()` (in `function.js`), which valida
 
 ### Static assets
 
-Everything the admin panel and public site load is committed under [public/assets](https://github.com/ShawnDaPrawn/Eschool/tree/main/admin-panel/public/assets) (about 17 MB):
+Everything the admin panel and public site load is committed under [public/assets](https://github.com/ShawnDaPrawn/Eschool/tree/main/admin-panel/public/assets) (about 14 MB):
 
 | Folder | Contents |
 |---|---|
@@ -224,18 +225,18 @@ Everything the admin panel and public site load is committed under [public/asset
 | `assets/js` | `vendor.bundle.base.js` (jQuery and Bootstrap), Chart.js, jQuery Validate, Flatpickr, Moment, SweetAlert2, jquery.repeater and others |
 | `assets/js/custom` | App code: `custom.js`, `function.js`, `formatter.js`, `queryParams.js`, `custom-bootstrap-table.js`, `bootstrap-table-locale.js`, `validate.js`, `sidebar.js`, `dashboard.js`, `timetable.js`, `staff-attendance.js`, `reset-password.js`, `system-update.js` |
 | `assets/bootstrap-table` | bootstrap-table with the mobile, export, fixed-columns and reorder-rows extensions, tableExport and jsPDF |
-| `assets/jodit`, `assets/tinymce` | Rich text editors (Jodit replaced CKEditor 4 in the online exam editors) |
+| `assets/jodit` | The one rich text editor: online exam questions (it replaced CKEditor 4) and, since TinyMCE was removed, the privacy policy, terms, about us, contact us, online exam terms and email template editors. `createRichTextEditor()` and `syncRichTextEditors()` in `function.js` set it up. |
 | `assets/katex` | Maths rendering |
 | `assets/select2`, `assets/jquery-toast-plugin`, `assets/color-picker`, `assets/apexcharts`, `assets/fonts` | Other libraries |
 
 One script is loaded from a CDN: the jQuery Validate message localisation from `cdnjs.cloudflare.com`.
 
-## Front-end build (Vite, Mix)
+## Front-end build
 
-Neither build tool is used by the running application:
+The Vite build in `admin-panel/` is not used by the running application:
 
 - [package.json](https://github.com/ShawnDaPrawn/Eschool/blob/main/admin-panel/package.json) and [vite.config.js](https://github.com/ShawnDaPrawn/Eschool/blob/main/admin-panel/vite.config.js) are the Laravel 12 skeleton defaults: Vite 6, `laravel-vite-plugin` and Tailwind 4, compiling `resources/css/app.css` and `resources/js/app.js` (which only sets up axios). No Blade view contains `@vite`, and there is no `public/build`.
-- [webpack.mix.js](https://github.com/ShawnDaPrawn/Eschool/blob/main/admin-panel/webpack.mix.js) refers to `laravel-mix`, which is not in `package.json`, and to `resources/sass/app.scss`, which does not exist.
+- An unused Laravel Mix config (`webpack.mix.js`) used to sit next to it; it has been deleted.
 - The Composer `dev` script (`composer run dev`) starts `php artisan serve`, `queue:listen`, `pail` and `npm run dev` together; the Vite server it starts serves nothing the pages use.
 
 So `npm install` is not needed to run or deploy the admin panel. To change the UI, edit the files in `public/assets/` directly. The wizard installer has its own Tailwind build (`packages/laravel-wizard-installer/public/styles.css`, published to `public/vendor/installer/styles.css`).
@@ -280,7 +281,7 @@ The project id comes from the `project_id` setting. Pushes are sent synchronousl
 
 ## ResponseService conventions
 
-[app/Services/ResponseService.php](https://github.com/ShawnDaPrawn/Eschool/blob/main/admin-panel/app/Services/ResponseService.php) is used by the four API controllers and by `ClassSchoolController`, `ExamController`, `StudentController`, `SubjectController`, `StaffController`, `HomeController` and `OnlineExamQuestionController`.
+[app/Services/ResponseService.php](https://github.com/ShawnDaPrawn/Eschool/blob/main/admin-panel/app/Services/ResponseService.php) is used by the four API controllers and by 25 admin controllers (among them `StudentController`, `TeacherController`, `ExamController`, `AttendanceController`, `SubjectController`, `SliderController`, `RoleController` and `EmailController`), mostly for its permission guards.
 
 | Method | Output |
 |---|---|
@@ -289,8 +290,8 @@ The project id comes from the `project_id` setting. Pushes are sent synchronousl
 | `validationError($message, $data = null)` | `errorResponse()` with `code` from `config('constants.RESPONSE_CODE.VALIDATION_ERROR')`. |
 | `warningResponse($message, $data = null, $code = null)` | `{"error": false, "warning": true, ...}`, then `exit()`. |
 | `noPermissionThenSendJson($permission)`, `noAnyPermissionThenSendJson(array)` | Send an error JSON if `Auth::user()` lacks the permission(s). |
-| `noPermissionThenRedirect`, `noRoleThenRedirect`, `noAnyRoleThenRedirect`, `noAnyPermissionThenRedirect` | Send a redirect to `home` (or back) with `no_permission_message`. |
-| `successRedirectResponse`, `errorRedirectResponse` | Send a redirect with a flashed `success` message or error. |
+| `noPermissionThenRedirect`, `noRoleThenRedirect`, `noAnyRoleThenRedirect`, `noAnyPermissionThenRedirect` | Throw an `HttpResponseException` carrying a redirect to `home` (`back()` for `noAnyPermissionThenRedirect`) with `no_permission_message`, so the controller stops there. (They used to call `send()` without stopping, and the protected page was still rendered after the redirect.) |
+| `successRedirectResponse`, `errorRedirectResponse` | Send a redirect with a flashed `success` message or error using `send()`, and return it; they do not stop the request. |
 | `logErrorResponse($e)`, `logCurlRequest()` | `report($e)` plus a log line with the request parameters. Keys matching `pass`, `token`, `secret`, `key`, `signature`, `authorization`, `cookie` or `otp` are logged as `[redacted]`. |
 
 Things to keep in mind:

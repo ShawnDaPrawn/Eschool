@@ -180,7 +180,7 @@ A student with no `student_sessions` row for the current year is blocked from th
 
 ## Timetables
 
-`TimetableController::store` (permission `timetable-create`) saves periods for one day of one class section: `day` (1 Monday to 7 Sunday) and `day_name`, `start_time`, `end_time`, `link_name`, `live_class_url`, `session_year_id`, `semester_id`. The `subject_teacher_id` is looked up from the chosen subject and teacher (restricted to the current semester when the class uses semesters); if none is found it is stored as 0. Class and teacher timetable views need `class-timetable` and `teacher-timetable`. A live-class link can be changed by anyone with `timetable-edit` or by the teacher of that period (`TimetableController::linkUpdate`, http(s) URLs only).
+`TimetableController::store` (permission `timetable-create`) saves periods for one day of one class section: `day` (1 Monday to 7 Sunday) and `day_name`, `start_time`, `end_time`, `link_name`, `live_class_url`, `session_year_id`, `semester_id`. The `subject_teacher_id` is looked up from the chosen subject and teacher only (not the class section; restricted to the current semester when the class uses semesters), taking the first match; if none is found it is stored as 0. Class and teacher timetable views need `class-timetable` and `teacher-timetable`. A live-class link can be changed by anyone with `timetable-edit` or by the teacher of that period (`TimetableController::linkUpdate`, http(s) URLs only).
 
 ## Holidays, events and the academic calendar
 

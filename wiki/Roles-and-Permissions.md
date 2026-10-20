@@ -25,7 +25,7 @@ Migration `2026_03_24_152838` grants `view-exam-result` to role ids 1 and 2, whi
 
 ## Permission catalogue
 
-`InstallationSeeder` creates **174** permissions with `Permission::firstOrCreate(['name' => ...], ['guard_name' => 'web'])` (the `id` values written in its array are not used) and then calls `syncPermissions()` on the two staff roles: **151** for `Super Admin` and **41** for `Teacher`. Because the installer and every system update re-run this seeder, a role's permission list is reset to the seeded list on each update.
+`InstallationSeeder` creates **174** permissions with `Permission::firstOrCreate(['name' => ...], ['guard_name' => 'web'])` (the `id` values written in its array are not used) and then calls `syncPermissions()` on the two staff roles: **151** for `Super Admin` and **41** for `Teacher`. Because the installer and every system update re-run this seeder, changes made to the Super Admin or Teacher permission lists in the database are reset to the seeded lists on each update; custom roles are not touched.
 
 Columns: **SA** = granted to Super Admin, **T** = granted to Teacher. "Checked in" names the main controllers that test the permission. Permissions marked *menu only* are tested only in Blade (`@can` / `@canany`) to show a menu item; *not checked* means no code tests them at all.
 

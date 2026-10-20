@@ -139,7 +139,7 @@ Warning: these are well-known demo credentials, and the installer's finish page 
 | `test_old_licence_system_is_gone` | The registered `install*` URIs are exactly `install`, `install/database`, `install/finish`, `install/folders`, `install/keys`, `install/migrations`, `install/server` (no licence step); the classes `App\Services\SystemIntegrityService` and `App\Http\Middleware\EnsureRequestIntegrity` do not exist; there is no `service_health_logs` table. |
 | `test_env_example_defaults_are_safe_for_production` | `.env.example` has `APP_ENV=production`, `APP_DEBUG=false` and an empty `APP_KEY=`, and `config('sanctum.expiration')` is not null. |
 
-The HTTP steps of the wizard themselves (form posts, `.env` writes, `storage/installed`) are not exercised by any test. `AdminPagesTest` and the API security tests skip routes starting with `install`, and their `php -S` test server uses a temporary storage directory that already contains an `installed` file.
+The HTTP steps of the wizard themselves (form posts, `.env` writes, `storage/installed`) are not exercised by any test. `AdminPagesTest` skips routes starting with `install`, and the `php -S` test server from `tests/Concerns/RunsAppServer.php` uses a temporary storage directory that already contains an `installed` file.
 
 ## Prerequisites
 

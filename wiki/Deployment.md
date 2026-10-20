@@ -12,7 +12,7 @@ How to run `admin-panel/` in production: server requirements, Composer, the web 
 | Database | MySQL 5.7+ or MariaDB | The migrations use MySQL-specific SQL; CI runs MariaDB 10.11; README says MySQL 5.7+ |
 | Web server | Apache with `mod_rewrite`, or Nginx with PHP-FPM | `.htaccess` files in the project root, `public/` and `storage/app/public/` |
 | Composer | 2.x | `composer.lock` |
-| Node.js | Not needed | Assets are prebuilt in `public/assets`; see [Admin-Panel-Overview](Admin-Panel-Overview#front-end-build-vite-mix) |
+| Node.js | Not needed | Assets are prebuilt in `public/assets`; see [Admin-Panel-Overview](Admin-Panel-Overview#front-end-build) |
 | Cron | Needed for the scheduler | `routes/console.php` |
 | Outbound HTTPS | FCM (`fcm.googleapis.com`, Google OAuth), payment gateways, Google reCAPTCHA, the SMTP server, and GitHub during `composer install` (the Paystack package is a VCS dependency) | |
 
@@ -48,7 +48,7 @@ Point the web server's document root at `admin-panel/public`. Everything outside
 The user docs describe uploading the whole folder into `public_html` on shared hosting. That works because of the [root .htaccess](https://github.com/ShawnDaPrawn/Eschool/blob/main/admin-panel/.htaccess):
 
 - `RewriteRule ^(.*)$ public/$1 [L]` sends every request into `public/`;
-- a `FilesMatch` denies dotfiles, `composer.json`/`.lock`, `package.json`, `artisan`, `phpunit.xml`, `vite.config.js` and `webpack.mix.js` even when `mod_rewrite` is off;
+- a `FilesMatch` denies dotfiles, `composer.json`/`.lock`, `package.json`/`package-lock.json`, `artisan`, `phpunit.xml` and `vite.config.js` even when `mod_rewrite` is off;
 - `RedirectMatch 404 /\.(git|env)` hides `.git` and `.env`.
 
 This only protects anything while Apache honours `.htaccess` (`AllowOverride`) and `mod_rewrite` is on; without the rewrite, `storage/logs/laravel.log` and the rest of the tree are served as plain files. Prefer a document root of `public/` wherever the host allows it.

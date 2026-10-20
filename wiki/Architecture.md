@@ -107,7 +107,7 @@ Controllers stay thin where they can and hand work to `app/Services`: fees colle
 
 ### Admin panel UI
 
-Blade templates in `resources/views`, styled with Bootstrap. jQuery and plugins under `public/assets` drive the pages: Bootstrap Table, Select2, TinyMCE/Jodit editors, KaTeX for exam questions, ApexCharts on the dashboard. The panel loads these pre-built assets directly. The Vite setup in `package.json` is the Laravel default and is not needed to run the panel. Translations reach the browser through `/common/js/lang`.
+Blade templates in `resources/views`, styled with Bootstrap. jQuery and plugins under `public/assets` drive the pages: Bootstrap Table, Select2, the Jodit rich-text editor (used for exam questions, policy pages and email templates), KaTeX for exam questions, ApexCharts on the dashboard. The panel loads these pre-built assets directly. The Vite setup in `package.json` is the Laravel default and is not needed to run the panel. Translations reach the browser through `/common/js/lang`.
 
 ### Mobile apps
 

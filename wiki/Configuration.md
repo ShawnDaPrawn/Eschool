@@ -180,7 +180,7 @@ Besides the usual keys, `timezone` reads `TIMEZONE` (not `APP_TIMEZONE`) and `de
 |---|---|---|
 | `icon` | `/assets/logo.svg` | Logo and favicon on the wizard pages. |
 | `background` | commented out | The package default `/images/background.jpeg` is merged in, but that file does not exist in `public/images`. |
-| `support_url` | `mailto:support@example.com` | "Contact support" link on the welcome and finish pages. Change it for your deployment. |
+| `support_url` | a `mailto:` link to Tokensoft's support address (set in the NavigateEd rebrand) | "Contact support" link on the welcome and finish pages. Change it if someone else supports your installation. |
 | `server.php` | `>= 8.3.0` (`80300`) | PHP version check. |
 | `server.*` | `pdo_mysql`, `mbstring`, `fileinfo`, `openssl`, `tokenizer`, `json`, `curl` | Extension checks. |
 | `folders` | `../storage/framework`, `../storage/logs`, `../bootstrap/cache` | Permission checks (paths relative to `public/`). |

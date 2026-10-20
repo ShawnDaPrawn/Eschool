@@ -9,8 +9,8 @@ flowchart LR
     subgraph Clients
         A["Admin panel<br/>(browser)"]
         W["Public website<br/>(browser)"]
-        S["e-school app<br/>students and parents"]
-        T["e-school-teacher app<br/>teachers"]
+        S["NavigateEd app (e-school)<br/>students and parents"]
+        T["NavigateEd Teacher (e-school-teacher)<br/>teachers"]
     end
     subgraph Server["admin-panel (Laravel 12)"]
         WEB["Web routes<br/>routes/web.php"]
@@ -33,12 +33,14 @@ flowchart LR
     S -- "checkout" --> PG
 ```
 
-| Component | Folder | Stack | Version |
+| Component | Folder | Stack | App name and ID |
 |---|---|---|---|
 | Admin panel, public website, API | [`admin-panel/`](https://github.com/ShawnDaPrawn/Eschool/tree/main/admin-panel) | PHP 8.3, Laravel 12.70, Sanctum 4, spatie/laravel-permission 6, Blade + Bootstrap + jQuery | — |
-| Student and parent app | [`e-school/`](https://github.com/ShawnDaPrawn/Eschool/tree/main/e-school) | Flutter (Dart `>=3.8`), flutter_bloc, Dio, Hive, Firebase | 3.5.0+39 |
-| Teacher app | [`e-school-teacher/`](https://github.com/ShawnDaPrawn/Eschool/tree/main/e-school-teacher) | Flutter (Dart `>=3.8`), flutter_bloc, Dio, Hive, Firebase | 3.5.0+32 |
+| Student and parent app | [`e-school/`](https://github.com/ShawnDaPrawn/Eschool/tree/main/e-school) | Flutter (Dart `>=3.8`), flutter_bloc, Dio, Hive, Firebase. Version 3.5.0+39 | **NavigateEd**, `tech.tokensoft.navigateed` |
+| Teacher app | [`e-school-teacher/`](https://github.com/ShawnDaPrawn/Eschool/tree/main/e-school-teacher) | Flutter (Dart `>=3.8`), flutter_bloc, Dio, Hive, Firebase. Version 3.5.0+32 | **NavigateEd Teacher**, `tech.tokensoft.navigateed.teacher` |
 | End-user documentation | [`documentation/`](https://github.com/ShawnDaPrawn/Eschool/tree/main/documentation) | Docusaurus 3.10 | — |
+
+The codebase, folders and Dart packages are still called eSchool (`eschool`, `eschool_teacher`). Only the published app names and store IDs are NavigateEd.
 
 ## Who uses what
 

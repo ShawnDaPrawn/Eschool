@@ -11,9 +11,11 @@ Eschool/
 ├── wiki/                                Source of this wiki (published to the Wiki tab)
 ├── .github/workflows/ci.yml             Tests, analysis, docs build, dependency audit
 ├── .github/workflows/wiki.yml           Publishes wiki/ to the GitHub Wiki tab
-├── eSchool_3_5_0_changelog.txt          File-level changelog of the student/parent app 3.5.0 update
-└── eSchoolTeacher_3_5_0_changelog.txt   File-level changelog of the teacher app 3.5.0 update
+├── README.md                            Landing page: what each project is and how to start it
+└── .gitignore                           OS and editor files, node_modules (each project has its own too)
 ```
+
+The product changelog is in [`documentation/changelog/index.md`](https://github.com/ShawnDaPrawn/Eschool/blob/main/documentation/changelog/index.md). See [Release History](Release-History) for this fork's changes.
 
 | Project | Language / framework | Entry point | Talks to |
 |---|---|---|---|
@@ -93,7 +95,7 @@ The Dart package names are `eschool` and `eschool_teacher`. Every import uses th
 
 ## `documentation/`
 
-The Docusaurus project behind https://shawndaprawn.github.io/Eschool/. It has one docs plugin instance per folder: `admin-panel/`, `mobile-app/`, `web-page/`, `features/`, `faqs/`, `support/` and `changelog/`. Images are in `static/images/`. See [Documentation Site](Documentation-Site).
+The Docusaurus project for end-user guides. Its configured address is https://shawndaprawn.github.io/Eschool/, but nothing deploys it yet. It has one docs plugin instance per folder: `admin-panel/`, `mobile-app/`, `web-page/`, `features/`, `faqs/`, `support/` and `changelog/`. Their sidebars are in `sidebars/` and the images in `static/images/`. See [Documentation Site](Documentation-Site).
 
 ## `wiki/`
 
