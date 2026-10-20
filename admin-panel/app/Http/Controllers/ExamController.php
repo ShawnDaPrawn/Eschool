@@ -232,7 +232,6 @@ class ExamController extends Controller
                     $ending_date = ExamTimetable::where('exam_id', $data->exam_id)
                         ->where('class_id', $data->class_id)
                         ->max('date');
-                    $ending_date = $ending_date_db['max(date)'];
                     $currentTime = Carbon::now();
                     $current_date = date($currentTime->toDateString());
                     if ($current_date >= $starting_date && $current_date <= $ending_date) {
