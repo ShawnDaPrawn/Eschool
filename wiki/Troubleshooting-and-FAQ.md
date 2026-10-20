@@ -38,6 +38,26 @@ No proxies are trusted, so Laravel treats requests as plain HTTP when TLS ends a
 **Logos, the school name or demo mode were lost after `php artisan optimize`.**
 That happened on code older than commit [e13ac7d](https://github.com/ShawnDaPrawn/Eschool/commit/e13ac7d), where views read these values with `env()`. Update to current `main`.
 
+## Academic setup and exams
+
+**Saving marks or publishing results fails with `grades_data_does_not_exists`.**
+The grade bands for the exam's session year must cover every whole percentage from 0 to 100. Fill the gaps in Grades. See [Exams and Grading](Exams-and-Grading#1-grade-bands).
+
+**Marks can't be entered yet.**
+Marks entry opens only after the last paper in the exam timetable. See [Exams and Grading](Exams-and-Grading#4-entering-marks).
+
+**The Super Admin can't enter marks, lessons, attendance or online exams.**
+`InstallationSeeder` gives those permissions to the Teacher role only. Teachers do this work, or you grant the permissions to a custom role. See [Roles and Permissions](Roles-and-Permissions).
+
+**A class name with a space is rejected.**
+Class names must match `^[A-Za-z0-9_]+$` (`ClassSchoolController`). Use the section or stream for the rest of the name, or an underscore.
+
+**Turning semesters on or off for a class deleted its data.**
+`ClassSessionConfigService::wipeClassData` permanently deletes that class's subjects, teacher assignments, timetable, exams and assignments for the session year when the semester setting changes. Decide on semesters before you set up a class. See [Academic Structure](Academic-Structure#semesters).
+
+**Changing the default session year didn't change the current year.**
+The current year is the `session_year` row in `settings`. Change it in General Settings. Editing a session year updates its `default` flag but not that setting. See [Academic Structure](Academic-Structure#the-current-session-year).
+
 ## Signing in from the apps
 
 **The app can't reach the server.**
