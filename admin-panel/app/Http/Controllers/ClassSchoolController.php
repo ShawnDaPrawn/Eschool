@@ -175,10 +175,11 @@ class ClassSchoolController extends Controller
             ]);
 
         } catch (\Throwable $e) {
+            report($e);
 
             return response()->json([
                 'error' => true,
-                'message' => $e->getMessage(),
+                'message' => trans('error_occurred'),
             ]);
         }
     }
@@ -257,10 +258,10 @@ class ClassSchoolController extends Controller
                 'message' => trans('data_update_successfully'),
             ];
         } catch (\Throwable $e) {
+            report($e);
             $response = [
                 'error' => true,
                 'message' => trans('error_occurred'),
-                'data' => $e,
             ];
         }
 
@@ -971,6 +972,8 @@ class ClassSchoolController extends Controller
 
     public function subject_group_destroy($id)
     {
+        ResponseService::noPermissionThenSendJson('assign-class-subject');
+
         try {
             $group = ElectiveSubjectGroup::findOrFail($id);
 
@@ -1178,10 +1181,11 @@ class ClassSchoolController extends Controller
             ]);
         } catch (Throwable $e) {
             DB::rollBack();
+            report($e);
 
             return response()->json([
                 'error' => true,
-                'message' => $e->getMessage(),
+                'message' => trans('error_occurred'),
             ], 500);
         }
     }
@@ -1239,9 +1243,11 @@ class ClassSchoolController extends Controller
                 'assigned_subjects' => $assignedSubjects,
             ]);
         } catch (Throwable $e) {
+            report($e);
+
             return response()->json([
                 'error' => true,
-                'message' => $e->getMessage(),
+                'message' => trans('error_occurred'),
             ], 500);
         }
     }

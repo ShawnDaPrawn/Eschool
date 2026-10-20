@@ -272,7 +272,7 @@ if(value.user) {
 
                     function successCallback(response) {
                         $.toast({
-                            text: response.message,
+                            text: escapeToastText(response.message),
                             icon: 'success',
                             loader: false,
                             position: 'top-right',

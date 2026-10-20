@@ -37,8 +37,6 @@ class Api {
   static Map<String, dynamic> headers() {
     final String jwtToken = Hive.box(authBoxKey).get(jwtTokenKey) ?? '';
 
-    debugPrint('token is: $jwtToken');
-
     return {'Authorization': 'Bearer $jwtToken'};
   }
 
@@ -232,8 +230,7 @@ class Api {
         ListFormat.multiCompatible,
       );
 
-      debugPrint('API Called POST: $url with $queryParameters');
-      debugPrint('Body Params: $body');
+      debugPrint('API Called POST: $url');
 
       final response = await dio.post(
         url,
@@ -245,9 +242,7 @@ class Api {
         options: useAuthToken ? Options(headers: headers()) : null,
       );
 
-      debugPrint('Response: ${response.data}');
       if (response.data['error']) {
-        debugPrint('POST ERROR: ${response.data}');
         if (response.data['code'] == null && response.data['message'] != null) {
           throw ApiException(
             response.data['message'].toString(),
@@ -286,7 +281,7 @@ class Api {
     try {
       final Dio dio = Dio();
 
-      debugPrint('API Called GET: $url with $queryParameters');
+      debugPrint('API Called GET: $url');
 
       final response = await dio.get(
         url,
@@ -294,10 +289,7 @@ class Api {
         options: useAuthToken ? Options(headers: headers()) : null,
       );
 
-      debugPrint('Response: ${response.data}');
-
       if (response.data['error']) {
-        debugPrint('GET ERROR: ${response.data}');
         if (response.data['code'] == null && response.data['message'] != null) {
           throw ApiException(
             response.data['message'].toString(),

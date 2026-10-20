@@ -4,11 +4,16 @@ namespace App\Http\Controllers;
 
 use App\Models\EmailTempalate;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class EmailController extends Controller
 {
     public function index()
     {
+        if (! Auth::user()->can('email-setting-create')) {
+            return redirect(route('home'))->withErrors(['message' => trans('no_permission_message')]);
+        }
+
         $Emailtemplate = EmailTempalate::whereIn('type', ['student_registration', 'staff_registration', 'student_application_regect'])
             ->get()->keyBy('type');
 
@@ -22,6 +27,10 @@ class EmailController extends Controller
 
     public function store(Request $request)
     {
+        if (! Auth::user()->can('email-setting-create')) {
+            return response()->json(['error' => true, 'message' => trans('no_permission_message')], 403);
+        }
+
         $request->validate([
             'type' => 'required|in:student,staff,rejection',
             'content' => 'required|string',

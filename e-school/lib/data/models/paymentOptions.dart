@@ -34,12 +34,10 @@ class RazorpayOption {
   RazorpayOption.fromJson(Map<String, dynamic> json) {
     razorpayStatus = json['razorpay_status'];
     razorpayApiKey = json['razorpay_api_key'];
-    razorpayWebhookSecret = json['razorpay_webhook_secret'];
     currencyCode = json['razorpay_currency_code'];
   }
   String? razorpayStatus;
   String? razorpayApiKey;
-  String? razorpayWebhookSecret;
   String? currencyCode;
 }
 

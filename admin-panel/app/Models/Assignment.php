@@ -108,8 +108,9 @@ public function getTeacherAttribute()
 
         $teacherId = $user->teacher?->id;
 
+        // A Teacher-role user without a teacher record teaches nothing, so sees nothing.
         if (! $teacherId) {
-            return $query;
+            return $query->whereRaw('1 = 0');
         }
 
         return $query->where(function ($q) use ($teacherId) {

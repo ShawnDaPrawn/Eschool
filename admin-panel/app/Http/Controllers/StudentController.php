@@ -39,6 +39,7 @@ use App\Models\StudentSessions;
 use App\Models\StudentSubject;
 use App\Models\Subject;
 use App\Models\User;
+use App\Services\EmailTemplateService;
 use App\Services\IdCardService;
 use App\Services\MailService;
 use App\Services\ResponseService;
@@ -47,7 +48,6 @@ use Carbon\Carbon;
 use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
@@ -540,30 +540,11 @@ class StudentController extends Controller
             // total marks possible for this exam
             $totalMarks = OnlineExamQuestionChoice::where('online_exam_id', $onlineExam->id)->sum('marks');
 
-            // questions belonging to this exam
-            $questionIds = OnlineExamQuestionChoice::where('online_exam_id', $onlineExam->id)->pluck('question_id');
-
-            // options the student picked for this exam
-            $attemptedAnswers = OnlineExamStudentAnswer::where([
-                'student_id' => $request->id,
-                'online_exam_id' => $onlineExam->id,
-            ])->pluck('option_id');
-
-            // drop any question that has a correct-answer row not covered by the student's picks
-            $correctQuestionIds = $questionIds->toArray();
-
-            foreach ($questionIds as $questionId) {
-                $hasUnmatchedAnswer = OnlineExamQuestionAnswer::where('question_id', $questionId)
-                    ->whereNotIn('answer', $attemptedAnswers)
-                    ->exists();
-
-                if ($hasUnmatchedAnswer) {
-                    $correctQuestionIds = array_diff($correctQuestionIds, [$questionId]);
-                }
-            }
+            // a question counts only when exactly its correct options were picked
+            $score = app(\App\Services\OnlineExamScoringService::class)->score((int) $request->id, (int) $onlineExam->id);
 
             $obtainedMarks = OnlineExamQuestionChoice::where('online_exam_id', $onlineExam->id)
-                ->whereIn('question_id', $correctQuestionIds)
+                ->whereIn('id', $score['correct_choice_ids'])
                 ->sum('marks');
 
             $onlineExamData[] = [
@@ -1075,10 +1056,10 @@ class StudentController extends Controller
                 'message' => trans('data_store_successfully'),
             ];
         } catch (Exception $e) {
+            report($e);
             $response = [
                 'error' => true,
                 'message' => trans('error_occurred'),
-                'data' => $e,
             ];
         }
 
@@ -1622,8 +1603,7 @@ class StudentController extends Controller
                     'url' => url('/'),
 
                 ];
-                $normalizedTemplate = preg_replace('/\{\$?(\w+)\s*\}/', '{{ $$1 }}', $AcceptTemplate);
-                $htmlcontent = Blade::render($normalizedTemplate, $father_data);
+                $htmlcontent = EmailTemplateService::render((string) $AcceptTemplate, $father_data);
                 $emailPayload = [
                     'body' => $htmlcontent,
                     'email' => $father_data['email'],
@@ -1669,7 +1649,7 @@ class StudentController extends Controller
                     'ios_app' => (string) $ios_app,
                     'url' => url('/'),
                 ];
-                $htmlcontent = Blade::render($normalizedTemplate, $mother_data);
+                $htmlcontent = EmailTemplateService::render((string) $AcceptTemplate, $mother_data);
                 $emailPayload = [
                     'body' => $htmlcontent,
                     'email' => $mother_data['email'],
@@ -1727,10 +1707,7 @@ class StudentController extends Controller
                     'url'             => (string)url('/'),
                 ];
 
-                $normalizeedTemplate = preg_replace('/\{\$?(\w+)\s*\}/', '{{ $$1 }}', $template);
-
-                // / 1. Keep your text compilation exactly the same...
-                $htmlcontent = Blade::render($normalizeedTemplate, $guardian_data);
+                $htmlcontent = EmailTemplateService::render($template, $guardian_data);
 
                 $emailPayload = [
                     'body'            => $htmlcontent,
@@ -2223,7 +2200,7 @@ class StudentController extends Controller
                     ->orWhere('email', 'LIKE', "%$search%")
                     ->orWhere('first_name', 'LIKE', "%$search%")
                     ->orWhere('last_name', 'LIKE', "%$search%")
-                    ->orWhereRaw("concat(first_name, ' ', last_name) LIKE '%$search%'");
+                    ->orWhereRaw("concat(first_name, ' ', last_name) LIKE ?", ['%'.$search.'%']);
             });
         }
         $total = $sql->count();
@@ -2284,12 +2261,13 @@ class StudentController extends Controller
 
     public function assignClass()
     {
-        //        if (!Auth::user()->can('student-list')) {
-        //            $response = array(
-        //                'message' => trans('no_permission_message')
-        //            );
-        //            return redirect(route('home'))->withErrors($response);
-        //        }
+        if (! Auth::user()->can('assign-class-to-new-student')) {
+            $response = [
+                'message' => trans('no_permission_message'),
+            ];
+
+            return redirect(route('home'))->withErrors($response);
+        }
         $class_section = ClassSection::with('class', 'section')->get();
         $class = ClassSchool::with('medium')->get();
         $category = Category::where('status', 1)->get();
@@ -2299,6 +2277,9 @@ class StudentController extends Controller
 
     public function newStudentList(Request $request)
     {
+        if (! Auth::user()->can('assign-class-to-new-student')) {
+            return response()->json(['error' => true, 'message' => trans('no_permission_message')]);
+        }
         $sort = 'id';
         $order = 'DESC';
         $class_id = $request->class_id;
@@ -2373,6 +2354,9 @@ class StudentController extends Controller
 
     public function assignClass_store(Request $request)
     {
+        if (! Auth::user()->can('assign-class-to-new-student')) {
+            return response()->json(['error' => true, 'message' => trans('no_permission_message')]);
+        }
         $validator = Validator::make($request->all(), [
             'class_section_id' => 'required',
             'selected_id' => 'required',
@@ -2432,11 +2416,11 @@ class StudentController extends Controller
         } catch (\Exception $e) {
 
             DB::rollBack();
+            report($e);
 
             return response()->json([
                 'error' => true,
                 'message' => trans('error_occurred'),
-                'data' => $e->getMessage(),
             ]);
         }
     }
@@ -2585,11 +2569,11 @@ class StudentController extends Controller
 
             return response()->json($bulkData);
         } catch (Exception $e) {
+            report($e);
 
             return response()->json([
                 'error' => true,
                 'message' => trans('error_occurred'),
-                'data' => $e->getMessage(),
             ]);
         }
     }
@@ -2820,10 +2804,10 @@ class StudentController extends Controller
                 'message' => trans('data_update_successfully'),
             ];
         } catch (Throwable $e) {
+            report($e);
             $response = [
                 'error' => true,
                 'message' => trans('error_occurred'),
-                'data' => $e,
             ];
         }
 
@@ -2832,8 +2816,15 @@ class StudentController extends Controller
 
     public function deleteImage(Request $request)
     {
+        if (! Auth::user()->can('setting-create')) {
+            return response()->json(['error' => true, 'message' => trans('no_permission_message')]);
+        }
+        // Only the ID card images can be removed here, never other settings rows.
+        if (! in_array($request->type, ['background_image', 'signature'], true)) {
+            return response()->json(['error' => true, 'message' => trans('error_occurred')]);
+        }
         try {
-            $setting = Settings::where('type', $request->type)->first();
+            $setting = Settings::where('type', $request->type)->firstOrFail();
 
             if (Storage::disk('public')->exists($setting->getRawOriginal('message'))) {
                 Storage::disk('public')->delete($setting->getRawOriginal('message'));
@@ -2845,10 +2836,10 @@ class StudentController extends Controller
                 'message' => trans('data_delete_successfully'),
             ];
         } catch (\Throwable $e) {
+            report($e);
             $response = [
                 'error' => true,
                 'message' => trans('error_occurred'),
-                'data' => $e,
             ];
         }
 
@@ -2857,6 +2848,13 @@ class StudentController extends Controller
 
     public function generateIdCard(Request $request, IdCardService $idCardService)
     {
+        if (! Auth::user()->can('generate-id-card')) {
+            $response = [
+                'message' => trans('no_permission_message'),
+            ];
+
+            return redirect(route('home'))->withErrors($response);
+        }
         $ids = explode(',', $request->user_id);
 
         try {
@@ -3683,6 +3681,9 @@ class StudentController extends Controller
 
     public function updateStatus(Request $request)
     {
+        if (! Auth::user()->can('student-edit')) {
+            return response()->json(['error' => true, 'message' => trans('no_permission_message')]);
+        }
         $request->validate([
     'status' => 'required',
 ]);
@@ -3755,8 +3756,7 @@ class StudentController extends Controller
                     $parent->user->status = 1;
                     $parent->user->update();
 
-                    // Template content is required to render the credentials email; without it
-                    // preg_replace()/Blade::render() below would fail with a null $subject.
+                    // Template content is required to render the credentials email.
                     if (empty($AcceptTemplate)) {
                         continue;
                     }
@@ -3781,8 +3781,7 @@ class StudentController extends Controller
                         'ios_app' => (string) $ios_app,
                         'url' => url('/'),
                     ];
-                    $normalizedTemplate = preg_replace('/\{\$?(\w+)\s*\}/', '{{ $$1 }}', $AcceptTemplate);
-                    $htmlcontent = Blade::render($normalizedTemplate, $parent_data);
+                    $htmlcontent = EmailTemplateService::render($AcceptTemplate, $parent_data);
 
                     $emailPayload = [
                         'body' => $htmlcontent,
@@ -3833,8 +3832,7 @@ class StudentController extends Controller
                     // dd($parent);
                     $parent->user->update();
 
-                    // Template content is required to render the rejection email; without it
-                    // preg_replace()/Blade::render() below would fail with a null $subject.
+                    // Template content is required to render the rejection email.
                     if (empty($rejectionTemplate)) {
                         continue;
                     }
@@ -3851,8 +3849,7 @@ class StudentController extends Controller
                         'school_contact' => (string) $school_contact,
                         'url' => url('/'),
                     ];
-                    $normalizedTemplate = preg_replace('/\{\$?(\w+)\s*\}/', '{{ $$1 }}', $rejectionTemplate);
-                    $htmlcontent = Blade::render($normalizedTemplate, $gaurdian_data);
+                    $htmlcontent = EmailTemplateService::render($rejectionTemplate, $gaurdian_data);
 
                     $emailPayload = [
                         'body' => $htmlcontent,
@@ -3937,6 +3934,9 @@ class StudentController extends Controller
 
     public function permanentDelete($id)
     {
+        if (! Auth::user()->can('student-delete')) {
+            return response()->json(['error' => true, 'message' => trans('no_permission_message')]);
+        }
         try {
             $student = Students::with('user')->where('id', $id)->first();
 
@@ -3953,10 +3953,10 @@ class StudentController extends Controller
                 'message' => trans('user_delete_successfully'),
             ];
         } catch (\Throwable $e) {
+            report($e);
             $response = [
                 'error' => true,
                 'message' => trans('error_occurred'),
-                'data' => $e,
             ];
         }
 
@@ -3974,10 +3974,10 @@ class StudentController extends Controller
                 'data' => $classSection,
             ];
         } catch (\Throwable $e) {
+            report($e);
             $response = [
                 'error' => true,
                 'message' => trans('error_occurred'),
-                'data' => $e,
             ];
         }
 
@@ -3986,6 +3986,10 @@ class StudentController extends Controller
 
     public function getStudentResultDetails(Request $request)
     {
+        // Only used by the result modal on the promote-students page.
+        if (! Auth::user()->can('promote-student-list')) {
+            return response()->json(['error' => true, 'message' => trans('no_permission_message')]);
+        }
         $validator = Validator::make($request->all(), [
             'student_id' => 'required',
             'class_section_id' => 'required',

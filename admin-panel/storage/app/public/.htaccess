@@ -1,0 +1,24 @@
+# Everything in here was uploaded by users: serve it as data, never run it.
+<IfModule mod_php.c>
+    php_flag engine off
+</IfModule>
+<IfModule mod_php7.c>
+    php_flag engine off
+</IfModule>
+<IfModule mod_mime.c>
+    RemoveHandler .php .php3 .php4 .php5 .php7 .php8 .pht .phtml .phar .shtml .cgi .pl .py
+    RemoveType .php .php3 .php4 .php5 .php7 .php8 .pht .phtml .phar .shtml .cgi .pl .py
+</IfModule>
+<FilesMatch "(?i)\.(php\d?|pht|phtml|phar|phps|shtml|cgi|pl|py)(\.|$)">
+    Require all denied
+</FilesMatch>
+<FilesMatch "^\.">
+    Require all denied
+</FilesMatch>
+<IfModule mod_headers.c>
+    Header set X-Content-Type-Options "nosniff"
+    # SVG, HTML and XML can carry scripts; sandbox them so they can't act as this site.
+    <FilesMatch "(?i)\.(svg|svgz|html?|xml)$">
+        Header set Content-Security-Policy "default-src 'none'; img-src 'self' data:; style-src 'unsafe-inline'; sandbox"
+    </FilesMatch>
+</IfModule>

@@ -224,16 +224,16 @@
 <script src="{{ asset('/assets/js/sweetalert2.all.min.js') }}"></script>
 
 <!-- Custom scripts -->
-<script src="{{ asset('/assets/js/custom/function.js') }}"></script>
+<script src="{{ asset('/assets/js/custom/function.js') }}?v={{ filemtime(public_path('assets/js/custom/function.js')) }}"></script>
 <script src="{{ asset('/assets/js/custom/validate.js') }}"></script>
-<script src="{{ asset('/assets/js/script.js') }}"></script>
+<script src="{{ asset('/assets/js/script.js') }}?v={{ filemtime(public_path('assets/js/script.js')) }}"></script>
 
 
 @if ($errors->any())
     @foreach ($errors->all() as $error)
         <script type='text/javascript'>
             $.toast({
-                text: '{{ $error }}',
+                text: $('<div>').text(@json($error)).html(),
                 showHideTransition: 'slide',
                 icon: 'error',
                 loaderBg: '#f2a654',
@@ -246,7 +246,7 @@
 @if (Session::has('success'))
     <script>
         $.toast({
-            text: '{{ Session::get('success') }}',
+            text: $('<div>').text(@json(Session::get('success'))).html(),
             showHideTransition: 'slide',
             icon: 'success',
             loaderBg: '#f96868',

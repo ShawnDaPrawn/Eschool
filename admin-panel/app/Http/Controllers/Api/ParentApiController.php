@@ -62,8 +62,8 @@ use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Str;
 use Throwable;
 
 class ParentApiController extends Controller
@@ -371,8 +371,7 @@ class ParentApiController extends Controller
     public function getAcademicCalendarPdf(Request $request, AcademicCalendarService $service)
     {
         try {
-            $student = Students::with('class_section')
-                ->findOrFail($request->child_id);
+            $student = $this->resolveChild($request);
 
             $session_year = getSettings('session_year');
             $session_year_id = $session_year['session_year'];
@@ -409,8 +408,7 @@ class ParentApiController extends Controller
             ResponseService::validationError($validator->errors()->first());
         }
         try {
-            $user = $request->user();
-            $children = $user->parent->children()->first()->where('id', $request->child_id)->first();
+            $children = $this->resolveChild($request);
             $subjects = $children->subjects();
             ResponseService::successResponse('Student Subject Fetched Successfully.', $subjects, [], 200);
         } catch (Throwable $e) {
@@ -428,8 +426,7 @@ class ParentApiController extends Controller
             ResponseService::validationError($validator->errors()->first());
         }
         try {
-            $user = $request->user();
-            $children = $user->parent->children()->first()->where('id', $request->child_id)->first();
+            $children = $this->resolveChild($request);
             $subjects = $children->classSubjects();
             ResponseService::successResponse('Class Subject Fetched Successfully.', $subjects, [], 200);
         } catch (Throwable $e) {
@@ -447,8 +444,7 @@ class ParentApiController extends Controller
             ResponseService::validationError($validator->errors()->first());
         }
         try {
-            $user = $request->user();
-            $children = $user->parent->children()->first()->where('id', $request->child_id)->first();
+            $children = $this->resolveChild($request);
             $child_subject = $children->subjects();
 
             $core_subjects = array_column($child_subject['core_subject'], 'subject_id');
@@ -516,8 +512,7 @@ class ParentApiController extends Controller
         }
 
         try {
-            $user = $request->user();
-            $children = $user->parent->children()->first()->where('id', $request->child_id)->first();
+            $children = $this->resolveChild($request);
             $session_year_id = getSettings('session_year')['session_year'];
             $class_section_id = StudentSessions::where('student_id', $children->id)
                 ->where('session_year_id', $session_year_id)
@@ -571,8 +566,7 @@ class ParentApiController extends Controller
         }
 
         try {
-            $user = $request->user();
-            $children = $user->parent->children()->where('id', $request->child_id)->first();
+            $children = $this->resolveChild($request);
             // $subjects = $children->subjects();
             $session_year_id = getSettings('session_year')['session_year'];
 
@@ -593,7 +587,12 @@ class ParentApiController extends Controller
                 $session_year_id
             );
 
-            $data = LessonTopic::where('lesson_id', $request->lesson_id)->with(['file', 'lesson']);
+            // Only topics of a lesson taught to the child's own class section.
+            $data = LessonTopic::where('lesson_id', $request->lesson_id)
+                ->whereHas('lesson', function ($q) use ($class_section_id) {
+                    $q->where('class_section_id', $class_section_id);
+                })
+                ->with(['file', 'lesson']);
             if ($request->topic_id) {
                 $data->where('id', $request->topic_id);
             }
@@ -633,10 +632,9 @@ class ParentApiController extends Controller
         }
 
         try {
-            $user = $request->user();
-            $children = $user->parent->children()->first()->where('id', $request->child_id)->first();
+            $children = $this->resolveChild($request);
             $child_subject = $children->subjects();
-            $child_id = $request->child_id;
+            $child_id = $children->id;
             $core_subjects = array_column($child_subject['core_subject'], 'subject_id');
 
             $elective_subjects = $child_subject['elective_subject'] ?? [];
@@ -729,8 +727,7 @@ class ParentApiController extends Controller
             ResponseService::validationError($validator->errors()->first());
         }
         try {
-            $user = $request->user();
-            $children = $user->parent->children()->first()->where('id', $request->child_id)->first();
+            $children = $this->resolveChild($request);
             $session_year = getSettings('session_year');
             $session_year_id = $session_year['session_year'];
 
@@ -756,9 +753,7 @@ class ParentApiController extends Controller
             ResponseService::validationError($validator->errors()->first());
         }
         try {
-            // children() is a UNION of father/mother/guardian queries; chaining ->where()
-            // only filters the base query, so resolve from the materialised collection.
-            $child = $request->user()->parent->children()->get()->firstWhere('id', $request->child_id);
+            $child = $this->resolveChild($request);
         $studentSession = StudentSessions::where('student_id', $child->id)
             ->where('session_year_id', (int) $request->session_year_id)
             ->first();
@@ -792,11 +787,8 @@ class ParentApiController extends Controller
         try {
             $children = null;
             if ($request->type !== 'noticeboard') {
-                $user = $request->user();
-                $children = $user->parent->children()->first()->where('id', $request->child_id)->first();
-                if (empty($children)) {
-                    ResponseService::errorResponse('Invalid Child ID', null, 106);
-                }
+                // Outside the CheckChild group: resolve the child through the parent here.
+                $children = $this->resolveChild($request, 106);
                 $class_id = $children->class_section->class->id;
             }
 
@@ -859,8 +851,7 @@ class ParentApiController extends Controller
         try {
             $session_year = getSettings('session_year');
             $session_year_id = $session_year['session_year'];
-            $user = $request->user();
-            $children = Students::where('id', $request->child_id)->first();
+            $children = $this->resolveChild($request);
             $student_subject = $children->subjects();
             $core_subjects = array_column($student_subject['core_subject'], 'subject_id');
 
@@ -901,8 +892,9 @@ class ParentApiController extends Controller
 
             $teacher_ids = array_merge($class_teachers_id, $subject_teacher_id);
 
+            // No dob: a teacher's date of birth is their default password.
             $teachers = Teacher::whereIn('id', $teacher_ids)->with([
-                'user:id,first_name,last_name,image,mobile,email,dob',
+                'user:id,first_name,last_name,image,mobile,email',
                 'subjects' => function ($query) use ($class_section_id, $session_year_id) {
                     $query->where('class_section_id', $class_section_id)
                         ->where('session_year_id', $session_year_id)
@@ -924,7 +916,6 @@ class ParentApiController extends Controller
                     'qualification' => $teacher->qualification,
                     'email' => $teacher->user->email,
                     'image' => $teacher->user->image,
-                    'dob' => $teacher->user->dob,
                     'mobile_no' => $teacher->user->mobile,
                     'subjects' => $subjects,
                 ];
@@ -947,7 +938,7 @@ class ParentApiController extends Controller
             ResponseService::validationError($validator->errors()->first());
         }
         try {
-            $student = Students::with('class_section')->where('id', $request->child_id)->first();
+            $student = $this->resolveChild($request);
 
             $session_year = getSettings('session_year');
             $session_year_id = $session_year['session_year'];
@@ -1168,7 +1159,7 @@ class ParentApiController extends Controller
             ResponseService::validationError($validator->errors()->first());
         }
         try {
-            $student = Students::with('class_section')->where('id', $request->child_id)->first();
+            $student = $this->resolveChild($request);
             $student_subject = $student->subjects();
 
             $core_subjects = array_column($student_subject['core_subject'], 'subject_id');
@@ -1225,11 +1216,12 @@ class ParentApiController extends Controller
             ResponseService::validationError($validator->errors()->first());
         }
         try {
+            $child = $this->resolveChild($request);
             $session_year_id = $request->filled('session_year_id')
                 ? (int) $request->session_year_id
                 : getSettings('session_year')['session_year'];
 
-            $studentSession = StudentSessions::where('student_id', $request->child_id)
+            $studentSession = StudentSessions::where('student_id', $child->id)
                 ->where('session_year_id', $session_year_id)
                 ->with('class_section')
                 ->first();
@@ -1268,7 +1260,7 @@ class ParentApiController extends Controller
 
             $exam_result_db = ExamResult::with(['student' => function ($q) {
                 $q->select('id', 'user_id', 'roll_number')->with('user:id,first_name,last_name');
-            }])->with('exam', 'session_year:id,name')->where('student_id', $request->child_id)
+            }])->with('exam', 'session_year:id,name')->where('student_id', $child->id)
                 ->where('session_year_id', $session_year_id)
                 ->when($isClassHaveSemester && $semesterId, function ($query) use ($semesterId) {
                     $query->whereHas('exam', function ($q) use ($semesterId) {
@@ -1345,11 +1337,12 @@ class ParentApiController extends Controller
             ResponseService::validationError($validator->errors()->first());
         }
         try {
+            $child_id = $this->resolveChild($request)->id;
             $session_year = getSettings('session_year');
             $session_year_id = $session_year['session_year'];
 
             $current_date = Carbon::now('UTC');
-            $studentSession = StudentSessions::where('student_id', $request->child_id)
+            $studentSession = StudentSessions::where('student_id', $child_id)
                 ->where('session_year_id', $session_year_id)->first();
             if (! $studentSession) {
                 ResponseService::errorResponse('No session found for this student in the current session year', null, 113);
@@ -1374,7 +1367,7 @@ class ParentApiController extends Controller
             $optional_fees_data = [];
             $installment_data = [];
 
-            $payment_transaction_db = PaymentTransaction::where(['student_id' => $request->child_id, 'class_id' => $class_id, 'session_year_id' => $session_year_id])->latest()->first();
+            $payment_transaction_db = PaymentTransaction::where(['student_id' => $child_id, 'class_id' => $class_id, 'session_year_id' => $session_year_id])->latest()->first();
 
             if ($payment_transaction_db) {
                 if ($payment_transaction_db->date && $payment_transaction_db->payment_status == 2) {
@@ -1391,7 +1384,7 @@ class ParentApiController extends Controller
             // Get the Compulsory Fees Data and Optional Fees Data
             foreach ($fees_class as $data) {
                 if ($data->choiceable == 1) {
-                    $paid_optional_data = FeesChoiceable::where(['student_id' => $request->child_id, 'class_id' => $class_id, 'session_year_id' => $session_year_id, 'fees_type_id' => $data['fees_type_id'], 'status' => 1])->first();
+                    $paid_optional_data = FeesChoiceable::where(['student_id' => $child_id, 'class_id' => $class_id, 'session_year_id' => $session_year_id, 'fees_type_id' => $data['fees_type_id'], 'status' => 1])->first();
                     $optional_fees_data[] = [
                         'id' => $data->fees_type_id,
                         'name' => $data->fees_type->name,
@@ -1400,7 +1393,7 @@ class ParentApiController extends Controller
                         'paid_date' => $paid_optional_data->date ?? null,
                     ];
                 } else {
-                    $is_fully_paid_data = FeesPaid::where(['student_id' => $request->child_id, 'class_id' => $class_id, 'session_year_id' => $session_year_id, 'is_fully_paid' => 1]);
+                    $is_fully_paid_data = FeesPaid::where(['student_id' => $child_id, 'class_id' => $class_id, 'session_year_id' => $session_year_id, 'is_fully_paid' => 1]);
                     $compulsory_fees_data[] = [
                         'id' => $data->fees_type_id,
                         'name' => $data->fees_type->name,
@@ -1413,7 +1406,7 @@ class ParentApiController extends Controller
 
             // Checking for Due Charges Paid with Fully Compulsory Amount and Add it to Compulsory Fees Data Array
             if (isset($compulsory_fees_data) && ! empty($compulsory_fees_data)) {
-                $paid_charges_due = FeesChoiceable::where(['student_id' => $request->child_id, 'class_id' => $class_id, 'session_year_id' => $session_year_id, 'is_due_charges' => 1]);
+                $paid_charges_due = FeesChoiceable::where(['student_id' => $child_id, 'class_id' => $class_id, 'session_year_id' => $session_year_id, 'is_due_charges' => 1]);
                 if ($paid_charges_due->count()) {
                     array_push($compulsory_fees_data, [
                         'id' => '',
@@ -1430,7 +1423,7 @@ class ParentApiController extends Controller
                 $installment_db_data = $installment_db->get();
                 foreach ($installment_db_data as $data) {
                     $paid_installment_data = PaidInstallmentFee::where([
-                        'student_id' => $request->child_id,
+                        'student_id' => $child_id,
                         'class_id' => $class_id,
                         'session_year_id' => $session_year_id,
                         'installment_fee_id' => $data['id'],
@@ -1475,14 +1468,23 @@ class ParentApiController extends Controller
         $validator = Validator::make($request->all(), [
             'child_id' => 'required',
             'payment_method' => 'required|in:1,2,3,4',
-            'amount' => 'required',
+            'amount' => 'required|numeric',
             'type_of_fee' => 'required|in:0,1,2',
-            'is_fully_paid' => 'required|in:0,1',
+            // Still sent by the app; the server works it out itself.
+            'is_fully_paid' => 'nullable|in:0,1',
+            'optional_fees_data' => 'nullable|array',
+            'installment_data' => 'nullable|array',
         ]);
         if ($validator->fails()) {
             ResponseService::validationError($validator->errors()->first());
         }
+        // Only a payment gateway the school has switched on.
+        $gatewayStatusSetting = [1 => 'razorpay_status', 2 => 'stripe_status', 3 => 'paystack_status', 4 => 'flutterwave_status'][(int) $request->payment_method];
+        if (empty(getSettings($gatewayStatusSetting)[$gatewayStatusSetting] ?? null)) {
+            ResponseService::validationError('The selected payment method is not available.');
+        }
         try {
+            $child_id = $this->resolveChild($request)->id;
 
             $parent_id = Auth::user()->parent->id;
             $email = Auth::user()->email;
@@ -1491,87 +1493,35 @@ class ParentApiController extends Controller
             $session_year = getSettings('session_year');
             $session_year_id = $session_year['session_year'];
 
-            // variables for storing the data
-            $payment_gateway_details = [];
+            // What is being paid, its amount, due charges and whether it completes
+            // the compulsory fees are all worked out on the server
+            // (FeesPaymentService); the app's amount must match.
+            $feesPaymentService = app(\App\Services\Payment\FeesPaymentService::class);
+            try {
+                $plan = $feesPaymentService->prepare(
+                    (int) $child_id,
+                    (int) $session_year_id,
+                    (int) $request->type_of_fee,
+                    (array) ($request->optional_fees_data ?? []),
+                    (array) ($request->installment_data ?? []),
+                    $request->amount
+                );
+            } catch (\Illuminate\Validation\ValidationException $e) {
+                ResponseService::validationError($e->validator->errors()->first());
+            }
 
-            $class_id = StudentSessions::where('student_id', $request->child_id)->where('session_year_id', $session_year_id)->with('class_section')->first()->class_section->class_id;
+            DB::beginTransaction();
+            $pending = $feesPaymentService->createPendingTransaction($plan, $parent_id, (int) $request->payment_method);
+            $payment_transaction_db = $pending['transaction'];
 
-            // variables for storing the data
-            $optional_fees_store = [];
-            $installment_fees_store = [];
-            $paid_installment_id = [];
-            $optional_fees_id = [];
+            $paymentIntent = PaymentService::create($request->payment_method)->createAndFormatPaymentIntent(
+                $plan['total_amount'],
+                $feesPaymentService->gatewayMetadata($plan, $pending, $parent_id, ['email' => $email, 'name' => $name, 'mobile' => $mobile])
+            );
 
-            // add the data to transaction table local
-            $payment_transaction_db = new PaymentTransaction;
-            $payment_transaction_db->student_id = $request->child_id;
-            $payment_transaction_db->class_id = $class_id;
-            $payment_transaction_db->parent_id = $parent_id;
-            $payment_transaction_db->mode = 2;
-            $payment_transaction_db->type_of_fee = $request->type_of_fee;
-            $payment_transaction_db->payment_gateway = $request->payment_method;
-            $payment_transaction_db->payment_status = 2;
-            $payment_transaction_db->total_amount = $request->amount;
-            $payment_transaction_db->date = date('Y-m-d H:i:s');
-            $payment_transaction_db->session_year_id = $session_year_id;
+            $payment_transaction_db->order_id = $paymentIntent['id'];
             $payment_transaction_db->save();
-
-            // If Optional Fees Passed then insert data
-            if (isset($request->optional_fees_data) && ! empty($request->optional_fees_data)) {
-                foreach ($request->optional_fees_data as $data) {
-                    $optional_fees_store = [
-                        'student_id' => $request->child_id,
-                        'class_id' => $class_id,
-                        'fees_type_id' => $data['id'],
-                        'is_due_charges' => 0,
-                        'total_amount' => $data['amount'],
-                        'session_year_id' => $session_year_id,
-                        'date' => date('Y-m-d'),
-                        'payment_transaction_id' => $payment_transaction_db->id,
-                        'status' => 0,
-                    ];
-                    $optional_fees_id[] = FeesChoiceable::insertGetId($optional_fees_store);
-                }
-            }
-
-            // If Installment Fees Passed then insert data
-            if (isset($request->installment_data) && ! empty($request->installment_data)) {
-                foreach ($request->installment_data as $data) {
-                    $installment_fees_store = [
-                        'class_id' => $class_id,
-                        'student_id' => $request->child_id,
-                        'parent_id' => $parent_id,
-                        'installment_fee_id' => $data['id'],
-                        'session_year_id' => $session_year_id,
-                        'amount' => $data['amount'],
-                        'due_charges' => $data['due_charges'] ?? null,
-                        'date' => date('Y-m-d'),
-                        'payment_transaction_id' => $payment_transaction_db->id,
-                        'status' => 0,
-                    ];
-                    $paid_installment_id[] = PaidInstallmentFee::insertGetId($installment_fees_store);
-                }
-            }
-            $paymentIntent = PaymentService::create($request->payment_method)->createAndFormatPaymentIntent(round((float) $request->amount, 2), [
-                'student_id' => $request->child_id,
-                'parent_id' => $parent_id,
-                'class_id' => $class_id,
-                'email' => $email,
-                'name' => $name,
-                'mobile' => $mobile,
-                'session_year_id' => $session_year_id,
-                'payment_transaction_id' => $payment_transaction_db->id,
-                'is_fully_paid' => $request->is_fully_paid,
-                'type_of_fee' => $request->type_of_fee,
-                'is_due_charges' => (isset($request->due_charges) && $request->due_charges >= 0) ? 1 : 0,
-                'due_charges' => $request->due_charges,
-                'optional_fees_paid' => json_encode($optional_fees_id) ?? '',
-                'installment_fees_paid' => json_encode($paid_installment_id) ?? '',
-            ]);
-
-            $payment_transaction_update = PaymentTransaction::find($payment_transaction_db->id);
-            $payment_transaction_update->order_id = $paymentIntent['id'];
-            $payment_transaction_update->save();
+            DB::commit();
 
             $payment_gateway_details = [
                 ...$paymentIntent,
@@ -1579,6 +1529,7 @@ class ParentApiController extends Controller
             ];
             ResponseService::successResponse('Fees Transaction Stored Successfully', [], ['payment_gateway_details' => $payment_gateway_details], 200);
         } catch (Throwable $e) {
+            DB::rollBack();
             ResponseService::errorResponse('error_occurred', null, 103, $e);
         }
     }
@@ -1587,20 +1538,31 @@ class ParentApiController extends Controller
     public function storeFees(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'transaction_id' => 'required',
-            'payment_id' => 'nullable',
-            'payment_signature' => 'nullable',
+            'transaction_id' => 'required|integer',
+            'payment_id' => 'nullable|string|max:191',
+            'payment_signature' => 'nullable|string|max:191',
         ]);
         if ($validator->fails()) {
             ResponseService::validationError($validator->errors()->first());
         }
         try {
-            // Updating the Payment Transaction
-            $transaction_db = PaymentTransaction::findOrFail($request->transaction_id);
-            if ($request->payment_id) {
+            // Only a pending or succeeded transaction of one of this parent's children. A
+            // succeeded one is allowed because the gateway webhook often settles the
+            // transaction before the app calls this; the app reports a failed payment
+            // when this errors.
+            $transaction_db = PaymentTransaction::whereKey((int) $request->transaction_id)
+                ->whereIn('student_id', $this->parentChildIds($request))
+                ->whereIn('payment_status', [1, 2]) // 0 failed, 1 succeeded, 2 pending
+                ->first();
+            if (! $transaction_db) {
+                ResponseService::errorResponse('No Payment Transaction Found', null, 103);
+            }
+
+            // The gateway's ids are recorded once; the webhook's (or the first) values stay.
+            if ($request->payment_id && empty($transaction_db->payment_id)) {
                 $transaction_db->payment_id = $request->payment_id;
             }
-            if ($request->payment_signature) {
+            if ($request->payment_signature && empty($transaction_db->payment_signature)) {
                 $transaction_db->payment_signature = $request->payment_signature;
             }
             $transaction_db->save();
@@ -1620,7 +1582,7 @@ class ParentApiController extends Controller
             ResponseService::validationError($validator->errors()->first());
         }
         try {
-            $fees_paid = FeesPaid::where(['student_id' => $request->child_id])->with('session_year:id,name', 'class.medium')->get();
+            $fees_paid = FeesPaid::where(['student_id' => $this->resolveChild($request)->id])->with('session_year:id,name', 'class.medium')->get();
             ResponseService::successResponse('Fees Paid List Fetched Successfully', $fees_paid, [], 200);
         } catch (Throwable $e) {
             ResponseService::errorResponse('error_occurred', null, 103, $e);
@@ -1630,6 +1592,12 @@ class ParentApiController extends Controller
     // Generate The Reciept
     public function feesPaidReceiptPDF(Request $request)
     {
+        $validator = Validator::make($request->all(), [
+            'fees_paid_id' => 'required|integer',
+        ]);
+        if ($validator->fails()) {
+            ResponseService::validationError($validator->errors()->first());
+        }
         try {
             $parent = Auth::user();
             $parent_name = $parent->first_name.' '.$parent->last_name;
@@ -1646,8 +1614,10 @@ class ParentApiController extends Controller
                 $currency_symbol = null;
             }
 
-            // Getting the Fees Paid Data
-            $fees_paid = FeesPaid::where('id', $request->fees_paid_id)->with('student.user:id,first_name,last_name', 'class', 'session_year')->get()->first();
+            // Getting the Fees Paid Data (only for one of this parent's children)
+            $fees_paid = FeesPaid::whereKey((int) $request->fees_paid_id)
+                ->whereIn('student_id', $this->parentChildIds($request))
+                ->with('student.user:id,first_name,last_name', 'class', 'session_year')->first();
 
             // Check That Fees Paid Data Exists Or Not
             if (! $fees_paid) {
@@ -1694,7 +1664,7 @@ class ParentApiController extends Controller
             ResponseService::validationError($validator->errors()->first());
         }
         try {
-            $student = Students::where('id', $request->child_id)->first();
+            $student = $this->resolveChild($request);
 
             $student_subject = $student->subjects();
             // $class_subject = $student->classSubjects();
@@ -1800,7 +1770,7 @@ class ParentApiController extends Controller
                             'name' => $data['subject']['name'].' - '.$data['subject']['type'],
                         ],
                         'title' => $data['title'],
-                        'exam_key' => $data['exam_key'],
+                        // exam_key is not sent: the teacher gives it to students when the exam starts.
                         'duration' => $data['duration'],
                         'start_date' => $data['start_date'],
                         'end_date' => $data['end_date'],
@@ -1839,12 +1809,7 @@ class ParentApiController extends Controller
             ResponseService::validationError($validator->errors()->first());
         }
         try {
-            $student = Students::where('id', $request->child_id)->first();
-            if (! $student) {
-                ResponseService::errorResponse('Data not found for this student');
-
-                return;
-            }
+            $student = $this->resolveChild($request);
 
             // session year: optional override, else current
             $session_year_id = $request->filled('session_year_id')
@@ -1904,26 +1869,13 @@ class ParentApiController extends Controller
             }
             $exam_list_data = [];
             foreach ($online_exam_db['data'] as $data) {
-                // get the choice question id
-                $exam_submitted_question_ids = OnlineExamStudentAnswer::where(['student_id' => $student->id, 'online_exam_id' => $data['id']])->pluck('question_id');
                 $exam_submitted_date = OnlineExamStudentAnswer::where(['student_id' => $student->id, 'online_exam_id' => $data['id']])->pluck('submitted_date')->first();
 
-                $question_ids = OnlineExamQuestionChoice::whereIn('id', $exam_submitted_question_ids)->pluck('question_id');
-
-                $exam_attempted_answers = OnlineExamStudentAnswer::where(['student_id' => $student->id, 'online_exam_id' => $data['id']])->pluck('option_id');
-
-                // removes the question id of the question if one of the answer of particular question is wrong
-                foreach ($question_ids as $question_id) {
-                    $check_questions_answers_exists = OnlineExamQuestionAnswer::where('question_id', $question_id)->whereNotIn('answer', $exam_attempted_answers)->count();
-                    if ($check_questions_answers_exists) {
-                        unset($question_ids[array_search($question_id, $question_ids->toArray())]);
-                    }
-                }
-
-                $exam_correct_answers_question_id = OnlineExamQuestionAnswer::whereIn('question_id', $question_ids)->whereIn('answer', $exam_attempted_answers)->pluck('question_id');
+                // a question counts only when exactly its correct options were picked
+                $score = app(\App\Services\OnlineExamScoringService::class)->score((int) $student->id, (int) $data['id']);
 
                 // get the data of only attempted data
-                $total_obtained_marks_exam = OnlineExamQuestionChoice::select(DB::raw('sum(marks)'))->where('online_exam_id', $data['id'])->whereIn('question_id', $exam_correct_answers_question_id)->first();
+                $total_obtained_marks_exam = OnlineExamQuestionChoice::select(DB::raw('sum(marks)'))->where('online_exam_id', $data['id'])->whereIn('id', $score['correct_choice_ids'])->first();
                 $total_obtained_marks_exam = $total_obtained_marks_exam['sum(marks)'];
                 $total_marks_exam = OnlineExamQuestionChoice::select(DB::raw('sum(marks)'))->where('online_exam_id', $data['id'])->first();
                 $total_marks_exam = $total_marks_exam['sum(marks)'];
@@ -1958,78 +1910,65 @@ class ParentApiController extends Controller
     public function getOnlineExamResult(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'child_id' => 'required_|numeric',
-            'online_exam_id' => 'required|numeric',
+            'child_id' => 'required|numeric',
+            'online_exam_id' => 'required|integer',
         ]);
 
         if ($validator->fails()) {
             ResponseService::validationError($validator->errors()->first());
         }
         try {
-            $student = Students::where('id', $request->child_id)->first();
+            $student = $this->resolveChild($request);
+
+            // Only an online exam set for a class or class section the child has studied in.
+            $childClassSectionIds = StudentSessions::where('student_id', $student->id)->pluck('class_section_id')
+                ->push($student->class_section_id)->filter()->unique()->values()->all();
+            $childClassIds = ClassSection::withTrashed()->whereIn('id', $childClassSectionIds)->pluck('class_id')->all();
+            $examIsForChild = OnlineExam::whereKey((int) $request->online_exam_id)
+                ->where(function ($query) use ($childClassSectionIds, $childClassIds) {
+                    $query->where(function ($q) use ($childClassSectionIds) {
+                        $q->where('model_type', ClassSection::class)->whereIn('model_id', $childClassSectionIds);
+                    })->orWhere(function ($q) use ($childClassIds) {
+                        $q->where('model_type', ClassSchool::class)->whereIn('model_id', $childClassIds);
+                    });
+                })->exists();
+            if (! $examIsForChild) {
+                ResponseService::errorResponse('No Online Exam Found', null, 103);
+            }
 
             // get the total questions count
             $total_questions = OnlineExamQuestionChoice::where('online_exam_id', $request->online_exam_id)->count();
 
-            // get the exam's choiced question id
-            $exam_choiced_question_ids = OnlineExamStudentAnswer::where(['student_id' => $student->id, 'online_exam_id' => $request->online_exam_id])->pluck('question_id');
-
-            // get the questions id
-            $question_ids = OnlineExamQuestionChoice::whereIn('id', $exam_choiced_question_ids)->pluck('question_id');
-
-            // get the options submitted by student
-            $exam_attempted_answers = OnlineExamStudentAnswer::where(['student_id' => $student->id, 'online_exam_id' => $request->online_exam_id])->pluck('option_id');
-
-            // removes the question id of the question if one of the answer of particular question is wrong
-            foreach ($question_ids as $question_id) {
-                $check_questions_answers_exists = OnlineExamQuestionAnswer::where('question_id', $question_id)->whereNotIn('answer', $exam_attempted_answers)->count();
-                if ($check_questions_answers_exists) {
-                    unset($question_ids[array_search($question_id, $question_ids->toArray())]);
-                }
-            }
+            // a question counts only when exactly its correct options were picked
+            $score = app(\App\Services\OnlineExamScoringService::class)->score((int) $student->id, (int) $request->online_exam_id);
+            $choice_marks = OnlineExamQuestionChoice::where('online_exam_id', $request->online_exam_id)->pluck('marks', 'id');
 
             // get the correct answers counter
-            $exam_correct_answers = OnlineExamQuestionAnswer::whereIn('question_id', $question_ids)->whereIn('answer', $exam_attempted_answers)->groupby('question_id')->pluck('question_id')->count();
-
-            // question id of correct answers
-            $exam_correct_answers_question_id = OnlineExamQuestionAnswer::whereIn('question_id', $question_ids)->whereIn('answer', $exam_attempted_answers)->pluck('question_id');
-
-            // data of correct answers
-            $exam_correct_answers_data = OnlineExamQuestionAnswer::whereIn('question_id', $question_ids)->whereIn('answer', $exam_attempted_answers)->groupby('question_id')->get();
+            $exam_correct_answers = count($score['correct_choice_ids']);
 
             // array of correct answer with choiced exam id and marks
             $correct_answers_data = [];
-            foreach ($exam_correct_answers_data as $correct_data) {
-                $choice_questions = OnlineExamQuestionChoice::where(['online_exam_id' => $request->online_exam_id, 'question_id' => $correct_data->question_id])->first();
+            foreach ($score['correct_choice_ids'] as $choice_id) {
                 $correct_answers_data[] = [
-                    'question_id' => $choice_questions->id,
-                    'marks' => $choice_questions->marks,
+                    'question_id' => $choice_id,
+                    'marks' => $choice_marks[$choice_id] ?? null,
                 ];
             }
 
-            // get questions ids
-            $all_questions_ids = OnlineExamQuestionChoice::whereNotIn('question_id', $question_ids)->where('online_exam_id', $request->online_exam_id)->pluck('question_id');
-
             // get the incorrect answers && unattempted counter
-            $exam_in_correct_answers = OnlineExamQuestionAnswer::whereIn('question_id', $all_questions_ids)->whereNotIn('answer', $exam_attempted_answers)->groupby('question_id')->pluck('question_id')->count();
-
-            // data of in correct && unattempted answers
-            $exam_in_correct_answers_data = OnlineExamQuestionAnswer::whereIn('question_id', $all_questions_ids)->whereNotIn('answer', $exam_attempted_answers)->groupby('question_id')->get();
+            $exam_in_correct_answers = count($score['incorrect_choice_ids']);
 
             // array of in correct answer && unattempted with choiced exam id and marks
             $in_correct_answers_data = [];
-            foreach ($exam_in_correct_answers_data as $in_correct_data) {
-                $choice_questions = OnlineExamQuestionChoice::where(['online_exam_id' => $request->online_exam_id, 'question_id' => $in_correct_data->question_id])->first();
-                if (isset($choice_questions) && ! empty($choice_questions)) {
-                    $in_correct_answers_data[] = [
-                        'question_id' => $choice_questions->id,
-                        'marks' => $choice_questions->marks,
-                    ];
-                }
+            foreach ($score['incorrect_choice_ids'] as $choice_id) {
+                $in_correct_answers_data[] = [
+                    'question_id' => $choice_id,
+                    'marks' => $choice_marks[$choice_id] ?? null,
+                ];
             }
 
             // total obtained and total marks
-            $total_obtained_marks = OnlineExamQuestionChoice::select(DB::raw('sum(marks)'))->where('online_exam_id', $request->online_exam_id)->whereIn('question_id', $exam_correct_answers_question_id)->first();
+            $total_obtained_marks = OnlineExamQuestionChoice::select(DB::raw('sum(marks)'))->where('online_exam_id', $request->online_exam_id)->whereIn('id', $score['correct_choice_ids'])->first();
             $total_obtained_marks = $total_obtained_marks['sum(marks)'];
             $total_marks = OnlineExamQuestionChoice::select(DB::raw('sum(marks)'))->where('online_exam_id', $request->online_exam_id)->first();
             $total_marks = $total_marks['sum(marks)'];
@@ -2064,7 +2003,7 @@ class ParentApiController extends Controller
             ResponseService::validationError($validator->errors()->first());
         }
         try {
-            $data = $feesReportService->getStatistics((int) $request->child_id, (int) $request->session_year_id);
+            $data = $feesReportService->getStatistics((int) $this->resolveChild($request)->id, (int) $request->session_year_id);
             if (empty($data)) {
                 ResponseService::errorResponse('No session found for this student in the current session year', null, 113);
             }
@@ -2084,7 +2023,7 @@ class ParentApiController extends Controller
             ResponseService::validationError($validator->errors()->first());
         }
         try {
-            $data = $leaveReportService->getStatistics((int) $request->child_id, (int) $request->session_year_id);
+            $data = $leaveReportService->getStatistics((int) $this->resolveChild($request)->id, (int) $request->session_year_id);
             if (empty($data)) {
                 ResponseService::errorResponse('No session found for this student in the current session year', null, 113);
             }
@@ -2107,7 +2046,7 @@ class ParentApiController extends Controller
         }
         try {
             $data = $assignmentReportService->getStatistics(
-                (int) $request->child_id,
+                (int) $this->resolveChild($request)->id,
                 (int) $request->session_year_id,
                 $request->subject_id ? (int) $request->subject_id : null
             );
@@ -2131,7 +2070,7 @@ class ParentApiController extends Controller
             ResponseService::validationError($validator->errors()->first());
         }
         try {
-            $data = $examReportService->getOfflineStatistics((int) $request->child_id, (int) $request->session_year_id);
+            $data = $examReportService->getOfflineStatistics((int) $this->resolveChild($request)->id, (int) $request->session_year_id);
             if (empty($data)) {
                 ResponseService::errorResponse('No session found for this student in the current session year', null, 113);
             }
@@ -2154,7 +2093,7 @@ class ParentApiController extends Controller
         }
         try {
             $data = $examReportService->getOnlineStatistics(
-                (int) $request->child_id,
+                (int) $this->resolveChild($request)->id,
                 (int) $request->session_year_id,
                 $request->filled('subject_id') ? (int) $request->subject_id : null
             );
@@ -2172,17 +2111,10 @@ class ParentApiController extends Controller
     {
         try {
 
-            $parent_id = Auth::user()->parent->id;
-            if ($request->filled('child_id')) {
-                $owns = Auth::user()->parent->children()->where('id', $request->child_id)->exists();
-                if (! $owns) {
-                    ResponseService::errorResponse('Invalid Child ID Passed.', null, 105);
-                }
-                $child_id = [(int) $request->child_id];
-            } else {
-                $child_id = Students::where('father_id', $parent_id)->orWhere('mother_id', $parent_id)
-                    ->orWhere('guardian_id', $parent_id)->pluck('id');
-            }
+            // Outside the CheckChild group: an optional child_id must be one of the parent's children.
+            $child_id = $request->filled('child_id')
+                ? [$this->resolveChild($request)->id]
+                : $this->parentChildIds($request);
             $fees_payment_transactions = PaymentTransaction::whereIn('student_id', $child_id)
                 ->when($request->session_year_id, fn ($q) => $q->where('session_year_id', $request->session_year_id))
                 ->with('session_year')->with(['student' => function ($q) {
@@ -2469,8 +2401,22 @@ class ParentApiController extends Controller
     // Make Transaction Fail API
     public function failPaymentTransactionStatus(Request $request)
     {
+        $validator = Validator::make($request->all(), [
+            'payment_transaction_id' => 'required|integer',
+        ]);
+        if ($validator->fails()) {
+            ResponseService::validationError($validator->errors()->first());
+        }
         try {
-            $update_status = PaymentTransaction::findOrFail($request->payment_transaction_id);
+            // Only a still-pending transaction of one of this parent's children; a payment
+            // the gateway has already settled is never turned into a failure here.
+            $update_status = PaymentTransaction::whereKey((int) $request->payment_transaction_id)
+                ->whereIn('student_id', $this->parentChildIds($request))
+                ->where('payment_status', 2) // 0 failed, 1 succeeded, 2 pending
+                ->first();
+            if (! $update_status) {
+                ResponseService::errorResponse('No Payment Transaction Found', null, 103);
+            }
             $total_amount = $update_status->total_amount;
             $update_status->payment_status = 0;
             $update_status->save();
@@ -2531,31 +2477,29 @@ class ParentApiController extends Controller
 
     public function getPaymentStatus(Request $request)
     {
-        ResponseService::logCurlRequest();
         $validator = Validator::make($request->all(), [
-            'payment_intent_id' => 'required',
+            'payment_intent_id' => ['required', 'string', 'max:191', 'regex:/^pi_[A-Za-z0-9_]+$/'],
         ]);
         if ($validator->fails()) {
             ResponseService::validationError($validator->errors()->first());
         }
         try {
-            $settings = getSettings();
-
-            if (isset($settings['razorpay_status']) && $settings['razorpay_status']) {
-                $secretkey = $settings['razorpay_secret_key'] ?? '';
+            // Shared by /api/parent and /api/student: only a Stripe payment the caller
+            // started (for one of their children, or for themselves as a student).
+            $ownsPayment = PaymentTransaction::where('order_id', $request->payment_intent_id)
+                ->whereIn('student_id', $this->payerStudentIds($request))
+                ->exists();
+            if (! $ownsPayment) {
+                ResponseService::errorResponse('No Payment Transaction Found', null, 103);
             }
 
-            if (isset($settings['stripe_status']) && $settings['stripe_status']) {
-                $secretkey = $settings['stripe_secret_key'] ?? '';
+            if (empty(getSettings('stripe_status')['stripe_status'] ?? null)) {
+                ResponseService::errorResponse('Stripe payments are not enabled', null, 103);
             }
 
-            $url = 'https://api.stripe.com/v1/payment_intents/'.$request->payment_intent_id;
-
-            $payment_status = Http::withHeaders([
-                'Authorization' => 'Bearer '.$secretkey,
-            ])->get($url);
-
-            $data = $payment_status['status'];
+            // The app compares this with Stripe's own status ("succeeded").
+            $paymentIntent = PaymentService::create(2)->retrievePaymentIntent($request->payment_intent_id);
+            $data = $paymentIntent['payment_gateway_response']->status;
             ResponseService::successResponse('Data Fetched Successfully', $data, [], 200);
         } catch (Throwable $e) {
             ResponseService::errorResponse('error_occurred', null, 103, $e);
@@ -2580,100 +2524,12 @@ class ParentApiController extends Controller
                 return $semester->current;
             });
 
-            $childrens = $parent->children()
-                ->whereHas('studentSessions', function ($q) use ($session_year_id) {
-                    $q->where('session_year_id', $session_year_id);
-                })->get();
-
-            $class_section_ids = [];
-            $subject_id = [];
-
-            // Track which class_section_ids require semester filtering and which don't
-            $semesterClassSectionIds = []; // class_section_id => semester_id
-            $nonSemesterClassSectionIds = []; // plain array
-
-            foreach ($childrens as $children) {
-                $studentSession = StudentSessions::where('session_year_id', $session_year_id)
-                    ->where('student_id', $children->id)->first();
-
-                $sectionId = $studentSession
-                    ? $studentSession->class_section_id
-                    : $children->class_section_id;
-
-                $class_section_ids[] = $sectionId;
-
-                // --- Semester check ---
-                // Resolve class_id from ClassSection
-                $classSection = ClassSection::find($sectionId);
-                $class_id = $classSection ? $classSection->class_id : null;
-
-                $isClassHaveSemester = $class_id
-                    ? ClassSessionConfig::classHasSemester($class_id, $session_year_id)
-                    : false;
-
-                if ($isClassHaveSemester && $currentSemester) {
-                    $semesterClassSectionIds[$sectionId] = $currentSemester->id;
-                } else {
-                    $nonSemesterClassSectionIds[] = $sectionId;
-                }
-                // --- End semester check ---
-
-                $student_subject = $children->subjects();
-
-                $core_subjects = array_column($student_subject['core_subject'], 'subject_id');
-                $elective_subjects = $student_subject['elective_subject'] ?? [];
-                if ($elective_subjects) {
-                    $elective_subjects = $elective_subjects->pluck('subject_id')->toArray();
-                }
-                $subject_id = array_merge($subject_id, $core_subjects, $elective_subjects);
-            }
-
-            $class_section_ids = array_unique(array_filter($class_section_ids));
-            $subject_id = array_unique($subject_id);
-
-            // --- Build class teacher IDs with semester awareness ---
-            $class_teachers_id = [];
-
-            // Semester-filtered class sections
-            foreach ($semesterClassSectionIds as $csi => $semId) {
-                $ids = ClassTeacher::where('class_section_id', $csi)
-                    ->where('session_year_id', $session_year_id)
-                    ->where('semester_id', $semId)
-                    ->pluck('class_teacher_id')->toArray();
-                $class_teachers_id = array_merge($class_teachers_id, $ids);
-            }
-
-            // Non-semester class sections (original behaviour)
-            if (! empty($nonSemesterClassSectionIds)) {
-                $ids = ClassTeacher::whereIn('class_section_id', $nonSemesterClassSectionIds)
-                    ->where('session_year_id', $session_year_id)
-                    ->pluck('class_teacher_id')->toArray();
-                $class_teachers_id = array_merge($class_teachers_id, $ids);
-            }
-
-            // --- Build subject teacher IDs with semester awareness ---
-            $subject_teacher_id = [];
-
-            // Semester-filtered
-            foreach ($semesterClassSectionIds as $csi => $semId) {
-                $ids = SubjectTeacher::where('class_section_id', $csi)
-                    ->where('session_year_id', $session_year_id)
-                    ->whereIn('subject_id', $subject_id)
-                    ->where('semester_id', $semId)
-                    ->pluck('teacher_id')->toArray();
-                $subject_teacher_id = array_merge($subject_teacher_id, $ids);
-            }
-
-            // Non-semester (original behaviour)
-            if (! empty($nonSemesterClassSectionIds)) {
-                $ids = SubjectTeacher::whereIn('class_section_id', $nonSemesterClassSectionIds)
-                    ->where('session_year_id', $session_year_id)
-                    ->whereIn('subject_id', $subject_id)
-                    ->pluck('teacher_id')->toArray();
-                $subject_teacher_id = array_merge($subject_teacher_id, $ids);
-            }
-
-            $teacher_ids = array_unique(array_merge($class_teachers_id, $subject_teacher_id));
+            // The same teacher set sendMessage() allows as receivers.
+            $scope = $this->chatTeacherScope($parent, $session_year_id, $currentSemester);
+            $childrens = $scope['childrens'];
+            $semesterClassSectionIds = $scope['semester_class_section_ids'];
+            $nonSemesterClassSectionIds = $scope['non_semester_class_section_ids'];
+            $teacher_ids = $scope['teacher_ids'];
 
             // --- Teacher query (unchanged) ---
             if ($search) {
@@ -2809,7 +2665,7 @@ class ParentApiController extends Controller
                     'email' => $teacher->user->email,
                     'image' => $teacher->user->image,
                     'class_teacher' => $class_names,
-                    'dob' => $teacher->user->dob,
+                    // No dob: a teacher's date of birth is their default password.
                     'mobile_no' => $teacher->user->mobile,
                     'subjects' => $subjectData,
                     'student_name' => $studentsArray ?? [],
@@ -2839,17 +2695,28 @@ class ParentApiController extends Controller
 
     public function sendMessage(Request $request)
     {
+        // Limits from the chat settings (the same values the app is given).
+        $chatSettings = getSettings();
+        $maxFiles = max(1, (int) ($chatSettings['max_files_or_images_in_one_message'] ?? 10));
+        $maxFileKb = max(1, (int) ceil(((float) ($chatSettings['max_file_size_in_bytes'] ?? 10)) * 1000000 / 1024));
+
         $validator = Validator::make($request->all(), [
-            'receiver_id' => 'required|numeric',
+            'receiver_id' => 'required|integer',
             'message' => 'required_without:file',
-            'file.*' => 'nullable',
+            'file' => 'nullable|array|max:'.$maxFiles,
+            'file.*' => 'file|max:'.$maxFileKb,
         ]);
         if ($validator->fails()) {
             ResponseService::validationError($validator->errors()->first());
         }
         try {
             $sender_id = $request->user()->id;
-            $receiver_id = $request->receiver_id;
+            $receiver_id = (int) $request->receiver_id;
+
+            // Only the teachers getChatUserList offers this parent.
+            if (! in_array($receiver_id, $this->chatAllowedUserIds($request), true)) {
+                ResponseService::errorResponse('You can not send a message to this user', null, 103);
+            }
 
             $message = new ChatMessage;
             $message->modal_id = $receiver_id;
@@ -2861,8 +2728,14 @@ class ParentApiController extends Controller
             $count = 0;
             if ($request->hasFile('file')) {
                 foreach ($request->file('file') as $uploadedFile) {
-                    $originalName = $uploadedFile->getClientOriginalName();
-                    $filePath = $uploadedFile->storeAs('chatfile', $originalName, 'public');
+                    // Each file gets its own generated folder, so a client-chosen name can't
+                    // overwrite another file or leave chatfile/. The app shows the last URL
+                    // segment, so a cleaned-up original name is kept as the file name.
+                    $originalName = preg_replace('/[^A-Za-z0-9._-]+/', '_', basename(str_replace('\\', '/', $uploadedFile->getClientOriginalName())));
+                    $originalName = ltrim(mb_substr((string) $originalName, -120), '._');
+                    $filePath = $originalName !== ''
+                        ? $uploadedFile->storeAs('chatfile/'.Str::random(32), $originalName, 'public')
+                        : $uploadedFile->store('chatfile', 'public');
 
                     $file = new ChatFile;
                     $file->file_type = 1;
@@ -2992,13 +2865,13 @@ class ParentApiController extends Controller
             $messages = ChatMessage::with(['file' => function ($query) {
                 $query->select('message_id', 'file_name');
             }])
+                // Only the conversation between the parent and that user.
                 ->where(function ($query) use ($request) {
-                    $query->where('modal_id', $request->user_id)
-                        ->orWhere('modal_id', Auth::id());
-                })
-                ->where(function ($query) use ($request) {
-                    $query->where('sender_id', $request->user_id)
-                        ->orWhere('sender_id', Auth::id());
+                    $query->where(function ($q) use ($request) {
+                        $q->where('sender_id', Auth::id())->where('modal_id', $request->user_id);
+                    })->orWhere(function ($q) use ($request) {
+                        $q->where('sender_id', $request->user_id)->where('modal_id', Auth::id());
+                    });
                 })
                 ->select('id', 'sender_id', 'body', 'date')
                 ->latest('date');
@@ -3197,7 +3070,7 @@ class ParentApiController extends Controller
 
             $setting = getSettings();
             $session_year_id = $request->session_year_id ?? $setting['session_year'];
-            $student = Students::where('id', $request->child_id)->first();
+            $student = $this->resolveChild($request);
 
             $sql = Leave::with('leave_detail', 'file')->where('user_id', $student->user_id)->where('session_year_id', $session_year_id)->withCount(['leave_detail as full_leave' => function ($q) {
                 $q->where('type', 'Full');
@@ -3237,30 +3110,21 @@ class ParentApiController extends Controller
 
     public function deleteLeave(Request $request)
     {
+        $validator = Validator::make($request->all(), [
+            'leave_id' => 'required|integer',
+        ]);
+        if ($validator->fails()) {
+            ResponseService::validationError($validator->errors()->first());
+        }
         try {
+            // Only a still-pending leave (status 0) of one of this parent's children: an
+            // approved or rejected leave is a school record (the app offers delete only
+            // for pending ones).
+            $childUserIds = $request->user()->parent->children()->pluck('user_id');
 
-            $request->validate([
-                'leave_id' => 'required|integer',
-            ]);
-
-            $parentUserId = Auth::id();
-
-            $leave = Leave::where('id', $request->leave_id)
-                ->whereHas('user.student', function ($studentQuery) use ($parentUserId) {
-
-                    $studentQuery->where(function ($q) use ($parentUserId) {
-
-                        $q->whereHas('father', function ($fatherQuery) use ($parentUserId) {
-                            $fatherQuery->where('user_id', $parentUserId);
-                        })
-                            ->orWhereHas('mother', function ($motherQuery) use ($parentUserId) {
-                                $motherQuery->where('user_id', $parentUserId);
-                            })
-                            ->orWhereHas('guardian', function ($guardianQuery) use ($parentUserId) {
-                                $guardianQuery->where('user_id', $parentUserId);
-                            });
-                    });
-                })
+            $leave = Leave::whereKey((int) $request->leave_id)
+                ->whereIn('user_id', $childUserIds)
+                ->where('status', 0)
                 ->first();
 
             if (! $leave) {
@@ -3286,8 +3150,7 @@ class ParentApiController extends Controller
         }
 
         try {
-            // child_id ownership is already enforced by the CheckChild middleware.
-            $child = $request->user()->parent->children()->where('id', $request->child_id)->first();
+            $child = $this->resolveChild($request);
 
             $output = $idCardService->buildPdf([$child->id])->output();
 
@@ -3295,5 +3158,181 @@ class ParentApiController extends Controller
         } catch (Throwable $e) {
             ResponseService::errorResponse('error_occurred', null, 103, $e);
         }
+    }
+
+    /**
+     * The child a request is about, always resolved through the logged-in parent's
+     * own children. Inside the CheckChild route group the middleware has already
+     * resolved it; elsewhere child_id is looked up here. Sends an error response
+     * (and ends the request) when child_id is not one of the parent's children.
+     */
+    private function resolveChild(Request $request, int $errorCode = 105): Students
+    {
+        $parent = $request->user()?->parent;
+        $child = $request->attributes->get('child');
+
+        if ($parent && $child instanceof Students
+            && in_array((int) $parent->id, [(int) $child->father_id, (int) $child->mother_id, (int) $child->guardian_id], true)) {
+            return $child;
+        }
+
+        // A scalar id only: an array would make whereKey() match any of several ids.
+        $childId = $request->input('child_id');
+        $child = ($parent && is_scalar($childId) && ctype_digit((string) $childId))
+            ? $parent->children()->whereKey((int) $childId)->first()
+            : null;
+
+        if (! $child) {
+            ResponseService::errorResponse('Invalid Child ID Passed.', null, $errorCode);
+        }
+
+        return $child;
+    }
+
+    /**
+     * Ids of the logged-in parent's children.
+     *
+     * @return list<int>
+     */
+    private function parentChildIds(Request $request): array
+    {
+        $parent = $request->user()?->parent;
+
+        return $parent ? $parent->children()->pluck('id')->map(fn ($id) => (int) $id)->all() : [];
+    }
+
+    /**
+     * Ids of the students whose payments the caller may see: a student's own id on
+     * the student API (get-payment-status is shared), otherwise the parent's children.
+     *
+     * @return list<int>
+     */
+    private function payerStudentIds(Request $request): array
+    {
+        $user = $request->user();
+        if ($request->is('api/student/*')) {
+            return ($user?->hasRole('Student') && $user->student) ? [(int) $user->student->id] : [];
+        }
+
+        return $this->parentChildIds($request);
+    }
+
+    /**
+     * The teachers a parent may chat with: the class teachers and subject teachers
+     * of their children's current class sections (semester aware). Also returns the
+     * intermediate data getChatUserList shows alongside each teacher.
+     *
+     * @return array{teacher_ids: list<int>, childrens: \Illuminate\Support\Collection, semester_class_section_ids: array<int, int>, non_semester_class_section_ids: list<int>}
+     */
+    private function chatTeacherScope(Parents $parent, $session_year_id, ?Semester $currentSemester): array
+    {
+        $childrens = $parent->children()
+            ->whereHas('studentSessions', function ($q) use ($session_year_id) {
+                $q->where('session_year_id', $session_year_id);
+            })->get();
+
+        $class_section_ids = [];
+        $subject_id = [];
+
+        // Track which class_section_ids require semester filtering and which don't
+        $semesterClassSectionIds = []; // class_section_id => semester_id
+        $nonSemesterClassSectionIds = []; // plain array
+
+        foreach ($childrens as $children) {
+            $studentSession = StudentSessions::where('session_year_id', $session_year_id)
+                ->where('student_id', $children->id)->first();
+
+            $sectionId = $studentSession
+                ? $studentSession->class_section_id
+                : $children->class_section_id;
+
+            $class_section_ids[] = $sectionId;
+
+            // Resolve class_id from ClassSection
+            $classSection = ClassSection::find($sectionId);
+            $class_id = $classSection ? $classSection->class_id : null;
+
+            $isClassHaveSemester = $class_id
+                ? ClassSessionConfig::classHasSemester($class_id, $session_year_id)
+                : false;
+
+            if ($isClassHaveSemester && $currentSemester) {
+                $semesterClassSectionIds[$sectionId] = $currentSemester->id;
+            } else {
+                $nonSemesterClassSectionIds[] = $sectionId;
+            }
+
+            $student_subject = $children->subjects();
+
+            $core_subjects = array_column($student_subject['core_subject'], 'subject_id');
+            $elective_subjects = $student_subject['elective_subject'] ?? [];
+            if ($elective_subjects) {
+                $elective_subjects = $elective_subjects->pluck('subject_id')->toArray();
+            }
+            $subject_id = array_merge($subject_id, $core_subjects, $elective_subjects);
+        }
+
+        $subject_id = array_unique($subject_id);
+
+        // --- Class teacher IDs with semester awareness ---
+        $class_teachers_id = [];
+        foreach ($semesterClassSectionIds as $csi => $semId) {
+            $ids = ClassTeacher::where('class_section_id', $csi)
+                ->where('session_year_id', $session_year_id)
+                ->where('semester_id', $semId)
+                ->pluck('class_teacher_id')->toArray();
+            $class_teachers_id = array_merge($class_teachers_id, $ids);
+        }
+        if (! empty($nonSemesterClassSectionIds)) {
+            $ids = ClassTeacher::whereIn('class_section_id', $nonSemesterClassSectionIds)
+                ->where('session_year_id', $session_year_id)
+                ->pluck('class_teacher_id')->toArray();
+            $class_teachers_id = array_merge($class_teachers_id, $ids);
+        }
+
+        // --- Subject teacher IDs with semester awareness ---
+        $subject_teacher_id = [];
+        foreach ($semesterClassSectionIds as $csi => $semId) {
+            $ids = SubjectTeacher::where('class_section_id', $csi)
+                ->where('session_year_id', $session_year_id)
+                ->whereIn('subject_id', $subject_id)
+                ->where('semester_id', $semId)
+                ->pluck('teacher_id')->toArray();
+            $subject_teacher_id = array_merge($subject_teacher_id, $ids);
+        }
+        if (! empty($nonSemesterClassSectionIds)) {
+            $ids = SubjectTeacher::whereIn('class_section_id', $nonSemesterClassSectionIds)
+                ->where('session_year_id', $session_year_id)
+                ->whereIn('subject_id', $subject_id)
+                ->pluck('teacher_id')->toArray();
+            $subject_teacher_id = array_merge($subject_teacher_id, $ids);
+        }
+
+        return [
+            'teacher_ids' => array_values(array_unique(array_merge($class_teachers_id, $subject_teacher_id))),
+            'childrens' => $childrens,
+            'semester_class_section_ids' => $semesterClassSectionIds,
+            'non_semester_class_section_ids' => $nonSemesterClassSectionIds,
+        ];
+    }
+
+    /**
+     * User ids of the teachers the logged-in parent may chat with (the users
+     * getChatUserList lists).
+     *
+     * @return list<int>
+     */
+    private function chatAllowedUserIds(Request $request): array
+    {
+        $parent = $request->user()?->parent;
+        if (! $parent) {
+            return [];
+        }
+
+        $session_year_id = getSettings('session_year')['session_year'];
+        $currentSemester = Semester::get()->first(fn ($semester) => $semester->current);
+        $teacherIds = $this->chatTeacherScope($parent, $session_year_id, $currentSemester)['teacher_ids'];
+
+        return Teacher::whereIn('id', $teacherIds)->pluck('user_id')->map(fn ($id) => (int) $id)->all();
     }
 }

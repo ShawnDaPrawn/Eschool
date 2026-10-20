@@ -33,7 +33,7 @@ class PaystackPayment extends Paystack implements PaymentInterface {
             if (empty($customMetaData['email'])) {
                 throw new RuntimeException("Email cannot be empty");
             }
-            $finalAmount = $amount * 100;
+            $finalAmount = self::amountInSubunits($amount);
             $reference = $this->genTranxRef();
 
 
@@ -76,6 +76,14 @@ class PaystackPayment extends Paystack implements PaymentInterface {
         } catch (Throwable $e) {
             throw $e;
         }
+    }
+
+    /**
+     * The amount Paystack is asked for (and reports back in webhooks), in the
+     * currency's smallest unit (kobo, pesewas, cents).
+     */
+    public static function amountInSubunits($amount): int {
+        return (int) round((float) $amount * 100);
     }
 
     /**

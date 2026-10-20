@@ -2,6 +2,7 @@ import 'package:eschool/cubits/appConfigurationCubit.dart';
 import 'package:eschool/data/models/examsOnline.dart';
 import 'package:eschool/ui/screens/exam/onlineExam/cubits/examOnlineCubit.dart';
 import 'package:eschool/ui/widgets/customRoundedButton.dart';
+import 'package:eschool/utils/errorMessageKeysAndCodes.dart';
 import 'package:eschool/utils/extensions.dart';
 import 'package:eschool/utils/labelKeys.dart';
 import 'package:eschool/utils/uiUtils.dart';
@@ -193,10 +194,15 @@ class ExamOnlineKeyBottomsheetContainerState
         listener: (context, state) {
           if (state is ExamOnlineFetchFailure) {
             setState(() {
-              errorMessage = UiUtils.getErrorMessageFromErrorCode(
-                context,
-                state.exception,
-              );
+              errorMessage =
+                  !state.exception.isApiMessage &&
+                      state.exception.errorMessage ==
+                          ErrorMessageKeysAndCode.invalidOnlineExamKeyCode
+                  ? UiUtils.getTranslatedLabel(context, enterValidExamKey)
+                  : UiUtils.getErrorMessageFromErrorCode(
+                      context,
+                      state.exception,
+                    );
             });
           } else if (state is ExamOnlineFetchSuccess) {
             widget.navigateToExamScreen();
@@ -306,20 +312,29 @@ class ExamOnlineKeyBottomsheetContainerState
                                       pleaseAcceptExamRulesKey,
                                     );
                                   });
-                                } else if (textEditingController.text.trim() ==
-                                    widget.exam.examKey.toString()) {
-                                  errorMessage = '';
-                                  //start exam
-                                  context.read<ExamOnlineCubit>().startExam(
-                                    exam: widget.exam,
-                                  );
                                 } else {
-                                  setState(() {
-                                    errorMessage = UiUtils.getTranslatedLabel(
-                                      context,
-                                      enterValidExamKey,
+                                  //The server checks the key when the
+                                  //questions are fetched
+                                  final int? examKey = int.tryParse(
+                                    textEditingController.text.trim(),
+                                  );
+                                  if (examKey == null) {
+                                    setState(() {
+                                      errorMessage = UiUtils.getTranslatedLabel(
+                                        context,
+                                        enterValidExamKey,
+                                      );
+                                    });
+                                  } else {
+                                    setState(() {
+                                      errorMessage = '';
+                                    });
+                                    //start exam
+                                    context.read<ExamOnlineCubit>().startExam(
+                                      exam: widget.exam,
+                                      examKey: examKey,
                                     );
-                                  });
+                                  }
                                 }
                               },
                         textSize: 18,

@@ -225,45 +225,15 @@ class ExamReportService
     }
 
     /**
-     * Percentage scored by the student in an online exam.
-     *
-     * Mirrors getOnlineExamResultList: a question counts only when every one of
-     * the student's selected options is a correct answer for that question.
+     * Percentage scored by the student in an online exam: a question counts
+     * only when exactly its correct options were picked (OnlineExamScoringService).
      */
     private function onlineExamPercentage(int $student_id, int $online_exam_id): float
     {
-        $submitted_choice_ids = OnlineExamStudentAnswer::where([
-            'student_id' => $student_id,
-            'online_exam_id' => $online_exam_id,
-        ])->pluck('question_id');
+        $score = app(OnlineExamScoringService::class)->score($student_id, $online_exam_id);
 
-        $question_ids = OnlineExamQuestionChoice::whereIn('id', $submitted_choice_ids)->pluck('question_id');
-
-        $attempted_answers = OnlineExamStudentAnswer::where([
-            'student_id' => $student_id,
-            'online_exam_id' => $online_exam_id,
-        ])->pluck('option_id');
-
-        // Drop any question where one of the student's answers is wrong.
-        foreach ($question_ids as $question_id) {
-            $has_wrong_answer = OnlineExamQuestionAnswer::where('question_id', $question_id)
-                ->whereNotIn('answer', $attempted_answers)
-                ->count();
-            if ($has_wrong_answer) {
-                unset($question_ids[array_search($question_id, $question_ids->toArray())]);
-            }
-        }
-
-        $correct_question_ids = OnlineExamQuestionAnswer::whereIn('question_id', $question_ids)
-            ->whereIn('answer', $attempted_answers)
-            ->pluck('question_id');
-
-        $obtained_marks = (float) OnlineExamQuestionChoice::where('online_exam_id', $online_exam_id)
-            ->whereIn('question_id', $correct_question_ids)
-            ->sum('marks');
-
-        $total_marks = (float) OnlineExamQuestionChoice::where('online_exam_id', $online_exam_id)
-            ->sum('marks');
+        $obtained_marks = (float) $score['obtained_marks'];
+        $total_marks = (float) $score['total_marks'];
 
         if ($total_marks <= 0) {
             return 0.0;

@@ -135,6 +135,8 @@ function changeEnv($data = [])
         }
         // Loop through given data
         foreach ((array) $data as $key => $value) {
+            // Values come from settings forms: a line break would let one add any other .env entry.
+            $value = str_replace(["\r", "\n", "\0"], '', (string) $value);
             $key_value = $key.'='.$value;
 
             if (in_array($key, $temp_env_keys)) {

@@ -281,6 +281,25 @@
 
         const assignmentSubmissions = @json($mappedAssignments);
 
+        // Local helpers: this partial's script runs inline, before custom/function.js is loaded.
+        // Submission text/link and the assignment/subject/teacher names are user supplied.
+        function esc(value) {
+            if (value === null || value === undefined) return '';
+            return String(value)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#39;')
+                .replace(/`/g, '&#96;');
+        }
+
+        // Only http(s) links are opened/linked; anything else (javascript:, data:, ...) becomes '#'.
+        function httpUrl(value) {
+            const str = String(value === null || value === undefined ? '' : value).trim();
+            return /^https?:\/\//i.test(str.replace(/[\t\n\r]/g, '')) ? str : '#';
+        }
+
         // Force both dropdowns to "all" on every fresh tab load.
         // This prevents any stale URL value or browser state from
         // silently filtering the data when no filter was intentionally applied.
@@ -443,35 +462,36 @@
                     let marksDisplay = '';
                     if (item.status === 'Accepted') {
                         marksDisplay =
-                            `<span class="font-weight-bold text-dark" style="font-size:14px;">${item.points}</span> <span class="text-muted">/ ${item.maxPoints}</span>`;
+                            `<span class="font-weight-bold text-dark" style="font-size:14px;">${esc(item.points)}</span> <span class="text-muted">/ ${esc(item.maxPoints)}</span>`;
                     } else if (item.status === 'Pending' && item.submittedAt) {
                         marksDisplay =
                             `<span class="font-italic text-warning small font-weight-bold">{{ __('awaiting_evaluate') }}</span>`;
                     } else if (item.status === 'Rejected') {
                         marksDisplay =
-                            `<span class="font-weight-bold text-danger" style="font-size:14px;">${item.points}</span> <span class="text-muted">/ ${item.maxPoints}</span>`;
+                            `<span class="font-weight-bold text-danger" style="font-size:14px;">${esc(item.points)}</span> <span class="text-muted">/ ${esc(item.maxPoints)}</span>`;
                     } else {
-                        marksDisplay = `<span class="text-muted">- / ${item.maxPoints}</span>`;
+                        marksDisplay = `<span class="text-muted">- / ${esc(item.maxPoints)}</span>`;
                     }
 
                     let attachmentHTML = '';
                     if (item.attachedFile) {
                         const fname = item.attachedFile.split('/').pop();
+                        // URL goes in a data attribute (HTML-escaped), never inside the inline JS string.
                         attachmentHTML = `
                         <div class="d-inline-block mt-2 small font-weight-bold text-secondary bg-white border py-1 px-2 rounded"
-                             style="cursor:pointer;" onclick="window.open('${item.attachedFile}','_blank')">
-                            {{ __('attachment') }}: <span style="color:var(--theme-color);">${fname}</span>
+                             style="cursor:pointer;" data-open-url="${esc(httpUrl(item.attachedFile))}" onclick="window.open(this.getAttribute('data-open-url'),'_blank')">
+                            {{ __('attachment') }}: <span style="color:var(--theme-color);">${esc(fname)}</span>
                         </div>`;
                     } else if (item.submissionLink) {
                         attachmentHTML = `
                         <div class="d-inline-block mt-2 small font-weight-bold bg-light py-1 px-2 rounded"
-                             style="cursor:pointer; color:var(--theme-color);" onclick="window.open('${item.submissionLink}','_blank')">
-                            {{ __('link') }}: <span class="text-secondary">${item.submissionLink}</span>
+                             style="cursor:pointer; color:var(--theme-color);" data-open-url="${esc(httpUrl(item.submissionLink))}" onclick="window.open(this.getAttribute('data-open-url'),'_blank')">
+                            {{ __('link') }}: <span class="text-secondary">${esc(item.submissionLink)}</span>
                         </div>`;
                     } else if (item.submissionText) {
                         attachmentHTML = `
                         <div class="d-inline-block mt-2 small text-secondary bg-light border py-1 px-2 rounded">
-                            {{ __('text') }}:<span class="font-italic">${item.submissionText.substring(0, 60)}…</span>
+                            {{ __('text') }}:<span class="font-italic">${esc(item.submissionText.substring(0, 60))}…</span>
                         </div>`;
                     }
 
@@ -480,22 +500,22 @@
                         <td class="px-3 py-3">
                             <p class="font-weight-bold mb-1"
                                style="font-size:13px;cursor:pointer;color:var(--theme-color);"
-                               onclick="openReviewModal(${item.id})">${item.assignmentName}</p>
+                               onclick="openReviewModal(${parseInt(item.id, 10)})">${esc(item.assignmentName)}</p>
                             <div class="small text-muted">
-                               {{ __('semester') }}: <span class="font-weight-bold">${item.semesterLabel}</span>
+                               {{ __('semester') }}: <span class="font-weight-bold">${esc(item.semesterLabel)}</span>
                             </div>
                             ${attachmentHTML}
                         </td>
                         <td class="px-3 py-3 small text-muted">
-                            <p class="mb-1">{{ __('due_date') }}: <span class="font-weight-bold text-dark">${item.dueDate || '—'}</span></p>
+                            <p class="mb-1">{{ __('due_date') }}: <span class="font-weight-bold text-dark">${esc(item.dueDate || '—')}</span></p>
                             ${item.submittedAt
-                                ? `<p class="mb-0 text-success">{{ __('submitted') }}: <span class="font-weight-bold">${item.submittedAt}</span></p>`
+                                ? `<p class="mb-0 text-success">{{ __('submitted') }}: <span class="font-weight-bold">${esc(item.submittedAt)}</span></p>`
                                 : `<p class="mb-0 text-muted font-italic">{{ __('no_submission_date') }}</p>`}
                         </td>
                         <td class="px-3 py-3 align-middle">${statusPill}</td>
                         <td class="px-3 py-3 align-middle">${marksDisplay}</td>
                         <td class="px-3 py-3 align-middle text-center">
-                            <button onclick="openReviewModal(${item.id})"
+                            <button onclick="openReviewModal(${parseInt(item.id, 10)})"
                                     class="report-action-btn">{{ __('teacher_review') }}</button>
                         </td>
                     </tr>`;
@@ -507,9 +527,9 @@
                         <div class="d-flex align-items-center">
                             <span class="d-inline-block rounded mr-2" style="width:6px;height:32px;background:var(--theme-color);"></span>
                             <div>
-                                <h5 class="report-subject-title mb-0">${subject}</h5>
+                                <h5 class="report-subject-title mb-0">${esc(subject)}</h5>
                                 <p class="small text-muted mb-0" style="font-size:11px;">
-                                   {{ __('instructor') }}: ${assignments[0].teacherName}
+                                   {{ __('instructor') }}: ${esc(assignments[0].teacherName)}
                                 </p>
                             </div>
                         </div>
@@ -545,7 +565,7 @@
             }
 
             document.getElementById('modal-student-name').innerText =
-                "{{ $student->user?->full_name ?? $student->user?->first_name . ' ' . $student->user?->last_name }}";
+                @json($student->user?->full_name ?? $student->user?->first_name . ' ' . $student->user?->last_name);
             document.getElementById('modal-subject-label').innerText = item.subjectName;
             document.getElementById('modal-submitted-time').innerText = item.submittedAt ?
                 `Submitted ${item.submittedAt}` : "{{ __('not_submitted') }}";
@@ -559,7 +579,7 @@
                 fileSection.classList.remove('d-none');
                 const fname = item.attachedFile.split('/').pop();
                 document.getElementById('modal-filename-text').innerText = fname;
-                downloadBtn.href = item.attachedFile;
+                downloadBtn.href = httpUrl(item.attachedFile);
                 downloadBtn.setAttribute('download', fname);
                 downloadBtn.classList.remove('d-none');
             } else {
@@ -569,7 +589,7 @@
             const linkBox = document.getElementById('modal-link-box');
             if (item.submissionLink) {
                 linkBox.innerHTML =
-                    `<a href="${item.submissionLink}" target="_blank" style="color:var(--theme-color);">${item.submissionLink}</a>`;
+                    `<a href="${esc(httpUrl(item.submissionLink))}" target="_blank" style="color:var(--theme-color);">${esc(item.submissionLink)}</a>`;
             } else {
                 linkBox.innerText = 'No link provided';
             }

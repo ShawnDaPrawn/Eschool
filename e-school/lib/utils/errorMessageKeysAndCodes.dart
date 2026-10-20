@@ -22,6 +22,10 @@ class ErrorMessageKeysAndCode {
 
   static String examOnlineNotStartedYetKey = 'examOnlineNotStartedYet';
 
+  //Error code of get-online-exam-questions when the entered exam key is wrong
+  //(other APIs use 103 for other errors too)
+  static const String invalidOnlineExamKeyCode = '103';
+
   //These are ui side error codes
   static const String internetServerErrorCode = '500';
   static const String unauthorizedAccessCode = '401';

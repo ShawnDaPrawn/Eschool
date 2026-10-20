@@ -192,7 +192,8 @@
                                     <th scope="col" data-field="question_id" data-sortable="true"
                                         data-visible="false">{{ __('id') }}</th>
                                     <th scope="col" data-field="no" data-sortable="false">{{ __('no.') }}</th>
-                                    <th scope="col" data-field="question" data-sortable="false">{{ __('question') }}
+                                    <th scope="col" data-field="question" data-sortable="false"
+                                        data-formatter="onlineExamQuestionFormatter">{{ __('question') }}
                                     </th>
                                     <th scope="col" data-field="image" data-escape="false"
                                         data-formatter="imageFormatter" data-sortable="false" data-align="center">

@@ -61,5 +61,16 @@ class RouteServiceProvider extends ServiceProvider
         RateLimiter::for('api', function (Request $request) {
             return Limit::perMinute(60)->by($request->user()?->id ?: $request->ip());
         });
+
+        // App logins and password resets. Default passwords are dates of birth, so
+        // guesses are limited per account as well as per address.
+        RateLimiter::for('login', function (Request $request) {
+            $account = strtolower(trim((string) ($request->input('email') ?? $request->input('gr_number') ?? $request->input('gr_no') ?? '')));
+
+            return [
+                Limit::perMinute(5)->by('login:'.$request->path().'|'.$account),
+                Limit::perMinute(20)->by('login-ip:'.$request->ip()),
+            ];
+        });
     }
 }

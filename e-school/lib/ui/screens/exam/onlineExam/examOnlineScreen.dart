@@ -404,14 +404,14 @@ class ExamOnlineScreenState extends State<ExamOnlineScreen>
                       question: state.questions[index],
                       note: state.questions[index].note,
                     ),
-                    (state.questions[index].correctAnswer!.length > 1)
+                    (state.questions[index].answersCount > 1)
                         ? Padding(
                             padding: const EdgeInsets.symmetric(horizontal: 20),
                             child: Row(
                               children: [
                                 Flexible(
                                   child: Text(
-                                    '${UiUtils.getTranslatedLabel(context, noteKey)} ${UiUtils.getTranslatedLabel(context, selectKey)} ${state.questions[index].correctAnswer!.length} ${UiUtils.getTranslatedLabel(context, examMultipleAnsNoteKey)}',
+                                    '${UiUtils.getTranslatedLabel(context, noteKey)} ${UiUtils.getTranslatedLabel(context, selectKey)} ${state.questions[index].answersCount} ${UiUtils.getTranslatedLabel(context, examMultipleAnsNoteKey)}',
                                     style: TextStyle(
                                       color: UiUtils.getColorScheme(
                                         context,
@@ -440,8 +440,7 @@ class ExamOnlineScreenState extends State<ExamOnlineScreen>
                             .submittedAnswerId!
                             .toString(),
                         submitAnswer: submitAnswer,
-                        totalAnswers:
-                            state.questions[index].correctAnswer!.length,
+                        totalAnswers: state.questions[index].answersCount,
                       ),
                     ),
                     const SizedBox(height: 50),

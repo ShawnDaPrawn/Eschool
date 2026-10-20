@@ -6,8 +6,11 @@
     -->
     <uses-permission android:name="android.permission.INTERNET"/>
 
-    <!-- Allow plain HTTP in debug builds only, for local development servers. -->
+    <!-- Allow plain HTTP in debug builds only, for local development servers.
+         Backups stay off, as in the main manifest. -->
     <application
+        android:allowBackup="false"
+        android:dataExtractionRules="@xml/data_extraction_rules"
         android:usesCleartextTraffic="true"
-        tools:replace="android:usesCleartextTraffic" />
+        tools:replace="android:usesCleartextTraffic,android:allowBackup,android:dataExtractionRules" />
 </manifest>
