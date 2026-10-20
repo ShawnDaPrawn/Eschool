@@ -1,0 +1,545 @@
+/* =============================================================
+   Timetable redesign — class & teacher timetable day cards
+   Token-driven (DESIGN.md): radius scale, layered shadows, brand
+   vars via color-mix, Lucide icons via mask-image (no FA).
+   Loaded after content.css in include.blade.php; direction-neutral
+   (flex/grid rows), RTL flips scoped via [dir="rtl"].
+   ============================================================= */
+
+/* --- Responsive day grid -------------------------------------- */
+.timetable-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(248px, 1fr));
+    gap: 1rem;
+    margin-top: 0.5rem;
+}
+
+/* --- Day card ------------------------------------------------- */
+.timetable-day {
+    display: flex;
+    flex-direction: column;
+    background: #fff;
+    border: 1px solid rgba(27, 27, 27, 0.06);
+    border-radius: 14px;
+    box-shadow:
+        0 1px 2px rgba(16, 24, 40, 0.04),
+        0 2px 6px rgba(16, 24, 40, 0.04);
+    overflow: hidden;
+    transition: box-shadow 0.25s ease, border-color 0.25s ease, transform 0.25s ease;
+}
+
+.timetable-day:hover {
+    box-shadow:
+        0 2px 4px rgba(16, 24, 40, 0.05),
+        0 6px 16px rgba(16, 24, 40, 0.05),
+        0 12px 28px rgba(16, 24, 40, 0.04);
+}
+
+/* --- Day header (theme-tinted bar) ---------------------------- */
+.timetable-day__head {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1rem;
+    background: color-mix(in srgb, var(--theme-color) 8%, #fff);
+    border-bottom: 1px solid color-mix(in srgb, var(--theme-color) 12%, rgba(27, 27, 27, 0.06));
+}
+
+.timetable-day__head::before {
+    content: "";
+    flex: 0 0 auto;
+    width: 18px;
+    height: 18px;
+    background-color: var(--theme-color);
+    -webkit-mask-repeat: no-repeat;
+    mask-repeat: no-repeat;
+    -webkit-mask-position: center;
+    mask-position: center;
+    -webkit-mask-size: 18px 18px;
+    mask-size: 18px 18px;
+    -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M8 2v4'/%3E%3Cpath d='M16 2v4'/%3E%3Crect width='18' height='18' x='3' y='4' rx='2'/%3E%3Cpath d='M3 10h18'/%3E%3C/svg%3E");
+    mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M8 2v4'/%3E%3Cpath d='M16 2v4'/%3E%3Crect width='18' height='18' x='3' y='4' rx='2'/%3E%3Cpath d='M3 10h18'/%3E%3C/svg%3E");
+}
+
+.timetable-day__name {
+    flex: 1 1 auto;
+    font-family: "Roboto-Medium", "ubuntu-medium", sans-serif;
+    font-size: 0.9375rem;
+    color: #343a40;
+    text-transform: capitalize;
+    letter-spacing: -0.005em;
+}
+
+.timetable-day__count {
+    flex: 0 0 auto;
+    min-width: 1.5rem;
+    padding: 0.0625rem 0.5rem;
+    text-align: center;
+    font-size: 0.75rem;
+    line-height: 1.4;
+    font-family: "Roboto-Medium", "ubuntu-medium", sans-serif;
+    color: var(--theme-color);
+    background: color-mix(in srgb, var(--theme-color) 12%, transparent);
+    border: 1px solid color-mix(in srgb, var(--theme-color) 25%, transparent);
+    border-radius: 10rem;
+}
+
+/* --- Periods list --------------------------------------------- */
+.timetable-day__periods {
+    display: flex;
+    flex-direction: column;
+    gap: 0.625rem;
+    padding: 0.875rem;
+}
+
+.timetable-day__periods:empty::after {
+    content: attr(data-empty);
+    display: block;
+    padding: 0.75rem 0.25rem;
+    text-align: center;
+    font-size: 0.8125rem;
+    color: #8c8c8c;
+}
+
+/* --- Single period card --------------------------------------- */
+.timetable-period {
+    position: relative;
+    padding: 0.625rem 0.75rem 0.625rem 0.875rem;
+    background: #fff;
+    border: 1px solid rgba(27, 27, 27, 0.06);
+    border-left: 3px solid var(--theme-color);
+    border-radius: 10px;
+    transition: background-color 0.2s ease, border-color 0.2s ease;
+}
+
+.timetable-period:hover {
+    background: color-mix(in srgb, var(--theme-color) 4%, #fff);
+    border-color: color-mix(in srgb, var(--theme-color) 18%, rgba(27, 27, 27, 0.06));
+    border-left-color: var(--theme-color);
+}
+
+/* Time chip with clock icon */
+.timetable-period__time {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3125rem;
+    margin-bottom: 0.375rem;
+    font-size: 0.75rem;
+    color: rgba(27, 27, 27, 0.7);
+    font-family: "Roboto-Medium", "ubuntu-medium", sans-serif;
+}
+
+.timetable-period__time::before {
+    content: "";
+    flex: 0 0 auto;
+    width: 13px;
+    height: 13px;
+    background-color: currentColor;
+    -webkit-mask-repeat: no-repeat;
+    mask-repeat: no-repeat;
+    -webkit-mask-position: center;
+    mask-position: center;
+    -webkit-mask-size: 13px 13px;
+    mask-size: 13px 13px;
+    -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='12' cy='12' r='10'/%3E%3Cpolyline points='12 6 12 12 16 14'/%3E%3C/svg%3E");
+    mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='12' cy='12' r='10'/%3E%3Cpolyline points='12 6 12 12 16 14'/%3E%3C/svg%3E");
+}
+
+/* Subject — the prominent line */
+.timetable-period__subject {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.375rem;
+    font-family: "Roboto-Medium", "ubuntu-medium", sans-serif;
+    font-size: 0.875rem;
+    color: #343a40;
+    line-height: 1.3;
+}
+
+.timetable-period__type {
+    text-transform: capitalize;
+}
+
+/* Teacher — muted supporting line with user icon */
+.timetable-period__teacher {
+    display: flex;
+    align-items: center;
+    gap: 0.3125rem;
+    margin-top: 0.3125rem;
+    font-size: 0.8125rem;
+    color: #8c8c8c;
+}
+
+.timetable-period__teacher::before {
+    content: "";
+    flex: 0 0 auto;
+    width: 14px;
+    height: 14px;
+    background-color: currentColor;
+    -webkit-mask-repeat: no-repeat;
+    mask-repeat: no-repeat;
+    -webkit-mask-position: center;
+    mask-position: center;
+    -webkit-mask-size: 14px 14px;
+    mask-size: 14px 14px;
+    -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2'/%3E%3Ccircle cx='12' cy='7' r='4'/%3E%3C/svg%3E");
+    mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2'/%3E%3Ccircle cx='12' cy='7' r='4'/%3E%3C/svg%3E");
+}
+
+/* Class-section line (teacher timetable view) */
+.timetable-period__class {
+    margin-bottom: 0.25rem;
+    font-size: 0.75rem;
+    color: var(--theme-color);
+    font-family: "Roboto-Medium", "ubuntu-medium", sans-serif;
+    text-transform: uppercase;
+    letter-spacing: 0.02em;
+}
+
+/* Live-class link / edit button inside a period (teacher view) */
+.timetable-period__link {
+    display: inline-block;
+    margin-top: 0.4375rem;
+    font-size: 0.8125rem;
+    color: var(--theme-color);
+}
+
+.timetable-period__actions {
+    margin-top: 0.625rem;
+}
+
+/* --- Empty state --------------------------------------------- */
+/* Block layout (not flex) so jQuery .show()/.hide() — which forces
+   display:block on this element — keeps the centered icon + text. */
+.timetable-empty {
+    margin: 1.5rem auto 0;
+    padding: 2rem 1.5rem;
+    max-width: 28rem;
+    text-align: center;
+    color: #8c8c8c;
+    background: color-mix(in srgb, var(--theme-color) 3%, #fff);
+    border: 1px dashed color-mix(in srgb, var(--theme-color) 18%, rgba(27, 27, 27, 0.08));
+    border-radius: 14px;
+}
+
+.timetable-empty::before {
+    content: "";
+    display: block;
+    width: 32px;
+    height: 32px;
+    margin: 0 auto 0.5rem;
+    background-color: color-mix(in srgb, var(--theme-color) 55%, #8c8c8c);
+    -webkit-mask-repeat: no-repeat;
+    mask-repeat: no-repeat;
+    -webkit-mask-position: center;
+    mask-position: center;
+    -webkit-mask-size: 32px 32px;
+    mask-size: 32px 32px;
+    -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M8 2v4'/%3E%3Cpath d='M16 2v4'/%3E%3Crect width='18' height='18' x='3' y='4' rx='2'/%3E%3Cpath d='M3 10h18'/%3E%3Cpath d='M8 14h.01'/%3E%3Cpath d='M12 14h.01'/%3E%3Cpath d='M16 14h.01'/%3E%3Cpath d='M8 18h.01'/%3E%3Cpath d='M12 18h.01'/%3E%3C/svg%3E");
+    mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M8 2v4'/%3E%3Cpath d='M16 2v4'/%3E%3Crect width='18' height='18' x='3' y='4' rx='2'/%3E%3Cpath d='M3 10h18'/%3E%3Cpath d='M8 14h.01'/%3E%3Cpath d='M12 14h.01'/%3E%3Cpath d='M16 14h.01'/%3E%3Cpath d='M8 18h.01'/%3E%3Cpath d='M12 18h.01'/%3E%3C/svg%3E");
+}
+
+.timetable-empty strong {
+    font-family: "Roboto-Medium", "ubuntu-medium", sans-serif;
+    color: #343a40;
+}
+
+/* --- RTL: flip the period accent strip to the inline-end ------ */
+[dir="rtl"] .timetable-period {
+    border-left: 1px solid rgba(27, 27, 27, 0.06);
+    border-right: 3px solid var(--theme-color);
+    padding: 0.625rem 0.875rem 0.625rem 0.75rem;
+}
+
+[dir="rtl"] .timetable-period:hover {
+    border-right-color: var(--theme-color);
+}
+
+/* =============================================================
+   Create-timetable form — resources/views/timetable/index.blade.php
+   and the addmore / tab_title / tab_footer partials.
+   Behaviour: public/assets/js/custom/timetable.js (no inline blade JS).
+   ============================================================= */
+
+/* --- Filters card: session-year + class-section selectors ----- */
+.tt-filters .form-label {
+    font-family: "Roboto-Medium", "ubuntu-medium", sans-serif;
+    font-weight: 500;
+    color: #343a40;
+    margin-bottom: 0.375rem;
+}
+
+.tt-filters .select_error {
+    font-size: 0.8125rem;
+    margin-top: 0.25rem;
+}
+
+/* --- Loader -------------------------------------------------- */
+.tt-loader {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    width: 100%;
+    min-height: 320px;
+    gap: 0.875rem;
+    color: rgba(27, 27, 27, 0.7);
+}
+
+.tt-loader__spinner {
+    color: var(--theme-color);
+    animation: tt-spin 0.8s linear infinite;
+}
+
+.tt-loader__text {
+    margin: 0;
+    font-size: 0.9375rem;
+}
+
+@keyframes tt-spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .tt-loader__spinner {
+        animation-duration: 2s;
+    }
+}
+
+/* --- Day tabs: a segmented pill row --------------------------- */
+.tt-days.timetable_nav {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.375rem;
+    padding: 0.3125rem;
+    margin-bottom: 1.5rem;
+    border: 1px solid rgba(27, 27, 27, 0.06);
+    border-radius: 12px;
+    background: color-mix(in srgb, var(--theme-color) 4%, #f7f8fa);
+}
+
+.tt-days.timetable_nav .nav-item {
+    flex: 1 1 auto;
+    margin: 0;
+}
+
+.tt-days.timetable_nav .nav-link {
+    display: block;
+    text-align: center;
+    padding: 0.5rem 0.75rem;
+    border: 0;
+    border-radius: 9px;
+    background: transparent;
+    color: rgba(27, 27, 27, 0.7);
+    font-family: "Roboto-Medium", "ubuntu-medium", sans-serif;
+    font-weight: 500;
+    font-size: 0.875rem;
+    white-space: nowrap;
+    transition: background 0.2s ease, color 0.2s ease;
+}
+
+.tt-days.timetable_nav .nav-link:hover {
+    background: color-mix(in srgb, var(--theme-color) 7%, transparent);
+    color: var(--theme-color);
+}
+
+.tt-days.timetable_nav .nav-link.active {
+    background: #fff;
+    color: var(--theme-color);
+    box-shadow:
+        0 1px 2px rgba(16, 24, 40, 0.06),
+        0 2px 6px rgba(16, 24, 40, 0.06);
+}
+
+/* --- Column header (desktop) — aligns with the .tt-row grid --- */
+.tt-grid-head,
+.tt-row {
+    display: grid;
+    grid-template-columns:
+        minmax(0, 2fr) minmax(0, 2fr) minmax(0, 1.25fr)
+        minmax(0, 1.25fr) minmax(0, 2fr) minmax(0, 1.5fr) 44px;
+    gap: 0.75rem;
+    align-items: center;
+}
+
+.tt-grid-head {
+    padding: 0 0.875rem 0.625rem;
+    margin-bottom: 0.5rem;
+    border-bottom: 1px solid rgba(27, 27, 27, 0.06);
+}
+
+.tt-grid-head__label {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.375rem;
+    font-family: "Roboto-Medium", "ubuntu-medium", sans-serif;
+    font-weight: 500;
+    font-size: 0.75rem;
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
+    color: #475569;
+}
+
+.tt-grid-head__label .lc-icon {
+    color: var(--theme-color);
+    flex: none;
+}
+
+.tt-grid-head__label .req {
+    color: #dc3545;
+}
+
+/* --- Period rows --------------------------------------------- */
+.tt-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.625rem;
+}
+
+.tt-row {
+    padding: 0.625rem 0.875rem;
+    margin: 0;
+    border: 1px solid rgba(27, 27, 27, 0.06);
+    border-radius: 12px;
+    background: #fff;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.tt-row:hover {
+    border-color: color-mix(in srgb, var(--theme-color) 22%, rgba(27, 27, 27, 0.06));
+    box-shadow:
+        0 1px 2px rgba(16, 24, 40, 0.04),
+        0 2px 6px rgba(16, 24, 40, 0.04);
+}
+
+.tt-row .form-control {
+    width: 100%;
+}
+
+.tt-cell {
+    min-width: 0;
+}
+
+/* --- Delete button ------------------------------------------- */
+.tt-row__remove {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 38px;
+    height: 38px;
+    padding: 0;
+    border: 1px solid color-mix(in srgb, #dc3545 22%, transparent);
+    border-radius: 9px;
+    background: color-mix(in srgb, #dc3545 8%, #fff);
+    color: #b42318;
+    transition: background 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+}
+
+.tt-row__remove:hover {
+    background: color-mix(in srgb, #dc3545 14%, #fff);
+    border-color: color-mix(in srgb, #dc3545 35%, transparent);
+    color: #b42318;
+}
+
+.tt-row__remove:disabled,
+.tt-row__remove.disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+}
+
+/* --- Footer action bar: add-period + submit ------------------ */
+.tt-footer {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    margin-top: 1.25rem;
+    padding-top: 1.25rem;
+    border-top: 1px solid rgba(27, 27, 27, 0.06);
+}
+
+/* Add-period — a dashed ghost button reading as "insert another row". */
+.tt-add {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 1rem;
+    border: 1px dashed color-mix(in srgb, var(--theme-color) 40%, rgba(27, 27, 27, 0.18));
+    border-radius: 10px;
+    background: color-mix(in srgb, var(--theme-color) 5%, #fff);
+    color: var(--theme-color);
+    font-family: "Roboto-Medium", "ubuntu-medium", sans-serif;
+    font-weight: 500;
+    font-size: 0.875rem;
+    transition: background 0.2s ease, border-color 0.2s ease;
+}
+
+.tt-add:hover {
+    background: color-mix(in srgb, var(--theme-color) 10%, #fff);
+    border-color: var(--theme-color);
+    color: var(--theme-color);
+}
+
+.tt-footer .btn-theme {
+    margin: 0;
+}
+
+/* --- Responsive: stack rows into labelled fields -------------- */
+@media (max-width: 991px) {
+    .tt-grid-head {
+        display: none;
+    }
+
+    .tt-row {
+        grid-template-columns: 1fr 1fr;
+        gap: 0.75rem 1rem;
+        padding: 1rem;
+    }
+
+    .tt-cell::before {
+        content: attr(data-label);
+        display: block;
+        margin-bottom: 0.25rem;
+        font-family: "Roboto-Medium", "ubuntu-medium", sans-serif;
+        font-weight: 500;
+        font-size: 0.75rem;
+        color: #8c8c8c;
+    }
+
+    .tt-row .tt-cell--wide {
+        grid-column: 1 / -1;
+    }
+
+    .tt-row__remove {
+        grid-column: 1 / -1;
+        width: 100%;
+        height: 40px;
+        gap: 0.5rem;
+    }
+
+    .tt-row__remove::after {
+        content: attr(data-label);
+        font-family: "Roboto-Medium", "ubuntu-medium", sans-serif;
+        font-weight: 500;
+        font-size: 0.875rem;
+    }
+}
+
+@media (max-width: 575px) {
+    .tt-row {
+        grid-template-columns: 1fr;
+    }
+
+    .tt-row .tt-cell {
+        grid-column: 1 / -1 !important;
+    }
+
+    .tt-days.timetable_nav .nav-item {
+        flex-basis: calc(33.333% - 0.25rem);
+    }
+}

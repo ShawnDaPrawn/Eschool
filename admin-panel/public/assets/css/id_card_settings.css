@@ -1,0 +1,927 @@
+/* ============================================================
+   ID CARD SETTINGS — design tokens (scoped to .idc-wrapper).
+   Brand accent themes the SETTINGS chrome only — never the card.
+   ============================================================ */
+.idc-wrapper {
+    --idc-r-card: 16px;
+    --idc-r-control: 10px;
+    --idc-r-stage: 16px;
+    --idc-r-chip: 999px;
+    --idc-r-photo-sq: 12px;
+    --idc-r-cardface: 10px;
+    --idc-sh-card: 0 1px 2px rgba(16, 24, 40, .04), 0 4px 12px rgba(16, 24, 40, .05);
+    --idc-sh-card-hover: 0 2px 6px rgba(16, 24, 40, .06), 0 10px 24px rgba(16, 24, 40, .08);
+    --idc-sh-focus: 0 0 0 3px rgba(7, 165, 165, .22);
+    --idc-sh-focus: 0 0 0 3px color-mix(in srgb, var(--theme-color) 22%, transparent);
+    --idc-sh-face: 0 1px 1px rgba(16, 24, 40, .04), 0 12px 28px -8px rgba(16, 24, 40, .18), 0 28px 60px -20px rgba(16, 24, 40, .16);
+    --idc-tint-06: #f3fafa;
+    --idc-tint-06: color-mix(in srgb, var(--theme-color) 6%, #fff);
+    --idc-tint-08: #eef6f6;
+    --idc-tint-08: color-mix(in srgb, var(--theme-color) 8%, #fff);
+    --idc-tint-10: #e9f4f4;
+    --idc-tint-10: color-mix(in srgb, var(--theme-color) 10%, #fff);
+    --idc-tint-14: #def0f0;
+    --idc-tint-14: color-mix(in srgb, var(--theme-color) 14%, #fff);
+    --idc-border-accent: #b9dede;
+    --idc-border-accent: color-mix(in srgb, var(--theme-color) 35%, #e7eaee);
+    /* darkened theme ink for text/icons on light tints — keeps brand hue but legible on any theme_color */
+    --idc-accent-ink: #0a6e6e;
+    --idc-accent-ink: color-mix(in srgb, var(--theme-color) 72%, #000);
+    /* required-field asterisk — always red regardless of theme_color */
+    --idc-req: #e5484d;
+    --idc-page: #f8fafc;
+    --idc-surface: #fff;
+    --idc-border: #e7eaee;
+    --idc-divider: #f1f2f6;
+    --idc-text: #1d2433;
+    --idc-text-2: #344054;
+    --idc-muted: #667085;
+    --idc-hint: #98a2b3;
+    --idc-disabled: #f2f4f7;
+    --idc-pill-rest: #f8f9fb;
+    --idc-stage: #eef1f5;
+    --idc-stage-dot: #dfe3ea;
+}
+
+/* ---- Config column (stack of settings cards) ---- */
+.idc-wrapper .idc-config {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.idc-section {
+    position: relative;
+    background: var(--idc-surface);
+    border: 1px solid var(--idc-border);
+    border-radius: var(--idc-r-card);
+    padding: 20px;
+    box-shadow: var(--idc-sh-card);
+    transition: box-shadow .2s ease;
+}
+
+.idc-section:hover {
+    box-shadow: var(--idc-sh-card-hover);
+}
+
+.idc-section-title {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: .8px;
+    color: var(--idc-muted);
+    margin: 0 0 16px;
+}
+
+.idc-section-title .idc-ico {
+    flex: 0 0 auto;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    border-radius: 9px;
+    background: var(--idc-tint-10);
+    color: var(--idc-accent-ink);
+    font-size: 14px;
+}
+
+.idc-section-title .req {
+    color: var(--idc-req);
+    font-weight: 700;
+    margin-left: 2px;
+}
+
+.idc-section-title .idc-count {
+    margin-left: auto;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0;
+    text-transform: none;
+    color: var(--idc-accent-ink);
+    background: var(--idc-tint-10);
+    border-radius: var(--idc-r-chip);
+    padding: 1px 9px;
+    font-variant-numeric: tabular-nums;
+}
+
+.idc-field-label {
+    display: block;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--idc-text-2);
+    margin: 0 0 8px;
+}
+
+.idc-field-label .req {
+    color: var(--idc-req);
+    font-weight: 700;
+    margin-left: 2px;
+}
+
+.idc-help {
+    display: block;
+    font-size: 12px;
+    color: var(--idc-hint);
+    margin-top: 10px;
+    line-height: 1.5;
+}
+
+.idc-help .lc-icon {
+    color: var(--idc-accent-ink);
+    vertical-align: middle;
+}
+
+.idc-section .form-control,
+.idc-section input[type=number] {
+    height: 42px;
+    border: 1px solid var(--idc-border);
+    border-radius: var(--idc-r-control);
+    font-size: 14px;
+    color: var(--idc-text);
+    background: #fff;
+    transition: border-color .15s, box-shadow .15s;
+}
+
+.idc-section .form-control:focus,
+.idc-section input[type=number]:focus {
+    border-color: var(--theme-color);
+    box-shadow: var(--idc-sh-focus);
+    outline: none;
+}
+
+/* ---- Segmented pill toggles ---- */
+.idc-pills {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.idc-pill {
+    position: relative;
+    flex: 1 1 0;
+    min-width: 120px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 7px;
+    padding: 11px 12px;
+    border: 1px solid var(--idc-border);
+    border-radius: var(--idc-r-control);
+    background: var(--idc-pill-rest);
+    color: #475467;
+    font-size: 14px;
+    font-weight: 500;
+    line-height: 1;
+    cursor: pointer;
+    margin: 0;
+    text-align: center;
+    transition: border-color .15s, background .15s, color .15s, box-shadow .15s;
+}
+
+.idc-pill input {
+    position: absolute;
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.idc-pill .lc-icon {
+    color: var(--idc-hint);
+    transition: color .15s, transform .15s;
+}
+
+.idc-pill:hover {
+    border-color: #cdd3dc;
+    background: #fff;
+    color: var(--idc-text);
+}
+
+.idc-pill:hover .lc-icon {
+    color: var(--idc-muted);
+    transform: scale(1.06);
+}
+
+.idc-pill:focus-within {
+    border-color: var(--theme-color);
+    box-shadow: var(--idc-sh-focus);
+}
+
+.idc-pill.is-active {
+    border-color: var(--theme-color);
+    background: var(--idc-tint-14);
+    color: var(--idc-text);
+    font-weight: 600;
+    box-shadow: 0 0 0 1px var(--theme-color) inset;
+}
+
+.idc-pill.is-active .lc-icon {
+    color: var(--idc-accent-ink);
+}
+
+.idc-pill.is-active::after {
+    content: '';
+    position: absolute;
+    top: 5px;
+    right: 7px;
+    width: 11px;
+    height: 11px;
+    background-color: var(--idc-accent-ink);
+    -webkit-mask: url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%2024%2024'%20fill='none'%20stroke='%23000'%20stroke-width='3'%20stroke-linecap='round'%20stroke-linejoin='round'%3E%3Cpath%20d='M20%206%209%2017l-5-5'/%3E%3C/svg%3E") center / contain no-repeat;
+    mask: url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%2024%2024'%20fill='none'%20stroke='%23000'%20stroke-width='3'%20stroke-linecap='round'%20stroke-linejoin='round'%3E%3Cpath%20d='M20%206%209%2017l-5-5'/%3E%3C/svg%3E") center / contain no-repeat;
+}
+
+/* ---- Colour rows + swatch well wrapping the existing .color-picker ---- */
+.idc-color-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 12px 0;
+}
+
+.idc-color-row+.idc-color-row {
+    border-top: 1px solid var(--idc-divider);
+}
+
+.idc-color-row .idc-field-label {
+    margin: 0;
+}
+
+.idc-swatch-well {
+    display: inline-flex;
+    align-items: center;
+    min-height: 38px;
+    padding: 4px 6px;
+    border: 1px solid var(--idc-border);
+    border-radius: var(--idc-r-control);
+    background: #fff;
+    transition: border-color .15s, box-shadow .15s;
+}
+
+.idc-swatch-well:focus-within {
+    border-color: var(--theme-color);
+    box-shadow: var(--idc-sh-focus);
+}
+
+/* ---- Background image controls (thumb + remove + transparency slider) ---- */
+.idc-bg-controls {
+    margin-top: 12px;
+    padding: 12px;
+    border: 1px solid var(--idc-border);
+    border-radius: var(--idc-r-control);
+    background: var(--idc-page);
+}
+
+.idc-bg-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 12px;
+}
+
+.idc-bg-thumb {
+    width: 72px;
+    height: 44px;
+    object-fit: cover;
+    border: 1px solid var(--idc-border);
+    border-radius: 8px;
+    background: #fff;
+}
+
+.idc-bg-row .btn {
+    margin-left: auto;
+}
+
+.idc-range-label {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 6px;
+}
+
+.idc-range-label #idc-bg-trans-val,
+.idc-range-label #idc-bg-size-val {
+    color: var(--idc-accent-ink);
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+}
+
+.idc-range {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 100%;
+    height: 6px;
+    border-radius: 999px;
+    background: var(--idc-border);
+    outline: none;
+    margin: 4px 0 0;
+}
+
+.idc-range::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    background: var(--theme-color);
+    border: 2px solid #fff;
+    box-shadow: 0 1px 3px rgba(16, 24, 40, .3);
+    cursor: pointer;
+}
+
+.idc-range::-moz-range-thumb {
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    background: var(--theme-color);
+    border: 2px solid #fff;
+    box-shadow: 0 1px 3px rgba(16, 24, 40, .3);
+    cursor: pointer;
+}
+
+.idc-range:focus-visible {
+    box-shadow: var(--idc-sh-focus);
+}
+
+/* ---- Dimensions ---- */
+.idc-dim-reco {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    margin-top: 12px;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--idc-accent-ink);
+    background: var(--idc-tint-08);
+    border: 1px solid var(--idc-border);
+    border-radius: var(--idc-r-chip);
+    padding: 4px 10px;
+}
+
+/* ---- Responsive checkbox grid (replaces select2) ---- */
+.idc-field-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    gap: 8px;
+}
+
+.idc-check {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 12px;
+    border: 1px solid var(--idc-border);
+    border-radius: var(--idc-r-control);
+    background: #fff;
+    cursor: pointer;
+    font-size: 13px;
+    color: var(--idc-text-2);
+    margin: 0;
+    user-select: none;
+    transition: border-color .15s, background .15s, box-shadow .15s;
+}
+
+.idc-check:hover {
+    border-color: #cdd3dc;
+    background: #f8f9fb;
+}
+
+.idc-check input {
+    position: absolute;
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.idc-check .idc-box {
+    flex: 0 0 18px;
+    width: 18px;
+    height: 18px;
+    border: 1.5px solid #cdd3dc;
+    border-radius: 6px;
+    background: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all .15s;
+}
+
+.idc-check .idc-box .lc-icon {
+    color: #fff;
+    opacity: 0;
+    transform: scale(.6);
+    transition: all .12s;
+}
+
+.idc-check input:checked+.idc-box {
+    background: var(--theme-color);
+    border-color: var(--theme-color);
+}
+
+.idc-check input:checked+.idc-box .lc-icon {
+    opacity: 1;
+    transform: scale(1);
+}
+
+.idc-check input:focus-visible+.idc-box {
+    box-shadow: var(--idc-sh-focus);
+}
+
+.idc-check.is-checked {
+    border-color: var(--idc-border-accent);
+    background: var(--idc-tint-06);
+}
+
+.idc-check.is-checked .idc-check-label {
+    color: var(--idc-text);
+    font-weight: 500;
+}
+
+/* progressive enhancement: tile state before JS runs (browsers with :has) */
+@supports selector(:has(*)) {
+    .idc-check:has(input:checked) {
+        border-color: var(--idc-border-accent);
+        background: var(--idc-tint-06);
+    }
+}
+
+/* ---- Sticky action bar ---- */
+.idc-actions {
+    position: sticky;
+    bottom: 0;
+    z-index: 5;
+    display: flex;
+    gap: 10px;
+    padding: 16px 0 4px;
+    /* background: linear-gradient(to top, var(--idc-page) 72%, transparent); */
+}
+
+.idc-actions .btn {
+    flex: 1;
+    height: 44px;
+    border-radius: var(--idc-r-control);
+    font-weight: 600;
+}
+
+.idc-actions #idc-reset {
+    background: #fff;
+    border: 1px solid var(--idc-border);
+    color: #475467;
+}
+
+.idc-actions #idc-reset:hover {
+    background: #f8f9fb;
+    border-color: #d0d5dd;
+}
+
+.idc-actions #create-btn {
+    background: var(--theme-color);
+    border: 1px solid var(--theme-color);
+    color: #fff;
+}
+
+.idc-actions #create-btn:hover {
+    filter: brightness(.95);
+}
+
+/* ============================================================
+   PREVIEW WORKSPACE
+   ============================================================ */
+.idc-preview-col .card {
+    border: 1px solid var(--idc-border);
+    border-radius: var(--idc-r-card);
+    box-shadow: var(--idc-sh-card);
+}
+
+/* Desktop (two-column): the preview is PINNED with position:fixed — immune to the
+   theme's .container-scroller{overflow:hidden} (which silently breaks position:sticky),
+   matching how the theme pins its own fixed sidebar. JS mirrors the column's left/width
+   onto the card and re-measures on resize / sidebar toggle. Navbar is fixed at 70px. */
+@media (min-width: 992px) {
+    .idc-preview-col .card.idc-pinned {
+        position: fixed;
+        top: 86px;
+        max-height: calc(100vh - 102px);
+        overflow: auto;
+        margin: 0;
+        z-index: 2;
+    }
+}
+
+.idc-preview-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 16px;
+}
+
+.idc-preview-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 12px;
+    border-radius: var(--idc-r-chip);
+    border: 1px solid var(--idc-border);
+    background: #fff;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--idc-text-2);
+    box-shadow: var(--idc-sh-card);
+}
+
+.idc-live-dot {
+    position: relative;
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: var(--theme-color);
+}
+
+.idc-live-dot::after {
+    content: '';
+    position: absolute;
+    inset: -4px;
+    border-radius: 50%;
+    background: var(--theme-color);
+    opacity: .35;
+    animation: idcPulse 1.6s ease-out infinite;
+}
+
+@keyframes idcPulse {
+    0% {
+        transform: scale(.6);
+        opacity: .5;
+    }
+
+    100% {
+        transform: scale(1.8);
+        opacity: 0;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .idc-live-dot::after {
+        animation: none;
+    }
+
+    #id-card-preview {
+        transition: none;
+    }
+}
+
+.idc-dim-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 12px;
+    border-radius: var(--idc-r-chip);
+    border: 1px solid var(--idc-border);
+    background: #fff;
+    font-size: 12px;
+    font-weight: 600;
+    color: #475467;
+    font-variant-numeric: tabular-nums;
+}
+
+.idc-dim-chip .idc-dim-x,
+.idc-dim-chip .idc-orient {
+    color: var(--idc-hint);
+    font-weight: 500;
+}
+
+.idc-preview-stage {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 560px;
+    padding: 32px;
+    border-radius: var(--idc-r-stage);
+    overflow: hidden;
+    background-color: var(--idc-stage);
+    background-image: radial-gradient(var(--idc-stage-dot) 1px, transparent 1.4px);
+    background-size: 18px 18px;
+    background-position: -9px -9px;
+}
+
+.idc-preview-stage::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: var(--idc-r-stage);
+    background: radial-gradient(120% 90% at 50% 45%, transparent 55%, rgba(16, 24, 40, .06));
+    pointer-events: none;
+}
+
+#id-card-preview {
+    position: relative;
+    z-index: 1;
+    transform-origin: center center;
+    transition: transform .25s ease;
+}
+
+/* ============================================================
+   RENDERED ID CARD (preview face) — WYSIWYG of id_card_template.
+   Colours come ONLY from header/footer/text settings, never brand.
+   Borders/sizes/opacity mirror the unchanged dompdf print template.
+   ============================================================ */
+.idc-card {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    background: #fff;
+    border-radius: var(--idc-r-cardface);
+    overflow: hidden;
+    font-family: Arial, Helvetica, sans-serif;
+    box-shadow: var(--idc-sh-face);
+    /* Card is ALWAYS LTR. On RTL pages, rtl.css sets `body { text-align: right }` which inherits into
+       the card; pin direction + text-align here so the card looks identical in LTR and RTL panels. */
+    direction: ltr;
+    text-align: left;
+}
+
+.idc-card .idc-bg {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    max-width: 80%;
+    max-height: 66%;
+    opacity: .2;
+    z-index: 0;
+    pointer-events: none;
+}
+
+/* shared photo — black 3px border + 120px to match PDF (.student-profile) */
+.idc-card .idc-photo {
+    width: 120px;
+    height: 120px;
+    object-fit: cover;
+    border: 1.9px solid #1c1c1c;
+    padding: 2px;
+    background: #e9ecef center/cover no-repeat;
+    box-shadow: 0 2px 6px rgba(16, 24, 40, .15);
+}
+
+.idc-card.is-round .idc-photo {
+    border-radius: 50%;
+}
+
+.idc-card.is-squre .idc-photo {
+    border-radius: var(--idc-r-photo-sq);
+}
+
+/* shared rows — two-column grid so EVERY label/value lines up in a column (mirrors the PDF table).
+   The label column is sized to the widest label (max-content); values share one left edge. */
+.idc-fields {
+    display: grid;
+    grid-template-columns: max-content 1fr;
+    column-gap: 8px;
+    row-gap: 4px;
+    align-items: baseline;
+    font-size: 11px;
+    line-height: 1.5;
+}
+
+/* each row is just a pair of grid cells (label + value), no box of its own */
+.idc-row {
+    display: contents;
+}
+
+.idc-row-label {
+    font-weight: 700;
+    color: var(--idc-text);
+    white-space: nowrap;
+}
+
+.idc-row-val {
+    color: #333;
+    min-width: 0;
+    overflow-wrap: anywhere;
+}
+
+/* shared signature + footer */
+.idc-card .idc-signature {
+    position: absolute;
+    /* self-pin both offsets: the card is always LTR, anchor to the right edge regardless of inherited direction */
+    right: 12px;
+    left: auto;
+    bottom: 30px;
+    text-align: center;
+    z-index: 2;
+}
+
+.idc-card .idc-signature img {
+    height: 34px;
+    max-width: 92px;
+    display: block;
+    margin: 0 auto;
+}
+
+.idc-card .idc-signature span {
+    font-size: 9px;
+    font-weight: 700;
+}
+
+.idc-card .idc-footer {
+    position: relative;
+    z-index: 1;
+    padding: 5px 12px;
+    font-size: 10px;
+    text-align: right;
+    letter-spacing: .6px;
+    min-height: 20px;
+}
+
+.idc-card .idc-name {
+    font-weight: 700;
+}
+
+.idc-card .idc-logo {
+    background: #fff;
+    border-radius: 6px;
+    padding: 2px;
+}
+
+/* ---- VERTICAL (portrait): school-name band ABOVE logo (matches PDF) ---- */
+.idc-card.is-vertical .idc-vhead {
+    position: relative;
+    z-index: 1;
+    padding: 10px 12px;
+    text-align: center;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: .6px;
+    font-size: 13px;
+    line-height: 1.2;
+    border-bottom-left-radius: 0px;
+    border-bottom-right-radius: 0px;
+}
+
+.idc-card.is-vertical .idc-vlogo {
+    position: relative;
+    z-index: 1;
+    text-align: center;
+    padding: 8px 0 4px;
+}
+
+.idc-card.is-vertical .idc-logo {
+    height: 34px;
+    width: auto;
+}
+
+.idc-card.is-vertical .idc-body {
+    position: relative;
+    z-index: 1;
+    flex: 1;
+    padding: 8px 16px 10px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.idc-card.is-vertical .idc-photo-wrap {
+    text-align: center;
+    margin-bottom: 10px;
+}
+
+.idc-card.is-vertical .idc-name {
+    font-size: 16px;
+    text-align: center;
+    margin: 2px 0 10px;
+}
+
+.idc-card.is-vertical .idc-fields {
+    width: 100%;
+}
+
+/* ---- HORIZONTAL (landscape): logo-left / name-right header; photo-left / info-right body ---- */
+.idc-card.is-horizontal .idc-hhead {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 10px;
+    padding: 9px 14px;
+}
+
+.idc-card.is-horizontal .idc-logo {
+    height: 34px;
+    width: auto;
+    border-radius: 5px;
+    flex: 0 0 auto;
+}
+
+.idc-card.is-horizontal .idc-school-name {
+    flex: 1;
+    text-align: right;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: .6px;
+    font-size: 13px;
+    line-height: 1.15;
+}
+
+.idc-card.is-horizontal .idc-body {
+    position: relative;
+    z-index: 1;
+    flex: 1;
+    display: grid;
+    grid-template-columns: 132px 1fr;
+    gap: 16px;
+    padding: 14px 16px;
+    align-items: start;
+}
+
+.idc-card.is-horizontal .idc-photo-col {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.idc-card.is-horizontal .idc-info-col {
+    min-width: 0;
+}
+
+.idc-card.is-horizontal .idc-name {
+    font-size: 18px;
+    letter-spacing: .2px;
+    text-align: left;
+    margin: 0 0 8px;
+}
+
+.idc-card.is-horizontal .idc-signature {
+    bottom: 26px;
+}
+
+/* The card is always rendered LTR (it carries dir="ltr"), so its layout must NOT flip with the
+   surrounding RTL panel. No [dir="rtl"] .idc-card overrides here on purpose — the base LTR styles
+   above are the single source of truth for both LTR and RTL pages. */
+
+/* ============================================================
+   RESPONSIVE
+   ============================================================ */
+@media (max-width: 1199.98px) {
+    .idc-preview-stage {
+        min-height: 480px;
+        padding: 24px;
+    }
+}
+
+@media (max-width: 991.98px) {
+    .idc-preview-col {
+        order: 2;
+    }
+
+    .idc-config-col {
+        order: 1;
+    }
+
+    .idc-preview-stage {
+        min-height: 420px;
+        padding: 24px;
+    }
+}
+
+@media (max-width: 575.98px) {
+    .idc-section {
+        padding: 16px;
+    }
+
+    .idc-pill {
+        min-width: 0;
+        flex: 1 1 calc(50% - 4px);
+        font-size: 13px;
+        padding: 10px;
+    }
+
+    .idc-field-grid {
+        grid-template-columns: 1fr 1fr;
+    }
+
+    .idc-color-row {
+        flex-wrap: wrap;
+        align-items: flex-start;
+        gap: 8px;
+    }
+
+    .idc-actions {
+        flex-direction: column-reverse;
+    }
+
+    .idc-actions .btn {
+        width: 100%;
+    }
+
+    .idc-preview-stage {
+        min-height: 340px;
+        padding: 16px;
+    }
+}

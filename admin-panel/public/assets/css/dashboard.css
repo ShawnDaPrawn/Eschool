@@ -1,0 +1,858 @@
+/* ==========================================================================
+   Super Admin Dashboard
+   Clean white cards on a light page. Primary accent follows --theme-color.
+   ========================================================================== */
+
+.dashboard-page {
+    color: var(--dash-text);
+}
+
+/* ---- Header ---- */
+.dash-header-title {
+    font-size: 1.6rem;
+    font-weight: 600;
+    margin: 0 0 .35rem;
+    color: var(--dash-text);
+}
+
+.dash-header-subtitle {
+    margin: 0;
+    color: var(--dash-muted);
+    font-size: .9rem;
+}
+
+/* ---- Card shell ---- */
+.dash-card {
+    background: var(--dash-card-bg);
+    border: 1px solid var(--dash-border);
+    border-radius: var(--dash-radius);
+    box-shadow: 0 1px 2px rgba(16, 24, 40, .04);
+}
+
+.dash-widget {
+    display: flex;
+    flex-direction: column;
+}
+
+.dash-card-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: .75rem;
+    flex-wrap: wrap;
+    padding: 1.1rem 1.25rem;
+    border-bottom: 1px solid var(--dash-border);
+}
+
+.dash-card-title {
+    font-size: 1.02rem;
+    font-weight: 600;
+    margin: 0;
+    color: var(--dash-text);
+}
+
+.dash-card-body {
+    padding: 1.25rem;
+    flex: 1 1 auto;
+}
+
+/* ---- Stat cards ---- */
+.dash-stat-row {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 1rem;
+}
+
+.dash-stat-card {
+    display: flex;
+    align-items: center;
+    gap: .85rem;
+    padding: 1.1rem 1.25rem;
+}
+
+.dash-stat-icon {
+    flex: 0 0 auto;
+    width: 44px;
+    height: 44px;
+    border-radius: 10px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: color-mix(in srgb, var(--dash-green) 12%, #ffffff);
+    color: var(--dash-green);
+    font-size: 1.1rem;
+}
+
+.dash-stat-text {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+}
+
+.dash-stat-label {
+    font-size: .82rem;
+    color: var(--dash-muted);
+    line-height: 1.2;
+}
+
+.dash-stat-value {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--dash-text);
+    line-height: 1.25;
+}
+
+/* ---- Native select (dashboard filters) ---- */
+.dash-select {
+    appearance: none;
+    -webkit-appearance: none;
+    border: 1px solid var(--dash-border);
+    border-radius: 8px;
+    background: #fff;
+    color: var(--dash-text);
+    font-size: .85rem;
+    padding: .42rem 2rem .42rem .75rem;
+    max-width: 100%;
+    cursor: pointer;
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%238a8f9c' stroke-width='2'><path d='M6 9l6 6 6-6'/></svg>");
+    background-repeat: no-repeat;
+    background-position: right .6rem center;
+}
+
+.dash-select:focus {
+    outline: none;
+    border-color: var(--dash-green);
+}
+
+/* ---- Header actions / links ---- */
+.dash-head-actions {
+    display: flex;
+    align-items: center;
+    gap: .9rem;
+    flex-wrap: wrap;
+}
+
+.dash-link {
+    color: var(--dash-green);
+    font-size: .85rem;
+    font-weight: 600;
+    text-decoration: none;
+    white-space: nowrap;
+}
+
+.dash-link:hover {
+    text-decoration: underline;
+    color: var(--dash-green);
+}
+
+/* ---- Empty / footnote ---- */
+.dash-empty {
+    text-align: center;
+    color: var(--dash-muted);
+    font-size: .88rem;
+    padding: 1.75rem .5rem;
+}
+
+.dash-footnote {
+    margin: 1rem 0 0;
+    font-size: .76rem;
+    color: var(--dash-muted);
+    font-style: italic;
+}
+
+/* ---- Skeleton loader ---- */
+.widget-skeleton {
+    min-height: 180px;
+    border-radius: 10px;
+    background: linear-gradient(90deg, #f1f1f4 25%, #e7e7ee 37%, #f1f1f4 63%);
+    background-size: 400% 100%;
+    animation: dash-shimmer 1.2s ease-in-out infinite;
+}
+
+@keyframes dash-shimmer {
+    0% {
+        background-position: 100% 0;
+    }
+
+    100% {
+        background-position: 0 0;
+    }
+}
+
+/* ---- Dots ---- */
+.dash-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    flex: 0 0 auto;
+    margin-top: .35rem;
+}
+
+.dot-collected {
+    background: var(--dash-green);
+}
+
+.dot-dues {
+    background: var(--dash-amber);
+}
+
+.dot-overdue {
+    background: var(--dash-red);
+}
+
+/* ---- Fees Collection ---- */
+#fees-card .dash-card-body {
+    display: flex;
+    flex-direction: column;
+}
+
+.fees-grid {
+    display: flex;
+    align-items: stretch;
+    gap: 1.25rem;
+    flex-wrap: wrap;
+    flex: 1 1 auto;
+}
+
+.fees-chart {
+    flex: 1 1 280px;
+    min-width: 220px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+#fees-donut {
+    width: 100%;
+    max-width: 320px;
+}
+
+.fees-legend {
+    flex: 1 1 200px;
+    display: flex;
+    flex-direction: column;
+    gap: .75rem;
+    justify-content: center;
+}
+
+.fees-legend-row {
+    display: flex;
+    gap: .6rem;
+    align-items: center;
+    border: 1px solid var(--dash-border);
+    border-radius: 10px;
+    padding: .7rem .85rem;
+}
+
+.fees-legend-text {
+    display: flex;
+    flex-direction: column;
+}
+
+.fees-legend-label {
+    font-size: .8rem;
+    color: var(--dash-muted);
+}
+
+.fees-legend-value {
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: var(--dash-text);
+}
+
+/* ---- Total Students ---- */
+#students-donut {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+}
+
+.students-ratio {
+    margin-top: 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: .9rem;
+}
+
+.ratio-head {
+    display: flex;
+    justify-content: space-between;
+    font-size: .85rem;
+    margin-bottom: .35rem;
+}
+
+.ratio-label {
+    color: var(--dash-muted);
+}
+
+.ratio-value {
+    font-weight: 700;
+    color: var(--dash-text);
+}
+
+.dash-progress {
+    height: 8px;
+    border-radius: 99px;
+    background: var(--dash-track);
+    overflow: hidden;
+}
+
+.dash-progress-bar {
+    height: 100%;
+    width: 0;
+    border-radius: 99px;
+    transition: width .5s ease;
+    background: var(--dash-green);
+}
+
+.dash-progress-bar--boys {
+    background: var(--dash-navy);
+}
+
+.dash-progress-bar--girls {
+    background: var(--dash-green);
+}
+
+/* ---- Assessment ---- */
+.assessment-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.assessment-row {
+    display: grid;
+    grid-template-columns: 130px 1fr 56px;
+    align-items: center;
+    gap: .75rem;
+}
+
+.assessment-name {
+    font-size: .88rem;
+    color: var(--dash-text);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.assessment-pct {
+    font-size: .85rem;
+    font-weight: 700;
+    text-align: right;
+    color: var(--dash-text);
+}
+
+.assessment-row .dash-progress {
+    height: 10px;
+}
+
+.assessment-row .dash-progress-bar {
+    background: var(--dash-green);
+}
+
+/* ---- Leaves ---- */
+.leaves-list {
+    display: flex;
+    flex-direction: column;
+    gap: .6rem;
+    max-height: 360px;
+    overflow-y: auto;
+}
+
+.leave-item {
+    display: flex;
+    align-items: center;
+    gap: .75rem;
+    border: 1px solid var(--dash-border);
+    border-radius: 10px;
+    padding: .6rem .8rem;
+}
+
+.leave-avatar {
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    object-fit: cover;
+    flex: 0 0 auto;
+    background: var(--dash-track);
+}
+
+.leave-info {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+}
+
+.leave-name {
+    font-size: .9rem;
+    font-weight: 600;
+    color: var(--dash-text);
+}
+
+.leave-meta {
+    display: flex;
+    align-items: center;
+    gap: .5rem;
+    margin-top: .2rem;
+}
+
+.leave-date {
+    font-size: .78rem;
+    color: var(--dash-muted);
+}
+
+.leave-type-chip {
+    font-size: .72rem;
+    padding: .12rem .5rem;
+    border-radius: 6px;
+    background: var(--dash-track);
+    color: var(--dash-muted);
+    text-transform: capitalize;
+}
+
+.leave-status {
+    margin-left: auto;
+    font-size: .74rem;
+    font-weight: 600;
+    padding: .2rem .6rem;
+    border-radius: 99px;
+    color: var(--dash-green);
+    background: color-mix(in srgb, var(--dash-green) 12%, #ffffff);
+    border: 1px solid color-mix(in srgb, var(--dash-green) 35%, #ffffff);
+    white-space: nowrap;
+}
+
+/* ---- Events ---- */
+.events-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.25rem;
+}
+
+.events-list {
+    display: flex;
+    flex-direction: column;
+    gap: .6rem;
+    max-height: 320px;
+    overflow-y: auto;
+}
+
+.event-item {
+    display: flex;
+    align-items: center;
+    gap: .7rem;
+    border: 1px solid var(--dash-border);
+    border-radius: 10px;
+    padding: .55rem .7rem;
+}
+
+.event-thumb {
+    width: 40px;
+    height: 40px;
+    border-radius: 8px;
+    object-fit: cover;
+    flex: 0 0 auto;
+    background: var(--dash-track);
+}
+
+.event-thumb-placeholder {
+    width: 40px;
+    height: 40px;
+    border-radius: 8px;
+    flex: 0 0 auto;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: color-mix(in srgb, var(--dash-green) 12%, #ffffff);
+    color: var(--dash-green);
+}
+
+.event-info {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+}
+
+.event-title {
+    font-size: .88rem;
+    font-weight: 600;
+    color: var(--dash-text);
+}
+
+.event-when {
+    font-size: .76rem;
+    color: var(--dash-muted);
+    margin-top: .15rem;
+}
+
+/* Calendar */
+.events-calendar {
+    font-size: .8rem;
+}
+
+.cal-head {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 600;
+    margin-bottom: .6rem;
+    color: var(--dash-text);
+}
+
+.cal-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 4px;
+}
+
+.cal-dow {
+    text-align: center;
+    font-size: .72rem;
+    color: var(--dash-muted);
+    padding: .25rem 0;
+}
+
+.cal-day {
+    aspect-ratio: 1 / 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    font-size: .78rem;
+    color: var(--dash-text);
+    position: relative;
+}
+
+.cal-day.is-muted {
+    color: transparent;
+}
+
+.cal-day.is-today {
+    background: var(--dash-green);
+    color: #fff;
+    font-weight: 600;
+}
+
+.cal-day.has-event::after,
+.cal-day.has-holiday::after {
+    content: "";
+    position: absolute;
+    bottom: 3px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    background: var(--dash-green);
+}
+
+.cal-day.has-holiday::after {
+    background: var(--dash-red);
+}
+
+.cal-day.is-today.has-event::after,
+.cal-day.is-today.has-holiday::after {
+    background: #fff;
+}
+
+/* ---- Noticeboard ---- */
+.notices-list {
+    display: flex;
+    flex-direction: column;
+    gap: .9rem;
+    overflow-y: auto;
+}
+
+.notice-item {
+    display: flex;
+    gap: .85rem;
+    border: 1px solid var(--dash-border);
+    border-radius: 10px;
+    padding: .85rem;
+}
+
+.notice-thumb img,
+.notice-thumb-placeholder {
+    width: 46px;
+    height: 46px;
+    border-radius: 8px;
+    object-fit: cover;
+    flex: 0 0 auto;
+    background: var(--dash-track);
+}
+
+.notice-thumb-placeholder {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: color-mix(in srgb, var(--dash-green) 12%, #ffffff);
+    color: var(--dash-green);
+}
+
+.notice-body {
+    min-width: 0;
+    flex: 1 1 auto;
+}
+
+.notice-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: .5rem;
+}
+
+.notice-title {
+    font-size: .92rem;
+    font-weight: 600;
+    margin: 0;
+    color: var(--dash-text);
+}
+
+.dash-chip {
+    font-size: .72rem;
+    padding: .15rem .55rem;
+    border-radius: 6px;
+    background: color-mix(in srgb, var(--dash-green) 10%, #ffffff);
+    color: var(--dash-green);
+    white-space: nowrap;
+    flex: 0 0 auto;
+}
+
+.notice-date {
+    font-size: .76rem;
+    color: var(--dash-muted);
+    display: block;
+    margin: .15rem 0 .4rem;
+}
+
+.notice-desc {
+    font-size: .82rem;
+    color: var(--dash-muted);
+    margin: 0;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+#noticeboard-card .notices-list {
+    max-height: 280px;
+}
+
+/* ---- Responsive ---- */
+@media (max-width: 1200px) {
+    .dash-stat-row {
+        grid-template-columns: repeat(3, 1fr);
+    }
+}
+
+@media (max-width: 768px) {
+    .dash-stat-row {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .events-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .assessment-row {
+        grid-template-columns: 110px 1fr 48px;
+    }
+}
+
+@media (max-width: 480px) {
+    .dash-stat-row {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* ---- RTL ---- */
+html[dir="rtl"] .dash-select {
+    padding: .42rem .75rem .42rem 2rem;
+    background-position: left .6rem center;
+}
+
+html[dir="rtl"] .leave-status {
+    margin-left: 0;
+    margin-right: auto;
+}
+
+/* ==========================================================================
+   Teacher dashboard
+   ========================================================================== */
+
+/* 3-up stat row variant */
+.dash-stat-row--3 {
+    grid-template-columns: repeat(3, 1fr);
+}
+
+@media (max-width: 768px) {
+    .dash-stat-row--3 {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 480px) {
+    .dash-stat-row--3 {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* ---- Pending leave status (teacher) ---- */
+.leave-status--pending {
+    color: var(--dash-amber);
+    background: color-mix(in srgb, var(--dash-amber) 14%, #ffffff);
+    border-color: color-mix(in srgb, var(--dash-amber) 38%, #ffffff);
+}
+
+/* ---- Today's Timetable ---- */
+.timetable-list,
+.assignments-list,
+.exams-list {
+    display: flex;
+    flex-direction: column;
+    gap: .6rem;
+    max-height: 360px;
+    overflow-y: auto;
+}
+
+.timetable-item {
+    display: flex;
+    align-items: center;
+    gap: .85rem;
+    border: 1px solid var(--dash-border);
+    border-radius: 10px;
+    padding: .7rem .85rem;
+}
+
+.timetable-time {
+    font-size: .82rem;
+    font-weight: 600;
+    color: var(--dash-text);
+    white-space: nowrap;
+    flex: 0 0 auto;
+}
+
+.timetable-class {
+    font-size: .84rem;
+    color: var(--dash-muted);
+    padding-left: .85rem;
+    border-left: 2px solid var(--dash-border);
+    min-width: 0;
+}
+
+/* ---- Upcoming Exams ---- */
+.exam-item {
+    display: flex;
+    align-items: center;
+    gap: .85rem;
+    border: 1px solid var(--dash-border);
+    border-radius: 10px;
+    padding: .6rem .7rem;
+}
+
+.exam-date {
+    flex: 0 0 auto;
+    width: 56px;
+    height: 56px;
+    border-radius: 10px;
+    background: var(--dash-green);
+    color: #fff;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    line-height: 1.1;
+}
+
+.exam-day {
+    font-size: 1.1rem;
+    font-weight: 700;
+}
+
+.exam-month {
+    font-size: .62rem;
+    text-transform: uppercase;
+    letter-spacing: .04em;
+}
+
+.exam-year {
+    font-size: .6rem;
+    opacity: .8;
+}
+
+.exam-info {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+}
+
+.exam-name {
+    font-size: .9rem;
+    font-weight: 600;
+    color: var(--dash-text);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.exam-sub {
+    font-size: .78rem;
+    color: var(--dash-muted);
+    margin-top: .15rem;
+}
+
+/* ---- Assignments To Review ---- */
+.assignment-item {
+    display: flex;
+    align-items: center;
+    gap: .75rem;
+    border: 1px solid var(--dash-border);
+    border-radius: 10px;
+    padding: .6rem .75rem;
+}
+
+.assignment-thumb {
+    width: 40px;
+    height: 40px;
+    border-radius: 8px;
+    flex: 0 0 auto;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: color-mix(in srgb, var(--dash-green) 12%, #ffffff);
+    color: var(--dash-green);
+}
+
+.assignment-info {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    flex: 1 1 auto;
+}
+
+.assignment-title {
+    font-size: .88rem;
+    font-weight: 600;
+    color: var(--dash-text);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.assignment-meta {
+    font-size: .76rem;
+    color: var(--dash-muted);
+    margin-top: .15rem;
+}
+
+.assignment-submitted {
+    flex: 0 0 auto;
+    font-size: .74rem;
+    font-weight: 600;
+    color: var(--dash-text);
+    background: var(--dash-track);
+    border-radius: 99px;
+    padding: .2rem .6rem;
+    white-space: nowrap;
+}

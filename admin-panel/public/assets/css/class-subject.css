@@ -1,0 +1,364 @@
+/* =====================================================================
+   Class Subject edit page (resources/views/class/edit_subject.blade.php)
+   Token-driven layout for the assign/edit class-subject form. Loaded after
+   content.css so it can lean on the redesigned .form-control / .badge / .btn
+   rules. No hardcoded brand hex — theme/secondary via var() + color-mix().
+   See DESIGN.md before changing radii / shadows / tints.
+   ===================================================================== */
+
+/* ---- Class context (read-only summary, replaces the old text inputs) ---- */
+.cs-context {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem 2.5rem;
+    padding: 1.25rem 1.5rem;
+    margin-bottom: 1.75rem;
+    background: color-mix(in srgb, var(--theme-color) 4%, #fff);
+    border: 1px solid color-mix(in srgb, var(--theme-color) 10%, rgba(27, 27, 27, 0.07));
+    border-radius: 14px;
+}
+
+.cs-context__item {
+    display: flex;
+    align-items: center;
+    gap: 0.875rem;
+    min-width: 0;
+}
+
+.cs-context__icon {
+    flex: 0 0 auto;
+    width: 42px;
+    height: 42px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 11px;
+    color: var(--theme-color);
+    background: color-mix(in srgb, var(--theme-color) 12%, #fff);
+}
+
+.cs-context__label {
+    display: block;
+    margin-bottom: 3px;
+    font-size: 0.72rem;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: #8c8c8c;
+}
+
+.cs-context__value {
+    display: block;
+    font-size: 0.9375rem;
+    line-height: 1.3;
+    color: #343a40;
+    font-family: "Roboto-Medium", "ubuntu-medium", sans-serif;
+}
+
+/* ---- Section (Core / Elective blocks) ---- */
+.cs-section__head {
+    margin-bottom: 1.25rem;
+}
+
+.cs-section__title {
+    display: flex;
+    align-items: center;
+    gap: 0.55rem;
+    margin: 0;
+    font-size: 1rem;
+    color: #343a40;
+    font-family: "Roboto-Medium", "ubuntu-medium", sans-serif;
+}
+
+.cs-section__title::before {
+    content: "";
+    flex: 0 0 auto;
+    width: 3px;
+    height: 16px;
+    border-radius: 2px;
+    background: var(--theme-color);
+}
+
+.cs-section__desc {
+    margin: 0.4rem 0 0;
+    font-size: 0.8125rem;
+    line-height: 1.45;
+    color: #8c8c8c;
+}
+
+/* ---- A single subject row (core subjects) ---- */
+.cs-subject-row {
+    display: flex;
+    align-items: flex-end;
+    gap: 0.75rem;
+    margin-bottom: 0.75rem;
+}
+
+.cs-subject-row:last-child {
+    margin-bottom: 0;
+}
+
+.cs-field {
+    position: relative;
+    flex: 1 1 0;
+    min-width: 0;
+}
+
+.cs-field--semester {
+    flex: 0 0 34%;
+}
+
+.cs-field--action {
+    flex: 0 0 auto;
+}
+
+.cs-field__label {
+    display: block;
+    margin-bottom: 0.4rem;
+    font-size: 0.8125rem;
+    color: rgba(27, 27, 27, 0.7);
+}
+
+/* Validation errors float below their field instead of adding to its flow
+   height — otherwise a single erroring field grows taller than its row
+   siblings and throws off the row's `align-items: flex-end` baseline. */
+.cs-field .error,
+.elective-subject-div .error {
+    position: absolute;
+    top: 100%;
+    inset-inline-start: 0;
+    width: 100%;
+    margin: 0.3rem 0 0 !important;
+    font-size: 0.75rem;
+    line-height: 1.3;
+}
+
+/* Make room for the floated error so it doesn't collide with the next row */
+.cs-subject-row:has(.has-danger) {
+    margin-bottom: 2.25rem;
+}
+
+/* ---- Elective group (flat, structured block — repeated per group) ---- */
+.cs-egroup {
+    padding: 1.35rem 1.5rem 1.45rem;
+    margin-bottom: 1rem;
+    background: #fff;
+    border: 1px solid rgba(27, 27, 27, 0.1);
+    border-radius: 12px;
+}
+
+.cs-egroup:last-child {
+    margin-bottom: 0;
+}
+
+/* Auto-number the visible groups (Group 1, Group 2…); hidden templates stay "Group" */
+#edit-extra-elective-subject-group {
+    counter-reset: egroup;
+}
+
+#edit-extra-elective-subject-group .cs-egroup {
+    counter-increment: egroup;
+}
+
+#edit-extra-elective-subject-group .group-no::after {
+    content: " " counter(egroup);
+}
+
+.cs-group__head {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 1.15rem;
+}
+
+.cs-group__title {
+    margin: 0;
+    font-size: 0.78rem;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    color: #8c8c8c;
+    font-family: "Roboto-Medium", "ubuntu-medium", sans-serif;
+}
+
+.cs-group__remove {
+    margin-inline-start: auto;
+    flex: 0 0 auto;
+    width: 32px;
+    height: 32px;
+    padding: 7px;
+    box-sizing: border-box;
+    border-radius: 8px;
+    color: #dc3545;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+}
+
+.cs-group__remove:hover {
+    background: color-mix(in srgb, #dc3545 10%, transparent);
+}
+
+/* Semester + total sit on their own rows — keep them compact, not full-width */
+.cs-egroup .cs-field--semester {
+    max-width: 320px;
+}
+
+.cs-electives__label {
+    margin-top: 0.1rem;
+}
+
+/* Elective subject "or" choices — capped width so two selects don't fill the row */
+.cs-electives {
+    display: flex;
+    align-items: flex-end;
+    flex-wrap: wrap;
+    gap: 0.6rem 0.7rem;
+    margin-bottom: 1.2rem;
+}
+
+/* Make room for a floated error (see .cs-field .error) so it doesn't
+   collide with the "Total Selectable Subjects" row below. */
+.cs-electives:has(.has-danger) {
+    margin-bottom: 2.5rem;
+}
+
+.elective-subject-div {
+    position: relative;
+    flex: 0 1 250px;
+    min-width: 0;
+}
+
+.cs-electives .add-new-elective-subject {
+    flex: 0 0 auto;
+}
+
+.cs-electives .or {
+    flex: 0 0 auto;
+    align-self: center;
+    margin: 0;
+    padding: 3px 9px;
+    font-size: 0.68rem;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    color: #8c8c8c;
+    background: rgba(27, 27, 27, 0.05);
+    border-radius: 20px;
+    font-family: "Roboto-Medium", "ubuntu-medium", sans-serif;
+}
+
+/* Floating remove (×) on the corner of an elective select */
+.elective-subject-div .remove-elective-subject {
+    position: absolute;
+    top: -8px;
+    inset-inline-end: -8px;
+    width: 22px;
+    height: 22px;
+    padding: 3px;
+    box-sizing: border-box;
+    border-radius: 50%;
+    color: #dc3545;
+    background: #fff;
+    border: 1px solid color-mix(in srgb, #dc3545 30%, #fff);
+    box-shadow: 0 1px 3px rgba(16, 24, 40, 0.12);
+    cursor: pointer;
+    z-index: 2;
+}
+
+.elective-subject-div .remove-elective-subject:hover {
+    background: color-mix(in srgb, #dc3545 10%, #fff);
+}
+
+.cs-total {
+    max-width: 220px;
+}
+
+/* ---- Dashed "add" affordance (add core / add elective group) ---- */
+.cs-add-section {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    width: 100%;
+    margin-top: 1rem;
+    padding: 0.8rem 1rem;
+    font-size: 0.875rem;
+    color: var(--theme-color);
+    font-family: "Roboto-Medium", "ubuntu-medium", sans-serif;
+    background: color-mix(in srgb, var(--theme-color) 3%, #fff);
+    border: 1.5px dashed color-mix(in srgb, var(--theme-color) 35%, #d8dde6);
+    border-radius: 12px;
+    cursor: pointer;
+    transition: background-color 0.2s ease, border-color 0.2s ease;
+}
+
+.cs-add-section:hover {
+    background: color-mix(in srgb, var(--theme-color) 8%, #fff);
+    border-color: var(--theme-color);
+}
+
+/* ---- Section divider + submit footer ---- */
+.cs-divider {
+    height: 1px;
+    margin: 1.75rem 0;
+    border: 0;
+    background: rgba(27, 27, 27, 0.06);
+}
+
+.cs-footer {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 1.75rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid rgba(27, 27, 27, 0.06);
+}
+
+/* ---- Responsive ---- */
+@media (max-width: 767.98px) {
+    .cs-egroup {
+        padding: 1.1rem 1.15rem 1.2rem;
+    }
+
+    .cs-context {
+        gap: 1rem;
+        padding: 1.1rem 1.15rem;
+    }
+
+    .cs-context__item {
+        flex: 1 1 100%;
+    }
+
+    .cs-subject-row,
+    .cs-electives {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .cs-field,
+    .cs-field--semester,
+    .elective-subject-div,
+    .cs-total {
+        flex: 1 1 auto;
+        max-width: none;
+    }
+
+    .cs-subject-row .cs-field--action {
+        align-self: flex-end;
+    }
+
+    /* Stacked layout: give the floated error room above the next field */
+    .cs-subject-row:has(.has-danger) {
+        row-gap: 2.25rem;
+    }
+
+    .cs-electives:has(.has-danger) {
+        row-gap: 2.25rem;
+    }
+
+    .cs-electives .or {
+        align-self: center;
+        margin: 0.1rem 0;
+    }
+
+    .elective-subject-div .remove-elective-subject {
+        inset-inline-end: 6px;
+        top: 6px;
+    }
+}

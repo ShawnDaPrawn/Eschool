@@ -1,0 +1,293 @@
+/* ============================================================
+   Assignment Submission — Review modal, token-driven, DESIGN.md-compliant.
+   Loaded via @section('css') after content.css.
+   ============================================================ */
+
+/* ---- Header subtitle (assignment name under the modal title) ---- */
+.modal-subtitle {
+    font-size: 0.8125rem;
+    color: #8c8c8c;
+    margin-top: 2px;
+}
+
+/* ---- Two-panel body split ---- */
+.right-panel {
+    border-left: 1px solid rgba(27, 27, 27, 0.06);
+}
+
+[dir="rtl"] .right-panel {
+    border-left: none;
+    border-right: 1px solid rgba(27, 27, 27, 0.06);
+}
+
+@media (max-width: 991px) {
+    .right-panel,
+    [dir="rtl"] .right-panel {
+        border-left: none;
+        border-right: none;
+        border-top: 1px solid rgba(27, 27, 27, 0.06);
+    }
+}
+
+/* ---- Student header row ---- */
+.student-name-text {
+    font-family: "Roboto-Medium", "ubuntu-medium", sans-serif;
+    font-size: 0.9375rem;
+    color: #343a40;
+}
+
+.student-avatar-img {
+    display: block;
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 1px solid rgba(27, 27, 27, 0.08);
+    background: #f1f5f9;
+}
+
+.student-avatar-initials {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    background: color-mix(in srgb, var(--theme-color) 14%, #fff);
+    color: var(--theme-color);
+    font-family: "Roboto-Medium", "ubuntu-medium", sans-serif;
+    font-size: 0.9375rem;
+    font-weight: 600;
+}
+
+.student-meta-row {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 10px;
+    row-gap: 4px;
+}
+
+.student-info-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 3px 10px;
+    background: color-mix(in srgb, var(--theme-color) 10%, #fff);
+    color: var(--theme-color);
+    border-radius: 8px;
+    font-size: 0.75rem;
+    font-weight: 500;
+}
+
+.student-meta-date {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    color: #8c9aab;
+    font-size: 0.75rem;
+}
+
+/* ---- Section eyebrow labels (attached files / submission text / etc.) ---- */
+.section-label {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-family: "Roboto-Medium", "ubuntu-medium", sans-serif;
+    font-size: 0.75rem;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: #475569;
+    margin-bottom: 0.5rem;
+}
+
+/* ---- Attached files list ---- */
+#files {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    max-height: 180px;
+    overflow-y: auto;
+}
+
+#files:empty::before {
+    content: attr(data-empty-text);
+    display: block;
+    padding: 14px;
+    text-align: center;
+    font-size: 0.8125rem;
+    color: #8c9aab;
+    background: #f8f9fb;
+    border: 1px dashed rgba(27, 27, 27, 0.14);
+    border-radius: 10px;
+}
+
+.submission-file-link {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 9px 12px;
+    background: #f8f9fb;
+    border: 1px solid rgba(27, 27, 27, 0.06);
+    border-radius: 10px;
+    color: #343a40;
+    font-size: 0.8125rem;
+    font-weight: 500;
+    text-decoration: none;
+    word-break: break-all;
+    transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+}
+
+.submission-file-link:hover,
+.submission-file-link:focus {
+    background: color-mix(in srgb, var(--theme-color) 6%, #fff);
+    border-color: color-mix(in srgb, var(--theme-color) 30%, transparent);
+    color: var(--theme-color);
+    text-decoration: none;
+}
+
+.submission-file-link svg.lc-icon {
+    flex-shrink: 0;
+    color: #8c9aab;
+    transition: color 0.15s ease;
+}
+
+.submission-file-link:hover svg.lc-icon,
+.submission-file-link:focus svg.lc-icon {
+    color: var(--theme-color);
+}
+
+/* ---- Submission text box ---- */
+.submission-text-box {
+    padding: 14px 16px;
+    background: #f8f9fb;
+    border: 1px solid rgba(27, 27, 27, 0.06);
+    border-radius: 10px;
+    font-size: 0.875rem;
+    line-height: 1.6;
+    color: #343a40;
+    white-space: pre-wrap;
+    word-break: break-word;
+    max-height: 220px;
+    overflow-y: auto;
+}
+
+.submission-text-box:empty::before {
+    content: attr(data-empty-text);
+    color: #8c9aab;
+    font-style: italic;
+}
+
+/* ---- Slim scrollbars, matching the modal-body convention ---- */
+#files::-webkit-scrollbar,
+.submission-text-box::-webkit-scrollbar {
+    width: 6px;
+}
+
+#files::-webkit-scrollbar-thumb,
+.submission-text-box::-webkit-scrollbar-thumb {
+    background: rgba(27, 27, 27, 0.18);
+    border-radius: 10px;
+}
+
+#files::-webkit-scrollbar-thumb:hover,
+.submission-text-box::-webkit-scrollbar-thumb:hover {
+    background: rgba(27, 27, 27, 0.3);
+}
+
+#files::-webkit-scrollbar-track,
+.submission-text-box::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+/* ---- Accept / Reject status cards ---- */
+.status-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 16px 12px;
+    border: 1.5px solid rgba(27, 27, 27, 0.1);
+    border-radius: 12px;
+    background: #fff;
+    text-align: center;
+    cursor: pointer;
+    transition: border-color 0.15s ease, background-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.status-card:hover {
+    border-color: rgba(27, 27, 27, 0.2);
+    background: #fbfbfd;
+}
+
+.status-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+.status-icon.accept-icon {
+    background: color-mix(in srgb, #198754 12%, #fff);
+    color: #198754;
+}
+
+.status-icon.reject-icon {
+    background: color-mix(in srgb, #dc3545 12%, #fff);
+    color: #dc3545;
+}
+
+.status-label {
+    font-family: "Roboto-Medium", "ubuntu-medium", sans-serif;
+    font-size: 0.8125rem;
+    color: #475569;
+}
+
+.status-card.active-accept {
+    border-color: #198754;
+    background: color-mix(in srgb, #198754 6%, #fff);
+    box-shadow: 0 0 0 3px color-mix(in srgb, #198754 12%, transparent);
+}
+
+.status-card.active-accept .status-icon.accept-icon {
+    background: #198754;
+    color: #fff;
+}
+
+.status-card.active-accept .status-label {
+    color: #166534;
+}
+
+.status-card.active-reject {
+    border-color: #dc3545;
+    background: color-mix(in srgb, #dc3545 6%, #fff);
+    box-shadow: 0 0 0 3px color-mix(in srgb, #dc3545 12%, transparent);
+}
+
+.status-card.active-reject .status-icon.reject-icon {
+    background: #dc3545;
+    color: #fff;
+}
+
+.status-card.active-reject .status-label {
+    color: #b42318;
+}
+
+/* ---- Grade points ---- */
+.grade-max-label {
+    font-size: 0.75rem;
+    font-weight: 500;
+    color: #8c9aab;
+}
+
+.points-input {
+    font-family: "Roboto-Medium", "ubuntu-medium", sans-serif;
+    font-size: 1.0625rem;
+    font-weight: 600;
+    color: #343a40;
+}

@@ -1,0 +1,464 @@
+/* =========================================================================
+   System Update — scoped page styles
+   Loaded only on resources/views/system-update/index.blade.php.
+   Follows DESIGN.md tokens: brand vars + color-mix() tints, the shared radius
+   scale, layered shadows, and the cross-bundle font-family stacks. No
+   hardcoded brand hex — semantic status hues (amber/red) are intentional.
+   Direction-neutral: uses logical properties so it lands LTR and RTL alike.
+   ========================================================================= */
+
+/* ---- Page header --------------------------------------------------------- */
+.sysupd-page .page-header {
+    /* The legacy bundle pins .page-header to `align-items: center !important`
+       (style.css / rtl.css), so top-alignment of the taller title block against
+       the single-line version chip needs !important to take effect. */
+    align-items: flex-start !important;
+}
+
+.sysupd-page .page-header .page-subtitle {
+    margin-top: 0.25rem;
+    max-width: 56ch;
+}
+
+/* Current-version chip (page header, inline-end) */
+.sysupd-version-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    flex-shrink: 0;
+    padding: 0.5rem 0.85rem;
+    border-radius: 10px;
+    background: color-mix(in srgb, var(--theme-color) 5%, #fff);
+    border: 1px solid color-mix(in srgb, var(--theme-color) 18%, rgba(27, 27, 27, 0.06));
+    box-shadow: 0 1px 2px rgba(16, 24, 40, 0.03);
+    white-space: nowrap;
+}
+
+.sysupd-version-chip > svg {
+    flex-shrink: 0;
+    color: var(--theme-color);
+}
+
+.sysupd-version-chip__label {
+    font-family: "Roboto-Regular", "ubuntu-regular", sans-serif;
+    font-size: 0.6875rem;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: rgba(27, 27, 27, 0.55);
+}
+
+.sysupd-version-chip__value {
+    font-family: "Roboto-Medium", "ubuntu-medium", sans-serif;
+    font-size: 0.9375rem;
+    color: var(--theme-color);
+}
+
+/* ---- Critical backup banner --------------------------------------------- */
+/* Amber = semantic "caution" status (not brand), aligned to the badge/toast
+   warning palette in DESIGN.md (#d97706 / deep ink #92400e). */
+.sysupd-banner {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.85rem;
+    padding: 1rem 1.15rem;
+    margin-bottom: 1.5rem;
+    border-radius: 12px;
+    background: color-mix(in srgb, #d97706 7%, #fff);
+    border: 1px solid color-mix(in srgb, #d97706 22%, transparent);
+    box-shadow: 0 1px 2px rgba(16, 24, 40, 0.03);
+}
+
+.sysupd-banner__icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    width: 38px;
+    height: 38px;
+    border-radius: 10px;
+    background: color-mix(in srgb, #d97706 14%, #fff);
+    color: #b45309;
+}
+
+.sysupd-banner__title {
+    margin: 0 0 0.15rem;
+    font-family: "Roboto-Medium", "ubuntu-medium", sans-serif;
+    font-size: 0.9375rem;
+    color: #92400e;
+}
+
+.sysupd-banner__text {
+    margin: 0;
+    font-size: 0.8125rem;
+    line-height: 1.55;
+    color: #92400e; /* documented warning deep-ink (DESIGN.md), shared with the title */
+}
+
+/* ---- Cards --------------------------------------------------------------- */
+.sysupd-card-header {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.sysupd-card-header__icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    width: 40px;
+    height: 40px;
+    border-radius: 10px;
+    background: color-mix(in srgb, var(--theme-color) 9%, #fff);
+    border: 1px solid color-mix(in srgb, var(--theme-color) 16%, transparent);
+    color: var(--theme-color);
+}
+
+.sysupd-card-header .card-title {
+    line-height: 1.3;
+}
+
+.sysupd-card-header__sub {
+    margin-top: 0.1rem;
+    font-size: 0.8125rem;
+    color: #8c8c8c;
+}
+
+/* ---- Form fields --------------------------------------------------------- */
+.sysupd-field {
+    margin-bottom: 1.5rem;
+}
+
+.sysupd-field:last-of-type {
+    margin-bottom: 0;
+}
+
+.sysupd-label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-family: "Roboto-Medium", "ubuntu-medium", sans-serif;
+    font-size: 0.875rem;
+    color: #343a40;
+}
+
+.sysupd-req {
+    color: #dc3545;
+}
+
+.sysupd-hint {
+    margin: 0.55rem 0 0;
+    font-size: 0.8125rem;
+    line-height: 1.5;
+    color: #8c8c8c;
+}
+
+/* Icon-prefixed text input — the input keeps .form-control so it inherits the
+   shared focus glow; the glyph is an overlay that themes on focus-within. */
+.sysupd-input-icon {
+    position: relative;
+}
+
+.sysupd-input-icon__glyph {
+    position: absolute;
+    top: 50%;
+    inset-inline-start: 0.875rem;
+    transform: translateY(-50%);
+    color: #9aa1ab;
+    pointer-events: none;
+    transition: color 0.15s ease-in-out;
+}
+
+.sysupd-input-icon .form-control {
+    padding-inline-start: 2.6rem;
+}
+
+.sysupd-input-icon:focus-within .sysupd-input-icon__glyph {
+    color: var(--theme-color);
+}
+
+/* ---- Dropzone ------------------------------------------------------------ */
+.sysupd-file-input {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+}
+
+.sysupd-dropzone {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.65rem;
+    width: 100%;
+    margin: 0;
+    padding: 1.85rem 1.25rem;
+    text-align: center;
+    cursor: pointer;
+    border-radius: 12px;
+    border: 1.5px dashed color-mix(in srgb, var(--theme-color) 28%, #ced4da);
+    background: color-mix(in srgb, var(--theme-color) 3%, #fff);
+    transition: border-color 0.2s ease, background-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.sysupd-dropzone:hover {
+    border-color: color-mix(in srgb, var(--theme-color) 50%, #ced4da);
+    background: color-mix(in srgb, var(--theme-color) 5%, #fff);
+}
+
+.sysupd-dropzone.is-dragover {
+    border-color: var(--theme-color);
+    background: color-mix(in srgb, var(--theme-color) 8%, #fff);
+    box-shadow: 0 0 0 0.2rem color-mix(in srgb, var(--theme-color) 18%, transparent);
+}
+
+/* The native input is visually hidden but stays keyboard-focusable; surface its
+   focus on the visible dropzone so keyboard users get a clear focus ring. */
+.sysupd-file-input:focus + .sysupd-dropzone,
+.sysupd-file-input:focus-visible + .sysupd-dropzone {
+    border-color: var(--theme-color);
+    box-shadow: 0 0 0 0.2rem color-mix(in srgb, var(--theme-color) 18%, transparent);
+}
+
+.sysupd-dropzone__prompt {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.65rem;
+}
+
+.sysupd-dropzone__icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 54px;
+    height: 54px;
+    border-radius: 50%;
+    background: color-mix(in srgb, var(--theme-color) 10%, #fff);
+    color: var(--theme-color);
+}
+
+.sysupd-dropzone__primary {
+    font-family: "Roboto-Medium", "ubuntu-medium", sans-serif;
+    font-size: 0.9375rem;
+    color: #343a40;
+}
+
+.sysupd-dropzone__browse {
+    color: var(--theme-color);
+    text-decoration: underline;
+    text-underline-offset: 2px;
+}
+
+.sysupd-dropzone__hint {
+    font-size: 0.8125rem;
+    color: #8c8c8c;
+}
+
+/* Selected-file state */
+.sysupd-dropzone__file {
+    display: none;
+    align-items: center;
+    gap: 0.75rem;
+    width: 100%;
+}
+
+.sysupd-dropzone.has-file {
+    flex-direction: row;
+    align-items: center;
+    padding: 1rem 1.15rem;
+    text-align: start;
+    cursor: default;
+    border-style: solid;
+    border-color: color-mix(in srgb, var(--theme-color) 30%, transparent);
+    background: color-mix(in srgb, var(--theme-color) 5%, #fff);
+}
+
+.sysupd-dropzone.has-file .sysupd-dropzone__prompt {
+    display: none;
+}
+
+.sysupd-dropzone.has-file .sysupd-dropzone__file {
+    display: flex;
+}
+
+.sysupd-dropzone__file-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    width: 42px;
+    height: 42px;
+    border-radius: 10px;
+    background: color-mix(in srgb, var(--theme-color) 12%, #fff);
+    color: var(--theme-color);
+}
+
+.sysupd-dropzone__file-meta {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    min-width: 0;
+}
+
+.sysupd-dropzone__file-label {
+    font-size: 0.6875rem;
+    letter-spacing: 0.03em;
+    text-transform: uppercase;
+    color: #8c8c8c;
+}
+
+.sysupd-dropzone__file-name {
+    font-family: "Roboto-Medium", "ubuntu-medium", sans-serif;
+    font-size: 0.9rem;
+    color: #343a40;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.sysupd-dropzone__remove {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    border: 1px solid rgba(27, 27, 27, 0.08);
+    background: #fff;
+    color: #8c8c8c;
+    cursor: pointer;
+    transition: color 0.2s ease, background-color 0.2s ease, border-color 0.2s ease;
+}
+
+.sysupd-dropzone__remove:hover {
+    color: #dc3545;
+    border-color: color-mix(in srgb, #dc3545 30%, transparent);
+    background: color-mix(in srgb, #dc3545 7%, #fff);
+}
+
+/* Visually-hidden live region for the upload/migrate busy state. */
+.sysupd-sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+}
+
+/* ---- Submit ------------------------------------------------------------- */
+.sysupd-actions {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 1.75rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid rgba(27, 27, 27, 0.06);
+}
+
+.sysupd-submit {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.625rem 1.5rem;
+}
+
+.sysupd-submit > svg {
+    flex-shrink: 0;
+}
+
+/* Loading affordance: formAjaxRequest disables the button while posting.
+   The button keeps its label; we swap the leading icon for a spinner. */
+.sysupd-submit:disabled {
+    opacity: 0.85;
+    cursor: progress;
+}
+
+.sysupd-submit:disabled .sysupd-submit__icon {
+    display: none;
+}
+
+.sysupd-submit:disabled::before {
+    content: "";
+    width: 16px;
+    height: 16px;
+    border: 2px solid color-mix(in srgb, #fff 45%, transparent);
+    border-top-color: #fff;
+    border-radius: 50%;
+    animation: sysupd-spin 0.7s linear infinite;
+}
+
+@keyframes sysupd-spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+/* ---- Guidelines list ----------------------------------------------------- */
+.sysupd-guide-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 1.35rem;
+}
+
+.sysupd-guide-item {
+    display: flex;
+    gap: 0.85rem;
+}
+
+.sysupd-guide-item__icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    width: 38px;
+    height: 38px;
+    border-radius: 10px;
+    background: color-mix(in srgb, var(--theme-color) 9%, #fff);
+    border: 1px solid color-mix(in srgb, var(--theme-color) 15%, transparent);
+    color: var(--theme-color);
+}
+
+.sysupd-guide-item__title {
+    margin: 0 0 0.25rem;
+    font-family: "Roboto-Medium", "ubuntu-medium", sans-serif;
+    font-size: 0.875rem;
+    color: #343a40;
+}
+
+.sysupd-guide-item__text {
+    font-size: 0.8125rem;
+    line-height: 1.55;
+    color: rgba(27, 27, 27, 0.62);
+}
+
+/* ---- Responsive ---------------------------------------------------------- */
+@media (max-width: 767.98px) {
+    .sysupd-page .page-header {
+        flex-wrap: wrap;
+        gap: 0.85rem;
+    }
+
+    .sysupd-actions .sysupd-submit {
+        width: 100%;
+        justify-content: center;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .sysupd-submit:disabled::before {
+        animation: none;
+    }
+}

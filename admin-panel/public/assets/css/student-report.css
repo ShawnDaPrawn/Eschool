@@ -1,0 +1,805 @@
+/* ============================================================
+   Student Report page — token-driven, DESIGN.md-compliant.
+   Loaded via @section('css') in students/report/index.blade.php.
+   ============================================================ */
+
+/* Modal sizing */
+#feeLedgerModal .modal-dialog {
+    max-width: 900px;
+    width: 95%;
+}
+@media (min-width: 1200px) {
+    #feeLedgerModal .modal-dialog {
+        max-width: 1000px;
+    }
+}
+
+/* Modal shell */
+#feeLedgerModal .modal-content {
+    border: none;
+    border-radius: 14px;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
+    overflow: hidden;
+}
+#feeLedgerModal .modal-header {
+    border-bottom: 1px solid #f0f0f0;
+    padding: 20px 24px;
+}
+
+#feeLedgerModal .modal-title {
+    font-weight: 700;
+    font-size: 18px;
+    color: var(--theme-color);
+}
+#feeLedgerModal .modal-body {
+    padding: 24px;
+    max-height: 70vh;
+    overflow-y: auto;
+}
+#feeLedgerModal .modal-footer {
+    border-top: 1px solid #f0f0f0;
+    padding: 16px 24px;
+}
+
+/* Stat boxes */
+.fee-stat-box {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+    padding: 16px;
+    background: #fafafa;
+    height: 100%;
+}
+.fee-stat-icon {
+    width: 36px;
+    height: 36px;
+    min-width: 36px;
+    border-radius: 9px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.fee-stat-icon-neutral {
+    background: color-mix(in srgb, var(--theme-color) 12%, #fff);
+    color: var(--theme-color);
+}
+.fee-stat-icon-success {
+    background: #dcfce7;
+    color: #16a34a;
+}
+.fee-stat-icon-danger {
+    background: #fee2e2;
+    color: #dc2626;
+}
+
+.fee-stat-label {
+    font-size: 11px;
+    text-transform: uppercase;
+    color: #9ca3af;
+    letter-spacing: 0.05em;
+    font-weight: 600;
+    margin-bottom: 3px;
+}
+.fee-stat-value {
+    font-size: 19px;
+    font-weight: 700;
+    color: #111827;
+    line-height: 1.2;
+}
+
+#feeLedgerModal h6 {
+    font-weight: 700;
+    font-size: 14px;
+    color: #374151;
+}
+
+/* ============================================================
+   INSTALLMENT ROWS — matching the reference image design
+   ============================================================ */
+
+.installment-row {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    border: 1px solid #e5e7eb;
+    border-radius: 16px;
+    padding: 18px 20px;
+    margin-bottom: 12px;
+    background: #ffffff;
+    transition: box-shadow 0.15s ease;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+}
+.installment-row:hover {
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+}
+
+/* ---- PAID row: white background with green border accent ---- */
+.installment-row-paid {
+    background: #ffffff;
+    border-color: #bbf7d0;
+    border-left: 4px solid #22c55e;
+}
+
+.installment-row-overdue {
+    background: color-mix(in srgb, var(--theme-color) 12%, #fff);
+    color: var(--theme-color);
+    border-left: 4px solid #ef4444;
+}
+
+/* ---- Number badge (circular) ---- */
+.installment-number {
+    width: 40px;
+    height: 40px;
+    min-width: 40px;
+    border-radius: 50%;
+    background: #eef0ff;
+    color: #4f46e5;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 14px;
+}
+.installment-number-paid {
+    background: #dcfce7;
+    color: #16a34a;
+}
+.installment-number-overdue {
+    background: #fee2e2;
+    color: #dc2626;
+}
+
+/* ---- Main details block ---- */
+.installment-details {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.installment-title-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.installment-details strong {
+    font-size: 15px;
+    color: #111827;
+    font-weight: 700;
+}
+
+/* Installment amount — large and bold like the image */
+.installment-amount {
+    font-size: 20px;
+    font-weight: 700;
+    color: #111827;
+    margin-top: 2px;
+}
+
+/* ---- Status badge (Paid / Pending / Overdue) ---- */
+.installment-status-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 11px;
+    font-weight: 600;
+    border-radius: 20px;
+    padding: 4px 10px;
+    line-height: 1;
+}
+
+.installment-status-badge.paid {
+    background: #dcfce7;
+    color: #16a34a;
+    border: 1px solid #bbf7d0;
+}
+
+.installment-status-badge.pending {
+    background: #fef3c7;
+    color: #d97706;
+    border: 1px solid #fde68a;
+}
+
+.installment-status-badge.overdue {
+    background: #fee2e2;
+    color: #dc2626;
+    border: 1px solid #fecaca;
+}
+
+/* Checkmark icon inside paid badge */
+.installment-status-badge.paid::before {
+    content: "✓";
+    font-size: 10px;
+    font-weight: 800;
+}
+
+/* ---- Right-side meta / receipt block ---- */
+.installment-meta {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 6px;
+    min-width: 180px;
+    text-align: right;
+}
+
+/* RECEIPT LOG section — matches the image exactly */
+.installment-receipt-label {
+    font-size: 10px;
+    text-transform: uppercase;
+    color: #9ca3af;
+    letter-spacing: 0.08em;
+    font-weight: 600;
+}
+
+/* Receipt ID — like CASH-998A */
+.installment-receipt-id {
+    font-size: 14px;
+    color: #111827;
+    font-weight: 600;
+    background: #f3f4f6;
+    padding: 2px 10px;
+    border-radius: 6px;
+    font-family: "Courier New", monospace;
+}
+
+/* ---- Paid date — like "Paid: 06-07-2026 (Cash)" ---- */
+.installment-date-paid {
+    font-size: 13px;
+    font-weight: 500;
+    color: #16a34a;
+    padding: 2px 8px;
+    border-radius: 4px;
+}
+
+/* ---- Personal In / Fees Le — like the image ---- */
+.installment-tags {
+    display: flex;
+    gap: 8px;
+    margin-top: 4px;
+    flex-wrap: wrap;
+}
+
+.installment-tag {
+    font-size: 11px;
+    color: #6b7280;
+    background: #f3f4f6;
+    padding: 1px 10px;
+    border-radius: 4px;
+    font-weight: 500;
+}
+
+/* ---- When paid, show green text for receipt meta ---- */
+.installment-row-paid .installment-receipt-id {
+    background: #dcfce7;
+    color: #16a34a;
+}
+
+.installment-row-paid .installment-date-paid {
+    accent-color: var(--theme-color);
+}
+
+/* ---- Checkbox styling ---- */
+.installment-checkbox {
+    flex-shrink: 0;
+}
+
+.installment-checkbox input[type="checkbox"] {
+    width: 18px;
+    height: 18px;
+    accent-color: #4f46e5;
+    cursor: pointer;
+    border-radius: 4px;
+    border: 2px solid #d1d5db;
+}
+
+/* ============================================================
+   HEADER — "Installment Ledger Timeline"
+   ============================================================ */
+
+.ledger-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.ledger-header h5 {
+    font-weight: 700;
+    font-size: 18px;
+    color: #111827;
+    margin: 0;
+}
+
+.ledger-header .select-hint {
+    font-size: 13px;
+    color: #6b7280;
+    font-weight: 400;
+}
+
+/* ============================================================
+   RESPONSIVE — stack meta below on small screens
+   ============================================================ */
+
+@media (max-width: 640px) {
+    .installment-row {
+        flex-wrap: wrap;
+        gap: 12px;
+        padding: 16px;
+    }
+
+    .installment-meta {
+        min-width: 100%;
+        text-align: left;
+        align-items: flex-start;
+        padding-left: 56px;
+    }
+
+    .installment-checkbox {
+        order: 0;
+    }
+    .installment-number {
+        order: 1;
+    }
+    .installment-details {
+        order: 2;
+        flex: 1 1 100%;
+    }
+    .installment-meta {
+        order: 3;
+    }
+}
+
+/* Print — only the modal content prints, not the whole page */
+@media print {
+    body * {
+        visibility: hidden;
+    }
+    #feeLedgerModal,
+    #feeLedgerModal * {
+        visibility: visible;
+    }
+    #feeLedgerModal {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 100%;
+    }
+    #feeLedgerModal .modal-footer,
+    #feeLedgerModal .close {
+        display: none;
+    }
+}
+
+/* ---- Profile header card ---- */
+button.btn-icon-square {
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    width: 34px !important;
+    height: 34px !important;
+    border: 1px solid #e5e7eb !important;
+    border-radius: 8px !important;
+    background: #f9fafb !important;
+    color: #6b7280 !important;
+    transition: all 0.15s ease;
+}
+button.btn-icon-square:hover {
+    background: color-mix(in srgb, var(--theme-color) 12%, #fff) !important;
+    border-color: color-mix(
+        in srgb,
+        var(--theme-color) 30%,
+        transparent
+    ) !important;
+    color: var(--theme-color) !important;
+}
+.sr-profile-avatar {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 1px solid rgba(27, 27, 27, 0.06);
+    background: #f1f5f9;
+}
+
+/* ---- Tabs ---- */
+#student-tabs {
+    border-bottom: 1px solid rgba(27, 27, 27, 0.06);
+    padding: 0;
+}
+
+#student-tabs .nav-link {
+    border: none;
+    border-bottom: 2px solid transparent;
+    border-radius: 0;
+    margin-bottom: -1px;
+    color: rgba(27, 27, 27, 0.7);
+    font-family: "Roboto-Medium", "ubuntu-medium", sans-serif;
+    padding: 0.875rem 1.125rem;
+    transition:
+        color 0.15s ease,
+        border-color 0.15s ease;
+}
+
+#student-tabs .nav-link:hover {
+    color: var(--theme-color);
+    border-color: transparent;
+    background: transparent;
+}
+
+#student-tabs .nav-link.active {
+    background: transparent;
+    color: var(--theme-color);
+    border-bottom-color: var(--theme-color);
+}
+
+/* ---- Flat info sections (replaces nested "card in card" panels) ---- */
+.report-section-title {
+    font-family: "Roboto-Medium", "ubuntu-medium", sans-serif;
+    font-size: 0.9375rem;
+    color: #343a40;
+    padding-bottom: 0.75rem;
+    margin-bottom: 0.25rem;
+    border-bottom: 1px solid rgba(27, 27, 27, 0.06);
+}
+
+.report-info-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 0.625rem 0;
+    border-bottom: 1px solid rgba(27, 27, 27, 0.04);
+}
+
+.report-info-row:last-child {
+    border-bottom: none;
+}
+
+.report-info-label {
+    color: rgba(27, 27, 27, 0.7);
+}
+
+.report-info-value {
+    font-family: "Roboto-Medium", "ubuntu-medium", sans-serif;
+    color: #343a40;
+    text-align: right;
+}
+
+/* ---- Flat stat strip (replaces multiple bordered/shadowed stat cards) ---- */
+.report-stat-strip {
+    display: flex;
+    flex-wrap: wrap;
+    border: 1px solid rgba(27, 27, 27, 0.06);
+    border-radius: 14px;
+    overflow: hidden;
+    margin-bottom: 1.5rem;
+}
+
+.report-stat-item {
+    flex: 1 1 160px;
+    min-width: 140px;
+    text-align: center;
+    padding: 1rem 0.75rem;
+    border-right: 1px solid rgba(27, 27, 27, 0.06);
+    border-top: 3px solid transparent;
+}
+
+.report-stat-item:last-child {
+    border-right: none;
+}
+
+.report-stat-label {
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: #8c8c8c;
+    margin-bottom: 0.375rem;
+    font-family: "Roboto-Medium", "ubuntu-medium", sans-serif;
+}
+
+.report-stat-value {
+    font-family: "Roboto-Bold", "ubuntu-bold", sans-serif;
+    font-size: 1.375rem;
+    color: #343a40;
+    line-height: 1.2;
+}
+
+.report-stat-sub {
+    font-size: 0.75rem;
+    font-family: "Roboto-Medium", "ubuntu-medium", sans-serif;
+    margin-top: 0.25rem;
+}
+
+.report-stat-item.accent-theme {
+    border-top-color: var(--theme-color);
+}
+.report-stat-item.accent-success {
+    border-top-color: #198754;
+}
+.report-stat-item.accent-danger {
+    border-top-color: #dc3545;
+}
+.report-stat-item.accent-info {
+    border-top-color: #0e7490;
+}
+.report-stat-item.accent-warning {
+    border-top-color: #d97706;
+}
+.report-stat-item.accent-secondary {
+    border-top-color: #64748b;
+}
+
+@media (max-width: 768px) {
+    .report-stat-value {
+        font-size: 1.125rem;
+    }
+    .report-stat-label {
+        font-size: 0.6875rem;
+    }
+}
+
+/* ---- Flat progress tracker (replaces the boxed "card p-3 shadow-sm") ---- */
+.report-tracker {
+    border: 1px solid rgba(27, 27, 27, 0.06);
+    border-radius: 14px;
+    padding: 1.125rem 1.25rem;
+    margin-bottom: 1.5rem;
+}
+
+.report-tracker-legend {
+    font-size: 0.75rem;
+    font-family: "Roboto-Medium", "ubuntu-medium", sans-serif;
+    color: #64748b;
+}
+
+.report-tracker-dot {
+    width: 9px;
+    height: 9px;
+    border-radius: 50%;
+    display: inline-block;
+}
+
+/* ---- Assignment subject group (flat, single hairline block instead of
+   a shadowed card sitting inside the already-carded tab body) ---- */
+.report-subject-group {
+    border: 1px solid rgba(27, 27, 27, 0.06);
+    border-radius: 14px;
+    overflow: hidden;
+    margin-bottom: 1.25rem;
+}
+
+.report-subject-group-header {
+    background: color-mix(in srgb, var(--theme-color) 4%, #f7f8fa);
+    border-bottom: 1px solid rgba(27, 27, 27, 0.06);
+    padding: 0.875rem 1rem;
+}
+
+.report-subject-pill {
+    display: flex;
+    align-items: center;
+    background: #fff;
+    border: 1px solid rgba(27, 27, 27, 0.06);
+    border-radius: 8px;
+    padding: 0.25rem 0.625rem;
+}
+
+/* Per-subject table isn't a bootstrap-table plugin instance, so tables.css'
+   selectors (scoped to .bootstrap-table) never reach it — mirror the same
+   header/row/hover language here so it doesn't look like a different table. */
+.report-subject-group table.table {
+    margin-bottom: 0;
+}
+
+.report-subject-group table.table thead th {
+    border-top: 0;
+    border-bottom: 1px solid
+        color-mix(in srgb, var(--theme-color) 12%, rgba(27, 27, 27, 0.08));
+    color: #475569;
+    font-family: "Roboto-Medium", "ubuntu-medium", sans-serif;
+}
+
+.report-subject-group table.table tbody td {
+    border-top: 0;
+    border-bottom: 1px solid rgba(27, 27, 27, 0.06);
+}
+
+.report-subject-group table.table tbody tr:last-child td {
+    border-bottom: 0;
+}
+
+.report-subject-group table.table.table-hover tbody tr:hover {
+    background: color-mix(
+        in srgb,
+        var(--secondary-color, var(--theme-color)) 9%,
+        #fff
+    );
+}
+
+/* Section heading (tab title / subject group title) — same Medium-face
+   treatment as .report-section-title / .card-title, no ad hoc bootstrap bold. */
+.report-heading,
+.report-subject-title {
+    font-family: "Roboto-Medium", "ubuntu-medium", sans-serif;
+    color: #343a40;
+}
+
+.report-heading {
+    font-size: 1rem;
+}
+.report-subject-title {
+    font-size: 0.9375rem;
+}
+
+.report-divider-bottom {
+    border-bottom: 1px solid rgba(27, 27, 27, 0.06);
+}
+
+/* Soft theme-tinted button for inline row actions (e.g. "Teacher Review") —
+   same recipe as the badge-soft/attendance-btn tint, sized for a table cell. */
+.report-action-btn {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.3125rem 0.75rem;
+    font-size: 0.75rem;
+    font-family: "Roboto-Medium", "ubuntu-medium", sans-serif;
+    color: var(--theme-color);
+    background-color: color-mix(in srgb, var(--theme-color) 6%, #fff);
+    border: 1px solid color-mix(in srgb, var(--theme-color) 30%, transparent);
+    border-radius: 8px;
+    cursor: pointer;
+    transition:
+        background-color 0.15s ease,
+        border-color 0.15s ease;
+}
+
+.report-action-btn:hover {
+    color: var(--theme-color);
+    background-color: color-mix(in srgb, var(--theme-color) 14%, #fff);
+    border-color: color-mix(in srgb, var(--theme-color) 45%, transparent);
+}
+
+/* Modal avatar initial — same theme-tinted circle as .avatar-circle
+   (staff attendance modal), so every "person avatar in a modal" matches. */
+.report-modal-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: color-mix(in srgb, var(--theme-color) 12%, #fff);
+    color: var(--theme-color);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: "Roboto-Bold", "ubuntu-bold", sans-serif;
+    font-size: 1.1rem;
+    flex-shrink: 0;
+}
+
+/* ---- Review modal: flat sub-sections instead of nested cards ---- */
+.report-modal-box {
+    border: 1px solid rgba(27, 27, 27, 0.06);
+    border-radius: 10px;
+    background: #fff;
+}
+
+.report-modal-box.bg-soft {
+    background: color-mix(in srgb, var(--theme-color) 4%, #f7f8fa);
+}
+
+.custom-modal-backdrop {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 1040;
+    background: rgba(16, 24, 40, 0.4);
+    backdrop-filter: blur(2px);
+    align-items: center;
+    justify-content: center;
+}
+
+.custom-modal-backdrop.show-modal {
+    display: flex !important;
+}
+
+/* ---- Empty states (Fees / Exam tabs) ---- */
+.report-empty-state {
+    text-align: center;
+    padding: 3rem 1rem;
+    color: #8c8c8c;
+}
+
+.report-empty-state .x-icon,
+.report-empty-state svg {
+    color: rgba(27, 27, 27, 0.2);
+    margin-bottom: 0.75rem;
+}
+
+/* ---- Bootstrap-table wrapper (Fees / Exam tabs) — radius only,
+   header/row colors are handled by tables.css ---- */
+.report-table-wrap {
+    border: 1px solid rgba(27, 27, 27, 0.06);
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+/* ---- Attendance calendar (flat, theme-token day cells) ---- */
+.sr-calendar-table {
+    width: 100%;
+    border-collapse: collapse;
+    background: #fff;
+}
+
+.sr-calendar-table th {
+    padding: 8px;
+    text-align: center;
+    background: color-mix(in srgb, var(--theme-color) 4%, #f7f8fa);
+    color: #475569;
+    font-size: 12px;
+    font-weight: 600;
+    border: 1px solid rgba(27, 27, 27, 0.06);
+}
+
+.sr-calendar-table td {
+    height: 56px;
+    text-align: center;
+    vertical-align: middle;
+    border: 1px solid rgba(27, 27, 27, 0.06);
+    padding: 4px;
+}
+
+.sr-calendar-table td.sr-day-empty {
+    background: #f7f8fa;
+}
+
+.sr-calendar-table td.sr-day-present {
+    background: color-mix(in srgb, #198754 10%, #ffffff);
+}
+
+.sr-calendar-table td.sr-day-absent {
+    background: color-mix(in srgb, #dc3545 10%, #ffffff);
+}
+
+.sr-calendar-table td.sr-day-half {
+    background: color-mix(in srgb, #d97706 10%, #ffffff);
+}
+
+.sr-calendar-table td.sr-day-holiday {
+    background: color-mix(in srgb, #0e7490 10%, #ffffff);
+}
+
+.sr-day-number {
+    font-size: 14px;
+    font-weight: 700;
+    color: #343a40;
+}
+
+.sr-day-status {
+    font-size: 11px;
+    font-weight: 700;
+    margin-top: 2px;
+}
+
+.sr-day-status.status-present {
+    color: #166534;
+}
+.sr-day-status.status-absent {
+    color: #b42318;
+}
+.sr-day-status.status-half {
+    color: #92400e;
+}
+.sr-day-status.status-holiday {
+    color: #0e7490;
+}
+
+.sr-month-select-form {
+    width: 220px;
+}

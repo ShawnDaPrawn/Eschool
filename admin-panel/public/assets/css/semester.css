@@ -1,0 +1,298 @@
+/* ============================================================
+   SEMESTER page — extracted from the inline <style> in
+   semester/index.blade.php and realigned to the eSchool design
+   system (DESIGN.md). Cards now use the global .card (no overrides);
+   brand color comes from --theme-color via color-mix() tints — no
+   hardcoded brand hex (the old lilac #f2edf3 / salmon #fe7096 are gone).
+   Loaded per-page via @section('css'), same pattern as dashboard.css.
+   ============================================================ */
+
+/* Session-year selector in the page header */
+.semester-session-dropdown {
+    min-width: 180px;
+}
+
+.semester-manage-header {
+    justify-content: start;
+    align-items: flex-start !important;
+}
+
+.semester-header-subtitle {
+    font-size: 0.85rem;
+}
+
+/* ---- Info banner: theme-tinted note (was hardcoded info-blue #d1e8f9) ---- */
+.semester-info-banner {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: color-mix(in srgb, var(--theme-color) 6%, #ffffff);
+    border: 1px solid color-mix(in srgb, var(--theme-color) 18%, transparent);
+    border-radius: 10px;
+    padding: 0.875rem 1.25rem;
+    font-size: 0.875rem;
+    color: rgba(27, 27, 27, 0.7);
+}
+
+.semester-info-banner svg {
+    color: var(--theme-color);
+    flex-shrink: 0;
+}
+
+/* ---- Config card internals ---- */
+.config-divider {
+    margin: 0.75rem 0;
+    border-color: rgba(27, 27, 27, 0.08);
+}
+
+.config-section-label {
+    font-size: 0.8125rem;
+}
+
+/* Soft theme button (Configure classes) — was the legacy lilac .btn-inverse-primary.
+   Light theme-tinted fill + theme text/border, matching the Select2/topbar convention. */
+.btn-theme-soft {
+    background: color-mix(in srgb, var(--theme-color) 10%, #ffffff);
+    color: var(--theme-color);
+    border: 1px solid color-mix(in srgb, var(--theme-color) 25%, transparent);
+}
+
+.btn-theme-soft:hover,
+.btn-theme-soft:focus {
+    background: color-mix(in srgb, var(--theme-color) 16%, #ffffff);
+    color: var(--theme-color);
+    border-color: color-mix(in srgb, var(--theme-color) 35%, transparent);
+}
+
+.btn-theme-soft svg {
+    color: inherit;
+}
+
+/* Assigned-classes drop area — neutral dashed surface with a faint theme tint */
+.assigned-classes-section {
+    display: flex;
+    align-items: center;
+    background: color-mix(in srgb, var(--theme-color) 3%, #f8f9fa);
+    border: 1px dashed color-mix(in srgb, var(--theme-color) 25%, rgba(27, 27, 27, 0.12));
+    border-radius: 10px;
+    padding: 0.75rem 1rem;
+    min-height: 42px;
+}
+
+#assigned-classes-badges {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    align-items: center;
+}
+
+/* Assigned-class pills — themed (was white/grey-bordered) */
+.badge-semester-class {
+    background: color-mix(in srgb, var(--theme-color) 12%, transparent);
+    color: var(--theme-color);
+    border: 1px solid color-mix(in srgb, var(--theme-color) 25%, transparent);
+    border-radius: 8px;
+    font-size: 0.75rem;
+    font-weight: 500;
+    padding: 0.4em 0.65em;
+}
+
+/* Lightbulb hint line */
+.config-hint {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.8rem;
+    color: #8c8c8c;
+}
+
+.config-hint svg {
+    color: var(--theme-color);
+    flex-shrink: 0;
+}
+
+/* ---- Configure-classes modal: selected chips ---- */
+.class-chips-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    min-height: 10px;
+}
+
+/* Themed chip (was the old lilac gradient + heavy shadow/hover lift) */
+.chip-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: color-mix(in srgb, var(--theme-color) 12%, transparent);
+    color: var(--theme-color);
+    border: 1px solid color-mix(in srgb, var(--theme-color) 25%, transparent);
+    border-radius: 8px;
+    font-size: 0.8125rem;
+    font-weight: 500;
+    padding: 0.4em 0.75em;
+    transition: background-color 0.2s ease;
+}
+
+.chip-badge:hover {
+    background: color-mix(in srgb, var(--theme-color) 18%, transparent);
+}
+
+.chip-remove {
+    cursor: pointer;
+    font-size: 0.75rem;
+    line-height: 1;
+    font-weight: bold;
+    width: 18px;
+    height: 18px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    color: rgba(27, 27, 27, 0.55);
+    background: rgba(0, 0, 0, 0.08);
+    transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+.chip-remove:hover {
+    background: var(--theme-color);
+    color: #fff;
+}
+
+/* ---- Class search + list ---- */
+.class-search-wrapper {
+    position: relative;
+}
+
+.class-search-wrapper svg {
+    position: absolute;
+    left: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #8a93a3;
+}
+
+.class-search-wrapper input {
+    padding-left: 35px;
+}
+
+.class-list-container {
+    max-height: 280px;
+    overflow-y: auto;
+    border: 1px solid rgba(27, 27, 27, 0.08);
+    border-radius: 10px;
+}
+
+.class-list-item {
+    display: flex;
+    align-items: center;
+    padding: 0.625rem 0.875rem;
+    cursor: pointer;
+    border-bottom: 1px solid rgba(27, 27, 27, 0.06);
+    margin-bottom: 0;
+    font-weight: normal;
+    transition: background 0.15s ease;
+}
+
+.class-list-item:last-child {
+    border-bottom: none;
+}
+
+.class-list-item:hover {
+    background: color-mix(in srgb, var(--theme-color) 6%, transparent);
+}
+
+.class-list-item input[type="checkbox"] {
+    display: none;
+}
+
+.class-list-item .custom-check {
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    border: 2px solid rgba(27, 27, 27, 0.2);
+    margin-right: 12px;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.15s ease;
+}
+
+.class-list-item input:checked ~ .custom-check {
+    background: var(--theme-color);
+    border-color: var(--theme-color);
+}
+
+.class-list-item input:checked ~ .custom-check::after {
+    content: '';
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: #fff;
+}
+
+.class-list-item .class-name {
+    flex: 1;
+    font-size: 0.875rem;
+    color: #343a40;
+}
+
+.class-list-item .class-medium {
+    font-size: 0.8125rem;
+    color: var(--theme-color);
+    background: color-mix(in srgb, var(--theme-color) 10%, transparent);
+    padding: 0.15em 0.5em;
+    border-radius: 6px;
+}
+
+/* Configure-classes modal warning note (semantic amber — refined, not a brand color) */
+.semester-modal-warning {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    background: color-mix(in srgb, #ffc107 14%, #ffffff);
+    border: 1px solid color-mix(in srgb, #ffc107 35%, transparent);
+    border-radius: 10px;
+    padding: 0.75rem 1rem;
+    font-size: 0.8125rem;
+    line-height: 1.5;
+    color: #856404;
+}
+
+.semester-modal-warning svg {
+    color: #e0a800;
+    flex-shrink: 0;
+    margin-top: 1px;
+}
+
+.semester-modal-warning strong {
+    font-weight: 600;
+}
+
+/* No-semester warning (semantic amber — refined, not a brand color) */
+.no-semester-warning {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: color-mix(in srgb, #ffc107 14%, #ffffff);
+    border: 1px solid color-mix(in srgb, #ffc107 35%, transparent);
+    border-radius: 10px;
+    padding: 0.6rem 0.9rem;
+    font-size: 0.8125rem;
+    color: #856404;
+    margin-bottom: 0.75rem;
+}
+
+.no-semester-warning svg {
+    color: #e0a800;
+    flex-shrink: 0;
+}
+
+/* Visually-disabled configure button (pointer-events kept so the toast fires) */
+.btn-disabled-configure {
+    opacity: 0.5;
+    cursor: not-allowed !important;
+    pointer-events: auto !important;
+    filter: grayscale(40%);
+}

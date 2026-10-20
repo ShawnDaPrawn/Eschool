@@ -1,0 +1,617 @@
+/* ============================================================
+   SIDEBAR — redesign (eSchool design system, see DESIGN.md → "Sidebar")
+   ------------------------------------------------------------
+   Loaded after style.css / rtl.css (in include.blade.php) so it
+   overrides the legacy sidebar rules in those bundles. All brand
+   color comes from --theme-color via color-mix() tints — no
+   hardcoded brand hex. Icons are Lucide <svg> (see x-icon).
+   ============================================================ */
+
+/* ---- Container -------------------------------------------- */
+.sidebar {
+    background: #ffffff;
+    /* border-right: 1px solid rgba(27, 27, 27, 0.06); */
+}
+
+/* RTL: flip the sidebar border to the left (inline-end) side. */
+[dir="rtl"] .sidebar,
+.rtl .sidebar {
+    border-right: 0;
+    border-left: 1px solid #f0f0f0;
+}
+
+.sidebar .nav {
+    /* No top padding: the sticky search pins flush at the very top so menu
+       items can't peek through a gap above it (the search's own internal
+       padding provides the breathing room). */
+    padding: 0 0 1rem;
+}
+
+/* Slim, subtle scrollbar (native fallback + PerfectScrollbar rail) */
+.sidebar .nav {
+    scrollbar-width: thin;
+    scrollbar-color: rgba(27, 27, 27, 0.18) transparent;
+}
+
+.sidebar .nav::-webkit-scrollbar {
+    width: 6px;
+}
+
+.sidebar .nav::-webkit-scrollbar-thumb {
+    background: rgba(27, 27, 27, 0.18);
+    border-radius: 6px;
+}
+
+.sidebar .nav .ps__thumb-y {
+    background: rgba(27, 27, 27, 0.18);
+}
+
+/* ---- Top-level items -------------------------------------- */
+.sidebar .nav .nav-item {
+    padding: 0 0.75rem;
+    margin-bottom: 2px;
+    background: transparent;
+    transition: none;
+}
+
+/* Kill the legacy full-row hover/active background — the highlight
+   now lives on the .nav-link pill instead. */
+.sidebar .nav .nav-item:hover,
+.sidebar .nav .nav-item.active {
+    background: transparent;
+}
+
+.sidebar .nav .nav-item .nav-link {
+    position: relative;
+    align-items: center;
+    gap: 0;
+    padding: 0.6rem 0.85rem;
+    border-radius: 10px;
+    color: #5b6677;
+    font-size: 0.94rem;
+    line-height: 1.2;
+    transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+/* Icon — muted by default, theme-colored on hover/active. */
+.sidebar .nav .nav-item .nav-link svg.menu-icon,
+.sidebar .nav .nav-item .nav-link .menu-icon {
+    flex-shrink: 0;
+    width: 20px;
+    height: 20px;
+    margin: 0 0.7rem 0 0;
+    padding: 0;
+    color: #8a93a3;
+    transition: color 0.2s ease;
+}
+
+[dir="rtl"] .sidebar .nav .nav-item .nav-link svg.menu-icon,
+.rtl .sidebar .nav .nav-item .nav-link svg.menu-icon {
+    margin: 0 0 0 0.7rem;
+}
+
+.sidebar .nav .nav-item .nav-link .menu-title {
+    padding: 0;
+    font-size: 0.94rem;
+    line-height: 1.2;
+    color: inherit;
+}
+
+/* Collapse chevron — rotates down→up on expand. */
+.sidebar .nav .nav-item .nav-link svg.menu-arrow,
+.sidebar .nav .nav-item .nav-link .menu-arrow {
+    position: absolute;
+    right: 0.85rem;
+    width: 16px;
+    height: 16px;
+    margin: 0;
+    padding: 0;
+    color: #aeb6c2;
+    transition: transform 0.25s ease, color 0.2s ease;
+}
+
+[dir="rtl"] .sidebar .nav .nav-item .nav-link svg.menu-arrow,
+.rtl .sidebar .nav .nav-item .nav-link svg.menu-arrow {
+    right: auto;
+    left: 0.85rem;
+}
+
+.sidebar .nav .nav-item .nav-link[aria-expanded="true"] svg.menu-arrow,
+.sidebar .nav .nav-item .nav-link[aria-expanded="true"] .menu-arrow {
+    transform: rotate(180deg);
+    color: var(--theme-color);
+}
+
+/* Hover */
+.sidebar .nav:not(.sub-menu)>.nav-item>.nav-link:hover,
+.sidebar .nav:not(.sub-menu)>.nav-item:hover:not(.nav-category):not(.nav-profile)>.nav-link {
+    background: color-mix(in srgb, var(--theme-color) 6%, transparent);
+    color: #29323d;
+}
+
+.sidebar .nav:not(.sub-menu)>.nav-item>.nav-link:hover svg.menu-icon,
+.sidebar .nav:not(.sub-menu)>.nav-item>.nav-link:hover .menu-arrow {
+    color: var(--theme-color);
+}
+
+/* Active top-level item */
+.sidebar .nav .nav-item.active>.nav-link {
+    background: color-mix(in srgb, var(--theme-color) 12%, transparent);
+    color: var(--theme-color);
+    font-family: "Roboto-Medium", sans-serif;
+    font-weight: 500;
+}
+
+.sidebar .nav .nav-item.active>.nav-link .menu-title {
+    color: var(--theme-color);
+}
+
+.sidebar .nav .nav-item.active>.nav-link svg.menu-icon,
+.sidebar .nav .nav-item.active>.nav-link .menu-icon {
+    color: var(--theme-color);
+}
+
+/* Left accent bar on the active item */
+.sidebar .nav .nav-item.active>.nav-link::before {
+    content: "";
+    position: absolute;
+    left: -0.75rem;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 3px;
+    height: 60%;
+    border-radius: 0 3px 3px 0;
+    background: var(--theme-color);
+}
+
+[dir="rtl"] .sidebar .nav .nav-item.active>.nav-link::before,
+.rtl .sidebar .nav .nav-item.active>.nav-link::before {
+    left: auto;
+    right: -0.75rem;
+    border-radius: 3px 0 0 3px;
+}
+
+/* ---- Sub-menu --------------------------------------------- */
+.sidebar .nav.sub-menu {
+    position: relative;
+    margin: 0.15rem 0 0.4rem;
+    padding: 0;
+}
+
+.sidebar .nav.sub-menu .nav-item {
+    padding: 0 0.75rem;
+    margin-bottom: 1px;
+}
+
+.sidebar .nav.sub-menu .nav-item .nav-link {
+    position: relative;
+    padding: 0.5rem 0.75rem 0.5rem 1.6rem;
+    border-radius: 8px;
+    color: #8a93a3;
+    font-size: 0.875rem;
+    line-height: 1.3;
+}
+
+[dir="rtl"] .sidebar .nav.sub-menu .nav-item .nav-link,
+.rtl .sidebar .nav.sub-menu .nav-item .nav-link {
+    padding: 0.5rem 1.6rem 0.5rem 0.75rem;
+}
+
+/* Small bullet marker before each sub-item label. */
+.sidebar .nav.sub-menu .nav-item .nav-link::before {
+    content: "";
+    position: absolute;
+    left: 0.85rem;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    background: rgba(27, 27, 27, 0.22);
+    transition: background-color 0.2s ease, transform 0.2s ease;
+}
+
+[dir="rtl"] .sidebar .nav.sub-menu .nav-item .nav-link::before,
+.rtl .sidebar .nav.sub-menu .nav-item .nav-link::before {
+    left: auto;
+    right: 0.85rem;
+}
+
+.sidebar .nav.sub-menu .nav-item .nav-link:hover {
+    background: color-mix(in srgb, var(--theme-color) 5%, transparent);
+    color: #29323d;
+}
+
+.sidebar .nav.sub-menu .nav-item .nav-link:hover::before {
+    background: var(--theme-color);
+}
+
+.sidebar .nav.sub-menu .nav-item:hover {
+    background: transparent;
+}
+
+.sidebar .nav.sub-menu .nav-item .nav-link.active {
+    background: color-mix(in srgb, var(--theme-color) 10%, transparent);
+    color: var(--theme-color);
+    font-weight: 500;
+}
+
+.sidebar .nav.sub-menu .nav-item .nav-link.active::before {
+    background: var(--theme-color);
+    transform: translateY(-50%) scale(1.15);
+}
+
+/* ---- Expand / collapse motion ----
+   Bootstrap animates the wrapper height (.collapsing). We refine the easing
+   and fade the items in/out in step with it. Items are hidden while the
+   height is animating, then fade + slide once the menu is fully open — so
+   there's no flash of full-opacity content during the height tween. */
+.sidebar .nav .nav-item .collapsing {
+    transition: height 0.24s cubic-bezier(0.25, 0.1, 0.25, 1);
+}
+
+.sidebar .nav .nav-item .collapse .sub-menu>.nav-item,
+.sidebar .nav .nav-item .collapsing .sub-menu>.nav-item {
+    opacity: 0;
+    transform: translateX(-3px);
+    transition: opacity 0.2s ease, transform 0.2s ease;
+}
+
+[dir="rtl"] .sidebar .nav .nav-item .collapse .sub-menu>.nav-item,
+[dir="rtl"] .sidebar .nav .nav-item .collapsing .sub-menu>.nav-item,
+.rtl .sidebar .nav .nav-item .collapse .sub-menu>.nav-item,
+.rtl .sidebar .nav .nav-item .collapsing .sub-menu>.nav-item {
+    transform: translateX(3px);
+}
+
+.sidebar .nav .nav-item .collapse.show .sub-menu>.nav-item {
+    opacity: 1;
+    transform: translateX(0);
+}
+
+@media (prefers-reduced-motion: reduce) {
+
+    .sidebar .nav .nav-item .collapse .sub-menu>.nav-item,
+    .sidebar .nav .nav-item .collapsing .sub-menu>.nav-item {
+        opacity: 1;
+        transform: none;
+        transition: none;
+    }
+}
+
+/* ============================================================
+   SIDEBAR NAV SEARCH (moved out of the Blade partial)
+   ============================================================ */
+.sidebar .nav .nav-item.sidebar-search-item {
+    position: -webkit-sticky;
+    position: sticky;
+    top: 0;
+    z-index: 20;
+    /* Solid white so menu items scrolling up are hidden behind it. Needs this
+       specificity to beat the `.sidebar .nav .nav-item { background: transparent }`
+       rule, which was leaving the search bar see-through. */
+    background: #ffffff;
+    padding: 12px 0.75rem 8px !important;
+    margin-bottom: 0;
+}
+
+/* White → transparent fade just below the search bar, shown only once the nav
+   is scrolled (sidebar.js toggles .is-stuck). Items disappear smoothly behind
+   the bar instead of hard-cutting. Replaces the old border line. */
+.sidebar .nav .nav-item.sidebar-search-item::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 100%;
+    height: 18px;
+    background: linear-gradient(to bottom, #ffffff 0%, rgba(255, 255, 255, 0) 100%);
+    opacity: 0;
+    transition: opacity 0.2s ease;
+    pointer-events: none;
+}
+
+.sidebar .nav .nav-item.sidebar-search-item.is-stuck::after {
+    opacity: 1;
+}
+
+.sidebar-search-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.sidebar-search-input {
+    width: 100%;
+    border: 1px solid #e6e6ec;
+    border-radius: 10px;
+    background: #fcfcfd;
+    color: #3e4b5b;
+    font-size: 0.9rem;
+    line-height: 1.2;
+    padding: 0.6rem 2.2rem 0.6rem 2.4rem;
+    outline: none;
+    transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out, background-color 0.15s ease-in-out;
+}
+
+.sidebar-search-input::placeholder {
+    color: #a7a2ad;
+}
+
+.sidebar-search-input:focus {
+    border-color: var(--theme-color);
+    background: #ffffff;
+    box-shadow: 0 0 0 0.2rem color-mix(in srgb, var(--theme-color) 25%, transparent);
+}
+
+.sidebar-search-icon {
+    position: absolute;
+    left: 0.85rem;
+    width: 16px;
+    height: 16px;
+    color: #a7a2ad;
+    pointer-events: none;
+}
+
+.sidebar-search-clear {
+    position: absolute;
+    right: 0.55rem;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    width: 22px;
+    height: 22px;
+    padding: 0;
+    border: 0;
+    border-radius: 50%;
+    background: transparent;
+    color: #9a8fa0;
+    cursor: pointer;
+    line-height: 1;
+}
+
+.sidebar-search-clear svg {
+    width: 14px;
+    height: 14px;
+}
+
+.sidebar-search-clear:hover {
+    color: var(--theme-color);
+    background: rgba(0, 0, 0, 0.05);
+}
+
+.sidebar-search-no-results {
+    display: none;
+    padding: 12px 4px 2px;
+    font-size: 0.85rem;
+    color: #9a8fa0;
+    text-align: center;
+}
+
+.sidebar .nav .nav-item.sidebar-search-hidden,
+.sidebar .nav .sub-menu .nav-item.sidebar-search-hidden {
+    display: none !important;
+}
+
+/* RTL mirroring for the search field */
+[dir="rtl"] .sidebar-search-input,
+.rtl .sidebar-search-input {
+    padding: 0.6rem 2.4rem 0.6rem 2.2rem;
+}
+
+[dir="rtl"] .sidebar-search-icon,
+.rtl .sidebar-search-icon {
+    left: auto;
+    right: 0.85rem;
+}
+
+[dir="rtl"] .sidebar-search-clear,
+.rtl .sidebar-search-clear {
+    right: auto;
+    left: 0.55rem;
+}
+
+/* ============================================================
+   MOBILE HEADER CONTROLS (inside the off-canvas sidebar)
+   Tight top: the close (X) sits inline with the session-year
+   select, so there's no empty header band above them.
+   ============================================================ */
+.sidebar-mobile-header {
+    padding: 0.4rem 0.75rem 0.4rem !important;
+    margin-left: 0;
+    margin-bottom: 0.25rem;
+}
+
+.sidebar-mobile-controls {
+    padding: 0 !important;
+    gap: 0.5rem;
+}
+
+/* Session select + close (X) share one row. */
+.sidebar-mobile-top {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.sidebar-mobile-session {
+    flex: 1 1 auto;
+    min-width: 0;
+}
+
+.sidebar-close-btn {
+    flex-shrink: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    padding: 0;
+    border: 0;
+    border-radius: 8px;
+    background: rgba(27, 27, 27, 0.04);
+    color: #5b6677;
+    cursor: pointer;
+    transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+.sidebar-close-btn:hover {
+    background: color-mix(in srgb, var(--theme-color) 10%, transparent);
+    color: var(--theme-color);
+}
+
+/* ============================================================
+   RESPONSIVE — mobile off-canvas drawer (≤991px)
+   Overlay drawer that slides in from the inline-start (left in
+   LTR, right in RTL) with a dimmed backdrop. Transform-based, so
+   it hides fully regardless of width (fixes the legacy 20px peek
+   from `right: -260px` on a 280px-wide sidebar).
+   ============================================================ */
+@media (max-width: 991px) {
+    .sidebar.sidebar-offcanvas {
+        position: fixed;
+        top: 70px;
+        bottom: 0;
+        left: 0;
+        right: auto;
+        width: 280px;
+        max-width: 86vw;
+        z-index: 1041;
+        border-right: 1px solid rgba(27, 27, 27, 0.06);
+        border-left: 0;
+        box-shadow: 0 12px 32px rgba(16, 24, 40, 0.18);
+        transform: translateX(-100%);
+        transition: transform 0.28s ease;
+        overflow-y: auto;
+        will-change: transform;
+    }
+
+    .sidebar.sidebar-offcanvas.active {
+        transform: translateX(0);
+    }
+
+    [dir="rtl"] .sidebar.sidebar-offcanvas,
+    .rtl .sidebar.sidebar-offcanvas {
+        left: auto;
+        right: 0;
+        border-right: 0;
+        border-left: 1px solid rgba(27, 27, 27, 0.06);
+        transform: translateX(100%);
+    }
+
+    [dir="rtl"] .sidebar.sidebar-offcanvas.active,
+    .rtl .sidebar.sidebar-offcanvas.active {
+        transform: translateX(0);
+    }
+
+    /* Dimmed backdrop behind the drawer (created by sidebar.js) */
+    .sidebar-backdrop {
+        position: fixed;
+        top: 70px;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(16, 24, 40, 0.45);
+        opacity: 0;
+        visibility: hidden;
+        transition: opacity 0.28s ease, visibility 0.28s ease;
+        z-index: 1040;
+    }
+
+    .sidebar-backdrop.active {
+        opacity: 1;
+        visibility: visible;
+    }
+
+    /* Lock background scroll while the drawer is open */
+    body.sidebar-offcanvas-open {
+        overflow: hidden;
+    }
+}
+
+@media (min-width: 992px) {
+    .sidebar-backdrop {
+        display: none !important;
+    }
+}
+
+/* ---- Mobile rhythm & touch targets (≤991px) ----
+   Roomier rows so taps land comfortably (~44px) inside the drawer. */
+@media (max-width: 991px) {
+    .sidebar .nav .nav-item .nav-link {
+        padding: 0.8rem 0.85rem;
+        font-size: 0.98rem;
+    }
+
+    .sidebar .nav.sub-menu .nav-item .nav-link {
+        padding: 0.7rem 0.75rem 0.7rem 1.6rem;
+        font-size: 0.92rem;
+    }
+
+    [dir="rtl"] .sidebar .nav.sub-menu .nav-item .nav-link,
+    .rtl .sidebar .nav.sub-menu .nav-item .nav-link {
+        padding: 0.7rem 1.6rem 0.7rem 0.75rem;
+    }
+
+    .sidebar .nav .nav-item .nav-link svg.menu-arrow,
+    .sidebar .nav .nav-item .nav-link .menu-arrow {
+        width: 18px;
+        height: 18px;
+    }
+
+    .sidebar-search-input {
+        padding-top: 0.7rem;
+        padding-bottom: 0.7rem;
+    }
+}
+
+/* ============================================================
+   COLLAPSED MODES — keep the Lucide <svg> icons behaving like
+   the legacy <i> icons did (style.css targeted i.menu-icon).
+   ============================================================ */
+@media (min-width: 992px) {
+
+    /* Compact (sidebar-mini): icon above title, centered. */
+    .sidebar-mini .sidebar .nav .nav-item .nav-link svg.menu-icon {
+        display: block;
+        margin: 0 auto 0.4rem;
+    }
+
+    .sidebar-mini .sidebar .nav .nav-item .nav-link svg.menu-arrow {
+        position: absolute;
+        top: 50%;
+        right: 10px;
+        transform: translateY(-50%);
+        margin: 0;
+    }
+
+    .sidebar-mini .sidebar .nav .nav-item .nav-link[aria-expanded="true"] svg.menu-arrow {
+        transform: translateY(-50%) rotate(180deg);
+    }
+
+    /* Icon-only: hide titles + chevrons, center the icon. */
+    .sidebar-icon-only .sidebar .nav .nav-item .nav-link {
+        padding: 0.7rem 0;
+    }
+
+    .sidebar-icon-only .sidebar .nav .nav-item .nav-link svg.menu-icon,
+    .sidebar-icon-only .sidebar .nav .nav-item .nav-link .menu-icon {
+        display: block;
+        margin: 0 auto;
+    }
+
+    .sidebar-icon-only .sidebar .nav .nav-item .nav-link svg.menu-arrow,
+    .sidebar-icon-only .sidebar .nav .nav-item .nav-link .menu-arrow {
+        display: none;
+    }
+
+    /* The active accent bar is meaningless in icon-only width. */
+    .sidebar-icon-only .sidebar .nav .nav-item.active>.nav-link::before {
+        display: none;
+    }
+
+    /* No room for the search box when collapsed to icons only. */
+    .sidebar-icon-only .sidebar .nav .nav-item.sidebar-search-item {
+        display: none;
+    }
+}

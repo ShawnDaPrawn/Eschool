@@ -1,0 +1,87 @@
+# DO NOT CHANGE THE NAME (eschool_teacher),
+#IF YOU WANT TO CHANGE THIS NAME, THEN YOU HAVE TO CHANGE THE EACH IMPORT STATEMENT IN THE CODE
+#THIS NAME WILL NOT IMPACT IN YOUR APP, SO ITS NOT MANDATORY TO CHANGE IT
+name: eschool_teacher
+description: A new Flutter project.
+publish_to: 'none' # Remove this line if you wish to publish to pub.dev
+version: 3.5.0+32
+
+environment:
+  sdk: ">=3.8.0 <4.0.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+  flutter_localizations:
+    sdk: flutter    
+
+  cupertino_icons: ^1.0.9
+  flutter_bloc: ^9.1.1
+  flutter_svg: ^2.2.4
+  google_fonts: ^8.1.0
+  dotted_border: ^3.1.0
+  lottie: ^3.3.3
+  dio: ^5.9.2
+  showcaseview: ^5.0.2
+  hive: ^2.2.3
+  hive_flutter: ^1.1.0
+  table_calendar: ^3.2.0
+  firebase_core: ^4.7.0
+  firebase_messaging: ^16.2.0
+  awesome_notifications: ^0.11.0
+  cached_network_image: ^3.4.1
+  shimmer: ^3.0.0
+  permission_handler: ^12.0.1
+  url_launcher: ^6.3.2
+  flutter_html: ^3.0.0
+  timeago: ^3.7.1
+  open_filex: ^4.7.0
+  package_info_plus: ^10.1.0
+  file_picker: 12.0.0-beta.7
+  external_path: ^2.2.0
+  flutter_animate: ^4.5.2
+  shared_preferences: ^2.5.5
+  flutter_pdfview: ^1.4.4
+  readmore: ^3.0.0
+  image_picker: ^1.2.2
+  any_link_preview: ^3.0.3
+  flutter_keyboard_visibility_temp_fork: ^0.1.5
+  intl: any
+  bloc: any
+  meta: any
+  path_provider: any
+  firebase_crashlytics: ^5.2.0
+  firebase_analytics: ^12.3.0
+  dotted_line: ^3.3.0
+  youtube_player_iframe: ^6.0.2
+  webview_flutter: ^4.13.1
+  
+dependency_overrides:
+  intl: any
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^6.0.0
+  flutter_launcher_icons: ^0.14.4
+  change_app_package_name: ^1.5.0
+
+flutter_launcher_icons:
+  android: "ic_launcher"
+  ios: true
+  remove_alpha_ios: true
+  image_path: "assets/images/branding/ic_launcher.png"
+  adaptive_icon_foreground: "assets/images/branding/ic_launcher_transparent.png"
+  adaptive_icon_background: "#FFFFFF"
+
+flutter:
+  uses-material-design: true
+  assets:
+    - assets/images/
+    - assets/images/branding/
+    - google_fonts/
+    - assets/languages/
+    - assets/animations/
+
+
+ 

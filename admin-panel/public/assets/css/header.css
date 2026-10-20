@@ -1,0 +1,305 @@
+/* ============================================================
+   ADMIN TOPBAR / NAVBAR — redesign (eSchool design system)
+   ------------------------------------------------------------
+   Loaded after style.css / rtl.css (in include.blade.php) so it
+   overrides the legacy navbar rules in those bundles. Brand color
+   comes from --theme-color via color-mix() tints — no hardcoded
+   brand hex. Icons are Lucide <svg> rendered by <x-icon> (class
+   .lc-icon), sizing comes from each icon's :size attribute; this
+   sheet only handles color/spacing/state to match the sidebar.
+   See DESIGN.md → "Topbar / navbar".
+   ============================================================ */
+
+/* ---- Chrome edge: define the topbar against the tinted content below ----
+   Scoped to the admin topbar's distinguishing class so this never bleeds onto
+   another .navbar if header.css is ever linked on a different page. */
+.navbar.default-layout-navbar {
+    /* border-bottom: 1px solid rgba(27, 27, 27, 0.06); */
+    box-shadow: 0 1px 2px rgba(16, 24, 40, 0.03), 0 2px 6px rgba(16, 24, 40, 0.03);
+}
+
+/* ---- Topbar layout helpers ----
+   These base rules live ONLY in style.css; RTL pages load rtl.css instead, so
+   they are redeclared here (loaded in both bundles) and mirrored for RTL. */
+.gap-between-elements-1 {
+    gap: 8px;
+}
+
+.session-year-dropdown {
+    margin-right: 25px !important;
+    overflow-y: auto;
+    min-width: 120px;
+    padding: 8px;
+    background-color: #ffffff;
+    border: 1px solid rgba(0, 0, 0, 0.1);
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 500;
+    color: #1f2937;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(0, 0, 0, 0.25) transparent;
+}
+
+[dir="rtl"] .session-year-dropdown,
+.rtl .session-year-dropdown {
+    margin-right: 0 !important;
+    margin-left: 25px !important;
+}
+
+/* Session-year select: theme-aware hover/focus so it reads as an interactive
+   field, matching the form-field focus convention (border only, no glow — it's
+   a compact chrome control, not a form input). */
+.session-year-dropdown:hover {
+    border-color: color-mix(in srgb, var(--theme-color) 30%, rgba(0, 0, 0, 0.1));
+}
+
+.session-year-dropdown:focus {
+    outline: none;
+    border-color: var(--theme-color);
+}
+
+/* ---- Topbar action button (cache clear) ----
+   Subtle neutral button that resolves to the theme on hover (was the brand-foreign
+   blue .btn-inverse-info #198ae3 with a fixed 100px width + nested <input>). 10px
+   radius = the .btn scale; icon inherits the button's text color. */
+.navbar .topbar-action-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    height: 36px;
+    padding: 0 14px;
+    font-size: 13px;
+    font-weight: 500;
+    color: #5b6677;
+    background: #ffffff;
+    border: 1px solid rgba(27, 27, 27, 0.1);
+    border-radius: 10px;
+    white-space: nowrap;
+    text-decoration: none;
+    transition: color 0.2s ease, background-color 0.2s ease, border-color 0.2s ease;
+}
+
+.navbar .topbar-action-btn:hover,
+.navbar .topbar-action-btn:focus {
+    color: var(--theme-color);
+    background: color-mix(in srgb, var(--theme-color) 6%, #ffffff);
+    border-color: color-mix(in srgb, var(--theme-color) 30%, transparent);
+    text-decoration: none;
+}
+
+.navbar .topbar-action-btn svg.lc-icon {
+    color: inherit;
+}
+
+/* Brand text fallback follows the theme (was brand-foreign navy #27367f). */
+.navbar .navbar-brand-wrapper .navbar-brand,
+.navbar .navbar-brand-wrapper .navbar-brand:hover,
+.navbar .navbar-brand-wrapper .navbar-brand:focus,
+.navbar .navbar-brand-wrapper .navbar-brand:active {
+    color: var(--theme-color);
+}
+
+/* Collapsed sidebar: show the mini brand logo a bit bigger (was 20x28). */
+@media (min-width: 992px) {
+    .sidebar-icon-only .navbar .navbar-brand-wrapper .navbar-brand.brand-logo-mini img {
+        width: auto;
+        height: 38px;
+        max-width: 48px;
+        object-fit: contain;
+    }
+}
+
+/* ---- Lucide icons in the topbar ---- */
+.navbar svg.lc-icon {
+    vertical-align: middle;
+    flex-shrink: 0;
+}
+
+/* Hamburger / minimize + offcanvas toggles */
+.navbar .navbar-toggler svg.lc-icon {
+    color: #5b6677;
+    transition: color 0.2s ease;
+}
+
+.navbar .navbar-toggler:hover svg.lc-icon {
+    color: var(--theme-color);
+}
+
+/* Top-level action icons (language switcher) — muted → theme, like the sidebar. */
+.navbar .navbar-menu-wrapper .navbar-nav .nav-item .nav-link svg.lc-icon {
+    color: #8a93a3;
+    transition: color 0.2s ease;
+}
+
+.navbar .navbar-menu-wrapper .navbar-nav .nav-item .nav-link:hover svg.lc-icon,
+.navbar .navbar-menu-wrapper .navbar-nav .nav-item.dropdown.show>.nav-link svg.lc-icon {
+    color: var(--theme-color);
+}
+
+/* Session-year info tooltip trigger */
+.info-tooltip svg.lc-icon {
+    color: #8a93a3;
+    transition: color 0.2s ease;
+}
+
+.info-tooltip:hover svg.lc-icon {
+    color: var(--theme-color);
+}
+
+/* ---- Dropdown caret (was the legacy Star Admin lilac #b66dff) ---- */
+.navbar .navbar-menu-wrapper .navbar-nav .nav-item.dropdown .dropdown-toggle:after {
+    color: #8a93a3;
+    transition: color 0.2s ease;
+}
+
+.navbar .navbar-menu-wrapper .navbar-nav .nav-item.dropdown.show .dropdown-toggle:after,
+.navbar .navbar-menu-wrapper .navbar-nav .nav-item.dropdown .dropdown-toggle:hover:after {
+    color: var(--theme-color);
+}
+
+/* ---- Profile dropdown trigger: center avatar, name and caret on one row ----
+   The legacy bundle (style.css) sets this nav-link to display:flex but never
+   centers its items, so the 32px avatar, the name (line-height:1) and the caret
+   (:after, line-height:2) landed on mismatched baselines. Center them and tighten
+   the oversized 1.25rem avatar→name gap to a topbar-appropriate 10px. The caret's
+   line-height is normalised so its box height matches the row. RTL mirrored. */
+.navbar .navbar-menu-wrapper .navbar-nav .nav-item.nav-profile .nav-link {
+    align-items: center;
+}
+
+.navbar .navbar-menu-wrapper .navbar-nav .nav-item.nav-profile .nav-link .nav-profile-text {
+    margin-left: 0.625rem;
+}
+
+[dir="rtl"] .navbar .navbar-menu-wrapper .navbar-nav .nav-item.nav-profile .nav-link .nav-profile-text,
+.rtl .navbar .navbar-menu-wrapper .navbar-nav .nav-item.nav-profile .nav-link .nav-profile-text {
+    margin-left: 0;
+    margin-right: 0.625rem;
+}
+
+.navbar .navbar-menu-wrapper .navbar-nav .nav-item.nav-profile .nav-link.dropdown-toggle:after {
+    line-height: 1;
+}
+
+/* ---- Dropdown panels: align to the Select2/sidebar overlay tier ---- */
+.navbar .navbar-menu-wrapper .navbar-nav .nav-item.dropdown .dropdown-menu,
+.navbar .navbar-dropdown {
+    border-radius: 10px;
+    border: 1px solid rgba(27, 27, 27, 0.06);
+    box-shadow: 0 1px 2px rgba(16, 24, 40, 0.03), 0 2px 6px rgba(16, 24, 40, 0.03);
+}
+
+/* Dropdown items (profile menu + language list) — brand-tinted hover. */
+.navbar .navbar-dropdown .dropdown-item {
+    display: flex;
+    align-items: center;
+    transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+.navbar .navbar-dropdown .dropdown-item svg.lc-icon {
+    margin-right: 0.6rem;
+    color: #8a93a3;
+    transition: color 0.2s ease;
+}
+
+[dir="rtl"] .navbar .navbar-dropdown .dropdown-item svg.lc-icon,
+.rtl .navbar .navbar-dropdown .dropdown-item svg.lc-icon {
+    margin-right: 0;
+    margin-left: 0.6rem;
+}
+
+.navbar .navbar-dropdown .dropdown-item:hover,
+.navbar .navbar-dropdown .dropdown-item:focus,
+.navbar .preview-list .preview-item:hover {
+    background: color-mix(in srgb, var(--theme-color) 6%, transparent);
+    color: var(--theme-color);
+}
+
+.navbar .navbar-dropdown .dropdown-item:hover svg.lc-icon,
+.navbar .navbar-dropdown .dropdown-item:focus svg.lc-icon {
+    color: var(--theme-color);
+}
+
+/* ---- Language switcher list ----
+   Plain rows (the empty .preview-thumbnail scaffolding is gone). The active
+   language uses the Select2 "selected option" tier (8% theme tint) + a trailing
+   check, so the current locale is obvious without a leading icon column. */
+.navbar .language-dropdown .language-item {
+    justify-content: space-between;
+}
+
+.navbar .language-dropdown .language-item svg.language-check {
+    margin-right: 0;
+    margin-left: 0.6rem;
+    color: var(--theme-color);
+}
+
+[dir="rtl"] .navbar .language-dropdown .language-item svg.language-check,
+.rtl .navbar .language-dropdown .language-item svg.language-check {
+    margin-left: 0;
+    margin-right: 0.6rem;
+}
+
+.navbar .navbar-dropdown .dropdown-item.active,
+.navbar .navbar-dropdown .dropdown-item.active:hover,
+.navbar .navbar-dropdown .dropdown-item.active:focus {
+    background: color-mix(in srgb, var(--theme-color) 8%, transparent);
+    color: var(--theme-color);
+    font-weight: 500;
+}
+
+/* ---- Email-config warning banner (was legacy salmon #fe7c96) ---- */
+.navbar .alert.alert-fill-danger {
+    background-color: color-mix(in srgb, #dc3545 10%, #ffffff);
+    border: 1px solid color-mix(in srgb, #dc3545 30%, transparent);
+    color: #b02a37;
+    border-radius: 10px;
+}
+
+.navbar .alert.alert-fill-danger .alert-link {
+    color: #8a1f29;
+    text-decoration: underline;
+}
+
+.navbar .alert.alert-fill-danger svg.lc-icon {
+    color: #dc3545;
+}
+
+/* ---- Session-year info tooltip ----
+   The full tooltip (position/visibility/surface) lives only in style.css and is
+   absent from rtl.css, so define it here — loaded in both bundles — and mirror
+   the side for RTL. Dark chip kept (conventional tooltip), refined radius +
+   a depth-appropriate shadow. */
+.info-tooltip {
+    position: relative;
+    cursor: pointer;
+}
+
+.info-tooltip .tooltip-text {
+    visibility: hidden;
+    opacity: 0;
+    position: absolute;
+    right: 120%;
+    top: 50%;
+    transform: translateY(-50%);
+    background: #333;
+    color: #fff;
+    padding: 6px 10px;
+    border-radius: 8px;
+    white-space: nowrap;
+    font-size: 12px;
+    box-shadow: 0 4px 14px rgba(16, 24, 40, 0.18);
+    transition: opacity 0.2s ease;
+    z-index: 1000;
+}
+
+[dir="rtl"] .info-tooltip .tooltip-text,
+.rtl .info-tooltip .tooltip-text {
+    right: auto;
+    left: 120%;
+}
+
+.info-tooltip:hover .tooltip-text {
+    visibility: visible;
+    opacity: 1;
+}

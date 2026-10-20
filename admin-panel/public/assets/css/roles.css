@@ -1,0 +1,476 @@
+/*
+ * roles.css — Role & permission management UI.
+ *
+ * Loaded per-page via @section('css') on roles/create, roles/edit and roles/show.
+ * Moved out of inline <style> blocks in those Blade views (per the project's
+ * "no CSS in Blade" convention) and re-tokened to the DESIGN.md system — hairline
+ * borders, on-scale radii, theme tints via color-mix(), the badge palette, and the
+ * cross-bundle font-family stacks — so the permission UI reads as part of the
+ * redesigned content area instead of an ad-hoc grey panel.
+ *
+ * Loaded after content.css (the @yield('css') sits below layouts.include in <head>),
+ * so it can lean on the same tokens and out-rank the global .card rules where the
+ * nested group cards need a tighter treatment. Direction-neutral (flex/grid), so
+ * LTR and RTL share it with no flip.
+ *
+ * Two components:
+ *   1. Permission picker  (.permission-*)        — roles/create + roles/edit form
+ *   2. Permission summary (.role-permissions__*) — roles/show read-only view
+ * Behaviour for (1) lives in public/assets/js/roles-permissions.js.
+ */
+
+/* ── 1. Permission picker (create / edit) ────────────────────────────────── */
+
+/* Toolbar: select-all + a single expand/collapse toggle + live counter — a faint
+   theme-tinted bar matching the redesign's surface tints. */
+.permission-groups__toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    padding: 0.75rem 1rem;
+    margin-bottom: 1rem;
+    background: color-mix(in srgb, var(--theme-color) 5%, #ffffff);
+    border: 1px solid rgba(27, 27, 27, 0.06);
+    border-radius: 12px;
+}
+
+.permission-groups__toolbar-label {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin: 0;
+    cursor: pointer;
+    font-family: "Roboto-Medium", "ubuntu-medium", sans-serif;
+    font-weight: 500;
+    color: #343a40;
+}
+
+.permission-groups__toolbar-actions {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+/* Expand/collapse toggle — a single neutral ghost button (white, hairline, muted →
+   theme on hover), the same language as the topbar / table-toolbar actions. Its
+   label swaps in JS; the leading chevron flips on the open state (below). */
+.permission-groups__action-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.3rem 0.7rem;
+    font-size: 0.8125rem;
+    font-family: "Roboto-Medium", "ubuntu-medium", sans-serif;
+    color: rgba(27, 27, 27, 0.7);
+    background: #ffffff;
+    border: 1px solid rgba(27, 27, 27, 0.10);
+    border-radius: 8px;
+    cursor: pointer;
+    transition: color 0.2s ease, border-color 0.2s ease, background 0.2s ease;
+}
+
+.permission-groups__action-btn:hover {
+    color: var(--theme-color);
+    border-color: color-mix(in srgb, var(--theme-color) 30%, transparent);
+    background: color-mix(in srgb, var(--theme-color) 6%, #ffffff);
+}
+
+/* Leading chevron — points down when all groups are collapsed, rotates 180° to
+   point up once they're expanded (mirrors the per-group .card-header__toggle). */
+.permission-groups__action-icon {
+    flex-shrink: 0;
+    transition: transform 0.2s ease;
+}
+
+.permission-groups__action-btn[aria-expanded="true"] .permission-groups__action-icon {
+    transform: rotate(180deg);
+}
+
+.permission-groups__counter {
+    font-family: "Roboto-Medium", "ubuntu-medium", sans-serif;
+    font-weight: 500;
+    color: var(--theme-color);
+}
+
+.permission-groups__counter .text-muted {
+    font-weight: 400;
+    color: rgba(27, 27, 27, 0.55) !important;
+}
+
+/* Grid of group cards. */
+.permission-accordion {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 1rem;
+    align-items: start;
+}
+
+@media (min-width: 768px) {
+    .permission-accordion {
+        grid-template-columns: 1fr 1fr;
+    }
+}
+
+/* Group card — a nested mini-card: one radius notch below the outer .card (12px),
+   hairline border + the resting card shadow. No hover-lift (it's a form control,
+   not a navigational card) — overrides the global .card:hover. */
+.permission-accordion .card {
+    margin-bottom: 0;
+    overflow: hidden;
+    border: 1px solid rgba(27, 27, 27, 0.06);
+    border-radius: 12px;
+    box-shadow:
+        0 1px 2px rgba(16, 24, 40, 0.04),
+        0 2px 6px rgba(16, 24, 40, 0.04);
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.permission-accordion .card:hover {
+    box-shadow:
+        0 1px 2px rgba(16, 24, 40, 0.04),
+        0 2px 6px rgba(16, 24, 40, 0.04);
+}
+
+/* Bootstrap's stock accordion squares off corners so stacked cards read as one
+   seam: `.accordion>.card:not(:last-of-type)` drops the bottom radii and
+   `:not(:first-of-type)` drops the top radii (specificity 0,3,0, beating the
+   0,2,0 rule above). But these cards sit in a 2-column grid, not a vertical
+   stack — so the first card ended up flat-bottomed, the last flat-topped and the
+   middle ones fully square. Re-assert the full 12px radius on every corner at
+   matching specificity (roles.css loads after style.css, so it wins on order). */
+.permission-accordion.accordion>.card,
+.permission-accordion.accordion>.card:not(:first-of-type),
+.permission-accordion.accordion>.card:not(:last-of-type) {
+    border-radius: 12px;
+}
+
+/* A group with selections gets a theme-tinted edge. */
+.permission-accordion .card.is-active {
+    border-color: color-mix(in srgb, var(--theme-color) 28%, rgba(27, 27, 27, 0.06));
+}
+
+.permission-accordion .card-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+    padding: 0.75rem 1rem;
+    background: #ffffff;
+    border-bottom: 0;
+    cursor: pointer;
+    transition: background 0.2s ease;
+}
+
+.permission-accordion .card-header:hover {
+    background: color-mix(in srgb, var(--theme-color) 5%, #ffffff);
+}
+
+.permission-accordion .card-header .permission-group__header-label {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    min-width: 0;
+    margin: 0;
+    cursor: pointer;
+}
+
+.permission-group__title {
+    font-family: "Roboto-Medium", "ubuntu-medium", sans-serif;
+    font-weight: 500;
+    font-size: 0.9375rem;
+    color: #343a40;
+}
+
+.permission-group__header-meta {
+    display: flex;
+    align-items: center;
+    flex-shrink: 0;
+    gap: 0.5rem;
+}
+
+/* Per-group count chip — soft neutral badge (DESIGN.md secondary soft tier). */
+.permission-group__count {
+    flex-shrink: 0;
+    white-space: nowrap;
+    padding: 2px 8px;
+    font-size: 0.75rem;
+    font-family: "Roboto-Medium", "ubuntu-medium", sans-serif;
+    color: #475569;
+    background: color-mix(in srgb, #64748b 12%, #ffffff);
+    border: 1px solid color-mix(in srgb, #64748b 22%, transparent);
+    border-radius: 8px;
+}
+
+/* Active group: tint the count chip with the theme. */
+.permission-accordion .card.is-active .permission-group__count {
+    color: var(--theme-color);
+    background: color-mix(in srgb, var(--theme-color) 12%, #ffffff);
+    border-color: color-mix(in srgb, var(--theme-color) 25%, transparent);
+}
+
+/* Collapse chevron — muted → theme on hover, rotates 180° when open. */
+.card-header__toggle {
+    flex-shrink: 0;
+    padding: 0.25rem 0.35rem;
+    background: transparent;
+    border: 0;
+    line-height: 1;
+    color: #8a93a3;
+    cursor: pointer;
+    transition: transform 0.2s ease, color 0.2s ease;
+}
+
+.card-header__toggle:hover {
+    color: var(--theme-color);
+}
+
+.card-header__toggle[aria-expanded="true"] {
+    transform: rotate(180deg);
+}
+
+.card-header__toggle-icon {
+    display: block;
+    width: 14px;
+    height: 14px;
+}
+
+.permission-accordion .card-body {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.625rem 0.875rem;
+    padding: 0.875rem 1rem;
+    background: #ffffff;
+    border-top: 1px solid rgba(27, 27, 27, 0.06);
+}
+
+@media (min-width: 992px) {
+    .permission-accordion .card-body {
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+}
+
+.permission-group__item {
+    margin-top: 2rem;
+    min-width: 0;
+}
+
+.permission-group__item-label {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin: 0;
+    cursor: pointer;
+    font-size: 0.875rem;
+    line-height: 1.5;
+    color: #343a40;
+}
+
+.permission-group__item-text {
+    overflow: hidden;
+    min-width: 0;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+/* Custom checkbox — neutral box when unchecked, theme fill when checked.
+   (Kept from the recent permission-checkbox design; softened radius to 5px and
+   added the form-field focus glow for keyboard a11y.)
+
+   The resting border is a NEUTRAL gray (the form-field border tone), NOT the
+   theme color: muted/light themes like #a59b5b render a theme-tinted outline at
+   near-zero contrast against the white/cream card, so an unchecked box read as
+   "disappeared". The theme color is reserved for the checked/indeterminate fill
+   (set below), which is the standard checkbox pattern and stays visible at any
+   brand color. */
+.permission-groups__toolbar-input,
+.permission-group__header-input,
+.permission-group__item-input {
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+    flex-shrink: 0;
+    width: 18px;
+    height: 18px;
+    margin: 0;
+    border: 2px solid rgba(27, 27, 27, 0.25);
+    border-radius: 5px;
+    background-color: #ffffff;
+    background-repeat: no-repeat;
+    background-position: center;
+    background-size: 14px 14px;
+    cursor: pointer;
+    transition: background-color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.permission-groups__toolbar-input:focus-visible,
+.permission-group__header-input:focus-visible,
+.permission-group__item-input:focus-visible {
+    outline: 0;
+    box-shadow: 0 0 0 0.2rem color-mix(in srgb, var(--theme-color) 25%, transparent);
+}
+
+.permission-groups__toolbar-input:checked,
+.permission-group__header-input:checked,
+.permission-group__item-input:checked {
+    background-color: var(--theme-color);
+    border-color: var(--theme-color);
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'%3e%3cpath fill='none' stroke='%23fff' stroke-linecap='round' stroke-linejoin='round' stroke-width='3' d='M6 10l3 3l6-6'/%3e%3c/svg%3e");
+}
+
+.permission-groups__toolbar-input:indeterminate,
+.permission-group__header-input:indeterminate {
+    background-color: var(--theme-color);
+    border-color: var(--theme-color);
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'%3e%3cpath stroke='%23fff' stroke-linecap='round' stroke-width='3' d='M5 10h10'/%3e%3c/svg%3e");
+}
+
+.permission-groups__toolbar-input:not(:checked):not(:indeterminate),
+.permission-group__header-input:not(:checked):not(:indeterminate),
+.permission-group__item-input:not(:checked):not(:indeterminate) {
+    background-color: #ffffff;
+    border-color: rgba(27, 27, 27, 0.25);
+    background-image: none;
+}
+
+/* ── 2. Permission summary (show) ────────────────────────────────────────── */
+
+/* Hero summary bar — role name + total, on a faint theme tint. */
+.role-permissions__summary {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    padding: 1rem 1.25rem;
+    margin-bottom: 1.25rem;
+    background: color-mix(in srgb, var(--theme-color) 5%, #ffffff);
+    border: 1px solid rgba(27, 27, 27, 0.06);
+    border-radius: 12px;
+}
+
+.role-permissions__role-name {
+    display: block;
+    font-family: "Roboto-Bold", "ubuntu-bold", sans-serif;
+    font-weight: 700;
+    font-size: 1.25rem;
+    line-height: 1.2;
+    color: #343a40;
+}
+
+.role-permissions__role-sub {
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: #8c8c8c;
+}
+
+/* Total — a solid theme emphasis pill (badge SOLID-pill tier). */
+.role-permissions__total {
+    white-space: nowrap;
+    padding: 0.35rem 0.85rem;
+    font-size: 0.8125rem;
+    font-family: "Roboto-Medium", "ubuntu-medium", sans-serif;
+    font-weight: 500;
+    color: #ffffff;
+    background: var(--theme-color);
+    border-radius: 10rem;
+}
+
+.role-permissions__grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 1rem;
+    align-items: start;
+}
+
+@media (min-width: 768px) {
+    .role-permissions__grid {
+        grid-template-columns: 1fr 1fr;
+    }
+}
+
+@media (min-width: 1200px) {
+    .role-permissions__grid {
+        grid-template-columns: 1fr 1fr 1fr;
+    }
+}
+
+.role-permissions__card {
+    overflow: hidden;
+    background: #ffffff;
+    border: 1px solid rgba(27, 27, 27, 0.06);
+    border-radius: 12px;
+    box-shadow:
+        0 1px 2px rgba(16, 24, 40, 0.04),
+        0 2px 6px rgba(16, 24, 40, 0.04);
+}
+
+.role-permissions__card-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+    padding: 0.75rem 1rem;
+    border-bottom: 1px solid rgba(27, 27, 27, 0.06);
+}
+
+.role-permissions__card-title {
+    font-family: "Roboto-Medium", "ubuntu-medium", sans-serif;
+    font-weight: 500;
+    font-size: 0.9375rem;
+    color: #343a40;
+}
+
+.role-permissions__card-count {
+    white-space: nowrap;
+    padding: 2px 10px;
+    font-size: 0.75rem;
+    font-family: "Roboto-Medium", "ubuntu-medium", sans-serif;
+    color: var(--theme-color);
+    background: color-mix(in srgb, var(--theme-color) 10%, #ffffff);
+    border: 1px solid color-mix(in srgb, var(--theme-color) 22%, transparent);
+    border-radius: 8px;
+}
+
+.role-permissions__card-body {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    padding: 0.875rem 1rem;
+}
+
+/* Permission chip — soft neutral badge with a theme status dot. */
+.role-permissions__badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.375rem;
+    padding: 0.25rem 0.7rem;
+    font-size: 0.8rem;
+    font-family: "Roboto-Medium", "ubuntu-medium", sans-serif;
+    font-weight: 500;
+    line-height: 1.4;
+    color: #475569;
+    background: color-mix(in srgb, #64748b 10%, #ffffff);
+    border: 1px solid color-mix(in srgb, #64748b 20%, transparent);
+    border-radius: 8px;
+}
+
+.role-permissions__badge::before {
+    content: "";
+    flex-shrink: 0;
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--theme-color);
+}
+
+.role-permissions__empty {
+    padding: 3rem 1.25rem;
+    text-align: center;
+    color: #8c8c8c;
+    border: 1px dashed rgba(27, 27, 27, 0.15);
+    border-radius: 12px;
+}

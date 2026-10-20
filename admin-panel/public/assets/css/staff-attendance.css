@@ -1,0 +1,390 @@
+/* ============================================================
+   Staff Attendance page — token-driven, DESIGN.md-compliant.
+   Loaded via @section('css') after content.css.
+   ============================================================ */
+
+/* ---- Bulk action bar (registered as the bootstrap-table toolbar) ---- */
+.attendance-actions {
+    display: none;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin: 0;
+}
+
+.attendance-actions.show-bulk {
+    display: flex;
+}
+
+/* Soft-tinted pills — same palette/tokens as the modal's status badges
+   (.badge-soft-success/-danger/-primary/-secondary in content.css), so the
+   bulk bar and the modal read as one color language. */
+.attendance-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 7px 14px;
+    font-size: 0.8125rem;
+    font-weight: 500;
+    border: 1px solid transparent;
+    border-radius: 10px;
+    cursor: pointer;
+    line-height: 1;
+    transition:
+        background-color 0.2s ease,
+        border-color 0.2s ease,
+        opacity 0.2s ease;
+}
+#table_list input[type="checkbox"]:disabled {
+    visibility: hidden;
+}
+
+.sa-hide-checkbox input[type="checkbox"] {
+    visibility: hidden;
+}
+.attendance-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.attendance-btn-success {
+    background-color: color-mix(in srgb, #198754 13%, #ffffff);
+    color: #166534;
+    border-color: color-mix(in srgb, #198754 32%, transparent);
+}
+.attendance-btn-success:hover:not(:disabled) {
+    background-color: color-mix(in srgb, #198754 22%, #ffffff);
+    border-color: color-mix(in srgb, #198754 45%, transparent);
+}
+
+.attendance-btn-danger {
+    background-color: color-mix(in srgb, #dc3545 13%, #ffffff);
+    color: #b42318;
+    border-color: color-mix(in srgb, #dc3545 32%, transparent);
+}
+.attendance-btn-danger:hover:not(:disabled) {
+    background-color: color-mix(in srgb, #dc3545 22%, #ffffff);
+    border-color: color-mix(in srgb, #dc3545 45%, transparent);
+}
+
+.attendance-btn-primary {
+    background-color: color-mix(in srgb, var(--theme-color) 12%, #ffffff);
+    color: var(--theme-color);
+    border-color: color-mix(in srgb, var(--theme-color) 30%, transparent);
+}
+.attendance-btn-primary:hover:not(:disabled) {
+    background-color: color-mix(in srgb, var(--theme-color) 20%, #ffffff);
+    border-color: color-mix(in srgb, var(--theme-color) 45%, transparent);
+}
+
+.attendance-btn-secondary {
+    background-color: color-mix(in srgb, #64748b 14%, #ffffff);
+    color: #475569;
+    border-color: color-mix(in srgb, #64748b 32%, transparent);
+}
+.attendance-btn-secondary:hover:not(:disabled) {
+    background-color: color-mix(in srgb, #64748b 24%, #ffffff);
+    border-color: color-mix(in srgb, #64748b 45%, transparent);
+}
+
+/* ---- Half-day dropdown (inside bulk bar) ---- */
+.attendance-dropdown {
+    position: relative;
+}
+
+.halfday-options {
+    display: none;
+    position: absolute;
+    top: calc(100% + 6px);
+    left: 0;
+    flex-direction: column;
+    gap: 4px;
+    min-width: 150px;
+    padding: 6px;
+    background: #fff;
+    border: 1px solid rgba(27, 27, 27, 0.06);
+    border-radius: 10px;
+    box-shadow:
+        0 1px 2px rgba(16, 24, 40, 0.03),
+        0 2px 6px rgba(16, 24, 40, 0.03);
+    z-index: 100;
+}
+
+.halfday-options.open {
+    display: flex;
+}
+
+.halfday-option-item {
+    width: 100%;
+    text-align: left;
+    padding: 8px 12px;
+    font-size: 0.8125rem;
+    font-weight: 500;
+    color: #343a40;
+    background: transparent;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition:
+        background-color 0.15s ease,
+        color 0.15s ease;
+}
+
+.halfday-option-item:hover,
+.halfday-option-item:focus {
+    background-color: color-mix(in srgb, var(--theme-color) 8%, transparent);
+    color: var(--theme-color);
+    outline: none;
+}
+
+/* ---- Person cell: avatar + name (daily + monthly) ---- */
+.sa-name-cell {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.sa-name-text {
+    font-family: "Roboto-Medium", "ubuntu-medium", sans-serif;
+    color: #343a40;
+    white-space: nowrap;
+}
+
+.sa-avatar-img {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    object-fit: cover;
+    flex-shrink: 0;
+    border: 1px solid rgba(27, 27, 27, 0.06);
+    background: #f1f5f9;
+}
+
+/* ---- Monthly legend ---- */
+.sa-legend {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 16px;
+    margin-bottom: 1rem;
+}
+
+.sa-legend-label {
+    font-size: 13px;
+    font-family: "Roboto-Medium", "ubuntu-medium", sans-serif;
+    color: #475569;
+}
+
+.sa-legend-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    color: rgba(27, 27, 27, 0.7);
+}
+
+/* ---- Monthly table ---- */
+.monthly-table-wrap {
+    overflow-x: auto;
+    border: 1px solid rgba(27, 27, 27, 0.06);
+    border-radius: 14px;
+}
+
+.monthly-table {
+    width: 100%;
+    border-collapse: collapse;
+    min-width: 900px;
+}
+
+.monthly-table thead tr {
+    border-bottom: 1px solid rgba(27, 27, 27, 0.06);
+    background: color-mix(in srgb, var(--theme-color) 4%, #f7f8fa);
+}
+
+.monthly-table thead th {
+    padding: 10px 4px;
+    font-size: 12px;
+    font-weight: 600;
+    color: #475569;
+    letter-spacing: 0.05em;
+    text-align: center;
+    white-space: nowrap;
+}
+
+.monthly-table thead th:first-child {
+    padding: 10px 14px;
+    text-align: left;
+    min-width: 220px;
+}
+
+/* ---- Monthly states: loading / empty / error ---- */
+.sa-monthly-msg {
+    text-align: center;
+    padding: 2rem;
+    color: #8c8c8c;
+}
+
+.sa-monthly-error {
+    text-align: center;
+    padding: 2rem;
+    color: #dc3545;
+}
+
+.sa-retry-link {
+    color: var(--theme-color);
+    font-family: "Roboto-Medium", "ubuntu-medium", sans-serif;
+}
+
+.monthly-table tbody tr {
+    border-bottom: 1px solid rgba(27, 27, 27, 0.04);
+    transition: background 0.15s ease;
+}
+
+.monthly-table tbody tr:last-child {
+    border-bottom: none;
+}
+
+.monthly-table tbody tr:hover {
+    background: color-mix(
+        in srgb,
+        var(--secondary-color, var(--theme-color)) 9%,
+        #fff
+    );
+}
+
+.monthly-table td {
+    padding: 10px 4px;
+    text-align: center;
+}
+
+.monthly-table td:first-child {
+    padding: 12px 14px;
+    text-align: left;
+}
+
+/* ---- Attendance status dots ---- */
+.attendance-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    display: inline-block;
+    flex-shrink: 0;
+}
+
+.attendance-dot.dot-present {
+    background: #198754;
+}
+.attendance-dot.dot-absent {
+    background: #dc3545;
+}
+.attendance-dot.dot-half {
+    background: #0e7490;
+}
+.attendance-dot.dot-holiday {
+    background: #d97706;
+}
+.attendance-dot.dot-leave {
+    background: #334155;
+}
+.attendance-dot.dot-none {
+    background: #e2e8f0;
+    border: 1px solid rgba(27, 27, 27, 0.1);
+}
+
+/* ---- Attendance Modal: staff avatar ---- */
+.avatar-circle {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background: color-mix(in srgb, var(--theme-color) 12%, #fff);
+    color: var(--theme-color);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    font-weight: 700;
+    flex-shrink: 0;
+    overflow: hidden;
+}
+
+.avatar-circle-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 50%;
+}
+
+/* ---- Status radio cards ---- */
+.status-radio {
+    position: absolute;
+    opacity: 0;
+    pointer-events: none;
+}
+
+.status-card {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 14px;
+    border: 1px solid rgba(27, 27, 27, 0.1);
+    border-radius: 10px;
+    cursor: pointer;
+    background: #fff;
+    transition:
+        border-color 0.15s ease,
+        background 0.15s ease;
+}
+
+.status-card:hover {
+    border-color: color-mix(in srgb, var(--theme-color) 40%, transparent);
+    background: color-mix(in srgb, var(--theme-color) 4%, #fff);
+}
+
+.status-radio:checked + .status-card {
+    border-color: var(--theme-color);
+    background: color-mix(in srgb, var(--theme-color) 8%, #fff);
+}
+
+.check-icon {
+    color: var(--theme-color);
+    opacity: 0;
+    flex-shrink: 0;
+    transition: opacity 0.15s ease;
+}
+
+.status-radio:checked + .status-card .check-icon {
+    opacity: 1;
+}
+
+/* ---- Half-day sub-options (inside modal) ---- */
+.half-day-radio {
+    position: absolute;
+    opacity: 0;
+    pointer-events: none;
+}
+
+.half-day-option {
+    padding: 10px 14px;
+    border: 1px solid rgba(27, 27, 27, 0.1);
+    border-radius: 10px;
+    text-align: center;
+    font-size: 0.875rem;
+    cursor: pointer;
+    background: #fff;
+    transition:
+        border-color 0.15s ease,
+        background 0.15s ease,
+        color 0.15s ease;
+}
+
+.half-day-option:hover {
+    border-color: color-mix(in srgb, var(--theme-color) 40%, transparent);
+    background: color-mix(in srgb, var(--theme-color) 4%, #fff);
+}
+
+.half-day-radio:checked + .half-day-option {
+    border-color: var(--theme-color);
+    background: color-mix(in srgb, var(--theme-color) 8%, #fff);
+    color: var(--theme-color);
+    font-weight: 500;
+}
