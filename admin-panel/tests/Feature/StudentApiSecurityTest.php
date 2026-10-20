@@ -10,34 +10,25 @@ use App\Models\Settings;
 use App\Models\StudentSubject;
 use App\Models\User;
 use App\Services\OnlineExamScoringService;
-use Illuminate\Foundation\Testing\RefreshDatabaseState;
 use Illuminate\Http\Client\PendingRequest;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\Http;
-use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 use Laravel\Sanctum\PersonalAccessToken;
-use Symfony\Component\Process\Process;
+use Tests\Concerns\RunsAppServer;
 use Tests\TestCase;
 
 /**
  * Student API checks. The API controllers exit() after responding, so the
- * endpoints are called on a separate `php -S` server (see AdminPagesTest), with
+ * endpoints are called on a separate `php -S` server (see RunsAppServer), with
  * the fixture committed to the database for it to see.
  */
 class StudentApiSecurityTest extends TestCase
 {
+    use RunsAppServer;
+
     private const SECRETS = ['rzp_secret_value', 'rzp_webhook_secret_value', 'sk_stripe_secret_value', 'whsec_stripe_value', 'sk_paystack_secret_value', 'flw_secret_value', 'flw_hash_value'];
-
-    private ?Process $server = null;
-
-    private string $storage = '';
-
-    private string $baseUrl = '';
 
     /** @var array<string, int> */
     private array $ids = [];
@@ -46,19 +37,13 @@ class StudentApiSecurityTest extends TestCase
     {
         parent::setUp();
 
-        Artisan::call('migrate:fresh', ['--force' => true]);
-        $this->seedLikeInstaller();
+        $this->freshInstall();
         $this->seedSchool();
     }
 
     protected function tearDown(): void
     {
-        $this->server?->stop();
-        if ($this->storage !== '') {
-            File::deleteDirectory($this->storage);
-        }
-        // Make the next RefreshDatabase test start from an empty database again.
-        RefreshDatabaseState::$migrated = false;
+        $this->stopAppServer();
 
         parent::tearDown();
     }
@@ -236,7 +221,7 @@ class StudentApiSecurityTest extends TestCase
 
         $stored = ChatFile::sole()->file_name;
         $this->assertMatchesRegularExpression('#^chatfile/[A-Za-z0-9]{32}/notes_v1\.txt$#', $stored);
-        $this->assertFileExists($this->storage.'/app/public/'.$stored);
+        $this->assertFileExists($this->appServerStoragePath('app/public/'.$stored));
     }
 
     public function test_fee_payments_use_server_amounts_and_own_transactions(): void
@@ -306,11 +291,11 @@ class StudentApiSecurityTest extends TestCase
 
     private function api(?string $token = null): PendingRequest
     {
-        $this->server ??= $this->startServer();
+        if (! self::appServerRunning()) {
+            $this->startAppServer(['SESSION_DRIVER' => 'array']);
+        }
 
-        $client = Http::baseUrl($this->baseUrl)->acceptJson()->timeout(60);
-
-        return $token ? $client->withToken($token) : $client;
+        return $this->apiClient($token ?: null);
     }
 
     private function token(string $who): string
@@ -450,53 +435,5 @@ class StudentApiSecurityTest extends TestCase
         }
 
         return $question;
-    }
-
-    private function startServer(): Process
-    {
-        $this->storage = sys_get_temp_dir().'/eschool-student-api-test-'.uniqid();
-        foreach (['app/public', 'framework/cache/data', 'framework/sessions', 'framework/views', 'logs'] as $sub) {
-            File::ensureDirectoryExists("$this->storage/$sub");
-        }
-        File::put("$this->storage/installed", '{}');
-
-        $socket = stream_socket_server('tcp://127.0.0.1:0');
-        $port = (int) Str::afterLast(stream_socket_get_name($socket, false), ':');
-        fclose($socket);
-        $this->baseUrl = 'http://127.0.0.1:'.$port;
-
-        $db = config('database.connections.'.config('database.default'));
-        $server = new Process(
-            [PHP_BINARY, '-d', 'variables_order=EGPCS', '-S', '127.0.0.1:'.$port,
-                base_path('vendor/laravel/framework/src/Illuminate/Foundation/resources/server.php')],
-            public_path(),
-            [
-                'APP_ENV' => 'production',
-                'APP_DEBUG' => 'false',
-                'APP_KEY' => config('app.key'),
-                'APP_URL' => $this->baseUrl,
-                'LARAVEL_STORAGE_PATH' => $this->storage,
-                'DB_CONNECTION' => config('database.default'),
-                'DB_HOST' => $db['host'],
-                'DB_PORT' => (string) $db['port'],
-                'DB_DATABASE' => $db['database'],
-                'DB_USERNAME' => $db['username'],
-                'DB_PASSWORD' => (string) $db['password'],
-                'SESSION_DRIVER' => 'array',
-                'CACHE_STORE' => 'array',
-                'MAIL_MAILER' => 'array',
-                'QUEUE_CONNECTION' => 'sync',
-                'LOG_CHANNEL' => 'single',
-            ],
-        );
-        $server->start();
-
-        for ($i = 0; $i < 100; $i++) {
-            if (@fsockopen('127.0.0.1', $port)) {
-                return $server;
-            }
-            usleep(100_000);
-        }
-        $this->fail('Test server did not start: '.$server->getErrorOutput());
     }
 }

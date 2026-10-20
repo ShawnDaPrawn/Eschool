@@ -4,34 +4,21 @@ namespace Tests\Feature;
 
 use App\Models\Assignment;
 use App\Models\User;
-use Illuminate\Filesystem\Filesystem;
-use Illuminate\Foundation\Testing\RefreshDatabaseState;
-use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\Http;
-use Illuminate\Support\Str;
-use Symfony\Component\Process\Process;
+use Tests\Concerns\RunsAppServer;
 use Tests\TestCase;
 
 /**
  * A teacher can only act on the classes, subjects, students and files they teach.
  *
  * Teacher A is class teacher and subject teacher of section A; teacher B of
- * section B (another class). The API controllers exit() after responding, which
- * would end the test run, so requests go to a separate `php -S` process (as in
- * AdminPagesTest). That process can't see data inside a test transaction, so the
- * database is migrated and seeded for real (TestCase only allows *_test
- * databases), once for the whole class.
+ * section B (another class). Requests go to a `php -S` server (RunsAppServer),
+ * with the database migrated and seeded once for the whole class.
  */
 class TeacherApiSecurityTest extends TestCase
 {
-    private static ?Process $server = null;
-
-    private static string $storage;
-
-    private static string $baseUrl;
+    use RunsAppServer;
 
     /** @var array<string, int> */
     private static array $ids = [];
@@ -43,26 +30,11 @@ class TeacherApiSecurityTest extends TestCase
     {
         parent::setUp();
 
-        if (self::$server === null) {
-            Artisan::call('migrate:fresh', ['--force' => true]);
-            $this->seedLikeInstaller();
+        if (! self::appServerRunning()) {
+            $this->freshInstall();
             $this->createSchool();
-
-            self::$storage = $this->makeStorage();
-            self::$baseUrl = 'http://127.0.0.1:'.$this->freePort();
-            self::$server = $this->startServer();
+            $this->startAppServer();
         }
-    }
-
-    public static function tearDownAfterClass(): void
-    {
-        self::$server?->stop();
-        self::$server = null;
-        (new Filesystem)->deleteDirectory(self::$storage);
-        // Make the next RefreshDatabase test start from an empty database again.
-        RefreshDatabaseState::$migrated = false;
-
-        parent::tearDownAfterClass();
     }
 
     public function test_only_the_owner_can_delete_an_assignment(): void
@@ -181,7 +153,7 @@ class TeacherApiSecurityTest extends TestCase
         // Two uploads with the same name are both kept, each under that name.
         $paths = [];
         foreach (['first', 'second'] as $content) {
-            $response = Http::baseUrl(self::$baseUrl)->withToken(self::$tokens['A'])->acceptJson()
+            $response = $this->apiClient(self::$tokens['A'])
                 ->attach('file[]', $content, 'notes.txt')
                 ->post('/api/teacher/send-message', ['receiver_id' => self::$ids['student_a_user']])
                 ->json();
@@ -192,7 +164,7 @@ class TeacherApiSecurityTest extends TestCase
         $this->assertNotSame($paths['first'], $paths['second']);
         foreach ($paths as $content => $path) {
             $this->assertStringStartsWith('chatfile/', $path);
-            $this->assertSame($content, file_get_contents(self::$storage.'/app/public/'.$path));
+            $this->assertSame($content, file_get_contents($this->appServerStoragePath('app/public/'.$path)));
         }
     }
 
@@ -220,8 +192,7 @@ class TeacherApiSecurityTest extends TestCase
 
     private function api(string $teacher, string $method, string $uri, array $data = []): array
     {
-        $response = Http::baseUrl(self::$baseUrl)->withToken(self::$tokens[$teacher])->acceptJson()->timeout(60)
-            ->{$method}('/api/teacher/'.$uri, $data);
+        $response = $this->apiClient(self::$tokens[$teacher])->{$method}('/api/teacher/'.$uri, $data);
 
         $this->assertSame(200, $response->status(), "$uri: ".$response->body());
 
@@ -304,63 +275,5 @@ class TeacherApiSecurityTest extends TestCase
     private function insert(string $table, array $values): int
     {
         return DB::table($table)->insertGetId($values + ['created_at' => now(), 'updated_at' => now()]);
-    }
-
-    private function startServer(): Process
-    {
-        $db = config('database.connections.'.config('database.default'));
-        $server = new Process(
-            [PHP_BINARY, '-d', 'variables_order=EGPCS', '-S', Str::after(self::$baseUrl, 'http://'),
-                base_path('vendor/laravel/framework/src/Illuminate/Foundation/resources/server.php')],
-            public_path(),
-            [
-                'APP_ENV' => 'production',
-                'APP_DEBUG' => 'false',
-                'APP_KEY' => config('app.key'),
-                'APP_URL' => self::$baseUrl,
-                'LARAVEL_STORAGE_PATH' => self::$storage,
-                'DB_CONNECTION' => config('database.default'),
-                'DB_HOST' => $db['host'],
-                'DB_PORT' => (string) $db['port'],
-                'DB_DATABASE' => $db['database'],
-                'DB_USERNAME' => $db['username'],
-                'DB_PASSWORD' => (string) $db['password'],
-                'SESSION_DRIVER' => 'file',
-                'CACHE_STORE' => 'array',
-                'MAIL_MAILER' => 'array',
-                'QUEUE_CONNECTION' => 'sync',
-                'LOG_CHANNEL' => 'single',
-            ],
-        );
-        $server->start();
-
-        for ($i = 0; $i < 100; $i++) {
-            if (@fsockopen('127.0.0.1', (int) Str::afterLast(self::$baseUrl, ':'))) {
-                return $server;
-            }
-            usleep(100_000);
-        }
-        $this->fail('Test server did not start: '.$server->getErrorOutput());
-    }
-
-    /** A throwaway storage directory, marked as installed. */
-    private function makeStorage(): string
-    {
-        $dir = sys_get_temp_dir().'/eschool-teacher-api-test-'.uniqid();
-        foreach (['app/public', 'framework/cache/data', 'framework/sessions', 'framework/views', 'logs'] as $sub) {
-            File::ensureDirectoryExists("$dir/$sub");
-        }
-        File::put("$dir/installed", '{}');
-
-        return $dir;
-    }
-
-    private function freePort(): int
-    {
-        $socket = stream_socket_server('tcp://127.0.0.1:0');
-        $port = (int) Str::afterLast(stream_socket_get_name($socket, false), ':');
-        fclose($socket);
-
-        return $port;
     }
 }
