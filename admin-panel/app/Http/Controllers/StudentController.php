@@ -1567,7 +1567,7 @@ class StudentController extends Controller
                 $classSection = ClassSection::where('id', $request->class_section_id)->with('class.medium', 'class.streams', 'section')->first();
                 $class_section_name = $classSection->class->name.' - '.$classSection->section->name.' '.$classSection->class->medium->name.'  '.($classSection->class->streams->name ?? '');
             }
-            $admin_mail = env('MAIL_FROM_ADDRESS');
+            $admin_mail = config('mail.from.address');
 
             // Send User Credentials via Email
             $settings = getSettings();
@@ -3708,7 +3708,7 @@ class StudentController extends Controller
             $parent_id = [$father_id, $mother_id, $guardian_id];
 
             $parents = Parents::with('user')->whereIn('id', $parent_id)->get();
-            $admin_mail = env('MAIL_FROM_ADDRESS');
+            $admin_mail = config('mail.from.address');
 
             $settings = getSettings();
             $school_name = $settings['school_name'];

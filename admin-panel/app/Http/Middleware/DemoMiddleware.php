@@ -45,7 +45,7 @@ class DemoMiddleware
             '/api/teacher/get-student-leave-list',
         ];
 
-        if (env('DEMO_MODE')) {
+        if (config('app.demo_mode')) {
             if (! $request->isMethod('get') && ! in_array($request->getRequestUri(), $exclude_uri) && \Auth::user() && \Auth::user()->email !== 'demomodeoff@gmail.com') {
                 if ($request->is('api/*')) {
                     return response()->json([

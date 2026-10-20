@@ -1307,20 +1307,6 @@ class FeesTypeController extends Controller
                     $setting->message = trim($request->razorpay_currency_code);
                     $setting->save();
                 }
-
-                $env_update = changeEnv([
-                    'RAZORPAY_SECRET_KEY' => trim($request->razorpay_secret_key),
-                    'RAZORPAY_API_KEY' => trim($request->razorpay_api_key),
-                    'RAZORPAY_WEBHOOK_SECRET' => trim($request->razorpay_webhook_secret),
-                    'RAZORPAY_WEBHOOK_URL' => trim($request->razorpay_webhook_url),
-                ]);
-
-                if ($env_update) {
-                    $response = [
-                        'error' => false,
-                        'message' => trans('data_update_successfully'),
-                    ];
-                }
             }
 
             // stripe_status
@@ -1401,20 +1387,6 @@ class FeesTypeController extends Controller
                     $setting->type = 'stripe_currency_code';
                     $setting->message = trim($request->stripe_currency_code);
                     $setting->save();
-                }
-
-                $env_update = changeEnv([
-                    'STRIPE_PUBLISHABLE_KEY' => trim($request->stripe_publishable_key),
-                    'STRIPE_SECRET_KEY' => trim($request->stripe_secret_key),
-                    'STRIPE_WEBHOOK_SECRET' => trim($request->stripe_webhook_secret),
-                    'STRIPE_WEBHOOK_URL' => trim($request->stripe_webhook_url),
-                ]);
-
-                if ($env_update) {
-                    $response = [
-                        'error' => false,
-                        'message' => trans('data_update_successfully'),
-                    ];
                 }
             }
 
@@ -1497,20 +1469,6 @@ class FeesTypeController extends Controller
                     $setting->message = trim($request->paystack_currency_code);
                     $setting->save();
                 }
-
-                $env_update = changeEnv([
-                    'PAYSTACK_PUBLIC_KEY' => trim($request->paystack_public_key),
-                    'PAYSTACK_SECRET_KEY' => trim($request->paystack_secret_key),
-                    'PAYSTACK_WEBHOOK_URL' => trim($request->paystack_webhook_url),
-                    'PAYSTACK_PAYMENT_URL' => trim($request->paystack_payment_url),
-                ]);
-
-                if ($env_update) {
-                    $response = [
-                        'error' => false,
-                        'message' => trans('data_update_successfully'),
-                    ];
-                }
             }
 
             // flutterwave_status
@@ -1591,20 +1549,6 @@ class FeesTypeController extends Controller
                     $setting->type = 'flutterwave_currency_code';
                     $setting->message = trim($request->flutterwave_currency_code);
                     $setting->save();
-                }
-
-                $env_update = changeEnv([
-                    'FLW_PUBLIC_KEY' => trim($request->flutterwave_public_key),
-                    'FLW_SECRET_KEY' => trim($request->flutterwave_secret_key),
-                    'FLW_SECRET_HASH' => trim($request->flutterwave_hash_key),
-                    'FLW_WEBHOOK_URL' => trim($request->flutterwave_webhook_url),
-                ]);
-
-                if ($env_update) {
-                    $response = [
-                        'error' => false,
-                        'message' => trans('data_update_successfully'),
-                    ];
                 }
             }
 
@@ -1810,9 +1754,9 @@ class FeesTypeController extends Controller
             return redirect(route('home'))->withErrors($response);
         }
         try {
-            $logo = env('LOGO2');
+            $logo = schoolSetting('logo2');
             $logo = public_path('/storage/'.$logo);
-            $school_name = env('APP_NAME');
+            $school_name = config('app.name');
             $school_address = getSettings('school_address');
             $school_address = $school_address['school_address'];
             $currency_symbol = getSettings('currency_symbol');

@@ -7,7 +7,7 @@
             <div>
               <a href="index.html">
                 <a href="{{url('/')}}">
-                    <img src="{{ env('LOGO1') ? url(Storage::url(env('LOGO1'))) : url('assets/logo.svg') }}" height="50px" width="150px" alt="logo">
+                    <img src="{{ schoolLogoUrl('logo1') }}" height="50px" width="150px" alt="logo">
                 </a>
               </a>
             </div>
@@ -103,7 +103,7 @@
       </div>
     </div>
     <div class="copyRightText">
-      <span>{{__('copyright')}} © <?= date('Y'); ?> <a href="{{env('APP_URL')}}" target="_blank">{{env('APP_NAME')}}</a>. {{__('all_rights_reserved')}}.</span>
+      <span>{{__('copyright')}} © <?= date('Y'); ?> <a href="{{config('app.url')}}" target="_blank">{{config('app.name')}}</a>. {{__('all_rights_reserved')}}.</span>
     </div>
   </footer>
   <script>

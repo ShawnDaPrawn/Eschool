@@ -3061,9 +3061,9 @@ class StudentApiController extends Controller
         try {
             $student = $request->user()->student;
 
-            $logo = env('LOGO2');
+            $logo = schoolSetting('logo2');
             $logo = public_path('/storage/' . $logo);
-            $school_name = env('APP_NAME');
+            $school_name = config('app.name');
             $school_address = getSettings('school_address');
             $school_address = $school_address['school_address'];
 
