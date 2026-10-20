@@ -35,13 +35,13 @@
                         <div class="col-md-8 col-lg-4">
                             <div class="auth-content-wrapper auth">
                                 <div class="auth-form-light text-left p-5">
-                                    @if(env('DEMO_MODE'))
+                                    @if(config('app.demo_mode'))
                                         <div class="alert alert-info text-center" role="alert">
                                             NOTE : <a target="_blank" href="{{ route('login') }}">-- Click Here --</a> If you Can't Login.
                                         </div>
                                     @endif
                                     <div class="brand-logo text-center">
-                                        <img src="{{ env('LOGO2') ? url(Storage::url(env('LOGO2'))) :url('assets/logo.svg') }}" alt="logo">
+                                        <img src="{{ schoolLogoUrl('logo2') }}" alt="logo">
                                     </div>
                                     <form action="{{ route('login') }}" id="frmLogin" method="POST" class="pt-3">
                                         @csrf
@@ -76,7 +76,7 @@
                                             <input type="submit" name="btnlogin" id="login_btn" value="{{ __('login') }}" class="btn btn-block btn-theme btn-lg font-weight-medium auth-form-btn"/>
                                         </div>
                                     </form>
-                                    @if(env('DEMO_MODE'))
+                                    @if(config('app.demo_mode'))
                                         <div class="row mt-2">
                                             <hr class="w-100">
                                             <div class="col-12 text-center mb-2 text-black-50">Demo Credentials</div>
@@ -160,7 +160,7 @@
         }
     });
 
-    @if(env('DEMO_MODE'))
+    @if(config('app.demo_mode'))
     $('#superadmin_btn').on('click', function (e) {
         $('#email').val('superadmin@gmail.com');
         $('#password').val('superadmin');
@@ -190,7 +190,7 @@
 @if (Session::has('error'))
     <script type='text/javascript'>
         $.toast({
-            text: '{{ Session::get('error') }}',
+            text: $('<div>').text(@json(Session::get('error'))).html(),
             showHideTransition: 'slide',
             icon: 'error',
             loaderBg: '#f2a654',
@@ -203,7 +203,7 @@
     @foreach ($errors->all() as $error)
         <script type='text/javascript'>
             $.toast({
-                text: '{{ $error }}',
+                text: $('<div>').text(@json($error)).html(),
                 showHideTransition: 'slide',
                 icon: 'error',
                 loaderBg: '#f2a654',

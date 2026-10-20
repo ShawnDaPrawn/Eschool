@@ -31,15 +31,7 @@ class StripePayment implements PaymentInterface {
      */
     public function createPaymentIntent($amount, $customMetaData) {
         try {
-            $amount = $this->minimumAmountValidation($this->currencyCode, $amount);
-            $zeroDecimalCurrencies = [
-                'BIF', 'CLP', 'DJF', 'GNF', 'JPY', 'KMF', 'KRW', 'MGA', 'PYG',
-                'RWF', 'UGX', 'VND', 'VUV', 'XAF', 'XOF', 'XPF'
-            ];
-
-            if (!in_array($this->currencyCode, $zeroDecimalCurrencies)) {
-                $amount *= 100;
-            }
+            $amount = self::amountInSubunits($this->currencyCode, $amount);
             return $this->stripe->paymentIntents->create(
                 [
                     'amount'   => $amount,
@@ -110,11 +102,34 @@ class StripePayment implements PaymentInterface {
     }
 
     /**
+     * The amount Stripe is asked for (and reports back in webhooks), in the
+     * currency's smallest unit, after raising it to Stripe's minimum charge.
+     */
+    public static function amountInSubunits(string $currency, $amount): int {
+        $zeroDecimalCurrencies = [
+            'BIF', 'CLP', 'DJF', 'GNF', 'JPY', 'KMF', 'KRW', 'MGA', 'PYG',
+            'RWF', 'UGX', 'VND', 'VUV', 'XAF', 'XOF', 'XPF'
+        ];
+        $currency = strtoupper($currency);
+        $amount = (float) self::minimumAmount($currency, $amount);
+
+        if (!in_array($currency, $zeroDecimalCurrencies)) {
+            $amount *= 100;
+        }
+
+        return (int) round($amount);
+    }
+
+    /**
      * @param $currency
      * @param $amount
      * @return float|int
      */
     public function minimumAmountValidation($currency, $amount) {
+        return self::minimumAmount(strtoupper((string) $currency), $amount);
+    }
+
+    private static function minimumAmount(string $currency, $amount) {
         $minimumAmount = match ($currency) {
             'USD', 'EUR', 'INR', 'NZD', 'SGD', 'BRL', 'CAD', 'AUD', 'CHF' => 0.50,
             'AED', 'PLN', 'RON' => 2.00,
@@ -128,7 +143,8 @@ class StripePayment implements PaymentInterface {
             'MXN', 'THB' => 10,
             'MYR' => 2,
             'NOK', 'SEK' => 3.00,
-            'XAF' => 100
+            'XAF' => 100,
+            default => null,
         };
         if (!empty($minimumAmount)) {
             if ($amount > $minimumAmount) {

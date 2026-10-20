@@ -1,0 +1,1 @@
+This wiki is generated from the [`wiki/`](https://github.com/ShawnDaPrawn/Eschool/tree/main/wiki) folder of the main repository. Edit pages there: changes made in the Wiki web editor are overwritten on the next sync. End-user guides are on the [documentation site](https://shawndaprawn.github.io/Eschool/).

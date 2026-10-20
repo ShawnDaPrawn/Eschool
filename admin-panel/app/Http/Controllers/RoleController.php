@@ -11,11 +11,15 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Lang;
 use Illuminate\Support\Str;
+use Illuminate\Validation\Rule;
 use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
 
 class RoleController extends Controller
 {
+    /** Roles the application relies on; they are never edited or deleted here. */
+    private const BUILT_IN_ROLES = ['Super Admin', 'Teacher', 'Parent', 'Student'];
+
     /**
      * Display a listing of the resource.
      *
@@ -62,18 +66,14 @@ class RoleController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'name' => 'required|unique:roles,name',
+            'name' => ['required', 'unique:roles,name', Rule::notIn(self::BUILT_IN_ROLES)],
             'permission' => 'required|array',
         ]);
 
         $role = Role::create(['name' => $request->input('name'), 'custom_role' => 1]);
 
-        // Get permission IDs and sync them
-        $permissionIds = $request->input('permission', []);
-        if (! empty($permissionIds)) {
-            $permissions = Permission::whereIn('id', $permissionIds)->get();
-            $role->syncPermissions($permissions);
-        }
+        // Only permissions the create form offers can be granted.
+        $role->syncPermissions($this->assignablePermissionsFrom($request->input('permission', [])));
 
         return redirect()->route('roles.index')->with('success', trans('data_store_successfully'));
     }
@@ -154,7 +154,9 @@ class RoleController extends Controller
 
     public function showList($id)
     {
-        ResponseService::noPermissionThenRedirect('role-list');
+        if (! Auth::user()->can('role-list')) {
+            return redirect(route('home'))->withErrors(['message' => trans('no_permission_message')]);
+        }
         $role = Role::find($id);
         $rolePermissions = Permission::join('role_has_permissions', 'role_has_permissions.permission_id', '=', 'permissions.id')
             ->where('role_has_permissions.role_id', $id)
@@ -175,6 +177,9 @@ class RoleController extends Controller
     public function edit($id)
     {
         $role = Role::find($id);
+        if (! $role || ! $this->isEditableRole($role)) {
+            return redirect()->route('roles.index')->withErrors(['message' => trans('no_permission_message')]);
+        }
         $permissionGroups = $this->groupPermissions($this->loadAssignablePermissions());
         $rolePermissions = DB::table('role_has_permissions')->where('role_has_permissions.role_id', $id)
             ->pluck('role_has_permissions.permission_id', 'role_has_permissions.permission_id')
@@ -199,32 +204,24 @@ class RoleController extends Controller
 
             return response()->json($response);
         }
+        $role = Role::find($id);
+        if (! $role || ! $this->isEditableRole($role)) {
+            return redirect()->route('roles.index')->withErrors(['message' => trans('no_permission_message')]);
+        }
         $request->validate([
-            'name' => 'required',
+            'name' => ['required', 'unique:roles,name,'.$role->id, Rule::notIn(self::BUILT_IN_ROLES)],
             'permission' => 'required|array',
         ]);
         try {
-            $role = Role::find($id);
             $role->name = $request->input('name');
-            $role->custom_role = 1;
             $role->save();
 
-            // Get permission IDs and sync them
-            $permissionIds = $request->input('permission', []);
-            if (! empty($permissionIds)) {
-                $permissions = Permission::whereIn('id', $permissionIds)->get();
-                $role->syncPermissions($permissions);
-            }
-            $response = [
-                'error' => false,
-                'message' => trans('data_update_successfully'),
-            ];
+            // Only permissions the edit form offers can be granted.
+            $role->syncPermissions($this->assignablePermissionsFrom($request->input('permission', [])));
         } catch (\Throwable $e) {
-            $response = [
-                'error' => true,
-                'message' => trans('error_occurred'),
-                'data' => $e,
-            ];
+            report($e);
+
+            return redirect()->route('roles.index')->withErrors(['message' => trans('error_occurred')]);
         }
 
         return redirect()->route('roles.index')->with('success', trans('data_update_successfully'));
@@ -246,8 +243,14 @@ class RoleController extends Controller
 
             return response()->json($response);
         }
+        $role = Role::find($id);
+        if (! $role || ! $this->isEditableRole($role)) {
+            return response()->json([
+                'error' => true,
+                'message' => trans('no_permission_message'),
+            ]);
+        }
         try {
-            $role = Role::find($id);
             $role->delete();
             $response = [
                 'error' => false,
@@ -261,6 +264,22 @@ class RoleController extends Controller
         }
 
         return response()->json($response);
+    }
+
+    /** Only custom roles (created on the roles page) may be edited or deleted. */
+    private function isEditableRole(Role $role): bool
+    {
+        return (int) $role->custom_role === 1 && ! in_array($role->name, self::BUILT_IN_ROLES, true);
+    }
+
+    /**
+     * The requested permission ids, limited to the ones the create/edit forms offer.
+     */
+    private function assignablePermissionsFrom(mixed $permissionIds): Collection
+    {
+        $requested = array_map('intval', array_filter((array) $permissionIds, 'is_scalar'));
+
+        return $this->loadAssignablePermissions()->whereIn('id', $requested)->values();
     }
 
     private function loadAssignablePermissions(): Collection

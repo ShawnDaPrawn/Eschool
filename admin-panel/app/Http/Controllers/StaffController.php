@@ -14,16 +14,17 @@ use App\Models\Staff;
 use App\Models\StaffAttendance;
 use App\Models\Teacher;
 use App\Models\User;
+use App\Services\EmailTemplateService;
 use App\Services\IdCardService;
 use App\Services\MailService;
 use App\Services\ResponseService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Validation\Rule;
 use RuntimeException;
 use Spatie\Permission\Models\Role;
 
@@ -36,7 +37,10 @@ class StaffController extends Controller
      */
     public function staffattendanceData(Request $request)
     {
-        ResponseService::noPermissionThenSendJson('attendance-staff');
+        if (! Auth::user()->can('attendance-staff')) {
+            return response()->json(['error' => true, 'message' => trans('no_permission_message')]);
+        }
+
         $selectedDate = $request->get('date') ?? $request->get('month') ?? now()->format('Y-m-d');
 
         $carbonDate = \Carbon\Carbon::parse($selectedDate);
@@ -144,13 +148,23 @@ class StaffController extends Controller
 
     public function staffList()
     {
-        ResponseService::noPermissionThenRedirect('attendance-staff');
+        if (! Auth::user()->can('attendance-staff')) {
+            $response = [
+                'message' => trans('no_permission_message'),
+            ];
+
+            return redirect(route('home'))->withErrors($response);
+        }
+
         return view('staff.demoattendance');
     }
 
     public function staffListData(Request $request)
     {
-        ResponseService::noPermissionThenSendJson('attendance-staff');
+        if (! Auth::user()->can('attendance-staff')) {
+            return response()->json(['error' => true, 'message' => trans('no_permission_message')]);
+        }
+
         $selectedDate = $request->get('date', now()->format('Y-m-d'));
         $carbonDate = \Carbon\Carbon::parse($selectedDate);
 
@@ -258,6 +272,10 @@ class StaffController extends Controller
 
     public function bulkStore(Request $request)
     {
+        if (! Auth::user()->can('attendance-staff')) {
+            return response()->json(['status' => false, 'message' => trans('no_permission_message')], 403);
+        }
+
         $validated = $request->validate([
             'staff_id' => 'nullable|integer|exists:users,id',
             'staff_ids' => 'nullable|array',
@@ -358,7 +376,10 @@ class StaffController extends Controller
 
     public function storeAttendance(Request $request)
     {
-        ResponseService::noPermissionThenSendJson('attendance-staff');
+        if (! Auth::user()->can('attendance-staff')) {
+            return response()->json(['status' => false, 'message' => trans('no_permission_message')], 403);
+        }
+
         $validated = $request->validate([
             'staff_id' => 'nullable|integer|exists:users,id',
             'staff_ids' => 'nullable|array',
@@ -434,9 +455,11 @@ class StaffController extends Controller
                 );
             });
         } catch (\Exception $e) {
+            report($e);
+
             return response()->json([
                 'status' => false,
-                'message' => 'Failed to save attendance: '.$e->getMessage(),
+                'message' => trans('error_occurred'),
             ], 500);
         }
 
@@ -472,7 +495,7 @@ class StaffController extends Controller
         }
 
         $validator = Validator::make($request->all(), [
-            'role_id' => 'required|numeric',
+            'role_id' => ['required', 'numeric', $this->assignableRoleRule()],
             'first_name' => 'required',
             'last_name' => 'required',
             'email' => 'required|email|unique:users,email',
@@ -538,7 +561,9 @@ class StaffController extends Controller
                     $staff->update();
                 }
 
-                $user->assignRole($role);
+                // A restored account must not keep the roles it had before it
+                // was deleted (it could have been a Super Admin).
+                $user->syncRoles($role);
 
                 $school_name = getSettings('school_name');
                 // $data = [
@@ -587,8 +612,7 @@ class StaffController extends Controller
                     'url' => (string) $url,
                 ];
 
-                $normalizedTemplate = preg_replace('/\{\$?(\w+)\s*\}/', '{{ $$1 }}', $AcceptTemplate);
-                $htmlcontent = Blade::render($normalizedTemplate, $data);
+                $htmlcontent = EmailTemplateService::render((string) $AcceptTemplate, $data);
 
                 $emailPayload = array_merge($data, [
                     'body' => $htmlcontent,
@@ -690,8 +714,7 @@ class StaffController extends Controller
                     'url' => (string) $url,
                 ];
 
-                $normalizedTemplate = preg_replace('/\{\$?(\w+)\s*\}/', '{{ $$1 }}', $AcceptTemplate);
-                $htmlcontent = Blade::render($normalizedTemplate, $data);
+                $htmlcontent = EmailTemplateService::render((string) $AcceptTemplate, $data);
 
                 $emailPayload = array_merge($data, [
                     'body' => $htmlcontent,
@@ -822,7 +845,8 @@ class StaffController extends Controller
             return redirect(route('home'))->withErrors($response);
         }
         $validator = Validator::make($request->all(), [
-            'role_id' => 'required|numeric',
+            'role_id' => ['required', 'numeric', $this->assignableRoleRule()],
+            'user_id' => 'required|integer',
             'first_name' => 'required',
             'last_name' => 'required',
             'email' => 'required|email|unique:users,email,'.$request->user_id,
@@ -844,10 +868,16 @@ class StaffController extends Controller
 
             return response()->json($response);
         }
+
+        $user = User::find($request->user_id);
+        if (! $user || ! $this->canManageStaffUser($user)) {
+            return response()->json([
+                'error' => true,
+                'message' => trans('no_permission_message'),
+            ]);
+        }
         try {
             $role = Role::findOrFail($request->role_id);
-
-            $user = User::findorFail($request->user_id);
 
             if ($request->hasFile('image')) {
 
@@ -882,7 +912,7 @@ class StaffController extends Controller
             $user->syncRoles($role);
             ResponseService::successResponse(trans('data_store_successfully'));
         } catch (\Throwable $e) {
-            ResponseService::errorResponse(trans('error_occurred'), $e);
+            ResponseService::errorResponse(trans('error_occurred'), null, null, $e);
         }
     }
 
@@ -901,8 +931,15 @@ class StaffController extends Controller
 
             return redirect(route('home'))->withErrors($response);
         }
+
+        $user = User::find($id);
+        if (! $user || $user->id === Auth::id() || ! $this->canManageStaffUser($user)) {
+            return response()->json([
+                'error' => true,
+                'message' => trans('no_permission_message'),
+            ]);
+        }
         try {
-            $user = User::find($id);
             if (Storage::disk('public')->exists($user->image)) {
                 Storage::disk('public')->delete($user->image);
             }
@@ -1059,5 +1096,29 @@ class StaffController extends Controller
         } catch (RuntimeException $e) {
             return redirect()->route('id_card_setting.index')->with('error', $e->getMessage());
         }
+    }
+
+    /**
+     * Staff can only be given the custom roles the staff form offers, never
+     * Super Admin or a built-in role (Teacher, Parent, Student).
+     */
+    private function assignableRoleRule(): \Illuminate\Validation\Rules\Exists
+    {
+        return Rule::exists('roles', 'id')
+            ->where('custom_role', 1)
+            ->whereNot('name', 'Super Admin');
+    }
+
+    /**
+     * The staff edit/delete actions only apply to staff members, and only a
+     * Super Admin may change a Super Admin account.
+     */
+    private function canManageStaffUser(User $user): bool
+    {
+        if ($user->hasRole('Super Admin') && ! Auth::user()->hasRole('Super Admin')) {
+            return false;
+        }
+
+        return Staff::where('user_id', $user->id)->exists();
     }
 }

@@ -1,3 +1,5 @@
+import 'package:eschool_teacher/utils/fileNameUtils.dart';
+
 enum StudyMaterialType { file, youtubeVideo, uploadedVideoUrl, other }
 
 StudyMaterialType getStudyMaterialType(int type) {
@@ -50,4 +52,13 @@ class StudyMaterial {
   late final String fileThumbnail;
   late final String fileUrl;
   late final String fileExtension;
+
+  /// File name (with extension) to save this material under on the device.
+  /// Name and extension come from the server, so they are sanitized to keep
+  /// the file inside the directory it is saved to.
+  String get localFileName {
+    final String name = sanitizeFileName(fileName, fallback: 'file$id');
+    final String safeExtension = sanitizeFileName(fileExtension, fallback: '');
+    return safeExtension.isEmpty ? name : '$name.$safeExtension';
+  }
 }

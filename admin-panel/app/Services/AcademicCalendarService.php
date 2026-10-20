@@ -139,9 +139,9 @@ class AcademicCalendarService
         $data = [
             'report_year'             => $reportYear,
             'calendar_items_by_month' => $calendarItemsByMonth,
-            'school_name'             => env('APP_NAME'),
+            'school_name'             => config('app.name'),
             'school_address'          => getSettings('school_address')['school_address'] ?? null,
-            'logo'                    => public_path('/storage/' . env('LOGO2')),
+            'logo'                    => public_path('/storage/' . schoolSetting('logo2')),
         ];
 
         $pdf = Pdf::loadView('academic_calendar.academic_calendar_pdf', $data);

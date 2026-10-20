@@ -162,7 +162,8 @@ class ResponseService
             'message' => trans($message),
             'data' => $data,
             'code' => $code ?? config('constants.RESPONSE_CODE.EXCEPTION_ERROR'),
-            'details' => (! empty($e) && is_object($e)) ? $e->getMessage().' --> '.$e->getFile().' At Line : '.$e->getLine() : '',
+            // Exception text, file paths and line numbers are only shown while debugging; they're always in the log.
+            'details' => (config('app.debug') && ! empty($e) && is_object($e)) ? $e->getMessage().' --> '.$e->getFile().' At Line : '.$e->getLine() : '',
         ])->send();
         exit();
     }
@@ -215,18 +216,28 @@ class ResponseService
     {
         report($e);
 
-        Log::error($e->getMessage().'---> '.$e->getFile().' At Line : '.$e->getLine()."\n\n".request()->method().' : '.request()->fullUrl()."\nParams : ", self::loggableInput());
+        Log::error($e->getMessage().'---> '.$e->getFile().' At Line : '.$e->getLine()."\n\n".request()->method().' : '.request()->fullUrl()."\nParams : ", self::redact(request()->all()));
     }
 
     /**
-     * The request input with passwords, tokens and secrets hidden, so they are
-     * never written to the log.
+     * Keys whose values never go into the logs (passwords, tokens, keys, secrets).
      */
-    private static function loggableInput(): array
+    private static function isSensitiveKey(string|int $key): bool
     {
-        return collect(request()->input())
-            ->map(fn ($value, $key) => preg_match('/password|token|secret|otp/i', (string) $key) ? '[hidden]' : $value)
-            ->all();
+        return (bool) preg_match('/pass|token|secret|key|signature|authorization|cookie|otp/i', (string) $key);
+    }
+
+    private static function redact(array $values): array
+    {
+        foreach ($values as $key => $value) {
+            if (self::isSensitiveKey($key)) {
+                $values[$key] = '[redacted]';
+            } elseif (is_array($value)) {
+                $values[$key] = self::redact($value);
+            }
+        }
+
+        return $values;
     }
 
     public static function logCurlRequest()
@@ -238,11 +249,9 @@ class ResponseService
         $headers = [];
 
         // Never write credentials to the log.
-        $hidden = ['authorization', 'cookie', 'x-csrf-token', 'x-xsrf-token'];
         foreach ($request->headers->all() as $key => $values) {
             foreach ($values as $value) {
-                $value = in_array(strtolower($key), $hidden, true) ? '[hidden]' : $value;
-                $headers[] = "-H '".$key.': '.$value."'";
+                $headers[] = "-H '".$key.': '.(self::isSensitiveKey($key) ? '[redacted]' : $value)."'";
             }
         }
 
@@ -251,7 +260,7 @@ class ResponseService
         if (in_array($method, ['POST', 'PUT', 'PATCH', 'DELETE'])) {
             // Multipart (e.g., file upload)
             $parts = [];
-            foreach (self::loggableInput() as $key => $value) {
+            foreach (self::redact($request->input()) as $key => $value) {
                 if (is_array($value)) {
                     foreach ($value as $k => $v) {
                         if (is_array($v)) {

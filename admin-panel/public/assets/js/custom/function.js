@@ -5,9 +5,65 @@ function trans(label) {
     return window?.languageLabels[label] || label;
 }
 
+/**
+ * Escape a value for safe insertion into HTML text or a quoted HTML attribute.
+ * null / undefined become an empty string; numbers and booleans are stringified.
+ * Shared by formatter.js, custom-bootstrap-table.js, custom.js and the Blade views
+ * (this file is loaded before all of them in layouts/footer_js.blade.php).
+ */
+function escapeHtml(value) {
+    if (value === null || value === undefined) {
+        return "";
+    }
+    return String(value)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#39;")
+        .replace(/`/g, "&#96;");
+}
+
+/**
+ * Return the URL unchanged when it is http(s) or relative (no scheme); any other
+ * scheme (javascript:, data:, vbscript:, ...) is replaced by the fallback ("#").
+ * The result is NOT HTML-escaped: wrap it in escapeHtml() when building markup.
+ */
+function safeUrl(url, fallback) {
+    if (fallback === undefined) {
+        fallback = "#";
+    }
+    if (url === null || url === undefined) {
+        return fallback;
+    }
+    var str = String(url).trim();
+    if (str === "") {
+        return fallback;
+    }
+    // Browsers drop tab/CR/LF anywhere and leading control chars/spaces before reading the scheme.
+    var normalized = str.replace(/[\t\n\r]/g, "").replace(/^[\u0000- ]+/, "");
+    var scheme = normalized.match(/^([a-zA-Z][a-zA-Z0-9+.\-]*):/);
+    if (scheme) {
+        var name = scheme[1].toLowerCase();
+        return name === "http" || name === "https" ? str : fallback;
+    }
+    return str;
+}
+
+/**
+ * $.toast inserts its text with .html(), so toast messages (often server/user supplied)
+ * are escaped here. Arrays (rendered by the plugin as a list) are escaped item by item.
+ */
+function escapeToastText(message) {
+    if (Array.isArray(message)) {
+        return message.map(escapeHtml);
+    }
+    return escapeHtml(message);
+}
+
 function showErrorToast(message) {
     $.toast({
-        text: message,
+        text: escapeToastText(message),
         showHideTransition: 'slide',
         icon: 'error',
         loaderBg: '#dc3545', // color ignored — loader bar is tinted per type in content.css
@@ -20,7 +76,7 @@ function showErrorToast(message) {
 
 function showSuccessToast(message) {
     $.toast({
-        text: message,
+        text: escapeToastText(message),
         showHideTransition: 'slide',
         icon: 'success',
         loaderBg: '#198754', // color ignored — loader bar is tinted per type in content.css
@@ -287,7 +343,7 @@ function parentSearchSelect2DesignTemplate(repo) {
             "<div class='select2-result-repository clearfix'>" +
             "<div class='row'>" +
             "<div class='col-1 select2-result-repository__avatar' style='width:20px'>" +
-            "<img src='" + repo.image + "' class='w-100' onerror='onErrorImage(event)'/>" +
+            "<img src='" + escapeHtml(repo.image) + "' class='w-100' onerror='onErrorImage(event)'/>" +
             "</div>" +
             "<div class='col-10'>" +
             "<div class='select2-result-repository__title'></div>" +

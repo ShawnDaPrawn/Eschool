@@ -13,6 +13,12 @@ class EnsureParentChildrenSessionIsActive
     public function handle(Request $request, Closure $next)
     {
         $user = $request->user();
+        if (! $user?->parent) {
+            return response()->json([
+                'error' => true,
+                'message' => trans('no_permission_message'),
+            ], Response::HTTP_FORBIDDEN);
+        }
         $session_year_id = getSettings('session_year')['session_year'];
 
         $children = Students::where(function ($q) use ($user) {

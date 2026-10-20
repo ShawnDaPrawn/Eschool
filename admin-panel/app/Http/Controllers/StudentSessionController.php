@@ -125,17 +125,20 @@ class StudentSessionController extends Controller
                 'message' => trans('data_update_successfully'),
             ]);
         } catch (Exception $e) {
+            report($e);
+
             return response()->json([
                 'error' => true,
                 'message' => trans('error_occurred'),
-                'data' => $e->getMessage(),
             ]);
         }
     }
 
     public function getPromoteData(Request $request)
     {
-        ResponseService::noPermissionThenSendJson('promote-student-list');
+        if (! Auth::user()->can('promote-student-list')) {
+            return response()->json(['message' => trans('no_permission_message')]);
+        }
         $response = StudentSessions::where(['class_section_id' => $request->class_section_id])->get();
 
         return response()->json($response);

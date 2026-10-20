@@ -51,7 +51,7 @@
                             data-export-types='["txt","excel"]'
                             data-export-options='{ "fileName": "{{ __('fees') }}-{{ __('paid') }}-{{ __('list') }}-<?= date('d-m-y')
                             ?>" ,"ignoreColumn":["operate"]}' data-show-export="true"
-                            data-query-params="feesPaidListQueryParams">
+                            data-query-params="feesPaidListQueryParams" data-escape="true" data-escape-title="false">
                             <thead>
                                 <tr>
                                     <th scope="col" data-field="id" data-sortable="true" data-visible="false">
@@ -86,7 +86,7 @@
                                     <th scope="col" data-field="updated_at" data-sortable="true" data-visible="false">
                                         {{ __('updated_at') }}
                                     </th>
-                                    <th scope="col" data-field="operate" data-sortable="false"
+                                    <th scope="col" data-field="operate" data-sortable="false" data-escape="false"
                                         data-events="feesPaidEvents" data-align="center">{{ __('action') }}</th>
                                 </tr>
                             </thead>

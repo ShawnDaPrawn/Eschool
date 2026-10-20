@@ -5,7 +5,6 @@ import 'package:eschool/utils/labelKeys.dart';
 import 'package:eschool/utils/uiUtils.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
-import 'package:url_launcher/url_launcher.dart';
 
 class HomeTimetableContainer extends StatefulWidget {
   const HomeTimetableContainer({required this.timeTableSlots, super.key});
@@ -121,12 +120,9 @@ class _HomeTimetableContainerState extends State<HomeTimetableContainer>
                             alignment: AlignmentDirectional.centerEnd,
                             child: GestureDetector(
                               onTap: () {
-                                try {
-                                  launchUrl(
-                                    Uri.parse(timetable.linkCustomUrl!),
-                                    mode: LaunchMode.externalApplication,
-                                  );
-                                } catch (_) {}
+                                UiUtils.launchWebUrl(
+                                  timetable.linkCustomUrl ?? '',
+                                );
                               },
                               child: Text(
                                 timetable.linkName!,

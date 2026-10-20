@@ -66,9 +66,12 @@ Route::get('login', [App\Http\Controllers\Auth\LoginController::class, 'showLogi
 Route::post('login', [App\Http\Controllers\Auth\LoginController::class, 'login'])->middleware('guest');
 Route::post('logout', [App\Http\Controllers\Auth\LoginController::class, 'logout'])->name('logout');
 
+// There is no self-registration: accounts are created by staff, and students
+// apply through the public online registration form.
+
 // Password Reset Routes (if needed)
 Route::get('password/reset', [App\Http\Controllers\Auth\ForgotPasswordController::class, 'showLinkRequestForm'])->name('password.request');
-Route::post('password/email', [App\Http\Controllers\Auth\ForgotPasswordController::class, 'sendResetLinkEmail'])->name('password.email');
+Route::post('password/email', [App\Http\Controllers\Auth\ForgotPasswordController::class, 'sendResetLinkEmail'])->middleware('throttle:login')->name('password.email');
 Route::get('password/reset/{token}', [App\Http\Controllers\Auth\ResetPasswordController::class, 'showResetForm'])->name('password.reset');
 Route::post('password/reset', [App\Http\Controllers\Auth\ResetPasswordController::class, 'reset'])->name('password.update');
 Route::get('web-set-language/{lang}', [LanguageController::class, 'set_language'])->name('web.set.language');
@@ -80,9 +83,10 @@ Route::group(['middleware' => 'language'], function () {
     Route::get('photo', [WebController::class, 'photo'])->name('photo');
     Route::get('photo-gallery/{id}', [WebController::class, 'photo_details'])->name('photo.gallery');
     Route::get('video', [WebController::class, 'video'])->name('video');
-    Route::post('contact-us/store', [WebController::class, 'contact_us_store'])->name('contact_us.store');
+    // Public forms: limited per address so they can't be used to flood the school with messages or accounts.
+    Route::post('contact-us/store', [WebController::class, 'contact_us_store'])->middleware('throttle:5,1')->name('contact_us.store');
     Route::get('registration', [WebController::class, 'registrationIndex'])->name('student-registration.index');
-    Route::post('student-register', [WebController::class, 'studentRegistration'])->name('student-registration-store');
+    Route::post('student-register', [WebController::class, 'studentRegistration'])->middleware('throttle:10,1')->name('student-registration-store');
     Route::get('error-page', [WebController::class, 'errorPage'])->name('error-page');
 });
 
@@ -501,7 +505,7 @@ Route::group(['middleware' => ['Role', 'auth']], function () {
         Route::get('student-attendance-report', [AttendanceController::class, 'attendanceReportShow']);
 
         Route::get('view-schedule/{id}', [EventController::class, 'viewScheduleIndex'])->name('view_schedule.index');
-        Route::post('events-update', [EventController::class, 'updateEvents'])->name('events.update');
+        Route::post('events-update', [EventController::class, 'updateEvents'])->name('events.update-schedules');
 
         Route::get('online-registration', [StudentController::class, 'onlineRegistrationIndex'])->name('online-registration.index');
         Route::get('online-registration-list', [StudentController::class, 'onlineRegistrationList'])->name('online-registration.list');
@@ -525,7 +529,7 @@ Route::group(['middleware' => ['Role', 'auth']], function () {
     });
 });
 
-Route::get('delete-chat-message/cron-job', [SettingController::class, 'cron_job']);
+// Old chat messages are deleted daily by the scheduler (routes/console.php), not by a public URL.
 
 // webhooks
 Route::post('webhook/razorpay', [WebhookController::class, 'razorpay']);

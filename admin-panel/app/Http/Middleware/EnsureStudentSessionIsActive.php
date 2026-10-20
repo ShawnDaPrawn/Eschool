@@ -17,9 +17,20 @@ class EnsureStudentSessionIsActive
     public function handle(Request $request, Closure $next)
     {
         $user = $request->user();
+
+        // Student APIs are for active student accounts only.
+        if (! $user || ! $user->hasRole('Student') || (int) $user->status !== 1 || ! $user->student) {
+            return response()->json([
+                'error' => true,
+                'message' => trans('no_permission_message'),
+                'data' => null,
+                'code' => Response::HTTP_FORBIDDEN,
+            ], Response::HTTP_FORBIDDEN);
+        }
+
         $session_year_id = getSettings('session_year')['session_year'];
         $studentSession = StudentSessions::where('session_year_id', $session_year_id)
-            ->where('student_id', $user->student->id)->first();;
+            ->where('student_id', $user->student->id)->first();
 
         if (! $studentSession) {
             return response()->json([

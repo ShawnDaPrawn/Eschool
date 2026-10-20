@@ -25,33 +25,33 @@
                         <div class="row">
                             <div class="form-group col-md-4 col-sm-12">
                                 <label>{{__('mail_mailer')}}</label>
-                                <select required name="mail_mailer" value="{{env('MAIL_MAILER')}}" class="form-control select2" style="width:100%;" tabindex="-1" aria-hidden="true">
+                                <select required name="mail_mailer" value="{{config('mail.default')}}" class="form-control select2" style="width:100%;" tabindex="-1" aria-hidden="true">
                                     <option value="">--- Select Mailer ---</option>
-                                    <option {{env('MAIL_MAILER')=='smtp' ?'selected':''}} value="smtp">SMTP</option>
-                                    <option {{env('MAIL_MAILER')=='mailgun' ?'selected':''}} value="mailgun">Mailgun</option>
-                                    <option {{env('MAIL_MAILER')=='sendmail' ?'selected':''}} value="sendmail">sendmail</option>
-                                    <option {{env('MAIL_MAILER')=='postmark' ?'selected':''}} value="postmark">Postmark</option>
-                                    <option {{env('MAIL_MAILER')=='amazon_ses' ?'selected':''}} value="amazon_ses">Amazon SES</option>
+                                    <option {{config('mail.default')=='smtp' ?'selected':''}} value="smtp">SMTP</option>
+                                    <option {{config('mail.default')=='mailgun' ?'selected':''}} value="mailgun">Mailgun</option>
+                                    <option {{config('mail.default')=='sendmail' ?'selected':''}} value="sendmail">sendmail</option>
+                                    <option {{config('mail.default')=='postmark' ?'selected':''}} value="postmark">Postmark</option>
+                                    <option {{config('mail.default')=='amazon_ses' ?'selected':''}} value="amazon_ses">Amazon SES</option>
                                 </select>
                             </div>
                             <div class="form-group col-md-4 col-sm-12">
                                 <label>{{__('mail_host')}}</label>
-                                <input name="mail_host" value="{{!env('DEMO_MODE') ? (env('MAIL_HOST') ? env('MAIL_HOST') : "" ) : 'xxxxxxxxxxxxxxxxxxxx' }}" type="text" required placeholder="{{__('mail_host')}}" class="form-control" />
+                                <input name="mail_host" value="{{!config('app.demo_mode') ? (config('mail.mailers.smtp.host') ? config('mail.mailers.smtp.host') : "" ) : 'xxxxxxxxxxxxxxxxxxxx' }}" type="text" required placeholder="{{__('mail_host')}}" class="form-control" />
                             </div>
                             <div class="form-group col-md-4 col-sm-12">
                                 <label>{{__('mail_port')}}</label>
-                                <input name="mail_port" value="{{!env('DEMO_MODE') ? (env('MAIL_PORT') ? env('MAIL_PORT') : "" ) : 'xxxxxxxxxxxxxxxxxxxx' }}" type="text" required placeholder="{{__('mail_port')}}" class="form-control" />
+                                <input name="mail_port" value="{{!config('app.demo_mode') ? (config('mail.mailers.smtp.port') ? config('mail.mailers.smtp.port') : "" ) : 'xxxxxxxxxxxxxxxxxxxx' }}" type="text" required placeholder="{{__('mail_port')}}" class="form-control" />
                             </div>
                         </div>
                         <div class="row">
                             <div class="form-group col-md-4 col-sm-12">
                                 <label>{{__('mail_username')}}</label>
-                                <input name="mail_username" value="{{!env('DEMO_MODE') ? (env('MAIL_USERNAME') ? env('MAIL_USERNAME') : "" ) : 'xxxxxxxxxxxxxxxxxxxx' }}" type="text" required placeholder="{{__('mail_username')}}" class="form-control" />
+                                <input name="mail_username" value="{{!config('app.demo_mode') ? (config('mail.mailers.smtp.username') ? config('mail.mailers.smtp.username') : "" ) : 'xxxxxxxxxxxxxxxxxxxx' }}" type="text" required placeholder="{{__('mail_username')}}" class="form-control" />
                             </div>
                             <div class="form-group col-md-4 col-sm-12">
                                 <label>{{__('mail_password')}}</label>
                                 <div class="input-group">
-                                    <input id="password" name="mail_password" value="{{!env('DEMO_MODE') ? (env('MAIL_PASSWORD') ? env('MAIL_PASSWORD') : "" ) : 'xxxxxxxxxxxxxxxxxxxx' }}" type="password" required placeholder="{{__('mail_password')}}" class="form-control" />
+                                    <input id="password" name="mail_password" value="{{!config('app.demo_mode') ? (config('mail.mailers.smtp.password') ? config('mail.mailers.smtp.password') : "" ) : 'xxxxxxxxxxxxxxxxxxxx' }}" type="password" required placeholder="{{__('mail_password')}}" class="form-control" />
                                     <div class="input-group-append">
                                         <span class="input-group-text">
                                             <i class="fa fa-eye-slash" id="togglePassword"></i>
@@ -61,13 +61,13 @@
                             </div>
                             <div class="form-group col-md-4 col-sm-12">
                                 <label>{{__('mail_encryption')}}</label>
-                                <input name="mail_encryption" value="{{!env('DEMO_MODE') ? (env('MAIL_ENCRYPTION') ? env('MAIL_ENCRYPTION') : "" ) : 'xxxxxxxxxxxxxxxxxxxx' }}" type="text" required placeholder="{{__('mail_encryption')}}" class="form-control" />
+                                <input name="mail_encryption" value="{{!config('app.demo_mode') ? (config('mail.mailers.smtp.encryption') ? config('mail.mailers.smtp.encryption') : "" ) : 'xxxxxxxxxxxxxxxxxxxx' }}" type="text" required placeholder="{{__('mail_encryption')}}" class="form-control" />
                             </div>
                         </div>
                         <div class="row">
                             <div class="form-group col-md-4 col-sm-12">
                                 <label>{{__('mail_send_from')}}</label>
-                                <input name="mail_send_from" value="{{!env('DEMO_MODE') ? (env('MAIL_FROM_ADDRESS') ? env('MAIL_FROM_ADDRESS') : "" ) : 'xxxxxxxxxxxxxxxxxxxx' }}" type="text" required placeholder="{{__('mail_send_from')}}" class="form-control" />
+                                <input name="mail_send_from" value="{{!config('app.demo_mode') ? (config('mail.from.address') ? config('mail.from.address') : "" ) : 'xxxxxxxxxxxxxxxxxxxx' }}" type="text" required placeholder="{{__('mail_send_from')}}" class="form-control" />
                             </div>
                         </div>
                         <input class="btn btn-theme" type="submit" value="{{ __('submit') }}">

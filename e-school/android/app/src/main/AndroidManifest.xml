@@ -13,13 +13,18 @@
         android:name="com.google.android.gms.permission.AD_ID"
         tools:node="remove" />
 
+    <!-- Backups are off: app data (including the saved login token) must not be copied
+         to cloud backups or to another device. -->
     <application
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher"
         android:label="eSchool"
+        android:allowBackup="false"
+        android:dataExtractionRules="@xml/data_extraction_rules"
         android:networkSecurityConfig="@xml/network_security_config"
         android:requestLegacyExternalStorage="true"
-        android:usesCleartextTraffic="false">
+        android:usesCleartextTraffic="false"
+        tools:replace="android:allowBackup,android:dataExtractionRules">
 
         <meta-data
             android:name="com.google.firebase.messaging.default_notification_icon"

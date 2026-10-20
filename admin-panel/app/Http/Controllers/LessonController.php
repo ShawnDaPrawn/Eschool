@@ -7,6 +7,7 @@ namespace App\Http\Controllers;
 use App\Services\ResponseService;
 use App\Http\Requests\StoreLessonRequest;
 use App\Http\Requests\UpdateLessonRequest;
+use App\Models\Assignment;
 use App\Models\ClassSchool;
 use App\Models\ClassSection;
 use App\Models\File;
@@ -541,6 +542,18 @@ class LessonController extends Controller
         ResponseService::noPermissionThenSendJson('lesson-delete');
         try {
             $file = File::findOrFail($id);
+            // Only the lesson, topic and assignment pages remove files through this route.
+            $editPermission = [
+                Lesson::class => 'lesson-edit',
+                LessonTopic::class => 'topic-edit',
+                Assignment::class => 'assignment-edit',
+            ][$file->modal_type] ?? null;
+            if (! $editPermission || ! Auth::user()->can($editPermission)) {
+                return response()->json([
+                    'error' => true,
+                    'message' => trans('no_permission_message'),
+                ]);
+            }
             if (Storage::disk('public')->exists($file->file_url)) {
                 Storage::disk('public')->delete($file->file_url);
             }

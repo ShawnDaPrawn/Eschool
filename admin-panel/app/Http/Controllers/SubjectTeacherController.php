@@ -100,10 +100,10 @@ class SubjectTeacherController extends Controller
                 'message' => trans('data_store_successfully')
             ];
         } catch (Throwable $e) {
+            report($e);
             $response = array(
                 'error' => true,
-                'message' => trans('error_occurred'),
-                'data' => $e
+                'message' => trans('error_occurred')
             );
         }
         return response()->json($response);
@@ -138,10 +138,10 @@ class SubjectTeacherController extends Controller
                 'message' => trans('data_update_successfully')
             ];
         } catch (Throwable $e) {
+            report($e);
             $response = array(
                 'error' => true,
-                'message' => trans('error_occurred'),
-                'data' => $e
+                'message' => trans('error_occurred')
             );
         }
         return response()->json($response);
@@ -182,21 +182,24 @@ class SubjectTeacherController extends Controller
             ->where('session_year_id', $session_year_id);
         if (isset($_GET['search']) && !empty($_GET['search'])) {
             $search = $_GET['search'];
-            $sql->where('id', 'LIKE', "%$search%")
-                ->orWhereHas('class_section.class', function ($q) use ($search) {
+            // Grouped so the search cannot widen the teacher scope and session-year filter above.
+            $sql->where(function ($query) use ($search) {
+                $query->where('id', 'LIKE', "%$search%")
+                    ->orWhereHas('class_section.class', function ($q) use ($search) {
 
-                    $q->where('name', 'LIKE', "%$search%");
-                })
-                ->orWhereHas('class_section.section', function ($q) use ($search) {
+                        $q->where('name', 'LIKE', "%$search%");
+                    })
+                    ->orWhereHas('class_section.section', function ($q) use ($search) {
 
-                    $q->where('name', 'LIKE', "%$search%");
-                })
-                ->orWhereHas('subject', function ($q) use ($search) {
-                    $q->where('name', 'LIKE', "%$search%");
-                })
-                ->orWhereHas('teacher.user', function ($q) use ($search) {
-                    $q->whereRaw("concat(users.first_name,' ',users.last_name) LIKE '%" . $search . "%'")->orwhere('users.first_name', 'LIKE', "%$search%")->orwhere('users.last_name', 'LIKE', "%$search%");
-                });
+                        $q->where('name', 'LIKE', "%$search%");
+                    })
+                    ->orWhereHas('subject', function ($q) use ($search) {
+                        $q->where('name', 'LIKE', "%$search%");
+                    })
+                    ->orWhereHas('teacher.user', function ($q) use ($search) {
+                        $q->whereRaw("concat(users.first_name,' ',users.last_name) LIKE ?", ['%' . $search . '%'])->orwhere('users.first_name', 'LIKE', "%$search%")->orwhere('users.last_name', 'LIKE', "%$search%");
+                    });
+            });
         }
 
         if (! empty($_GET['class_id'])) {

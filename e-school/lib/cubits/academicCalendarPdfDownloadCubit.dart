@@ -5,6 +5,7 @@ import 'dart:io';
 import 'package:bloc/bloc.dart';
 import 'package:eschool/data/repositories/systemInfoRepository.dart';
 import 'package:eschool/utils/api.dart';
+import 'package:eschool/utils/fileNameUtils.dart';
 import 'package:eschool/utils/labelKeys.dart';
 import 'package:path_provider/path_provider.dart';
 
@@ -53,7 +54,11 @@ class AcademicCalendarPdfDownloadCubit
         .then((value) async {
           String filePath = '';
           final path = (await getApplicationDocumentsDirectory()).path;
-          filePath = '$path/Academic Calendar/$currentSessionYearName.pdf';
+          final String fileName = sanitizeFileName(
+            currentSessionYearName,
+            fallback: 'Academic Calendar',
+          );
+          filePath = '$path/Academic Calendar/$fileName.pdf';
 
           final File file = File(filePath);
           if (!file.existsSync()) {

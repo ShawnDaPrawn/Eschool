@@ -33,3 +33,13 @@ If your default language is not in `assets/languages/[language-code].json`:
 
 ![Add New Language](../static/images/app/addNewLanguage.jpg)
 ![Add New Language 2](../static/images/app/addNewLanguage2.jpg)
+
+## Checking Language Files
+
+Each app has a test that checks its language files. From the app's folder, run:
+
+```bash
+flutter test test/translations_test.dart
+```
+
+It fails if a language in `appLanguages.dart` has no file, if a file has no matching language in the list, or if a file is missing labels from `en.json` (or has labels `en.json` doesn't). A missing label shows its key instead of text in the app.

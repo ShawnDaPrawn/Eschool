@@ -6,6 +6,7 @@ import 'package:bloc/bloc.dart';
 import 'package:eschool/data/models/paidFees.dart';
 import 'package:eschool/data/repositories/studentRepository.dart';
 import 'package:eschool/utils/api.dart';
+import 'package:eschool/utils/fileNameUtils.dart';
 import 'package:eschool/utils/labelKeys.dart';
 import 'package:path_provider/path_provider.dart';
 
@@ -58,8 +59,9 @@ class FeesReceiptCubit extends Cubit<FeesReceiptState> {
         .then((value) async {
           String filePath = '';
           final path = (await getApplicationDocumentsDirectory()).path;
+          final String prefix = sanitizeFileName(fileNamePrefix, fallback: '');
           filePath =
-              '$path/Fees Receipts/${fileNamePrefix}_fees_payment_receipt_on_${DateTime.now()}.pdf';
+              '$path/Fees Receipts/${prefix}_fees_payment_receipt_on_${DateTime.now()}.pdf';
 
           final File file = File(filePath);
           if (!file.existsSync()) {

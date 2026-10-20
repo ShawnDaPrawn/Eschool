@@ -70,9 +70,17 @@ class Parents extends Model
         return $this->hasMany(Students::class, 'guardian_id');
     }
 
+    /**
+     * Students this parent is the father, mother or guardian of. One query with OR:
+     * the old UNION only applied a chained ->where() to its father branch.
+     */
     public function children()
     {
-        return $this->fatherRelationChild()->union($this->motherRelationChild())->union($this->guardianRelationChild());
+        return Students::query()->where(function ($query) {
+            $query->where('father_id', $this->id)
+                ->orWhere('mother_id', $this->id)
+                ->orWhere('guardian_id', $this->id);
+        });
     }
 
     /**

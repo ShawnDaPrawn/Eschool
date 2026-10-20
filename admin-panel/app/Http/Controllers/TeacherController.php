@@ -12,11 +12,11 @@ use App\Models\Settings;
 use App\Models\SubjectTeacher;
 use App\Models\Teacher;
 use App\Models\User;
+use App\Services\EmailTemplateService;
 use App\Services\MailService;
 use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
@@ -370,9 +370,7 @@ class TeacherController extends Controller
                             'user_id' => $user->id,
                         ]);
                     } else {
-                        $normalizedTemplate = preg_replace('/\{\$?(\w+)\s*\}/', '{{ $$1 }}', $staffTemplate);
-
-                        $htmlcontent = Blade::render($normalizedTemplate, $data);
+                        $htmlcontent = EmailTemplateService::render((string) $staffTemplate, $data);
 
                         $emailPayload = [
                             'body' => $htmlcontent,
@@ -395,14 +393,10 @@ class TeacherController extends Controller
                 'message' => trans('data_store_successfully'),
             ];
         } catch (Throwable $e) {
+            report($e);
             $response = [
                 'error' => true,
-                'message' => trans('error_occurred').': '.$e->getMessage(),
-                'data' => [
-                    'file' => $e->getFile(),
-                    'line' => $e->getLine(),
-                    'trace' => $e->getTraceAsString(),
-                ],
+                'message' => trans('error_occurred'),
             ];
         }
 
@@ -684,10 +678,10 @@ class TeacherController extends Controller
                 'message' => trans('data_update_successfully'),
             ];
         } catch (Throwable $e) {
+            report($e);
             $response = [
                 'error' => true,
                 'message' => trans('error_occurred'),
-                'data' => $e,
             ];
         }
 

@@ -14,6 +14,13 @@ use Throwable;
 
 class LanguageController extends Controller
 {
+    /**
+     * Language codes name the translation file (resources/lang/{code}.json), so
+     * they are limited to letters/digits with an optional region or variant
+     * suffix such as "en", "pt-BR" or "eng-rtl".
+     */
+    private const CODE_RULE = 'regex:/^[A-Za-z]{2,3}([-_][A-Za-z0-9]{2,8})?$/';
+
     public function index()
     {
         if (! Auth::user()->can('language-create')) {
@@ -42,7 +49,7 @@ class LanguageController extends Controller
             return redirect()->back()->withErrors(['message' => trans('error_occurred')]);
         }
 
-        $filePath = base_path('resources/lang/'.$language->file);
+        $filePath = base_path('resources/lang/'.basename((string) $language->file));
         if (! File::exists($filePath)) {
             return redirect()->back()->withErrors(['message' => trans('error_occurred')]);
         }
@@ -87,7 +94,7 @@ class LanguageController extends Controller
 
         $request->validate([
             'name' => 'required',
-            'code' => 'required',
+            'code' => ['required', 'string', 'max:12', self::CODE_RULE, 'unique:languages,code'],
             'file' => 'required|mimes:json',
         ]);
 
@@ -103,7 +110,7 @@ class LanguageController extends Controller
             }
             if ($request->hasFile('file')) {
                 $file = $request->file('file');
-                $filename = $request->code.'.'.$file->getClientOriginalExtension();
+                $filename = $request->code.'.json';
                 $file->move(base_path('resources/lang/'), $filename);
                 $language->file = $filename;
             }
@@ -120,7 +127,6 @@ class LanguageController extends Controller
             $response = [
                 'error' => true,
                 'message' => trans('error_occurred'),
-                'data' => $e,
             ];
         }
 
@@ -209,8 +215,9 @@ class LanguageController extends Controller
             return redirect(route('home'))->withErrors($response);
         }
         $request->validate([
+            'id' => 'required|integer|exists:languages,id',
             'name' => 'required',
-            'code' => 'required',
+            'code' => ['required', 'string', 'max:12', self::CODE_RULE, 'unique:languages,code,'.(int) $request->id],
         ]);
 
         try {
@@ -221,11 +228,12 @@ class LanguageController extends Controller
                 $request->validate([
                     'file' => 'required|mimes:json',
                 ]);
-                if (File::exists(base_path('resources/lang/').$language->file)) {
-                    File::delete(base_path('resources/lang/').$language->file);
+                $oldFile = basename((string) $language->file);
+                if ($oldFile !== '' && File::exists(base_path('resources/lang/').$oldFile)) {
+                    File::delete(base_path('resources/lang/').$oldFile);
                 }
                 $file = $request->file('file');
-                $filename = $request->code.'.'.$file->getClientOriginalExtension();
+                $filename = $request->code.'.json';
                 $file->move(base_path('resources/lang/'), $filename);
                 $language->file = $filename;
             }
@@ -238,11 +246,10 @@ class LanguageController extends Controller
                 'message' => trans('data_update_successfully'),
             ];
         } catch (Throwable $e) {
-           
+            Log::error($e);
             $response = [
                 'error' => true,
                 'message' => trans('error_occurred'),
-                'data' => $e,
             ];
         }
 

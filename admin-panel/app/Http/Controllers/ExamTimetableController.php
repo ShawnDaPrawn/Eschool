@@ -114,10 +114,10 @@ class ExamTimetableController extends Controller
                 'message' => trans('data_store_successfully'),
             );
         } catch (Throwable $e) {
+            report($e);
             $response = array(
                 'error' => true,
-                'message' => trans('error_occurred'),
-                'data' => $e
+                'message' => trans('error_occurred')
             );
         }
         return response()->json($response);

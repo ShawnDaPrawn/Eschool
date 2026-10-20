@@ -8,6 +8,12 @@ Admin settings for chat messages provide essential controls to enhance performan
 
 ![Chat Settings](../static/images/admin/chatsetting.png)
 
-Admins can configure automatic message deletion by adding cron jobs on the server. This allows for scheduled removal of messages, helping manage storage space and maintain privacy. By setting specific intervals for deletion, admins can ensure that older messages are routinely purged, keeping the chat environment clean and efficient.
+Messages older than the number of days set here are deleted automatically once a day by Laravel's scheduler. For this to run, the server needs the standard Laravel cron entry (replace the path with your installation's path):
+
+```
+* * * * * cd /path/to/admin-panel && php artisan schedule:run >> /dev/null 2>&1
+```
+
+This keeps storage in check and older messages private without anyone having to delete them by hand.
 
 Admins can delete messages by specifying a "from date" and "to date" and then clicking the delete button. This action removes all messages within the selected date range, allowing for efficient management of chat history and ensuring that outdated or irrelevant messages are cleared out systematically. 

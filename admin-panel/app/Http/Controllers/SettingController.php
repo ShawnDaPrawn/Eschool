@@ -16,6 +16,9 @@ use Throwable;
 
 class SettingController extends Controller
 {
+    /** Firebase service account file, on the private local disk. */
+    private const SERVICE_ACCOUNT_FILE = 'firebase/service_account.json';
+
     public function index()
     {
         if (! Auth::user()->can('setting-create')) {
@@ -66,6 +69,10 @@ class SettingController extends Controller
             'recaptcha_site_key' => 'required_if:recaptcha_status,1',
             'recaptcha_secret_key' => 'required_if:recaptcha_status,1',
             'recaptcha_status' => 'nullable',
+            'logo1' => 'nullable|file|mimes:jpeg,jpg,png,gif,webp,svg',
+            'logo2' => 'nullable|file|mimes:jpeg,jpg,png,gif,webp,svg',
+            'favicon' => 'nullable|file|mimes:jpeg,jpg,png,gif,webp,svg,ico',
+            'login_image' => 'nullable|file|mimes:jpeg,jpg,png,gif,webp,svg',
         ]);
 
         $settings = [
@@ -225,37 +232,15 @@ class SettingController extends Controller
                 }
             }
 
-            $logo1 = Settings::select('message')->where('type', 'logo1')->pluck('message')->first();
-            $logo2 = Settings::select('message')->where('type', 'logo2')->pluck('message')->first();
-            $favicon = Settings::select('message')->where('type', 'favicon')->pluck('message')->first();
-            $app_name = Settings::select('message')->where('type', 'school_name')->pluck('message')->first();
-            $timezone = Settings::select('message')->where('type', 'time_zone')->pluck('message')->first();
-            $login_image = Settings::select('message')->where('type', 'login_image')->pluck('message')->first();
-            $recaptcha_site_key = Settings::select('message')->where('type', 'recaptcha_site_key')->pluck('message')->first();
-            $recaptcha_secret_key = Settings::select('message')->where('type', 'recaptcha_secret_key')->pluck('message')->first();
-
-            $env_update = changeEnv([
-                'LOGO1' => $logo1,
-                'LOGO2' => $logo2,
-                'FAVICON' => $favicon,
-                'LOGIN_IMAGE' => $login_image,
-                'APP_NAME' => '"'.$app_name.'"',
-                'TIMEZONE' => "'".$timezone."'",
-                'SITE_KEY' => $recaptcha_site_key,
-                'SECRET_KEY' => $recaptcha_secret_key,
-
-            ]);
-            if ($env_update) {
-                $response = [
-                    'error' => false,
-                    'message' => trans('data_update_successfully'),
-                ];
-            }
+            $response = [
+                'error' => false,
+                'message' => trans('data_update_successfully'),
+            ];
         } catch (Throwable $e) {
+            report($e);
             $response = [
                 'error' => true,
                 'message' => trans('error_occurred'),
-                'data' => $e,
             ];
         }
 
@@ -343,32 +328,15 @@ class SettingController extends Controller
                     ['type' => 'email_configration_verification', 'message' => 0]
                 );
             }
-            $env_update = changeEnv([
-                'MAIL_MAILER' => $request->mail_mailer,
-                'MAIL_HOST' => $request->mail_host,
-                'MAIL_PORT' => $request->mail_port,
-                'MAIL_USERNAME' => $request->mail_username,
-                'MAIL_PASSWORD' => $request->mail_password,
-                'MAIL_ENCRYPTION' => $request->mail_encryption,
-                'MAIL_FROM_ADDRESS' => $request->mail_send_from,
-
-            ]);
-            if ($env_update) {
-                $response = [
-                    'error' => false,
-                    'message' => trans('data_update_successfully'),
-                ];
-            } else {
-                $response = [
-                    'error' => false,
-                    'message' => trans('error_occurred'),
-                ];
-            }
+            $response = [
+                'error' => false,
+                'message' => trans('data_update_successfully'),
+            ];
         } catch (Throwable $e) {
+            report($e);
             $response = [
                 'error' => true,
                 'message' => trans('error_occurred'),
-                'data' => $e,
             ];
         }
 
@@ -399,7 +367,7 @@ class SettingController extends Controller
             $data = [
                 'email' => $request->verify_email,
             ];
-            $admin_mail = env('MAIL_FROM_ADDRESS', config('mail.from.address'));
+            $admin_mail = config('mail.from.address');
             if (! filter_var($request->verify_email, FILTER_VALIDATE_EMAIL)) {
                 $response = [
                     'error' => true,
@@ -430,10 +398,10 @@ class SettingController extends Controller
                 ];
             }
         } catch (Throwable $e) {
+            report($e);
             $response = [
                 'error' => true,
                 'message' => trans('error_occurred'),
-                'data' => $e,
             ];
         }
 
@@ -631,10 +599,10 @@ class SettingController extends Controller
                 'message' => trans('data_update_successfully'),
             ];
         } catch (Throwable $e) {
+            report($e);
             $response = [
                 'error' => true,
                 'message' => trans('error_occurred'),
-                'data' => $e,
             ];
         }
 
@@ -653,7 +621,15 @@ class SettingController extends Controller
         $request->validate([
             'sender_id' => 'required',
             'project_id' => 'required',
-            // 'service_account_file' => 'required|mimes:json'
+            // JSON uploads are often detected as text/plain, so the content is checked instead of the type.
+            'service_account_file' => ['bail', 'nullable', 'file', 'max:64', function ($attribute, $value, $fail) {
+                $json = $value instanceof \Illuminate\Http\UploadedFile
+                    ? json_decode((string) @file_get_contents($value->getRealPath()), true)
+                    : null;
+                if (! is_array($json) || empty($json['private_key']) || empty($json['client_email'])) {
+                    $fail(trans('only_json_file_allowed'));
+                }
+            }],
         ]);
         $settings = ['sender_id', 'project_id'];
         try {
@@ -670,47 +646,42 @@ class SettingController extends Controller
                     $setting->save();
                 }
             }
+            // The service account file holds a Google private key, so it is kept on
+            // the private local disk (storage/app), never on the public disk.
+            $currentFile = Settings::where('type', 'service_account_file')->value('message');
+            $newFile = null;
             if ($request->hasFile('service_account_file')) {
-                $serviceAccountFile = $request->file('service_account_file');
-
-                if (Settings::where('type', 'service_account_file')->exists()) {
-                    $get_id = Settings::where('type', 'service_account_file')->value('message');
-
-                    // Delete the existing file
-                    if (Storage::disk('public')->exists($get_id)) {
-                        Storage::disk('public')->delete($get_id);
-                    }
-
-                    // Store the new file with its original name
-                    $data = [
-                        'message' => $serviceAccountFile->storeAs('firebase', $serviceAccountFile->getClientOriginalName(), 'public'),
-                    ];
-                    Settings::where('type', 'service_account_file')->update($data);
-                } else {
-                    $setting = new Settings;
-                    $setting->type = 'service_account_file';
-                    $setting->message = $serviceAccountFile->storeAs('firebase', $serviceAccountFile->getClientOriginalName(), 'public');
-                    $setting->save();
+                $newFile = $request->file('service_account_file')->storeAs(
+                    dirname(self::SERVICE_ACCOUNT_FILE),
+                    basename(self::SERVICE_ACCOUNT_FILE),
+                    'local'
+                );
+            } elseif ($currentFile && ! Storage::disk('local')->exists($currentFile) && Storage::disk('public')->exists($currentFile)) {
+                // Installs that uploaded it before: move the existing file off the public disk.
+                if (Storage::disk('local')->put(self::SERVICE_ACCOUNT_FILE, Storage::disk('public')->get($currentFile))) {
+                    $newFile = self::SERVICE_ACCOUNT_FILE;
                 }
             }
 
-            $sender_id = Settings::select('message')->where('type', 'sender_id')->pluck('message')->first();
-            $firebase_project_id = Settings::select('message')->where('type', 'project_id')->pluck('message')->first();
-            $env_update = changeEnv([
-                'SENDER_ID' => $sender_id,
-                'FIREBASE_PROJECT_ID' => $firebase_project_id,
-            ]);
-            if ($env_update) {
-                $response = [
-                    'error' => false,
-                    'message' => trans('data_update_successfully'),
-                ];
+            if ($newFile) {
+                if ($currentFile && Storage::disk('public')->exists($currentFile)) {
+                    Storage::disk('public')->delete($currentFile);
+                }
+                if ($currentFile && $currentFile !== $newFile && Storage::disk('local')->exists($currentFile)) {
+                    Storage::disk('local')->delete($currentFile);
+                }
+                Settings::updateOrCreate(['type' => 'service_account_file'], ['message' => $newFile]);
             }
+
+            $response = [
+                'error' => false,
+                'message' => trans('data_update_successfully'),
+            ];
         } catch (\Throwable $e) {
+            report($e);
             $response = [
                 'error' => true,
                 'message' => trans('error_occurred'),
-                'data' => $e,
             ];
         }
 
@@ -766,10 +737,10 @@ class SettingController extends Controller
                 'message' => trans('data_update_successfully'),
             ];
         } catch (\Throwable $e) {
+            report($e);
             $response = [
                 'error' => true,
                 'message' => trans('error_occurred'),
-                'data' => $e,
             ];
         }
 
@@ -808,10 +779,10 @@ class SettingController extends Controller
                 'message' => trans('data_delete_successfully'),
             ];
         } catch (\Throwable $e) {
+            report($e);
             $response = [
                 'error' => true,
                 'message' => trans('error_occurred'),
-                'data' => $e,
             ];
         }
 
@@ -828,10 +799,10 @@ class SettingController extends Controller
                 'message' => trans('data_delete_successfully'),
             ];
         } catch (\Throwable $e) {
+            report($e);
             $response = [
                 'error' => true,
                 'message' => trans('error_occurred'),
-                'data' => $e,
             ];
         }
 
