@@ -74,6 +74,7 @@ jobs:
       - run: flutter pub get --enforce-lockfile
       # Style-only "info" lints are reported but don't fail the build; errors and warnings do.
       - run: flutter analyze --no-fatal-infos
+      - run: flutter test
 
   docs:
     name: Documentation build

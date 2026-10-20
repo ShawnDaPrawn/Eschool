@@ -200,6 +200,7 @@
   "on": "پر",
   "attempted": "کوشش کی۔",
   "missed": "چھوٹ گیا۔",
+  "totalLeave": "کل چھٹیاں",
   "quitExam": "کیا آپ یقینی طور پر اس امتحان کو چھوڑنا چاہتے ہیں؟",
   "examCompleted": "امتحان کامیابی سے مکمل ہوا۔!!!",
   "examMultipleAns": "اس اختیار کو منتخب نہیں کر سکتے۔ کسی بھی منتخب کردہ آپشن کو غیر منتخب کریں اور دوبارہ کوشش کریں۔",
@@ -420,5 +421,10 @@
   "noOnlineExamResultsFound": "کوئی آن لائن امتحان نتیجہ نہیں ملا۔",
   "averagePercentage": "اوسط فیصد",
   "leaves": "چھٹیاں",
+  "averageCompletionRate": "اوسط تکمیل کی شرح",
+  "assignmentOverview": "اسائنمنٹ کا جائزہ",
+  "onTimeSubmission": "بروقت جمع",
+  "lateSubmission": "تاخیر سے جمع",
+  "recentAssignment": "حالیہ اسائنمنٹ",
   "studentNotSessionYear": "اوہ! طالب علم اس تعلیمی سال میں داخل نہیں ہے۔"
 }

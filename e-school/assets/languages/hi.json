@@ -200,6 +200,7 @@
   "on": "पर",
   "attempted": "प्रयास किया",
   "missed": "चुक गया",
+  "totalLeave": "कुल छुट्टियां",
   "quitExam": "क्या आप वाकई इस परीक्षा को छोड़ना चाहते हैं?",
   "examCompleted": "परीक्षा सफलतापूर्वक संपन्न हुई !!!",
   "examMultipleAns": "यह विकल्प नहीं चुना जा सकता. किसी भी चयनित विकल्प को अचयनित करें और पुनः प्रयास करें",
@@ -420,5 +421,10 @@
   "noOnlineExamResultsFound": "कोई ऑनलाइन परीक्षा परिणाम नहीं मिला।",
   "averagePercentage": "औसत प्रतिशत",
   "leaves": "छुट्टियां",
+  "averageCompletionRate": "औसत पूर्णता दर",
+  "assignmentOverview": "कार्यभार अवलोकन",
+  "onTimeSubmission": "समय पर जमा",
+  "lateSubmission": "देर से जमा",
+  "recentAssignment": "हाल का कार्यभार",
   "studentNotSessionYear": "उफ़! छात्र इस शैक्षणिक वर्ष में नामांकित नहीं है।"
 }
