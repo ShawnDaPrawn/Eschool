@@ -33,7 +33,7 @@ Two middleware aliases differ only by case and do different things: `Role` is `A
 | Staff role required on every admin page | `CheckRole` (alias `Role`) on the main group `['Role', 'auth']` in [routes/web.php](https://github.com/ShawnDaPrawn/Eschool/blob/main/admin-panel/routes/web.php) | A signed-in user needs at least one role other than `Parent`/`Student`; anyone else is signed out, the session invalidated and the CSRF token regenerated |
 | No self-registration | the `/register` route was removed (commit [439395d](https://github.com/ShawnDaPrawn/Eschool/commit/439395d)) | Accounts are only created by staff, or through the public online registration form, which creates students awaiting approval |
 | Password reset | `password/email` has `throttle:login` | Reset-link requests are rate limited like app logins (see below) |
-| Change password | admin profile page | The current password must be given |
+| Change password | `HomeController` password change (`old_password`) | The current password must match (`Hash::check`) before the new one is saved |
 | Session cookie | [config/session.php](https://github.com/ShawnDaPrawn/Eschool/blob/main/admin-panel/config/session.php) | `http_only` true, `same_site` `lax`, lifetime `SESSION_LIFETIME` (default 120 minutes); `secure` defaults to true when `APP_URL` starts with `https://` (`SESSION_SECURE_COOKIE` overrides) |
 | CSRF | Laravel's CSRF check in the `web` group; `validateCsrfTokens(except: ['webhook/*'])` | Every state-changing web request needs the session's token, except the payment gateway webhooks, which are authenticated by signature instead |
 
