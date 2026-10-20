@@ -567,6 +567,8 @@ Route::get('/terms-conditions', function () {
     echo $settings['terms_condition'];
 });
 
+// Maintenance actions: the header's Cache Clear button needs a logged-in user;
+// the rest are Super Admin only. They used to be reachable without logging in.
 Route::get('clear', function () {
     Artisan::call('view:clear');
     Artisan::call('route:clear');
@@ -574,24 +576,35 @@ Route::get('clear', function () {
     Artisan::call('cache:clear');
 
     return redirect()->back();
-});
+})->middleware('auth');
 
-Route::get('storage-link', function () {
-    try {
-        Artisan::call('storage:link');
-        echo 'storage link created';
-    } catch (Exception $e) {
-        echo 'Storage Link already exists';
-    }
-});
+Route::group(['middleware' => ['auth', 'role:Super Admin']], static function () {
+    Route::get('storage-link', function () {
+        try {
+            Artisan::call('storage:link');
+            echo 'storage link created';
+        } catch (Exception $e) {
+            echo 'Storage Link already exists';
+        }
+    });
 
-Route::get('migrate', function () {
-    Artisan::call('view:clear');
-    Artisan::call('route:clear');
-    Artisan::call('config:clear');
-    Artisan::call('cache:clear');
-    Artisan::call('migrate');
-    echo 'Migration Done';
+    Route::get('migrate', function () {
+        Artisan::call('view:clear');
+        Artisan::call('route:clear');
+        Artisan::call('config:clear');
+        Artisan::call('cache:clear');
+        Artisan::call('migrate --force');
+        echo 'Migration Done';
+    });
+
+    Route::get('seeder_install', function () {
+        Artisan::call('view:clear');
+        Artisan::call('route:clear');
+        Artisan::call('config:clear');
+        Artisan::call('cache:clear');
+        Artisan::call('db:seed --class=InstallationSeeder --force');
+        echo 'Seeders Insatlled Successfully';
+    });
 });
 
 // Route::get('rollback', function () {
@@ -602,15 +615,6 @@ Route::get('migrate', function () {
 //     Artisan::call('migrate:rollback');
 //     echo "Rollback Done";
 // });
-
-Route::get('seeder_install', function () {
-    Artisan::call('view:clear');
-    Artisan::call('route:clear');
-    Artisan::call('config:clear');
-    Artisan::call('cache:clear');
-    Artisan::call('db:seed --class=InstallationSeeder');
-    echo 'Seeders Insatlled Successfully';
-});
 
 // Route::get('test', function () {
 //     //            return "working";
