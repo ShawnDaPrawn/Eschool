@@ -44,6 +44,21 @@ class SecurityTest extends TestCase
         $this->actingAs($this->superAdmin())->get('/clear')->assertRedirect();
     }
 
+    public function test_other_roles_cannot_create_accounts_through_users(): void
+    {
+        // /users was leftover demo code with no permission checks, so any
+        // logged-in user could create a Super Admin account.
+        $this->actingAs($this->teacher())->post('/users', [
+            'name' => 'Test',
+            'email' => 'new.admin@example.com',
+            'password' => 'secret123',
+            'confirm-password' => 'secret123',
+            'roles' => ['Super Admin'],
+        ])->assertNotFound();
+
+        $this->assertDatabaseMissing('users', ['email' => 'new.admin@example.com']);
+    }
+
     public function test_expired_app_tokens_are_rejected(): void
     {
         $teacher = $this->teacher();
