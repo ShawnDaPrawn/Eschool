@@ -367,15 +367,16 @@ function destroyEquationEditors() {
 }
 
 // Copy each editor's content into its textarea before the form is read.
+// Jodit's synchronizeValues() is throttled and can miss the last keystrokes,
+// so the value is copied directly.
 function syncEquationEditors() {
     equationEditors.forEach(function (editor) {
-        editor.synchronizeValues();
+        var value = editor.value;
         // An empty editor holds <p><br></p>; keep the textarea empty so the
         // required checks still apply.
-        var content = $("<div>").html(editor.value);
-        if (!$.trim(content.text()) && !content.find("img, table, hr").length) {
-            editor.element.value = "";
-        }
+        var body = new DOMParser().parseFromString(value, "text/html").body;
+        var empty = !$.trim(body.textContent) && !body.querySelector("img, table, hr");
+        editor.element.value = empty ? "" : value;
     });
 }
 
