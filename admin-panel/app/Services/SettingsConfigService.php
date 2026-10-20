@@ -41,11 +41,19 @@ class SettingsConfigService
             return;
         }
 
+        // .env.example sets MAIL_FROM_NAME="${APP_NAME}": keep the sender name
+        // following the school name unless it was set to something else.
+        $senderFollowsAppName = config('mail.from.name') === config('app.name');
+
         foreach (self::CONFIG_KEYS as $type => $key) {
             $value = trim((string) ($settings[$type] ?? ''));
             if ($value !== '') {
                 config([$key => $type === 'mail_port' ? (int) $value : $value]);
             }
+        }
+
+        if ($senderFollowsAppName) {
+            config(['mail.from.name' => config('app.name')]);
         }
 
         $timezone = trim((string) ($settings['time_zone'] ?? ''));

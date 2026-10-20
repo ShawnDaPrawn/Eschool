@@ -44,6 +44,7 @@ class SettingsConfigTest extends TestCase
     public function test_admin_settings_override_the_env_config(): void
     {
         $this->seedLikeInstaller();
+        config(['mail.from.name' => config('app.name')]); // MAIL_FROM_NAME="${APP_NAME}", as in .env.example
         foreach ([
             'school_name' => 'Greenfield High',
             'time_zone' => 'Africa/Johannesburg',
@@ -62,6 +63,7 @@ class SettingsConfigTest extends TestCase
         SettingsConfigService::apply();
 
         $this->assertSame('Greenfield High', config('app.name'));
+        $this->assertSame('Greenfield High', config('mail.from.name'));
         $this->assertSame('Africa/Johannesburg', config('app.timezone'));
         $this->assertSame('Africa/Johannesburg', date_default_timezone_get());
         $this->assertSame('mail.example.org', config('mail.mailers.smtp.host'));
@@ -77,6 +79,7 @@ class SettingsConfigTest extends TestCase
         $this->seedLikeInstaller();
         Settings::where('type', 'time_zone')->update(['message' => 'Not/AZone']);
         Settings::updateOrInsert(['type' => 'mail_host'], ['message' => '']);
+        config(['mail.from.name' => 'Front Office']); // a MAIL_FROM_NAME of its own
         $timezone = config('app.timezone');
         $host = config('mail.mailers.smtp.host');
 
@@ -84,6 +87,7 @@ class SettingsConfigTest extends TestCase
 
         $this->assertSame($timezone, config('app.timezone'));
         $this->assertSame($host, config('mail.mailers.smtp.host'));
+        $this->assertSame('Front Office', config('mail.from.name'));
     }
 
     public function test_saving_mail_settings_no_longer_rewrites_env(): void
