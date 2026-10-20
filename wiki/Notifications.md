@@ -160,6 +160,8 @@ The editor is **System Settings > Email Template**: `GET email-tamplate` (route 
 | Mail settings test | `POST verify-email-settings` | The address entered | view `mail.blade.php` | `Connection Verified successfully` |
 | Password reset link | Web `POST password/email` (`ForgotPasswordController`, `throttle:login`) and API `POST /api/forgot-password` (`ApiController::forgotPassword`, `throttle:login`) | The account email | Laravel's default reset notification | Laravel default |
 
+Sender: the student/parent emails in `StudentController` and the contact-us reply call `from(config('mail.from.address'), <school name>)`; the teacher, staff and bulk-import emails do not set a sender, so Laravel uses `mail.from.address` and `mail.from.name` (which normally follows the school name, see above).
+
 Generated passwords are the person's date of birth as `ddmmyyyy` (`str_replace('-', '', date('d-m-Y', ...))`); the student's GR number is used as the login "email". `POST /api/student/forgot-password` sends no email: when the GR number and date of birth match it sets `users.reset_request = 1`, and staff reset the password from **Students > Students Reset Password** (`reset-password-list`, `student-change-password`, permission `student-reset-password`). The API answer is the same whether or not an account matched.
 
 Known problems, as written:

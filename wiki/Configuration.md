@@ -1,20 +1,21 @@
-The admin panel is configured in two places: environment variables in `admin-panel/.env` (read through `config/*.php`), and rows in the database table `settings` that the admin UI edits. This page lists every key in `.env.example`, every other environment variable the code reads, the app-specific config files, and the `settings` keys with the screens that write them. For click-by-click instructions on the settings screens, see the end-user docs, for example [General Settings](https://shawndaprawn.github.io/Eschool/admin-panel/general-settings/).
+The admin panel is configured in two places: environment variables in `admin-panel/.env` (read through `config/*.php`), and rows in the database table `settings` that the admin UI edits. This page lists every key in `.env.example`, the other environment variables the config files read, the app-specific config files, how admin settings override the `.env` values at runtime, and the `settings` keys with the screens that write them. For click-by-click instructions on the settings screens, see the end-user docs, for example [General Settings](https://shawndaprawn.github.io/Eschool/admin-panel/general-settings/).
 
 ## How configuration flows
 
 ```mermaid
 flowchart LR
-    UI["Admin settings pages"] -->|"Settings::update / save"| DB[("settings table")]
-    UI -->|"changeEnv()"| ENV[".env file"]
-    ENV -->|"env() in config/*.php"| CFG["config()"]
-    ENV -->|"env() in views/controllers"| VIEW["Logos, favicon, DEMO_MODE, mail form"]
-    DB -->|"getSettings()"| CODE["Controllers, API, views"]
+    ENV[".env"] -->|"env() in config/*.php only"| CFG["config()"]
+    UI["Admin settings pages"] -->|"save rows"| DB[("settings table")]
+    DB -->|"SettingsConfigService::apply() on every boot"| CFG
+    DB -->|"getSettings(), schoolSetting(), schoolLogoUrl()"| CODE["Controllers, API, views"]
     CFG --> CODE
 ```
 
-- Most runtime behaviour (school details, session year, payment gateways, chat limits, app versions) is read from the `settings` table with `getSettings()`.
-- Several settings screens also write some values into `.env` with `changeEnv()` (in [settings_helper.php](https://github.com/ShawnDaPrawn/Eschool/blob/main/admin-panel/app/Helpers/settings_helper.php)). Some of those `.env` keys are read by `config/*.php` (mail, timezone, app name, Paystack), some directly with `env()` in views, and some by nothing at all.
-- The web server user therefore needs write access to `.env`. See [Deployment](Deployment#file-permissions).
+- `.env` is read only by `config/*.php`. Nothing in `app/`, `bootstrap/`, `database/`, `resources/views` or `routes/` calls `env()`; [SettingsConfigTest](https://github.com/ShawnDaPrawn/Eschool/blob/main/admin-panel/tests/Feature/SettingsConfigTest.php) fails the build if one is added.
+- The settings screens save to the `settings` table only. Nothing in the app rewrites `.env` after installation (the old `changeEnv()` helper is gone). The wizard installer is the only code that edits `.env` (`DB_*`, `APP_URL`, `APP_KEY`).
+- On every boot, `AppServiceProvider::boot()` calls [SettingsConfigService::apply()](https://github.com/ShawnDaPrawn/Eschool/blob/main/admin-panel/app/Services/SettingsConfigService.php), which copies the school name, timezone, mail server and Paystack settings over the values loaded from `.env` (see [Settings that override .env](#settings-that-override-env)).
+- Everything else (logos, session year, payment gateways other than Paystack, chat limits, app versions) is read straight from the table with `getSettings()` or the `schoolSetting()` helper.
+- Because of this, `php artisan config:cache` and `php artisan optimize` are supported. See [Deployment](Deployment#caching).
 
 ## .env.example
 
@@ -24,12 +25,12 @@ flowchart LR
 
 | Key | Default | Config fallback | Meaning |
 |---|---|---|---|
-| `APP_NAME` | `e-School` | `Laravel` | `config('app.name')`. Also forms the session cookie name (`<slug>_session`) and the cache and Redis prefixes. Overwritten by General Settings with the school name (written as `APP_NAME="<school name>"`). |
+| `APP_NAME` | `e-School` | `Laravel` | Initial `config('app.name')`. At runtime the `school_name` setting replaces it whenever that setting is non-empty. `APP_NAME` itself still names the session cookie (`<slug>_session`) and the cache and Redis prefixes, so renaming the school no longer changes the cookie name. |
 | `APP_KEY` | empty | none | Encryption key for cookies, sessions and signed URLs. Must be generated before the first web request (`php artisan key:generate`); with an empty key every web page fails with `MissingAppKeyException`. The installer generates a fresh one at the end (`key:generate --force`). |
 | `APP_ENV` | `production` | `production` | Environment name. In `production`, `db:seed` and `migrate` need `--force`. |
 | `APP_DEBUG` | `false` | `false` | Detailed error pages, the `details` field in API errors, and Debugbar (when the dev package is installed). Keep `false` in production. |
-| `APP_URL` | `http://localhost` | `http://localhost` | Base URL. Used for the public disk URL (`APP_URL/storage`), Sanctum's stateful domains, and the default of `SESSION_SECURE_COOKIE` (true when it starts with `https://`). The installer's Keys step writes it. |
-| `DEMO_MODE` | `false` | (read with `env()` only) | When true, `DemoMiddleware` blocks most non-GET requests, the payment and mail settings forms show `xxxx` instead of the stored keys, and `GET /api/settings?type=app_settings` returns `is_demo`. |
+| `APP_URL` | `http://localhost` | `http://localhost` | `config('app.url')`. Used for the public disk URL (`APP_URL/storage`), Sanctum's stateful domains, footer links, and the default of `SESSION_SECURE_COOKIE` (true when it starts with `https://`). The installer's Keys step writes it. |
+| `DEMO_MODE` | `false` | `false` | `config('app.demo_mode')`. When true, `DemoMiddleware` blocks most non-GET requests, the login page offers sample accounts, the payment and mail settings forms show `xxxx` instead of the stored values, and `GET /api/settings?type=app_settings` returns `is_demo`. |
 
 ### Logging
 
@@ -70,20 +71,22 @@ The `mysql` connection uses `utf8mb4`/`utf8mb4_unicode_ci`, `strict => false`, `
 
 ### Mail
 
-| Key | Default | Config fallback | Meaning |
+These are fallbacks. Once the Email Settings page has been saved, the `mail_*` settings replace them at runtime (an empty setting leaves the `.env` value in place).
+
+| Key | Default | Config fallback | Overridden by setting |
 |---|---|---|---|
-| `MAIL_MAILER` | `smtp` | `log` | Mailer name. Written by Email Settings. |
-| `MAIL_HOST` | empty | `smtp.gmail.com` | Written by Email Settings. |
-| `MAIL_PORT` | empty | `587` | Written by Email Settings. |
-| `MAIL_USERNAME` | empty | empty | Written by Email Settings. |
-| `MAIL_PASSWORD` | empty | empty | Written by Email Settings. |
-| `MAIL_ENCRYPTION` | `tls` | `tls` | Written by Email Settings. |
-| `MAIL_FROM_ADDRESS` | empty | `hello@example.com` | Written by Email Settings (field `mail_send_from`). Several controllers read it with `env()` as the sender address. |
-| `MAIL_FROM_NAME` | `"${APP_NAME}"` | `Example` | Not written by the UI. |
+| `MAIL_MAILER` | `smtp` | `log` | `mail_mailer` (config `mail.default`) |
+| `MAIL_HOST` | empty | `smtp.gmail.com` | `mail_host` |
+| `MAIL_PORT` | empty | `587` | `mail_port` (cast to int) |
+| `MAIL_USERNAME` | empty | empty | `mail_username` |
+| `MAIL_PASSWORD` | empty | empty | `mail_password` |
+| `MAIL_ENCRYPTION` | `tls` | `tls` | `mail_encryption` |
+| `MAIL_FROM_ADDRESS` | empty | `hello@example.com` | `mail_send_from` (config `mail.from.address`, also used as the sender by several controllers) |
+| `MAIL_FROM_NAME` | `"${APP_NAME}"` | `Example` | If it equals `APP_NAME` (as in `.env.example`), it follows the `school_name` setting; a different value of its own is kept. |
 
-The `smtp` mailer in `config/mail.php` sets `verify_peer => false`, so the SMTP server's TLS certificate is not verified. The Email Settings form offers `smtp`, `mailgun`, `sendmail`, `postmark` and `amazon_ses`; `config/mail.php` defines the SES mailer as `ses`, so choosing "Amazon SES" makes sending fail with "Mailer [amazon_ses] is not defined." Mailgun and Postmark also need the `MAILGUN_*` or `POSTMARK_TOKEN` keys below.
+The `smtp` mailer in `config/mail.php` sets `verify_peer => false`, so the SMTP server's TLS certificate is not verified. The Email Settings form offers `smtp`, `mailgun`, `sendmail`, `postmark` and `amazon_ses`; `config/mail.php` defines the SES mailer as `ses`, so choosing "Amazon SES" makes sending fail with "Mailer [amazon_ses] is not defined." Mailgun and Postmark also need the `MAILGUN_*` or `POSTMARK_TOKEN` keys below, which only `.env` can set.
 
-### Storage, broadcasting and branding
+### Storage, broadcasting and leftovers
 
 | Key | Default | Meaning |
 |---|---|---|
@@ -94,23 +97,20 @@ The `smtp` mailer in `config/mail.php` sets `verify_peer => false`, so the SMTP 
 | `PUSHER_APP_ID`, `PUSHER_APP_KEY`, `PUSHER_APP_SECRET` | empty | Pusher broadcasting connection (unused). |
 | `PUSHER_APP_CLUSTER` | `mt1` | |
 | `MIX_PUSHER_APP_KEY`, `MIX_PUSHER_APP_CLUSTER` | references to the Pusher keys | Only for a Laravel Mix front-end build, which this app does not have. |
-| `LOGO1` | empty | Path on the public disk of the main logo (header, public website, login). Written by General Settings; read with `env('LOGO1')` in views. Falls back to `assets/logo.svg`. |
-| `LOGO2` | empty | Second logo (login page, PDF receipts, academic calendar). Written by General Settings; read with `env()`. |
-| `FAVICON` | empty | Favicon path on the public disk. Written by General Settings; read with `env()`. |
-| `LOGIN_IMAGE` | empty | Written by General Settings but not read anywhere; the login background comes from the `login_image` setting. |
+| `LOGO1`, `LOGO2`, `FAVICON`, `LOGIN_IMAGE` | empty | Unused. Logos, favicon and login image now come from the `logo1`, `logo2`, `favicon` and `login_image` settings; the only remaining mentions of these keys are commented-out lines in `config/global.php`. |
 
 ## Environment variables not in .env.example
 
-These are read by `config/*.php` but missing from `.env.example`. Most are Laravel defaults; the app-specific ones are in bold.
+Read by `config/*.php` but missing from `.env.example`. Most are Laravel defaults; the app-specific ones are in bold.
 
 | Key | Read in | Default | Notes |
 |---|---|---|---|
-| **`TIMEZONE`** | `config/app.php` (`timezone`) | `UTC` | Written by General Settings (`TIMEZONE='<zone>'`). The application timezone and the scheduler's timezone. |
+| **`TIMEZONE`** | `config/app.php` (`timezone`) | `UTC` | Fallback only: a valid `time_zone` setting replaces it on boot. The settings migration seeds `time_zone = Asia/Kolkata`, so a fresh install runs in that zone until General Settings is changed. |
 | `ASSET_URL` | `config/app.php` | `null` | |
 | `BCRYPT_ROUNDS` | `config/hashing.php` | `10` | phpunit.xml sets 4. |
 | **`DB_PERSISTENT`** | `config/database.php` (`PDO::ATTR_PERSISTENT`) | `true` | Persistent MySQL connections are on unless set to `false`. The tests set it to `false` because shared persistent connections broke test transactions. |
 | `DATABASE_URL`, `DB_SOCKET`, `MYSQL_ATTR_SSL_CA`, `DB_FOREIGN_KEYS` | `config/database.php` | | `DB_FOREIGN_KEYS` applies to SQLite only. |
-| `REDIS_CLIENT`, `REDIS_CLUSTER`, `REDIS_PREFIX`, `REDIS_URL`, `REDIS_DB`, `REDIS_CACHE_DB` | `config/database.php` | `phpredis`, `redis`, slug of APP_NAME, none, `0`, `1` | |
+| `REDIS_CLIENT`, `REDIS_CLUSTER`, `REDIS_PREFIX`, `REDIS_URL`, `REDIS_DB`, `REDIS_CACHE_DB` | `config/database.php` | `phpredis`, `redis`, slug of `APP_NAME`, none, `0`, `1` | |
 | `SESSION_CONNECTION`, `SESSION_STORE`, `SESSION_COOKIE`, `SESSION_DOMAIN` | `config/session.php` | | `SESSION_COOKIE` defaults to `<slug of APP_NAME>_session`. |
 | `SESSION_SECURE_COOKIE` | `config/session.php` | true when `APP_URL` starts with `https://` | |
 | `CACHE_PREFIX`, `MEMCACHED_PERSISTENT_ID`, `MEMCACHED_USERNAME`, `MEMCACHED_PASSWORD`, `MEMCACHED_PORT`, `DYNAMODB_CACHE_TABLE`, `DYNAMODB_ENDPOINT` | `config/cache.php` | | |
@@ -119,43 +119,58 @@ These are read by `config/*.php` but missing from `.env.example`. Most are Larav
 | `LOG_SLACK_WEBHOOK_URL`, `LOG_PAPERTRAIL_HANDLER`, `PAPERTRAIL_URL`, `PAPERTRAIL_PORT`, `LOG_STDERR_FORMATTER` | `config/logging.php` | | |
 | `MAIL_SENDMAIL_PATH`, `MAIL_LOG_CHANNEL` | `config/mail.php` | `/usr/sbin/sendmail -t -i`, none | |
 | `MAILGUN_DOMAIN`, `MAILGUN_SECRET`, `MAILGUN_ENDPOINT`, `POSTMARK_TOKEN` | `config/services.php` | `MAILGUN_ENDPOINT=api.mailgun.net` | Needed for the Mailgun and Postmark mailers. |
-| **`RAZORPAY_API_KEY`, `RAZORPAY_SECRET_KEY`, `RAZORPAY_WEBHOOK_SECRET`** | `config/services.php` (`services.razorpay.*`) | none | Written by the Fees configuration page. |
-| **`STRIPE_PUBLISHABLE_KEY`, `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`** | `config/services.php` (`services.stripe.*`) | none | Written by the Fees configuration page. |
-| **`PAYSTACK_PUBLIC_KEY`, `PAYSTACK_SECRET_KEY`** | `config/services.php` and `config/paystack.php` | empty | Written by the Fees configuration page. |
-| **`PAYSTACK_PAYMENT_URL`** | `config/paystack.php` | `https://api.paystack.co` | Written by the Fees configuration page. |
-| **`PAYSTACK_MERCHANT_EMAIL`** | `config/paystack.php` | empty | Not written by the UI. |
-| **`FLW_PUBLIC_KEY`, `FLW_SECRET_KEY`, `FLW_SECRET_HASH`** | `config/services.php` (`services.flutterwave.*`) | none | Written by the Fees configuration page. |
+| **`PAYSTACK_PUBLIC_KEY`, `PAYSTACK_SECRET_KEY`, `PAYSTACK_PAYMENT_URL`, `PAYSTACK_MERCHANT_EMAIL`** | `config/paystack.php` (and the first two in `config/services.php`) | `''`, `''`, `https://api.paystack.co`, `''` | Fallbacks; the `paystack_*` settings replace the first three on boot. |
+| **`RAZORPAY_WEBHOOK_SECRET`, `STRIPE_WEBHOOK_SECRET`, `FLW_SECRET_HASH`** | `config/services.php` | none | Fallback webhook secrets, used only when the matching settings row is empty (see [config/services.php](#configservicesphp)). |
+| `RAZORPAY_API_KEY`, `RAZORPAY_SECRET_KEY`, `STRIPE_PUBLISHABLE_KEY`, `STRIPE_SECRET_KEY`, `FLW_PUBLIC_KEY`, `FLW_SECRET_KEY` | `config/services.php` | none | Defined but not read by the payment code, which takes these keys from the settings table. |
 | `ABLY_KEY` | `config/broadcasting.php` | | |
 | `SANCTUM_STATEFUL_DOMAINS` | `config/sanctum.php` | `localhost,localhost:3000,127.0.0.1,127.0.0.1:8000,::1` plus the `APP_URL` host | |
 | `VIEW_COMPILED_PATH` | `config/view.php` | `storage/framework/views` | |
 | `DEBUGBAR_ENABLED`, `DEBUGBAR_EDITOR`, `DEBUGBAR_REMOTE_SITES_PATH`, `DEBUGBAR_LOCAL_SITES_PATH`, `DEBUGBAR_THEME` | `config/debugbar.php` | `DEBUGBAR_ENABLED=null` (follows `APP_DEBUG`) | |
 
-Keys the app writes into `.env` that nothing reads: `LOGIN_IMAGE`, `SITE_KEY` and `SECRET_KEY` (reCAPTCHA, General Settings), `SENDER_ID` and `FIREBASE_PROJECT_ID` (FCM settings), `RAZORPAY_WEBHOOK_URL`, `STRIPE_WEBHOOK_URL`, `PAYSTACK_WEBHOOK_URL`, `FLW_WEBHOOK_URL` (Fees configuration). The installer's Database step writes `DB_PREFIX` when a prefix is entered, but `config/database.php` hard-codes `'prefix' => ''`, so it has no effect.
+The installer's Database step writes `DB_PREFIX` when a prefix is entered, but `config/database.php` hard-codes `'prefix' => ''`, so it has no effect.
 
 Variables read by the framework itself rather than a config file, used by the test suite: `LARAVEL_STORAGE_PATH` (moves `storage/`), `APP_MAINTENANCE_DRIVER`. `phpunit.xml` also sets `PULSE_ENABLED`, `TELESCOPE_ENABLED` and `NIGHTWATCH_ENABLED`, for packages the app does not install.
 
-### env() calls outside config
+## Settings that override .env
 
-Laravel stops loading `.env` once the configuration is cached (`php artisan config:cache` or `php artisan optimize`); after that, `env()` only sees real server environment variables. These keys are read with `env()` outside `config/`:
+[SettingsConfigService](https://github.com/ShawnDaPrawn/Eschool/blob/main/admin-panel/app/Services/SettingsConfigService.php) runs from `AppServiceProvider::boot()` on every request and every Artisan command:
 
-| Key | Where |
+| Setting | Config key |
 |---|---|
-| `APP_NAME` | `layouts/footer.blade.php`, `web/footer.blade.php`, `AcademicCalendarService`, fee receipt code in `FeesTypeController`, `StudentApiController`, `ParentApiController`, `WebSettingController` |
-| `APP_URL` | `layouts/footer.blade.php`, `web/footer.blade.php` |
-| `DEMO_MODE` | `DemoMiddleware`, `ApiController` (`is_demo`), `auth/login.blade.php`, `students/index.blade.php`, `fees/fees_config.blade.php`, `settings/email_configuration.blade.php` |
-| `LOGO1` | `layouts/header.blade.php`, `web/header.blade.php`, `web/footer.blade.php`, `auth/passwords/reset.blade.php` |
-| `LOGO2` | `auth/login.blade.php`, `AcademicCalendarService`, fee receipt code in `FeesTypeController`, `StudentApiController`, `ParentApiController` |
-| `FAVICON` | `layouts/include.blade.php`, `layouts/header.blade.php`, `web/master.blade.php`, `web/error-404.blade.php` |
-| `MAIL_FROM_ADDRESS` | `StudentController`, `WebSettingController`, `SettingController::verifyEmailConfigration` |
-| `MAIL_MAILER`, `MAIL_HOST`, `MAIL_PORT`, `MAIL_USERNAME`, `MAIL_PASSWORD`, `MAIL_ENCRYPTION` | `settings/email_configuration.blade.php` (the form's current values) |
+| `school_name` | `app.name` |
+| `mail_mailer` | `mail.default` |
+| `mail_host` | `mail.mailers.smtp.host` |
+| `mail_port` | `mail.mailers.smtp.port` (as an integer) |
+| `mail_username` | `mail.mailers.smtp.username` |
+| `mail_password` | `mail.mailers.smtp.password` |
+| `mail_encryption` | `mail.mailers.smtp.encryption` |
+| `mail_send_from` | `mail.from.address` |
+| `paystack_public_key` | `paystack.publicKey` |
+| `paystack_secret_key` | `paystack.secretKey` |
+| `paystack_payment_url` | `paystack.paymentUrl` |
+| `time_zone` | `app.timezone`, and `date_default_timezone_set()` (only if it is a valid PHP timezone identifier) |
 
-All of these keys are in `.env.example`, but with a cached config they read as `null`: logos fall back to `assets/logo.svg`, the favicon breaks, demo mode turns off and the Email Settings form shows empty fields. Also, every `.env` write from a settings page is ignored until the cache is rebuilt. This is why [Deployment](Deployment#caching) recommends not caching the configuration.
+Rules:
+
+- A setting overrides only when its trimmed value is non-empty; otherwise the `.env` value stays.
+- If reading the table throws a `QueryException` or `PDOException` (not installed or not migrated yet), nothing is overridden.
+- `mail.from.name` is set to the new `app.name` only if it was equal to `app.name` before the overrides (the `.env.example` default `MAIL_FROM_NAME="${APP_NAME}"`).
+- `php artisan config:cache` boots the app, so the cache file also contains the database values at the time it was built. They are re-applied from the table on every boot, so later changes still take effect. One consequence: a setting that is later emptied keeps the value baked into the cache instead of falling back to `.env`, until the cache is rebuilt.
+
+Logos and other school values are read through two helpers in [settings_helper.php](https://github.com/ShawnDaPrawn/Eschool/blob/main/admin-panel/app/Helpers/settings_helper.php):
+
+- `schoolSetting($type, $default = null)`: one setting's value, or `$default` when it is missing or empty.
+- `schoolLogoUrl($type = 'logo1')`: `url(Storage::url(...))` of the uploaded `logo1` or `logo2`, or `url('assets/logo.svg')`.
 
 ## App-specific config files
 
+### config/app.php
+
+Besides the usual keys, `timezone` reads `TIMEZONE` (not `APP_TIMEZONE`) and `demo_mode` reads `DEMO_MODE`. The `providers` array is still used by Laravel 12; see [Admin-Panel-Overview](Admin-Panel-Overview#request-lifecycle).
+
 ### config/global.php
 
-[config/global.php](https://github.com/ShawnDaPrawn/Eschool/blob/main/admin-panel/config/global.php) holds a few UI constants: `CIRCLE_SVG` (`/images/circle.svg`), `BUTTON_CLASS` (`btn btn-theme`), `SUCCESS_MSG_CLASS` (`alert alert-success`) and `ERROR_MSG_CLASS` (`alert alert-danger`). The `LOGO_SM`, `LOGO1` and `LOGO2` entries that built URLs from `env()` are commented out.
+[config/global.php](https://github.com/ShawnDaPrawn/Eschool/blob/main/admin-panel/config/global.php) holds a few UI constants: `CIRCLE_SVG` (`/images/circle.svg`), `BUTTON_CLASS` (`btn btn-theme`), `SUCCESS_MSG_CLASS` (`alert alert-success`) and `ERROR_MSG_CLASS` (`alert alert-danger`). The `LOGO_SM`, `LOGO1` and `LOGO2` entries are commented out.
 
 ### config/installer.php
 
@@ -165,7 +180,7 @@ All of these keys are in `.env.example`, but with a cached config they read as `
 |---|---|---|
 | `icon` | `/assets/logo.svg` | Logo and favicon on the wizard pages. |
 | `background` | commented out | The package default `/images/background.jpeg` is merged in, but that file does not exist in `public/images`. |
-| `support_url` | `mailto:support@example.com` | "Contact support" link on the finish page. Change it for your deployment. |
+| `support_url` | `mailto:support@example.com` | "Contact support" link on the welcome and finish pages. Change it for your deployment. |
 | `server.php` | `>= 8.3.0` (`80300`) | PHP version check. |
 | `server.*` | `pdo_mysql`, `mbstring`, `fileinfo`, `openssl`, `tokenizer`, `json`, `curl` | Extension checks. |
 | `folders` | `../storage/framework`, `../storage/logs`, `../bootstrap/cache` | Permission checks (paths relative to `public/`). |
@@ -178,27 +193,25 @@ See [Installation-Wizard](Installation-Wizard) for how these are used.
 
 ### config/paystack.php
 
-Read by the `unicodeveloper/laravel-paystack` package, which `PaystackPayment` extends:
+Read by the `unicodeveloper/laravel-paystack` package, which `PaystackPayment` extends (`Config::get('paystack.secretKey')` and `paystack.paymentUrl`):
 
-| Key | Env | Default |
-|---|---|---|
-| `publicKey` | `PAYSTACK_PUBLIC_KEY` | `''` |
-| `secretKey` | `PAYSTACK_SECRET_KEY` | `''` |
-| `paymentUrl` | `PAYSTACK_PAYMENT_URL` | `https://api.paystack.co` |
-| `merchantEmail` | `PAYSTACK_MERCHANT_EMAIL` | `''` |
-
-Paystack is the one gateway whose API keys come from `.env` (through this file) rather than the `settings` table, so the Fees configuration page's `.env` write matters for it, and a cached config hides changes until it is rebuilt.
+| Key | Env fallback | Default | Overridden by setting |
+|---|---|---|---|
+| `publicKey` | `PAYSTACK_PUBLIC_KEY` | `''` | `paystack_public_key` |
+| `secretKey` | `PAYSTACK_SECRET_KEY` | `''` | `paystack_secret_key` |
+| `paymentUrl` | `PAYSTACK_PAYMENT_URL` | `https://api.paystack.co` | `paystack_payment_url` (the Fees configuration form submits `https://api.paystack.co` from a read-only field) |
+| `merchantEmail` | `PAYSTACK_MERCHANT_EMAIL` | `''` | none |
 
 ### config/services.php
 
-Besides the stock `mailgun`, `postmark` and `ses` entries, it defines `services.razorpay` (`key`, `secret`, `webhook_secret`), `services.stripe` (`key`, `secret`, `webhook_secret`), `services.paystack` (`public_key`, `secret_key`) and `services.flutterwave` (`public_key`, `secret_key`, `secret_hash`). `PaymentService::webhookSecret()` uses them as a fallback when the matching settings row is empty:
+Besides the stock `mailgun`, `postmark` and `ses` entries, it defines `services.razorpay` (`key`, `secret`, `webhook_secret`), `services.stripe` (`key`, `secret`, `webhook_secret`), `services.paystack` (`public_key`, `secret_key`) and `services.flutterwave` (`public_key`, `secret_key`, `secret_hash`). The comment above them still says the fee settings page writes these `.env` keys; it no longer does. Their only use is as a fallback in `PaymentService::webhookSecret()`:
 
-| Gateway | Settings row tried first | Config fallback |
+| Gateway | Settings row used | Fallback when the row is empty |
 |---|---|---|
-| razorpay | `razorpay_webhook_secret` | `services.razorpay.webhook_secret` |
-| stripe | `stripe_webhook_secret` | `services.stripe.webhook_secret` |
-| paystack | `paystack_secret_key` | `services.paystack.secret_key` |
-| flutterwave | `flutterwave_hash_key` | `services.flutterwave.secret_hash` |
+| razorpay | `razorpay_webhook_secret` | `services.razorpay.webhook_secret` (`RAZORPAY_WEBHOOK_SECRET`) |
+| stripe | `stripe_webhook_secret` | `services.stripe.webhook_secret` (`STRIPE_WEBHOOK_SECRET`) |
+| paystack | `paystack_secret_key` | `services.paystack.secret_key` (`PAYSTACK_SECRET_KEY`) |
+| flutterwave | `flutterwave_hash_key` | `services.flutterwave.secret_hash` (`FLW_SECRET_HASH`) |
 
 When both are empty the webhook is refused. See [Payments](Payments).
 
@@ -210,23 +223,23 @@ When both are empty the webhook is refused. See [Payments](Payments).
 
 The table is created by `2022_04_01_044234_create_settings_table.php` with three columns: `id`, `type` (text) and `message` (text). The model is [App\Models\Settings](https://github.com/ShawnDaPrawn/Eschool/blob/main/admin-panel/app/Models/Settings.php) (no timestamps, fillable `type` and `message`). There is no unique index on `type`; the code looks rows up by `type` and either updates or inserts.
 
-- Read: `getSettings()` returns `[type => message]` for all rows, `getSettings('x')` for one type. Nothing is cached.
+- Read: `getSettings()` returns `[type => message]` for all rows, `getSettings('x')` for one type, and `schoolSetting('x')` the single value. Nothing is cached, so each call is a query.
 - Written: each settings controller loops over its list of keys, updating the row if one with that `type` exists or inserting it otherwise. `Settings::updateOrCreate`, `updateOrInsert` and `firstOrCreate` are used in a few places.
 - Seeded: the migrations insert `school_name`, `school_email`, `school_phone`, `school_address`, `time_zone` (`Asia/Kolkata`), `date_formate` (`d-m-Y`), `time_formate` (`h:i A`), `theme_color` (`#4C5EA6`), `update_warning_modal` (`1`) and `secondary_color` (`#38A3A5`). `InstallationSeeder` adds `system_version` and the ID card defaults; `AddSuperAdminSeeder` inserts `session_year = 1`.
 
 ### Keys by screen
 
-| Screen (route) | Controller and permission | Keys | Also writes to .env |
-|---|---|---|---|
-| General Settings (`GET/POST /settings`) | `SettingController@index/update`, `setting-create` | `school_name`, `school_email`, `school_phone`, `school_address`, `school_tagline`, `time_zone`, `date_formate`, `time_formate`, `theme_color`, `secondary_color`, `session_year`, `online_payment`, `facebook`, `instagram`, `linkedin`, `maplink`, `recaptcha_status`, `recaptcha_site_key`, `recaptcha_secret_key`; files `logo1`, `logo2`, `favicon`, `login_image` (stored on the public disk under `logo/`) | `LOGO1`, `LOGO2`, `FAVICON`, `LOGIN_IMAGE`, `APP_NAME`, `TIMEZONE`, `SITE_KEY`, `SECRET_KEY` |
-| Email Settings (`GET/POST /email-settings`, `POST /verify-email-settings`) | `SettingController@email_index/email_update/verifyEmailConfigration`, `email-setting-create` | `mail_mailer`, `mail_host`, `mail_port`, `mail_username`, `mail_password`, `mail_encryption`, `mail_send_from`; `email_configration_verification` (set to 0 on save, 1 after a test email is sent) | `MAIL_MAILER`, `MAIL_HOST`, `MAIL_PORT`, `MAIL_USERNAME`, `MAIL_PASSWORD`, `MAIL_ENCRYPTION`, `MAIL_FROM_ADDRESS` |
-| FCM / notification settings (`GET /fcm-settings`, `POST /notification-setting`) | `SettingController@fcm_index` (`fcm-setting-create`), `@notification_setting` (`setting-create`) | `sender_id`, `project_id`, `service_account_file` (the JSON is validated for `private_key` and `client_email`, then stored on the private `local` disk as `firebase/service_account.json`) | `SENDER_ID`, `FIREBASE_PROJECT_ID` |
-| App Settings (`GET/POST /app-settings`) | `SettingController@app_index/app_update`, `setting-create` | `app_link`, `ios_app_link`, `app_version`, `ios_app_version`, `force_app_update`, `app_maintenance`, `teacher_app_link`, `teacher_ios_app_link`, `teacher_app_version`, `teacher_ios_app_version`, `teacher_force_app_update`, `teacher_app_maintenance` | none |
-| Chat Settings (`GET /chat-settings`, `POST /chat-settings-update`) | `SettingController@chat_setting_index/chat_setting_update`, `chat-settings` | `max_files_or_images_in_one_message`, `max_file_size_in_bytes` (despite the name, the value is in MB; the API multiplies it by 1,000,000), `max_characters_in_text_message`, `automatically_messages_removed_days` | none |
-| Page content (`POST /setting-update`) | `SettingController@setting_page_update`, `setting-create` | Any `type` sent by the form: `privacy_policy`, `terms_condition`, `about_us`, `contact_us`, and `online_exam_terms_condition` from the online exam terms page | none |
-| Fees configuration (`GET /fees-config`, `POST /fees-config/update`) | `FeesTypeController@feesConfigIndex/feesConfigUpdate`, `fees-config` | `razorpay_status`, `razorpay_api_key`, `razorpay_secret_key`, `razorpay_webhook_secret`, `razorpay_webhook_url`, `razorpay_currency_code`; `stripe_status`, `stripe_publishable_key`, `stripe_secret_key`, `stripe_webhook_secret`, `stripe_webhook_url`, `stripe_currency_code`; `paystack_status`, `paystack_public_key`, `paystack_secret_key`, `paystack_webhook_url`, `paystack_payment_url`, `paystack_currency_code`; `flutterwave_status`, `flutterwave_public_key`, `flutterwave_secret_key`, `flutterwave_hash_key`, `flutterwave_webhook_url`, `flutterwave_currency_code`; `currency_code`, `currency_symbol`, `compulsory_fee_payment_mode`, `is_student_can_pay_fees`, `enable_fees_installment`, `default_due_charges` | `RAZORPAY_*`, `STRIPE_*`, `PAYSTACK_*`, `FLW_*` (see above) |
-| ID card settings (`GET /id-card-settings`, `POST /id-card-settings/update`) | `StudentController@idCardSettingIndex/updateIdCardSetting` | `header_color`, `footer_color`, `header_footer_text_color`, `layout_type`, `profile_image_style`, `card_width`, `card_height`, `student_id_card_fields`, `staff_id_card_fields` (comma-separated), `background_transparency`, `background_size`; files `background_image`, `signature` (public disk, `Idcard/`) | none |
-| System Update (`POST /system-update`) | `SystemUpdateController@update`, Super Admin role | `system_version` | none |
+| Screen (route) | Controller and permission | Keys |
+|---|---|---|
+| General Settings (`GET/POST /settings`) | `SettingController@index/update`, `setting-create` | `school_name`, `school_email`, `school_phone`, `school_address`, `school_tagline`, `time_zone`, `date_formate`, `time_formate`, `theme_color`, `secondary_color`, `session_year`, `online_payment`, `facebook`, `instagram`, `linkedin`, `maplink`, `recaptcha_status`, `recaptcha_site_key`, `recaptcha_secret_key`; files `logo1`, `logo2`, `favicon`, `login_image` (stored on the public disk under `logo/`) |
+| Email Settings (`GET/POST /email-settings`, `POST /verify-email-settings`) | `SettingController@email_index/email_update/verifyEmailConfigration`, `email-setting-create` | `mail_mailer`, `mail_host`, `mail_port`, `mail_username`, `mail_password`, `mail_encryption`, `mail_send_from`; `email_configration_verification` (set to 0 on save, 1 after a test email is sent). The form shows the current `config('mail.*')` values. |
+| FCM / notification settings (`GET /fcm-settings`, `POST /notification-setting`) | `SettingController@fcm_index` (`fcm-setting-create`), `@notification_setting` (`setting-create`) | `sender_id`, `project_id`, `service_account_file` (the JSON is validated for `private_key` and `client_email`, then stored on the private `local` disk as `firebase/service_account.json`) |
+| App Settings (`GET/POST /app-settings`) | `SettingController@app_index/app_update`, `setting-create` | `app_link`, `ios_app_link`, `app_version`, `ios_app_version`, `force_app_update`, `app_maintenance`, `teacher_app_link`, `teacher_ios_app_link`, `teacher_app_version`, `teacher_ios_app_version`, `teacher_force_app_update`, `teacher_app_maintenance` |
+| Chat Settings (`GET /chat-settings`, `POST /chat-settings-update`) | `SettingController@chat_setting_index/chat_setting_update`, `chat-settings` | `max_files_or_images_in_one_message`, `max_file_size_in_bytes` (despite the name, the value is in MB; the API multiplies it by 1,000,000), `max_characters_in_text_message`, `automatically_messages_removed_days` |
+| Page content (`POST /setting-update`) | `SettingController@setting_page_update`, `setting-create` | Any `type` sent by the form: `privacy_policy`, `terms_condition`, `about_us`, `contact_us`, and `online_exam_terms_condition` from the online exam terms page |
+| Fees configuration (`GET /fees-config`, `POST /fees-config/update`) | `FeesTypeController@feesConfigIndex/feesConfigUpdate`, `fees-config` | `razorpay_status`, `razorpay_api_key`, `razorpay_secret_key`, `razorpay_webhook_secret`, `razorpay_webhook_url`, `razorpay_currency_code`; `stripe_status`, `stripe_publishable_key`, `stripe_secret_key`, `stripe_webhook_secret`, `stripe_webhook_url`, `stripe_currency_code`; `paystack_status`, `paystack_public_key`, `paystack_secret_key`, `paystack_webhook_url`, `paystack_payment_url`, `paystack_currency_code`; `flutterwave_status`, `flutterwave_public_key`, `flutterwave_secret_key`, `flutterwave_hash_key`, `flutterwave_webhook_url`, `flutterwave_currency_code`; `currency_code`, `currency_symbol`, `compulsory_fee_payment_mode`, `is_student_can_pay_fees`, `enable_fees_installment`, `default_due_charges` |
+| ID card settings (`GET /id-card-settings`, `POST /id-card-settings/update`) | `StudentController@idCardSettingIndex/updateIdCardSetting` | `header_color`, `footer_color`, `header_footer_text_color`, `layout_type`, `profile_image_style`, `card_width`, `card_height`, `student_id_card_fields`, `staff_id_card_fields` (comma-separated), `background_transparency`, `background_size`; files `background_image`, `signature` (public disk, `Idcard/`) |
+| System Update (`POST /system-update`) | `SystemUpdateController@update`, Super Admin role | `system_version` |
 
 Other keys:
 
@@ -245,25 +258,17 @@ Other keys:
 
 ## UI settings versus .env
 
-| Configure in the admin UI | Configure in .env |
+| Configure in the admin UI (settings table) | Configure in .env |
 |---|---|
-| School name, contact details, logos, favicon, colours, timezone, date and time formats, session year | `APP_KEY`, `APP_ENV`, `APP_DEBUG`, `APP_URL` |
-| SMTP details (written to both the table and `.env`) | Database credentials (`DB_*`) |
+| School name, contact details, logos, favicon, login image, colours, timezone, date and time formats, session year | `APP_KEY`, `APP_ENV`, `APP_DEBUG`, `APP_URL`, `DEMO_MODE` |
+| Mail server, port, credentials, encryption and sender address | Database credentials (`DB_*`), `DB_PERSISTENT` |
 | Firebase sender id, project id and service account file | Cache, session, queue and filesystem drivers |
 | Payment gateway keys, webhook secrets, currencies, installment options | `LOG_CHANNEL`, `LOG_LEVEL` |
-| App store links, minimum app versions, maintenance switches | `SANCTUM_EXPIRATION`, `DB_PERSISTENT`, `SESSION_SECURE_COOKIE` |
-| Chat limits and retention days | `DEMO_MODE` |
-| Privacy policy, terms, about and contact pages; email templates (table `email_tempalates`); public website sections (table `web_settings`) | Mailgun or Postmark credentials, `MAIL_FROM_NAME` |
+| App store links, minimum app versions, maintenance switches | `SANCTUM_EXPIRATION`, `SESSION_SECURE_COOKIE` |
+| Chat limits and retention days | Mailgun or Postmark credentials, `MAIL_FROM_NAME` |
+| Privacy policy, terms, about and contact pages; email templates (table `email_tempalates`); public website sections (table `web_settings`) | |
 
-Values that exist in both places, and which one wins:
-
-- Timezone: the app uses `TIMEZONE` from `.env`; the `time_zone` setting is what the form shows.
-- School name: the `school_name` setting is what General Settings edits and what the API, emails and certificates read; `APP_NAME` (`config('app.name')` or `env('APP_NAME')`) is used for page titles, footers, fee receipts and the session cookie name. Saving General Settings keeps the two in step.
-- Mail: Laravel sends with the `.env` values; the `mail_*` settings rows are a copy.
-- Payment gateways: Razorpay, Stripe and Flutterwave API keys come from the settings table; Paystack's come from `.env` through `config/paystack.php`; webhook secrets come from the settings table with `.env` as a fallback.
-- Logos: the settings rows hold the paths, but views read `LOGO1`, `LOGO2` and `FAVICON` from `.env`.
-
-Saving General Settings with a new school name changes `APP_NAME`, which changes the session cookie name, so everyone signed in to the admin panel is signed out on their next request.
+Where a value exists in both places, the setting wins whenever it is non-empty: school name over `APP_NAME`, `time_zone` over `TIMEZONE`, `mail_*` over `MAIL_*`, `paystack_*` over `PAYSTACK_*`, and the webhook secret rows over the `services.*` fallbacks. `.env` values matter only before the corresponding screen has been saved.
 
 ## See also
 

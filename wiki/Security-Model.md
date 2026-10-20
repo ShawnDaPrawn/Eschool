@@ -264,14 +264,14 @@ Code outside `config/` reads configuration through `config()` and school setting
 ## Security checklist for deployers
 
 1. Serve the admin panel over HTTPS only, with a complete certificate chain from a public CA. The student/parent app's release build refuses plain HTTP and user-installed certificates, and both apps validate certificates.
-2. Set `APP_URL` to the `https://` address (this makes session cookies `Secure`), `APP_ENV=production`, `APP_DEBUG=false`, `LOG_LEVEL=error`.
+2. Set `APP_URL` to the `https://` address (this makes session cookies `Secure`), `APP_ENV=production`, `APP_DEBUG=false`, `LOG_LEVEL=error`. After installation the application no longer writes `.env` (the installation wizard needs it writable only while it runs), so it can be made read-only for the web server user. You can cache the configuration with `php artisan optimize` (re-run it after editing `.env` or updating); admin settings are read from the database and still apply.
 3. Make sure `APP_KEY` is set and unique (the installer generates it). Never copy a key between installs or commit `.env`.
 4. Point the web server's document root at `admin-panel/public/`. If the project root must be the document root, keep the root `.htaccess` (Apache) or add equivalent rules that deny dotfiles, `.env`, `.git`, `vendor/` and project metadata.
 5. On Nginx or any non-Apache server, make sure nothing under `/storage` is executed as PHP and that `storage/app/public/` is served as static files only; the `.htaccess` there only works on Apache.
 6. Change the seeded Super Admin login (`superadmin@gmail.com` / `superadmin`) straight after installation.
 7. If the server sits behind a reverse proxy or load balancer that terminates TLS, configure Laravel's trusted proxies, otherwise HSTS is not sent and the request is treated as HTTP.
 8. Add the scheduler cron (`* * * * * php /path/to/admin-panel/artisan schedule:run`) so expired app tokens and old chat messages are deleted; see [Scheduled-Tasks-and-Commands](Scheduled-Tasks-and-Commands).
-9. For each enabled payment gateway, set its webhook secret (Razorpay webhook secret, Stripe signing secret, Paystack secret key, Flutterwave secret hash) and register the `webhook/<gateway>` URL in the gateway dashboard. Without the secret, webhooks are refused and payments are never confirmed.
+9. For each enabled payment gateway, set its webhook secret (Razorpay webhook secret, Stripe signing secret, Paystack secret key, Flutterwave secret hash) on the fees settings page, and register the `webhook/<gateway>` URL in the gateway dashboard. Without the secret, webhooks are refused and payments are never confirmed.
 10. Rotate any secret that may have been exposed by an older version: the Razorpay webhook secret (an older public `api/settings` returned it) and the Firebase service account key (older versions stored it on the public disk).
 11. Upload the Firebase service account file through the notification settings page so it lands on the private disk; do not place it under `public/` or `storage/app/public/`.
 12. Keep `DEMO_MODE=false` on a real school install.

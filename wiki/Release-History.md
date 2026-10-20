@@ -60,6 +60,8 @@ All fork work below landed on 20 October 2026 (UTC).
 | [#4](https://github.com/ShawnDaPrawn/Eschool/pull/4) | 2026-10-20 22:22 | [e89ee6a](https://github.com/ShawnDaPrawn/Eschool/commit/e89ee6a) | Fix broken admin pages, remove unprotected users code, replace CKEditor 4 | a47f048 … 4b967ff (5 commits) |
 | [#5](https://github.com/ShawnDaPrawn/Eschool/pull/5) | 2026-10-20 23:01 | [d35c2f4](https://github.com/ShawnDaPrawn/Eschool/commit/d35c2f4) | Phase 1: Remove stray translation files and complete app language files | ab36b16, ef07de7 |
 | [#3](https://github.com/ShawnDaPrawn/Eschool/pull/3) | 2026-10-20 23:04 | [b3d925d](https://github.com/ShawnDaPrawn/Eschool/commit/b3d925d) | Security audit fixes across the admin panel, API and both apps | ee49250 … 05b97a9 (16 commits, plus merge [0ce6bac](https://github.com/ShawnDaPrawn/Eschool/commit/0ce6bac)) |
+| [#6](https://github.com/ShawnDaPrawn/Eschool/pull/6) | 2026-10-20 23:22 | [a1a671b](https://github.com/ShawnDaPrawn/Eschool/commit/a1a671b) | Phase 2: Read admin settings from the database so config caching works | e13ac7d, 7af6b74 |
+| [#9](https://github.com/ShawnDaPrawn/Eschool/pull/9) | 2026-10-20 23:28 | [ff82b30](https://github.com/ShawnDaPrawn/Eschool/commit/ff82b30) | Add a project wiki and publish it to the Wiki tab | dce1a32 … 957a95a (6 commits) |
 
 PR #3 was opened before #4 and merged last. Its merge of `main` ([0ce6bac](https://github.com/ShawnDaPrawn/Eschool/commit/0ce6bac)) dropped the branch's hardened `UserController` (main had already removed the users demo code in [97e6bff](https://github.com/ShawnDaPrawn/Eschool/commit/97e6bff)), kept main's `DB_PERSISTENT` handling, and kept both main's removal of the `video-gallery` route and the branch's contact-form throttle.
 
@@ -89,6 +91,22 @@ Details of the resulting controls are on [Security-Model](Security-Model).
 | [27a3b11](https://github.com/ShawnDaPrawn/Eschool/commit/27a3b11) | #3 | `escapeHtml()`, `safeUrl()`, `escapeToastText()` in `function.js`; table formatters, toasts and flash messages escape user text |
 | [839c9eb](https://github.com/ShawnDaPrawn/Eschool/commit/839c9eb) | #3 | Payment webhooks fail closed, check amount and currency, and record idempotently from stored data; `FeesPaymentService` prices payments on the server; `/api/settings` no longer returns the Razorpay webhook secret; online-exam answers and key no longer sent, submissions limited, exact-set scoring (`OnlineExamScoringService`); student API scoping, uniform forgot-password answers, sign-out of other devices on password change |
 | [05b97a9](https://github.com/ShawnDaPrawn/Eschool/commit/05b97a9) | #3 | Flutterwave webhook secret hash required when Flutterwave is enabled, and labelled correctly on the fees settings page |
+
+### Settings and configuration caching
+
+| Commit | PR | Change |
+|---|---|---|
+| [e13ac7d](https://github.com/ShawnDaPrawn/Eschool/commit/e13ac7d) | #6 | Admin settings are stored only in the `settings` table: `changeEnv()` (which rewrote `.env` from the settings, mail, notification and fees pages) is gone, and the 23 files that read those values back with `env()` now use `config()` or the new `schoolSetting()` / `schoolLogoUrl()` helpers. New `SettingsConfigService` applies the school name, timezone, mail server and Paystack keys over the `.env` config on every boot; new `config('app.demo_mode')`. The duplicate route name `events.update` on `POST events-update` became `events.update-schedules` so `route:cache` works. CI builds the config, route and view caches, and `SettingsConfigTest` fails on any `env()` call outside `config/`. The installation docs gained an optional "Cache Configuration for Production" step (`php artisan optimize`) |
+| [7af6b74](https://github.com/ShawnDaPrawn/Eschool/commit/7af6b74) | #6 | The mail sender name keeps following the school name when `MAIL_FROM_NAME` was `"${APP_NAME}"` (as in `.env.example`), and keeps any sender name of its own otherwise |
+
+Before this change, rewriting `.env` also changed the session cookie name (derived from `APP_NAME`) whenever the school name changed, signing everyone out, and could corrupt `.env` when a value contained a space or `#`.
+
+### Wiki
+
+| Commit | PR | Change |
+|---|---|---|
+| [dce1a32](https://github.com/ShawnDaPrawn/Eschool/commit/dce1a32) | #9 | Started this wiki in `wiki/` and added `.github/workflows/wiki.yml`, which publishes it to the Wiki tab (see [Contributing](Contributing#editing-this-wiki)) |
+| [a998d3b](https://github.com/ShawnDaPrawn/Eschool/commit/a998d3b), [d323244](https://github.com/ShawnDaPrawn/Eschool/commit/d323244), [9a41c5d](https://github.com/ShawnDaPrawn/Eschool/commit/9a41c5d), [56aa690](https://github.com/ShawnDaPrawn/Eschool/commit/56aa690), [957a95a](https://github.com/ShawnDaPrawn/Eschool/commit/957a95a) | #9 | First wiki pages |
 
 ### Admin panel fixes and editor replacement
 
@@ -143,6 +161,8 @@ If you run an install made from the original 3.5.0 code, these fork changes need
 | The chat cleanup URL was removed | Old chat messages are only deleted by the scheduler (`app:cleanup-old-chat-messages`); replace any external cron that called `delete-chat-message/cron-job` with `schedule:run` |
 | Online exam answers and key no longer sent | Old app builds that relied on them keep working through placeholders, but students must type the exam key, which the server checks |
 | Release builds of the student app require HTTPS | The admin panel must be on HTTPS with a valid certificate chain |
+| Settings are no longer copied into `.env` | The settings, mail, notification and fees pages save to the database only and no longer write `LOGO1`, `LOGO2`, `FAVICON`, `LOGIN_IMAGE`, `APP_NAME`, `TIMEZONE`, `SITE_KEY`, `SECRET_KEY`, `SENDER_ID`, `FIREBASE_PROJECT_ID`, `MAIL_*`, `RAZORPAY_*`, `STRIPE_*`, `PAYSTACK_*` or `FLW_*` into `.env`. Code that read `APP_NAME`, `APP_URL`, `DEMO_MODE`, `LOGO1`, `LOGO2`, `FAVICON` or `MAIL_*` with `env()` now uses `config()` or the `settings` table; `.env` mail and Paystack values only apply when the matching setting is empty. `php artisan optimize` (config, route and view caching) now works; re-run it after editing `.env` or updating |
+| Route name `events.update` on `POST events-update` | Renamed to `events.update-schedules`; customisations that call `route('events.update')` for that URL must be updated |
 
 ## See also
 
