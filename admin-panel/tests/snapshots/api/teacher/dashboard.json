@@ -1,0 +1,225 @@
+{
+    "request": "GET /api/teacher/dashboard",
+    "status": 200,
+    "error": false,
+    "message": "Data Fetched Successfully",
+    "code": 200,
+    "shape": {
+        "code": "number",
+        "data": {
+            "class_teacher": [
+                {
+                    "class": {
+                        "educational_program_id": "null",
+                        "full_name": "string",
+                        "id": "number",
+                        "medium": {
+                            "id": "number",
+                            "name": "string"
+                        },
+                        "medium_id": "number",
+                        "name": "string",
+                        "shift_id": "null",
+                        "shifts": "null",
+                        "stream_id": "null",
+                        "streams": "null"
+                    },
+                    "class_id": "number",
+                    "full_name": "string",
+                    "id": "number",
+                    "name": "string",
+                    "section": {
+                        "id": "number",
+                        "name": "string"
+                    },
+                    "section_id": "number"
+                }
+            ],
+            "events": [
+                {
+                    "description": "string",
+                    "end_date": "string",
+                    "end_time": "string",
+                    "has_day_schedule": "number",
+                    "id": "number",
+                    "image": "string",
+                    "start_date": "string",
+                    "start_time": "string",
+                    "title": "string",
+                    "type": "string"
+                }
+            ],
+            "gallery": {
+                "albums": [
+                    {
+                        "id": "number",
+                        "thumbnail_url": "string",
+                        "title": "string"
+                    }
+                ],
+                "videos": [
+                    "string"
+                ]
+            },
+            "other_classes": [],
+            "staff_leaves": {
+                "today": [],
+                "tomorrow": [],
+                "upcoming": []
+            },
+            "student_leave_request": [
+                {
+                    "created_at": "string",
+                    "deleted_at": "null",
+                    "file": [],
+                    "from_date": "string",
+                    "id": "number",
+                    "leave_detail": [
+                        {
+                            "created_at": "string",
+                            "date": "string",
+                            "deleted_at": "null",
+                            "id": "number",
+                            "leave_id": "number",
+                            "session_year_id": "number",
+                            "type": "string",
+                            "updated_at": "string"
+                        }
+                    ],
+                    "leave_master_id": "null",
+                    "reason": "string",
+                    "reason_of_rejection": "null",
+                    "session_year_id": "number",
+                    "status": "string",
+                    "to_date": "string",
+                    "total_days": "number",
+                    "updated_at": "string",
+                    "user": {
+                        "current_address": "null",
+                        "device_type": "null",
+                        "dob": "string",
+                        "email": "string",
+                        "email_verified_at": "null",
+                        "fcm_id": "null",
+                        "first_name": "string",
+                        "full_name": "string",
+                        "gender": "string",
+                        "id": "number",
+                        "image": "string",
+                        "last_name": "string",
+                        "mobile": "string",
+                        "permanent_address": "null",
+                        "reset_request": "number",
+                        "status": "number",
+                        "student": {
+                            "admission_date": "string",
+                            "admission_no": "string",
+                            "application_type": "string",
+                            "blood_group": "string",
+                            "caste": "null",
+                            "category_id": "number",
+                            "class_id": "number",
+                            "class_section": {
+                                "class": {
+                                    "educational_program_id": "null",
+                                    "full_name": "string",
+                                    "id": "number",
+                                    "medium": {
+                                        "id": "number",
+                                        "name": "string"
+                                    },
+                                    "medium_id": "number",
+                                    "name": "string",
+                                    "shift_id": "null",
+                                    "stream_id": "null"
+                                },
+                                "class_id": "number",
+                                "full_name": "string",
+                                "id": "number",
+                                "name": "string",
+                                "section": {
+                                    "id": "number",
+                                    "name": "string"
+                                },
+                                "section_id": "number"
+                            },
+                            "class_section_id": "number",
+                            "dynamic_fields": "null",
+                            "father_id": "null",
+                            "guardian_id": "number",
+                            "height": "null",
+                            "id": "number",
+                            "is_new_admission": "number",
+                            "mother_id": "null",
+                            "religion": "null",
+                            "roll_number": "number",
+                            "user_id": "number",
+                            "weight": "null"
+                        }
+                    },
+                    "user_id": "number"
+                }
+            ],
+            "timetable": [
+                {
+                    "class_section": {
+                        "class": {
+                            "educational_program_id": "null",
+                            "full_name": "string",
+                            "id": "number",
+                            "medium": {
+                                "id": "number",
+                                "name": "string"
+                            },
+                            "medium_id": "number",
+                            "name": "string",
+                            "shift_id": "null",
+                            "stream_id": "null"
+                        },
+                        "class_id": "number",
+                        "full_name": "string",
+                        "id": "number",
+                        "name": "string",
+                        "section": {
+                            "id": "number",
+                            "name": "string"
+                        },
+                        "section_id": "number"
+                    },
+                    "class_section_id": "number",
+                    "day": "number",
+                    "day_name": "string",
+                    "end_time": "string",
+                    "id": "number",
+                    "link_name": "null",
+                    "live_class_url": "null",
+                    "note": "string",
+                    "semester_id": "null",
+                    "session_year_id": "number",
+                    "start_time": "string",
+                    "subject": {
+                        "class_section_id": "number",
+                        "id": "number",
+                        "semester_id": "null",
+                        "session_year_id": "number",
+                        "subject": {
+                            "bg_color": "string",
+                            "code": "string",
+                            "id": "number",
+                            "image": "string",
+                            "medium_id": "number",
+                            "name": "string",
+                            "type": "string"
+                        },
+                        "subject_id": "number",
+                        "teacher_id": "number"
+                    },
+                    "subject_teacher_id": "number"
+                }
+            ],
+            "upcoming_exams": []
+        },
+        "error": "bool",
+        "message": "string"
+    }
+}

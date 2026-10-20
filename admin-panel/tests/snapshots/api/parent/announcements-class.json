@@ -1,0 +1,46 @@
+{
+    "request": "GET /api/parent/announcements",
+    "status": 200,
+    "error": false,
+    "message": "Announcement Details Fetched Successfully",
+    "code": 200,
+    "shape": {
+        "code": "number",
+        "data": {
+            "current_page": "number",
+            "data": [
+                {
+                    "created_at": "string",
+                    "description": "string",
+                    "file": [],
+                    "id": "number",
+                    "semester_id": "null",
+                    "session_year_id": "number",
+                    "table_id": "number",
+                    "table_type": "string",
+                    "title": "string"
+                }
+            ],
+            "first_page_url": "string",
+            "from": "number",
+            "last_page": "number",
+            "last_page_url": "string",
+            "links": [
+                {
+                    "active": "bool",
+                    "label": "string",
+                    "page": "null|number",
+                    "url": "null|string"
+                }
+            ],
+            "next_page_url": "null",
+            "path": "string",
+            "per_page": "number",
+            "prev_page_url": "null",
+            "to": "number",
+            "total": "number"
+        },
+        "error": "bool",
+        "message": "string"
+    }
+}

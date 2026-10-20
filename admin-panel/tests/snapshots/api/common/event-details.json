@@ -1,0 +1,13 @@
+{
+    "request": "POST /api/get-events-details",
+    "status": 200,
+    "error": false,
+    "message": "Events Details Fetched Successfully",
+    "code": 200,
+    "shape": {
+        "code": "number",
+        "data": [],
+        "error": "bool",
+        "message": "string"
+    }
+}

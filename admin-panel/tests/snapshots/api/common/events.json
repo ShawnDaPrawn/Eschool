@@ -1,0 +1,26 @@
+{
+    "request": "GET /api/get-events-list",
+    "status": 200,
+    "error": false,
+    "message": "Events Fetched Successfully.",
+    "code": 200,
+    "shape": {
+        "code": "number",
+        "data": [
+            {
+                "description": "string",
+                "end_date": "string",
+                "end_time": "string",
+                "has_day_schedule": "number",
+                "id": "number",
+                "image": "string",
+                "start_date": "string",
+                "start_time": "string",
+                "title": "string",
+                "type": "string"
+            }
+        ],
+        "error": "bool",
+        "message": "string"
+    }
+}

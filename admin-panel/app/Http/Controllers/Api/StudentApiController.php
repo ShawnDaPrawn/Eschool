@@ -281,7 +281,7 @@ class StudentApiController extends Controller
                 $user['class_section_id'] = $studentSession->class_section_id;
 
                 if (! empty($dynamicField)) {
-                    $data = json_decode($dynamicField, true);
+                    $data = json_decode($dynamicField ?? '[]', true);
                     if (is_array($data)) {
                         foreach ($data as $item) {
                             if ($item != null) {
@@ -2385,7 +2385,7 @@ class StudentApiController extends Controller
             $user['class_id'] = $class_id;
             $user['class_section_id'] = $studentSession->class_section_id;
 
-            $data = json_decode($dynamicField, true);
+            $data = json_decode($dynamicField ?? '[]', true);
             if (is_array($data)) {
                 foreach ($data as $item) {
                     if (! empty($item)) {

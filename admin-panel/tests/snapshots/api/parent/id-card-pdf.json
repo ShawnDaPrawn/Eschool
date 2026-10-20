@@ -1,0 +1,14 @@
+{
+    "request": "GET /api/parent/id-card-pdf",
+    "status": 200,
+    "error": false,
+    "message": "Student ID Card PDF Fetched Successfully",
+    "code": 200,
+    "shape": {
+        "code": "number",
+        "data": "null",
+        "error": "bool",
+        "message": "string",
+        "pdf": "string"
+    }
+}

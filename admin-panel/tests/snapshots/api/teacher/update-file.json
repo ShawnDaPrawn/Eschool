@@ -1,0 +1,23 @@
+{
+    "request": "POST /api/teacher/update-file",
+    "status": 200,
+    "error": false,
+    "message": "Data Saved Successfully",
+    "code": 200,
+    "shape": {
+        "code": "number",
+        "data": {
+            "file_extension": "string",
+            "file_name": "string",
+            "file_thumbnail": "string",
+            "file_url": "string",
+            "id": "number",
+            "modal_id": "number",
+            "modal_type": "string",
+            "type": "string",
+            "type_detail": "string"
+        },
+        "error": "bool",
+        "message": "string"
+    }
+}

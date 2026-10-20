@@ -1,0 +1,24 @@
+{
+    "request": "POST /api/parent/apply-leave",
+    "status": 200,
+    "error": false,
+    "message": "Data Stored Successfully",
+    "code": 200,
+    "shape": {
+        "code": "number",
+        "data": {
+            "created_at": "string",
+            "from_date": "string",
+            "id": "number",
+            "leave_master_id": "null",
+            "reason": "string",
+            "session_year_id": "string",
+            "status": "string",
+            "to_date": "string",
+            "updated_at": "string",
+            "user_id": "number"
+        },
+        "error": "bool",
+        "message": "string"
+    }
+}

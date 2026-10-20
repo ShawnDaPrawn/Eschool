@@ -1,0 +1,23 @@
+{
+    "request": "GET /api/holidays",
+    "status": 200,
+    "error": false,
+    "message": "Holidays Fetched Successfully.",
+    "code": 200,
+    "shape": {
+        "code": "number",
+        "data": [
+            {
+                "created_at": "string",
+                "date": "string",
+                "description": "string",
+                "id": "number",
+                "session_year_id": "number",
+                "title": "string",
+                "updated_at": "string"
+            }
+        ],
+        "error": "bool",
+        "message": "string"
+    }
+}

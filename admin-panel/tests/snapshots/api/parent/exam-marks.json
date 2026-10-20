@@ -1,0 +1,41 @@
+{
+    "request": "GET /api/parent/exam-marks",
+    "status": 200,
+    "error": false,
+    "message": "Exam Result Fetched Successfully",
+    "code": 200,
+    "shape": {
+        "code": "number",
+        "data": [
+            {
+                "exam_marks": [
+                    {
+                        "grade": "string",
+                        "marks_id": "number",
+                        "obtained_marks": "number",
+                        "passing_marks": "number",
+                        "subject_name": "string",
+                        "subject_type": "string",
+                        "teacher_review": "string",
+                        "total_marks": "number"
+                    }
+                ],
+                "result": {
+                    "class_name": "string",
+                    "exam_date": "string",
+                    "exam_id": "number",
+                    "exam_name": "string",
+                    "grade": "string",
+                    "obtained_marks": "number",
+                    "percentage": "number",
+                    "result_id": "number",
+                    "session_year": "string",
+                    "student_name": "string",
+                    "total_marks": "number"
+                }
+            }
+        ],
+        "error": "bool",
+        "message": "string"
+    }
+}

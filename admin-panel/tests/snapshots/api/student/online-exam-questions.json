@@ -1,0 +1,38 @@
+{
+    "request": "GET /api/student/get-online-exam-questions",
+    "status": 200,
+    "error": false,
+    "message": "Exam Questions Fetched Successfully",
+    "code": 200,
+    "shape": {
+        "code": "number",
+        "data": [
+            {
+                "answers": [
+                    {
+                        "answer": "string",
+                        "id": "number",
+                        "option_id": "number"
+                    }
+                ],
+                "answers_count": "number",
+                "id": "number",
+                "image": "null",
+                "marks": "number",
+                "note": "null",
+                "options": [
+                    {
+                        "id": "number",
+                        "option": "string"
+                    }
+                ],
+                "question": "string",
+                "question_type": "number"
+            }
+        ],
+        "error": "bool",
+        "message": "string",
+        "total_marks": "number",
+        "total_questions": "number"
+    }
+}

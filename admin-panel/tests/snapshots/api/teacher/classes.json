@@ -1,0 +1,43 @@
+{
+    "request": "GET /api/teacher/classes",
+    "status": 200,
+    "error": false,
+    "message": "Teacher Classes Fetched Successfully.",
+    "code": 200,
+    "shape": {
+        "code": "number",
+        "data": {
+            "class_teacher": [
+                {
+                    "class": {
+                        "educational_program_id": "null",
+                        "full_name": "string",
+                        "id": "number",
+                        "medium": {
+                            "id": "number",
+                            "name": "string"
+                        },
+                        "medium_id": "number",
+                        "name": "string",
+                        "shift_id": "null",
+                        "shifts": "null",
+                        "stream_id": "null",
+                        "streams": "null"
+                    },
+                    "class_id": "number",
+                    "full_name": "string",
+                    "id": "number",
+                    "name": "string",
+                    "section": {
+                        "id": "number",
+                        "name": "string"
+                    },
+                    "section_id": "number"
+                }
+            ],
+            "other": []
+        },
+        "error": "bool",
+        "message": "string"
+    }
+}

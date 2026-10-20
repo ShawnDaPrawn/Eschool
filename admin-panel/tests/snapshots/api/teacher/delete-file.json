@@ -1,0 +1,13 @@
+{
+    "request": "POST /api/teacher/delete-file",
+    "status": 200,
+    "error": false,
+    "message": "Data Deleted Successfully",
+    "code": 200,
+    "shape": {
+        "code": "number",
+        "data": "null",
+        "error": "bool",
+        "message": "string"
+    }
+}

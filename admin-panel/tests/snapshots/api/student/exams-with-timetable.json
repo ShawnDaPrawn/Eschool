@@ -1,0 +1,47 @@
+{
+    "request": "GET /api/student/get-exam-list",
+    "status": 200,
+    "error": false,
+    "message": "Exam List Fetched Successfully",
+    "code": 200,
+    "shape": {
+        "code": "number",
+        "data": [
+            {
+                "description": "null|string",
+                "exam_ending_date": "string",
+                "exam_starting_date": "string",
+                "exam_status": "string",
+                "exam_timetable": [
+                    {
+                        "class_id": "number",
+                        "date": "string",
+                        "end_time": "string",
+                        "exam_id": "number",
+                        "id": "number",
+                        "passing_marks": "number",
+                        "session_year_id": "number",
+                        "start_time": "string",
+                        "subject": {
+                            "bg_color": "string",
+                            "code": "string",
+                            "id": "number",
+                            "image": "string",
+                            "medium_id": "number",
+                            "name": "string",
+                            "type": "string"
+                        },
+                        "subject_id": "number",
+                        "total_marks": "number"
+                    }
+                ],
+                "id": "number",
+                "name": "string",
+                "publish": "number",
+                "session_year": "string"
+            }
+        ],
+        "error": "bool",
+        "message": "string"
+    }
+}

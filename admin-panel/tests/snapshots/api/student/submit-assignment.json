@@ -1,0 +1,28 @@
+{
+    "request": "POST /api/student/submit-assignment",
+    "status": 200,
+    "error": false,
+    "message": "Assignments Submitted Successfully",
+    "code": 200,
+    "shape": {
+        "code": "number",
+        "data": [
+            {
+                "assignment_id": "number",
+                "created_at": "string",
+                "deleted_at": "null",
+                "feedback": "null",
+                "file": [],
+                "id": "number",
+                "points": "null",
+                "session_year_id": "number",
+                "status": "number",
+                "student_id": "number",
+                "text_submission": "string",
+                "updated_at": "string"
+            }
+        ],
+        "error": "bool",
+        "message": "string"
+    }
+}

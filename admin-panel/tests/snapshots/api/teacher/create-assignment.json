@@ -1,0 +1,13 @@
+{
+    "request": "POST /api/teacher/create-assignment",
+    "status": 200,
+    "error": false,
+    "message": "Assignment Created Successfully.",
+    "code": 200,
+    "shape": {
+        "code": "number",
+        "data": "null",
+        "error": "bool",
+        "message": "string"
+    }
+}

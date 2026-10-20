@@ -1,0 +1,84 @@
+{
+    "request": "POST /api/teacher/get-student-leave-list",
+    "status": 200,
+    "error": false,
+    "message": "Data Fetched Successfully",
+    "code": 200,
+    "shape": {
+        "code": "number",
+        "data": {
+            "leave_details": [
+                {
+                    "created_at": "string",
+                    "deleted_at": "null",
+                    "file": [],
+                    "from_date": "string",
+                    "id": "number",
+                    "leave_detail": [
+                        {
+                            "created_at": "string",
+                            "date": "string",
+                            "deleted_at": "null",
+                            "id": "number",
+                            "leave_id": "number",
+                            "session_year_id": "number",
+                            "type": "string",
+                            "updated_at": "string"
+                        }
+                    ],
+                    "leave_master_id": "null",
+                    "reason": "string",
+                    "reason_of_rejection": "null",
+                    "session_year_id": "number",
+                    "status": "string",
+                    "to_date": "string",
+                    "total_days": "number",
+                    "updated_at": "string",
+                    "user": {
+                        "current_address": "null",
+                        "device_type": "null",
+                        "dob": "string",
+                        "email": "string",
+                        "email_verified_at": "null",
+                        "fcm_id": "null",
+                        "first_name": "string",
+                        "full_name": "string",
+                        "gender": "string",
+                        "id": "number",
+                        "image": "string",
+                        "last_name": "string",
+                        "mobile": "string",
+                        "permanent_address": "null",
+                        "reset_request": "number",
+                        "status": "number",
+                        "student": {
+                            "admission_date": "string",
+                            "admission_no": "string",
+                            "application_type": "string",
+                            "blood_group": "string",
+                            "caste": "null",
+                            "category_id": "number",
+                            "class_id": "number",
+                            "class_section_id": "number",
+                            "dynamic_fields": "null",
+                            "father_id": "null|number",
+                            "guardian_id": "null|number",
+                            "height": "null",
+                            "id": "number",
+                            "is_new_admission": "number",
+                            "mother_id": "null|number",
+                            "religion": "null",
+                            "roll_number": "number",
+                            "user_id": "number",
+                            "weight": "null"
+                        }
+                    },
+                    "user_id": "number"
+                }
+            ],
+            "total_leave_requests": "number"
+        },
+        "error": "bool",
+        "message": "string"
+    }
+}

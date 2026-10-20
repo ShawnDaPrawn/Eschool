@@ -1,0 +1,23 @@
+{
+    "request": "GET /api/student/online-exam-report",
+    "status": 200,
+    "error": false,
+    "message": "Data fetched successfully.",
+    "code": 200,
+    "shape": {
+        "code": "number",
+        "data": {
+            "attempted_count": "number",
+            "attempted_percentage": "number",
+            "average_percentage": "number",
+            "best_exam_name": "string",
+            "best_exam_percentage": "number",
+            "missed_count": "number",
+            "total_exams": "number",
+            "worst_exam_name": "string",
+            "worst_exam_percentage": "number"
+        },
+        "error": "bool",
+        "message": "string"
+    }
+}

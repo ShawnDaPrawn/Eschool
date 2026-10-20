@@ -1,0 +1,37 @@
+{
+    "request": "GET /api/teacher/get-student-result",
+    "status": 200,
+    "error": false,
+    "message": "Exam Marks Fetched Successfully",
+    "code": 200,
+    "shape": {
+        "code": "number",
+        "data": [
+            {
+                "exam_date": "string",
+                "exam_id": "number",
+                "exam_name": "string",
+                "marks_data": [
+                    {
+                        "marks": {
+                            "grade": "string",
+                            "marks_id": "number",
+                            "obtained_marks": "number",
+                            "subject_name": "string",
+                            "subject_type": "string",
+                            "total_marks": "number"
+                        },
+                        "subject_code": "string",
+                        "subject_id": "number",
+                        "subject_name": "string",
+                        "subject_type": "string",
+                        "total_marks": "number"
+                    }
+                ],
+                "result": []
+            }
+        ],
+        "error": "bool",
+        "message": "string"
+    }
+}

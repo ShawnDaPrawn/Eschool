@@ -1,0 +1,13 @@
+{
+    "request": "POST /api/teacher/update-assignment-submission",
+    "status": 200,
+    "error": false,
+    "message": "Data Updated Successfully",
+    "code": 200,
+    "shape": {
+        "code": "number",
+        "data": "null",
+        "error": "bool",
+        "message": "string"
+    }
+}

@@ -1,0 +1,14 @@
+{
+    "request": "POST /api/student/store-fees",
+    "status": 200,
+    "error": true,
+    "message": "Invalid transaction",
+    "code": 103,
+    "shape": {
+        "code": "number",
+        "data": "null",
+        "details": "string",
+        "error": "bool",
+        "message": "string"
+    }
+}

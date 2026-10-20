@@ -1,0 +1,13 @@
+{
+    "request": "POST /api/student/read-all-message",
+    "status": 200,
+    "error": false,
+    "message": "Message Read",
+    "code": 200,
+    "shape": {
+        "code": "number",
+        "data": "null",
+        "error": "bool",
+        "message": "string"
+    }
+}

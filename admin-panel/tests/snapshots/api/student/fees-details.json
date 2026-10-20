@@ -1,0 +1,38 @@
+{
+    "request": "GET /api/student/fees-details",
+    "status": 200,
+    "error": false,
+    "message": "Fees Details Fetched Successfully",
+    "code": 200,
+    "shape": {
+        "code": "number",
+        "compulsory_due_charges": "number",
+        "compulsory_due_date": "string",
+        "compulsory_fees_data": [
+            {
+                "amount": "number",
+                "id": "number",
+                "is_paid": "number",
+                "name": "string",
+                "paid_on": "string"
+            }
+        ],
+        "compulsory_fees_total": "number",
+        "current_date": "string",
+        "data": "null",
+        "error": "bool",
+        "installment_data": [],
+        "is_fee_pending": "number",
+        "message": "string",
+        "optional_fees_data": [
+            {
+                "amount": "number",
+                "id": "number",
+                "is_paid": "number",
+                "name": "string",
+                "paid_date": "null"
+            }
+        ],
+        "optional_fees_total": "number"
+    }
+}

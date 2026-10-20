@@ -1,0 +1,58 @@
+{
+    "request": "GET /api/student/announcements",
+    "status": 200,
+    "error": false,
+    "message": "Announcement Details Fetched Successfully",
+    "code": 200,
+    "shape": {
+        "code": "number",
+        "data": {
+            "current_page": "number",
+            "data": [
+                {
+                    "created_at": "string",
+                    "description": "string",
+                    "file": [
+                        {
+                            "file_extension": "string",
+                            "file_name": "string",
+                            "file_thumbnail": "string",
+                            "file_url": "string",
+                            "id": "number",
+                            "modal_id": "number",
+                            "modal_type": "string",
+                            "type": "string",
+                            "type_detail": "string"
+                        }
+                    ],
+                    "id": "number",
+                    "semester_id": "null",
+                    "session_year_id": "number",
+                    "table_id": "number",
+                    "table_type": "string",
+                    "title": "string"
+                }
+            ],
+            "first_page_url": "string",
+            "from": "number",
+            "last_page": "number",
+            "last_page_url": "string",
+            "links": [
+                {
+                    "active": "bool",
+                    "label": "string",
+                    "page": "null|number",
+                    "url": "null|string"
+                }
+            ],
+            "next_page_url": "null",
+            "path": "string",
+            "per_page": "number",
+            "prev_page_url": "null",
+            "to": "number",
+            "total": "number"
+        },
+        "error": "bool",
+        "message": "string"
+    }
+}

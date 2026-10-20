@@ -1,0 +1,27 @@
+{
+    "request": "GET /api/get-semesters",
+    "status": 200,
+    "error": false,
+    "message": "Semesters Fetched Successfully.",
+    "code": 200,
+    "shape": {
+        "code": "number",
+        "data": [
+            {
+                "created_at": "string",
+                "current": "bool",
+                "deleted_at": "null",
+                "end_date": "string",
+                "end_month_name": "string",
+                "id": "number",
+                "name": "string",
+                "session_year_id": "number",
+                "start_date": "string",
+                "start_month_name": "string",
+                "updated_at": "string"
+            }
+        ],
+        "error": "bool",
+        "message": "string"
+    }
+}

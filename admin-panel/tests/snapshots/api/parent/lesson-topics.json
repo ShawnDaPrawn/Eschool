@@ -1,0 +1,41 @@
+{
+    "request": "GET /api/parent/lesson-topics",
+    "status": 200,
+    "error": false,
+    "message": "Topics Fetched Successfully",
+    "code": 200,
+    "shape": {
+        "code": "number",
+        "data": [
+            {
+                "description": "string",
+                "file": [
+                    {
+                        "file_extension": "string",
+                        "file_name": "string",
+                        "file_thumbnail": "string",
+                        "file_url": "string",
+                        "id": "number",
+                        "modal_id": "number",
+                        "modal_type": "string",
+                        "type": "string",
+                        "type_detail": "string"
+                    }
+                ],
+                "id": "number",
+                "lesson": {
+                    "class_section_id": "number",
+                    "description": "string",
+                    "id": "number",
+                    "name": "string",
+                    "semester_id": "null",
+                    "subject_id": "number"
+                },
+                "lesson_id": "number",
+                "name": "string"
+            }
+        ],
+        "error": "bool",
+        "message": "string"
+    }
+}

@@ -1,0 +1,42 @@
+{
+    "request": "POST /api/teacher/login",
+    "status": 200,
+    "error": false,
+    "message": "User logged-in!",
+    "code": 100,
+    "shape": {
+        "code": "number",
+        "data": {
+            "created_at": "string",
+            "current_address": "string",
+            "custom_role": "number",
+            "device_type": "null",
+            "dob": "string",
+            "dynamic_fields": "null",
+            "email": "string",
+            "email_verified_at": "null",
+            "fcm_id": "null",
+            "first_name": "string",
+            "full_name": "string",
+            "gender": "string",
+            "guard_name": "string",
+            "id": "number",
+            "image": "string",
+            "last_name": "string",
+            "mobile": "string",
+            "model_id": "number",
+            "model_type": "string",
+            "name": "string",
+            "permanent_address": "null",
+            "qualification": "string",
+            "reset_request": "number",
+            "role_id": "number",
+            "status": "number",
+            "updated_at": "string",
+            "user_id": "number"
+        },
+        "error": "bool",
+        "message": "string",
+        "token": "string"
+    }
+}

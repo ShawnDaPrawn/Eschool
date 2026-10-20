@@ -1,0 +1,46 @@
+{
+    "request": "GET /api/student/get-notification",
+    "status": 200,
+    "error": false,
+    "message": "Data Fetched Successfully",
+    "code": 200,
+    "shape": {
+        "code": "number",
+        "data": {
+            "current_page": "number",
+            "data": [
+                {
+                    "date": "string",
+                    "id": "number",
+                    "image": "null",
+                    "is_custom": "number",
+                    "message": "string",
+                    "send_to": "number",
+                    "session_year_id": "number",
+                    "title": "string",
+                    "type": "string"
+                }
+            ],
+            "first_page_url": "string",
+            "from": "number",
+            "last_page": "number",
+            "last_page_url": "string",
+            "links": [
+                {
+                    "active": "bool",
+                    "label": "string",
+                    "page": "null|number",
+                    "url": "null|string"
+                }
+            ],
+            "next_page_url": "null",
+            "path": "string",
+            "per_page": "number",
+            "prev_page_url": "null",
+            "to": "number",
+            "total": "number"
+        },
+        "error": "bool",
+        "message": "string"
+    }
+}
