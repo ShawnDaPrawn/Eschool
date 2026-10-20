@@ -196,6 +196,7 @@ class NotificationController extends Controller
                 'message' => trans('notification_sent_successfully')
             );
         } catch (Throwable $e) {
+            report($e);
             $message = trans('error_occurred');
             $exceptionMessage = strtolower((string) $e->getMessage());
             if (str_contains($exceptionMessage, 'file') && str_contains($exceptionMessage, 'image')) {
@@ -206,7 +207,6 @@ class NotificationController extends Controller
             $response = array(
                 'error' => true,
                 'message' => $message,
-                'data' => $e
             );
         }
         return response()->json($response);
@@ -294,10 +294,10 @@ class NotificationController extends Controller
                 'message' => trans('data_delete_successfully')
             ];
         } catch (Throwable $e) {
+            report($e);
             $response = array(
                 'error' => true,
                 'message' => trans('error_occurred'),
-                'data' => $e
             );
         }
         return response()->json($response);

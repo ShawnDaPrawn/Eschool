@@ -37,8 +37,9 @@
                                           <button class="file-upload-browse btn btn-theme" type="button">{{ __('upload') }}</button>
                                         </span>
                                     </div>
-                                    @if (isset($settings['service_account_file']) ? $settings['service_account_file'] : '')
-                                        <a href="{{Storage::url(isset($settings['service_account_file']) ? $settings['service_account_file'] : '')}}"><strong>{{ __('firebase_json_file') }}</strong></a>
+                                    {{-- The key file is private; it is never linked for download. --}}
+                                    @if (! empty($settings['service_account_file']))
+                                        <strong>{{ __('firebase_json_file') }}</strong> &#10003;
                                     @endif
 
                                 </div>

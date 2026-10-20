@@ -16,6 +16,9 @@ use Throwable;
 
 class SettingController extends Controller
 {
+    /** Firebase service account file, on the private local disk. */
+    private const SERVICE_ACCOUNT_FILE = 'firebase/service_account.json';
+
     public function index()
     {
         if (! Auth::user()->can('setting-create')) {
@@ -66,6 +69,10 @@ class SettingController extends Controller
             'recaptcha_site_key' => 'required_if:recaptcha_status,1',
             'recaptcha_secret_key' => 'required_if:recaptcha_status,1',
             'recaptcha_status' => 'nullable',
+            'logo1' => 'nullable|file|mimes:jpeg,jpg,png,gif,webp,svg',
+            'logo2' => 'nullable|file|mimes:jpeg,jpg,png,gif,webp,svg',
+            'favicon' => 'nullable|file|mimes:jpeg,jpg,png,gif,webp,svg,ico',
+            'login_image' => 'nullable|file|mimes:jpeg,jpg,png,gif,webp,svg',
         ]);
 
         $settings = [
@@ -252,10 +259,10 @@ class SettingController extends Controller
                 ];
             }
         } catch (Throwable $e) {
+            report($e);
             $response = [
                 'error' => true,
                 'message' => trans('error_occurred'),
-                'data' => $e,
             ];
         }
 
@@ -365,10 +372,10 @@ class SettingController extends Controller
                 ];
             }
         } catch (Throwable $e) {
+            report($e);
             $response = [
                 'error' => true,
                 'message' => trans('error_occurred'),
-                'data' => $e,
             ];
         }
 
@@ -430,10 +437,10 @@ class SettingController extends Controller
                 ];
             }
         } catch (Throwable $e) {
+            report($e);
             $response = [
                 'error' => true,
                 'message' => trans('error_occurred'),
-                'data' => $e,
             ];
         }
 
@@ -631,10 +638,10 @@ class SettingController extends Controller
                 'message' => trans('data_update_successfully'),
             ];
         } catch (Throwable $e) {
+            report($e);
             $response = [
                 'error' => true,
                 'message' => trans('error_occurred'),
-                'data' => $e,
             ];
         }
 
@@ -653,7 +660,15 @@ class SettingController extends Controller
         $request->validate([
             'sender_id' => 'required',
             'project_id' => 'required',
-            // 'service_account_file' => 'required|mimes:json'
+            // JSON uploads are often detected as text/plain, so the content is checked instead of the type.
+            'service_account_file' => ['bail', 'nullable', 'file', 'max:64', function ($attribute, $value, $fail) {
+                $json = $value instanceof \Illuminate\Http\UploadedFile
+                    ? json_decode((string) @file_get_contents($value->getRealPath()), true)
+                    : null;
+                if (! is_array($json) || empty($json['private_key']) || empty($json['client_email'])) {
+                    $fail(trans('only_json_file_allowed'));
+                }
+            }],
         ]);
         $settings = ['sender_id', 'project_id'];
         try {
@@ -670,28 +685,31 @@ class SettingController extends Controller
                     $setting->save();
                 }
             }
+            // The service account file holds a Google private key, so it is kept on
+            // the private local disk (storage/app), never on the public disk.
+            $currentFile = Settings::where('type', 'service_account_file')->value('message');
+            $newFile = null;
             if ($request->hasFile('service_account_file')) {
-                $serviceAccountFile = $request->file('service_account_file');
-
-                if (Settings::where('type', 'service_account_file')->exists()) {
-                    $get_id = Settings::where('type', 'service_account_file')->value('message');
-
-                    // Delete the existing file
-                    if (Storage::disk('public')->exists($get_id)) {
-                        Storage::disk('public')->delete($get_id);
-                    }
-
-                    // Store the new file with its original name
-                    $data = [
-                        'message' => $serviceAccountFile->storeAs('firebase', $serviceAccountFile->getClientOriginalName(), 'public'),
-                    ];
-                    Settings::where('type', 'service_account_file')->update($data);
-                } else {
-                    $setting = new Settings;
-                    $setting->type = 'service_account_file';
-                    $setting->message = $serviceAccountFile->storeAs('firebase', $serviceAccountFile->getClientOriginalName(), 'public');
-                    $setting->save();
+                $newFile = $request->file('service_account_file')->storeAs(
+                    dirname(self::SERVICE_ACCOUNT_FILE),
+                    basename(self::SERVICE_ACCOUNT_FILE),
+                    'local'
+                );
+            } elseif ($currentFile && ! Storage::disk('local')->exists($currentFile) && Storage::disk('public')->exists($currentFile)) {
+                // Installs that uploaded it before: move the existing file off the public disk.
+                if (Storage::disk('local')->put(self::SERVICE_ACCOUNT_FILE, Storage::disk('public')->get($currentFile))) {
+                    $newFile = self::SERVICE_ACCOUNT_FILE;
                 }
+            }
+
+            if ($newFile) {
+                if ($currentFile && Storage::disk('public')->exists($currentFile)) {
+                    Storage::disk('public')->delete($currentFile);
+                }
+                if ($currentFile && $currentFile !== $newFile && Storage::disk('local')->exists($currentFile)) {
+                    Storage::disk('local')->delete($currentFile);
+                }
+                Settings::updateOrCreate(['type' => 'service_account_file'], ['message' => $newFile]);
             }
 
             $sender_id = Settings::select('message')->where('type', 'sender_id')->pluck('message')->first();
@@ -707,10 +725,10 @@ class SettingController extends Controller
                 ];
             }
         } catch (\Throwable $e) {
+            report($e);
             $response = [
                 'error' => true,
                 'message' => trans('error_occurred'),
-                'data' => $e,
             ];
         }
 
@@ -766,10 +784,10 @@ class SettingController extends Controller
                 'message' => trans('data_update_successfully'),
             ];
         } catch (\Throwable $e) {
+            report($e);
             $response = [
                 'error' => true,
                 'message' => trans('error_occurred'),
-                'data' => $e,
             ];
         }
 
@@ -808,10 +826,10 @@ class SettingController extends Controller
                 'message' => trans('data_delete_successfully'),
             ];
         } catch (\Throwable $e) {
+            report($e);
             $response = [
                 'error' => true,
                 'message' => trans('error_occurred'),
-                'data' => $e,
             ];
         }
 
@@ -828,10 +846,10 @@ class SettingController extends Controller
                 'message' => trans('data_delete_successfully'),
             ];
         } catch (\Throwable $e) {
+            report($e);
             $response = [
                 'error' => true,
                 'message' => trans('error_occurred'),
-                'data' => $e,
             ];
         }
 

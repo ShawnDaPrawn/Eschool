@@ -3,6 +3,7 @@
 use App\Models\User;
 use App\Models\Settings;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Storage;
 
 function sendSimpleNotification($user, $title, $body, $type, $image, $userinfo)
 {
@@ -201,7 +202,13 @@ function getAccessToken() {
             return null;
         }
 
-        $file_path = base_path('public/storage/' . $file_name);
+        // The file is kept on the private local disk (storage/app). Installs that
+        // uploaded it before still have it on the public disk until the FCM
+        // settings are saved again, which moves it.
+        $file_path = Storage::disk('local')->path($file_name);
+        if (!file_exists($file_path)) {
+            $file_path = Storage::disk('public')->path($file_name);
+        }
 
         if (!file_exists($file_path)) {
             Log::error('Firebase service account file not found: ' . $file_path);

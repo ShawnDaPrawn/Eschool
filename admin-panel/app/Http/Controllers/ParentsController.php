@@ -258,10 +258,10 @@ class ParentsController extends Controller
                 'message' => trans('data_store_successfully'),
             ];
         } catch (Throwable $e) {
+            report($e);
             $response = [
                 'error' => true,
                 'message' => trans('error_occurred'),
-                'data' => $e,
             ];
         }
 
@@ -270,6 +270,15 @@ class ParentsController extends Controller
 
     public function search(Request $request)
     {
+        // Used by the parent pickers on the student admission/edit and online
+        // registration forms; it returns parents' contact details.
+        if (! Auth::user()->canAny(['parents-list', 'student-create', 'student-edit', 'online-registration-list'])) {
+            return response()->json([
+                'error' => true,
+                'message' => trans('no_permission_message'),
+            ]);
+        }
+
         if ($request->type == 'father') {
             $parent = Parents::where(function ($query) use ($request) {
                 $query->orWhere('email', 'like', '%'.$request->email.'%')
