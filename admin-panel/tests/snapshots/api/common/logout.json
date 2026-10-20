@@ -1,0 +1,13 @@
+{
+    "request": "POST /api/logout",
+    "status": 200,
+    "error": false,
+    "message": "Logout Successfully done.",
+    "code": 200,
+    "shape": {
+        "code": "number",
+        "data": "null",
+        "error": "bool",
+        "message": "string"
+    }
+}

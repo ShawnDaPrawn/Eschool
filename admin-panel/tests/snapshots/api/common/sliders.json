@@ -1,0 +1,21 @@
+{
+    "request": "GET /api/sliders",
+    "status": 200,
+    "error": false,
+    "message": "Sliders Fetched Successfully.",
+    "code": 200,
+    "shape": {
+        "code": "number",
+        "data": [
+            {
+                "created_at": "string",
+                "id": "number",
+                "image": "string",
+                "type": "string",
+                "updated_at": "string"
+            }
+        ],
+        "error": "bool",
+        "message": "string"
+    }
+}

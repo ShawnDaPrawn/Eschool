@@ -121,7 +121,7 @@ class ParentApiController extends Controller
             $dynamicField = $user->parent->dynamic_fields;
 
             if (! empty($dynamicField)) {
-                $data = json_decode($dynamicField, true);
+                $data = json_decode($dynamicField ?? '[]', true);
                 if (is_array($data)) {
                     foreach ($data as $item) {
                         if ($item != null) {
@@ -262,7 +262,7 @@ class ParentApiController extends Controller
                 $dynamicFields = null;
                 $dynamicField = $child->dynamic_fields;
 
-                $data = json_decode($dynamicField, true);
+                $data = json_decode($dynamicField ?? '[]', true);
 
                 if (is_array($data)) {
                     foreach ($data as $item) {
@@ -2295,7 +2295,7 @@ class ParentApiController extends Controller
                 $dynamicFields = null;
                 $dynamicField = $child->dynamic_fields;
 
-                $childdata = json_decode($dynamicField, true);
+                $childdata = json_decode($dynamicField ?? '[]', true);
 
                 if (is_array($childdata)) {
                     foreach ($childdata as $item) {

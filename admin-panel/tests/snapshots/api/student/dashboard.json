@@ -1,0 +1,137 @@
+{
+    "request": "GET /api/student/dashboard",
+    "status": 200,
+    "error": false,
+    "message": "Data Fetched Successfully.",
+    "code": 200,
+    "shape": {
+        "code": "number",
+        "data": {
+            "announcements": [
+                {
+                    "created_at": "string",
+                    "description": "string",
+                    "file": [],
+                    "id": "number",
+                    "semester_id": "null",
+                    "session_year_id": "number",
+                    "table_id": "null",
+                    "table_type": "string",
+                    "title": "string"
+                }
+            ],
+            "assignments": [],
+            "events": [
+                {
+                    "description": "string",
+                    "end_date": "string",
+                    "end_time": "string",
+                    "has_day_schedule": "number",
+                    "id": "number",
+                    "image": "string",
+                    "start_date": "string",
+                    "start_time": "string",
+                    "title": "string",
+                    "type": "string"
+                }
+            ],
+            "exams": [
+                {
+                    "description": "string",
+                    "exam_ending_date": "string",
+                    "exam_starting_date": "string",
+                    "exam_status": "string",
+                    "exam_timetable": [
+                        {
+                            "date": "string",
+                            "ending_time": "string",
+                            "id": "number",
+                            "passing_marks": "number",
+                            "starting_time": "string",
+                            "subject": {
+                                "bg_color": "string",
+                                "id": "number",
+                                "image": "string",
+                                "name": "string",
+                                "type": "string"
+                            },
+                            "total_marks": "number"
+                        }
+                    ],
+                    "id": "number",
+                    "name": "string",
+                    "publish": "number",
+                    "session_year": "string"
+                }
+            ],
+            "gallery": {
+                "albums": [
+                    {
+                        "id": "number",
+                        "thumbnail_url": "string",
+                        "title": "string"
+                    }
+                ],
+                "videos": [
+                    "string"
+                ]
+            },
+            "sliders": [
+                {
+                    "created_at": "string",
+                    "id": "number",
+                    "image": "string",
+                    "type": "string",
+                    "updated_at": "string"
+                }
+            ],
+            "subjects": {
+                "core_subject": [
+                    {
+                        "class_id": "number",
+                        "elective_subject_group_id": "null",
+                        "id": "number",
+                        "semester": "null",
+                        "semester_id": "null",
+                        "session_year_id": "number",
+                        "subject": {
+                            "bg_color": "string",
+                            "code": "string",
+                            "id": "number",
+                            "image": "string",
+                            "medium_id": "number",
+                            "name": "string",
+                            "type": "string"
+                        },
+                        "subject_id": "number",
+                        "type": "string"
+                    }
+                ],
+                "elective_subject": "null"
+            },
+            "timetables": [
+                {
+                    "day": "number",
+                    "day_name": "string",
+                    "end_time": "string",
+                    "link_name": "null",
+                    "live_class_url": "null",
+                    "start_time": "string",
+                    "subject": {
+                        "bg_color": "string",
+                        "code": "string",
+                        "id": "number",
+                        "image": "string",
+                        "medium_id": "number",
+                        "name": "string",
+                        "type": "string"
+                    },
+                    "teacher_first_name": "string",
+                    "teacher_last_name": "string"
+                }
+            ]
+        },
+        "error": "bool",
+        "message": "string"
+    }
+}

@@ -1,0 +1,14 @@
+{
+    "request": "GET /api/student/fees-paid-receipt-pdf",
+    "status": 200,
+    "error": false,
+    "message": "Fees Paid Receipt PDF Fetched Successfully",
+    "code": 200,
+    "shape": {
+        "code": "number",
+        "data": "null",
+        "error": "bool",
+        "message": "string",
+        "pdf": "string"
+    }
+}

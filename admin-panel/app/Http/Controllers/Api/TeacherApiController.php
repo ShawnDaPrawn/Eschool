@@ -87,7 +87,7 @@ class TeacherApiController extends Controller
             $dynamicField = $user->teacher->dynamic_fields;
             $user = flattenMyModel($user);
             if (! empty($dynamicField)) {
-                $data = json_decode($dynamicField, true);
+                $data = json_decode($dynamicField ?? '[]', true);
                 if (is_array($data)) {
                     foreach ($data as $item) {
                         if ($item != null) {
@@ -1084,7 +1084,7 @@ class TeacherApiController extends Controller
         $validator2 = Validator::make(
             $request->all(),
             [
-                'name' => ['required', new uniqueLessonInClass($request->class_section_id, $request->lesson_id)],
+                'name' => ['required', new uniqueLessonInClass($request->class_section_id, $request->subject_id, $request->lesson_id)],
             ]
         );
         if ($validator2->fails()) {
@@ -2370,7 +2370,7 @@ class TeacherApiController extends Controller
                         $exam_marks_db->passing_status = $status;
                         $exam_marks_db->grade = $exam_grade;
                         $exam_marks_db->save();
-                        ResponseService::successResponse('data_update_successfully');
+                        $updated = true;
                     } else {
                         $exam_result_marks[] = [
                             'exam_timetable_id' => $exam_timetable->id,
@@ -2385,8 +2385,10 @@ class TeacherApiController extends Controller
                 }
                 if (isset($exam_result_marks)) {
                     ExamMarks::insert($exam_result_marks);
-                    ResponseService::successResponse('data_store_successfully');
                 }
+                // Respond once every row is saved: replying (which exits) on the first
+                // existing row used to drop the marks of every student after it.
+                ResponseService::successResponse(isset($updated) ? 'data_update_successfully' : 'data_store_successfully');
             }
         } catch (\Exception $e) {
             ResponseService::errorResponse('error_occurred', null, 103, $e);
@@ -2479,7 +2481,7 @@ class TeacherApiController extends Controller
                         $exam_marks_db->passing_status = $status;
                         $exam_marks_db->grade = $exam_grade;
                         $exam_marks_db->save();
-                        ResponseService::successResponse('data_update_successfully');
+                        $updated = true;
                     } else {
                         $exam_result_marks[] = [
                             'exam_timetable_id' => $exam_timetable->id,
@@ -2494,8 +2496,10 @@ class TeacherApiController extends Controller
                 }
                 if (isset($exam_result_marks)) {
                     ExamMarks::insert($exam_result_marks);
-                    ResponseService::successResponse('data_store_successfully');
                 }
+                // Respond once every row is saved: replying (which exits) on the first
+                // existing row used to drop the marks of every student after it.
+                ResponseService::successResponse(isset($updated) ? 'data_update_successfully' : 'data_store_successfully');
             }
         } catch (\Exception $e) {
             ResponseService::errorResponse('error_occurred', null, 103, $e);
@@ -2965,7 +2969,7 @@ class TeacherApiController extends Controller
 
             $user = flattenMyModel($user);
 
-            $data = json_decode($dynamicField, true);
+            $data = json_decode($dynamicField ?? '[]', true);
             if (is_array($data)) {
                 foreach ($data as $item) {
                     if (! empty($item)) {

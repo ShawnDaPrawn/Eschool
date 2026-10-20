@@ -1,0 +1,97 @@
+{
+    "request": "GET /api/parent/assignments",
+    "status": 200,
+    "error": false,
+    "message": "Assignments Fetched Successfully",
+    "code": 200,
+    "shape": {
+        "code": "number",
+        "data": {
+            "current_page": "number",
+            "data": [
+                {
+                    "class_section_id": "number",
+                    "created_at": "string",
+                    "due_date": "string",
+                    "extra_days_for_resubmission": "number",
+                    "file": [
+                        {
+                            "file_extension": "string",
+                            "file_name": "string",
+                            "file_thumbnail": "string",
+                            "file_url": "string",
+                            "id": "number",
+                            "modal_id": "number",
+                            "modal_type": "string",
+                            "type": "string",
+                            "type_detail": "string"
+                        }
+                    ],
+                    "id": "number",
+                    "instructions": "string",
+                    "name": "string",
+                    "points": "number",
+                    "resubmission": "number",
+                    "semester_id": "null",
+                    "session_year_id": "number",
+                    "subject": {
+                        "bg_color": "string",
+                        "code": "string",
+                        "id": "number",
+                        "image": "string",
+                        "medium_id": "number",
+                        "name": "string",
+                        "type": "string"
+                    },
+                    "subject_id": "number",
+                    "submission": {
+                        "assignment_id": "number",
+                        "created_at": "string",
+                        "deleted_at": "null",
+                        "feedback": "null",
+                        "file": [
+                            {
+                                "file_extension": "string",
+                                "file_name": "string",
+                                "file_thumbnail": "string",
+                                "file_url": "string",
+                                "id": "number",
+                                "modal_id": "number",
+                                "modal_type": "string",
+                                "type": "string",
+                                "type_detail": "string"
+                            }
+                        ],
+                        "id": "number",
+                        "points": "null",
+                        "session_year_id": "number",
+                        "status": "number",
+                        "student_id": "number",
+                        "text_submission": "string",
+                        "updated_at": "string"
+                    }
+                }
+            ],
+            "first_page_url": "string",
+            "from": "number",
+            "last_page": "number",
+            "last_page_url": "string",
+            "links": [
+                {
+                    "active": "bool",
+                    "label": "string",
+                    "page": "null|number",
+                    "url": "null|string"
+                }
+            ],
+            "next_page_url": "null",
+            "path": "string",
+            "per_page": "number",
+            "prev_page_url": "null",
+            "to": "number",
+            "total": "number"
+        },
+        "error": "bool",
+        "message": "string"
+    }
+}

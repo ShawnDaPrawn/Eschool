@@ -1,0 +1,43 @@
+{
+    "request": "GET /api/parent/lessons",
+    "status": 200,
+    "error": false,
+    "message": "Lessons Fetched Successfully",
+    "code": 200,
+    "shape": {
+        "code": "number",
+        "data": [
+            {
+                "class_section_id": "number",
+                "description": "string",
+                "file": [
+                    {
+                        "file_extension": "string",
+                        "file_name": "string",
+                        "file_thumbnail": "string",
+                        "file_url": "string",
+                        "id": "number",
+                        "modal_id": "number",
+                        "modal_type": "string",
+                        "type": "string",
+                        "type_detail": "string"
+                    }
+                ],
+                "id": "number",
+                "name": "string",
+                "semester_id": "null",
+                "subject_id": "number",
+                "topic": [
+                    {
+                        "description": "string",
+                        "id": "number",
+                        "lesson_id": "number",
+                        "name": "string"
+                    }
+                ]
+            }
+        ],
+        "error": "bool",
+        "message": "string"
+    }
+}

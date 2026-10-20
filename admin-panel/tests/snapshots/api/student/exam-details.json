@@ -1,0 +1,29 @@
+{
+    "request": "GET /api/student/get-exam-details",
+    "status": 200,
+    "error": false,
+    "message": "Exam Details Fetched Successfully",
+    "code": 200,
+    "shape": {
+        "code": "number",
+        "data": [
+            {
+                "date": "string",
+                "ending_time": "string",
+                "id": "number",
+                "passing_marks": "number",
+                "starting_time": "string",
+                "subject": {
+                    "bg_color": "string",
+                    "id": "number",
+                    "image": "string",
+                    "name": "string",
+                    "type": "string"
+                },
+                "total_marks": "number"
+            }
+        ],
+        "error": "bool",
+        "message": "string"
+    }
+}

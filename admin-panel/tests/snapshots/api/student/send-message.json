@@ -1,0 +1,19 @@
+{
+    "request": "POST /api/student/send-message",
+    "status": 200,
+    "error": false,
+    "message": "Message Sent !!!",
+    "code": 200,
+    "shape": {
+        "code": "number",
+        "data": {
+            "body": "string",
+            "date": "string",
+            "files": [],
+            "id": "number",
+            "sender_id": "number"
+        },
+        "error": "bool",
+        "message": "string"
+    }
+}

@@ -1,0 +1,33 @@
+{
+    "request": "GET /api/parent/timetable",
+    "status": 200,
+    "error": false,
+    "message": "Timetable Fetched Successfully",
+    "code": 200,
+    "shape": {
+        "code": "number",
+        "data": [
+            {
+                "day": "number",
+                "day_name": "string",
+                "end_time": "string",
+                "link_name": "null",
+                "live_class_url": "null",
+                "start_time": "string",
+                "subject": {
+                    "bg_color": "string",
+                    "code": "string",
+                    "id": "number",
+                    "image": "string",
+                    "medium_id": "number",
+                    "name": "string",
+                    "type": "string"
+                },
+                "teacher_first_name": "string",
+                "teacher_last_name": "string"
+            }
+        ],
+        "error": "bool",
+        "message": "string"
+    }
+}

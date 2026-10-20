@@ -1,0 +1,32 @@
+{
+    "request": "GET /api/teacher/subjects",
+    "status": 200,
+    "error": false,
+    "message": "Teacher Subject Fetched Successfully.",
+    "code": 200,
+    "shape": {
+        "code": "number",
+        "data": [
+            {
+                "class_section_id": "number",
+                "id": "number",
+                "semester_id": "null",
+                "session_year_id": "number",
+                "subject": {
+                    "bg_color": "string",
+                    "code": "string",
+                    "id": "number",
+                    "image": "string",
+                    "medium_id": "number",
+                    "name": "string",
+                    "semester": "null",
+                    "type": "string"
+                },
+                "subject_id": "number",
+                "teacher_id": "number"
+            }
+        ],
+        "error": "bool",
+        "message": "string"
+    }
+}

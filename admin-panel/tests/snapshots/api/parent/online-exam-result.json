@@ -1,0 +1,30 @@
+{
+    "request": "GET /api/parent/get-online-exam-result",
+    "status": 200,
+    "error": false,
+    "message": "Exam Result Fetched Successfully",
+    "code": 200,
+    "shape": {
+        "code": "number",
+        "data": {
+            "correct_answers": {
+                "question_data": [],
+                "total_questions": "number"
+            },
+            "in_correct_answers": {
+                "question_data": [
+                    {
+                        "marks": "number",
+                        "question_id": "number"
+                    }
+                ],
+                "total_questions": "number"
+            },
+            "total_marks": "string",
+            "total_obtained_marks": "string",
+            "total_questions": "number"
+        },
+        "error": "bool",
+        "message": "string"
+    }
+}

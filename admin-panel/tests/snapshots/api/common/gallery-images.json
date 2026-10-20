@@ -1,0 +1,13 @@
+{
+    "request": "GET /api/get-gallery-images",
+    "status": 200,
+    "error": false,
+    "message": null,
+    "code": null,
+    "shape": {
+        "data": [
+            "string"
+        ],
+        "error": "bool"
+    }
+}

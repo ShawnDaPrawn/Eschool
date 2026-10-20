@@ -1,0 +1,21 @@
+{
+    "request": "GET /api/teacher/attendance-report",
+    "status": 200,
+    "error": false,
+    "message": "Data fetched successfully.",
+    "code": 200,
+    "shape": {
+        "code": "number",
+        "data": {
+            "attendance": [],
+            "first_half_absent": "number",
+            "full_day_absent": "number",
+            "full_day_present": "number",
+            "second_half_absent": "number",
+            "total_absent": "number",
+            "total_present": "number"
+        },
+        "error": "bool",
+        "message": "string"
+    }
+}

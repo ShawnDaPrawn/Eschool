@@ -1,0 +1,39 @@
+{
+    "request": "GET /api/student/get-online-exam-list",
+    "status": 200,
+    "error": false,
+    "message": "Exam List Fetched Successfully",
+    "code": 200,
+    "shape": {
+        "code": "number",
+        "data": {
+            "current_date": "string",
+            "current_page": "number",
+            "data": [
+                {
+                    "class": {
+                        "id": "number",
+                        "name": "string"
+                    },
+                    "duration": "number",
+                    "end_date": "string",
+                    "exam_id": "number",
+                    "start_date": "string",
+                    "subject": {
+                        "id": "number",
+                        "name": "string"
+                    },
+                    "title": "string",
+                    "total_marks": "string"
+                }
+            ],
+            "from": "number",
+            "last_page": "number",
+            "per_page": "number",
+            "to": "number",
+            "total": "number"
+        },
+        "error": "bool",
+        "message": "string"
+    }
+}

@@ -86,3 +86,15 @@ npm start
 ```
 
 The site is served at `http://localhost:3000/Eschool/`.
+
+### Firebase Hosting
+
+`firebase.json` at the repository root deploys the documentation site to Firebase Hosting. Run this from the repository root with the [Firebase CLI](https://firebase.google.com/docs/cli):
+
+```bash
+firebase login
+firebase use --add
+firebase deploy --only hosting
+```
+
+The predeploy step runs `npm ci` and builds the site for `/`, with links on `https://<project-id>.web.app`. A local `npm start`, and any build without the `DOCS_URL` and `DOCS_BASE_URL` variables, still uses `/Eschool/`.

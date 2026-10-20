@@ -1,0 +1,14 @@
+{
+    "request": "GET /api/student/lessons",
+    "status": 200,
+    "error": true,
+    "message": "The subject id field is required.",
+    "code": null,
+    "shape": {
+        "code": "null",
+        "data": "null",
+        "details": "string",
+        "error": "bool",
+        "message": "string"
+    }
+}

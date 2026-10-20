@@ -1,0 +1,24 @@
+{
+    "request": "GET /api/student/get-exam-list",
+    "status": 200,
+    "error": false,
+    "message": "Exam List Fetched Successfully",
+    "code": 200,
+    "shape": {
+        "code": "number",
+        "data": [
+            {
+                "description": "null|string",
+                "exam_ending_date": "string",
+                "exam_starting_date": "string",
+                "exam_status": "string",
+                "id": "number",
+                "name": "string",
+                "publish": "number",
+                "session_year": "string"
+            }
+        ],
+        "error": "bool",
+        "message": "string"
+    }
+}

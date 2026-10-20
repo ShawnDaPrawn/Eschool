@@ -1,0 +1,19 @@
+includes:
+    - vendor/larastan/larastan/extension.neon
+    - phpstan-baseline.neon
+
+parameters:
+    level: 0
+    paths:
+        - app
+        - database
+        - routes
+    # pluck() and friends on a collection instead of the query: a speed hint, not a bug.
+    noUnnecessaryCollectionCall: false
+    ignoreErrors:
+        # Relation methods have no return types, so Larastan can't see them and
+        # flags every with('relation'). Add return types, then drop this.
+        - identifier: larastan.relationExistence
+    # phpstan-baseline.neon lists the errors that predate static analysis, so CI
+    # only fails on new ones. Fixed entries can simply be deleted from it.
+    reportUnmatchedIgnoredErrors: false

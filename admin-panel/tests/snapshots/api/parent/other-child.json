@@ -1,0 +1,12 @@
+{
+    "request": "GET /api/parent/subjects",
+    "status": 200,
+    "error": true,
+    "message": "Invalid Child ID Passed.",
+    "code": 105,
+    "shape": {
+        "code": "number",
+        "error": "bool",
+        "message": "string"
+    }
+}

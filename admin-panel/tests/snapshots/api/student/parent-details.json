@@ -1,0 +1,42 @@
+{
+    "request": "GET /api/student/parent-details",
+    "status": 200,
+    "error": false,
+    "message": "Parent Details Fetched Successfully",
+    "code": 200,
+    "shape": {
+        "code": "number",
+        "data": {
+            "father": {
+                "dob": "null",
+                "dynamic_fields": "null",
+                "email": "string",
+                "first_name": "string",
+                "full_name": "string",
+                "gender": "string",
+                "id": "number",
+                "image": "string",
+                "last_name": "string",
+                "mobile": "string",
+                "occupation": "string",
+                "user_id": "number"
+            },
+            "mother": {
+                "dob": "null",
+                "dynamic_fields": "null",
+                "email": "string",
+                "first_name": "string",
+                "full_name": "string",
+                "gender": "string",
+                "id": "number",
+                "image": "string",
+                "last_name": "string",
+                "mobile": "string",
+                "occupation": "string",
+                "user_id": "number"
+            }
+        },
+        "error": "bool",
+        "message": "string"
+    }
+}

@@ -1,0 +1,17 @@
+{
+    "request": "POST /api/teacher/get-leave-list",
+    "status": 200,
+    "error": false,
+    "message": "Data Fetched Successfully",
+    "code": 200,
+    "shape": {
+        "code": "number",
+        "data": {
+            "leave_details": [],
+            "monthly_allowed_leaves": "string",
+            "taken_leaves": "number"
+        },
+        "error": "bool",
+        "message": "string"
+    }
+}

@@ -7,3 +7,7 @@ Desktop.ini
 
 # Dependency installs do not belong in the repo.
 node_modules/
+
+# Firebase CLI deploy cache and logs.
+.firebase/
+firebase-debug*.log

@@ -1,0 +1,20 @@
+{
+    "request": "GET /api/teacher/get-topic",
+    "status": 200,
+    "error": false,
+    "message": "Topic Fetched Successfully.",
+    "code": 200,
+    "shape": {
+        "code": "number",
+        "data": [
+            {
+                "description": "string",
+                "id": "number",
+                "lesson_id": "number",
+                "name": "string"
+            }
+        ],
+        "error": "bool",
+        "message": "string"
+    }
+}

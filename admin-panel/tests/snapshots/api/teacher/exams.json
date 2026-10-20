@@ -1,0 +1,27 @@
+{
+    "request": "GET /api/teacher/get-exam-list",
+    "status": 200,
+    "error": false,
+    "message": "Exam Marks Fetched Successfully",
+    "code": 200,
+    "shape": {
+        "code": "number",
+        "data": [
+            {
+                "class_id": "number",
+                "class_name": "string",
+                "class_streams": "null",
+                "description": "null|string",
+                "exam_ending_date": "string",
+                "exam_starting_date": "string",
+                "exam_status": "string",
+                "id": "number",
+                "name": "string",
+                "publish": "number",
+                "session_year": "string"
+            }
+        ],
+        "error": "bool",
+        "message": "string"
+    }
+}

@@ -1,0 +1,10 @@
+{
+    "request": "GET /api/student/dashboard",
+    "status": 401,
+    "error": null,
+    "message": "Unauthenticated.",
+    "code": null,
+    "shape": {
+        "message": "string"
+    }
+}
