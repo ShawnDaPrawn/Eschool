@@ -242,7 +242,7 @@ $(function () {
                         value.question_id +
                         ".</span>" +
                         '<span class="question-text">' +
-                        value.question +
+                        escapeHtml(value.question) +
                         "</span>" +
                         "</div>" +
                         '<div class="d-flex align-items-center">' +
@@ -266,7 +266,7 @@ $(function () {
                 $("#sortable-row").append(li);
             }
         });
-        createCkeditor();
+        createEquationEditors();
     });
     $("#table_list_exam_questions").on("uncheck.bs.table", function (e, row) {
         $("#sortable-row > div").each(function () {
@@ -325,17 +325,9 @@ $(function () {
             reader.readAsDataURL(selectedFile);
         }
     });
-    tinymce.init({
-        height: "400",
-        selector: "#tinymce_message",
-        menubar: "file edit view formate tools",
-        toolbar: [
-            "styleselect fontselect fontsizeselect",
-            "undo redo | cut copy paste | bold italic | alignleft aligncenter alignright alignjustify",
-            "bullist numlist | outdent indent | blockquote autolink | lists |  code",
-        ],
-        plugins: "autolink link image lists code",
-    });
+    if ($("#rich_text_message").length) {
+        createRichTextEditor($("#rich_text_message")[0]);
+    }
 
     $(".modal").on("hidden.bs.modal", function () {
         //Reset input file on modal close
@@ -1143,9 +1135,9 @@ $("#topic_subject_id").on("change", function () {
             response.data.forEach(function (data) {
                 html +=
                     "<option value='" +
-                    data.id +
+                    escapeHtml(data.id) +
                     "'>" +
-                    data.name +
+                    escapeHtml(data.name) +
                     "</option>";
             });
         } else {
@@ -1243,9 +1235,9 @@ $("#edit_topic_subject_id").on("change", function () {
             response.data.forEach(function (data) {
                 html +=
                     "<option value='" +
-                    data.id +
+                    escapeHtml(data.id) +
                     "'>" +
-                    data.name +
+                    escapeHtml(data.name) +
                     "</option>";
             });
         } else {
@@ -1837,9 +1829,7 @@ parentSearch(
 );
 $(document).on("submit", ".setting-form", function (e) {
     e.preventDefault();
-    if (typeof tinymce !== "undefined") {
-        tinymce.triggerSave();
-    }
+    syncRichTextEditors();
     var data = new FormData(this);
     var message = data.get("setting_message");
     var requiredMessageKey = $(this).data("required-message");
@@ -3402,24 +3392,24 @@ $("#class_timetable_class_section").on("change", function (e) {
                             periods +=
                                 '<div class="timetable-period">' +
                                 '<div class="timetable-period__time">' +
-                                tt["start_time"] +
+                                escapeHtml(tt["start_time"]) +
                                 " – " +
-                                tt["end_time"] +
+                                escapeHtml(tt["end_time"]) +
                                 "</div>" +
                                 '<div class="timetable-period__subject">' +
-                                subject["name"] +
+                                escapeHtml(subject["name"]) +
                                 (subject["type"]
                                     ? ' <span class="badge ' +
                                       typeClass +
                                       ' timetable-period__type">' +
-                                      trans(subject["type"]) +
+                                      escapeHtml(trans(subject["type"])) +
                                       "</span>"
                                     : "") +
                                 "</div>" +
                                 '<div class="timetable-period__teacher">' +
-                                teacher["first_name"] +
+                                escapeHtml(teacher["first_name"]) +
                                 " " +
-                                teacher["last_name"] +
+                                escapeHtml(teacher["last_name"]) +
                                 "</div>" +
                                 "</div>";
                         }
@@ -3555,36 +3545,36 @@ function loadTeacherTimetable(session_year_id, class_section_id, semester_id) {
                             periods +=
                                 '<div class="timetable-period">' +
                                 '<div class="timetable-period__class">' +
-                                cs["class"]["name"] +
+                                escapeHtml(cs["class"]["name"]) +
                                 " - " +
-                                cs["section"]["name"] +
+                                escapeHtml(cs["section"]["name"]) +
                                 "</div>" +
                                 '<div class="timetable-period__time">' +
-                                tt["start_time"] +
+                                escapeHtml(tt["start_time"]) +
                                 " – " +
-                                tt["end_time"] +
+                                escapeHtml(tt["end_time"]) +
                                 "</div>" +
                                 '<div class="timetable-period__subject">' +
-                                subject["name"] +
+                                escapeHtml(subject["name"]) +
                                 (subject["type"]
                                     ? ' <span class="badge ' +
                                       typeClass +
                                       ' timetable-period__type">' +
-                                      trans(subject["type"]) +
+                                      escapeHtml(trans(subject["type"])) +
                                       "</span>"
                                     : "") +
                                 (semesterName
                                     ? ' <span class="badge badge-soft-secondary">' +
-                                      semesterName +
+                                      escapeHtml(semesterName) +
                                       "</span>"
                                     : "") +
                                 "</div>";
                             if (tt["link_name"] !== null) {
                                 periods +=
                                     '<a class="timetable-period__link" href="' +
-                                    tt["live_class_url"] +
+                                    escapeHtml(safeUrl(tt["live_class_url"])) +
                                     '">' +
-                                    tt["link_name"] +
+                                    escapeHtml(tt["link_name"]) +
                                     "</a>";
                             }
                             periods +=
@@ -3681,27 +3671,27 @@ $("#teacher_timetable_teacher_id").on("change", function (e) {
                                     periods +=
                                         '<div class="timetable-period">' +
                                         '<div class="timetable-period__class">' +
-                                        cs["class"]["name"] +
+                                        escapeHtml(cs["class"]["name"]) +
                                         " - " +
-                                        cs["section"]["name"] +
+                                        escapeHtml(cs["section"]["name"]) +
                                         "</div>" +
                                         '<div class="timetable-period__time">' +
-                                        tt["start_time"] +
+                                        escapeHtml(tt["start_time"]) +
                                         " – " +
-                                        tt["end_time"] +
+                                        escapeHtml(tt["end_time"]) +
                                         "</div>" +
                                         '<div class="timetable-period__subject">' +
-                                        subject["name"] +
+                                        escapeHtml(subject["name"]) +
                                         (subject["type"]
                                             ? ' <span class="badge ' +
                                               typeClass +
                                               ' timetable-period__type">' +
-                                              trans(subject["type"]) +
+                                              escapeHtml(trans(subject["type"])) +
                                               "</span>"
                                             : "") +
                                         (semesterName
                                             ? ' <span class="badge badge-soft-secondary">' +
-                                              semesterName +
+                                              escapeHtml(semesterName) +
                                               "</span>"
                                             : "") +
                                         "</div>" +
@@ -3876,9 +3866,7 @@ $(document).on("click", ".remove-option", function (e) {
 });
 $("#create-online-exam-questions-form").on("submit", function (e) {
     e.preventDefault();
-    for (var equation_editor in CKEDITOR.instances) {
-        CKEDITOR.instances[equation_editor].updateElement();
-    }
+    syncEquationEditors();
     let formElement = $(this);
     let submitButtonElement = $(this).find(":submit");
     let url = $(this).attr("action");
@@ -3950,7 +3938,7 @@ $("#add-new-eqation-option").on("click", function (e) {
     $(".equation-option-container")
         .append(option_html)
         .ready(function () {
-            createCkeditor();
+            createEquationEditors();
         });
     let select_answer_option =
         "<option value=" +
@@ -4117,34 +4105,16 @@ $(document).on("click", ".remove-answers", function (e) {
 });
 $("#add-new-question-online-exam").on("submit", function (e) {
     e.preventDefault();
-    for (var equation_editor in CKEDITOR.instances) {
-        CKEDITOR.instances[equation_editor].updateElement();
-    }
+    syncEquationEditors();
     let formElement = $(this);
     let submitButtonElement = $(this).find(":submit");
     let url = $(this).attr("action");
     let data = new FormData(this);
 
     function successCallback(response) {
-        // Get the CKEditor instance
-        var editors = Object.values(CKEDITOR.instances);
+        clearEquationEditors();
 
-        // Loop through each instance
-        editors
-            .filter((editor) => editor.element.hasClass("editor_question"))
-            .forEach((editor) => {
-                editor.setData(""); // clear the text
-                editor.resetDirty(); // reset the points to save the changes
-            });
-
-        editors
-            .filter((editor) => editor.element.hasClass("editor_options"))
-            .forEach((editor) => {
-                editor.setData(""); // clear the text
-                editor.resetDirty(); // reset the points to save the changes
-            });
-
-        // remove the extra options of ckeditors
+        // remove the extra options
         $(document).find(".equation-editor-options-extra").remove();
         $(document).find(".extra_answers_options").remove();
 
@@ -4203,17 +4173,18 @@ $("#add-new-question-online-exam").on("submit", function (e) {
                     response.data.question_id +
                     ". " +
                     '<span class="text-center">' +
-                    response.data.question +
+                    escapeHtml(response.data.question) +
                     '</span> <span class="text-right row"><input type="number" class="list-group-item col-md-6" name="assign_questions[' +
                     response.data.question_id +
                     '][marks]" style="width: 10rem"><a class="btn btn-danger btn-sm remove-row ml-2" data-id="' +
-                    response.data.question +
+                    escapeHtml(response.data.question) +
                     '"><i class="fa fa-times" aria-hidden="true"></i></a></span></li></div>',
             );
         }
         var pasteItem = checkList("sortable-row", li);
         if (pasteItem) {
             $("#sortable-row").append(li);
+            renderEquations(li);
         }
     }
 
@@ -4331,9 +4302,7 @@ $("#store-assign-questions-form").on("submit", function (e) {
 
 $("#edit-question-form").on("submit", function (e) {
     e.preventDefault();
-    for (var equation_editor in CKEDITOR.instances) {
-        CKEDITOR.instances[equation_editor].updateElement();
-    }
+    syncEquationEditors();
     let formElement = $(this);
     let submitButtonElement = $(this).find(":submit");
     let data = new FormData(this);
@@ -4412,18 +4381,16 @@ $(document).on("click", ".delete-question-form", function (e) {
     });
 });
 $("#table_list_questions").on("load-success.bs.table", function () {
-    createCkeditor();
+    createEquationEditors();
 });
 $("#table_list_exam_questions").on("load-success.bs.table", function () {
-    createCkeditor();
+    createEquationEditors();
 });
 $(document).on("click", ".add-new-edit-eoption", function (e) {
     e.preventDefault();
 
-    // destroy the editors for no cloning the last ckeditor
-    for (var equation_editor in CKEDITOR.instances) {
-        CKEDITOR.instances[equation_editor].destroy();
-    }
+    // destroy the editors so the clone doesn't copy the last one
+    destroyEquationEditors();
     let html = $(".edit_eoption_container").find(".form-group:last").clone();
     html.find(".editor_options").val("");
     html.find(".error").remove();
@@ -4460,7 +4427,7 @@ $(document).on("click", ".add-new-edit-eoption", function (e) {
     $(".edit_eoption_container")
         .append(html)
         .ready(function () {
-            createCkeditor();
+            createEquationEditors();
         });
 
     let select_answer_option =
@@ -6735,10 +6702,12 @@ $(document).ready(function () {
         $("#assignModal").attr("data-bulk", "true");
         $("#studentDetails").html(`
             <strong>${selections.length} students selected</strong><br>
-            <small>${selections
-                .map((s) => s.full_name)
-                .join(", ")
-                .substring(0, 100)}${selections.length > 5 ? "..." : ""}</small>
+            <small>${escapeHtml(
+                selections
+                    .map((s) => s.full_name)
+                    .join(", ")
+                    .substring(0, 100),
+            )}${selections.length > 5 ? "..." : ""}</small>
         `);
 
         loadElectiveGroups(classId);
@@ -7189,8 +7158,8 @@ $(document).on("change", "#session_year_id", function () {
                 $("#session_warning")
                     .show()
                     .html(
-                        `<strong>Warning:</strong> You are selecting a previous academic year (${res.data.name}) 
-                        which is older than the current session (${currentSessionYear.name}). 
+                        `<strong>Warning:</strong> You are selecting a previous academic year (${escapeHtml(res.data.name)}) 
+                        which is older than the current session (${escapeHtml(currentSessionYear.name)}). 
                         This appears to be a demotion or backdated entry.`,
                     );
             } else {
@@ -7303,7 +7272,7 @@ $("#bulkPromoteBtn").on("click", function () {
     // Build student list
     const names = selections.map((s) => s.name).join(", ");
     $("#studentDetails").html(
-        `<strong>${selections.length} students selected</strong><br>${names.substring(0, 120)}...`,
+        `<strong>${selections.length} students selected</strong><br>${escapeHtml(names.substring(0, 120))}...`,
     );
 
     // ========================= SET CURRENT CLASS =========================
@@ -7496,9 +7465,11 @@ function populateResultModal(data) {
     } else {
         $("#result_avatar").html(
             '<div style="font-size: 24px; font-weight: 600; color: #9CA3AF;">' +
-                (data.student.name
-                    ? data.student.name.charAt(0).toUpperCase()
-                    : "?") +
+                escapeHtml(
+                    data.student.name
+                        ? data.student.name.charAt(0).toUpperCase()
+                        : "?",
+                ) +
                 "</div>",
         );
     }
@@ -7531,15 +7502,15 @@ function renderExamHistory(examHistory) {
                 <div class="exam-history-item ${activeClass}" data-exam-index="${index}">
                     <div class="exam-header">
                         <div class="exam-name">
-                            ${exam.name}
+                            ${escapeHtml(exam.name)}
                             ${isLatest ? '<span class="exam-badge badge-latest">Latest</span>' : ""}
                         </div>
-                        <span class="exam-grade-badge grade-${exam.grade.replace("+", "-plus")}">${exam.grade}</span>
+                        <span class="exam-grade-badge grade-${escapeHtml(exam.grade.replace("+", "-plus"))}">${escapeHtml(exam.grade)}</span>
                     </div>
-                    <div class="exam-date">${exam.date}</div>
+                    <div class="exam-date">${escapeHtml(exam.date)}</div>
                     <div class="exam-result">
-                        <span class="exam-percentage">${exam.percentage}%</span>
-                        <span class="exam-marks">${exam.obtained_marks} / ${exam.total_marks}</span>
+                        <span class="exam-percentage">${escapeHtml(exam.percentage)}%</span>
+                        <span class="exam-marks">${escapeHtml(exam.obtained_marks)} / ${escapeHtml(exam.total_marks)}</span>
                     </div>
                 </div>
             `;
@@ -7592,15 +7563,15 @@ function updateSubjectBreakdown(examData) {
             subjectHtml += `
                 <div class="subject-item">
                     <div class="subject-header-row">
-                        <h6 class="subject-name">${subject.name}</h6>
-                        <span class="subject-grade">${subject.grade}</span>
+                        <h6 class="subject-name">${escapeHtml(subject.name)}</h6>
+                        <span class="subject-grade">${escapeHtml(subject.grade)}</span>
                     </div>
                     <div class="subject-progress-bar">
                         <div class="subject-progress-fill ${progressColor}" style="width: ${subject.percentage}%"></div>
                     </div>
                     <div class="subject-marks">
-                        <span class="marks-obtained">${subject.obtained_marks} / ${subject.total_marks}</span>
-                        <span class="marks-percentage">${subject.percentage}%</span>
+                        <span class="marks-obtained">${escapeHtml(subject.obtained_marks)} / ${escapeHtml(subject.total_marks)}</span>
+                        <span class="marks-percentage">${escapeHtml(subject.percentage)}%</span>
                     </div>
                 </div>
             `;

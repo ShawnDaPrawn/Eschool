@@ -81,10 +81,10 @@ class ClassTeacherController extends Controller
                 'message' => trans('data_store_successfully'),
             ];
         } catch (Throwable $e) {
+            report($e);
             $response = [
                 'error' => true,
                 'message' => trans('error_occurred'),
-                'data' => $e,
             ];
         }
 
@@ -121,7 +121,7 @@ class ClassTeacherController extends Controller
             $order = $_GET['order'];
         }
 
-        $session_year_id = $_GET['session_year_id'];
+        $session_year_id = $_GET['session_year_id'] ?? getSettings('session_year')['session_year'];
 
         $sql = ClassSection::with([
             'class.medium',
@@ -136,18 +136,20 @@ class ClassTeacherController extends Controller
 
         if (isset($_GET['search']) && ! empty($_GET['search'])) {
             $search = $_GET['search'];
-            $sql->where('id', 'LIKE', "%$search%")
-                ->orWhereHas('class.medium', function ($q) use ($search) {
-                    $q->where('classes.name', 'LIKE', "%$search%")->orwhere('mediums.name', 'LIKE', "%$search%");
-                })
-                ->orWhereHas('section', function ($q) use ($search) {
-                    $q->where('name', 'LIKE', "%$search%");
-                })
-                ->orWhereHas('classTeachers.user', function ($q) use ($search) {
-                    $q->whereRaw("concat(users.first_name,' ',users.last_name) LIKE '%" . $search . "%'")->orwhere('users.first_name', 'LIKE', "%$search%")->orwhere('users.last_name', 'LIKE', "%$search%");
-                });
+            $sql->where(function ($query) use ($search) {
+                $query->where('id', 'LIKE', "%$search%")
+                    ->orWhereHas('class.medium', function ($q) use ($search) {
+                        $q->where('classes.name', 'LIKE', "%$search%")->orwhere('mediums.name', 'LIKE', "%$search%");
+                    })
+                    ->orWhereHas('section', function ($q) use ($search) {
+                        $q->where('name', 'LIKE', "%$search%");
+                    })
+                    ->orWhereHas('classTeachers.user', function ($q) use ($search) {
+                        $q->whereRaw("concat(users.first_name,' ',users.last_name) LIKE ?", ['%'.$search.'%'])->orwhere('users.first_name', 'LIKE', "%$search%")->orwhere('users.last_name', 'LIKE', "%$search%");
+                    });
+            });
         }
-        if ($_GET['class_id']) {
+        if (! empty($_GET['class_id'])) {
             $sql = $sql->where('class_id', $_GET['class_id']);
         }
 
@@ -266,6 +268,14 @@ class ClassTeacherController extends Controller
 
     public function removeClassTeacher($id, $class_teacher_id, Request $request)
     {
+        if (! Auth::user()->can('class-teacher-delete')) {
+            $response = [
+                'error' => true,
+                'message' => trans('no_permission_message'),
+            ];
+
+            return response()->json($response);
+        }
         try {
             $semester_id = $request->input('semester_id');
 
@@ -307,16 +317,20 @@ class ClassTeacherController extends Controller
                 'message' => trans('data_delete_successfully'),
             ]);
         } catch (Throwable $e) {
+            report($e);
+
             return response()->json([
                 'error' => true,
                 'message' => trans('error_occurred'),
-                'data' => $e->getMessage(),
             ]);
         }
     }
 
     public function getClassTeacherlist($class_section_id, $session_year_id)
     {
+        if (! Auth::user()->can('class-teacher-list')) {
+            return response()->json(['error' => true, 'message' => trans('no_permission_message')]);
+        }
         $semester_id = request('semester_id');
         $response = Teacher::with('user')->orWhereHas('classTeachers', function ($q) use ($class_section_id, $session_year_id, $semester_id) {
             $q->where('class_section_id', $class_section_id);
@@ -333,6 +347,9 @@ class ClassTeacherController extends Controller
 
     public function getNotClassTeacherList($class_section_id, $session_year_id)
     {
+        if (! Auth::user()->can('class-teacher-list')) {
+            return response()->json(['error' => true, 'message' => trans('no_permission_message')]);
+        }
         $semester_id = request('semester_id');
         $response = Teacher::with('user')->whereDoesntHave('classTeachers', function ($q) use ($class_section_id, $session_year_id, $semester_id) {
             $q->where('class_section_id', $class_section_id);

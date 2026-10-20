@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers;
 
+use App\Services\ResponseService;
 use Throwable;
 use App\Models\Subject;
 use App\Models\Teacher;
@@ -99,10 +100,10 @@ class SubjectTeacherController extends Controller
                 'message' => trans('data_store_successfully')
             ];
         } catch (Throwable $e) {
+            report($e);
             $response = array(
                 'error' => true,
-                'message' => trans('error_occurred'),
-                'data' => $e
+                'message' => trans('error_occurred')
             );
         }
         return response()->json($response);
@@ -137,10 +138,10 @@ class SubjectTeacherController extends Controller
                 'message' => trans('data_update_successfully')
             ];
         } catch (Throwable $e) {
+            report($e);
             $response = array(
                 'error' => true,
-                'message' => trans('error_occurred'),
-                'data' => $e
+                'message' => trans('error_occurred')
             );
         }
         return response()->json($response);
@@ -165,7 +166,7 @@ class SubjectTeacherController extends Controller
         $limit = 10;
         $sort = 'id';
         $order = 'DESC';
-        $session_year_id = $_GET['session_year_id'];
+        $session_year_id = $_GET['session_year_id'] ?? getSettings('session_year')['session_year'];
 
         if (isset($_GET['offset']))
             $offset = $_GET['offset'];
@@ -181,30 +182,33 @@ class SubjectTeacherController extends Controller
             ->where('session_year_id', $session_year_id);
         if (isset($_GET['search']) && !empty($_GET['search'])) {
             $search = $_GET['search'];
-            $sql->where('id', 'LIKE', "%$search%")
-                ->orWhereHas('class_section.class', function ($q) use ($search) {
+            // Grouped so the search cannot widen the teacher scope and session-year filter above.
+            $sql->where(function ($query) use ($search) {
+                $query->where('id', 'LIKE', "%$search%")
+                    ->orWhereHas('class_section.class', function ($q) use ($search) {
 
-                    $q->where('name', 'LIKE', "%$search%");
-                })
-                ->orWhereHas('class_section.section', function ($q) use ($search) {
+                        $q->where('name', 'LIKE', "%$search%");
+                    })
+                    ->orWhereHas('class_section.section', function ($q) use ($search) {
 
-                    $q->where('name', 'LIKE', "%$search%");
-                })
-                ->orWhereHas('subject', function ($q) use ($search) {
-                    $q->where('name', 'LIKE', "%$search%");
-                })
-                ->orWhereHas('teacher.user', function ($q) use ($search) {
-                    $q->whereRaw("concat(users.first_name,' ',users.last_name) LIKE '%" . $search . "%'")->orwhere('users.first_name', 'LIKE', "%$search%")->orwhere('users.last_name', 'LIKE', "%$search%");
-                });
+                        $q->where('name', 'LIKE', "%$search%");
+                    })
+                    ->orWhereHas('subject', function ($q) use ($search) {
+                        $q->where('name', 'LIKE', "%$search%");
+                    })
+                    ->orWhereHas('teacher.user', function ($q) use ($search) {
+                        $q->whereRaw("concat(users.first_name,' ',users.last_name) LIKE ?", ['%' . $search . '%'])->orwhere('users.first_name', 'LIKE', "%$search%")->orwhere('users.last_name', 'LIKE', "%$search%");
+                    });
+            });
         }
 
-        if ($_GET['class_id']) {
+        if (! empty($_GET['class_id'])) {
             $sql = $sql->where('class_section_id', $_GET['class_id']);
         }
-        if ($_GET['teacher_id']) {
+        if (! empty($_GET['teacher_id'])) {
             $sql = $sql->where('teacher_id', $_GET['teacher_id']);
         }
-        if ($_GET['subject_id']) {
+        if (! empty($_GET['subject_id'])) {
             $sql = $sql->where('subject_id', $_GET['subject_id']);
         }
         if (!empty($_GET['semester_id'])) {
@@ -275,6 +279,7 @@ class SubjectTeacherController extends Controller
      */
     public function edit($id)
     {
+        ResponseService::noPermissionThenSendJson('subject-teacher-edit');
         $subject_teacher = SubjectTeacher::find($id);
         return response($subject_teacher);
     }

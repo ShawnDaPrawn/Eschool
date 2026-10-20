@@ -63,7 +63,7 @@ class EventController extends Controller
         }
         $validator = Validator::make($request->all(), [
             'title'  => 'required',
-            'image' => 'nullable|mimes:png,jpg, jpeg',
+            'image' => 'nullable|image|mimes:png,jpg,jpeg',
             'event_type' => 'required|in:single,multiple',
             'date' => 'nullable|required_if:event_type,single',
             'time' => ['nullable', 'regex:/^(?:[01]\d|2[0-3]):(?:[0-5]\d):(?:[0-5]\d)\s*-\s*(?:[01]\d|2[0-3]):(?:[0-5]\d):(?:[0-5]\d)$/'],
@@ -197,7 +197,7 @@ class EventController extends Controller
                 'message' => trans('data_store_successfully')
             );
         } catch (\Throwable $e) {
-            return $e;
+            report($e);
             $message = trans('error_occurred');
             $exceptionMessage = strtolower((string) $e->getMessage());
             if (str_contains($exceptionMessage, 'file') && str_contains($exceptionMessage, 'image')) {
@@ -238,7 +238,7 @@ class EventController extends Controller
         if (isset($_GET['order']))
             $order = $_GET['order'];
 
-        $session_year_id = $_GET['session_year_id'];
+        $session_year_id = $_GET['session_year_id'] ?? getSettings('session_year')['session_year'];
         $sql = Event::with('multipleEvent')->where('id', '!=', 0)->where('session_year_id', $session_year_id);
         if (isset($_GET['search']) && !empty($_GET['search'])) {
             $search = $_GET['search'];
@@ -352,7 +352,7 @@ class EventController extends Controller
         }
         $validator = Validator::make($request->all(), [
             'title'  => 'required',
-            'image' => 'nullable|mimes:png,jpg, jpeg',
+            'image' => 'nullable|image|mimes:png,jpg,jpeg',
             'edit_event_type' => 'required|in:single,multiple',
             'edit_date' => 'nullable|required_if:edit_event_type,single',
             'edit_time' => ['nullable', 'regex:/^(?:[01]\d|2[0-3]):(?:[0-5]\d):(?:[0-5]\d)\s*-\s*(?:[01]\d|2[0-3]):(?:[0-5]\d):(?:[0-5]\d)$/'],

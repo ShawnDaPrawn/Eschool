@@ -761,7 +761,8 @@ class OnlineExamController extends Controller
                     }
                     $question_store->save();
                 } catch (Throwable $e) {
-                    dd($e->getMessage());
+                    // Handled by the outer catch, which returns a generic error.
+                    throw $e;
                 }
 
                 // store options
@@ -793,7 +794,7 @@ class OnlineExamController extends Controller
                         'exam_id' => $request->online_exam_id,
                         'question_type' => $request->question_type,
                         'question_id' => $question_store->id,
-                        'question' => "<textarea id='qc".$question_store->id."'>".safe_htmlspecialchars_decode($request->equestion)."</textarea><script>setTimeout(() => {equation_editor = CKEDITOR.inline('qc".$question_store->id."', { skin:'moono',extraPlugins: 'mathjax', mathJaxLib: 'https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.4/MathJax.js?config=TeX-AMS_HTML', readOnly:true, }); },1000);</script>",
+                        'question' => "<div class='equation-editor-inline'>".safe_htmlspecialchars_decode($request->equestion).'</div>',
                     ],
                 ];
             } else {
@@ -1164,24 +1165,11 @@ class OnlineExamController extends Controller
             $total_obtained_marks = 0;
             $total_marks = 0;
 
-            $exam_submitted_question_ids = OnlineExamStudentAnswer::where(['student_id' => $student_attempt->student_id, 'online_exam_id' => $student_attempt->online_exam_id])->pluck('question_id');
-
-            $question_ids = OnlineExamQuestionChoice::whereIn('id', $exam_submitted_question_ids)->pluck('question_id');
-
-            $exam_attempted_answers = OnlineExamStudentAnswer::where(['student_id' => $student_attempt->student_id, 'online_exam_id' => $student_attempt->online_exam_id])->pluck('option_id');
-
-            // removes the question id of the question if one of the answer of particular question is wrong
-            foreach ($question_ids as $question_id) {
-                $check_questions_answers_exists = OnlineExamQuestionAnswer::where('question_id', $question_id)->whereNotIn('answer', $exam_attempted_answers)->count();
-                if ($check_questions_answers_exists) {
-                    unset($question_ids[array_search($question_id, $question_ids->toArray())]);
-                }
-            }
-
-            $exam_correct_answers_question_id = OnlineExamQuestionAnswer::whereIn('question_id', $question_ids)->whereIn('answer', $exam_attempted_answers)->pluck('question_id');
+            // a question counts only when exactly its correct options were picked
+            $score = app(\App\Services\OnlineExamScoringService::class)->score((int) $student_attempt->student_id, (int) $student_attempt->online_exam_id);
 
             // get the data of only attempted data
-            $total_obtained_marks = OnlineExamQuestionChoice::select(DB::raw('sum(marks)'))->where('online_exam_id', $student_attempt->online_exam_id)->whereIn('question_id', $exam_correct_answers_question_id)->first();
+            $total_obtained_marks = OnlineExamQuestionChoice::select(DB::raw('sum(marks)'))->where('online_exam_id', $student_attempt->online_exam_id)->whereIn('id', $score['correct_choice_ids'])->first();
             $total_obtained_marks = $total_obtained_marks['sum(marks)'];
             $total_marks = OnlineExamQuestionChoice::select(DB::raw('sum(marks)'))->where('online_exam_id', $student_attempt->online_exam_id)->first();
             $total_marks = $total_marks['sum(marks)'];

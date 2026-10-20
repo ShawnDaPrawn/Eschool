@@ -79,7 +79,7 @@ class OnlineExamQuestionsImport extends DefaultValueBinder implements SkipsEmpty
                 }
 
                 // Create the question (same columns for simple and equation based).
-                // Equation rows must store CKEditor math markup so MathJax renders them on display.
+                // Equation rows must store the math-tex markup the question editor uses, so the maths renders on display.
                 $question_store = new OnlineExamQuestion;
                 $question_store->class_subject_id = $this->class_subject_id;
                 $question_store->session_year_id = $this->session_year_id;
@@ -124,8 +124,8 @@ class OnlineExamQuestionsImport extends DefaultValueBinder implements SkipsEmpty
     }
 
     /**
-     * Wrap each LaTeX segment (\( ... \) or \[ ... \]) in the CKEditor "math-tex" span that the
-     * MathJax plugin renders, mirroring how equation questions are stored from the UI. Plain text
+     * Wrap each LaTeX segment (\( ... \) or \[ ... \]) in the "math-tex" span that the question
+     * editor and the apps render, mirroring how equation questions are stored from the UI. Plain text
      * around the equations (and rows already containing math-tex markup) is left untouched.
      */
     private function wrapEquations(string $text): string

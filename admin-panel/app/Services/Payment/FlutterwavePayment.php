@@ -175,6 +175,14 @@ class FlutterwavePayment implements PaymentInterface {
      * @return float|int
      */
     public function minimumAmountValidation($currency, $amount) {
-        return max(1, $amount);
+        return self::chargedAmount($amount);
+    }
+
+    /**
+     * The amount Flutterwave is asked for (and reports back in webhooks), in
+     * the currency's main unit.
+     */
+    public static function chargedAmount($amount): float {
+        return (float) max(1, $amount);
     }
 }

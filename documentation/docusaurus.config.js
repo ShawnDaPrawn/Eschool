@@ -40,7 +40,7 @@ const config = {
         id: 'mobile-app',
         path: 'mobile-app', // Folder with markdown files
         routeBasePath: 'mobile-app', // URL path
-        sidebarPath: require.resolve('./mobileAppSidebar.js'),
+        sidebarPath: require.resolve('./sidebars/mobile-app.js'),
       },
     ],
     [
@@ -49,7 +49,7 @@ const config = {
         id: 'admin-panel',
         path: 'admin-panel', // Another folder
         routeBasePath: 'admin-panel',
-        sidebarPath: require.resolve('./adminPanelSidebar.js'),
+        sidebarPath: require.resolve('./sidebars/admin-panel.js'),
       },
     ],
     [
@@ -58,7 +58,7 @@ const config = {
         id: 'web-page',
         path: 'web-page', // Another folder
         routeBasePath: 'web-page',
-        sidebarPath: require.resolve('./webPageSidebar.js'),
+        sidebarPath: require.resolve('./sidebars/web-page.js'),
       },
     ],
     [
@@ -67,7 +67,7 @@ const config = {
         id: 'features',
         path: 'features', // Another folder
         routeBasePath: 'features',
-        sidebarPath: require.resolve('./featuresSidebar.js'),
+        sidebarPath: require.resolve('./sidebars/features.js'),
       },
     ],
     [

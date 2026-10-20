@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers;
 
+use App\Services\ResponseService;
 use App\Models\Stream;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -154,6 +155,7 @@ class StreamController extends Controller
      */
     public function edit($id)
     {
+        ResponseService::noPermissionThenSendJson('stream-edit');
         //
     }
 

@@ -52,6 +52,9 @@ jobs:
       - run: cp .env.example .env && php artisan key:generate --force
       - name: Routes load
         run: php artisan route:list > /dev/null
+      # Production installs can run php artisan optimize; every cache must build.
+      - name: Config, routes and views cache
+        run: php artisan config:cache && php artisan route:cache && php artisan view:cache && php artisan optimize:clear
       - run: php artisan test
 
   apps:
@@ -74,6 +77,7 @@ jobs:
       - run: flutter pub get --enforce-lockfile
       # Style-only "info" lints are reported but don't fail the build; errors and warnings do.
       - run: flutter analyze --no-fatal-infos
+      - run: flutter test
 
   docs:
     name: Documentation build

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers;
 
+use App\Services\ResponseService;
 use App\Http\Requests\StoreSessionYearRequest;
 use Throwable;
 use App\Models\Exam;
@@ -168,10 +169,10 @@ class SessionYearController extends Controller
                 'message' => trans('data_update_successfully')
             ];
         } catch (Throwable $e) {
+            report($e);
             $response = array(
                 'error' => true,
-                'message' => trans('error_occurred'),
-                'data' => $e
+                'message' => trans('error_occurred')
             );
         }
         return response()->json($response);
@@ -349,6 +350,7 @@ class SessionYearController extends Controller
      */
     public function edit($id)
     {
+        ResponseService::noPermissionThenSendJson('session-year-edit');
         $session_year = SessionYear::find($id);
         return response($session_year);
     }
@@ -370,8 +372,15 @@ class SessionYearController extends Controller
 
         try {
             $year = SessionYear::findOrFail($id);
+            // The model refuses this too; answer with the readable message instead of the exception's.
+            if ((int) $year->default === 1) {
+                return response()->json([
+                    'error'   => true,
+                    'message' => trans('default_session_year_cannot_delete')
+                ]);
+            }
             $year->delete();
-            
+
 
 
             return response()->json([
@@ -379,9 +388,11 @@ class SessionYearController extends Controller
                 'message' => trans('data_delete_successfully')
             ]);
         } catch (\Throwable $e) {
+            report($e);
+
             return response()->json([
                 'error'   => true,
-                'message' => $e->getMessage() ?: trans('error_occurred')
+                'message' => trans('error_occurred')
             ]);
         }
     }
@@ -417,11 +428,17 @@ class SessionYearController extends Controller
                 'success' => true,
                 'message' => trans('data_delete_successfully')
             ]);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return response()->json([
+                'error'   => true,
+                'message' => $e->validator->errors()->first()
+            ], 422);
         } catch (\Throwable $e) {
+            report($e);
 
             return response()->json([
                 'error'   => true,
-                'message' => $e->getMessage() ?: trans('error_occurred')
+                'message' => trans('error_occurred')
             ], 500);
         }
     }

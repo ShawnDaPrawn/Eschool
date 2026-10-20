@@ -5,9 +5,65 @@ function trans(label) {
     return window?.languageLabels[label] || label;
 }
 
+/**
+ * Escape a value for safe insertion into HTML text or a quoted HTML attribute.
+ * null / undefined become an empty string; numbers and booleans are stringified.
+ * Shared by formatter.js, custom-bootstrap-table.js, custom.js and the Blade views
+ * (this file is loaded before all of them in layouts/footer_js.blade.php).
+ */
+function escapeHtml(value) {
+    if (value === null || value === undefined) {
+        return "";
+    }
+    return String(value)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#39;")
+        .replace(/`/g, "&#96;");
+}
+
+/**
+ * Return the URL unchanged when it is http(s) or relative (no scheme); any other
+ * scheme (javascript:, data:, vbscript:, ...) is replaced by the fallback ("#").
+ * The result is NOT HTML-escaped: wrap it in escapeHtml() when building markup.
+ */
+function safeUrl(url, fallback) {
+    if (fallback === undefined) {
+        fallback = "#";
+    }
+    if (url === null || url === undefined) {
+        return fallback;
+    }
+    var str = String(url).trim();
+    if (str === "") {
+        return fallback;
+    }
+    // Browsers drop tab/CR/LF anywhere and leading control chars/spaces before reading the scheme.
+    var normalized = str.replace(/[\t\n\r]/g, "").replace(/^[\u0000- ]+/, "");
+    var scheme = normalized.match(/^([a-zA-Z][a-zA-Z0-9+.\-]*):/);
+    if (scheme) {
+        var name = scheme[1].toLowerCase();
+        return name === "http" || name === "https" ? str : fallback;
+    }
+    return str;
+}
+
+/**
+ * $.toast inserts its text with .html(), so toast messages (often server/user supplied)
+ * are escaped here. Arrays (rendered by the plugin as a list) are escaped item by item.
+ */
+function escapeToastText(message) {
+    if (Array.isArray(message)) {
+        return message.map(escapeHtml);
+    }
+    return escapeHtml(message);
+}
+
 function showErrorToast(message) {
     $.toast({
-        text: message,
+        text: escapeToastText(message),
         showHideTransition: 'slide',
         icon: 'error',
         loaderBg: '#dc3545', // color ignored — loader bar is tinted per type in content.css
@@ -20,7 +76,7 @@ function showErrorToast(message) {
 
 function showSuccessToast(message) {
     $.toast({
-        text: message,
+        text: escapeToastText(message),
         showHideTransition: 'slide',
         icon: 'success',
         loaderBg: '#198754', // color ignored — loader bar is tinted per type in content.css
@@ -287,7 +343,7 @@ function parentSearchSelect2DesignTemplate(repo) {
             "<div class='select2-result-repository clearfix'>" +
             "<div class='row'>" +
             "<div class='col-1 select2-result-repository__avatar' style='width:20px'>" +
-            "<img src='" + repo.image + "' class='w-100' onerror='onErrorImage(event)'/>" +
+            "<img src='" + escapeHtml(repo.image) + "' class='w-100' onerror='onErrorImage(event)'/>" +
             "</div>" +
             "<div class='col-10'>" +
             "<div class='select2-result-repository__title'></div>" +
@@ -302,35 +358,239 @@ function parentSearchSelect2DesignTemplate(repo) {
 
     return $container;
 }
-function createCkeditor() {
-    for (var equation_editor in CKEDITOR.instances) {
-        CKEDITOR.instances[equation_editor].destroy();
-    }
-    CKEDITOR.replaceAll(function (textarea, config) {
-        if (textarea.className == "editor_question") {
-            config.mathJaxLib = '//cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.4/MathJax.js?config=TeX-AMS_HTML';
-            config.extraPlugins = 'mathjax';
-            config.height = 200;
-            return true;
-        }
-        if (textarea.className == "editor_options") {
-            config.mathJaxLib = '//cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.4/MathJax.js?config=TeX-AMS_HTML';
-            config.extraPlugins = 'mathjax';
-            config.height = 100
-            return true;
-        }
-        return false;
-    });
+// Online exam questions and options are edited with Jodit. Maths is written in
+// TeX and stored as <span class="math-tex">\(...\)</span>, the format the old
+// CKEditor maths plugin used, so existing questions and the apps keep working.
+var equationEditors = [];
 
-    // inline editors
-    var elements = CKEDITOR.document.find('.equation-editor-inline'), i = 0, element;
-    while ((element = elements.getItem(i++))) {
-        CKEDITOR.inline(element, {
-            mathJaxLib: '//cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.4/MathJax.js?config=TeX-AMS_HTML',
-            extraPlugins: 'mathjax',
-            readOnly: true,
+// jQuery Validate also checks contenteditable elements, such as the editors'
+// text area, and fails on them because they have no name.
+$.validator.setDefaults({ ignore: ":hidden, [contenteditable]" });
+
+var EQUATION_DELIMITERS = [
+    { left: "\\(", right: "\\)", display: false },
+    { left: "\\[", right: "\\]", display: true },
+];
+
+function createEquationEditors() {
+    destroyEquationEditors();
+    $("textarea.editor_question, textarea.editor_options").each(function () {
+        var editor = Jodit.make(this, {
+            // Heights include the toolbar, which wraps in the narrow option columns.
+            height: "auto",
+            minHeight: $(this).hasClass("editor_question") ? 260 : 180,
+            toolbarAdaptive: false,
+            showCharsCounter: false,
+            showWordsCounter: false,
+            showXPathInStatusbar: false,
+            askBeforePasteHTML: false,
+            askBeforePasteFromWord: false,
+            // Double-click edits a formula instead.
+            addNewLineOnDBLClick: false,
+            buttons: [
+                "bold", "italic", "eraser", "|",
+                "ul", "ol", "outdent", "indent", "|",
+                "paragraph", "align", "brush", "|",
+                "link", "image", "table", "symbols", "hr", "|",
+                "source", "|",
+                {
+                    name: "math",
+                    text: "TeX",
+                    tooltip: trans("Insert maths"),
+                    exec: function (editor) {
+                        openMathDialog(editor);
+                    },
+                },
+            ],
         });
+        editor.e.on(editor.editor, "dblclick", function (e) {
+            var math = $(e.target).closest(".math-tex")[0];
+            if (math && editor.editor.contains(math)) {
+                openMathDialog(editor, math);
+            }
+        });
+        equationEditors.push(editor);
+    });
+    renderEquations(document);
+}
+
+function destroyEquationEditors() {
+    syncEquationEditors();
+    equationEditors.forEach(function (editor) {
+        editor.destruct();
+    });
+    equationEditors = [];
+}
+
+// Copy an editor's content into its textarea before the form is read.
+// Jodit's synchronizeValues() is throttled and can miss the last keystrokes,
+// so the value is copied directly.
+function saveEditorValue(editor) {
+    var value = editor.value;
+    // An empty editor holds <p><br></p>; keep the textarea empty so the
+    // required checks still apply.
+    var body = new DOMParser().parseFromString(value, "text/html").body;
+    var empty = !$.trim(body.textContent) && !body.querySelector("img, table, hr");
+    editor.element.value = empty ? "" : value;
+}
+
+function syncEquationEditors() {
+    equationEditors.forEach(saveEditorValue);
+}
+
+// Rich text editors on the settings pages: privacy policy, terms, about us,
+// contact us, online exam terms and the email templates.
+var richTextEditors = [];
+
+function createRichTextEditor(textarea, height) {
+    var editor = Jodit.make(textarea, {
+        height: height || 400,
+        toolbarAdaptive: false,
+        askBeforePasteHTML: false,
+        askBeforePasteFromWord: false,
+        buttons: [
+            "paragraph", "font", "fontsize", "|",
+            "undo", "redo", "|",
+            "bold", "italic", "underline", "|",
+            "align", "ul", "ol", "outdent", "indent", "|",
+            "link", "image", "table", "hr", "|",
+            "source",
+        ],
+    });
+    richTextEditors.push(editor);
+    return editor;
+}
+
+function syncRichTextEditors() {
+    richTextEditors.forEach(saveEditorValue);
+}
+
+function clearEquationEditors() {
+    equationEditors.forEach(function (editor) {
+        editor.value = "";
+    });
+}
+
+function setEquationEditorValue(name, html) {
+    var editor = equationEditors.find(function (editor) {
+        return editor.element.name === name;
+    });
+    if (editor) {
+        editor.value = html;
+    } else {
+        $('textarea[name="' + name + '"]').val(html);
     }
+}
+
+function openMathDialog(editor, mathElement) {
+    var source = mathElement ? $.trim(mathElement.textContent) : "";
+    var display = /^\\\[/.test(source);
+    var tex = source.replace(/^\\[([]/, "").replace(/\\[)\]]$/, "");
+    if (!mathElement) {
+        editor.s.save();
+    }
+
+    var content = $(
+        '<div class="p-3" style="min-width: 320px">' +
+            '<textarea class="form-control" rows="3" dir="ltr" placeholder="x^2 + \\frac{a}{b}"></textarea>' +
+            '<div class="math-preview mt-3 text-center"></div>' +
+            '<div class="text-right mt-3">' +
+            '<button type="button" class="btn btn-light btn-sm math-cancel mr-2"></button>' +
+            '<button type="button" class="btn btn-primary btn-sm math-insert"></button>' +
+            "</div></div>",
+    );
+    var input = content.find("textarea").val(tex);
+    var preview = content.find(".math-preview")[0];
+    content.find(".math-cancel").text(trans("Cancel"));
+    content.find(".math-insert").text(mathElement ? trans("Update") : trans("Insert"));
+
+    function renderPreview() {
+        katex.render(input.val(), preview, { throwOnError: false, displayMode: true });
+    }
+    input.on("input", renderPreview);
+    renderPreview();
+
+    var confirmed = false;
+    var dialog = editor.dlg({ closeOnClickOverlay: true });
+    dialog.setHeader(trans("Maths (TeX)"));
+    dialog.setContent(content[0]);
+    dialog.e.on(dialog, "afterClose", function () {
+        if (!confirmed && !mathElement) {
+            editor.s.restore();
+        }
+        dialog.destruct();
+    });
+    dialog.open();
+    input.trigger("focus");
+
+    content.find(".math-cancel").on("click", function () {
+        dialog.close();
+    });
+    content.find(".math-insert").on("click", function () {
+        var value = $.trim(input.val());
+        var formula = display ? "\\[" + value + "\\]" : "\\(" + value + "\\)";
+        confirmed = true;
+        dialog.close();
+        if (mathElement) {
+            if (value) {
+                mathElement.textContent = formula;
+            } else {
+                mathElement.remove();
+            }
+            editor.synchronizeValues();
+            return;
+        }
+        editor.s.restore();
+        if (!value) {
+            return;
+        }
+        // Don't put a formula inside another one.
+        var current = editor.s.current();
+        var inside = current && $(current).closest(".math-tex")[0];
+        if (inside && editor.editor.contains(inside)) {
+            editor.s.setCursorAfter(inside);
+        }
+        var span = editor.createInside.element("span");
+        span.className = "math-tex";
+        span.textContent = formula;
+        editor.s.insertNode(span);
+    });
+}
+
+// Render the maths in read-only question and option previews.
+function renderEquations(root) {
+    $(root)
+        .find(".equation-editor-inline")
+        .each(function () {
+            var element = this;
+            if (element.tagName === "TEXTAREA") {
+                // Some previews arrive as a textarea holding the question HTML.
+                var preview = $('<div class="equation-editor-inline"></div>').append(sanitizedNodes(element.value));
+                $(element).replaceWith(preview);
+                element = preview[0];
+            }
+            if (!element.dataset.mathRendered) {
+                renderMathInElement(element, { delimiters: EQUATION_DELIMITERS, throwOnError: false });
+                element.dataset.mathRendered = "1";
+            }
+        });
+}
+
+// Parse HTML without running it, dropping scripts and event handlers.
+function sanitizedNodes(html) {
+    var body = new DOMParser().parseFromString(html, "text/html").body;
+    $(body).find("script, iframe, object, embed").remove();
+    $(body)
+        .find("*")
+        .each(function () {
+            for (var i = this.attributes.length - 1; i >= 0; i--) {
+                var attribute = this.attributes[i];
+                if (/^on/i.test(attribute.name) || /^\s*javascript:/i.test(attribute.value)) {
+                    this.removeAttribute(attribute.name);
+                }
+            }
+        });
+    return Array.from(body.childNodes);
 }
 function convertTimeRange(timeRange) {
 

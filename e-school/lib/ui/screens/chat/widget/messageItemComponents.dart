@@ -1,8 +1,8 @@
 import 'package:any_link_preview/any_link_preview.dart';
 import 'package:eschool/ui/styles/colors.dart';
 import 'package:eschool/ui/widgets/customImageWidget.dart';
+import 'package:eschool/utils/uiUtils.dart';
 import 'package:flutter/material.dart';
-import 'package:url_launcher/url_launcher.dart';
 
 class TriangleContainer extends StatelessWidget {
   const TriangleContainer({
@@ -73,10 +73,7 @@ class LinkPreviw extends StatelessWidget {
         ? const SizedBox.shrink()
         : GestureDetector(
             onTap: () async {
-              await launchUrl(
-                Uri.parse(link),
-                mode: LaunchMode.externalApplication,
-              );
+              await UiUtils.launchWebUrl(link);
             },
             child: Container(
               clipBehavior: Clip.antiAlias,

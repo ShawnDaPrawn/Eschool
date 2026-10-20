@@ -60,20 +60,26 @@ class Lesson extends Model
         return $this->belongsTo(Semester::class);
     }
 
+    /**
+     * For a teacher, only lessons of a class section + subject pair they teach
+     * (matched as a pair: teaching Maths in 5A and Science in 5B gives no access
+     * to Science in 5A). Everyone else sees all lessons.
+     */
     public function scopeLessonTeachers($query)
     {
         $user = Auth::user();
-        if ($user->hasRole('Teacher')) {
-            $teacher_id = $user->teacher()->select('id')->pluck('id')->first();
-            $subject_teacher = SubjectTeacher::select('class_section_id', 'subject_id')->where('teacher_id', $teacher_id)->get();
-            if ($subject_teacher) {
-                $subject_teacher = $subject_teacher->toArray();
-                $class_section_id = array_column($subject_teacher, 'class_section_id');
-                $subject_id = array_column($subject_teacher, 'subject_id');
-                return $query->whereIn('class_section_id', $class_section_id)->whereIn('subject_id', $subject_id);
-            }
+        if (! $user->hasRole('Teacher')) {
             return $query;
         }
-        return $query;
+        $teacherId = $user->teacher()->value('id');
+
+        return $query->whereExists(function ($subQuery) use ($teacherId) {
+            $subQuery->selectRaw('1')
+                ->from('subject_teachers')
+                ->whereColumn('subject_teachers.class_section_id', 'lessons.class_section_id')
+                ->whereColumn('subject_teachers.subject_id', 'lessons.subject_id')
+                ->where('subject_teachers.teacher_id', $teacherId)
+                ->whereNull('subject_teachers.deleted_at');
+        });
     }
 }

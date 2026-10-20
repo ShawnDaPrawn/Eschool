@@ -133,7 +133,7 @@ class AssignmentController extends Controller
         foreach ($res as $row) {
 
             $row = (object) $row;
-            $operate = '<a href='.route('assignment.edit', $row->id).' class="btn btn-xs btn-gradient-primary btn-rounded btn-icon edit-data" data-id='.$row->id.' title="Edit" data-toggle="modal" data-target="#editModal"><i class="fa fa-edit"></i></a>&nbsp;&nbsp;';
+            $operate = '<a href="#" class="btn btn-xs btn-gradient-primary btn-rounded btn-icon edit-data" data-id='.$row->id.' title="Edit" data-toggle="modal" data-target="#editModal"><i class="fa fa-edit"></i></a>&nbsp;&nbsp;';
             $operate .= '<a href='.route('assignment.destroy', $row->id).' 
             class="btn btn-xs btn-gradient-danger btn-rounded btn-icon delete-form" 
             data-id="'.$row->id.'"
@@ -600,7 +600,7 @@ class AssignmentController extends Controller
                         })->orWhereHas('assignment', function ($query) use ($search) {
                             $query->where('name', 'LIKE', "%$search%");
                         })->orWhereHas('student.user', function ($query) use ($search) {
-                            $query->whereRaw("concat(users.first_name,' ',users.last_name) LIKE '%".$search."%'");
+                            $query->whereRaw("concat(users.first_name,' ',users.last_name) LIKE ?", ['%'.$search.'%']);
                         });
                 });
             })
@@ -633,7 +633,7 @@ class AssignmentController extends Controller
         $no = 1;
         foreach ($res as $row) {
             $row = (object) $row;
-            $operate = '<a href='.route('class.edit', $row->id).' class="btn btn-xs btn-gradient-primary btn-rounded btn-icon edit-data" data-id='.$row->id.' title="Edit" data-toggle="modal" data-target="#editModal"><i class="fa fa-edit"></i></a>&nbsp;&nbsp;';
+            $operate = '<a href="#" class="btn btn-xs btn-gradient-primary btn-rounded btn-icon edit-data" data-id='.$row->id.' title="Edit" data-toggle="modal" data-target="#editModal"><i class="fa fa-edit"></i></a>&nbsp;&nbsp;';
 
             $tempRow['id'] = $row->id;
             $tempRow['no'] = $no++;
@@ -736,10 +736,10 @@ class AssignmentController extends Controller
                 'message' => trans('data_update_successfully'),
             ];
         } catch (\Throwable $e) {
+            report($e);
             $response = [
                 'error' => true,
                 'message' => trans('error_occurred'),
-                'data' => $e,
             ];
         }
 

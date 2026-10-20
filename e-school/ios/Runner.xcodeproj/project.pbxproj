@@ -422,7 +422,7 @@
 				FLUTTER_BUILD_NAME = 3.5.0;
 				FLUTTER_BUILD_NUMBER = 3;
 				INFOPLIST_FILE = Runner/Info.plist;
-				INFOPLIST_KEY_CFBundleDisplayName = eSchool;
+				INFOPLIST_KEY_CFBundleDisplayName = NavigateEd;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.education";
 				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -430,7 +430,7 @@
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 3.5.0;
-				PRODUCT_BUNDLE_IDENTIFIER = za.co.example.eschool;
+				PRODUCT_BUNDLE_IDENTIFIER = tech.tokensoft.navigateed;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_OBJC_BRIDGING_HEADER = "Runner/Runner-Bridging-Header.h";
 				SWIFT_VERSION = 5.0;
@@ -562,7 +562,7 @@
 				FLUTTER_BUILD_NAME = 3.5.0;
 				FLUTTER_BUILD_NUMBER = 3;
 				INFOPLIST_FILE = Runner/Info.plist;
-				INFOPLIST_KEY_CFBundleDisplayName = eSchool;
+				INFOPLIST_KEY_CFBundleDisplayName = NavigateEd;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.education";
 				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -570,7 +570,7 @@
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 3.5.0;
-				PRODUCT_BUNDLE_IDENTIFIER = za.co.example.eschool;
+				PRODUCT_BUNDLE_IDENTIFIER = tech.tokensoft.navigateed;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_OBJC_BRIDGING_HEADER = "Runner/Runner-Bridging-Header.h";
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
@@ -592,7 +592,7 @@
 				FLUTTER_BUILD_NAME = 3.5.0;
 				FLUTTER_BUILD_NUMBER = 3;
 				INFOPLIST_FILE = Runner/Info.plist;
-				INFOPLIST_KEY_CFBundleDisplayName = eSchool;
+				INFOPLIST_KEY_CFBundleDisplayName = NavigateEd;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.education";
 				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -600,7 +600,7 @@
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 3.5.0;
-				PRODUCT_BUNDLE_IDENTIFIER = za.co.example.eschool;
+				PRODUCT_BUNDLE_IDENTIFIER = tech.tokensoft.navigateed;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_OBJC_BRIDGING_HEADER = "Runner/Runner-Bridging-Header.h";
 				SWIFT_VERSION = 5.0;

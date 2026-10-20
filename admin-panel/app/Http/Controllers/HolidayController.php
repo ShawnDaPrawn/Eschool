@@ -167,7 +167,7 @@ class HolidayController extends Controller
         if (isset($_GET['order']))
             $order = $_GET['order'];
 
-        $session_year_id = $_GET['session_year_id'];
+        $session_year_id = $_GET['session_year_id'] ?? getSettings('session_year')['session_year'];
 
         $sql = Holiday::where('id', '!=', 0)->where('session_year_id', $session_year_id);
         if (isset($_GET['search']) && !empty($_GET['search'])) {

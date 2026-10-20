@@ -73,7 +73,17 @@ class RazorpayPayment implements PaymentInterface {
      * @return float|int
      */
     public function minimumAmountValidation($currency, $amount) {
-        return match ($currency) {
+        return self::amountInSubunits((string) $currency, $amount);
+    }
+
+    /**
+     * The amount Razorpay is asked for (and reports back in webhooks), in the
+     * currency's smallest unit. Razorpay only accepts whole numbers here.
+     */
+    public static function amountInSubunits(string $currency, $amount): int {
+        $amount = (float) $amount;
+
+        return (int) round(match (strtoupper($currency)) {
             "BHD", "IQD", "JOD", "KWD", "OMR", "TND" => $amount * 1000,
             "AED", "ALL", "AMD", "ARS", "AUD", "AWG", "AZN", "BAM", "BBD", "BDT", "BGN", "BMD", "BND", "BOB", "BRL", "BSD", "BTN", "BWP", "BZD", "CAD", "CHF",
             "CNY", "COP", "CRC", "CUP", "CVE", "CZK", "DKK", "DOP", "DZD", "EGP", "ETB", "EUR", "FJD", "GBP", "GHS", "GIP", "GMD", "GTQ", "GYD", "HKD", "HNL",
@@ -81,7 +91,7 @@ class RazorpayPayment implements PaymentInterface {
             "MOP", "MUR", "MVR", "MWK", "MXN", "MYR", "MZN", "NAD", "NGN", "NIO", "NOK", "NPR", "NZD", "PEN", "PGK", "PHP", "PKR", "PLN", "QAR", "RON", "RSD",
             "RUB", "SAR", "SCR", "SEK", "SGD", "SLL", "SOS", "SSP", "SVC", "SZL", "THB", "TTD", "TWD", "TZS", "UAH", "USD", "UYU", "UZS", "XCD", "YER", "ZAR", "ZMW" => $amount * 100,
             "BIF", "CLP", "DJF", "GNF", "ISK", "JPY", "KMF", "KRW", "PYG", "RWF", "UGX", "VND", "VUV", "XAF", "XOF", "XPF", "HRK" => $amount,
-        };
+        });
     }
 
     /**

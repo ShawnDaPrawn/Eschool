@@ -39,7 +39,7 @@ window.lessonEvents = {
                 if (data.type == 1) {
                     // 1 = File Ulopad
                     html.find('#edit_file_type').val('file_upload').trigger('change');
-                    html.find('#file_preview').attr('href', data.file_url).text(data.file_name);
+                    html.find('#file_preview').attr('href', safeUrl(data.file_url)).text(data.file_name);
                     //Used class name as a selector instead of id because of jquery dynamic field validation.
                     html.find('.file_name').val(data.file_name);
                 } else if (data.type == 2) {
@@ -116,7 +116,7 @@ window.topicEvents = {
                 if (data.type == 1) {
                     // 1 = File Ulopad
                     html.find('#edit_file_type').val('file_upload').trigger('change');
-                    html.find('#file_preview').attr('href', data.file_url).text(data.file_name);
+                    html.find('#file_preview').attr('href', safeUrl(data.file_url)).text(data.file_name);
                     //Used class name as a selector instead of id because of jquery dynamic field validation.
                     html.find('.file_name').val(data.file_name);
                 } else if (data.type == 2) {
@@ -250,7 +250,7 @@ window.assignmentEvents = {
 
         if (row.file) {
             $.each(row.file, function (key, data) {
-                html_file += '<div class="file"><a target="_blank" href="' + data.file_url + '" class="m-1">' + data.file_name + '</a> <span class="fa fa-times text-danger remove-assignment-file" data-id=' + data.id + '></span><br><br></div>'
+                html_file += '<div class="file"><a target="_blank" href="' + escapeHtml(safeUrl(data.file_url)) + '" class="m-1">' + escapeHtml(data.file_name) + '</a> <span class="fa fa-times text-danger remove-assignment-file" data-id="' + escapeHtml(data.id) + '"></span><br><br></div>'
             })
 
             $('#old_files').html(html_file);
@@ -304,7 +304,7 @@ window.announcementEvents = {
             let fileHtml = '';
             row.file.forEach(function (file) {
                 fileHtml += '<div class="mb-2">';
-                fileHtml += '<a href="' + file.file_url + '" target="_blank">' + file.file_name + '</a>';
+                fileHtml += '<a href="' + escapeHtml(safeUrl(file.file_url)) + '" target="_blank">' + escapeHtml(file.file_name) + '</a>';
                 fileHtml += '</div>';
             });
             $('#old_files').html(fileHtml);
@@ -725,7 +725,7 @@ window.assignmentSubmissionEvents = {
         var $files = $('#files').empty();
         $.each(row.file, function (key, data) {
             $('<a>', {
-                href: data.file_url,
+                href: safeUrl(data.file_url),
                 target: '_blank',
                 class: 'submission-file-link',
                 title: data.file_name
@@ -781,11 +781,11 @@ window.assignmentSubmissionEvents = {
 
 window.examMarksEvents = {
     'click .edit-data': function (e, value, row, index) {
-        $('.student_name').html(row.student_name);
+        $('.student_name').text(row.student_name);
         $('.subject_container').html('');
         var no = 0;
         $.each(row.data, function (key, data) {
-            var html_data = '<div class="row"><input type="hidden" id="marks_id form-control" readonly name="edit[' + no + '][marks_id]" value="' + data.id + '"/><div class="row mx-2"><input type="hidden" id="marks_id form-control" readonly name="edit[' + no + '][exam_id]" value="' + data.timetable.exam_id + '"/><div class="row mx-2"><input type="hidden" id="marks_id form-control" readonly name="edit[' + no + '][student_id]" value="' + row.student_id + '"/><div class="row mx-2"><input type="hidden" id="marks_id form-control" readonly name="edit[' + no + '][passing_marks]" value="' + data.timetable.passing_marks + '"/><div class="form-group col-sm-12 col-md-4"><input type="text" class="subject_name form-control" readonly name="edit[' + no + '][subject_name]" value="' + data.subject.name + '" /></div><div class="form-group col-sm-12 col-md-4"><input type="text" class="total_marks form-control" readonly name="edit[' + no + '][total_marks]" value="' + data.timetable.total_marks + '" /></div><div class="form-group col-sm-12 col-md-4"><input type="text" class="obtained_marks form-control" name="edit[' + no + '][obtained_marks]" value="' + data.obtained_marks + '" /></div></div>';
+            var html_data = '<div class="row"><input type="hidden" id="marks_id form-control" readonly name="edit[' + no + '][marks_id]" value="' + escapeHtml(data.id) + '"/><div class="row mx-2"><input type="hidden" id="marks_id form-control" readonly name="edit[' + no + '][exam_id]" value="' + escapeHtml(data.timetable.exam_id) + '"/><div class="row mx-2"><input type="hidden" id="marks_id form-control" readonly name="edit[' + no + '][student_id]" value="' + escapeHtml(row.student_id) + '"/><div class="row mx-2"><input type="hidden" id="marks_id form-control" readonly name="edit[' + no + '][passing_marks]" value="' + escapeHtml(data.timetable.passing_marks) + '"/><div class="form-group col-sm-12 col-md-4"><input type="text" class="subject_name form-control" readonly name="edit[' + no + '][subject_name]" value="' + escapeHtml(data.subject.name) + '" /></div><div class="form-group col-sm-12 col-md-4"><input type="text" class="total_marks form-control" readonly name="edit[' + no + '][total_marks]" value="' + escapeHtml(data.timetable.total_marks) + '" /></div><div class="form-group col-sm-12 col-md-4"><input type="text" class="obtained_marks form-control" name="edit[' + no + '][obtained_marks]" value="' + escapeHtml(data.obtained_marks) + '" /></div></div>';
             $('.subject_container').append(html_data);
             no++;
         });
@@ -968,7 +968,7 @@ window.feesPaidEvents = {
         $('#student_id').val(row.student_id);
         $('#class_id').val(row.class_id);
 
-        $('.student_name').html(row.student_name + ' - ' + row.class_name);
+        $('.student_name').text(row.student_name + ' - ' + row.class_name);
         $('.paid_date').val(row.current_date);
 
         if ((row.mode == 1) && (row.type_of_fee == 0 || row.type_of_fee == 1 || row.type_of_fee == null)) {
@@ -1213,7 +1213,7 @@ window.feesPaidEvents = {
         // Add data in Modal
         $('#optional_student_id').val(row.student_id);
         $('#optional_class_id').val(row.class_id);
-        $('.student_name').html(row.student_name + ' - ' + row.class_name);
+        $('.student_name').text(row.student_name + ' - ' + row.class_name);
         $('.current-date').val(row.current_date);
 
         if (row.mode == 1 && (row.type_of_fee == 2 || row.type_of_fee == null)) {
@@ -1311,7 +1311,7 @@ window.feesPaidEvents = {
         $('#edit_student_id').val(row.student_id);
         $('#edit_class_id').val(row.class_id);
         $('.edit_total_amount').val(row.total_fees);
-        $('.edit_student_name').html(row.student_name + ' - ' + row.class_name);
+        $('.edit_student_name').text(row.student_name + ' - ' + row.class_name);
         $('.edit_date').val(row.formatted_date);
         if (row.mode) {
             $('#edit_mode_cheque').attr('checked', true);
@@ -1404,7 +1404,7 @@ window.onlineExamQuestionsEvents = {
             $('.edit_question').html('')
             $('.edit_option_container').html('')
             // set data in question text area
-            CKEDITOR.instances['edit_equestion'].setData(row.question_row)
+            setEquationEditorValue('edit_equestion', row.question_row)
 
             $('#edit-simple-question').hide(100)
             $('#edit-equation-question').show(300);
@@ -1413,27 +1413,27 @@ window.onlineExamQuestionsEvents = {
             let html_option = '';
             $.each(row.options, function (index, value) {
                 if (index >= 2) {
-                    html_option += '<div class="form-group col-md-6"><input type="hidden" class="edit_eoption_id" name="edit_eoption[' + (index + 1) + '][id]" value=' + value.id + '><label>' + lang_option + ' <span class="edit-eoption-number">' + (index + 1) + '</span> <span class="text-danger">*</span></label><textarea class="editor_options" name="edit_eoption[' + (index + 1) + '][option]" placeholder="' + lang_enter_option + '">' + value.option_row + '</textarea><div class="remove-edit-option-content"><button type="button" class="btn btn-inverse-danger remove-edit-option btn-sm mt-1" data-id="' + value.id + '"><i class="fa fa-times"></i></button></div></div>'
+                    html_option += '<div class="form-group col-md-6"><input type="hidden" class="edit_eoption_id" name="edit_eoption[' + (index + 1) + '][id]" value=' + value.id + '><label>' + lang_option + ' <span class="edit-eoption-number">' + (index + 1) + '</span> <span class="text-danger">*</span></label><textarea class="editor_options" name="edit_eoption[' + (index + 1) + '][option]" placeholder="' + lang_enter_option + '">' + escapeHtml(value.option_row) + '</textarea><div class="remove-edit-option-content"><button type="button" class="btn btn-inverse-danger remove-edit-option btn-sm mt-1" data-id="' + value.id + '"><i class="fa fa-times"></i></button></div></div>'
                     $('.edit_eoption_container').html(html_option);
                 } else {
-                    html_option += '<div class="form-group col-md-6"><input type="hidden" class="edit_eoption_id" name="edit_eoption[' + (index + 1) + '][id]" value=' + value.id + '><label>' + lang_option + ' <span class="edit-eoption-number">' + (index + 1) + '</span> <span class="text-danger">*</span></label><textarea class="editor_options" name="edit_eoption[' + (index + 1) + '][option]" placeholder="' + lang_enter_option + '">' + value.option_row + '</textarea></div>'
+                    html_option += '<div class="form-group col-md-6"><input type="hidden" class="edit_eoption_id" name="edit_eoption[' + (index + 1) + '][id]" value=' + value.id + '><label>' + lang_option + ' <span class="edit-eoption-number">' + (index + 1) + '</span> <span class="text-danger">*</span></label><textarea class="editor_options" name="edit_eoption[' + (index + 1) + '][option]" placeholder="' + lang_enter_option + '">' + escapeHtml(value.option_row) + '</textarea></div>'
                     $('.edit_eoption_container').html(html_option);
                 }
             });
-            createCkeditor();
+            createEquationEditors();
         } else {
             $('#edit-equation-question').hide(100);
             $('#edit-simple-question').show(300);
             $('.edit_option_container').html('')
 
-            $('.edit-question').html(row.question);
+            $('.edit-question').text(row.question);
             // add options and add the options in answers
             let html = ''
             $.each(row.options, function (index, value) {
                 if (index >= 2) {
-                    html = '<div class="form-group col-md-6"><input type="hidden" class="edit_option_id" name="edit_options[' + (index + 1) + '][id]" value=' + value.id + '><label>' + lang_option + ' <span class="edit-option-number"> ' + (index + 1) + '</span> <span class="text-danger">*</span></label><input type="text" name="edit_options[' + (index + 1) + '][option]" value="' + value.option + '" placeholder="' + lang_enter_option + '" class="form-control add-edit-question-option" /><div class="remove-edit-option-content"><button type="button" class="btn btn-inverse-danger remove-edit-option btn-sm mt-1" data-id="' + value.id + '"><i class="fa fa-times"></i></button></div></div>';
+                    html = '<div class="form-group col-md-6"><input type="hidden" class="edit_option_id" name="edit_options[' + (index + 1) + '][id]" value=' + value.id + '><label>' + lang_option + ' <span class="edit-option-number"> ' + (index + 1) + '</span> <span class="text-danger">*</span></label><input type="text" name="edit_options[' + (index + 1) + '][option]" value="' + escapeHtml(value.option) + '" placeholder="' + lang_enter_option + '" class="form-control add-edit-question-option" /><div class="remove-edit-option-content"><button type="button" class="btn btn-inverse-danger remove-edit-option btn-sm mt-1" data-id="' + value.id + '"><i class="fa fa-times"></i></button></div></div>';
                 } else {
-                    html = '<div class="form-group col-md-6"><input type="hidden" class="edit_option_id" name="edit_options[' + (index + 1) + '][id]" value=' + value.id + '><label>' + lang_option + ' <span class="edit-option-number"> ' + (index + 1) + '</span> <span class="text-danger">*</span></label><input type="text" name="edit_options[' + (index + 1) + '][option]" value="' + value.option + '" placeholder="' + lang_enter_option + '" class="form-control add-edit-question-option" /><div class="remove-edit-option-content"></div></div>';
+                    html = '<div class="form-group col-md-6"><input type="hidden" class="edit_option_id" name="edit_options[' + (index + 1) + '][id]" value=' + value.id + '><label>' + lang_option + ' <span class="edit-option-number"> ' + (index + 1) + '</span> <span class="text-danger">*</span></label><input type="text" name="edit_options[' + (index + 1) + '][option]" value="' + escapeHtml(value.option) + '" placeholder="' + lang_enter_option + '" class="form-control add-edit-question-option" /><div class="remove-edit-option-content"></div></div>';
                 }
                 $('.edit_option_container').append(html);
             });
@@ -1834,7 +1834,7 @@ window.leavesEvents = {
 
         if (row.file) {
             $.each(row.file, function (key, data) {
-                html_file += '<div class="file"><a target="_blank" href="' + data.file_url + '" class="m-1">' + data.file_name + '</a></span><br><br></div>'
+                html_file += '<div class="file"><a target="_blank" href="' + escapeHtml(safeUrl(data.file_url)) + '" class="m-1">' + escapeHtml(data.file_name) + '</a></span><br><br></div>'
             })
 
             $('#attachment').html(html_file);
@@ -1878,10 +1878,19 @@ window.semesterEvents = {
     }
 };
 
-function studentNameFormatter(value, row, index) {
-    // Default placeholder image path
+function studentNameFormatter(value, row, index, field) {
+    // Use the raw row field: on tables with data-escape="true" bootstrap-table passes an
+    // already-escaped `value`, and the name is escaped exactly once below.
+    const name =
+        field && row && Object.prototype.hasOwnProperty.call(row, field)
+            ? row[field]
+            : value;
+    const safeName = escapeHtml(name);
+
+    // Default placeholder image path ("'" is also encoded: the URL ends up inside a
+    // single-quoted JS string in the onerror handler below)
     const placeholderImage =
-        `https://ui-avatars.com/api/?name=${encodeURIComponent(value)}&background=10B981&color=fff`
+        `https://ui-avatars.com/api/?name=${encodeURIComponent(name).replace(/'/g, "%27")}&background=10B981&color=fff`
 
     // Get image path from row data
     const imagePath = row.photo ? row.photo : placeholderImage;
@@ -1890,12 +1899,12 @@ function studentNameFormatter(value, row, index) {
     // Return HTML with image and name
     return `
         <div class="d-flex align-items-center">
-            <img src="${imagePath}" 
-                 alt="${value}" 
-                 class="rounded-circle me-2" 
+            <img src="${escapeHtml(imagePath)}"
+                 alt="${safeName}"
+                 class="rounded-circle me-2"
                  style="width: 35px; height: 35px; object-fit: cover; margin-right: 6px;"
-                 onerror="this.onerror=null; this.src='${placeholderImage}';">
-            <span>${value}</span>
+                 onerror="this.onerror=null; this.src='${escapeHtml(placeholderImage)}';">
+            <span>${safeName}</span>
         </div>
     `;
 }

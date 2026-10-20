@@ -45,6 +45,18 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Demo Mode
+    |--------------------------------------------------------------------------
+    |
+    | On the public demo, the login page offers sample accounts and changes
+    | that could break the demo (and secret settings) are hidden or blocked.
+    |
+    */
+
+    'demo_mode' => (bool) env('DEMO_MODE', false),
+
+    /*
+    |--------------------------------------------------------------------------
     | Application URL
     |--------------------------------------------------------------------------
     |

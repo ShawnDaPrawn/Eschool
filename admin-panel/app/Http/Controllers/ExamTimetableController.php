@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers;
 
+use App\Services\ResponseService;
 use Throwable;
 use Carbon\Carbon;
 use App\Models\Exam;
@@ -113,10 +114,10 @@ class ExamTimetableController extends Controller
                 'message' => trans('data_store_successfully'),
             );
         } catch (Throwable $e) {
+            report($e);
             $response = array(
                 'error' => true,
-                'message' => trans('error_occurred'),
-                'data' => $e
+                'message' => trans('error_occurred')
             );
         }
         return response()->json($response);
@@ -140,7 +141,7 @@ class ExamTimetableController extends Controller
         $limit = 10;
         $sort = 'id';
         $order = 'ASC';
-        $session_year_id = $_GET['session_year_id'];
+        $session_year_id = $_GET['session_year_id'] ?? getSettings('session_year')['session_year'];
 
         if (isset($_GET['offset']))
             $offset = $_GET['offset'];
@@ -293,6 +294,7 @@ class ExamTimetableController extends Controller
      */
     public function update(Request $request, $id)
     {
+        ResponseService::noPermissionThenSendJson('exam-timetable-create');
         //
     }
 

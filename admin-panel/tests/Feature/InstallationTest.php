@@ -55,6 +55,8 @@ class InstallationTest extends TestCase
 
         $this->assertMatchesRegularExpression('/^APP_ENV=production$/m', $env);
         $this->assertMatchesRegularExpression('/^APP_DEBUG=false$/m', $env);
+        // A published key would let anyone forge sessions and signed URLs.
+        $this->assertMatchesRegularExpression('/^APP_KEY=$/m', $env);
         $this->assertNotNull(config('sanctum.expiration'));
     }
 }

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers;
 
+use App\Services\ResponseService;
 use Throwable;
 use App\Models\Subject;
 use App\Models\Teacher;
@@ -20,6 +21,7 @@ use App\Models\SubjectTeacher;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Session;
+use Illuminate\Support\Facades\Validator;
 
 class TimetableController extends Controller
 {
@@ -134,6 +136,10 @@ class TimetableController extends Controller
 
     public function getSubjectByClassSection(Request $request)
     {
+        // Used by the timetable editor (index), which is gated on timetable-list.
+        if (!Auth::user()->can('timetable-list')) {
+            return $this->noPermissionJson();
+        }
         $class = ClassSchool::withSessionConfigFor($request->session_year_id)
             ->where('id', $request->class_id)
             ->first();
@@ -157,6 +163,9 @@ class TimetableController extends Controller
 
     public function getClassSemesters(Request $request)
     {
+        if (!Auth::user()->can('timetable-list')) {
+            return $this->noPermissionJson();
+        }
         $class = ClassSchool::withSessionConfigFor($request->session_year_id)
             ->where('id', $request->class_id)
             ->first();
@@ -289,6 +298,9 @@ class TimetableController extends Controller
 
     public function getteacherbysubject(Request $request)
     {
+        if (!Auth::user()->can('timetable-list')) {
+            return $this->noPermissionJson();
+        }
         $request->validate([
             'class_section_id' => 'required|integer',
             'subject_id' => 'required|integer',
@@ -318,6 +330,9 @@ class TimetableController extends Controller
 
     public function checkTimetable(Request $request)
     {
+        if (!Auth::user()->can('timetable-list')) {
+            return $this->noPermissionJson();
+        }
         $query = Timetable::with('subject_teacher')->where([
             'class_section_id' => $request->class_section_id,
             'session_year_id' => $request->session_year_id,
@@ -389,6 +404,10 @@ class TimetableController extends Controller
 
     public function gettimetablebyclass(Request $request)
     {
+        // Same rule as the class timetable page (class_timetable()).
+        if (!Auth::user()->teacher && !Auth::user()->can('class-timetable')) {
+            return $this->noPermissionJson();
+        }
         Session::put('class_timetable', $request->class_section_id);
 
         $query = Timetable::where('class_section_id', $request->class_section_id)
@@ -444,6 +463,10 @@ class TimetableController extends Controller
 
     public function gettimetablebyteacher(Request $request)
     {
+        // Same rule as the teacher timetable page (teacher_timetable()).
+        if (!Auth::user()->teacher && !Auth::user()->can('teacher-timetable')) {
+            return $this->noPermissionJson();
+        }
         $subject_teacher = SubjectTeacher::select('id')->where('teacher_id', $request->teacher_id)->pluck('id');
         $timetable = array();
         $day = array();
@@ -467,8 +490,12 @@ class TimetableController extends Controller
 
     public function getTimetableBySubjectTeacherClass(Request $request)
     {
+        if (!Auth::user()->teacher && !Auth::user()->can('teacher-timetable')) {
+            return $this->noPermissionJson();
+        }
         $teacher = Auth::user()->teacher;
-        $subject_teacher_id = SubjectTeacher::where('teacher_id', $teacher->id)->pluck('id')->toArray();
+        // Users who aren't teachers (e.g. Super Admin) have no timetable of their own.
+        $subject_teacher_id = $teacher ? SubjectTeacher::where('teacher_id', $teacher->id)->pluck('id')->toArray() : [];
 
         if ($request->class_section_id) {
 
@@ -503,8 +530,33 @@ class TimetableController extends Controller
 
     public function linkUpdate(Request $request)
     {
+        // Staff who can edit timetables, or the teacher who teaches this period.
+        $timetable = Timetable::with('subject_teacher')->find($request->edit_id);
+        $teacher_id = Auth::user()->teacher->id ?? null;
+        $teachesPeriod = $timetable && $teacher_id && $timetable->subject_teacher
+            && (int) $timetable->subject_teacher->teacher_id === (int) $teacher_id;
+        if (! $timetable || (! Auth::user()->can('timetable-edit') && ! $teachesPeriod)) {
+            $response = array(
+                'error' => true,
+                'message' => trans('no_permission_message')
+            );
+            return response()->json($response);
+        }
+
+        $validator = Validator::make($request->all(), [
+            'live_class_url' => 'required|url:http,https|max:255',
+            // The name is shown as HTML on the timetable pages.
+            'link_name' => ['required', 'string', 'max:255', 'not_regex:/[<>]/'],
+        ]);
+        if ($validator->fails()) {
+            $response = array(
+                'error' => true,
+                'message' => $validator->errors()->first()
+            );
+            return response()->json($response);
+        }
+
         try {
-            $timetable = Timetable::where('id', $request->edit_id)->first();
             $timetable->live_class_url = $request->live_class_url;
             $timetable->link_name = $request->link_name;
             $timetable->save();
@@ -524,7 +576,19 @@ class TimetableController extends Controller
 
     public function getTimeatableDetails($id)
     {
+        // Used by the live-class link editor on the teacher timetable page.
+        if (!Auth::user()->teacher && !Auth::user()->can('teacher-timetable')) {
+            return $this->noPermissionJson();
+        }
         $timetable = Timetable::where('id', $id)->first();
         return response($timetable);
+    }
+
+    private function noPermissionJson()
+    {
+        return response()->json(array(
+            'error' => true,
+            'message' => trans('no_permission_message')
+        ));
     }
 }

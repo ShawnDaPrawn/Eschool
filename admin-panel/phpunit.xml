@@ -22,10 +22,16 @@
         <env name="APP_MAINTENANCE_DRIVER" value="file"/>
         <env name="BCRYPT_ROUNDS" value="4"/>
         <env name="CACHE_STORE" value="array"/>
+        <!-- config/cache.php reads CACHE_DRIVER, not CACHE_STORE. -->
+        <env name="CACHE_DRIVER" value="array"/>
         <!-- The migrations use MySQL-specific SQL, so tests need MySQL/MariaDB.
              DB_HOST, DB_USERNAME and DB_PASSWORD come from .env or the environment. -->
         <env name="DB_CONNECTION" value="mysql"/>
         <env name="DB_DATABASE" value="eschool_test"/>
+        <!-- Persistent connections are shared by every test. When an earlier test's
+             connection object is garbage-collected, PHP rolls back the transaction
+             the current test is running in. -->
+        <env name="DB_PERSISTENT" value="false"/>
         <env name="MAIL_MAILER" value="array"/>
         <env name="QUEUE_CONNECTION" value="sync"/>
         <env name="SESSION_DRIVER" value="array"/>

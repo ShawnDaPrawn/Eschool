@@ -4,8 +4,10 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers;
 
+use App\Services\ResponseService;
 use App\Http\Requests\StoreLessonRequest;
 use App\Http\Requests\UpdateLessonRequest;
+use App\Models\Assignment;
 use App\Models\ClassSchool;
 use App\Models\ClassSection;
 use App\Models\File;
@@ -218,7 +220,7 @@ class LessonController extends Controller
                     });
             });
         }
-        if ($_GET['subject_id']) {
+        if (! empty($_GET['subject_id'])) {
             $sql = $sql->where('subject_id', $_GET['subject_id']);
         }
         if (! empty($_GET['class_id'])) {
@@ -256,7 +258,7 @@ class LessonController extends Controller
                 $relatedData[] = 'lesson files';
             }
 
-            $operate = '<a href='.route('lesson.edit', $row->id).' class="btn btn-xs btn-gradient-primary btn-rounded btn-icon edit-data" data-id='.$row->id.' title="Edit" data-toggle="modal" data-target="#editModal"><i class="fa fa-edit"></i></a>&nbsp;&nbsp;';
+            $operate = '<a href="#" class="btn btn-xs btn-gradient-primary btn-rounded btn-icon edit-data" data-id='.$row->id.' title="Edit" data-toggle="modal" data-target="#editModal"><i class="fa fa-edit"></i></a>&nbsp;&nbsp;';
             $operate .= '
                 <a
                     href="'.route('lesson.destroy', $row->id).'"
@@ -537,8 +539,21 @@ class LessonController extends Controller
 
     public function deleteFile($id)
     {
+        ResponseService::noPermissionThenSendJson('lesson-delete');
         try {
             $file = File::findOrFail($id);
+            // Only the lesson, topic and assignment pages remove files through this route.
+            $editPermission = [
+                Lesson::class => 'lesson-edit',
+                LessonTopic::class => 'topic-edit',
+                Assignment::class => 'assignment-edit',
+            ][$file->modal_type] ?? null;
+            if (! $editPermission || ! Auth::user()->can($editPermission)) {
+                return response()->json([
+                    'error' => true,
+                    'message' => trans('no_permission_message'),
+                ]);
+            }
             if (Storage::disk('public')->exists($file->file_url)) {
                 Storage::disk('public')->delete($file->file_url);
             }

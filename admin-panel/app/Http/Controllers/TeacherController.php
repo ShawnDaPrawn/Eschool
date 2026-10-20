@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers;
 
+use App\Services\ResponseService;
 use App\Models\ClassTeacher;
 use App\Models\EmailTempalate;
 use App\Models\FormField;
@@ -11,11 +12,11 @@ use App\Models\Settings;
 use App\Models\SubjectTeacher;
 use App\Models\Teacher;
 use App\Models\User;
+use App\Services\EmailTemplateService;
 use App\Services\MailService;
 use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
@@ -369,9 +370,7 @@ class TeacherController extends Controller
                             'user_id' => $user->id,
                         ]);
                     } else {
-                        $normalizedTemplate = preg_replace('/\{\$?(\w+)\s*\}/', '{{ $$1 }}', $staffTemplate);
-
-                        $htmlcontent = Blade::render($normalizedTemplate, $data);
+                        $htmlcontent = EmailTemplateService::render((string) $staffTemplate, $data);
 
                         $emailPayload = [
                             'body' => $htmlcontent,
@@ -394,14 +393,10 @@ class TeacherController extends Controller
                 'message' => trans('data_store_successfully'),
             ];
         } catch (Throwable $e) {
+            report($e);
             $response = [
                 'error' => true,
-                'message' => trans('error_occurred').': '.$e->getMessage(),
-                'data' => [
-                    'file' => $e->getFile(),
-                    'line' => $e->getLine(),
-                    'trace' => $e->getTraceAsString(),
-                ],
+                'message' => trans('error_occurred'),
             ];
         }
 
@@ -507,7 +502,7 @@ class TeacherController extends Controller
             $tempRow['mobile'] = $row->user?->mobile;
             $tempRow['image'] = $row->user?->image;
             $tempRow['qualification'] = $row->qualification;
-            $tempRow['dynamic_data_field'] = json_decode($row->dynamic_fields);
+            $tempRow['dynamic_data_field'] = json_decode($row->dynamic_fields ?? '[]');
 
             if ($row->user?->can(['student-create', 'student-list', 'student-edit', 'student-delete', 'parents-list', 'parents-edit'])) {
                 $tempRow['has_student_permissions'] = 1;
@@ -532,6 +527,7 @@ class TeacherController extends Controller
      */
     public function edit($id)
     {
+        ResponseService::noPermissionThenSendJson('teacher-edit');
         $teacher = Teacher::find($id);
 
         return response($teacher);
@@ -608,7 +604,7 @@ class TeacherController extends Controller
             $data = [];
             $status = 0;
             $i = 0;
-            $dynamic_data = json_decode($teacher->dynamic_fields, true);
+            $dynamic_data = json_decode($teacher->dynamic_fields ?? '[]', true);
             foreach ($formFields as $form_field) {
                 // INPUT TYPE CHECKBOX
                 if ($form_field->type == 'checkbox') {
@@ -682,10 +678,10 @@ class TeacherController extends Controller
                 'message' => trans('data_update_successfully'),
             ];
         } catch (Throwable $e) {
+            report($e);
             $response = [
                 'error' => true,
                 'message' => trans('error_occurred'),
-                'data' => $e,
             ];
         }
 

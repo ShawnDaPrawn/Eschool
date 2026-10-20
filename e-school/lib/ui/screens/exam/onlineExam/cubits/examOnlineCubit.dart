@@ -40,12 +40,16 @@ class ExamOnlineCubit extends Cubit<ExamOnlineState> {
   ExamOnlineCubit(this._examRepository) : super(ExamOnlineInitial());
   final ExamOnlineRepository _examRepository;
 
-  Future<void> startExam({required ExamsOnline exam}) async {
+  //examKey is the key the student entered, the server checks it
+  Future<void> startExam({
+    required ExamsOnline exam,
+    required int examKey,
+  }) async {
     emit(ExamOnlineFetchInProgress());
     try {
       final onlineExamDetailed = await _examRepository.getOnlineExamDetails(
         examId: exam.id,
-        examKey: exam.examKey,
+        examKey: examKey,
       );
 
       final int noOfQue = onlineExamDetailed['totalQuestions'];
