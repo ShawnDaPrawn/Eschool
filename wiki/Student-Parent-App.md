@@ -267,7 +267,7 @@ Server-supplied names pass through `sanitizeFileName()` before they are used in 
 
 ## Changes in 3.5.0
 
-From `eSchool_3_5_0_changelog.txt` (a list of changed files):
+What changed in the student and parent app for 3.5.0:
 
 - Android build moved to the Kotlin DSL (`build.gradle` → `build.gradle.kts`, `settings.gradle.kts`), and the custom `FlutterMultiDexApplication.java` was removed.
 - New languages: `ar`, `es`, `fr`, `id`, `pt-BR`, `tr` (`en`, `hi`, `ur` updated) and `appLanguages.dart` updated.

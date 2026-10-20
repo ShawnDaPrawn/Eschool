@@ -6,7 +6,7 @@ How to make changes to this repository: the branch and pull request flow, the co
 - Every change reaches `main` through a pull request. PRs are merged with a merge commit ("Merge pull request #N from ShawnDaPrawn/<branch>"), so the individual commits stay in the history; see [Release-History](Release-History#merged-pull-requests).
 - The `CI` workflow runs on every pull request and on every push to `main` (admin panel tests, Flutter analyze and test for both apps, documentation build, dependency audit). A PR should be green before it is merged. See [Testing-and-CI](Testing-and-CI).
 - When a branch falls behind `main`, merge `main` into it (as in [0ce6bac](https://github.com/ShawnDaPrawn/Eschool/commit/0ce6bac)) and record how conflicts were resolved in the merge commit message.
-- There is no pull request template and no `CONTRIBUTING` file in the repository; describe what changed, why, and how it was tested in the PR body.
+- [CONTRIBUTING.md](https://github.com/ShawnDaPrawn/Eschool/blob/main/CONTRIBUTING.md) at the repository root points here, and the pull request template asks for a summary and a test plan. Describe what changed, why, and how it was tested.
 
 ### Commit messages
 

@@ -48,7 +48,7 @@ Point the web server's document root at `admin-panel/public`. Everything outside
 The user docs describe uploading the whole folder into `public_html` on shared hosting. That works because of the [root .htaccess](https://github.com/ShawnDaPrawn/Eschool/blob/main/admin-panel/.htaccess):
 
 - `RewriteRule ^(.*)$ public/$1 [L]` sends every request into `public/`;
-- a `FilesMatch` denies dotfiles, `composer.json`/`.lock`, `package.json`, `artisan`, `phpunit.xml`, `vite.config.js` and `webpack.mix.js` even when `mod_rewrite` is off;
+- a `FilesMatch` denies dotfiles, `composer.json`/`.lock`, `package.json`, `artisan`, `phpunit.xml` and `vite.config.js` even when `mod_rewrite` is off;
 - `RedirectMatch 404 /\.(git|env)` hides `.git` and `.env`.
 
 This only protects anything while Apache honours `.htaccess` (`AllowOverride`) and `mod_rewrite` is on; without the rewrite, `storage/logs/laravel.log` and the rest of the tree are served as plain files. Prefer a document root of `public/` wherever the host allows it.

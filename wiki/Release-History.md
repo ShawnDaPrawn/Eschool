@@ -37,12 +37,12 @@ The end-user changelog is at https://shawndaprawn.github.io/Eschool/changelog/ (
 
 ### 3.5.0 app file changes
 
-[eSchool_3_5_0_changelog.txt](https://github.com/ShawnDaPrawn/Eschool/blob/main/eSchool_3_5_0_changelog.txt) and [eSchoolTeacher_3_5_0_changelog.txt](https://github.com/ShawnDaPrawn/Eschool/blob/main/eSchoolTeacher_3_5_0_changelog.txt) at the repository root are upstream's lists of files changed in each app for 3.5.0, in `git diff --name-status` form (`A` added, `M` modified, `D` deleted, paths relative to the app folder). They are useful when merging 3.5.0 into a customised copy of an app.
+The counts below are from upstream's 3.5.0 file lists. The raw dumps are not kept in the repository. The product changelog is [documentation/changelog](https://github.com/ShawnDaPrawn/Eschool/blob/main/documentation/changelog/index.md).
 
 | App | Entries | Added | Modified | Deleted | Main themes |
 |---|---|---|---|---|---|
 | Student/parent (`e-school`) | 104 | 34 | 59 | 11 | Android Gradle scripts moved to the Kotlin DSL (`build.gradle` → `build.gradle.kts`, `settings.gradle.kts`) and `FlutterMultiDexApplication.java` removed; new languages `ar`, `es`, `fr`, `id`, `pt-BR`, `tr`; the reports area rebuilt (`lib/ui/screens/reports/`: attendance, exam, fees, leave and assignment report tabs, session-year and subject pickers); attendance summary widgets; `sessionYearCubit`; `lib/utils/api.dart` and label keys updated |
-| Teacher (`e-school-teacher`) | 71 | 19 | 49 | 3 | Same Gradle Kotlin DSL move; new languages `ar`, `es`, `id`, `pt-BR`, `tr` and an `er.json`; teacher attendance (`teacherAttendanceCubit`, `teacherAttendanceRepository`, `lib/ui/screens/teacherAttendence/`); ID card download (`downloadIdCardCubit`); `pubspec.yaml` and `pubspec.lock` updated |
+| Teacher (`e-school-teacher`) | 71 | 19 | 49 | 3 | Same Gradle Kotlin DSL move; new languages `ar`, `es`, `id`, `pt-BR`, `tr` and an `er.json`; teacher attendance (`teacherAttendanceCubit`, `teacherAttendanceRepository`, `lib/ui/screens/teacherAttendance/`); ID card download (`downloadIdCardCubit`); `pubspec.yaml` and `pubspec.lock` updated |
 
 The teacher app's `er.json` was an unused copy of `en.json` and the app offered French without an `fr.json`; the fork fixed both in [ef07de7](https://github.com/ShawnDaPrawn/Eschool/commit/ef07de7).
 

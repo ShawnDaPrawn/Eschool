@@ -1,0 +1,27 @@
+name: Feature
+description: A change to the admin panel, an app, the docs, or the wiki.
+title: ""
+body:
+  - type: dropdown
+    id: project
+    attributes:
+      label: Project
+      options:
+        - admin-panel
+        - e-school
+        - e-school-teacher
+        - documentation
+        - wiki
+    validations:
+      required: true
+  - type: textarea
+    id: need
+    attributes:
+      label: What should this do
+    validations:
+      required: true
+  - type: textarea
+    id: who
+    attributes:
+      label: Who it is for
+      description: Staff, a teacher, a student, a parent, or someone working on the code.

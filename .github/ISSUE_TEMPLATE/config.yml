@@ -1,0 +1,8 @@
+blank_issues_enabled: true
+contact_links:
+  - name: Documentation
+    url: https://shawndaprawn.github.io/Eschool/
+    about: Setup and feature guides for the admin panel, the website, and the apps.
+  - name: Developer wiki
+    url: https://github.com/ShawnDaPrawn/Eschool/blob/main/wiki/Home.md
+    about: How the code is put together.

@@ -1,0 +1,33 @@
+name: Bug
+description: Something in the admin panel, an app, the docs, or the wiki is wrong.
+title: ""
+body:
+  - type: dropdown
+    id: project
+    attributes:
+      label: Project
+      options:
+        - admin-panel
+        - e-school
+        - e-school-teacher
+        - documentation
+        - wiki
+    validations:
+      required: true
+  - type: textarea
+    id: happened
+    attributes:
+      label: What happened
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: What you expected
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: How to see it
+      description: The screen, the request, or the page, and what you did just before.

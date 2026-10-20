@@ -60,7 +60,7 @@ class AttendanceController extends Controller
             'class.streams'
         )->get();
 
-        return view('AttendanceStudent.monthly', compact(
+        return view('attendance.monthly', compact(
             'class_sections',
             'currentSessionYear'
         ));
