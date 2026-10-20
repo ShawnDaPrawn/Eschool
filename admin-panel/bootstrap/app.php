@@ -26,7 +26,8 @@ return Application::configure(basePath: dirname(__DIR__))
             // \Illuminate\Session\Middleware\AuthenticateSession::class,
             \Illuminate\View\Middleware\ShareErrorsFromSession::class,
             \Illuminate\Routing\Middleware\SubstituteBindings::class,
-            \App\Http\Middleware\DemoMiddleware::class
+            \App\Http\Middleware\DemoMiddleware::class,
+            \App\Http\Middleware\RejectDangerousUploads::class,
         ]);
 
         // API middleware group
@@ -34,6 +35,9 @@ return Application::configure(basePath: dirname(__DIR__))
             \Laravel\Sanctum\Http\Middleware\EnsureFrontendRequestsAreStateful::class,
             'throttle:api',
             \Illuminate\Routing\Middleware\SubstituteBindings::class,
+        ]);
+        $middleware->api(append: [
+            \App\Http\Middleware\RejectDangerousUploads::class,
         ]);
 
         // Alias middleware
