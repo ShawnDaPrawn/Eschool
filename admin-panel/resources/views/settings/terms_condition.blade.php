@@ -21,7 +21,7 @@
               <input type="hidden" name="type" id="type" value="{{$type}}">
               
               <div class="form-group col-md-12 col-sm-12">
-                <textarea id="tinymce_message" name="setting_message" required placeholder="{{__('terms_condition')}}">{{isset($settings->message) ? $settings->message : ''}}</textarea>
+                <textarea id="rich_text_message" name="setting_message" required placeholder="{{__('terms_condition')}}">{{isset($settings->message) ? $settings->message : ''}}</textarea>
                 
               </div>
             </div>

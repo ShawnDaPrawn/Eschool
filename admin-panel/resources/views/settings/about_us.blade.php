@@ -22,7 +22,7 @@
                 {{-- <label>{{__('about_us')}}</label> --}}
                 <input type="hidden" name="type" id="type" value="{{$type}}">
                 
-                <textarea id="tinymce_message" name="setting_message" required placeholder="{{__('about_us')}}">{{isset($settings->message) ? $settings->message : ''}}</textarea>
+                <textarea id="rich_text_message" name="setting_message" required placeholder="{{__('about_us')}}">{{isset($settings->message) ? $settings->message : ''}}</textarea>
               </div>
             </div>
             <input class="btn btn-theme" type="submit" value="{{__('submit')}}">

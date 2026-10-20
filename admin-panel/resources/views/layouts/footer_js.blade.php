@@ -33,7 +33,6 @@
 <script src="{{ asset('/assets/js/moment.min.js') }}"></script>
 <script src="{{ asset('/assets/js/flatpickr.min.js') }}"></script>
 <script src="{{ asset('/assets/js/jquery.repeater.js') }}"></script>
-<script src="{{ asset('/assets/tinymce/tinymce.min.js') }}"></script>
 
 <script src="{{ asset('/assets/color-picker/jquery-asColor.min.js') }}"></script>
 <script src="{{ asset('/assets/color-picker/color.min.js') }}"></script>
