@@ -190,7 +190,7 @@ All routes are in the `/api/student` group (`auth:sanctum`, `role:Student`, `stu
    - `OnlineExamScoringService::validateSubmission()` rejects a choice id that is not in this exam, an option that does not belong to that choice's question, and any repeated question or option. Option id `0` means unanswered and is dropped.
    - Inside a transaction with the attempt row locked (`lockForUpdate`): the attempt must exist (questions were fetched), must not be completed and must have no stored answers; if `duration > 0`, the submit must be within `duration + 5` minutes of the attempt row's `created_at`.
    - Stores one answer row per selected option and sets the attempt to `status = 2`.
-4. **`GET get-online-exam-result-list`** and **`GET get-online-exam-result`** (`online_exam_id`) return the score: counts and choice ids of correct and incorrect (including unanswered) questions with their marks, `total_obtained_marks` and `total_marks`.
+4. **`GET get-online-exam-result-list`** lists the exams the student has an attempt for (optionally one `subject_id`), scored with `OnlineExamScoringService`. **`GET get-online-exam-result`** (`online_exam_id`) returns one exam's score: counts and choice ids of correct and incorrect (including unanswered) questions with their marks, `total_obtained_marks` and `total_marks`.
 
 The parent API has the list, result-list and result endpoints for a child (behind `CheckChild`) but cannot take exams. Teachers see attempts in the panel through `OnlineExamController::onlineExamResultIndex` / `showOnlineExamResult`, which list completed attempts (`status = 2`) of students in sections the teacher is a subject teacher of.
 
