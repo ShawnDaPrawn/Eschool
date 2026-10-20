@@ -58,6 +58,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Str;
 use Throwable;
 
 class TeacherApiController extends Controller
@@ -208,6 +209,207 @@ class TeacherApiController extends Controller
             ->diff($classTeacherSections);
 
         return [$classTeacherSections, $otherClassSections];
+    }
+
+    /**
+     * The signed-in user's teacher record. A user without one teaches nothing,
+     * so the request is refused rather than continuing with a null teacher.
+     */
+    private function currentTeacher(): Teacher
+    {
+        $teacher = Auth::user()?->teacher;
+
+        if (! $teacher) {
+            ResponseService::errorResponse('no_permission_message', null, 403);
+        }
+
+        return $teacher;
+    }
+
+    private function currentSessionYearId()
+    {
+        return getSettings('session_year')['session_year'];
+    }
+
+    /** Whether the teacher is class teacher of the class section in the (current) session year. */
+    private function isClassTeacherOf($classSectionId, $sessionYearId = null): bool
+    {
+        return ClassTeacher::where('class_teacher_id', $this->currentTeacher()->id)
+            ->where('class_section_id', $classSectionId)
+            ->where('session_year_id', $sessionYearId ?? $this->currentSessionYearId())
+            ->exists();
+    }
+
+    /**
+     * Whether the teacher teaches the subject in the class section this session year
+     * (in the given semester, when one is given - same rule as sendAnnouncement).
+     */
+    private function teachesSubject($classSectionId, $subjectId, $semesterId = null): bool
+    {
+        return SubjectTeacher::where('teacher_id', $this->currentTeacher()->id)
+            ->where('class_section_id', $classSectionId)
+            ->where('subject_id', $subjectId)
+            ->where('session_year_id', $this->currentSessionYearId())
+            ->when($semesterId, fn ($q) => $q->where(
+                fn ($q) => $q->where('semester_id', $semesterId)->orWhereNull('semester_id')
+            ))
+            ->exists();
+    }
+
+    /** Class sections the teacher is class teacher or subject teacher of in the current session year. */
+    private function teacherClassSectionIds()
+    {
+        $teacherId = $this->currentTeacher()->id;
+        $sessionYearId = $this->currentSessionYearId();
+
+        return ClassTeacher::where('class_teacher_id', $teacherId)
+            ->where('session_year_id', $sessionYearId)
+            ->pluck('class_section_id')
+            ->merge(
+                SubjectTeacher::where('teacher_id', $teacherId)
+                    ->where('session_year_id', $sessionYearId)
+                    ->pluck('class_section_id')
+            )
+            ->unique()
+            ->values();
+    }
+
+    /** Class sections the student belongs to: their current one plus this session year's. */
+    private function studentClassSectionIds(Students $student, $sessionYearId = null)
+    {
+        return StudentSessions::where('student_id', $student->id)
+            ->where('session_year_id', $sessionYearId ?? $this->currentSessionYearId())
+            ->pluck('class_section_id')
+            ->push($student->class_section_id)
+            ->filter()
+            ->unique()
+            ->values();
+    }
+
+    /** Whether the student is in a class section the teacher is class teacher or subject teacher of. */
+    private function teachesStudent($studentId): bool
+    {
+        $student = $studentId ? Students::find($studentId) : null;
+
+        if (! $student) {
+            return false;
+        }
+
+        return $this->studentClassSectionIds($student)
+            ->intersect($this->teacherClassSectionIds())
+            ->isNotEmpty();
+    }
+
+    /** Whether every given student belongs to the class section (now or this session year). */
+    private function allStudentsInClassSection($studentIds, $classSectionId): bool
+    {
+        $studentIds = collect($studentIds)->filter(fn ($id) => $id !== null && $id !== '')->unique();
+
+        if ($studentIds->isEmpty()) {
+            return true;
+        }
+
+        $sessionYearId = $this->currentSessionYearId();
+        $matching = Students::whereIn('id', $studentIds)
+            ->where(fn ($q) => $q->where('class_section_id', $classSectionId)
+                ->orWhereHas('studentSessions', fn ($q) => $q->where('class_section_id', $classSectionId)
+                    ->where('session_year_id', $sessionYearId)))
+            ->count();
+
+        return $matching === $studentIds->count();
+    }
+
+    /** A lesson belongs to the teacher when they teach its subject in its class section. */
+    private function ownsLesson(?Lesson $lesson): bool
+    {
+        return $lesson !== null && $this->teachesSubject($lesson->class_section_id, $lesson->subject_id);
+    }
+
+    /** An announcement belongs to the teacher when it hangs off one of their subject-teacher rows. */
+    private function ownsAnnouncement(?Announcement $announcement): bool
+    {
+        return $announcement !== null
+            && $announcement->table_type === SubjectTeacher::class
+            && SubjectTeacher::where('id', $announcement->table_id)
+                ->where('teacher_id', $this->currentTeacher()->id)
+                ->exists();
+    }
+
+    /** Whether the teacher may change or delete a stored file, judged by what the file is attached to. */
+    private function canManageFile(File $file): bool
+    {
+        return match ($file->modal_type) {
+            Lesson::class => $this->ownsLesson(Lesson::lessonTeachers()->find($file->modal_id)),
+            LessonTopic::class => $this->ownsLesson(
+                LessonTopic::lessonTopicTeachers()->find($file->modal_id)?->lesson
+            ),
+            Assignment::class => Assignment::assignmentTeachers()->whereKey($file->modal_id)->exists(),
+            Announcement::class => $this->ownsAnnouncement(Announcement::find($file->modal_id)),
+            Leave::class => Leave::whereKey($file->modal_id)->where('user_id', Auth::id())->exists(),
+            default => false,
+        };
+    }
+
+    /**
+     * Users the teacher may message: students of the class sections they teach this
+     * session year and those students' parents/guardians (the people getChatUserList
+     * lists), plus anyone who has already written to them.
+     */
+    private function canChatWith($userId): bool
+    {
+        if (ChatMessage::where('sender_id', $userId)->where('modal_id', Auth::id())->exists()) {
+            return true;
+        }
+
+        $sessionYearId = $this->currentSessionYearId();
+        $students = Students::whereIn('class_section_id', $this->teacherClassSectionIds())
+            ->whereHas('studentSessions', fn ($q) => $q->where('session_year_id', $sessionYearId));
+
+        if ((clone $students)->where('user_id', $userId)->exists()) {
+            return true;
+        }
+
+        $parentIds = Parents::where('user_id', $userId)->pluck('id');
+
+        return $parentIds->isNotEmpty() && (clone $students)
+            ->where(fn ($q) => $q->whereIn('father_id', $parentIds)
+                ->orWhereIn('mother_id', $parentIds)
+                ->orWhereIn('guardian_id', $parentIds))
+            ->exists();
+    }
+
+    /** The timetable entries getTeacherTimetable shows the teacher (current session year and semester). */
+    private function teacherTimetableQuery(Teacher $teacher)
+    {
+        // Fetch current session year ID once
+        $sessionYearId = getSettings('session_year')['session_year'];
+
+        // Get current semester for this session
+        $currentSemester = Semester::where('session_year_id', $sessionYearId)
+            ->get()
+            ->first(fn ($s) => $s->current);
+
+        // Get subject-teacher IDs for:
+        // - current semester OR semester is null
+        $subjectTeacherIds = SubjectTeacher::where('teacher_id', $teacher->id)
+            ->where(function ($query) use ($currentSemester) {
+                $query->where('semester_id', $currentSemester?->id)
+                    ->orWhereNull('semester_id');
+            })
+            ->pluck('id');
+
+        return Timetable::whereIn('subject_teacher_id', $subjectTeacherIds)
+            ->where('session_year_id', $sessionYearId)
+            ->where(function ($query) use ($currentSemester) {
+                $query->where('semester_id', $currentSemester?->id)
+                    ->orWhereNull('semester_id');
+            });
+    }
+
+    /** Obtained marks must be a number from 0 up to the exam's total marks. */
+    private function obtainedMarksOutOfRange($obtainedMarks, $totalMarks): bool
+    {
+        return ! is_numeric($obtainedMarks) || $obtainedMarks < 0 || $obtainedMarks > $totalMarks;
     }
 
     public function classes(Request $request)
@@ -392,6 +594,10 @@ class TeacherApiController extends Controller
                 ResponseService::errorResponse('Semester id required.', null, 400);
             }
 
+            if (! $this->teachesSubject($request->class_section_id, $request->subject_id, $semesterId)) {
+                ResponseService::errorResponse('You are not assigned to this class section and subject combination.', null, 403);
+            }
+
             $due_date = Carbon::createFromFormat('d-m-Y H:i', $request->due_date);
 
             $assignment = new Assignment;
@@ -512,7 +718,12 @@ class TeacherApiController extends Controller
             $session_year = getSettings('session_year');
             $session_year_id = $session_year['session_year'];
 
-            $assignment = Assignment::find($request->assignment_id);
+            $assignment = Assignment::assignmentTeachers()->findOrFail($request->assignment_id);
+
+            if (! $this->teachesSubject($request->class_section_id, $request->subject_id)) {
+                ResponseService::errorResponse('You are not assigned to this class section and subject combination.', null, 403);
+            }
+
             $assignment->class_section_id = $request->class_section_id;
             $assignment->subject_id = $request->subject_id;
             $assignment->name = $request->name;
@@ -578,7 +789,7 @@ class TeacherApiController extends Controller
         ResponseService::noPermissionThenSendJson('assignment-delete');
 
         try {
-            $assignment = Assignment::find($request->assignment_id);
+            $assignment = Assignment::assignmentTeachers()->findOrFail($request->assignment_id);
             $assignment->delete();
             ResponseService::successResponse('data_delete_successfully');
         } catch (\Throwable $e) {
@@ -626,7 +837,14 @@ class TeacherApiController extends Controller
         }
 
         try {
-            $assignment_submission = AssignmentSubmission::findOrFail($request->assignment_submission_id);
+            $assignment_submission = AssignmentSubmission::assignmentSubmissionTeachers()->findOrFail($request->assignment_submission_id);
+
+            // The submission scope matches class sections and subjects separately; also
+            // require the assignment itself to be one of this teacher's.
+            if (! Assignment::assignmentTeachers()->whereKey($assignment_submission->assignment_id)->exists()) {
+                ResponseService::errorResponse('no_permission_message', null, 403);
+            }
+
             $assignment_submission->feedback = $request->feedback;
             if ($request->status == 1) {
                 $assignment_submission->points = $request->points;
@@ -768,6 +986,10 @@ class TeacherApiController extends Controller
             $isClassHaveSemester = ClassSessionConfig::classHasSemester($classId, $session_year_id);
             $semesterId = $isClassHaveSemester ? $request->semester_id : null;
 
+            if (! $this->teachesSubject($request->class_section_id, $request->subject_id, $semesterId)) {
+                ResponseService::errorResponse('You are not assigned to this class section and subject combination.', null, 403);
+            }
+
             $lesson = new Lesson;
             $lesson->name = $request->name;
             $lesson->description = $request->description;
@@ -869,7 +1091,14 @@ class TeacherApiController extends Controller
             ResponseService::validationError($validator2->errors()->first());
         }
         try {
-            $lesson = Lesson::find($request->lesson_id);
+            $lesson = Lesson::lessonTeachers()->findOrFail($request->lesson_id);
+
+            // The lesson scope matches class sections and subjects separately, so check the
+            // lesson's own pair, and the pair it is being moved to.
+            if (! $this->ownsLesson($lesson) || ! $this->teachesSubject($request->class_section_id, $request->subject_id)) {
+                ResponseService::errorResponse('You are not assigned to this class section and subject combination.', null, 403);
+            }
+
             $lesson->name = $request->name;
             $lesson->description = $request->description;
             $lesson->class_section_id = $request->class_section_id;
@@ -880,7 +1109,10 @@ class TeacherApiController extends Controller
             if ($request->edit_file) {
                 foreach ($request->edit_file as $file) {
                     if ($file['type']) {
-                        $lesson_file = File::find($file['id']);
+                        // Only files attached to this lesson can be edited through it.
+                        $lesson_file = File::where('modal_type', Lesson::class)
+                            ->where('modal_id', $lesson->id)
+                            ->find($file['id']);
                         if ($lesson_file) {
                             $lesson_file->file_name = $file['name'];
 
@@ -981,6 +1213,9 @@ class TeacherApiController extends Controller
         }
         try {
             $lesson = Lesson::lessonteachers()->where('id', $request->lesson_id)->firstOrFail();
+            if (! $this->ownsLesson($lesson)) {
+                ResponseService::errorResponse('no_permission_message', null, 403);
+            }
             $lesson->delete();
             ResponseService::successResponse('data_delete_successfully');
         } catch (Throwable $e) {
@@ -1045,6 +1280,10 @@ class TeacherApiController extends Controller
         }
 
         try {
+            if (! $this->ownsLesson(Lesson::lessonTeachers()->find($request->lesson_id))) {
+                ResponseService::errorResponse('no_permission_message', null, 403);
+            }
+
             $topic = new LessonTopic;
             $topic->name = $request->name;
             $topic->description = $request->description;
@@ -1120,7 +1359,11 @@ class TeacherApiController extends Controller
             ResponseService::validationError($validator2->errors()->first());
         }
         try {
-            $topic = LessonTopic::find($request->topic_id);
+            $topic = LessonTopic::lessonTopicTeachers()->findOrFail($request->topic_id);
+
+            if (! $this->ownsLesson($topic->lesson)) {
+                ResponseService::errorResponse('no_permission_message', null, 403);
+            }
 
             $topic->name = $request->name;
             $topic->description = $request->description;
@@ -1130,7 +1373,13 @@ class TeacherApiController extends Controller
             if ($request->edit_file) {
                 foreach ($request->edit_file as $key => $file) {
                     if ($file['type']) {
-                        $topic_file = File::find($file['id']);
+                        // Only files attached to this topic can be edited through it.
+                        $topic_file = File::where('modal_type', LessonTopic::class)
+                            ->where('modal_id', $topic->id)
+                            ->find($file['id']);
+                        if (! $topic_file) {
+                            continue;
+                        }
                         $topic_file->file_name = $file['name'];
 
                         if ($file['type'] == '1') {
@@ -1223,6 +1472,9 @@ class TeacherApiController extends Controller
 
         try {
             $topic = LessonTopic::LessonTopicTeachers()->findOrFail($request->topic_id);
+            if (! $this->ownsLesson($topic->lesson)) {
+                ResponseService::errorResponse('no_permission_message', null, 403);
+            }
             $topic->delete();
             ResponseService::successResponse('data_delete_successfully');
         } catch (\Exception $e) {
@@ -1241,6 +1493,9 @@ class TeacherApiController extends Controller
         }
         try {
             $file = File::find($request->file_id);
+            if (! $file || ! $this->canManageFile($file)) {
+                ResponseService::errorResponse('no_permission_message', null, 403);
+            }
             $file->file_name = $request->name;
 
             if ($file->type == '1') {
@@ -1335,7 +1590,10 @@ class TeacherApiController extends Controller
             ResponseService::validationError($validator->errors()->first());
         }
         try {
-            $file = File::findOrFail($request->file_id);
+            $file = File::find($request->file_id);
+            if (! $file || ! $this->canManageFile($file)) {
+                ResponseService::errorResponse('no_permission_message', null, 403);
+            }
             $file->delete();
             ResponseService::successResponse('data_delete_successfully');
         } catch (\Exception $e) {
@@ -1486,8 +1744,11 @@ class TeacherApiController extends Controller
             ResponseService::validationError($validator->errors()->first());
         }
         try {
-            $teacher_id = Auth::user()->teacher->id;
+            $teacher_id = $this->currentTeacher()->id;
             $announcement = Announcement::findOrFail($request->announcement_id);
+            if (! $this->ownsAnnouncement($announcement)) {
+                ResponseService::errorResponse('no_permission_message', null, 403);
+            }
             $announcement->title = $request->title;
             $announcement->description = $request->description;
 
@@ -1530,6 +1791,9 @@ class TeacherApiController extends Controller
         }
         try {
             $announcement = Announcement::findorFail($request->announcement_id);
+            if (! $this->ownsAnnouncement($announcement)) {
+                ResponseService::errorResponse('no_permission_message', null, 403);
+            }
             $announcement->delete();
             ResponseService::successResponse('data_delete_successfully');
         } catch (Throwable $e) {
@@ -1667,6 +1931,10 @@ class TeacherApiController extends Controller
         $date = date('Y-m-d', strtotime($request->date));
 
         try {
+            if (! $this->isClassTeacherOf($class_section_id)) {
+                ResponseService::errorResponse('You are not assigned to this class section', null, 403);
+            }
+
             $studentsInClass = Students::where('class_section_id', $class_section_id)->get(['id', 'user_id']);
 
             // Approved leaves for the day, translated to the 1=Full/2=First Half/3=Second
@@ -1754,6 +2022,16 @@ class TeacherApiController extends Controller
             $session_year = getSettings('session_year');
             $session_year_id = $session_year['session_year'];
             $class_section_id = $request->class_section_id;
+
+            if (! $this->isClassTeacherOf($class_section_id, $session_year_id)) {
+                ResponseService::errorResponse('You are not assigned to this class section', null, 403);
+            }
+
+            // Attendance can only be recorded for students of this class section.
+            if (! $this->allStudentsInClassSection(collect($request->attendance)->pluck('student_id'), $class_section_id)) {
+                ResponseService::errorResponse('no_permission_message', null, 403);
+            }
+
             $date = date('Y-m-d', strtotime($request->date));
             $getid = Attendance::where(['date' => $date, 'class_section_id' => $class_section_id])->get();
 
@@ -1926,6 +2204,10 @@ class TeacherApiController extends Controller
             ResponseService::validationError($validator->errors()->first());
         }
         try {
+            if (! $this->teachesStudent($request->student_id)) {
+                ResponseService::errorResponse('no_permission_message', null, 403);
+            }
+
             $session_year = getSettings('session_year');
             $session_year_id = $session_year['session_year'];
 
@@ -1986,32 +2268,10 @@ class TeacherApiController extends Controller
     {
         try {
             // Get authenticated teacher
-            $teacher = $request->user()->teacher;
-
-            // Fetch current session year ID once
-            $sessionYearId = getSettings('session_year')['session_year'];
-
-            // Get current semester for this session
-            $currentSemester = Semester::where('session_year_id', $sessionYearId)
-                ->get()
-                ->first(fn ($s) => $s->current);
-
-            // Get subject-teacher IDs for:
-            // - current semester OR semester is null
-            $subjectTeacherIds = SubjectTeacher::where('teacher_id', $teacher->id)
-                ->where(function ($query) use ($currentSemester) {
-                    $query->where('semester_id', $currentSemester?->id)
-                        ->orWhereNull('semester_id');
-                })
-                ->pluck('id');
+            $teacher = $this->currentTeacher();
 
             // Fetch timetable with required relations
-            $timetable = Timetable::whereIn('subject_teacher_id', $subjectTeacherIds)
-                ->where('session_year_id', $sessionYearId)
-                ->where(function ($query) use ($currentSemester) {
-                    $query->where('semester_id', $currentSemester?->id)
-                        ->orWhereNull('semester_id');
-                })
+            $timetable = $this->teacherTimetableQuery($teacher)
                 ->with(['class_section', 'subject'])
                 ->get();
 
@@ -2037,6 +2297,8 @@ class TeacherApiController extends Controller
             'class_section_id' => 'required|numeric',
             'exam_id' => 'required|numeric',
             'subject_id' => 'required|numeric',
+            'marks_data' => 'required|array',
+            'marks_data.*.student_id' => 'required|numeric',
         ]);
         if ($validator->fails()) {
             ResponseService::validationError($validator->errors()->first());
@@ -2048,7 +2310,16 @@ class TeacherApiController extends Controller
                 ResponseService::errorResponse('exam_published', null, 400);
             }
 
-            $teacher_id = Auth::user()->teacher->id;
+            // Marks are entered by the class teacher (as the app's result screens do) or by
+            // the teacher of the subject in this class section, for its own students only.
+            if (! $this->isClassTeacherOf($request->class_section_id)
+                && ! $this->teachesSubject($request->class_section_id, $request->subject_id)) {
+                ResponseService::errorResponse('You are not assigned to this class section and subject combination.', null, 403);
+            }
+            if (! $this->allStudentsInClassSection(collect($request->marks_data)->pluck('student_id'), $request->class_section_id)) {
+                ResponseService::errorResponse('no_permission_message', null, 403);
+            }
+
             $class_id = ClassSection::where('id', $request->class_section_id)->pluck('class_id');
 
             // check exam status
@@ -2069,7 +2340,15 @@ class TeacherApiController extends Controller
                 ResponseService::errorResponse('exam_not_completed_yet', null, 400);
             } else {
                 $grades = Grade::orderBy('ending_range', 'desc')->get();
-                $exam_timetable = ExamTimetable::where('exam_id', $request->exam_id)->where('subject_id', $request->subject_id)->firstOrFail();
+                $exam_timetable = ExamTimetable::where('exam_id', $request->exam_id)
+                    ->where('class_id', ClassSection::where('id', $request->class_section_id)->value('class_id'))
+                    ->where('subject_id', $request->subject_id)
+                    ->firstOrFail();
+                foreach ($request->marks_data as $marks) {
+                    if ($this->obtainedMarksOutOfRange($marks['obtained_marks'] ?? null, $exam_timetable->total_marks)) {
+                        ResponseService::errorResponse('Obtained marks must be between 0 and the total marks.', null, 400);
+                    }
+                }
                 foreach ($request->marks_data as $marks) {
                     $passing_marks = $exam_timetable->passing_marks;
                     if ($marks['obtained_marks'] >= $passing_marks) {
@@ -2120,6 +2399,8 @@ class TeacherApiController extends Controller
             'class_section_id' => 'required',
             'exam_id' => 'required|numeric',
             'student_id' => 'required|numeric',
+            'marks_data' => 'required|array',
+            'marks_data.*.subject_id' => 'required|numeric',
         ]);
         if ($validator->fails()) {
             ResponseService::validationError($validator->errors()->first());
@@ -2130,7 +2411,18 @@ class TeacherApiController extends Controller
                 ResponseService::errorResponse('exam_published', null, 400);
             }
 
-            $teacher_id = Auth::user()->teacher->id;
+            // The student must be in this class section, and every subject written must be one
+            // the teacher may mark here: all of them as class teacher, otherwise their own.
+            if (! $this->allStudentsInClassSection([$request->student_id], $request->class_section_id)) {
+                ResponseService::errorResponse('no_permission_message', null, 403);
+            }
+            $isClassTeacher = $this->isClassTeacherOf($request->class_section_id);
+            foreach ($request->marks_data as $marks) {
+                if (! $isClassTeacher && ! $this->teachesSubject($request->class_section_id, $marks['subject_id'] ?? null)) {
+                    ResponseService::errorResponse('You are not assigned to this class section and subject combination.', null, 403);
+                }
+            }
+
             // $class_section_id = Students::where('id',$request->student_id)->pluck('class_section_id');
             $class_id = ClassSection::where('id', $request->class_section_id)->pluck('class_id');
 
@@ -2154,8 +2446,19 @@ class TeacherApiController extends Controller
             } else {
                 $grades = Grade::orderBy('ending_range', 'desc')->get();
 
+                // This class's timetable entry for each subject, with the marks checked
+                // against it before anything is written.
+                $classId = ClassSection::where('id', $request->class_section_id)->value('class_id');
+                $exam_timetables = [];
                 foreach ($request->marks_data as $marks) {
-                    $exam_timetable = ExamTimetable::where(['exam_id' => $request->exam_id, 'subject_id' => $marks['subject_id']])->firstOrFail();
+                    $exam_timetables[$marks['subject_id']] = ExamTimetable::where(['exam_id' => $request->exam_id, 'class_id' => $classId, 'subject_id' => $marks['subject_id']])->firstOrFail();
+                    if ($this->obtainedMarksOutOfRange($marks['obtained_marks'] ?? null, $exam_timetables[$marks['subject_id']]->total_marks)) {
+                        ResponseService::errorResponse('Obtained marks must be between 0 and the total marks.', null, 400);
+                    }
+                }
+
+                foreach ($request->marks_data as $marks) {
+                    $exam_timetable = $exam_timetables[$marks['subject_id']];
                     $passing_marks = $exam_timetable->passing_marks;
                     if ($marks['obtained_marks'] >= $passing_marks) {
                         $status = 1;
@@ -2598,6 +2901,11 @@ class TeacherApiController extends Controller
             $sessionYearId = getSettings('session_year')['session_year'];
 
             $classId = $request->class_id;
+
+            // Only for a class the teacher teaches in (as class teacher or subject teacher).
+            if (! ClassSection::where('class_id', $classId)->whereIn('id', $this->teacherClassSectionIds())->exists()) {
+                ResponseService::errorResponse('no_permission_message', null, 403);
+            }
 
             $classSection = ClassSection::with('class', 'section', 'class.medium', 'class.streams')
                 ->where('class_id', $classId)
@@ -3135,6 +3443,13 @@ class TeacherApiController extends Controller
             $sender_id = $request->user()->id;
             $receiver_id = $request->receiver_id;
 
+            // Refuse a user without a teacher record before anything is saved (the
+            // notification below needs the teacher), and anyone they don't teach.
+            $this->currentTeacher();
+            if (! $this->canChatWith($receiver_id)) {
+                ResponseService::errorResponse('no_permission_message', null, 403);
+            }
+
             $message = new ChatMessage;
             $message->modal_id = $receiver_id;
             $message->modal_type = 'App/Models/User';
@@ -3149,8 +3464,15 @@ class TeacherApiController extends Controller
             if ($request->hasFile('file')) {
                 foreach ($request->file('file') as $uploadedFile) {
 
-                    $originalName = $uploadedFile->getClientOriginalName();
-                    $filePath = $uploadedFile->storeAs('chatfile', $originalName, 'public');
+                    // The app shows the last part of the stored path as the file's name, so keep
+                    // the (cleaned) original name, but inside a directory of its own so one
+                    // upload can never overwrite another.
+                    $originalName = trim((string) preg_replace('/[^\w.\- ]+/u', '_', $uploadedFile->getClientOriginalName()), '. ');
+                    $filePath = $uploadedFile->storeAs(
+                        'chatfile/'.Str::random(40),
+                        $originalName !== '' ? $originalName : $uploadedFile->hashName(),
+                        'public'
+                    );
 
                     $file = new ChatFile;
                     $file->file_type = 1;
@@ -3309,6 +3631,10 @@ class TeacherApiController extends Controller
     public function getStudentResultPdf(Request $request)
     {
         try {
+            if (! $this->teachesStudent($request->student_id)) {
+                ResponseService::errorResponse('no_permission_message', null, 403);
+            }
+
             $father_name = null;
             $mother_name = null;
             $guardian_name = null;
@@ -3661,6 +3987,11 @@ class TeacherApiController extends Controller
                 return ResponseService::errorResponse('Class section not found');
             }
 
+            // Only the class teacher (for that session year) sees the class's leave requests.
+            if (! $this->isClassTeacherOf($request->class_section_id, $request->session_year_id)) {
+                return ResponseService::errorResponse('You are not assigned to this class section', null, 403);
+            }
+
             $class_id = $classSection->class_id;
 
             $classHasSemester = ClassSessionConfig::classHasSemester(
@@ -3818,6 +4149,18 @@ class TeacherApiController extends Controller
             $leave = Leave::findOrFail($request->leave_id);
 
             $student = Students::with('user')->where('user_id', $leave->user_id)->first();
+
+            // Only a student's leave, decided by the class teacher of the student's class
+            // section in the leave's session year.
+            $leaveSessionYearId = $leave->session_year_id ?? $session_year_id;
+            $classTeacherSectionIds = ClassTeacher::where('class_teacher_id', $this->currentTeacher()->id)
+                ->where('session_year_id', $leaveSessionYearId)
+                ->pluck('class_section_id');
+            if (! $student
+                || ! Auth::user()->can('student-leave-approve')
+                || $this->studentClassSectionIds($student, $leaveSessionYearId)->intersect($classTeacherSectionIds)->isEmpty()) {
+                return ResponseService::errorResponse('no_permission_message', null, 403);
+            }
 
             $fatherId = $student->father_id;
             $motherId = $student->mother_id;
@@ -4182,7 +4525,13 @@ class TeacherApiController extends Controller
         }
         try {
 
-            $timetable = Timetable::where('id', $request->timetable_id)->first();
+            // Only an entry of the teacher's own timetable (as getTeacherTimetable lists it).
+            $timetable = $this->teacherTimetableQuery($this->currentTeacher())
+                ->where('id', $request->timetable_id)
+                ->first();
+            if (! $timetable) {
+                ResponseService::errorResponse('no_permission_message', null, 403);
+            }
             $timetable->live_class_url = $request->live_class_link;
             $timetable->link_name = $request->link_name;
             $timetable->save();
