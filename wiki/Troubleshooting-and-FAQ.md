@@ -135,7 +135,7 @@ See [Building and Releasing Apps](Building-and-Releasing-Apps#versioning).
 
 ## Admin panel
 
-**The "download sample file" link on Students → bulk upload returns 404.**
+**The sample file link on the student bulk upload page returns 404.**
 The view links to `storage/dummy_file.xlsx`, but the repo doesn't ship that file. Online-exam question import has the same problem with `online_exam_questions_sample.csv`. Make a sheet with the columns the importer expects (`app/Imports/StudentsImport.php`, `app/Imports/OnlineExamQuestionsImport.php`) and put it on the public disk.
 
 **A custom notification sent to specific users never arrives as a push.**
