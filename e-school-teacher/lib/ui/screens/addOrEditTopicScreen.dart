@@ -14,7 +14,7 @@ import 'package:eschool_teacher/data/repositories/teacherRepository.dart';
 import 'package:eschool_teacher/data/repositories/topicRepository.dart';
 import 'package:eschool_teacher/ui/widgets/addStudyMaterialBottomSheet.dart';
 import 'package:eschool_teacher/ui/widgets/addedStudyMaterialFileContainer.dart';
-import 'package:eschool_teacher/ui/widgets/bottomSheetTextFiledContainer.dart';
+import 'package:eschool_teacher/ui/widgets/bottomSheetTextFieldContainer.dart';
 import 'package:eschool_teacher/ui/widgets/bottomsheetAddFilesDottedBorderContainer.dart';
 import 'package:eschool_teacher/ui/widgets/classSubjectsDropDownMenu.dart';
 import 'package:eschool_teacher/ui/widgets/customAppbar.dart';

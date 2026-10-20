@@ -2,7 +2,7 @@ import 'package:dotted_border/dotted_border.dart';
 import 'package:eschool_teacher/cubits/updateStudyMaterialCubit.dart';
 import 'package:eschool_teacher/data/models/pickedStudyMaterial.dart';
 import 'package:eschool_teacher/data/models/studyMaterial.dart';
-import 'package:eschool_teacher/ui/widgets/bottomSheetTextFiledContainer.dart';
+import 'package:eschool_teacher/ui/widgets/bottomSheetTextFieldContainer.dart';
 import 'package:eschool_teacher/ui/widgets/bottomSheetTopBarMenu.dart';
 import 'package:eschool_teacher/ui/widgets/bottomsheetAddFilesDottedBorderContainer.dart';
 import 'package:eschool_teacher/ui/widgets/customCircularProgressIndicator.dart';

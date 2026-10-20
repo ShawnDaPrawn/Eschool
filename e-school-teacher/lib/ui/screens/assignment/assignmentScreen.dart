@@ -1,5 +1,5 @@
-import 'package:eschool_teacher/cubits/editreviewassignmetcubit.dart';
-import 'package:eschool_teacher/cubits/reviewassignmentcubit.dart';
+import 'package:eschool_teacher/cubits/editReviewAssignmentCubit.dart';
+import 'package:eschool_teacher/cubits/reviewAssignmentCubit.dart';
 import 'package:eschool_teacher/data/models/assignment.dart';
 import 'package:eschool_teacher/data/models/reviewAssignmentssubmition.dart';
 import 'package:eschool_teacher/data/repositories/reviewAssignmentRepository.dart';
@@ -75,9 +75,9 @@ class _AssignmentScreenState extends State<AssignmentScreen> {
     ReviewAssignmentsSubmission reviewAssignment,
   ) {
     UiUtils.showBottomSheet(
-      child: BlocProvider<EditReviewAssignmetCubit>(
+      child: BlocProvider<EditReviewAssignmentCubit>(
         create: (context) =>
-            EditReviewAssignmetCubit(ReviewAssignmentRepository()),
+            EditReviewAssignmentCubit(ReviewAssignmentRepository()),
         child: RejectAssignmentBottomsheetContainer(
           assignment: widget.assignment,
           reviewAssignment: reviewAssignment,
@@ -87,7 +87,7 @@ class _AssignmentScreenState extends State<AssignmentScreen> {
     ).then((value) {
       if (value != null) {
         if (context.mounted) {
-          context.read<ReviewAssignmentCubit>().updateReviewAssignmet(
+          context.read<ReviewAssignmentCubit>().updateReviewAssignment(
             updatedReviewAssignmentSubmition: value,
           );
         }
@@ -99,9 +99,9 @@ class _AssignmentScreenState extends State<AssignmentScreen> {
     ReviewAssignmentsSubmission reviewAssignmet,
   ) {
     UiUtils.showBottomSheet(
-      child: BlocProvider<EditReviewAssignmetCubit>(
+      child: BlocProvider<EditReviewAssignmentCubit>(
         create: (context) =>
-            EditReviewAssignmetCubit(ReviewAssignmentRepository()),
+            EditReviewAssignmentCubit(ReviewAssignmentRepository()),
         child: AcceptAssignmentBottomsheetContainer(
           assignment: widget.assignment,
           reviewAssignment: reviewAssignmet,
@@ -111,7 +111,7 @@ class _AssignmentScreenState extends State<AssignmentScreen> {
     ).then((value) {
       if (value != null) {
         if (context.mounted) {
-          context.read<ReviewAssignmentCubit>().updateReviewAssignmet(
+          context.read<ReviewAssignmentCubit>().updateReviewAssignment(
             updatedReviewAssignmentSubmition: value,
           );
         }
