@@ -7,6 +7,8 @@
 <link rel="stylesheet" href="{{ asset('/assets/select2/select2.min.css') }}" async>
 <link rel="stylesheet" href="{{ asset('/assets/jquery-toast-plugin/jquery.toast.min.css') }}">
 <link rel="stylesheet" href="{{ asset('/assets/color-picker/color.min.css') }}" async>
+<link rel="stylesheet" href="{{ asset('/assets/jodit/jodit.min.css') }}">
+<link rel="stylesheet" href="{{ asset('/assets/katex/katex.min.css') }}">
 @if ($lang)
     @if ($lang->is_rtl)
         <link rel="stylesheet" href="{{ asset('/assets/css/rtl.css') }}">

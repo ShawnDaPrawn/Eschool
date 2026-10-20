@@ -47,8 +47,9 @@
 <script src="{{ asset('/assets/js/custom/custom-bootstrap-table.js') }}?v={{ filemtime(public_path('assets/js/custom/custom-bootstrap-table.js')) }}"></script>
 <script src="{{ asset('/assets/js/custom/bootstrap-table-locale.js') }}"></script>
 
-<script src="{{ asset('/assets/ckeditor-4/ckeditor.js') }}"></script>
-<script src="{{ asset('/assets/ckeditor-4/adapters/jquery.js') }}" async></script>
+<script src="{{ asset('/assets/jodit/jodit.min.js') }}"></script>
+<script src="{{ asset('/assets/katex/katex.min.js') }}"></script>
+<script src="{{ asset('/assets/katex/contrib/auto-render.min.js') }}"></script>
 
 @if ($errors->any())
     @foreach ($errors->all() as $error)

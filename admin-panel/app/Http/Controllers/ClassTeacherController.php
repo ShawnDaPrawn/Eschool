@@ -121,7 +121,7 @@ class ClassTeacherController extends Controller
             $order = $_GET['order'];
         }
 
-        $session_year_id = $_GET['session_year_id'];
+        $session_year_id = $_GET['session_year_id'] ?? getSettings('session_year')['session_year'];
 
         $sql = ClassSection::with([
             'class.medium',
@@ -149,7 +149,7 @@ class ClassTeacherController extends Controller
                     });
             });
         }
-        if ($_GET['class_id']) {
+        if (! empty($_GET['class_id'])) {
             $sql = $sql->where('class_id', $_GET['class_id']);
         }
 

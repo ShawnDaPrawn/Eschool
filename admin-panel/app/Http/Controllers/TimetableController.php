@@ -493,7 +493,8 @@ class TimetableController extends Controller
             return $this->noPermissionJson();
         }
         $teacher = Auth::user()->teacher;
-        $subject_teacher_id = SubjectTeacher::where('teacher_id', $teacher->id)->pluck('id')->toArray();
+        // Users who aren't teachers (e.g. Super Admin) have no timetable of their own.
+        $subject_teacher_id = $teacher ? SubjectTeacher::where('teacher_id', $teacher->id)->pluck('id')->toArray() : [];
 
         if ($request->class_section_id) {
 

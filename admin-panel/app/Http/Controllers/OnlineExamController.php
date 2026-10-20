@@ -794,7 +794,7 @@ class OnlineExamController extends Controller
                         'exam_id' => $request->online_exam_id,
                         'question_type' => $request->question_type,
                         'question_id' => $question_store->id,
-                        'question' => "<textarea id='qc".$question_store->id."'>".safe_htmlspecialchars_decode($request->equestion)."</textarea><script>setTimeout(() => {equation_editor = CKEDITOR.inline('qc".$question_store->id."', { skin:'moono',extraPlugins: 'mathjax', mathJaxLib: 'https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.4/MathJax.js?config=TeX-AMS_HTML', readOnly:true, }); },1000);</script>",
+                        'question' => "<div class='equation-editor-inline'>".safe_htmlspecialchars_decode($request->equestion).'</div>',
                     ],
                 ];
             } else {

@@ -501,7 +501,7 @@ class TeacherController extends Controller
             $tempRow['mobile'] = $row->user?->mobile;
             $tempRow['image'] = $row->user?->image;
             $tempRow['qualification'] = $row->qualification;
-            $tempRow['dynamic_data_field'] = json_decode($row->dynamic_fields);
+            $tempRow['dynamic_data_field'] = json_decode($row->dynamic_fields ?? '[]');
 
             if ($row->user?->can(['student-create', 'student-list', 'student-edit', 'student-delete', 'parents-list', 'parents-edit'])) {
                 $tempRow['has_student_permissions'] = 1;
@@ -602,7 +602,7 @@ class TeacherController extends Controller
             $data = [];
             $status = 0;
             $i = 0;
-            $dynamic_data = json_decode($teacher->dynamic_fields, true);
+            $dynamic_data = json_decode($teacher->dynamic_fields ?? '[]', true);
             foreach ($formFields as $form_field) {
                 // INPUT TYPE CHECKBOX
                 if ($form_field->type == 'checkbox') {

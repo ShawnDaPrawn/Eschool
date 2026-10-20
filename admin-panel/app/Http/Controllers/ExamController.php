@@ -151,7 +151,7 @@ class ExamController extends Controller
         $limit = 10;
         $sort = 'id';
         $order = 'DESC';
-        $session_year_id = $_GET['session_year_id'];
+        $session_year_id = $_GET['session_year_id'] ?? getSettings('session_year')['session_year'];
 
         if (isset($_GET['offset'])) {
             $offset = $_GET['offset'];
@@ -784,7 +784,7 @@ class ExamController extends Controller
             if ($class_subject->type == 'Elective') {
                 $student_subject = StudentSubject::where('student_id', $row->id)->where('subject_id', $request->subject_id)->where('class_section_id', $row->class_section_id)->where('session_year_id', $session_year_id)->first();
                 if ($student_subject) {
-                    $operate = '<a href='.route('exams.edit', $row->id).' class="btn btn-xs btn-secondary btn-icon edit-data" data-id='.$row->id.' title="Edit" data-toggle="modal" data-target="#editModal"><i class="fa fa-edit"></i></a>&nbsp;&nbsp;';
+                    $operate = '<a href="#" class="btn btn-xs btn-secondary btn-icon edit-data" data-id='.$row->id.' title="Edit" data-toggle="modal" data-target="#editModal"><i class="fa fa-edit"></i></a>&nbsp;&nbsp;';
                     $operate .= '<a href='.route('exams.destroy', $row->id).' class="btn btn-xs btn-secondary btn-icon delete-form" data-id='.$row->id.'><i class="fa fa-trash"></i></a>';
                     $tempRow['id'] = $row->id;
                     $tempRow['no'] = $no++;
@@ -803,7 +803,7 @@ class ExamController extends Controller
                     $rows[] = $tempRow;
                 }
             } else {
-                $operate = '<a href='.route('exams.edit', $row->id).' class="btn btn-xs btn-secondary btn-icon edit-data" data-id='.$row->id.' title="Edit" data-toggle="modal" data-target="#editModal"><i class="fa fa-edit"></i></a>&nbsp;&nbsp;';
+                $operate = '<a href="#" class="btn btn-xs btn-secondary btn-icon edit-data" data-id='.$row->id.' title="Edit" data-toggle="modal" data-target="#editModal"><i class="fa fa-edit"></i></a>&nbsp;&nbsp;';
                 $operate .= '<a href='.route('exams.destroy', $row->id).' class="btn btn-xs btn-secondary btn-icon delete-form" data-id='.$row->id.'><i class="fa fa-trash"></i></a>';
                 $tempRow['id'] = $row->id;
                 $tempRow['no'] = $no++;

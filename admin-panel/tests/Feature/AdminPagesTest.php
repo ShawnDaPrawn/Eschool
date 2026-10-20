@@ -27,60 +27,10 @@ class AdminPagesTest extends TestCase
     /** Routes with side effects, or that send mail, are not opened. */
     private const SKIP = [
         'clear', 'storage-link', 'migrate', 'seeder_install',
-        'delete-chat-message/cron-job', 'sendtest', 'logout',
+        'delete-chat-message/cron-job', 'logout',
     ];
 
     private const SKIP_PREFIXES = ['api/', 'install', '_debugbar', 'sanctum/', 'storage/'];
-
-    /**
-     * Pages that already returned 500 on a fresh install of the original
-     * 3.5.0 code. Remove entries as they are fixed; the test fails if a listed
-     * page starts working, so the list stays accurate.
-     */
-    private const KNOWN_BROKEN = [
-        'announcement-list',
-        'announcement/create',
-        'assignment/create',
-        'attendance/create',
-        'category/create',
-        'class-list',
-        'class-teacher-list',
-        'class/create',
-        'content-list',
-        'exams/create',
-        'fees-type/create',
-        'fees/classes/list',
-        'fees/fees-receipt',
-        'fees/transaction-logs/list',
-        'get-timetable-by-subject-teacher-class',
-        'holiday-list',
-        'holiday/create',
-        'language/create',
-        'leave/create',
-        'lesson-topic/create',
-        'lesson/create',
-        'medium/create',
-        'notifications/create',
-        'online-exam-question/create',
-        'online-exam/create',
-        'parents/create',
-        'privacy-policy',
-        'promote-student/create',
-        'section/create',
-        'semester/create',
-        'session-years/create',
-        'show-grades',
-        'sliders/create',
-        'subject-teachers-list',
-        'subject-teachers/create',
-        'subject/create',
-        'teachers/create',
-        'terms-conditions',
-        'timetable-list',
-        'timetable/create',
-        'users',
-        'video-gallery',
-    ];
 
     private Process $server;
 
@@ -112,30 +62,23 @@ class AdminPagesTest extends TestCase
         parent::tearDown();
     }
 
-    public function test_no_admin_page_is_forbidden_or_newly_broken(): void
+    public function test_no_admin_page_is_forbidden_or_broken(): void
     {
         $client = $this->loggedInClient();
 
         $forbidden = [];
         $broken = [];
-        $fixed = [];
         foreach ($this->pageUris() as $uri) {
             $status = $client->get('/'.$uri)->status();
             if ($status === 403) {
                 $forbidden[] = $uri;
-            }
-            $isBroken = $status >= 500;
-            $isKnown = in_array($uri, self::KNOWN_BROKEN, true);
-            if ($isBroken && ! $isKnown) {
+            } elseif ($status >= 500) {
                 $broken[] = "$uri ($status)";
-            } elseif (! $isBroken && $isKnown) {
-                $fixed[] = $uri;
             }
         }
 
         $this->assertSame([], $forbidden, 'Pages returned 403 Forbidden');
         $this->assertSame([], $broken, 'Pages returned a server error');
-        $this->assertSame([], $fixed, 'These pages work now; remove them from KNOWN_BROKEN');
     }
 
     private function loggedInClient(): PendingRequest

@@ -762,12 +762,6 @@ $current_session_id_sidebar = getSettings('session_year')['session_year'];
                                 </a>
                             </li>
                         @endcan
-                        {{-- @can('fees-paid')
-                <li class="nav-item">
-                    <a class="nav-link" href="{{ route('fees.receipt') }}"> {{__('fees')}} {{ __('receipt') }} {{__('logs')}}
-                </a>
-    </li>
-    @endcan --}}
                     </ul>
                 </div>
             </li>

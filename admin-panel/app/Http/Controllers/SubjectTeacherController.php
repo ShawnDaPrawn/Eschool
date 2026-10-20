@@ -165,7 +165,7 @@ class SubjectTeacherController extends Controller
         $limit = 10;
         $sort = 'id';
         $order = 'DESC';
-        $session_year_id = $_GET['session_year_id'];
+        $session_year_id = $_GET['session_year_id'] ?? getSettings('session_year')['session_year'];
 
         if (isset($_GET['offset']))
             $offset = $_GET['offset'];
@@ -201,13 +201,13 @@ class SubjectTeacherController extends Controller
             });
         }
 
-        if ($_GET['class_id']) {
+        if (! empty($_GET['class_id'])) {
             $sql = $sql->where('class_section_id', $_GET['class_id']);
         }
-        if ($_GET['teacher_id']) {
+        if (! empty($_GET['teacher_id'])) {
             $sql = $sql->where('teacher_id', $_GET['teacher_id']);
         }
-        if ($_GET['subject_id']) {
+        if (! empty($_GET['subject_id'])) {
             $sql = $sql->where('subject_id', $_GET['subject_id']);
         }
         if (!empty($_GET['semester_id'])) {

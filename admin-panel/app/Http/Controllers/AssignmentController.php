@@ -133,7 +133,7 @@ class AssignmentController extends Controller
         foreach ($res as $row) {
 
             $row = (object) $row;
-            $operate = '<a href='.route('assignment.edit', $row->id).' class="btn btn-xs btn-gradient-primary btn-rounded btn-icon edit-data" data-id='.$row->id.' title="Edit" data-toggle="modal" data-target="#editModal"><i class="fa fa-edit"></i></a>&nbsp;&nbsp;';
+            $operate = '<a href="#" class="btn btn-xs btn-gradient-primary btn-rounded btn-icon edit-data" data-id='.$row->id.' title="Edit" data-toggle="modal" data-target="#editModal"><i class="fa fa-edit"></i></a>&nbsp;&nbsp;';
             $operate .= '<a href='.route('assignment.destroy', $row->id).' 
             class="btn btn-xs btn-gradient-danger btn-rounded btn-icon delete-form" 
             data-id="'.$row->id.'"
@@ -633,7 +633,7 @@ class AssignmentController extends Controller
         $no = 1;
         foreach ($res as $row) {
             $row = (object) $row;
-            $operate = '<a href='.route('class.edit', $row->id).' class="btn btn-xs btn-gradient-primary btn-rounded btn-icon edit-data" data-id='.$row->id.' title="Edit" data-toggle="modal" data-target="#editModal"><i class="fa fa-edit"></i></a>&nbsp;&nbsp;';
+            $operate = '<a href="#" class="btn btn-xs btn-gradient-primary btn-rounded btn-icon edit-data" data-id='.$row->id.' title="Edit" data-toggle="modal" data-target="#editModal"><i class="fa fa-edit"></i></a>&nbsp;&nbsp;';
 
             $tempRow['id'] = $row->id;
             $tempRow['no'] = $no++;

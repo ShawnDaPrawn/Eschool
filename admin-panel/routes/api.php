@@ -50,7 +50,6 @@ Route::group(['prefix' => 'student'], function () {
         Route::get('lesson-topics', [StudentApiController::class, 'getLessonTopics']);
         Route::get('assignments', [StudentApiController::class, 'getAssignments']);
         Route::post('submit-assignment', [StudentApiController::class, 'submitAssignment']);
-        Route::post('edit-assignment', [StudentApiController::class, 'editAssignmentSubmission']);
         Route::post('delete-assignment-submission', [StudentApiController::class, 'deleteAssignmentSubmission']);
         Route::get('attendance', [StudentApiController::class, 'getAttendance']);
         Route::get('attendance-report', [StudentApiController::class, 'attendanceReport']);

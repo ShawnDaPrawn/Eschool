@@ -60,8 +60,6 @@ return [
             'engine' => 'InnoDB',
             'options' => extension_loaded('pdo_mysql') ? array_filter([
                 PDO::MYSQL_ATTR_SSL_CA => env('MYSQL_ATTR_SSL_CA'),
-                // Tests turn this off: PDO objects of earlier test apps share a persistent
-                // connection, and destroying one rolls back the current test's transaction.
                 PDO::ATTR_PERSISTENT => env('DB_PERSISTENT', true),
             ]) : [],
         ],
