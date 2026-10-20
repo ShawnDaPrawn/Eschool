@@ -139,7 +139,7 @@ See [API-Overview](API-Overview), [API-Student](API-Student), [API-Parent](API-P
 |---|---|---|
 | Email templates are never compiled | [EmailTemplateService::render()](https://github.com/ShawnDaPrawn/Eschool/blob/main/admin-panel/app/Services/EmailTemplateService.php), used by `StudentController`, `StaffController`, `TeacherController` | `{$name}` / `{name}` placeholders are replaced with `e()`-escaped values; Blade and PHP in a template are left as text. Unknown placeholders stay as they are |
 | Email template editing | `email-setting-create` checked in `EmailController::index/store` and `SettingController::email_index/email_update/verifyEmailConfigration` | Only staff with that permission can change templates or mail settings |
-| `.env` is never written from admin forms | settings pages save to the `settings` table only; [SettingsConfigService::apply()](https://github.com/ShawnDaPrawn/Eschool/blob/main/admin-panel/app/Services/SettingsConfigService.php) (called from `AppServiceProvider::boot()`) applies the school name, timezone, mail server and Paystack keys over the `.env` config on every boot | No request can add or change `.env` entries. The old `changeEnv()` helper, which rewrote `.env` from settings forms, was removed in [e13ac7d](https://github.com/ShawnDaPrawn/Eschool/commit/e13ac7d); `SettingsConfigTest` checks that saving mail settings leaves `.env` unchanged |
+| `.env` is never written from admin forms | settings pages save to the `settings` table only; [SettingsConfigService::apply()](https://github.com/ShawnDaPrawn/Eschool/blob/main/admin-panel/app/Services/SettingsConfigService.php) (called from `AppServiceProvider::boot()`) applies the school name, timezone, mail server and Paystack keys over the `.env` config on every boot | No admin settings form adds or changes `.env` entries (only the installation wizard writes `.env`, during installation). The old `changeEnv()` helper, which rewrote `.env` from settings forms, was removed in [e13ac7d](https://github.com/ShawnDaPrawn/Eschool/commit/e13ac7d); `SettingsConfigTest` checks that saving mail settings leaves `.env` unchanged |
 | Language codes | `LanguageController::CODE_RULE` `^[A-Za-z]{2,3}([-_][A-Za-z0-9]{2,8})?$`; `Controller::readLanguageFile()` uses `basename()` and falls back to `en.json` | An uploaded language file cannot be written outside `resources/lang`, and `/common/js/lang` cannot read other files |
 | Settings image removal | `remove-image/{type}` | Needs the setting permission and only deletes ID-card images, not arbitrary `settings` rows |
 
@@ -227,6 +227,8 @@ Details are on the [Payments](Payments) page; the security-relevant rules are:
 | Paystack | `POST webhook/paystack` | HMAC-SHA512 of the raw body vs `x-paystack-signature` | `paystack_secret_key`, `services.paystack.secret_key` (`PAYSTACK_SECRET_KEY`) |
 | Flutterwave | `POST webhook/flutterwave` | `verif-hash` header equals the secret hash | `flutterwave_hash_key`, `services.flutterwave.secret_hash` (`FLW_SECRET_HASH`) |
 
+`PaymentService::webhookSecret()` reads the `settings` row saved by the fees settings page first and falls back to the config key only when that row is empty. The fees page no longer copies these values into `.env`, so the `.env` keys only matter if someone sets them by hand.
+
 | Control | Where | Guarantee |
 |---|---|---|
 | Fail closed | `WebhookController::validHmac()`, `PaymentService::webhookSecret()` | No configured secret or no signature means 401; comparisons use `hash_equals()` |
@@ -254,10 +256,10 @@ The admin steps for configuring webhooks are at https://shawndaprawn.github.io/E
 | Control | Where | Guarantee |
 |---|---|---|
 | Maintenance URLs | `routes/web.php` | `/clear` needs a logged-in user; `/storage-link`, `/migrate` and `/seeder_install` need Super Admin; `migrate` and `seeder_install` pass `--force`. The old unauthenticated `delete-chat-message/cron-job` URL is gone; old chat messages are deleted by the scheduled `app:cleanup-old-chat-messages` command |
-| Demo mode | [DemoMiddleware](https://github.com/ShawnDaPrawn/Eschool/blob/main/admin-panel/app/Http/Middleware/DemoMiddleware.php) in the `web` group, enabled by `DEMO_MODE` | When on, every non-GET request by a signed-in user is refused (API: `code` 112; AJAX: HTTP 403; pages: redirect back with "This is not allowed in the Demo Version.") except the login endpoints, chat send/read, leave lists and a few export/certificate URLs listed in `$exclude_uri`, and except for the user `demomodeoff@gmail.com`. The fees configuration page also masks gateway keys. `GET api/settings` reports it as `is_demo` |
+| Demo mode | [DemoMiddleware](https://github.com/ShawnDaPrawn/Eschool/blob/main/admin-panel/app/Http/Middleware/DemoMiddleware.php) in the `web` group, enabled by `config('app.demo_mode')` (`DEMO_MODE` in `.env`, default false) | When on, every non-GET request by a signed-in user is refused (API: `code` 112; AJAX: HTTP 403; pages: redirect back with "This is not allowed in the Demo Version.") except the login endpoints, chat send/read, leave lists and a few export/certificate URLs listed in `$exclude_uri`, and except for the user `demomodeoff@gmail.com`. The fees configuration page also masks gateway keys. `GET api/settings` reports it as `is_demo` |
 | APP_KEY | `.env.example` has `APP_KEY=` (empty); the installer runs `key:generate --force` (`config/installer.php`); CI runs `php artisan key:generate --force` | Laravel refuses to start without a key, so no two installs share one. The key encrypts cookies and sessions and signs URLs. `InstallationTest` fails if `.env.example` gets a key again |
 
-`DemoMiddleware`, the fees page and `api/settings` read `env('DEMO_MODE')` directly. After `php artisan config:cache`, `env()` returns `null` outside config files, so demo mode switches off on a config-cached install.
+Code outside `config/` reads configuration through `config()` and school settings through `getSettings()` / `schoolSetting()`, never `env()`, so demo mode, mail settings and webhook secrets keep working after `php artisan config:cache` / `optimize` (enforced by `SettingsConfigTest`).
 
 ## Security checklist for deployers
 
@@ -287,12 +289,13 @@ The admin steps for configuring webhooks are at https://shawndaprawn.github.io/E
 6. **Never concatenate input into SQL.** Use the query builder; in `whereRaw`/`orWhereRaw`/`selectRaw` use `?` placeholders and a bindings array. Group `OR` search conditions in a closure.
 7. **Escape output.** Use `{{ }}` in Blade; use `{!! !!}` only for HTML that staff wrote on purpose. In JavaScript that builds HTML, wrap every row field in `escapeHtml()` and every link in `safeUrl()`; add `data-escape="true"` to new bootstrap-table tables and `data-escape="false"` only on columns that return HTML you built safely. Pass PHP values to scripts with `@json`.
 8. **Do not compile stored content as Blade.** Fill email templates with `EmailTemplateService::render()`.
-9. **Validate uploads** with `mimes:` and `max:` rules for the field, and store them under generated names, not the client's file name. Leave `RejectDangerousUploads` on both groups. Keep secrets such as service-account files on the `local` disk.
-10. **Do not leak internals.** Do not return exception messages, `$e`, stack traces or `dd()` output; use `ResponseService::errorResponse('error_occurred', null, <code>, $e)`, which logs details with secrets redacted. Never log tokens, passwords or keys.
-11. **Do not send secrets to the apps.** Public endpoints such as `api/settings` may only carry publishable keys.
-12. **Keep TLS verification on** in PHP (curl, Guzzle) and Dart; never add `CURLOPT_SSL_VERIFYPEER => false`, `'verify' => false`, or a `badCertificateCallback`.
-13. **In the apps, open only http(s) links** (`UiUtils.launchWebUrl()`), sanitise file names (`sanitizeFileName()`), and do not print tokens or responses.
-14. **Add a test** for each new permission check or scoping rule, following `AcademicAuthorizationTest` (in-process) or the `*ApiSecurityTest` classes with `RunsAppServer` (API endpoints that `exit()`).
+9. **Never call `env()` outside `config/`, and never write `.env` from a request.** Read configuration with `config()` and admin-edited settings with `getSettings()` / `schoolSetting()`; store new settings in the `settings` table (and, if they must override a config value, add them to `SettingsConfigService::CONFIG_KEYS`). `SettingsConfigTest` fails on any `env()` call outside `config/`.
+10. **Validate uploads** with `mimes:` and `max:` rules for the field, and store them under generated names, not the client's file name. Leave `RejectDangerousUploads` on both groups. Keep secrets such as service-account files on the `local` disk.
+11. **Do not leak internals.** Do not return exception messages, `$e`, stack traces or `dd()` output; use `ResponseService::errorResponse('error_occurred', null, <code>, $e)`, which logs details with secrets redacted. Never log tokens, passwords or keys.
+12. **Do not send secrets to the apps.** Public endpoints such as `api/settings` may only carry publishable keys.
+13. **Keep TLS verification on** in PHP (curl, Guzzle) and Dart; never add `CURLOPT_SSL_VERIFYPEER => false`, `'verify' => false`, or a `badCertificateCallback`.
+14. **In the apps, open only http(s) links** (`UiUtils.launchWebUrl()`), sanitise file names (`sanitizeFileName()`), and do not print tokens or responses.
+15. **Add a test** for each new permission check or scoping rule, following `AcademicAuthorizationTest` (in-process) or the `*ApiSecurityTest` classes with `RunsAppServer` (API endpoints that `exit()`).
 
 ## See also
 

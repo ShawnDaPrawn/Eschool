@@ -19,11 +19,13 @@ The `data` payload always contains `click_action` = `FLUTTER_NOTIFICATION_CLICK`
 
 ### Firebase credentials
 
-| Setting (`settings.type`) | `.env` key | Notes |
-|---|---|---|
-| `sender_id` | `SENDER_ID` | Required by the form; not used by the HTTP v1 sender (the line that read it is commented out). |
-| `project_id` | `FIREBASE_PROJECT_ID` | Used in the send URL, read from the settings table. |
-| `service_account_file` | none | Path of the uploaded service-account JSON, normally `firebase/service_account.json` |
+All three live only in the `settings` table; nothing is written to `.env` (the old `SENDER_ID` / `FIREBASE_PROJECT_ID` copies were dropped with `changeEnv()` in commit `e13ac7d`).
+
+| Setting (`settings.type`) | Notes |
+|---|---|
+| `sender_id` | Required by the form; not used by the HTTP v1 sender (the line that read it is commented out). |
+| `project_id` | Used in the send URL. |
+| `service_account_file` | Path of the uploaded service-account JSON on the local disk, normally `firebase/service_account.json` |
 
 The page is **System Settings > Notification Setting**: `GET fcm-settings` (`SettingController::fcm_index`, view `settings/fcm_key.blade.php`, permission `fcm-setting-create`) and `POST notification-setting` (`SettingController::notification_setting`, permission `setting-create`). The upload must be a JSON file of at most 64 KB containing `private_key` and `client_email`. It is stored with `storeAs('firebase', 'service_account.json', 'local')`, that is `storage/app/firebase/service_account.json`, which the web server does not serve. If an older install still has the file on the public disk, saving the form again moves it to the local disk and deletes the public copy. Never commit this file.
 
@@ -108,12 +110,19 @@ Notes on specific triggers, as written:
 
 ### Configuration
 
-| Setting / `.env` key | Written by |
-|---|---|
-| `mail_mailer`, `mail_host`, `mail_port`, `mail_username`, `mail_password`, `mail_encryption`, `mail_send_from` settings, and `MAIL_MAILER`, `MAIL_HOST`, `MAIL_PORT`, `MAIL_USERNAME`, `MAIL_PASSWORD`, `MAIL_ENCRYPTION`, `MAIL_FROM_ADDRESS` in `.env` | `POST email-settings` (`SettingController::email_update`, permission `email-setting-create`); all seven fields are required. Saving also resets `email_configration_verification` to 0. |
-| `email_configration_verification` | Set to 1 by `POST verify-email-settings` (`setting.varify-email-config`, `SettingController::verifyEmailConfigration`) when a test email (view `mail.blade.php`, subject "Connection Verified successfully") is sent successfully. While it is 0, the admin header shows "email configuration is not verified" to users with `email-setting-create`. |
+The mail server is configured in **System Settings > Email Configuration** (`GET email-settings`, route `setting.email-config-index`, view `settings/email_configuration.blade.php`). The settings are stored only in the `settings` table; since commit `e13ac7d` nothing is written to `.env`.
 
-Laravel reads the mailer from [`config/mail.php`](https://github.com/ShawnDaPrawn/Eschool/blob/main/admin-panel/config/mail.php): default mailer `env('MAIL_MAILER', 'log')`, SMTP host default `smtp.gmail.com`, port 587, encryption `tls`, and `'verify_peer' => false` on the SMTP mailer (the SMTP server's TLS certificate is not verified). Several senders read `env('MAIL_FROM_ADDRESS')` directly, which returns null once the configuration is cached; run `php artisan config:clear` (or the header's Cache Clear, `GET /clear`) after changing mail settings. See [Configuration](Configuration).
+| Setting (`settings.type`) | Applied onto config key at boot | Written by |
+|---|---|---|
+| `mail_mailer` | `mail.default` | `POST email-settings` (`SettingController::email_update`, permission `email-setting-create`); all seven fields are required. Saving also resets `email_configration_verification` to 0. |
+| `mail_host`, `mail_port` (cast to int), `mail_username`, `mail_password`, `mail_encryption` | `mail.mailers.smtp.host`, `.port`, `.username`, `.password`, `.encryption` | same |
+| `mail_send_from` | `mail.from.address` | same |
+| `school_name` (General Settings) | `app.name`, and `mail.from.name` when that was equal to `app.name` (the `.env.example` default `MAIL_FROM_NAME="${APP_NAME}"`) | `SettingController::update` |
+| `email_configration_verification` | none | Set to 1 by `POST verify-email-settings` (`setting.varify-email-config`, `SettingController::verifyEmailConfigration`) when a test email (view `mail.blade.php`, subject "Connection Verified successfully", sender name `Eschool Admin`) is sent successfully. While it is 0, the admin header shows "email configuration is not verified" to users with `email-setting-create`. |
+
+[`App\Services\SettingsConfigService::apply()`](https://github.com/ShawnDaPrawn/Eschool/blob/main/admin-panel/app/Services/SettingsConfigService.php) runs from `AppServiceProvider::boot()` on every request and console command. It loads all settings and copies each non-empty value above onto its config key, so the `.env` `MAIL_*` values (read by [`config/mail.php`](https://github.com/ShawnDaPrawn/Eschool/blob/main/admin-panel/config/mail.php)) are only a fallback for settings that are empty, and saved mail settings take effect on the next request even with `php artisan config:cache`. If the settings table cannot be read (not installed or not migrated yet) the `.env` config is kept. A `MAIL_FROM_NAME` that differs from `APP_NAME` is left alone. The same service also applies the `time_zone` setting to `app.timezone` and PHP's default timezone, and the Paystack keys (see [Payments](Payments#settings-reference)). `SettingsConfigTest` checks the overrides and fails if any code outside `config/` calls `env()`.
+
+The form displays the effective config values (`config('mail.default')`, `config('mail.mailers.smtp.*')`, `config('mail.from.address')`), or `x` placeholders when `config('app.demo_mode')` is true. Its mailer drop-down offers `smtp`, `mailgun`, `sendmail`, `postmark` and `amazon_ses`; `config/mail.php` defines `smtp`, `ses`, `mailgun`, `postmark`, `sendmail`, `log`, `array` and `failover`, so `amazon_ses` is not a valid mailer name (the SES one is `ses`), and the form only collects SMTP-style fields. `config/mail.php` defaults: mailer `env('MAIL_MAILER', 'log')`, SMTP host `smtp.gmail.com`, port 587, encryption `tls`, and `'verify_peer' => false` on the SMTP mailer (the SMTP server's TLS certificate is not verified). Senders take the from address from `config('mail.from.address')`. See [Configuration](Configuration).
 
 ### MailService and templates
 

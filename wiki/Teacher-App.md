@@ -19,7 +19,7 @@ The configuration keys this app reads are the `teacher_*` variants (`teacher_app
 
 | Tab (label key) | Widget | Content |
 |---|---|---|
-| `home` | `home/tabs/homeContainer/homeContainer.dart` | Dashboard (`DashboardCubit` → GET `teacher/dashboard`): class-teacher classes, subject-teacher classes, today's timetable, pending student leave requests, staff on leave, upcoming exams and events, gallery, and the "explore academics" menu. |
+| `home` | `home/tabs/homeContainer/homeContainer.dart` | Dashboard (`DashboardCubit` → GET `teacher/dashboard`, parsed in `TeacherRepository.dashboard()`): class-teacher classes (`class_teacher`), other classes (`other_classes`), pending student leave requests (`student_leave_request`), today's timetable (`timetable`), `upcoming_exams`, staff leaves (`staff_leaves.today` / `tomorrow` / `upcoming`), `events` and `gallery`, plus the "explore academics" menu. |
 | `schedule` | `home/tabs/timeTableContainer.dart` | Teacher timetable (`TimeTableCubit` → GET `teacher/teacher_timetable`); each slot can carry a live-class link edited with `UpdateTimetableLinkCubit` (POST `teacher/update-timetable-link` with `timetable_id`, `live_class_link`, `link_name`). |
 | `profile` | `home/tabs/profileContainer.dart` | Profile details and "view ID card" (`DownloadIdCardCubit` → GET `teacher/id-card-pdf`, opened in `Routes.pdfFileView`). |
 | `setting` | `home/tabs/settingsContainer.dart` | Notifications, app language, change password (POST `change-password`), privacy policy, terms, about us, contact us, rate us / share (open `teacher_app_link`), app version (server value). |
