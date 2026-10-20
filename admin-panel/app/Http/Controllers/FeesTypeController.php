@@ -304,10 +304,7 @@ class FeesTypeController extends Controller
         $offset = 0;
         $limit = 10;
         $sort = 'id';
-
-        if (isset($_GET['session_year_id'])) {
-            $session_year_id = $_GET['session_year_id'];
-        }
+        $session_year_id = $_GET['session_year_id'] ?? getSettings('session_year')['session_year'];
         if (isset($_GET['offset'])) {
             $offset = $_GET['offset'];
         }
@@ -349,7 +346,7 @@ class FeesTypeController extends Controller
         foreach ($res as $row) {
 
             $row = (object) $row;
-            $operate = '<a href='.route('class.edit', $row->id).' class="btn btn-xs btn-gradient-primary btn-rounded btn-icon edit-data" data-id='.$row->id.' title="'.trans('edit').'" data-toggle="modal" data-target="#editModal"><i class="fa fa-edit"></i></a>&nbsp;&nbsp;';
+            $operate = '<a href="#" class="btn btn-xs btn-gradient-primary btn-rounded btn-icon edit-data" data-id='.$row->id.' title="'.trans('edit').'" data-toggle="modal" data-target="#editModal"><i class="fa fa-edit"></i></a>&nbsp;&nbsp;';
 
             $tempRow['no'] = $no++;
             $tempRow['class_id'] = $row->id;
@@ -1766,7 +1763,7 @@ class FeesTypeController extends Controller
             $class_id = $_GET['class_id'];
             $sql = $sql->where('class_id', $class_id);
         }
-        if (isset($_GET['payment_status']) && $_GET['payment_status'] == 0 || $_GET['payment_status'] == 1 || $_GET['payment_status'] == 2) {
+        if (isset($_GET['payment_status']) && in_array($_GET['payment_status'], ['0', '1', '2'], true)) {
             $sql->where('payment_status', $_GET['payment_status']);
         }
         $total = $sql->count();

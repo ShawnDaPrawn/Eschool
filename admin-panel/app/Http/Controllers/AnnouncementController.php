@@ -408,7 +408,7 @@ class AnnouncementController extends Controller
         if (isset($_GET['order']))
             $order = $_GET['order'];
 
-        $session_year_id = $_GET['session_year_id'];
+        $session_year_id = $_GET['session_year_id'] ?? getSettings('session_year')['session_year'];
         $sql = Announcement::with('table', 'file', 'semester')->where('session_year_id', $session_year_id);
 
         // Filter announcements for teachers

@@ -342,14 +342,14 @@ class ClassSchoolController extends Controller
                     $q->where('title', 'LIKE', "%$search%");
                 });
         }
-        if ($_GET['medium_id']) {
+        if (! empty($_GET['medium_id'])) {
             $sql = $sql->where('medium_id', $_GET['medium_id']);
         }
-        if ($_GET['shift_id']) {
+        if (! empty($_GET['shift_id'])) {
             $sql = $sql->where('shift_id', $_GET['shift_id']);
         }
 
-        if ($_GET['educational_program_id']) {
+        if (! empty($_GET['educational_program_id'])) {
             $sql = $sql->where('educational_program_id', $_GET['educational_program_id']);
         }
         $total = $sql->count();
@@ -442,7 +442,7 @@ class ClassSchoolController extends Controller
                 $relatedData[] = 'fees';
             }
 
-            $operate = '<a href='.route('class.edit', $row->id).' class="btn btn-xs btn-gradient-primary btn-rounded btn-icon edit-data" data-id='.$row->id.' title="Edit" data-toggle="modal" data-target="#editModal"><i class="fa fa-edit"></i></a>&nbsp;&nbsp;';
+            $operate = '<a href="#" class="btn btn-xs btn-gradient-primary btn-rounded btn-icon edit-data" data-id='.$row->id.' title="Edit" data-toggle="modal" data-target="#editModal"><i class="fa fa-edit"></i></a>&nbsp;&nbsp;';
             $operate .= '
                 <a
                     href="'.route('class.destroy', $row->id).'"

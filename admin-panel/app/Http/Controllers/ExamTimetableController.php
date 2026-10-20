@@ -140,7 +140,7 @@ class ExamTimetableController extends Controller
         $limit = 10;
         $sort = 'id';
         $order = 'ASC';
-        $session_year_id = $_GET['session_year_id'];
+        $session_year_id = $_GET['session_year_id'] ?? getSettings('session_year')['session_year'];
 
         if (isset($_GET['offset']))
             $offset = $_GET['offset'];
