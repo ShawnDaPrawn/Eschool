@@ -1,6 +1,6 @@
 # Never serve configuration, source control or dependency metadata, even if
 # mod_rewrite is off or the project root is the document root.
-<FilesMatch "^\.|^(composer\.(json|lock)|package(-lock)?\.json|artisan|phpunit\.xml|vite\.config\.js|webpack\.mix\.js)$">
+<FilesMatch "^\.|^(composer\.(json|lock)|package(-lock)?\.json|artisan|phpunit\.xml|vite\.config\.js)$">
     Require all denied
 </FilesMatch>
 <IfModule mod_alias.c>
