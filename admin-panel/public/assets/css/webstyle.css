@@ -6,15 +6,16 @@
 }
 
 :root {
-    --primary-color: #22577a;
-    --primary-hover-color: #143449;
-    --secondary-color1: #38a3a5;
-    --secondary-color2: #57cc99;
-    --secondary-color3: #80ed99;
-    --text--primary-color: #38a3a51f;
-    --text--secondary-color: #5c788c;
+    /* Navigate Wealth: Dark Navy for bars and buttons, Primary Purple for accents. */
+    --primary-color: #313653;
+    --primary-hover-color: #2a2e47;
+    --secondary-color1: #6d28d9;
+    --secondary-color2: #7c3aed;
+    --secondary-color3: #a78bfa;
+    --text--primary-color: #6d28d91f;
+    --text--secondary-color: #64748b;
     --text-white-color: #fff;
-    --primary-background-color: #f2f5f7;
+    --primary-background-color: #f8f9fa;
 }
 
 body {
@@ -32,7 +33,7 @@ a {
 }
 
 .topHeader {
-    background-color: #38a3a514;
+    background-color: #6d28d914;
 }
 
 .topHeader .divWrapper {
@@ -335,7 +336,7 @@ a {
 }
 
 .commonTag {
-    background-color: #38a3a51f;
+    background-color: #6d28d91f;
     color: var(--secondary-color1);
     padding: 8px;
     border-radius: 4px;
@@ -934,7 +935,7 @@ a {
 }
 
 .faqs .accordion-button {
-    background-color: #22577a08;
+    background-color: #31365308;
 }
 
 .faqs .accordion-button span {
@@ -1092,7 +1093,7 @@ footer .socialIcons {
 }
 
 footer .socialIcons span {
-    background-color: #38a3a51f;
+    background-color: #6d28d91f;
     color: var(--secondary-color1) !important;
     padding: 10px 16px;
     border-radius: 4px;
