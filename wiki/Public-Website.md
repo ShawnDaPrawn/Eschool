@@ -28,7 +28,7 @@ Everything below is in [`routes/web.php`](https://github.com/ShawnDaPrawn/Eschoo
 
 Every response also passes through the global `SecurityHeaders` middleware (`X-Frame-Options: SAMEORIGIN`, `X-Content-Type-Options: nosniff`, `Referrer-Policy: strict-origin-when-cross-origin`, HSTS over HTTPS) and the `web` group additions in `bootstrap/app.php`, including `RejectDangerousUploads` for the two forms that accept files. See [Security-Model](Security-Model).
 
-The app APIs that read the same content are public too: `GET /api/sliders`, `GET /api/get-events-list`, `POST /api/get-events-details`, `GET /api/holidays`, `GET /api/get-gallery-albums`, `GET /api/get-gallery-images`, `GET /api/get-gallery-videos` (see [API-Overview](API-Overview)).
+The app APIs that read the same content are public too: `GET /api/sliders`, `GET /api/get-events-list`, `GET` or `POST /api/get-events-details`, `GET /api/holidays`, `GET /api/get-gallery-albums`, `GET /api/get-gallery-images`, `GET /api/get-gallery-videos` (see [API-Overview](API-Overview)).
 
 ## Pages and their data
 

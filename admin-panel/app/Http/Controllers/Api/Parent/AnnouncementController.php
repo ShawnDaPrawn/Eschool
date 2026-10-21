@@ -10,6 +10,7 @@ use App\Models\Announcement;
 use App\Models\ClassSessionConfig;
 use App\Models\Semester;
 use App\Models\StudentSessions;
+use App\Models\Students;
 use App\Models\SubjectTeacher;
 use App\Services\ResponseService;
 use Illuminate\Http\Request;
@@ -64,8 +65,33 @@ class AnnouncementController extends Controller
             }
             $data = Announcement::with('file')->where('session_year_id', $session_year_id);
 
+            if (! isset($request->type)) {
+                // Everything this child may see (as on the student API), not the whole school's.
+                $subject_teacher_ids = SubjectTeacher::where('class_section_id', $class_section_id)
+                    ->whereIn('subject_id', $this->childSubjectIds($children))
+                    ->pluck('id');
+                $data = $data->where(function ($query) use ($class_id, $class_section_id, $subject_teacher_ids) {
+                    $query->where('table_type', '')
+                        ->orWhere(fn ($q) => $q->where('table_type', "App\Models\ClassSchool")->where('table_id', $class_id))
+                        ->orWhere(fn ($q) => $q->where('table_type', "App\Models\ClassSection")->where('table_id', $class_section_id))
+                        ->orWhere(fn ($q) => $q->where('table_type', "App\Models\SubjectTeacher")->whereIn('table_id', $subject_teacher_ids));
+                });
+            }
+
             if (isset($request->type) && $request->type == 'noticeboard') {
-                $data = $data->where('table_type', '');
+                // The app's notice board (asked for without a child): school-wide notices
+                // plus those for each of the parent's children's classes and class sections.
+                $childSessions = StudentSessions::where('session_year_id', $session_year_id)
+                    ->whereIn('student_id', $this->parentChildIds($request))
+                    ->with('class_section:id,class_id')
+                    ->get();
+                $classIds = $childSessions->pluck('class_section.class_id')->filter()->unique()->values();
+                $sectionIds = $childSessions->pluck('class_section_id')->unique()->values();
+                $data = $data->where(function ($query) use ($classIds, $sectionIds) {
+                    $query->where('table_type', '')
+                        ->orWhere(fn ($q) => $q->where('table_type', "App\Models\ClassSchool")->whereIn('table_id', $classIds))
+                        ->orWhere(fn ($q) => $q->where('table_type', "App\Models\ClassSection")->whereIn('table_id', $sectionIds));
+                });
             }
 
             if (isset($request->type) && $request->type == 'class') {
@@ -88,5 +114,22 @@ class AnnouncementController extends Controller
         } catch (Throwable $e) {
             ResponseService::errorResponse('error_occurred', null, 103, $e);
         }
+    }
+
+    /**
+     * Ids of a child's core and elective subjects.
+     *
+     * @return list<int>
+     */
+    private function childSubjectIds(Students $child): array
+    {
+        $subjects = $child->subjects();
+        $core = array_column($subjects['core_subject'], 'subject_id');
+        $elective = $subjects['elective_subject'] ?? [];
+        if ($elective) {
+            $elective = $elective->pluck('subject_id')->toArray();
+        }
+
+        return array_values(array_map('intval', array_merge($core, $elective ?: [])));
     }
 }

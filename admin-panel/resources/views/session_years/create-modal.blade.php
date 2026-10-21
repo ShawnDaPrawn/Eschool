@@ -55,7 +55,7 @@
                                     <span class="text-info small">( {{ __('in_percentage_%') }} )</span>
                                     <span class="text-danger">*</span></label>
                                 <input type="number" class="form-control" id="feesDueCharges" name="fees_due_charges"
-                                    placeholder="{{ __('fees') . ' ' . __('due_charges') }}" min="1" max="100" required>
+                                    placeholder="{{ __('fees') . ' ' . __('due_charges') }}" min="0" max="100" required>
                             </div>
                         </div>
                     </div>
@@ -64,6 +64,18 @@
                         <label for="freeAppUseDays">{{ __('free_app_use_date') }}</label>
                         <input type="text" class="form-control datepicker-popup" id="freeAppUseDays"
                             name="free_app_use_date" placeholder="{{ __('select_date') }}">
+                    </div>
+
+                    <div class="installment-toggle-wrapper">
+                        <div class="installment-toggle-label">
+                            <span>{{ __('make_this_the_current_session_year') }}</span>
+                            <small>{{ __('make_this_the_current_session_year_desc') }}</small>
+                        </div>
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="setAsCurrentSessionYear" name="set_as_current" value="1"
+                                {{ !empty($currentYearEnded) ? 'checked' : '' }}>
+                            <span class="toggle-slider"></span>
+                        </label>
                     </div>
 
                     <!-- Fees Installment Settings Section -->

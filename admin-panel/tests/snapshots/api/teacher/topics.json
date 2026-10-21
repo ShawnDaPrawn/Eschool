@@ -9,6 +9,19 @@
         "data": [
             {
                 "description": "string",
+                "file": [
+                    {
+                        "file_extension": "string",
+                        "file_name": "string",
+                        "file_thumbnail": "string",
+                        "file_url": "string",
+                        "id": "number",
+                        "modal_id": "number",
+                        "modal_type": "string",
+                        "type": "string",
+                        "type_detail": "string"
+                    }
+                ],
                 "id": "number",
                 "lesson_id": "number",
                 "name": "string"

@@ -132,8 +132,11 @@ class AssignmentController extends Controller
             $assignment->extra_days_for_resubmission = $request->resubmission ? $request->extra_days_for_resubmission : null;
             $assignment->session_year_id = $session_year_id;
 
-            // Get class subject information
-            $class_subject = ClassSubject::where('subject_id', $request->subject_id)->first();
+            // This class's row for the subject: another class may take it as an elective.
+            $class_subject = ClassSubject::where('subject_id', $request->subject_id)
+                ->where('class_id', ClassSection::where('id', $request->class_section_id)->value('class_id'))
+                ->where('session_year_id', $session_year_id)
+                ->first();
 
             if (! $class_subject) {
                 ResponseService::errorResponse('Subject is not assigned to any class.', null, 400);

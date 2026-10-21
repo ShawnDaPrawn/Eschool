@@ -428,10 +428,7 @@ $(function () {
                     if (result.isConfirmed) {
                         $.ajax({
                             url:
-                                location.protocol +
-                                "//" +
-                                location.hostname +
-                                (location.port && ":" + location.port) +
+                                baseUrl +
                                 "/timetable/" +
                                 $(this).find("input:first").val(),
                             type: "DELETE",
@@ -527,8 +524,13 @@ $("#create-form-with-redirect,.create-form-with-redirect").on(
         let submitButtonElement = $(this).find(":submit");
         let url = $(this).attr("action");
         let data = new FormData(this);
-        const session_year_id = sessionStorage.getItem("session_year_id_table");
-        data.append("session_year_id", session_year_id);
+        // A form that names its session year (e.g. the class-subject page) keeps it.
+        if (!data.has("session_year_id")) {
+            data.append(
+                "session_year_id",
+                sessionStorage.getItem("session_year_id_table"),
+            );
+        }
         let redirectUrl = $(this).data("redirect-url");
 
         let preSubmitFunction = $(this).data("pre-submit-function");
@@ -563,7 +565,9 @@ $("#edit-form,.editform").on("submit", function (e) {
     const session_year_id = sessionStorage.getItem("session_year_id_table");
     data.append("session_year_id", session_year_id);
     data.append("_method", "PUT");
-    let url = $(this).attr("action") + "/" + data.get("edit_id");
+    // Most edit forms name the record "edit_id"; some (session years) use "id".
+    let url =
+        $(this).attr("action") + "/" + (data.get("edit_id") || data.get("id"));
 
     function successCallback(response) {
         $("#table_list").bootstrapTable("refresh");
@@ -1131,7 +1135,7 @@ $("#topic_subject_id").on("change", function () {
     function successCallback(response) {
         let html = "";
         if (response.data.length > 0) {
-            html += "<option>--Select Lesson--</option>";
+            html += "<option value=\"\">--Select Lesson--</option>";
             response.data.forEach(function (data) {
                 html +=
                     "<option value='" +
@@ -1416,18 +1420,19 @@ $(document).on("click", ".remove-exam-timetable", function (e) {
 //     ajaxRequest("GET", url, null, null, successCallback, null);
 // });
 $("#exam_id").on("change", function () {
+    // The upload-marks page picks a class (#class_id); the route expects a class id.
     let class_id =
-        $("#class_section_id_hidden").val() || $("#class_section_id").val();
-    console.log("class_id:", class_id);
+        $("#class_id").val() ||
+        $("#class_section_id_hidden").val() ||
+        $("#class_section_id").val();
     let exam_id = $(this).val();
 
     let url = baseUrl + "/exams/get-subjects/" + class_id + "/" + exam_id;
-    console.log(exam_id, class_id);
     $("#subject_id option").hide();
 
     function successCallback(response) {
         let html = "";
-        html = "<option>" + trans("no_subjects_found") + "</option>";
+        html = "<option value=\"\">" + trans("no_subjects_found") + "</option>";
         if (response.data) {
             html =
                 '<option value="">' +
@@ -1446,7 +1451,7 @@ $("#exam_id").on("change", function () {
                     "</option>";
             });
         } else {
-            html = "<option>" + trans("no_subjects_found") + "</option>";
+            html = "<option value=\"\">" + trans("no_subjects_found") + "</option>";
         }
         $("#subject_id").html(html);
     }
@@ -1484,7 +1489,7 @@ $("#class_id").on("change", function () {
                     "<option value=" + data.id + ">" + data.name + "</option>";
             });
         } else {
-            html = "<option>" + trans("no_exams_found") + "</option>";
+            html = "<option value=\"\">" + trans("no_exams_found") + "</option>";
         }
 
         $("#exam_id").html(html);
@@ -2060,7 +2065,7 @@ $(".class_section_id_in_assignment").on("change", function () {
     function successCallback(response) {
         if (response.length > 0) {
             let html = "";
-            html += "<option>" + trans("select_subject") + "</option>";
+            html += "<option value=\"\">" + trans("select_subject") + "</option>";
             $.each(response, function (key, value) {
                 html +=
                     '<option value="' +
@@ -2099,7 +2104,7 @@ $(".class_section_id").on("change", function () {
     function successCallback(response) {
         if (response.length > 0) {
             let html = "";
-            html += "<option>" + trans("select_subject") + "</option>";
+            html += "<option value=\"\">" + trans("select_subject") + "</option>";
             $.each(response, function (key, value) {
                 let label = value.subject.name + " - " + value.subject.type;
                 if (value.semester) {
@@ -2140,7 +2145,7 @@ $(".lessons_class_section_id").on("change", function () {
     function successCallback(response) {
         if (response.length > 0) {
             let html = "";
-            html += "<option>" + trans("select_subject") + "</option>";
+            html += "<option value=\"\">" + trans("select_subject") + "</option>";
             $.each(response, function (key, value) {
                 let label = value.subject.name + " - " + value.subject.type;
                 if (value.semester) {
@@ -2740,8 +2745,10 @@ $(document).on("click", ".remove-grades", function (e) {
 
                 function successCallback() {
                     $this.parent().parent().remove();
-                    window.location.reload();
                     checkAddNewRowBtn();
+                    setTimeout(function () {
+                        window.location.reload();
+                    }, 1000);
                 }
 
                 ajaxRequest("DELETE", url, null, null, successCallback);
@@ -2799,7 +2806,10 @@ $("#student-registration-form").on("submit", function (e) {
     let data = new FormData(this);
 
     function successCallback() {
-        window.location.reload();
+        // Let the success message show before the page reloads.
+        setTimeout(function () {
+            window.location.reload();
+        }, 1000);
     }
 
     formAjaxRequest(
@@ -2819,7 +2829,10 @@ $("#student-registration").on("submit", function (e) {
     let data = new FormData(this);
 
     function successCallback() {
-        window.location.reload();
+        // Let the success message show before the page reloads.
+        setTimeout(function () {
+            window.location.reload();
+        }, 1000);
     }
 
     formAjaxRequest(
@@ -4287,7 +4300,10 @@ $("#store-assign-questions-form").on("submit", function (e) {
     let data = new FormData(this);
 
     function successCallback() {
-        window.location.reload();
+        // Let the success message show before the page reloads.
+        setTimeout(function () {
+            window.location.reload();
+        }, 1000);
     }
 
     formAjaxRequest(
@@ -4734,7 +4750,8 @@ $(document).on("click", ".remove-optional-fees-paid", function (e) {
                 let id = $this.data("id");
                 let url = baseUrl + "/fees/paid/remove-choiceable-fees/" + id;
 
-                function successCallback() {
+                function successCallback(response) {
+                    showSuccessToast(response.message);
                     $("#table_list").bootstrapTable("refresh");
                     setTimeout(() => {
                         $("#optionalModal").modal("hide");
@@ -6258,7 +6275,7 @@ $("#edit_class_id").on("change", function () {
                     "</option>";
             });
         } else {
-            html = "<option>No Class Section Found</option>";
+            html = "<option value=\"\">No Class Section Found</option>";
         }
         $("#edit_class_section_id").html(html);
     }
@@ -6543,7 +6560,7 @@ $(document).ready(function () {
                         ? `${groupText} (${group.total_subjects} subjects)`
                         : groupText;
 
-                    const $option = $("<option></option>")
+                    const $option = $("<option value=\"\"></option>")
                         .val(group.id)
                         .text(displayText)
                         .attr("data-group", JSON.stringify(group));
@@ -7008,6 +7025,8 @@ function handlePromoteStudentListResponse(res) {
 }
 
 $(document).on("click", ".promote-student", function () {
+    // A row's own Update button promotes just that student, even after a bulk selection was opened.
+    bulkSelectedIds = [];
     const studentId = $(this).data("student-id");
     const classId = $(this).data("class-id");
     const table = $("#promote_student_table_list").bootstrapTable("getData");
@@ -7614,7 +7633,7 @@ document.addEventListener("DOMContentLoaded", function () {
 });
 
 function syncSessionYear(value) {
-    return fetch("/set-session-year", {
+    return fetch(baseUrl + "/set-session-year", {
         method: "POST",
         credentials: "same-origin",
         headers: {
@@ -7646,7 +7665,7 @@ $("#filter_session_year_global").on("change", function () {
         // On the dashboard (/home) the session-year-synced listener in
         // dashboard.js reloads the page and re-fetches every widget, so we
         // only refresh the bootstrap-table listings on other pages here.
-        if (window.location.pathname !== "/home") {
+        if (window.location.href.split(/[?#]/)[0] !== baseUrl + "/home") {
             if ($("#table_list").length) {
                 $("#table_list").bootstrapTable("refresh");
             }
@@ -7913,7 +7932,7 @@ $(document).ready(function () {
         $("#semesterTransferContent").slideDown(300);
 
         $.ajax({
-            url: "/session-year/" + sessionYearId + "/semesters",
+            url: baseUrl + "/session-year/" + sessionYearId + "/semesters",
             method: "GET",
             dataType: "json",
             success: function (response) {
@@ -7973,7 +7992,7 @@ $(document).ready(function () {
 
     // Reset modal when closed
     $("#createSessionYearModal").on("hidden.bs.modal", function () {
-        $("#createSessionYearForm")[0].reset();
+        $("#createSessionYearForm")[0].reset(); // restores each toggle's default too
         $("#installmentContent").hide();
         $("#enableFeesInstallment").prop("checked", false);
 
@@ -8078,8 +8097,9 @@ $(document).ready(function () {
         }
 
         // Submit via AJAX
+        let created = false;
         $.ajax({
-            url: $("#createSessionYearForm").attr("action") || "/session-years",
+            url: baseUrl + "/session-years",
             method: "POST",
             data: formData,
             processData: false,
@@ -8090,33 +8110,30 @@ $(document).ready(function () {
                     .text(trans("creating"));
             },
             success: function (response) {
-                // Show success message
-                if (typeof showSuccessToast === "function") {
-                    showSuccessToast(
-                        trans("session_year_created_successfully"),
-                    );
-                } else {
-                    alert(trans("session_year_created_successfully"));
-                }
-
-                // Close modal
+                created = true;
+                showSuccessToast(trans("session_year_created_successfully"));
                 $("#createSessionYearModal").modal("hide");
-
-                // Reload table if it exists
-                if (typeof $("#table_list").bootstrapTable !== "undefined") {
-                    $("#table_list").bootstrapTable("refresh");
-                    location.reload();
+                if (formData.get("set_as_current") === "1") {
+                    rememberSessionYear(response.data.id);
                 }
+
+                // The header's session-year list is rendered by the server, so
+                // reload once the toast has been seen. The button stays disabled
+                // until then so the year can't be submitted twice.
+                setTimeout(function () {
+                    location.reload();
+                }, 1200);
             },
             error: function (xhr) {
                 let errorMessage = trans("error_creating_session_year");
 
-                if (xhr.responseJSON && xhr.responseJSON.message) {
-                    errorMessage = xhr.responseJSON.message;
-                } else if (xhr.responseJSON && xhr.responseJSON.errors) {
+                // Validation errors list every problem; the message only names the first.
+                if (xhr.responseJSON && xhr.responseJSON.errors) {
                     errorMessage = Object.values(xhr.responseJSON.errors)
                         .flat()
                         .join("\n");
+                } else if (xhr.responseJSON && xhr.responseJSON.message) {
+                    errorMessage = xhr.responseJSON.message;
                 }
 
                 if (typeof showErrorToast === "function") {
@@ -8126,11 +8143,53 @@ $(document).ready(function () {
                 }
             },
             complete: function () {
+                if (created) return;
                 $("#submitSessionYear")
                     .prop("disabled", false)
                     .text(trans("create_session_year"));
             },
         });
+    });
+});
+
+// The header's year picker restores the last year from sessionStorage, so point
+// it at a year the server has just made current before reloading.
+function rememberSessionYear(id) {
+    sessionStorage.setItem("session_year_id_global", id);
+    sessionStorage.setItem("session_year_id_table", id);
+}
+
+$(document).on("click", ".make-current-session-year", function (e) {
+    e.preventDefault();
+    const url = $(this).data("url");
+    Swal.fire({
+        title: trans("make_current_session_year"),
+        text: trans("make_current_session_year_confirm").replace(
+            ":name",
+            $(this).data("name"),
+        ),
+        icon: "question",
+        showCancelButton: true,
+        confirmButtonText: trans("yes"),
+        cancelButtonText: trans("Cancel"),
+    }).then((result) => {
+        if (!result.isConfirmed) return;
+        ajaxRequest(
+            "POST",
+            url,
+            null,
+            null,
+            function (response) {
+                showSuccessToast(response.message);
+                rememberSessionYear(response.data.id);
+                setTimeout(function () {
+                    location.reload();
+                }, 1200);
+            },
+            function (response) {
+                showErrorToast(response.message);
+            },
+        );
     });
 });
 
@@ -8190,10 +8249,16 @@ $(document).ready(function () {
                 _token: $('meta[name="csrf-token"]').attr("content"),
             },
             success: function (response) {
+                // Refusals (e.g. the current year) come back as 200 with error: true.
+                if (response && response.error) {
+                    showErrorToast(response.message);
+                    return;
+                }
                 $("#deleteSessionModal").modal("hide");
                 showSuccessToast(trans("session_year_deleted_successfully"));
-                $("#table_list").bootstrapTable("refresh");
-                 location.reload();
+                setTimeout(function () {
+                    location.reload();
+                }, 1000);
             },
             error: function (xhr) {
                 var message = trans("failed_to_delete_session_year");

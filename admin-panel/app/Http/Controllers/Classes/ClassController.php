@@ -26,6 +26,7 @@ use App\Models\Students;
 use App\Models\StudentSessions;
 use App\Models\SubjectTeacher;
 use App\Models\Timetable;
+use App\Rules\PlainName;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -82,7 +83,7 @@ class ClassController extends Controller
 
         $validator = Validator::make($request->all(), [
             'medium_id' => 'required|numeric',
-            'name' => 'required|regex:/^[A-Za-z0-9_]+$/',
+            'name' => ['required', new PlainName],
             'section_id' => 'required|array',
         ]);
 
@@ -203,7 +204,7 @@ class ClassController extends Controller
         }
         $validator = Validator::make($request->all(), [
             'medium_id' => 'required|numeric',
-            'name' => 'required|regex:/^[A-Za-z0-9_]+$/',
+            'name' => ['required', new PlainName],
             'section_id' => 'required',
         ]);
 
@@ -331,7 +332,7 @@ class ClassController extends Controller
             ->with('sections', 'medium', 'streams', 'shifts', 'educational_program');
         if (isset($_GET['search']) && ! empty($_GET['search'])) {
             $search = $_GET['search'];
-            $sql->where('id', 'LIKE', "%$search%")->orwhere('name', 'LIKE', "%$search%")
+            $sql->where(fn ($query) => $query->where('id', 'LIKE', "%$search%")->orwhere('name', 'LIKE', "%$search%")
                 ->orWhereHas('sections', function ($q) use ($search) {
                     $q->where('name', 'LIKE', "%$search%");
                 })->orWhereHas('medium', function ($q) use ($search) {
@@ -342,7 +343,7 @@ class ClassController extends Controller
                     $q->where('title', 'LIKE', "%$search%");
                 })->orWhereHas('educational_program', function ($q) use ($search) {
                     $q->where('title', 'LIKE', "%$search%");
-                });
+                }));
         }
         if (! empty($_GET['medium_id'])) {
             $sql = $sql->where('medium_id', $_GET['medium_id']);

@@ -3,6 +3,7 @@
 namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class StoreSessionYearRequest extends FormRequest
 {
@@ -22,7 +23,7 @@ class StoreSessionYearRequest extends FormRequest
     public function rules(): array
     {
         $rules = [
-            'name' => 'required|string|max:255',
+            'name' => ['required', 'string', 'max:255', Rule::unique('session_years', 'name')->whereNull('deleted_at')],
 
             'start_date' => 'required|date_format:d-m-Y',
             'end_date' => 'required|date_format:d-m-Y|after_or_equal:start_date',
@@ -34,6 +35,9 @@ class StoreSessionYearRequest extends FormRequest
 
             // Fee installment flag
             'fees_installment' => 'nullable|in:0,1',
+
+            // Make the new year the school's current one
+            'set_as_current' => 'nullable|in:0,1',
 
             // Transfer flags
             'transfer_class_subject'         => 'nullable|in:0,1',
@@ -86,6 +90,7 @@ class StoreSessionYearRequest extends FormRequest
     {
         return [
             'name.required' => trans('name_is_required'),
+            'name.unique' => trans('session_year_name_already_exists'),
             'start_date.required' => trans('start_date_is_required'),
             'end_date.after_or_equal' => trans('end_date_must_be_after_start_date'),
             'fees_due_charges.max' => trans('fees_due_charges_cannot_exceed_100'),

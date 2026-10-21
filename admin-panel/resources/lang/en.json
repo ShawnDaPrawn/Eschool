@@ -594,6 +594,17 @@
     "first_download_dummy_file_and_convert_to_csv_file_then_upload_it": "First download dummy file and convert to .csv file then upload it.",
     "grades_data_does_not_exists": "Grades data does not exists",
     "subject_already_exists": "Subject already exists",
+    "session_year_name_already_exists": "A session year with this name already exists",
+    "name_has_invalid_characters": "The name can only contain letters, numbers, spaces and . , ' & ( ) / + # _ -",
+    "make_this_the_current_session_year": "Make this the current session year",
+    "make_this_the_current_session_year_desc": "The apps and the admin panel will use this year from now on",
+    "make_current_session_year": "Make current session year",
+    "make_current_session_year_confirm": "The apps and the admin panel will use :name from now on.",
+    "session_year_is_now_current": ":name is now the current session year",
+    "session_year_has_ended": "This session year has already ended",
+    "current_session_year_has_ended": "The current session year (:name) ended on :date.",
+    "create_the_next_session_year": "Create the next session year",
+    "before_using_this_form_create": "Before using this form, create at least one:",
     "click_here_to_remove_class_teacher": "Click here to remove class teacher",
     "fees": "Fees",
     "total": "Total",
@@ -1395,5 +1406,7 @@
     "you_cannot_apply_leave_holiday": "You cannot for apply leave on holiday",
     "same_subject_cannot_be_assigned_twice_in_the_same_semester": "The same subject cannot be assigned more than once within the same semester",
     "please_pick_leave_type_for_selected_dates": "Please pick your leave type for the selected dates",
-    "page_not_published_yet": "This page has not been published yet."
+    "page_not_published_yet": "This page has not been published yet.",
+    "student_not_in_this_class_section": "This student is not in the chosen class section this year.",
+    "currency_not_supported_by_razorpay": "Razorpay does not accept this currency."
 }

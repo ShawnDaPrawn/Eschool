@@ -117,7 +117,7 @@ The permission lists are documented in [Roles-and-Permissions](Roles-and-Permiss
 - `SessionYear::updateOrCreate(['id' => 1], ['name' => '2022-23', 'default' => 1, 'start_date' => '2022-06-01', 'end_date' => '2023-04-30'])`.
 - Inserts a new `settings` row `session_year = 1` (a plain insert, so running the seeder twice leaves two `session_year` rows).
 
-Warning: these are well-known demo credentials, and the installer's finish page displays them. Change the Super Admin password (and email) immediately after installing. Then create a current session year and select it in General Settings; the seeded one is 2022-23.
+Warning: these are well-known demo credentials, and the installer's finish page displays them. Change the Super Admin password (and email) immediately after installing. Then create the school's session year with "Make this the current session year" on (or use **Make current** on the Session Years list); the seeded one, 2022-23, has ended, and class subjects, teachers and students added before the switch are saved under it.
 
 ### EmailSeeder
 

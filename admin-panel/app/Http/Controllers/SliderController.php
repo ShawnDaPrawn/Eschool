@@ -128,7 +128,7 @@ class SliderController extends Controller
         $sql = Slider::query();
         if (isset($_GET['search']) && ! empty($_GET['search'])) {
             $search = $_GET['search'];
-            $sql->where('id', 'LIKE', "%$search%")->orwhere('name', 'LIKE', "%$search%")->orwhere('mobile', 'LIKE', "%$search%");
+            $sql->where(fn ($query) => $query->where('id', 'LIKE', "%$search%")->orwhere('image', 'LIKE', "%$search%"));
         }
         $total = $sql->count();
 

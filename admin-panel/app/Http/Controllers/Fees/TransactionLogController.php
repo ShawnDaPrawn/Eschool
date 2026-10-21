@@ -65,12 +65,12 @@ class TransactionLogController extends Controller
 
         if (isset($_GET['search']) && ! empty($_GET['search'])) {
             $search = $_GET['search'];
-            $sql->where('id', 'LIKE', "%$search%")
+            $sql->where(fn ($query) => $query->where('id', 'LIKE', "%$search%")
                 ->orwhere('order_id', 'LIKE', "%$search%")
                 ->orwhere('payment_id', 'LIKE', "%$search%")
                 ->orWhereHas('student.user', function ($q) use ($search) {
                     $q->where('first_name', 'LIKE', "%$search%")->orWhere('last_name', 'LIKE', "%$search%");
-                });
+                }));
         }
         if (isset($_GET['session_year_id']) && ! empty($_GET['session_year_id'])) {
             $sql = $sql->where('session_year_id', $_GET['session_year_id']);

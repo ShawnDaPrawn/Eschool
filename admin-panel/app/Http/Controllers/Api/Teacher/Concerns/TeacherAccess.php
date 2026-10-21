@@ -157,7 +157,8 @@ trait TeacherAccess
             return;
         }
         if (! $semesterId) {
-            $semesterId = Semester::all()->first(fn ($s) => $s->current);
+            // This session year's current semester (its id, not the model).
+            $semesterId = Semester::where('session_year_id', $sessionYearId)->get()->first(fn ($s) => $s->current)?->id;
         }
 
         if ($semesterId) {

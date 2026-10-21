@@ -172,10 +172,10 @@ class HolidayController extends Controller
         $sql = Holiday::where('id', '!=', 0)->where('session_year_id', $session_year_id);
         if (isset($_GET['search']) && !empty($_GET['search'])) {
             $search = $_GET['search'];
-            $sql->where('id', 'LIKE', "%$search%")
+            $sql->where(fn ($query) => $query->where('id', 'LIKE', "%$search%")
                 ->orwhere('title', 'LIKE', "%$search%")
                 ->orwhere('description', 'LIKE', "%$search%")
-                ->orwhere('date', 'LIKE', "%$search%");
+                ->orwhere('date', 'LIKE', "%$search%"));
         }
         $total = $sql->count();
 

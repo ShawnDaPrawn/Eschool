@@ -39,13 +39,13 @@ admin-panel/
 │   │   ├── Middleware/         Role checks, session-year guards, upload filter, security headers
 │   │   ├── Requests/  Resources/
 │   ├── Models/                 Eloquent models (76)
-│   ├── Rules/                  Custom validation rules (AfterNow, YouTubeUrl, unique lesson/topic)
+│   ├── Rules/                  Custom validation rules (AfterNow, PlainName, YouTubeUrl, unique lesson/topic)
 │   └── Services/               Business logic (fees, exams, reports, uploads, mail, ID cards)
 │       └── Payment/            Gateway adapters: Stripe, Razorpay, Paystack, Flutterwave
 ├── bootstrap/app.php           Middleware aliases, route files, exception handling
 ├── config/                     Laravel config plus global.php, installer.php, paystack.php
 ├── database/
-│   ├── migrations/             91 migrations
+│   ├── migrations/             92 migrations
 │   └── seeders/                Installation, super admin, dummy data, email templates
 ├── packages/laravel-wizard-installer/   Local fork of the web installer (served at /install)
 ├── public/                     Web root: index.php, compiled/static assets under public/assets

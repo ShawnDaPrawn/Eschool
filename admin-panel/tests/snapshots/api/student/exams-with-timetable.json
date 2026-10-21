@@ -17,11 +17,13 @@
                         "class_id": "number",
                         "date": "string",
                         "end_time": "string",
+                        "ending_time": "string",
                         "exam_id": "number",
                         "id": "number",
                         "passing_marks": "number",
                         "session_year_id": "number",
                         "start_time": "string",
+                        "starting_time": "string",
                         "subject": {
                             "bg_color": "string",
                             "code": "string",

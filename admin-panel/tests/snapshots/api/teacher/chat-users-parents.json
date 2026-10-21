@@ -34,7 +34,9 @@
                         "(or null)": true,
                         "body": "string",
                         "date": "string",
-                        "file": []
+                        "file": [],
+                        "files": [],
+                        "id": "number"
                     },
                     "last_name": "string",
                     "mobile_no": "string",

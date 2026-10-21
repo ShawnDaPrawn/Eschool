@@ -491,18 +491,6 @@ class FeesController extends Controller
     }
 
     /**
-     * Ids of the logged-in parent's children.
-     *
-     * @return list<int>
-     */
-    private function parentChildIds(Request $request): array
-    {
-        $parent = $request->user()?->parent;
-
-        return $parent ? $parent->children()->pluck('id')->map(fn ($id) => (int) $id)->all() : [];
-    }
-
-    /**
      * Ids of the students whose payments the caller may see: a student's own id on
      * the student API (get-payment-status is shared), otherwise the parent's children.
      *

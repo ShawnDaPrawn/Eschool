@@ -29,11 +29,11 @@ class StudentSessionController extends Controller
         }
         $class_sections = ClassSection::with('class', 'section', 'streams')->get();
         $classes = ClassSchool::get();
-          $session_years = SessionYear::orderBy('id', 'ASC')->get();
-        
-       
+        $session_years = SessionYear::orderBy('id', 'ASC')->get();
+        // Students are promoted out of the current year, so the list opens on it.
+        $current_session_year_id = (int) (getSettings('session_year')['session_year'] ?? 0);
 
-        return view('promote_student.index', compact('class_sections', 'session_years', 'classes'));
+        return view('promote_student.index', compact('class_sections', 'session_years', 'classes', 'current_session_year_id'));
     }
 
     public function store(Request $request)
@@ -65,6 +65,10 @@ class StudentSessionController extends Controller
 
             $newSessionYear = $request->session_year_id;
             $newClass = (int) $request->new_class_section_id;
+            // A promotion into next year is recorded now and takes effect when that year
+            // becomes current (SessionYearService::makeCurrent); until then the student
+            // keeps their class and their account.
+            $takesEffectNow = (int) $newSessionYear === (int) (getSettings('session_year')['session_year'] ?? 0);
 
             foreach ($request->student_id as $id) {
 
@@ -90,6 +94,7 @@ class StudentSessionController extends Controller
                     $session = new StudentSessions;
                     $session->student_id = $id;
                 }
+                $wasLeaving = $session->exists && (int) $session->status === 0;
                 $session->previous_session_year_id = $previous_session_id_for_student;
                 $session->session_year_id = $newSessionYear;
 
@@ -105,17 +110,19 @@ class StudentSessionController extends Controller
                 $session->status = $status;
 
                 // if promoted → update student main table
-                if ($promoted) {
+                if ($promoted && $takesEffectNow) {
                     $student->class_section_id = $newClass;
-                    $student->save();
                 }
+                $student->save();
 
-                // handle leave → deactivate user
+                // handle leave → deactivate user; changing a leave back to continue reactivates them
                 if ($status == 0) {
-                    $user = User::find($student->user_id);
-                    $user->status = 0;
-                    $user->save();
+                    if ($takesEffectNow) {
+                        User::whereKey($student->user_id)->update(['status' => 0]);
+                    }
                     $session->class_section_id = null;
+                } elseif ($wasLeaving) {
+                    User::whereKey($student->user_id)->update(['status' => 1]);
                 }
                 $session->save();
             }

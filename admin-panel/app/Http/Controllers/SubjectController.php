@@ -269,7 +269,7 @@ class SubjectController extends Controller
         $sql = Subject::with('medium');
         if (isset($_GET['search']) && !empty($_GET['search'])) {
             $search = $_GET['search'];
-            $sql = $sql->where('id', 'LIKE', "%$search%")->orwhere('name', 'LIKE', "%$search%")->orwhere('code', 'LIKE', "%$search%")->orwhere('type', 'LIKE', "%$search%");
+            $sql = $sql->where(fn ($query) => $query->where('id', 'LIKE', "%$search%")->orwhere('name', 'LIKE', "%$search%")->orwhere('code', 'LIKE', "%$search%")->orwhere('type', 'LIKE', "%$search%"));
         }
         if (isset($_GET['medium_id']) && !empty($_GET['medium_id'])) {
             $sql = $sql->where('medium_id', $_GET['medium_id']);

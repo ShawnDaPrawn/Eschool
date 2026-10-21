@@ -16,7 +16,7 @@
                     "id": "number",
                     "semester_id": "null",
                     "session_year_id": "number",
-                    "table_id": "null",
+                    "table_id": "null|number",
                     "table_type": "string",
                     "title": "string"
                 }

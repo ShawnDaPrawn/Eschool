@@ -18,6 +18,7 @@ use App\Models\Semester;
 use App\Models\SessionYear;
 use App\Models\Students;
 use App\Models\Subject;
+use App\Models\SubjectTeacher;
 use App\Models\Teacher;
 use App\Models\Timetable;
 use App\Services\ResponseService;
@@ -57,48 +58,24 @@ class ExamController extends Controller
 
             $teacherSemesterIds = [];
 
-            if (isset($request->class_section_id)) {
-
-                // Verify teacher access to requested section
-                $classTeacherQuery = ClassTeacher::where('class_teacher_id', $teacher->id)
+            // The sections this teacher heads or teaches a subject in (subject teachers
+            // enter marks too, so they need the exam list as well).
+            $assignments = ClassTeacher::where('class_teacher_id', $teacher->id)
+                ->where('session_year_id', $session_year_id)
+                ->when(isset($request->class_section_id), fn ($q) => $q->where('class_section_id', $request->class_section_id))
+                ->get(['class_section_id', 'semester_id'])
+                ->concat(SubjectTeacher::where('teacher_id', $teacher->id)
                     ->where('session_year_id', $session_year_id)
-                    ->where('class_section_id', $request->class_section_id);
+                    ->when(isset($request->class_section_id), fn ($q) => $q->where('class_section_id', $request->class_section_id))
+                    ->get(['class_section_id', 'semester_id']));
 
-                if (! $classTeacherQuery->exists()) {
-                    ResponseService::errorResponse('no_permission_message');
-                }
-
-                $class_section_ids = collect([$request->class_section_id]);
-
-                $class_ids = ClassSection::where('id', $request->class_section_id)
-                    ->pluck('class_id');
-
-                // Semester access for this section
-                $teacherSemesterIds = $classTeacherQuery
-                    ->whereNotNull('semester_id')
-                    ->pluck('semester_id')
-                    ->unique()
-                    ->toArray();
-
-            } else {
-
-                $classTeacherRecords = ClassTeacher::where('class_teacher_id', $teacher->id)
-                    ->where('session_year_id', $session_year_id)
-                    ->get();
-
-                $class_section_ids = $classTeacherRecords
-                    ->pluck('class_section_id')
-                    ->unique();
-
-                $class_ids = ClassSection::whereIn('id', $class_section_ids)
-                    ->pluck('class_id');
-
-                $teacherSemesterIds = $classTeacherRecords
-                    ->whereNotNull('semester_id')
-                    ->pluck('semester_id')
-                    ->unique()
-                    ->toArray();
+            if (isset($request->class_section_id) && $assignments->isEmpty()) {
+                ResponseService::errorResponse('no_permission_message');
             }
+
+            $class_section_ids = $assignments->pluck('class_section_id')->unique()->values();
+            $class_ids = ClassSection::whereIn('id', $class_section_ids)->pluck('class_id');
+            $teacherSemesterIds = $assignments->whereNotNull('semester_id')->pluck('semester_id')->unique()->values()->toArray();
 
             $sql = ExamClass::with(
                 'exam.session_year:id,name',

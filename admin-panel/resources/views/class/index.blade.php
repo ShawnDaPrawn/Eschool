@@ -18,6 +18,10 @@
                         <h4 class="card-title">
                             {{ __('create') . ' ' . __('class') }}
                         </h4>
+                        <x-setup-needed :missing="[
+                            'medium' => $mediums->isEmpty() ? url('medium') : null,
+                            'section' => $sections->isEmpty() ? url('section') : null,
+                        ]" />
                         <form class="pt-3 class-create-form" id="create-form" action="{{ route('class.store') }}"
                             method="POST" novalidate="novalidate">
                             <div class="row">

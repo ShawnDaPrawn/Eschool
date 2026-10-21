@@ -72,6 +72,6 @@
     </div>
 
     @include('session_years.edit-modal')
-    @include('session_years.create-modal', ['sessionYears' => $sessionYears])
+    @include('session_years.create-modal', ['sessionYears' => $sessionYears, 'currentYearEnded' => $currentYearEnded])
     @include('session_years.delete-clear-modal')
 @endsection

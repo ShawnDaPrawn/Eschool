@@ -115,7 +115,7 @@ class CertificateController extends Controller
         if ($student->guardian) {
             $guardian_name = $student->guardian->first_name.' '.$student->guardian->last_name;
         }
-        $admission_date = $student->admission_date;
+        $admission_date = $student->admission_date?->format('d-m-Y');
         $gr_no = $student->admission_no;
         $dob = date('d-m-Y', strtotime($student->user->dob));
         $roll_number = $student->roll_number;

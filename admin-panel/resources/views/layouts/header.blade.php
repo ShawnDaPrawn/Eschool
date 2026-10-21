@@ -8,7 +8,7 @@
         <a class="navbar-brand header-logo brand-logo" href="{{ URL::to('/home') }}"> <img
                 src="{{ schoolLogoUrl('logo1') }}" alt="logo"> </a>
         <a class="navbar-brand brand-logo-mini" href="{{ URL::to('/') }}"> <img
-                src="{{ asset('storage/' . schoolSetting('favicon')) }}" alt="logo"> </a>
+                src="{{ schoolSetting('favicon') ? asset('storage/' . schoolSetting('favicon')) : asset('assets/logo.svg') }}" alt="logo"> </a>
     </div>
     <div class="navbar-menu-wrapper d-flex align-items-stretch">
         <button class="navbar-toggler navbar-toggler align-self-center" type="button" data-toggle="minimize"
@@ -29,7 +29,23 @@
                 $message = 0;
             }
         @endphp
-        @if ($message == 0)
+        @php
+            $current_year_row = DB::table('session_years')
+                ->select('name', 'end_date')
+                ->where('id', getSettings('session_year')['session_year'] ?? null)
+                ->whereNull('deleted_at')
+                ->first();
+            $current_year_ended = $current_year_row && $current_year_row->end_date < date('Y-m-d');
+        @endphp
+        @if ($current_year_ended && auth()->user()->can('session-year-create'))
+            <div class="mx-auto order-0 d-none d-lg-block">
+                <div class="alert alert-fill-danger my-2" role="alert">
+                    <x-icon name="alert" :size="16" />
+                    {{ __('current_session_year_has_ended', ['name' => $current_year_row->name, 'date' => date(getSettings('date_formate')['date_formate'] ?? 'd-m-Y', strtotime($current_year_row->end_date))]) }}
+                    <a href="{{ url('session-years') }}" class="alert-link">{{ __('create_the_next_session_year') }}</a>.
+                </div>
+            </div>
+        @elseif ($message == 0)
             @can('email-setting-create')
                 <div class="mx-auto order-0 d-none d-lg-block">
                     <div class="alert alert-fill-danger my-2" role="alert">

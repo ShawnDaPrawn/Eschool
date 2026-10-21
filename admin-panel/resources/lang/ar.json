@@ -574,6 +574,17 @@
     "first_download_dummy_file_and_convert_to_csv_file_then_upload_it": "قم أولاً بتنزيل الملف الوهمي وتحويله إلى ملف بتنسيق csv ثم تحميله.",
     "grades_data_does_not_exists": "بيانات الدرجات غير موجودة",
     "subject_already_exists": "الموضوع موجود بالفعل",
+    "session_year_name_already_exists": "توجد سنة دراسية بهذا الاسم بالفعل",
+    "name_has_invalid_characters": "يمكن أن يحتوي الاسم على حروف وأرقام ومسافات وعلامات الترقيم . , ' & ( ) / + # _ - فقط",
+    "make_this_the_current_session_year": "اجعل هذه السنة الدراسية الحالية",
+    "make_this_the_current_session_year_desc": "ستستخدم التطبيقات ولوحة الإدارة هذه السنة من الآن فصاعدًا",
+    "make_current_session_year": "تعيين كسنة دراسية حالية",
+    "make_current_session_year_confirm": "ستستخدم التطبيقات ولوحة الإدارة :name من الآن فصاعدًا.",
+    "session_year_is_now_current": ":name هي الآن السنة الدراسية الحالية",
+    "session_year_has_ended": "انتهت هذه السنة الدراسية بالفعل",
+    "current_session_year_has_ended": "انتهت السنة الدراسية الحالية (:name) في :date.",
+    "create_the_next_session_year": "إنشاء السنة الدراسية التالية",
+    "before_using_this_form_create": "قبل استخدام هذا النموذج، أنشئ واحدًا على الأقل من:",
     "click_here_to_remove_class_teacher": "انقر هنا لإزالة معلم الصف",
     "fees": "الرسوم",
     "total": "المجموع",
@@ -1364,6 +1375,7 @@
     "no_installments_found": "لم يتم العثور على أقساط",
     "payment_history": "سجل المدفوعات",
     "installments_paid": "أقساط مدفوعة",
-    "secure_billing_ledger": "سجل فواتير آمن"
-
+    "secure_billing_ledger": "سجل فواتير آمن",
+    "student_not_in_this_class_section": "هذا الطالب ليس في الشعبة المختارة لهذا العام.",
+    "currency_not_supported_by_razorpay": "لا يقبل Razorpay هذه العملة."
 }

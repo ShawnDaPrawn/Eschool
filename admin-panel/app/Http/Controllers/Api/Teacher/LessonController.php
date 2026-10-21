@@ -259,8 +259,8 @@ class LessonController extends Controller
                             } elseif ($file['type'] == '2') {
                                 $lesson_file->type = 2;
                                 if (! empty($file['thumbnail'])) {
-                                    if (Storage::disk('public')->exists($lesson_file->getRawOriginal('file_url'))) {
-                                        Storage::disk('public')->delete($lesson_file->getRawOriginal('file_url'));
+                                    if (Storage::disk('public')->exists($lesson_file->getRawOriginal('file_thumbnail'))) {
+                                        Storage::disk('public')->delete($lesson_file->getRawOriginal('file_thumbnail'));
                                     }
                                     $lesson_file->file_thumbnail = $file['thumbnail']->store('lessons', 'public');
                                 }
@@ -276,16 +276,16 @@ class LessonController extends Controller
                                 }
 
                                 if (! empty($file['thumbnail'])) {
-                                    if (Storage::disk('public')->exists($lesson_file->getRawOriginal('file_url'))) {
-                                        Storage::disk('public')->delete($lesson_file->getRawOriginal('file_url'));
+                                    if (Storage::disk('public')->exists($lesson_file->getRawOriginal('file_thumbnail'))) {
+                                        Storage::disk('public')->delete($lesson_file->getRawOriginal('file_thumbnail'));
                                     }
                                     $lesson_file->file_thumbnail = $file['thumbnail']->store('lessons', 'public');
                                 }
                             } elseif ($file['type'] == '4') {
                                 $lesson_file->type = 4;
                                 if (! empty($file['thumbnail'])) {
-                                    if (Storage::disk('public')->exists($lesson_file->getRawOriginal('file_url'))) {
-                                        Storage::disk('public')->delete($lesson_file->getRawOriginal('file_url'));
+                                    if (Storage::disk('public')->exists($lesson_file->getRawOriginal('file_thumbnail'))) {
+                                        Storage::disk('public')->delete($lesson_file->getRawOriginal('file_thumbnail'));
                                     }
                                     $lesson_file->file_thumbnail = $file['thumbnail']->store('lessons', 'public');
                                 }
@@ -368,7 +368,9 @@ class LessonController extends Controller
         }
 
         try {
+            // The teacher app lists and edits each topic's files.
             $data = LessonTopic::lessontopicteachers()
+                ->with('file')
                 ->where('lesson_id', $request->lesson_id)
                 ->orderByDesc('id')
                 ->get();
@@ -440,7 +442,7 @@ class LessonController extends Controller
                             $file->type = 3;
                             $file->file_thumbnail = $data['thumbnail']->store('lessons', 'public');
                             $file->file_url = $data['file']->store('lessons', 'public');
-                        } elseif ($data['type'] == 'other_link') {
+                        } elseif (in_array($data['type'], ['4', 'other_link'], true)) { // the app sends 4
                             $file->type = 4;
                             $file->file_thumbnail = $data['thumbnail']->store('lessons', 'public');
                             $file->file_url = $data['link'];
@@ -527,8 +529,8 @@ class LessonController extends Controller
                             // Type File :- Youtube Link Upload
                             $topic_file->type = 2;
                             if (! empty($file['thumbnail'])) {
-                                if (Storage::disk('public')->exists($topic_file->getRawOriginal('file_url'))) {
-                                    Storage::disk('public')->delete($topic_file->getRawOriginal('file_url'));
+                                if (Storage::disk('public')->exists($topic_file->getRawOriginal('file_thumbnail'))) {
+                                    Storage::disk('public')->delete($topic_file->getRawOriginal('file_thumbnail'));
                                 }
                                 $topic_file->file_thumbnail = $file['thumbnail']->store('lessons', 'public');
                             }
@@ -545,16 +547,16 @@ class LessonController extends Controller
                             }
 
                             if (! empty($file['thumbnail'])) {
-                                if (Storage::disk('public')->exists($topic_file->getRawOriginal('file_url'))) {
-                                    Storage::disk('public')->delete($topic_file->getRawOriginal('file_url'));
+                                if (Storage::disk('public')->exists($topic_file->getRawOriginal('file_thumbnail'))) {
+                                    Storage::disk('public')->delete($topic_file->getRawOriginal('file_thumbnail'));
                                 }
                                 $topic_file->file_thumbnail = $file['thumbnail']->store('lessons', 'public');
                             }
                         } elseif ($file['type'] == '4') {
                             $topic_file->type = 4;
                             if (! empty($file['thumbnail'])) {
-                                if (Storage::disk('public')->exists($topic_file->getRawOriginal('file_url'))) {
-                                    Storage::disk('public')->delete($topic_file->getRawOriginal('file_url'));
+                                if (Storage::disk('public')->exists($topic_file->getRawOriginal('file_thumbnail'))) {
+                                    Storage::disk('public')->delete($topic_file->getRawOriginal('file_thumbnail'));
                                 }
                                 $topic_file->file_thumbnail = $file['thumbnail']->store('lessons', 'public');
                             }
@@ -653,8 +655,8 @@ class LessonController extends Controller
                 // Type File :- Youtube Link Upload
 
                 if (! empty($request->thumbnail)) {
-                    if (Storage::disk('public')->exists($file->getRawOriginal('file_url'))) {
-                        Storage::disk('public')->delete($file->getRawOriginal('file_url'));
+                    if (Storage::disk('public')->exists($file->getRawOriginal('file_thumbnail'))) {
+                        Storage::disk('public')->delete($file->getRawOriginal('file_thumbnail'));
                     }
 
                     if ($file->modal_type == "App\Models\Lesson") {
@@ -690,8 +692,8 @@ class LessonController extends Controller
                 }
 
                 if (! empty($request->thumbnail)) {
-                    if (Storage::disk('public')->exists($file->getRawOriginal('file_url'))) {
-                        Storage::disk('public')->delete($file->getRawOriginal('file_url'));
+                    if (Storage::disk('public')->exists($file->getRawOriginal('file_thumbnail'))) {
+                        Storage::disk('public')->delete($file->getRawOriginal('file_thumbnail'));
                     }
                     if ($file->modal_type == "App\Models\Lesson") {
 

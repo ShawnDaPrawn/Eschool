@@ -41,6 +41,8 @@
                             novalidate="novalidate" data-redirect-url="{{ route('class.subject') }}">
 
                             <input type="hidden" name="class_id" id="class_id" value="{{ $class->id }}" />
+                            {{-- Save to the session year shown on this page, not whichever one the header has selected. --}}
+                            <input type="hidden" name="session_year_id" value="{{ $sessionYearId }}" />
 
                             {{-- Read-only class context --}}
                             <div class="cs-context">
@@ -51,6 +53,15 @@
                                     <div>
                                         <span class="cs-context__label">{{ __('class') }}</span>
                                         <span class="cs-context__value">{{ $classLabel }}</span>
+                                    </div>
+                                </div>
+                                <div class="cs-context__item">
+                                    <span class="cs-context__icon">
+                                        <x-icon name="session-year" :size="20" />
+                                    </span>
+                                    <div>
+                                        <span class="cs-context__label">{{ __('session_year') }}</span>
+                                        <span class="cs-context__value">{{ $sessionYearName }}</span>
                                     </div>
                                 </div>
                                 <div class="cs-context__item">

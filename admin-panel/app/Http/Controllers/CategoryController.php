@@ -99,7 +99,7 @@ class CategoryController extends Controller
         $sql = Category::where('id', '!=', 0);
         if (isset($_GET['search']) && !empty($_GET['search'])) {
             $search = $_GET['search'];
-            $sql->where('id', 'LIKE', "%$search%")->orwhere('name', 'LIKE', "%$search%")->orwhere('status', 'LIKE', "%$search%");
+            $sql->where(fn ($query) => $query->where('id', 'LIKE', "%$search%")->orwhere('name', 'LIKE', "%$search%")->orwhere('status', 'LIKE', "%$search%"));
         }
         $total = $sql->count();
 

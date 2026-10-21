@@ -90,13 +90,16 @@ class AssignmentController extends Controller
             if ($request->subject_id) {
                 $data->where('subject_id', $request->subject_id);
             }
-            if ($request->is_submitted) {
+            // The app sends is_submitted=0 for the "Assigned" tab, so "0" is a filter too.
+            if (isset($request->is_submitted)) {
                 if ($request->is_submitted == 1) {
                     $data->whereHas('submission', function ($q) use ($child_id) {
                         $q->where('student_id', $child_id);
-                    })->get();
+                    });
                 } elseif ($request->is_submitted == 0) {
-                    $data->has('submission', '<', 1)->get();
+                    $data->whereDoesntHave('submission', function ($q) use ($child_id) {
+                        $q->where('student_id', $child_id);
+                    });
                 }
             }
 

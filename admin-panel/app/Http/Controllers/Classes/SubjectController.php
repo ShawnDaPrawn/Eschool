@@ -296,7 +296,7 @@ class SubjectController extends Controller
         $limit = $_GET['limit'] ?? 10;
         $sort = $_GET['sort'] ?? 'id';
         $order = $_GET['order'] ?? 'DESC';
-        $session_year_id = $_GET['session_year_id'] ?? null;
+        $session_year_id = request()->query('session_year_id');
 
         $sql = ClassSchool::withSessionConfigFor($session_year_id)->with([
             'sections',
@@ -323,8 +323,8 @@ class SubjectController extends Controller
 
         if (! empty($_GET['search'])) {
             $search = $_GET['search'];
-            $sql->where('id', 'LIKE', "%$search%")
-                ->orWhere('name', 'LIKE', "%$search%");
+            $sql->where(fn ($query) => $query->where('id', 'LIKE', "%$search%")
+                ->orWhere('name', 'LIKE', "%$search%"));
         }
 
         if (! empty($_GET['medium_id'])) {
@@ -351,7 +351,9 @@ class SubjectController extends Controller
             $includesSemesters = $row->getIncludeSemestersForSession($session_year_id);
 
             if ($includesSemesters !== null) {
-                $operate = '<a href='.route('class-subject-edit.index', $row->id).' class="btn btn-xs btn-gradient-primary btn-rounded btn-icon edit-data" data-id='.$row->id.' title="Edit"><i class="fa fa-edit"></i></a>&nbsp;&nbsp;';
+                // Edit the same session year the list is showing.
+                $editUrl = route('class-subject-edit.index', array_filter(['id' => $row->id, 'session_year_id' => $session_year_id]));
+                $operate = '<a href="'.e($editUrl).'" class="btn btn-xs btn-gradient-primary btn-rounded btn-icon edit-data" data-id='.$row->id.' title="Edit"><i class="fa fa-edit"></i></a>&nbsp;&nbsp;';
             } else {
                 $operate = '<a href="javascript:void(0)" class="btn btn-xs btn-gradient-primary btn-rounded btn-icon disabled" title="'.trans('semester_not_configured').'" disabled><i class="fa fa-edit"></i></a>&nbsp;&nbsp;';
             }
@@ -601,6 +603,8 @@ class SubjectController extends Controller
         $mediums = Mediums::orderBy('id', 'ASC')->get();
         $streams = Stream::orderBy('id', 'ASC')->get();
 
-        return response(view('class.edit_subject', compact('class', 'semesters', 'subjects', 'mediums', 'streams', 'sessionYearId')));
+        $sessionYearName = SessionYear::whereKey($sessionYearId)->value('name');
+
+        return response(view('class.edit_subject', compact('class', 'semesters', 'subjects', 'mediums', 'streams', 'sessionYearId', 'sessionYearName')));
     }
 }

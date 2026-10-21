@@ -8,6 +8,7 @@ use App\Http\Controllers\Api\Teacher\Concerns\TeacherAccess;
 use App\Http\Controllers\Controller;
 use App\Models\ClassSection;
 use App\Models\ClassTeacher;
+use App\Models\SubjectTeacher;
 use App\Models\Teacher;
 use App\Services\AcademicCalendarService;
 use App\Services\ResponseService;
@@ -34,11 +35,14 @@ class CalendarController extends Controller
                 throw new \Exception('Teacher record not found.');
             }
 
-            $classIds = ClassSection::whereIn(
-                'id',
-                ClassTeacher::where('class_teacher_id', $teacher->id)->pluck('class_section_id')
-            )
+            // Classes the teacher heads or teaches a subject in, this session year.
+            $sessionYearId = getSettings('session_year')['session_year'];
+            $sectionIds = ClassTeacher::where('class_teacher_id', $teacher->id)->where('session_year_id', $sessionYearId)->pluck('class_section_id')
+                ->concat(SubjectTeacher::where('teacher_id', $teacher->id)->where('session_year_id', $sessionYearId)->pluck('class_section_id'));
+            $classIds = ClassSection::whereIn('id', $sectionIds->unique())
                 ->pluck('class_id')
+                ->unique()
+                ->values()
                 ->toArray();
 
             if (empty($classIds)) {

@@ -65,8 +65,12 @@ void main() {
     fail('expected an ApiException');
   }
 
-  test('headers carry the signed-in token', () {
-    expect(client.headers(), {'Authorization': 'Bearer secret-token'});
+  test('headers carry the signed-in token and ask for JSON', () {
+    // Accept: application/json makes the server answer an expired token with 401.
+    expect(client.headers(), {
+      'Authorization': 'Bearer secret-token',
+      'Accept': 'application/json',
+    });
   });
 
   group('post', () {

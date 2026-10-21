@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Actions\ResetLessonSemesters;
 use App\Actions\Transfers\TransferClassFeeType;
 use App\Actions\Transfers\TransferClassSessionConfig;
 use App\Actions\Transfers\TransferClassSubject;
@@ -23,7 +24,11 @@ use App\Models\LeaveDetail;
 use App\Models\OnlineExam;
 use App\Models\Semester;
 use App\Models\SessionYear;
+use App\Models\Settings;
+use App\Models\Students;
+use App\Models\StudentSessions;
 use App\Models\SubjectTeacher;
+use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 
@@ -82,8 +87,57 @@ class SessionYearService
 
             $this->handleTransfers($sessionYear->id, $data);
 
+            if (($data['set_as_current'] ?? '0') == '1') {
+                $this->makeCurrent($sessionYear);
+            }
+
             return $sessionYear;
         });
+    }
+
+    /**
+     * Make a session year the school's current one: the year the apps show and
+     * the admin panel opens on.
+     */
+    public function makeCurrent(SessionYear $sessionYear): void
+    {
+        $previous = Settings::where('type', 'session_year')->value('message');
+        $changed = (string) $previous !== (string) $sessionYear->id;
+
+        DB::transaction(function () use ($sessionYear, $changed) {
+            SessionYear::where('default', 1)->whereKeyNot($sessionYear->id)->update(['default' => 0]);
+            $sessionYear->default = 1;
+            $sessionYear->save();
+            Settings::updateOrCreate(['type' => 'session_year'], ['message' => (string) $sessionYear->id]);
+
+            if ($changed) {
+                // Lessons point at the old year's semesters.
+                (new ResetLessonSemesters)->execute();
+                $this->applyPromotions($sessionYear->id);
+            }
+        });
+
+        // The admin panel's year picker follows the new current year.
+        if ($changed && request()->hasSession()) {
+            session(['session_year' => $sessionYear->id]);
+        }
+    }
+
+    /**
+     * Promotions recorded for a year take effect when it becomes current: students
+     * move to the class they were promoted to, and those who left are deactivated.
+     */
+    protected function applyPromotions(int $sessionYearId): void
+    {
+        $sessions = StudentSessions::where('session_year_id', $sessionYearId)->get(['student_id', 'class_section_id', 'status']);
+
+        $sessions->where('status', 1)->whereNotNull('class_section_id')->groupBy('class_section_id')
+            ->each(fn ($group, $classSectionId) => Students::whereIn('id', $group->pluck('student_id'))->update(['class_section_id' => $classSectionId]));
+
+        $leaving = $sessions->where('status', 0)->pluck('student_id');
+        if ($leaving->isNotEmpty()) {
+            User::whereIn('id', Students::whereIn('id', $leaving)->select('user_id'))->update(['status' => 0]);
+        }
     }
 
     protected function storeInstallments(

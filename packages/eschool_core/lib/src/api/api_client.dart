@@ -24,7 +24,12 @@ class ApiClient {
   final Dio Function() _createDio;
 
   Map<String, dynamic> headers() {
-    return {'Authorization': 'Bearer ${authToken()}'};
+    return {
+      'Authorization': 'Bearer ${authToken()}',
+      // Without it an older server answers an expired token with a redirect
+      // instead of the 401 that signs the user out.
+      'Accept': 'application/json',
+    };
   }
 
   Future<Map<String, dynamic>> post({

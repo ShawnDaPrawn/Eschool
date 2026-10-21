@@ -83,9 +83,9 @@ class AssignmentController extends Controller
                         ->orwhere('points', 'LIKE', "%$search%")
                         ->orwhere('session_year_id', 'LIKE', "%$search%")
                         ->orwhere('extra_days_for_resubmission', 'LIKE', "%$search%")
-                        ->orwhere('due_date', 'LIKE', '%'.date('Y-m-d H:i:s', strtotime($search)).'%')
-                        ->orwhere('created_at', 'LIKE', '%'.date('Y-m-d H:i:s', strtotime($search)).'%')
-                        ->orwhere('updated_at', 'LIKE', '%'.date('Y-m-d H:i:s', strtotime($search)).'%')
+                        ->orwhere('due_date', 'LIKE', '%'.convertDateFormat($search).'%')
+                        ->orwhere('created_at', 'LIKE', '%'.convertDateFormat($search).'%')
+                        ->orwhere('updated_at', 'LIKE', '%'.convertDateFormat($search).'%')
                         ->orWhereHas('class_section.class', function ($q) use ($search) {
                             $q->where('name', 'LIKE', "%$search%");
                         })->orWhereHas('class_section.section', function ($q) use ($search) {
@@ -593,8 +593,8 @@ class AssignmentController extends Controller
                 $query->where(function ($query) use ($search) {
                     $query->where('id', 'LIKE', "%$search%")
                         ->orwhere('session_year_id', 'LIKE', "%$search%")
-                        ->orwhere('created_at', 'LIKE', '%'.date('Y-m-d H:i:s', strtotime($search)).'%')
-                        ->orwhere('updated_at', 'LIKE', '%'.date('Y-m-d H:i:s', strtotime($search)).'%')
+                        ->orwhere('created_at', 'LIKE', '%'.convertDateFormat($search).'%')
+                        ->orwhere('updated_at', 'LIKE', '%'.convertDateFormat($search).'%')
                         ->orWhereHas('assignment.subject', function ($query) use ($search) {
                             $query->where('name', 'LIKE', "%$search%");
                         })->orWhereHas('assignment', function ($query) use ($search) {

@@ -528,7 +528,7 @@
         }
 
         function recipientUserFormatter(value, row) {
-            var fallback = "{{ asset('storage/no_image_available.jpg') }}"; //TODO: have to update this old placeholder.
+            var fallback = "{{ asset('assets/no-image.svg') }}";
             var img = row.image || fallback;
             var name = (row.first_name || '') + ' ' + (row.last_name || '');
             var email = row.email || '';

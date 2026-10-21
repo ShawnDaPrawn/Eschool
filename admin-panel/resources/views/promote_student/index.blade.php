@@ -25,7 +25,7 @@
                                     <select name="filter_session_year" id="filter_session_year" data-scope="table"
                                         class="form-control filter_session_year">
                                         @foreach ($session_years as $session_year)
-                                            <option value="{{ $session_year->id }}">
+                                            <option value="{{ $session_year->id }}" {{ $session_year->id == $current_session_year_id ? 'selected' : '' }}>
                                                 {{ $session_year->name }}
                                             </option>
                                         @endforeach

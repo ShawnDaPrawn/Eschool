@@ -186,9 +186,11 @@ class NotificationController extends Controller
                 }
             }
 
-            // sendSimpleNotification($userIds, $title, $body, $type, $image, $userinfo);
+            // Selected users got the list entry but never a push.
             if ($isBroadcast) {
                 sendNotificationToTopic($title, $body, $type, $image, $userinfo);
+            } else {
+                sendSimpleNotification($userIds, $title, $body, $type, $image, $userinfo);
             }
 
             $response = array(
@@ -241,10 +243,10 @@ class NotificationController extends Controller
         $sql = Notification::where('id', '!=', 0)->where('is_custom', 1)->where('session_year_id', $session_year_id);
         if (isset($_GET['search']) && !empty($_GET['search'])) {
             $search = $_GET['search'];
-            $sql->where('id', 'LIKE', "%$search%")
-                ->orwhere('name', 'LIKE', "%$search%")
+            $sql->where(fn ($query) => $query->where('id', 'LIKE', "%$search%")
+                ->orwhere('message', 'LIKE', "%$search%")
                 ->orwhere('title', 'LIKE', "%$search%")
-                ->orwhere('date', 'LIKE', "%$search%");
+                ->orwhere('date', 'LIKE', "%$search%"));
         }
         $total = $sql->count();
 

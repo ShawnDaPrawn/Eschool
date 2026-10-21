@@ -35,6 +35,7 @@ use App\Models\Semester;
 use App\Services\SessionYearService;
 
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Validation\Rule;
 
 class SessionYearController extends Controller
 {
@@ -52,7 +53,31 @@ class SessionYearController extends Controller
             return redirect(route('home'))->withErrors($response);
         }
         $sessionYears = SessionYear::select('id', 'name')->orderBy('id', 'desc')->get();
-        return view('session_years.index', compact('sessionYears'));
+        // Offer to make a new year current straight away when the current one is over.
+        $current = SessionYear::find(getSettings('session_year')['session_year'] ?? null);
+        $currentYearEnded = ! $current || $current->end_date < date('Y-m-d');
+        return view('session_years.index', compact('sessionYears', 'currentYearEnded'));
+    }
+
+    /**
+     * Make a session year the school's current one (what the apps show).
+     */
+    public function makeCurrent(int $id, SessionYearService $service)
+    {
+        if (!Auth::user()->can('session-year-edit')) {
+            return response()->json(['error' => true, 'message' => trans('no_permission_message')]);
+        }
+        $sessionYear = SessionYear::findOrFail($id);
+        if ($sessionYear->end_date < date('Y-m-d')) {
+            return response()->json(['error' => true, 'message' => trans('session_year_has_ended')]);
+        }
+        $service->makeCurrent($sessionYear);
+
+        return response()->json([
+            'error' => false,
+            'message' => trans('session_year_is_now_current', ['name' => $sessionYear->name]),
+            'data' => ['id' => $sessionYear->id],
+        ]);
     }
 
     /**
@@ -98,18 +123,24 @@ class SessionYearController extends Controller
             );
             return response()->json($response);
         }
+        $current = SessionYear::find($request->id);
+        // A running year's free-app date is usually already past; keeping it must not block other edits.
+        $freeAppDateChanged = $current === null
+            || ! $request->filled('free_app_use_date')
+            || date('Y-m-d', strtotime($request->free_app_use_date)) !== $current->free_app_use_date;
         $request->validate([
-            'id' => 'required',
-            'name' => 'required',
-            'free_app_use_date' => 'nullable|date|after:today',
+            'id' => 'required|exists:session_years,id',
+            'name' => ['required', Rule::unique('session_years', 'name')->ignore($request->id)->whereNull('deleted_at')],
+            'free_app_use_date' => $freeAppDateChanged ? 'nullable|date|after:today' : 'nullable|date',
             'start_date' => 'required|date',
             'end_date' => 'required|date|after_or_equal:start_date',
             'fees_due_date' => 'required|date|after_or_equal:start_date|before_or_equal:end_date',
-            'fees_due_charges' => 'required|gt:0',
+            'fees_due_charges' => 'required|numeric|min:0|max:100',
             'installment_data.*.name' => 'required_if:edit_include_fee_installments,1',
             'installment_data.*.due_date' => 'required_if:edit_include_fee_installments,1|date|after_or_equal:start_date|before_or_equal:end_date',
             'installment_data.*.due_charges' => 'required_if:edit_include_fee_installments,1|numeric|gt:0'
         ], [
+            'name.unique' => trans('session_year_name_already_exists'),
             'installment_data.*.name.required_if' => trans('name_is_required_at_row') . ' :index',
             'installment_data.*.due_date.required_if' => trans('name_is_required_at_row') . ' :index',
             'installment_data.*.due_date.date' => trans('due_date_should_be_date_at_row') . ' :index',
@@ -164,6 +195,8 @@ class SessionYearController extends Controller
                     }
                 }
             }
+            $session_year->include_fee_installments = InstallmentFee::where('session_year_id', $session_year->id)->exists() ? 1 : 0;
+            $session_year->save();
             $response = [
                 'error' => false,
                 'message' => trans('data_update_successfully')
@@ -211,11 +244,11 @@ class SessionYearController extends Controller
         $sql = SessionYear::with('fee_installments')->where('id', '!=', 0);
         if (isset($_GET['search']) && !empty($_GET['search'])) {
             $search = $_GET['search'];
-            $sql->where('id', 'LIKE', "%$search%")
+            $sql->where(fn ($query) => $query->where('id', 'LIKE', "%$search%")
                 ->orwhere('name', 'LIKE', "%$search%")
                 ->orwhere('start_date', 'LIKE', "%$search%")
                 ->orwhere('end_date', 'LIKE', "%$search%")
-                ->orwhere('default', 'LIKE', "%$search%");
+                ->orwhere('default', 'LIKE', "%$search%"));
         }
         $total = $sql->count();
 
@@ -260,6 +293,9 @@ class SessionYearController extends Controller
             $operate = '';
             if ($canEdit) {
                 $operate .= '<a class="btn btn-xs btn-gradient-primary btn-rounded btn-icon editdata" data-id=' . $row->id . ' data-url=' . url('session-years') . ' title="Edit" data-toggle="modal" data-target="#editModal"><i class="fa fa-edit"></i></a>&nbsp;&nbsp;';
+                if ($row->id != $default_session_year && $row->end_date >= date('Y-m-d')) {
+                    $operate .= '<a class="btn btn-xs btn-gradient-success btn-rounded btn-icon make-current-session-year" data-url="' . url('session-years/' . $row->id . '/make-current') . '" data-name="' . e($row->name) . '" title="' . e(trans('make_current_session_year')) . '"><i class="fa fa-check"></i></a>&nbsp;&nbsp;';
+                }
             }
             if ($canDelete && $row->id != $default_session_year) {
                 $relatedData = [];
@@ -458,6 +494,9 @@ class SessionYearController extends Controller
              * Cascade deletion handled in model
              */
             $installment->delete();
+            if (! InstallmentFee::where('session_year_id', $installment->session_year_id)->exists()) {
+                SessionYear::where('id', $installment->session_year_id)->update(['include_fee_installments' => 0]);
+            }
 
             return response()->json([
                 'error'   => false,

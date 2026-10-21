@@ -353,19 +353,19 @@ class ResultController extends Controller
 
                 if (isset($_GET['search']) && ! empty($_GET['search'])) {
                     $search = $_GET['search'];
-                    $sql = $sql->where('id', 'LIKE', "%$search%")
+                    $sql = $sql->where(fn ($query) => $query->where('id', 'LIKE', "%$search%")
                         ->orwhere('total_marks', 'LIKE', "%$search%")
                         ->orwhere('grade', 'LIKE', "%$search%")
                         ->orwhere('obtained_marks', 'LIKE', "%$search%")
                         ->orwhere('percentage', 'LIKE', "%$search%")
-                        ->orwhere('created_at', 'LIKE', '%'.date('Y-m-d H:i:s', strtotime($search)).'%')
-                        ->orwhere('updated_at', 'LIKE', '%'.date('Y-m-d H:i:s', strtotime($search)).'%')
+                        ->orwhere('created_at', 'LIKE', '%'.convertDateFormat($search).'%')
+                        ->orwhere('updated_at', 'LIKE', '%'.convertDateFormat($search).'%')
                         ->orWhereHas('student.user', function ($q) use ($search) {
                             $q->where('first_name', 'LIKE', "%$search%")->orWhere('last_name', 'LIKE', "%$search%");
                         })->where('exam_id', $request->exam_id)
                         ->orWhereHas('session_year', function ($q) use ($search) {
                             $q->where('name', 'LIKE', "%$search%");
-                        });
+                        }));
                 }
                 $total = $sql->count();
 

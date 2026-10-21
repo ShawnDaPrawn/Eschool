@@ -440,18 +440,18 @@ class TeacherController extends Controller
         $sql = Teacher::with('user');
         if (isset($_GET['search']) && ! empty($_GET['search'])) {
             $search = $_GET['search'];
-            $sql->where('id', 'LIKE', "%$search%")
+            $sql->where(fn ($query) => $query->where('id', 'LIKE', "%$search%")
                 ->orwhere('user_id', 'LIKE', "%$search%")
                 ->orWhereHas('user', function ($q) use ($search) {
                     $q->where('first_name', 'LIKE', "%$search%")
                         ->orwhere('last_name', 'LIKE', "%$search%")
                         ->orwhere('gender', 'LIKE', "%$search%")
                         ->orwhere('email', 'LIKE', "%$search%")
-                        ->orwhere('dob', 'LIKE', '%'.date('Y-m-d', strtotime($search)).'%')
+                        ->orwhere('dob', 'LIKE', '%'.convertDateFormat($search, 'Y-m-d').'%')
                         ->orwhere('qualification', 'LIKE', "%$search%")
                         ->orwhere('current_address', 'LIKE', "%$search%")
                         ->orwhere('permanent_address', 'LIKE', "%$search%");
-                });
+                }));
         }
         $total = $sql->count();
 

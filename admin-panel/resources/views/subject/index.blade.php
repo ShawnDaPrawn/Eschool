@@ -19,6 +19,7 @@
                         <h4 class="card-title">
                             {{ __('create') . ' ' . __('subject') }}
                         </h4>
+                        <x-setup-needed :missing="['medium' => $mediums->isEmpty() ? url('medium') : null]" />
                         <form class="pt-3 subject-create-form" id="create-form" action="{{ route('subject.store') }}"
                             method="POST" novalidate="novalidate" enctype="multipart/form-data">
                             <div class="form-group">

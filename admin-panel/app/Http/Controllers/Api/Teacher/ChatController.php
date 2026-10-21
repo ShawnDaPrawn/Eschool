@@ -179,7 +179,7 @@ class ChatController extends Controller
                                     $query->where('modal_id', $teacher->user->id)
                                         ->where('sender_id', $parent->user_id);
                                 })
-                                ->select('body', 'date')
+                                ->select('id', 'body', 'date')
                                 ->latest()
                                 ->first();
 
@@ -223,7 +223,9 @@ class ChatController extends Controller
                         })->where('class_section_id', $subject_teacher->class_section_id)->get();
                     $parents_id = [];
 
-                    $parents_id = $students->groupBy(['father_id', 'mother_id', 'guardian_id'])->keys()->all();
+                    // Every father, mother and guardian (groupBy()->keys() only gave the fathers).
+                    $parents_id = $students->flatMap(fn ($student) => [$student->father_id, $student->mother_id, $student->guardian_id])
+                        ->filter()->unique()->values()->all();
 
                     $common_parents_ids = array_intersect($parents_ids, $parents_id);
 
@@ -337,7 +339,7 @@ class ChatController extends Controller
                                         $query->where('modal_id', $teacher->user->id)
                                             ->where('sender_id', $parent->user_id);
                                     })
-                                    ->select('body', 'date')
+                                    ->select('id', 'body', 'date')
                                     ->latest()
                                     ->first();
 

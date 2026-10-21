@@ -165,7 +165,7 @@ A few endpoints build their own JSON and do not include every field:
 | --- | --- |
 | `GET /api/get-gallery-albums`, `GET /api/get-gallery-videos` | `{"error": false, "data": {"data": [...], "current_page": n, "last_page": n}}` (no `message`/`code`) |
 | `GET /api/get-gallery-images` | `{"error": false, "data": ["<absolute url>", ...]}` |
-| `POST /api/get-events-details` | `{"error": false, "message": "Events Details Fetched Successfully", "data": [...], "code": 200}` |
+| `GET` or `POST /api/get-events-details` | `{"error": false, "message": "Events Details Fetched Successfully", "data": [...], "code": 200}` |
 | Session middleware | `{"message": "...", "code": "SESSION_NOT_ACTIVE"}` (no `error` key) with HTTP 401 |
 
 ## Error codes
@@ -325,13 +325,13 @@ Secret keys and webhook secrets are never included. Until commit `839c9eb` this 
 
 | Method and path | Params | Returns |
 | --- | --- | --- |
-| `GET /api/holidays` | none | every `holidays` row (all session years) |
+| `GET /api/holidays` | none | the current session year's `holidays` rows, by date |
 | `GET /api/sliders` | none | `sliders` rows with `type` 1 (app) or 3 (both) |
 | `GET /api/current-session-year` | none | the `session_years` row named by the `session_year` setting |
 | `GET /api/get-session-year` | none | all session years except id 0, newest first |
 | `GET /api/get-semesters` | none | semesters of the current session year, by `start_date` |
 | `GET /api/get-events-list` | none | events of the current session year (`id`, `title`, `type`, `start_date`, `end_date`, `start_time`, `end_time`, `image`, `description`, `has_day_schedule`) followed by each per-day schedule row (`id`, `event_id`, `title`, `date`, `start_time`, `end_time`, `description`, `has_day_schedule: 0`) |
-| `POST /api/get-events-details` | `event_id` (required, integer) | the `multiple_events` rows of that event |
+| `GET` or `POST /api/get-events-details` | `event_id` (required, integer) | the `multiple_events` rows of that event. Both apps use `GET`; the route accepted only `POST` until `c38b7da`. |
 | `GET /api/get-gallery-albums` | `per_page`, `page` | albums (`id`, `title`, `thumbnail_url`) |
 | `GET /api/get-gallery-images` | `album_id` (required) | absolute URLs of the album's images |
 | `GET /api/get-gallery-videos` | `per_page`, `page` | video URLs (YouTube URL, or an absolute local URL) |
@@ -524,7 +524,7 @@ Controller names are shortened: `Api` = `ApiController`, `Student\Area`, `Parent
 | GET | `settings` | `Api@getSettings` | none |
 | POST | `forgot-password` | `Api@forgotPassword` | `throttle:login` |
 | GET | `get-events-list` | `Api@getEvents` | none |
-| POST | `get-events-details` | `Api@getEventsDetails` | none |
+| GET, POST | `get-events-details` | `Api@getEventsDetails` | none |
 | GET | `get-session-year` | `Api@getSessionYear` | none |
 | GET | `get-semesters` | `Api@getSemesters` | none |
 | GET | `get-gallery-albums` | `Api@getGalleryAlbums` | none |
@@ -532,11 +532,11 @@ Controller names are shortened: `Api` = `ApiController`, `Student\Area`, `Parent
 | GET | `get-gallery-videos` | `Api@getGalleryVideos` | none |
 | POST | `change-password` | `Api@changePassword` | `auth:sanctum` |
 
-Several "read" endpoints are `POST` (`get-user-message`, `get-leave-list`, `get-events-details`, `get-payment-status`, `get-student-leave-list`) and one `GET` writes data (`student/send-fee-notification`); keep the method as listed.
+Several "read" endpoints are `POST` (`get-user-message`, `get-leave-list`, `get-payment-status`, `get-student-leave-list`) and one `GET` writes data (`student/send-fee-notification`); keep the method as listed. `get-events-details` accepts both `GET` and `POST` (`Route::match`).
 
 ## Gotchas
 
-- **Send `Accept: application/json` when testing.** Without it (or with `Accept: */*`) a missing, invalid or expired token is answered by HTTP 302 to `/login` (`App\Http\Middleware\Authenticate::redirectTo`) instead of HTTP 401 `{"message":"Unauthenticated."}`, and role failures render an HTML 403 page. The shipped apps do not send this header (`Api.headers()` returns only `Authorization`), so their "log out on 401" branch fires for the session-check middleware (which always returns JSON 401) but not for an expired token.
+- **API errors are always JSON.** `bootstrap/app.php` renders exceptions as JSON for `api/*` (`shouldRenderJsonWhen`), and `Authenticate::redirectTo` never redirects an API request, so a missing, invalid or expired token gets HTTP 401 `{"message":"Unauthenticated."}` with or without `Accept: application/json` (the apps' "log out on 401" branch depends on it). Both apps now also send `Accept: application/json`.
 - **Check `error`, not the HTTP status.** Business errors come back with HTTP 200.
 - **`code: null` is normal** for validation errors because `config/constants.php` is missing.
 - **No current session year, no API.** Most endpoints, including the public `settings`, read the `session_year` setting and the matching `session_years` row; if it is missing they fail with `error_occurred` (code `103`), and student/parent logins are refused until students are promoted into the current session (see [Academic-Structure](Academic-Structure)).

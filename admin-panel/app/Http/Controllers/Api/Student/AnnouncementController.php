@@ -67,7 +67,13 @@ class AnnouncementController extends Controller
             }
 
             if (isset($request->type) && $request->type == 'noticeboard') {
-                $data = $data->where('table_type', '');
+                // The app's notice board: school-wide notices plus those for the
+                // student's class and class section (the app has no other list for them).
+                $data = $data->where(function ($query) use ($class_id, $student_class_section_id) {
+                    $query->where('table_type', '')
+                        ->orWhere(fn ($q) => $q->where('table_type', "App\Models\ClassSchool")->where('table_id', $class_id))
+                        ->orWhere(fn ($q) => $q->where('table_type', "App\Models\ClassSection")->where('table_id', $student_class_section_id));
+                });
             }
 
             if (isset($request->type) && $request->type == 'class') {

@@ -6,6 +6,7 @@ namespace App\Http\Controllers\Fees;
 
 use App\Http\Controllers\Controller;
 use App\Models\Settings;
+use App\Services\Payment\RazorpayPayment;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
@@ -40,31 +41,41 @@ class ConfigController extends Controller
 
             return redirect(route('home'))->withErrors($response);
         }
+        // An enabled gateway's currency is sent to it as an ISO 4217 code; Razorpay's amount
+        // conversion only knows the codes it lists, and failed on anything else when a parent paid.
+        $currency = 'regex:/^[A-Za-z]{3}$/';
+        $razorpayCurrency = function (string $attribute, $value, \Closure $fail) {
+            try {
+                RazorpayPayment::amountInSubunits((string) $value, 1);
+            } catch (\UnhandledMatchError) {
+                $fail(trans('currency_not_supported_by_razorpay'));
+            }
+        };
         $validator = Validator::make($request->all(), [
             'razorpay_status' => 'required',
             'razorpay_secret_key' => 'required_if:razorpay_status,1|nullable',
             'razorpay_api_key' => 'required_if:razorpay_status,1|nullable',
             'razorpay_webhook_secret' => 'required_if:razorpay_status,1|nullable',
             'razorpay_webhook_url' => 'required_if:razorpay_status,1|nullable',
-            'razorpay_currency_code' => 'required_if:razorpay_status,1|nullable',
+            'razorpay_currency_code' => ['exclude_unless:razorpay_status,1', 'required', $currency, $razorpayCurrency],
             'stripe_status' => 'required',
             'stripe_publishable_key' => 'required_if:stripe_status,1|nullable',
             'stripe_secret_key' => 'required_if:stripe_status,1|nullable',
             'stripe_webhook_secret' => 'required_if:stripe_status,1|nullable',
             'stripe_webhook_url' => 'required_if:stripe_status,1|nullable',
-            'stripe_currency_code' => 'required_if:stripe_status,1|nullable',
+            'stripe_currency_code' => ['exclude_unless:stripe_status,1', 'required', $currency],
             'paystack_status' => 'required',
             'paystack_public_key' => 'required_if:paystack_status,1|nullable',
             'paystack_secret_key' => 'required_if:paystack_status,1|nullable',
             'paystack_webhook_url' => 'required_if:paystack_status,1|nullable',
-            'paystack_currency_code' => 'required_if:paystack_status,1|nullable',
+            'paystack_currency_code' => ['exclude_unless:paystack_status,1', 'required', $currency],
             'flutterwave_status' => 'required',
             'flutterwave_public_key' => 'required_if:flutterwave_status,1|nullable',
             'flutterwave_secret_key' => 'required_if:flutterwave_status,1|nullable',
             // Webhooks are refused without it, so payments would never be confirmed.
             'flutterwave_hash_key' => 'required_if:flutterwave_status,1|nullable',
             'flutterwave_webhook_url' => 'required_if:flutterwave_status,1|nullable',
-            'flutterwave_currency_code' => 'required_if:flutterwave_status,1|nullable',
+            'flutterwave_currency_code' => ['exclude_unless:flutterwave_status,1', 'required', $currency],
             'currency_code' => 'required',
             'currency_symbol' => 'required',
             'compulsory_fee_payment_mode' => 'required',

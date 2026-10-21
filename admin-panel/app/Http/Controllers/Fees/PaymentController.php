@@ -51,6 +51,7 @@ class PaymentController extends Controller
         $session_year_id = $request->input('session_year_id');
 
         try {
+            DB::beginTransaction();
             $date = date('Y-m-d H:i:s', strtotime($request->date));
 
             // Resolve the parent for the payment records. father_id/guardian_id are plain nullable
@@ -139,6 +140,8 @@ class PaymentController extends Controller
                 $user_notification->save();
             }
 
+            // Saved before the push, so a push failure can't undo the payment.
+            DB::commit();
             sendSimpleNotification($user, 'Payment Success', $body, $type, $image, $userinfo);
 
             $response = [
@@ -146,6 +149,8 @@ class PaymentController extends Controller
                 'message' => trans('data_store_successfully'),
             ];
         } catch (\Throwable $e) {
+            DB::rollBack();
+            report($e);
             $response = [
                 'error' => true,
                 'message' => trans('error_occurred'),
@@ -257,6 +262,8 @@ class PaymentController extends Controller
         $session_year_id = $request->input('session_year_id');
 
         try {
+            // The catch below rolls back: the transaction, paid rows and notification go together.
+            DB::beginTransaction();
             $date = date('Y-m-d H:i:s', strtotime($request->date));
 
             // // Enforce sequential installment payment: earlier installments must be paid first
@@ -397,6 +404,8 @@ class PaymentController extends Controller
                 $user_notification->save();
             }
 
+            // Saved before the push, so a push failure can't undo the payment.
+            DB::commit();
             sendSimpleNotification($user, 'Payment Success', $body, $type, $image, $userinfo);
 
             $response = [

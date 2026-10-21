@@ -170,15 +170,16 @@ class ExamTimetableController extends Controller
 
         if (isset($_GET['search']) && !empty($_GET['search'])) {
             $search = $_GET['search'];
-            $sql->whereHas('class_timetable', function ($q) use ($search) {
+            // Grouped, so a search can't step outside the session year and the exam/class filters.
+            $sql->where(fn ($query) => $query->whereHas('class_timetable', function ($q) use ($search) {
                 $q->where('id', 'LIKE', "%$search%")
                     ->orWhere('total_marks', 'LIKE', "%$search%")
                     ->orWhere('passing_marks', 'LIKE', "%$search%")
                     ->orWhere('start_time', 'LIKE', "%$search%")
                     ->orWhere('end_time', 'LIKE', "%$search%")
                     ->orWhere('date', 'LIKE', "%$search%")
-                    ->orWhere('created_at', 'LIKE', "%" . date('Y-m-d H:i:s', strtotime($search)) . "%")
-                    ->orWhere('updated_at', 'LIKE', "%" . date('Y-m-d H:i:s', strtotime($search)) . "%");
+                    ->orWhere('created_at', 'LIKE', "%" . convertDateFormat($search) . "%")
+                    ->orWhere('updated_at', 'LIKE', "%" . convertDateFormat($search) . "%");
             })->orWhereHas('exam', function ($q) use ($search) {
                 $q->where('name', 'LIKE', "%$search%");
             })->orWhereHas('class', function ($q) use ($search) {
@@ -187,7 +188,7 @@ class ExamTimetableController extends Controller
                 $q->where('name', 'LIKE', "%$search%");
             })->orWhereHas('exam.session_year', function ($q) use ($search) {
                 $q->where('name', 'LIKE', "%$search%");
-            });
+            }));
         }
         if (isset($_GET['exam_id']) && $_GET['exam_id'] != null) {
             $sql->where('exam_id', $_GET['exam_id']);

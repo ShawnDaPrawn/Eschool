@@ -13,6 +13,9 @@ class ChatMessage extends Model
 {
     use HasFactory;
 
+    /** The apps read attachments as `files` (URLs), e.g. in a chat's last-message preview. */
+    protected $appends = ['files'];
+
     public function modal()
     {
         return $this->morphTo();
@@ -21,6 +24,15 @@ class ChatMessage extends Model
     public function file()
     {
         return $this->hasMany(ChatFile::class, 'message_id','id');
+    }
+
+    public function getFilesAttribute(): array
+    {
+        if (! $this->relationLoaded('file')) {
+            return [];
+        }
+
+        return $this->file->map(fn ($file) => asset('storage/' . $file->file_name))->values()->all();
     }
 
     public function getFileUrlAttribute($value)

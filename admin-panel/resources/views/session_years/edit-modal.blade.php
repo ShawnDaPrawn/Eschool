@@ -58,7 +58,7 @@
                             <div class="form-group col-md-3">
                                 <label>{{ __('fees') }} {{ __('due_charges') }} <span class="text-danger">*</span>
                                     <span class="text-info small">( {{ __('in_percentage_%') }} )</span></label>
-                                <input type="number" min="1" max="100" name="fees_due_charges"
+                                <input type="number" min="0" max="100" name="fees_due_charges"
                                     class="form-control" id="fees_due_charges"
                                     placeholder="{{ __('fees') }} {{ __('due_charges') }}" required>
                                 </span>

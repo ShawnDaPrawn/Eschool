@@ -145,7 +145,7 @@ class MediumController extends Controller
         $sql = Mediums::where('id', '!=', 0);
         if (isset($_GET['search']) && !empty($_GET['search'])) {
             $search = $_GET['search'];
-            $sql->where('id', 'LIKE', "%$search%")->orwhere('name', 'LIKE', "%$search%");
+            $sql->where(fn ($query) => $query->where('id', 'LIKE', "%$search%")->orwhere('name', 'LIKE', "%$search%"));
         }
         $total = $sql->count();
 

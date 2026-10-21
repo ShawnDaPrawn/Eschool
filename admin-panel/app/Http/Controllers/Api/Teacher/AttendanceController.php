@@ -15,6 +15,7 @@ use App\Models\Parents;
 use App\Models\StaffAttendance;
 use App\Models\Students;
 use App\Models\UserNotification;
+use App\Services\AbsenceAlertService;
 use App\Services\ResponseService;
 use Carbon\Carbon;
 use Exception;
@@ -275,12 +276,14 @@ class AttendanceController extends Controller
                 });
 
                 $studentUserId = $studentUserIds[$attendance['student_id']] ?? null;
+                // Parents hear about an absence once, not on every re-submission.
+                $wasAbsent = $studentAttendance && (int) $studentAttendance->type === Attendance::TYPE_ABSENT;
 
                 if ($request->holiday != '' && $request->holiday == 3) {
                     $type = $request->holiday;
                 } elseif ($studentUserId !== null && isset($leaveTypeByUserId[$studentUserId])) {
                     $type = Attendance::leaveTypeToType($leaveTypeByUserId[$studentUserId]);
-                    if ($type == 0) {
+                    if ($type == 0 && ! $wasAbsent) {
                         $absent_student_ids[] = $attendance['student_id'];
                     }
                 } else {
@@ -292,7 +295,7 @@ class AttendanceController extends Controller
                         3 => Attendance::TYPE_SECOND_HALF,
                         default => (int) $attendance['type'],
                     };
-                    if ($type == Attendance::TYPE_ABSENT) {
+                    if ($type == Attendance::TYPE_ABSENT && ! $wasAbsent) {
                         $absent_student_ids[] = $attendance['student_id'];
                     }
                 }
@@ -308,44 +311,9 @@ class AttendanceController extends Controller
             }
             Attendance::upsert($attendanceData, ['id'], ['class_section_id', 'student_id', 'session_year_id', 'date', 'type', 'status']);
             // Send Notification to parents
-            if (! empty($absent_student_ids)) {
-                $student = Students::with('user')->whereIn('id', $absent_student_ids)->get();
-                foreach ($student as $student) {
-                    $user = Parents::where('id', $student->father_id)->orwhere('id', $student->mother_id)->pluck('user_id');
-                    $title = 'Attendance Alert';
-                    $body = $student->user->first_name.' '.$student->user->last_name.' '.'is Absent on'.' '.date('d-m-Y', strtotime($date));
-                    $type = 'attendance';
-                    $image = null;
-                    $userinfo = null;
-
-                    $notification = new Notification;
-                    $notification->send_to = 3;
-                    $notification->session_year_id = $session_year_id;
-                    $notification->title = $title;
-                    $notification->message = $body;
-                    $notification->type = $type;
-                    $notification->date = Carbon::now();
-                    $notification->is_custom = 0;
-                    $notification->save();
-
-                    // Prepare data for batch insert
-                    $userNotificationData = [];
-                    foreach ($user as $data) {
-                        $userNotificationData[] = [
-                            'notification_id' => $notification->id,
-                            'user_id' => $data,
-                            'created_at' => now(),
-                            'updated_at' => now(),
-                        ];
-
-                        sendSimpleNotification($user, $title, $body, $type, $image, $userinfo);
-                    }
-                }
-                // Batch insert all user notifications
-                if (! empty($userNotificationData)) {
-                    UserNotification::insert($userNotificationData);
-                }
-            }
+            // One alert per absent student, to each of their parents and guardian
+            // (it used to save only the last student's and skip guardians).
+            app(AbsenceAlertService::class)->notify($absent_student_ids ?? [], $date, (int) $session_year_id);
             ResponseService::successResponse('data_store_successfully');
         } catch (Exception $e) {
             ResponseService::errorResponse('error_occurred', null, 103, $e);

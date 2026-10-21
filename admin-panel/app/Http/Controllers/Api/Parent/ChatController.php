@@ -158,7 +158,7 @@ class ChatController extends Controller
                     ];
                 }
 
-                $lastMessage = ChatMessage::where(function ($query) use ($user, $teacher) {
+                $lastMessage = ChatMessage::with('file')->where(function ($query) use ($user, $teacher) {
                     $query->where('modal_id', $teacher->user->id)
                         ->where('sender_id', $user->id);
                 })
@@ -566,7 +566,7 @@ class ChatController extends Controller
         }
 
         $session_year_id = getSettings('session_year')['session_year'];
-        $currentSemester = Semester::get()->first(fn ($semester) => $semester->current);
+        $currentSemester = Semester::where('session_year_id', $session_year_id)->get()->first(fn ($semester) => $semester->current);
         $teacherIds = $this->chatTeacherScope($parent, $session_year_id, $currentSemester)['teacher_ids'];
 
         return Teacher::whereIn('id', $teacherIds)->pluck('user_id')->map(fn ($id) => (int) $id)->all();

@@ -145,25 +145,3 @@
         </div>
     </div>
 @endsection
-@section('script')
-    <script>
-        document.getElementById('edit-event').addEventListener('submit', function(event) {
-            const startDate = new Date(document.getElementById('start_date').value);
-            const endDate = new Date(document.getElementById('end_date').value);
-            let isValid = true;
-            document.querySelectorAll('input[name^="edit_events"][name$="[date]"]').forEach(function(dateField) {
-                const eventDate = new Date(dateField.value);
-                if (eventDate < startDate || eventDate > endDate) {
-                    isValid = false;
-                    alert(
-                        `Date ${dateField.value} is not between ${startDate.toDateString()} and ${endDate.toDateString()}`
-                    );
-                }
-            });
-
-            if (!isValid) {
-                event.preventDefault(); // Prevent form submission if any date is invalid
-            }
-        });
-    </script>
-@endsection

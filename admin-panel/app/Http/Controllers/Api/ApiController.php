@@ -43,12 +43,12 @@ class ApiController extends Controller
     }
 
     /**
-     * Get all holidays.
+     * Get the current session year's holidays, like the events list.
      */
     public function getHolidays()
     {
         try {
-            $data = Holiday::all();
+            $data = Holiday::where('session_year_id', getSettings('session_year')['session_year'])->orderBy('date')->get();
             ResponseService::successResponse('Holidays Fetched Successfully.', $data);
         } catch (Throwable $e) {
             ResponseService::errorResponse('error_occurred', null, 103, $e);

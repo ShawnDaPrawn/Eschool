@@ -83,5 +83,7 @@ return Application::configure(basePath: dirname(__DIR__))
         \dacoto\LaravelWizardInstaller\LaravelWizardInstallerServiceProvider::class,
     ])
     ->withExceptions(function (Exceptions $exceptions): void {
-        //
+        // The apps don't send Accept: application/json. Without this an expired token
+        // got a redirect to the login page instead of the 401 that signs the app out.
+        $exceptions->shouldRenderJsonWhen(fn ($request) => $request->is('api/*') || $request->expectsJson());
     })->create();

@@ -304,8 +304,16 @@ class FeesController extends Controller
                 $currency_symbol = null;
             }
 
-            // Getting the Fees Paid Data
-            $fees_paid = FeesPaid::where('student_id', $student->id)->with('student.user:id,first_name,last_name', 'class', 'session_year')->get()->first();
+            // The receipt the app asked for (fees_paid_id), else this session year's latest.
+            // It used to be the student's first fees_paids row from any year.
+            $fees_paid = FeesPaid::where('student_id', $student->id)
+                ->when(
+                    $request->filled('fees_paid_id'),
+                    fn ($q) => $q->whereKey((int) $request->fees_paid_id),
+                    fn ($q) => $q->orderByRaw('session_year_id = ? desc', [getSettings('session_year')['session_year'] ?? 0])->latest('id')
+                )
+                ->with('student.user:id,first_name,last_name', 'class', 'session_year')
+                ->first();
 
             // Check That Fees Paid Data Exists Or Not
             if (! $fees_paid) {

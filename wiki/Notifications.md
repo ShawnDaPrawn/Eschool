@@ -59,7 +59,7 @@ The `title` and `message` columns are 128 characters and the MySQL connection is
 | `GET /api/parent/get-notification` | `Parent\NotificationController::getNotifications` |
 | `GET /api/teacher/get-notification` | `Teacher\NotificationController::getNotifications` |
 
-All three return `Notification` rows of the current session year (`session_year` setting) where the id is in the user's `user_notifications` **or** `send_to` is 1 or 4, newest first, Laravel-paginated (15 per page, `?page=`). Because the admin panel's absence alert is stored with `send_to = 4`, those alerts appear in every user's list, not only the parents'. Notifications without `user_notifications` rows and with another `send_to` (for example the fee reminder below) never appear in any list.
+All three return `Notification` rows of the current session year (`session_year` setting) where the id is in the user's `user_notifications` **or** `send_to` is 1 or 4, newest first, Laravel-paginated (15 per page, `?page=`). Notifications without `user_notifications` rows and with another `send_to` (for example the fee reminder below) never appear in any list.
 
 ## What triggers a notification
 
@@ -68,15 +68,14 @@ All three return `Notification` rows of the current session year (`session_year`
 | Event | Where | Recipients | Stored | Push `type` |
 |---|---|---|---|---|
 | Custom notification, "All Users" chosen | `NotificationController::store` | Topics `allAndroid`, `allIOS` | `send_to` 1, `is_custom` 1, no user rows | `custom` |
-| Custom notification, specific users | `NotificationController::store` | The selected users | `send_to` 2, `is_custom` 1, user rows | none: the `sendSimpleNotification()` call is commented out, so they only see it in the in-app list |
+| Custom notification, specific users | `NotificationController::store` | The selected users | `send_to` 2, `is_custom` 1, user rows | `custom` |
 | Announcement (admin panel, "noticeboard") | `AnnouncementController::store` / `update` | Every student user (`Students::select('user_id')`) | none | the `set_data` value (`noticeboard`) |
 | Announcement (admin panel, teacher, class section) | `AnnouncementController::store` / `update` | Students of the class section | none | `class_section` |
 | Announcement (teacher app) | `Teacher\AnnouncementController::sendAnnouncement` / `updateAnnouncement` | Students of the class section | none | `class_section` |
 | New / updated assignment | `AssignmentController::store` / `update`, `Teacher\AssignmentController::createAssignment` / `updateAssignment` | Students of the class section (for a new assignment in an elective subject, only those who chose it) | `send_to` 3, user rows | `assignment` |
 | Assignment submission accepted / rejected | `AssignmentController::updateAssignmentSubmission`, `Teacher\AssignmentController::updateAssignmentSubmission` | The student | `send_to` 3, user rows | `assignment` |
 | Assignment submitted | `Student\AssignmentController::submitAssignment` | Subject teachers of that subject and class section | `send_to` 2, user rows | `assignment_submission` |
-| Student marked absent (admin panel) | `AttendanceController::store` | Father, mother and guardian users; only when the record changes to absent | `send_to` 4, user rows | `attendance` |
-| Student marked absent (teacher app) | `Teacher\AttendanceController::submitAttendance` | Father and mother users | `send_to` 3, user rows | `attendance` |
+| Student marked absent (admin panel, attendance sheet upload or teacher app) | `AttendanceController::store`, `AttendanceImport`, `Teacher\AttendanceController::submitAttendance`, all through `AbsenceAlertService::notify()` | Father, mother and guardian users of each student newly marked absent (not again when the day is saved again) | `send_to` 2, user rows | `attendance` |
 | Student leave applied | `Student\LeaveController::applyLeave`, `Parent\LeaveController::applyLeave` | Class teachers of the student's class section | `send_to` 3, user rows | `leave` |
 | Student leave approved / rejected | `Leave\StudentLeaveController::studentLeaveStatusUpdate`, `Teacher\LeaveController::studentLeaveStatusUpdate` | The student's parents | `send_to` 3, user rows | `leave` |
 | Chat message | `sendMessage` in the three API controllers | The receiver | none | `chat` (with `sender_info`) |
@@ -89,7 +88,6 @@ Exams, online exams, results, events, holidays and timetables send no notificati
 
 Notes on specific triggers, as written:
 
-- `Teacher\AttendanceController::submitAttendance` calls `sendSimpleNotification()` inside the loop over a student's parents, passing all of them each time, so each parent can get the same push more than once; and it resets `$userNotificationData` per student, so only the last absent student's `user_notifications` rows are inserted.
 - Payment pushes from the webhook are wrapped in `try`/`catch` so a failed push never undoes the payment. Other callers are inside the controller's general `try`, so an FCM exception there becomes an `error_occurred` response even though the data was saved (`compulsoryFeesPaidStore` special-cases this with "Data Stored successfully. But App push notification not send.").
 
 ## Custom notifications (admin panel)

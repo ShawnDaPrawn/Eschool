@@ -211,7 +211,7 @@ class ParentsController extends Controller
                 $user = $parents->user;
                 $user->first_name = $request->first_name;
                 $user->last_name = $request->last_name;
-                $user->gender = $request->gender;
+                $user->gender = ucfirst((string) $request->gender);
                 $user->current_address = $request->current_address;
                 $user->permanent_address = $request->permanent_address;
                 $user->email = $request->email;
@@ -222,7 +222,8 @@ class ParentsController extends Controller
             }
             $parents->first_name = $request->first_name;
             $parents->last_name = $request->last_name;
-            $parents->gender = $request->gender;
+            // Parents are stored as Male/Female everywhere else; the form sends lower case.
+            $parents->gender = ucfirst((string) $request->gender);
             $parents->email = $request->email;
             $parents->mobile = $request->mobile;
             $parents->dob = date('Y-m-d', strtotime($request->dob));

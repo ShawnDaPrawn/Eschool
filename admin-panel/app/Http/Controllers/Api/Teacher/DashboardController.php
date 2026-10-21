@@ -65,8 +65,10 @@ class DashboardController extends Controller
                 ->where('session_year_id', $session_year_id)
                 ->with('leave_detail', 'user.student.class_section', 'file');
 
-            // Apply teacher access filters
+            // Apply teacher access filters. Start from "none": an empty group would be
+            // dropped and show a teacher with no class every pending leave in the school.
             $student_leave_request->where(function ($mainQuery) use ($classTeacherAssignments) {
+                $mainQuery->whereRaw('1 = 0');
                 foreach ($classTeacherAssignments as $assignment) {
                     // FULL SESSION ACCESS (No semester)
                     if (! $assignment->semester_id) {

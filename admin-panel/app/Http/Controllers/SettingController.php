@@ -2,12 +2,12 @@
 
 namespace App\Http\Controllers;
 
-use App\Actions\ResetLessonSemesters;
 use App\Models\SessionYear;
 use App\Models\Settings;
 use App\Models\Language;
 use App\Services\ChatMessageCleanupService;
 use App\Services\MailService;
+use App\Services\SessionYearService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
@@ -100,21 +100,7 @@ class SettingController extends Controller
             foreach ($settings as $row) {
                 if (Settings::where('type', $row)->exists()) {
                     if ($row == 'session_year') {
-                        $get_id = Settings::select('message')->where('type', 'session_year')->pluck('message')->first();
-
-                        $old_year = SessionYear::find($get_id);
-                        if (! empty($old_year)) {
-                            $old_year->default = 0;
-                            $old_year->save();
-                        }
-
-                        $session_year = SessionYear::find($request->$row);
-                        $session_year->default = 1;
-                        $session_year->save();
-
-                        if ($get_id != $request->$row) {
-                            (new ResetLessonSemesters)->execute();
-                        }
+                        app(SessionYearService::class)->makeCurrent(SessionYear::findOrFail($request->$row));
                     }
 
                     // removing the double unnecessary double quotes in school name
@@ -712,10 +698,11 @@ class SettingController extends Controller
             return redirect(route('home'))->withErrors($response);
         }
         $request->validate([
-            'max_files_or_images_in_one_message' => 'required',
-            'max_file_size_in_bytes' => 'required',
-            'max_characters_in_text_message' => 'required',
-            'automatically_messages_removed_days' => 'required',
+            'max_files_or_images_in_one_message' => 'required|integer|min:1',
+            // In MB, despite the name (the API converts it to bytes for the apps).
+            'max_file_size_in_bytes' => 'required|numeric|min:0.1',
+            'max_characters_in_text_message' => 'required|integer|min:1',
+            'automatically_messages_removed_days' => 'required|integer|min:1',
         ]);
         $settings = ['max_files_or_images_in_one_message', 'max_file_size_in_bytes', 'max_characters_in_text_message', 'automatically_messages_removed_days'];
         try {

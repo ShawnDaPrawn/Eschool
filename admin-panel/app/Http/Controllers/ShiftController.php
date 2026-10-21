@@ -6,6 +6,7 @@ namespace App\Http\Controllers;
 
 use App\Services\ResponseService;
 use App\Models\Shift;
+use App\Rules\PlainName;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
@@ -56,7 +57,7 @@ class ShiftController extends Controller
             return response()->json($response);
         }
         $validator = Validator::make($request->all(), [
-            'name' => 'required|regex:/^[A-Za-z0-9_]+$/',
+            'name' => ['required', new PlainName],
             'start_time' => 'required',
             'end_time'  => 'required|after:start_time',
         ]);
@@ -73,17 +74,17 @@ class ShiftController extends Controller
             $shift->title=$request->name;
             $shift->start_time=$request->start_time;
             $shift->end_time=$request->end_time;
-            $shift->status=$request->status;
+            $shift->status=$request->input('status', 1);
             $shift->save();
             $response = array(
                 'error' => false,
                 'message' => trans('data_store_successfully'),
             );
         } catch (\Throwable $e) {
+            report($e);
             $response = array(
                 'error' => true,
                 'message' => trans('error_occurred'),
-                'data' => $e
             );
         }
 
@@ -123,7 +124,7 @@ class ShiftController extends Controller
         $sql = Shift::where('id','!=',0);
         if (isset($_GET['search']) && !empty($_GET['search'])) {
             $search = $_GET['search'];
-            $sql->where('id', 'LIKE', "%$search%")->orwhere('title', 'LIKE', "%$search%");
+            $sql->where(fn ($query) => $query->where('id', 'LIKE', "%$search%")->orwhere('title', 'LIKE', "%$search%"));
         }
         $total = $sql->count();
 
@@ -184,9 +185,9 @@ class ShiftController extends Controller
             return response()->json($response);
         }
         $validator = Validator::make($request->all(), [
-            'edit_name' => 'required|regex:/^[A-Za-z0-9_]+$/',
+            'edit_name' => ['required', new PlainName],
             'edit_start_time' => 'required',
-            'edit_end_time'  => 'required|after:start_time',
+            'edit_end_time'  => 'required|after:edit_start_time',
         ]);
 
         if ($validator->fails()) {

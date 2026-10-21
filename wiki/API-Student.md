@@ -110,7 +110,7 @@ The token is the top-level `token` key; `code` is 200.
 | `gr_no` | string | yes (matched against `students.admission_no`) |
 | `dob` | date | yes (matched against `users.dob`) |
 
-When both match, the user gets `users.reset_request = 1`. Nothing is emailed: staff see the request in the admin panel's student reset-password list (permission `student-reset-password`), and resetting sets the password to the date of birth in `dmY` format (`Student\PasswordController::change_password`). The response is always `Request Send Successfully`, matched or not (since `839c9eb`), so the endpoint cannot be used to test GR numbers and birth dates.
+When both match, the user gets `users.reset_request = 1`. Nothing is emailed: staff see the request in the admin panel's student reset-password list (permission `student-reset-password`), and resetting sets the password to the stored date of birth in `dmY` format (`Student\PasswordController::change_password`, which only resets student accounts). The response is always `Request Send Successfully`, matched or not (since `839c9eb`), so the endpoint cannot be used to test GR numbers and birth dates.
 
 ### Profile
 
@@ -289,8 +289,8 @@ Announcements of the current session with `file`, newest first:
 
 | `type` | Returned |
 | --- | --- |
-| omitted | noticeboard (`table_type = ''`), the student's class (`App\Models\ClassSchool`), the student's class section (`App\Models\ClassSection`) and the subject-teacher rows of the student's own subjects in their section (`App\Models\SubjectTeacher`). This filter was added in `839c9eb`; before it, every announcement of the session was returned. |
-| `noticeboard` | only `table_type = ''` |
+| omitted | school-wide (`table_type = ''`), the student's class (`App\Models\ClassSchool`), the student's class section (`App\Models\ClassSection`) and the subject-teacher rows of the student's own subjects in their section (`App\Models\SubjectTeacher`). This filter was added in `839c9eb`; before it, every announcement of the session was returned. |
+| `noticeboard` | school-wide (`table_type = ''`) plus the student's class (`App\Models\ClassSchool`) and class section (`App\Models\ClassSection`). Until `c38b7da` only `table_type = ''`, so class and class-section announcements never reached the app's notice board. |
 | `class` | only announcements for the student's class (`ClassSchool`) |
 | `subject` | announcements for the subject-teacher rows of `subject_id` in the student's class section; current semester when the class uses semesters |
 
@@ -308,7 +308,7 @@ Offline (written) exams are set up in the admin panel; see [Exams-and-Grading](E
 | `get_timetable` | 0 or 1 | no | 1 adds `exam_timetable` |
 | `semester_id` | numeric, must exist | no | default: current semester of the session |
 
-Exams assigned to the student's class (`exam_classes`) with at least one paper in the student's subjects (semester-filtered when the class uses semesters). Each item: `id`, `name`, `description`, `publish`, `session_year`, `exam_starting_date`, `exam_ending_date` (min/max paper date for the class), `exam_status` (`"0"` upcoming, `"1"` ongoing, `"2"` completed). With `get_timetable=1`, `exam_timetable` is the exam's full `timetable` relation with `subject`, which is not filtered to the student's class or subjects.
+Exams assigned to the student's class (`exam_classes`) with at least one paper in the student's subjects (semester-filtered when the class uses semesters). Each item: `id`, `name`, `description`, `publish`, `session_year`, `exam_starting_date`, `exam_ending_date` (min/max paper date for the class), `exam_status` (`"0"` upcoming, `"1"` ongoing, `"2"` completed). With `get_timetable=1`, `exam_timetable` is the exam's full `timetable` relation with `subject`, which is not filtered to the student's class or subjects. Each row has `start_time`/`end_time` and the copies `starting_time`/`ending_time` (appended by the `ExamTimetable` model).
 
 ### `GET /api/student/get-exam-details`
 
@@ -557,7 +557,7 @@ Chat is between a student and their teachers only. The allowed teachers (`chatTe
 | `offset` | integer | no | default 0 |
 | `limit` | integer | no | when absent or not positive, all teachers are returned |
 
-`data`: `items`, `total_items`, `total_unread_users`. Each item: `id` (teacher id), `user_id`, `first_name`, `last_name`, `email`, `qualification`, `image`, `mobile_no`, `subjects [{id, name}]`, `last_message` (`id`, `body`, `date`, `file`) and `unread_message`, sorted by the last message date.
+`data`: `items`, `total_items`, `total_unread_users`. Each item: `id` (teacher id), `user_id`, `first_name`, `last_name`, `email`, `qualification`, `image`, `mobile_no`, `subjects [{id, name}]`, `last_message` (`id`, `body`, `date`, `file`, and `files`: the attachments' absolute URLs) and `unread_message`, sorted by the last message date.
 
 ### `POST /api/student/send-message`
 

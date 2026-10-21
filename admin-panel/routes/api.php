@@ -281,7 +281,8 @@ Route::get('current-session-year', [ApiController::class, 'getCurrentSessionYear
 Route::get('settings', [ApiController::class, 'getSettings']);
 Route::post('forgot-password', [ApiController::class, 'forgotPassword'])->middleware('throttle:login');
 Route::get('get-events-list', [ApiController::class, 'getEvents']);
-Route::post('get-events-details', [ApiController::class, 'getEventsDetails']);
+// Both apps ask with GET; POST is kept for any client that already uses it.
+Route::match(['get', 'post'], 'get-events-details', [ApiController::class, 'getEventsDetails']);
 Route::get('get-session-year', [ApiController::class, 'getSessionYear']);
 Route::get('get-semesters', [ApiController::class, 'getSemesters']);
 Route::get('get-gallery-albums', [ApiController::class, 'getGalleryAlbums']);

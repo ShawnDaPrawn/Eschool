@@ -185,7 +185,8 @@
 <script>
     var baseUrl = "{{ URL::to('/') }}";
     const onErrorImage = (e) => {
-        e.target.src = "{{ asset('/storage/no_image_available.jpg') }}";
+        e.target.onerror = null;
+        e.target.src = "{{ asset('assets/no-image.svg') }}";
     };
 </script>
 <!-- bootstrap  -->

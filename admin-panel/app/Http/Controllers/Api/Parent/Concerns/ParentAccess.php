@@ -43,4 +43,16 @@ trait ParentAccess
 
         return $child;
     }
+
+    /**
+     * Ids of the logged-in parent's children.
+     *
+     * @return list<int>
+     */
+    private function parentChildIds(Request $request): array
+    {
+        $parent = $request->user()?->parent;
+
+        return $parent ? $parent->children()->pluck('id')->map(fn ($id) => (int) $id)->all() : [];
+    }
 }

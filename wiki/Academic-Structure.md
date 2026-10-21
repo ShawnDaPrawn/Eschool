@@ -36,17 +36,27 @@ The session year used by the apps, by most admin defaults and by every "current"
 $session_year_id = getSettings('session_year')['session_year'];
 ```
 
-`session_years.default` is a mirror of that setting. Both are written by **General Settings** (`SettingController::update`): saving a different `session_year` sets `default = 0` on the old row and `default = 1` on the new one, and when the value changes it runs [`ResetLessonSemesters`](https://github.com/ShawnDaPrawn/Eschool/blob/main/admin-panel/app/Actions/ResetLessonSemesters.php), which sets `semester_id = NULL` on every lesson.
+`session_years.default` is a mirror of that setting. Both are written by [`SessionYearService::makeCurrent()`](https://github.com/ShawnDaPrawn/Eschool/blob/main/admin-panel/app/Services/SessionYearService.php): it sets `default = 1` on that year and 0 on every other row, saves the `session_year` setting, runs [`ResetLessonSemesters`](https://github.com/ShawnDaPrawn/Eschool/blob/main/admin-panel/app/Actions/ResetLessonSemesters.php) (sets `semester_id = NULL` on every lesson) when the value changes, and points the admin's own year picker (`session('session_year')`, below) at the new year. It is called from:
 
-`SessionYearController::update` also accepts a `default` flag. It refuses an already-ended year, clears `default` on all rows and sets it on the edited one, but it does **not** change the `session_year` setting. Use General Settings to switch the current year so the two stay in step.
+| Where | Notes |
+|---|---|
+| **General Settings** (`SettingController::update`) | The `session_year` field, on every save of the form |
+| **Make current** on the Session Years list: `POST session-years/{id}/make-current` (`SessionYearController::makeCurrent`, route `session-years.make-current`, permission `session-year-edit`) | Shown for years that are not current and have not ended. A year whose `end_date` has passed is refused with `session_year_has_ended`. |
+| **Creating** a session year with `set_as_current = 1` | See [Creating a session year](#creating-a-session-year) |
+
+`SessionYearController::update` also accepts a `default` flag. It refuses an already-ended year, clears `default` on all rows and sets it on the edited one, but it does **not** change the `session_year` setting. Use one of the paths above to switch the current year so the two stay in step.
+
+When the current year's `end_date` has passed, the header shows users with `session-year-create` a banner ("The current session year (...) ended on ...") with a link to the Session Years page.
+
+The installer creates one year, `2022-23` (ended), and makes it current. A new school should create its own year and make it current before assigning class subjects, teachers or students; until then they are saved under 2022-23.
 
 The admin panel also keeps a per-browser "viewing" year: `POST /set-session-year` (`SessionYearController::setSessionYearToSessionStorage`) stores `session('session_year')`. It is read by the dashboard (`HomeController`), by `Exam\ResultController::viewExamResult`, and by `ClassSchool::getIncludeSemestersAttribute()`; most list pages instead take a `session_year_id` filter from the request and fall back to the setting. The mobile apps always use the setting.
 
 ### Creating a session year
 
-`SessionYearController::store` validates with [`StoreSessionYearRequest`](https://github.com/ShawnDaPrawn/Eschool/blob/main/admin-panel/app/Http/Requests/StoreSessionYearRequest.php) (permission `session-year-create`, dates in `d-m-Y`) and hands off to [`SessionYearService::store`](https://github.com/ShawnDaPrawn/Eschool/blob/main/admin-panel/app/Services/SessionYearService.php), all inside one transaction:
+`SessionYearController::store` validates with [`StoreSessionYearRequest`](https://github.com/ShawnDaPrawn/Eschool/blob/main/admin-panel/app/Http/Requests/StoreSessionYearRequest.php) (permission `session-year-create`, dates in `d-m-Y`, `name` unique among non-deleted session years, message `session_year_name_already_exists`) and hands off to [`SessionYearService::store`](https://github.com/ShawnDaPrawn/Eschool/blob/main/admin-panel/app/Services/SessionYearService.php), all inside one transaction:
 
-1. Creates the `session_years` row (`name`, dates, `fee_due_date`, `fee_due_charges`, `free_app_use_date`). The fee due date must fall inside the session dates or a `DomainException` (HTTP 422) is returned.
+1. Creates the `session_years` row (`name`, dates, `fee_due_date`, `fee_due_charges`, `free_app_use_date`, and `include_fee_installments` from `fees_installment`). The fee due date must fall inside the session dates or a `DomainException` (HTTP 422) is returned.
 2. If `fees_installment = 1`, inserts `installment_fees` rows; each due date must be inside the session.
 3. If `semester_data` is sent, inserts `semesters`; each must be inside the session. Otherwise it upserts a `class_session_configs` row with `include_semesters = false` for every class.
 4. Runs the selected transfers from `source_session_year_id` (or the current year if none is given). Each is an action class in [`app/Actions/Transfers`](https://github.com/ShawnDaPrawn/Eschool/tree/main/admin-panel/app/Actions/Transfers) that copies rows with the new `session_year_id`:
@@ -61,9 +71,21 @@ The admin panel also keeps a per-browser "viewing" year: `POST /set-session-year
 | `transfer_class_fee_type` | `TransferClassFeeType` | `fees_classes` |
 | `transfer_leave_settings` | `TransferLeaveSettings` | `leave_masters` |
 
-The copies keep the source rows' `semester_id` values; the semesters themselves are created fresh from `semester_data`. A new session year is never made current automatically.
+5. If the optional `set_as_current` is 1, calls `makeCurrent()` (above). The create modal sends it from the "Make this the current session year" toggle, which is on by default when the current year has ended or there is none.
 
-`SessionYear::$fillable` lists `fees_installment`, but `SessionYearService::store` passes `include_fee_installments`, which is not fillable, so `SessionYear::create()` drops it and the column keeps its default of 0.
+The copies keep the source rows' `semester_id` values; the semesters themselves are created fresh from `semester_data`. Without `set_as_current` the new year does not become current.
+
+Until `33e995b`, `include_fee_installments` was missing from `SessionYear::$fillable`, so a year created with installments got its `installment_fees` rows but kept the flag at 0. Migration `2026_10_21_000000_flag_session_years_that_have_fee_installments` sets the flag on every year that has (non-deleted) installments.
+
+### Editing a session year
+
+`SessionYearController::update` (permission `session-year-edit`):
+
+- `name` must be unique among non-deleted years, ignoring the edited one.
+- `fees_due_charges` is a number from 0 to 100.
+- `free_app_use_date` must be after today only when it changes. An unchanged date may be in the past, so a running year can still be edited after its free-app date.
+- `installment_data` rows are updated or added, then `include_fee_installments` is set to whether the year has any `installment_fees` rows. Deleting the last installment (`deleteInstallmentData`) clears it.
+- The `default` flag is described under [The current session year](#the-current-session-year).
 
 ### Deleting and clearing
 
@@ -99,16 +121,18 @@ Config rows are also created when a class is created (one per existing session y
 
 These are simple lookup tables managed from their own controllers (`MediumController`, `StreamController`, `ShiftController`, `SectionController`) with `<thing>-list|create|edit|delete` permissions. Deleting a medium (`Mediums::booted()`) deletes its classes and subjects one by one, so their own cascades run too.
 
+Shift names (`name` on create, `edit_name` on edit) use the same `PlainName` rule as class names (below), and the end time must be after the start time (`edit_end_time` after `edit_start_time` on edit).
+
 ## Classes and class sections
 
 `Classes\ClassController::store` (permission `class-create`):
 
-- `name` must match `/^[A-Za-z0-9_]+$/`, so class names cannot contain spaces.
+- `name` must pass [`App\Rules\PlainName`](https://github.com/ShawnDaPrawn/Eschool/blob/main/admin-panel/app/Rules/PlainName.php) (also on update): letters and digits in any script, spaces and `. , ' & ( ) / + # _ -`, starting with a letter or digit, at most 191 characters. Markup such as `<b>` is refused with `name_has_invalid_characters`. Until `33e995b` only `[A-Za-z0-9_]` was allowed, so "Grade 1" was refused.
 - Without `stream_id`, one `classes` row is created. With an array of `stream_id`, one row is created per stream, all with the same name, medium and shift.
 - One `class_sections` row is inserted for every selected section, for every created class.
 - A `class_session_configs` row with `include_semesters = false` is upserted for every class and every existing session year.
 
-`ClassSection` appends `name` and `full_name` (class, section, stream and medium, depending on which relations are loaded). Deleting a class cascades to its online exams, session configs, class subjects, exam classes, fee classes and sections; deleting a section cascades to its student sessions, online exams, assignments, attendance, exam results, lessons, subject teachers, timetables and students.
+`ClassSchool` appends `full_name` and `include_semesters` (`1` or `0`: the class's `class_session_configs` value for the current session year, `0` when it has no row); the teacher app reads the latter from every class in the API to label semester classes. `ClassSection` appends `name` and `full_name` (class, section, stream and medium, depending on which relations are loaded). Deleting a class cascades to its online exams, session configs, class subjects, exam classes, fee classes and sections; deleting a section cascades to its student sessions, online exams, assignments, attendance, exam results, lessons, subject teachers, timetables and students.
 
 ## Subjects, class subjects and electives
 
@@ -118,6 +142,7 @@ These are simple lookup tables managed from their own controllers (`MediumContro
   - Each elective group is an `elective_subject_groups` row plus one `class_subjects` row per subject with `type = 'Elective'` and `elective_subject_group_id`. `total_subjects` is the number of subjects in the group; `total_selectable_subjects` is how many a student must or may choose.
   - When semesters are on, every row carries a `semester_id`. The same subject cannot appear twice in the same semester (as two cores, two electives or core and elective); it may repeat across semesters.
   - Removing a subject from an existing elective group deletes the matching `student_subjects` picks.
+  - The class-subject list's edit link (`class-subject-edit/{id}?session_year_id=...`) carries the session year the list is showing. The edit page shows that year's name and saves to it through a hidden `session_year_id` field; without the parameter it uses the current year.
 - **Deleting** a class subject (`ClassSubject::booted()`) also deletes the subject-teacher rows for that subject in the class's sections and session year, and decrements the group's `total_subjects` (deleting the group at zero). Deleting a group removes its subjects and the students' picks.
 - **Elective selection.** Students pick electives in the app (`POST /api/student/select-subjects`): each group must belong to the student's class for the session (and current semester when semesters are on), every subject must belong to the group, and existing plus new picks may not exceed `total_selectable_subjects`. Admins can assign electives from the panel (`Classes\ElectiveController::assignElectiveSubject`, permission `assign-elective-subjects`).
 - **A student's subject list** comes from `Students::subjects()`: core subjects from `class_subjects` for the session year (filtered by the current semester when the class uses semesters) plus the student's `student_subjects` picks. Elective picks are returned only if the class has at least one elective group in scope. `Students::classSubjects()` returns the core subjects and the elective groups (with their subjects) on offer.
@@ -161,7 +186,7 @@ Custom fields defined in `form_fields` (`for = 1` for students, `2` for parents,
 | `result` | 1 = pass, 0 = fail (set during promotion) |
 | `previous_session_year_id` | The year the student was promoted from (`NULL` for the admission row) |
 
-`students.class_section_id` only holds the latest section. The apps, exam publishing, reports and the session middleware all look up `StudentSessions` for the current year. The model has a global scope that hides rows of soft-deleted students; system code that must see them calls `StudentSessions::withoutStudentScope()`.
+`students.class_section_id` holds the section for the current year; a promotion into a later year changes it when that year becomes current. The apps, exam publishing, reports and the session middleware all look up `StudentSessions` for the current year. The model has a global scope that hides rows of soft-deleted students; system code that must see them calls `StudentSessions::withoutStudentScope()`.
 
 Migration `2025_12_16_164207_populate_student_sessions_from_students` truncated `student_sessions` on existing installs and recreated one row per student for the then-current session, so older promotion history was not kept.
 
@@ -169,12 +194,14 @@ Migration `2025_12_16_164207_populate_student_sessions_from_students` truncated 
 
 The Promote Students page is `StudentSessionController` (permissions `promote-student-list` and `promote-student-edit`; the old `promote-student-create`/`-delete` were removed).
 
-- `show()` lists `student_sessions` of a class section in the chosen (source) session year, with each student's latest exam result and any existing promotion row (`previous_session_year_id` = the source year).
+- `show()` lists `student_sessions` of a class section in the chosen (source) session year (the page opens on the current year), with each student's latest exam result and any existing promotion row (`previous_session_year_id` = the source year).
 - `store()` receives `student_id[]`, `previous_session_id_for_student` (source year), `session_year_id` (target year, must differ), `new_class_section_id`, and per student `status<id>` (1 continue, 0 leave) and `result<id>` (1 pass, 0 fail). For each student it:
   1. Sets `students.is_new_admission = 0`.
   2. Finds or creates the `student_sessions` row with that `previous_session_year_id`, and sets `session_year_id` to the target year.
-  3. If a different `new_class_section_id` was given, the student is promoted: the row and `students.class_section_id` get the new section. Otherwise the student repeats in the old section.
-  4. If `status = 0`, sets `users.status = 0` (the student can no longer sign in) and clears the row's `class_section_id`.
+  3. If a different `new_class_section_id` was given, the student is promoted: the row gets the new section, and so does `students.class_section_id` if the target year is the current one. Otherwise the student repeats in the old section.
+  4. If `status = 0`, clears the row's `class_section_id`, and sets `users.status = 0` (the student can no longer sign in) if the target year is the current one. Changing a leave back to continue sets `users.status` back to 1.
+
+A promotion into a year that isn't current yet takes effect when that year becomes current: `SessionYearService::makeCurrent` moves each continuing student to their row's section and deactivates the students marked as left. Until then they keep their class and their account, so promoting before the year ends doesn't disturb the year still running.
 
 A student with no `student_sessions` row for the current year is blocked from the app until promotion is done (see below).
 
@@ -221,7 +248,7 @@ The teacher API has no equivalent session check.
 
 ```mermaid
 flowchart TD
-    A["Create session year<br/>(SessionYearService::store)<br/>optional semesters, installments, transfers"] --> B["Set it as current<br/>(General Settings: session_year)"]
+    A["Create session year<br/>(SessionYearService::store)<br/>optional semesters, installments, transfers"] --> B["Make it current<br/>(SessionYearService::makeCurrent)"]
     B --> C["Classes and sections exist<br/>(created once, reused every year)"]
     C --> D["Choose semester classes<br/>(ClassSessionConfigService::saveConfig)"]
     D --> E["Assign class subjects and elective groups<br/>(per session year / semester)"]
@@ -238,7 +265,7 @@ flowchart TD
 In order:
 
 1. **Create the next session year** with dates, fee due date and charges, optional installments and semesters. Tick the transfer options to copy class subjects, teachers, timetables, grades, fee classes and leave settings from the previous year.
-2. **Make it current** in General Settings. From this moment the apps and the session middleware look for `student_sessions` rows in the new year, and lessons lose their semester link.
+2. **Make it current**: tick "Make this the current session year" when creating it, use **Make current** on the Session Years list, or pick it in General Settings. From this moment the apps and the session middleware look for `student_sessions` rows in the new year, promotions already recorded for it take effect, and lessons lose their semester link.
 3. **Classes, sections, mediums, streams and subjects** carry over automatically; they are not session-scoped.
 4. **Configure semesters per class** on the Semester page before entering subjects and teachers, because changing the setting later wipes the class's data for that year.
 5. **Assign subjects** (core and elective groups) and **teachers** (class and subject) for the new year if they were not transferred.
