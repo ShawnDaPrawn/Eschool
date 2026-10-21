@@ -150,9 +150,9 @@ The editor is **System Settings > Email Template**: `GET email-tamplate` (route 
 
 | Email | Trigger | Recipients | Template / view | Subject |
 |---|---|---|---|---|
-| Parent welcome with credentials | `StudentController::store` (admission) | Father and mother, or guardian | `student_registration` / `students.email` | `Welcome to <school_name>` |
-| Parent welcome with credentials | `StudentController::updateStatus` with status 1 (online registration accepted) | The student's parents | `student_registration` / `students.email` | as above |
-| Registration rejected | `StudentController::updateStatus` with another status (user `status` set to 2) | The student's parents | `student_application_regect` / `students.email` | `Response To Online Registration` |
+| Parent welcome with credentials | `Student\StudentController::store` (admission) | Father and mother, or guardian | `student_registration` / `students.email` | `Welcome to <school_name>` |
+| Parent welcome with credentials | `Student\OnlineRegistrationController::updateStatus` with status 1 (online registration accepted) | The student's parents | `student_registration` / `students.email` | as above |
+| Registration rejected | `Student\OnlineRegistrationController::updateStatus` with another status (user `status` set to 2) | The student's parents | `student_application_regect` / `students.email` | `Response To Online Registration` |
 | Parent welcome on bulk upload | `StudentsImport::collection()` (Students > Add Bulk Data) | Father, mother, guardian of each row | `Mail::send('students.email', ...)` directly, no template | `Welcome to <school_name>` |
 | Teacher welcome | `TeacherController::store` | The teacher | `staff_registration` / `teacher.email` | `Welcome to <school_name>` |
 | Staff welcome | `StaffController::store` | The staff member | `staff_registration` / `staff.email` | `Welcome to <school_name>` |
@@ -160,7 +160,7 @@ The editor is **System Settings > Email Template**: `GET email-tamplate` (route 
 | Mail settings test | `POST verify-email-settings` | The address entered | view `mail.blade.php` | `Connection Verified successfully` |
 | Password reset link | Web `POST password/email` (`ForgotPasswordController`, `throttle:login`) and API `POST /api/forgot-password` (`ApiController::forgotPassword`, `throttle:login`) | The account email | Laravel's default reset notification | Laravel default |
 
-Sender: the student/parent emails in `StudentController` and the contact-us reply call `from(config('mail.from.address'), <school name>)`; the teacher, staff and bulk-import emails do not set a sender, so Laravel uses `mail.from.address` and `mail.from.name` (which normally follows the school name, see above).
+Sender: the student/parent emails in `Student\StudentController` and `Student\OnlineRegistrationController`, and the contact-us reply call `from(config('mail.from.address'), <school name>)`; the teacher, staff and bulk-import emails do not set a sender, so Laravel uses `mail.from.address` and `mail.from.name` (which normally follows the school name, see above).
 
 Generated passwords are the person's date of birth as `ddmmyyyy` (`str_replace('-', '', date('d-m-Y', ...))`); the student's GR number is used as the login "email". `POST /api/student/forgot-password` sends no email: when the GR number and date of birth match it sets `users.reset_request = 1`, and staff reset the password from **Students > Students Reset Password** (`reset-password-list`, `student-change-password`, permission `student-reset-password`). The API answer is the same whether or not an account matched.
 
