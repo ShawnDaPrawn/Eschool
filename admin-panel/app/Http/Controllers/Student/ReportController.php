@@ -139,6 +139,13 @@ class ReportController extends Controller
         return redirect()->route('student.report', $id.'?tab=attendance');
     }
 
+    private function getstudent($id)
+    {
+        return $student = Students::with(['user', 'guardian', 'class_section'])
+            ->findOrFail($id);
+
+    }
+
     private function defaultReportData($student)
     {
         return [
