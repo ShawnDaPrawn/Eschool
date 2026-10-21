@@ -218,6 +218,20 @@ class DailyWorkflowsTest extends TestCase
         $enrolment->update(['class_section_id' => $id['section_a']]);
     }
 
+    public function test_editing_a_parent_keeps_their_gender_stored_as_elsewhere(): void
+    {
+        $id = $this->school->ids;
+
+        // The edit form's radios are lower case; parents are stored as Male/Female everywhere else.
+        $this->actingAs($this->superAdmin())->putJson("/parents/{$id['gina']}", [
+            'edit_id' => $id['gina'], 'first_name' => 'Gina', 'last_name' => 'Parent', 'gender' => 'female',
+            'email' => 'gina@example.com', 'mobile' => '9876543210', 'dob' => '01-02-1980', 'occupation' => 'Nurse',
+        ])->assertJson(['error' => false]);
+
+        $this->assertSame('Female', DB::table('parents')->where('id', $id['gina'])->value('gender'));
+        $this->assertSame('Female', User::find($id['gina_user'])->gender);
+    }
+
     public function test_deleting_a_lesson_removes_its_and_its_topics_stored_files(): void
     {
         Storage::fake('public');

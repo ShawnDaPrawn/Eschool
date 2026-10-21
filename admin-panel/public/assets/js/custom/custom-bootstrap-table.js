@@ -319,7 +319,9 @@ window.parentEvents = {
         $('#edit_id').val(row.id);
         $('#first_name').val(row.first_name);
         $('#last_name').val(row.last_name);
-        $('input[name=gender][value=' + row.gender + '].edit').prop('checked', true);
+        // Stored as "Male"/"Female" by most paths; the radios' values are lower case.
+        $('input[name=gender].edit').prop('checked', false)
+            .filter((_, el) => el.value === String(row.gender || '').toLowerCase()).prop('checked', true);
         $('#email').val(row.email);
         $('#mobile').val(row.mobile);
         $('#occupation').val(row.occupation);
@@ -1494,7 +1496,9 @@ window.teacherActionEvents = {
         $('#user_id').val(row.user_id);
         $('#first_name').val(row.first_name);
         $('#last_name').val(row.last_name);
-        $('input[name=gender][value=' + row.gender + '].edit').prop('checked', true);
+        // Stored as "Male"/"Female" by most paths; the radios' values are lower case.
+        $('input[name=gender].edit').prop('checked', false)
+            .filter((_, el) => el.value === String(row.gender || '').toLowerCase()).prop('checked', true);
         $('#current_address').val(row.current_address);
         $('#permanent_address').val(row.permanent_address);
         $('#email').val(row.email);
