@@ -206,36 +206,15 @@ class ApiController extends Controller
                     $data['payment_options']['fees_due_charges'] = $settings['fees_due_charges'] ?? "";
                 }
 
-                if (isset($settings['razorpay_status']) && $settings['razorpay_status']) {
-                    // Public keys only: secret keys and webhook secrets never leave the server.
-                    $data['payment_options']['razorpay'] = array(
-                        'razorpay_status' => $settings['razorpay_status'] ?? "",
-                        'razorpay_api_key' => $settings['razorpay_api_key'] ?? "",
-                        'razorpay_currency_code' => $settings['razorpay_currency_code'] ?? $settings['currency_code']
-                    );
-                }
-
+                // Stripe is the only gateway. Razorpay, Paystack and Flutterwave were
+                // removed: like a gateway the school has switched off, they are left
+                // out, so installed apps stop offering them. Public keys only: secret
+                // keys and webhook secrets never leave the server.
                 if (isset($settings['stripe_status']) && $settings['stripe_status']) {
                     $data['payment_options']['stripe'] = array(
                         'stripe_status' => $settings['stripe_status'] ?? "",
                         'stripe_publishable_key' => $settings['stripe_publishable_key'] ?? "",
                         'stripe_currency_code' => $settings['stripe_currency_code'] ?? $settings['currency_code']
-                    );
-                }
-
-                if (isset($settings['paystack_status']) && $settings['paystack_status']) {
-                    $data['payment_options']['paystack'] = array(
-                        'paystack_status' => $settings['paystack_status'] ?? "",
-                        'paystack_public_key' => $settings['paystack_public_key'] ?? "",
-                        'paystack_currency_code' => $settings['paystack_currency_code'] ?? $settings['currency_code']
-                    );
-                }
-
-                if (isset($settings['flutterwave_status']) && $settings['flutterwave_status']) {
-                    $data['payment_options']['flutterwave'] = array(
-                        'flutterwave_status' => $settings['flutterwave_status'] ?? "",
-                        'flutterwave_public_key' => $settings['flutterwave_public_key'] ?? "",
-                        'flutterwave_currency_code' => $settings['flutterwave_currency_code'] ?? $settings['currency_code']
                     );
                 }
 

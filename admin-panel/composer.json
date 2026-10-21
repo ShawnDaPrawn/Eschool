@@ -24,16 +24,10 @@
         "laravel/tinker": "^2.10.1",
         "laravel/ui": "^4.0",
         "maatwebsite/excel": "^3.1",
-        "razorpay/razorpay": "^2.9",
         "spatie/laravel-permission": "^6.0",
-        "stripe/stripe-php": "^18.0",
-        "unicodeveloper/laravel-paystack": "dev-l12-compatibility"
+        "stripe/stripe-php": "^18.0"
     },
     "repositories": [
-        {
-            "type": "vcs",
-            "url": "https://github.com/laravel-shift/laravel-paystack.git"
-        },
         {
             "type": "path",
             "url": "packages/laravel-wizard-installer",

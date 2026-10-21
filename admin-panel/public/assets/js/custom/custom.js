@@ -3753,27 +3753,6 @@ $("#teacher_timetable_teacher_id").on("change", function (e) {
     });
 });
 
-$("#razorpay_status").on("change", function (e) {
-    e.preventDefault();
-    if ($(this).val() == 1) {
-        $("#stripe_status").val(0);
-        $("#paystack_status").val(0);
-    }
-});
-$("#stripe_status").on("change", function (e) {
-    e.preventDefault();
-    if ($(this).val() == 1) {
-        $("#razorpay_status").val(0);
-        $("#paystack_status").val(0);
-    }
-});
-$("#paystack_status").on("change", function (e) {
-    e.preventDefault();
-    if ($(this).val() == 1) {
-        $("#razorpay_status").val(0);
-        $("#stripe_status").val(0);
-    }
-});
 $("#assign-roll-no-form").on("submit", function (e) {
     e.preventDefault();
     Swal.fire({

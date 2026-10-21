@@ -524,13 +524,9 @@ Route::group(['middleware' => ['Role', 'auth']], function () {
 
 // Old chat messages are deleted daily by the scheduler (routes/console.php), not by a public URL.
 
-// webhooks
-Route::post('webhook/razorpay', [WebhookController::class, 'razorpay']);
+// Payment gateway webhooks. Stripe is the only gateway (Razorpay, Paystack and
+// Flutterwave were removed in Phase 0).
 Route::post('webhook/stripe', [WebhookController::class, 'stripe']);
-Route::post('webhook/paystack', [WebhookController::class, 'paystack']);
-Route::post('webhook/flutterwave', [WebhookController::class, 'flutterwave']);
-Route::get('response/paystack/success', [WebhookController::class, 'paystackSuccessCallback'])->name('paystack.success');
-Route::get('response/flutterwave/success', [WebhookController::class, 'flutterwaveSuccessCallback'])->name('flutterwave.success');
 
 // Linked from the public website footer; the school may not have written them yet.
 Route::get('/privacy-policy', function () {

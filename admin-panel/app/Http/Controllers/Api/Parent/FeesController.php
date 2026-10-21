@@ -186,9 +186,10 @@ class FeesController extends Controller
         if ($validator->fails()) {
             ResponseService::validationError($validator->errors()->first());
         }
-        // Only a payment gateway the school has switched on.
-        $gatewayStatusSetting = [1 => 'razorpay_status', 2 => 'stripe_status', 3 => 'paystack_status', 4 => 'flutterwave_status'][(int) $request->payment_method];
-        if (empty(getSettings($gatewayStatusSetting)[$gatewayStatusSetting] ?? null)) {
+        // Only a payment gateway the school has switched on. Razorpay (1), Paystack (3)
+        // and Flutterwave (4) were removed, so they are never available.
+        $gatewayStatusSetting = [PaymentService::STRIPE => 'stripe_status'][(int) $request->payment_method] ?? null;
+        if ($gatewayStatusSetting === null || empty(getSettings($gatewayStatusSetting)[$gatewayStatusSetting] ?? null)) {
             ResponseService::validationError('The selected payment method is not available.');
         }
         try {

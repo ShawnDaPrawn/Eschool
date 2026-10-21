@@ -6,7 +6,6 @@ use App\Models\Staff;
 use App\Models\Teacher;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Hash;
 use Tests\Concerns\RunsAppServer;
 use Tests\TestCase;
@@ -36,18 +35,13 @@ class PermissionsTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        // Like a real install, the Flutterwave secret comes from an env file,
-        // which Laravel also copies into $_SERVER. With APP_ENV set, Laravel
-        // loads .env.{APP_ENV} instead of .env.
-        File::put(base_path('.env.webhook-test'), "FLW_SECRET_HASH=flutterwave-secret\n");
         $this->freshInstall();
-        $this->startAppServer(['APP_ENV' => 'webhook-test']);
+        $this->startAppServer();
     }
 
     protected function tearDown(): void
     {
         $this->stopAppServer();
-        File::delete(base_path('.env.webhook-test'));
         parent::tearDown();
     }
 
@@ -85,39 +79,20 @@ class PermissionsTest extends TestCase
         $this->assertSame([], $allowed, 'A teacher was allowed to use admin-only actions');
     }
 
-    public function test_settings_api_does_not_expose_the_razorpay_webhook_secret(): void
+    public function test_settings_api_does_not_expose_the_gateway_secrets(): void
     {
         DB::table('settings')->insert([
             ['type' => 'currency_code', 'message' => 'ZAR'],
-            ['type' => 'razorpay_status', 'message' => '1'],
-            ['type' => 'razorpay_api_key', 'message' => 'rzp_test_key'],
-            ['type' => 'razorpay_webhook_secret', 'message' => 'webhook-signing-secret'],
+            ['type' => 'stripe_status', 'message' => '1'],
+            ['type' => 'stripe_publishable_key', 'message' => 'pk_test_key'],
+            ['type' => 'stripe_secret_key', 'message' => 'sk-secret-key'],
+            ['type' => 'stripe_webhook_secret', 'message' => 'webhook-signing-secret'],
         ]);
 
         $response = $this->appClient()->get('/api/settings', ['type' => 'app_settings']);
 
-        $this->assertSame('rzp_test_key', $response->json('data.payment_options.razorpay.razorpay_api_key'));
+        $this->assertSame('pk_test_key', $response->json('data.payment_options.stripe.stripe_publishable_key'));
+        $this->assertStringNotContainsString('sk-secret-key', $response->body());
         $this->assertStringNotContainsString('webhook-signing-secret', $response->body());
-    }
-
-    public function test_flutterwave_webhook_needs_the_secret_hash(): void
-    {
-        $transactionId = DB::table('payment_transactions')->insertGetId([
-            'student_id' => 1, 'class_id' => 1, 'parent_id' => 1, 'session_year_id' => 1,
-            'payment_status' => 2, 'total_amount' => 100,
-        ]);
-        $payload = [
-            'data' => ['id' => 123, 'status' => 'successful'],
-            'meta_data' => [
-                'payment_transaction_id' => $transactionId, 'student_id' => 1, 'class_id' => 1,
-                'parent_id' => 1, 'session_year_id' => 1, 'is_fully_paid' => 1, 'type_of_fee' => 0,
-                'optional_fees_paid' => '[]', 'installment_fees_paid' => '[]',
-            ],
-        ];
-
-        $this->appClient()->post('/webhook/flutterwave', $payload);
-        $this->appClient()->withHeaders(['verif-hash' => 'wrong'])->post('/webhook/flutterwave', $payload);
-
-        $this->assertSame(2, (int) DB::table('payment_transactions')->where('id', $transactionId)->value('payment_status'));
     }
 }
