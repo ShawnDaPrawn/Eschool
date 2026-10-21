@@ -111,6 +111,8 @@ return Application::configure(basePath: dirname(__DIR__))
         \Spatie\Permission\PermissionServiceProvider::class,
         \Laravel\Sanctum\SanctumServiceProvider::class,
         \dacoto\LaravelWizardInstaller\LaravelWizardInstallerServiceProvider::class,
+        // Queue and worker logging, and the /up/worker health route.
+        \App\Providers\ObservabilityServiceProvider::class,
     ])
     ->withExceptions(function (Exceptions $exceptions): void {
         // The apps don't send Accept: application/json. Without this an expired token

@@ -15,3 +15,8 @@ Phase 0 (Groundwork), in progress on the phase branch.
 
 - Engineering folder: the spec template, decision records (ADR 0001 to 0005) and the self-test template under `engineering/`, and this changelog.
 - Structured JSON logs (`LOG_CHANNEL=json`) to stderr with a request id, user id, school id and route on every line, an `X-Request-Id` response header, and exceptions formatted for Cloud Error Reporting. Log context carries ids only, never request bodies; e-mail addresses, ID numbers and phone numbers in messages are masked.
+- `GET /up/worker`: a health check that fails when a queued job has waited more than ten minutes, for the worker's uptime check. A job that uses up its tries is logged once as "Queued job failed" (by name, without its data) for alerting, and log lines written by a job carry its name and id.
+
+### Changed
+
+- The database queue's `retry_after` is 180 seconds, longer than the worker's 120-second job timeout, so a slow job is not picked up by a second worker.
