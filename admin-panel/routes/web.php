@@ -35,7 +35,7 @@ use App\Http\Controllers\ShiftController;
 use App\Http\Controllers\SliderController;
 use App\Http\Controllers\StaffController;
 use App\Http\Controllers\StreamController;
-use App\Http\Controllers\StudentController;
+use App\Http\Controllers\Student;
 use App\Http\Controllers\StudentSessionController;
 use App\Http\Controllers\SubjectController;
 use App\Http\Controllers\SubjectTeacherController;
@@ -183,31 +183,31 @@ Route::group(['middleware' => ['Role', 'auth']], function () {
         Route::get('email-tamplate', [EmailController::class, 'index'])->name('email.Template');
         Route::post('email/store', [EmailController::class, 'store'])->name('email.store');
 
-        Route::get('students-report', [StudentController::class, 'detail'])->name('students.report');
+        Route::get('students-report', [Student\ReportController::class, 'detail'])->name('students.report');
 
         Route::get('staff-attendance/check-leave', [AttendanceController::class, 'checkStaffLeave'])->name('staff-attendance.check-leave');
         Route::get('get-session-year-months', [AttendanceController::class, 'getSessionYearMonths']);
 
-        Route::post('student-result-details', [StudentController::class, 'getStudentResultDetails']);
-        Route::get('students-list', [StudentController::class, 'index'])->name('students.list');
-        Route::get('students-list-data', [StudentController::class, 'show'])->name('students.list.data');
-        Route::get('student-class-sections', [StudentController::class, 'getClassSectionsBySessionYear'])->name('student.class-sections');
-        Route::get('students/assign-class', [StudentController::class, 'assignClass'])->name('students.assign-class');
-        Route::post('students/assign-class', [StudentController::class, 'assignClass_store'])->name('students.assign-class.store');
-        Route::get('students/new-student-list', [StudentController::class, 'newStudentList'])->name('students.new-student-list');
-        Route::get('students/create_bulk', [StudentController::class, 'createBulkData'])->name('students.create-bulk-data');
-        Route::get('students/download-sample', [StudentController::class, 'downloadSampleFile'])->name('students.download-sample');
-        Route::post('students/store_bulk', [StudentController::class, 'storeBulkData'])->name('students.store-bulk-data');
-        Route::resource('students', StudentController::class)->except(['edit']);
+        Route::post('student-result-details', [Student\ResultController::class, 'getStudentResultDetails']);
+        Route::get('students-list', [Student\StudentController::class, 'index'])->name('students.list');
+        Route::get('students-list-data', [Student\StudentController::class, 'show'])->name('students.list.data');
+        Route::get('student-class-sections', [Student\ClassAssignmentController::class, 'getClassSectionsBySessionYear'])->name('student.class-sections');
+        Route::get('students/assign-class', [Student\ClassAssignmentController::class, 'assignClass'])->name('students.assign-class');
+        Route::post('students/assign-class', [Student\ClassAssignmentController::class, 'assignClass_store'])->name('students.assign-class.store');
+        Route::get('students/new-student-list', [Student\ClassAssignmentController::class, 'newStudentList'])->name('students.new-student-list');
+        Route::get('students/create_bulk', [Student\BulkImportController::class, 'createBulkData'])->name('students.create-bulk-data');
+        Route::get('students/download-sample', [Student\BulkImportController::class, 'downloadSampleFile'])->name('students.download-sample');
+        Route::post('students/store_bulk', [Student\BulkImportController::class, 'storeBulkData'])->name('students.store-bulk-data');
+        Route::resource('students', Student\StudentController::class)->except(['edit']);
 
         // student generate roll number
-        Route::get('student/assign-roll-number', [StudentController::class, 'indexStudentRollNumber'])->name('students.index-students-roll-number');
-        Route::get('student/list-assign-roll-number/{class_section_id}', [StudentController::class, 'listStudentRollNumber'])->name('students.list-students-roll-number');
-        Route::post('student/store-roll-number', [StudentController::class, 'storeStudentRollNumber'])->name('students.store-roll-number');
+        Route::get('student/assign-roll-number', [Student\RollNumberController::class, 'indexStudentRollNumber'])->name('students.index-students-roll-number');
+        Route::get('student/list-assign-roll-number/{class_section_id}', [Student\RollNumberController::class, 'listStudentRollNumber'])->name('students.list-students-roll-number');
+        Route::post('student/store-roll-number', [Student\RollNumberController::class, 'storeStudentRollNumber'])->name('students.store-roll-number');
 
-        // Route::get('students-list', [StudentController::class, 'detail'])->name('students.detail');
-        Route::get('student-report/{id}', [StudentController::class, 'showStudentReport'])->name('student.report');
-        Route::get('student-attendance/{id}', [StudentController::class, 'studentAttendanceReport'])->name('student.attendance.report');
+        // Route::get('students-list', [Student\ReportController::class, 'detail'])->name('students.detail');
+        Route::get('student-report/{id}', [Student\ReportController::class, 'showStudentReport'])->name('student.report');
+        Route::get('student-attendance/{id}', [Student\ReportController::class, 'studentAttendanceReport'])->name('student.attendance.report');
 
         Route::resource('category', CategoryController::class)->except(['create']);
         Route::get('category_list', [CategoryController::class, 'show']);
@@ -320,8 +320,8 @@ Route::group(['middleware' => ['Role', 'auth']], function () {
 
             return view('students.reset_password');
         })->name('students.reset_password');
-        Route::get('reset-password-list', [StudentController::class, 'reset_password']);
-        Route::post('student-change-password', [StudentController::class, 'change_password']);
+        Route::get('reset-password-list', [Student\PasswordController::class, 'reset_password']);
+        Route::post('student-change-password', [Student\PasswordController::class, 'change_password']);
 
         Route::resource('promote-student', StudentSessionController::class)->except(['create', 'edit', 'update', 'destroy']);
         Route::get('getPromoteData', [StudentSessionController::class, 'getPromoteData']);
@@ -466,23 +466,23 @@ Route::group(['middleware' => ['Role', 'auth']], function () {
         Route::post('/staff-attendance/bulk-store', [StaffController::class, 'storeAttendance'])->name('staff-attendance.bulk-store');
         Route::get('/staff-attendance/get-attendance', [StaffController::class, 'staffattendanceData'])->name('staff-attendance.list');
 
-        Route::get('generate-id', [StudentController::class, 'generateIdCardIndex'])->name('generate_id.index');
-        Route::get('id-card-settings', [StudentController::class, 'idCardSettingIndex'])->name('id_card_setting.index');
-        Route::post('id-card-settings/update', [StudentController::class, 'updateIdCardSetting'])->name('id_card_settings.update');
-        Route::post('generate-id-card', [StudentController::class, 'generateIdCard']);
-        Route::delete('remove-image/{type}', [StudentController::class, 'deleteImage']);
+        Route::get('generate-id', [Student\IdCardController::class, 'generateIdCardIndex'])->name('generate_id.index');
+        Route::get('id-card-settings', [Student\IdCardController::class, 'idCardSettingIndex'])->name('id_card_setting.index');
+        Route::post('id-card-settings/update', [Student\IdCardController::class, 'updateIdCardSetting'])->name('id_card_settings.update');
+        Route::post('generate-id-card', [Student\IdCardController::class, 'generateIdCard']);
+        Route::delete('remove-image/{type}', [Student\IdCardController::class, 'deleteImage']);
 
-        Route::get('generate-bonafide-certificate/{id}', [StudentController::class, 'bonafideCertificateIndex'])->name('bonafide.certificate.index');
-        Route::post('bonafide-certificate', [StudentController::class, 'generateBonafideCertificate'])->name('bonafide.certificate.pdf');
+        Route::get('generate-bonafide-certificate/{id}', [Student\CertificateController::class, 'bonafideCertificateIndex'])->name('bonafide.certificate.index');
+        Route::post('bonafide-certificate', [Student\CertificateController::class, 'generateBonafideCertificate'])->name('bonafide.certificate.pdf');
 
-        Route::get('generate-leaving-certificate/{id}', [StudentController::class, 'leavingCertificateIndex'])->name('leaving.certificate.index');
-        Route::post('leaving-certificate', [StudentController::class, 'generateLeavingCertificate'])->name('leaving.certificate.pdf');
+        Route::get('generate-leaving-certificate/{id}', [Student\CertificateController::class, 'leavingCertificateIndex'])->name('leaving.certificate.index');
+        Route::post('leaving-certificate', [Student\CertificateController::class, 'generateLeavingCertificate'])->name('leaving.certificate.pdf');
 
-        Route::get('student-generate-result', [StudentController::class, 'resultIndex'])->name('student.result.index');
+        Route::get('student-generate-result', [Student\ResultController::class, 'resultIndex'])->name('student.result.index');
 
-        Route::get('get-student-list', [StudentController::class, 'studentList'])->name('get.student.list');
-        Route::get('generate-result/{id}', [StudentController::class, 'generateResult'])->name('generate.result');
-        Route::get('generate-exam-result/{id}', [StudentController::class, 'generateExamResult'])->name('generate.exam.result');
+        Route::get('get-student-list', [Student\ResultController::class, 'studentList'])->name('get.student.list');
+        Route::get('generate-result/{id}', [Student\ResultController::class, 'generateResult'])->name('generate.result');
+        Route::get('generate-exam-result/{id}', [Student\ResultController::class, 'generateExamResult'])->name('generate.exam.result');
 
         Route::resource('leave-master', LeaveMasterController::class);
 
@@ -504,11 +504,11 @@ Route::group(['middleware' => ['Role', 'auth']], function () {
         Route::get('view-schedule/{id}', [EventController::class, 'viewScheduleIndex'])->name('view_schedule.index');
         Route::post('events-update', [EventController::class, 'updateEvents'])->name('events.update-schedules');
 
-        Route::get('online-registration', [StudentController::class, 'onlineRegistrationIndex'])->name('online-registration.index');
-        Route::get('online-registration-list', [StudentController::class, 'onlineRegistrationList'])->name('online-registration.list');
-        Route::delete('permanent-delete/{id}', [StudentController::class, 'permanentDelete'])->name('permanent-delete');
-        Route::post('update-active-status', [StudentController::class, 'updateStatus'])->name('update-active-status');
-        Route::get('get-class-section-by-class/{class_id}', [StudentController::class, 'getClassSectionByClass']);
+        Route::get('online-registration', [Student\OnlineRegistrationController::class, 'onlineRegistrationIndex'])->name('online-registration.index');
+        Route::get('online-registration-list', [Student\OnlineRegistrationController::class, 'onlineRegistrationList'])->name('online-registration.list');
+        Route::delete('permanent-delete/{id}', [Student\StudentController::class, 'permanentDelete'])->name('permanent-delete');
+        Route::post('update-active-status', [Student\OnlineRegistrationController::class, 'updateStatus'])->name('update-active-status');
+        Route::get('get-class-section-by-class/{class_id}', [Student\ClassAssignmentController::class, 'getClassSectionByClass']);
         Route::get('semester/class-config', [SemesterController::class, 'getClassConfig']);
         Route::post('semester/class-config', [SemesterController::class, 'saveClassConfig']);
         Route::get('semester/show', [SemesterController::class, 'show']);

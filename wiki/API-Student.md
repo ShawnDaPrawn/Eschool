@@ -78,7 +78,7 @@ The student app also calls the general endpoints (`settings`, `sliders`, `holida
 
 | Field | Type | Required | Notes |
 | --- | --- | --- | --- |
-| `gr_number` | string | yes | GR/admission number. It is checked against `users.email`: `StudentController` stores the admission number in `users.email` for student accounts. |
+| `gr_number` | string | yes | GR/admission number. It is checked against `users.email`: `Student\StudentController` stores the admission number in `users.email` for student accounts. |
 | `password` | string | yes | The initial password, and the one set by a staff reset, is the date of birth as `ddmmyyyy` (see [forgot-password](#forgot-password)). |
 | `fcm_id` | string | no | Saved to `users.fcm_id` for push notifications. |
 | `device_type` | string | no | Saved to `users.device_type`. |
@@ -110,7 +110,7 @@ The token is the top-level `token` key; `code` is 200.
 | `gr_no` | string | yes (matched against `students.admission_no`) |
 | `dob` | date | yes (matched against `users.dob`) |
 
-When both match, the user gets `users.reset_request = 1`. Nothing is emailed: staff see the request in the admin panel's student reset-password list (permission `student-reset-password`), and resetting sets the password to the date of birth in `dmY` format (`StudentController::change_password`). The response is always `Request Send Successfully`, matched or not (since `839c9eb`), so the endpoint cannot be used to test GR numbers and birth dates.
+When both match, the user gets `users.reset_request = 1`. Nothing is emailed: staff see the request in the admin panel's student reset-password list (permission `student-reset-password`), and resetting sets the password to the date of birth in `dmY` format (`Student\PasswordController::change_password`). The response is always `Request Send Successfully`, matched or not (since `839c9eb`), so the endpoint cannot be used to test GR numbers and birth dates.
 
 ### Profile
 

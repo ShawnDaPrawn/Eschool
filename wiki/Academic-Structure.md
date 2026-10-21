@@ -138,7 +138,7 @@ The ownership checks behind these rules are described on [Roles and Permissions]
 
 ### Admission
 
-`StudentController::store` (permission `student-create`) creates, in one transaction:
+`Student\StudentController::store` (permission `student-create`) creates, in one transaction:
 
 - The parents. `parent_guardian_type` is `parent` (father and mother) or `guardian`. For each one the form either sends the numeric id of an existing `parents` row in the email field (the record is reused) or new details, in which case a `users` row with the `Parent` role and a `parents` row are created (initial password: date of birth as `ddmmyyyy`).
 - The student's `users` row with the `Student` role. Its `email` column holds the **admission number** (the "GR number" the student logs in with), and the initial password is the date of birth as `ddmmyyyy`.
@@ -147,7 +147,7 @@ The ownership checks behind these rules are described on [Roles and Permissions]
 
 Custom fields defined in `form_fields` (`for = 1` for students, `2` for parents, `3` for teachers) are saved as JSON in the `dynamic_fields` column.
 
-**Online registration.** The public form (`WebController::studentRegistration`, custom fields with `for = 4`) creates a `students` row with `application_type = 'online'`, a `class_id` but no section. Approval (`StudentController`, permission `online-registration-list`) sets the section, activates the student and parent users (`users.status = 1`) and upserts the current `student_sessions` row; rejection sets `users.status = 2`. See [Public Website](Public-Website).
+**Online registration.** The public form (`WebController::studentRegistration`, custom fields with `for = 4`) creates a `students` row with `application_type = 'online'`, a `class_id` but no section. Approval (`Student\OnlineRegistrationController`, permission `online-registration-list`) sets the section, activates the student and parent users (`users.status = 1`) and upserts the current `student_sessions` row; rejection sets `users.status = 2`. See [Public Website](Public-Website).
 
 ### Student sessions
 

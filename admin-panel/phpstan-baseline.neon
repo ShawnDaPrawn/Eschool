@@ -274,7 +274,7 @@ parameters:
 			message: '#^Result of static method App\\Services\\ResponseService\:\:validationError\(\) \(void\) is used\.$#'
 			identifier: staticMethod.void
 			count: 1
-			path: app/Http/Controllers/StudentController.php
+			path: app/Http/Controllers/Student/ResultController.php
 
 		-
 			message: '#^Trait Illuminate\\Database\\Eloquent\\SoftDeletes referenced with incorrect case\: Illuminate\\Database\\Eloquent\\softDeletes\.$#'

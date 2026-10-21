@@ -36,13 +36,13 @@ Columns: **SA** = granted to Super Admin, **T** = granted to Teacher. "Checked i
 | `role-list`, `role-create`, `role-edit`, `role-delete` | Yes | | `RoleController` (constructor `permission:` middleware plus explicit checks) |
 | `staff-list`, `staff-create`, `staff-edit`, `staff-delete` | Yes | | `StaffController` |
 | `attendance-staff` | Yes | | Staff attendance pages in `StaffController` and `AttendanceController` |
-| `setting-create` | Yes | | `SettingController` (general, app and notification settings), `StudentController` (ID-card settings, image removal) |
+| `setting-create` | Yes | | `SettingController` (general, app and notification settings), `Student\IdCardController` (ID-card settings, image removal) |
 | `fcm-setting-create` | Yes | | `SettingController` (Firebase settings) |
 | `email-setting-create` | Yes | | `SettingController` (mail settings), `EmailController` (email templates) |
 | `privacy-policy`, `terms-condition`, `about-us`, `contact-us` | Yes | | `SettingController` pages; `contact-us` also gates the contact-message inbox in `WebSettingController` |
 | `language-list`, `language-create`, `language-edit`, `language-delete` | Yes | | `LanguageController` |
 | `chat-settings` | Yes | | `SettingController` (chat settings, which also covers deleting chat messages) |
-| `id-card-setting` | Yes | | ID-card design settings (`StudentController`) |
+| `id-card-setting` | Yes | | ID-card design settings (`Student\IdCardController`) |
 | `update-admin-profile` | Yes | | Menu only (profile dropdown) |
 
 ### Academic setup
@@ -69,17 +69,17 @@ Columns: **SA** = granted to Super Admin, **T** = granted to Teacher. "Checked i
 
 | Permission | SA | T | Checked in |
 |---|---|---|---|
-| `student-list` | Yes | Yes | `StudentController` lists and exports |
-| `student-create`, `student-edit`, `student-delete` | Yes | | `StudentController` |
+| `student-list` | Yes | Yes | `Student\StudentController` and `Student\ReportController` list and export |
+| `student-create`, `student-edit`, `student-delete` | Yes | | `Student\StudentController` |
 | `parents-list`, `parents-edit` | Yes | | `ParentsController` (parents are created and deleted with students, so there is no create/delete permission) |
 | `category-list`, `category-create`, `category-edit`, `category-delete` | Yes | | `CategoryController` |
 | `student-reset-password` | Yes | | Password reset requests from the student app (replaces `reset-password-list` and `student-change-password`) |
 | `promote-student-list`, `promote-student-edit` | Yes | | `StudentSessionController` |
-| `assign-class-to-new-student` | Yes | | `StudentController::assignClass`, `newStudentList`, `assignClass_store` |
-| `online-registration-list` | Yes | | Online admission list, approval and rejection (`StudentController`, `ParentsController`) |
+| `assign-class-to-new-student` | Yes | | `Student\ClassAssignmentController::assignClass`, `newStudentList`, `assignClass_store` |
+| `online-registration-list` | Yes | | Online admission list, approval and rejection (`Student\OnlineRegistrationController`, `ParentsController`) |
 | `form-field-list`, `form-field-create`, `form-field-edit`, `form-field-delete` | Yes | | `FormFieldController` (custom registration fields) |
-| `generate-id-card` | Yes | Yes | Student and staff ID cards (`StudentController`, `StaffController`) |
-| `generate-document` | Yes | | Bonafide and leaving certificates (`StudentController`) |
+| `generate-id-card` | Yes | Yes | Student and staff ID cards (`Student\IdCardController`, `StaffController`) |
+| `generate-document` | Yes | | Bonafide and leaving certificates (`Student\CertificateController`) |
 | `student-report` | Yes | | Menu only (Reports menu) |
 
 ### Attendance, lessons and assignments
@@ -106,8 +106,8 @@ Columns: **SA** = granted to Super Admin, **T** = granted to Teacher. "Checked i
 | `grade-create` | Yes | | Grade bands (`ExamController::indexGrades`, `createGrades`, `destroyGrades`) |
 | `exam-upload-marks` | | Yes | Marks entry and correction (`ExamController`) |
 | `exam-result` | | Yes | Class-teacher result view (`ExamController::getExamResultIndex`, `showExamResult`) |
-| `view-exam-result` | Yes | Yes | Exam result list and per-exam result PDF (`ExamController::viewExamResult`, `fetchExamResultList`, `StudentController::generateExamResult`) |
-| `generate-result` | Yes | Yes | Whole-year result PDF (`StudentController::generateResult`) |
+| `view-exam-result` | Yes | Yes | Exam result list and per-exam result PDF (`ExamController::viewExamResult`, `fetchExamResultList`, `Student\ResultController::generateExamResult`) |
+| `generate-result` | Yes | Yes | Whole-year result PDF (`Student\ResultController::generateResult`) |
 | `manage-online-exam` | | Yes | Everything in `OnlineExamController` and `OnlineExamQuestionController` |
 
 ### Fees

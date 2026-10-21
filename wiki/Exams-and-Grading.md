@@ -134,8 +134,8 @@ PDFs are rendered with dompdf (`barryvdh/laravel-dompdf` `^3.1`, facade `PDF`/`P
 
 | Generator | Access | Template | Content |
 |---|---|---|---|
-| `StudentController::generateResult($id)` | `generate-result` | `students.result_template` | All **published** exams of the current session year that have papers in the student's subjects (core plus electives, semester filter ignored). Per subject: marks per exam, totals and a grade; overall total, percentage, grade and Passed/Failed. Streamed as `result.pdf` |
-| `StudentController::generateExamResult($id)` | `view-exam-result` | `students.exam_result_template` | One published exam. Query string `exam_id` (required), `session_year_id` (defaults to current), `semester_id` (optional filter on the exam). Only subjects that are in both the student's subject list and the exam timetable |
+| `Student\ResultController::generateResult($id)` | `generate-result` | `students.result_template` | All **published** exams of the current session year that have papers in the student's subjects (core plus electives, semester filter ignored). Per subject: marks per exam, totals and a grade; overall total, percentage, grade and Passed/Failed. Streamed as `result.pdf` |
+| `Student\ResultController::generateExamResult($id)` | `view-exam-result` | `students.exam_result_template` | One published exam. Query string `exam_id` (required), `session_year_id` (defaults to current), `semester_id` (optional filter on the exam). Only subjects that are in both the student's subject list and the exam timetable |
 | `Teacher\ExamController::getStudentResultPdf` (`GET /api/teacher/get-student-result-pdf`) | Teacher who teaches the student | `students.result_template` | Same report as `generateResult`, returned base64-encoded in the JSON `pdf` field |
 
 The grades printed in these PDFs are looked up directly with `Grade::where('starting_range', '<=', $p)->where('ending_range', '>=', $p)` on the **rounded** percentage, without a session-year filter, so the first matching band of any year is used. `findExamGrade()` (used when saving marks and publishing) filters by session year and uses `floor()`. The two can disagree when bands differ between years.
@@ -196,7 +196,7 @@ The parent API has the list, result-list and result endpoints for a child (behin
 
 ### Scoring (OnlineExamScoringService)
 
-[`OnlineExamScoringService`](https://github.com/ShawnDaPrawn/Eschool/blob/main/admin-panel/app/Services/OnlineExamScoringService.php) is the only scoring implementation. It is used by the student API result endpoints, the parent API, `StudentController`, `OnlineExamController::showOnlineExamResult` and `ExamReportService`.
+[`OnlineExamScoringService`](https://github.com/ShawnDaPrawn/Eschool/blob/main/admin-panel/app/Services/OnlineExamScoringService.php) is the only scoring implementation. It is used by the student API result endpoints, the parent API, `Student\ResultController`, `OnlineExamController::showOnlineExamResult` and `ExamReportService`.
 
 ```php
 public static function isCorrect(iterable $selectedOptionIds, iterable $correctOptionIds): bool
@@ -225,7 +225,7 @@ When a class has semesters enabled for the session year (`class_session_configs.
 - `exams.semester_id` and `online_exams.semester_id` can be set when the exam is created (both nullable).
 - `GET /api/student/get-exam-list` accepts `semester_id`; without it the current semester is used. The filter is applied only when the class has semesters and a semester was found.
 - The online exam list and `findStudentOnlineExam()` restrict to the current semester's exams, so a semester-tagged exam is not reachable once its semester is over.
-- `StudentController::generateExamResult` accepts a `semester_id` filter; `generateResult` reports the whole year and ignores semesters.
+- `Student\ResultController::generateExamResult` accepts a `semester_id` filter; `generateResult` reports the whole year and ignores semesters.
 - Migration `2026_04_28_165603_semester_id_backfill` set `semester_id` on existing exams from the earliest paper date, and on online exams from the start date, where the date fell inside a semester of the same session year.
 - Switching a class's semester setting with `ClassSessionConfigService::saveConfig()`, or deleting the last semester of a year, **force-deletes** that class's offline exams (with timetables, marks and results) and online exams for the session year. See [Academic Structure](Academic-Structure#classsessionconfigservice).
 
