@@ -46,7 +46,6 @@ dependencies:
   flutter_html: ^3.0.0
   package_info_plus: ^10.1.0
   open_filex: ^4.7.0
-  razorpay_flutter: ^1.4.5
   flutter_stripe: ^12.6.0
   flutter_tex: 4.0.9
   wakelock_plus: ^1.5.2

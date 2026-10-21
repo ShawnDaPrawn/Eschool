@@ -167,7 +167,7 @@ Data protection on Android: both apps set `android:allowBackup="false"` and use 
 | `is_demo` | Value of the server's `DEMO_MODE` env; `UiUtils.isDemoVersionEnable()` is checked on the login screens and before changing the password. | both |
 | `online_payment` | `'1'` shows the "pay" buttons. | student |
 | `compulsory_fee_payment_mode`, `is_student_can_pay_fees` | Compulsory-fee gate and whether students may pay their own fees. | student |
-| `payment_options` | Currency code/symbol, due date/charges and the public keys of each enabled gateway (`razorpay`, `stripe`, `paystack`, `flutterwave`). Secret keys are never sent. | student |
+| `payment_options` | Currency code/symbol, due date/charges and the public keys of each enabled gateway (`stripe`, `paystack`, `flutterwave`; a `razorpay` entry from an older server is ignored). Secret keys are never sent. | student |
 | `online_exam_terms_condition` | Rules shown before an online exam. | student |
 
 These values are edited in the admin panel under App Settings (`SettingController::app_index` / `app_update`, route `app-settings`); see https://shawndaprawn.github.io/Eschool/admin-panel/app-settings/. Other `type` values of the same endpoint (`privacy_policy`, `contact_us`, `about_us`, `terms_condition`) feed the static pages through `AppSettingsCubit`.
@@ -233,7 +233,6 @@ Constraint from `pubspec.yaml`, resolved version from `pubspec.lock`.
 | `table_calendar` | `^3.2.0` | 3.2.1 / 3.3.0 | yes | yes | Attendance and academic calendars. |
 | `intl` | `any` | 0.20.2 / 0.20.3 | yes | yes | Date formatting. |
 | `timeago` | `^3.7.1` | 3.7.1 | yes | yes | Relative times, localised from the language JSON. |
-| `razorpay_flutter` | `^1.4.5` | 1.4.7 | yes | no | Razorpay checkout. |
 | `flutter_stripe` | `^12.6.0` | 12.6.0 | yes | no | Stripe payment sheet. |
 | `flutter_tex` | `4.0.9` (pinned) | 4.0.9 | yes | no | Maths in online exam questions. |
 | `wakelock_plus` | `^1.5.2` | 1.8.0 | yes | no | Keeps the screen on during online exams. |
@@ -247,7 +246,7 @@ Constraint from `pubspec.yaml`, resolved version from `pubspec.lock`.
 
 Dev dependencies in both apps: `flutter_lints ^6.0.0` (6.0.0), `flutter_launcher_icons ^0.14.4` (0.14.4), `change_app_package_name ^1.5.0` (1.5.0), `flutter_test`.
 
-Native Android dependencies added in `android/app/build.gradle.kts`: `androidx.multidex:multidex:2.0.1`, Firebase BoM `31.0.2` with `firebase-messaging`, `androidx.emoji2` 1.4.0 (works around a crash when pressing back during a Stripe payment), and in the student app `com.razorpay:checkout:1.6.33`.
+Native Android dependencies added in `android/app/build.gradle.kts`: `androidx.multidex:multidex:2.0.1`, Firebase BoM `31.0.2` with `firebase-messaging`, `androidx.emoji2` 1.4.0 (works around a crash when pressing back during a Stripe payment).
 
 ## Static analysis
 

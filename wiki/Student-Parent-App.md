@@ -200,12 +200,13 @@ On Android, local notifications are only created by the app (data messages); on 
 
 | Gateway | `payment_method` | Client side | Server response used |
 |---|---|---|---|
-| Razorpay | `1` | `razorpay_flutter` (`Razorpay().open()` with key, order id, amount, currency, parent contact prefill). Native `com.razorpay:checkout:1.6.33` plus ProGuard keep rules. | `payment_gateway_details.id` = Razorpay order id |
 | Stripe | `2` | `flutter_stripe` payment sheet via `StripeService.payWithPaymentSheet()`; `Stripe.publishableKey` is set from `payment_options.stripe.stripe_publishable_key`. `MainActivity` extends `FlutterFragmentActivity`, which the Stripe plugin needs. | `payment_gateway_details.id` = PaymentIntent id, `payment_gateway_response.client_secret` |
 | Paystack | `3` | `webview_flutter` in `WebViewPaymentScreen` | `payment_gateway_response.data.authorization_url` |
 | Flutterwave | `4` | `webview_flutter` in `WebViewPaymentScreen` | `payment_gateway_details.id` (used as the checkout URL) |
 
-A gateway is offered when its object is present in `payment_options` (the server only includes it when `<gateway>_status` is set). If none are enabled the app shows `noPaymentOptionsAvl`; if exactly one is enabled it is used directly; otherwise `PaymentSelectionBottomSheet` (`lib/ui/screens/fees/widgets/paymentSelection.dart`) lists them in the order Razorpay, Stripe, Paystack, Flutterwave and returns the chosen tag.
+A gateway is offered when its object is present in `payment_options` (the server only includes it when `<gateway>_status` is set). If none are enabled the app shows `noPaymentOptionsAvl`; if exactly one is enabled it is used directly; otherwise `PaymentSelectionBottomSheet` (`lib/ui/screens/fees/widgets/paymentSelection.dart`) lists them in the order Stripe, Paystack, Flutterwave and returns the chosen tag.
+
+Razorpay (`payment_method` `1`) was removed from the app in Phase 0, with `razorpay_flutter`, the native `com.razorpay:checkout` dependency and its ProGuard rules; the server stops offering it in the same phase. A `razorpay` object the server still sends in `payment_options` is ignored. Past transactions paid through Razorpay still show "Razorpay" in the transaction list (`FeesTransaction.paymentGatewayString`).
 
 ### Payment flow
 
@@ -222,13 +223,13 @@ sequenceDiagram
     F-->>U: FeesPaymentFetchSuccess
     U->>G: open checkout
     G-->>U: success / failure / cancel
-    U->>V: push paymentVerify (transactionId, status, paymentId, signature, paymentIntentId)
+    U->>V: push paymentVerify (transactionId, status, paymentIntentId)
     alt Stripe
         V->>API: POST get-payment-status (payment_intent_id)
         API-->>V: succeeded or another status
     end
     alt success
-        V->>API: POST store-fees (transaction_id, payment_id, payment_signature, child_id)
+        V->>API: POST store-fees (transaction_id, child_id)
     else failure
         V->>API: POST fail-payment-transaction (payment_transaction_id)
     end
@@ -238,7 +239,7 @@ Details from the code:
 
 1. `FeesPaymentCubit.addFeesTransaction()` → `StudentRepository.addFeesTransaction()` posts `amount`, `type_of_fee`, `is_fully_paid`, `payment_method`, `child_id` (parents), and, depending on the fee type, `due_charges`, `installment_data[]` (`id`, `name`, `amount`, `due_charges`) or `optional_fees_data[]` (`id`, `amount`). It returns `payment_gateway_details`.
 2. The screen keeps `payment_transaction_id` and launches the gateway.
-3. Razorpay's success handler passes `paymentId` and `signature`; failure passes `status: 0`. Stripe always goes to verification with the `paymentIntentId`; `PostFeesPaymentCubit.storeFees()` then asks the server for the PaymentIntent status and only stores the fee if it is `succeeded` (`StripeService.paymentIntentSuccessResponse`).
+3. Stripe always goes to verification with the `paymentIntentId`; `PostFeesPaymentCubit.storeFees()` then asks the server for the PaymentIntent status and only stores the fee if it is `succeeded` (`StripeService.paymentIntentSuccessResponse`).
 4. `WebViewPaymentScreen` watches main-frame navigations. It blocks non-http(s) schemes, lets the gateway's own pages load, and ends the payment only when the WebView reaches the school's own host (`Uri.parse(baseUrl).host`) on `/response/paystack/success` (success) or `/response/flutterwave/success` (success for `status=successful`, failure for `cancelled`/`failed`, otherwise unknown). These are the `paystackSuccessCallback` / `flutterwaveSuccessCallback` routes in `admin-panel/routes/web.php`. An unknown result pops without going to verification, leaving the outcome to the gateway webhook. Leaving the WebView with a double back-press (system back or the app-bar back button) counts as failure.
 5. Any exception during verification calls `fail-payment-transaction`.
 

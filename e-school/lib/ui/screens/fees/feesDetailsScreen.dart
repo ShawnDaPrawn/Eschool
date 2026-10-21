@@ -23,7 +23,6 @@ import 'package:eschool/utils/uiUtils.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:razorpay_flutter/razorpay_flutter.dart';
 
 class FeesDetailsScreen extends StatefulWidget {
   const FeesDetailsScreen({
@@ -100,7 +99,6 @@ class FeesDetailsScreenState extends State<FeesDetailsScreen> {
   double amount = 0;
   int paymentTransactionId = 0;
 
-  String orderId = 'order0';
   String paymentIntentId = '';
   String clientSecret = '';
 
@@ -108,7 +106,6 @@ class FeesDetailsScreenState extends State<FeesDetailsScreen> {
   late final int sessionYearId;
 
   ///payment
-  late Razorpay _razorpay;
   late Map paymentGatewayDetails;
   late String selectedPayment;
 
@@ -140,12 +137,6 @@ class FeesDetailsScreenState extends State<FeesDetailsScreen> {
   }
 
   void initialiseEnabledPayments() {
-    if (context.read<AppConfigurationCubit>().getPaymentOptions().razorpay !=
-        null) {
-      _razorpay = Razorpay();
-      _razorpay.on(Razorpay.EVENT_PAYMENT_SUCCESS, _handlePaymentSuccess);
-      _razorpay.on(Razorpay.EVENT_PAYMENT_ERROR, _handlePaymentError);
-    }
     if (context.read<AppConfigurationCubit>().getPaymentOptions().stripe !=
         null) {
       StripeService.init(
@@ -157,15 +148,6 @@ class FeesDetailsScreenState extends State<FeesDetailsScreen> {
         null,
       );
     }
-  }
-
-  @override
-  void dispose() {
-    if (context.read<AppConfigurationCubit>().getPaymentOptions().razorpay !=
-        null) {
-      _razorpay.clear();
-    }
-    super.dispose();
   }
 
   void fetchDetailedFees() {
@@ -584,16 +566,6 @@ class FeesDetailsScreenState extends State<FeesDetailsScreen> {
     final availablePaymentOptions =
         <({int paymentMethodId, bool isEnabled, String paymentMethodTag})>[
           (
-            paymentMethodId: 1,
-            isEnabled:
-                context
-                    .read<AppConfigurationCubit>()
-                    .getPaymentOptions()
-                    .razorpay !=
-                null,
-            paymentMethodTag: 'razorpay',
-          ),
-          (
             paymentMethodId: 2,
             isEnabled:
                 context
@@ -687,19 +659,14 @@ class FeesDetailsScreenState extends State<FeesDetailsScreen> {
           setState(() {
             selectedPayment = chosenPayment;
           });
-          int paymentMethod;
-          //1- Razorpay , 2- Stripe , 3- PayStack 4- FlutterWave
-          switch (chosenPayment) {
-            case 'razorpay':
-              paymentMethod = 1;
-            case 'stripe':
-              paymentMethod = 2;
-            case 'paystack':
-              paymentMethod = 3;
-            case 'flutterwave':
-              paymentMethod = 4;
-            default:
-              paymentMethod = 1;
+          //2- Stripe , 3- PayStack 4- FlutterWave (1 was Razorpay, removed)
+          final int? paymentMethod = const {
+            'stripe': 2,
+            'paystack': 3,
+            'flutterwave': 4,
+          }[chosenPayment];
+          if (paymentMethod == null) {
+            return;
           }
           Future.delayed(Duration.zero, () {
             context.read<FeesPaymentCubit>().addFeesTransaction(
@@ -770,7 +737,6 @@ class FeesDetailsScreenState extends State<FeesDetailsScreen> {
                           Routes.paymentVerify,
                           arguments: {
                             'studentDetails': studentDetails,
-                            'orderId': orderId,
                             'transactionId': paymentTransactionId,
                             'status': 1,
                             'isStudentPaying': widget.isStudentPaying,
@@ -781,7 +747,6 @@ class FeesDetailsScreenState extends State<FeesDetailsScreen> {
                           Routes.paymentVerify,
                           arguments: {
                             'studentDetails': studentDetails,
-                            'orderId': orderId,
                             'transactionId': paymentTransactionId,
                             'status': 0,
                             'isStudentPaying': widget.isStudentPaying,
@@ -790,14 +755,6 @@ class FeesDetailsScreenState extends State<FeesDetailsScreen> {
                       }
                     }
                   });
-            }
-            if (selectedPayment == 'razorpay' &&
-                context
-                        .read<AppConfigurationCubit>()
-                        .getPaymentOptions()
-                        .razorpay !=
-                    null) {
-              orderId = state.paymentGatewayDetails['id'].toString();
             }
             if (selectedPayment == 'stripe' &&
                 context
@@ -819,34 +776,6 @@ class FeesDetailsScreenState extends State<FeesDetailsScreen> {
             }
 
             switch (selectedPayment) {
-              case 'razorpay':
-                openCheckout(
-                  amountToPay: double.parse(amount.toStringAsFixed(2)),
-                  apiKey: context
-                      .read<AppConfigurationCubit>()
-                      .getPaymentOptions()
-                      .razorpay!
-                      .razorpayApiKey!,
-                  orderId: orderId,
-                  currencyCode: context
-                      .read<AppConfigurationCubit>()
-                      .getPaymentOptions()
-                      .razorpay!
-                      .currencyCode!
-                      .toUpperCase(),
-                  parentName: context
-                      .read<AuthCubit>()
-                      .getParentDetails()
-                      .getFullName(),
-                  parentMobile: context
-                      .read<AuthCubit>()
-                      .getParentDetails()
-                      .mobile,
-                  parentEmail: context
-                      .read<AuthCubit>()
-                      .getParentDetails()
-                      .email,
-                );
               case 'stripe':
                 paymentWithStripe(
                   amountToPay: double.parse(
@@ -1349,32 +1278,6 @@ class FeesDetailsScreenState extends State<FeesDetailsScreen> {
 
   ///payments
 
-  //Razorpay
-  Future<void> openCheckout({
-    required double amountToPay,
-    required String currencyCode,
-    required String apiKey,
-    required String orderId,
-    required String parentName,
-    required String parentMobile,
-    required String parentEmail,
-  }) async {
-    final options = {
-      'key': apiKey,
-      'amount': amountToPay,
-      'order_id': orderId,
-      'name': parentName,
-      'currency': currencyCode,
-      'prefill': {'contact': parentMobile, 'email': parentEmail},
-    };
-
-    try {
-      _razorpay.open(options);
-    } catch (e) {
-      debugPrint('Error: e');
-    }
-  }
-
   //storing selected fees details to send to api either optional or installments
   late List<FeesData> selectedFeesToBePaid;
   bool isCurrentlyBeingFullyPaid = false;
@@ -1397,35 +1300,6 @@ class FeesDetailsScreenState extends State<FeesDetailsScreen> {
       }
     }
     return temp;
-  }
-
-  ///Razorpay
-  void _handlePaymentSuccess(PaymentSuccessResponse response) {
-    Navigator.of(context).pushReplacementNamed(
-      Routes.paymentVerify,
-      arguments: {
-        'studentDetails': studentDetails,
-        'orderId': orderId,
-        'transactionId': paymentTransactionId,
-        'paymentSignature': response.signature,
-        'paymentId': response.paymentId,
-        'status': 1,
-        'isStudentPaying': widget.isStudentPaying,
-      },
-    );
-  }
-
-  void _handlePaymentError(PaymentFailureResponse response) {
-    Navigator.of(context).pushReplacementNamed(
-      Routes.paymentVerify,
-      arguments: {
-        'studentDetails': studentDetails,
-        'orderId': orderId,
-        'transactionId': paymentTransactionId,
-        'status': 0,
-        'isStudentPaying': widget.isStudentPaying,
-      },
-    );
   }
 
   //stripe

@@ -72,7 +72,7 @@ Since 3.5.0 both apps use the Gradle Kotlin DSL (`build.gradle.kts`, `settings.g
 | `ndkVersion` | `flutter.ndkVersion` | `"28.2.13676358"` |
 | `externalNativeBuild.cmake.version` | not set | `"3.31.5"` |
 | `lint.checkReleaseBuilds` | `false` (avoids fetching `play-services-tapandpay`, which the Stripe Android SDK references but is not in public Maven repositories) | not set |
-| Extra dependencies | multidex 2.0.1, Firebase BoM 31.0.2 + `firebase-messaging`, `androidx.emoji2` 1.4.0 (three artifacts), `com.razorpay:checkout:1.6.33` | same without Razorpay |
+| Extra dependencies | multidex 2.0.1, Firebase BoM 31.0.2 + `firebase-messaging`, `androidx.emoji2` 1.4.0 (three artifacts) | same |
 
 `compileSdk`, `minSdk` and `targetSdk` are not pinned in the repository: they are the defaults of the Flutter Gradle plugin of the Flutter SDK you build with (3.44.x in CI). Run `flutter build apk` once and read the merged manifest, or check the Flutter SDK's `FlutterExtension`, if you need the exact numbers for a store listing. To pin them, replace the `flutter.*` references with numbers.
 
@@ -97,7 +97,6 @@ The `release` signing config is filled from `android/key.properties` (`keyAlias`
 
 | Rule | Purpose |
 |---|---|
-| `-dontwarn com.razorpay.**`, `-keep class com.razorpay.** { *; }`, `-optimizations !method/inlining/`, `-keepclasseswithmembers class * { public void onPayment*(...); }` | Razorpay checkout callbacks (also present in the teacher app, harmless there). |
 | `-keep class io.flutter.**` (and `app`, `plugin`, `util`, `view`, `plugins` sub-packages), `-dontwarn io.flutter.embedding.**` | Flutter embedding. |
 | `-keep class com.google.firebase.** { *; }` | Firebase. |
 | `-ignorewarnings` | Suppresses all R8 warnings. |

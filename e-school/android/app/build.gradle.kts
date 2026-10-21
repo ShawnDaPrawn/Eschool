@@ -84,5 +84,4 @@ dependencies {
     implementation("androidx.emoji2:emoji2:$emoji2Version")
     implementation("androidx.emoji2:emoji2-views:$emoji2Version")
     implementation("androidx.emoji2:emoji2-views-helper:$emoji2Version")
-    implementation ("com.razorpay:checkout:1.6.33")
 }

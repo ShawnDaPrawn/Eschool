@@ -15,17 +15,11 @@ class FeesPaymentVerification extends StatefulWidget {
     required this.status,
     required this.isStudentPayingFees,
     super.key,
-    this.paymentId,
-    this.paymentSignature,
-    this.orderId,
     this.paymentIntentId,
   });
   final Student studentDetails;
   final int transactionId;
   final int? status;
-  final String? paymentId;
-  final String? orderId; //Razorpay
-  final String? paymentSignature;
   final String? paymentIntentId; //stripe
   final bool isStudentPayingFees;
 
@@ -37,9 +31,6 @@ class FeesPaymentVerification extends StatefulWidget {
       builder: (_) => FeesPaymentVerification(
         studentDetails: arguments['studentDetails'],
         transactionId: arguments['transactionId'],
-        paymentId: arguments['paymentId'],
-        paymentSignature: arguments['paymentSignature'],
-        orderId: arguments['orderId'],
         paymentIntentId: arguments['paymentIntentId'],
         status: arguments['status'],
         isStudentPayingFees: arguments['isStudentPaying'],
@@ -63,9 +54,7 @@ class FeesPaymentVerificationState extends State<FeesPaymentVerification> {
         transactionId: widget.transactionId.toString(),
         childId: widget.isStudentPayingFees ? null : widget.studentDetails.id,
         verifyStripePaymentIntent: widget.paymentIntentId != null,
-        paymentId: widget.paymentId,
         paymentIntentId: widget.paymentIntentId,
-        paymentSignature: widget.paymentSignature,
       );
     });
   }
@@ -169,7 +158,7 @@ class FeesPaymentVerificationState extends State<FeesPaymentVerification> {
                 jsonFileName: 'payment_cancel',
                 titleText: paymentFailureTitleKey,
                 msgText: paymentFailureMsgKey,
-              ) //for Razorpay
+              )
             : BlocBuilder<PostFeesPaymentCubit, PostFeesPaymentState>(
                 builder: (context, state) {
                   if (state is PostFeesPaymentSuccess) {

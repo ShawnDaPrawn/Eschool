@@ -24,7 +24,6 @@ class PaymentSelectionBottomSheetStateState
 
   @override
   void initState() {
-    if (widget.enabledPayments.razorpay != null) options.add('razorpay');
     if (widget.enabledPayments.stripe != null) options.add('stripe');
     if (widget.enabledPayments.paystack != null) options.add('paystack');
     if (widget.enabledPayments.flutterwave != null) options.add('flutterwave');
