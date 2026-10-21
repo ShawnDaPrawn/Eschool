@@ -86,7 +86,7 @@ From `config('installer.server')`, evaluated by `InstallServerController::check(
 | Json | extension `json` |
 | Curl | extension `curl` |
 
-The list does not cover every extension the code needs: GD (Intervention Image), Zip (System Update and spreadsheet imports), DOM and XML (PDF generation, SVG sanitising, spreadsheets) are not checked. [Deployment](Deployment#server-requirements) has the full list.
+The list does not cover every extension the code needs: GD (Intervention Image), Zip (spreadsheet imports), DOM and XML (PDF generation, SVG sanitising, spreadsheets) are not checked. [Deployment](Deployment#server-requirements) has the full list.
 
 ### Folders
 
@@ -96,7 +96,7 @@ From `config('installer.folders')`: `../storage/framework`, `../storage/logs` an
 
 ### InstallationSeeder
 
-[database/seeders/InstallationSeeder.php](https://github.com/ShawnDaPrawn/Eschool/blob/main/admin-panel/database/seeders/InstallationSeeder.php). It is safe to run repeatedly; [System-Update](System-Update) and the `/seeder_install` maintenance URL run it again.
+[database/seeders/InstallationSeeder.php](https://github.com/ShawnDaPrawn/Eschool/blob/main/admin-panel/database/seeders/InstallationSeeder.php). It is safe to run repeatedly. The Docker image's `docker/entrypoint.sh` runs it, and `EmailSeeder`, on every container start, which is how new roles, permissions and templates reach an existing install; on a server without the image, run `php artisan db:seed --class=InstallationSeeder --force` and the same for `EmailSeeder` after deploying new code. (The in-panel System Update and the `/seeder_install` URL used to do this; both were removed in Phase 0.)
 
 - Creates every permission with `Permission::firstOrCreate(['name' => ...], ['guard_name' => 'web'])` (ids in the list are ignored).
 - `Role::updateOrCreate(['name' => 'Super Admin'])` and `syncPermissions()` with the Super Admin list.
@@ -185,5 +185,4 @@ Notes:
 - [Deployment](Deployment)
 - [Configuration](Configuration)
 - [Roles-and-Permissions](Roles-and-Permissions)
-- [System-Update](System-Update)
 - [Troubleshooting-and-FAQ](Troubleshooting-and-FAQ)

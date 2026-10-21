@@ -178,7 +178,7 @@ See [Public Website](Public-Website).
 |---|---|---|
 | `settings` | Key/value store: `type`, `message` (both `text`), no timestamps | Holds `session_year`, `system_version`, school details, payment and app settings, ID-card design keys, terms and conditions, and more. Read with `getSettings()` in `app/Helpers/settings_helper.php` (no caching) |
 | `languages` | `name`, `code`, `file` (JSON file in `resources/lang`), `is_rtl`, `status` | `2026_05_26_173526` inserts English (`en`, `en.json`) if missing |
-| `email_tempalates` | Editable email templates. `type` (unique), `subject`, `content` | The table and model name keep the original misspelling (`EmailTempalate`) |
+| `email_tempalates` | Editable email templates. `type` (unique), `subject`, `content` | The table name keeps the original misspelling; the model is `EmailTemplate` (it was `EmailTempalate` until Phase 0) |
 
 ### Framework tables
 
@@ -325,7 +325,7 @@ Columns listed in the tables above already reflect these changes. Migrations tha
 | `Holiday`, `Event`, `MultipleEvent` | `holidays`, `events`, `multiple_events` | `Event::multipleEvent` | |
 | `Media`, `MediaFile`, `Slider`, `WebSetting`, `EducationalProgram`, `Faq`, `ContactUs` | website tables | `Media::files` | Image URL accessors; `Media::embeded_url` parses YouTube links |
 | `FormField` | `form_fields` | | `for` is not in `$fillable`; controllers set it directly |
-| `Language`, `Settings`, `EmailTempalate` | `languages`, `settings`, `email_tempalates` | | `Settings` has no timestamps |
+| `Language`, `Settings`, `EmailTemplate` | `languages`, `settings`, `email_tempalates` | | `Settings` has no timestamps |
 | `PromoteStudents` | `promote_students` | | Unused; no migration creates the table |
 
 ### Scoping summary

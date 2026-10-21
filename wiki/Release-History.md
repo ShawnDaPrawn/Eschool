@@ -4,7 +4,7 @@ The release history of eSchool: a short summary of the upstream versions this fo
 
 | Component | Version | Where it is set |
 |---|---|---|
-| Admin panel | `3.5.0` | `Settings::updateOrCreate(['type' => 'system_version'], ['message' => '3.5.0'])` in `database/seeders/InstallationSeeder.php`; raised by system update packages ([System-Update](System-Update)) |
+| Admin panel | `3.5.0` | `Settings::updateOrCreate(['type' => 'system_version'], ['message' => '3.5.0'])` in `database/seeders/InstallationSeeder.php`, which the container re-runs on every start (`docker/entrypoint.sh`). Update packages for the in-panel System Update used to raise it; that page was removed in Phase 0 |
 | Student/parent app (`e-school`) | `3.5.0+39` | `e-school/pubspec.yaml` |
 | Teacher app (`e-school-teacher`) | `3.5.0+32` | `e-school-teacher/pubspec.yaml` |
 | Documentation site | Docusaurus `3.10.2` | `documentation/package.json` |
@@ -163,13 +163,13 @@ If you run an install made from the original 3.5.0 code, these fork changes need
 | Online exam answers and key no longer sent | Old app builds that relied on them keep working through placeholders, but students must type the exam key, which the server checks |
 | Release builds of the student app require HTTPS | The admin panel must be on HTTPS with a valid certificate chain |
 | Settings are no longer copied into `.env` | The settings, mail, notification and fees pages save to the database only and no longer write `LOGO1`, `LOGO2`, `FAVICON`, `LOGIN_IMAGE`, `APP_NAME`, `TIMEZONE`, `SITE_KEY`, `SECRET_KEY`, `SENDER_ID`, `FIREBASE_PROJECT_ID`, `MAIL_*`, `RAZORPAY_*`, `STRIPE_*`, `PAYSTACK_*` or `FLW_*` into `.env`. Code that read `APP_NAME`, `APP_URL`, `DEMO_MODE`, `LOGO1`, `LOGO2`, `FAVICON` or `MAIL_*` with `env()` now uses `config()` or the `settings` table; `.env` mail and Paystack values only apply when the matching setting is empty. `php artisan optimize` (config, route and view caching) now works; re-run it after editing `.env` or updating |
+| System Update and the `storage-link`, `migrate` and `seeder_install` URLs removed (Phase 0) | Release by deploying a new image (or new code). Deploy time links storage, runs `migrate --force`, `InstallationSeeder` and `EmailSeeder`: `docker/entrypoint.sh` does this on every container start; on a server without the image run those commands after each update. The old URLs answer 404 |
 | Route name `events.update` on `POST events-update` | Renamed to `events.update-schedules`; customisations that call `route('events.update')` for that URL must be updated |
 
 ## See also
 
 - [Security-Model](Security-Model)
 - [Testing-and-CI](Testing-and-CI)
-- [System-Update](System-Update)
 - [Contributing](Contributing)
 - [Documentation-Site](Documentation-Site)
 - [Localization](Localization)
