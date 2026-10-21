@@ -99,6 +99,7 @@ Code that both Flutter apps need, kept once instead of copied into each. Both ap
 ```text
 packages/eschool_core/
 ├── lib/eschool_core.dart       The one public library: exports everything below
+├── lib/src/api/                ApiClient (the Dio calls and their error handling), ApiException, ApiErrorCodes
 ├── lib/src/models/             Models identical in both apps (gallery, chat settings, event schedule, ...)
 ├── lib/src/utils/              Helpers (file name sanitising)
 ├── lib/src/widgets/            Widgets that take everything they need as parameters

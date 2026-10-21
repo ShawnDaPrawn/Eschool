@@ -34,7 +34,7 @@ Both apps use the same folder structure under `lib/`:
 | `lib/ui/screens/` | Screens. Most screens expose `static Route route(RouteSettings)`, which builds a `CupertinoPageRoute` and provides the screen-local Cubits; a few are wrapped in a `CupertinoPageRoute` directly in `routes.dart`. |
 | `lib/ui/widgets/` | Reusable widgets (error containers, shimmer loaders, bottom sheets, force-update dialog, ...). |
 | `lib/ui/styles/colors.dart` | Theme colour constants (`primaryColor`, `secondaryColor`, ...). |
-| `lib/utils/api.dart` | `Api` (Dio wrapper with every endpoint URL) and `ApiException`. |
+| `lib/utils/api.dart` | `Api`: every endpoint URL, and static `post` / `get` / `download` that hand the call to the shared `ApiClient`. Also what the app does on a 401 (`logoutUser`). `ApiException` comes from `eschool_core` and is re-exported here. |
 | `lib/utils/constants.dart` | `baseUrl`, `databaseUrl`, `storageUrl`, notification channel keys, pagination limit, demo-credential switches, animation switches. |
 | `lib/utils/hiveBoxKeys.dart` | Hive box names and keys, SharedPreferences keys. |
 | `lib/utils/appLanguages.dart` | `defaultLanguageCode` and the `appLanguages` list. |
@@ -102,13 +102,13 @@ sequenceDiagram
     C-->>S: rebuild / listener
 ```
 
-`Api` ([e-school/lib/utils/api.dart](https://github.com/ShawnDaPrawn/Eschool/blob/main/e-school/lib/utils/api.dart), [e-school-teacher/lib/utils/api.dart](https://github.com/ShawnDaPrawn/Eschool/blob/main/e-school-teacher/lib/utils/api.dart)) is a static class:
+`Api` ([e-school/lib/utils/api.dart](https://github.com/ShawnDaPrawn/Eschool/blob/main/e-school/lib/utils/api.dart), [e-school-teacher/lib/utils/api.dart](https://github.com/ShawnDaPrawn/Eschool/blob/main/e-school-teacher/lib/utils/api.dart)) is a static class. The calls themselves are made by `ApiClient` in the shared [`eschool_core`](Repository-Layout#packageseschool_core) package (`packages/eschool_core/lib/src/api/api_client.dart`), which both apps use, so the behaviour below is the same in both and has its own tests. Each app builds one `ApiClient` in `Api`, passing in how to find the token and what to do on a 401.
 
 - Every endpoint is a `static String` built from `databaseUrl` (`'$baseUrl/api/'`), for example `studentLogin = '${databaseUrl}student/login'`.
 - `Api.post({body, url, useAuthToken, queryParameters, cancelToken, onSendProgress, onReceiveProgress})` sends the body as multipart `FormData` (`FormData.fromMap(body, ListFormat.multiCompatible)`), so file uploads and nested arrays go through the same call.
 - `Api.get({url, useAuthToken, queryParameters})` sends query parameters only.
 - `Api.download({url, cancelToken, savePath, updateDownloadedPercentage})` streams a file to disk with progress.
-- A new `Dio()` is created per call; there are no interceptors, base options or timeouts configured.
+- `ApiClient` creates a new `Dio()` per call; there are no interceptors, base options or timeouts configured.
 - `headers()` reads the token from Hive (`authBox` / `jwtToken`) and returns `{'Authorization': 'Bearer <token>'}` when `useAuthToken` is true.
 
 Response and error handling:
