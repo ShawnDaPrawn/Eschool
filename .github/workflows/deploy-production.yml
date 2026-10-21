@@ -1,0 +1,49 @@
+name: Deploy production
+
+# Production releases happen only from a v* tag, never on a merge, and wait
+# for a reviewer: the GitHub environment "production" must require one
+# (engineering/runbooks/environments.md). The job backs up the database
+# first, then deploys exactly as staging does, then smoke-tests.
+# Release steps around it: engineering/runbooks/release.md.
+#
+# To deploy (or roll back to) a release by hand: Actions > Deploy production >
+# Run workflow, and pick the tag under "Use workflow from".
+
+on:
+  push:
+    tags: ['v*']
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: deploy-production
+  cancel-in-progress: false
+
+jobs:
+  check:
+    name: Release is a v* tag
+    runs-on: ubuntu-latest
+    steps:
+      - name: Refuse anything but a v* tag
+        env:
+          REF: ${{ github.ref }}
+        run: |
+          if [[ "$REF" != refs/tags/v* ]]; then
+            echo "::error::Production deploys only from a v* tag; this run is on $REF. Choose the tag under 'Use workflow from'."
+            exit 1
+          fi
+
+  deploy:
+    name: Production
+    needs: check
+    uses: ./.github/workflows/deploy-environment.yml
+    permissions:
+      contents: read
+      id-token: write
+    with:
+      environment: production
+      release: ${{ github.ref_name }}
+      backup: true
+    secrets: inherit

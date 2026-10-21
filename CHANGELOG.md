@@ -18,6 +18,9 @@ Phase 0 (Groundwork), in progress on the phase branch.
 - `GET /up/worker`: a health check that fails when a queued job has waited more than ten minutes, for the worker's uptime check. A job that uses up its tries is logged once as "Queued job failed" (by name, without its data) for alerting, and log lines written by a job carry its name and id.
 - Container roles: the one Docker image runs as the web service (default), the queue worker (`CONTAINER_ROLE=worker`: `queue:work --tries=3 --timeout=120`, restarted hourly, stopped gracefully on SIGTERM) or the scheduler (`CONTAINER_ROLE=scheduler`: one `schedule:run`, for a Cloud Run Job started every minute). Only the web role migrates, one instance at a time (a MySQL lock).
 - Local stack with Docker Compose at the repository root: MySQL 8, the panel, the worker and the scheduler, built from the same image as Cloud Run.
+- Environments on Google Cloud: `infra/gcp/provision.sh staging|production` creates or updates Cloud SQL (backups; point-in-time recovery in production), the uploads bucket, Secret Manager secrets (names only), least-privilege service accounts, the Cloud Run services `navigateed-admin` and `navigateed-worker`, the `navigateed-scheduler` job with an every-minute Cloud Scheduler trigger, Workload Identity Federation for GitHub Actions, uptime checks and alerts. Not yet run against a real project.
+- Deploy workflows: staging on every merge to `main` once the repository variable `STAGING_DEPLOY_ENABLED` is `true`; production from a `v*` tag after a reviewer approves, with a database backup first and smoke tests after. Runbooks for environments, deploy, release, rollback, restore (with the restore drill, not yet run) and incidents in `engineering/runbooks/`.
+- A one-off `artisan` container role, run as an execution of the scheduler job, for maintenance commands such as `queue:retry`.
 
 ### Changed
 

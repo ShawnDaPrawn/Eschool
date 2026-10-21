@@ -11,10 +11,14 @@ cd /var/www/html
 #                   Cloud Scheduler starts every minute. The schedule itself lives
 #                   only in routes/console.php.
 #   scheduler-loop  php artisan schedule:work, for docker compose on a laptop.
+#   artisan         one php artisan command given as the container's arguments,
+#                   then exit: one-off maintenance through the scheduler job, e.g.
+#                   gcloud run jobs execute navigateed-scheduler --wait \
+#                     --update-env-vars=CONTAINER_ROLE=artisan --args=queue:retry,all
 ROLE="${CONTAINER_ROLE:-web}"
 case "$ROLE" in
-    web|worker|scheduler|scheduler-loop) ;;
-    *) echo "Unknown CONTAINER_ROLE '$ROLE' (expected web, worker, scheduler or scheduler-loop)" >&2; exit 64 ;;
+    web|worker|scheduler|scheduler-loop|artisan) ;;
+    *) echo "Unknown CONTAINER_ROLE '$ROLE' (expected web, worker, scheduler, scheduler-loop or artisan)" >&2; exit 64 ;;
 esac
 
 mkdir -p storage/app/public storage/framework/cache/data storage/framework/sessions storage/framework/views storage/logs bootstrap/cache
@@ -89,5 +93,9 @@ case "$ROLE" in
         ;;
     scheduler-loop)
         exec "${AS_APP[@]}" php artisan schedule:work
+        ;;
+    artisan)
+        [ $# -gt 0 ] || { echo "CONTAINER_ROLE=artisan needs the command as arguments" >&2; exit 64; }
+        exec "${AS_APP[@]}" php artisan --no-interaction "$@"
         ;;
 esac
