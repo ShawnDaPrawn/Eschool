@@ -47,7 +47,7 @@
                         </form>
                         <hr>
                         <div class="form-group col-12 col-md-3 mt-5">
-                            <a class="btn btn-theme form-control" href="{{ Storage::url('public/dummy_file.xlsx') }}" download>
+                            <a class="btn btn-theme form-control" href="{{ route('students.download-sample') }}" download>
                                 <strong>{{ __('download_dummy_file') }}</strong>
                             </a>
                         </div>

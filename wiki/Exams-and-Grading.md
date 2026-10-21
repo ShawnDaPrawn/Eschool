@@ -11,7 +11,7 @@ This page explains the two exam systems in the admin panel: **offline exams** (p
 | Grades | `grades` bands per session year | None |
 | Pass/fail | Per paper (`passing_status`); per exam in reports | None |
 | Managed by | Super Admin (`exam-create`, `exam-timetable-create`, `grade-create`), teachers enter marks (`exam-upload-marks`) | Teachers (`manage-online-exam`) |
-| Controllers | `ExamController`, `ExamTimetableController`, teacher API | `OnlineExamController`, `OnlineExamQuestionController`, student API |
+| Controllers | `Exam\` controllers, `ExamTimetableController`, teacher API | `OnlineExamController`, `OnlineExamQuestionController`, student API |
 
 ## Offline exams
 
@@ -31,7 +31,7 @@ flowchart LR
 
 ### 1. Grade bands
 
-Grades are rows in `grades` (`starting_range`, `ending_range`, `grade`, `session_year_id`), managed by `ExamController::indexGrades`, `createGrades` and `destroyGrades` (permission `grade-create`). Validation: both ends numeric between 0 and 100, `ending_range` greater than `starting_range`, `session_year_id` required. Bands can be copied into a new session year with the `transfer_exam_grades` option when the year is created.
+Grades are rows in `grades` (`starting_range`, `ending_range`, `grade`, `session_year_id`), managed by `Exam\GradeController::indexGrades`, `createGrades` and `destroyGrades` (permission `grade-create`). Validation: both ends numeric between 0 and 100, `ending_range` greater than `starting_range`, `session_year_id` required. Bands can be copied into a new session year with the `transfer_exam_grades` option when the year is created.
 
 Lookups go through the `findExamGrade($session_year_id, $percentage)` helper in [`app/Helpers/settings_helper.php`](https://github.com/ShawnDaPrawn/Eschool/blob/main/admin-panel/app/Helpers/settings_helper.php):
 
@@ -47,7 +47,7 @@ It returns an empty string when the year has no bands and `null` when no band co
 
 ### 2. Creating the exam
 
-`ExamController::store` (permission `exam-create`) takes `name`, `description`, `session_year_id`, optional `semester_id` and `class_id[]`, creates the `exams` row (`publish = 0`) and one `exam_classes` row per class. `update` changes the name, description and semester and adds or removes exam classes; `destroy` soft-deletes the exam, and `Exam::booted()` cascades to its marks, timetables, results and exam classes. `deleteExamClass($exam_id, $class_id)` removes a single class.
+`Exam\ExamController::store` (permission `exam-create`) takes `name`, `description`, `session_year_id`, optional `semester_id` and `class_id[]`, creates the `exams` row (`publish = 0`) and one `exam_classes` row per class. `update` changes the name, description and semester and adds or removes exam classes; `destroy` soft-deletes the exam, and `Exam::booted()` cascades to its marks, timetables, results and exam classes. `deleteExamClass($exam_id, $class_id)` removes a single class.
 
 All offline-exam admin actions, including publishing, check `exam-create`; the seeded `exam-list`, `exam-edit` and `exam-delete` permissions are not used.
 
@@ -65,7 +65,7 @@ An exam's status for a class is derived from its timetable dates and is computed
 
 ### 4. Entering marks
 
-**Admin panel** (`ExamController`, permission `exam-upload-marks`; in practice the Teacher role):
+**Admin panel** (`Exam\MarksController`, permission `exam-upload-marks`; in practice the Teacher role):
 
 - `uploadMarks()` lists the class sections the logged-in teacher is class teacher of in the current session year.
 - `marksList()` refuses until the exam is **Completed** for that class. Students come from `student_sessions` for the section and the exam's session year. For an elective subject only students with a matching `student_subjects` row are listed.
@@ -74,7 +74,7 @@ An exam's status for a class is derived from its timetable dates and is computed
   - `grade = findExamGrade(session_year_id, obtained_marks / total_marks * 100)`
   - `ExamMarks::updateOrInsert(['id' => exam_marks_id], [...])`
 
-**Teacher app** (`POST /api/teacher/submit-exam-marks/subject` and `/student`, `TeacherApiController`):
+**Teacher app** (`POST /api/teacher/submit-exam-marks/subject` and `/student`, `Teacher\ExamController`):
 
 - Refused with `exam_published` if the exam is already published.
 - The teacher must be class teacher of the section or teach the subject there, every student must be in the section, and the exam must be Completed for the class.
@@ -84,7 +84,7 @@ The admin `submitMarks()` does not check whether the exam is already published; 
 
 ### 5. Publishing results
 
-`ExamController::publishExamResult($id)` (permission `exam-create`) toggles publication.
+`Exam\PublishController::publishExamResult($id)` (permission `exam-create`) toggles publication.
 
 To publish, all of these must hold:
 
@@ -113,8 +113,8 @@ All rows are bulk-inserted into `exam_results` and `exams.publish` becomes 1. Ca
 ### 6. Where results are shown
 
 - The student and parent apps read only `exam_results` (with the marks), so nothing is visible before publishing. `GET /api/student/get-exam-list` lists exams of the student's class that include the student's subjects, with the 0/1/2 status and an optional status filter.
-- `ExamController::viewExamResult` / `fetchExamResultList` (permission `view-exam-result`) list results for Super Admin (all sections) and for teachers (their class-teacher sections).
-- `ExamController::getExamResultIndex` / `showExamResult` (permission `exam-result`) are the class-teacher result screens; the requested section must be one of the teacher's class-teacher sections.
+- `Exam\ResultController::viewExamResult` / `fetchExamResultList` (permission `view-exam-result`) list results for Super Admin (all sections) and for teachers (their class-teacher sections).
+- `Exam\ResultController::getExamResultIndex` / `showExamResult` (permission `exam-result`) are the class-teacher result screens; the requested section must be one of the teacher's class-teacher sections.
 
 ### Pass and fail
 
@@ -134,9 +134,9 @@ PDFs are rendered with dompdf (`barryvdh/laravel-dompdf` `^3.1`, facade `PDF`/`P
 
 | Generator | Access | Template | Content |
 |---|---|---|---|
-| `StudentController::generateResult($id)` | `generate-result` | `students.result_template` | All **published** exams of the current session year that have papers in the student's subjects (core plus electives, semester filter ignored). Per subject: marks per exam, totals and a grade; overall total, percentage, grade and Passed/Failed. Streamed as `result.pdf` |
-| `StudentController::generateExamResult($id)` | `view-exam-result` | `students.exam_result_template` | One published exam. Query string `exam_id` (required), `session_year_id` (defaults to current), `semester_id` (optional filter on the exam). Only subjects that are in both the student's subject list and the exam timetable |
-| `TeacherApiController::getStudentResultPdf` (`GET /api/teacher/get-student-result-pdf`) | Teacher who teaches the student | `students.result_template` | Same report as `generateResult`, returned base64-encoded in the JSON `pdf` field |
+| `Student\ResultController::generateResult($id)` | `generate-result` | `students.result_template` | All **published** exams of the current session year that have papers in the student's subjects (core plus electives, semester filter ignored). Per subject: marks per exam, totals and a grade; overall total, percentage, grade and Passed/Failed. Streamed as `result.pdf` |
+| `Student\ResultController::generateExamResult($id)` | `view-exam-result` | `students.exam_result_template` | One published exam. Query string `exam_id` (required), `session_year_id` (defaults to current), `semester_id` (optional filter on the exam). Only subjects that are in both the student's subject list and the exam timetable |
+| `Teacher\ExamController::getStudentResultPdf` (`GET /api/teacher/get-student-result-pdf`) | Teacher who teaches the student | `students.result_template` | Same report as `generateResult`, returned base64-encoded in the JSON `pdf` field |
 
 The grades printed in these PDFs are looked up directly with `Grade::where('starting_range', '<=', $p)->where('ending_range', '>=', $p)` on the **rounded** percentage, without a session-year filter, so the first matching band of any year is used. `findExamGrade()` (used when saving marks and publishing) filters by session year and uses `floor()`. The two can disagree when bands differ between years.
 
@@ -196,7 +196,7 @@ The parent API has the list, result-list and result endpoints for a child (behin
 
 ### Scoring (OnlineExamScoringService)
 
-[`OnlineExamScoringService`](https://github.com/ShawnDaPrawn/Eschool/blob/main/admin-panel/app/Services/OnlineExamScoringService.php) is the only scoring implementation. It is used by the student API result endpoints, the parent API, `StudentController`, `OnlineExamController::showOnlineExamResult` and `ExamReportService`.
+[`OnlineExamScoringService`](https://github.com/ShawnDaPrawn/Eschool/blob/main/admin-panel/app/Services/OnlineExamScoringService.php) is the only scoring implementation. It is used by the student API result endpoints, the parent API, `Student\ResultController`, `OnlineExamController::showOnlineExamResult` and `ExamReportService`.
 
 ```php
 public static function isCorrect(iterable $selectedOptionIds, iterable $correctOptionIds): bool
@@ -225,7 +225,7 @@ When a class has semesters enabled for the session year (`class_session_configs.
 - `exams.semester_id` and `online_exams.semester_id` can be set when the exam is created (both nullable).
 - `GET /api/student/get-exam-list` accepts `semester_id`; without it the current semester is used. The filter is applied only when the class has semesters and a semester was found.
 - The online exam list and `findStudentOnlineExam()` restrict to the current semester's exams, so a semester-tagged exam is not reachable once its semester is over.
-- `StudentController::generateExamResult` accepts a `semester_id` filter; `generateResult` reports the whole year and ignores semesters.
+- `Student\ResultController::generateExamResult` accepts a `semester_id` filter; `generateResult` reports the whole year and ignores semesters.
 - Migration `2026_04_28_165603_semester_id_backfill` set `semester_id` on existing exams from the earliest paper date, and on online exams from the start date, where the date fell inside a semester of the same session year.
 - Switching a class's semester setting with `ClassSessionConfigService::saveConfig()`, or deleting the last semester of a year, **force-deletes** that class's offline exams (with timetables, marks and results) and online exams for the session year. See [Academic Structure](Academic-Structure#classsessionconfigservice).
 

@@ -1,4 +1,4 @@
-import 'package:eschool_teacher/utils/fileNameUtils.dart';
+import 'package:eschool_core/eschool_core.dart';
 
 enum StudyMaterialType { file, youtubeVideo, uploadedVideoUrl, other }
 

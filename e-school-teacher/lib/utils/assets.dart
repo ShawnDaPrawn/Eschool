@@ -56,7 +56,7 @@ class Assets {
   static const lessonIcon = '$_imagePath/lesson.svg';
   static const topicsIcon = '$_imagePath/topics.svg';
   static const holidayIcon = '$_imagePath/holiday_icon.svg';
-  static const attendanceIcon = '$_imagePath/attendence.svg';
+  static const attendanceIcon = '$_imagePath/attendance.svg';
   static const examIcon = '$_imagePath/exam_icon.svg';
   static const resultIcon = '$_imagePath/result_icon.svg';
   static const manageLeavesIcon = '$_imagePath/manage_leaves.svg';

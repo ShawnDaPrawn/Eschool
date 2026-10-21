@@ -98,7 +98,7 @@ return [
     'commands' => [
         'db:seed --class=InstallationSeeder --force',
         'db:seed --class=AddSuperAdminSeeder --force',
-        'db:seed --class=emailseeder --force',
+        'db:seed --class=EmailSeeder --force',
         // Give every install its own APP_KEY instead of the one in .env.example.
         'key:generate --force',
     ],

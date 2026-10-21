@@ -94,7 +94,7 @@ class SystemUpdateController extends Controller
 
                                 Artisan::call('migrate --force');
                                 Artisan::call('db:seed --class=InstallationSeeder --force');
-                                Artisan::call('db:seed --class=emailseeder --force');
+                                Artisan::call('db:seed --class=EmailSeeder --force');
 
                                 unlink($source_path1);
                                 unlink($ver_file1);

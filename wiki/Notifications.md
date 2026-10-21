@@ -55,9 +55,9 @@ The `title` and `message` columns are 128 characters and the MySQL connection is
 
 | Endpoint | Method |
 |---|---|
-| `GET /api/student/get-notification` | `StudentApiController::getNotifications` |
-| `GET /api/parent/get-notification` | `ParentApiController::getNotifications` |
-| `GET /api/teacher/get-notification` | `TeacherApiController::getNotifications` |
+| `GET /api/student/get-notification` | `Student\NotificationController::getNotifications` |
+| `GET /api/parent/get-notification` | `Parent\NotificationController::getNotifications` |
+| `GET /api/teacher/get-notification` | `Teacher\NotificationController::getNotifications` |
 
 All three return `Notification` rows of the current session year (`session_year` setting) where the id is in the user's `user_notifications` **or** `send_to` is 1 or 4, newest first, Laravel-paginated (15 per page, `?page=`). Because the admin panel's absence alert is stored with `send_to = 4`, those alerts appear in every user's list, not only the parents'. Notifications without `user_notifications` rows and with another `send_to` (for example the fee reminder below) never appear in any list.
 
@@ -71,25 +71,25 @@ All three return `Notification` rows of the current session year (`session_year`
 | Custom notification, specific users | `NotificationController::store` | The selected users | `send_to` 2, `is_custom` 1, user rows | none: the `sendSimpleNotification()` call is commented out, so they only see it in the in-app list |
 | Announcement (admin panel, "noticeboard") | `AnnouncementController::store` / `update` | Every student user (`Students::select('user_id')`) | none | the `set_data` value (`noticeboard`) |
 | Announcement (admin panel, teacher, class section) | `AnnouncementController::store` / `update` | Students of the class section | none | `class_section` |
-| Announcement (teacher app) | `TeacherApiController::sendAnnouncement` / `updateAnnouncement` | Students of the class section | none | `class_section` |
-| New / updated assignment | `AssignmentController::store` / `update`, `TeacherApiController::createAssignment` / `updateAssignment` | Students of the class section (for a new assignment in an elective subject, only those who chose it) | `send_to` 3, user rows | `assignment` |
-| Assignment submission accepted / rejected | `AssignmentController::updateAssignmentSubmission`, `TeacherApiController::updateAssignmentSubmission` | The student | `send_to` 3, user rows | `assignment` |
-| Assignment submitted | `StudentApiController::submitAssignment` | Subject teachers of that subject and class section | `send_to` 2, user rows | `assignment_submission` |
+| Announcement (teacher app) | `Teacher\AnnouncementController::sendAnnouncement` / `updateAnnouncement` | Students of the class section | none | `class_section` |
+| New / updated assignment | `AssignmentController::store` / `update`, `Teacher\AssignmentController::createAssignment` / `updateAssignment` | Students of the class section (for a new assignment in an elective subject, only those who chose it) | `send_to` 3, user rows | `assignment` |
+| Assignment submission accepted / rejected | `AssignmentController::updateAssignmentSubmission`, `Teacher\AssignmentController::updateAssignmentSubmission` | The student | `send_to` 3, user rows | `assignment` |
+| Assignment submitted | `Student\AssignmentController::submitAssignment` | Subject teachers of that subject and class section | `send_to` 2, user rows | `assignment_submission` |
 | Student marked absent (admin panel) | `AttendanceController::store` | Father, mother and guardian users; only when the record changes to absent | `send_to` 4, user rows | `attendance` |
-| Student marked absent (teacher app) | `TeacherApiController::submitAttendance` | Father and mother users | `send_to` 3, user rows | `attendance` |
-| Student leave applied | `StudentApiController::applyLeave`, `ParentApiController::applyLeave` | Class teachers of the student's class section | `send_to` 3, user rows | `leave` |
-| Student leave approved / rejected | `LeaveController::studentLeaveStatusUpdate`, `TeacherApiController::studentLeaveStatusUpdate` | The student's parents | `send_to` 3, user rows | `leave` |
+| Student marked absent (teacher app) | `Teacher\AttendanceController::submitAttendance` | Father and mother users | `send_to` 3, user rows | `attendance` |
+| Student leave applied | `Student\LeaveController::applyLeave`, `Parent\LeaveController::applyLeave` | Class teachers of the student's class section | `send_to` 3, user rows | `leave` |
+| Student leave approved / rejected | `Leave\StudentLeaveController::studentLeaveStatusUpdate`, `Teacher\LeaveController::studentLeaveStatusUpdate` | The student's parents | `send_to` 3, user rows | `leave` |
 | Chat message | `sendMessage` in the three API controllers | The receiver | none | `chat` (with `sender_info`) |
 | Online payment recorded / failed (webhook) | `WebhookController::notifyParents` | The transaction's parent | `send_to` 2, user row | `online` |
-| App reports a failed payment | `StudentApiController::failPaymentTransactionStatus` (student user), `ParentApiController::failPaymentTransactionStatus` (parent user) | as listed | `send_to` 2, user row | `online` |
-| Cash / cheque payment recorded by staff | `FeesTypeController::compulsoryFeesPaidStore`, `optionalFeesPaidStore` | Father's (else guardian's) user | `send_to` 2, user row | `Online` |
-| Fee reminder from the student app | `GET /api/student/send-fee-notification` (`StudentApiController::sendFeeNotification`) | The student's parents | `send_to` 2, no user rows (so not listed anywhere) | `fees-due` (with `child_id`) |
+| App reports a failed payment | `Student\FeesController::failPaymentTransactionStatus` (student user), `Parent\FeesController::failPaymentTransactionStatus` (parent user) | as listed | `send_to` 2, user row | `online` |
+| Cash / cheque payment recorded by staff | `Fees\PaymentController::compulsoryFeesPaidStore`, `optionalFeesPaidStore` | Father's (else guardian's) user | `send_to` 2, user row | `Online` |
+| Fee reminder from the student app | `GET /api/student/send-fee-notification` (`Student\FeesController::sendFeeNotification`) | The student's parents | `send_to` 2, no user rows (so not listed anywhere) | `fees-due` (with `child_id`) |
 
 Exams, online exams, results, events, holidays and timetables send no notifications in the current code.
 
 Notes on specific triggers, as written:
 
-- `TeacherApiController::submitAttendance` calls `sendSimpleNotification()` inside the loop over a student's parents, passing all of them each time, so each parent can get the same push more than once; and it resets `$userNotificationData` per student, so only the last absent student's `user_notifications` rows are inserted.
+- `Teacher\AttendanceController::submitAttendance` calls `sendSimpleNotification()` inside the loop over a student's parents, passing all of them each time, so each parent can get the same push more than once; and it resets `$userNotificationData` per student, so only the last absent student's `user_notifications` rows are inserted.
 - Payment pushes from the webhook are wrapped in `try`/`catch` so a failed push never undoes the payment. Other callers are inside the controller's general `try`, so an FCM exception there becomes an `error_occurred` response even though the data was saved (`compulsoryFeesPaidStore` special-cases this with "Data Stored successfully. But App push notification not send.").
 
 ## Custom notifications (admin panel)
@@ -134,7 +134,7 @@ The form displays the effective config values (`config('mail.default')`, `config
 
 Because welcome emails carry generated passwords in `$data`, a failed send writes those passwords to `storage/logs`. The log redaction added in commit `ee49250` applies to `ResponseService` error logs, not to `MailService`.
 
-Editable templates live in the `email_tempalates` table (model `App\Models\EmailTempalate`, columns `type` unique, `subject`, `content`). [`database/seeders/emailseeder.php`](https://github.com/ShawnDaPrawn/Eschool/blob/main/admin-panel/database/seeders/emailseeder.php) creates three with `firstOrCreate` (so admin edits survive), and both the installer (`config/installer.php`) and the system updater run it.
+Editable templates live in the `email_tempalates` table (model `App\Models\EmailTempalate`, columns `type` unique, `subject`, `content`). [`database/seeders/EmailSeeder.php`](https://github.com/ShawnDaPrawn/Eschool/blob/main/admin-panel/database/seeders/EmailSeeder.php) creates three with `firstOrCreate` (so admin edits survive), and both the installer (`config/installer.php`) and the system updater run it.
 
 | `type` | Used for | Placeholders in the seeded HTML |
 |---|---|---|
@@ -150,9 +150,9 @@ The editor is **System Settings > Email Template**: `GET email-tamplate` (route 
 
 | Email | Trigger | Recipients | Template / view | Subject |
 |---|---|---|---|---|
-| Parent welcome with credentials | `StudentController::store` (admission) | Father and mother, or guardian | `student_registration` / `students.email` | `Welcome to <school_name>` |
-| Parent welcome with credentials | `StudentController::updateStatus` with status 1 (online registration accepted) | The student's parents | `student_registration` / `students.email` | as above |
-| Registration rejected | `StudentController::updateStatus` with another status (user `status` set to 2) | The student's parents | `student_application_regect` / `students.email` | `Response To Online Registration` |
+| Parent welcome with credentials | `Student\StudentController::store` (admission) | Father and mother, or guardian | `student_registration` / `students.email` | `Welcome to <school_name>` |
+| Parent welcome with credentials | `Student\OnlineRegistrationController::updateStatus` with status 1 (online registration accepted) | The student's parents | `student_registration` / `students.email` | as above |
+| Registration rejected | `Student\OnlineRegistrationController::updateStatus` with another status (user `status` set to 2) | The student's parents | `student_application_regect` / `students.email` | `Response To Online Registration` |
 | Parent welcome on bulk upload | `StudentsImport::collection()` (Students > Add Bulk Data) | Father, mother, guardian of each row | `Mail::send('students.email', ...)` directly, no template | `Welcome to <school_name>` |
 | Teacher welcome | `TeacherController::store` | The teacher | `staff_registration` / `teacher.email` | `Welcome to <school_name>` |
 | Staff welcome | `StaffController::store` | The staff member | `staff_registration` / `staff.email` | `Welcome to <school_name>` |
@@ -160,7 +160,7 @@ The editor is **System Settings > Email Template**: `GET email-tamplate` (route 
 | Mail settings test | `POST verify-email-settings` | The address entered | view `mail.blade.php` | `Connection Verified successfully` |
 | Password reset link | Web `POST password/email` (`ForgotPasswordController`, `throttle:login`) and API `POST /api/forgot-password` (`ApiController::forgotPassword`, `throttle:login`) | The account email | Laravel's default reset notification | Laravel default |
 
-Sender: the student/parent emails in `StudentController` and the contact-us reply call `from(config('mail.from.address'), <school name>)`; the teacher, staff and bulk-import emails do not set a sender, so Laravel uses `mail.from.address` and `mail.from.name` (which normally follows the school name, see above).
+Sender: the student/parent emails in `Student\StudentController` and `Student\OnlineRegistrationController`, and the contact-us reply call `from(config('mail.from.address'), <school name>)`; the teacher, staff and bulk-import emails do not set a sender, so Laravel uses `mail.from.address` and `mail.from.name` (which normally follows the school name, see above).
 
 Generated passwords are the person's date of birth as `ddmmyyyy` (`str_replace('-', '', date('d-m-Y', ...))`); the student's GR number is used as the login "email". `POST /api/student/forgot-password` sends no email: when the GR number and date of birth match it sets `users.reset_request = 1`, and staff reset the password from **Students > Students Reset Password** (`reset-password-list`, `student-change-password`, permission `student-reset-password`). The API answer is the same whether or not an account matched.
 

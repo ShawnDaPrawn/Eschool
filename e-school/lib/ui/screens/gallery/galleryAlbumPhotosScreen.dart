@@ -1,6 +1,6 @@
 import 'package:eschool/app/routes.dart';
 import 'package:eschool/cubits/gallery/galleryPhotosCubit.dart';
-import 'package:eschool/data/models/galleryAlbum.dart';
+import 'package:eschool_core/eschool_core.dart';
 import 'package:eschool/data/models/studyMaterial.dart';
 import 'package:eschool/ui/widgets/customBackButton.dart';
 import 'package:eschool/ui/widgets/customImageWidget.dart';

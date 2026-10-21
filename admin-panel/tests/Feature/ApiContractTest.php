@@ -37,7 +37,7 @@ class ApiContractTest extends TestCase
         $changed = [];
         $seen = [];
 
-        foreach ($this->calls($school->ids) as $name => [$who, $method, $uri, $params]) {
+        foreach ($this->calls($school) as $name => [$who, $method, $uri, $params]) {
             $response = $this->apiClient($who === null ? null : $school->tokens[$who])->{$method}('/api/'.$uri, $params);
             $json = $response->json();
             $actual = [
@@ -80,13 +80,16 @@ class ApiContractTest extends TestCase
      * Every endpoint the apps call, in order: reads first, then changes, then
      * the calls that sign people out.
      *
-     * @param  array<string, int>  $id
+     * Dates come from the school's own "today", the one its fixture was built
+     * around: the test process runs in UTC, the school in its own timezone.
+     *
      * @return array<string, array{0: ?string, 1: string, 2: string, 3: array}>
      */
-    private function calls(array $id): array
+    private function calls(DemoSchool $school): array
     {
+        $id = $school->ids;
         $year = $id['session_year'];
-        $month = (int) now()->format('n');
+        $month = (int) $school->today()->format('n');
         $asha = ['child_id' => $id['asha']];
         $page = ['limit' => 10, 'offset' => 0]; // the apps always page lists
 
@@ -124,7 +127,7 @@ class ApiContractTest extends TestCase
             'student/lesson-topics' => ['asha', 'get', 'student/lesson-topics', ['lesson_id' => $id['lesson']]],
             'student/assignments' => ['asha', 'get', 'student/assignments', []],
             'student/assignments-submitted' => ['asha', 'get', 'student/assignments', ['is_submitted' => 1]],
-            'student/attendance' => ['asha', 'get', 'student/attendance', ['month' => $month, 'year' => (int) now()->format('Y')]],
+            'student/attendance' => ['asha', 'get', 'student/attendance', ['month' => $month, 'year' => (int) $school->today()->format('Y')]],
             'student/attendance-report' => ['asha', 'get', 'student/attendance-report', ['session_year_id' => $year, 'month' => $month]],
             'student/announcements' => ['asha', 'get', 'student/announcements', []],
             'student/announcements-subject' => ['asha', 'get', 'student/announcements', ['type' => 'subject', 'subject_id' => $id['maths']]],
@@ -163,7 +166,7 @@ class ApiContractTest extends TestCase
             'parent/lessons' => ['farid', 'get', 'parent/lessons', $asha + ['subject_id' => $id['maths']]],
             'parent/lesson-topics' => ['farid', 'get', 'parent/lesson-topics', $asha + ['lesson_id' => $id['lesson']]],
             'parent/assignments' => ['farid', 'get', 'parent/assignments', $asha],
-            'parent/attendance' => ['farid', 'get', 'parent/attendance', $asha + ['month' => $month, 'year' => (int) now()->format('Y')]],
+            'parent/attendance' => ['farid', 'get', 'parent/attendance', $asha + ['month' => $month, 'year' => (int) $school->today()->format('Y')]],
             'parent/attendance-report' => ['farid', 'get', 'parent/attendance-report', $asha + ['session_year_id' => $year, 'month' => $month]],
             'parent/announcements' => ['farid', 'get', 'parent/announcements', ['type' => 'noticeboard']],
             'parent/announcements-class' => ['farid', 'get', 'parent/announcements', $asha + ['type' => 'class']],
@@ -203,8 +206,8 @@ class ApiContractTest extends TestCase
             'teacher/lessons' => ['tara', 'get', 'teacher/get-lesson', ['class_section_id' => $id['section_a'], 'subject_id' => $id['maths']]],
             'teacher/topics' => ['tara', 'get', 'teacher/get-topic', ['lesson_id' => $id['lesson']]],
             'teacher/announcements' => ['tara', 'get', 'teacher/get-announcement', ['class_section_id' => $id['section_a'], 'subject_id' => $id['maths']]],
-            'teacher/attendance' => ['tara', 'get', 'teacher/get-attendance', ['class_section_id' => $id['section_a'], 'date' => now()->subDay()->toDateString()]],
-            'teacher/attendance-report' => ['tara', 'get', 'teacher/attendance-report', ['month' => $month, 'year' => (int) now()->format('Y')]],
+            'teacher/attendance' => ['tara', 'get', 'teacher/get-attendance', ['class_section_id' => $id['section_a'], 'date' => $school->today(-1)->toDateString()]],
+            'teacher/attendance-report' => ['tara', 'get', 'teacher/attendance-report', ['month' => $month, 'year' => (int) $school->today()->format('Y')]],
             'teacher/students' => ['tara', 'get', 'teacher/student-list', ['class_section_id' => $id['section_a']]],
             'teacher/student-details' => ['tara', 'get', 'teacher/student-details', ['student_id' => $id['asha']]],
             'teacher/exams' => ['tara', 'get', 'teacher/get-exam-list', ['class_section_id' => $id['section_a']]],
@@ -229,19 +232,19 @@ class ApiContractTest extends TestCase
             'student/submit-online-exam' => ['asha', 'post', 'student/submit-online-exam-answers', [
                 'online_exam_id' => $id['online_exam'], 'answers_data' => [['question_id' => $id['question'], 'option_id' => [$id['option_1']]]],
             ]],
-            'student/apply-leave' => ['asha', 'post', 'student/apply-leave', ['reason' => 'Fever', 'leave_details' => [['date' => now()->addDays(20)->format('d-m-Y'), 'type' => 'Full']]]],
+            'student/apply-leave' => ['asha', 'post', 'student/apply-leave', ['reason' => 'Fever', 'leave_details' => [['date' => $school->today(20)->format('d-m-Y'), 'type' => 'Full']]]],
             'student/delete-leave' => ['ben', 'post', 'student/delete-leave', ['leave_id' => $id['pending_student_leave']]],
             'student/store-fees-unknown' => ['asha', 'post', 'student/store-fees', ['transaction_id' => 999999]],
             'student/fail-payment-unknown' => ['asha', 'post', 'student/fail-payment-transaction', ['payment_transaction_id' => 999999]],
-            'parent/apply-leave' => ['farid', 'post', 'parent/apply-leave', $asha + ['reason' => 'Wedding', 'leave_details' => [['date' => now()->addDays(21)->format('d-m-Y'), 'type' => 'Full']]]],
+            'parent/apply-leave' => ['farid', 'post', 'parent/apply-leave', $asha + ['reason' => 'Wedding', 'leave_details' => [['date' => $school->today(21)->format('d-m-Y'), 'type' => 'Full']]]],
             'parent/store-fees-unknown' => ['farid', 'post', 'parent/store-fees', $asha + ['transaction_id' => 999999]],
             'teacher/create-assignment' => ['tara', 'post', 'teacher/create-assignment', [
                 'class_section_id' => $id['section_a'], 'subject_id' => $id['science'], 'name' => 'Plant diary',
-                'instructions' => 'Draw a leaf', 'due_date' => now()->addDays(5)->format('d-m-Y').' 17:00', 'points' => 5,
+                'instructions' => 'Draw a leaf', 'due_date' => $school->today(5)->format('d-m-Y').' 17:00', 'points' => 5,
             ]],
             'teacher/update-assignment' => ['tara', 'post', 'teacher/update-assignment', [
                 'assignment_id' => $id['assignment'], 'class_section_id' => $id['section_a'], 'subject_id' => $id['maths'],
-                'name' => 'Fraction worksheet', 'due_date' => now()->addDays(8)->format('Y-m-d').' 17:00:00', 'points' => 10,
+                'name' => 'Fraction worksheet', 'due_date' => $school->today(8)->format('Y-m-d').' 17:00:00', 'points' => 10,
             ]],
             'teacher/review-submission' => ['tara', 'post', 'teacher/update-assignment-submission', [
                 'assignment_submission_id' => $id['submission'], 'status' => 2, 'points' => 9, 'feedback' => 'Redo question 3',
@@ -263,7 +266,7 @@ class ApiContractTest extends TestCase
                 'announcement_id' => $id['subject_announcement'], 'class_section_id' => $id['section_a'], 'subject_id' => $id['maths'], 'title' => 'Maths test moved',
             ]],
             'teacher/submit-attendance' => ['tara', 'post', 'teacher/submit-attendance', [
-                'class_section_id' => $id['section_a'], 'student_id' => [$id['asha'], $id['ben']], 'date' => now()->toDateString(),
+                'class_section_id' => $id['section_a'], 'student_id' => [$id['asha'], $id['ben']], 'date' => $school->today()->toDateString(),
                 'attendance' => [['student_id' => $id['asha'], 'type' => 1], ['student_id' => $id['ben'], 'type' => 0]],
             ]],
             'teacher/submit-marks-by-subject' => ['tara', 'post', 'teacher/submit-exam-marks/subject', [
@@ -278,7 +281,7 @@ class ApiContractTest extends TestCase
                 'timetable_id' => $id['timetable_maths'], 'live_class_link' => 'https://meet.example.com/maths', 'link_name' => 'Maths class',
             ]],
             'teacher/decide-student-leave' => ['tara', 'post', 'teacher/student-leave-status-update', ['leave_id' => $id['leave_to_decide'], 'status' => 2, 'reason_of_rejection' => 'Exam day']],
-            'teacher/apply-leave' => ['tara', 'post', 'teacher/apply-leave', ['reason' => 'Training', 'leave_details' => [['date' => now()->addDays(22)->format('d-m-Y'), 'type' => 'Full']]]],
+            'teacher/apply-leave' => ['tara', 'post', 'teacher/apply-leave', ['reason' => 'Training', 'leave_details' => [['date' => $school->today(22)->format('d-m-Y'), 'type' => 'Full']]]],
             'teacher/delete-leave' => ['tara', 'post', 'teacher/delete-leave', ['leave_id' => $id['teacher_leave']]],
             'teacher/delete-file' => ['tara', 'post', 'teacher/delete-file', ['file_id' => $id['lesson_file']]],
             'teacher/delete-topic' => ['tara', 'post', 'teacher/delete-topic', ['topic_id' => $id['topic']]],

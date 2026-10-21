@@ -353,6 +353,12 @@ class DemoSchool
         return DB::table($table)->insertGetId($values + ['created_at' => now(), 'updated_at' => now()]);
     }
 
+    /** The school's date, `$offsetDays` from today. */
+    public function today(int $offsetDays = 0): Carbon
+    {
+        return $this->today->copy()->addDays($offsetDays);
+    }
+
     private function day(int $offset): string
     {
         return $this->today->copy()->addDays($offset)->toDateString();

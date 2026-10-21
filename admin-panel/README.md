@@ -147,11 +147,11 @@ Use the included deployment scripts for easy production setup:
 ## 📖 Usage
 
 ### Default Login Credentials
-After seeding the database, you can use these default credentials:
+The installer (or `AddSuperAdminSeeder`) creates this account. Change the password after your first login:
 
 - **Super Admin**: 
-  - Email: `admin@admin.com`
-  - Password: `password`
+  - Email: `superadmin@gmail.com`
+  - Password: `superadmin`
 
 ### User Roles
 The system supports multiple user roles:

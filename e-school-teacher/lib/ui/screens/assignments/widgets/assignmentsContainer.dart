@@ -1,6 +1,6 @@
 import 'package:eschool_teacher/app/routes.dart';
 import 'package:eschool_teacher/cubits/assignmentCubit.dart';
-import 'package:eschool_teacher/cubits/deleteassignmentcubit.dart';
+import 'package:eschool_teacher/cubits/deleteAssignmentCubit.dart';
 // ignore: depend_on_referenced_packages
 import 'package:eschool_teacher/data/models/assignment.dart';
 import 'package:eschool_teacher/data/models/classSectionDetails.dart';

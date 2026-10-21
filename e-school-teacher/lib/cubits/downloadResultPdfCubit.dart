@@ -2,7 +2,7 @@ import 'dart:io';
 
 import 'package:bloc/bloc.dart';
 import 'package:eschool_teacher/data/repositories/studentRepository.dart';
-import 'package:eschool_teacher/utils/fileNameUtils.dart';
+import 'package:eschool_core/eschool_core.dart';
 import 'package:path_provider/path_provider.dart';
 
 abstract class DownloadResultPdfState {}

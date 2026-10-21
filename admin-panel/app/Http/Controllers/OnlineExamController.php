@@ -612,8 +612,11 @@ class OnlineExamController extends Controller
 
             return redirect(route('home'))->withErrors($response);
         }
-        $online_exam_id = $_GET['id'];
+        $online_exam_id = $_GET['id'] ?? null;
         $online_exam_db = OnlineExam::where('id', $online_exam_id)->with('subject')->first();
+        if (! $online_exam_db) {
+            return redirect(route('online-exam.index'))->withErrors(['message' => trans('no_data_found')]);
+        }
 
         // checks wheather exam belongs to class section or class
         if ($online_exam_db->model_type == 'App\Models\ClassSection') {
