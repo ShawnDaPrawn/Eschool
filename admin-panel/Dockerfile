@@ -4,7 +4,7 @@ ENV COMPOSER_ALLOW_SUPERUSER=1
 
 RUN apt-get update \
     && apt-get install -y --no-install-recommends \
-        git unzip libpng-dev libjpeg62-turbo-dev libfreetype6-dev libzip-dev libicu-dev \
+        git unzip libpng-dev libjpeg62-turbo-dev libfreetype6-dev libzip-dev libicu-dev libonig-dev \
     && docker-php-ext-configure gd --with-freetype --with-jpeg \
     && docker-php-ext-install -j"$(nproc)" pdo_mysql mbstring exif gd zip bcmath intl opcache \
     && a2enmod rewrite headers \
