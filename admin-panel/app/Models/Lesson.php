@@ -8,7 +8,6 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Storage;
 
 class Lesson extends Model
 {
@@ -20,18 +19,9 @@ class Lesson extends Model
     {
         parent::boot();
         static::deleting(function ($lesson) { // before delete() method call this
-            if ($lesson->file) {
-                foreach ($lesson->file as $file) {
-                    if (Storage::disk('public')->exists($file->file_url)) {
-                        Storage::disk('public')->delete($file->file_url);
-                    }
-                }
-
-                $lesson->file()->delete();
-            }
-            if ($lesson->topic) {
-                $lesson->topic()->delete();
-            }
+            // One by one, so File and LessonTopic remove their stored files too.
+            $lesson->file->each->delete();
+            $lesson->topic->each->delete();
         });
     }
 

@@ -48,6 +48,7 @@ use App\Rules\uniqueTopicInLesson;
 use App\Services\AcademicCalendarService;
 use App\Services\GalleryService;
 use App\Services\IdCardService;
+use App\Services\AbsenceAlertService;
 use App\Services\ResponseService;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Carbon\Carbon;
@@ -131,11 +132,14 @@ class TeacherApiController extends Controller
                 throw new \Exception('Teacher record not found.');
             }
 
-            $classIds = ClassSection::whereIn(
-                'id',
-                ClassTeacher::where('class_teacher_id', $teacher->id)->pluck('class_section_id')
-            )
+            // Classes the teacher heads or teaches a subject in, this session year.
+            $sessionYearId = getSettings('session_year')['session_year'];
+            $sectionIds = ClassTeacher::where('class_teacher_id', $teacher->id)->where('session_year_id', $sessionYearId)->pluck('class_section_id')
+                ->concat(SubjectTeacher::where('teacher_id', $teacher->id)->where('session_year_id', $sessionYearId)->pluck('class_section_id'));
+            $classIds = ClassSection::whereIn('id', $sectionIds->unique())
                 ->pluck('class_id')
+                ->unique()
+                ->values()
                 ->toArray();
 
             if (empty($classIds)) {
@@ -550,7 +554,8 @@ class TeacherApiController extends Controller
             return;
         }
         if (! $semesterId) {
-            $semesterId = Semester::all()->first(fn ($s) => $s->current);
+            // This session year's current semester (its id, not the model).
+            $semesterId = Semester::where('session_year_id', $sessionYearId)->get()->first(fn ($s) => $s->current)?->id;
         }
 
         if ($semesterId) {
@@ -612,8 +617,11 @@ class TeacherApiController extends Controller
             $assignment->extra_days_for_resubmission = $request->resubmission ? $request->extra_days_for_resubmission : null;
             $assignment->session_year_id = $session_year_id;
 
-            // Get class subject information
-            $class_subject = ClassSubject::where('subject_id', $request->subject_id)->first();
+            // This class's row for the subject: another class may take it as an elective.
+            $class_subject = ClassSubject::where('subject_id', $request->subject_id)
+                ->where('class_id', ClassSection::where('id', $request->class_section_id)->value('class_id'))
+                ->where('session_year_id', $session_year_id)
+                ->first();
 
             if (! $class_subject) {
                 ResponseService::errorResponse('Subject is not assigned to any class.', null, 400);
@@ -1127,8 +1135,8 @@ class TeacherApiController extends Controller
                             } elseif ($file['type'] == '2') {
                                 $lesson_file->type = 2;
                                 if (! empty($file['thumbnail'])) {
-                                    if (Storage::disk('public')->exists($lesson_file->getRawOriginal('file_url'))) {
-                                        Storage::disk('public')->delete($lesson_file->getRawOriginal('file_url'));
+                                    if (Storage::disk('public')->exists($lesson_file->getRawOriginal('file_thumbnail'))) {
+                                        Storage::disk('public')->delete($lesson_file->getRawOriginal('file_thumbnail'));
                                     }
                                     $lesson_file->file_thumbnail = $file['thumbnail']->store('lessons', 'public');
                                 }
@@ -1144,16 +1152,16 @@ class TeacherApiController extends Controller
                                 }
 
                                 if (! empty($file['thumbnail'])) {
-                                    if (Storage::disk('public')->exists($lesson_file->getRawOriginal('file_url'))) {
-                                        Storage::disk('public')->delete($lesson_file->getRawOriginal('file_url'));
+                                    if (Storage::disk('public')->exists($lesson_file->getRawOriginal('file_thumbnail'))) {
+                                        Storage::disk('public')->delete($lesson_file->getRawOriginal('file_thumbnail'));
                                     }
                                     $lesson_file->file_thumbnail = $file['thumbnail']->store('lessons', 'public');
                                 }
                             } elseif ($file['type'] == '4') {
                                 $lesson_file->type = 4;
                                 if (! empty($file['thumbnail'])) {
-                                    if (Storage::disk('public')->exists($lesson_file->getRawOriginal('file_url'))) {
-                                        Storage::disk('public')->delete($lesson_file->getRawOriginal('file_url'));
+                                    if (Storage::disk('public')->exists($lesson_file->getRawOriginal('file_thumbnail'))) {
+                                        Storage::disk('public')->delete($lesson_file->getRawOriginal('file_thumbnail'));
                                     }
                                     $lesson_file->file_thumbnail = $file['thumbnail']->store('lessons', 'public');
                                 }
@@ -1310,7 +1318,7 @@ class TeacherApiController extends Controller
                             $file->type = 3;
                             $file->file_thumbnail = $data['thumbnail']->store('lessons', 'public');
                             $file->file_url = $data['file']->store('lessons', 'public');
-                        } elseif ($data['type'] == 'other_link') {
+                        } elseif (in_array($data['type'], ['4', 'other_link'], true)) { // the app sends 4
                             $file->type = 4;
                             $file->file_thumbnail = $data['thumbnail']->store('lessons', 'public');
                             $file->file_url = $data['link'];
@@ -1397,8 +1405,8 @@ class TeacherApiController extends Controller
                             // Type File :- Youtube Link Upload
                             $topic_file->type = 2;
                             if (! empty($file['thumbnail'])) {
-                                if (Storage::disk('public')->exists($topic_file->getRawOriginal('file_url'))) {
-                                    Storage::disk('public')->delete($topic_file->getRawOriginal('file_url'));
+                                if (Storage::disk('public')->exists($topic_file->getRawOriginal('file_thumbnail'))) {
+                                    Storage::disk('public')->delete($topic_file->getRawOriginal('file_thumbnail'));
                                 }
                                 $topic_file->file_thumbnail = $file['thumbnail']->store('lessons', 'public');
                             }
@@ -1415,16 +1423,16 @@ class TeacherApiController extends Controller
                             }
 
                             if (! empty($file['thumbnail'])) {
-                                if (Storage::disk('public')->exists($topic_file->getRawOriginal('file_url'))) {
-                                    Storage::disk('public')->delete($topic_file->getRawOriginal('file_url'));
+                                if (Storage::disk('public')->exists($topic_file->getRawOriginal('file_thumbnail'))) {
+                                    Storage::disk('public')->delete($topic_file->getRawOriginal('file_thumbnail'));
                                 }
                                 $topic_file->file_thumbnail = $file['thumbnail']->store('lessons', 'public');
                             }
                         } elseif ($file['type'] == '4') {
                             $topic_file->type = 4;
                             if (! empty($file['thumbnail'])) {
-                                if (Storage::disk('public')->exists($topic_file->getRawOriginal('file_url'))) {
-                                    Storage::disk('public')->delete($topic_file->getRawOriginal('file_url'));
+                                if (Storage::disk('public')->exists($topic_file->getRawOriginal('file_thumbnail'))) {
+                                    Storage::disk('public')->delete($topic_file->getRawOriginal('file_thumbnail'));
                                 }
                                 $topic_file->file_thumbnail = $file['thumbnail']->store('lessons', 'public');
                             }
@@ -1523,8 +1531,8 @@ class TeacherApiController extends Controller
                 // Type File :- Youtube Link Upload
 
                 if (! empty($request->thumbnail)) {
-                    if (Storage::disk('public')->exists($file->getRawOriginal('file_url'))) {
-                        Storage::disk('public')->delete($file->getRawOriginal('file_url'));
+                    if (Storage::disk('public')->exists($file->getRawOriginal('file_thumbnail'))) {
+                        Storage::disk('public')->delete($file->getRawOriginal('file_thumbnail'));
                     }
 
                     if ($file->modal_type == "App\Models\Lesson") {
@@ -1560,8 +1568,8 @@ class TeacherApiController extends Controller
                 }
 
                 if (! empty($request->thumbnail)) {
-                    if (Storage::disk('public')->exists($file->getRawOriginal('file_url'))) {
-                        Storage::disk('public')->delete($file->getRawOriginal('file_url'));
+                    if (Storage::disk('public')->exists($file->getRawOriginal('file_thumbnail'))) {
+                        Storage::disk('public')->delete($file->getRawOriginal('file_thumbnail'));
                     }
                     if ($file->modal_type == "App\Models\Lesson") {
 
@@ -2048,12 +2056,14 @@ class TeacherApiController extends Controller
                 });
 
                 $studentUserId = $studentUserIds[$attendance['student_id']] ?? null;
+                // Parents hear about an absence once, not on every re-submission.
+                $wasAbsent = $studentAttendance && (int) $studentAttendance->type === Attendance::TYPE_ABSENT;
 
                 if ($request->holiday != '' && $request->holiday == 3) {
                     $type = $request->holiday;
                 } elseif ($studentUserId !== null && isset($leaveTypeByUserId[$studentUserId])) {
                     $type = Attendance::leaveTypeToType($leaveTypeByUserId[$studentUserId]);
-                    if ($type == 0) {
+                    if ($type == 0 && ! $wasAbsent) {
                         $absent_student_ids[] = $attendance['student_id'];
                     }
                 } else {
@@ -2065,7 +2075,7 @@ class TeacherApiController extends Controller
                         3 => Attendance::TYPE_SECOND_HALF,
                         default => (int) $attendance['type'],
                     };
-                    if ($type == Attendance::TYPE_ABSENT) {
+                    if ($type == Attendance::TYPE_ABSENT && ! $wasAbsent) {
                         $absent_student_ids[] = $attendance['student_id'];
                     }
                 }
@@ -2081,44 +2091,9 @@ class TeacherApiController extends Controller
             }
             Attendance::upsert($attendanceData, ['id'], ['class_section_id', 'student_id', 'session_year_id', 'date', 'type', 'status']);
             // Send Notification to parents
-            if (! empty($absent_student_ids)) {
-                $student = Students::with('user')->whereIn('id', $absent_student_ids)->get();
-                foreach ($student as $student) {
-                    $user = Parents::where('id', $student->father_id)->orwhere('id', $student->mother_id)->pluck('user_id');
-                    $title = 'Attendance Alert';
-                    $body = $student->user->first_name.' '.$student->user->last_name.' '.'is Absent on'.' '.date('d-m-Y', strtotime($date));
-                    $type = 'attendance';
-                    $image = null;
-                    $userinfo = null;
-
-                    $notification = new Notification;
-                    $notification->send_to = 3;
-                    $notification->session_year_id = $session_year_id;
-                    $notification->title = $title;
-                    $notification->message = $body;
-                    $notification->type = $type;
-                    $notification->date = Carbon::now();
-                    $notification->is_custom = 0;
-                    $notification->save();
-
-                    // Prepare data for batch insert
-                    $userNotificationData = [];
-                    foreach ($user as $data) {
-                        $userNotificationData[] = [
-                            'notification_id' => $notification->id,
-                            'user_id' => $data,
-                            'created_at' => now(),
-                            'updated_at' => now(),
-                        ];
-
-                        sendSimpleNotification($user, $title, $body, $type, $image, $userinfo);
-                    }
-                }
-                // Batch insert all user notifications
-                if (! empty($userNotificationData)) {
-                    UserNotification::insert($userNotificationData);
-                }
-            }
+            // One alert per absent student, to each of their parents and guardian
+            // (it used to save only the last student's and skip guardians).
+            app(AbsenceAlertService::class)->notify($absent_student_ids ?? [], $date, (int) $session_year_id);
             ResponseService::successResponse('data_store_successfully');
         } catch (Exception $e) {
             ResponseService::errorResponse('error_occurred', null, 103, $e);
@@ -2708,48 +2683,24 @@ class TeacherApiController extends Controller
 
             $teacherSemesterIds = [];
 
-            if (isset($request->class_section_id)) {
-
-                // Verify teacher access to requested section
-                $classTeacherQuery = ClassTeacher::where('class_teacher_id', $teacher->id)
+            // The sections this teacher heads or teaches a subject in (subject teachers
+            // enter marks too, so they need the exam list as well).
+            $assignments = ClassTeacher::where('class_teacher_id', $teacher->id)
+                ->where('session_year_id', $session_year_id)
+                ->when(isset($request->class_section_id), fn ($q) => $q->where('class_section_id', $request->class_section_id))
+                ->get(['class_section_id', 'semester_id'])
+                ->concat(SubjectTeacher::where('teacher_id', $teacher->id)
                     ->where('session_year_id', $session_year_id)
-                    ->where('class_section_id', $request->class_section_id);
+                    ->when(isset($request->class_section_id), fn ($q) => $q->where('class_section_id', $request->class_section_id))
+                    ->get(['class_section_id', 'semester_id']));
 
-                if (! $classTeacherQuery->exists()) {
-                    ResponseService::errorResponse('no_permission_message');
-                }
-
-                $class_section_ids = collect([$request->class_section_id]);
-
-                $class_ids = ClassSection::where('id', $request->class_section_id)
-                    ->pluck('class_id');
-
-                // Semester access for this section
-                $teacherSemesterIds = $classTeacherQuery
-                    ->whereNotNull('semester_id')
-                    ->pluck('semester_id')
-                    ->unique()
-                    ->toArray();
-
-            } else {
-
-                $classTeacherRecords = ClassTeacher::where('class_teacher_id', $teacher->id)
-                    ->where('session_year_id', $session_year_id)
-                    ->get();
-
-                $class_section_ids = $classTeacherRecords
-                    ->pluck('class_section_id')
-                    ->unique();
-
-                $class_ids = ClassSection::whereIn('id', $class_section_ids)
-                    ->pluck('class_id');
-
-                $teacherSemesterIds = $classTeacherRecords
-                    ->whereNotNull('semester_id')
-                    ->pluck('semester_id')
-                    ->unique()
-                    ->toArray();
+            if (isset($request->class_section_id) && $assignments->isEmpty()) {
+                ResponseService::errorResponse('no_permission_message');
             }
+
+            $class_section_ids = $assignments->pluck('class_section_id')->unique()->values();
+            $class_ids = ClassSection::whereIn('id', $class_section_ids)->pluck('class_id');
+            $teacherSemesterIds = $assignments->whereNotNull('semester_id')->pluck('semester_id')->unique()->values()->toArray();
 
             $sql = ExamClass::with(
                 'exam.session_year:id,name',
@@ -3205,7 +3156,9 @@ class TeacherApiController extends Controller
                         })->where('class_section_id', $subject_teacher->class_section_id)->get();
                     $parents_id = [];
 
-                    $parents_id = $students->groupBy(['father_id', 'mother_id', 'guardian_id'])->keys()->all();
+                    // Every father, mother and guardian (groupBy()->keys() only gave the fathers).
+                    $parents_id = $students->flatMap(fn ($student) => [$student->father_id, $student->mother_id, $student->guardian_id])
+                        ->filter()->unique()->values()->all();
 
                     $common_parents_ids = array_intersect($parents_ids, $parents_id);
 
@@ -4262,8 +4215,10 @@ class TeacherApiController extends Controller
                 ->where('session_year_id', $session_year_id)
                 ->with('leave_detail', 'user.student.class_section', 'file');
 
-            // Apply teacher access filters
+            // Apply teacher access filters. Start from "none": an empty group would be
+            // dropped and show a teacher with no class every pending leave in the school.
             $student_leave_request->where(function ($mainQuery) use ($classTeacherAssignments) {
+                $mainQuery->whereRaw('1 = 0');
                 foreach ($classTeacherAssignments as $assignment) {
                     // FULL SESSION ACCESS (No semester)
                     if (! $assignment->semester_id) {

@@ -7,7 +7,6 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Storage;
 
 class LessonTopic extends Model
 {
@@ -16,14 +15,8 @@ class LessonTopic extends Model
     protected static function boot() {
         parent::boot();
         static::deleting(function ($topic) { // before delete() method call this
-            if ($topic->file) {
-                foreach ($topic->file as $file) {
-                    if (Storage::disk('public')->exists($file->file_url)) {
-                        Storage::disk('public')->delete($file->file_url);
-                    }
-                }
-                $topic->file()->delete();
-            }
+            // One by one, so File removes the stored files too.
+            $topic->file->each->delete();
         });
     }
 

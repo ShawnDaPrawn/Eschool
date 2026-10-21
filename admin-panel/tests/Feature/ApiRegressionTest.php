@@ -4,6 +4,13 @@ namespace Tests\Feature;
 
 use App\Models\ExamMarks;
 use App\Models\ExamTimetable;
+use App\Models\File;
+use App\Models\Notification;
+use App\Models\Teacher;
+use App\Models\User;
+use App\Models\UserNotification;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Hash;
 use Tests\Concerns\RunsAppServer;
 use Tests\Support\DemoSchool;
 use Tests\TestCase;
@@ -152,5 +159,77 @@ class ApiRegressionTest extends TestCase
         $this->assertContains($id['notice'], $forCara);
         $this->assertNotContains($id['class_announcement'], $forCara);
         $this->assertNotContains($id['subject_announcement'], $forCara);
+    }
+
+    /*
+     * Defects the wiki listed as known.
+     */
+
+    public function test_absence_alerts_reach_every_parent_and_guardian_once(): void
+    {
+        $id = self::$school->ids;
+        $before = Notification::where('title', 'Attendance Alert')->max('id') ?? 0;
+        $absentBoth = [
+            'class_section_id' => $id['section_a'], 'student_id' => [$id['asha'], $id['ben']], 'date' => now()->subDays(8)->toDateString(),
+            'attendance' => [['student_id' => $id['asha'], 'type' => 0], ['student_id' => $id['ben'], 'type' => 0]],
+        ];
+
+        // Only the last absent student's parents were saved, guardians were skipped,
+        // and every re-submission alerted again.
+        foreach ([1, 2] as $attempt) {
+            $response = $this->apiClient(self::$school->tokens['tara'])->post('/api/teacher/submit-attendance', $absentBoth);
+            $this->assertFalse($response->json('error'), $response->body());
+        }
+
+        $alerts = Notification::where('title', 'Attendance Alert')->where('id', '>', $before)->get();
+        $this->assertCount(2, $alerts, 'One alert per absent student, not repeated on re-submission');
+        $this->assertSame([2], $alerts->pluck('send_to')->unique()->values()->all(), 'Only the parents, not everyone');
+        $recipients = UserNotification::whereIn('notification_id', $alerts->pluck('id'))->pluck('user_id')->sort()->values()->all();
+        $this->assertSame(collect([$id['farid_user'], $id['mona_user'], $id['gina_user']])->sort()->values()->all(), $recipients);
+    }
+
+    public function test_a_subject_teacher_sees_their_exams_and_parents_but_no_one_elses_leaves(): void
+    {
+        $id = self::$school->ids;
+        $sam = User::forceCreate([
+            'first_name' => 'Sam', 'last_name' => 'Subject', 'email' => 'sam@example.com', 'password' => Hash::make('secret123'),
+            'gender' => 'Male', 'mobile' => '9876543210',
+        ]);
+        $sam->assignRole('Teacher');
+        $teacher = Teacher::forceCreate(['user_id' => $sam->id, 'qualification' => 'B.Ed']);
+        DB::table('subject_teachers')->insert([
+            'class_section_id' => $id['section_a'], 'subject_id' => $id['maths'], 'teacher_id' => $teacher->id, 'session_year_id' => 1,
+            'created_at' => now(), 'updated_at' => now(),
+        ]);
+        $api = $this->apiClient($sam->createToken('test')->plainTextToken);
+
+        // Exams were listed for class teachers only, so subject teachers couldn't reach marks entry.
+        $exams = collect($api->get('/api/teacher/get-exam-list')->json('data'))->pluck('id')->all();
+        $this->assertContains($id['exam'], $exams);
+
+        // With no class of their own, the dashboard listed every pending leave in the school.
+        $this->assertSame([], $api->get('/api/teacher/dashboard')->json('data.student_leave_request'));
+
+        // Only fathers were offered for chat; mothers and guardians were missing.
+        $parents = collect($api->get('/api/teacher/get-user-list', ['isParent' => 1, 'limit' => 50, 'offset' => 0])->json('data.items'))->pluck('user_id')->all();
+        foreach (['farid_user', 'mona_user', 'gina_user'] as $parent) {
+            $this->assertContains($id[$parent], $parents, $parent);
+        }
+    }
+
+    public function test_a_topic_link_from_the_app_can_be_saved(): void
+    {
+        $png = base64_decode('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==');
+
+        // The app sends type 4 for "other link"; the handler only knew 'other_link' and failed.
+        $response = $this->apiClient(self::$school->tokens['tara'])
+            ->attach('file[0][thumbnail]', $png, 'site.png')
+            ->post('/api/teacher/create-topic', [
+                'lesson_id' => self::$school->ids['lesson'], 'name' => 'Practice online', 'description' => 'Extra practice',
+                'file[0][type]' => '4', 'file[0][name]' => 'Practice site', 'file[0][link]' => 'https://example.com/fractions',
+            ]);
+
+        $this->assertFalse($response->json('error'), $response->body());
+        $this->assertSame('https://example.com/fractions', File::where('file_name', 'Practice site')->value('file_url'));
     }
 }

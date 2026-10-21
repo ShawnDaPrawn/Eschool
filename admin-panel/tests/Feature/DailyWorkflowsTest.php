@@ -2,8 +2,13 @@
 
 namespace Tests\Feature;
 
+use App\Models\File;
+use App\Models\Lesson;
+use App\Models\Notification;
 use App\Models\User;
+use App\Models\UserNotification;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 use Tests\Concerns\RunsAppServer;
 use Tests\Support\DemoSchool;
 use Tests\TestCase;
@@ -69,5 +74,46 @@ class DailyWorkflowsTest extends TestCase
 
         $names = array_map(fn ($row) => $row['student_name'] ?? $row['full_name'] ?? null, $rows);
         $this->assertContains('Cara Demo', $names);
+    }
+
+    public function test_marking_a_student_absent_in_the_panel_alerts_their_guardian(): void
+    {
+        $id = $this->school->ids;
+        $date = now()->subDays(9)->format('d-m-Y');
+        $before = Notification::max('id') ?? 0;
+        $form = [
+            'class_section_id' => $id['section_a'], 'date' => $date, 'student_id' => [$id['asha'], $id['ben']],
+            'type'.$id['asha'] => 1, 'type'.$id['ben'] => 0,
+        ];
+
+        // The check ran after save(), compared the new type with itself and never alerted.
+        $tara = User::findOrFail($id['tara_user']);
+        $this->actingAs($tara)->postJson('/attendance', $form)->assertJson(['error' => false]);
+        $this->postJson('/attendance', $form)->assertJson(['error' => false]);
+
+        $alerts = Notification::where('id', '>', $before)->where('title', 'Attendance Alert')->get();
+        $this->assertCount(1, $alerts, 'Ben once, not again when the day is saved again');
+        $this->assertSame(2, (int) $alerts[0]->send_to, 'Only his guardian, not every parent');
+        $this->assertSame([$id['gina_user']], UserNotification::where('notification_id', $alerts[0]->id)->pluck('user_id')->all());
+    }
+
+    public function test_deleting_a_lesson_removes_its_and_its_topics_stored_files(): void
+    {
+        Storage::fake('public');
+        $lesson = Lesson::forceCreate(['name' => 'Decimals', 'description' => 'Tenths', 'class_section_id' => $this->school->ids['section_a'], 'subject_id' => $this->school->ids['maths']]);
+        $topic = $lesson->topic()->forceCreate(['name' => 'Tenths', 'description' => 'One place']);
+        foreach (['lessons/video.mp4', 'lessons/video-thumb.png', 'lessons/sheet.pdf'] as $path) {
+            Storage::disk('public')->put($path, 'x');
+        }
+        File::forceCreate(['modal_type' => Lesson::class, 'modal_id' => $lesson->id, 'file_name' => 'Video', 'type' => 3, 'file_url' => 'lessons/video.mp4', 'file_thumbnail' => 'lessons/video-thumb.png']);
+        File::forceCreate(['modal_type' => get_class($topic), 'modal_id' => $topic->id, 'file_name' => 'Sheet', 'type' => 1, 'file_url' => 'lessons/sheet.pdf']);
+
+        // The hooks compared the URL accessor with the disk, so nothing was ever removed,
+        // and a lesson's topics were deleted without their files.
+        $lesson->delete();
+
+        foreach (['lessons/video.mp4', 'lessons/video-thumb.png', 'lessons/sheet.pdf'] as $path) {
+            Storage::disk('public')->assertMissing($path);
+        }
     }
 }

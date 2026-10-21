@@ -36,7 +36,11 @@ class Api {
   static Map<String, dynamic> headers() {
     final String jwtToken = Hive.box(authBoxKey).get(jwtTokenKey) ?? '';
 
-    return {'Authorization': 'Bearer $jwtToken'};
+    return {
+      'Authorization': 'Bearer $jwtToken',
+      // Without it the server may answer an expired token with a redirect instead of 401.
+      'Accept': 'application/json',
+    };
   }
 
   //

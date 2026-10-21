@@ -19,10 +19,24 @@ class File extends Model
     protected static function boot() {
         parent::boot();
         static::deleting(function ($file) { // before delete() method call this
-            if (Storage::disk('public')->exists($file->file_url)) {
-                Storage::disk('public')->delete($file->file_url);
-            }
+            $file->deleteStoredFiles();
         });
+    }
+
+    /**
+     * Remove the uploaded file and thumbnail from the public disk. The accessors
+     * return URLs, so the stored paths are read raw (a URL never exists on disk).
+     */
+    public function deleteStoredFiles(): void {
+        $paths = [$this->getRawOriginal('file_thumbnail')];
+        if (in_array((int) $this->type, [1, 3], true)) { // File Upload, Video Upload
+            $paths[] = $this->getRawOriginal('file_url');
+        }
+        foreach (array_filter($paths) as $path) {
+            if (! preg_match('#^https?://#i', $path) && Storage::disk('public')->exists($path)) {
+                Storage::disk('public')->delete($path);
+            }
+        }
     }
 
     public function modal() {

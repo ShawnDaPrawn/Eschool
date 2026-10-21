@@ -299,7 +299,9 @@ class Students extends Model
      */
     private function getCurrentSemester(): ?Semester
     {
-        return Semester::get()->first(fn ($semester) => $semester->current);
+        return Semester::where('session_year_id', getSettings('session_year')['session_year'] ?? null)
+            ->get()
+            ->first(fn ($semester) => $semester->current);
     }
 
     /**

@@ -9,7 +9,6 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Storage;
 
 class Assignment extends Model
 {
@@ -21,18 +20,12 @@ class Assignment extends Model
     {
         static::deleting(function ($assignment) {
 
-            // Delete assignment files (PHYSICAL FILES)
-            foreach ($assignment->file as $file) {
-                if (Storage::disk('public')->exists($file->file_url)) {
-                    Storage::disk('public')->delete($file->file_url);
-                }
-            }
+            // One by one, so File removes the stored files too (files aren't soft-deleted).
+            $assignment->file->each->delete();
 
             if ($assignment->isForceDeleting()) {
-                $assignment->file()->forceDelete();
                 $assignment->submissions()->forceDelete();
             } else {
-                $assignment->file()->delete();
                 $assignment->submissions()->delete();
             }
         });

@@ -218,6 +218,15 @@ class SecurityTest extends TestCase
         $this->getJson('/api/teacher/classes')->assertUnauthorized();
     }
 
+    public function test_an_expired_app_token_gets_a_401_even_without_an_accept_header(): void
+    {
+        // The apps don't send Accept: application/json and only sign out on 401; a
+        // redirect to the login page left them showing an error instead.
+        $this->get('/api/teacher/classes', ['Authorization' => 'Bearer 1|expired-or-unknown'])
+            ->assertUnauthorized()
+            ->assertJson(['message' => 'Unauthenticated.']);
+    }
+
     private function sanctumUser(string $token): ?User
     {
         $this->app['auth']->forgetGuards();

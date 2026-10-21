@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers;
 
+use App\Services\AbsenceAlertService;
 use App\Services\ResponseService;
 use App\Exports\StudentsExport;
 use App\Imports\AttendanceImport;
@@ -333,6 +334,7 @@ class AttendanceController extends Controller
                 $attendance = $existingAttendances->has($student_id)
                     ? $existingAttendances->get($student_id)
                     : new Attendance;
+                $wasAbsent = $attendance->exists && (int) $attendance->type === Attendance::TYPE_ABSENT;
 
                 $attendance->class_section_id = $class_section_id;
                 $attendance->student_id = $student_id;
@@ -354,49 +356,13 @@ class AttendanceController extends Controller
                 $attendance->status = 1;
                 $attendance->save();
 
-                // Send notification if student is absent (type == 0)
-                if (
-                    (! isset($attendance->getOriginal()['type']) || $attendance->getOriginal()['type'] != 0) // Only send if not already absent
-                    && isset($attendance->type) && $attendance->type == 0
-                ) {
-                    $student = Students::with('user')->find($student_id);
-                    if ($student && $student->user) {
-                        $father_id = $student->father_id;
-                        $mother_id = $student->mother_id;
-                        $guardian_id = $student->guardian_id;
-
-                        $userIds = Parents::whereIn('id', array_filter([$father_id, $mother_id, $guardian_id]))
-                            ->pluck('user_id');
-
-                        if ($userIds->count() > 0) {
-                            $title = 'Attendance Alert';
-                            $body = $student->user->first_name.' '.$student->user->last_name.' is Absent on '.date('d-m-Y', strtotime($date));
-                            $type = 'attendance';
-                            $image = null;
-                            $userinfo = null;
-
-                            $notification = new Notification;
-                            $notification->session_year_id = $session_year_id;
-                            $notification->send_to = 4;
-                            $notification->title = $title;
-                            $notification->message = $body;
-                            $notification->type = $type;
-                            $notification->date = Carbon::now();
-                            $notification->is_custom = 0;
-                            $notification->save();
-
-                            foreach ($userIds as $userId) {
-                                $user_notification = new UserNotification;
-                                $user_notification->notification_id = $notification->id;
-                                $user_notification->user_id = $userId;
-                                $user_notification->save();
-                            }
-
-                            sendSimpleNotification($userIds, $title, $body, $type, $image, $userinfo);
-                        }
-                    }
+                // Checked after save() used to compare the new type with itself, so no alert was ever sent.
+                if ((string) $attendance->type === (string) Attendance::TYPE_ABSENT && ! $wasAbsent) {
+                    $newlyAbsent[] = $student_id;
                 }
             }
+
+            app(AbsenceAlertService::class)->notify($newlyAbsent ?? [], $date, (int) $session_year_id);
 
             $response = [
                 'error' => false,
