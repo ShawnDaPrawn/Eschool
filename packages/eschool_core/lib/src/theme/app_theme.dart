@@ -16,8 +16,10 @@ abstract final class AppTheme {
   static const double bottomSheetRadius = 20;
 
   static ColorScheme lightColorScheme() {
-    // The tertiary roles come from the accent's own palette, so its
-    // container colours are shades of the accent rather than of the primary.
+    // The tertiary roles are the accent's own tonal palette, generated the
+    // same way as the primary's. Fidelity puts the exact accent colour in
+    // tertiaryContainer and derives a darker tertiary that white text is
+    // readable on. The error roles are Material 3's own, for the same reason.
     final accent = ColorScheme.fromSeed(
       seedColor: BrandColors.accent,
       dynamicSchemeVariant: DynamicSchemeVariant.fidelity,
@@ -26,10 +28,10 @@ abstract final class AppTheme {
       seedColor: BrandColors.primary,
       dynamicSchemeVariant: DynamicSchemeVariant.fidelity,
       primary: BrandColors.primary,
-      tertiary: BrandColors.accent,
+      tertiary: accent.primary,
+      onTertiary: accent.onPrimary,
       tertiaryContainer: accent.primaryContainer,
       onTertiaryContainer: accent.onPrimaryContainer,
-      error: BrandColors.error,
     );
   }
 
@@ -46,7 +48,7 @@ abstract final class AppTheme {
       textTheme: font?.call(base.textTheme) ?? base.textTheme,
       primaryTextTheme:
           font?.call(base.primaryTextTheme) ?? base.primaryTextTheme,
-      extensions: const [StatusColors.light],
+      extensions: [StatusColors.from(colorScheme)],
       filledButtonTheme: FilledButtonThemeData(
         style: FilledButton.styleFrom(shape: shape),
       ),

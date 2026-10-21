@@ -13,11 +13,12 @@ abstract final class BrandColors {
   /// `primary`.
   static const Color primary = Color(0xff22577A);
 
-  /// The brand's second colour, used unchanged as the scheme's `tertiary`.
+  /// The brand's second colour. Seeds the scheme's tertiary roles and is used
+  /// unchanged as its `tertiaryContainer`.
   static const Color accent = Color(0xff3bcc97);
 
-  static const Color error = Color(0xffff6769);
-
+  /// Status colours, see [StatusColors]. Text on them is picked for contrast,
+  /// so they can be as light as the brand needs.
   static const Color success = Color(0xff57cc99);
   static const Color warning = Color(0xffFFA74F);
   static const Color danger = Color(0xffff6769);
