@@ -50,7 +50,8 @@ return [
     'channels' => [
         'stack' => [
             'driver' => 'stack',
-            'channels' => ['single'],
+            // Daily files kept for 14 days: a single file grows until the disk is full.
+            'channels' => ['daily'],
             'ignore_exceptions' => false,
         ],
 

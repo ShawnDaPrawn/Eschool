@@ -19,6 +19,20 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Rate Limiter Store
+    |--------------------------------------------------------------------------
+    |
+    | Where login and request-rate counters are kept. With several app servers
+    | (Cloud Run scales out) a per-server file cache gives each server its own
+    | count, multiplying the attempts an attacker gets, so on Cloud Run the
+    | counters live in the database by default. null uses the default store.
+    |
+    */
+
+    'limiter' => env('CACHE_LIMITER', env('K_SERVICE') ? 'database' : null),
+
+    /*
+    |--------------------------------------------------------------------------
     | Cache Stores
     |--------------------------------------------------------------------------
     |

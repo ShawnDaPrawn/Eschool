@@ -13,9 +13,9 @@ return Application::configure(basePath: dirname(__DIR__))
     )
     ->withMiddleware(function (Middleware $middleware): void {
 
-        // Cloud Run terminates TLS, so forwarded proto headers have to be trusted.
+        // Trusted proxies come from config/trustedproxy.php (all callers on Cloud
+        // Run, which terminates TLS; none elsewhere unless TRUSTED_PROXIES is set).
         // Hosts are limited to APP_URL plus local development.
-        $middleware->trustProxies(at: '*');
         $middleware->trustHosts(at: [
             '^localhost$',
             '^127\.0\.0\.1$',
@@ -35,6 +35,8 @@ return Application::configure(basePath: dirname(__DIR__))
             \Illuminate\Session\Middleware\StartSession::class,
             // \Illuminate\Session\Middleware\AuthenticateSession::class,
             \Illuminate\View\Middleware\ShareErrorsFromSession::class,
+            // After the session starts, so signed-in users are counted per account.
+            'throttle:web',
             \Illuminate\Routing\Middleware\SubstituteBindings::class,
             \App\Http\Middleware\DemoMiddleware::class,
             \App\Http\Middleware\RejectDangerousUploads::class,

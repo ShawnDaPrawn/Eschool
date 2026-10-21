@@ -62,6 +62,19 @@ class RouteServiceProvider extends ServiceProvider
             return Limit::perMinute(60)->by($request->user()?->id ?: $request->ip());
         });
 
+        // Every admin panel and website request. Signed-in staff are counted per
+        // account (a whole school can share one address); visitors per address.
+        // Generous for normal use, but one client can't keep the server busy.
+        RateLimiter::for('web', function (Request $request) {
+            if ($request->is('webhook/*')) {
+                return Limit::none();
+            }
+
+            return $request->user()
+                ? Limit::perMinute(600)->by('web-user:'.$request->user()->id)
+                : Limit::perMinute(300)->by('web-ip:'.$request->ip());
+        });
+
         // App logins and password resets. Default passwords are dates of birth, so
         // guesses are limited per account as well as per address.
         RateLimiter::for('login', function (Request $request) {
