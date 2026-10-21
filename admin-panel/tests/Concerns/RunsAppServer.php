@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Str;
+use Symfony\Component\Filesystem\Filesystem;
 use Symfony\Component\Process\Process;
 
 /**
@@ -116,11 +117,18 @@ trait RunsAppServer
         }
         self::$appServer->stop();
         self::$appServer = null;
-        // TEST_SERVER_LOG=/some/file keeps the server's laravel.log for debugging.
-        if (($keep = getenv('TEST_SERVER_LOG')) && File::exists(self::$appServerStorage.'/logs/laravel.log')) {
-            File::copy(self::$appServerStorage.'/logs/laravel.log', $keep);
+
+        // tearDownAfterClass runs after Laravel has flushed the application, so the
+        // File facade is gone. PHPUnit records a thrown exception here as an error
+        // and exits 2, while every test still shows as passed.
+        $storage = self::$appServerStorage;
+        $log = $storage.'/logs/laravel.log';
+        if (($keep = getenv('TEST_SERVER_LOG')) && is_file($log)) {
+            copy($log, $keep);
         }
-        File::deleteDirectory(self::$appServerStorage);
+        if ($storage !== '') {
+            (new Filesystem)->remove($storage);
+        }
         // Make the next RefreshDatabase test start from an empty database again.
         RefreshDatabaseState::$migrated = false;
     }
