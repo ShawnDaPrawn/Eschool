@@ -65,7 +65,7 @@ class _ChildDetailsScreenState extends State<ChildDetailsScreen> {
                       border: Border.all(
                         color: Theme.of(
                           context,
-                        ).colorScheme.onPrimary.withValues(alpha: 0.1),
+                        ).colorScheme.onInverseSurface.withValues(alpha: 0.1),
                       ),
                       shape: BoxShape.circle,
                     ),
@@ -76,7 +76,7 @@ class _ChildDetailsScreenState extends State<ChildDetailsScreen> {
                         border: Border.all(
                           color: Theme.of(
                             context,
-                          ).colorScheme.onPrimary.withValues(alpha: 0.1),
+                          ).colorScheme.onInverseSurface.withValues(alpha: 0.1),
                         ),
                         shape: BoxShape.circle,
                       ),
@@ -92,7 +92,7 @@ class _ChildDetailsScreenState extends State<ChildDetailsScreen> {
                     decoration: BoxDecoration(
                       color: Theme.of(
                         context,
-                      ).colorScheme.onPrimary.withValues(alpha: 0.1),
+                      ).colorScheme.onInverseSurface.withValues(alpha: 0.1),
                       shape: BoxShape.circle,
                     ),
                     width: MediaQuery.sizeOf(context).width * 0.4,
@@ -134,7 +134,9 @@ class _ChildDetailsScreenState extends State<ChildDetailsScreen> {
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                           style: TextStyle(
-                            color: Theme.of(context).colorScheme.onPrimary,
+                            color: Theme.of(
+                              context,
+                            ).colorScheme.onInverseSurface,
                             fontWeight: FontWeight.w500,
                             fontSize: 15,
                           ),
@@ -146,7 +148,9 @@ class _ChildDetailsScreenState extends State<ChildDetailsScreen> {
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                           style: TextStyle(
-                            color: Theme.of(context).colorScheme.onPrimary,
+                            color: Theme.of(
+                              context,
+                            ).colorScheme.onInverseSurface,
                             fontWeight: FontWeight.w500,
                             fontSize: 11,
                           ),

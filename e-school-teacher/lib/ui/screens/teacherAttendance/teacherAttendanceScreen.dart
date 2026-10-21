@@ -88,7 +88,7 @@ class _TeacherAttendenceScreenState extends State<TeacherAttendenceScreen> {
             child: Text(
               UiUtils.getTranslatedLabel(context, attendanceKey),
               style: TextStyle(
-                color: Theme.of(context).colorScheme.onPrimary,
+                color: Theme.of(context).colorScheme.onInverseSurface,
                 fontSize: UiUtils.screenTitleFontSize,
               ),
             ),

@@ -2,22 +2,34 @@
    SIDEBAR — redesign (eSchool design system, see DESIGN.md → "Sidebar")
    ------------------------------------------------------------
    Loaded after style.css / rtl.css (in include.blade.php) so it
-   overrides the legacy sidebar rules in those bundles. All brand
-   color comes from --theme-color via color-mix() tints — no
-   hardcoded brand hex. Icons are Lucide <svg> (see x-icon).
+   overrides the legacy sidebar rules in those bundles. Colours are
+   Material 3 tokens (m3-tokens.css): the drawer is a dark section
+   (Dark Navy, inverse-surface) like the apps' headers, and the
+   active item is a purple (primary) pill. The --app-nav-* variables
+   below are the only place the drawer's colours are chosen; point
+   them at surface roles to get a light drawer. Icons are Lucide
+   <svg> (see x-icon).
    ============================================================ */
 
 /* ---- Container -------------------------------------------- */
 .sidebar {
-    background: #ffffff;
-    /* border-right: 1px solid rgba(27, 27, 27, 0.06); */
+    --app-nav-bg: var(--md-sys-color-inverse-surface);
+    --app-nav-fg: color-mix(in srgb, var(--md-sys-color-on-inverse-surface) 80%, transparent);
+    --app-nav-fg-strong: var(--md-sys-color-on-inverse-surface);
+    --app-nav-muted: color-mix(in srgb, var(--md-sys-color-on-inverse-surface) 60%, transparent);
+    --app-nav-hover: color-mix(in srgb, var(--md-sys-color-on-inverse-surface) var(--md-sys-state-hover-opacity), transparent);
+    --app-nav-divider: color-mix(in srgb, var(--md-sys-color-on-inverse-surface) 12%, transparent);
+    --app-nav-active-bg: var(--md-sys-color-primary);
+    --app-nav-active-fg: var(--md-sys-color-on-primary);
+    --app-nav-sub-active: var(--md-sys-color-inverse-primary);
+    background: var(--app-nav-bg);
 }
 
 /* RTL: flip the sidebar border to the left (inline-end) side. */
 [dir="rtl"] .sidebar,
 .rtl .sidebar {
     border-right: 0;
-    border-left: 1px solid #f0f0f0;
+    border-left: 1px solid var(--app-nav-divider);
 }
 
 .sidebar .nav {
@@ -30,7 +42,7 @@
 /* Slim, subtle scrollbar (native fallback + PerfectScrollbar rail) */
 .sidebar .nav {
     scrollbar-width: thin;
-    scrollbar-color: rgba(27, 27, 27, 0.18) transparent;
+    scrollbar-color: var(--app-nav-divider) transparent;
 }
 
 .sidebar .nav::-webkit-scrollbar {
@@ -38,12 +50,12 @@
 }
 
 .sidebar .nav::-webkit-scrollbar-thumb {
-    background: rgba(27, 27, 27, 0.18);
+    background: var(--app-nav-divider);
     border-radius: 6px;
 }
 
 .sidebar .nav .ps__thumb-y {
-    background: rgba(27, 27, 27, 0.18);
+    background: var(--app-nav-divider);
 }
 
 /* ---- Top-level items -------------------------------------- */
@@ -66,14 +78,14 @@
     align-items: center;
     gap: 0;
     padding: 0.6rem 0.85rem;
-    border-radius: 10px;
-    color: #5b6677;
+    border-radius: var(--md-sys-shape-corner-full);
+    color: var(--app-nav-fg);
     font-size: 0.94rem;
     line-height: 1.2;
     transition: background-color 0.2s ease, color 0.2s ease;
 }
 
-/* Icon — muted by default, theme-colored on hover/active. */
+/* Icon — muted by default, full strength on hover and active. */
 .sidebar .nav .nav-item .nav-link svg.menu-icon,
 .sidebar .nav .nav-item .nav-link .menu-icon {
     flex-shrink: 0;
@@ -81,7 +93,7 @@
     height: 20px;
     margin: 0 0.7rem 0 0;
     padding: 0;
-    color: #8a93a3;
+    color: var(--app-nav-muted);
     transition: color 0.2s ease;
 }
 
@@ -106,7 +118,7 @@
     height: 16px;
     margin: 0;
     padding: 0;
-    color: #aeb6c2;
+    color: var(--app-nav-muted);
     transition: transform 0.25s ease, color 0.2s ease;
 }
 
@@ -119,57 +131,39 @@
 .sidebar .nav .nav-item .nav-link[aria-expanded="true"] svg.menu-arrow,
 .sidebar .nav .nav-item .nav-link[aria-expanded="true"] .menu-arrow {
     transform: rotate(180deg);
-    color: var(--theme-color);
+    color: var(--app-nav-fg-strong);
 }
 
 /* Hover */
 .sidebar .nav:not(.sub-menu)>.nav-item>.nav-link:hover,
 .sidebar .nav:not(.sub-menu)>.nav-item:hover:not(.nav-category):not(.nav-profile)>.nav-link {
-    background: color-mix(in srgb, var(--theme-color) 6%, transparent);
-    color: #29323d;
+    background: var(--app-nav-hover);
+    color: var(--app-nav-fg-strong);
 }
 
 .sidebar .nav:not(.sub-menu)>.nav-item>.nav-link:hover svg.menu-icon,
 .sidebar .nav:not(.sub-menu)>.nav-item>.nav-link:hover .menu-arrow {
-    color: var(--theme-color);
+    color: var(--app-nav-fg-strong);
 }
 
 /* Active top-level item */
 .sidebar .nav .nav-item.active>.nav-link {
-    background: color-mix(in srgb, var(--theme-color) 12%, transparent);
-    color: var(--theme-color);
-    font-family: "Roboto-Medium", sans-serif;
+    background: var(--app-nav-active-bg);
+    color: var(--app-nav-active-fg);
+    font-family: var(--md-ref-typeface-plain);
     font-weight: 500;
 }
 
 .sidebar .nav .nav-item.active>.nav-link .menu-title {
-    color: var(--theme-color);
+    color: var(--app-nav-active-fg);
 }
 
 .sidebar .nav .nav-item.active>.nav-link svg.menu-icon,
-.sidebar .nav .nav-item.active>.nav-link .menu-icon {
-    color: var(--theme-color);
+.sidebar .nav .nav-item.active>.nav-link .menu-icon,
+.sidebar .nav .nav-item.active>.nav-link svg.menu-arrow {
+    color: var(--app-nav-active-fg);
 }
 
-/* Left accent bar on the active item */
-.sidebar .nav .nav-item.active>.nav-link::before {
-    content: "";
-    position: absolute;
-    left: -0.75rem;
-    top: 50%;
-    transform: translateY(-50%);
-    width: 3px;
-    height: 60%;
-    border-radius: 0 3px 3px 0;
-    background: var(--theme-color);
-}
-
-[dir="rtl"] .sidebar .nav .nav-item.active>.nav-link::before,
-.rtl .sidebar .nav .nav-item.active>.nav-link::before {
-    left: auto;
-    right: -0.75rem;
-    border-radius: 3px 0 0 3px;
-}
 
 /* ---- Sub-menu --------------------------------------------- */
 .sidebar .nav.sub-menu {
@@ -186,8 +180,8 @@
 .sidebar .nav.sub-menu .nav-item .nav-link {
     position: relative;
     padding: 0.5rem 0.75rem 0.5rem 1.6rem;
-    border-radius: 8px;
-    color: #8a93a3;
+    border-radius: var(--md-sys-shape-corner-full);
+    color: var(--app-nav-muted);
     font-size: 0.875rem;
     line-height: 1.3;
 }
@@ -207,7 +201,7 @@
     width: 5px;
     height: 5px;
     border-radius: 50%;
-    background: rgba(27, 27, 27, 0.22);
+    background: var(--app-nav-divider);
     transition: background-color 0.2s ease, transform 0.2s ease;
 }
 
@@ -218,12 +212,12 @@
 }
 
 .sidebar .nav.sub-menu .nav-item .nav-link:hover {
-    background: color-mix(in srgb, var(--theme-color) 5%, transparent);
-    color: #29323d;
+    background: var(--app-nav-hover);
+    color: var(--app-nav-fg-strong);
 }
 
 .sidebar .nav.sub-menu .nav-item .nav-link:hover::before {
-    background: var(--theme-color);
+    background: var(--app-nav-sub-active);
 }
 
 .sidebar .nav.sub-menu .nav-item:hover {
@@ -231,13 +225,13 @@
 }
 
 .sidebar .nav.sub-menu .nav-item .nav-link.active {
-    background: color-mix(in srgb, var(--theme-color) 10%, transparent);
-    color: var(--theme-color);
+    background: var(--app-nav-hover);
+    color: var(--app-nav-sub-active);
     font-weight: 500;
 }
 
 .sidebar .nav.sub-menu .nav-item .nav-link.active::before {
-    background: var(--theme-color);
+    background: var(--app-nav-sub-active);
     transform: translateY(-50%) scale(1.15);
 }
 
@@ -287,15 +281,15 @@
     position: sticky;
     top: 0;
     z-index: 20;
-    /* Solid white so menu items scrolling up are hidden behind it. Needs this
-       specificity to beat the `.sidebar .nav .nav-item { background: transparent }`
-       rule, which was leaving the search bar see-through. */
-    background: #ffffff;
+    /* Solid drawer colour so menu items scrolling up are hidden behind it.
+       Needs this specificity to beat the `.sidebar .nav .nav-item
+       { background: transparent }` rule, which left the search see-through. */
+    background: var(--app-nav-bg);
     padding: 12px 0.75rem 8px !important;
     margin-bottom: 0;
 }
 
-/* White → transparent fade just below the search bar, shown only once the nav
+/* Drawer colour → transparent fade just below the search bar, shown only once the nav
    is scrolled (sidebar.js toggles .is-stuck). Items disappear smoothly behind
    the bar instead of hard-cutting. Replaces the old border line. */
 .sidebar .nav .nav-item.sidebar-search-item::after {
@@ -305,7 +299,7 @@
     right: 0;
     top: 100%;
     height: 18px;
-    background: linear-gradient(to bottom, #ffffff 0%, rgba(255, 255, 255, 0) 100%);
+    background: linear-gradient(to bottom, var(--app-nav-bg) 0%, transparent 100%);
     opacity: 0;
     transition: opacity 0.2s ease;
     pointer-events: none;
@@ -323,10 +317,10 @@
 
 .sidebar-search-input {
     width: 100%;
-    border: 1px solid #e6e6ec;
-    border-radius: 10px;
-    background: #fcfcfd;
-    color: #3e4b5b;
+    border: 1px solid var(--app-nav-divider);
+    border-radius: var(--md-sys-shape-corner-full);
+    background: var(--app-nav-hover);
+    color: var(--app-nav-fg-strong);
     font-size: 0.9rem;
     line-height: 1.2;
     padding: 0.6rem 2.2rem 0.6rem 2.4rem;
@@ -335,13 +329,13 @@
 }
 
 .sidebar-search-input::placeholder {
-    color: #a7a2ad;
+    color: var(--app-nav-muted);
 }
 
 .sidebar-search-input:focus {
-    border-color: var(--theme-color);
-    background: #ffffff;
-    box-shadow: 0 0 0 0.2rem color-mix(in srgb, var(--theme-color) 25%, transparent);
+    border-color: var(--app-nav-sub-active);
+    background: var(--app-nav-hover);
+    box-shadow: 0 0 0 0.2rem color-mix(in srgb, var(--app-nav-sub-active) 30%, transparent);
 }
 
 .sidebar-search-icon {
@@ -349,7 +343,7 @@
     left: 0.85rem;
     width: 16px;
     height: 16px;
-    color: #a7a2ad;
+    color: var(--app-nav-muted);
     pointer-events: none;
 }
 
@@ -365,7 +359,7 @@
     border: 0;
     border-radius: 50%;
     background: transparent;
-    color: #9a8fa0;
+    color: var(--app-nav-muted);
     cursor: pointer;
     line-height: 1;
 }
@@ -376,15 +370,15 @@
 }
 
 .sidebar-search-clear:hover {
-    color: var(--theme-color);
-    background: rgba(0, 0, 0, 0.05);
+    color: var(--app-nav-fg-strong);
+    background: var(--app-nav-hover);
 }
 
 .sidebar-search-no-results {
     display: none;
     padding: 12px 4px 2px;
     font-size: 0.85rem;
-    color: #9a8fa0;
+    color: var(--app-nav-muted);
     text-align: center;
 }
 
@@ -448,16 +442,16 @@
     height: 36px;
     padding: 0;
     border: 0;
-    border-radius: 8px;
-    background: rgba(27, 27, 27, 0.04);
-    color: #5b6677;
+    border-radius: var(--md-sys-shape-corner-full);
+    background: var(--app-nav-hover);
+    color: var(--app-nav-fg);
     cursor: pointer;
     transition: background-color 0.2s ease, color 0.2s ease;
 }
 
 .sidebar-close-btn:hover {
-    background: color-mix(in srgb, var(--theme-color) 10%, transparent);
-    color: var(--theme-color);
+    background: var(--app-nav-divider);
+    color: var(--app-nav-fg-strong);
 }
 
 /* ============================================================
@@ -477,9 +471,9 @@
         width: 280px;
         max-width: 86vw;
         z-index: 1041;
-        border-right: 1px solid rgba(27, 27, 27, 0.06);
+        border-right: 0;
         border-left: 0;
-        box-shadow: 0 12px 32px rgba(16, 24, 40, 0.18);
+        box-shadow: var(--md-sys-elevation-level3);
         transform: translateX(-100%);
         transition: transform 0.28s ease;
         overflow-y: auto;
@@ -495,7 +489,7 @@
         left: auto;
         right: 0;
         border-right: 0;
-        border-left: 1px solid rgba(27, 27, 27, 0.06);
+        border-left: 0;
         transform: translateX(100%);
     }
 
@@ -511,7 +505,7 @@
         left: 0;
         right: 0;
         bottom: 0;
-        background: rgba(16, 24, 40, 0.45);
+        background: color-mix(in srgb, var(--md-sys-color-scrim) 45%, transparent);
         opacity: 0;
         visibility: hidden;
         transition: opacity 0.28s ease, visibility 0.28s ease;
@@ -602,11 +596,6 @@
 
     .sidebar-icon-only .sidebar .nav .nav-item .nav-link svg.menu-arrow,
     .sidebar-icon-only .sidebar .nav .nav-item .nav-link .menu-arrow {
-        display: none;
-    }
-
-    /* The active accent bar is meaningless in icon-only width. */
-    .sidebar-icon-only .sidebar .nav .nav-item.active>.nav-link::before {
         display: none;
     }
 

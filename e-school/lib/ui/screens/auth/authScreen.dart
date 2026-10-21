@@ -257,7 +257,7 @@ class _AuthScreenState extends State<AuthScreen> with TickerProviderStateMixin {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Theme.of(context).colorScheme.primary,
+      backgroundColor: Theme.of(context).colorScheme.inverseSurface,
       body: Stack(children: [_buildLottieAnimation(), _buildBottomMenu()]),
     );
   }

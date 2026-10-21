@@ -86,7 +86,7 @@ class ChatController extends Controller
                                         ->where('sender_id', $student->user_id);
                                 })
                                 ->select('id', 'body', 'date')
-                                ->latest()
+                                ->latest('id')
                                 ->first();
 
                             $lastReadMessage = ReadMessage::where('modal_id', $teacher->user->id)->where('user_id', $student->user_id)->first();
@@ -180,7 +180,7 @@ class ChatController extends Controller
                                         ->where('sender_id', $parent->user_id);
                                 })
                                 ->select('id', 'body', 'date')
-                                ->latest()
+                                ->latest('id')
                                 ->first();
 
                             $lastReadMessage = ReadMessage::where('modal_id', $teacher->user->id)->where('user_id', $parent->user_id)->first();
@@ -244,7 +244,7 @@ class ChatController extends Controller
                                             ->where('sender_id', $student->user_id);
                                     })
                                     ->select('id', 'body', 'date')
-                                    ->latest()
+                                    ->latest('id')
                                     ->first();
 
                                 $lastReadMessage = ReadMessage::where('modal_id', $teacher->user->id)->where('user_id', $student->user_id)->first();
@@ -340,7 +340,7 @@ class ChatController extends Controller
                                             ->where('sender_id', $parent->user_id);
                                     })
                                     ->select('id', 'body', 'date')
-                                    ->latest()
+                                    ->latest('id')
                                     ->first();
 
                                 $lastReadMessage = ReadMessage::where('modal_id', $teacher->user->id)->where('user_id', $parent->user_id)->first();
@@ -440,11 +440,11 @@ class ChatController extends Controller
                     return stristr($name, $search) !== false;
                 });
                 $data = collect($filteredData)->sortByDesc(function ($user) {
-                    return optional($user['last_message'])->date ?? 0;
+                    return optional($user['last_message'])->id ?? 0;
                 })->splice($offset, $limit)->values();
             } else {
                 $data = collect($data)->sortByDesc(function ($user) {
-                    return optional($user['last_message'])->date ?? 0;
+                    return optional($user['last_message'])->id ?? 0;
                 })
                     ->splice($offset, $limit)
                     ->values();
@@ -611,7 +611,7 @@ class ChatController extends Controller
                         ->orWhere('sender_id', Auth::id());
                 })
                 ->select('id', 'sender_id', 'body', 'date')
-                ->latest('date');
+                ->latest('id');
 
             $total_items = $messages->count();
 
@@ -636,7 +636,7 @@ class ChatController extends Controller
             $auth = Auth::id();
             $user = $request->user_id;
 
-            $lastMessage = ChatMessage::where('sender_id', $user)->where('modal_id', $auth)->latest()->first();
+            $lastMessage = ChatMessage::where('sender_id', $user)->where('modal_id', $auth)->latest('id')->first();
             if ($lastMessage) {
                 $message_id = $lastMessage->id;
             }

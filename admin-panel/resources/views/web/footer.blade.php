@@ -236,7 +236,7 @@
                 text: $('<div>').text(@json($error)).html(),
                 showHideTransition: 'slide',
                 icon: 'error',
-                loaderBg: '#f2a654',
+                loaderBg: 'var(--app-status-danger)',
                 position: 'top-right'
             });
         </script>
@@ -249,7 +249,7 @@
             text: $('<div>').text(@json(Session::get('success'))).html(),
             showHideTransition: 'slide',
             icon: 'success',
-            loaderBg: '#f96868',
+            loaderBg: 'var(--app-status-success)',
             position: 'top-right'
         });
     </script>
@@ -313,18 +313,4 @@
     });
 </script>
 
-@php
-    $theme_color = getSettings('theme_color');
-    $secondary_color = getSettings('secondary_color');
-
-    // echo json_encode($theme_color);
-    $theme_color = $theme_color['theme_color'];
-    $secondary_color =   $secondary_color['secondary_color'];
-@endphp
-<style>
-    :root {
-        --primary-color: <?=$theme_color ?>;
-        /* --primary-hover-color:<?=$secondary_color ?>; */
-        --secondary-color1:<?=$secondary_color ?>;
-    }
-</style>
+{{-- Colours come from the design tokens (m3-tokens.css, linked in web.header), not the school theme-colour settings. --}}

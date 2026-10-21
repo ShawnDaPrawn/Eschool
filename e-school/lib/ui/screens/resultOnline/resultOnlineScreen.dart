@@ -83,7 +83,9 @@ class ResultOnlineScreenState extends State<ResultOnlineScreen> {
                     child: Text(
                       UiUtils.getTranslatedLabel(context, examResultKey),
                       style: setTextStyle(
-                        txtColor: Theme.of(context).colorScheme.onPrimary,
+                        txtColor: Theme.of(
+                          context,
+                        ).colorScheme.onInverseSurface,
                         txtSize: UiUtils.screenTitleFontSize,
                       ),
                     ),
@@ -96,14 +98,14 @@ class ResultOnlineScreenState extends State<ResultOnlineScreen> {
                   Text(
                     widget.subjectName,
                     style: setTextStyle(
-                      txtColor: Theme.of(context).colorScheme.onPrimary,
+                      txtColor: Theme.of(context).colorScheme.onInverseSurface,
                       txtSize: UiUtils.screenSubTitleFontSize,
                     ),
                   ),
                   Text(
                     widget.examName,
                     style: setTextStyle(
-                      txtColor: Theme.of(context).colorScheme.onPrimary,
+                      txtColor: Theme.of(context).colorScheme.onInverseSurface,
                       txtSize: UiUtils.screenTitleFontSize,
                       fontWeight: FontWeight.bold,
                     ),
@@ -126,6 +128,12 @@ class ResultOnlineScreenState extends State<ResultOnlineScreen> {
                             '${UiUtils.getTranslatedLabel(context, obtainedMarksKey)} :  $obtainedMarks / $totalMarks',
                         textSize: 14,
                         showBorder: true,
+                        titleColor: Theme.of(
+                          context,
+                        ).colorScheme.onInverseSurface,
+                        borderColor: Theme.of(
+                          context,
+                        ).colorScheme.onInverseSurface,
                       );
                     },
                   ),

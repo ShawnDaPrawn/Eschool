@@ -53,7 +53,7 @@ class SettingsContainer extends StatelessWidget {
             child: Text(
               UiUtils.getTranslatedLabel(context, settingsKey),
               style: TextStyle(
-                color: Theme.of(context).colorScheme.onPrimary,
+                color: Theme.of(context).colorScheme.onInverseSurface,
                 fontSize: UiUtils.screenTitleFontSize,
               ),
             ),
@@ -133,8 +133,9 @@ class SettingsContainer extends StatelessWidget {
         if (context.read<AuthCubit>().isParent())
           _buildSettingDetailsTile(
             icon: Icons.notifications, //this is for show only
-            customIcon: const NotificationIconWidget(
-              size: Size(24, 24),
+            customIcon: NotificationIconWidget(
+              size: const Size(24, 24),
+              color: Theme.of(context).colorScheme.onPrimary,
             ), //this widget will take icon's place
             title: UiUtils.getTranslatedLabel(context, notificationsKey),
             onTap: () {

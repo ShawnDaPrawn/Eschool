@@ -124,7 +124,7 @@ class _ChatUsersScreenState extends State<ChatUsersScreen> {
                       child: Icon(
                         Icons.search,
                         size: 24,
-                        color: Theme.of(context).colorScheme.onPrimary,
+                        color: Theme.of(context).colorScheme.onInverseSurface,
                       ),
                     ),
                   ),

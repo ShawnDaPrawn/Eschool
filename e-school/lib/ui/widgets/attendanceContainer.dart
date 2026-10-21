@@ -81,7 +81,7 @@ class _AttendanceContainerState extends State<AttendanceContainer> {
             child: Text(
               UiUtils.getTranslatedLabel(context, attendanceKey),
               style: TextStyle(
-                color: Theme.of(context).colorScheme.onPrimary,
+                color: Theme.of(context).colorScheme.onInverseSurface,
                 fontSize: UiUtils.screenTitleFontSize,
               ),
             ),

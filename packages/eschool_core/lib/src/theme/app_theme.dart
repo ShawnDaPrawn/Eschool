@@ -2,12 +2,14 @@ import 'package:eschool_core/src/theme/brand_colors.dart';
 import 'package:eschool_core/src/theme/status_colors.dart';
 import 'package:flutter/material.dart';
 
-/// The Material 3 theme both apps use.
+/// The Material 3 theme both apps use, in the Navigate Wealth design
+/// system's colours ([BrandColors]).
 ///
-/// The colour scheme is generated from [BrandColors.primary] with the
-/// `fidelity` variant, which keeps the brand colour exact instead of toning it
-/// down the way the default variant does. Components use Material 3's defaults
-/// except for the corner radii below, which keep the apps' existing shapes.
+/// The primary, accent and error colours each get a full tonal palette from
+/// `ColorScheme.fromSeed` with the `fidelity` variant, which keeps the brand
+/// colour exact. The greys are the design system's own. Components use
+/// Material 3's defaults except for the corner radii below, which keep the
+/// apps' existing shapes.
 abstract final class AppTheme {
   /// Corner radius of buttons, text fields and cards.
   static const double radius = 10;
@@ -16,14 +18,16 @@ abstract final class AppTheme {
   static const double bottomSheetRadius = 20;
 
   static ColorScheme lightColorScheme() {
-    // The tertiary roles are the accent's own tonal palette, generated the
-    // same way as the primary's. Fidelity puts the exact accent colour in
-    // tertiaryContainer and derives a darker tertiary that white text is
-    // readable on. The error roles are Material 3's own, for the same reason.
-    final accent = ColorScheme.fromSeed(
-      seedColor: BrandColors.accent,
-      dynamicSchemeVariant: DynamicSchemeVariant.fidelity,
-    );
+    // Fidelity puts the source colour in the container role and derives a
+    // main role that white text reads on: the accent is exactly
+    // tertiaryContainer, and errorContainer is the design system's red
+    // deepened just enough for white text (the exact red is
+    // StatusColors.danger).
+    final accent = _palette(BrandColors.accent);
+    final error = _palette(BrandColors.danger);
+    // The design system's greys are cool slate rather than tinted by the
+    // purple, so the greys it doesn't name come from its muted text colour.
+    final neutral = ColorScheme.fromSeed(seedColor: BrandColors.mutedText);
     return ColorScheme.fromSeed(
       seedColor: BrandColors.primary,
       dynamicSchemeVariant: DynamicSchemeVariant.fidelity,
@@ -31,9 +35,32 @@ abstract final class AppTheme {
       tertiary: accent.primary,
       onTertiary: accent.onPrimary,
       tertiaryContainer: accent.primaryContainer,
-      onTertiaryContainer: accent.onPrimaryContainer,
+      onTertiaryContainer: BrandColors.background,
+      error: error.primary,
+      onError: error.onPrimary,
+      errorContainer: error.primaryContainer,
+      onErrorContainer: error.onPrimaryContainer,
+      surface: BrandColors.background,
+      onSurface: BrandColors.text,
+      onSurfaceVariant: BrandColors.mutedText,
+      surfaceContainerLowest: BrandColors.background,
+      surfaceContainerLow: BrandColors.lightGray,
+      surfaceContainer: neutral.surfaceContainer,
+      surfaceContainerHigh: neutral.surfaceContainerHigh,
+      surfaceContainerHighest: neutral.surfaceContainerHighest,
+      surfaceDim: neutral.surfaceDim,
+      surfaceBright: BrandColors.background,
+      outline: neutral.outline,
+      outlineVariant: BrandColors.border,
+      inverseSurface: BrandColors.darkNavy,
+      onInverseSurface: BrandColors.background,
     );
   }
+
+  static ColorScheme _palette(Color source) => ColorScheme.fromSeed(
+    seedColor: source,
+    dynamicSchemeVariant: DynamicSchemeVariant.fidelity,
+  );
 
   /// [font] applies the apps' typeface to the Material 3 type scale, for
   /// example `GoogleFonts.poppinsTextTheme`. Tests leave it out.

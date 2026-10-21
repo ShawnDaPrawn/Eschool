@@ -13,10 +13,10 @@
  * rather than content.css (which loads before the plugin CSS and so can't beat
  * it on load order). RTL flips are scoped with [dir="rtl"].
  *
- * No hardcoded BRAND hex — brand color comes from var(--theme-color) /
- * var(--secondary-color); neutral grays and semantic status colors (red/green)
- * are intentional and not brand. Radii/shadows are taken from the DESIGN.md
- * scale (sm field 8px, btn 10px; footer/transient-overlay shadow tier).
+ * No hardcoded colours — every colour is a Material 3 token from m3-tokens.css
+ * (--md-sys-color-* for surfaces/text/brand, --app-status-* for semantic
+ * red/green/amber). Radii are taken from the DESIGN.md scale (sm field 8px,
+ * btn 10px); shadows use the --md-sys-elevation-* levels.
  */
 
 /* ── Table surface ───────────────────────────────────────────────────── */
@@ -44,10 +44,10 @@
 .bootstrap-table .table>tbody>tr>td,
 .bootstrap-table .table.table-bordered>tbody>tr>td {
     border-top: 0;
-    border-bottom: 1px solid rgba(27, 27, 27, 0.06);
+    border-bottom: 1px solid var(--md-sys-color-outline-variant);
     padding: 0.8125rem 0.9375rem;
     vertical-align: middle;
-    color: #343a40;
+    color: var(--md-sys-color-on-surface);
 }
 
 /* Last row carries no separator — the card edge does that job. */
@@ -59,19 +59,19 @@
 
 .bootstrap-table .fixed-table-container .table thead th,
 .bootstrap-table .fixed-table-container .table.table-bordered thead th {
-    background: color-mix(in srgb, var(--theme-color) 4%, #f7f8fa);
+    background: var(--md-sys-color-surface-container);
     border-top: 0;
-    border-bottom: 1px solid color-mix(in srgb, var(--theme-color) 12%, rgba(27, 27, 27, 0.08));
+    border-bottom: 1px solid var(--md-sys-color-outline-variant);
     vertical-align: middle;
 }
 
 .bootstrap-table .fixed-table-container .table thead th .th-inner {
     padding: 0.6875rem 0.9375rem;
-    font-family: "Roboto-Medium", sans-serif;
+    font-family: var(--md-ref-typeface-plain);
     font-weight: 600;
     font-size: 0.78rem;
     letter-spacing: 0.02em;
-    color: #475569;
+    color: var(--md-sys-color-on-surface-variant);
     text-transform: uppercase;
 }
 
@@ -95,20 +95,20 @@
     border-top-left-radius: 10px;
 }
 
-/* Sort arrows — repaint the plugin's brand-foreign lilac (#7B83DB) to neutral
-   slate so they sit quietly in the redesigned header. (CSS vars can't be
-   injected into a url() data-URI, so the active arrow is a fixed neutral rather
-   than theme-reactive — neutral, not brand, per DESIGN.md.) */
+/* Sort arrows. A data URI can't read CSS variables, so the colours are the
+   token values written out: --md-sys-color-on-surface-variant (#64748b) for
+   the active arrow, and the same at 45% opacity for the idle pair. Update
+   them if that token changes. */
 .bootstrap-table .fixed-table-container .table thead th .both {
-    background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512" fill="%23c2c8d2"><path d="m103.05877,41.4c9.37707,-12.5 24.60541,-12.5 33.98248,0l96.02113,128c6.90152,9.2 8.92696,22.9 5.17614,34.9s-12.45274,19.8 -22.20489,19.8l-192.04225,-0.1c-9.67713,0 -18.45406,-7.8 -22.20489,-19.8s-1.65036,-25.7 5.17614,-34.9l96.02113,-128l0.07501,0.1zm0,429.3l-96.02113,-128c-6.90152,-9.2 -8.92696,-22.9 -5.17614,-34.9s12.45274,-19.8 22.20489,-19.8l192.04225,0c9.67713,0 18.45406,7.8 22.20489,19.8s1.65036,25.7 -5.17614,34.9l-96.02113,128c-9.37707,12.5 -24.60541,12.5 -33.98248,0l-0.07501,0z"/></svg>');
+    background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512" fill="%2364748b" fill-opacity="0.45"><path d="m103.05877,41.4c9.37707,-12.5 24.60541,-12.5 33.98248,0l96.02113,128c6.90152,9.2 8.92696,22.9 5.17614,34.9s-12.45274,19.8 -22.20489,19.8l-192.04225,-0.1c-9.67713,0 -18.45406,-7.8 -22.20489,-19.8s-1.65036,-25.7 5.17614,-34.9l96.02113,-128l0.07501,0.1zm0,429.3l-96.02113,-128c-6.90152,-9.2 -8.92696,-22.9 -5.17614,-34.9s12.45274,-19.8 22.20489,-19.8l192.04225,0c9.67713,0 18.45406,7.8 22.20489,19.8s1.65036,25.7 -5.17614,34.9l-96.02113,128c-9.37707,12.5 -24.60541,12.5 -33.98248,0l-0.07501,0z"/></svg>');
 }
 
 .bootstrap-table .fixed-table-container .table thead th .asc {
-    background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512" fill="%23475569"><path d="m136.9496,41.4c-9.3763,-12.5 -24.60342,-12.5 -33.97972,0l-96.01334,128c-6.90096,9.2 -8.92624,22.9 -5.17572,34.9s12.45173,19.8 22.20309,19.8l192.02668,0c9.67634,0 18.45256,-7.8 22.20309,-19.8s1.65023,-25.7 -5.17572,-34.9l-96.01334,-128l-0.07501,0z"/></svg>');
+    background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512" fill="%2364748b"><path d="m136.9496,41.4c-9.3763,-12.5 -24.60342,-12.5 -33.97972,0l-96.01334,128c-6.90096,9.2 -8.92624,22.9 -5.17572,34.9s12.45173,19.8 22.20309,19.8l192.02668,0c9.67634,0 18.45256,-7.8 22.20309,-19.8s1.65023,-25.7 -5.17572,-34.9l-96.01334,-128l-0.07501,0z"/></svg>');
 }
 
 .bootstrap-table .fixed-table-container .table thead th .desc {
-    background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512" fill="%23475569"><path d="m136.94959,471.6c-9.3763,12.5 -24.60342,12.5 -33.97972,0l-96.01334,-128c-6.90096,-9.2 -8.92624,-22.9 -5.17572,-34.9s12.45173,-19.8 22.20308,-19.8l192.02667,0c9.67634,0 18.45256,7.8 22.20308,19.8s1.65023,25.7 -5.17572,34.9l-96.01334,128l-0.07501,0z"/></svg>');
+    background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512" fill="%2364748b"><path d="m136.94959,471.6c-9.3763,12.5 -24.60342,12.5 -33.97972,0l-96.01334,-128c-6.90096,-9.2 -8.92624,-22.9 -5.17572,-34.9s12.45173,-19.8 22.20308,-19.8l192.02667,0c9.67634,0 18.45256,7.8 22.20308,19.8s1.65023,25.7 -5.17572,34.9l-96.01334,128l-0.07501,0z"/></svg>');
 }
 
 /* ── Body rows: hover · stripe · selection ───────────────────────────── */
@@ -120,30 +120,32 @@
 
 .bootstrap-table .table.table-hover>tbody>tr:hover,
 .table-hover tbody tr:hover {
-    background-color: color-mix(in srgb, var(--secondary-color, var(--theme-color)) 9%, #ffffff);
+    background-color: var(--md-sys-color-surface-container);
 }
 
 .bootstrap-table .table.table-striped>tbody>tr:nth-of-type(odd) {
-    background-color: color-mix(in srgb, var(--theme-color) 2.5%, #ffffff);
+    background-color: var(--md-sys-color-surface-container-low);
 }
 
 .bootstrap-table .table.table-striped>tbody>tr:hover {
-    background-color: color-mix(in srgb, var(--secondary-color, var(--theme-color)) 9%, #ffffff);
+    background-color: var(--md-sys-color-surface-container);
 }
 
 .bootstrap-table .fixed-table-container .table>tbody>tr.selected>td {
-    background-color: color-mix(in srgb, var(--theme-color) 9%, #ffffff);
+    background-color: color-mix(in srgb, var(--md-sys-color-primary) 9%, var(--md-sys-color-surface-container-lowest));
 }
 
 /* Empty state — centred, muted, breathing room. */
 .bootstrap-table .fixed-table-container .table>tbody>tr.no-records-found>td {
     padding: 2.5rem 1rem;
     text-align: center;
-    color: #8c8c8c;
+    color: var(--md-sys-color-on-surface-variant);
     font-style: normal;
 }
 
 /* ── Row action buttons ──────────────────────────────────────────────── */
+/* Material 3 filled tonal icon buttons: 40px circles, tinted by intent, with
+   the hover/press state as a stronger tint (no border). */
 /* Repaint the loud Star-Admin gradient icon-buttons into refined soft-tinted
    icon buttons, scoped to the table body so .btn-gradient-* elsewhere is
    untouched. Icons are Lucide — BootstrapTableService renders SVGs via <x-icon>;
@@ -168,15 +170,16 @@
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    width: 34px;
-    height: 34px;
+    width: 40px;
+    height: 40px;
+    min-height: 40px;
     line-height: 1;
     padding: 0;
-    border: 1px solid transparent;
-    border-radius: 8px;
-    background-color: rgba(71, 85, 105, 0.1);
+    border: 0;
+    border-radius: var(--md-sys-shape-corner-full);
+    background-color: var(--md-sys-color-surface-container);
     background-image: none;
-    color: #475569;
+    color: var(--md-sys-color-on-surface-variant);
     box-shadow: none;
     vertical-align: middle;
     transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease;
@@ -184,8 +187,8 @@
 
 .bootstrap-table .fixed-table-body .btn-icon svg,
 .bootstrap-table .fixed-table-body .btn-icon i {
-    width: 16px;
-    height: 16px;
+    width: 18px;
+    height: 18px;
     font-size: 0.875rem;
     line-height: 1;
     margin: 0;
@@ -221,10 +224,10 @@
 .bootstrap-table .fixed-table-body .btn-icon:focus,
 .bootstrap-table .fixed-table-body .btn-icon:active,
 .bootstrap-table .fixed-table-body .btn-icon.active {
-    background-color: rgba(71, 85, 105, 0.18);
+    background-color: var(--md-sys-color-surface-container-high);
     background-image: none;
-    border-color: rgba(71, 85, 105, 0.3);
-    color: #334155;
+    border-color: var(--md-sys-color-outline);
+    color: var(--md-sys-color-on-surface);
     box-shadow: none;
     outline: 0;
 }
@@ -232,8 +235,8 @@
 /* primary → theme (edit and most primary actions) */
 .bootstrap-table .fixed-table-body .btn-icon.btn-gradient-primary,
 .bootstrap-table .fixed-table-body .btn-icon.btn-inverse-primary {
-    background-color: color-mix(in srgb, var(--theme-color) 10%, #ffffff);
-    color: var(--theme-color);
+    background-color: color-mix(in srgb, var(--md-sys-color-primary) 10%, var(--md-sys-color-surface-container-lowest));
+    color: var(--md-sys-color-primary);
 }
 
 .bootstrap-table .fixed-table-body .btn-icon.btn-gradient-primary:hover,
@@ -243,16 +246,16 @@
 .bootstrap-table .fixed-table-body .btn-icon.btn-inverse-primary:hover,
 .bootstrap-table .fixed-table-body .btn-icon.btn-inverse-primary:focus,
 .bootstrap-table .fixed-table-body .btn-icon.btn-inverse-primary:active {
-    background-color: color-mix(in srgb, var(--theme-color) 18%, #ffffff);
-    border-color: color-mix(in srgb, var(--theme-color) 30%, transparent);
-    color: var(--theme-color);
+    background-color: color-mix(in srgb, var(--md-sys-color-primary) 18%, var(--md-sys-color-surface-container-lowest));
+    border-color: color-mix(in srgb, var(--md-sys-color-primary) 30%, transparent);
+    color: var(--md-sys-color-primary);
 }
 
 /* info → secondary (view / preview actions) */
 .bootstrap-table .fixed-table-body .btn-icon.btn-gradient-info,
 .bootstrap-table .fixed-table-body .btn-icon.btn-inverse-info {
-    background-color: color-mix(in srgb, var(--secondary-color, var(--theme-color)) 12%, #ffffff);
-    color: var(--secondary-color, var(--theme-color));
+    background-color: color-mix(in srgb, var(--md-sys-color-inverse-surface) 12%, var(--md-sys-color-surface-container-lowest));
+    color: var(--md-sys-color-inverse-surface);
 }
 
 .bootstrap-table .fixed-table-body .btn-icon.btn-gradient-info:hover,
@@ -262,16 +265,16 @@
 .bootstrap-table .fixed-table-body .btn-icon.btn-inverse-info:hover,
 .bootstrap-table .fixed-table-body .btn-icon.btn-inverse-info:focus,
 .bootstrap-table .fixed-table-body .btn-icon.btn-inverse-info:active {
-    background-color: color-mix(in srgb, var(--secondary-color, var(--theme-color)) 20%, #ffffff);
-    border-color: color-mix(in srgb, var(--secondary-color, var(--theme-color)) 32%, transparent);
-    color: var(--secondary-color, var(--theme-color));
+    background-color: color-mix(in srgb, var(--md-sys-color-inverse-surface) 20%, var(--md-sys-color-surface-container-lowest));
+    border-color: color-mix(in srgb, var(--md-sys-color-inverse-surface) 32%, transparent);
+    color: var(--md-sys-color-inverse-surface);
 }
 
 /* success → green (restore / approve / generate) */
 .bootstrap-table .fixed-table-body .btn-icon.btn-gradient-success,
 .bootstrap-table .fixed-table-body .btn-icon.btn-inverse-success {
-    background-color: rgba(22, 163, 74, 0.1);
-    color: #16a34a;
+    background-color: color-mix(in srgb, var(--app-status-success) 10%, transparent);
+    color: var(--app-status-success-text);
 }
 
 .bootstrap-table .fixed-table-body .btn-icon.btn-gradient-success:hover,
@@ -281,16 +284,16 @@
 .bootstrap-table .fixed-table-body .btn-icon.btn-inverse-success:hover,
 .bootstrap-table .fixed-table-body .btn-icon.btn-inverse-success:focus,
 .bootstrap-table .fixed-table-body .btn-icon.btn-inverse-success:active {
-    background-color: rgba(22, 163, 74, 0.18);
-    border-color: rgba(22, 163, 74, 0.32);
-    color: #15803d;
+    background-color: color-mix(in srgb, var(--app-status-success) 18%, transparent);
+    border-color: color-mix(in srgb, var(--app-status-success) 32%, transparent);
+    color: var(--app-status-success-text);
 }
 
 /* danger → red (delete / reject / permanent delete) */
 .bootstrap-table .fixed-table-body .btn-icon.btn-gradient-danger,
 .bootstrap-table .fixed-table-body .btn-icon.btn-inverse-danger {
-    background-color: rgba(220, 53, 69, 0.1);
-    color: #dc3545;
+    background-color: color-mix(in srgb, var(--md-sys-color-error) 10%, transparent);
+    color: var(--md-sys-color-error);
 }
 
 .bootstrap-table .fixed-table-body .btn-icon.btn-gradient-danger:hover,
@@ -300,16 +303,16 @@
 .bootstrap-table .fixed-table-body .btn-icon.btn-inverse-danger:hover,
 .bootstrap-table .fixed-table-body .btn-icon.btn-inverse-danger:focus,
 .bootstrap-table .fixed-table-body .btn-icon.btn-inverse-danger:active {
-    background-color: rgba(220, 53, 69, 0.18);
-    border-color: rgba(220, 53, 69, 0.32);
-    color: #c12a3a;
+    background-color: color-mix(in srgb, var(--md-sys-color-error) 18%, transparent);
+    border-color: color-mix(in srgb, var(--md-sys-color-error) 32%, transparent);
+    color: var(--md-sys-color-error);
 }
 
 /* warning → amber */
 .bootstrap-table .fixed-table-body .btn-icon.btn-gradient-warning,
 .bootstrap-table .fixed-table-body .btn-icon.btn-inverse-warning {
-    background-color: rgba(245, 158, 11, 0.14);
-    color: #b45309;
+    background-color: color-mix(in srgb, var(--app-status-warning) 14%, transparent);
+    color: var(--app-status-warning-text);
 }
 
 .bootstrap-table .fixed-table-body .btn-icon.btn-gradient-warning:hover,
@@ -319,9 +322,9 @@
 .bootstrap-table .fixed-table-body .btn-icon.btn-inverse-warning:hover,
 .bootstrap-table .fixed-table-body .btn-icon.btn-inverse-warning:focus,
 .bootstrap-table .fixed-table-body .btn-icon.btn-inverse-warning:active {
-    background-color: rgba(245, 158, 11, 0.22);
-    border-color: rgba(245, 158, 11, 0.34);
-    color: #92400e;
+    background-color: color-mix(in srgb, var(--app-status-warning) 22%, transparent);
+    border-color: color-mix(in srgb, var(--app-status-warning) 34%, transparent);
+    color: var(--app-status-warning-text);
 }
 
 /* Inline-built action buttons still carry Font Awesome <i> glyphs (the many
@@ -437,28 +440,29 @@
     mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m21 21-4.34-4.34'/%3E%3Ccircle cx='11' cy='11' r='8'/%3E%3C/svg%3E");
 }
 
-/* "kebab" action menu — neutral ghost toggle + transient-overlay dropdown. */
+/* "Kebab" (⋮) row menu: a standard icon button that opens a Material 3 menu. */
 .bootstrap-table .fixed-table-body .table-action-column .btn,
 .bootstrap-table .fixed-table-body .table-action-column .btn.btn-inverse-dark {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    width: 34px;
-    height: 34px;
+    width: 40px;
+    height: 40px;
+    min-height: 40px;
     padding: 0;
-    border: 1px solid rgba(27, 27, 27, 0.12);
-    border-radius: 8px;
-    background: #fff;
-    color: #64748b;
+    border: 0;
+    border-radius: var(--md-sys-shape-corner-full);
+    background: transparent;
+    color: var(--md-sys-color-on-surface-variant);
     box-shadow: none;
-    transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+    transition: background-color 0.15s ease;
 }
 
 .bootstrap-table .fixed-table-body .table-action-column .btn svg,
 .bootstrap-table .fixed-table-body .table-action-column .btn i {
-    width: 16px;
-    height: 16px;
-    font-size: 0.875rem;
+    width: 20px;
+    height: 20px;
+    font-size: 1rem;
     line-height: 1;
 }
 
@@ -468,31 +472,27 @@
 .bootstrap-table .fixed-table-body .table-action-column .btn.btn-inverse-dark:focus,
 .bootstrap-table .fixed-table-body .table-action-column .btn.btn-inverse-dark:active,
 .bootstrap-table .fixed-table-body .table-action-column.show .btn {
-    background: color-mix(in srgb, var(--theme-color) 8%, #fff);
-    color: var(--theme-color);
-    border-color: color-mix(in srgb, var(--theme-color) 30%, transparent);
+    background: color-mix(in srgb, var(--md-sys-color-on-surface-variant) var(--md-sys-state-hover-opacity), transparent);
+    color: var(--md-sys-color-on-surface-variant);
     box-shadow: none;
     outline: 0;
 }
 
+.bootstrap-table .fixed-table-body .table-action-column .btn::after {
+    display: none;
+}
+
 .action-column-dropdown-menu {
-    border: 1px solid rgba(27, 27, 27, 0.06);
-    border-radius: 10px;
-    padding: 0.375rem;
-    box-shadow:
-        0 1px 2px rgba(16, 24, 40, 0.03),
-        0 4px 12px rgba(16, 24, 40, 0.06);
+    padding: 8px 0;
+    border: 0;
+    border-radius: var(--md-sys-shape-corner-extra-small);
+    background: var(--md-sys-color-surface-container);
+    box-shadow: var(--md-sys-elevation-level2);
 }
 
 .action-column-dropdown-menu .dropdown-item {
-    border-radius: 7px;
-    transition: background-color 0.2s ease, color 0.2s ease;
-}
-
-.action-column-dropdown-menu .dropdown-item:hover,
-.action-column-dropdown-menu .dropdown-item:focus {
-    background-color: color-mix(in srgb, var(--theme-color) 8%, transparent);
-    color: var(--theme-color);
+    min-height: 48px;
+    border-radius: 0;
 }
 
 /* ── Toolbar (filters · action buttons · search) ─────────────────────── */
@@ -501,59 +501,60 @@
     margin-bottom: 0.875rem;
 }
 
-/* Refresh / columns / export — neutral ghost segmented group that resolves to
-   the theme on hover (same language as the topbar action button). */
+/* Refresh / columns / export: Material 3 standard icon buttons — 40px
+   circles in on-surface-variant with a state layer — set 4px apart instead
+   of joined into a segmented group. (0,4,0)+ beats Bootstrap's .btn-group
+   corner and margin rules. */
+.bootstrap-table .fixed-table-toolbar .columns {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
 .bootstrap-table .fixed-table-toolbar .columns .btn,
 .bootstrap-table .fixed-table-toolbar .columns .btn.btn-secondary,
-.bootstrap-table .fixed-table-toolbar .columns .btn.dropdown-toggle {
-    background: #fff;
-    color: #64748b;
-    border: 1px solid rgba(27, 27, 27, 0.12);
+.bootstrap-table .fixed-table-toolbar .columns .btn.dropdown-toggle,
+.bootstrap-table .fixed-table-toolbar .columns .btn-group>.btn {
+    width: 40px;
+    height: 40px;
+    min-height: 40px;
+    margin: 0;
+    padding: 0;
+    border: 0;
+    border-radius: var(--md-sys-shape-corner-full);
+    background: transparent;
+    color: var(--md-sys-color-on-surface-variant);
     box-shadow: none;
-    transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+    transition: background-color 0.15s ease;
 }
 
 .bootstrap-table .fixed-table-toolbar .columns .btn:hover,
 .bootstrap-table .fixed-table-toolbar .columns .btn:focus,
-.bootstrap-table .fixed-table-toolbar .columns .btn:active,
 .bootstrap-table .fixed-table-toolbar .columns .btn.btn-secondary:hover,
-.bootstrap-table .fixed-table-toolbar .columns .btn.btn-secondary:focus,
-.bootstrap-table .fixed-table-toolbar .columns .btn.btn-secondary:active,
-.bootstrap-table .fixed-table-toolbar .columns .btn-group.open>.btn,
-.bootstrap-table .fixed-table-toolbar .columns .btn-group.show>.btn {
-    background: color-mix(in srgb, var(--theme-color) 8%, #fff);
-    color: var(--theme-color);
-    border-color: color-mix(in srgb, var(--theme-color) 35%, transparent);
+.bootstrap-table .fixed-table-toolbar .columns .btn.btn-secondary:focus {
+    background: color-mix(in srgb, var(--md-sys-color-on-surface-variant) var(--md-sys-state-hover-opacity), transparent);
+    color: var(--md-sys-color-on-surface-variant);
     box-shadow: none;
     outline: 0;
-    z-index: 2;
 }
 
-/* segmented look: round only the outer ends (8px = sm-field radius). */
-.bootstrap-table .fixed-table-toolbar .columns .btn-group>.btn-group:first-child>.btn,
-.bootstrap-table .fixed-table-toolbar .columns>.btn:first-child,
-.bootstrap-table .fixed-table-toolbar .columns>.btn-group:first-child>.btn {
-    border-top-left-radius: 8px;
-    border-bottom-left-radius: 8px;
+.bootstrap-table .fixed-table-toolbar .columns .btn:active,
+.bootstrap-table .fixed-table-toolbar .columns .btn-group.open>.btn,
+.bootstrap-table .fixed-table-toolbar .columns .btn-group.show>.btn {
+    background: color-mix(in srgb, var(--md-sys-color-on-surface-variant) var(--md-sys-state-pressed-opacity), transparent);
+    color: var(--md-sys-color-on-surface-variant);
+    box-shadow: none;
 }
 
-.bootstrap-table .fixed-table-toolbar .columns .btn-group>.btn-group:last-child>.btn,
-.bootstrap-table .fixed-table-toolbar .columns>.btn:last-child,
-.bootstrap-table .fixed-table-toolbar .columns>.btn-group:last-child>.btn {
-    border-top-right-radius: 8px;
-    border-bottom-right-radius: 8px;
+.bootstrap-table .fixed-table-toolbar .columns .btn:focus-visible {
+    outline: 3px solid var(--md-sys-color-secondary);
+    outline-offset: 2px;
 }
 
-[dir="rtl"] .bootstrap-table .fixed-table-toolbar .columns .btn-group>.btn-group:first-child>.btn,
-[dir="rtl"] .bootstrap-table .fixed-table-toolbar .columns>.btn:first-child,
-[dir="rtl"] .bootstrap-table .fixed-table-toolbar .columns>.btn-group:first-child>.btn {
-    border-radius: 0 8px 8px 0;
-}
-
-[dir="rtl"] .bootstrap-table .fixed-table-toolbar .columns .btn-group>.btn-group:last-child>.btn,
-[dir="rtl"] .bootstrap-table .fixed-table-toolbar .columns>.btn:last-child,
-[dir="rtl"] .bootstrap-table .fixed-table-toolbar .columns>.btn-group:last-child>.btn {
-    border-radius: 8px 0 0 8px;
+/* Icon buttons have no caret. */
+.bootstrap-table .fixed-table-toolbar .columns .dropdown-toggle::after,
+.bootstrap-table .fixed-table-toolbar .columns .caret {
+    display: none;
 }
 
 /* Gap between the button group and the search box. The plugin spaces them with
@@ -608,50 +609,73 @@
     mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4'/%3E%3Cpolyline points='7 10 12 15 17 10'/%3E%3Cline x1='12' x2='12' y1='15' y2='3'/%3E%3C/svg%3E");
 }
 
-/* Column-toggle dropdown — transient-overlay tier (matches Select2 panel). */
+/* Column-toggle and export dropdowns: Material 3 menus. */
 .bootstrap-table .fixed-table-toolbar .columns .dropdown-menu,
 .bootstrap-table .fixed-table-toolbar .export .dropdown-menu {
-    border: 1px solid rgba(27, 27, 27, 0.06);
-    border-radius: 10px;
-    padding: 0.375rem;
-    box-shadow:
-        0 1px 2px rgba(16, 24, 40, 0.03),
-        0 4px 12px rgba(16, 24, 40, 0.06);
+    padding: 8px 0;
+    border: 0;
+    border-radius: var(--md-sys-shape-corner-extra-small);
+    background: var(--md-sys-color-surface-container);
+    box-shadow: var(--md-sys-elevation-level2);
 }
 
 .bootstrap-table .fixed-table-toolbar .columns .dropdown-menu label,
 .bootstrap-table .fixed-table-toolbar .columns .dropdown-menu .dropdown-item,
 .bootstrap-table .fixed-table-toolbar .export .dropdown-menu .dropdown-item {
-    border-radius: 7px;
-    padding: 0.375rem 0.625rem;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    min-height: 48px;
     margin: 0;
-    transition: background-color 0.2s ease, color 0.2s ease;
+    padding: 0 12px;
+    border-radius: 0;
+    color: var(--md-sys-color-on-surface);
+    font-size: var(--md-sys-typescale-label-large-size);
+    font-weight: 500;
+    transition: background-color 0.15s ease;
 }
 
 .bootstrap-table .fixed-table-toolbar .columns .dropdown-menu label:hover,
 .bootstrap-table .fixed-table-toolbar .columns .dropdown-menu .dropdown-item:hover,
 .bootstrap-table .fixed-table-toolbar .export .dropdown-menu .dropdown-item:hover {
-    background-color: color-mix(in srgb, var(--theme-color) 8%, transparent);
-    color: var(--theme-color);
+    background-color: color-mix(in srgb, var(--md-sys-color-on-surface) var(--md-sys-state-hover-opacity), transparent);
+    color: var(--md-sys-color-on-surface);
 }
 
-/* Search field — form-field tokens + a leading magnifier glyph (neutral gray,
-   not brand). 10px radius + theme focus glow come from content.css's
-   .form-control rules; here we add the icon, padding and RTL flip. */
+/* Search: a Material 3 search bar — fully rounded, surface-container-high,
+   no outline, with a leading magnifier in --md-sys-color-on-surface-variant
+   (#64748b, written out: a data URI can't read CSS variables). */
 .bootstrap-table .fixed-table-toolbar .search .form-control,
 .bootstrap-table .fixed-table-toolbar .search input.search-input {
-    padding-left: 2.1rem;
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%239aa3af' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='11' cy='11' r='8'/%3E%3Cpath d='m21 21-4.3-4.3'/%3E%3C/svg%3E");
+    height: 48px;
+    padding-left: 52px;
+    padding-right: 20px;
+    border: 0;
+    border-radius: var(--md-sys-shape-corner-full);
+    background-color: var(--md-sys-color-surface-container-high);
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%2364748b' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='11' cy='11' r='8'/%3E%3Cpath d='m21 21-4.3-4.3'/%3E%3C/svg%3E");
     background-repeat: no-repeat;
-    background-position: left 0.7rem center;
-    background-size: 15px 15px;
+    background-position: left 18px center;
+    background-size: 20px 20px;
+    font-size: var(--md-sys-typescale-body-large-size);
+}
+
+.bootstrap-table .fixed-table-toolbar .search .form-control:hover,
+.bootstrap-table .fixed-table-toolbar .search input.search-input:hover {
+    background-color: color-mix(in srgb, var(--md-sys-color-on-surface) var(--md-sys-state-hover-opacity), var(--md-sys-color-surface-container-high));
+}
+
+.bootstrap-table .fixed-table-toolbar .search .form-control:focus,
+.bootstrap-table .fixed-table-toolbar .search input.search-input:focus {
+    background-color: var(--md-sys-color-surface-container-highest);
+    box-shadow: none;
 }
 
 [dir="rtl"] .bootstrap-table .fixed-table-toolbar .search .form-control,
 [dir="rtl"] .bootstrap-table .fixed-table-toolbar .search input.search-input {
-    padding-left: 0.75rem;
-    padding-right: 2.1rem;
-    background-position: right 0.7rem center;
+    padding-left: 20px;
+    padding-right: 52px;
+    background-position: right 18px center;
 }
 
 /* ── Pagination ──────────────────────────────────────────────────────── */
@@ -663,113 +687,122 @@
 }
 
 .bootstrap-table .fixed-table-pagination .pagination-info {
-    color: rgba(27, 27, 27, 0.6);
+    color: var(--md-sys-color-on-surface-variant);
     font-size: 0.8125rem;
 }
 
 .bootstrap-table .fixed-table-pagination .page-list .page-detail,
 .bootstrap-table .fixed-table-pagination .page-list {
-    color: rgba(27, 27, 27, 0.6);
+    color: var(--md-sys-color-on-surface-variant);
     font-size: 0.8125rem;
 }
 
 /* page-size toggle — neutral ghost button. */
+/* Page size ("10 ▾"): an outlined 40px button that reads like a small field. */
 .bootstrap-table .fixed-table-pagination .page-list .btn,
 .bootstrap-table .fixed-table-pagination .page-list .btn.btn-secondary {
-    background: #fff;
-    color: #475569;
-    border: 1px solid rgba(27, 27, 27, 0.12);
-    border-radius: 8px;
+    min-height: 40px;
+    padding: 0 12px 0 16px;
+    background: transparent;
+    color: var(--md-sys-color-on-surface);
+    border: 1px solid var(--md-sys-color-outline);
+    border-radius: var(--app-radius);
     box-shadow: none;
-    transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+    transition: background-color 0.15s ease;
 }
 
 .bootstrap-table .fixed-table-pagination .page-list .btn:hover,
 .bootstrap-table .fixed-table-pagination .page-list .btn:focus,
 .bootstrap-table .fixed-table-pagination .page-list .btn:active,
 .bootstrap-table .fixed-table-pagination .page-list .show>.btn {
-    background: color-mix(in srgb, var(--theme-color) 8%, #fff);
-    color: var(--theme-color);
-    border-color: color-mix(in srgb, var(--theme-color) 30%, transparent);
+    background: color-mix(in srgb, var(--md-sys-color-on-surface) var(--md-sys-state-hover-opacity), transparent);
+    color: var(--md-sys-color-on-surface);
+    border-color: var(--md-sys-color-outline);
     box-shadow: none;
     outline: 0;
 }
 
-/* page-size dropdown panel — transient-overlay tier. */
+/* Page-size dropdown: a Material 3 menu. */
 .bootstrap-table .fixed-table-pagination .page-list .dropdown-menu {
-    border: 1px solid rgba(27, 27, 27, 0.06);
-    border-radius: 10px;
-    padding: 0.25rem;
     min-width: 100%;
-    box-shadow:
-        0 1px 2px rgba(16, 24, 40, 0.03),
-        0 4px 12px rgba(16, 24, 40, 0.06);
+    padding: 8px 0;
+    border: 0;
+    border-radius: var(--md-sys-shape-corner-extra-small);
+    background: var(--md-sys-color-surface-container);
+    box-shadow: var(--md-sys-elevation-level2);
 }
 
 .bootstrap-table .fixed-table-pagination .page-list .dropdown-menu .page-item .page-link {
-    border: 0;
-    border-radius: 7px;
+    display: flex;
+    align-items: center;
+    min-height: 48px;
     margin: 0;
-    padding: 0.3125rem 0.625rem;
-    color: #343a40;
+    padding: 0 16px;
+    border: 0;
+    border-radius: 0;
     background: transparent;
-    transition: background-color 0.2s ease, color 0.2s ease;
+    color: var(--md-sys-color-on-surface);
+    font-size: var(--md-sys-typescale-label-large-size);
+    font-weight: 500;
+    transition: background-color 0.15s ease;
 }
 
 .bootstrap-table .fixed-table-pagination .page-list .dropdown-menu .page-item .page-link:hover {
-    background-color: color-mix(in srgb, var(--theme-color) 8%, transparent);
-    color: var(--theme-color);
+    background-color: color-mix(in srgb, var(--md-sys-color-on-surface) var(--md-sys-state-hover-opacity), transparent);
+    color: var(--md-sys-color-on-surface);
 }
 
 .bootstrap-table .fixed-table-pagination .page-list .dropdown-menu .page-item.active .page-link {
-    background-color: color-mix(in srgb, var(--theme-color) 12%, transparent);
-    color: var(--theme-color);
-    font-weight: 500;
+    background-color: var(--md-sys-color-secondary-container);
+    color: var(--md-sys-color-on-secondary-container);
 }
 
-/* Page pills — soft, spaced, theme-aware. Scoped to the float-right pagination
-   list so the page-size dropdown (which reuses .page-link) is unaffected. */
+/* Page numbers: 40px circular text buttons, the current page in
+   secondary-container (as m3-components.css's .pagination). Scoped to the
+   float-right list so the page-size dropdown (which reuses .page-link) is
+   unaffected. */
 .bootstrap-table .fixed-table-pagination>.pagination .pagination {
-    gap: 3px;
+    gap: 4px;
 }
 
 .bootstrap-table .fixed-table-pagination>.pagination .page-item .page-link {
-    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 40px;
+    height: 40px;
     margin: 0;
-    min-width: 34px;
-    text-align: center;
-    padding: 0.4rem 0.6rem;
-    line-height: 1.25;
-    color: #475569;
-    background-color: #fff;
-    border: 1px solid rgba(27, 27, 27, 0.1);
-    border-radius: 8px;
-    transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+    padding: 0 12px;
+    border: 0;
+    border-radius: var(--md-sys-shape-corner-full);
+    background-color: transparent;
+    color: var(--md-sys-color-on-surface-variant);
+    font-size: var(--md-sys-typescale-label-large-size);
+    font-weight: 500;
+    box-shadow: none;
+    transition: background-color 0.15s ease, color 0.15s ease;
 }
 
-.bootstrap-table .fixed-table-pagination>.pagination .page-item .page-link:hover {
-    background-color: color-mix(in srgb, var(--theme-color) 8%, #fff);
-    border-color: color-mix(in srgb, var(--theme-color) 30%, transparent);
-    color: var(--theme-color);
-    z-index: 2;
-}
-
+.bootstrap-table .fixed-table-pagination>.pagination .page-item .page-link:hover,
 .bootstrap-table .fixed-table-pagination>.pagination .page-item .page-link:focus {
-    box-shadow: 0 0 0 0.2rem color-mix(in srgb, var(--theme-color) 22%, transparent);
-    z-index: 3;
+    background-color: color-mix(in srgb, var(--md-sys-color-on-surface-variant) var(--md-sys-state-hover-opacity), transparent);
+    color: var(--md-sys-color-on-surface);
+    box-shadow: none;
+}
+
+.bootstrap-table .fixed-table-pagination>.pagination .page-item .page-link:focus-visible {
+    outline: 3px solid var(--md-sys-color-secondary);
+    outline-offset: 2px;
 }
 
 .bootstrap-table .fixed-table-pagination>.pagination .page-item.active .page-link {
-    color: #fff;
-    background-color: var(--theme-color);
-    border-color: var(--theme-color);
+    background-color: var(--md-sys-color-secondary-container);
+    color: var(--md-sys-color-on-secondary-container);
 }
 
 .bootstrap-table .fixed-table-pagination>.pagination .page-item.disabled .page-link {
-    color: #b6bcc4;
-    background-color: #fff;
-    border-color: rgba(27, 27, 27, 0.08);
-    opacity: 0.7;
+    background-color: transparent;
+    color: color-mix(in srgb, var(--md-sys-color-on-surface) var(--md-sys-state-disabled-content-opacity), transparent);
 }
 
 /* ── Loading mask ────────────────────────────────────────────────────── */
@@ -779,7 +812,7 @@
 
 .bootstrap-table .fixed-table-container .fixed-table-body .fixed-table-loading {
     top: 0;
-    background: rgba(255, 255, 255, 0.72);
+    background: color-mix(in srgb, var(--md-sys-color-surface-container-lowest) 72%, transparent);
     backdrop-filter: blur(2px);
     -webkit-backdrop-filter: blur(2px);
 }
@@ -787,19 +820,17 @@
 .bootstrap-table .fixed-table-container .fixed-table-body .fixed-table-loading .loading-wrap {
     align-items: center;
     padding: 9px 18px;
-    background: #fff;
-    border: 1px solid rgba(27, 27, 27, 0.06);
+    background: var(--md-sys-color-surface-container-lowest);
+    border: 1px solid var(--md-sys-color-outline-variant);
     border-radius: 999px;
-    box-shadow:
-        0 1px 2px rgba(16, 24, 40, 0.04),
-        0 2px 6px rgba(16, 24, 40, 0.06);
+    box-shadow: var(--md-sys-elevation-level2);
 }
 
 .bootstrap-table .fixed-table-container .fixed-table-body .fixed-table-loading .loading-text {
     /* Override bootstrap-table's inline auto font-size (often oversized). */
     font-size: 0.9rem !important;
     font-weight: 500;
-    color: var(--theme-color);
+    color: var(--md-sys-color-primary);
     margin-right: 8px;
 }
 
@@ -807,7 +838,7 @@
 .bootstrap-table .fixed-table-container .fixed-table-body .fixed-table-loading .loading-wrap .animation-dot,
 .bootstrap-table .fixed-table-container .fixed-table-body .fixed-table-loading .loading-wrap .animation-wrap::after,
 .bootstrap-table .fixed-table-container .fixed-table-body .fixed-table-loading .loading-wrap .animation-wrap::before {
-    background: var(--theme-color);
+    background: var(--md-sys-color-primary);
 }
 
 /* ── Color chip ──────────────────────────────────────────────────────── */
@@ -820,13 +851,13 @@
     align-items: center;
     gap: 0.5rem;
     padding: 0.25rem 0.7rem 0.25rem 0.3rem;
-    border: 1px solid rgba(27, 27, 27, 0.1);
+    border: 1px solid var(--md-sys-color-outline-variant);
     border-radius: 999px;
-    background: #ffffff;
+    background: var(--md-sys-color-surface-container-lowest);
     font-size: 0.82rem;
     font-weight: 500;
     line-height: 1;
-    color: #5b6677;
+    color: var(--md-sys-color-on-surface-variant);
 }
 
 .color-chip-swatch {
@@ -834,11 +865,11 @@
     width: 18px;
     height: 18px;
     border-radius: 50%;
-    box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.12);
+    box-shadow: inset 0 0 0 1px var(--md-sys-color-outline-variant);
 }
 
 .color-chip-code {
-    font-family: "Roboto Mono", "SFMono-Regular", Menlo, Consolas, monospace;
+    font-family: var(--md-ref-typeface-plain);
     letter-spacing: 0.02em;
     text-transform: uppercase;
 }
@@ -847,7 +878,7 @@
    Detail view — semester-wise subject breakdown (expanded-row panel)
    Full-width semester cards stacked one per row. Subjects render as horizontal
    wrapping chips (a class can carry many subjects, so a vertical list wastes
-   space). Neutral-first slate/gray system — brand (var(--theme-color)) appears
+   space). Neutral-first slate/gray system — brand (var(--md-sys-color-primary)) appears
    only on the numbered subject counter and the loading spinner.
    tables.css loads LAST, after bootstrap-table + style.css/rtl.css.
    ========================================================================== */
@@ -860,25 +891,25 @@
     width: 28px;
     height: 28px;
     border-radius: 8px;
-    color: #64748b;
-    background-color: #fff;
-    border: 1px solid rgba(27, 27, 27, 0.08);
+    color: var(--md-sys-color-on-surface-variant);
+    background-color: var(--md-sys-color-surface-container-lowest);
+    border: 1px solid var(--md-sys-color-outline-variant);
     transition: color 0.18s ease, background-color 0.18s ease, border-color 0.18s ease;
 }
 
 .bootstrap-table .fixed-table-body .detail-icon:hover,
 .bootstrap-table .fixed-table-body .detail-icon:focus {
-    color: #343a40;
-    background-color: #f7f8fa;
-    border-color: rgba(27, 27, 27, 0.16);
+    color: var(--md-sys-color-on-surface);
+    background-color: var(--md-sys-color-surface-container);
+    border-color: var(--md-sys-color-outline-variant);
     outline: none;
 }
 
 /* --- Expanded row cell -------------------------------------------------- */
 .bootstrap-table .fixed-table-body tr.detail-view>td {
     padding: 0;
-    background: #fafbfc;
-    border-bottom: 1px solid rgba(27, 27, 27, 0.06);
+    background: var(--md-sys-color-surface-container-low);
+    border-bottom: 1px solid var(--md-sys-color-outline-variant);
 }
 
 /* --- Loading / empty states -------------------------------------------- */
@@ -888,20 +919,20 @@
     justify-content: center;
     gap: 0.5rem;
     padding: 1.5rem 1rem;
-    color: rgba(27, 27, 27, 0.6);
+    color: var(--md-sys-color-on-surface-variant);
     font-size: 0.875rem;
 }
 
 .cs-detail-empty {
     font-style: italic;
-    color: rgba(27, 27, 27, 0.5);
+    color: var(--md-sys-color-on-surface-variant);
 }
 
 .cs-detail-spinner {
     width: 18px;
     height: 18px;
-    border: 2px solid rgba(27, 27, 27, 0.12);
-    border-top-color: var(--theme-color);
+    border: 2px solid var(--md-sys-color-surface-container);
+    border-top-color: var(--md-sys-color-primary);
     border-radius: 50%;
     animation: cs-detail-spin 0.7s linear infinite;
 }
@@ -921,24 +952,25 @@
 
 .cs-semester-card {
     width: 100%;
-    background: #fff;
-    border: 1px solid rgba(27, 27, 27, 0.06);
+    background: var(--md-sys-color-surface-container-lowest);
+    border: 1px solid var(--md-sys-color-outline-variant);
     border-radius: 14px;
-    box-shadow: 0 1px 2px rgba(16, 24, 40, 0.04), 0 2px 6px rgba(16, 24, 40, 0.04);
+    box-shadow: var(--md-sys-elevation-level1);
     overflow: hidden;
 }
 
 /* Quiet neutral header — hairline divider, no colored bar */
 .cs-semester-head {
     padding: 0.6rem 0.9rem;
-    background: #fff;
-    border-bottom: 1px solid rgba(27, 27, 27, 0.06);
+    background: var(--md-sys-color-surface-container-lowest);
+    border-bottom: 1px solid var(--md-sys-color-outline-variant);
 }
 
 .cs-semester-name {
-    font-family: "Roboto-Medium", "ubuntu-medium", sans-serif;
+    font-family: var(--md-ref-typeface-plain);
+    font-weight: 500;
     font-size: 0.9rem;
-    color: #343a40;
+    color: var(--md-sys-color-on-surface);
     letter-spacing: 0.01em;
 }
 
@@ -951,17 +983,18 @@
 
 /* --- Section (Core / Elective) ----------------------------------------- */
 .cs-section-title {
-    font-family: "Roboto-Medium", "ubuntu-medium", sans-serif;
+    font-family: var(--md-ref-typeface-plain);
+    font-weight: 500;
     font-size: 0.66rem;
     letter-spacing: 0.06em;
     text-transform: uppercase;
-    color: #8c8c8c;
+    color: var(--md-sys-color-on-surface-variant);
     margin-bottom: 0.55rem;
 }
 
 .cs-section-empty {
     font-size: 0.82rem;
-    color: rgba(27, 27, 27, 0.5);
+    color: var(--md-sys-color-on-surface-variant);
     font-style: italic;
 }
 
@@ -982,11 +1015,11 @@
     align-items: center;
     gap: 0.45rem;
     padding: 0.32rem 0.6rem;
-    background: #f8fafc;
-    border: 1px solid rgba(27, 27, 27, 0.07);
+    background: var(--md-sys-color-surface-container-low);
+    border: 1px solid var(--md-sys-color-outline-variant);
     border-radius: 8px;
     font-size: 0.8rem;
-    color: #343a40;
+    color: var(--md-sys-color-on-surface);
 }
 
 .cs-subject-name {
@@ -996,8 +1029,9 @@
 /* ACCENT 1: the numbered counter prefix is the single brand whisper */
 .cs-subject-name::before {
     content: counter(cs-subject) ". ";
-    color: var(--theme-color);
-    font-family: "Roboto-Medium", "ubuntu-medium", sans-serif;
+    color: var(--md-sys-color-primary);
+    font-family: var(--md-ref-typeface-plain);
+    font-weight: 500;
 }
 
 /* Type reads as a muted micro-label, divided from the name by a hairline */
@@ -1006,27 +1040,28 @@
     font-size: 0.6rem;
     letter-spacing: 0.04em;
     text-transform: uppercase;
-    color: #94a3b8;
+    color: var(--md-sys-color-on-surface-variant);
     white-space: nowrap;
     padding-inline-start: 0.45rem;
-    border-inline-start: 1px solid rgba(27, 27, 27, 0.1);
+    border-inline-start: 1px solid var(--md-sys-color-outline-variant);
 }
 
 /* --- Elective group ----------------------------------------------------- */
 .cs-elective-group {
     display: flex;
     flex-direction: column;
-    border: 1px solid rgba(27, 27, 27, 0.06);
+    border: 1px solid var(--md-sys-color-outline-variant);
     border-radius: 10px;
     padding: 0.6rem 0.7rem;
-    background: #fff;
+    background: var(--md-sys-color-surface-container-lowest);
     width: fit-content;
 }
 
 .cs-group-head {
-    font-family: "Roboto-Medium", "ubuntu-medium", sans-serif;
+    font-family: var(--md-ref-typeface-plain);
+    font-weight: 500;
     font-size: 0.76rem;
-    color: #475569;
+    color: var(--md-sys-color-on-surface-variant);
     margin-bottom: 0.55rem;
 }
 
@@ -1037,13 +1072,13 @@
     margin-top: auto;
     padding-top: 0.5rem;
     font-size: 0.72rem;
-    color: rgba(27, 27, 27, 0.7);
+    color: var(--md-sys-color-on-surface-variant);
 }
 
 .cs-group-meta b {
-    font-family: "Roboto-Medium", "ubuntu-medium", sans-serif;
+    font-family: var(--md-ref-typeface-plain);
     font-weight: 400;
-    color: #343a40;
+    color: var(--md-sys-color-on-surface);
 }
 
 .cs-elective-groups {
@@ -1087,14 +1122,15 @@
     gap: 6px;
     padding: 5px 11px;
     border-radius: 10rem;
-    font-family: "Roboto-Medium", "ubuntu-medium", sans-serif;
+    font-family: var(--md-ref-typeface-plain);
+    font-weight: 500;
     font-size: 12px;
     line-height: 1;
     white-space: nowrap;
     vertical-align: middle;
-    color: #92400e;
-    background: color-mix(in srgb, #d97706 12%, #fff);
-    border: 1px solid color-mix(in srgb, #d97706 30%, transparent);
+    color: var(--app-status-warning-text);
+    background: color-mix(in srgb, var(--app-status-warning) 12%, var(--md-sys-color-surface-container-lowest));
+    border: 1px solid color-mix(in srgb, var(--app-status-warning) 30%, transparent);
 }
 
 .attendance-leave-pill .attendance-leave-pill__icon {
@@ -1105,7 +1141,7 @@
 .attendance-leave-pill__type {
     padding-inline-start: 7px;
     margin-inline-start: 1px;
-    border-inline-start: 1px solid color-mix(in srgb, #d97706 28%, transparent);
+    border-inline-start: 1px solid color-mix(in srgb, var(--app-status-warning) 28%, transparent);
     opacity: 0.9;
 }
 
@@ -1129,14 +1165,15 @@
     border-radius: 10rem;
     font-size: 12px;
     line-height: 1;
-    font-family: "Roboto-Medium", "ubuntu-medium", sans-serif;
+    font-family: var(--md-ref-typeface-plain);
+    font-weight: 500;
     white-space: nowrap;
     cursor: pointer;
     user-select: none;
     transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
-    background: rgba(0, 0, 0, 0.035);
-    border: 1px solid rgba(0, 0, 0, 0.1);
-    color: #6c757d;
+    background: var(--md-sys-color-surface-container-low);
+    border: 1px solid var(--md-sys-color-outline-variant);
+    color: var(--md-sys-color-on-surface-variant);
     margin: 0;
 }
 
@@ -1150,38 +1187,38 @@
 
 /* Hover — hint of semantic color (unselected state) */
 .att-toggle--present:hover {
-    background: color-mix(in srgb, #198754 8%, rgba(0, 0, 0, 0.03));
-    border-color: color-mix(in srgb, #198754 22%, rgba(0, 0, 0, 0.1));
-    color: #198754;
+    background: color-mix(in srgb, var(--app-status-success) 8%, var(--md-sys-color-surface-container-low));
+    border-color: color-mix(in srgb, var(--app-status-success) 22%, var(--md-sys-color-outline-variant));
+    color: var(--app-status-success-text);
 }
 
 .att-toggle--absent:hover {
-    background: color-mix(in srgb, #dc3545 8%, rgba(0, 0, 0, 0.03));
-    border-color: color-mix(in srgb, #dc3545 22%, rgba(0, 0, 0, 0.1));
-    color: #dc3545;
+    background: color-mix(in srgb, var(--app-status-danger) 8%, var(--md-sys-color-surface-container-low));
+    border-color: color-mix(in srgb, var(--app-status-danger) 22%, var(--md-sys-color-outline-variant));
+    color: var(--app-status-danger-text);
 }
 
 .att-toggle--half:hover {
-    background: color-mix(in srgb, #d97706 8%, rgba(0, 0, 0, 0.03));
-    border-color: color-mix(in srgb, #d97706 22%, rgba(0, 0, 0, 0.1));
-    color: #92400e;
+    background: color-mix(in srgb, var(--app-status-warning) 8%, var(--md-sys-color-surface-container-low));
+    border-color: color-mix(in srgb, var(--app-status-warning) 22%, var(--md-sys-color-outline-variant));
+    color: var(--app-status-warning-text);
 }
 
 /* Checked — filled semantic tint (defined after :hover so it wins on hover+checked) */
 .att-toggle--present:has(.att-toggle__radio:checked) {
-    background: color-mix(in srgb, #198754 13%, #fff);
-    border-color: color-mix(in srgb, #198754 35%, transparent);
-    color: #198754;
+    background: color-mix(in srgb, var(--app-status-success) 13%, var(--md-sys-color-surface-container-lowest));
+    border-color: color-mix(in srgb, var(--app-status-success) 35%, transparent);
+    color: var(--app-status-success-text);
 }
 
 .att-toggle--absent:has(.att-toggle__radio:checked) {
-    background: color-mix(in srgb, #dc3545 13%, #fff);
-    border-color: color-mix(in srgb, #dc3545 35%, transparent);
-    color: #dc3545;
+    background: color-mix(in srgb, var(--app-status-danger) 13%, var(--md-sys-color-surface-container-lowest));
+    border-color: color-mix(in srgb, var(--app-status-danger) 35%, transparent);
+    color: var(--app-status-danger-text);
 }
 
 .att-toggle--half:has(.att-toggle__radio:checked) {
-    background: color-mix(in srgb, #d97706 13%, #fff);
-    border-color: color-mix(in srgb, #d97706 35%, transparent);
-    color: #92400e;
+    background: color-mix(in srgb, var(--app-status-warning) 13%, var(--md-sys-color-surface-container-lowest));
+    border-color: color-mix(in srgb, var(--app-status-warning) 35%, transparent);
+    color: var(--app-status-warning-text);
 }

@@ -72,11 +72,12 @@ There is no setting that disables the whole website: `GET /` always renders the 
 
 ## Theming and school details
 
-All values come from the `settings` table (General Settings page, `SettingController::update`, permission `setting-create`). They are read on each request, so they work with cached config; since commit `e13ac7d` nothing is copied into `.env`.
+The site's colours, type and shapes come from the same Material 3 design tokens as the admin panel and the apps: `web/header.blade.php` loads `assets/css/m3-tokens.css` and `m3-base.css`, and `webstyle.css` uses only the tokens. The `theme_color` and `secondary_color` settings no longer change the site. See [UI-Standards](UI-Standards#admin-panel-and-website).
+
+The school's own details below come from the `settings` table (General Settings page, `SettingController::update`, permission `setting-create`). They are read on each request, so they work with cached config; since commit `e13ac7d` nothing is copied into `.env`.
 
 | Setting | Where it appears |
 |---|---|
-| `theme_color`, `secondary_color` | `web/footer.blade.php` writes them as the CSS variables `--primary-color` and `--secondary-color1` (`secondary_color` is seeded as `#38A3A5`) |
 | `logo1` | Header and footer logo via `schoolLogoUrl('logo1')`, falling back to `public/assets/logo.svg` |
 | `favicon` | `<link rel="shortcut icon">` via `schoolSetting('favicon')` in `web/master.blade.php` and `web/error-404.blade.php` |
 | `school_name` | `config('app.name')`: `SettingsConfigService` copies `school_name` onto `app.name` at boot. Used for the page title and the footer copyright (linked to `config('app.url')`) |

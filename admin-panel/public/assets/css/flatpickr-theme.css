@@ -1,15 +1,13 @@
 /*
  * Flatpickr brand theming — overrides Flatpickr's default blue (#569ff7).
  *
- * Resolves the dynamic theme colour ($theme_color) set by the Super Admin:
- *   - Admin/web panel emits --theme-color   (:root in layouts/include.blade.php)
- *   - Public/student side emits --primary-color (:root in web/footer.blade.php)
- * Both map to $theme_color. The var() fallback chain picks whichever exists on
- * the current side, defaulting to #38A3A5. Must be loaded AFTER flatpickr.min.css.
+ * Uses the Material 3 primary token (--md-sys-color-primary from
+ * m3-tokens.css, which must be loaded first) for the selected day, range,
+ * today ring and the soft hover/range tint. Must be loaded AFTER flatpickr.min.css.
  */
 .flatpickr-calendar {
-    --fp-theme: var(--theme-color, var(--primary-color, #38A3A5));
-    --fp-theme-soft: color-mix(in srgb, var(--fp-theme) 15%, #fff);
+    --fp-theme: var(--md-sys-color-primary);
+    --fp-theme-soft: color-mix(in srgb, var(--fp-theme) 15%, var(--md-sys-color-surface-container-lowest));
 }
 
 /* Selected day + range endpoints */
@@ -33,7 +31,7 @@
 .flatpickr-day.endRange.nextMonthDay {
     background: var(--fp-theme);
     border-color: var(--fp-theme);
-    color: #fff;
+    color: var(--md-sys-color-on-primary);
 }
 
 /* Connector bar between range endpoints */
@@ -57,7 +55,7 @@
 .flatpickr-day.today:focus {
     background: var(--fp-theme);
     border-color: var(--fp-theme);
-    color: #fff;
+    color: var(--md-sys-color-on-primary);
 }
 
 /* Hover / keyboard focus on non-selected days — light brand tint */
