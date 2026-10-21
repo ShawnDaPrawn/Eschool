@@ -126,7 +126,7 @@ All route names from `Routes` in [e-school/lib/app/routes.dart](https://github.c
 | `EventDetailsScreen` | `EventDetailsCubit` | `SystemRepository` | `get-events-details` (see the note below) |
 | `GalleryScreen`, `GalleryAlbumPhotosScreen` | `GalleryAlbumCubit`, `GalleryVideosCubit`, `GalleryAlbumPhotosCubit` | `SystemRepository` | `get-gallery-albums`, `get-gallery-images`, `get-gallery-videos` (no token) |
 
-Note: `SystemRepository.fetchEventDetails()` sends a GET to `get-events-details`, but `admin-panel/routes/api.php` registers that route with `Route::post`. A GET to a POST-only Laravel route is answered with HTTP 405, which the app shows as the default error message. The teacher app has the same call.
+Note: `SystemRepository.fetchEventDetails()` sends a GET to `get-events-details`. `admin-panel/routes/api.php` registers that route for GET and POST (`Route::match`); until `c38b7da` it was POST only, so the GET got HTTP 405 and the screen showed the default error message. The teacher app has the same call.
 
 ### Exams and results
 

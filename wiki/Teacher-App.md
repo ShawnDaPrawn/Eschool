@@ -165,7 +165,7 @@ Pending student leave requests are also shown on the home dashboard, where they 
 | Screen | Cubits | Endpoints |
 |---|---|---|
 | `AcademicCalendarScreen` | `AcademicCalendarCubit`, `AcademicCalendarPdfDownloadCubit` | `holidays`, `get-events-list`, exam list; PDF from `teacher/academic-calendar-pdf` saved to `<app documents>/Academic Calendar/` |
-| `EventDetailsScreen` | `EventDetailsCubit` | GET `get-events-details` (registered as POST on the server, see [Student-Parent-App](Student-Parent-App#academics)) |
+| `EventDetailsScreen` | `EventDetailsCubit` | GET `get-events-details` (the server accepts GET and POST, see [Student-Parent-App](Student-Parent-App#academics)) |
 | `GalleryScreen`, `GalleryAlbumPhotosScreen` | gallery Cubits | `get-gallery-albums`, `get-gallery-images`, `get-gallery-videos` |
 | `NotificationScreen` | `NotificationsCubit` | GET `teacher/get-notification` (`page`) |
 

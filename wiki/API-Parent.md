@@ -270,7 +270,7 @@ If the class uses semesters and no semester is current, this endpoint fails with
 | `child_id` | numeric | yes | |
 | `assignment_id` | numeric | no | One assignment |
 | `subject_id` | numeric | no | Filter by subject |
-| `is_submitted` | numeric | no | `1`: only assignments the child has submitted. `0` has no effect, because the controller tests `if ($request->is_submitted)` first. |
+| `is_submitted` | numeric | no | `1`: only assignments the child has submitted. `0`: only those the child has not submitted (the app's "Assigned" tab). Until c38b7da `0` was ignored. |
 | `session_year_id` | integer | no | Defaults to the current session year |
 | `page` | integer | no | Laravel paginator page |
 
@@ -338,7 +338,7 @@ Offline (written) exams for the child's class.
 | `get_timetable` | — | no | `1` adds `exam_timetable` to each exam |
 | `semester_id` | numeric, exists in `semesters` | no | Defaults to the current semester of the session year |
 
-Response `data`: `[{id, name, description, publish, session_year, exam_starting_date, exam_ending_date, exam_status, exam_timetable?}]`.
+Response `data`: `[{id, name, description, publish, session_year, exam_starting_date, exam_ending_date, exam_status, exam_timetable?}]`. Each `exam_timetable` row also has `starting_time` and `ending_time`, copies of `start_time` and `end_time` (appended by the `ExamTimetable` model; the app reads these names).
 
 - Exams are the `exam_classes` rows for the child's current class that have at least one timetable row for one of the child's subjects. For semester classes they are also limited to the semester.
 - `exam_status` is a string: `"0"` upcoming, `"1"` ongoing, `"2"` completed. It is computed from the earliest and latest timetable dates for the class. Note that these values are numbered differently from the `status` filter.
@@ -352,7 +352,7 @@ Response `data`: `[{id, name, description, publish, session_year, exam_starting_
 | `child_id` | — | yes |
 | `exam_id` | — | yes |
 
-Response `data`: the exam's `exam_timetables` rows for the child's class and subjects, with `subject`, ordered by `date`, or `[]`. For semester classes the exam must belong to the current semester.
+Response `data`: the exam's `exam_timetables` rows for the child's class and subjects, with `subject`, ordered by `date`, or `[]`. Each row has `start_time` and `end_time` plus the copies `starting_time` and `ending_time` that the app reads. For semester classes the exam must belong to the current semester.
 
 ### GET `exam-marks`
 
@@ -598,7 +598,7 @@ Returns code 113 when the child had no session in that year.
 | Parameter | Type | Required | Notes |
 |---|---|---|---|
 | `type` | `subject`, `noticeboard`, `class` | no | |
-| `child_id` | numeric | when `type` is `subject` or `class` | Also needed when `type` is omitted, because the controller resolves the child for every type except `noticeboard` (error code 106) |
+| `child_id` | numeric | when `type` is `subject` or `class` | Also needed when `type` is omitted, because the controller resolves the child for every type except `noticeboard` (error code 106). Ignored with `noticeboard`. |
 | `subject_id` | numeric | when `type` is `subject` | |
 | `page` | integer | no | |
 
@@ -606,10 +606,10 @@ Response: a paginator (15 per page, newest first) of `announcements` for the cur
 
 | `type` | Announcements returned |
 |---|---|
-| `noticeboard` | School-wide announcements (`table_type` = `''`) |
+| `noticeboard` | School-wide announcements (`table_type` = `''`), plus those for the classes (`App\Models\ClassSchool`) and class sections (`App\Models\ClassSection`) of all the parent's children, from their `student_sessions` rows in the current session year |
 | `class` | Announcements for the child's class (`table_type` `App\Models\ClassSchool`, `table_id` = class id from `students.class_section_id`) |
 | `subject` | Announcements on the `subject_teachers` rows for `subject_id` in the child's current class section (`table_type` `App\Models\SubjectTeacher`). Limited to the current semester for semester classes. |
-| omitted | Every announcement of the session year, with no class or subject filter. A valid `child_id` is still required. |
+| omitted | What the child may see, as on the student API: school-wide, the child's class, the child's class section, and the `subject_teachers` rows of the child's subjects in that class section (`App\Models\SubjectTeacher`). Until c38b7da this returned every announcement of the session year. |
 
 The app sends `type=noticeboard` without `child_id` for the general notice board, and `type=subject` with `child_id` and `subject_id` for subject announcements. The admin side of announcements is described at https://shawndaprawn.github.io/Eschool/features/announcements/.
 
@@ -645,7 +645,7 @@ A parent may chat only with the teachers that `chatTeacherScope()` returns: the 
 | `class_teacher` | Names of the children's class sections where this teacher is class teacher |
 | `subjects` | `[{id, name}]`: all of the teacher's subject assignments |
 | `student_name` | The parent's children this teacher teaches |
-| `last_message` | `{id, body, date}` or `null` |
+| `last_message` | `{id, body, date, file, files}` or `null`. `files` holds the attachment URLs. |
 | `unread_message` | Unread count, from `read_messages.last_read_message_id` |
 
 `total_items` counts the returned page only. No `dob` is sent.
@@ -755,7 +755,7 @@ These live in `ApiController` without the `parent/` prefix and are documented on
 | GET | `/api/settings` | `type` = `privacy_policy`, `contact_us`, `about_us`, `terms_condition`, `app_settings` or `fees_settings` |
 | GET | `/api/holidays` | All holidays |
 | GET | `/api/get-events-list` | Events of the current session year |
-| POST | `/api/get-events-details` | An event's day schedule (`event_id`) |
+| GET | `/api/get-events-details` | An event's day schedule (`event_id`); POST is also accepted |
 | GET | `/api/sliders` | App sliders |
 | GET | `/api/current-session-year`, `/api/get-session-year`, `/api/get-semesters` | Session year and semester pickers used by the report endpoints |
 | GET | `/api/get-gallery-albums`, `/api/get-gallery-images`, `/api/get-gallery-videos` | School gallery (`per_page`, `page`, `album_id`) |
@@ -766,9 +766,7 @@ These live in `ApiController` without the `parent/` prefix and are documented on
 - Invalid-child errors use codes 105 and 106, which the app translates as online-exam messages.
 - Login creates a token before refusing an inactive account.
 - The child loop in `login` and `get-profile-data` carries installment data and `$due_date` over from one child to the next.
-- `assignments?is_submitted=0` is ignored.
 - `get-exam-list` does not validate `status`, and its `exam_timetable` is not filtered to the child's class.
-- `announcements` without `type` returns every announcement of the session year.
 - `fail-payment-transaction` and the one-hour pending timeout set `payment_status` 0 without removing the pending `fees_choiceables` and `paid_installment_fees` rows. The webhook's `markFailed()` does remove them.
 - Responses are sent from inside `ResponseService` and end with `exit()`, so response middleware such as `SecurityHeaders` does not add its headers to them.
 

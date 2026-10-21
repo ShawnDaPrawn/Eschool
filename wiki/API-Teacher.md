@@ -169,7 +169,7 @@ When a semester is running (`Semester::current`), `classes`, `teacher_timetable`
 | POST | `get-student-leave-list` | `getStudentLeaveList` | | `isClassTeacherOf` |
 | POST | `student-leave-status-update` | `studentLeaveStatusUpdate` | `student-leave-approve` | class teacher of the student |
 
-The teacher app also calls these shared endpoints from `ApiController`, documented under [General endpoints on API-Overview](API-Overview#general-endpoints-apicontroller): `POST /api/logout` (clears `fcm_id`, deletes the current token), `POST /api/change-password`, `POST /api/forgot-password`, `GET /api/settings`, `GET /api/holidays`, `GET /api/get-events-list`, `POST /api/get-events-details`, `GET /api/get-session-year`, and `GET /api/get-gallery-albums` / `get-gallery-images` / `get-gallery-videos`. The app's list of URLs is in [`e-school-teacher/lib/utils/api.dart`](https://github.com/ShawnDaPrawn/Eschool/blob/main/e-school-teacher/lib/utils/api.dart).
+The teacher app also calls these shared endpoints from `ApiController`, documented under [General endpoints on API-Overview](API-Overview#general-endpoints-apicontroller): `POST /api/logout` (clears `fcm_id`, deletes the current token), `POST /api/change-password`, `POST /api/forgot-password`, `GET /api/settings`, `GET /api/holidays`, `GET /api/get-events-list`, `GET /api/get-events-details` (POST is also accepted), `GET /api/get-session-year`, and `GET /api/get-gallery-albums` / `get-gallery-images` / `get-gallery-videos`. The app's list of URLs is in [`e-school-teacher/lib/utils/api.dart`](https://github.com/ShawnDaPrawn/Eschool/blob/main/e-school-teacher/lib/utils/api.dart).
 
 ## Authentication and profile
 
@@ -201,6 +201,7 @@ No parameters. Calls `IdCardService::buildStaffPdf([user id])` and returns the P
 No parameters. Uses `getTeacherClassSections()`.
 
 - **Response:** `data.class_teacher`, the class sections where the teacher is class teacher, or `{}` when there are none. `data.other`, the sections where they only teach subjects. Each section loads `class.medium`, `section`, `class.streams` and `class.shifts`.
+- Every serialized class (here and in `dashboard`, `student-list`, `get-assignment` and `teacher_timetable`) carries `full_name` and `include_semesters`, appended by `ClassSchool`. `include_semesters` is `1` or `0` for the current session year (`class_session_configs`), `0` when the class has no row for that year. The app compares it with `'1'` (and, since this change, also accepts `true`).
 - Does not use `currentTeacher()`, so a Teacher-role user without a teacher record gets code 103 instead of a 403.
 
 #### GET subjects
@@ -386,7 +387,7 @@ Uploads are stored on the `public` disk under `lessons/`.
 
 #### GET get-topic
 
-`lesson_id` (numeric, required). Returns `LessonTopic::lessonTopicTeachers()` rows for the lesson, newest first. The `file` relation is not eager-loaded, so topic files are not in this response.
+`lesson_id` (numeric, required). Returns `LessonTopic::lessonTopicTeachers()` rows for the lesson, newest first, each with its `file` rows (the study material the app lists and edits).
 
 #### POST create-topic
 
@@ -563,7 +564,7 @@ Exam status is computed from `exam_timetables` dates for the class: 0 upcoming (
 | `get_timetable` | `1` | no | Adds `exam_timetable` to each item |
 
 - **Scope:** only classes where the teacher has a `class_teachers` row in the current session year. If any of those classes uses semesters, exams are limited to the semesters of the teacher's class-teacher rows.
-- **Response:** `[{id, name, description, publish, session_year, exam_starting_date, exam_ending_date, exam_status, class_id, class_name, class_streams, exam_timetable?}]`.
+- **Response:** `[{id, name, description, publish, session_year, exam_starting_date, exam_ending_date, exam_status, class_id, class_name, class_streams, exam_timetable?}]`. Each `exam_timetable` row has `start_time`/`end_time` and the copies `starting_time`/`ending_time` that the app reads (appended by `ExamTimetable`).
 
 #### GET get-exam-details
 
@@ -573,7 +574,7 @@ Exam status is computed from `exam_timetables` dates for the class: 0 upcoming (
 | `class_id` | integer | yes |
 
 - **Scope:** some section of `class_id` must be in `teacherClassSectionIds()` (403 otherwise).
-- **Response:** `data` is a one-element list holding the exam (current session year) with `timetable` for that class. The exam's `semester` is copied into each `timetable[].subject.semester`. Extra keys: `class_id`, `class_section_id` (the first section of the class), `class_name`, `stream_name`, and `code` 200.
+- **Response:** `data` is a one-element list holding the exam (current session year) with `timetable` for that class. The exam's `semester` is copied into each `timetable[].subject.semester`, and each `timetable` row carries `starting_time`/`ending_time` as well as `start_time`/`end_time`. Extra keys: `class_id`, `class_section_id` (the first section of the class), `class_name`, `stream_name`, and `code` 200.
 
 #### POST submit-exam-marks/subject
 
@@ -684,7 +685,7 @@ Messages are `chat_messages` rows (`sender_id`, `modal_id` = the receiver's `use
 | `search` | string | Case-insensitive match on first and last name |
 
 - Students come from class-teacher sections and subject-teacher sections in the current session year, and must have a `student_sessions` row for it. In a subject-teacher section whose subject is `Elective`, only students enrolled in that subject are listed.
-- **Response** (code 100): `items`, `total_items` (counted before search and paging) and `total_unread_users`. A student item has `id`, `user_id`, `first_name`, `last_name`, `image`, `roll_no`, `admission_no`, `gender`, `dob`, `subjects`, `address`, `last_message`, `class_name`, `isParent`, `unread_message`. A parent item has `id`, `user_id`, `first_name`, `last_name`, `email`, `mobile_no`, `occupation`, `image`, `last_message`, `children` (each with subjects), `isParent`, `unread_message`.
+- **Response** (code 100): `items`, `total_items` (counted before search and paging) and `total_unread_users`. A student item has `id`, `user_id`, `first_name`, `last_name`, `image`, `roll_no`, `admission_no`, `gender`, `dob`, `subjects`, `address`, `last_message`, `class_name`, `isParent`, `unread_message`. A parent item has `id`, `user_id`, `first_name`, `last_name`, `email`, `mobile_no`, `occupation`, `image`, `last_message`, `children` (each with subjects), `isParent`, `unread_message`. `last_message` is `{id, body, date, file, files}` or `null`, where `files` are the attachments' full URLs.
 
 #### POST send-message
 
@@ -753,7 +754,6 @@ These come straight from the current code and are worth knowing before changing 
 - **Exam list and calendar are class-teacher only.** Subject-only teachers get an empty `get-exam-list` (without `class_section_id`) and an error from `academic-calendar-pdf`.
 - **Elective lookup is not class-scoped.** `createAssignment` reads `ClassSubject::where('subject_id', ...)->first()` without a class, so the Elective or Compulsory decision can come from another class's row.
 - **`update-lesson` uniqueness rule gets the wrong arguments.** It calls `new uniqueLessonInClass($request->class_section_id, $request->lesson_id)`, passing the lesson id as the subject id, so the duplicate-name check is not the intended one.
-- **Topic files are missing from `get-topic`.** The query does not load `file`. The teacher app's `Topic.fromJson` reads `file` and falls back to an empty list.
 - **Thumbnail replacement deletes the wrong file.** In `updateFile`, `updateLesson` and `updateTopic`, uploading a new `thumbnail` deletes the file at the stored `file_url`, not the old thumbnail. For a type 3 (video upload) file with only a new thumbnail, this deletes the video while `file_url` still points to it.
 - **Physical files are not removed on delete.** The `deleting` hooks of `File`, `Lesson`, `LessonTopic` and `Assignment` call `Storage::disk('public')->exists($file->file_url)`. For types 1 and 3 the accessor returns a full URL rather than a disk path, so the check fails. `Lesson` deletes topics with a query-level `delete()`, so the topics' own `files` rows stay behind.
 - **`createTopic` type 4.** The branch compares `$data['type'] == 'other_link'` instead of `'4'`, so a type 4 entry reaches `$file->save()` without `type` or `file_url`. Both are NOT NULL columns in `files`, so the request fails (code 103) after the topic itself has been saved.

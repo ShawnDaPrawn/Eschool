@@ -109,7 +109,6 @@ These were found by reading the code while this wiki was written. None of them i
 
 | Area | Symptom | Where |
 |---|---|---|
-| Events | Both apps call `get-events-details` with GET, but the route is registered as POST only, so the event details screen gets HTTP 405 | `routes/api.php`, `e-school/lib/data/repositories/systemInfoRepository.dart` |
 | API errors | Validation and permission errors return `code: null` because `config/constants.php` doesn't exist | `app/Services/ResponseService.php` |
 | API auth | An expired token gets a 302 redirect instead of a 401, so the apps don't sign out | `app/Http/Middleware/Authenticate.php`, `lib/utils/api.dart` in both apps |
 | API headers | `ResponseService` sends its response and calls `exit()`, so those responses skip the `SecurityHeaders`, CORS and rate-limit headers | `app/Services/ResponseService.php` |

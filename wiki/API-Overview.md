@@ -165,7 +165,7 @@ A few endpoints build their own JSON and do not include every field:
 | --- | --- |
 | `GET /api/get-gallery-albums`, `GET /api/get-gallery-videos` | `{"error": false, "data": {"data": [...], "current_page": n, "last_page": n}}` (no `message`/`code`) |
 | `GET /api/get-gallery-images` | `{"error": false, "data": ["<absolute url>", ...]}` |
-| `POST /api/get-events-details` | `{"error": false, "message": "Events Details Fetched Successfully", "data": [...], "code": 200}` |
+| `GET` or `POST /api/get-events-details` | `{"error": false, "message": "Events Details Fetched Successfully", "data": [...], "code": 200}` |
 | Session middleware | `{"message": "...", "code": "SESSION_NOT_ACTIVE"}` (no `error` key) with HTTP 401 |
 
 ## Error codes
@@ -331,7 +331,7 @@ Secret keys and webhook secrets are never included. Until commit `839c9eb` this 
 | `GET /api/get-session-year` | none | all session years except id 0, newest first |
 | `GET /api/get-semesters` | none | semesters of the current session year, by `start_date` |
 | `GET /api/get-events-list` | none | events of the current session year (`id`, `title`, `type`, `start_date`, `end_date`, `start_time`, `end_time`, `image`, `description`, `has_day_schedule`) followed by each per-day schedule row (`id`, `event_id`, `title`, `date`, `start_time`, `end_time`, `description`, `has_day_schedule: 0`) |
-| `POST /api/get-events-details` | `event_id` (required, integer) | the `multiple_events` rows of that event |
+| `GET` or `POST /api/get-events-details` | `event_id` (required, integer) | the `multiple_events` rows of that event. Both apps use `GET`; the route accepted only `POST` until `c38b7da`. |
 | `GET /api/get-gallery-albums` | `per_page`, `page` | albums (`id`, `title`, `thumbnail_url`) |
 | `GET /api/get-gallery-images` | `album_id` (required) | absolute URLs of the album's images |
 | `GET /api/get-gallery-videos` | `per_page`, `page` | video URLs (YouTube URL, or an absolute local URL) |
@@ -524,7 +524,7 @@ Controller names are shortened: `Api` = `ApiController`, `Student` = `StudentApi
 | GET | `settings` | `Api@getSettings` | none |
 | POST | `forgot-password` | `Api@forgotPassword` | `throttle:login` |
 | GET | `get-events-list` | `Api@getEvents` | none |
-| POST | `get-events-details` | `Api@getEventsDetails` | none |
+| GET, POST | `get-events-details` | `Api@getEventsDetails` | none |
 | GET | `get-session-year` | `Api@getSessionYear` | none |
 | GET | `get-semesters` | `Api@getSemesters` | none |
 | GET | `get-gallery-albums` | `Api@getGalleryAlbums` | none |
@@ -532,7 +532,7 @@ Controller names are shortened: `Api` = `ApiController`, `Student` = `StudentApi
 | GET | `get-gallery-videos` | `Api@getGalleryVideos` | none |
 | POST | `change-password` | `Api@changePassword` | `auth:sanctum` |
 
-Several "read" endpoints are `POST` (`get-user-message`, `get-leave-list`, `get-events-details`, `get-payment-status`, `get-student-leave-list`) and one `GET` writes data (`student/send-fee-notification`); keep the method as listed.
+Several "read" endpoints are `POST` (`get-user-message`, `get-leave-list`, `get-payment-status`, `get-student-leave-list`) and one `GET` writes data (`student/send-fee-notification`); keep the method as listed. `get-events-details` accepts both `GET` and `POST` (`Route::match`).
 
 ## Gotchas
 

@@ -8,7 +8,7 @@ Created by [`2023_12_08_122524_all_chat_table.php`](https://github.com/ShawnDaPr
 
 | Model (table) | Columns | Use |
 |---|---|---|
-| `ChatMessage` (`chat_messages`) | `modal_id`, `modal_type` (`morphs('modal')`), `sender_id` (FK `users`, cascade), `body` (text), `date` (datetime), timestamps | One message. `modal_id` is the **receiver's** `users.id`; `modal_type` is always the string `App/Models/User` (forward slashes, so the `modal()` morph relation does not resolve; the code queries `modal_id` directly). `file()` is `hasMany(ChatFile, 'message_id')`. |
+| `ChatMessage` (`chat_messages`) | `modal_id`, `modal_type` (`morphs('modal')`), `sender_id` (FK `users`, cascade), `body` (text), `date` (datetime), timestamps | One message. `modal_id` is the **receiver's** `users.id`; `modal_type` is always the string `App/Models/User` (forward slashes, so the `modal()` morph relation does not resolve; the code queries `modal_id` directly). `file()` is `hasMany(ChatFile, 'message_id')`. Appends `files`: the attachments' URLs (`asset('storage/<file_name>')`), built only when `file` is loaded, otherwise `[]`. |
 | `ChatFile` (`chat_files`) | `message_id` (FK `chat_messages`, cascade), `file_name` (path on the public disk), `file_type` (always 1), timestamps | One attachment |
 | `ReadMessage` (`read_messages`) | `modal_id`, `modal_type`, `user_id` (FK `users`), `last_read_message_id` (FK `chat_messages`, cascade), timestamps | Read pointer: the row with `modal_id = reader` and `user_id = other person` stores the id of the last message from that person the reader has read |
 | `ChatRoom` (`chat_rooms`), `ChatMember` (`chat_members`) | `name`; `chat_room_id`, `user_id` | Defined (`ChatRoom::members()`, `messages()`), but no controller uses them: there are no group chats. |
@@ -26,7 +26,7 @@ Each app role has the same four endpoints under its prefix, all behind `auth:san
 | `POST get-user-message` | `user_id`, `offset`, `limit` (1 to 100, default 100) | `user_id`, `offset`, `limit` | `user_id`, `offset`, `limit` |
 | `POST read-all-message` | `user_id` | `user_id` | `user_id` |
 
-`get-user-list` returns `{items, total_items, total_unread_users}`; each item has the contact's `id`, `user_id`, names, `image`, contact details, `subjects`, `last_message` (`id`, `body`, `date`) and `unread_message`, sorted by the last message date, newest first. Teacher items for students add `roll_no`, `admission_no`, `gender`, `dob`, `address`, `class_name`; for parents, `occupation` and their `children`.
+`get-user-list` returns `{items, total_items, total_unread_users}`; each item has the contact's `id`, `user_id`, names, `image`, contact details, `subjects`, `last_message` (`id`, `body`, `date`, `files`) and `unread_message`, sorted by the last message date, newest first. Each list loads the message's `file` rows, so `last_message` also has `file`, and `files` holds the attachment URLs. Teacher items for students add `roll_no`, `admission_no`, `gender`, `dob`, `address`, `class_name`; for parents, `occupation` and their `children`.
 
 `send-message` returns the new message as `{id, sender_id, body, date, files[]}`, where `files` are full URLs (`asset('storage/<file_name>')`).
 
