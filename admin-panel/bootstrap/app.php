@@ -85,6 +85,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'auth.basic' => \Illuminate\Auth\Middleware\AuthenticateWithBasicAuth::class,
             'student.session.active' => \App\Http\Middleware\EnsureStudentSessionIsActive::class,
             'parent.children.session.active' => \App\Http\Middleware\EnsureParentChildrenSessionIsActive::class,
+            'parent.policy' => \App\Http\Middleware\RequireParentPolicyAcceptance::class,
             'cache.headers' => \Illuminate\Http\Middleware\SetCacheHeaders::class,
             'can' => \Illuminate\Auth\Middleware\Authorize::class,
             'guest' => \App\Http\Middleware\RedirectIfAuthenticated::class,

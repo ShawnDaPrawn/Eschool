@@ -68,7 +68,7 @@ class _SplashScreenState extends State<SplashScreen> {
             Navigator.of(context).pushReplacementNamed(Routes.home);
           }
         } else {
-          Navigator.of(context).pushReplacementNamed(Routes.parentHome);
+          Navigator.of(context).pushReplacementNamed(Routes.parentPolicies);
         }
       }
     }
@@ -103,7 +103,13 @@ class _SplashScreenState extends State<SplashScreen> {
           return BlocConsumer<AppConfigurationCubit, AppConfigurationState>(
             listener: (context, appConfigState) {
               if (appConfigState is AppConfigurationFetchSuccess) {
-                fetchAndSetUserProfile();
+                // Parents accept NavigateEd and the school's terms before
+                // their profile, and the rest of the parent API, will load.
+                if (context.read<AuthCubit>().isParent()) {
+                  navigateToNextScreen();
+                } else {
+                  fetchAndSetUserProfile();
+                }
               }
             },
             builder: (context, appConfigState) {

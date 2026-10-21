@@ -426,5 +426,11 @@
   "onTimeSubmission": "بروقت جمع",
   "lateSubmission": "تاخیر سے جمع",
   "recentAssignment": "حالیہ اسائنمنٹ",
-  "studentNotSessionYear": "اوہ! طالب علم اس تعلیمی سال میں داخل نہیں ہے۔"
+  "studentNotSessionYear": "اوہ! طالب علم اس تعلیمی سال میں داخل نہیں ہے۔",
+  "navigateEd": "NavigateEd",
+  "yourSchool": "آپ کا اسکول",
+  "schoolPoliciesIntro": "آپ کا اسکول ایپ استعمال کرنے سے پہلے اسے قبول کرنے کو کہتا ہے۔",
+  "iHaveReadAndAccept": "میں نے یہ پڑھ لیا ہے اور قبول کرتا ہوں",
+  "acceptAndContinue": "قبول کریں اور آگے بڑھیں",
+  "notNow": "ابھی نہیں"
 }

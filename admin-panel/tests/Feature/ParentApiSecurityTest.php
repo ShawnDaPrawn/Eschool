@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Models\User;
+use App\Services\ParentPolicyService;
 use Illuminate\Http\Client\PendingRequest;
 use Illuminate\Http\Client\Response;
 use Illuminate\Support\Facades\DB;
@@ -186,6 +187,7 @@ class ParentApiSecurityTest extends TestCase
         ];
         foreach ($parents as $family => $p) {
             $parentUser = $this->user($p['email'], 'Parent', ['gender' => $p['gender']]);
+            ParentPolicyService::acceptCurrent($parentUser);
             $this->ids[$p['key'].'_user'] = $parentUser->id;
             $parentId = DB::table('parents')->insertGetId([
                 'user_id' => $parentUser->id, 'first_name' => $parentUser->first_name, 'last_name' => 'Test',

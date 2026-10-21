@@ -3,6 +3,7 @@ import 'package:eschool/ui/screens/academicCalendar/academicCalendarScreen.dart'
 import 'package:eschool/ui/screens/assignment/assignmentScreen.dart';
 import 'package:eschool/ui/screens/auth/authScreen.dart';
 import 'package:eschool/ui/screens/auth/parentLoginScreen.dart';
+import 'package:eschool/ui/screens/auth/parentPolicyScreen.dart';
 import 'package:eschool/ui/screens/auth/studentLoginScreen.dart';
 import 'package:eschool/ui/screens/chapterDetails/chapterDetailsScreen.dart';
 import 'package:eschool/ui/screens/chat/chatMessagesScreen.dart';
@@ -58,6 +59,7 @@ class Routes {
 
   static const String auth = 'auth';
   static const String parentLogin = 'parentLogin';
+  static const String parentPolicies = 'parentPolicies';
   static const String studentLogin = 'studentLogin';
   static const String studentProfile = '/studentProfile';
   static const String assignment = '/assignment';
@@ -158,6 +160,9 @@ class Routes {
 
       case parentLogin:
         return ParentLoginScreen.route(routeSettings);
+
+      case parentPolicies:
+        return ParentPolicyScreen.route(routeSettings);
 
       case home:
         return HomeScreen.route(routeSettings);

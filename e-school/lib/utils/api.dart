@@ -102,6 +102,7 @@ class Api {
   //
   static String subjectsByChildId = '${databaseUrl}parent/subjects';
   static String parentLogin = '${databaseUrl}parent/login';
+  static String parentPolicyAcceptance = '${databaseUrl}parent/policy-acceptance';
   static String parentProfile = '${databaseUrl}parent/get-profile-data';
   static String lessonsOfSubjectParent = '${databaseUrl}parent/lessons';
   static String getstudyMaterialsOfTopicParent =

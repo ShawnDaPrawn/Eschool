@@ -328,6 +328,9 @@ $(function () {
     if ($("#rich_text_message").length) {
         createRichTextEditor($("#rich_text_message")[0]);
     }
+    $("textarea.js-rich-text").each(function () {
+        createRichTextEditor(this, 260);
+    });
 
     $(".modal").on("hidden.bs.modal", function () {
         //Reset input file on modal close
@@ -1832,6 +1835,38 @@ parentSearch(
         return repo.email || repo.text;
     },
 );
+$(document).on("click", ".js-save-school-policy", function () {
+    syncRichTextEditors();
+    var block = $(this).closest(".js-school-policy");
+    var button = $(this);
+    var label = button.text();
+    $.ajax({
+        type: "POST",
+        url: block.data("url"),
+        data: { message: block.find("textarea").val(), type: block.data("type") },
+        beforeSend: function () {
+            button.text("Please Wait...").attr("disabled", true);
+        },
+        success: function (response) {
+            if (response.error == false) {
+                showSuccessToast(response.message);
+            } else {
+                showErrorToast(response.message);
+            }
+        },
+        error: function (jqXHR) {
+            var errorMessage =
+                jqXHR.responseJSON && jqXHR.responseJSON.message
+                    ? jqXHR.responseJSON.message
+                    : "An error occurred while processing your request.";
+            showErrorToast(errorMessage);
+        },
+        complete: function () {
+            button.text(label).attr("disabled", false);
+        },
+    });
+});
+
 $(document).on("submit", ".setting-form", function (e) {
     e.preventDefault();
     syncRichTextEditors();
@@ -1846,7 +1881,7 @@ $(document).on("submit", ".setting-form", function (e) {
         }
     }
     let submitButtonElement = $(this).find(":submit");
-    var type = $("#type").val();
+    var type = $(this).find('[name="type"]').val();
     var url = $(this).attr("action");
     let submitButtonText = submitButtonElement.val();
     $.ajax({

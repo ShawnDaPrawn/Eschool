@@ -462,7 +462,7 @@ function syncEquationEditors() {
 }
 
 // Rich text editors on the settings pages: privacy policy, terms, about us,
-// contact us, online exam terms and the email templates.
+// contact us, online exam terms, the branding card and the email templates.
 var richTextEditors = [];
 
 function createRichTextEditor(textarea, height) {

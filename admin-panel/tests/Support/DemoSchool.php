@@ -3,6 +3,7 @@
 namespace Tests\Support;
 
 use App\Models\User;
+use App\Services\ParentPolicyService;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
@@ -337,6 +338,9 @@ class DemoSchool
             'password' => Hash::make('secret123'), 'gender' => 'Female', 'mobile' => '0123456789',
         ]);
         $user->assignRole($role);
+        if ($role === 'Parent') {
+            ParentPolicyService::acceptCurrent($user);
+        }
 
         return $this->ids[$name.'_user'] = $user->id;
     }

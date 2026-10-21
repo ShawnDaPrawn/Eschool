@@ -67,8 +67,8 @@ The student app also has `lib/utils/stripeService.dart` (Stripe payment sheet) a
 The splash screen (`lib/ui/screens/splashScreen.dart`) then:
 
 1. Calls `AppConfigurationCubit.fetchAppConfiguration()` (GET `settings?type=app_settings`).
-2. On success, calls `UserProfileCubit.fetchAndSetUserProfile()` to refresh the stored profile if someone is logged in. In the student app this is called with `autoLogout: true`, so a failed profile fetch signs the user out.
-3. Waits at least 2 seconds, then routes to the login screen when `AuthCubit` is `Unauthenticated`, otherwise to the home screen. The student app has extra branches (parent home, compulsory-fee screen), see [Student-Parent-App](Student-Parent-App#login-and-the-two-user-types).
+2. On success, calls `UserProfileCubit.fetchAndSetUserProfile()` to refresh the stored profile if someone is logged in. In the student app this is called with `autoLogout: true`, so a failed profile fetch signs the user out. A signed-in parent skips this fetch: `parent/get-profile-data` answers HTTP 403 until the parent has accepted the current terms, and the splash opens `ParentPolicyScreen` instead.
+3. Waits at least 2 seconds, then routes to the login screen when `AuthCubit` is `Unauthenticated`, otherwise to the home screen. The student app has extra branches (parent terms, parent home, compulsory-fee screen), see [Student-Parent-App](Student-Parent-App#login-and-the-two-user-types).
 
 If the configuration request fails the splash shows an `ErrorContainer` with a retry button; the app cannot get past the splash screen without reaching the server.
 

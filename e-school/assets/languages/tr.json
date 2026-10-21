@@ -426,5 +426,11 @@
   "noExamTimeTableFound": "Zaman Çizelgesi Eklenmedi",
   "noExamsFound": "Evet.. Sınav bulunamadı!",
   "onlineExam": "Çevrimiçi Sınav",
-  "iAgreeWithExamRules": "Sınav kurallarına katılıyorum"
+  "iAgreeWithExamRules": "Sınav kurallarına katılıyorum",
+  "navigateEd": "NavigateEd",
+  "yourSchool": "Okulunuz",
+  "schoolPoliciesIntro": "Okulunuz, uygulamayı kullanmadan önce bunu kabul etmenizi istiyor.",
+  "iHaveReadAndAccept": "Bunu okudum ve kabul ediyorum",
+  "acceptAndContinue": "Kabul et ve devam et",
+  "notNow": "Şimdi değil"
 }
