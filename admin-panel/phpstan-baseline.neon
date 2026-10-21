@@ -157,10 +157,10 @@ parameters:
 			path: app/Http/Controllers/EventController.php
 
 		-
-			message: '#^Method App\\Http\\Controllers\\ExamController\:\:store\(\) should return Illuminate\\Http\\JsonResponse but return statement is missing\.$#'
+			message: '#^Method App\\Http\\Controllers\\Exam\\ExamController\:\:store\(\) should return Illuminate\\Http\\JsonResponse but return statement is missing\.$#'
 			identifier: return.missing
 			count: 1
-			path: app/Http/Controllers/ExamController.php
+			path: app/Http/Controllers/Exam/ExamController.php
 
 		-
 			message: '#^Method App\\Http\\Controllers\\ExamTimetableController\:\:create\(\) should return Illuminate\\Http\\Response but return statement is missing\.$#'

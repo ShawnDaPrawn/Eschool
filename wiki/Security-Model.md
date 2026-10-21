@@ -77,7 +77,7 @@ The `api` group also runs Sanctum's `EnsureFrontendRequestsAreStateful`, and `co
 | Menu visibility | `@can` / `@canany` in [resources/views/layouts/sidebar.blade.php](https://github.com/ShawnDaPrawn/Eschool/blob/main/admin-panel/resources/views/layouts/sidebar.blade.php) | Cosmetic only; the controller check is what protects the action |
 | Role editing | [RoleController](https://github.com/ShawnDaPrawn/Eschool/blob/main/admin-panel/app/Http/Controllers/RoleController.php): `permission:role-*` middleware, `BUILT_IN_ROLES = ['Super Admin', 'Teacher', 'Parent', 'Student']`, `isEditableRole()`, `assignablePermissionsFrom()` | Only custom roles (`custom_role = 1`) can be edited or deleted; a custom role can only receive permissions the Super Admin role itself has, whatever ids are posted |
 | Staff accounts | [StaffController](https://github.com/ShawnDaPrawn/Eschool/blob/main/admin-panel/app/Http/Controllers/StaffController.php) `assignableRoleRule()` | Staff can only be given custom roles (never Super Admin or a built-in role); only a Super Admin may change a Super Admin account; staff attendance pages need `attendance-staff` |
-| Teacher data limits in the admin panel | e.g. marks entry in `ExamController`, `TimetableController` live-class links, model scopes below | Teachers can only enter marks for their own class or subject sections; a timetable's live-class link needs timetable edit permission or the period's own teacher |
+| Teacher data limits in the admin panel | e.g. marks entry in `Exam\MarksController`, `TimetableController` live-class links, model scopes below | Teachers can only enter marks for their own class or subject sections; a timetable's live-class link needs timetable edit permission or the period's own teacher |
 
 See [Roles-and-Permissions](Roles-and-Permissions) for the full permission list and how roles are built.
 
@@ -118,7 +118,7 @@ See [API-Overview](API-Overview), [API-Student](API-Student), [API-Parent](API-P
 | Control | Where | Guarantee |
 |---|---|---|
 | Query builder and Eloquent with bindings | everywhere | Values are sent as bound parameters |
-| Raw fragments use placeholders | e.g. `whereRaw("concat(first_name,' ',last_name) LIKE ?", ['%'.$search.'%'])` in `Student\StudentController`, `AttendanceController`, `ExamController`, `ClassTeacherController`, `SubjectTeacherController`, `AssignmentController` | Search text is never spliced into SQL. Commit [6b9f7dd](https://github.com/ShawnDaPrawn/Eschool/commit/6b9f7dd) converted eight list searches; `AcademicAuthorizationTest::test_search_text_is_bound_not_spliced_into_sql` checks it |
+| Raw fragments use placeholders | e.g. `whereRaw("concat(first_name,' ',last_name) LIKE ?", ['%'.$search.'%'])` in `Student\StudentController`, `AttendanceController`, `Exam\ResultController`, `ClassTeacherController`, `SubjectTeacherController`, `AssignmentController` | Search text is never spliced into SQL. Commit [6b9f7dd](https://github.com/ShawnDaPrawn/Eschool/commit/6b9f7dd) converted eight list searches; `AcademicAuthorizationTest::test_search_text_is_bound_not_spliced_into_sql` checks it |
 | OR conditions grouped in a closure | `->where(function ($q) use ($search) { $q->where(...)->orWhere(...); })` | A search cannot widen a query past its other filters (session year, class, teacher) |
 
 ### Output escaping

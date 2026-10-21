@@ -356,7 +356,7 @@ Response `data`: the exam's `exam_timetables` rows for the child's class and sub
 
 ### GET `exam-marks`
 
-The child's offline exam results. These come from `exam_results` rows, which `ExamController` inserts when an exam's results are published and deletes when they are unpublished.
+The child's offline exam results. These come from `exam_results` rows, which `Exam\PublishController` inserts when an exam's results are published and deletes when they are unpublished.
 
 | Parameter | Type | Required | Notes |
 |---|---|---|---|

@@ -325,7 +325,7 @@ The exam's papers for the student's class and subjects, by date: `id`, `total_ma
 | `session_year_id` | integer | no | default current session |
 | `semester_id` | numeric, must exist | no | must belong to the session; default current semester when no `session_year_id` is given |
 
-Reads the student's own `exam_results` rows. These rows exist only while an exam is published (publishing in `ExamController` creates them, unpublishing deletes them), so unpublished results never appear. Each item:
+Reads the student's own `exam_results` rows. These rows exist only while an exam is published (publishing in `Exam\PublishController` creates them, unpublishing deletes them), so unpublished results never appear. Each item:
 
 - `result`: `result_id`, `exam_id`, `exam_name`, `class_name`, `student_name`, `exam_date` (first paper), `total_marks`, `obtained_marks`, `percentage`, `grade`, `session_year`
 - `exam_marks`: per subject `marks_id`, `subject_name`, `subject_type`, `total_marks`, `passing_marks`, `obtained_marks`, `teacher_review`, `grade`
