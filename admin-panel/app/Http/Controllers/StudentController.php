@@ -750,6 +750,54 @@ class StudentController extends Controller
         return view('students.add_bulk_data', compact('class_section'));
     }
 
+    public function downloadSampleFile()
+    {
+        if (! Auth::user()->can('student-create')) {
+            $response = [
+                'message' => trans('no_permission_message'),
+            ];
+
+            return redirect(route('home'))->withErrors($response);
+        }
+
+        // Built here rather than shipped as a file (which never existed on a fresh
+        // install), so the columns always match what the importer reads. Phone
+        // numbers start with ' so spreadsheets keep their leading zero as text;
+        // the importer strips it.
+        $examples = [
+            [
+                'first_name' => 'Asha', 'last_name' => 'Naidoo', 'gender' => 'Female', 'dob' => '2015-03-14',
+                'mobile' => "'0821234567", 'category' => 'General', 'admission_date' => date('Y-m-d'),
+                'blood_group' => 'O+', 'current_address' => '12 Main Road', 'permanent_address' => '12 Main Road',
+                'parents' => 'yes',
+                'father_first_name' => 'Ravi', 'father_last_name' => 'Naidoo', 'father_email' => 'ravi.naidoo@example.com',
+                'father_mobile' => "'0831234567", 'father_dob' => '1985-06-01', 'father_occupation' => 'Engineer',
+                'mother_first_name' => 'Priya', 'mother_last_name' => 'Naidoo', 'mother_email' => 'priya.naidoo@example.com',
+                'mother_mobile' => "'0841234567", 'mother_dob' => '1987-09-20', 'mother_occupation' => 'Teacher',
+                'guardian' => 'no',
+            ],
+            [
+                'first_name' => 'Thabo', 'last_name' => 'Mokoena', 'gender' => 'Male', 'dob' => '2014-11-02',
+                'mobile' => "'0721234567", 'category' => 'General', 'admission_date' => date('Y-m-d'),
+                'blood_group' => 'A+', 'current_address' => '8 Oak Street', 'permanent_address' => '8 Oak Street',
+                'parents' => 'no',
+                'guardian' => 'yes',
+                'guardian_first_name' => 'Lerato', 'guardian_last_name' => 'Mokoena', 'guardian_email' => 'lerato.mokoena@example.com',
+                'guardian_mobile' => "'0731234567", 'guardian_dob' => '1980-02-15', 'guardian_gender' => 'Female',
+                'guardian_occupation' => 'Nurse',
+            ],
+        ];
+
+        return response()->streamDownload(function () use ($examples) {
+            $out = fopen('php://output', 'w');
+            fputcsv($out, StudentsImport::COLUMNS);
+            foreach ($examples as $example) {
+                fputcsv($out, array_map(fn ($column) => $example[$column] ?? '', StudentsImport::COLUMNS));
+            }
+            fclose($out);
+        }, 'students_sample.csv', ['Content-Type' => 'text/csv']);
+    }
+
     public function storeBulkData(Request $request)
     {
         if (! Auth::user()->can('student-create') || ! Auth::user()->can('student-edit')) {

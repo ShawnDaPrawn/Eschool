@@ -196,6 +196,7 @@ Route::group(['middleware' => ['Role', 'auth']], function () {
         Route::post('students/assign-class', [StudentController::class, 'assignClass_store'])->name('students.assign-class.store');
         Route::get('students/new-student-list', [StudentController::class, 'newStudentList'])->name('students.new-student-list');
         Route::get('students/create_bulk', [StudentController::class, 'createBulkData'])->name('students.create-bulk-data');
+        Route::get('students/download-sample', [StudentController::class, 'downloadSampleFile'])->name('students.download-sample');
         Route::post('students/store_bulk', [StudentController::class, 'storeBulkData'])->name('students.store-bulk-data');
         Route::resource('students', StudentController::class)->except(['edit']);
 
@@ -535,14 +536,15 @@ Route::post('webhook/flutterwave', [WebhookController::class, 'flutterwave']);
 Route::get('response/paystack/success', [WebhookController::class, 'paystackSuccessCallback'])->name('paystack.success');
 Route::get('response/flutterwave/success', [WebhookController::class, 'flutterwaveSuccessCallback'])->name('flutterwave.success');
 
+// Linked from the public website footer; the school may not have written them yet.
 Route::get('/privacy-policy', function () {
     $settings = getSettings('privacy_policy');
-    echo $settings['privacy_policy'] ?? '';
+    echo ! empty($settings['privacy_policy']) ? $settings['privacy_policy'] : e(trans('page_not_published_yet'));
 });
 
 Route::get('/terms-conditions', function () {
     $settings = getSettings('terms_condition');
-    echo $settings['terms_condition'] ?? '';
+    echo ! empty($settings['terms_condition']) ? $settings['terms_condition'] : e(trans('page_not_published_yet'));
 });
 
 // Maintenance actions: the header's Cache Clear button needs a logged-in user;
