@@ -21,9 +21,9 @@ Each app role has the same four endpoints under its prefix, all behind `auth:san
 
 | Endpoint | Student (`Student\ChatController`) | Parent (`Parent\ChatController`) | Teacher (`Teacher\ChatController`) |
 |---|---|---|---|
-| `GET get-user-list` | Teachers the student may chat with. Params `offset`, `limit` (no limit means all), `search` (first/last name). | Teachers of the parent's children. Params `offset`, `limit`, `search`. Items also carry `class_teacher` and `student_name` (which children they teach). | `isParent` = 0 lists students, 1 lists parents, of the teacher's class sections. Params `offset`, `limit`, `search` (filtered and paged after the list is built). |
+| `GET get-user-list` | Teachers the student may chat with. Params `offset`, `limit` (no limit means all), `search` (first/last name). | Teachers of the parent's children. Params `offset`, `limit` (default 100), `search`. Items also carry `class_teacher` and `student_name` (which children they teach). | `isParent` = 0 lists students, 1 lists parents, of the teacher's class sections. Params `offset`, `limit` (default 100), `search` (filtered and paged after the list is built). |
 | `POST send-message` | `receiver_id`, `message`, `file[]` | same | same |
-| `POST get-user-message` | `user_id`, `offset`, `limit` (1 to 100, default 100) | `user_id`, `offset`, `limit` | `user_id`, `offset`, `limit` |
+| `POST get-user-message` | `user_id`, `offset`, `limit` (1 to 100, default 100) | `user_id`, `offset`, `limit` (default 100) | `user_id`, `offset`, `limit` (default 100) |
 | `POST read-all-message` | `user_id` | `user_id` | `user_id` |
 
 `get-user-list` returns `{items, total_items, total_unread_users}`; each item has the contact's `id`, `user_id`, names, `image`, contact details, `subjects`, `last_message` (`id`, `body`, `date`, `files`) and `unread_message`, sorted by the last message date, newest first. Each list loads the message's `file` rows, so `last_message` also has `file`, and `files` holds the attachment URLs. Teacher items for students add `roll_no`, `admission_no`, `gender`, `dob`, `address`, `class_name`; for parents, `occupation` and their `children`.

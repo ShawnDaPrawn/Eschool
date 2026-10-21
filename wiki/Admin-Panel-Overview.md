@@ -146,7 +146,7 @@ Every class in [app/Http/Middleware](https://github.com/ShawnDaPrawn/Eschool/tre
 Route-level usage, in short (details in [Security-Model](Security-Model) and [API-Overview](API-Overview)):
 
 - Admin panel: `Route::group(['middleware' => ['Role', 'auth']])` with a nested `language` group. `Role` runs before `auth`.
-- Maintenance URLs: `/clear` needs `auth`; `/storage-link`, `/migrate` and `/seeder_install` need `auth` and `role:Super Admin`.
+- Maintenance URLs: `POST /clear` (the Cache Clear button), `/storage-link`, `/migrate` and `/seeder_install` need `auth` and `role:Super Admin`.
 - Student API: `auth:sanctum`, `role:Student`, `student.session.active`. Parent API: `auth:sanctum`, `role:Parent`, `parent.children.session.active`, with `CheckChild` on child-specific routes. Teacher API: `auth:sanctum`, `role:Teacher`, with `CheckStudent` on student-specific routes.
 
 ## The app/ folders
