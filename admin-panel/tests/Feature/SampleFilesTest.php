@@ -62,6 +62,11 @@ class SampleFilesTest extends TestCase
         $this->assertCount(2, $rows);
         $validator = Validator::make($rows, $import->rules());
         $this->assertSame([], $validator->errors()->all());
+
+        // Spreadsheets would drop a bare leading zero; the ' prefix keeps it, and the importer strips it.
+        $this->assertStringStartsWith("'0", array_combine(StudentsImport::COLUMNS, str_getcsv($lines[1]))['mobile']);
+        $this->assertSame('0821234567', $rows[0]['mobile']);
+        $this->assertSame('0731234567', $rows[1]['guardian_mobile']);
     }
 
     private function teacher(): User
