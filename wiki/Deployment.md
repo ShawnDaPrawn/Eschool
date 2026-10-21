@@ -253,7 +253,7 @@ git pull
 composer install --optimize-autoloader
 php artisan migrate --force
 php artisan db:seed --class=InstallationSeeder --force
-php artisan db:seed --class=emailseeder --force
+php artisan db:seed --class=EmailSeeder --force
 php artisan optimize
 php artisan up
 ```

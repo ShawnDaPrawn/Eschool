@@ -1,7 +1,7 @@
 import 'package:dotted_border/dotted_border.dart';
 import 'package:eschool_teacher/cubits/createAssignmentCubit.dart';
 import 'package:eschool_teacher/cubits/dashboardCubit.dart';
-import 'package:eschool_teacher/cubits/editassignment.dart';
+import 'package:eschool_teacher/cubits/editAssignmentCubit.dart';
 import 'package:eschool_teacher/cubits/subjectsOfClassSectionCubit.dart';
 import 'package:eschool_teacher/data/models/assignment.dart';
 import 'package:eschool_teacher/data/models/studyMaterial.dart';
@@ -9,7 +9,7 @@ import 'package:eschool_teacher/data/repositories/assignmentRepository.dart';
 import 'package:eschool_teacher/data/repositories/teacherRepository.dart';
 import 'package:eschool_teacher/ui/styles/colors.dart';
 import 'package:eschool_teacher/ui/widgets/assignmentAttachmentContainer.dart';
-import 'package:eschool_teacher/ui/widgets/bottomSheetTextFiledContainer.dart';
+import 'package:eschool_teacher/ui/widgets/bottomSheetTextFieldContainer.dart';
 import 'package:eschool_teacher/ui/widgets/bottomsheetAddFilesDottedBorderContainer.dart';
 import 'package:eschool_teacher/ui/widgets/classSubjectsDropDownMenu.dart';
 import 'package:eschool_teacher/ui/widgets/customAppbar.dart';

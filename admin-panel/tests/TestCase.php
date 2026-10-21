@@ -5,7 +5,7 @@ namespace Tests;
 use App\Models\User;
 use dacoto\LaravelWizardInstaller\Middleware\ToInstallMiddleware;
 use Database\Seeders\AddSuperAdminSeeder;
-use Database\Seeders\emailseeder;
+use Database\Seeders\EmailSeeder;
 use Database\Seeders\InstallationSeeder;
 use Illuminate\Foundation\Testing\TestCase as BaseTestCase;
 
@@ -42,7 +42,7 @@ abstract class TestCase extends BaseTestCase
      */
     protected function seedLikeInstaller(): void
     {
-        $this->seed([InstallationSeeder::class, AddSuperAdminSeeder::class, emailseeder::class]);
+        $this->seed([InstallationSeeder::class, AddSuperAdminSeeder::class, EmailSeeder::class]);
     }
 
     protected function superAdmin(): User

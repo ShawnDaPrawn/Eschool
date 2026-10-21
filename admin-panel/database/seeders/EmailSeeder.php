@@ -5,7 +5,7 @@ namespace Database\Seeders;
 use App\Models\EmailTempalate;
 use Illuminate\Database\Seeder;
 
-class emailseeder extends Seeder
+class EmailSeeder extends Seeder
 {
     /**
      * Run the database seeds.

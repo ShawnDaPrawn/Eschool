@@ -12,7 +12,7 @@ The app is already installed: `InstallerMiddleware` answers 404 once `storage/in
 `admin-panel/README.md` lists `admin@admin.com` / `password`, which is out of date. `AddSuperAdminSeeder` creates **`superadmin@gmail.com` / `superadmin`**. Change the password after the first login.
 
 **`php artisan db:seed` does nothing.**
-`DatabaseSeeder` is empty. Run the seeders the installer uses, in this order: `InstallationSeeder`, `AddSuperAdminSeeder`, `emailseeder`. See [Getting Started](Getting-Started#option-b-command-line).
+`DatabaseSeeder` is empty. Run the seeders the installer uses, in this order: `InstallationSeeder`, `AddSuperAdminSeeder`, `EmailSeeder`. See [Getting Started](Getting-Started#option-b-command-line).
 
 **Uploaded images and files return 404.**
 The `public/storage` symlink is missing. Run `php artisan storage:link`. The wizard's Keys step does this, but a copied or restored install can lose the link.

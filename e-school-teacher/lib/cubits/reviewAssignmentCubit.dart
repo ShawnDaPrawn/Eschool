@@ -52,7 +52,7 @@ class ReviewAssignmentCubit extends Cubit<ReviewAssignmentState> {
     }
   }
 
-  Future<void> updateReviewAssignmet({
+  Future<void> updateReviewAssignment({
     required ReviewAssignmentsSubmission updatedReviewAssignmentSubmition,
   }) async {
     try {

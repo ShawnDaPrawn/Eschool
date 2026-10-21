@@ -100,7 +100,7 @@ PHPUnit's `<env>` entries do not overwrite a variable that is already set in the
 |---|---|
 | `setUp()` | Disables `dacoto\LaravelWizardInstaller\Middleware\ToInstallMiddleware`. Without `storage/installed` the installer redirects every page to `/install`; tests run against an already-installed app. |
 | `createApplication()` | Refuses to run (throws `RuntimeException`) unless the configured database name ends in `_test`. Tests drop every table, so this protects a real database. It runs before any trait connects. |
-| `seedLikeInstaller()` | Seeds `InstallationSeeder`, `AddSuperAdminSeeder` and `emailseeder`, the same seeders the web installer runs (`config/installer.php`). |
+| `seedLikeInstaller()` | Seeds `InstallationSeeder`, `AddSuperAdminSeeder` and `EmailSeeder`, the same seeders the web installer runs (`config/installer.php`). |
 | `superAdmin()` | Returns the seeded user `superadmin@gmail.com`. |
 
 ### tests/Concerns/RunsAppServer.php
