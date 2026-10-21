@@ -92,6 +92,7 @@ flowchart LR
    - `parent` prefix: `auth:sanctum`, `role:Parent`, `parent.children.session.active`; put endpoints that take a `child_id` inside the nested `CheckChild` group;
    - `teacher` prefix: `auth:sanctum`, `role:Teacher`.
    Only data that is meant to be public (holidays, sliders, public settings, events, galleries) belongs outside these groups. Login and password-reset routes get `->middleware('throttle:login')`.
+   Point the route at the controller for its area (`Api/Student/AssignmentController`, `Api/Teacher/ExamController` and so on). Add a new area controller rather than growing an existing one past a few hundred lines, and put checks that several areas need in the role's access trait (`StudentAccess`, `TeacherAccess`).
 2. **Validate.** `Validator::make($request->all(), [...])`, then `ResponseService::validationError($validator->errors()->first())` on failure. Validate ids as integers and files with `mimes:` and `max:`.
 3. **Scope to the caller.** This is the part that has been wrong before; see [Security-Model#api-scoping-to-the-callers-own-data](Security-Model#api-scoping-to-the-callers-own-data).
    - Parent: inside `CheckChild` read `$request->attributes->get('child')`; elsewhere call `resolveChild($request)` or `parentChildIds($request)`. Never look a student up by a posted id directly.

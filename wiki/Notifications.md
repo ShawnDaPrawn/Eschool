@@ -55,7 +55,7 @@ The `title` and `message` columns are 128 characters and the MySQL connection is
 
 | Endpoint | Method |
 |---|---|
-| `GET /api/student/get-notification` | `StudentApiController::getNotifications` |
+| `GET /api/student/get-notification` | `Student\NotificationController::getNotifications` |
 | `GET /api/parent/get-notification` | `ParentApiController::getNotifications` |
 | `GET /api/teacher/get-notification` | `Teacher\NotificationController::getNotifications` |
 
@@ -74,16 +74,16 @@ All three return `Notification` rows of the current session year (`session_year`
 | Announcement (teacher app) | `Teacher\AnnouncementController::sendAnnouncement` / `updateAnnouncement` | Students of the class section | none | `class_section` |
 | New / updated assignment | `AssignmentController::store` / `update`, `Teacher\AssignmentController::createAssignment` / `updateAssignment` | Students of the class section (for a new assignment in an elective subject, only those who chose it) | `send_to` 3, user rows | `assignment` |
 | Assignment submission accepted / rejected | `AssignmentController::updateAssignmentSubmission`, `Teacher\AssignmentController::updateAssignmentSubmission` | The student | `send_to` 3, user rows | `assignment` |
-| Assignment submitted | `StudentApiController::submitAssignment` | Subject teachers of that subject and class section | `send_to` 2, user rows | `assignment_submission` |
+| Assignment submitted | `Student\AssignmentController::submitAssignment` | Subject teachers of that subject and class section | `send_to` 2, user rows | `assignment_submission` |
 | Student marked absent (admin panel) | `AttendanceController::store` | Father, mother and guardian users; only when the record changes to absent | `send_to` 4, user rows | `attendance` |
 | Student marked absent (teacher app) | `Teacher\AttendanceController::submitAttendance` | Father and mother users | `send_to` 3, user rows | `attendance` |
-| Student leave applied | `StudentApiController::applyLeave`, `ParentApiController::applyLeave` | Class teachers of the student's class section | `send_to` 3, user rows | `leave` |
+| Student leave applied | `Student\LeaveController::applyLeave`, `ParentApiController::applyLeave` | Class teachers of the student's class section | `send_to` 3, user rows | `leave` |
 | Student leave approved / rejected | `LeaveController::studentLeaveStatusUpdate`, `Teacher\LeaveController::studentLeaveStatusUpdate` | The student's parents | `send_to` 3, user rows | `leave` |
 | Chat message | `sendMessage` in the three API controllers | The receiver | none | `chat` (with `sender_info`) |
 | Online payment recorded / failed (webhook) | `WebhookController::notifyParents` | The transaction's parent | `send_to` 2, user row | `online` |
-| App reports a failed payment | `StudentApiController::failPaymentTransactionStatus` (student user), `ParentApiController::failPaymentTransactionStatus` (parent user) | as listed | `send_to` 2, user row | `online` |
+| App reports a failed payment | `Student\FeesController::failPaymentTransactionStatus` (student user), `ParentApiController::failPaymentTransactionStatus` (parent user) | as listed | `send_to` 2, user row | `online` |
 | Cash / cheque payment recorded by staff | `FeesTypeController::compulsoryFeesPaidStore`, `optionalFeesPaidStore` | Father's (else guardian's) user | `send_to` 2, user row | `Online` |
-| Fee reminder from the student app | `GET /api/student/send-fee-notification` (`StudentApiController::sendFeeNotification`) | The student's parents | `send_to` 2, no user rows (so not listed anywhere) | `fees-due` (with `child_id`) |
+| Fee reminder from the student app | `GET /api/student/send-fee-notification` (`Student\FeesController::sendFeeNotification`) | The student's parents | `send_to` 2, no user rows (so not listed anywhere) | `fees-due` (with `child_id`) |
 
 Exams, online exams, results, events, holidays and timetables send no notifications in the current code.
 

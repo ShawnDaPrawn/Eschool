@@ -6,7 +6,7 @@ The admin panel serves a JSON REST API under `/api` that both Flutter apps use. 
 | --- | --- |
 | Base path | `https://<admin-panel-host>/api/` |
 | Route file | `admin-panel/routes/api.php` (loaded with prefix `api` and the `api` middleware group) |
-| Controllers | `ApiController` (shared/public), `StudentApiController`, `ParentApiController`, and the `Api/Teacher/` controllers (one per area: `AuthController`, `ClassController`, `AssignmentController`, `ExamController` and so on) |
+| Controllers | `ApiController` (shared/public), `ParentApiController`, and the `Api/Student/` and `Api/Teacher/` controllers (one per area: `AuthController`, `AssignmentController`, `ExamController` and so on) |
 | Framework | Laravel 12 (`laravel/framework` v12.70.0 in `composer.lock`), Sanctum v4.3.3, spatie/laravel-permission 6.25.0 |
 | Authentication | Laravel Sanctum personal access tokens, `Authorization: Bearer <token>` |
 | Token lifetime | `SANCTUM_EXPIRATION` minutes, default `43200` (30 days) from creation |
@@ -350,7 +350,7 @@ Every route in `routes/api.php`, in file order. All paths are relative to `/api/
 
 The table matches `php artisan route:list --path=api`, which reports 155 routes; `GET` routes also answer `HEAD`.
 
-Controller names are shortened: `Api` = `ApiController`, `Student` = `StudentApiController`, `Parent` = `ParentApiController`, `Teacher\Area` = `Api/Teacher/AreaController`.
+Controller names are shortened: `Api` = `ApiController`, `Parent` = `ParentApiController`, `Student\Area` = `Api/Student/AreaController`, `Teacher\Area` = `Api/Teacher/AreaController`.
 
 ### Logout
 
@@ -362,54 +362,54 @@ Controller names are shortened: `Api` = `ApiController`, `Student` = `StudentApi
 
 | Method | Path | Controller@method | Middleware |
 | --- | --- | --- | --- |
-| POST | `student/login` | `Student@login` | `throttle:login` |
-| POST | `student/forgot-password` | `Student@forgotPassword` | `throttle:login` |
-| GET | `student/dashboard` | `Student@dashboard` | S |
-| GET | `student/subjects` | `Student@subjects` | S |
-| GET | `student/class-subjects` | `Student@classSubjects` | S |
-| POST | `student/select-subjects` | `Student@selectSubjects` | S |
-| GET | `student/parent-details` | `Student@getParentDetails` | S |
-| GET | `student/timetable` | `Student@getTimetable` | S |
-| GET | `student/lessons` | `Student@getLessons` | S |
-| GET | `student/lesson-topics` | `Student@getLessonTopics` | S |
-| GET | `student/assignments` | `Student@getAssignments` | S |
-| POST | `student/submit-assignment` | `Student@submitAssignment` | S |
-| POST | `student/delete-assignment-submission` | `Student@deleteAssignmentSubmission` | S |
-| GET | `student/attendance` | `Student@getAttendance` | S |
-| GET | `student/attendance-report` | `Student@attendanceReport` | S |
-| GET | `student/announcements` | `Student@getAnnouncements` | S |
-| GET | `student/get-exam-list` | `Student@getExamList` | S |
-| GET | `student/get-exam-details` | `Student@getExamDetails` | S |
-| GET | `student/exam-marks` | `Student@getExamMarks` | S |
-| GET | `student/offline-exam-report` | `Student@offlineExamReport` | S |
-| GET | `student/online-exam-report` | `Student@onlineExamReport` | S |
-| GET | `student/id-card-pdf` | `Student@getIdCardPdf` | S |
-| GET | `student/get-online-exam-list` | `Student@getOnlineExamList` | S |
-| GET | `student/get-online-exam-questions` | `Student@getOnlineExamQuestions` | S |
-| POST | `student/submit-online-exam-answers` | `Student@submitOnlineExamAnswers` | S |
-| GET | `student/get-online-exam-result-list` | `Student@getOnlineExamResultList` | S |
-| GET | `student/get-online-exam-result` | `Student@getOnlineExamResult` | S |
-| GET | `student/get-profile-data` | `Student@getProfileDetails` | S |
-| GET | `student/get-notification` | `Student@getNotifications` | S |
-| GET | `student/get-user-list` | `Student@getChatUserList` | S |
-| POST | `student/send-message` | `Student@sendMessage` | S |
-| POST | `student/get-user-message` | `Student@getUserChatMessage` | S |
-| POST | `student/read-all-message` | `Student@readAllMessages` | S |
-| GET | `student/fees-details` | `Student@getFeesDetails` | S |
-| POST | `student/add-fees-transaction` | `Student@storeFeesTransaction` | S |
-| POST | `student/store-fees` | `Student@storeFees` | S |
-| GET | `student/fees-paid-list` | `Student@feesPaidList` | S |
-| GET | `student/fees-paid-receipt-pdf` | `Student@feesPaidReceiptPDF` | S |
-| GET | `student/fees-transactions-list` | `Student@getFeesPaymentTransactions` | S |
-| POST | `student/fail-payment-transaction` | `Student@failPaymentTransactionStatus` | S |
-| GET | `student/fees-report` | `Student@getFeesReport` | S |
-| GET | `student/leave-report` | `Student@leaveReport` | S |
-| GET | `student/assignment-report` | `Student@assignmentReport` | S |
-| GET | `student/academic-calendar-pdf` | `Student@getAcademicCalendarPdf` | S |
-| GET | `student/send-fee-notification` | `Student@sendFeeNotification` | S |
-| POST | `student/apply-leave` | `Student@applyLeave` | S |
-| POST | `student/get-leave-list` | `Student@getMyLeave` | S |
-| POST | `student/delete-leave` | `Student@deleteLeave` | S |
+| POST | `student/login` | `Student\Auth@login` | `throttle:login` |
+| POST | `student/forgot-password` | `Student\Auth@forgotPassword` | `throttle:login` |
+| GET | `student/dashboard` | `Student\Dashboard@dashboard` | S |
+| GET | `student/subjects` | `Student\Subject@subjects` | S |
+| GET | `student/class-subjects` | `Student\Subject@classSubjects` | S |
+| POST | `student/select-subjects` | `Student\Subject@selectSubjects` | S |
+| GET | `student/parent-details` | `Student\Profile@getParentDetails` | S |
+| GET | `student/timetable` | `Student\Timetable@getTimetable` | S |
+| GET | `student/lessons` | `Student\Lesson@getLessons` | S |
+| GET | `student/lesson-topics` | `Student\Lesson@getLessonTopics` | S |
+| GET | `student/assignments` | `Student\Assignment@getAssignments` | S |
+| POST | `student/submit-assignment` | `Student\Assignment@submitAssignment` | S |
+| POST | `student/delete-assignment-submission` | `Student\Assignment@deleteAssignmentSubmission` | S |
+| GET | `student/attendance` | `Student\Attendance@getAttendance` | S |
+| GET | `student/attendance-report` | `Student\Attendance@attendanceReport` | S |
+| GET | `student/announcements` | `Student\Announcement@getAnnouncements` | S |
+| GET | `student/get-exam-list` | `Student\Exam@getExamList` | S |
+| GET | `student/get-exam-details` | `Student\Exam@getExamDetails` | S |
+| GET | `student/exam-marks` | `Student\Exam@getExamMarks` | S |
+| GET | `student/offline-exam-report` | `Student\Report@offlineExamReport` | S |
+| GET | `student/online-exam-report` | `Student\Report@onlineExamReport` | S |
+| GET | `student/id-card-pdf` | `Student\Profile@getIdCardPdf` | S |
+| GET | `student/get-online-exam-list` | `Student\OnlineExam@getOnlineExamList` | S |
+| GET | `student/get-online-exam-questions` | `Student\OnlineExam@getOnlineExamQuestions` | S |
+| POST | `student/submit-online-exam-answers` | `Student\OnlineExam@submitOnlineExamAnswers` | S |
+| GET | `student/get-online-exam-result-list` | `Student\OnlineExam@getOnlineExamResultList` | S |
+| GET | `student/get-online-exam-result` | `Student\OnlineExam@getOnlineExamResult` | S |
+| GET | `student/get-profile-data` | `Student\Profile@getProfileDetails` | S |
+| GET | `student/get-notification` | `Student\Notification@getNotifications` | S |
+| GET | `student/get-user-list` | `Student\Chat@getChatUserList` | S |
+| POST | `student/send-message` | `Student\Chat@sendMessage` | S |
+| POST | `student/get-user-message` | `Student\Chat@getUserChatMessage` | S |
+| POST | `student/read-all-message` | `Student\Chat@readAllMessages` | S |
+| GET | `student/fees-details` | `Student\Fees@getFeesDetails` | S |
+| POST | `student/add-fees-transaction` | `Student\Fees@storeFeesTransaction` | S |
+| POST | `student/store-fees` | `Student\Fees@storeFees` | S |
+| GET | `student/fees-paid-list` | `Student\Fees@feesPaidList` | S |
+| GET | `student/fees-paid-receipt-pdf` | `Student\Fees@feesPaidReceiptPDF` | S |
+| GET | `student/fees-transactions-list` | `Student\Fees@getFeesPaymentTransactions` | S |
+| POST | `student/fail-payment-transaction` | `Student\Fees@failPaymentTransactionStatus` | S |
+| GET | `student/fees-report` | `Student\Report@getFeesReport` | S |
+| GET | `student/leave-report` | `Student\Report@leaveReport` | S |
+| GET | `student/assignment-report` | `Student\Report@assignmentReport` | S |
+| GET | `student/academic-calendar-pdf` | `Student\Calendar@getAcademicCalendarPdf` | S |
+| GET | `student/send-fee-notification` | `Student\Fees@sendFeeNotification` | S |
+| POST | `student/apply-leave` | `Student\Leave@applyLeave` | S |
+| POST | `student/get-leave-list` | `Student\Leave@getMyLeave` | S |
+| POST | `student/delete-leave` | `Student\Leave@deleteLeave` | S |
 | POST | `student/get-payment-status` | `Parent@getPaymentStatus` | S |
 
 ### Parent (`/api/parent/...`) — details on [API-Parent](API-Parent)

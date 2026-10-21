@@ -117,8 +117,8 @@ These were found by reading the code while this wiki was written. None of them i
 | Teacher marks | Re-submitting exam marks stops at the first existing row, because a success response exits inside the loop | `Teacher\ExamController::submitExamMarksBySubjects`, `submitExamMarksByStudent` |
 | Teacher attendance | Absence notifications are saved only for the last absent student's parents | `Teacher\AttendanceController::submitAttendance` |
 | Files | Physical files are not deleted with their record, because `File::deleting` checks the URL accessor rather than the disk path | `app/Models/File.php` |
-| Student profile | `get-profile-data` can fail with an undefined `$child` in compulsory-fee mode without installments after the free-use date | `StudentApiController::getProfileDetails` |
-| Receipts | The student receipt endpoint uses the student's first `fees_paids` row from any session year | `StudentApiController::feesPaidReceiptPDF` |
+| Student profile | `get-profile-data` can fail with an undefined `$child` in compulsory-fee mode without installments after the free-use date | `Student\ProfileController::getProfileDetails` |
+| Receipts | The student receipt endpoint uses the student's first `fees_paids` row from any session year | `Student\FeesController::feesPaidReceiptPDF` |
 | Teacher app | `Api.examResults` points to `teacher/exam-marks`, which has no route. The method that uses it is never called | `e-school-teacher/lib/utils/api.dart` |
 
 The [API Parent](API-Parent), [API Student](API-Student) and [API Teacher](API-Teacher) pages list more endpoint-level quirks in their "Known quirks" and "Gotchas" sections.

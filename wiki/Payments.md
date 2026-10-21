@@ -10,7 +10,7 @@ For the click-by-click admin steps see the Docusaurus pages [Fee Payment (admin 
 | Server-side pricing and recording of online payments | [`FeesPaymentService`](https://github.com/ShawnDaPrawn/Eschool/blob/main/admin-panel/app/Services/Payment/FeesPaymentService.php) |
 | Gateway factory, currency, webhook secrets, amount checks | [`PaymentService`](https://github.com/ShawnDaPrawn/Eschool/blob/main/admin-panel/app/Services/Payment/PaymentService.php) |
 | Gateway adapters | `StripePayment`, `RazorpayPayment`, `PaystackPayment`, `FlutterwavePayment` (all implement `PaymentInterface`) in [`app/Services/Payment`](https://github.com/ShawnDaPrawn/Eschool/tree/main/admin-panel/app/Services/Payment) |
-| App endpoints | `StudentApiController`, `ParentApiController` (`/api/student/*`, `/api/parent/*`) |
+| App endpoints | `Api/Student/FeesController`, `ParentApiController` (`/api/student/*`, `/api/parent/*`) |
 | Payment confirmation | [`WebhookController`](https://github.com/ShawnDaPrawn/Eschool/blob/main/admin-panel/app/Http/Controllers/WebhookController.php) (`/webhook/*`) |
 | Offline (cash/cheque) payments, receipts, logs | `FeesTypeController` (admin panel) |
 | Dashboard and app statistics | [`FeesCollectionService`](https://github.com/ShawnDaPrawn/Eschool/blob/main/admin-panel/app/Services/FeesCollectionService.php), [`FeesReportService`](https://github.com/ShawnDaPrawn/Eschool/blob/main/admin-panel/app/Services/FeesReportService.php) |
@@ -91,7 +91,7 @@ All are behind `auth:sanctum`. Student routes also have `role:Student` and `stud
 | `GET fees-paid-receipt-pdf` | `feesPaidReceiptPDF` | Base64 PDF (`fees.fees_receipt` view). Parent: requires `fees_paid_id` of one of their children. Student: uses the student's first `fees_paids` row. |
 | `GET fees-transactions-list` | `getFeesPaymentTransactions` | Paginated (15) `payment_transactions`, optional `session_year_id` (parent: optional `child_id`, else all the parent's children); also expires pending transactions older than one hour. |
 | `GET fees-report` | `getFeesReport` | `FeesReportService::getStatistics()` (see [Reporting](#reporting-services)). |
-| `GET /api/student/send-fee-notification` | `StudentApiController::sendFeeNotification` | Pushes "Fees are dues" (type `fees-due`, `child_id` in the data) to the student's parents. See [Notifications](Notifications). |
+| `GET /api/student/send-fee-notification` | `Student\FeesController::sendFeeNotification` | Pushes "Fees are dues" (type `fees-due`, `child_id` in the data) to the student's parents. See [Notifications](Notifications). |
 
 The app sends `payment_method` as 1 Razorpay, 2 Stripe, 3 Paystack, 4 Flutterwave. Paystack and Flutterwave are opened in a WebView at the gateway URL; the WebView watches for the paths `/response/paystack/success` and `/response/flutterwave/success`, which `WebhookController::paystackSuccessCallback()` / `flutterwaveSuccessCallback()` answer with a fixed JSON message. Those landing routes change nothing.
 

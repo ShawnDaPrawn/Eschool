@@ -74,7 +74,7 @@ The copies keep the source rows' `semester_id` values; the semesters themselves 
 
 A semester (`semesters`) has a name, `start_date`, `end_date` and `session_year_id`. `SemesterController` (permissions `semester-list|create|edit|delete`) creates them inside a year and rejects overlapping ranges.
 
-- **Current semester.** The `current` accessor is true when today is between the start and end dates; a semester whose start is after its end is treated as wrapping the new year. Code finds "the" current semester with `Semester::get()->first(fn ($s) => $s->current)`, in some places filtered by session year first and in others (`Students::getCurrentSemester()`, `StudentApiController::selectSubjects`) not.
+- **Current semester.** The `current` accessor is true when today is between the start and end dates; a semester whose start is after its end is treated as wrapping the new year. Code finds "the" current semester with `Semester::get()->first(fn ($s) => $s->current)`, in some places filtered by session year first and in others (`Students::getCurrentSemester()`, `Student\SubjectController::selectSubjects`) not.
 - **Per-class switch.** Semesters only affect a class whose `class_session_configs.include_semesters` is true for that session year. `ClassSessionConfig::classHasSemester($classId, $sessionYearId)` and `ClassSchool::getIncludeSemestersForSession()` read it.
 - **What becomes semester-specific** when a class has semesters: class subjects and elective groups, student elective picks, timetables, class and subject teachers, lessons, assignments, announcements, offline and online exams. Queries for the apps filter by the current semester.
 - **Deleting a semester** soft-deletes its class subjects, elective groups, timetables and student subjects (`Semester::booted()`). If it was the last semester of the year, `SemesterController::destroy` also deletes every `include_semesters = true` config row for that year and runs `wipeClassData()` (below) for those classes, including their lessons.
@@ -202,7 +202,7 @@ Applied after `auth:sanctum` and `role:Student` to every authenticated student e
 | No `student_sessions` row for the current session year | HTTP 401, code `SESSION_NOT_ACTIVE`, "promotion to the next class has not been completed" |
 | The row has `status = 0` | HTTP 401, code `SESSION_NOT_ACTIVE`, "Your Account is Deactivate..." |
 
-`StudentApiController::login` performs the same checks before issuing a token.
+`Student\AuthController::login` performs the same checks before issuing a token.
 
 ### `EnsureParentChildrenSessionIsActive` (`parent.children.session.active`)
 

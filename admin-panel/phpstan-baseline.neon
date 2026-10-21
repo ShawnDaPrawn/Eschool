@@ -21,20 +21,74 @@ parameters:
 		-
 			message: '#^Result of static method App\\Services\\ResponseService\:\:errorResponse\(\) \(void\) is used\.$#'
 			identifier: staticMethod.void
-			count: 8
-			path: app/Http/Controllers/Api/StudentApiController.php
+			count: 1
+			path: app/Http/Controllers/Api/Student/AttendanceController.php
+
+		-
+			message: '#^Result of static method App\\Services\\ResponseService\:\:errorResponse\(\) \(void\) is used\.$#'
+			identifier: staticMethod.void
+			count: 1
+			path: app/Http/Controllers/Api/Student/CalendarController.php
 
 		-
 			message: '#^Result of static method App\\Services\\ResponseService\:\:successResponse\(\) \(void\) is used\.$#'
 			identifier: staticMethod.void
-			count: 7
-			path: app/Http/Controllers/Api/StudentApiController.php
+			count: 1
+			path: app/Http/Controllers/Api/Student/CalendarController.php
+
+		-
+			message: '#^Result of static method App\\Services\\ResponseService\:\:errorResponse\(\) \(void\) is used\.$#'
+			identifier: staticMethod.void
+			count: 2
+			path: app/Http/Controllers/Api/Student/ChatController.php
+
+		-
+			message: '#^Result of static method App\\Services\\ResponseService\:\:successResponse\(\) \(void\) is used\.$#'
+			identifier: staticMethod.void
+			count: 1
+			path: app/Http/Controllers/Api/Student/ChatController.php
+
+		-
+			message: '#^Result of static method App\\Services\\ResponseService\:\:errorResponse\(\) \(void\) is used\.$#'
+			identifier: staticMethod.void
+			count: 1
+			path: app/Http/Controllers/Api/Student/LeaveController.php
+
+		-
+			message: '#^Result of static method App\\Services\\ResponseService\:\:successResponse\(\) \(void\) is used\.$#'
+			identifier: staticMethod.void
+			count: 1
+			path: app/Http/Controllers/Api/Student/LeaveController.php
 
 		-
 			message: '#^Result of static method App\\Services\\ResponseService\:\:validationError\(\) \(void\) is used\.$#'
 			identifier: staticMethod.void
-			count: 2
-			path: app/Http/Controllers/Api/StudentApiController.php
+			count: 1
+			path: app/Http/Controllers/Api/Student/LeaveController.php
+
+		-
+			message: '#^Result of static method App\\Services\\ResponseService\:\:errorResponse\(\) \(void\) is used\.$#'
+			identifier: staticMethod.void
+			count: 3
+			path: app/Http/Controllers/Api/Student/LessonController.php
+
+		-
+			message: '#^Result of static method App\\Services\\ResponseService\:\:successResponse\(\) \(void\) is used\.$#'
+			identifier: staticMethod.void
+			count: 1
+			path: app/Http/Controllers/Api/Student/LessonController.php
+
+		-
+			message: '#^Result of static method App\\Services\\ResponseService\:\:validationError\(\) \(void\) is used\.$#'
+			identifier: staticMethod.void
+			count: 1
+			path: app/Http/Controllers/Api/Student/LessonController.php
+
+		-
+			message: '#^Result of static method App\\Services\\ResponseService\:\:successResponse\(\) \(void\) is used\.$#'
+			identifier: staticMethod.void
+			count: 3
+			path: app/Http/Controllers/Api/Student/ProfileController.php
 
 		-
 			message: '#^Result of static method App\\Services\\ResponseService\:\:errorResponse\(\) \(void\) is used\.$#'
