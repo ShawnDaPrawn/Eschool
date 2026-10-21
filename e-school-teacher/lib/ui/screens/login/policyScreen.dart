@@ -99,9 +99,11 @@ class _PolicyScreenState extends State<PolicyScreen> {
 
   Future<void> _accept() async {
     final document = _currentDocument;
+    final navigateedVersion = _navigateed?['version'];
+    final schoolVersion = _school?['version'];
     final version = document == 'navigateed'
-        ? _navigateed?['version']
-        : _school?['version'];
+        ? navigateedVersion
+        : schoolVersion;
     if (document == null || version is! String) {
       return;
     }
