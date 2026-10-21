@@ -14,12 +14,20 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withMiddleware(function (Middleware $middleware): void {
 
         // Cloud Run terminates TLS, so forwarded proto headers have to be trusted.
-        // Hosts are limited to APP_URL plus local development.
+        // Hosts are limited to APP_URL plus local development and TRUSTED_HOSTS. Until
+        // the install wizard has finished, APP_URL is still .env.example's placeholder,
+        // so the wizard answers on whichever address the school opens it on.
         $middleware->trustProxies(at: '*');
-        $middleware->trustHosts(at: [
-            '^localhost$',
-            '^127\.0\.0\.1$',
-        ]);
+        $middleware->trustHosts(at: fn () => file_exists(storage_path('installed'))
+            ? [
+                '^localhost$',
+                '^127\.0\.0\.1$',
+                ...array_map(
+                    fn (string $host) => '^'.preg_quote($host).'$',
+                    array_filter(array_map('trim', explode(',', (string) config('app.trusted_hosts'))))
+                ),
+            ]
+            : ['.*']);
 
         $middleware->validateCsrfTokens(except: [
             'webhook/*',

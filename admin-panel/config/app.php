@@ -68,6 +68,13 @@ return [
 
     'url' => env('APP_URL', 'http://localhost'),
 
+    /*
+    | Other host names the panel answers on besides APP_URL and its subdomains,
+    | comma separated, for a school reached under more than one name. In
+    | production any other host gets 400 Bad Request (bootstrap/app.php).
+    */
+    'trusted_hosts' => env('TRUSTED_HOSTS', ''),
+
     'asset_url' => env('ASSET_URL', null),
 
     /*

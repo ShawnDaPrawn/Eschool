@@ -22,7 +22,7 @@ Cloud SQL stays on while the panel is idle, so this is the paid part (the smalle
 
 Daily chat cleanup and Sanctum pruning (`routes/console.php`) do not run until something calls `php artisan schedule:run`. There is no Cloud Scheduler job yet.
 
-`bootstrap/app.php` trusts proxy headers so HTTPS behind Cloud Run stays HTTPS, and trusts the `APP_URL` host. A production `APP_URL` that does not match the browser host returns 400.
+`bootstrap/app.php` trusts proxy headers so HTTPS behind Cloud Run stays HTTPS, and trusts the `APP_URL` host. A production `APP_URL` that does not match the browser host returns 400; see [HTTPS, proxies and hosts](#https-proxies-and-hosts).
 
 ## Server requirements
 
@@ -196,13 +196,15 @@ php artisan optimize:clear  # remove them again
 - The release builds of the mobile apps require an HTTPS server URL; see [Mobile-App-Configuration](Mobile-App-Configuration).
 - Payment gateway webhooks (`POST /webhook/razorpay`, `/webhook/stripe`, `/webhook/paystack`, `/webhook/flutterwave`) must be reachable from the internet; they are exempt from CSRF. See [Payments](Payments).
 
-Behind a load balancer or reverse proxy that terminates TLS: the global stack contains the framework's `Illuminate\Http\Middleware\TrustProxies`, and the app neither calls `$middleware->trustProxies()` nor has a `config/trustedproxy.php`, so no proxy is trusted. `X-Forwarded-Proto` is then ignored: `isSecure()` is false, `url()`, `asset()` and `route()` produce `http://` links (mixed-content warnings, wrong links in emails), and HSTS is not sent. The class `app/Http/Middleware/TrustProxies.php` is not registered, so editing it has no effect. To fix it, add to the `withMiddleware` callback in `bootstrap/app.php`:
+`bootstrap/app.php` calls `$middleware->trustProxies(at: '*')`, so `X-Forwarded-Proto` from any proxy is believed: behind a load balancer or Cloud Run that terminates TLS, `isSecure()` is true, links are `https://` and HSTS is sent. If the server is also reachable directly (not only through the proxy), narrow it to the proxy's addresses, for example `trustProxies(at: ['10.0.0.0/8'])`. The classes `app/Http/Middleware/TrustProxies.php` and `TrustHosts.php` are not registered, so editing them has no effect.
 
-```php
-$middleware->trustProxies(at: ['10.0.0.0/8']); // your proxy addresses, or '*' if the app is only reachable through the proxy
-```
+Host names are checked too (`$middleware->trustHosts()`), so links built from the request, such as password reset links, can't be pointed at another site. With `APP_ENV=production`, a request whose `Host` is not one of these gets 400 Bad Request:
 
-Host header checking is also off: `TrustHosts` is only added when `$middleware->trustHosts()` is called, and the app's `app/Http/Middleware/TrustHosts.php` is not registered. Links built from the request, such as password reset links, use whatever `Host` the client sent. Configure the web server to answer only for your real host names (a catch-all `default_server` that returns 444 on Nginx, or a `ServerName`-only virtual host on Apache), or call `$middleware->trustHosts(at: ['school.example.org'])` in `bootstrap/app.php`.
+- the `APP_URL` host and its subdomains;
+- `localhost` and `127.0.0.1`;
+- each name in `TRUSTED_HOSTS` (`config('app.trusted_hosts')`, comma separated), for a school reached under more than one name or by IP address.
+
+The check starts once `storage/installed` exists: before that, `APP_URL` is still `.env.example`'s `http://localhost`, so the install wizard answers on whatever address the school opens it on, and its last step writes the real `APP_URL`. `APP_ENV=local` and the test suite skip the check.
 
 ## Security headers
 
