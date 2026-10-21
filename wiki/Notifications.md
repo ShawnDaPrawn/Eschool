@@ -78,7 +78,7 @@ All three return `Notification` rows of the current session year (`session_year`
 | Student marked absent (admin panel) | `AttendanceController::store` | Father, mother and guardian users; only when the record changes to absent | `send_to` 4, user rows | `attendance` |
 | Student marked absent (teacher app) | `Teacher\AttendanceController::submitAttendance` | Father and mother users | `send_to` 3, user rows | `attendance` |
 | Student leave applied | `Student\LeaveController::applyLeave`, `Parent\LeaveController::applyLeave` | Class teachers of the student's class section | `send_to` 3, user rows | `leave` |
-| Student leave approved / rejected | `LeaveController::studentLeaveStatusUpdate`, `Teacher\LeaveController::studentLeaveStatusUpdate` | The student's parents | `send_to` 3, user rows | `leave` |
+| Student leave approved / rejected | `Leave\StudentLeaveController::studentLeaveStatusUpdate`, `Teacher\LeaveController::studentLeaveStatusUpdate` | The student's parents | `send_to` 3, user rows | `leave` |
 | Chat message | `sendMessage` in the three API controllers | The receiver | none | `chat` (with `sender_info`) |
 | Online payment recorded / failed (webhook) | `WebhookController::notifyParents` | The transaction's parent | `send_to` 2, user row | `online` |
 | App reports a failed payment | `Student\FeesController::failPaymentTransactionStatus` (student user), `Parent\FeesController::failPaymentTransactionStatus` (parent user) | as listed | `send_to` 2, user row | `online` |
