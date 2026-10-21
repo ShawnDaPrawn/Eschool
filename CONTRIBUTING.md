@@ -1,12 +1,13 @@
 # Contributing
 
-This repository is five projects in one checkout. Change the project you mean to change.
+This repository is six projects in one checkout. Change the project you mean to change.
 
 | Directory | What it is | Check before a pull request |
 | --- | --- | --- |
 | `admin-panel/` | Laravel admin panel, public website, and API | `php artisan test` |
 | `e-school/` | Flutter app for students and parents | `flutter analyze --no-fatal-infos` and `flutter test` |
 | `e-school-teacher/` | Flutter app for teachers | `flutter analyze --no-fatal-infos` and `flutter test` |
+| `packages/eschool_core/` | Dart package with the code both Flutter apps share | `flutter analyze --no-fatal-infos` and `flutter test`, then the same in both apps |
 | `documentation/` | End-user documentation site | `npm ci` and `npm run build` |
 | `wiki/` | Developer wiki | Edit the Markdown here. A push to `main` copies `wiki/` over the Wiki tab. |
 

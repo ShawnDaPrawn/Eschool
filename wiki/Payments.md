@@ -6,13 +6,13 @@ For the click-by-click admin steps see the Docusaurus pages [Fee Payment (admin 
 
 | Piece | Where |
 |---|---|
-| Fee setup (types, class fees, installments) | `FeesTypeController`, `SessionYearController` / `SessionYearService` |
+| Fee setup (types, class fees, installments) | `Fees\TypeController`, `Fees\ClassController`, `SessionYearController` / `SessionYearService` |
 | Server-side pricing and recording of online payments | [`FeesPaymentService`](https://github.com/ShawnDaPrawn/Eschool/blob/main/admin-panel/app/Services/Payment/FeesPaymentService.php) |
 | Gateway factory, currency, webhook secrets, amount checks | [`PaymentService`](https://github.com/ShawnDaPrawn/Eschool/blob/main/admin-panel/app/Services/Payment/PaymentService.php) |
 | Gateway adapters | `StripePayment`, `RazorpayPayment`, `PaystackPayment`, `FlutterwavePayment` (all implement `PaymentInterface`) in [`app/Services/Payment`](https://github.com/ShawnDaPrawn/Eschool/tree/main/admin-panel/app/Services/Payment) |
-| App endpoints | `StudentApiController`, `ParentApiController` (`/api/student/*`, `/api/parent/*`) |
+| App endpoints | `Api/Student/FeesController`, `Api/Parent/FeesController` (`/api/student/*`, `/api/parent/*`) |
 | Payment confirmation | [`WebhookController`](https://github.com/ShawnDaPrawn/Eschool/blob/main/admin-panel/app/Http/Controllers/WebhookController.php) (`/webhook/*`) |
-| Offline (cash/cheque) payments, receipts, logs | `FeesTypeController` (admin panel) |
+| Offline (cash/cheque) payments, receipts, logs | `Fees\PaymentController`, `Fees\PaidController`, `Fees\TransactionLogController` (admin panel) |
 | Dashboard and app statistics | [`FeesCollectionService`](https://github.com/ShawnDaPrawn/Eschool/blob/main/admin-panel/app/Services/FeesCollectionService.php), [`FeesReportService`](https://github.com/ShawnDaPrawn/Eschool/blob/main/admin-panel/app/Services/FeesReportService.php) |
 | Tests | [`tests/Feature/PaymentWebhookTest.php`](https://github.com/ShawnDaPrawn/Eschool/blob/main/admin-panel/tests/Feature/PaymentWebhookTest.php), fee cases in `StudentApiSecurityTest` and `ParentApiSecurityTest` |
 
@@ -86,12 +86,12 @@ All are behind `auth:sanctum`. Student routes also have `role:Student` and `stud
 | `POST /api/student/add-fees-transaction`, `POST /api/parent/add-fees-transaction` (CheckChild) | `storeFeesTransaction` | Validates `payment_method` (1-4), `amount`, `type_of_fee` (0-2), optional `optional_fees_data[]` / `installment_data[]` (each `{id: ...}`); refuses a gateway whose `*_status` setting is off; prices, creates the pending transaction and the gateway intent; returns `payment_gateway_details` (the formatted intent plus `payment_transaction_id`). `is_fully_paid` is still accepted from old app builds but ignored. |
 | `POST /api/student/store-fees`, `POST /api/parent/store-fees` (CheckChild) | `storeFees` | Notes `payment_id` and `payment_signature` on the caller's own transaction, only if those columns are still empty. Student: pending transactions only. Parent: pending or succeeded (the webhook often arrives first). It never marks anything paid. |
 | `POST /api/student/fail-payment-transaction`, `POST /api/parent/fail-payment-transaction` | `failPaymentTransactionStatus` | Marks the caller's own **pending** transaction failed (`payment_status` 0) and sends a "Payment Failed" notification. A transaction the webhook has already marked paid is refused. The student version uses a conditional update so a concurrent webhook wins. |
-| `POST /api/student/get-payment-status`, `POST /api/parent/get-payment-status` | `ParentApiController::getPaymentStatus` (both routes) | Stripe only. `payment_intent_id` must match `^pi_[A-Za-z0-9_]+$` and belong to a transaction of the caller (student's own id, or the parent's children); returns the PaymentIntent `status` from Stripe. `StudentApiController::getPaymentStatus` still exists but no route points to it. |
+| `POST /api/student/get-payment-status`, `POST /api/parent/get-payment-status` | `Parent\FeesController::getPaymentStatus` (both routes) | Stripe only. `payment_intent_id` must match `^pi_[A-Za-z0-9_]+$` and belong to a transaction of the caller (student's own id, or the parent's children); returns the PaymentIntent `status` from Stripe. `StudentApiController::getPaymentStatus` still exists but no route points to it. |
 | `GET fees-paid-list` | `feesPaidList` | `fees_paids` rows: the student's for the current session year; the child's for every session year on the parent API. |
 | `GET fees-paid-receipt-pdf` | `feesPaidReceiptPDF` | Base64 PDF (`fees.fees_receipt` view). Parent: requires `fees_paid_id` of one of their children. Student: uses the student's first `fees_paids` row. |
 | `GET fees-transactions-list` | `getFeesPaymentTransactions` | Paginated (15) `payment_transactions`, optional `session_year_id` (parent: optional `child_id`, else all the parent's children); also expires pending transactions older than one hour. |
 | `GET fees-report` | `getFeesReport` | `FeesReportService::getStatistics()` (see [Reporting](#reporting-services)). |
-| `GET /api/student/send-fee-notification` | `StudentApiController::sendFeeNotification` | Pushes "Fees are dues" (type `fees-due`, `child_id` in the data) to the student's parents. See [Notifications](Notifications). |
+| `GET /api/student/send-fee-notification` | `Student\FeesController::sendFeeNotification` | Pushes "Fees are dues" (type `fees-due`, `child_id` in the data) to the student's parents. See [Notifications](Notifications). |
 
 The app sends `payment_method` as 1 Razorpay, 2 Stripe, 3 Paystack, 4 Flutterwave. Paystack and Flutterwave are opened in a WebView at the gateway URL; the WebView watches for the paths `/response/paystack/success` and `/response/flutterwave/success`, which `WebhookController::paystackSuccessCallback()` / `flutterwaveSuccessCallback()` answer with a fixed JSON message. Those landing routes change nothing.
 
@@ -168,7 +168,7 @@ The admin panel's **Fees > Fees Paid** page (`fees.paid.index`, view `fees/fees_
 
 Unlike the app endpoints, staff-entered amounts are taken from the request (staff are trusted). Both store methods require the student to have a father or guardian (`no_parent_or_guardian_assigned` otherwise), because `payment_transactions.parent_id` and `paid_installment_fees.parent_id` reference `parents`. Both send a "Payment Success" push with type `Online` to that parent, even for cash.
 
-Other fee pages (all in `FeesTypeController`, views in `resources/views/fees/`):
+Other fee pages (all in the `Fees\` controllers, views in `resources/views/fees/`):
 
 | Page | Routes | Permission |
 |---|---|---|
@@ -179,7 +179,7 @@ Other fee pages (all in `FeesTypeController`, views in `resources/views/fees/`):
 
 ## Settings reference
 
-Everything below is stored only in the `settings` table (`type`/`message` pairs, read with `getSettings()`). The fees configuration page (`FeesTypeController::feesConfigUpdate`, view `fees/fees_config.blade.php`) writes the gateway keys there. It no longer copies anything into `.env`: commit `e13ac7d` removed the `changeEnv()` helper, so the checkout and the webhooks read the same settings rows. A gateway's keys are only saved while its status is 1, and `required_if:<gateway>_status,1` makes its keys, webhook secret, webhook URL and currency mandatory when enabling it. With `DEMO_MODE=true` (`config('app.demo_mode')`) the form shows `x` placeholders instead of the stored keys.
+Everything below is stored only in the `settings` table (`type`/`message` pairs, read with `getSettings()`). The fees configuration page (`Fees\ConfigController::feesConfigUpdate`, view `fees/fees_config.blade.php`) writes the gateway keys there. It no longer copies anything into `.env`: commit `e13ac7d` removed the `changeEnv()` helper, so the checkout and the webhooks read the same settings rows. A gateway's keys are only saved while its status is 1, and `required_if:<gateway>_status,1` makes its keys, webhook secret, webhook URL and currency mandatory when enabling it. With `DEMO_MODE=true` (`config('app.demo_mode')`) the form shows `x` placeholders instead of the stored keys.
 
 | Setting key | Written by | `.env` fallback (only when the setting is empty) | Used by |
 |---|---|---|---|

@@ -1,9 +1,8 @@
-import 'dart:io';
 import 'package:dio/dio.dart';
+import 'package:eschool_core/eschool_core.dart';
 import 'package:eschool_teacher/app/routes.dart';
 import 'package:eschool_teacher/cubits/authCubit.dart';
 import 'package:eschool_teacher/utils/constants.dart';
-import 'package:eschool_teacher/utils/errorMessageKeysAndCodes.dart';
 import 'package:eschool_teacher/utils/hiveBoxKeys.dart';
 import 'package:eschool_teacher/utils/notificationUtils/generalNotificationUtility.dart';
 import 'package:eschool_teacher/utils/uiUtils.dart';
@@ -11,37 +10,16 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 
-class ApiException implements Exception {
-  ApiException(this.errorMessage, {this.isApiMessage = false});
-  String errorMessage;
-  bool
-  isApiMessage; //if it's a message from api and not a code to be translated
-
-  @override
-  String toString() {
-    return errorMessage;
-  }
-
-  factory ApiException.fromException(Object exception) {
-    if (exception is ApiException) {
-      return exception;
-    } else {
-      return ApiException(exception.toString());
-    }
-  }
-}
+export 'package:eschool_core/eschool_core.dart' show ApiException;
 
 // ignore: avoid_classes_with_only_static_members
 class Api {
-  static Map<String, dynamic> headers() {
-    final String jwtToken = Hive.box(authBoxKey).get(jwtTokenKey) ?? '';
+  static final ApiClient _client = ApiClient(
+    authToken: () => Hive.box(authBoxKey).get(jwtTokenKey) ?? '',
+    onUnauthorized: logoutUser,
+  );
 
-    return {
-      'Authorization': 'Bearer $jwtToken',
-      // Without it the server may answer an expired token with a redirect instead of 401.
-      'Accept': 'application/json',
-    };
-  }
+  static Map<String, dynamic> headers() => _client.headers();
 
   //
   //Teacher app apis
@@ -155,140 +133,37 @@ class Api {
     CancelToken? cancelToken,
     Function(int, int)? onSendProgress,
     Function(int, int)? onReceiveProgress,
-  }) async {
-    try {
-      final Dio dio = Dio();
-      final FormData formData = FormData.fromMap(
-        body,
-        ListFormat.multiCompatible,
-      );
-
-      debugPrint('API Called POST: $url');
-
-      final response = await dio.post(
-        url,
-        data: formData,
-        queryParameters: queryParameters,
-        cancelToken: cancelToken,
-        onReceiveProgress: onReceiveProgress,
-        onSendProgress: onSendProgress,
-        options: useAuthToken ? Options(headers: headers()) : null,
-      );
-
-      if (response.data['error']) {
-        if (response.data['code'] == null && response.data['message'] != null) {
-          throw ApiException(
-            response.data['message'].toString(),
-            isApiMessage: true,
-          );
-        } else {
-          throw ApiException(response.data['code'].toString());
-        }
-      }
-      return Map.from(response.data);
-    } on DioException catch (e) {
-      if (e.response?.statusCode == 401) {
-        logoutUser();
-        throw ApiException(ErrorMessageKeysAndCode.unauthorizedAccessCode);
-      }
-      if (e.response?.statusCode == 503 || e.response?.statusCode == 500) {
-        throw ApiException(ErrorMessageKeysAndCode.internetServerErrorCode);
-      }
-      throw ApiException(
-        e.error is SocketException
-            ? ErrorMessageKeysAndCode.noInternetCode
-            : ErrorMessageKeysAndCode.defaultErrorMessageCode,
-      );
-    } on ApiException {
-      rethrow;
-    } catch (e) {
-      throw ApiException(ErrorMessageKeysAndCode.defaultErrorMessageKey);
-    }
-  }
+  }) => _client.post(
+    body: body,
+    url: url,
+    useAuthToken: useAuthToken,
+    queryParameters: queryParameters,
+    cancelToken: cancelToken,
+    onSendProgress: onSendProgress,
+    onReceiveProgress: onReceiveProgress,
+  );
 
   static Future<Map<String, dynamic>> get({
     required String url,
     required bool useAuthToken,
     Map<String, dynamic>? queryParameters,
-  }) async {
-    try {
-      //
-      final Dio dio = Dio();
-
-      debugPrint('API Called GET: $url');
-
-      final response = await dio.get(
-        url,
-        queryParameters: queryParameters,
-        options: useAuthToken ? Options(headers: headers()) : null,
-      );
-
-      if (response.data['error']) {
-        if (response.data['code'] == null && response.data['message'] != null) {
-          throw ApiException(
-            response.data['message'].toString(),
-            isApiMessage: true,
-          );
-        } else {
-          throw ApiException(response.data['code'].toString());
-        }
-      }
-      return Map.from(response.data);
-    } on DioException catch (e) {
-      if (e.response?.statusCode == 401) {
-        logoutUser();
-        throw ApiException(ErrorMessageKeysAndCode.unauthorizedAccessCode);
-      }
-      if (e.response?.statusCode == 503 || e.response?.statusCode == 500) {
-        throw ApiException(ErrorMessageKeysAndCode.internetServerErrorCode);
-      }
-      throw ApiException(
-        e.error is SocketException
-            ? ErrorMessageKeysAndCode.noInternetCode
-            : ErrorMessageKeysAndCode.defaultErrorMessageCode,
-      );
-    } on ApiException {
-      rethrow;
-    } catch (e) {
-      throw ApiException(ErrorMessageKeysAndCode.defaultErrorMessageKey);
-    }
-  }
+  }) => _client.get(
+    url: url,
+    useAuthToken: useAuthToken,
+    queryParameters: queryParameters,
+  );
 
   static Future<void> download({
     required String url,
     required CancelToken cancelToken,
     required String savePath,
     required Function updateDownloadedPercentage,
-  }) async {
-    try {
-      final Dio dio = Dio();
-      await dio.download(
-        url,
-        savePath,
-        cancelToken: cancelToken,
-        onReceiveProgress: (count, total) {
-          final double percentage = (count / total) * 100;
-          updateDownloadedPercentage(percentage < 0.0 ? 99.0 : percentage);
-        },
-      );
-    } on DioException catch (e) {
-      if (e.response?.statusCode == 503 || e.response?.statusCode == 500) {
-        throw ApiException(ErrorMessageKeysAndCode.internetServerErrorCode);
-      }
-      if (e.response?.statusCode == 404) {
-        throw ApiException(ErrorMessageKeysAndCode.fileNotFoundErrorCode);
-      }
-      throw ApiException(
-        e.error is SocketException
-            ? ErrorMessageKeysAndCode.noInternetCode
-            : ErrorMessageKeysAndCode.defaultErrorMessageCode,
-      );
-    } on ApiException catch (e) {
-      throw ApiException(e.errorMessage);
-    } catch (e) {
-      throw ApiException(ErrorMessageKeysAndCode.defaultErrorMessageKey);
-    }
-  }
+  }) => _client.download(
+    url: url,
+    cancelToken: cancelToken,
+    savePath: savePath,
+    updateDownloadedPercentage: updateDownloadedPercentage,
+  );
 
   //logout the user on 401 error
   static bool isLoggingOut = false;

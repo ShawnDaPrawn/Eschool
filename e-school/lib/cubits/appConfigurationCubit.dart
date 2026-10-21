@@ -2,7 +2,7 @@ import 'dart:io';
 
 import 'package:equatable/equatable.dart';
 import 'package:eschool/data/models/appConfiguration.dart';
-import 'package:eschool/data/models/chatSettings.dart';
+import 'package:eschool_core/eschool_core.dart';
 import 'package:eschool/data/models/paymentOptions.dart';
 import 'package:eschool/data/repositories/systemInfoRepository.dart';
 

@@ -74,6 +74,58 @@ class ApiRegressionTest extends TestCase
         $this->assertSame([$id['asha'] => 45, $id['ben'] => 25], $marks);
     }
 
+    public function test_a_batch_of_marks_with_an_ungradable_row_saves_none_of_it(): void
+    {
+        $id = self::$school->ids;
+        $science = ExamTimetable::where(['exam_id' => $id['unit_test'], 'subject_id' => $id['science']])->firstOrFail();
+        $before = fn () => ExamMarks::where('exam_timetable_id', $science->id)->pluck('obtained_marks', 'student_id')->all();
+        $saved = $before();
+
+        // No grade covers 0 to 49%, so Ben's 5 out of 50 can't be graded. Asha's row, which
+        // comes first and already has marks, used to be saved before his was refused.
+        $band = DB::table('grades')->where('starting_range', 0)->first();
+        DB::table('grades')->where('starting_range', 0)->delete();
+        try {
+            $response = $this->apiClient(self::$school->tokens['tara'])->post('/api/teacher/submit-exam-marks/subject', [
+                'class_section_id' => $id['section_a'], 'exam_id' => $id['unit_test'], 'subject_id' => $id['science'],
+                'marks_data' => [['student_id' => $id['asha'], 'obtained_marks' => 40], ['student_id' => $id['ben'], 'obtained_marks' => 5]],
+            ]);
+        } finally {
+            DB::table('grades')->insert((array) $band);
+        }
+
+        $this->assertTrue($response->json('error'), $response->body());
+        $this->assertSame($saved, $before());
+    }
+
+    public function test_marks_for_one_student_with_an_ungradable_subject_save_none_of_it(): void
+    {
+        $id = self::$school->ids;
+        $science = ExamTimetable::where(['exam_id' => $id['unit_test'], 'subject_id' => $id['science']])->firstOrFail();
+        $maths = ExamTimetable::forceCreate([
+            'exam_id' => $id['unit_test'], 'class_id' => $science->class_id, 'subject_id' => $id['maths'], 'total_marks' => 50,
+            'passing_marks' => 20, 'date' => $science->date, 'start_time' => '09:00:00', 'end_time' => '10:00:00', 'session_year_id' => 1,
+        ]);
+        $before = fn () => ExamMarks::whereIn('exam_timetable_id', [$science->id, $maths->id])
+            ->where('student_id', $id['asha'])->pluck('obtained_marks', 'exam_timetable_id')->all();
+        $saved = $before();
+
+        $band = DB::table('grades')->where('starting_range', 0)->first();
+        DB::table('grades')->where('starting_range', 0)->delete();
+        try {
+            $response = $this->apiClient(self::$school->tokens['tara'])->post('/api/teacher/submit-exam-marks/student', [
+                'class_section_id' => $id['section_a'], 'exam_id' => $id['unit_test'], 'student_id' => $id['asha'],
+                'marks_data' => [['subject_id' => $id['science'], 'obtained_marks' => 33], ['subject_id' => $id['maths'], 'obtained_marks' => 5]],
+            ]);
+        } finally {
+            DB::table('grades')->insert((array) $band);
+            $maths->delete();
+        }
+
+        $this->assertTrue($response->json('error'), $response->body());
+        $this->assertSame($saved, $before());
+    }
+
     public function test_a_lesson_can_be_saved_under_its_own_name(): void
     {
         $id = self::$school->ids;

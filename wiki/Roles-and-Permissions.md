@@ -36,13 +36,13 @@ Columns: **SA** = granted to Super Admin, **T** = granted to Teacher. "Checked i
 | `role-list`, `role-create`, `role-edit`, `role-delete` | Yes | | `RoleController` (constructor `permission:` middleware plus explicit checks) |
 | `staff-list`, `staff-create`, `staff-edit`, `staff-delete` | Yes | | `StaffController` |
 | `attendance-staff` | Yes | | Staff attendance pages in `StaffController` and `AttendanceController` |
-| `setting-create` | Yes | | `SettingController` (general, app and notification settings), `StudentController` (ID-card settings, image removal) |
+| `setting-create` | Yes | | `SettingController` (general, app and notification settings), `Student\IdCardController` (ID-card settings, image removal) |
 | `fcm-setting-create` | Yes | | `SettingController` (Firebase settings) |
 | `email-setting-create` | Yes | | `SettingController` (mail settings), `EmailController` (email templates) |
 | `privacy-policy`, `terms-condition`, `about-us`, `contact-us` | Yes | | `SettingController` pages; `contact-us` also gates the contact-message inbox in `WebSettingController` |
 | `language-list`, `language-create`, `language-edit`, `language-delete` | Yes | | `LanguageController` |
 | `chat-settings` | Yes | | `SettingController` (chat settings, which also covers deleting chat messages) |
-| `id-card-setting` | Yes | | ID-card design settings (`StudentController`) |
+| `id-card-setting` | Yes | | ID-card design settings (`Student\IdCardController`) |
 | `update-admin-profile` | Yes | | Menu only (profile dropdown) |
 
 ### Academic setup
@@ -52,8 +52,8 @@ Columns: **SA** = granted to Super Admin, **T** = granted to Teacher. "Checked i
 | `medium-*`, `section-*`, `class-*`, `subject-*`, `stream-*`, `shift-*` (each `-list`, `-create`, `-edit`, `-delete`) | Yes | | The matching controllers |
 | `semester-list`, `semester-create`, `semester-edit`, `semester-delete` | Yes | | `SemesterController` (`semester-edit` also saves the per-class semester switch) |
 | `session-year-list`, `session-year-create`, `session-year-edit`, `session-year-delete` | Yes | | `SessionYearController`, `StoreSessionYearRequest::authorize()`; `-delete` also clears data and installments |
-| `assign-class-subject` | Yes | | Class subject pages in `ClassSchoolController` |
-| `assign-elective-subjects` | Yes | | Elective assignment in `ClassSchoolController` |
+| `assign-class-subject` | Yes | | Class subject pages in `Classes\SubjectController` |
+| `assign-elective-subjects` | Yes | | Elective assignment in `Classes\ElectiveController` |
 | `class-teacher-list`, `class-teacher-edit`, `class-teacher-delete` | Yes | | `ClassTeacherController` (`-edit` assigns, `-delete` removes) |
 | `class-teacher-create` | Yes | | Menu only |
 | `subject-teacher-list` | Yes | Yes | `SubjectTeacherController` |
@@ -69,17 +69,17 @@ Columns: **SA** = granted to Super Admin, **T** = granted to Teacher. "Checked i
 
 | Permission | SA | T | Checked in |
 |---|---|---|---|
-| `student-list` | Yes | Yes | `StudentController` lists and exports |
-| `student-create`, `student-edit`, `student-delete` | Yes | | `StudentController` |
+| `student-list` | Yes | Yes | `Student\StudentController` and `Student\ReportController` list and export |
+| `student-create`, `student-edit`, `student-delete` | Yes | | `Student\StudentController` |
 | `parents-list`, `parents-edit` | Yes | | `ParentsController` (parents are created and deleted with students, so there is no create/delete permission) |
 | `category-list`, `category-create`, `category-edit`, `category-delete` | Yes | | `CategoryController` |
 | `student-reset-password` | Yes | | Password reset requests from the student app (replaces `reset-password-list` and `student-change-password`) |
 | `promote-student-list`, `promote-student-edit` | Yes | | `StudentSessionController` |
-| `assign-class-to-new-student` | Yes | | `StudentController::assignClass`, `newStudentList`, `assignClass_store` |
-| `online-registration-list` | Yes | | Online admission list, approval and rejection (`StudentController`, `ParentsController`) |
+| `assign-class-to-new-student` | Yes | | `Student\ClassAssignmentController::assignClass`, `newStudentList`, `assignClass_store` |
+| `online-registration-list` | Yes | | Online admission list, approval and rejection (`Student\OnlineRegistrationController`, `ParentsController`) |
 | `form-field-list`, `form-field-create`, `form-field-edit`, `form-field-delete` | Yes | | `FormFieldController` (custom registration fields) |
-| `generate-id-card` | Yes | Yes | Student and staff ID cards (`StudentController`, `StaffController`) |
-| `generate-document` | Yes | | Bonafide and leaving certificates (`StudentController`) |
+| `generate-id-card` | Yes | Yes | Student and staff ID cards (`Student\IdCardController`, `StaffController`) |
+| `generate-document` | Yes | | Bonafide and leaving certificates (`Student\CertificateController`) |
 | `student-report` | Yes | | Menu only (Reports menu) |
 
 ### Attendance, lessons and assignments
@@ -100,21 +100,21 @@ Columns: **SA** = granted to Super Admin, **T** = granted to Teacher. "Checked i
 
 | Permission | SA | T | Checked in |
 |---|---|---|---|
-| `exam-create` | Yes | | Every offline-exam admin action in `ExamController`: create, list, update, delete, publish/unpublish results, remove an exam class |
+| `exam-create` | Yes | | Every offline-exam admin action in `Exam\ExamController` and `Exam\PublishController`: create, list, update, delete, publish/unpublish results, remove an exam class |
 | `exam-list`, `exam-edit`, `exam-delete` | Yes | | Not checked (all gated by `exam-create`) |
 | `exam-timetable-create` | Yes | | `ExamTimetableController` |
-| `grade-create` | Yes | | Grade bands (`ExamController::indexGrades`, `createGrades`, `destroyGrades`) |
-| `exam-upload-marks` | | Yes | Marks entry and correction (`ExamController`) |
-| `exam-result` | | Yes | Class-teacher result view (`ExamController::getExamResultIndex`, `showExamResult`) |
-| `view-exam-result` | Yes | Yes | Exam result list and per-exam result PDF (`ExamController::viewExamResult`, `fetchExamResultList`, `StudentController::generateExamResult`) |
-| `generate-result` | Yes | Yes | Whole-year result PDF (`StudentController::generateResult`) |
+| `grade-create` | Yes | | Grade bands (`Exam\GradeController::indexGrades`, `createGrades`, `destroyGrades`) |
+| `exam-upload-marks` | | Yes | Marks entry and correction (`Exam\MarksController`) |
+| `exam-result` | | Yes | Class-teacher result view (`Exam\ResultController::getExamResultIndex`, `showExamResult`) |
+| `view-exam-result` | Yes | Yes | Exam result list and per-exam result PDF (`Exam\ResultController::viewExamResult`, `fetchExamResultList`, `Student\ResultController::generateExamResult`) |
+| `generate-result` | Yes | Yes | Whole-year result PDF (`Student\ResultController::generateResult`) |
 | `manage-online-exam` | | Yes | Everything in `OnlineExamController` and `OnlineExamQuestionController` |
 
 ### Fees
 
 | Permission | SA | T | Checked in |
 |---|---|---|---|
-| `fees-type` | Yes | | Fee types (`FeesTypeController`) |
+| `fees-type` | Yes | | Fee types (`Fees\TypeController`) |
 | `fees-classes` | Yes | | Fee amounts per class |
 | `fees-paid` | Yes | | Collecting fees, receipts, transaction logs, clearing paid data, dashboard fee widget |
 | `fees-config` | Yes | | Payment gateway and fee configuration |
@@ -125,13 +125,13 @@ Columns: **SA** = granted to Super Admin, **T** = granted to Teacher. "Checked i
 |---|---|---|---|
 | `notification-list`, `notification-create`, `notification-delete` | Yes | | `NotificationController` (there is no edit action) |
 | `leave-setting-create` | Yes | | `LeaveMasterController` (allowed leaves and weekly holidays) |
-| `leave-create` | | Yes | Applying for leave (`LeaveController::index`, `store`) |
+| `leave-create` | | Yes | Applying for leave (`Leave\LeaveController::index`, `store`) |
 | `leave-edit` | | Yes | Menu only |
-| `leave-delete` | Yes | Yes | `LeaveController::destroy` |
+| `leave-delete` | Yes | Yes | `Leave\LeaveController::destroy` |
 | `leave-list` | Yes | Yes | Own leave list, leave report, dashboard widget |
-| `leave-approve` | Yes | | Approving staff and teacher leave requests (`LeaveController::leaveRequestIndex`, `leaveStatusUpdate`) |
-| `student-leave-approve` | Yes | Yes | Student leave requests (`LeaveController`, teacher API); also granted directly to class teachers |
-| `staff-leave-list` | | Yes | `LeaveController::staffLeaveIndex`, `staffLeaveList` |
+| `leave-approve` | Yes | | Approving staff and teacher leave requests (`Leave\RequestController::leaveRequestIndex`, `leaveStatusUpdate`) |
+| `student-leave-approve` | Yes | Yes | Student leave requests (`Leave\StudentLeaveController`, teacher API); also granted directly to class teachers |
+| `staff-leave-list` | | Yes | `Leave\StaffLeaveController::staffLeaveIndex`, `staffLeaveList` |
 | `slider-*`, `event-*`, `program-*`, `media-*`, `faq-*` (list/create/edit/delete) | Yes | | `SliderController`, `EventController`, `WebSettingController`, `MediaController` |
 | `content-create`, `content-edit` | Yes | | Website section content (`WebSettingController`) |
 | `content-list` | Yes | | Not checked |
@@ -163,7 +163,7 @@ Other forms in use:
 |---|---|
 | `$this->middleware('permission:role-list\|role-create\|...', ['only' => [...]])` | `RoleController` constructor |
 | `Auth::user()->canAny([...])` | `MediumController`, `SliderController`, `FormFieldController`, `EventController`, `StaffController` (ID cards), `SemesterController::getClassConfig` |
-| `ResponseService::noPermissionThenSendJson('perm')` | Teacher API (assignments, lessons, topics, announcements, attendance), `ClassSchoolController`, `HomeController` widgets. Sends the JSON error and calls `exit()` |
+| `ResponseService::noPermissionThenSendJson('perm')` | Teacher API (assignments, lessons, topics, announcements, attendance), the `Classes\` controllers, `HomeController` widgets. Sends the JSON error and calls `exit()` |
 | `ResponseService::noPermissionThenRedirect('perm')` | Redirects to `home` with `no_permission_message` and `send()`s immediately |
 | `ResponseService::noAnyPermissionThenSendJson([...])` | Teacher API `submitAttendance` (`attendance-create` or `attendance-edit`) |
 | `$user->hasRole('Super Admin')` | `SystemUpdateController`, dashboard branches, a few list pages |
@@ -190,7 +190,7 @@ All authenticated API groups use Sanctum tokens (`auth:sanctum`) plus spatie's `
 | `POST /api/student/login`, `forgot-password` | `throttle:login` | Login refuses non-students, `users.status != 1`, and students with no active `student_sessions` row for the current year before issuing a token |
 | `/api/student/*` | `auth:sanctum`, `role:Student`, `student.session.active` | Queries are built from the caller's own student record; online exam, elective, topic, announcement and submission endpoints are limited to the student's class and subjects |
 | `POST /api/parent/login` | `throttle:login` | Refuses non-parents |
-| `/api/parent/*` | `auth:sanctum`, `role:Parent`, `parent.children.session.active` | Child-specific routes add `CheckChild`; others resolve children through `ParentApiController::resolveChild()` / `parentChildIds()` |
+| `/api/parent/*` | `auth:sanctum`, `role:Parent`, `parent.children.session.active` | Child-specific routes add `CheckChild`; others resolve children through `Parent\Concerns\ParentAccess::resolveChild()` / `parentChildIds()` |
 | `POST /api/teacher/login` | `throttle:login` | Refuses non-teachers |
 | `/api/teacher/*` | `auth:sanctum`, `role:Teacher` | Permission checks (`noPermissionThenSendJson`) plus ownership helpers; `get-student-result` and `get-student-marks` add `CheckStudent` |
 | `POST /api/logout`, `POST /api/change-password` | `auth:sanctum` | |
@@ -208,8 +208,8 @@ The API group also has the default `throttle:api` limiter: 60 requests a minute 
 
 Permissions say what kind of action a teacher may take; ownership rules say on which records.
 
-- **Teacher API** (`TeacherApiController`): `currentTeacher()` refuses a Teacher-role user with no `teachers` row (JSON error with `code` 403). `isClassTeacherOf($classSectionId)` and `teachesSubject($classSectionId, $subjectId, $semesterId)` check the current session year. `teacherClassSectionIds()` is the union of class-teacher and subject-teacher sections; `teachesStudent($studentId)` intersects it with the student's sections. Rules applied with them: student details, guardian contacts and result PDFs only for students the teacher teaches; attendance only as class teacher of that section; marks only as class teacher or subject teacher, for students in the section, within 0 and the paper's total, and not after the exam is published; student leave approval only as the student's class teacher and with `student-leave-approve`; lessons, topics, assignments, submissions and announcements through the model ownership scopes; files only when attached to the teacher's own lessons, topics, assignments, announcements or leaves (`canManageFile()`); live-class links only on the teacher's own periods; chat only with the teacher's students, their parents or people who already wrote to them (`canChatWith()`).
-- **Admin panel**: model scopes such as `Lesson::lessonTeachers`, `Assignment::assignmentTeachers`, `ClassSection::subjectTeacher` and `SubjectTeacher::subjectTeacher` (listed on [Database Schema](Database-Schema#scoping-summary)) narrow lists for Teacher-role users. `ExamController::teacherMarksClassSectionIds()` limits marks entry and correction to sections the teacher class-teaches or teaches the subject in, and existing marks rows can only be overwritten for the same timetable and student.
+- **Teacher API** (`Teacher\Concerns\TeacherAccess` trait, used by the `Teacher\` controllers): `currentTeacher()` refuses a Teacher-role user with no `teachers` row (JSON error with `code` 403). `isClassTeacherOf($classSectionId)` and `teachesSubject($classSectionId, $subjectId, $semesterId)` check the current session year. `teacherClassSectionIds()` is the union of class-teacher and subject-teacher sections; `teachesStudent($studentId)` intersects it with the student's sections. Rules applied with them: student details, guardian contacts and result PDFs only for students the teacher teaches; attendance only as class teacher of that section; marks only as class teacher or subject teacher, for students in the section, within 0 and the paper's total, and not after the exam is published; student leave approval only as the student's class teacher and with `student-leave-approve`; lessons, topics, assignments, submissions and announcements through the model ownership scopes; files only when attached to the teacher's own lessons, topics, assignments, announcements or leaves (`canManageFile()`); live-class links only on the teacher's own periods; chat only with the teacher's students, their parents or people who already wrote to them (`canChatWith()`).
+- **Admin panel**: model scopes such as `Lesson::lessonTeachers`, `Assignment::assignmentTeachers`, `ClassSection::subjectTeacher` and `SubjectTeacher::subjectTeacher` (listed on [Database Schema](Database-Schema#scoping-summary)) narrow lists for Teacher-role users. `Exam\MarksController::teacherMarksClassSectionIds()` limits marks entry and correction to sections the teacher class-teaches or teaches the subject in, and existing marks rows can only be overwritten for the same timetable and student.
 - **Parent API**: every endpoint resolves the child through the parent's own children; fee receipts, payment status, failing a transaction and paying fees only work on the parent's own children's transactions; chat only with the child's teachers; online exam results and lesson topics are limited to the child's classes.
 
 ## Custom roles (RoleController)

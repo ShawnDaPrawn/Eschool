@@ -1,0 +1,270 @@
+import 'dart:convert';
+import 'dart:io';
+import 'dart:typed_data';
+
+import 'package:dio/dio.dart';
+import 'package:eschool_core/eschool_core.dart';
+import 'package:flutter_test/flutter_test.dart';
+
+/// Answers every request with [respond], and remembers the requests it saw.
+class _FakeAdapter implements HttpClientAdapter {
+  _FakeAdapter(this.respond);
+
+  final Future<ResponseBody> Function(RequestOptions options) respond;
+  final List<RequestOptions> requests = [];
+
+  @override
+  Future<ResponseBody> fetch(
+    RequestOptions options,
+    Stream<Uint8List>? requestStream,
+    Future<void>? cancelFuture,
+  ) {
+    requests.add(options);
+    return respond(options);
+  }
+
+  @override
+  void close({bool force = false}) {}
+}
+
+ResponseBody _json(Object body, {int status = 200}) {
+  return ResponseBody.fromString(
+    jsonEncode(body),
+    status,
+    headers: {
+      Headers.contentTypeHeader: [Headers.jsonContentType],
+    },
+  );
+}
+
+void main() {
+  late int unauthorizedCalls;
+  late _FakeAdapter adapter;
+  late ApiClient client;
+
+  void useServer(Future<ResponseBody> Function(RequestOptions) respond) {
+    adapter = _FakeAdapter(respond);
+    client = ApiClient(
+      authToken: () => 'secret-token',
+      onUnauthorized: () => unauthorizedCalls++,
+      createDio: () => Dio()..httpClientAdapter = adapter,
+    );
+  }
+
+  setUp(() {
+    unauthorizedCalls = 0;
+    useServer((_) async => _json({'error': false, 'data': 'ok'}));
+  });
+
+  Future<ApiException> failure(Future<Object?> call) async {
+    try {
+      await call;
+    } on ApiException catch (e) {
+      return e;
+    }
+    fail('expected an ApiException');
+  }
+
+  test('headers carry the signed-in token and ask for JSON', () {
+    // Accept: application/json makes the server answer an expired token with 401.
+    expect(client.headers(), {
+      'Authorization': 'Bearer secret-token',
+      'Accept': 'application/json',
+    });
+  });
+
+  group('post', () {
+    test(
+      'returns the response and sends the token only when asked to',
+      () async {
+        final result = await client.post(
+          body: {'a': 1},
+          url: 'https://school.test/api/x',
+          useAuthToken: true,
+        );
+        await client.post(
+          body: {'a': 1},
+          url: 'https://school.test/api/x',
+          useAuthToken: false,
+        );
+
+        expect(result['data'], 'ok');
+        expect(
+          adapter.requests[0].headers['Authorization'],
+          'Bearer secret-token',
+        );
+        expect(
+          adapter.requests[1].headers.containsKey('Authorization'),
+          isFalse,
+        );
+      },
+    );
+
+    test('a message from the server is shown as it is', () async {
+      useServer(
+        (_) async => _json({'error': true, 'message': 'Wrong password'}),
+      );
+
+      final e = await failure(
+        client.post(
+          body: {},
+          url: 'https://school.test/x',
+          useAuthToken: false,
+        ),
+      );
+
+      expect(e.errorMessage, 'Wrong password');
+      expect(e.isApiMessage, isTrue);
+    });
+
+    test('a code from the server is left to be translated', () async {
+      useServer(
+        (_) async => _json({'error': true, 'code': 103, 'message': 'ignored'}),
+      );
+
+      final e = await failure(
+        client.post(
+          body: {},
+          url: 'https://school.test/x',
+          useAuthToken: false,
+        ),
+      );
+
+      expect(e.errorMessage, '103');
+      expect(e.isApiMessage, isFalse);
+    });
+
+    test('401 tells the app once and reports unauthorized access', () async {
+      useServer((_) async => _json({'error': true}, status: 401));
+
+      final e = await failure(
+        client.post(body: {}, url: 'https://school.test/x', useAuthToken: true),
+      );
+
+      expect(e.errorMessage, ApiErrorCodes.unauthorizedAccess);
+      expect(unauthorizedCalls, 1);
+    });
+
+    test('500 and 503 report a server error', () async {
+      for (final status in [500, 503]) {
+        useServer((_) async => _json({'error': true}, status: status));
+
+        final e = await failure(
+          client.post(
+            body: {},
+            url: 'https://school.test/x',
+            useAuthToken: true,
+          ),
+        );
+
+        expect(e.errorMessage, ApiErrorCodes.internetServerError);
+      }
+      expect(unauthorizedCalls, 0);
+    });
+
+    test('no connection is told apart from other failures', () async {
+      useServer(
+        (options) async => throw DioException(
+          requestOptions: options,
+          error: const SocketException('offline'),
+          type: DioExceptionType.connectionError,
+        ),
+      );
+      final offline = await failure(
+        client.post(body: {}, url: 'https://school.test/x', useAuthToken: true),
+      );
+
+      useServer(
+        (options) async => throw DioException(
+          requestOptions: options,
+          type: DioExceptionType.connectionTimeout,
+        ),
+      );
+      final other = await failure(
+        client.post(body: {}, url: 'https://school.test/x', useAuthToken: true),
+      );
+
+      expect(offline.errorMessage, ApiErrorCodes.noInternet);
+      expect(other.errorMessage, ApiErrorCodes.defaultError);
+    });
+
+    test('a reply that is not the expected shape is a default error', () async {
+      useServer(
+        (_) async => ResponseBody.fromString(
+          '"just text"',
+          200,
+          headers: {
+            Headers.contentTypeHeader: [Headers.jsonContentType],
+          },
+        ),
+      );
+
+      final e = await failure(
+        client.post(body: {}, url: 'https://school.test/x', useAuthToken: true),
+      );
+
+      expect(e.errorMessage, ApiErrorCodes.defaultErrorMessageKey);
+    });
+  });
+
+  group('get', () {
+    test('returns the response and passes the query', () async {
+      final result = await client.get(
+        url: 'https://school.test/api/x',
+        useAuthToken: true,
+        queryParameters: {'page': 2},
+      );
+
+      expect(result['data'], 'ok');
+      expect(adapter.requests.single.queryParameters, {'page': 2});
+      expect(adapter.requests.single.method, 'GET');
+    });
+
+    test('401 tells the app', () async {
+      useServer((_) async => _json({'error': true}, status: 401));
+
+      final e = await failure(
+        client.get(url: 'https://school.test/x', useAuthToken: true),
+      );
+
+      expect(e.errorMessage, ApiErrorCodes.unauthorizedAccess);
+      expect(unauthorizedCalls, 1);
+    });
+  });
+
+  group('download', () {
+    test(
+      'a missing file is reported as not found, without logging out',
+      () async {
+        useServer((_) async => _json({'error': true}, status: 404));
+
+        final e = await failure(
+          client.download(
+            url: 'https://school.test/file.pdf',
+            cancelToken: CancelToken(),
+            savePath: '${Directory.systemTemp.path}/never-written.pdf',
+            updateDownloadedPercentage: (_) {},
+          ),
+        );
+
+        expect(e.errorMessage, ApiErrorCodes.fileNotFound);
+        expect(unauthorizedCalls, 0);
+      },
+    );
+
+    test('a server error is reported as one', () async {
+      useServer((_) async => _json({'error': true}, status: 500));
+
+      final e = await failure(
+        client.download(
+          url: 'https://school.test/file.pdf',
+          cancelToken: CancelToken(),
+          savePath: '${Directory.systemTemp.path}/never-written.pdf',
+          updateDownloadedPercentage: (_) {},
+        ),
+      );
+
+      expect(e.errorMessage, ApiErrorCodes.internetServerError);
+    });
+  });
+}

@@ -1,7 +1,9 @@
 import 'package:eschool_teacher/utils/labelKeys.dart';
+import 'package:eschool_core/eschool_core.dart';
 
 class ErrorMessageKeysAndCode {
-  static const String defaultErrorMessageKey = 'defaultErrorMessage';
+  static const String defaultErrorMessageKey =
+      ApiErrorCodes.defaultErrorMessageKey;
   static const String noInternetKey = 'noInternet';
   static const String internetServerErrorKey = 'internetServerError';
   static const String invalidLogInCredentialsKey = 'invalidLogInCredentials';
@@ -20,12 +22,13 @@ class ErrorMessageKeysAndCode {
   static String nameAlreadyTakenKey = 'nameAlreadyTaken';
 
   //These are ui side error codes
-  static const String internetServerErrorCode = '500';
-  static const String unauthorizedAccessCode = '401';
-  static const String fileNotFoundErrorCode = '404';
+  static const String internetServerErrorCode =
+      ApiErrorCodes.internetServerError;
+  static const String unauthorizedAccessCode = ApiErrorCodes.unauthorizedAccess;
+  static const String fileNotFoundErrorCode = ApiErrorCodes.fileNotFound;
   static const String permissionNotGivenCode = '300';
-  static const String noInternetCode = '301';
-  static const String defaultErrorMessageCode = '302';
+  static const String noInternetCode = ApiErrorCodes.noInternet;
+  static const String defaultErrorMessageCode = ApiErrorCodes.defaultError;
 
   static String getErrorMessageKeyFromCode(String errorCode) {
     //

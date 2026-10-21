@@ -1,4 +1,4 @@
-This page documents every endpoint under `/api/teacher/`, all served by [`TeacherApiController.php`](https://github.com/ShawnDaPrawn/Eschool/blob/main/admin-panel/app/Http/Controllers/Api/TeacherApiController.php) and used by the `e-school-teacher` Flutter app. It starts with how the controller decides which classes, subjects, students and records a teacher may touch, because that is the part most changes have to respect. The master route index for all API groups is on [API-Overview](API-Overview#master-route-index).
+This page documents every endpoint under `/api/teacher/`, all served by the controllers in [`Api/Teacher/`](https://github.com/ShawnDaPrawn/Eschool/tree/main/admin-panel/app/Http/Controllers/Api/Teacher), one per area (auth, dashboard, classes, assignments, lessons, announcements, attendance, timetable, exams, chat, leaves, calendar, notifications) and used by the `e-school-teacher` Flutter app. It starts with how the controller decides which classes, subjects, students and records a teacher may touch, because that is the part most changes have to respect. The master route index for all API groups is on [API-Overview](API-Overview#master-route-index).
 
 ## How teacher scope is determined
 
@@ -13,7 +13,7 @@ A teacher is linked to classes through two tables. Nearly every scope check in t
 
 ### Controller helpers
 
-These private methods in `TeacherApiController` hold the scope rules. They were added in commit `77fe8ed` ("Limit teacher API actions to the teacher's own classes and subjects"). Before that commit, most endpoints accepted any `class_section_id`, `student_id` or record id.
+These private methods hold the scope rules. The shared ones (`currentTeacher()` through `applySemesterFilter()`) are in the `Teacher\Concerns\TeacherAccess` trait that every `Teacher\` controller uses; `canManageFile()` is in `LessonController`, `canChatWith()` in `ChatController`, and `obtainedMarksOutOfRange()` in `ExamController`. They were added in commit `77fe8ed` ("Limit teacher API actions to the teacher's own classes and subjects"). Before that commit, most endpoints accepted any `class_section_id`, `student_id` or record id.
 
 | Helper | Rule |
 |---|---|

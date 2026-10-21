@@ -3,7 +3,7 @@ import 'package:eschool_teacher/data/models/assignment.dart';
 import 'package:eschool_teacher/data/models/reviewAssignmentssubmition.dart';
 import 'package:eschool_teacher/ui/widgets/bottomSheetTextFieldContainer.dart';
 import 'package:eschool_teacher/ui/widgets/bottomSheetTopBarMenu.dart';
-import 'package:eschool_teacher/ui/widgets/customCircularProgressIndicator.dart';
+import 'package:eschool_core/eschool_core.dart';
 import 'package:eschool_teacher/ui/widgets/customRoundedButton.dart';
 import 'package:eschool_teacher/utils/labelKeys.dart';
 import 'package:eschool_teacher/utils/uiUtils.dart';

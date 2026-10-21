@@ -4,7 +4,7 @@ import 'package:eschool_teacher/cubits/updateTimetableLinkCubit.dart';
 import 'package:eschool_teacher/data/models/timeTableSlot.dart';
 import 'package:eschool_teacher/ui/widgets/bottomSheetTextFieldContainer.dart';
 import 'package:eschool_teacher/ui/widgets/bottomSheetTopBarMenu.dart';
-import 'package:eschool_teacher/ui/widgets/customCircularProgressIndicator.dart';
+import 'package:eschool_core/eschool_core.dart';
 import 'package:eschool_teacher/utils/labelKeys.dart';
 import 'package:eschool_teacher/utils/uiUtils.dart';
 import 'package:flutter/material.dart';

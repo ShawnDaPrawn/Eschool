@@ -1,8 +1,7 @@
 import 'dart:convert';
 
 import 'package:eschool_teacher/data/models/event.dart';
-import 'package:eschool_teacher/data/models/eventSchedule.dart';
-import 'package:eschool_teacher/data/models/galleryAlbum.dart';
+import 'package:eschool_core/eschool_core.dart';
 import 'package:eschool_teacher/data/models/holiday.dart';
 import 'package:eschool_teacher/data/models/sessionYear.dart';
 import 'package:eschool_teacher/utils/api.dart';
