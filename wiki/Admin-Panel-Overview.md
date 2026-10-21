@@ -42,9 +42,9 @@ flowchart TD
 3. The installer's service provider prepends `ToInstallMiddleware` to the `web` group. Until `storage/installed` exists, every web route except `install/*` redirects to the wizard (see [Installation-Wizard](Installation-Wizard)).
 4. Global middleware runs, then the route's group (`web` or `api`), then route middleware.
 5. Controllers do most authorisation themselves: almost every action starts with `if (! Auth::user()->can('some-permission'))` and returns a redirect or JSON error.
-6. The response is a Blade view, a redirect with flashed `success`/errors, or JSON. API controllers send JSON through `ResponseService`, which calls `exit()` (see [ResponseService conventions](#responseservice-conventions)).
+6. The response is a Blade view, a redirect with flashed `success`/errors, or JSON. API controllers return JSON built by `ResponseService` (see [ResponseService conventions](#responseservice-conventions)).
 
-`App\Providers\RouteServiceProvider` is still registered through `config/app.php`. It defines the rate limiters and `HOME = '/home'`, and its `boot()` also calls `$this->routes(...)` for `routes/api.php` and `routes/web.php`, so the route files are loaded more than once. Later definitions overwrite earlier ones with the same method and URI, so the result is the same route table.
+`App\Providers\RouteServiceProvider` is still registered through `config/app.php`. It defines the rate limiters and `HOME = '/home'`. The route files are registered once, by `withRouting()` in `bootstrap/app.php` (until Phase 0 the provider's `boot()` loaded them a second time).
 
 Rate limiters defined in [RouteServiceProvider.php](https://github.com/ShawnDaPrawn/Eschool/blob/main/admin-panel/app/Providers/RouteServiceProvider.php):
 
@@ -159,7 +159,7 @@ Route-level usage, in short (details in [Security-Model](Security-Model) and [AP
 | `app/Http/Middleware` | See the table above. |
 | `app/Http/Requests` | Form requests: `StoreLessonRequest`, `UpdateLessonRequest`, `StoreLessonTopicRequest`, `UpdateLessonTopicRequest`, `StoreSessionYearRequest`. Most other validation is inline with `$request->validate()` or `Validator::make()`. |
 | `app/Http/Resources` | `UserResource`, `TimetableCollection`. |
-| `app/Models` | 76 Eloquent models. Some names differ from Laravel conventions: `Students`, `Parents`, `Mediums`, `Settings`, `EmailTempalate` (table `email_tempalates`). `User` uses Spatie's `HasRoles`. See [Database-Schema](Database-Schema). |
+| `app/Models` | 76 Eloquent models. Some names differ from Laravel conventions: `Students`, `Parents`, `Mediums`, `Settings`, `EmailTemplate` (table `email_tempalates`, which keeps the original misspelling). `User` uses Spatie's `HasRoles`. See [Database-Schema](Database-Schema). |
 | `app/Services` | Domain services: `AcademicCalendarService` (calendar PDF), `AssignmentReportService`, `ExamReportService`, `FeesReportService`, `LeaveReportService` (student report statistics), `FeesCollectionService` (fee summary for the dashboard), `ClassSessionConfigService`, `SessionYearService` (creating session years, installments, semesters and transfers; `makeCurrent()` switches the current year), `ChatMessageCleanupService`, `SettingsConfigService` (applies admin settings over the `.env` config on boot; see [Configuration](Configuration#settings-that-override-env)), `EmailTemplateService` (fills `{$placeholders}` with escaped values, no Blade compilation), `MailService`, `IdCardService` (student and staff ID card PDFs), `GalleryService`, `ImageService` and `UploadService` (file storage on the public disk, JPEG/PNG recompressed with Intervention Image), `OnlineExamScoringService`, `FormService` (backs the `Form` facade), `BootstrapTableService`, `ResponseService`. |
 | `app/Services/Payment` | `PaymentInterface`; `RazorpayPayment`, `StripePayment`, `PaystackPayment`, `FlutterwavePayment`; `PaymentService` (factory `create($payment_method)` with constants `RAZORPAY = 1`, `STRIPE = 2`, `PAYSTACK = 3`, `FLUTTERWAVE = 4`, plus `currencyCode()`, `webhookSecret()`, `amountMatches()`); `FeesPaymentService` (server-side fee calculation and transaction state). See [Payments](Payments). |
 | `app/Helpers` | `settings_helper.php` and `notification_helper.php`, autoloaded as files by Composer (see [Helpers](#helpers)). |
@@ -283,18 +283,18 @@ The project id comes from the `project_id` setting. Pushes are sent synchronousl
 
 | Method | Output |
 |---|---|
-| `successResponse($message = 'Success', $data = null, $customData = [], $code = null)` | `{"error": false, "message": trans($message), "data": ..., "code": 200}` merged with `$customData`, then `exit()`. |
-| `errorResponse($message, $data = null, $code = null, $e = null)` | `{"error": true, "message": ..., "data": ..., "code": ..., "details": ...}`, then `exit()`. With an exception it logs the error and a redacted cURL reconstruction of the request. `details` holds the exception message, file and line only when `APP_DEBUG` is true; otherwise it is an empty string. |
+| `successResponse($message = 'Success', $data = null, $customData = [], $code = null)` | Returns `{"error": false, "message": trans($message), "data": ..., "code": 200}` merged with `$customData`. |
+| `errorResponse($message, $data = null, $code = null, $e = null)` | Returns `{"error": true, "message": ..., "data": ..., "code": ..., "details": ...}`. Given an `HttpResponseException` (a response a helper threw) it returns that response unchanged and logs nothing. With any other exception it logs the error and a redacted cURL reconstruction of the request. `details` holds the exception message, file and line only when `APP_DEBUG` is true; otherwise it is an empty string. |
 | `validationError($message, $data = null)` | `errorResponse()` with `code` from `config('constants.RESPONSE_CODE.VALIDATION_ERROR')`. |
-| `warningResponse($message, $data = null, $code = null)` | `{"error": false, "warning": true, ...}`, then `exit()`. |
-| `noPermissionThenSendJson($permission)`, `noAnyPermissionThenSendJson(array)` | Send an error JSON if `Auth::user()` lacks the permission(s). |
-| `noPermissionThenRedirect`, `noRoleThenRedirect`, `noAnyRoleThenRedirect`, `noAnyPermissionThenRedirect` | Send a redirect to `home` (or back) with `no_permission_message`. |
-| `successRedirectResponse`, `errorRedirectResponse` | Send a redirect with a flashed `success` message or error. |
+| `warningResponse($message, $data = null, $code = null)` | Returns `{"error": false, "warning": true, ...}`. |
+| `noPermissionThenSendJson($permission)`, `noAnyPermissionThenSendJson(array)` | Throw an `HttpResponseException` with the error JSON if `Auth::user()` lacks the permission(s); call them as a statement. |
+| `noPermissionThenRedirect`, `noRoleThenRedirect`, `noAnyRoleThenRedirect`, `noAnyPermissionThenRedirect` | Throw a redirect to `home` (or back) with `no_permission_message`. |
+| `successRedirectResponse`, `errorRedirectResponse` | Return a redirect with a flashed `success` message or error. |
 | `logErrorResponse($e)`, `logCurlRequest()` | `report($e)` plus a log line with the request parameters. Keys matching `pass`, `token`, `secret`, `key`, `signature`, `authorization`, `cookie` or `otp` are logged as `[redacted]`. |
 
 Things to keep in mind:
 
-- The `*Response` methods send the response and call `exit()`. Anything that would normally run after the controller does not: "after" middleware (so `SecurityHeaders` does not add its headers to these responses), session saving and `terminate` callbacks. For the same reason feature tests call these endpoints through a separate `php -S` server (`tests/Concerns/RunsAppServer.php`); see [Testing-and-CI](Testing-and-CI).
+- The `*Response` methods return the response; the action must `return` it (`ControllerMethodCallsTest` fails on a call whose value is dropped), and a helper that has to stop the request throws it: `throw new HttpResponseException(ResponseService::errorResponse(...))`. Until Phase 0 they sent the response and called `exit()`, which skipped the "after" middleware (`SecurityHeaders`, throttle headers, CORS), session saving and `terminate` callbacks, and forced the API tests onto a separate `php -S` server. See [Testing-and-CI](Testing-and-CI#testsconcernsrunsappserverphp).
 - There is no `config/constants.php`, so the default `code` of `errorResponse()` and `validationError()` is `null` unless the caller passes one. API controllers usually pass numeric codes such as `103`.
 - Admin controllers that don't use the service return the same shape by hand: `response()->json(['error' => false|true, 'message' => trans('...')])`, which is what `formAjaxRequest()` expects.
 

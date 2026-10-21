@@ -20,5 +20,12 @@ php artisan package:discover --ansi
 php artisan config:cache
 php artisan migrate --force
 php docker/provision-admin.php
+# New roles, permissions and email templates reach an existing install here
+# (the System Update page and the /seeder_install URL used to do this). Both
+# seeders are idempotent; InstallationSeeder clears the caches, so the config is
+# cached again after them.
+php artisan db:seed --class=InstallationSeeder --force
+php artisan db:seed --class=EmailSeeder --force
+php artisan config:cache
 
 exec apache2-foreground

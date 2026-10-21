@@ -82,7 +82,7 @@ class ExamController extends Controller
             'session_year_id.exists' => 'Selected session year is invalid.',
         ]);
         if ($validator->fails()) {
-            ResponseService::validationError($validator->errors()->first());
+            return ResponseService::validationError($validator->errors()->first());
         }
 
         try {
@@ -117,10 +117,12 @@ class ExamController extends Controller
             }
 
             DB::commit();
-            ResponseService::successResponse('data_store_successfully');
+
+            return ResponseService::successResponse('data_store_successfully');
         } catch (Throwable $e) {
             DB::rollBack();
-            ResponseService::errorResponse('error_occurred', null, 103, $e);
+
+            return ResponseService::errorResponse('error_occurred', null, 103, $e);
         }
     }
 
@@ -389,7 +391,7 @@ class ExamController extends Controller
                 'error' => false,
                 'message' => trans('data_delete_successfully'),
             ]);
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             return response()->json([
                 'error' => true,
                 'message' => trans('error_occurred'),

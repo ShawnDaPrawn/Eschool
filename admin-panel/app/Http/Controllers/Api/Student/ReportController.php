@@ -28,7 +28,7 @@ class ReportController extends Controller
             'session_year_id' => 'required|integer',
         ]);
         if ($validator->fails()) {
-            ResponseService::validationError($validator->errors()->first());
+            return ResponseService::validationError($validator->errors()->first());
         }
         try {
             $data = $feesReportService->getStatistics(
@@ -36,12 +36,12 @@ class ReportController extends Controller
                 (int) $request->session_year_id
             );
             if (empty($data)) {
-                ResponseService::errorResponse('No session found for this student in the current session year', null, 113);
+                return ResponseService::errorResponse('No session found for this student in the current session year', null, 113);
             }
 
-            ResponseService::successResponse('Data fetched successfully', $data);
+            return ResponseService::successResponse('Data fetched successfully', $data);
         } catch (Throwable $e) {
-            ResponseService::errorResponse('error_occurred', null, 103, $e);
+            return ResponseService::errorResponse('error_occurred', null, 103, $e);
         }
     }
 
@@ -51,7 +51,7 @@ class ReportController extends Controller
             'session_year_id' => 'required|integer',
         ]);
         if ($validator->fails()) {
-            ResponseService::validationError($validator->errors()->first());
+            return ResponseService::validationError($validator->errors()->first());
         }
         try {
             $data = $leaveReportService->getStatistics(
@@ -59,12 +59,12 @@ class ReportController extends Controller
                 (int) $request->session_year_id
             );
             if (empty($data)) {
-                ResponseService::errorResponse('No session found for this student in the current session year', null, 113);
+                return ResponseService::errorResponse('No session found for this student in the current session year', null, 113);
             }
 
-            ResponseService::successResponse('Data fetched successfully', $data);
+            return ResponseService::successResponse('Data fetched successfully', $data);
         } catch (Throwable $e) {
-            ResponseService::errorResponse('error_occurred', null, 103, $e);
+            return ResponseService::errorResponse('error_occurred', null, 103, $e);
         }
     }
 
@@ -75,7 +75,7 @@ class ReportController extends Controller
             'subject_id' => 'nullable|integer',
         ]);
         if ($validator->fails()) {
-            ResponseService::validationError($validator->errors()->first());
+            return ResponseService::validationError($validator->errors()->first());
         }
         try {
             $data = $assignmentReportService->getStatistics(
@@ -84,12 +84,12 @@ class ReportController extends Controller
                 $request->subject_id ? (int) $request->subject_id : null
             );
             if (empty($data)) {
-                ResponseService::errorResponse('No session found for this student in the current session year', null, 113);
+                return ResponseService::errorResponse('No session found for this student in the current session year', null, 113);
             }
 
-            ResponseService::successResponse('Data fetched successfully', $data);
+            return ResponseService::successResponse('Data fetched successfully', $data);
         } catch (Throwable $e) {
-            ResponseService::errorResponse('error_occurred', null, 103, $e);
+            return ResponseService::errorResponse('error_occurred', null, 103, $e);
         }
     }
 
@@ -99,7 +99,7 @@ class ReportController extends Controller
             'session_year_id' => 'required|integer',
         ]);
         if ($validator->fails()) {
-            ResponseService::validationError($validator->errors()->first());
+            return ResponseService::validationError($validator->errors()->first());
         }
         try {
             $data = $examReportService->getOfflineStatistics(
@@ -107,12 +107,12 @@ class ReportController extends Controller
                 (int) $request->session_year_id
             );
             if (empty($data)) {
-                ResponseService::errorResponse('No session found for this student in the current session year', null, 113);
+                return ResponseService::errorResponse('No session found for this student in the current session year', null, 113);
             }
 
-            ResponseService::successResponse('Data fetched successfully.', $data);
+            return ResponseService::successResponse('Data fetched successfully.', $data);
         } catch (Throwable $e) {
-            ResponseService::errorResponse('error_occurred', null, 103, $e);
+            return ResponseService::errorResponse('error_occurred', null, 103, $e);
         }
     }
 
@@ -123,7 +123,7 @@ class ReportController extends Controller
             'subject_id' => 'nullable|integer',
         ]);
         if ($validator->fails()) {
-            ResponseService::validationError($validator->errors()->first());
+            return ResponseService::validationError($validator->errors()->first());
         }
         try {
             $data = $examReportService->getOnlineStatistics(
@@ -132,12 +132,12 @@ class ReportController extends Controller
                 $request->filled('subject_id') ? (int) $request->subject_id : null
             );
             if (empty($data)) {
-                ResponseService::errorResponse('No session found for this student in the current session year', null, 113);
+                return ResponseService::errorResponse('No session found for this student in the current session year', null, 113);
             }
 
-            ResponseService::successResponse('Data fetched successfully.', $data);
+            return ResponseService::successResponse('Data fetched successfully.', $data);
         } catch (Throwable $e) {
-            ResponseService::errorResponse('error_occurred', null, 103, $e);
+            return ResponseService::errorResponse('error_occurred', null, 103, $e);
         }
     }
 }

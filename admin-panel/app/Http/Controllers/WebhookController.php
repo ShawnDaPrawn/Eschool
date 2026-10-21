@@ -18,7 +18,8 @@ use Throwable;
 use UnexpectedValueException;
 
 /**
- * Payment gateway webhooks.
+ * Payment gateway webhooks. Stripe is the only gateway; Razorpay, Paystack and
+ * Flutterwave were removed in Phase 0 and their webhook URLs answer 404.
  *
  * Each one checks the gateway's signature against the configured secret (and
  * refuses the call when no secret is configured), finds the transaction this
@@ -29,34 +30,6 @@ use UnexpectedValueException;
  */
 class WebhookController extends Controller
 {
-    //razorpay webhooks
-    public function razorpay(Request $request, FeesPaymentService $fees)
-    {
-        $payload = $request->getContent();
-        if (! $this->validHmac('sha256', $payload, PaymentService::webhookSecret('razorpay'), $request->header('X-Razorpay-Signature'))) {
-            return $this->reject('Razorpay', 'Invalid signature', 401);
-        }
-
-        $data = json_decode($payload);
-        $event = $data->event ?? null;
-        $payment = $data->payload->payment->entity ?? null;
-        if (! in_array($event, ['payment.captured', 'payment.failed'], true) || ! is_object($payment)) {
-            return $this->ok('Event ignored');
-        }
-
-        $transaction = $this->findTransaction(PaymentService::RAZORPAY, $payment->order_id ?? null);
-        if (! $transaction) {
-            return $this->unknownTransaction('Razorpay', $payment->order_id ?? null);
-        }
-
-        $attributes = ['payment_id' => isset($payment->id) ? (string) $payment->id : null];
-        if ($event === 'payment.captured') {
-            return $this->paid($fees, $transaction, $payment->amount ?? null, $payment->currency ?? null, $attributes, 'Razorpay');
-        }
-
-        return $this->failed($fees, $transaction, $attributes);
-    }
-
     public function stripe(Request $request, FeesPaymentService $fees)
     {
         $secret = PaymentService::webhookSecret('stripe');
@@ -87,97 +60,6 @@ class WebhookController extends Controller
         }
 
         return $this->failed($fees, $transaction, []);
-    }
-
-    public function paystack(Request $request, FeesPaymentService $fees)
-    {
-        $payload = $request->getContent();
-        if (! $this->validHmac('sha512', $payload, PaymentService::webhookSecret('paystack'), $request->header('x-paystack-signature'))) {
-            return $this->reject('Paystack', 'Invalid signature', 401);
-        }
-
-        $event = json_decode($payload);
-        $charge = $event->data ?? null;
-        if (($event->event ?? null) !== 'charge.success' || ! is_object($charge)) {
-            return $this->ok('Event ignored');
-        }
-
-        // The reference is what the transaction was created with (its order_id).
-        $transaction = $this->findTransaction(PaymentService::PAYSTACK, $charge->reference ?? null);
-        if (! $transaction) {
-            return $this->unknownTransaction('Paystack', $charge->reference ?? null);
-        }
-
-        return $this->paid($fees, $transaction, $charge->amount ?? null, $charge->currency ?? null, [
-            'payment_id' => isset($charge->id) ? (string) $charge->id : null,
-        ], 'Paystack');
-    }
-
-    public function flutterwave(Request $request, FeesPaymentService $fees)
-    {
-        // Flutterwave sends the secret hash set on its dashboard in this header.
-        $secretHash = PaymentService::webhookSecret('flutterwave');
-        $signature = (string) $request->header('verif-hash', '');
-        if ($secretHash === '' || $signature === '' || ! hash_equals($secretHash, $signature)) {
-            return $this->reject('Flutterwave', 'Invalid signature', 401);
-        }
-
-        $data = json_decode($request->getContent());
-        $payment = $data->data ?? null;
-        $metadata = $data->meta_data ?? ($payment->meta ?? null);
-        $payment_transaction_id = $metadata->payment_transaction_id ?? null;
-        if (! is_object($payment) || ! is_numeric($payment_transaction_id)) {
-            return $this->ok('Event ignored');
-        }
-
-        $transaction = PaymentTransaction::where('id', (int) $payment_transaction_id)
-            ->where('payment_gateway', PaymentService::FLUTTERWAVE)
-            ->first();
-        if (! $transaction) {
-            return $this->unknownTransaction('Flutterwave', $payment_transaction_id);
-        }
-
-        $attributes = ['payment_id' => isset($payment->id) ? (string) $payment->id : null];
-        $status = $payment->status ?? null;
-        if ($status === 'successful') {
-            return $this->paid($fees, $transaction, $payment->amount ?? null, $payment->currency ?? null, $attributes, 'Flutterwave');
-        }
-        if ($status === 'failed') {
-            return $this->failed($fees, $transaction, $attributes);
-        }
-
-        return $this->ok('Event ignored');
-    }
-
-    // Landing pages the payment web view is sent back to. They change nothing:
-    // payments are only recorded from the signed webhooks above.
-    public function paystackSuccessCallback()
-    {
-        $response = array(
-            'error' => false,
-            'message' => "Payment Successfully Completed",
-            'code' => 200,
-        );
-        return response()->json($response);
-    }
-
-    public function flutterwaveSuccessCallback()
-    {
-        $response = array(
-            'error' => false,
-            'message' => "Payment Successfully Completed",
-            'code' => 200,
-        );
-        return response()->json($response);
-    }
-
-    private function validHmac(string $algorithm, string $payload, string $secret, $signature): bool
-    {
-        if ($secret === '' || ! is_string($signature) || $signature === '') {
-            return false;
-        }
-
-        return hash_equals(hash_hmac($algorithm, $payload, $secret), $signature);
     }
 
     private function findTransaction(int $gateway, $order_id): ?PaymentTransaction

@@ -36,7 +36,7 @@ class AuthController extends Controller
         ]);
 
         if ($validator->fails()) {
-            ResponseService::errorResponse($validator->errors()->first(), null, 102);
+            return ResponseService::errorResponse($validator->errors()->first(), null, 102);
         }
 
         $session_year = getSettings('session_year');
@@ -45,8 +45,8 @@ class AuthController extends Controller
         $compulsory_fees_mode = getSettings('compulsory_fee_payment_mode');
         $compulsory_fees_mode = $compulsory_fees_mode['compulsory_fee_payment_mode'] ?? 0;
 
-         $session_year = SessionYear::where('id', $session_year_id)->first();
-       
+        $session_year = SessionYear::where('id', $session_year_id)->first();
+
         $isInstallment = $session_year->include_fee_installments;
 
         $due_date = $session_year->fee_due_date;
@@ -59,10 +59,10 @@ class AuthController extends Controller
             // Here Email Field is referenced as a GR Number for Student
             $auth = Auth::user();
             if (! $auth->hasRole('Student') || ! $auth->student) {
-                ResponseService::errorResponse('Invalid Login Credentials', null, 101);
+                return ResponseService::errorResponse('Invalid Login Credentials', null, 101);
             }
             if ((int) $auth->status !== 1) {
-                ResponseService::errorResponse('Your Account is Deactivate Please contact Admin for Further Help.', null, null);
+                return ResponseService::errorResponse('Your Account is Deactivate Please contact Admin for Further Help.', null, null);
             }
             $user = $auth->load(['student.class_section', 'student.category']);
 
@@ -70,11 +70,11 @@ class AuthController extends Controller
             $studentSession = StudentSessions::where('session_year_id', $session_year_id)->where('student_id', $user->student->id)->first();
 
             if (! $studentSession) {
-                ResponseService::errorResponse('Your account is not active for the current academic year because promotion to the next class has not been completed. Please contact the administration.', null, null);
+                return ResponseService::errorResponse('Your account is not active for the current academic year because promotion to the next class has not been completed. Please contact the administration.', null, null);
             }
 
             if ($studentSession->status == 0) {
-                ResponseService::errorResponse('Your Account is Deactivate Please contact Admin for Further Help.', null, null);
+                return ResponseService::errorResponse('Your Account is Deactivate Please contact Admin for Further Help.', null, null);
             } else {
                 // Only now that the account and its session are active.
                 $token = $auth->createToken($auth->first_name)->plainTextToken;
@@ -89,12 +89,12 @@ class AuthController extends Controller
                     $auth->save();
                 }
 
-                $classSectionName = $studentSession->class_section->class->name . ' ' . $studentSession->class_section->section->name;
+                $classSectionName = $studentSession->class_section->class->name.' '.$studentSession->class_section->section->name;
 
                 // Set Class Section name
                 $streamName = $studentSession->class_section->class->streams->name ?? null;
                 if ($streamName !== null) {
-                    $user->class_section_name = $classSectionName . ' ' . $streamName;
+                    $user->class_section_name = $classSectionName.' '.$streamName;
                 } else {
                     $user->class_section_name = $classSectionName;
                 }
@@ -240,10 +240,11 @@ class AuthController extends Controller
                 }
 
                 $data = array_merge($user, ['dynamic_fields' => $dynamicFields]);
-                ResponseService::successResponse('User logged-in!', $data, ['token' => $token]);
+
+                return ResponseService::successResponse('User logged-in!', $data, ['token' => $token]);
             }
         } else {
-            ResponseService::errorResponse('Invalid Login Credentials', null, 101);
+            return ResponseService::errorResponse('Invalid Login Credentials', null, 101);
         }
     }
 
@@ -255,7 +256,7 @@ class AuthController extends Controller
         ]);
 
         if ($validator->fails()) {
-            ResponseService::validationError($validator->errors()->first());
+            return ResponseService::validationError($validator->errors()->first());
         }
         try {
             $get_id = Students::select('user_id')->where('admission_no', $request->gr_no)->pluck('user_id')->first();
@@ -270,9 +271,9 @@ class AuthController extends Controller
 
             // Same answer whether or not the details matched a student, so the
             // endpoint can't be used to find out GR numbers and birth dates.
-            ResponseService::successResponse('Request Send Successfully');
+            return ResponseService::successResponse('Request Send Successfully');
         } catch (Throwable $e) {
-            ResponseService::errorResponse('error_occurred', null, 103, $e);
+            return ResponseService::errorResponse('error_occurred', null, 103, $e);
         }
     }
 }

@@ -16,6 +16,7 @@ use App\Models\ExamTimetable;
 use App\Models\MultipleEvent;
 use App\Models\Semester;
 use App\Models\Slider;
+use App\Models\Student;
 use App\Models\StudentSessions;
 use App\Models\Timetable;
 use App\Services\GalleryService;
@@ -35,7 +36,7 @@ class DashboardController extends Controller
     public function dashboard(Request $request)
     {
         try {
-            /** @var \App\Models\Student $student */
+            /** @var Student $student */
             $student = $request->user()->student;
             $date = Carbon::now();
             $day = $date->format('l');
@@ -56,7 +57,7 @@ class DashboardController extends Controller
             // Get current semester (if any) for this session year
             $currentSemester = Semester::where('session_year_id', $session_year_id)
                 ->get()
-                ->first(fn($semester) => $semester->current);
+                ->first(fn ($semester) => $semester->current);
 
             // Check if this class uses semesters
             $isClassHaveSemester = ClassSessionConfig::classHasSemester($class_id, $session_year_id);
@@ -239,9 +240,9 @@ class DashboardController extends Controller
                 'gallery' => $gallery,
             ];
 
-            ResponseService::successResponse('Data Fetched Successfully.', (object) $data);
+            return ResponseService::successResponse('Data Fetched Successfully.', (object) $data);
         } catch (Throwable $e) {
-            ResponseService::errorResponse('error_occurred', null, 103, $e);
+            return ResponseService::errorResponse('error_occurred', null, 103, $e);
         }
     }
 }

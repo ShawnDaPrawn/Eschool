@@ -506,8 +506,8 @@ class InstallationSeeder extends Seeder
         Settings::updateOrCreate(['type' => 'system_version'], ['message' => '3.5.0']);
 
         // Default ID card settings so /id-card-pdf works out of the box on a fresh install.
-        // firstOrCreate (not updateOrCreate): this seeder also re-runs on every system update,
-        // and must not overwrite a school's already-configured card design.
+        // firstOrCreate (not updateOrCreate): this seeder also re-runs on every deploy
+        // (docker/entrypoint.sh), and must not overwrite a school's already-configured card design.
         $idCardDefaults = [
             'header_color' => '#07a5a5',
             'footer_color' => '#56cc99',

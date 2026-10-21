@@ -31,32 +31,16 @@ return [
     ],
 
     /*
-    | Payment gateways. The fee settings page writes these .env keys (and the
-    | same values to the settings table). Code reads them through config() so
-    | they still work after `php artisan config:cache`.
+    | Payment gateway (Stripe; Razorpay, Paystack and Flutterwave were removed).
+    | The settings table holds the keys the fee settings page saves; these .env
+    | keys are the fallback. Code reads them through config() so they still
+    | work after `php artisan config:cache`.
     */
-
-    'razorpay' => [
-        'key' => env('RAZORPAY_API_KEY'),
-        'secret' => env('RAZORPAY_SECRET_KEY'),
-        'webhook_secret' => env('RAZORPAY_WEBHOOK_SECRET'),
-    ],
 
     'stripe' => [
         'key' => env('STRIPE_PUBLISHABLE_KEY'),
         'secret' => env('STRIPE_SECRET_KEY'),
         'webhook_secret' => env('STRIPE_WEBHOOK_SECRET'),
-    ],
-
-    'paystack' => [
-        'public_key' => env('PAYSTACK_PUBLIC_KEY'),
-        'secret_key' => env('PAYSTACK_SECRET_KEY'),
-    ],
-
-    'flutterwave' => [
-        'public_key' => env('FLW_PUBLIC_KEY'),
-        'secret_key' => env('FLW_SECRET_KEY'),
-        'secret_hash' => env('FLW_SECRET_HASH'),
     ],
 
 ];

@@ -27,7 +27,6 @@ class AdminPagesTest extends TestCase
 
     /** Routes with side effects, or that send mail, are not opened. */
     private const SKIP = [
-        'storage-link', 'migrate', 'seeder_install',
         'delete-chat-message/cron-job',
     ];
 

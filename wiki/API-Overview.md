@@ -141,10 +141,10 @@ Almost every endpoint answers through [`app/Services/ResponseService.php`](https
 
 Things to know about this envelope:
 
-- **HTTP status is always 200.** `successResponse` and `errorResponse` call `response()->json(...)->send()` without a status, so clients must branch on `error`, not on the status code. Real non-200 statuses only come from middleware (401, 403, 422, 429) and from uncaught framework errors.
+- **HTTP status is always 200.** `successResponse` and `errorResponse` build `response()->json(...)` without a status, so clients must branch on `error`, not on the status code. Real non-200 statuses only come from middleware (401, 403, 422, 429) and from uncaught framework errors.
 - **`config/constants.php` does not exist** in this repo, so `config('constants.RESPONSE_CODE.*')` is `null`. Every `validationError()` and every `errorResponse()` without an explicit code therefore returns `"code": null`. The apps rely on this: when `code` is `null` they show `message` verbatim.
 - **`details`** holds the exception message, file and line only when `APP_DEBUG=true`; otherwise it is `""`.
-- **The script exits inside the controller.** Both helpers end with `exit()`. The response is sent before the middleware stack unwinds, so after-middleware does not touch it: CORS headers from `HandleCors`, the `SecurityHeaders` headers and throttle headers are not added to these responses. Endpoints that `return response()->json(...)` instead (gallery, `get-events-details`, the middleware errors above) go through the full stack. For the same reason the feature tests cannot call these endpoints in-process; they serve the app from a separate `php -S` process ([`tests/Concerns/RunsAppServer.php`](https://github.com/ShawnDaPrawn/Eschool/blob/main/admin-panel/tests/Concerns/RunsAppServer.php), see [Testing-and-CI](Testing-and-CI)).
+- **The controller returns the response.** The helpers return it and every action does `return ResponseService::...` (a helper that must stop the request throws it in an `HttpResponseException`). The response therefore goes back through the middleware like any other: `HandleCors`, `SecurityHeaders` and the throttle headers apply. Until Phase 0 the helpers sent the response and called `exit()`, so these responses went out without those headers and API tests needed a separate server; they can now call the API in-process (see [Testing-and-CI](Testing-and-CI#testsconcernsrunsappserverphp)).
 
 Examples taken from the code:
 
@@ -315,7 +315,7 @@ For any type other than `app_settings`, `data` is the raw settings value with th
 | `compulsory_fee_payment_mode`, `is_student_can_pay_fees` | fee settings |
 | `chat_settings` | `max_files_or_images_in_one_message` (default 10), `max_file_size_in_bytes` (setting in MB times 1,000,000; default 10,000,000), `max_characters_in_text_message` (default 500), `automatically_messages_removed_days` (default 30) |
 | `holiday_days` | `leave_masters.holiday_days` for the current session |
-| `payment_options` | `currency_code`, `currency_symbol`, optional `fees_due_date` / `fees_due_charges`, and one object per enabled gateway with only its public key: `razorpay` (`razorpay_api_key`), `stripe` (`stripe_publishable_key`), `paystack` (`paystack_public_key`), `flutterwave` (`flutterwave_public_key`), each with its status and currency code |
+| `payment_options` | `currency_code`, `currency_symbol`, optional `fees_due_date` / `fees_due_charges`, and, when Stripe is enabled, `stripe` with only its public key (`stripe_publishable_key`), its status and currency code. `razorpay`, `paystack` and `flutterwave` were removed in Phase 0 and are always left out, as a disabled gateway is |
 | `online_exam_terms_condition` | HTML-decoded text |
 | `current_semester` | the semester whose `current` attribute is true, or `null` |
 | `semester_breaks` | list of `{start, end}` gaps between consecutive semesters inside the session year, or `null` |

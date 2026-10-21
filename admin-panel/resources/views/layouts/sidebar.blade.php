@@ -1097,15 +1097,5 @@ $current_session_id_sidebar = getSettings('session_year')['session_year'];
             </li>
             @endif
 
-            @if (Auth::user()->hasRole('Super Admin') && config('system_update.enabled'))
-                <li class="nav-item">
-                    <a class="nav-link {{ request()->routeIs('system-update.*') ? 'active' : '' }}"
-                        href="{{ route('system-update.index') }}">
-                        <x-icon name="system-update" class="menu-icon" />
-                        <span class="menu-title">{{ __('system_update') }}</span>
-                    </a>
-                </li>
-            @endif
-
         </ul>
     </nav>

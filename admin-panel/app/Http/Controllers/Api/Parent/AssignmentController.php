@@ -11,6 +11,7 @@ use App\Models\ClassSessionConfig;
 use App\Models\Semester;
 use App\Models\StudentSessions;
 use App\Services\ResponseService;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use Throwable;
@@ -38,7 +39,7 @@ class AssignmentController extends Controller
         ]);
 
         if ($validator->fails()) {
-            ResponseService::validationError($validator->errors()->first());
+            return ResponseService::validationError($validator->errors()->first());
         }
 
         try {
@@ -107,7 +108,7 @@ class AssignmentController extends Controller
             $data->getCollection()->transform(function ($assignment) {
                 $submission = $assignment->submission;
 
-                if ($submission instanceof \Illuminate\Database\Eloquent\Collection) {
+                if ($submission instanceof Collection) {
                     $assignment->setRelation(
                         'submission',
                         $submission->isNotEmpty() ? $submission->first() : null
@@ -117,9 +118,9 @@ class AssignmentController extends Controller
                 return $assignment;
             });
 
-            ResponseService::successResponse('Assignments Fetched Successfully', $data, [], 200);
+            return ResponseService::successResponse('Assignments Fetched Successfully', $data, [], 200);
         } catch (Throwable $e) {
-            ResponseService::errorResponse('error_occurred', null, 103, $e);
+            return ResponseService::errorResponse('error_occurred', null, 103, $e);
         }
     }
 }

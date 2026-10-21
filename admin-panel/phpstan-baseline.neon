@@ -1,150 +1,6 @@
 parameters:
 	ignoreErrors:
 		-
-			message: '#^Result of static method App\\Services\\ResponseService\:\:errorResponse\(\) \(void\) is used\.$#'
-			identifier: staticMethod.void
-			count: 1
-			path: app/Http/Controllers/Api/Parent/CalendarController.php
-
-		-
-			message: '#^Result of static method App\\Services\\ResponseService\:\:successResponse\(\) \(void\) is used\.$#'
-			identifier: staticMethod.void
-			count: 1
-			path: app/Http/Controllers/Api/Parent/CalendarController.php
-
-		-
-			message: '#^Result of static method App\\Services\\ResponseService\:\:errorResponse\(\) \(void\) is used\.$#'
-			identifier: staticMethod.void
-			count: 1
-			path: app/Http/Controllers/Api/Parent/LeaveController.php
-
-		-
-			message: '#^Result of static method App\\Services\\ResponseService\:\:successResponse\(\) \(void\) is used\.$#'
-			identifier: staticMethod.void
-			count: 1
-			path: app/Http/Controllers/Api/Parent/LeaveController.php
-
-		-
-			message: '#^Result of static method App\\Services\\ResponseService\:\:validationError\(\) \(void\) is used\.$#'
-			identifier: staticMethod.void
-			count: 2
-			path: app/Http/Controllers/Api/Parent/LeaveController.php
-
-		-
-			message: '#^Result of static method App\\Services\\ResponseService\:\:errorResponse\(\) \(void\) is used\.$#'
-			identifier: staticMethod.void
-			count: 1
-			path: app/Http/Controllers/Api/Student/AttendanceController.php
-
-		-
-			message: '#^Result of static method App\\Services\\ResponseService\:\:errorResponse\(\) \(void\) is used\.$#'
-			identifier: staticMethod.void
-			count: 1
-			path: app/Http/Controllers/Api/Student/CalendarController.php
-
-		-
-			message: '#^Result of static method App\\Services\\ResponseService\:\:successResponse\(\) \(void\) is used\.$#'
-			identifier: staticMethod.void
-			count: 1
-			path: app/Http/Controllers/Api/Student/CalendarController.php
-
-		-
-			message: '#^Result of static method App\\Services\\ResponseService\:\:errorResponse\(\) \(void\) is used\.$#'
-			identifier: staticMethod.void
-			count: 2
-			path: app/Http/Controllers/Api/Student/ChatController.php
-
-		-
-			message: '#^Result of static method App\\Services\\ResponseService\:\:successResponse\(\) \(void\) is used\.$#'
-			identifier: staticMethod.void
-			count: 1
-			path: app/Http/Controllers/Api/Student/ChatController.php
-
-		-
-			message: '#^Result of static method App\\Services\\ResponseService\:\:errorResponse\(\) \(void\) is used\.$#'
-			identifier: staticMethod.void
-			count: 1
-			path: app/Http/Controllers/Api/Student/LeaveController.php
-
-		-
-			message: '#^Result of static method App\\Services\\ResponseService\:\:successResponse\(\) \(void\) is used\.$#'
-			identifier: staticMethod.void
-			count: 1
-			path: app/Http/Controllers/Api/Student/LeaveController.php
-
-		-
-			message: '#^Result of static method App\\Services\\ResponseService\:\:validationError\(\) \(void\) is used\.$#'
-			identifier: staticMethod.void
-			count: 1
-			path: app/Http/Controllers/Api/Student/LeaveController.php
-
-		-
-			message: '#^Result of static method App\\Services\\ResponseService\:\:errorResponse\(\) \(void\) is used\.$#'
-			identifier: staticMethod.void
-			count: 3
-			path: app/Http/Controllers/Api/Student/LessonController.php
-
-		-
-			message: '#^Result of static method App\\Services\\ResponseService\:\:successResponse\(\) \(void\) is used\.$#'
-			identifier: staticMethod.void
-			count: 1
-			path: app/Http/Controllers/Api/Student/LessonController.php
-
-		-
-			message: '#^Result of static method App\\Services\\ResponseService\:\:validationError\(\) \(void\) is used\.$#'
-			identifier: staticMethod.void
-			count: 1
-			path: app/Http/Controllers/Api/Student/LessonController.php
-
-		-
-			message: '#^Result of static method App\\Services\\ResponseService\:\:successResponse\(\) \(void\) is used\.$#'
-			identifier: staticMethod.void
-			count: 3
-			path: app/Http/Controllers/Api/Student/ProfileController.php
-
-		-
-			message: '#^Result of static method App\\Services\\ResponseService\:\:errorResponse\(\) \(void\) is used\.$#'
-			identifier: staticMethod.void
-			count: 1
-			path: app/Http/Controllers/Api/Teacher/CalendarController.php
-
-		-
-			message: '#^Result of static method App\\Services\\ResponseService\:\:successResponse\(\) \(void\) is used\.$#'
-			identifier: staticMethod.void
-			count: 1
-			path: app/Http/Controllers/Api/Teacher/CalendarController.php
-
-		-
-			message: '#^Result of static method App\\Services\\ResponseService\:\:errorResponse\(\) \(void\) is used\.$#'
-			identifier: staticMethod.void
-			count: 6
-			path: app/Http/Controllers/Api/Teacher/LeaveController.php
-
-		-
-			message: '#^Result of static method App\\Services\\ResponseService\:\:successResponse\(\) \(void\) is used\.$#'
-			identifier: staticMethod.void
-			count: 4
-			path: app/Http/Controllers/Api/Teacher/LeaveController.php
-
-		-
-			message: '#^Result of static method App\\Services\\ResponseService\:\:validationError\(\) \(void\) is used\.$#'
-			identifier: staticMethod.void
-			count: 2
-			path: app/Http/Controllers/Api/Teacher/LeaveController.php
-
-		-
-			message: '#^Result of static method App\\Services\\ResponseService\:\:errorResponse\(\) \(void\) is used\.$#'
-			identifier: staticMethod.void
-			count: 1
-			path: app/Http/Controllers/Api/Teacher/TimetableController.php
-
-		-
-			message: '#^Result of static method App\\Services\\ResponseService\:\:successResponse\(\) \(void\) is used\.$#'
-			identifier: staticMethod.void
-			count: 1
-			path: app/Http/Controllers/Api/Teacher/TimetableController.php
-
-		-
 			message: '#^Method App\\Http\\Controllers\\EventController\:\:create\(\) should return Illuminate\\Http\\Response but return statement is missing\.$#'
 			identifier: return.missing
 			count: 1
@@ -155,12 +11,6 @@ parameters:
 			identifier: return.missing
 			count: 1
 			path: app/Http/Controllers/EventController.php
-
-		-
-			message: '#^Method App\\Http\\Controllers\\Exam\\ExamController\:\:store\(\) should return Illuminate\\Http\\JsonResponse but return statement is missing\.$#'
-			identifier: return.missing
-			count: 1
-			path: app/Http/Controllers/Exam/ExamController.php
 
 		-
 			message: '#^Method App\\Http\\Controllers\\ExamTimetableController\:\:create\(\) should return Illuminate\\Http\\Response but return statement is missing\.$#'
@@ -229,32 +79,8 @@ parameters:
 			path: app/Http/Controllers/StaffController.php
 
 		-
-			message: '#^Method App\\Http\\Controllers\\StaffController\:\:destroy\(\) should return Illuminate\\Http\\Response but return statement is missing\.$#'
-			identifier: return.missing
-			count: 1
-			path: app/Http/Controllers/StaffController.php
-
-		-
 			message: '#^Method App\\Http\\Controllers\\StaffController\:\:edit\(\) should return Illuminate\\Http\\Response but return statement is missing\.$#'
 			identifier: return.missing
-			count: 1
-			path: app/Http/Controllers/StaffController.php
-
-		-
-			message: '#^Method App\\Http\\Controllers\\StaffController\:\:store\(\) should return Illuminate\\Http\\Response but return statement is missing\.$#'
-			identifier: return.missing
-			count: 1
-			path: app/Http/Controllers/StaffController.php
-
-		-
-			message: '#^Method App\\Http\\Controllers\\StaffController\:\:update\(\) should return Illuminate\\Http\\Response but return statement is missing\.$#'
-			identifier: return.missing
-			count: 1
-			path: app/Http/Controllers/StaffController.php
-
-		-
-			message: '#^Result of static method App\\Services\\ResponseService\:\:successResponse\(\) \(void\) is used\.$#'
-			identifier: staticMethod.void
 			count: 1
 			path: app/Http/Controllers/StaffController.php
 
@@ -269,12 +95,6 @@ parameters:
 			identifier: return.missing
 			count: 1
 			path: app/Http/Controllers/StreamController.php
-
-		-
-			message: '#^Result of static method App\\Services\\ResponseService\:\:validationError\(\) \(void\) is used\.$#'
-			identifier: staticMethod.void
-			count: 1
-			path: app/Http/Controllers/Student/ResultController.php
 
 		-
 			message: '#^Trait Illuminate\\Database\\Eloquent\\SoftDeletes referenced with incorrect case\: Illuminate\\Database\\Eloquent\\softDeletes\.$#'
@@ -317,9 +137,3 @@ parameters:
 			identifier: property.notFound
 			count: 2
 			path: app/Rules/uniqueTopicInLesson.php
-
-		-
-			message: '#^Attribute class JetBrains\\PhpStorm\\NoReturn does not exist\.$#'
-			identifier: attribute.notFound
-			count: 4
-			path: app/Services/ResponseService.php

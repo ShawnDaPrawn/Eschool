@@ -163,7 +163,7 @@ Other forms in use:
 |---|---|
 | `$this->middleware('permission:role-list\|role-create\|...', ['only' => [...]])` | `RoleController` constructor |
 | `Auth::user()->canAny([...])` | `MediumController`, `SliderController`, `FormFieldController`, `EventController`, `StaffController` (ID cards), `SemesterController::getClassConfig` |
-| `ResponseService::noPermissionThenSendJson('perm')` | Teacher API (assignments, lessons, topics, announcements, attendance), the `Classes\` controllers, `HomeController` widgets. Sends the JSON error and calls `exit()` |
+| `ResponseService::noPermissionThenSendJson('perm')` | Teacher API (assignments, lessons, topics, announcements, attendance), the `Classes\` controllers, `HomeController` widgets. Throws the JSON error (an `HttpResponseException`), which ends the request |
 | `ResponseService::noPermissionThenRedirect('perm')` | Redirects to `home` with `no_permission_message` and `send()`s immediately |
 | `ResponseService::noAnyPermissionThenSendJson([...])` | Teacher API `submitAttendance` (`attendance-create` or `attendance-edit`) |
 | `$user->hasRole('Super Admin')` | `SystemUpdateController`, dashboard branches, a few list pages |
