@@ -133,3 +133,92 @@
 .text-muted {
     color: var(--md-sys-color-on-surface-variant) !important;
 }
+
+/*
+ * Bootstrap's colour utilities, pointed at the tokens (Bootstrap and the
+ * template mark them !important too). 722 required-field asterisks use
+ * .text-danger alone.
+ */
+.text-primary {
+    color: var(--md-sys-color-primary) !important;
+}
+
+.text-secondary {
+    color: var(--md-sys-color-on-surface-variant) !important;
+}
+
+.text-dark {
+    color: var(--md-sys-color-on-surface) !important;
+}
+
+.text-danger {
+    color: var(--md-sys-color-error) !important;
+}
+
+.text-success {
+    color: var(--app-status-success-text) !important;
+}
+
+.text-warning {
+    color: var(--app-status-warning-text) !important;
+}
+
+.text-info {
+    color: var(--app-status-info-text) !important;
+}
+
+.bg-primary {
+    background-color: var(--md-sys-color-primary) !important;
+}
+
+.bg-secondary {
+    background-color: var(--md-sys-color-secondary-container) !important;
+}
+
+.bg-success {
+    background-color: var(--app-status-success) !important;
+}
+
+.bg-danger {
+    background-color: var(--md-sys-color-error) !important;
+}
+
+.bg-warning {
+    background-color: var(--app-status-warning) !important;
+}
+
+.bg-info {
+    background-color: var(--app-status-info) !important;
+}
+
+.bg-light {
+    background-color: var(--md-sys-color-surface-container-low) !important;
+}
+
+.bg-white {
+    background-color: var(--md-sys-color-surface-container-lowest) !important;
+}
+
+.bg-dark {
+    background-color: var(--md-sys-color-inverse-surface) !important;
+}
+
+.border-primary {
+    border-color: var(--md-sys-color-primary) !important;
+}
+
+.border-success {
+    border-color: var(--app-status-success) !important;
+}
+
+.border-danger {
+    border-color: var(--md-sys-color-error) !important;
+}
+
+.border-warning {
+    border-color: var(--app-status-warning) !important;
+}
+
+.border-secondary {
+    border-color: var(--md-sys-color-outline) !important;
+}

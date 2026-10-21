@@ -22,6 +22,8 @@
 @endif
 {{-- Typeface and legacy colour variables mapped to the tokens — after style/rtl, before the redesign sheets. --}}
 <link rel="stylesheet" href="{{ asset('/assets/css/m3-base.css') }}?v={{ filemtime(public_path('assets/css/m3-base.css')) }}">
+{{-- Material 3 components (buttons, fields, dialogs, menus …), before the redesign sheets so they can refine them. --}}
+<link rel="stylesheet" href="{{ asset('/assets/css/m3-components.css') }}?v={{ filemtime(public_path('assets/css/m3-components.css')) }}">
 {{-- Admin chrome redesign (sidebar + topbar) — loaded after style/rtl so they override the legacy rules in both. --}}
 <link rel="stylesheet" href="{{ asset('/assets/css/sidebar.css') }}?v={{ filemtime(public_path('assets/css/sidebar.css')) }}">
 <link rel="stylesheet" href="{{ asset('/assets/css/header.css') }}?v={{ filemtime(public_path('assets/css/header.css')) }}">

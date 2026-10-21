@@ -37,7 +37,7 @@
 .dash-card {
     background: var(--md-sys-color-surface-container-lowest);
     border: 1px solid var(--md-sys-color-outline-variant);
-    border-radius: var(--md-sys-shape-corner-medium);
+    border-radius: var(--app-radius);
     box-shadow: none;
 }
 
@@ -139,17 +139,17 @@
     color: var(--md-sys-color-on-inverse-surface);
 }
 
-/* ---- Native select (dashboard filters, M3 outlined) ---- */
+/* ---- Native select (dashboard filters): a 40px M3 outlined field ---- */
 .dash-select {
     appearance: none;
     -webkit-appearance: none;
-    height: 36px;
-    border: 1px solid var(--md-sys-color-outline-variant);
-    border-radius: var(--md-sys-shape-corner-small);
+    height: 40px;
+    border: 1px solid var(--md-sys-color-outline);
+    border-radius: var(--app-radius);
     background-color: var(--md-sys-color-surface-container-lowest);
     color: var(--md-sys-color-on-surface);
     font-size: var(--md-sys-typescale-label-large-size);
-    padding: 0 2rem 0 .75rem;
+    padding: 0 2.5rem 0 1rem;
     max-width: 100%;
     cursor: pointer;
     transition: border-color .15s ease, box-shadow .15s ease;
@@ -161,7 +161,7 @@
 }
 
 .dash-select:hover {
-    border-color: var(--md-sys-color-outline);
+    border-color: var(--md-sys-color-on-surface);
 }
 
 .dash-select:focus {

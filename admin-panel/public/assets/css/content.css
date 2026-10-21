@@ -16,80 +16,6 @@
    defaults on load order (content.css loads before them and cannot). Row hover
    moved there too, so all table styling stays in one place. */
 
-/* ── Form fields ─────────────────────────────────────────────────────── */
-
-.form-control,
-.asColorPicker-input,
-.dataTables_wrapper select,
-.jsgrid .jsgrid-table .jsgrid-filter-row input[type=text],
-.jsgrid .jsgrid-table .jsgrid-filter-row select,
-.jsgrid .jsgrid-table .jsgrid-filter-row input[type=number],
-.select2-container--default .select2-selection--single,
-.select2-container--default .select2-selection--single .select2-search__field,
-.typeahead,
-.tt-query,
-.tt-hint {
-    border-radius: 10px;
-}
-
-.form-control-sm {
-    border-radius: 8px;
-}
-
-.form-control-lg {
-    border-radius: 12px;
-}
-
-/* Focus state — theme border + soft 0.2rem glow. Declared on both the
-   Bootstrap focus group and the late typeahead override (see DESIGN.md
-   "Form field focus state") so the cascade always lands on a visible state. */
-.form-control:focus,
-.asColorPicker-input:focus,
-.dataTables_wrapper select:focus,
-.jsgrid .jsgrid-table .jsgrid-filter-row input:focus[type=text],
-.jsgrid .jsgrid-table .jsgrid-filter-row select:focus,
-.jsgrid .jsgrid-table .jsgrid-filter-row input:focus[type=number],
-.select2-container--default .select2-selection--single:focus,
-.select2-container--default .select2-selection--single .select2-search__field:focus,
-.typeahead:focus,
-.tt-query:focus,
-.tt-hint:focus {
-    border-color: var(--md-sys-color-primary);
-    -webkit-box-shadow: 0 0 0 0.2rem color-mix(in srgb, var(--md-sys-color-primary) 24%, transparent);
-    box-shadow: 0 0 0 0.2rem color-mix(in srgb, var(--md-sys-color-primary) 24%, transparent);
-}
-
-/* Input-group reads as one rounded field on the 10px scale. The legacy sheet
-   leaves the addon (.input-group-text) at a stray 2px radius and squares the
-   trailing button, so a grouped field (e.g. the "30 | Days" cleanup input)
-   looked flat next to standalone .form-controls. Round the leading input's
-   left edge and the trailing addon/button's right edge to match. */
-.input-group>.form-control:first-child {
-    border-top-left-radius: 10px;
-    border-bottom-left-radius: 10px;
-}
-
-.input-group>.input-group-append:last-child>.input-group-text,
-.input-group>.input-group-append:last-child>.btn {
-    border-top-right-radius: 10px;
-    border-bottom-right-radius: 10px;
-}
-
-[dir="rtl"] .input-group>.form-control:first-child {
-    border-top-left-radius: 0;
-    border-bottom-left-radius: 0;
-    border-top-right-radius: 10px;
-    border-bottom-right-radius: 10px;
-}
-
-[dir="rtl"] .input-group>.input-group-append:last-child>.input-group-text,
-[dir="rtl"] .input-group>.input-group-append:last-child>.btn {
-    border-top-right-radius: 0;
-    border-bottom-right-radius: 0;
-    border-top-left-radius: 10px;
-    border-bottom-left-radius: 10px;
-}
-
 /* ── Color picker (asColorPicker) ────────────────────────────────────────
    The plugin renders the text input + a trigger swatch side by side inside
    .asColorPicker-wrap. Make them read as one rounded field: the input keeps
@@ -135,372 +61,6 @@
     border-radius: 10px 0 0 10px;
 }
 
-/* ── Buttons ─────────────────────────────────────────────────────────── */
-
-.btn,
-.fc button,
-.ajax-upload-dragdrop .ajax-file-upload,
-.swal2-modal .swal2-buttonswrapper .swal2-styled,
-.swal2-modal .swal2-buttonswrapper .swal2-styled.swal2-confirm,
-.swal2-modal .swal2-buttonswrapper .swal2-styled.swal2-cancel,
-.wizard>.actions a {
-    border-radius: 10px;
-}
-
-.btn-theme,
-.btn-theme:hover {
-    border-radius: 12px;
-}
-
-/* Secondary action = Material 3 outlined button. The doubled class beats
-   style.css's `.btn-secondary:not(.btn-light) { color: #fff }`. */
-.btn.btn-secondary,
-.btn.btn-secondary:not(.btn-light) {
-    color: var(--md-sys-color-primary);
-    background-color: var(--md-sys-color-surface-container-lowest);
-    border-color: var(--md-sys-color-outline);
-}
-
-.btn.btn-secondary:hover,
-.btn.btn-secondary:not(.btn-light):hover {
-    color: var(--md-sys-color-primary);
-    background-color: color-mix(in srgb, var(--md-sys-color-primary) var(--md-sys-state-hover-opacity), var(--md-sys-color-surface-container-lowest));
-    border-color: var(--md-sys-color-outline);
-}
-
-.btn.btn-secondary:focus,
-.btn.btn-secondary.focus,
-.btn.btn-secondary:not(.btn-light):focus {
-    color: var(--md-sys-color-primary);
-    background-color: color-mix(in srgb, var(--md-sys-color-primary) var(--md-sys-state-focus-opacity), var(--md-sys-color-surface-container-lowest));
-    border-color: var(--md-sys-color-primary);
-    -webkit-box-shadow: 0 0 0 0.2rem color-mix(in srgb, var(--md-sys-color-primary) 24%, transparent);
-    box-shadow: 0 0 0 0.2rem color-mix(in srgb, var(--md-sys-color-primary) 24%, transparent);
-}
-
-.btn.btn-secondary.disabled,
-.btn.btn-secondary:disabled {
-    color: color-mix(in srgb, var(--md-sys-color-on-surface) var(--md-sys-state-disabled-content-opacity), transparent);
-    background-color: transparent;
-    border-color: color-mix(in srgb, var(--md-sys-color-on-surface) var(--md-sys-state-disabled-container-opacity), transparent);
-}
-
-.btn.btn-secondary:not(:disabled):not(.disabled):active,
-.btn.btn-secondary:not(:disabled):not(.disabled).active,
-.show>.btn.btn-secondary.dropdown-toggle {
-    color: var(--md-sys-color-primary);
-    background-color: color-mix(in srgb, var(--md-sys-color-primary) var(--md-sys-state-pressed-opacity), var(--md-sys-color-surface-container-lowest));
-    border-color: var(--md-sys-color-primary);
-}
-
-/* Solid semantic buttons — flat saturated fills aligned to the badge SOLID tier
-   palette (DESIGN.md "Badges"): primary→brand var, the rest fixed semantic
-   status hexes (NOT brand). Replaces the legacy Star-Admin neon (#b66dff /
-   #1bcfb4 / #198ae3 / #fed713 / #fe7c96). Loads after style.css/rtl.css so the
-   single-class rules win on load order; the :active group mirrors the legacy
-   selector specificity to beat its gradient-reassert. */
-.btn-primary {
-    color: var(--md-sys-color-on-primary);
-    background-color: var(--md-sys-color-primary);
-    border-color: var(--md-sys-color-primary);
-}
-
-.btn-primary:hover {
-    color: var(--md-sys-color-on-primary);
-    background-color: color-mix(in srgb, var(--md-sys-color-primary) 88%, var(--md-sys-color-on-surface));
-    border-color: color-mix(in srgb, var(--md-sys-color-primary) 84%, var(--md-sys-color-on-surface));
-}
-
-.btn-primary:focus,
-.btn-primary.focus {
-    color: var(--md-sys-color-on-primary);
-    background-color: color-mix(in srgb, var(--md-sys-color-primary) 88%, var(--md-sys-color-on-surface));
-    border-color: color-mix(in srgb, var(--md-sys-color-primary) 84%, var(--md-sys-color-on-surface));
-    box-shadow: 0 0 0 0.2rem color-mix(in srgb, var(--md-sys-color-primary) 40%, transparent);
-}
-
-.btn-primary.disabled,
-.btn-primary:disabled {
-    color: var(--md-sys-color-on-primary);
-    background-color: color-mix(in srgb, var(--md-sys-color-primary) 55%, var(--md-sys-color-surface-container-lowest));
-    border-color: color-mix(in srgb, var(--md-sys-color-primary) 55%, var(--md-sys-color-surface-container-lowest));
-}
-
-.btn-primary:not(:disabled):not(.disabled):active,
-.btn-primary:not(:disabled):not(.disabled).active,
-.show>.btn-primary.dropdown-toggle {
-    color: var(--md-sys-color-on-primary);
-    background-color: color-mix(in srgb, var(--md-sys-color-primary) 80%, var(--md-sys-color-on-surface));
-    border-color: color-mix(in srgb, var(--md-sys-color-primary) 76%, var(--md-sys-color-on-surface));
-}
-
-.btn-primary:not(:disabled):not(.disabled):active:focus,
-.btn-primary:not(:disabled):not(.disabled).active:focus,
-.show>.btn-primary.dropdown-toggle:focus {
-    box-shadow: 0 0 0 0.2rem color-mix(in srgb, var(--md-sys-color-primary) 40%, transparent);
-}
-
-.btn-success {
-    color: var(--app-status-on-success);
-    background-color: var(--app-status-success);
-    border-color: var(--app-status-success);
-}
-
-.btn-success:hover {
-    color: var(--app-status-on-success);
-    background-color: color-mix(in srgb, var(--app-status-success) 88%, var(--md-sys-color-on-surface));
-    border-color: color-mix(in srgb, var(--app-status-success) 84%, var(--md-sys-color-on-surface));
-}
-
-.btn-success:focus,
-.btn-success.focus {
-    color: var(--app-status-on-success);
-    background-color: color-mix(in srgb, var(--app-status-success) 88%, var(--md-sys-color-on-surface));
-    border-color: color-mix(in srgb, var(--app-status-success) 84%, var(--md-sys-color-on-surface));
-    box-shadow: 0 0 0 0.2rem color-mix(in srgb, var(--app-status-success) 40%, transparent);
-}
-
-.btn-success.disabled,
-.btn-success:disabled {
-    color: var(--app-status-on-success);
-    background-color: color-mix(in srgb, var(--app-status-success) 55%, var(--md-sys-color-surface-container-lowest));
-    border-color: color-mix(in srgb, var(--app-status-success) 55%, var(--md-sys-color-surface-container-lowest));
-}
-
-.btn-success:not(:disabled):not(.disabled):active,
-.btn-success:not(:disabled):not(.disabled).active,
-.show>.btn-success.dropdown-toggle {
-    color: var(--app-status-on-success);
-    background-color: color-mix(in srgb, var(--app-status-success) 80%, var(--md-sys-color-on-surface));
-    border-color: color-mix(in srgb, var(--app-status-success) 76%, var(--md-sys-color-on-surface));
-}
-
-.btn-success:not(:disabled):not(.disabled):active:focus,
-.btn-success:not(:disabled):not(.disabled).active:focus,
-.show>.btn-success.dropdown-toggle:focus {
-    box-shadow: 0 0 0 0.2rem color-mix(in srgb, var(--app-status-success) 40%, transparent);
-}
-
-.btn-info {
-    color: var(--app-status-on-info);
-    background-color: var(--app-status-info);
-    border-color: var(--app-status-info);
-}
-
-.btn-info:hover {
-    color: var(--app-status-on-info);
-    background-color: color-mix(in srgb, var(--app-status-info) 88%, var(--md-sys-color-on-surface));
-    border-color: color-mix(in srgb, var(--app-status-info) 84%, var(--md-sys-color-on-surface));
-}
-
-.btn-info:focus,
-.btn-info.focus {
-    color: var(--app-status-on-info);
-    background-color: color-mix(in srgb, var(--app-status-info) 88%, var(--md-sys-color-on-surface));
-    border-color: color-mix(in srgb, var(--app-status-info) 84%, var(--md-sys-color-on-surface));
-    box-shadow: 0 0 0 0.2rem color-mix(in srgb, var(--app-status-info) 40%, transparent);
-}
-
-.btn-info.disabled,
-.btn-info:disabled {
-    color: var(--app-status-on-info);
-    background-color: color-mix(in srgb, var(--app-status-info) 55%, var(--md-sys-color-surface-container-lowest));
-    border-color: color-mix(in srgb, var(--app-status-info) 55%, var(--md-sys-color-surface-container-lowest));
-}
-
-.btn-info:not(:disabled):not(.disabled):active,
-.btn-info:not(:disabled):not(.disabled).active,
-.show>.btn-info.dropdown-toggle {
-    color: var(--app-status-on-info);
-    background-color: color-mix(in srgb, var(--app-status-info) 80%, var(--md-sys-color-on-surface));
-    border-color: color-mix(in srgb, var(--app-status-info) 76%, var(--md-sys-color-on-surface));
-}
-
-.btn-info:not(:disabled):not(.disabled):active:focus,
-.btn-info:not(:disabled):not(.disabled).active:focus,
-.show>.btn-info.dropdown-toggle:focus {
-    box-shadow: 0 0 0 0.2rem color-mix(in srgb, var(--app-status-info) 40%, transparent);
-}
-
-/* Warning carries DARK ink — the amber fill is too light for white text
-   (matches the badge SOLID warning #1f2937 ink). */
-.btn-warning {
-    color: var(--app-status-on-warning);
-    background-color: var(--app-status-warning);
-    border-color: var(--app-status-warning);
-}
-
-.btn-warning:hover {
-    color: var(--app-status-on-warning);
-    background-color: color-mix(in srgb, var(--app-status-warning) 88%, var(--md-sys-color-on-surface));
-    border-color: color-mix(in srgb, var(--app-status-warning) 84%, var(--md-sys-color-on-surface));
-}
-
-.btn-warning:focus,
-.btn-warning.focus {
-    color: var(--app-status-on-warning);
-    background-color: color-mix(in srgb, var(--app-status-warning) 88%, var(--md-sys-color-on-surface));
-    border-color: color-mix(in srgb, var(--app-status-warning) 84%, var(--md-sys-color-on-surface));
-    box-shadow: 0 0 0 0.2rem color-mix(in srgb, var(--app-status-warning) 40%, transparent);
-}
-
-.btn-warning.disabled,
-.btn-warning:disabled {
-    color: var(--app-status-on-warning);
-    background-color: color-mix(in srgb, var(--app-status-warning) 55%, var(--md-sys-color-surface-container-lowest));
-    border-color: color-mix(in srgb, var(--app-status-warning) 55%, var(--md-sys-color-surface-container-lowest));
-}
-
-.btn-warning:not(:disabled):not(.disabled):active,
-.btn-warning:not(:disabled):not(.disabled).active,
-.show>.btn-warning.dropdown-toggle {
-    color: var(--app-status-on-warning);
-    background-color: color-mix(in srgb, var(--app-status-warning) 80%, var(--md-sys-color-on-surface));
-    border-color: color-mix(in srgb, var(--app-status-warning) 76%, var(--md-sys-color-on-surface));
-}
-
-.btn-warning:not(:disabled):not(.disabled):active:focus,
-.btn-warning:not(:disabled):not(.disabled).active:focus,
-.show>.btn-warning.dropdown-toggle:focus {
-    box-shadow: 0 0 0 0.2rem color-mix(in srgb, var(--app-status-warning) 40%, transparent);
-}
-
-.btn-danger {
-    color: var(--md-sys-color-on-error);
-    background-color: var(--md-sys-color-error);
-    border-color: var(--md-sys-color-error);
-}
-
-.btn-danger:hover {
-    color: var(--md-sys-color-on-error);
-    background-color: color-mix(in srgb, var(--md-sys-color-error) 88%, var(--md-sys-color-on-surface));
-    border-color: color-mix(in srgb, var(--md-sys-color-error) 84%, var(--md-sys-color-on-surface));
-}
-
-.btn-danger:focus,
-.btn-danger.focus {
-    color: var(--md-sys-color-on-error);
-    background-color: color-mix(in srgb, var(--md-sys-color-error) 88%, var(--md-sys-color-on-surface));
-    border-color: color-mix(in srgb, var(--md-sys-color-error) 84%, var(--md-sys-color-on-surface));
-    box-shadow: 0 0 0 0.2rem color-mix(in srgb, var(--md-sys-color-error) 40%, transparent);
-}
-
-.btn-danger.disabled,
-.btn-danger:disabled {
-    color: var(--md-sys-color-on-error);
-    background-color: color-mix(in srgb, var(--md-sys-color-error) 55%, var(--md-sys-color-surface-container-lowest));
-    border-color: color-mix(in srgb, var(--md-sys-color-error) 55%, var(--md-sys-color-surface-container-lowest));
-}
-
-.btn-danger:not(:disabled):not(.disabled):active,
-.btn-danger:not(:disabled):not(.disabled).active,
-.show>.btn-danger.dropdown-toggle {
-    color: var(--md-sys-color-on-error);
-    background-color: color-mix(in srgb, var(--md-sys-color-error) 80%, var(--md-sys-color-on-surface));
-    border-color: color-mix(in srgb, var(--md-sys-color-error) 76%, var(--md-sys-color-on-surface));
-}
-
-.btn-danger:not(:disabled):not(.disabled):active:focus,
-.btn-danger:not(:disabled):not(.disabled).active:focus,
-.show>.btn-danger.dropdown-toggle:focus {
-    box-shadow: 0 0 0 0.2rem color-mix(in srgb, var(--md-sys-color-error) 40%, transparent);
-}
-
-/* ── Solid-button state overrides: beat the legacy `.btn-{v}:not(.btn-light)`
-   chain (specificity 0,3,0) ─────────────────────────────────────────────────
-   The legacy bundle reasserts the NEON fill on :focus/:active via
-   `.btn-{v}:not(.btn-light):focus, …:active { background:<neon>; border-color }`
-   and forces white ink via `.btn-{v}:not(.btn-light){ color:#fff }` — both
-   outrank a plain `.btn-{v}:hover/:focus` (0,2,0), so without these the buttons
-   snapped back to the old colours on hover/focus/active. Mirror the selectors
-   here (later sheet wins at equal specificity, no !important) so EVERY state
-   carries the modern fill. Same playbook as `.btn-secondary:not(.btn-light)`. */
-
-.btn-primary:not(.btn-light) {
-    color: var(--md-sys-color-on-primary);
-}
-
-.btn-primary:not(.btn-light):hover,
-.btn-primary:not(.btn-light):focus {
-    color: var(--md-sys-color-on-primary);
-    background: color-mix(in srgb, var(--md-sys-color-primary) 88%, var(--md-sys-color-on-surface));
-    border-color: color-mix(in srgb, var(--md-sys-color-primary) 84%, var(--md-sys-color-on-surface));
-}
-
-.btn-primary:not(.btn-light):active {
-    color: var(--md-sys-color-on-primary);
-    background: color-mix(in srgb, var(--md-sys-color-primary) 80%, var(--md-sys-color-on-surface));
-    border-color: color-mix(in srgb, var(--md-sys-color-primary) 76%, var(--md-sys-color-on-surface));
-}
-
-.btn-success:not(.btn-light) {
-    color: var(--app-status-on-success);
-}
-
-.btn-success:not(.btn-light):hover,
-.btn-success:not(.btn-light):focus {
-    color: var(--app-status-on-success);
-    background: color-mix(in srgb, var(--app-status-success) 88%, var(--md-sys-color-on-surface));
-    border-color: color-mix(in srgb, var(--app-status-success) 84%, var(--md-sys-color-on-surface));
-}
-
-.btn-success:not(.btn-light):active {
-    color: var(--app-status-on-success);
-    background: color-mix(in srgb, var(--app-status-success) 80%, var(--md-sys-color-on-surface));
-    border-color: color-mix(in srgb, var(--app-status-success) 76%, var(--md-sys-color-on-surface));
-}
-
-.btn-info:not(.btn-light) {
-    color: var(--app-status-on-info);
-}
-
-.btn-info:not(.btn-light):hover,
-.btn-info:not(.btn-light):focus {
-    color: var(--app-status-on-info);
-    background: color-mix(in srgb, var(--app-status-info) 88%, var(--md-sys-color-on-surface));
-    border-color: color-mix(in srgb, var(--app-status-info) 84%, var(--md-sys-color-on-surface));
-}
-
-.btn-info:not(.btn-light):active {
-    color: var(--app-status-on-info);
-    background: color-mix(in srgb, var(--app-status-info) 80%, var(--md-sys-color-on-surface));
-    border-color: color-mix(in srgb, var(--app-status-info) 76%, var(--md-sys-color-on-surface));
-}
-
-.btn-warning:not(.btn-light) {
-    color: var(--app-status-on-warning);
-}
-
-.btn-warning:not(.btn-light):hover,
-.btn-warning:not(.btn-light):focus {
-    color: var(--app-status-on-warning);
-    background: color-mix(in srgb, var(--app-status-warning) 88%, var(--md-sys-color-on-surface));
-    border-color: color-mix(in srgb, var(--app-status-warning) 84%, var(--md-sys-color-on-surface));
-}
-
-.btn-warning:not(.btn-light):active {
-    color: var(--app-status-on-warning);
-    background: color-mix(in srgb, var(--app-status-warning) 80%, var(--md-sys-color-on-surface));
-    border-color: color-mix(in srgb, var(--app-status-warning) 76%, var(--md-sys-color-on-surface));
-}
-
-.btn-danger:not(.btn-light) {
-    color: var(--md-sys-color-on-error);
-}
-
-.btn-danger:not(.btn-light):hover,
-.btn-danger:not(.btn-light):focus {
-    color: var(--md-sys-color-on-error);
-    background: color-mix(in srgb, var(--md-sys-color-error) 88%, var(--md-sys-color-on-surface));
-    border-color: color-mix(in srgb, var(--md-sys-color-error) 84%, var(--md-sys-color-on-surface));
-}
-
-.btn-danger:not(.btn-light):active {
-    color: var(--md-sys-color-on-error);
-    background: color-mix(in srgb, var(--md-sys-color-error) 80%, var(--md-sys-color-on-surface));
-    border-color: color-mix(in srgb, var(--md-sys-color-error) 76%, var(--md-sys-color-on-surface));
-}
-
 /* ── Cards ───────────────────────────────────────────────────────────── */
 
 .card {
@@ -509,7 +69,7 @@
        hover. */
     background: var(--md-sys-color-surface-container-lowest);
     border: 1px solid var(--md-sys-color-outline-variant);
-    border-radius: var(--md-sys-shape-corner-medium);
+    border-radius: var(--app-radius);
     box-shadow: none;
 }
 
@@ -530,13 +90,13 @@
 }
 
 .card>.list-group:first-child {
-    border-top-left-radius: 13px;
-    border-top-right-radius: 13px;
+    border-top-left-radius: calc(var(--app-radius) - 1px);
+    border-top-right-radius: calc(var(--app-radius) - 1px);
 }
 
 .card>.list-group:last-child {
-    border-bottom-right-radius: 13px;
-    border-bottom-left-radius: 13px;
+    border-bottom-right-radius: calc(var(--app-radius) - 1px);
+    border-bottom-left-radius: calc(var(--app-radius) - 1px);
 }
 
 .card-link {
@@ -556,7 +116,7 @@
 }
 
 .card-header:first-child {
-    border-radius: 13px 13px 0 0;
+    border-radius: calc(var(--app-radius) - 1px) calc(var(--app-radius) - 1px) 0 0;
 }
 
 .card-footer {
@@ -566,23 +126,23 @@
 }
 
 .card-footer:last-child {
-    border-radius: 0 0 13px 13px;
+    border-radius: 0 0 calc(var(--app-radius) - 1px) calc(var(--app-radius) - 1px);
 }
 
 .card-img-overlay {
-    border-radius: 13px;
+    border-radius: calc(var(--app-radius) - 1px);
 }
 
 .card-img,
 .card-img-top {
-    border-top-left-radius: 13px;
-    border-top-right-radius: 13px;
+    border-top-left-radius: calc(var(--app-radius) - 1px);
+    border-top-right-radius: calc(var(--app-radius) - 1px);
 }
 
 .card-img,
 .card-img-bottom {
-    border-bottom-right-radius: 13px;
-    border-bottom-left-radius: 13px;
+    border-bottom-right-radius: calc(var(--app-radius) - 1px);
+    border-bottom-left-radius: calc(var(--app-radius) - 1px);
 }
 
 /* ── Title hierarchy: page-title (page H1) vs card-title (section label) ──
@@ -759,103 +319,6 @@
     }
 }
 
-/* ── Select2 — themed via DESIGN.md tokens ───────────────────────────── */
-
-.select2-container--default .select2-results__option--highlighted[aria-selected] {
-    background: color-mix(in srgb, var(--md-sys-color-primary) 12%, transparent);
-    color: var(--md-sys-color-primary);
-}
-
-.select2-container--default .select2-results__option[aria-selected=true] {
-    background: color-mix(in srgb, var(--md-sys-color-primary) 8%, transparent);
-    color: var(--md-sys-color-primary);
-    font-weight: 500;
-}
-
-.select2-container--default .select2-selection--single,
-.select2-container--default .select2-selection--multiple {
-    border-color: var(--md-sys-color-outline);
-    border-radius: 10px;
-}
-
-.select2-container--default .select2-dropdown {
-    border-color: var(--md-sys-color-outline-variant);
-    border-radius: 10px;
-    box-shadow: var(--md-sys-elevation-level2);
-    overflow: hidden;
-    font-size: .8125rem;
-}
-
-.select2-container--default .select2-selection--single .select2-search__field,
-.select2-container--default .select2-dropdown .select2-search__field,
-.select2-container--default .select2-selection--multiple .select2-search__field {
-    border-color: var(--md-sys-color-outline);
-    border-radius: 8px;
-}
-
-.select2-container--default.select2-container--focus .select2-selection--multiple,
-.select2-container--default.select2-container--focus .select2-selection--single {
-    border-color: var(--md-sys-color-primary);
-    box-shadow: none;
-}
-
-.select2-container--default .select2-selection--multiple .select2-selection__choice {
-    background: color-mix(in srgb, var(--md-sys-color-primary) 12%, var(--md-sys-color-surface-container-lowest));
-    color: var(--md-sys-color-primary);
-    border: 1px solid color-mix(in srgb, var(--md-sys-color-primary) 25%, transparent);
-    border-radius: 8px;
-    padding: 4px 10px;
-    margin-top: 4px;
-    margin-right: 6px;
-    font-size: .8125rem;
-    font-weight: 500;
-    font-family: inherit;
-    line-height: 1.4;
-    transition: background 0.2s ease, border-color 0.2s ease;
-}
-
-.select2-container--default .select2-selection--multiple .select2-selection__choice:hover {
-    background: color-mix(in srgb, var(--md-sys-color-primary) 18%, var(--md-sys-color-surface-container-lowest));
-    border-color: color-mix(in srgb, var(--md-sys-color-primary) 40%, transparent);
-}
-
-.select2-container--default .select2-selection--multiple .select2-selection__choice .select2-selection__choice__remove {
-    color: var(--md-sys-color-primary);
-    opacity: 0.7;
-    margin-right: 6px;
-    font-weight: 700;
-    transition: opacity 0.2s ease;
-}
-
-.select2-container--default .select2-selection--multiple .select2-selection__choice .select2-selection__choice__remove:hover {
-    color: var(--md-sys-color-primary);
-    opacity: 1;
-}
-
-/* RTL: flip the chip + remove-button spacing to the inline-start. */
-[dir="rtl"] .select2-container--default .select2-selection--multiple .select2-selection__choice {
-    margin-right: 0;
-    margin-left: 6px;
-}
-
-[dir="rtl"] .select2-container--default .select2-selection--multiple .select2-selection__choice .select2-selection__choice__remove {
-    margin-right: 0;
-    margin-left: 6px;
-}
-
-/* RTL: rtl.css ships legacy rainbow chips via :nth-child(5n+N) (specificity 0,4,0,
-   which outranks the flat chip rule above). Repaint all variants back to the single
-   theme tint so RTL matches LTR. The [dir="rtl"] prefix lifts these to 0,5,0 so they
-   win over the nth-child rules. */
-[dir="rtl"] .select2-container--default .select2-selection--multiple .select2-selection__choice:nth-child(5n+1),
-[dir="rtl"] .select2-container--default .select2-selection--multiple .select2-selection__choice:nth-child(5n+2),
-[dir="rtl"] .select2-container--default .select2-selection--multiple .select2-selection__choice:nth-child(5n+3),
-[dir="rtl"] .select2-container--default .select2-selection--multiple .select2-selection__choice:nth-child(5n+4),
-[dir="rtl"] .select2-container--default .select2-selection--multiple .select2-selection__choice:nth-child(5n+5) {
-    background: color-mix(in srgb, var(--md-sys-color-primary) 12%, var(--md-sys-color-surface-container-lowest));
-    color: var(--md-sys-color-primary);
-}
-
 /* ── Badges ──────────────────────────────────────────────────────────────
  *
  * A token-driven badge system over the legacy Star-Admin badges, in the same
@@ -911,17 +374,19 @@
  * -event in academic_calendar_pdf.blade.php (dompdf can't do color-mix). */
 
 .badge {
-    display: inline-block;
-    padding: 0.375rem 0.5625rem;
+    /* M3 label chip: 24px high, 8px corners, label-medium. */
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 24px;
+    padding: 0 8px;
     border: 1px solid transparent;
-    border-radius: 8px;
-    /* = form-control-sm rung; not a new radius */
+    border-radius: var(--md-sys-shape-corner-small);
     font-family: var(--md-ref-typeface-plain);
-    font-size: 11px;
+    font-size: var(--md-sys-typescale-label-medium-size);
     font-weight: 500;
-    /* inert vs single-weight faces; family carries weight */
-    line-height: 1;
-    letter-spacing: 0.01em;
+    line-height: var(--md-sys-typescale-label-medium-line-height);
+    letter-spacing: var(--md-sys-typescale-label-medium-tracking);
     vertical-align: baseline;
     transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease;
 }
@@ -1165,151 +630,6 @@ a.badge:focus {
     border-color: var(--md-sys-color-outline);
 }
 
-/* ── Modals ───────────────────────────────────────────────────────────────
-   Plain-white, modern dialog surface over the legacy Star-Admin look (lilac
-   #f2edf3 fill, 0.3rem radius, #ebedf2 borders, a 100px dialog drop, and the
-   .modal .modal-dialog .modal-content ... override chain at style.css:22722).
-   Loaded after style.css/rtl.css in both bundles, so it wins. Direction-
-   neutral — the header/footer are flex rows, so no [dir="rtl"] flips needed.
-   ID-scoped bespoke modals (#createSessionYearModal, #assignModal,
-   #promoteModal, the elective modal) keep their own designs — class selectors
-   here can't beat their ID rules. Modal = top-most overlay, so it carries the
-   deepest shadow tier in the system (above the wrapper). */
-
-/* Backdrop — softer slate scrim + a faint blur instead of flat 50% black. */
-.modal-backdrop {
-    background-color: var(--md-sys-color-scrim);
-    -webkit-backdrop-filter: blur(2px);
-    backdrop-filter: blur(2px);
-}
-
-.modal-backdrop.show {
-    opacity: 0.4;
-}
-
-/* Dialog — a calmer drop than the legacy 100px, with a refined slide+scale
-   entrance. (0,2,0) matches the legacy margin-top rule; content.css wins on
-   load order.) */
-.modal .modal-dialog {
-    margin-top: 1.75rem;
-}
-
-.modal.fade .modal-dialog {
-    transform: translateY(-16px) scale(0.98);
-    transition: transform 0.22s cubic-bezier(0.25, 0.1, 0.25, 1), opacity 0.22s ease;
-}
-
-.modal.show .modal-dialog {
-    transform: none;
-}
-
-@media (prefers-reduced-motion: reduce) {
-    .modal.fade .modal-dialog {
-        transition: none;
-    }
-}
-
-/* Surface — pure white, hairline border, 16px radius (on the DESIGN.md scale,
-   the prominent floating-container tier), deepest soft shadow. overflow:hidden
-   lets the header/footer corners hug the outer radius without per-edge math. */
-.modal-content {
-    background-color: var(--md-sys-color-surface);
-    border: 1px solid var(--md-sys-color-outline-variant);
-    border-radius: 16px;
-    overflow: hidden;
-    box-shadow: var(--md-sys-elevation-level5);
-}
-
-/* Header — white, hairline underline. Scoped to (0,4,0) to beat the legacy
-   .modal .modal-dialog .modal-content .modal-header padding rule. */
-.modal .modal-dialog .modal-content .modal-header {
-    align-items: center;
-    padding: 1.125rem 1.5rem;
-    background-color: var(--md-sys-color-surface);
-    border-bottom: 1px solid var(--md-sys-color-outline-variant);
-}
-
-.modal-title {
-    font-family: var(--md-ref-typeface-plain);
-    font-size: 1.0625rem;
-    font-weight: 500;
-    color: var(--md-sys-color-on-surface);
-    text-transform: none;
-    letter-spacing: -0.01em;
-}
-
-/* Close — a clean rounded ghost button (8px = .form-control-sm tier), muted →
-   theme-tint on hover. Overrides the legacy negative-margin × glyph treatment.
-   (0,5,0) so it outranks the legacy .modal-header .close span colour rule. */
-.modal .modal-dialog .modal-content .modal-header .close {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 32px;
-    height: 32px;
-    padding: 0;
-    margin: 0;
-    font-size: 1.5rem;
-    font-weight: 400;
-    line-height: 1;
-    color: var(--md-sys-color-on-surface-variant);
-    opacity: 1;
-    border-radius: 8px;
-    transition: color 0.2s ease, background-color 0.2s ease;
-}
-
-.modal .modal-dialog .modal-content .modal-header .close:hover,
-.modal .modal-dialog .modal-content .modal-header .close:focus {
-    color: var(--md-sys-color-primary);
-    background-color: color-mix(in srgb, var(--md-sys-color-primary) 8%, transparent);
-    opacity: 1;
-    outline: none;
-}
-
-.modal .modal-dialog .modal-content .modal-header .close span {
-    font-size: inherit;
-    font-weight: inherit;
-    color: inherit;
-}
-
-/* Body — comfortable breathing room. (0,4,0) beats the legacy 35px padding. */
-.modal .modal-dialog .modal-content .modal-body {
-    padding: 1.5rem;
-    color: var(--md-sys-color-on-surface);
-}
-
-/* Footer — white, hairline divider, right-aligned action gap. (0,4,0) beats
-   the legacy 15px footer padding. */
-.modal .modal-dialog .modal-content .modal-footer {
-    gap: 0.625rem;
-    padding: 1rem 1.5rem;
-    background-color: var(--md-sys-color-surface);
-    border-top: 1px solid var(--md-sys-color-outline-variant);
-}
-
-.modal .modal-dialog .modal-content .modal-footer>* {
-    margin: 0;
-}
-
-/* Scrollable body — slim neutral scrollbar matching the redesign tone. */
-.modal-body::-webkit-scrollbar {
-    width: 6px;
-    height: 6px;
-}
-
-.modal-body::-webkit-scrollbar-thumb {
-    background: color-mix(in srgb, var(--md-sys-color-outline) 40%, transparent);
-    border-radius: 10px;
-}
-
-.modal-body::-webkit-scrollbar-thumb:hover {
-    background: color-mix(in srgb, var(--md-sys-color-outline) 60%, transparent);
-}
-
-.modal-body::-webkit-scrollbar-track {
-    background: transparent;
-}
-
 /* ── Note banners / callouts ──────────────────────────────────────────────
    Opt-in inline notes for page-level cautions, replacing the legacy Bootstrap
    .alert (Star-Admin pill radius + flat tints). Base sets the layout; a
@@ -1365,236 +685,6 @@ a.badge:focus {
 
 .note-banner-info svg {
     color: var(--app-status-info);
-}
-
-/* Radios — repaint the legacy Star-Admin lilac (#b66dff / #da8cff→#9a55ff) into the
-   brand theme colour. style.css (LTR) already uses var(--theme-color), but rtl.css
-   still ships the hardcoded lilac, so RTL radios lose the brand colour. content.css
-   loads after both bundles, so these identical selectors win on order for LTR and RTL
-   alike. */
-.form-check .form-check-label input[type="radio"]+.input-helper:before {
-    border-color: var(--md-sys-color-primary);
-}
-
-.form-check .form-check-label input[type="radio"]:checked+.input-helper:before {
-    background: var(--md-sys-color-primary);
-}
-
-/* Disabled radios — muted theme tint. */
-.form-check .form-check-label input[type="radio"]:disabled+.input-helper:before {
-    border-color: color-mix(in srgb, var(--md-sys-color-primary) 35%, var(--md-sys-color-surface-container-lowest));
-}
-
-.form-check .form-check-label input[type="radio"]:disabled:checked+.input-helper:before {
-    background: color-mix(in srgb, var(--md-sys-color-primary) 50%, var(--md-sys-color-surface-container-lowest));
-}
-
-/* ============================================================
-   Toasts (jquery-toast-plugin) — modern white-overlay tier
-   ------------------------------------------------------------
-   Replaces the legacy Star-Admin neon toasts: the plugin's dark
-   #444 fill / PNG icons / 4px radius (jquery.toast.min.css) AND the
-   bundle overrides at style.css:27864 that paint the old neon
-   (#1bcfb4 / #fed713 / #198ae3 / #fe7c96). content.css loads after
-   style.css/rtl.css, so the .jq-toast-wrap-prefixed selectors below
-   beat those legacy rules on specificity + order, LTR and RTL alike.
-
-   Look: clean #fff card (modal/overlay tier) — hairline border, a
-   semantic inline-start accent bar, a Lucide icon as a fixed-hue SVG
-   data-URI (semantic status colours are NOT brand, so a literal hex
-   in the data-URI is correct — same rationale as the table sort
-   arrows), deep document ink, 12px radius, overlay shadow, and a
-   semantic progress loader. Palette matches the badge/solid-button
-   system: success #198754, danger #dc3545, warning #d97706, info
-   #0e7490. The API (showSuccessToast / showErrorToast) is unchanged.
-   ============================================================ */
-
-/* Container — wider than the plugin's cramped 250px, clears the fixed navbar */
-.jq-toast-wrap {
-    width: 360px;
-    max-width: calc(100vw - 40px);
-    z-index: 9100 !important;
-}
-
-.jq-toast-wrap.top-right {
-    top: 86px;
-    right: 24px;
-}
-
-.jq-toast-wrap.top-left {
-    top: 86px;
-    left: 24px;
-}
-
-[dir="rtl"] .jq-toast-wrap.top-right {
-    right: auto;
-    left: 24px;
-}
-
-/* Single toast — white overlay card */
-.jq-toast-wrap .jq-toast-single {
-    width: 100%;
-    margin: 0 0 12px;
-    padding: 14px 18px;
-    padding-inline-end: 42px;
-    border-radius: 12px;
-    background-color: var(--md-sys-color-surface-container-lowest);
-    color: var(--md-sys-color-on-surface) !important;
-    /* override the plugin's color:#fff !important */
-    border: 1px solid var(--md-sys-color-outline-variant);
-    border-inline-start: 3px solid var(--md-sys-color-outline);
-    /* per-type accent overrides below; auto-flips for RTL */
-    font-family: var(--md-ref-typeface-plain);
-    font-size: 0.875rem;
-    line-height: 1.45;
-    box-shadow: var(--md-sys-elevation-level3);
-    overflow: hidden;
-    transition: box-shadow 0.25s ease, transform 0.25s ease;
-}
-
-.jq-toast-wrap .jq-toast-single:hover {
-    box-shadow: var(--md-sys-elevation-level4);
-}
-
-/* Optional heading + body links */
-.jq-toast-wrap .jq-toast-single h2 {
-    font-family: var(--md-ref-typeface-plain);
-    font-size: 0.9375rem;
-    margin: 0 0 4px;
-    color: var(--md-sys-color-on-surface);
-}
-
-.jq-toast-wrap .jq-toast-single a {
-    color: var(--md-sys-color-primary);
-    border-bottom-color: color-mix(in srgb, var(--md-sys-color-primary) 40%, transparent);
-}
-
-/* Icon — a Lucide SVG used as a mask, so it is painted in the token colour
-   each variant sets in --toast-icon-color. */
-.jq-toast-wrap .jq-toast-single.jq-has-icon {
-    padding-inline-start: 52px;
-    background-image: none;
-}
-
-.jq-toast-wrap .jq-toast-single.jq-has-icon::before {
-    content: "";
-    position: absolute;
-    inset-inline-start: 18px;
-    top: 50%;
-    width: 22px;
-    height: 22px;
-    transform: translateY(-50%);
-    background-color: var(--toast-icon-color);
-    -webkit-mask: var(--toast-icon) no-repeat center / contain;
-    mask: var(--toast-icon) no-repeat center / contain;
-}
-
-/* Success — check-circle, green */
-.jq-toast-wrap .jq-toast-single.jq-icon-success {
-    background-color: var(--md-sys-color-surface-container-lowest);
-    border-inline-start-color: var(--app-status-success);
-    --toast-icon: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M22 11.08V12a10 10 0 1 1-5.93-9.14'/%3E%3Cpolyline points='22 4 12 14.01 9 11.01'/%3E%3C/svg%3E");
-    --toast-icon-color: var(--app-status-success);
-}
-
-/* Error — alert-circle, red */
-.jq-toast-wrap .jq-toast-single.jq-icon-error {
-    background-color: var(--md-sys-color-surface-container-lowest);
-    border-inline-start-color: var(--md-sys-color-error);
-    --toast-icon: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='12' cy='12' r='10'/%3E%3Cline x1='12' y1='8' x2='12' y2='12'/%3E%3Cline x1='12' y1='16' x2='12.01' y2='16'/%3E%3C/svg%3E");
-    --toast-icon-color: var(--md-sys-color-error);
-}
-
-/* Warning — alert-triangle, amber */
-.jq-toast-wrap .jq-toast-single.jq-icon-warning {
-    background-color: var(--md-sys-color-surface-container-lowest);
-    border-inline-start-color: var(--app-status-warning);
-    --toast-icon: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z'/%3E%3Cline x1='12' y1='9' x2='12' y2='13'/%3E%3Cline x1='12' y1='17' x2='12.01' y2='17'/%3E%3C/svg%3E");
-    --toast-icon-color: var(--app-status-warning);
-}
-
-/* Info — info circle, teal */
-.jq-toast-wrap .jq-toast-single.jq-icon-info {
-    background-color: var(--md-sys-color-surface-container-lowest);
-    border-inline-start-color: var(--app-status-info);
-    --toast-icon: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='12' cy='12' r='10'/%3E%3Cline x1='12' y1='16' x2='12' y2='12'/%3E%3Cline x1='12' y1='8' x2='12.01' y2='8'/%3E%3C/svg%3E");
-    --toast-icon-color: var(--app-status-info);
-}
-
-/* Close (×) — muted ghost, hovers to ink (overlay close convention) */
-.jq-toast-wrap .close-jq-toast-single {
-    top: 11px;
-    right: 14px;
-    left: auto;
-    font-size: 17px;
-    line-height: 1;
-    color: var(--md-sys-color-on-surface-variant);
-    transition: color 0.2s ease;
-}
-
-.jq-toast-wrap .close-jq-toast-single:hover {
-    color: var(--md-sys-color-on-surface);
-}
-
-[dir="rtl"] .jq-toast-wrap .close-jq-toast-single {
-    right: auto;
-    left: 14px;
-}
-
-/* Progress loader — sleek bottom hairline. The plugin animates this bar's
-   width 0→100% over hideAfter (timing + loaderBg are set inline by the JS),
-   so it doubles as a live countdown to auto-dismiss. We re-anchor it from the
-   glitchy top edge (top:-2px) to a clean 2px strip flush with the card's
-   bottom, and tint it per toast type — overriding the inline loaderBg so it
-   always matches the accent, never the legacy neon. overflow:hidden on the
-   card clips it to the 12px corner radius. RTL grows from the inline-start. */
-.jq-toast-wrap .jq-toast-single .jq-toast-loader {
-    display: block !important;
-    top: auto;
-    bottom: 0;
-    left: 0;
-    height: 2px;
-    border-radius: 0;
-    background: var(--md-sys-color-primary) !important;
-}
-
-[dir="rtl"] .jq-toast-wrap .jq-toast-single .jq-toast-loader {
-    left: auto;
-    right: 0;
-}
-
-.jq-toast-wrap .jq-toast-single.jq-icon-success .jq-toast-loader {
-    background: var(--app-status-success) !important;
-}
-
-.jq-toast-wrap .jq-toast-single.jq-icon-error .jq-toast-loader {
-    background: var(--md-sys-color-error) !important;
-}
-
-.jq-toast-wrap .jq-toast-single.jq-icon-warning .jq-toast-loader {
-    background: var(--app-status-warning) !important;
-}
-
-.jq-toast-wrap .jq-toast-single.jq-icon-info .jq-toast-loader {
-    background: var(--app-status-info) !important;
-}
-
-/* Tablet / mobile — full-width strip with safe side gutters */
-@media (max-width: 575.98px) {
-
-    .jq-toast-wrap.top-right,
-    .jq-toast-wrap.top-left {
-        width: auto;
-        max-width: none;
-        left: 12px;
-        right: 12px;
-        top: 78px;
-    }
-
-    [dir="rtl"] .jq-toast-wrap.top-right {
-        left: 12px;
-        right: 12px;
-    }
 }
 
 /* ==========================================================================
