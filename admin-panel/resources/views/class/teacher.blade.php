@@ -191,12 +191,12 @@
                 $('#session_year_id_value').val(session_year_id);
                 $('#semester_id_value').val(semester_id);
 
-                $.ajax('/get-all-class-teacher/' + row.id + '/' + session_year_id + '?semester_id=' + semester_id, {
+                $.ajax(baseUrl + '/get-all-class-teacher/' + row.id + '/' + session_year_id + '?semester_id=' + semester_id, {
                     dataType: 'json',
 
                     success: function(data, status, xhr) {
                         let html = ''
-                        html += '<option value=" ">' + trans('please_select') + '</option>';
+                        html += '<option value="">' + trans('please_select') + '</option>';
                         $.each(data, function(key, value) {
 console.log(value.user);
 if(value.user) {
@@ -220,7 +220,7 @@ if(value.user) {
                     });
 
                 } else {
-                    $.ajax('/get-class-teacher/' + row.id + "/" + session_year_id + '?semester_id=' + semester_id, {
+                    $.ajax(baseUrl + '/get-class-teacher/' + row.id + "/" + session_year_id + '?semester_id=' + semester_id, {
                         dataType: 'json',
 
                         success: function(data, status, xhr) {

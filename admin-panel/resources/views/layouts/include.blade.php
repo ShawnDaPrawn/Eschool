@@ -31,9 +31,6 @@
 <link rel="stylesheet" href="{{ asset('/assets/css/flatpickr-theme.css') }}">
 <link rel="stylesheet" href="{{ asset('/assets/css/ekko-lightbox.css') }}">
 
-<script src="{{ asset('/assets/bootstrap-table/bootstrap-table.min.js') }}"></script>
-
-
 <link rel="stylesheet" href="{{ asset('/assets/bootstrap-table/bootstrap-table.min.css') }}">
 <link rel="stylesheet" href="{{ asset('/assets/bootstrap-table/fixed-columns.min.css') }}">
 <link rel="stylesheet" href="{{ asset('/assets/bootstrap-table/reorder-rows.css') }}">
@@ -43,7 +40,7 @@
 <script src="{{ route('common.language.read') }}"></script>
 
 {{-- <link rel="shortcut icon" href="{{asset(config('global.LOGO_SM')) }}" /> --}}
-<link rel="shortcut icon" href="{{ url(Storage::url(schoolSetting('favicon'))) }}" />
+<link rel="shortcut icon" href="{{ schoolSetting('favicon') ? url(Storage::url(schoolSetting('favicon'))) : asset('assets/logo.svg') }}" />
 @php
     $theme_color = getSettings('theme_color');
     $secondary_color = getSettings('secondary_color');
@@ -58,7 +55,7 @@
         $path = $login_image['login_image'];
         $login_image = url(Storage::url($path));
     } else {
-        $login_image = url(Storage::url('eschool.jpg'));
+        $login_image = asset('assets/eschool.jpg');
     }
 
 @endphp
@@ -71,8 +68,10 @@
 </style>
 <script>
     var baseUrl = "{{ URL::to('/') }}";
+    // Try the placeholder once; a missing placeholder must not retry forever.
     const onErrorImage = (e) => {
-        e.target.src = "{{ asset('/storage/no_image_available.jpg') }}";
+        e.target.onerror = null;
+        e.target.src = "{{ asset('assets/no-image.svg') }}";
     };
     // Fallback for user/profile avatars (people) — a generic avatar instead of the "no image" placeholder.
     const onErrorAvatar = (e) => {

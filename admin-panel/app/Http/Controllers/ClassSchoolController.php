@@ -29,6 +29,7 @@ use App\Models\Subject;
 use App\Models\SubjectTeacher;
 use App\Models\Timetable;
 use App\Services\ResponseService;
+use App\Rules\PlainName;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -81,7 +82,7 @@ class ClassSchoolController extends Controller
 
         $validator = Validator::make($request->all(), [
             'medium_id' => 'required|numeric',
-            'name' => 'required|regex:/^[A-Za-z0-9_]+$/',
+            'name' => ['required', new PlainName],
             'section_id' => 'required|array',
         ]);
 
@@ -202,7 +203,7 @@ class ClassSchoolController extends Controller
         }
         $validator = Validator::make($request->all(), [
             'medium_id' => 'required|numeric',
-            'name' => 'required|regex:/^[A-Za-z0-9_]+$/',
+            'name' => ['required', new PlainName],
             'section_id' => 'required',
         ]);
 
@@ -803,7 +804,9 @@ class ClassSchoolController extends Controller
             $includesSemesters = $row->getIncludeSemestersForSession($session_year_id);
 
             if ($includesSemesters !== null) {
-                $operate = '<a href='.route('class-subject-edit.index', $row->id).' class="btn btn-xs btn-gradient-primary btn-rounded btn-icon edit-data" data-id='.$row->id.' title="Edit"><i class="fa fa-edit"></i></a>&nbsp;&nbsp;';
+                // Edit the same session year the list is showing.
+                $editUrl = route('class-subject-edit.index', array_filter(['id' => $row->id, 'session_year_id' => $session_year_id]));
+                $operate = '<a href="'.e($editUrl).'" class="btn btn-xs btn-gradient-primary btn-rounded btn-icon edit-data" data-id='.$row->id.' title="Edit"><i class="fa fa-edit"></i></a>&nbsp;&nbsp;';
             } else {
                 $operate = '<a href="javascript:void(0)" class="btn btn-xs btn-gradient-primary btn-rounded btn-icon disabled" title="'.trans('semester_not_configured').'" disabled><i class="fa fa-edit"></i></a>&nbsp;&nbsp;';
             }
@@ -1053,7 +1056,9 @@ class ClassSchoolController extends Controller
         $mediums = Mediums::orderBy('id', 'ASC')->get();
         $streams = Stream::orderBy('id', 'ASC')->get();
 
-        return response(view('class.edit_subject', compact('class', 'semesters', 'subjects', 'mediums', 'streams', 'sessionYearId')));
+        $sessionYearName = SessionYear::whereKey($sessionYearId)->value('name');
+
+        return response(view('class.edit_subject', compact('class', 'semesters', 'subjects', 'mediums', 'streams', 'sessionYearId', 'sessionYearName')));
     }
 
     private function getCurrentSessionYearId(): ?int

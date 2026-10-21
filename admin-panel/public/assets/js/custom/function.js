@@ -181,7 +181,16 @@ function formAjaxRequest(type, url, data, formElement, submitButtonElement, succ
         }
 
         function finalCallback(response) {
-            submitButtonElement.val(submitButtonText).attr('disabled', false);
+            function enable() {
+                submitButtonElement.val(submitButtonText).attr('disabled', false);
+            }
+            // Many forms reload about a second after saving; keep the button
+            // disabled until then so the same record isn't submitted twice.
+            if (response && response.error === false) {
+                setTimeout(enable, 1500);
+            } else {
+                enable();
+            }
         }
 
         ajaxRequest(type, url, data, beforeSendCallback, mainSuccessCallback, mainErrorCallback, finalCallback)

@@ -172,6 +172,7 @@ Route::group(['middleware' => ['Role', 'auth']], function () {
 
         Route::resource('session-years', SessionYearController::class)->except(['create']);
         Route::post('/session-years/{sessionYear}/clear-specific', [SessionYearController::class, 'deleteSpecificData']);
+        Route::post('session-years/{id}/make-current', [SessionYearController::class, 'makeCurrent'])->whereNumber('id')->name('session-years.make-current');
         Route::get('session_years_list', [SessionYearController::class, 'show']);
         Route::get('session-year/details/{id}', [SessionYearController::class, 'details']);
         Route::get('session-year/{id}/semesters', [SessionYearController::class, 'semesters']);

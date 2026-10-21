@@ -18,6 +18,10 @@
                         <h4 class="card-title">
                             {{ __('create') . ' ' . __('students') }}
                         </h4>
+                        <x-setup-needed :missing="[
+                            'class' => $class_section->isEmpty() ? url('class') : null,
+                            'category' => $category->isEmpty() ? url('category') : null,
+                        ]" />
                         <form class="pt-3 student-registration-form" id="student-registration-form"
                             enctype="multipart/form-data" action="{{ route('students.store') }}" method="POST"
                             novalidate="novalidate">
@@ -896,58 +900,6 @@
                         </form>
 
                         <script>
-                            (function($) {
-                                $(function() {
-                                    function removeParentEmailError() {
-                                        $('#parent-email-error').remove();
-                                    }
-
-                                    function showParentEmailError(msg) {
-                                        removeParentEmailError();
-                                        var $target = $('#mother_email').closest('.form-group');
-                                        if (!$target.length) {
-                                            $target = $('#parents_div');
-                                        }
-                                        $target.append('<div id="parent-email-error" class="text-danger small mt-2">' + msg +
-                                            '</div>');
-                                    }
-
-                                    function validateParentEmails() {
-                                        var selected = $('input[name="parent_guardian_type"]:checked').val();
-                                        if (selected === 'parent') {
-                                            var f = $('#father_email').val();
-                                            var m = $('#mother_email').val();
-                                            if (f && m && f === m) {
-                                                showParentEmailError('Father and mother email cannot be the same.');
-                                                return false;
-                                            }
-                                        }
-                                        removeParentEmailError();
-                                        return true;
-                                    }
-
-                                    $('#student-registration-form').on('submit', function(e) {
-                                        if (!validateParentEmails()) {
-                                            e.preventDefault();
-                                            return false;
-                                        }
-                                    });
-
-                                    $('#father_email, #mother_email').on('change', function() {
-                                        validateParentEmails();
-                                    });
-
-                                    $('input[name="parent_guardian_type"]').on('change', function() {
-                                        if ($(this).val() !== 'parent') {
-                                            removeParentEmailError();
-                                        } else {
-                                            validateParentEmails();
-                                        }
-                                    });
-                                });
-                            })(window.jQuery || window.$);
-                        </script>
-                        <script>
                             (function() {
                                 function removeParentEmailErrorPlain() {
                                     var e = document.getElementById('parent-email-error');
@@ -990,9 +942,11 @@
 
                                 var form = document.getElementById('student-registration-form');
                                 if (form) {
+                                    // Capture phase, so the AJAX submit handler (custom.js) doesn't run either.
                                     form.addEventListener('submit', function(e) {
                                         if (!validateParentEmailsPlain()) {
                                             e.preventDefault();
+                                            e.stopImmediatePropagation();
                                             return false;
                                         }
                                     }, true);

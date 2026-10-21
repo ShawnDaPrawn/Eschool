@@ -16,7 +16,7 @@ class SessionYear extends Model
         'fee_due_date',
         'fee_due_charges',
         'free_app_use_date',
-        'fees_installment',
+        'include_fee_installments',
     ];
 
     use SoftDeletes;

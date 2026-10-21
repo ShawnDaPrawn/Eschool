@@ -61,10 +61,11 @@
                                 <div class="form-group col-md-6 col-sm-12">
                                     <label>{{ __('max_file_size') }} <span
                                             class="text-info">({{ __('in_mb') }})</span></label>
+                                    {{-- Never above what PHP accepts, or the form couldn't be saved at all. --}}
                                     <input name="max_file_size_in_bytes"
-                                        value="{{ isset($settings['max_file_size_in_bytes']) ? $settings['max_file_size_in_bytes'] : '10' }}"
+                                        value="{{ min((float) ($settings['max_file_size_in_bytes'] ?? 10), $maxFileSizeMB) }}"
                                         type="number" required placeholder="{{ __('max_file_size') }}"
-                                        class="form-control" min="1" max="{{ $maxFileSizeMB }}" />
+                                        class="form-control" min="0.1" step="any" max="{{ $maxFileSizeMB }}" />
                                     <p><strong>{{ __('note_max_file_size_allowed', ['size' => $max_file_size_in_bytes]) }}</strong>
                                     </p>
                                 </div>

@@ -265,7 +265,8 @@ class StaffController extends Controller
 
             return redirect(route('home'))->withErrors($response);
         }
-        $roles = Role::where('custom_role', 1)->orderBy('id', 'DESC')->paginate(5);
+        // Every custom role can be given to staff, not just the newest few.
+        $roles = Role::where('custom_role', 1)->orderBy('id', 'DESC')->get();
 
         return view('staff.index', compact('roles'));
     }

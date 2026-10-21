@@ -236,7 +236,7 @@ function studentInfoFormatter(value, row) {
     const name = row.full_name || value || "";
     const grNumber = row.admission_no || "-";
     const studentId = row.id || row.student_id;
-    const studentUrl = studentId ? "/student-report/" + studentId : "#";
+    const studentUrl = studentId ? baseUrl + "/student-report/" + studentId : "#";
     return renderPersonCell(
         name,
         trans("gr_number") + ": " + grNumber,

@@ -19,6 +19,7 @@
                             <h4 class="card-title">
                                 {{ __('create') . ' ' . __('staff') }}
                             </h4>
+                            <x-setup-needed :missing="['role' => $roles->isEmpty() ? url('roles/create') : null]" />
                             <form class="pt-3 staff-form" id="staff-form" enctype="multipart/form-data"
                                 action="{{ route('staff.store') }}" method="POST" novalidate="novalidate">
                                 @csrf

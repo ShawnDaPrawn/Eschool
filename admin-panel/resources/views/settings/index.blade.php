@@ -129,7 +129,7 @@
                                 </span>
                             </div>
                             <div class="settings-media-preview">
-                                <img src="{{ isset($settings['login_image']) ? url(Storage::url($settings['login_image'])) : url(Storage::url('eschool.jpg')) }}" alt="{{ __('login_image') }}">
+                                <img src="{{ isset($settings['login_image']) ? url(Storage::url($settings['login_image'])) : asset('assets/eschool.jpg') }}" alt="{{ __('login_image') }}">
                             </div>
                         </div>
 

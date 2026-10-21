@@ -240,7 +240,7 @@
 
                 function successCallback(response) {
                     if (response.length > 0) {
-                        let html = '<option>' + trans('all') + '</option>';
+                        let html = '<option value="">' + trans('all') + '</option>';
                         $.each(response, function(key, value) {
                             html += '<option value="' + value.id + '">' + value.name + ' - ' + value.type +
                                 '</option>';
