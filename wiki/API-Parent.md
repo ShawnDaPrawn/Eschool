@@ -479,7 +479,7 @@ Fees are set per class and session year in `fees_classes`:
 - Installments are `installment_fees` rows for the session year.
 - Due charges are percentages: `session_years.fee_due_charges` for full payment, `installment_fees.due_charges` per installment.
 
-`payment_transactions.payment_status` is 0 for failed, 1 for succeeded, 2 for pending. Payments are only marked paid by the gateway webhooks (`/webhook/razorpay`, `/webhook/stripe`, `/webhook/paystack`, `/webhook/flutterwave`) through `FeesPaymentService::markPaid()`. No parent endpoint can mark a payment paid. See [Payments](Payments) for gateways, webhooks and settings, and https://shawndaprawn.github.io/Eschool/admin-panel/fee-payment/ for the admin configuration screens.
+`payment_transactions.payment_status` is 0 for failed, 1 for succeeded, 2 for pending. Payments are only marked paid by the gateway webhook (`/webhook/stripe`; the Razorpay, Paystack and Flutterwave webhooks were removed in Phase 0) through `FeesPaymentService::markPaid()`. No parent endpoint can mark a payment paid. See [Payments](Payments) for gateways, webhooks and settings, and https://shawndaprawn.github.io/Eschool/admin-panel/fee-payment/ for the admin configuration screens.
 
 ```mermaid
 sequenceDiagram
@@ -524,7 +524,7 @@ Starts an online payment: prices it on the server, stores a pending transaction 
 | Parameter | Type | Required | Notes |
 |---|---|---|---|
 | `child_id` | — | yes | |
-| `payment_method` | `1`–`4` | yes | 1 Razorpay, 2 Stripe, 3 Paystack, 4 Flutterwave. Refused with "The selected payment method is not available." unless the matching `razorpay_status`, `stripe_status`, `paystack_status` or `flutterwave_status` setting is on. |
+| `payment_method` | `1`–`4` | yes | 2 Stripe. Refused with "The selected payment method is not available." unless it is 2 and `stripe_status` is on; 1 (Razorpay), 3 (Paystack) and 4 (Flutterwave) were removed and are always refused that way. |
 | `type_of_fee` | `0`, `1`, `2` | yes | 0 compulsory in full, 1 installments, 2 optional fees (`FeesPaymentService::COMPULSORY`, `INSTALLMENTS`, `OPTIONAL`) |
 | `amount` | numeric | yes | The total the app showed. It must match the server's total within 0.02, or the request fails with "The fee amount has changed. Please refresh and try again." |
 | `installment_data` | array | for type 1 | Items with `id` = `installment_fees.id`. Other keys the app sends (`name`, `amount`, `due_charges`) are ignored. |
@@ -546,7 +546,7 @@ Side effects, in one database transaction:
 - One `fees_choiceables` row with `status` 0 per optional fee, or one `paid_installment_fees` row with `status` 0 per installment, each linked by `payment_transaction_id`.
 - A gateway order or intent, created by `PaymentService::create($payment_method)->createAndFormatPaymentIntent()`, whose id is saved to `payment_transactions.order_id`.
 
-Response: `data` = `[]` and top-level `payment_gateway_details` = `{id, amount, currency, metadata, status, payment_gateway_response, payment_transaction_id}`. `id` is the Stripe intent id, the Razorpay order id, the Paystack reference, or the Flutterwave hosted payment link, depending on the gateway.
+Response: `data` = `[]` and top-level `payment_gateway_details` = `{id, amount, currency, metadata, status, payment_gateway_response, payment_transaction_id}`. `id` is the Stripe PaymentIntent id.
 
 ### POST `store-fees`
 

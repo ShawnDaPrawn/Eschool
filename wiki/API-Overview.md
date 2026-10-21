@@ -315,7 +315,7 @@ For any type other than `app_settings`, `data` is the raw settings value with th
 | `compulsory_fee_payment_mode`, `is_student_can_pay_fees` | fee settings |
 | `chat_settings` | `max_files_or_images_in_one_message` (default 10), `max_file_size_in_bytes` (setting in MB times 1,000,000; default 10,000,000), `max_characters_in_text_message` (default 500), `automatically_messages_removed_days` (default 30) |
 | `holiday_days` | `leave_masters.holiday_days` for the current session |
-| `payment_options` | `currency_code`, `currency_symbol`, optional `fees_due_date` / `fees_due_charges`, and one object per enabled gateway with only its public key: `razorpay` (`razorpay_api_key`), `stripe` (`stripe_publishable_key`), `paystack` (`paystack_public_key`), `flutterwave` (`flutterwave_public_key`), each with its status and currency code |
+| `payment_options` | `currency_code`, `currency_symbol`, optional `fees_due_date` / `fees_due_charges`, and, when Stripe is enabled, `stripe` with only its public key (`stripe_publishable_key`), its status and currency code. `razorpay`, `paystack` and `flutterwave` were removed in Phase 0 and are always left out, as a disabled gateway is |
 | `online_exam_terms_condition` | HTML-decoded text |
 | `current_semester` | the semester whose `current` attribute is true, or `null` |
 | `semester_breaks` | list of `{start, end}` gaps between consecutive semesters inside the session year, or `null` |
