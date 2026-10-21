@@ -27,7 +27,7 @@ Controllers answer through [`ResponseService`](https://github.com/ShawnDaPrawn/E
 }
 ```
 
-Some endpoints add extra top-level keys next to `data` (for example `token`, `pdf`, `payment_gateway_details`, or the fee arrays of `fees-details`). Errors set `"error": true` and add `details`, which holds the exception text only when `APP_DEBUG` is on. `successResponse()` and `errorResponse()` call `->send()` and then `exit()`, so nothing after them in a controller runs. That is how `resolveChild()` "ends the request" when a child id is wrong.
+Some endpoints add extra top-level keys next to `data` (for example `token`, `pdf`, `payment_gateway_details`, or the fee arrays of `fees-details`). Errors set `"error": true` and add `details`, which holds the exception text only when `APP_DEBUG` is on. Controllers `return` what `successResponse()` and `errorResponse()` build, so nothing after them runs. `resolveChild()` ends the request when a child id is wrong by throwing its error response (an `HttpResponseException`); the catch blocks pass it to `errorResponse()`, which returns it unchanged.
 
 | `code` | Meaning on the parent API |
 |---|---|
@@ -187,7 +187,7 @@ Login does not record that the parent accepted anything. On the first sign-in th
 
 ### Terms a parent must accept
 
-`auth:sanctum` and `role:Parent` only. No child-session check and no `parent.policy`. [`PolicyController`](https://github.com/ShawnDaPrawn/Eschool/blob/main/admin-panel/app/Http/Controllers/Api/Parent/PolicyController.php) returns `response()->json()` and does not `exit()`, unlike the other parent controllers.
+`auth:sanctum` and `role:Parent` only. No child-session check and no `parent.policy`. [`PolicyController`](https://github.com/ShawnDaPrawn/Eschool/blob/main/admin-panel/app/Http/Controllers/Api/Parent/PolicyController.php) returns `response()->json()` directly instead of going through `ResponseService` like the other parent controllers.
 
 GET returns `code` 200 and `data` from `ParentPolicyService::status()`:
 
@@ -800,7 +800,6 @@ These live in `ApiController` without the `parent/` prefix and are documented on
 - The child loop in `login` and `get-profile-data` carries installment data and `$due_date` over from one child to the next.
 - `get-exam-list` does not validate `status`, and its `exam_timetable` is not filtered to the child's class.
 - `fail-payment-transaction` and the one-hour pending timeout set `payment_status` 0 without removing the pending `fees_choiceables` and `paid_installment_fees` rows. The webhook's `markFailed()` does remove them.
-- Responses are sent from inside `ResponseService` and end with `exit()`, so response middleware such as `SecurityHeaders` does not add its headers to them.
 
 ## See also
 

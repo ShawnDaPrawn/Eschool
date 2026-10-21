@@ -15,9 +15,11 @@ use Symfony\Component\Process\Process;
 /**
  * Serves the app from a separate `php -S` process and talks to it over HTTP.
  *
- * Many endpoints (every API controller via ResponseService) call exit() after
- * sending their response, which would end the test run if they were called
- * with in-process test requests.
+ * It was needed because ResponseService called exit() after sending its
+ * response, which ended the test run under in-process test requests. It now
+ * returns the response, so new API tests call the API in-process (see
+ * TeacherApiSecurityTest); this stays for the suites not moved yet and for
+ * checks that need a real server (production error pages, login cookies).
  *
  * The server can't see data inside a test transaction, so tests using this
  * migrate and seed for real (TestCase only allows *_test databases).
