@@ -12,7 +12,6 @@ use App\Models\ClassSection;
 use App\Models\ClassSessionConfig;
 use App\Models\ClassTeacher;
 use App\Models\File;
-use App\Models\Leave;
 use App\Models\Parents;
 use App\Models\ReadMessage;
 use App\Models\Semester;

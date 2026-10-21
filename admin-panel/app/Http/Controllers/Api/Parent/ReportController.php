@@ -6,7 +6,6 @@ namespace App\Http\Controllers\Api\Parent;
 
 use App\Http\Controllers\Api\Parent\Concerns\ParentAccess;
 use App\Http\Controllers\Controller;
-use App\Models\Leave;
 use App\Services\AssignmentReportService;
 use App\Services\ExamReportService;
 use App\Services\FeesReportService;

@@ -9,7 +9,6 @@ use App\Http\Controllers\Controller;
 use App\Models\FeesPaid;
 use App\Models\InstallmentFee;
 use App\Models\PaidInstallmentFee;
-use App\Models\Parents;
 use App\Models\SessionYear;
 use App\Models\Shift;
 use App\Models\StudentSessions;

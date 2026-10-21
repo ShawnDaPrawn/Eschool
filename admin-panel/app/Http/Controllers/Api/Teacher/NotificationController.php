@@ -7,7 +7,6 @@ namespace App\Http\Controllers\Api\Teacher;
 use App\Http\Controllers\Api\Teacher\Concerns\TeacherAccess;
 use App\Http\Controllers\Controller;
 use App\Models\Notification;
-use App\Models\Teacher;
 use App\Models\UserNotification;
 use App\Services\ResponseService;
 use Illuminate\Support\Facades\Auth;

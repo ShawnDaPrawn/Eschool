@@ -17,7 +17,6 @@ use App\Models\Semester;
 use App\Models\Students;
 use App\Models\StudentSubject;
 use App\Models\Subject;
-use App\Models\Teacher;
 use App\Models\UserNotification;
 use App\Services\ResponseService;
 use Carbon\Carbon;

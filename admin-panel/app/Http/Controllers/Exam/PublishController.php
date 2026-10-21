@@ -6,12 +6,10 @@ namespace App\Http\Controllers\Exam;
 
 use App\Http\Controllers\Controller;
 use App\Models\ClassSection;
-use App\Models\ClassTeacher;
 use App\Models\Exam;
 use App\Models\ExamClass;
 use App\Models\ExamResult;
 use App\Models\ExamTimetable;
-use App\Models\Semester;
 use App\Models\StudentSessions;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;

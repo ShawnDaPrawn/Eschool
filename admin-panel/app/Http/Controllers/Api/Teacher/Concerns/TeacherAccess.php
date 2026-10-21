@@ -12,11 +12,9 @@ use App\Models\Lesson;
 use App\Models\Semester;
 use App\Models\Students;
 use App\Models\StudentSessions;
-use App\Models\Subject;
 use App\Models\SubjectTeacher;
 use App\Models\Teacher;
 use App\Services\ResponseService;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
 /**

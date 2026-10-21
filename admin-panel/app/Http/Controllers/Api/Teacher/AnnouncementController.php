@@ -10,7 +10,6 @@ use App\Models\Announcement;
 use App\Models\ClassSection;
 use App\Models\ClassSessionConfig;
 use App\Models\File;
-use App\Models\Semester;
 use App\Models\Students;
 use App\Models\Subject;
 use App\Models\SubjectTeacher;
