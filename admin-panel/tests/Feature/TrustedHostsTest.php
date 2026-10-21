@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use Illuminate\Support\Facades\DB;
 use Tests\Concerns\RunsAppServer;
 use Tests\TestCase;
 
@@ -38,8 +39,17 @@ class TrustedHostsTest extends TestCase
         $this->startAppServer();
         unlink($this->appServerStoragePath('installed'));
 
-        // Until the wizard's last step writes it, APP_URL is .env.example's placeholder,
-        // so the wizard was refused (400) on the school's own domain and couldn't run.
+        // A live school (users already exist) stays closed without the marker, but
+        // the host check must not answer 400: that used to block the wizard on the
+        // school's own domain, while APP_URL was still .env.example's placeholder.
+        $closed = $this->appClient()->withHeaders(['Host' => 'school.example'])->get('/install')->status();
+        $this->assertSame(404, $closed);
+
+        // An empty database is a school opening the wizard for the first time.
+        DB::statement('SET FOREIGN_KEY_CHECKS=0');
+        DB::table('users')->delete();
+        DB::statement('SET FOREIGN_KEY_CHECKS=1');
+
         $this->assertSame(200, $this->appClient()->withHeaders(['Host' => 'school.example'])->get('/install')->status());
     }
 }
