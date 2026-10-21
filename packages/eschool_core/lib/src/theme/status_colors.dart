@@ -1,6 +1,5 @@
-import 'dart:math' as math;
-
 import 'package:eschool_core/src/theme/brand_colors.dart';
+import 'package:eschool_core/src/theme/readable_on.dart';
 import 'package:flutter/material.dart';
 
 /// Colours for states Material 3's colour scheme has no role for: present,
@@ -23,23 +22,15 @@ class StatusColors extends ThemeExtension<StatusColors> {
 
   /// The brand's status colours, with text colours chosen for [scheme].
   factory StatusColors.from(ColorScheme scheme) {
-    Color readableOn(Color background) {
-      final light = scheme.surfaceContainerLowest;
-      final dark = scheme.onSurface;
-      return _contrast(light, background) >= _contrast(dark, background)
-          ? light
-          : dark;
-    }
-
     return StatusColors(
       success: BrandColors.success,
-      onSuccess: readableOn(BrandColors.success),
+      onSuccess: scheme.readableOn(BrandColors.success),
       warning: BrandColors.warning,
-      onWarning: readableOn(BrandColors.warning),
+      onWarning: scheme.readableOn(BrandColors.warning),
       danger: BrandColors.danger,
-      onDanger: readableOn(BrandColors.danger),
+      onDanger: scheme.readableOn(BrandColors.danger),
       info: BrandColors.info,
-      onInfo: readableOn(BrandColors.info),
+      onInfo: scheme.readableOn(BrandColors.info),
     );
   }
 
@@ -125,11 +116,4 @@ class StatusColors extends ThemeExtension<StatusColors> {
     info,
     onInfo,
   );
-}
-
-// WCAG contrast ratio of two colours.
-double _contrast(Color a, Color b) {
-  final la = a.computeLuminance();
-  final lb = b.computeLuminance();
-  return (math.max(la, lb) + 0.05) / (math.min(la, lb) + 0.05);
 }

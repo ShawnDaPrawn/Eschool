@@ -13,6 +13,7 @@ export 'src/models/gallery_album.dart';
 export 'src/models/semester_break.dart';
 export 'src/theme/app_theme.dart';
 export 'src/theme/brand_colors.dart';
+export 'src/theme/readable_on.dart';
 export 'src/theme/status_colors.dart';
 export 'src/utils/file_name_utils.dart';
 export 'src/widgets/bottomsheet_add_files_dotted_border_container.dart';

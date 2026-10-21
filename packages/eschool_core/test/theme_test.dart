@@ -1,15 +1,5 @@
-import 'dart:math' as math;
-
 import 'package:eschool_core/eschool_core.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-
-// WCAG relative luminance contrast ratio.
-double contrast(Color a, Color b) {
-  final la = a.computeLuminance();
-  final lb = b.computeLuminance();
-  return (math.max(la, lb) + 0.05) / (math.min(la, lb) + 0.05);
-}
 
 void main() {
   final theme = AppTheme.light();
@@ -30,6 +20,11 @@ void main() {
 
   test('page background follows the colour scheme', () {
     expect(theme.scaffoldBackgroundColor, scheme.surface);
+  });
+
+  test('readableOn picks the text colour that reads better', () {
+    expect(scheme.readableOn(scheme.primary), scheme.surfaceContainerLowest);
+    expect(scheme.readableOn(BrandColors.warning), scheme.onSurface);
   });
 
   // WCAG AA asks for 4.5:1 for body text. If a new brand colour fails here,
@@ -59,7 +54,7 @@ void main() {
     };
     pairs.forEach((name, pair) {
       test(name, () {
-        expect(contrast(pair.$1, pair.$2), greaterThanOrEqualTo(4.5));
+        expect(contrastRatio(pair.$1, pair.$2), greaterThanOrEqualTo(4.5));
       });
     });
   });
