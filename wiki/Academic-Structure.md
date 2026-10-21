@@ -186,7 +186,7 @@ Custom fields defined in `form_fields` (`for = 1` for students, `2` for parents,
 | `result` | 1 = pass, 0 = fail (set during promotion) |
 | `previous_session_year_id` | The year the student was promoted from (`NULL` for the admission row) |
 
-`students.class_section_id` only holds the latest section. The apps, exam publishing, reports and the session middleware all look up `StudentSessions` for the current year. The model has a global scope that hides rows of soft-deleted students; system code that must see them calls `StudentSessions::withoutStudentScope()`.
+`students.class_section_id` holds the section for the current year; a promotion into a later year changes it when that year becomes current. The apps, exam publishing, reports and the session middleware all look up `StudentSessions` for the current year. The model has a global scope that hides rows of soft-deleted students; system code that must see them calls `StudentSessions::withoutStudentScope()`.
 
 Migration `2025_12_16_164207_populate_student_sessions_from_students` truncated `student_sessions` on existing installs and recreated one row per student for the then-current session, so older promotion history was not kept.
 
@@ -194,12 +194,14 @@ Migration `2025_12_16_164207_populate_student_sessions_from_students` truncated 
 
 The Promote Students page is `StudentSessionController` (permissions `promote-student-list` and `promote-student-edit`; the old `promote-student-create`/`-delete` were removed).
 
-- `show()` lists `student_sessions` of a class section in the chosen (source) session year, with each student's latest exam result and any existing promotion row (`previous_session_year_id` = the source year).
+- `show()` lists `student_sessions` of a class section in the chosen (source) session year (the page opens on the current year), with each student's latest exam result and any existing promotion row (`previous_session_year_id` = the source year).
 - `store()` receives `student_id[]`, `previous_session_id_for_student` (source year), `session_year_id` (target year, must differ), `new_class_section_id`, and per student `status<id>` (1 continue, 0 leave) and `result<id>` (1 pass, 0 fail). For each student it:
   1. Sets `students.is_new_admission = 0`.
   2. Finds or creates the `student_sessions` row with that `previous_session_year_id`, and sets `session_year_id` to the target year.
-  3. If a different `new_class_section_id` was given, the student is promoted: the row and `students.class_section_id` get the new section. Otherwise the student repeats in the old section.
-  4. If `status = 0`, sets `users.status = 0` (the student can no longer sign in) and clears the row's `class_section_id`.
+  3. If a different `new_class_section_id` was given, the student is promoted: the row gets the new section, and so does `students.class_section_id` if the target year is the current one. Otherwise the student repeats in the old section.
+  4. If `status = 0`, clears the row's `class_section_id`, and sets `users.status = 0` (the student can no longer sign in) if the target year is the current one. Changing a leave back to continue sets `users.status` back to 1.
+
+A promotion into a year that isn't current yet takes effect when that year becomes current: `SessionYearService::makeCurrent` moves each continuing student to their row's section and deactivates the students marked as left. Until then they keep their class and their account, so promoting before the year ends doesn't disturb the year still running.
 
 A student with no `student_sessions` row for the current year is blocked from the app until promotion is done (see below).
 
@@ -263,7 +265,7 @@ flowchart TD
 In order:
 
 1. **Create the next session year** with dates, fee due date and charges, optional installments and semesters. Tick the transfer options to copy class subjects, teachers, timetables, grades, fee classes and leave settings from the previous year.
-2. **Make it current**: tick "Make this the current session year" when creating it, use **Make current** on the Session Years list, or pick it in General Settings. From this moment the apps and the session middleware look for `student_sessions` rows in the new year, and lessons lose their semester link.
+2. **Make it current**: tick "Make this the current session year" when creating it, use **Make current** on the Session Years list, or pick it in General Settings. From this moment the apps and the session middleware look for `student_sessions` rows in the new year, promotions already recorded for it take effect, and lessons lose their semester link.
 3. **Classes, sections, mediums, streams and subjects** carry over automatically; they are not session-scoped.
 4. **Configure semesters per class** on the Semester page before entering subjects and teachers, because changing the setting later wipes the class's data for that year.
 5. **Assign subjects** (core and elective groups) and **teachers** (class and subject) for the new year if they were not transferred.

@@ -7024,6 +7024,8 @@ function handlePromoteStudentListResponse(res) {
 }
 
 $(document).on("click", ".promote-student", function () {
+    // A row's own Update button promotes just that student, even after a bulk selection was opened.
+    bulkSelectedIds = [];
     const studentId = $(this).data("student-id");
     const classId = $(this).data("class-id");
     const table = $("#promote_student_table_list").bootstrapTable("getData");

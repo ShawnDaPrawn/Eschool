@@ -25,7 +25,10 @@ use App\Models\OnlineExam;
 use App\Models\Semester;
 use App\Models\SessionYear;
 use App\Models\Settings;
+use App\Models\Students;
+use App\Models\StudentSessions;
 use App\Models\SubjectTeacher;
+use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 
@@ -107,15 +110,33 @@ class SessionYearService
             $sessionYear->save();
             Settings::updateOrCreate(['type' => 'session_year'], ['message' => (string) $sessionYear->id]);
 
-            // Lessons point at the old year's semesters.
             if ($changed) {
+                // Lessons point at the old year's semesters.
                 (new ResetLessonSemesters)->execute();
+                $this->applyPromotions($sessionYear->id);
             }
         });
 
         // The admin panel's year picker follows the new current year.
         if ($changed && request()->hasSession()) {
             session(['session_year' => $sessionYear->id]);
+        }
+    }
+
+    /**
+     * Promotions recorded for a year take effect when it becomes current: students
+     * move to the class they were promoted to, and those who left are deactivated.
+     */
+    protected function applyPromotions(int $sessionYearId): void
+    {
+        $sessions = StudentSessions::where('session_year_id', $sessionYearId)->get(['student_id', 'class_section_id', 'status']);
+
+        $sessions->where('status', 1)->whereNotNull('class_section_id')->groupBy('class_section_id')
+            ->each(fn ($group, $classSectionId) => Students::whereIn('id', $group->pluck('student_id'))->update(['class_section_id' => $classSectionId]));
+
+        $leaving = $sessions->where('status', 0)->pluck('student_id');
+        if ($leaving->isNotEmpty()) {
+            User::whereIn('id', Students::whereIn('id', $leaving)->select('user_id'))->update(['status' => 0]);
         }
     }
 
