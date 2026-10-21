@@ -109,12 +109,21 @@ Route::group(['prefix' => 'student'], function () {
 Route::group(['prefix' => 'parent'], function () {
     // Non Authenticated APIs
     Route::post('login', [ParentApi\AuthController::class, 'login'])->middleware('throttle:login');
+
+    // After sign-in, before the rest of the parent API. No child session is
+    // required: accepting the terms is what unlocks the rest.
+    Route::group(['middleware' => ['auth:sanctum', 'role:Parent']], function () {
+        Route::get('policy-acceptance', [ParentApi\PolicyController::class, 'show']);
+        Route::post('policy-acceptance', [ParentApi\PolicyController::class, 'store']);
+    });
+
     // Authenticated APIs
     Route::group([
         'middleware' => [
             'auth:sanctum',
             'role:Parent',
             'parent.children.session.active',
+            'parent.policy',
         ],
     ], function () {
 
@@ -183,8 +192,15 @@ Route::group(['prefix' => 'parent'], function () {
 Route::group(['prefix' => 'teacher'], function () {
     // Non Authenticated APIs
     Route::post('login', [Teacher\AuthController::class, 'login'])->middleware('throttle:login');
-    // Authenticated APIs
+
+    // First sign-in only. Same controller as the parent app.
     Route::group(['middleware' => ['auth:sanctum', 'role:Teacher']], function () {
+        Route::get('policy-acceptance', [ParentApi\PolicyController::class, 'show']);
+        Route::post('policy-acceptance', [ParentApi\PolicyController::class, 'store']);
+    });
+
+    // Authenticated APIs
+    Route::group(['middleware' => ['auth:sanctum', 'role:Teacher', 'teacher.policy']], function () {
         Route::get('dashboard', [Teacher\DashboardController::class, 'dashboard']);
         Route::get('classes', [Teacher\ClassController::class, 'classes']);
 

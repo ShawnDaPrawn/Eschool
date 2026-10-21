@@ -10,6 +10,7 @@ use App\Models\Subject;
 use App\Models\StudentSessions;
 use App\Models\User;
 use App\Services\EmailTemplateService;
+use App\Services\ParentPolicyService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
@@ -30,6 +31,7 @@ class AccessControlTest extends TestCase
     public function test_a_parent_only_reaches_their_own_children(): void
     {
         $mother = $this->user('Parent', 'mother@example.com');
+        ParentPolicyService::acceptCurrent($mother);
         $parent = Parents::forceCreate([
             'user_id' => $mother->id, 'first_name' => 'Mia', 'last_name' => 'Doe', 'gender' => 'Female',
             'mobile' => '1', 'occupation' => 'x', 'email' => $mother->email,

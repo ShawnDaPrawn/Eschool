@@ -425,5 +425,12 @@
   "allMonths": "كل الشهور",
   "studentPendingLeaveRequests": "طلبات الإجازة الأخيرة",
   "secondHalfLeave": "إجازة الشوط الثاني",
-  "fullDayLeave": "إجازة يوم كامل"
+  "fullDayLeave": "إجازة يوم كامل",
+  "navigateEd": "NavigateEd",
+  "yourSchool": "مدرستك",
+  "schoolPoliciesIntro": "تطلب مدرستك الموافقة على هذا قبل استخدام التطبيق.",
+  "iHaveReadAndAccept": "لقد قرأت هذا وأوافق عليه",
+  "acceptAndContinue": "قبول والمتابعة",
+  "notNow": "ليس الآن",
+  "pleaseAcceptTermsAndCondition": "يرجى قبول الشروط والأحكام"
 }

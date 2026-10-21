@@ -274,7 +274,7 @@ class _ParentLoginScreenState extends State<ParentLoginScreen>
                               //somehow user logs out, the login will set count to 0
                               SettingsRepository().setNotificationCount(0);
                               Navigator.of(context).pushNamedAndRemoveUntil(
-                                Routes.parentHome,
+                                Routes.parentPolicies,
                                 (Route<dynamic> route) => false,
                               );
                             } else if (state is SignInFailure) {

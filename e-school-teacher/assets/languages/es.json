@@ -425,5 +425,12 @@
   "timetableSlotLinkSuccessfullyUpdated": "¡El enlace del horario se actualizó correctamente!",
   "unableToOpenLink": "¡Ups! No pudimos abrir este enlace.",
   "leaveRequestStatusUpdatedSuccessfully": "Dejar el estado de la solicitud actualizado correctamente",
-  "secondHalfLeave": "Licencia de la segunda mitad"
+  "secondHalfLeave": "Licencia de la segunda mitad",
+  "navigateEd": "NavigateEd",
+  "yourSchool": "Tu escuela",
+  "schoolPoliciesIntro": "Tu escuela te pide que aceptes esto antes de usar la aplicación.",
+  "iHaveReadAndAccept": "He leído esto y lo acepto",
+  "acceptAndContinue": "Aceptar y continuar",
+  "notNow": "Ahora no",
+  "pleaseAcceptTermsAndCondition": "Por favor acepte términos y condiciones."
 }

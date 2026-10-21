@@ -12,7 +12,8 @@ Every parent route passes through these layers, in order:
 | `throttle:login` | `login` route only | 5 attempts a minute per path and email, plus 20 a minute per IP. |
 | `auth:sanctum` | all routes except `login` | Needs `Authorization: Bearer <token>`. `App\Http\Middleware\Authenticate` redirects to the web `login` route unless the request expects JSON, so send `Accept: application/json` to get a 401 instead. |
 | `role:Parent` | all routes except `login` | Spatie `RoleMiddleware`. Student and teacher tokens get HTTP 403 (asserted in `tests/Feature/AccessControlTest.php`). |
-| `parent.children.session.active` | all routes except `login` | [`EnsureParentChildrenSessionIsActive`](https://github.com/ShawnDaPrawn/Eschool/blob/main/admin-panel/app/Http/Middleware/EnsureParentChildrenSessionIsActive.php), described below. |
+| `parent.children.session.active` | every authenticated route except `policy-acceptance` | [`EnsureParentChildrenSessionIsActive`](https://github.com/ShawnDaPrawn/Eschool/blob/main/admin-panel/app/Http/Middleware/EnsureParentChildrenSessionIsActive.php), described below. A parent can accept the terms before this check runs. |
+| `parent.policy` | every authenticated route except `policy-acceptance` | [`RequireParentPolicyAcceptance`](https://github.com/ShawnDaPrawn/Eschool/blob/main/admin-panel/app/Http/Middleware/RequireParentPolicyAcceptance.php). HTTP 403, `code` `policy_acceptance_required`, until the parent's first sign-in has accepted NavigateEd and, when the school had already written one, the school privacy notice and terms. Opening the app later does not ask again. See [Terms a parent must accept](#terms-a-parent-must-accept). |
 | [`CheckChild`](https://github.com/ShawnDaPrawn/Eschool/blob/main/admin-panel/app/Http/Middleware/CheckChild.php) | the child-scoped group | Requires a `child_id` that belongs to the parent. Described below. |
 
 Controllers answer through [`ResponseService`](https://github.com/ShawnDaPrawn/Eschool/blob/main/admin-panel/app/Services/ResponseService.php). Success and error bodies share one envelope, almost always with HTTP 200:
@@ -37,7 +38,8 @@ Some endpoints add extra top-level keys next to `data` (for example `token`, `pd
 | `106` | `Invalid Child ID Passed.` or `Invalid Child ID` from `announcements`, which resolves the child with code 106. The "Invalid Subject ID" branch there uses 106 too, but it can never fire: it tests `empty()` on a Collection. |
 | `113` | "No session found for this student in the current session year": the child has no `student_sessions` row for the requested session year. |
 | `200` | Success. |
-| `null` | Validation errors. `ResponseService::validationError()` uses `config('constants.RESPONSE_CODE.VALIDATION_ERROR')`, and there is no `config/constants.php`, so the code is `null`. The two "account not active" login errors are also `null`. The app shows the `message` as-is when `code` is `null`. |
+| `null` | Validation errors. `ResponseService::validationError()` uses `config('constants.RESPONSE_CODE.VALIDATION_ERROR')`, and there is no `config/constants.php`, so the code is `null`. The two "account not active" login errors are also `null`. Accepting the wrong document or a stale version also returns `code` `null` with HTTP 200, so the app shows that `message`. |
+| `policy_acceptance_required` | HTTP 403 from `parent.policy`: accept NavigateEd, and the school's notice and terms when they exist, before calling anything else. |
 
 The e-school app maps codes to text in `e-school/lib/utils/errorMessageKeysAndCodes.dart`. Its `105` and `106` mean "online exam already attended" and "online exam not started yet", so an invalid-child error on the parent API shows one of those online-exam messages.
 
@@ -64,10 +66,14 @@ flowchart TD
     B -- no --> X1["401, or redirect without Accept: application/json"]
     B -- yes --> C{"role:Parent?"}
     C -- no --> X2["403"]
-    C -- yes --> D{"parent.children.session.active"}
+    C -- yes --> P{"policy-acceptance?"}
+    P -- yes --> Q["PolicyController, HTTP 200, no exit"]
+    P -- no --> D{"parent.children.session.active"}
     D -- "no parents row" --> X3["403"]
     D -- "no child in session, or all inactive" --> X4["401 SESSION_NOT_ACTIVE / ACCOUNT_DEACTIVATED"]
-    D -- ok --> E{"Route in the CheckChild group?"}
+    D -- ok --> R{"parent.policy: current terms accepted?"}
+    R -- no --> X6["403 policy_acceptance_required"]
+    R -- yes --> E{"Route in the CheckChild group?"}
     E -- yes --> F{"child_id is one of the parent's children?"}
     F -- no --> X5["200 with error true, code 105"]
     F -- yes --> G["Controller: resolveChild() uses the 'child' request attribute"]
@@ -109,6 +115,8 @@ Two limits of the child check:
 | Method | Path | `child_id` | Controller method | Section |
 |---|---|---|---|---|
 | POST | `login` | no | `login` | [Auth and profile](#auth-and-profile) |
+| GET | `policy-acceptance` | no | `show` | [Terms a parent must accept](#terms-a-parent-must-accept) |
+| POST | `policy-acceptance` | no | `store` | [Terms a parent must accept](#terms-a-parent-must-accept) |
 | GET | `get-profile-data` | no | `getProfileDetails` | [Auth and profile](#auth-and-profile) |
 | GET | `subjects` | required | `subjects` | [Subjects, lessons and study material](#subjects-lessons-and-study-material) |
 | GET | `class-subjects` | required | `classSubjects` | [Subjects, lessons and study material](#subjects-lessons-and-study-material) |
@@ -174,6 +182,30 @@ Response: `code` 100, the token in the top-level `token` key, and `data` set to 
 Errors: code 101 for bad credentials or a non-Parent account. Code `null` with "Your account is not active for the current academic year because promotion to the next class has not been completed. Please contact the administration." when no child has a current-session row, or "Your account is deactivated. Please contact admin for further help." when none of those rows is active.
 
 Side effects: updates `fcm_id` and `device_type`. The Sanctum token is created *before* the session checks, so a refused login still leaves an unused row in `personal_access_tokens`.
+
+Login does not record that the parent accepted anything. On the first sign-in the app opens `ParentPolicyScreen` and calls `policy-acceptance` before `get-profile-data`. A later launch goes to the parent home when that acceptance is already stored. An app that skips the screen on the first sign-in gets HTTP 403 `policy_acceptance_required` on every other parent route. Ship the parent app and this server together: an older app keeps its token but cannot load a parent home until it is updated. Teachers use the same acceptance on `teacher/policy-acceptance`.
+
+### Terms a parent must accept
+
+`auth:sanctum` and `role:Parent` only. No child-session check and no `parent.policy`. [`PolicyController`](https://github.com/ShawnDaPrawn/Eschool/blob/main/admin-panel/app/Http/Controllers/Api/Parent/PolicyController.php) returns `response()->json()` and does not `exit()`, unlike the other parent controllers.
+
+GET returns `code` 200 and `data` from `ParentPolicyService::status()`:
+
+| Field | Meaning |
+|---|---|
+| `school_name` | The `school_name` setting. |
+| `navigateed.required` | Always true. |
+| `navigateed.accepted` | A `policy_acceptances` row exists for document `navigateed`. The stored version does not have to match the text shown today. |
+| `navigateed.version` | SHA-256 of the fixed NavigateEd text. The school cannot edit that text. |
+| `navigateed.title`, `navigateed.body` | The title and the text the app shows. |
+| `school.required` | True when `privacy_policy` or `terms_condition` has text or an image. A blank page is left out and does not block the parent. |
+| `school.accepted` | True when the school requires nothing, or a `school` acceptance row exists. Accepting NavigateEd while both pages are blank also writes that row, so a page added later does not ask again. |
+| `school.version` | SHA-256 of the privacy HTML, a separator and the terms HTML, or `null` when neither has content. The first sign-in posts this value. Editing either page changes the hash and does not ask again. |
+| `school.privacy_policy`, `school.terms` | The HTML the school saved, or `""` when that page has no content. |
+
+POST body: `document` (`navigateed` or `school`) and `version` (the version from the GET). The school document is refused until NavigateEd is accepted. A version that does not match the current text returns HTTP 200, `error: true`, `code: null`, and the message "These terms have changed. Please read them again." A matching version writes one `policy_acceptances` row per user and document (`version`, `accepted_at`) and returns the new status with `error: false`.
+
+The school writes the two pages in General Settings, on the branding card, or on the Privacy Policy and Terms pages. Both save `POST /setting-update`. An empty save is allowed for these two types only.
 
 ### GET `get-profile-data`
 

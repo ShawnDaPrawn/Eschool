@@ -426,5 +426,11 @@
   "bestExamPerformance": "أفضل أداء في الامتحان",
   "averageCompletionRate": "متوسط ​​معدل الإنجاز",
   "avgGrade": "متوسط ​​الدرجة",
-  "albums": "الألبومات"
+  "albums": "الألبومات",
+  "navigateEd": "NavigateEd",
+  "yourSchool": "مدرستك",
+  "schoolPoliciesIntro": "تطلب مدرستك الموافقة على هذا قبل استخدام التطبيق.",
+  "iHaveReadAndAccept": "لقد قرأت هذا وأوافق عليه",
+  "acceptAndContinue": "قبول والمتابعة",
+  "notNow": "ليس الآن"
 }

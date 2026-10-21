@@ -473,9 +473,12 @@ class SettingController extends Controller
         if (isset($messageRequiredKeys[$request->type])) {
             $messages['message.required'] = trans($messageRequiredKeys[$request->type]);
         }
+        // The school may leave its privacy notice or terms blank. An empty page
+        // is not shown to parents. The other pages still need text.
+        $allowsEmpty = in_array($request->input('type'), ['privacy_policy', 'terms_condition'], true);
         $validator = Validator::make($request->all(), [
             'type' => 'required',
-            'message' => 'required',
+            'message' => $allowsEmpty ? 'nullable|string' : 'required',
         ], $messages);
         if ($validator->fails()) {
             $response = [
@@ -486,7 +489,7 @@ class SettingController extends Controller
             return response()->json($response);
         }
         $type = $request->type;
-        $message = $request->message;
+        $message = (string) $request->input('message', '');
         $id = Settings::select('id')->where('type', $type)->pluck('id')->first();
         if (isset($id) && ! empty($id)) {
             $setting = Settings::find($id);

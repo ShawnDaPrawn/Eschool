@@ -16,7 +16,7 @@
         <div class="page-header">
             <div>
                 <h3 class="page-title">{{ __('general_settings') }}</h3>
-                <p class="page-subtitle">{{ __('school_information') }}, {{ __('branding_appearance') }} &amp; {{ __('social') }} {{ __('links') }}</p>
+                <p class="page-subtitle">{{ __('school_information') }}, {{ __('branding_appearance') }}, {{ __('school_privacy_and_terms') }} &amp; {{ __('social') }} {{ __('links') }}</p>
             </div>
         </div>
 
@@ -66,7 +66,7 @@
                         <span class="settings-section-head__icon"><x-icon name="sliders" :size="20" /></span>
                         <div class="settings-section-head__text">
                             <h4 class="settings-section-head__title">{{ __('branding_appearance') }}</h4>
-                            <p class="settings-section-head__subtitle">{{ __('favicon') }}, {{ __('vertical_logo') }} &amp; {{ __('theme') }} {{ __('color') }}</p>
+                            <p class="settings-section-head__subtitle">{{ __('favicon') }}, {{ __('vertical_logo') }}, {{ __('theme') }} {{ __('color') }}, {{ __('school_privacy_and_terms') }}</p>
                         </div>
                     </div>
 
@@ -142,6 +142,21 @@
                         <div class="form-group col-md-4 col-sm-12">
                             <label>{{ __('secondary') }} {{ __('color') }} <span class="text-danger">*</span></label>
                             <input name="secondary_color" value="{{ $settings['secondary_color'] ?? '' }}" type="text" required placeholder="{{ __('color') }}" class="color-picker" />
+                        </div>
+
+                        <div class="form-group col-12">
+                            <h5 class="mt-2">{{ __('school_privacy_and_terms') }}</h5>
+                            <p class="text-muted">{{ __('school_privacy_and_terms_hint') }}</p>
+                        </div>
+                        <div class="form-group col-md-12 js-school-policy" data-type="privacy_policy" data-url="{{ url('setting-update') }}">
+                            <label>{{ __('privacy_policy') }}</label>
+                            <textarea id="school_privacy_policy" class="js-rich-text">{{ $settings['privacy_policy'] ?? '' }}</textarea>
+                            <button type="button" class="btn btn-theme mt-3 js-save-school-policy">{{ __('submit') }}</button>
+                        </div>
+                        <div class="form-group col-md-12 js-school-policy" data-type="terms_condition" data-url="{{ url('setting-update') }}">
+                            <label>{{ __('terms_condition') }}</label>
+                            <textarea id="school_terms_condition" class="js-rich-text">{{ $settings['terms_condition'] ?? '' }}</textarea>
+                            <button type="button" class="btn btn-theme mt-3 js-save-school-policy">{{ __('submit') }}</button>
                         </div>
                     </div>
                 </div>

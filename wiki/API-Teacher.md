@@ -70,7 +70,7 @@ The [`CheckStudent`](https://github.com/ShawnDaPrawn/Eschool/blob/main/admin-pan
 
 ### Permissions
 
-All routes after `login` run under `auth:sanctum` and `role:Teacher` (Spatie). Some handlers also check a Spatie permission with `ResponseService::noPermissionThenSendJson()`. The Teacher role's default permissions are seeded in [`InstallationSeeder.php`](https://github.com/ShawnDaPrawn/Eschool/blob/main/admin-panel/database/seeders/InstallationSeeder.php) and every one checked here is granted by default. A school admin can remove them from the role, which disables the endpoint. See [Roles-and-Permissions](Roles-and-Permissions).
+`policy-acceptance` runs under `auth:sanctum` and `role:Teacher` only. Every other route after `login` also runs `teacher.policy` ([`RequireParentPolicyAcceptance`](https://github.com/ShawnDaPrawn/Eschool/blob/main/admin-panel/app/Http/Middleware/RequireParentPolicyAcceptance.php)): HTTP 403, `code` `policy_acceptance_required`, until the teacher's first sign-in has accepted NavigateEd and, when the school had already written them, the school's privacy notice and terms. The same controller and rules as the parent app are described on [API-Parent](API-Parent#terms-a-parent-must-accept). Some handlers also check a Spatie permission with `ResponseService::noPermissionThenSendJson()`. The Teacher role's default permissions are seeded in [`InstallationSeeder.php`](https://github.com/ShawnDaPrawn/Eschool/blob/main/admin-panel/database/seeders/InstallationSeeder.php) and every one checked here is granted by default. A school admin can remove them from the role, which disables the endpoint. See [Roles-and-Permissions](Roles-and-Permissions).
 
 | Permission | Endpoints |
 |---|---|
@@ -92,7 +92,9 @@ Every other endpoint, including `update-file`, `delete-file`, exam marks and cha
 flowchart TD
     A["Request to /api/teacher/..."] --> B["auth:sanctum: Bearer token"]
     B --> C["role:Teacher"]
-    C --> D["Permission check (only some endpoints)"]
+    C --> P{"policy-acceptance, or already accepted?"}
+    P -- "not yet" --> X["403 policy_acceptance_required"]
+    P -- yes --> D["Permission check (only some endpoints)"]
     D --> E["Scope helper or model scope"]
     E -->|"not the teacher's class, subject, student or record"| F["error: true, code 403"]
     E -->|"allowed"| G["Handler reads or writes"]
@@ -109,7 +111,7 @@ When a semester is running (`Semester::current`), `classes`, `teacher_timetable`
 - **Rate limits** (defined in `RouteServiceProvider::configureRateLimiting`): `throttle:api` allows 60 requests a minute per user (or IP). `throttle:login` on `login` allows 5 a minute per path and email, and 20 a minute per IP.
 - **Parameters:** handlers read `$request->all()`, so query-string and body fields are interchangeable. Uploads must be `multipart/form-data`.
 - **Envelope:** handlers answer through [`ResponseService`](https://github.com/ShawnDaPrawn/Eschool/blob/main/admin-panel/app/Services/ResponseService.php): `{"error": bool, "message": string, "data": ..., "code": int|null}`, sometimes with extra top-level keys (shown below as "extra keys"). `successResponse()` and `errorResponse()` send the response and call `exit()`, so nothing after them runs. See [the response envelope on API-Overview](API-Overview#response-envelope) and [its error codes](API-Overview#error-codes).
-- **HTTP status:** responses built by `ResponseService` are always HTTP 200, including refusals. Clients must check `error` and `code`. The real HTTP errors are 401 from `auth:sanctum`, 403 from `role:Teacher`, 429 from throttling, 422 from `RejectDangerousUploads` (code 102, for script or web-page uploads anywhere in the API) and from `$request->validate()` in `student-leave-status-update` (Laravel's 422 when the client sends `Accept: application/json`), and 500 for errors the handlers do not catch.
+- **HTTP status:** responses built by `ResponseService` are always HTTP 200, including refusals. Clients must check `error` and `code`. The real HTTP errors are 401 from `auth:sanctum`, 403 from `role:Teacher` or from `teacher.policy` (`code` `policy_acceptance_required`), 429 from throttling, 422 from `RejectDangerousUploads` (code 102, for script or web-page uploads anywhere in the API) and from `$request->validate()` in `student-leave-status-update` (Laravel's 422 when the client sends `Accept: application/json`), and 500 for errors the handlers do not catch.
 - **Codes used by this controller:** 100 (login, chat list and messages), 101 (invalid login), 103 (caught exception, message `error_occurred`), 400 (business rule, for example exam not finished), 403 (outside the teacher's scope), 105 (`CheckStudent`). Validation errors and failed permission checks have `"code": null`, because `ResponseService` reads `config('constants.RESPONSE_CODE...')` and the repo has no `config/constants.php`.
 - **Messages** are passed through `trans()`, so keys such as `data_store_successfully` arrive translated.
 
@@ -118,6 +120,8 @@ When a semester is running (`Semester::current`), `classes`, `teacher_timetable`
 | Method | Path | Handler | Permission | Scope |
 |---|---|---|---|---|
 | POST | `login` | `login` | none (public) | Teacher role |
+| GET | `policy-acceptance` | `show` | none | first sign-in |
+| POST | `policy-acceptance` | `store` | none | first sign-in |
 | GET | `dashboard` | `dashboard` | | own classes |
 | GET | `classes` | `classes` | | own rows |
 | GET | `subjects` | `subjects` | | own rows |

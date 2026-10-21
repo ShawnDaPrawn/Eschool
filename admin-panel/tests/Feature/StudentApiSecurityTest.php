@@ -10,6 +10,7 @@ use App\Models\Settings;
 use App\Models\StudentSubject;
 use App\Models\User;
 use App\Services\OnlineExamScoringService;
+use App\Services\ParentPolicyService;
 use Illuminate\Http\Client\PendingRequest;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -331,6 +332,7 @@ class StudentApiSecurityTest extends TestCase
         $category = DB::table('categories')->insertGetId(['name' => 'General']);
 
         $parentUser = $this->user('parent@example.com', 'Parent');
+        ParentPolicyService::acceptCurrent($parentUser);
         $this->ids['parent_user'] = $parentUser->id;
         $this->ids['parent'] = DB::table('parents')->insertGetId([
             'user_id' => $parentUser->id, 'first_name' => 'Pat', 'last_name' => 'Parent', 'gender' => 'Male',

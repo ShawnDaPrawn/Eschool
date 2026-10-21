@@ -10,6 +10,7 @@
     <h3 class="page-title">
       {{__('privacy_policy')}}
     </h3>
+    <p class="text-muted">{{ __('school_privacy_and_terms_hint') }}</p>
   </div>
   <div class="row grid-margin">
     <div class="col-lg-12">

@@ -426,5 +426,11 @@
   "worstExamPerformance": "Pire performance aux examens",
   "totalFeePayable": "Frais totaux à payer",
   "onTimeSubmission": "Soumission à temps",
-  "lateSubmission": "Soumission tardive"
+  "lateSubmission": "Soumission tardive",
+  "navigateEd": "NavigateEd",
+  "yourSchool": "Votre école",
+  "schoolPoliciesIntro": "Votre école vous demande d'accepter ceci avant d'utiliser l'application.",
+  "iHaveReadAndAccept": "J'ai lu ceci et je l'accepte",
+  "acceptAndContinue": "Accepter et continuer",
+  "notNow": "Pas maintenant"
 }

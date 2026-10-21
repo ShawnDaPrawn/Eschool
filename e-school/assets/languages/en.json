@@ -426,5 +426,11 @@
   "onTimeSubmission": "On Time Submission",
   "lateSubmission": "Late Submission",
   "recentAssignment": "Recent Assignment",
-  "studentNotSessionYear": "Oops! The student is not enrolled in this academic year."
+  "studentNotSessionYear": "Oops! The student is not enrolled in this academic year.",
+  "navigateEd": "NavigateEd",
+  "yourSchool": "Your school",
+  "schoolPoliciesIntro": "Your school asks you to accept this before you use the app.",
+  "iHaveReadAndAccept": "I have read this and I accept",
+  "acceptAndContinue": "Accept and continue",
+  "notNow": "Not now"
 }

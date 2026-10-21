@@ -426,5 +426,11 @@
   "secondHalfAbsent": "Segunda mitad ausente",
   "studentNotSessionYear": "¡Ups! El estudiante no está matriculado en este año académico.",
   "fullDayAbsent": "Todo el día ausente",
-  "examPerformance": "Rendimiento del examen"
+  "examPerformance": "Rendimiento del examen",
+  "navigateEd": "NavigateEd",
+  "yourSchool": "Tu escuela",
+  "schoolPoliciesIntro": "Tu escuela te pide que aceptes esto antes de usar la aplicación.",
+  "iHaveReadAndAccept": "He leído esto y lo acepto",
+  "acceptAndContinue": "Aceptar y continuar",
+  "notNow": "Ahora no"
 }

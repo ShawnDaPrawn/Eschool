@@ -212,6 +212,13 @@ const String forgotPasswordKey = 'forgotPassword';
 
 const String termsAndConditionAgreementKey = 'termAndConditionAgreement';
 
+const String navigateEdKey = 'navigateEd';
+const String yourSchoolKey = 'yourSchool';
+const String schoolPoliciesIntroKey = 'schoolPoliciesIntro';
+const String iHaveReadAndAcceptKey = 'iHaveReadAndAccept';
+const String acceptAndContinueKey = 'acceptAndContinue';
+const String notNowKey = 'notNow';
+
 const String pleaseAcceptTermsAndConditionKey = 'pleaseAcceptTermsAndCondition';
 
 const String resubmittedKey = 'resubmitted';

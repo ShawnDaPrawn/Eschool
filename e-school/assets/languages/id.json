@@ -426,5 +426,11 @@
   "bestExamPerformance": "Kinerja Ujian Terbaik",
   "onTimeSubmission": "Pengiriman Tepat Waktu",
   "assignmentOverview": "Ikhtisar Penugasan",
-  "averagePercentage": "Persentase Rata-rata"
+  "averagePercentage": "Persentase Rata-rata",
+  "navigateEd": "NavigateEd",
+  "yourSchool": "Sekolah Anda",
+  "schoolPoliciesIntro": "Sekolah Anda meminta Anda menerima ini sebelum menggunakan aplikasi.",
+  "iHaveReadAndAccept": "Saya telah membaca ini dan saya menerima",
+  "acceptAndContinue": "Terima dan lanjutkan",
+  "notNow": "Tidak sekarang"
 }

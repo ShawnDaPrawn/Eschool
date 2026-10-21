@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use App\Models\Assignment;
 use App\Models\User;
+use App\Services\ParentPolicyService;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Tests\Concerns\RunsAppServer;
@@ -268,6 +269,9 @@ class TeacherApiSecurityTest extends TestCase
             'password' => Hash::make('secret123'), 'gender' => 'Male', 'mobile' => '0000000000',
         ]);
         $user->assignRole($role);
+        if ($role === 'Teacher') {
+            ParentPolicyService::acceptCurrent($user);
+        }
 
         return $user;
     }

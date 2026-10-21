@@ -11,9 +11,11 @@ The app has two login screens and keeps track of which one was used.
 | Parent login | `parentLoginScreen.dart`, `SignInCubit.signInUser(isStudentLogin: false)` → `AuthRepository.signInParent()` | POST `parent/login` with `email`, `password`, `fcm_id`, `device_type`. Forgot password opens `ForgotPasswordRequestBottomsheet` (`ForgotPasswordRequestCubit` → POST `forgot-password` with `email`). |
 | Store session | `AuthCubit.authenticateUser(jwtToken, isStudent, student, parent)` | Writes `jwtToken`, `isLogIn`, `isStudentLogIn`, `studentDetails`, `parentDetails` to the Hive `authBox` and emits `Authenticated`. |
 | Push topics | `NotificationUtility.subscribeOrUnsubscribeToNotificationTopics(isParent: ...)` | Students: `studentsAndroid`/`studentsIOS`; parents: `parentsAndroid`/`parentsIOS`; both: `allAndroid`/`allIOS`. |
-| First screen | login listener and `splashScreen.dart` | Student: `Routes.home` (`HomeScreen`), or `Routes.studentFeePaymentDueScreen` when the student's `isFeePaymentDue` is true and the server has `compulsory_fee_payment_mode = 1`. Parent: `Routes.parentHome` (`ParentHomeScreen`). |
+| First screen | login listener and `splashScreen.dart` | Student: `Routes.home` (`HomeScreen`), or `Routes.studentFeePaymentDueScreen` when the student's `isFeePaymentDue` is true and the server has `compulsory_fee_payment_mode = 1`. Parent, first sign-in: `Routes.parentPolicies` (`ParentPolicyScreen`), then `Routes.parentHome`. A later launch goes straight to `Routes.parentHome`. |
 
 `AuthCubit` (`lib/cubits/authCubit.dart`) holds `Authenticated(jwtToken, isStudent, student, parent)`; for a student session `parent` is an empty `Parent`, for a parent session `student` is empty. `AuthCubit.isParent()` is what the rest of the app checks to choose between the `student/...` and `parent/...` endpoints. Most repositories take a `useParentApi` / `isParent` flag or a nullable `childId` and pick the URL accordingly, e.g. `childId == null ? Api.storeFeesStudent : Api.storeFeesParent`.
+
+The first time a parent signs in, `ParentPolicyScreen` (`Routes.parentPolicies`, `lib/ui/screens/auth/parentPolicyScreen.dart`) loads GET `parent/policy-acceptance`. The parent accepts NavigateEd first (plain text from the server), then the school's privacy notice and terms when the school has already written either one (`flutter_html`). One checkbox covers both school pages. "Not now" signs out. The back button does not leave the screen. When that acceptance is stored, the screen fetches `parent/get-profile-data` and opens `ParentHomeScreen`. Opening the app later does not show the screen: the splash calls the same endpoint and, once nothing is pending, refreshes the profile and opens the parent home. Students still see the login footer that links to the static privacy and terms screens; those screens stay available from Settings.
 
 The demo credentials in `lib/utils/constants.dart` (`defaultStudentGRNumber`, `defaultStudentPassword`, `defaultParentEmail`, `defaultParentPassword`) are only pre-filled when `showDefaultCredentials` is `true`; it is `false` in the repo.
 
@@ -41,6 +43,7 @@ All route names from `Routes` in [e-school/lib/app/routes.dart](https://github.c
 | `auth` | `auth` | `AuthScreen` | `auth/authScreen.dart` |
 | `studentLogin` | `studentLogin` | `StudentLoginScreen` | `auth/studentLoginScreen.dart` |
 | `parentLogin` | `parentLogin` | `ParentLoginScreen` | `auth/parentLoginScreen.dart` |
+| `parentPolicies` | `parentPolicies` | `ParentPolicyScreen` | `auth/parentPolicyScreen.dart` |
 | `home` | `/` | `HomeScreen` (student) | `home/homeScreen.dart` |
 | `parentHome` | `parent/` | `ParentHomeScreen` | `parentHomeScreen.dart` |
 | `studentDetails` | `parent/studentDetails` | `ChildDetailsScreen` | `childDetailsScreen.dart` |
@@ -98,8 +101,9 @@ All route names from `Routes` in [e-school/lib/app/routes.dart](https://github.c
 
 | Screen / widget | Cubits | Repositories | Notes |
 |---|---|---|---|
-| `SplashScreen` | `AppConfigurationCubit`, `AuthCubit`, `UserProfileCubit` | `AuthRepository` | Profile refresh with `autoLogout: true`. |
+| `SplashScreen` | `AppConfigurationCubit`, `AuthCubit`, `UserProfileCubit` | `AuthRepository`, `PolicyRepository` | Students: profile refresh with `autoLogout: true`. Parents who have already accepted: the same profile refresh, then parent home. Parents who have not: `ParentPolicyScreen`. |
 | `AuthScreen`, `StudentLoginScreen`, `ParentLoginScreen` | `SignInCubit`, `AuthCubit`, `RequestResetPasswordCubit` / `ForgotPasswordRequestCubit`, `AppConfigurationCubit` | `AuthRepository`, `SettingsRepository` | See [login](#login-and-the-two-user-types). |
+| `ParentPolicyScreen` | `AuthCubit` | `PolicyRepository`, `AuthRepository` | GET and POST `parent/policy-acceptance`. NavigateEd, then the school's pages. Profile fetch and `ParentHomeScreen` only after both are accepted. |
 | `HomeScreen` (student) | `AppConfigurationCubit`, `AssignmentsCubit`, `AssignmentsTabSelectionCubit`, `AttendanceCubit`, `ChatUsersCubit`, `EventsCubit`, `ResultsCubit`, `SemestersCubit`, `StudentParentDetailsCubit`, `TimeTableCubit`, `AcademicCalendarCubit` | `StudentRepository`, `AssignmentRepository`, `SystemRepository`, `SettingsRepository` | `HomeContainer` reads `StudentDashboardCubit` (GET `student/dashboard`). |
 | `ParentHomeScreen` | `AppConfigurationCubit`, `AuthCubit`, `ChatUsersCubit`, `NoticeBoardCubit`, `SlidersCubit`, `UserProfileCubit`, gallery Cubits | `AuthRepository`, `SystemRepository`, `SettingsRepository` | Sliders from GET `sliders`. |
 | `StudentProfileScreen` | `AuthCubit`, `AppConfigurationCubit`, `DownloadIdCardCubit` | `SystemRepository` | ID card download. |
