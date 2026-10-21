@@ -3,7 +3,7 @@ import 'package:eschool_teacher/data/models/classSectionDetails.dart';
 import 'package:eschool_teacher/data/models/customNotification.dart';
 import 'package:eschool_teacher/data/models/event.dart';
 import 'package:eschool_teacher/data/models/exam.dart';
-import 'package:eschool_teacher/data/models/gallery.dart';
+import 'package:eschool_core/eschool_core.dart';
 import 'package:eschool_teacher/data/models/holiday.dart';
 import 'package:eschool_teacher/data/models/staffLeave.dart';
 import 'package:eschool_teacher/data/models/studentLeave.dart';

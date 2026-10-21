@@ -1,7 +1,7 @@
 // ignore_for_file: public_member_api_docs, sort_constructors_first
 import 'package:eschool_teacher/cubits/eventDetailsCubit.dart';
 import 'package:eschool_teacher/data/models/event.dart';
-import 'package:eschool_teacher/data/models/eventSchedule.dart';
+import 'package:eschool_core/eschool_core.dart';
 import 'package:eschool_teacher/data/repositories/systemInfoRepository.dart';
 import 'package:eschool_teacher/ui/screens/academicCalendar/widgets/listItemForEvents.dart';
 import 'package:eschool_teacher/ui/styles/colors.dart';

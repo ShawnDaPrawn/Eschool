@@ -1,7 +1,7 @@
 // ignore_for_file: public_member_api_docs, sort_constructors_first
 import 'package:eschool/cubits/eventDetailsCubit.dart';
 import 'package:eschool/data/models/event.dart';
-import 'package:eschool/data/models/eventSchedule.dart';
+import 'package:eschool_core/eschool_core.dart';
 import 'package:eschool/data/repositories/systemInfoRepository.dart';
 import 'package:eschool/ui/styles/colors.dart';
 import 'package:eschool/ui/widgets/customBackButton.dart';

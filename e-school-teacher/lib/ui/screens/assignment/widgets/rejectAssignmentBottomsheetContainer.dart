@@ -1,9 +1,9 @@
-import 'package:eschool_teacher/cubits/editreviewassignmetcubit.dart';
+import 'package:eschool_teacher/cubits/editReviewAssignmentCubit.dart';
 import 'package:eschool_teacher/data/models/assignment.dart';
 import 'package:eschool_teacher/data/models/reviewAssignmentssubmition.dart';
-import 'package:eschool_teacher/ui/widgets/bottomSheetTextFiledContainer.dart';
+import 'package:eschool_teacher/ui/widgets/bottomSheetTextFieldContainer.dart';
 import 'package:eschool_teacher/ui/widgets/bottomSheetTopBarMenu.dart';
-import 'package:eschool_teacher/ui/widgets/customCircularProgressIndicator.dart';
+import 'package:eschool_core/eschool_core.dart';
 import 'package:eschool_teacher/ui/widgets/customRoundedButton.dart';
 import 'package:eschool_teacher/utils/labelKeys.dart';
 import 'package:eschool_teacher/utils/uiUtils.dart';
@@ -40,7 +40,7 @@ class _RejectAssignmentBottomsheetContainerState
         UiUtils.getTranslatedLabel(context, pleaseEnterRemarkkey),
       );
     } else {
-      context.read<EditReviewAssignmetCubit>().updateReviewAssignmet(
+      context.read<EditReviewAssignmentCubit>().updateReviewAssignment(
         reviewAssignmetId: widget.reviewAssignment.id,
         reviewAssignmentFeedBack: _remarkTextEditingController.text.trim(),
         reviewAssignmentPoints: '0',
@@ -76,11 +76,11 @@ class _RejectAssignmentBottomsheetContainerState
                 ),
                 SizedBox(height: MediaQuery.sizeOf(context).height * 0.025),
                 BlocConsumer<
-                  EditReviewAssignmetCubit,
-                  EditReviewAssignmetState
+                  EditReviewAssignmentCubit,
+                  EditReviewAssignmentState
                 >(
                   listener: (context, state) {
-                    if (state is EditReviewAssignmetSuccess) {
+                    if (state is EditReviewAssignmentSuccess) {
                       UiUtils.showBottomToastOverlay(
                         context: context,
                         errorMessage: UiUtils.getTranslatedLabel(
@@ -99,7 +99,7 @@ class _RejectAssignmentBottomsheetContainerState
                         ),
                       );
                     }
-                    if (state is EditReviewAssignmetFailure) {
+                    if (state is EditReviewAssignmentFailure) {
                       UiUtils.showBottomToastOverlay(
                         context: context,
                         errorMessage: UiUtils.getTranslatedLabel(
@@ -121,7 +121,7 @@ class _RejectAssignmentBottomsheetContainerState
                         submitKey,
                       ),
                       showBorder: false,
-                      child: state is EditReviewAssignmetInProgress
+                      child: state is EditReviewAssignmentInProgress
                           ? const CustomCircularProgressIndicator(
                               strokeWidth: 2,
                               widthAndHeight: 20,

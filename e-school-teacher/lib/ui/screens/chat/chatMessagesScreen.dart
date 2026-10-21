@@ -13,7 +13,7 @@ import 'package:eschool_teacher/ui/screens/chat/widget/messageSendingWidget.dart
 import 'package:eschool_teacher/ui/screens/chat/widget/singleMessageItem.dart';
 import 'package:eschool_teacher/ui/styles/colors.dart';
 import 'package:eschool_teacher/ui/widgets/customBackButton.dart';
-import 'package:eschool_teacher/ui/widgets/customCircularProgressIndicator.dart';
+import 'package:eschool_core/eschool_core.dart';
 import 'package:eschool_teacher/ui/widgets/customShimmerContainer.dart';
 import 'package:eschool_teacher/ui/widgets/customUserProfileImageWidget.dart';
 import 'package:eschool_teacher/ui/widgets/errorContainer.dart';

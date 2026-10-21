@@ -1,0 +1,143 @@
+<?php
+
+declare(strict_types=1);
+
+namespace App\Http\Controllers\Api\Student;
+
+use App\Http\Controllers\Api\Student\Concerns\StudentAccess;
+use App\Http\Controllers\Controller;
+use App\Services\AssignmentReportService;
+use App\Services\ExamReportService;
+use App\Services\FeesReportService;
+use App\Services\LeaveReportService;
+use App\Services\ResponseService;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Validator;
+use Throwable;
+
+/**
+ * Student app: the statistics screens (fees, leave, assignments, exams).
+ */
+class ReportController extends Controller
+{
+    use StudentAccess;
+
+    public function getFeesReport(Request $request, FeesReportService $feesReportService)
+    {
+        $validator = Validator::make($request->all(), [
+            'session_year_id' => 'required|integer',
+        ]);
+        if ($validator->fails()) {
+            ResponseService::validationError($validator->errors()->first());
+        }
+        try {
+            $data = $feesReportService->getStatistics(
+                $request->user()->student->id,
+                (int) $request->session_year_id
+            );
+            if (empty($data)) {
+                ResponseService::errorResponse('No session found for this student in the current session year', null, 113);
+            }
+
+            ResponseService::successResponse('Data fetched successfully', $data);
+        } catch (Throwable $e) {
+            ResponseService::errorResponse('error_occurred', null, 103, $e);
+        }
+    }
+
+    public function leaveReport(Request $request, LeaveReportService $leaveReportService)
+    {
+        $validator = Validator::make($request->all(), [
+            'session_year_id' => 'required|integer',
+        ]);
+        if ($validator->fails()) {
+            ResponseService::validationError($validator->errors()->first());
+        }
+        try {
+            $data = $leaveReportService->getStatistics(
+                $request->user()->student->id,
+                (int) $request->session_year_id
+            );
+            if (empty($data)) {
+                ResponseService::errorResponse('No session found for this student in the current session year', null, 113);
+            }
+
+            ResponseService::successResponse('Data fetched successfully', $data);
+        } catch (Throwable $e) {
+            ResponseService::errorResponse('error_occurred', null, 103, $e);
+        }
+    }
+
+    public function assignmentReport(Request $request, AssignmentReportService $assignmentReportService)
+    {
+        $validator = Validator::make($request->all(), [
+            'session_year_id' => 'required|integer',
+            'subject_id' => 'nullable|integer',
+        ]);
+        if ($validator->fails()) {
+            ResponseService::validationError($validator->errors()->first());
+        }
+        try {
+            $data = $assignmentReportService->getStatistics(
+                $request->user()->student->id,
+                (int) $request->session_year_id,
+                $request->subject_id ? (int) $request->subject_id : null
+            );
+            if (empty($data)) {
+                ResponseService::errorResponse('No session found for this student in the current session year', null, 113);
+            }
+
+            ResponseService::successResponse('Data fetched successfully', $data);
+        } catch (Throwable $e) {
+            ResponseService::errorResponse('error_occurred', null, 103, $e);
+        }
+    }
+
+    public function offlineExamReport(Request $request, ExamReportService $examReportService)
+    {
+        $validator = Validator::make($request->all(), [
+            'session_year_id' => 'required|integer',
+        ]);
+        if ($validator->fails()) {
+            ResponseService::validationError($validator->errors()->first());
+        }
+        try {
+            $data = $examReportService->getOfflineStatistics(
+                $request->user()->student->id,
+                (int) $request->session_year_id
+            );
+            if (empty($data)) {
+                ResponseService::errorResponse('No session found for this student in the current session year', null, 113);
+            }
+
+            ResponseService::successResponse('Data fetched successfully.', $data);
+        } catch (Throwable $e) {
+            ResponseService::errorResponse('error_occurred', null, 103, $e);
+        }
+    }
+
+    public function onlineExamReport(Request $request, ExamReportService $examReportService)
+    {
+        $validator = Validator::make($request->all(), [
+            'session_year_id' => 'required|integer',
+            'subject_id' => 'nullable|integer',
+        ]);
+        if ($validator->fails()) {
+            ResponseService::validationError($validator->errors()->first());
+        }
+        try {
+            $data = $examReportService->getOnlineStatistics(
+                $request->user()->student->id,
+                (int) $request->session_year_id,
+                $request->filled('subject_id') ? (int) $request->subject_id : null
+            );
+            if (empty($data)) {
+                ResponseService::errorResponse('No session found for this student in the current session year', null, 113);
+            }
+
+            ResponseService::successResponse('Data fetched successfully.', $data);
+        } catch (Throwable $e) {
+            ResponseService::errorResponse('error_occurred', null, 103, $e);
+        }
+    }
+}

@@ -38,7 +38,7 @@ php artisan key:generate
 php artisan migrate
 php artisan db:seed --class=InstallationSeeder
 php artisan db:seed --class=AddSuperAdminSeeder
-php artisan db:seed --class=emailseeder
+php artisan db:seed --class=EmailSeeder
 php artisan storage:link
 # mark the install as done, or every web request redirects to /install
 echo '{"url":"http://127.0.0.1:8000"}' > storage/installed

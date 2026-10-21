@@ -115,7 +115,7 @@ Staff attendance itself is recorded in the admin panel; this screen is read-only
 |---|---|---|---|
 | `AssignmentsScreen` | `AssignmentCubit`, `DeleteAssignmentCubit`, `SubjectsOfClassSectionCubit`, `DashboardCubit` | `AssignmentRepository`, `TeacherRepository` | GET `teacher/get-assignment` (`class_section_id`, `subject_id`, `semester_id`, `page`); POST `teacher/delete-assignment` (`assignment_id`) |
 | `AddAssignmentScreen` (create and edit) | `CreateAssignmentCubit`, `EditAssignmentCubit`, `SubjectsOfClassSectionCubit`, `DashboardCubit` | `AssignmentRepository`, `TeacherRepository` | POST `teacher/create-assignment` / `teacher/update-assignment` with `class_section_id`, `subject_id`, `name`, `instructions`, `due_date`, `points`, `resubmission`, `extra_days_for_resubmission`, `file[]` (and `assignment_id` on update) |
-| `AssignmentScreen` (submissions) | `ReviewAssignmentCubit`, `EditReviewAssignmetCubit` | `ReviewAssignmentRepository` | GET `teacher/get-assignment-submission`; POST `teacher/update-assignment-submission` (`assignment_submission_id`, `status`, `points`, `feedback`) from the accept/reject bottom sheets |
+| `AssignmentScreen` (submissions) | `ReviewAssignmentCubit`, `EditReviewAssignmentCubit` | `ReviewAssignmentRepository` | GET `teacher/get-assignment-submission`; POST `teacher/update-assignment-submission` (`assignment_submission_id`, `status`, `points`, `feedback`) from the accept/reject bottom sheets |
 
 Attached files of an existing assignment can be removed with `DeleteStudyMaterialCubit` (POST `teacher/delete-file`).
 
@@ -180,7 +180,7 @@ Teachers chat with both students and parents. `ChatUsersCubit` is abstract with 
 What changed in the teacher app for 3.5.0:
 
 - Android build moved to the Kotlin DSL (`build.gradle.kts`, `settings.gradle.kts`).
-- New teacher attendance feature: `teacherAttendanceCubit.dart`, `teacherAttendanceRepository.dart`, `teacherAttendance.dart`, `attendanceEnums.dart`, `TeacherAttendenceScreen` and its widgets, `assets/images/attendence.svg`, the `teacherAttendence` route and the `getTeacherAttendanceReport` endpoint in `api.dart`.
+- New teacher attendance feature: `teacherAttendanceCubit.dart`, `teacherAttendanceRepository.dart`, `teacherAttendance.dart`, `attendanceEnums.dart`, `TeacherAttendenceScreen` and its widgets, `assets/images/attendance.svg`, the `teacherAttendence` route and the `getTeacherAttendanceReport` endpoint in `api.dart`.
 - ID card download: `downloadIdCardCubit.dart` (profile tab).
 - Class attendance changes in `classAttendanceCubit.dart`, `submitClassAttendanceCubit.dart`, `attendanceScreen.dart`, `studentAttendanceTileContainer.dart` and `attendanceReport.dart` (half-day absence and leave types).
 - New languages `ar`, `es`, `id`, `pt-BR`, `tr` (and `en`, `hi`, `ur` updated). The changelog also lists `assets/languages/er.json`, which is not in the repository; the language list is `ar, en, es, fr, hi, id, pt-BR, tr, ur` (see [Localization](Localization)).

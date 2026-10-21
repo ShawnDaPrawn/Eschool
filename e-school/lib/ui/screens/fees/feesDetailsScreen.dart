@@ -10,7 +10,7 @@ import 'package:eschool/ui/screens/fees/widgets/paymentSelection.dart';
 import 'package:eschool/ui/screens/fees/widgets/studentDownloadFeePaidReceiptButton.dart';
 import 'package:eschool/ui/styles/colors.dart';
 import 'package:eschool/ui/widgets/customBackButton.dart';
-import 'package:eschool/ui/widgets/customCircularProgressIndicator.dart';
+import 'package:eschool_core/eschool_core.dart';
 import 'package:eschool/ui/widgets/customRoundedButton.dart';
 import 'package:eschool/ui/widgets/customShimmerContainer.dart';
 import 'package:eschool/ui/widgets/customTabBarContainer.dart';

@@ -56,3 +56,8 @@ already on people's phones depend on these, so the test fails when one changes.
 `phpstan-baseline.neon` lists the errors that predate it, so only new errors
 fail. When you fix one, regenerate the baseline with `--generate-baseline`, or
 delete its entry.
+
+Larastan can't see a call to a missing method on a controller, because Laravel's
+base `Controller` has a `__call` that accepts any name. `ControllerMethodCallsTest`
+checks that every `$this->method()` in a controller exists, which is what goes
+wrong when methods move between controllers.

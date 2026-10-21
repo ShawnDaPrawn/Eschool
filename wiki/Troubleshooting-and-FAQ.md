@@ -12,7 +12,7 @@ The app is already installed: `InstallerMiddleware` answers 404 once `storage/in
 `admin-panel/README.md` lists `admin@admin.com` / `password`, which is out of date. `AddSuperAdminSeeder` creates **`superadmin@gmail.com` / `superadmin`**. Change the password after the first login.
 
 **`php artisan db:seed` does nothing.**
-`DatabaseSeeder` is empty. Run the seeders the installer uses, in this order: `InstallationSeeder`, `AddSuperAdminSeeder`, `emailseeder`. See [Getting Started](Getting-Started#option-b-command-line).
+`DatabaseSeeder` is empty. Run the seeders the installer uses, in this order: `InstallationSeeder`, `AddSuperAdminSeeder`, `EmailSeeder`. See [Getting Started](Getting-Started#option-b-command-line).
 
 **Uploaded images and files return 404.**
 The `public/storage` symlink is missing. Run `php artisan storage:link`. The wizard's Keys step does this, but a copied or restored install can lose the link.
@@ -114,11 +114,11 @@ These were found by reading the code while this wiki was written. None of them i
 | API auth | An expired token gets a 302 redirect instead of a 401, so the apps don't sign out | `app/Http/Middleware/Authenticate.php`, `lib/utils/api.dart` in both apps |
 | API headers | `ResponseService` sends its response and calls `exit()`, so those responses skip the `SecurityHeaders`, CORS and rate-limit headers | `app/Services/ResponseService.php` |
 | Parent app | Code 105 from `CheckChild` is shown as "exam already attended" | `e-school/lib/utils/errorMessageKeysAndCodes.dart` |
-| Teacher marks | Re-submitting exam marks stops at the first existing row, because a success response exits inside the loop | `TeacherApiController::submitExamMarksBySubjects`, `submitExamMarksByStudent` |
-| Teacher attendance | Absence notifications are saved only for the last absent student's parents | `TeacherApiController::submitAttendance` |
+| Teacher marks | Re-submitting exam marks stops at the first existing row, because a success response exits inside the loop | `Teacher\ExamController::submitExamMarksBySubjects`, `submitExamMarksByStudent` |
+| Teacher attendance | Absence notifications are saved only for the last absent student's parents | `Teacher\AttendanceController::submitAttendance` |
 | Files | Physical files are not deleted with their record, because `File::deleting` checks the URL accessor rather than the disk path | `app/Models/File.php` |
-| Student profile | `get-profile-data` can fail with an undefined `$child` in compulsory-fee mode without installments after the free-use date | `StudentApiController::getProfileDetails` |
-| Receipts | The student receipt endpoint uses the student's first `fees_paids` row from any session year | `StudentApiController::feesPaidReceiptPDF` |
+| Student profile | `get-profile-data` can fail with an undefined `$child` in compulsory-fee mode without installments after the free-use date | `Student\ProfileController::getProfileDetails` |
+| Receipts | The student receipt endpoint uses the student's first `fees_paids` row from any session year | `Student\FeesController::feesPaidReceiptPDF` |
 | Teacher app | `Api.examResults` points to `teacher/exam-marks`, which has no route. The method that uses it is never called | `e-school-teacher/lib/utils/api.dart` |
 
 The [API Parent](API-Parent), [API Student](API-Student) and [API Teacher](API-Teacher) pages list more endpoint-level quirks in their "Known quirks" and "Gotchas" sections.
