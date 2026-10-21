@@ -1,6 +1,9 @@
 import 'dart:io';
 
 import 'package:eschool_core/eschool_core.dart';
+import 'package:eschool_session/eschool_session.dart';
+import 'package:eschool_teacher/app/sessionWatcher.dart';
+import 'package:eschool_teacher/utils/api.dart';
 import 'package:eschool_teacher/ui/widgets/downloadFileButton.dart';
 import 'package:eschool_teacher/utils/errorMessageKeysAndCodes.dart';
 import 'package:eschool_teacher/app/routes.dart';
@@ -139,6 +142,12 @@ class _MyAppState extends State<MyApp> {
   Widget build(BuildContext context) {
     return MultiBlocProvider(
       providers: [
+        BlocProvider<MeContextCubit>(
+          create: (_) => MeContextCubit(
+            repository: ApiMeContextRepository(Api.client),
+            cache: HiveMeContextCache(),
+          ),
+        ),
         BlocProvider<AppConfigurationCubit>(
           create: (_) => AppConfigurationCubit(SystemRepository()),
         ),
@@ -162,69 +171,73 @@ class _MyAppState extends State<MyApp> {
           create: (context) => GalleryVideosCubit(SystemRepository()),
         ),
       ],
-      child: Builder(
-        builder: (context) {
-          final currentLanguage = context
-              .watch<AppLocalizationCubit>()
-              .state
-              .language;
-          return GestureDetector(
-            behavior: HitTestBehavior.opaque,
-            onTap: () {
-              FocusManager.instance.primaryFocus?.unfocus();
-            },
-            child: MaterialApp(
-              navigatorKey: UiUtils.rootNavigatorKey,
-              theme: AppTheme.light(font: GoogleFonts.poppinsTextTheme),
-              builder: (context, widget) {
-                return AppShell(
-                  errorMessageKeyFromCode:
-                      ErrorMessageKeysAndCode.getErrorMessageKeyFromCode,
-                  openStudyMaterial: _openStudyMaterial,
-                  studyMaterialButton: _studyMaterialButton,
-                  bottomNavigationHeightPercentage:
-                      UiUtils.bottomNavigationHeightPercentage,
-                  child: ScrollConfiguration(
-                    behavior: GlobalScrollBehavior(),
-                    child: AnnotatedRegion<SystemUiOverlayStyle>(
-                      value: SystemUiOverlayStyle.light.copyWith(
-                        statusBarColor: Colors.transparent,
-                        statusBarIconBrightness: Brightness.light,
-                        statusBarBrightness: Brightness.dark,
-                        systemNavigationBarContrastEnforced: false,
-                        systemNavigationBarColor: Theme.of(
-                          context,
-                        ).colorScheme.surface,
-                        systemNavigationBarIconBrightness: Brightness.dark,
-                      ),
-                      child: ColoredBox(
-                        color: Theme.of(context).colorScheme.surface,
-                        child: SafeArea(
-                          top: false,
-                          bottom: Platform.isAndroid,
-                          child: widget!,
+      child: SessionWatcher(
+        child: Builder(
+          builder: (context) {
+            final currentLanguage = context
+                .watch<AppLocalizationCubit>()
+                .state
+                .language;
+            return GestureDetector(
+              behavior: HitTestBehavior.opaque,
+              onTap: () {
+                FocusManager.instance.primaryFocus?.unfocus();
+              },
+              child: MaterialApp(
+                navigatorKey: UiUtils.rootNavigatorKey,
+                theme: AppTheme.light(font: GoogleFonts.poppinsTextTheme),
+                builder: (context, widget) {
+                  return AppShell(
+                    errorMessageKeyFromCode:
+                        ErrorMessageKeysAndCode.getErrorMessageKeyFromCode,
+                    openStudyMaterial: _openStudyMaterial,
+                    studyMaterialButton: _studyMaterialButton,
+                    bottomNavigationHeightPercentage:
+                        UiUtils.bottomNavigationHeightPercentage,
+                    child: ScrollConfiguration(
+                      behavior: GlobalScrollBehavior(),
+                      child: AnnotatedRegion<SystemUiOverlayStyle>(
+                        value: SystemUiOverlayStyle.light.copyWith(
+                          statusBarColor: Colors.transparent,
+                          statusBarIconBrightness: Brightness.light,
+                          statusBarBrightness: Brightness.dark,
+                          systemNavigationBarContrastEnforced: false,
+                          systemNavigationBarColor: Theme.of(
+                            context,
+                          ).colorScheme.surface,
+                          systemNavigationBarIconBrightness: Brightness.dark,
+                        ),
+                        child: ColoredBox(
+                          color: Theme.of(context).colorScheme.surface,
+                          child: SafeArea(
+                            top: false,
+                            bottom: Platform.isAndroid,
+                            child: widget!,
+                          ),
                         ),
                       ),
                     ),
-                  ),
-                );
-              },
-              locale: currentLanguage,
-              localizationsDelegates: const [
-                AppLocalizationDelegate(appLanguages),
-                GlobalMaterialLocalizations.delegate,
-                GlobalWidgetsLocalizations.delegate,
-                GlobalCupertinoLocalizations.delegate,
-              ],
-              supportedLocales: appLanguages.map((language) {
-                return UiUtils.getLocaleFromLanguageCode(language.languageCode);
-              }).toList(),
-              debugShowCheckedModeBanner: false,
-              initialRoute: Routes.splash,
-              onGenerateRoute: Routes.onGenerateRouted,
-            ),
-          );
-        },
+                  );
+                },
+                locale: currentLanguage,
+                localizationsDelegates: const [
+                  AppLocalizationDelegate(appLanguages),
+                  GlobalMaterialLocalizations.delegate,
+                  GlobalWidgetsLocalizations.delegate,
+                  GlobalCupertinoLocalizations.delegate,
+                ],
+                supportedLocales: appLanguages.map((language) {
+                  return UiUtils.getLocaleFromLanguageCode(
+                    language.languageCode,
+                  );
+                }).toList(),
+                debugShowCheckedModeBanner: false,
+                initialRoute: Routes.splash,
+                onGenerateRoute: Routes.onGenerateRouted,
+              ),
+            );
+          },
+        ),
       ),
     );
   }

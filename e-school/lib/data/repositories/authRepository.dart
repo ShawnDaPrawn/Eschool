@@ -11,22 +11,19 @@ import 'package:intl/intl.dart';
 class AuthRepository {
   //LocalDataSource
   bool getIsLogIn() {
-    return Hive.box(authBoxKey).get(isLogInKey) ?? false;
+    return Api.session.isSignedIn;
   }
 
   Future<void> setIsLogIn(bool value) async {
-    return Hive.box(authBoxKey).put(isLogInKey, value);
+    return Api.session.setSignedIn(value);
   }
 
   static bool getHaSubscribedToNotificationTopics() {
-    return Hive.box(authBoxKey).get(hasSubscribedToNotificationTopicsKey) ??
-        false;
+    return Api.session.hasSubscribedToNotificationTopics;
   }
 
   static Future<void> setHaSubscribedToNotificationTopics(bool value) async {
-    return Hive.box(
-      authBoxKey,
-    ).put(hasSubscribedToNotificationTopicsKey, value);
+    return Api.session.setHasSubscribedToNotificationTopics(value);
   }
 
   bool getIsStudentLogIn() {
@@ -58,11 +55,11 @@ class AuthRepository {
   }
 
   String getJwtToken() {
-    return Hive.box(authBoxKey).get(jwtTokenKey) ?? '';
+    return Api.session.token;
   }
 
   Future<void> setJwtToken(String value) async {
-    return Hive.box(authBoxKey).put(jwtTokenKey, value);
+    return Api.session.setToken(value);
   }
 
   Future<void> signOutUser() async {

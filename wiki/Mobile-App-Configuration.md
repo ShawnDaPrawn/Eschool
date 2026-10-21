@@ -210,7 +210,7 @@ iOS signing is configured in Xcode (no `DEVELOPMENT_TEAM` is set in either proje
 
 ## Deep links
 
-Neither app declares deep links: there are no `VIEW` intent filters with custom schemes or `autoVerify` in the Android manifests, no `CFBundleURLTypes` in `Info.plist` and no associated domains in the entitlements. The only extra intent filter is `FLUTTER_NOTIFICATION_CLICK` on `MainActivity` for notification taps. The teacher manifest also has a `<queries>` entry for `VIEW` + `https` (Android package visibility for opening web links).
+Both apps map links to screens in code (`lib/app/deepLinks.dart`, through `DeepLinkParser` and `app_links` from `eschool_session`; see [Mobile-Apps-Overview](Mobile-Apps-Overview#links-into-the-app)). On the web that is the portal address. Neither app declares native deep links yet: there are no `VIEW` intent filters with custom schemes or `autoVerify` in the Android manifests, no `CFBundleURLTypes` in `Info.plist` and no associated domains in the entitlements. Android App Links and iOS universal links for `app.` and `teach.navigateed.co.za` need `assetlinks.json` and `apple-app-site-association` on those hosts and arrive with the child switcher in Phase 1. The only extra intent filter is `FLUTTER_NOTIFICATION_CLICK` on `MainActivity` for notification taps. The teacher manifest also has a `<queries>` entry for `VIEW` + `https` (Android package visibility for opening web links).
 
 ## Server-side settings the apps depend on
 

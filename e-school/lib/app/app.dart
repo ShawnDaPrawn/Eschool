@@ -1,6 +1,9 @@
 import 'dart:io';
 
 import 'package:eschool_core/eschool_core.dart';
+import 'package:eschool_session/eschool_session.dart';
+import 'package:eschool/app/sessionWatcher.dart';
+import 'package:eschool/utils/api.dart';
 import 'package:eschool/ui/widgets/downloadFileButton.dart';
 import 'package:eschool/utils/errorMessageKeysAndCodes.dart';
 import 'package:eschool/app/routes.dart';
@@ -157,6 +160,12 @@ class _MyAppState extends State<MyApp> {
   Widget build(BuildContext context) {
     return MultiBlocProvider(
       providers: [
+        BlocProvider<MeContextCubit>(
+          create: (_) => MeContextCubit(
+            repository: ApiMeContextRepository(Api.client),
+            cache: HiveMeContextCache(),
+          ),
+        ),
         BlocProvider<AppLocalizationCubit>(
           create: (_) => AppLocalizationCubit(SettingsRepository()),
         ),
@@ -212,66 +221,68 @@ class _MyAppState extends State<MyApp> {
           create: (context) => GalleryVideosCubit(SystemRepository()),
         ),
       ],
-      child: Builder(
-        builder: (context) {
-          final currentLanguage = context
-              .watch<AppLocalizationCubit>()
-              .state
-              .language;
+      child: SessionWatcher(
+        child: Builder(
+          builder: (context) {
+            final currentLanguage = context
+                .watch<AppLocalizationCubit>()
+                .state
+                .language;
 
-          return MaterialApp(
-            navigatorKey: UiUtils.rootNavigatorKey,
-            theme: AppTheme.light(font: GoogleFonts.poppinsTextTheme),
-            builder: (context, widget) {
-              return AppShell(
-                errorMessageKeyFromCode:
-                    ErrorMessageKeysAndCode.getErrorMessageKeyFromCode,
-                openStudyMaterial: _openStudyMaterial,
-                studyMaterialButton: _studyMaterialButton,
-                bottomNavigationHeightPercentage:
-                    UiUtils.bottomNavigationHeightPercentage,
-                child: ScrollConfiguration(
-                  behavior: GlobalScrollBehavior(),
-                  child: AnnotatedRegion<SystemUiOverlayStyle>(
-                    value: SystemUiOverlayStyle.light.copyWith(
-                      statusBarColor: Colors.transparent,
-                      statusBarBrightness: Brightness.dark,
-                      statusBarIconBrightness: Brightness.light,
-                      systemNavigationBarContrastEnforced: false,
-                      systemNavigationBarColor: Theme.of(
-                        context,
-                      ).colorScheme.surface,
-                      systemNavigationBarIconBrightness: Brightness.dark,
-                    ),
-                    child: ColoredBox(
-                      color: Theme.of(context).colorScheme.surface,
-                      child: SafeArea(
-                        top: false,
-                        bottom: Platform.isAndroid,
-                        child: widget!,
+            return MaterialApp(
+              navigatorKey: UiUtils.rootNavigatorKey,
+              theme: AppTheme.light(font: GoogleFonts.poppinsTextTheme),
+              builder: (context, widget) {
+                return AppShell(
+                  errorMessageKeyFromCode:
+                      ErrorMessageKeysAndCode.getErrorMessageKeyFromCode,
+                  openStudyMaterial: _openStudyMaterial,
+                  studyMaterialButton: _studyMaterialButton,
+                  bottomNavigationHeightPercentage:
+                      UiUtils.bottomNavigationHeightPercentage,
+                  child: ScrollConfiguration(
+                    behavior: GlobalScrollBehavior(),
+                    child: AnnotatedRegion<SystemUiOverlayStyle>(
+                      value: SystemUiOverlayStyle.light.copyWith(
+                        statusBarColor: Colors.transparent,
+                        statusBarBrightness: Brightness.dark,
+                        statusBarIconBrightness: Brightness.light,
+                        systemNavigationBarContrastEnforced: false,
+                        systemNavigationBarColor: Theme.of(
+                          context,
+                        ).colorScheme.surface,
+                        systemNavigationBarIconBrightness: Brightness.dark,
+                      ),
+                      child: ColoredBox(
+                        color: Theme.of(context).colorScheme.surface,
+                        child: SafeArea(
+                          top: false,
+                          bottom: Platform.isAndroid,
+                          child: widget!,
+                        ),
                       ),
                     ),
                   ),
-                ),
-              );
-            },
-            locale: currentLanguage,
-            localizationsDelegates: const [
-              AppLocalizationDelegate(appLanguages),
-              GlobalMaterialLocalizations.delegate,
-              GlobalWidgetsLocalizations.delegate,
-              GlobalCupertinoLocalizations.delegate,
-            ],
-            supportedLocales: appLanguages.map((appLanguage) {
-              return UiUtils.getLocaleFromLanguageCode(
-                appLanguage.languageCode,
-              );
-            }).toList(),
-            debugShowCheckedModeBanner: false,
-            initialRoute: Routes.splash,
-            onGenerateRoute: Routes.onGenerateRouted,
-          );
-        },
+                );
+              },
+              locale: currentLanguage,
+              localizationsDelegates: const [
+                AppLocalizationDelegate(appLanguages),
+                GlobalMaterialLocalizations.delegate,
+                GlobalWidgetsLocalizations.delegate,
+                GlobalCupertinoLocalizations.delegate,
+              ],
+              supportedLocales: appLanguages.map((appLanguage) {
+                return UiUtils.getLocaleFromLanguageCode(
+                  appLanguage.languageCode,
+                );
+              }).toList(),
+              debugShowCheckedModeBanner: false,
+              initialRoute: Routes.splash,
+              onGenerateRoute: Routes.onGenerateRouted,
+            );
+          },
+        ),
       ),
     );
   }

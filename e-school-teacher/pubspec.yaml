@@ -17,6 +17,8 @@ dependencies:
 
   eschool_core:
     path: ../packages/eschool_core
+  eschool_session:
+    path: ../packages/eschool_session
 
   cupertino_icons: ^1.0.9
   flutter_bloc: ^9.1.1

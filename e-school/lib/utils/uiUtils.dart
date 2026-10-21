@@ -1,6 +1,7 @@
 import 'dart:math';
 
 import 'package:eschool_core/eschool_core.dart';
+import 'package:eschool_session/eschool_session.dart';
 import 'package:eschool/app/routes.dart';
 import 'package:eschool/cubits/appConfigurationCubit.dart';
 import 'package:eschool/cubits/appLocalizationCubit.dart';
@@ -15,7 +16,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart' as intl;
 import 'package:open_filex/open_filex.dart';
-import 'package:package_info_plus/package_info_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import 'package:timeago/timeago.dart' as timeago;
@@ -457,64 +457,10 @@ class UiUtils {
     return value.isEmpty ? '-' : value;
   }
 
-  static Future<bool> forceUpdate(String updatedVersion) async {
-    final PackageInfo packageInfo = await PackageInfo.fromPlatform();
-    final String currentVersion =
-        '${packageInfo.version}+${packageInfo.buildNumber}';
-    if (updatedVersion.isEmpty) {
-      return false;
-    }
-
-    final bool updateBasedOnVersion = _shouldUpdateBasedOnVersion(
-      currentVersion.split('+').first,
-      updatedVersion.split('+').first,
-    );
-
-    if (updatedVersion.split('+').length == 1 ||
-        currentVersion.split('+').length == 1) {
-      return updateBasedOnVersion;
-    }
-
-    final bool updateBasedOnBuildNumber = _shouldUpdateBasedOnBuildNumber(
-      currentVersion.split('+').last,
-      updatedVersion.split('+').last,
-    );
-
-    return updateBasedOnVersion || updateBasedOnBuildNumber;
-  }
-
-  static bool _shouldUpdateBasedOnVersion(
-    String currentVersion,
-    String updatedVersion,
-  ) {
-    final List<int> currentVersionList = currentVersion
-        .split('.')
-        .map((e) => int.parse(e))
-        .toList();
-    final List<int> updatedVersionList = updatedVersion
-        .split('.')
-        .map((e) => int.parse(e))
-        .toList();
-
-    if (updatedVersionList[0] > currentVersionList[0]) {
-      return true;
-    }
-    if (updatedVersionList[1] > currentVersionList[1]) {
-      return true;
-    }
-    if (updatedVersionList[2] > currentVersionList[2]) {
-      return true;
-    }
-
-    return false;
-  }
-
-  static bool _shouldUpdateBasedOnBuildNumber(
-    String currentBuildNumber,
-    String updatedBuildNumber,
-  ) {
-    return int.parse(updatedBuildNumber) > int.parse(currentBuildNumber);
-  }
+  /// Whether the server asks this install to update; the rules are in
+  /// `ForceUpdate.isRequired` (eschool_session).
+  static Future<bool> forceUpdate(String updatedVersion) =>
+      ForceUpdate.check(updatedVersion);
 
   static void showFeatureDisableInDemoVersion(BuildContext context) {
     showCustomSnackBar(

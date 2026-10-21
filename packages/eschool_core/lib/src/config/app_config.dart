@@ -41,6 +41,9 @@ abstract final class AppConfig {
   /// Where the API lives: `<apiBaseUrl>/api/`.
   static const String apiUrl = '$apiBaseUrl/api/';
 
+  /// Where API v2 lives: `<apiBaseUrl>/api/v2/`.
+  static const String apiV2Url = '$apiBaseUrl/api/v2/';
+
   /// Where uploaded files are served: `<apiBaseUrl>/storage/`.
   static const String storageUrl = '$apiBaseUrl/storage/';
 

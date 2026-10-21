@@ -122,8 +122,8 @@ sequenceDiagram
 - `Api.post({body, url, useAuthToken, queryParameters, cancelToken, onSendProgress, onReceiveProgress})` sends the body as multipart `FormData` (`FormData.fromMap(body, ListFormat.multiCompatible)`), so file uploads and nested arrays go through the same call.
 - `Api.get({url, useAuthToken, queryParameters})` sends query parameters only.
 - `Api.download({url, cancelToken, savePath, updateDownloadedPercentage})` streams a file to disk with progress.
-- `ApiClient` creates a new `Dio()` per call; there are no interceptors, base options or timeouts configured.
-- `headers()` reads the token from Hive (`authBox` / `jwtToken`) and returns `{'Authorization': 'Bearer <token>'}` when `useAuthToken` is true.
+- `ApiClient` creates a new `Dio` per call from `createSessionDio()` (`eschool_session`): a plain `Dio()` on phones; on the web, one that sends the browser's cookies and Laravel's XSRF header (see [Session and token storage](#session-and-token-storage)). There are no base options or timeouts. Integration tests replace it through `Api.debugCreateDio`.
+- `headers()` reads the token from `Api.session` (Hive `authBox` / `jwtToken`) and returns `{'Authorization': 'Bearer <token>'}` when `useAuthToken` is true; a web build signed in by cookie sends no Authorization header.
 
 Response and error handling:
 
@@ -146,6 +146,10 @@ Most repository methods catch exceptions and rethrow `ApiException(e.toString())
 
 Login (`student/login`, `parent/login`, `teacher/login`) returns a Laravel Sanctum personal access token in `token` (the key in the app is still called `jwtToken`). The app also sends `fcm_id` (from `FirebaseMessaging.instance.getToken()`, empty string if it fails, e.g. on simulators) and `device_type` (`android` or `ios`), which the server uses for push notifications.
 
+The session itself (signed in or not, the token, whether FCM topics are subscribed) goes through `Api.session`, a `HiveSessionRepository` from the shared package [`packages/eschool_session`](https://github.com/ShawnDaPrawn/Eschool/tree/main/packages/eschool_session), which reads and writes the same `authBox` keys as before, so updating the app signs nobody out. `AuthRepository.getJwtToken()`, `setJwtToken()`, `getIsLogIn()` and `setIsLogIn()` delegate to it.
+
+**Web portals.** `AuthMode.current` is the one switch: phones use `bearer`; a web build uses `cookie`, Sanctum's session cookie for the portal origins (`app.` and `teach.navigateed.co.za`). In cookie mode no token is written to storage (`setJwtToken` stores an empty string), every request is sent with credentials, and requests that change something send `X-XSRF-TOKEN`, after fetching `/sanctum/csrf-cookie` when the browser has no XSRF cookie yet. The server side (stateful domains, CORS with credentials, the session cookie on the parent domain) is the security stream's work. Building a web app with `--dart-define=WEB_AUTH_MODE=bearer` switches back to tokens, for a server that does not accept the portal origins yet.
+
 Hive boxes and keys (`lib/utils/hiveBoxKeys.dart`):
 
 | Box | Key | Meaning |
@@ -153,6 +157,7 @@ Hive boxes and keys (`lib/utils/hiveBoxKeys.dart`):
 | `authBox` | `jwtToken` | Bearer token sent by `Api.headers()`. |
 | `authBox` | `isLogIn` | Whether a session exists; read by `AuthCubit` at startup. |
 | `authBox` | `hasSubscribedToNotificationTopics` | Prevents re-subscribing to FCM topics on every login. |
+| `authBox` | `meContext` | The last `/api/v2/me/context` answer (JSON), see [What the server says about the user](#what-the-server-says-about-the-user). |
 | `authBox` | `isStudentLogIn`, `studentDetails`, `parentDetails` | Student app only: user type and cached profile JSON. |
 | `authBox` | `teacherDetails` | Teacher app only: cached profile JSON. |
 | `settings` | `currentLanguageCode` | Selected language (falls back to `defaultLanguageCode`). |
@@ -164,6 +169,16 @@ SharedPreferences keys `notificationCount` and `chatNotificationsBackgroundItem`
 Sign-out (`AuthCubit.signOut()`) unsubscribes from the FCM topics and calls `AuthRepository.signOutUser()`, which posts to `logout` (fire and forget; the server deletes the current token) and clears `isLogIn`, `jwtToken` and the cached profiles. Tokens expire on the server after `SANCTUM_EXPIRATION` minutes (default `60 * 24 * 30`, i.e. 30 days, in `admin-panel/config/sanctum.php`); the next request then gets a 401 and the app logs out.
 
 Data protection on Android: both apps set `android:allowBackup="false"` and use `res/xml/data_extraction_rules.xml` to exclude all app data from cloud backup and device transfer, so the token is not copied to other devices. The student app's release `network_security_config.xml` allows HTTPS only; see [Mobile-App-Configuration](Mobile-App-Configuration#https-requirement).
+
+## What the server says about the user
+
+`MeContextCubit` (`eschool_session`, provided in `MyApp`) holds the answer of `GET /api/v2/me/context`: the user, their roles, the current school (name, branding, timezone) and the modules switched on there. `SessionWatcher` (`lib/app/sessionWatcher.dart`) loads it on launch when someone is signed in and whenever `AuthCubit` becomes `Authenticated`, and clears it on sign-out. The last answer is kept in `authBox` (`meContext`) and shown while a new one loads or when the network fails.
+
+Nothing reads it yet in Phase 0: the modules list is empty and the apps behave as before. A server older than API v2 answers 404; the cubit then emits `MeContextUnavailable` and the app carries on with today's behaviour. School branding from the context is shown beside NavigateEd's brand in later phases, never instead of it; the theme does not read it.
+
+## Links into the app
+
+`lib/app/deepLinks.dart` lists the addresses each app understands (for example `/notices`, `/notifications`, `/gallery`, and each such route's own name) and maps them to existing route names through `DeepLinkParser` (`eschool_session`). Accepted forms: `https://app.navigateed.co.za/<path>` and `https://teach.navigateed.co.za/<path>` (and their `staging-` hosts, and a web build's own origin), the hash form Flutter web uses (`/#/<path>`), and `navigateed://<path>`. `DeepLinkCoordinator` reads the link that opened the app through `app_links` (on the web, the address in the browser) and keeps it until home is shown: `Routes.onGenerateRouted` opens it over home the first time home is built, after the splash screen and sign-in. Links that arrive while the app runs open at once if the user is signed in and past sign-in, and wait otherwise. Notification taps still route by `data['type']`.
 
 ## App configuration from the server
 
@@ -191,9 +206,9 @@ These values are edited in the admin panel under App Settings (`SettingControlle
 Both home screens check the configuration on every build:
 
 - If `appUnderMaintenance()` is true, the body is `AppUnderMaintenanceContainer` (image `assets/images/branding/maintenance.svg`, label `appUnderMaintenance`) instead of the normal UI. The splash screen and login screens are not affected.
-- If `forceUpdate()` is true, `UiUtils.forceUpdate(getAppVersion())` compares the server version with `PackageInfo` (`version+buildNumber`). If it returns true, `ForceUpdateDialogContainer` is drawn over the home screen with a single "update" button that opens the store link. The dialog cannot be dismissed.
+- If `forceUpdate()` is true, `UiUtils.forceUpdate(getAppVersion())` compares the server version with `PackageInfo` (`version+buildNumber`) through `ForceUpdate.check()` in `eschool_session`. `getAppVersion()` and `getAppLink()` pick the iOS or Android value with `ForceUpdate.forPlatform()`; a web build has no store and never asks for an update. If it returns true, `ForceUpdateDialogContainer` is drawn over the home screen with a single "update" button that opens the store link. The dialog cannot be dismissed.
 
-`UiUtils.forceUpdate()` details worth knowing:
+The rules of `ForceUpdate.isRequired()`, unchanged from the apps' own check:
 
 - An empty server version disables the check.
 - The `x.y.z` parts are compared one position at a time, and any position where the server number is larger triggers an update. This means a server value of `3.4.1` triggers the dialog for an installed `3.5.0`. Always set the server value to the exact version you released.

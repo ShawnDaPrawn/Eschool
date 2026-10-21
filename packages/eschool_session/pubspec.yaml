@@ -1,0 +1,26 @@
+name: eschool_session
+description: Who is signed in and what the server says about them, shared by both NavigateEd apps.
+publish_to: 'none'
+version: 0.1.0
+
+environment:
+  sdk: ">=3.8.0 <4.0.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+  app_links: ^7.2.1
+  bloc: ^9.0.0
+  dio: ^5.9.2
+  equatable: ^2.0.8
+  eschool_core:
+    path: ../eschool_core
+  flutter_bloc: ^9.1.1
+  hive: ^2.2.3
+  package_info_plus: ^10.1.0
+  web: ^1.1.1
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^6.0.0

@@ -1,4 +1,5 @@
 import 'package:eschool_core/eschool_core.dart';
+import 'package:eschool_teacher/app/deepLinks.dart';
 import 'package:eschool_teacher/ui/screens/aboutUsScreen.dart';
 import 'package:eschool_teacher/ui/screens/academicCalendar/academicCalendarScreen.dart';
 import 'package:eschool_teacher/ui/screens/addOrEditAnnouncementScreen.dart';
@@ -125,6 +126,11 @@ class Routes {
 
   static Route<dynamic> onGenerateRouted(RouteSettings routeSettings) {
     currentRoute = routeSettings.name ?? '';
+
+    //a link that opened the app, or came before sign-in, opens over home
+    if (currentRoute == home) {
+      openPendingDeepLink();
+    }
 
     debugPrint('Route: $currentRoute');
 

@@ -1,23 +1,39 @@
 import 'package:dio/dio.dart';
 import 'package:eschool_core/eschool_core.dart';
+import 'package:eschool_session/eschool_session.dart';
 import 'package:eschool_teacher/app/routes.dart';
 import 'package:eschool_teacher/cubits/authCubit.dart';
 import 'package:eschool_teacher/utils/constants.dart';
-import 'package:eschool_teacher/utils/hiveBoxKeys.dart';
 import 'package:eschool_teacher/utils/notificationUtils/generalNotificationUtility.dart';
 import 'package:eschool_teacher/utils/uiUtils.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:hive_flutter/hive_flutter.dart';
 
 export 'package:eschool_core/eschool_core.dart' show ApiException;
 
 // ignore: avoid_classes_with_only_static_members
 class Api {
+  /// Who is signed in on this device (Hive's authBox, as always). A web
+  /// build keeps no token: the portal's session cookie identifies the user.
+  static final SessionRepository session = HiveSessionRepository();
+
+  /// Integration tests answer every call from fixtures by setting this
+  /// before the app starts.
+  @visibleForTesting
+  static Dio Function()? debugCreateDio;
+
   static final ApiClient _client = ApiClient(
-    authToken: () => Hive.box(authBoxKey).get(jwtTokenKey) ?? '',
+    authToken: () => session.token,
     onUnauthorized: logoutUser,
+    createDio: () =>
+        debugCreateDio?.call() ??
+        createSessionDio(mode: session.mode, apiBaseUrl: baseUrl),
+    sendsBearerToken: session.mode == AuthMode.bearer,
   );
+
+  /// The client the shared packages call through (for example the
+  /// `/me/context` repository), with the same token and 401 handling.
+  static ApiClient get client => _client;
 
   static Map<String, dynamic> headers() => _client.headers();
 

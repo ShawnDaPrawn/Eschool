@@ -13,6 +13,7 @@ class ApiClient {
     required this.authToken,
     required this.onUnauthorized,
     Dio Function()? createDio,
+    this.sendsBearerToken = true,
   }) : _createDio = createDio ?? Dio.new;
 
   /// The signed-in user's token, or an empty string when nobody is signed in.
@@ -23,9 +24,13 @@ class ApiClient {
 
   final Dio Function() _createDio;
 
+  /// False when the signed-in user is known by a session cookie instead (the
+  /// web portals), so no Authorization header is sent.
+  final bool sendsBearerToken;
+
   Map<String, dynamic> headers() {
     return {
-      'Authorization': 'Bearer ${authToken()}',
+      if (sendsBearerToken) 'Authorization': 'Bearer ${authToken()}',
       // Without it an older server answers an expired token with a redirect
       // instead of the 401 that signs the user out.
       'Accept': 'application/json',
@@ -88,6 +93,37 @@ class ApiClient {
 
       return _checked(response);
     } on DioException catch (e) {
+      throw _fromDioException(e);
+    } on ApiException {
+      rethrow;
+    } catch (e) {
+      throw ApiException(ApiErrorCodes.defaultErrorMessageKey);
+    }
+  }
+
+  /// Like [get], but answers `null` instead of failing when the server has
+  /// no such route (HTTP 404), for endpoints newer than some servers.
+  Future<Map<String, dynamic>?> getIfSupported({
+    required String url,
+    required bool useAuthToken,
+    Map<String, dynamic>? queryParameters,
+  }) async {
+    try {
+      final Dio dio = _createDio();
+
+      debugPrint('API Called GET: $url');
+
+      final response = await dio.get(
+        url,
+        queryParameters: queryParameters,
+        options: useAuthToken ? Options(headers: headers()) : null,
+      );
+
+      return _checked(response);
+    } on DioException catch (e) {
+      if (e.response?.statusCode == 404) {
+        return null;
+      }
       throw _fromDioException(e);
     } on ApiException {
       rethrow;
