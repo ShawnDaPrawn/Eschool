@@ -279,3 +279,388 @@
 .sidebar-icon-only .panel-nav .nav-group-label {
     padding: 0 1rem;
 }
+
+/* ============================================================
+   PAGE PATTERN (resources/views/components/page/)
+   ============================================================ */
+
+/* ---- Header: title, one primary action ---------------------- */
+.page-head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 16px;
+    margin-bottom: 24px;
+}
+
+.page-head-text {
+    min-width: 0;
+}
+
+.page-breadcrumb {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+    margin: 0 0 4px;
+    padding: 0;
+    list-style: none;
+    color: var(--md-sys-color-on-surface-variant);
+    font-size: var(--md-sys-typescale-label-large-size);
+}
+
+.page-breadcrumb li + li::before {
+    content: "/";
+    margin-inline-end: 4px;
+    color: var(--md-sys-color-outline);
+}
+
+.page-head-title {
+    margin: 0;
+    color: var(--md-sys-color-on-surface);
+    font-size: var(--md-sys-typescale-headline-small-size);
+    line-height: var(--md-sys-typescale-headline-small-line-height);
+    font-weight: 600;
+}
+
+.page-head-subtitle {
+    margin: 4px 0 0;
+    color: var(--md-sys-color-on-surface-variant);
+    font-size: var(--md-sys-typescale-body-medium-size);
+}
+
+.page-head-actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+}
+
+.page-head-primary {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+}
+
+/* ---- Filters and table -------------------------------------- */
+.page-filters {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    gap: 12px;
+}
+
+.page-filters .form-group {
+    margin-bottom: 0;
+    min-width: 180px;
+}
+
+.page-table {
+    position: relative;
+}
+
+.page-bulk-bar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 12px;
+    padding: 8px 16px;
+    border-radius: var(--md-sys-shape-corner-medium);
+    background: var(--md-sys-color-secondary-container);
+    color: var(--md-sys-color-on-secondary-container);
+}
+
+.page-bulk-bar[hidden] {
+    display: none;
+}
+
+.page-bulk-count {
+    font-weight: 600;
+}
+
+.page-bulk-actions {
+    display: flex;
+    gap: 8px;
+}
+
+.page-table .no-records-found td {
+    padding: 0;
+    border: 0;
+}
+
+/* ---- Empty state --------------------------------------------- */
+.page-empty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    padding: 40px 16px;
+    text-align: center;
+}
+
+.page-empty-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 64px;
+    height: 64px;
+    margin-bottom: 4px;
+    border-radius: var(--md-sys-shape-corner-full);
+    background: var(--md-sys-color-secondary-container);
+    color: var(--md-sys-color-on-secondary-container);
+}
+
+.page-empty-title {
+    margin: 0;
+    color: var(--md-sys-color-on-surface);
+    font-size: var(--md-sys-typescale-title-medium-size);
+    font-weight: 600;
+}
+
+.page-empty-message {
+    max-width: 46ch;
+    margin: 0 0 8px;
+    color: var(--md-sys-color-on-surface-variant);
+    font-size: var(--md-sys-typescale-body-medium-size);
+    white-space: normal;
+}
+
+/* ---- Form card ------------------------------------------------ */
+.page-form-card {
+    margin-bottom: 24px;
+}
+
+.page-card-title {
+    margin: 0 0 4px;
+    color: var(--md-sys-color-on-surface);
+    font-size: var(--md-sys-typescale-title-medium-size);
+    font-weight: 600;
+}
+
+.page-card-subtitle {
+    margin: 0 0 16px;
+    color: var(--md-sys-color-on-surface-variant);
+    font-size: var(--md-sys-typescale-body-medium-size);
+}
+
+.page-field-required {
+    color: var(--md-sys-color-error);
+}
+
+.page-field-help {
+    color: var(--md-sys-color-on-surface-variant);
+}
+
+.page-form .invalid-feedback {
+    color: var(--md-sys-color-error);
+    font-size: var(--md-sys-typescale-body-small-size);
+}
+
+.page-form-summary {
+    margin-bottom: 16px;
+    padding: 12px 16px;
+    border-radius: var(--md-sys-shape-corner-medium);
+    background: var(--md-sys-color-error-container);
+    color: var(--md-sys-color-on-error-container);
+}
+
+.page-form-summary[hidden] {
+    display: none;
+}
+
+.page-form-actions {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    gap: 8px;
+    margin-top: 8px;
+}
+
+.page-form[aria-busy="true"] [data-submit] {
+    cursor: progress;
+}
+
+/* ---- Confirm dialog ------------------------------------------ */
+.page-confirm .modal-title {
+    font-size: var(--md-sys-typescale-headline-small-size);
+}
+
+/* ---- Cards used by the new pages ------------------------------ */
+.page-section {
+    margin-bottom: 24px;
+}
+
+.page-section-title {
+    margin: 0 0 12px;
+    color: var(--md-sys-color-on-surface);
+    font-size: var(--md-sys-typescale-title-medium-size);
+    font-weight: 600;
+}
+
+.page-stat-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+    gap: 16px;
+}
+
+.page-stat {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    padding: 16px;
+    border: 1px solid var(--md-sys-color-outline-variant);
+    border-radius: var(--app-radius);
+    background: var(--md-sys-color-surface-container-lowest);
+    color: var(--md-sys-color-on-surface);
+    text-decoration: none;
+}
+
+a.page-stat:hover,
+a.page-stat:focus {
+    border-color: var(--md-sys-color-primary);
+    color: var(--md-sys-color-on-surface);
+    text-decoration: none;
+}
+
+.page-stat-label {
+    color: var(--md-sys-color-on-surface-variant);
+    font-size: var(--md-sys-typescale-label-large-size);
+}
+
+.page-stat-value {
+    font-size: var(--md-sys-typescale-headline-small-size);
+    font-weight: 600;
+    line-height: 1.2;
+}
+
+.page-stat-note {
+    color: var(--md-sys-color-on-surface-variant);
+    font-size: var(--md-sys-typescale-body-small-size);
+}
+
+/* ---- Home: setup checklist ------------------------------------ */
+.setup-checklist-head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 16px;
+    margin-bottom: 8px;
+}
+
+.setup-checklist-title {
+    margin: 0;
+    color: var(--md-sys-color-on-surface);
+    font-size: var(--md-sys-typescale-title-large-size);
+    font-weight: 600;
+}
+
+.setup-checklist-intro {
+    margin: 4px 0 0;
+    color: var(--md-sys-color-on-surface-variant);
+}
+
+.setup-checklist-progress {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    min-width: 200px;
+}
+
+.setup-checklist-count {
+    margin: 0;
+    color: var(--md-sys-color-on-surface-variant);
+    font-size: var(--md-sys-typescale-label-large-size);
+    font-weight: 500;
+}
+
+.setup-checklist-progress progress {
+    width: 100%;
+    height: 8px;
+    border: 0;
+    border-radius: var(--md-sys-shape-corner-full);
+    overflow: hidden;
+    appearance: none;
+    background: var(--md-sys-color-secondary-container);
+}
+
+.setup-checklist-progress progress::-webkit-progress-bar {
+    background: var(--md-sys-color-secondary-container);
+}
+
+.setup-checklist-progress progress::-webkit-progress-value {
+    background: var(--md-sys-color-primary);
+}
+
+.setup-checklist-progress progress::-moz-progress-bar {
+    background: var(--md-sys-color-primary);
+}
+
+.setup-checklist-summary {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 12px;
+    cursor: pointer;
+}
+
+.setup-checklist-summary .setup-checklist-title {
+    font-size: var(--md-sys-typescale-title-medium-size);
+}
+
+.setup-checklist-ready-icon {
+    color: var(--app-status-success-text);
+}
+
+.setup-checklist-steps {
+    margin: 8px 0 0;
+    padding: 0;
+    list-style: none;
+}
+
+.setup-step {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 0;
+    border-top: 1px solid var(--md-sys-color-outline-variant);
+}
+
+.setup-step:first-child {
+    border-top: 0;
+}
+
+.setup-step-icon {
+    flex-shrink: 0;
+    color: var(--md-sys-color-outline);
+}
+
+.setup-step.is-done .setup-step-icon {
+    color: var(--app-status-success-text);
+}
+
+.setup-step-text {
+    display: flex;
+    flex: 1 1 auto;
+    flex-direction: column;
+    min-width: 0;
+}
+
+.setup-step-title {
+    color: var(--md-sys-color-on-surface);
+    font-weight: 600;
+}
+
+.setup-step-detail {
+    color: var(--md-sys-color-on-surface-variant);
+    font-size: var(--md-sys-typescale-body-medium-size);
+}
+
+.setup-step-now {
+    font-size: var(--md-sys-typescale-body-small-size);
+}
+
+.setup-step-action {
+    flex-shrink: 0;
+}

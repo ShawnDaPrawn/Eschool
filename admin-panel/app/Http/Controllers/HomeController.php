@@ -30,6 +30,8 @@ use App\Models\Teacher;
 use App\Models\Timetable;
 use App\Models\User;
 use App\Services\FeesCollectionService;
+use App\Services\Panel\SetupChecklist;
+use App\Services\Panel\TodayNumbers;
 use App\Services\ResponseService;
 use Carbon\Carbon;
 use Illuminate\Contracts\View\View;
@@ -147,7 +149,9 @@ class HomeController extends Controller
             $data = array_merge($data, $this->getStaffDashboardInitialData($session_year, $user));
         }
 
-        // return response()->json($data);
+        // Setup checklist (people who can complete a step) and today's numbers.
+        $data['checklist'] = app(SetupChecklist::class)->forUser($user);
+        $data['today'] = $user->hasRole('Teacher') ? [] : app(TodayNumbers::class)->forUser($user, $session_year);
 
         return view('home', $data);
     }

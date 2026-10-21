@@ -8,7 +8,7 @@
     data-url-exams="{{ route('home.widget.teacher-exams') }}"
     data-url-assignments="{{ route('home.widget.teacher-assignments') }}">
 
-    @include('dashboard.partials.header')
+    @include('home.top')
 
     @include('dashboard.partials.teacher-stat-cards')
 

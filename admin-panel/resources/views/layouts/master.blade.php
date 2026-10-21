@@ -53,6 +53,8 @@
     {{-- After Update Notes Modal --}}
     @include('after-update-note-modal')
 
+    @include('components.page.confirm-dialog')
+
     @php
         $panelShell = [
             'readOnly' => $panelYear->isReadOnly(),
@@ -68,6 +70,7 @@
         window.panelShell = @json($panelShell);
     </script>
     <script src="{{ asset('/assets/js/custom/panel.js') }}?v={{ filemtime(public_path('assets/js/custom/panel.js')) }}"></script>
+    <script src="{{ asset('/assets/js/custom/page.js') }}?v={{ filemtime(public_path('assets/js/custom/page.js')) }}"></script>
 
     @yield('js')
 

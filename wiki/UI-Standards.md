@@ -146,6 +146,63 @@ State layers follow M3: the content colour at 8% on hover and 10% on focus and p
 
 Text is Poppins, sized from the type scale: page headings `--md-sys-typescale-headline-small-size`, card titles `title-medium`, body `body-medium`, labels and buttons `label-large`.
 
+### Admin panel page pattern
+
+Since Phase 0 every new panel page follows one pattern, so a school admin needs no training: a header with the page title and one primary action, filters, a table with bulk actions, a designed empty state that says what to do first, form cards that validate inline and save without a reload, and one confirm dialog. The pieces are Blade components in [`resources/views/components/page/`](https://github.com/ShawnDaPrawn/Eschool/tree/main/admin-panel/resources/views/components/page), styled by `public/assets/css/panel.css` and driven by `public/assets/js/custom/page.js` (both loaded by `layouts/master` on every panel page). Home, global search and the new-year wizard use it. Existing pages keep their markup and keep working; move a page onto the pattern when a phase touches it.
+
+| Component | Use it for | Notes |
+|---|---|---|
+| `<x-page.header>` | The top of every page | `title` (the page's only `<h1>`), optional `subtitle`, and at most one primary action (`primary-label`, `primary-href`, `primary-icon`, `primary-permission`). Quieter actions go in the `actions` slot. Shows "section / group" from the navigation registry above the title. |
+| `<x-page.filters id="...">` | Filter fields above a list | Give the table `toolbar="#id"` so bootstrap-table puts its search box beside them. A field with `data-filter="table_id"` reloads that table when it changes. |
+| `<x-page.table>` | Every server-side list | Wraps bootstrap-table with the panel's conventions: `data-escape="true"`, server pagination, `data-query-params="queryParams"`, page sizes 10/25/50/100, refresh. Columns go in the `columns` slot; a `<th data-field="state" data-checkbox="true">` column plus a `bulk` slot of buttons with `data-bulk-action="url"` (and `data-bulk-confirm="question"`) gives bulk actions: page.js posts the ticked rows' `ids[]` and refreshes. `empty-title`, `empty-message`, `empty-action-label`, `empty-action-href` design the empty state; a search with no match shows "Nothing matches" instead. page.js starts the table, so don't add `data-toggle="table"`. |
+| `<x-page.empty-state>` | A page or card with nothing in it yet | An icon in a tonal circle, a short title, one sentence that says what to do first, and the action that does it. |
+| `<x-page.form-card>` | Any form that saves | Posts with `fetch` and the CSRF token, never reloads on an error, and keeps a draft in `sessionStorage` until the save works (passwords and files are never kept), so an expired session or a closed tab loses nothing. Props: `action`, `method`, `title`, `submit-label`, `redirect`, `reset-on-success`, `refresh-table`. |
+| `<x-page.field>` | One labelled field | `name`, `label`, `type` (any input type, `select` with `options`, or `textarea`), `help`, `required`. Renders `label for`, `aria-describedby` for the hint and the error, and the error box page.js fills. Extra attributes (`min`, `max`, `maxlength`, `pattern`) go on the control and are checked as people type. |
+| `<x-page.confirm-dialog>` | Confirming an action | One per page, already in `layouts/master`. Add `data-confirm="question"` (and `data-confirm-title`, `data-confirm-label`, `data-confirm-danger`) to a button or link, or call `pageConfirm({title, message, confirmLabel, danger})`, which returns a promise of `true` or `false`. Focus moves into the dialog and back; Escape cancels. |
+
+A form card's endpoint answers JSON. On success: `{"error": false, "message": "...", "redirect": "optional url", "data": {...}}`; page.js shows the message, then goes to `redirect`, resets the form, refreshes a table, or fires a `page-form:saved` event for the page's own script. On a validation error: HTTP 422 with Laravel's `{"message": "...", "errors": {"field": ["..."]}}` (a FormRequest does this); each message appears under its field (`terms.0.name` maps to `terms[0][name]`), the first field gets focus and a summary appears at the top of the form. Anything else (`{"error": true, "message": "..."}`, a 500, no network): the message appears and nothing typed is lost.
+
+A list page on the pattern:
+
+```blade
+@extends('layouts.master')
+@section('title') {{ __('nav_notices') }} @endsection
+@section('content')
+<div class="content-wrapper">
+    <x-page.header :title="__('nav_notices')" :primary-label="__('send_a_notice')"
+        primary-href="#notice-form" primary-permission="announcement-create" />
+
+    <x-page.form-card id="notice-form" :action="url('announcement')" :title="__('send_a_notice')"
+        :submit-label="__('send')" reset-on-success refresh-table="table_list">
+        <x-page.field name="title" :label="__('title')" required maxlength="255" />
+        <x-page.field name="description" type="textarea" :label="__('description')" required />
+    </x-page.form-card>
+
+    <x-page.filters id="notice-filters">
+        <x-page.field name="filter_class_id" type="select" :label="__('grade')" :options="$grades"
+            :placeholder="__('all')" data-filter="table_list" />
+    </x-page.filters>
+    <x-page.table :url="url('announcement-list')" toolbar="#notice-filters" empty-icon="announcement"
+        :empty-title="__('no_notices_yet')" :empty-message="__('no_notices_yet_hint')"
+        :empty-action-label="__('send_a_notice')" empty-action-href="#notice-form">
+        <x-slot:columns>
+            <th data-field="title" data-sortable="true">{{ __('title') }}</th>
+            <th data-field="operate" data-escape="false">{{ __('action') }}</th>
+        </x-slot:columns>
+    </x-page.table>
+</div>
+@endsection
+```
+
+Rules for every panel page, old or new:
+
+- **Navigation.** Add the page to [`config/navigation.php`](https://github.com/ShawnDaPrawn/Eschool/blob/main/admin-panel/config/navigation.php), not to a sidebar file: pick the section by the job people do (Home, People, Academics, Communication, Money, Activities, Wellbeing, Settings), a group, a `label` key in plain words, the route, the `permissions` that show it, the `module` key Phase 1 will switch (or `null`) and `keywords` for search. `NavigationTest` fails on an item without a route, permissions or module key, and on a label missing from a language file. The item is shown only to people with one of its permissions; the page must still check its own permission.
+- **Plain words.** "Learners", "Homerooms", "Terms", "Grades", "School years", not table names (students, class sections, semesters, classes, session years). Every new label goes into every file in `resources/lang/` (English and Arabic today).
+- **Escaping.** Tables keep `data-escape="true"`; only a column that returns HTML built with `escapeHtml()` and `safeUrl()` sets `data-escape="false"`. Blade output uses `{{ }}`.
+- **Read-only years.** When the header's year switcher shows a year other than the current one, the server refuses writes (`EnforceReadOnlyYears`, allow-list in `config/panel.php`) and `panel.js` disables POST forms' submit buttons, delete buttons and anything marked `data-write`, and stops jQuery writes before they leave. Mark a control `data-write` if it changes year-scoped data without a form; mark a form `data-year-safe` only if its endpoint is on the allow-list.
+- **Keyboard and screen readers.** Every control is a real `<button>`, `<a>` or form field with a visible label or `aria-label`; focus is always visible (a 3px `secondary` outline); dialogs trap focus and return it. `layouts/master` provides a skip link and a `<main>` landmark; a page has exactly one `<h1>`.
+- **Width.** Every page works at 1024 px (a school laptop) and 1280 px with no horizontal scroll; wide tables scroll inside their card. Playwright checks this and runs axe on every panel page (see [Testing-and-CI](Testing-and-CI#playwright-admin-panel)).
+
 ## Changing the brand
 
 1. Edit `packages/eschool_core/lib/src/theme/brand_colors.dart`.
