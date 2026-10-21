@@ -166,7 +166,7 @@ The font is Poppins, bundled rather than downloaded: `google_fonts/` at the app 
 
 | Setting | File | Default |
 |---|---|---|
-| `isApplicationItemAnimationOn` | `lib/utils/constants.dart` | `true`; `false` turns off all list/item appearance effects in `lib/utils/animationConfiguration.dart` |
+| `isApplicationItemAnimationOn` | `packages/eschool_core/lib/src/utils/animation_configuration.dart` (one switch for both apps) | `true`; `false` turns off all list/item appearance effects in the same file |
 | `listItemAnimationDelayInMilliseconds` | same | `100` (keep values at 10 or more, per the code comment) |
 | `itemFadeAnimationDurationInMilliseconds` | same | `250` |
 | `itemZoomAnimationDurationInMilliseconds` | same | `200` |

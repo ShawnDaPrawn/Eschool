@@ -1,6 +1,5 @@
 // ignore_for_file: public_member_api_docs, sort_constructors_first
 import 'package:eschool_core/eschool_core.dart';
-import 'package:eschool_teacher/data/models/studyMaterial.dart';
 import 'package:eschool_teacher/utils/labelKeys.dart';
 import 'package:eschool_teacher/utils/uiUtils.dart';
 import 'package:flutter/cupertino.dart';
@@ -126,46 +125,6 @@ class LeaveDetail {
   }
 }
 
-//Helper models and methods related to add & view leaves
-enum LeaveType {
-  full,
-  firstHalf,
-  secondHalf;
-
-  static LeaveType fromAPIValue(String value) {
-    switch (value) {
-      case 'First Half':
-        return LeaveType.firstHalf;
-      case 'Second Half':
-        return LeaveType.secondHalf;
-      default:
-        return LeaveType.full;
-    }
-  }
-
-  String getAPIType() {
-    switch (this) {
-      case LeaveType.full:
-        return 'Full';
-      case LeaveType.firstHalf:
-        return 'First Half';
-      case LeaveType.secondHalf:
-        return 'Second Half';
-    }
-  }
-
-  String getTypeKey() {
-    switch (this) {
-      case LeaveType.firstHalf:
-        return firstHalfKey;
-      case LeaveType.secondHalf:
-        return secondHalfKey;
-      default:
-        return fullKey;
-    }
-  }
-}
-
 class Month {
   final int? monthNumber;
   final String nameKey;
@@ -200,10 +159,4 @@ List<Month> getAllMonths() {
 
 Month getCurrentMonth() {
   return getAllMonths()[DateTime.now().month];
-}
-
-class LeaveDateWithType {
-  DateTime date;
-  LeaveType type;
-  LeaveDateWithType({required this.date, required this.type});
 }

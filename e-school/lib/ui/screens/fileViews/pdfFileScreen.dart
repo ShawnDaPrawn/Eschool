@@ -1,8 +1,7 @@
 import 'package:eschool/cubits/pdfFileCubit.dart';
-import 'package:eschool/data/models/studyMaterial.dart';
+import 'package:eschool_core/eschool_core.dart';
 import 'package:eschool/data/repositories/subjectRepository.dart';
 import 'package:eschool/ui/widgets/customAppbar.dart';
-import 'package:eschool/ui/widgets/errorContainer.dart';
 import 'package:eschool/utils/assets.dart';
 import 'package:eschool/utils/labelKeys.dart';
 import 'package:eschool/utils/uiUtils.dart';

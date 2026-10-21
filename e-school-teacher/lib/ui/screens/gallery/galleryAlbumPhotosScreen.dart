@@ -1,12 +1,7 @@
 import 'package:eschool_teacher/app/routes.dart';
-import 'package:eschool_teacher/cubits/gallery/galleryPhotosCubit.dart';
 import 'package:eschool_core/eschool_core.dart';
-import 'package:eschool_teacher/data/models/studyMaterial.dart';
+import 'package:eschool_teacher/data/repositories/systemInfoRepository.dart';
 import 'package:eschool_teacher/ui/widgets/albumGridItemLoadingContainer.dart';
-import 'package:eschool_teacher/ui/widgets/customBackButton.dart';
-import 'package:eschool_teacher/ui/widgets/customImageWidget.dart';
-import 'package:eschool_teacher/ui/widgets/errorContainer.dart';
-import 'package:eschool_teacher/ui/widgets/screenTopBackgroundContainer.dart';
 import 'package:eschool_teacher/utils/uiUtils.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -25,7 +20,10 @@ class GalleryAlbumPhotosScreen extends StatefulWidget {
     final album = arguments['album'] as GalleryAlbum;
     return CupertinoPageRoute(
       builder: (context) => BlocProvider(
-        create: (context) => GalleryAlbumPhotosCubit(album: album),
+        create: (context) => GalleryAlbumPhotosCubit(
+          album: album,
+          galleryRepository: SystemRepository(),
+        ),
         child: GalleryAlbumPhotosScreen(album: album),
       ),
     );

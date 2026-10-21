@@ -1,10 +1,7 @@
 import 'package:any_link_preview/any_link_preview.dart';
 import 'package:eschool/app/routes.dart';
-import 'package:eschool/data/models/chatMessage.dart';
-import 'package:eschool/data/models/studyMaterial.dart';
-import 'package:eschool/ui/screens/chat/widget/messageItemComponents.dart';
 import 'package:eschool_core/eschool_core.dart';
-import 'package:eschool/ui/widgets/customImageWidget.dart';
+import 'package:eschool/ui/screens/chat/widget/messageItemComponents.dart';
 import 'package:eschool/utils/assets.dart';
 import 'package:eschool/utils/labelKeys.dart';
 import 'package:eschool/utils/uiUtils.dart';

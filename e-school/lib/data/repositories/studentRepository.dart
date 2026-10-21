@@ -7,7 +7,7 @@ import 'package:eschool/data/models/fees.dart';
 import 'package:eschool/data/models/feesTransaction.dart';
 import 'package:eschool/data/models/paidFees.dart';
 import 'package:eschool/data/models/parent.dart';
-import 'package:eschool/data/models/result.dart';
+import 'package:eschool_core/eschool_core.dart';
 import 'package:eschool/data/models/timeTableSlot.dart';
 import 'package:eschool/utils/api.dart';
 import 'package:eschool/utils/errorMessageKeysAndCodes.dart';

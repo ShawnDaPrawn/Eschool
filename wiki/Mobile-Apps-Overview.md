@@ -27,27 +27,41 @@ Both apps use the same folder structure under `lib/`:
 | `lib/main.dart` | Calls `initializeApp()`; carries the version comment `///v-3.5.0`. |
 | `lib/app/app.dart` | `initializeApp()` (Firebase, Crashlytics, notifications, Hive), `MyApp` with the global `MultiBlocProvider` and `MaterialApp`. |
 | `lib/app/routes.dart` | `Routes` class: route-name constants and `onGenerateRouted()` (a `switch` over route names, unknown names give an empty `Scaffold`). |
-| `lib/app/appLocalization.dart` | `AppLocalization` and its `LocalizationsDelegate`; loads `assets/languages/<code>.json`. See [Localization](Localization). |
 | `lib/cubits/` | Feature Cubits (one file per Cubit, state classes in the same file). Sub-folders `chat/` and `gallery/`. Some screen-private Cubits live next to their screen, e.g. `e-school/lib/ui/screens/reports/cubits/`. |
 | `lib/data/models/` | Plain Dart model classes with `fromJson` / `toJson`. |
 | `lib/data/repositories/` | One class per domain (`AuthRepository`, `StudentRepository`, `SystemRepository`, ...). Repositories are the only layer that calls `Api`. |
 | `lib/ui/screens/` | Screens. Most screens expose `static Route route(RouteSettings)`, which builds a `CupertinoPageRoute` and provides the screen-local Cubits; a few are wrapped in a `CupertinoPageRoute` directly in `routes.dart`. |
 | `lib/ui/widgets/` | Reusable widgets (error containers, shimmer loaders, bottom sheets, force-update dialog, ...). |
 | `lib/utils/api.dart` | `Api`: every endpoint URL, and static `post` / `get` / `download` that hand the call to the shared `ApiClient`. Also what the app does on a 401 (`logoutUser`). `ApiException` comes from `eschool_core` and is re-exported here. |
-| `lib/utils/constants.dart` | `baseUrl`, `databaseUrl`, `storageUrl`, notification channel keys, pagination limit, demo-credential switches, animation switches. |
+| `lib/utils/constants.dart` | `baseUrl`, `databaseUrl`, `storageUrl` (from the build defines, see [Mobile-App-Configuration](Mobile-App-Configuration#build-settings)), notification channel keys, pagination limit, demo-credential switches. |
 | `lib/utils/hiveBoxKeys.dart` | Hive box names and keys, SharedPreferences keys. |
 | `lib/utils/appLanguages.dart` | `defaultLanguageCode` and the `appLanguages` list. |
-| `lib/utils/labelKeys.dart` | Constants for every translation key (403 in each app). |
+| `lib/utils/labelKeys.dart` | Constants for every translation key; re-exports the keys the shared widgets use from `eschool_core`. |
 | `lib/utils/errorMessageKeysAndCodes.dart` | `ErrorMessageKeysAndCode`: maps API error codes to translation keys. |
-| `lib/utils/uiUtils.dart` | `UiUtils`: `rootNavigatorKey`, `getTranslatedLabel()`, snack bars, date helpers, `forceUpdate()`, `launchWebUrl()`. |
+| `lib/utils/uiUtils.dart` | `UiUtils`: `rootNavigatorKey`, `getTranslatedLabel()`, snack bars, date helpers, `forceUpdate()`, `launchWebUrl()`. The sizes and helpers that were the same in both apps forward to `SharedUiUtils` in `eschool_core`. |
 | `lib/utils/notificationUtils/` | `generalNotificationUtility.dart` (`NotificationUtility`) and `chatNotificationsUtils.dart` (`ChatNotificationsUtils`). |
 | `lib/utils/fileNameUtils.dart` | `sanitizeFileName()` used before saving server-supplied file names. |
-| `lib/utils/animationConfiguration.dart` | `flutter_animate` effect lists, switched off by `isApplicationItemAnimationOn`. |
-| `lib/utils/assets.dart` | `Assets` class with every image/animation path. |
+| `lib/utils/assets.dart` | `Assets` class with every image/animation path; the files the shared widgets draw point at `SharedAssets`. |
 | `test/translations_test.dart` | Language file consistency. |
 | `test/theme_colors_test.dart` | Fails on colours hard-coded outside the shared theme. |
 
 The student app also has `lib/utils/stripeService.dart` (Stripe payment sheet) and `lib/utils/homeBottomsheetMenu.dart` (the "more" menu list).
+
+### What the apps share through `eschool_core`
+
+Files that were the same in both apps live once in [`packages/eschool_core`](https://github.com/ShawnDaPrawn/Eschool/tree/main/packages/eschool_core/lib/src) and both apps import them through `package:eschool_core/eschool_core.dart`:
+
+| Folder in `eschool_core/lib/src/` | What moved there |
+|---|---|
+| `l10n/` | `AppLocalization` and `AppLocalizationDelegate` (each app passes its own `appLanguages`), the shared label keys |
+| `models/` | `StudyMaterial`, `Announcement`, `Topic`, `SubjectMark`, `Result`, `ChatMessage`, `DynamicField`, the leave day types (`LeaveType`, `LeaveDateWithType`), plus the earlier gallery, calendar, chat-settings and event models |
+| `cubits/` | `GalleryAlbumCubit`, `GalleryVideosCubit`, `GalleryAlbumPhotosCubit`, `EventDetailsCubit`, `AppSettingsCubit`, each taking an interface from `repositories/` (`GalleryRepository`, `EventScheduleRepository`, `AppSettingsRepository`) that the app's `SystemRepository` implements |
+| `widgets/` | 21 of the 30 widget files the apps had in common (error container, shimmer loaders, back button, image and gallery widgets, bottom sheet parts, search field, refresh indicator, ...) and four screen parts (semester break, gallery videos tab, leave day picker, drop-down) |
+| `ui/` | `SharedUiUtils` (the sizes and helpers both `UiUtils` had), `SharedAssets` (paths of the images the shared widgets draw, which each app ships), `SharedRoutes` |
+| `utils/` | `extensions.dart` and the list animations with their switches (`isApplicationItemAnimationOn` and the durations) |
+| `shell/` | `AppShell`, which each app puts above its navigator in `MaterialApp.builder` |
+
+`AppShell` carries the few things the shared widgets do differently per app: the error code to label mapping (`ErrorMessageKeysAndCode`, code 113 means something else in each app), how an attachment opens (`UiUtils.viewOrDownloadStudyMaterial`) and the button drawn next to it (`DownloadFileButton`), and the bottom bar's height. Nine shared widget files still differ in how they look between the apps and stay in each app until the screens that use them are redesigned: `customAppbar`, `customTabBarContainer`, `tabBarBackgroundContainer`, `downloadFileButton`, `downloadFileBottomsheetContainer`, `dynamicFieldListContainer`, `listItemForExamAndResult`, `noDataContainer` and `notificationIconWidget`.
 
 ## Startup sequence
 

@@ -1,7 +1,7 @@
 import 'package:eschool/app/routes.dart';
 import 'package:eschool/data/models/student.dart';
 import 'package:eschool/data/models/subject.dart';
-import 'package:eschool/utils/animationConfiguration.dart';
+import 'package:eschool_core/eschool_core.dart';
 import 'package:eschool/utils/assets.dart';
 import 'package:eschool/utils/labelKeys.dart';
 import 'package:eschool/utils/uiUtils.dart';

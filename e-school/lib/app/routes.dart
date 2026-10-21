@@ -1,3 +1,4 @@
+import 'package:eschool_core/eschool_core.dart';
 import 'package:eschool/ui/screens/aboutUsScreen.dart';
 import 'package:eschool/ui/screens/academicCalendar/academicCalendarScreen.dart';
 import 'package:eschool/ui/screens/assignment/assignmentScreen.dart';
@@ -138,8 +139,8 @@ class Routes {
   static const String manageLeaves = '/manageLeaves';
   static const String addLeave = '/addLeave';
 
-  static const String gallery = '/gallery';
-  static const String galleryAlbumPhotos = '/galleryAlbumPhotos';
+  static const String gallery = SharedRoutes.gallery;
+  static const String galleryAlbumPhotos = SharedRoutes.galleryAlbumPhotos;
 
   static String currentRoute = splash;
 

@@ -1,15 +1,14 @@
 import 'dart:io';
 
 import 'package:eschool_core/eschool_core.dart';
-import 'package:eschool_teacher/app/appLocalization.dart';
+import 'package:eschool_teacher/ui/widgets/downloadFileButton.dart';
+import 'package:eschool_teacher/utils/errorMessageKeysAndCodes.dart';
 import 'package:eschool_teacher/app/routes.dart';
 import 'package:eschool_teacher/cubits/appConfigurationCubit.dart';
 import 'package:eschool_teacher/cubits/appLocalizationCubit.dart';
 import 'package:eschool_teacher/cubits/authCubit.dart';
 import 'package:eschool_teacher/cubits/chat/chatUsersCubit.dart';
 import 'package:eschool_teacher/cubits/dashboardCubit.dart';
-import 'package:eschool_teacher/cubits/gallery/galleryAlbumsCubit.dart';
-import 'package:eschool_teacher/cubits/gallery/galleryVideosCubit.dart';
 import 'package:eschool_teacher/data/repositories/authRepository.dart';
 import 'package:eschool_teacher/data/repositories/chatRepository.dart';
 import 'package:eschool_teacher/data/repositories/settingsRepository.dart';
@@ -157,10 +156,10 @@ class _MyAppState extends State<MyApp> {
           create: (_) => ParentChatUserCubit(ChatRepository()),
         ),
         BlocProvider<GalleryAlbumCubit>(
-          create: (context) => GalleryAlbumCubit(),
+          create: (context) => GalleryAlbumCubit(SystemRepository()),
         ),
         BlocProvider<GalleryVideosCubit>(
-          create: (context) => GalleryVideosCubit(),
+          create: (context) => GalleryVideosCubit(SystemRepository()),
         ),
       ],
       child: Builder(
@@ -178,25 +177,33 @@ class _MyAppState extends State<MyApp> {
               navigatorKey: UiUtils.rootNavigatorKey,
               theme: AppTheme.light(font: GoogleFonts.poppinsTextTheme),
               builder: (context, widget) {
-                return ScrollConfiguration(
-                  behavior: GlobalScrollBehavior(),
-                  child: AnnotatedRegion<SystemUiOverlayStyle>(
-                    value: SystemUiOverlayStyle.light.copyWith(
-                      statusBarColor: Colors.transparent,
-                      statusBarIconBrightness: Brightness.light,
-                      statusBarBrightness: Brightness.dark,
-                      systemNavigationBarContrastEnforced: false,
-                      systemNavigationBarColor: Theme.of(
-                        context,
-                      ).colorScheme.surface,
-                      systemNavigationBarIconBrightness: Brightness.dark,
-                    ),
-                    child: ColoredBox(
-                      color: Theme.of(context).colorScheme.surface,
-                      child: SafeArea(
-                        top: false,
-                        bottom: Platform.isAndroid,
-                        child: widget!,
+                return AppShell(
+                  errorMessageKeyFromCode:
+                      ErrorMessageKeysAndCode.getErrorMessageKeyFromCode,
+                  openStudyMaterial: _openStudyMaterial,
+                  studyMaterialButton: _studyMaterialButton,
+                  bottomNavigationHeightPercentage:
+                      UiUtils.bottomNavigationHeightPercentage,
+                  child: ScrollConfiguration(
+                    behavior: GlobalScrollBehavior(),
+                    child: AnnotatedRegion<SystemUiOverlayStyle>(
+                      value: SystemUiOverlayStyle.light.copyWith(
+                        statusBarColor: Colors.transparent,
+                        statusBarIconBrightness: Brightness.light,
+                        statusBarBrightness: Brightness.dark,
+                        systemNavigationBarContrastEnforced: false,
+                        systemNavigationBarColor: Theme.of(
+                          context,
+                        ).colorScheme.surface,
+                        systemNavigationBarIconBrightness: Brightness.dark,
+                      ),
+                      child: ColoredBox(
+                        color: Theme.of(context).colorScheme.surface,
+                        child: SafeArea(
+                          top: false,
+                          bottom: Platform.isAndroid,
+                          child: widget!,
+                        ),
                       ),
                     ),
                   ),
@@ -204,7 +211,7 @@ class _MyAppState extends State<MyApp> {
               },
               locale: currentLanguage,
               localizationsDelegates: const [
-                AppLocalization.delegate,
+                AppLocalizationDelegate(appLanguages),
                 GlobalMaterialLocalizations.delegate,
                 GlobalWidgetsLocalizations.delegate,
                 GlobalCupertinoLocalizations.delegate,
@@ -222,3 +229,17 @@ class _MyAppState extends State<MyApp> {
     );
   }
 }
+
+/// How the shared widgets in eschool_core open an attachment in this app.
+void _openStudyMaterial(BuildContext context, StudyMaterial studyMaterial) {
+  UiUtils.viewOrDownloadStudyMaterial(
+    context: context,
+    storeInExternalStorage: true,
+    studyMaterial: studyMaterial,
+  );
+}
+
+Widget _studyMaterialButton(
+  BuildContext context,
+  StudyMaterial studyMaterial,
+) => DownloadFileButton(studyMaterial: studyMaterial);

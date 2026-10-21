@@ -1,12 +1,8 @@
 import 'package:eschool/cubits/authCubit.dart';
-import 'package:eschool/data/models/result.dart';
+import 'package:eschool_core/eschool_core.dart';
 import 'package:eschool/data/models/student.dart';
-import 'package:eschool/data/models/subjectMark.dart';
-import 'package:eschool/ui/widgets/screenTopBackgroundContainer.dart';
-import 'package:eschool/ui/widgets/svgButton.dart';
 import 'package:eschool/utils/labelKeys.dart';
 import 'package:eschool/utils/uiUtils.dart';
-import 'package:eschool_core/eschool_core.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';

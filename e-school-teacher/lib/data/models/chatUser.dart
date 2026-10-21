@@ -1,7 +1,7 @@
 // ignore_for_file: public_member_api_docs, sort_constructors_first
 import 'dart:convert';
 
-import 'package:eschool_teacher/data/models/chatMessage.dart';
+import 'package:eschool_core/eschool_core.dart';
 
 class ChatUser {
   int id;

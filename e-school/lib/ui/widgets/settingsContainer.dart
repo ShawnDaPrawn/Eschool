@@ -5,14 +5,12 @@ import 'package:eschool/cubits/changePasswordCubit.dart';
 import 'package:eschool/data/repositories/authRepository.dart';
 import 'package:eschool/ui/widgets/changeLanguageBottomsheetContainer.dart';
 import 'package:eschool/ui/widgets/changePasswordBottomsheet.dart';
-import 'package:eschool/ui/widgets/customBackButton.dart';
+import 'package:eschool_core/eschool_core.dart';
 import 'package:eschool/ui/widgets/logoutButton.dart';
 import 'package:eschool/ui/widgets/notificationIconWidget.dart';
-import 'package:eschool/ui/widgets/screenTopBackgroundContainer.dart';
 
 import 'package:eschool/utils/labelKeys.dart';
 import 'package:eschool/utils/uiUtils.dart';
-import 'package:eschool_core/eschool_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:url_launcher/url_launcher.dart';

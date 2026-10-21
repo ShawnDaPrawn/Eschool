@@ -1,13 +1,9 @@
 import 'package:eschool_teacher/app/routes.dart';
 import 'package:eschool_teacher/cubits/studentCompletedExamWithResultCubit.dart';
 import 'package:eschool_teacher/data/models/studentResult.dart';
-import 'package:eschool_teacher/ui/widgets/customRefreshIndicator.dart';
-import 'package:eschool_teacher/ui/widgets/customShimmerContainer.dart';
-import 'package:eschool_teacher/ui/widgets/errorContainer.dart';
+import 'package:eschool_core/eschool_core.dart';
 import 'package:eschool_teacher/ui/widgets/listItemForExamAndResult.dart';
 import 'package:eschool_teacher/ui/widgets/noDataContainer.dart';
-import 'package:eschool_teacher/ui/widgets/shimmerLoadingContainer.dart';
-import 'package:eschool_teacher/utils/animationConfiguration.dart';
 import 'package:eschool_teacher/utils/labelKeys.dart';
 
 import 'package:eschool_teacher/utils/uiUtils.dart';

@@ -1,17 +1,10 @@
 import 'package:eschool/cubits/authCubit.dart';
 import 'package:eschool/cubits/topicStudyMaterialCubit.dart';
-import 'package:eschool/data/models/studyMaterial.dart';
-import 'package:eschool/data/models/topic.dart';
+import 'package:eschool_core/eschool_core.dart';
 import 'package:eschool/data/repositories/subjectRepository.dart';
-import 'package:eschool/ui/widgets/customRefreshIndicator.dart';
-import 'package:eschool/ui/widgets/customShimmerContainer.dart';
 import 'package:eschool/ui/widgets/customTabBarContainer.dart';
-import 'package:eschool/ui/widgets/errorContainer.dart';
 import 'package:eschool/ui/widgets/filesContainer.dart';
 
-import 'package:eschool/ui/widgets/screenTopBackgroundContainer.dart';
-import 'package:eschool/ui/widgets/shimmerLoadingContainer.dart';
-import 'package:eschool/ui/widgets/svgButton.dart';
 import 'package:eschool/ui/widgets/tabBarBackgroundContainer.dart';
 import 'package:eschool/ui/widgets/videosContainer.dart';
 

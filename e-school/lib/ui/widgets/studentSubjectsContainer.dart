@@ -1,7 +1,7 @@
 import 'package:eschool/app/routes.dart';
 import 'package:eschool/data/models/subject.dart';
 import 'package:eschool/ui/widgets/subjectImageContainer.dart';
-import 'package:eschool/utils/extensions.dart';
+import 'package:eschool_core/eschool_core.dart';
 import 'package:eschool/utils/uiUtils.dart';
 import 'package:flutter/material.dart';
 

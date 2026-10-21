@@ -9,8 +9,25 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
+  bloc: ^9.0.0
+  cached_network_image: ^3.4.1
   dio: ^5.9.2
   dotted_border: ^3.1.0
+  equatable: ^2.0.8
+  flutter_animate: ^4.5.2
+  flutter_bloc: ^9.1.1
+  flutter_html: ^3.0.0
+  flutter_svg: ^2.2.4
+  # Not used directly: flutter_html 3.0.0 calls matches() from html's
+  # src/query_selector.dart, which html 0.15.7 removed, so neither app
+  # compiled with 0.15.7. Lift this when flutter_html no longer needs it.
+  html: ">=0.15.4 <0.15.7"
+  intl: any
+  lottie: ^3.3.3
+  shimmer: ^3.0.0
+  timeago: ^3.7.1
+  webview_flutter: ^4.13.1
+  youtube_player_iframe: ^6.0.2
 
 dev_dependencies:
   flutter_test:

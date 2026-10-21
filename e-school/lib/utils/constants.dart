@@ -40,11 +40,5 @@ const String defaultStudentPassword = 'student123';
 const String defaultParentEmail = 'parent@gmail.com';
 const String defaultParentPassword = 'parent123';
 
-//animations configuration
-//if this is false all item appearance animations will be turned off
-const bool isApplicationItemAnimationOn = true;
-//note: do not add Milliseconds values less then 10 as it'll result in errors
-const int listItemAnimationDelayInMilliseconds = 100;
-const int itemFadeAnimationDurationInMilliseconds = 250;
-const int itemZoomAnimationDurationInMilliseconds = 200;
-const int itemBounceScaleAnimationDurationInMilliseconds = 200;
+//animations configuration: isApplicationItemAnimationOn and the durations
+//are in eschool_core (lib/src/utils/animation_configuration.dart)

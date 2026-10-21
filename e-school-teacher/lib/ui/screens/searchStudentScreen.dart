@@ -1,7 +1,7 @@
 import 'package:eschool_teacher/data/models/student.dart';
 import 'package:eschool_teacher/ui/widgets/studentAttendanceTileContainer.dart';
 import 'package:eschool_teacher/ui/widgets/studentTileContainer.dart';
-import 'package:eschool_teacher/ui/widgets/svgButton.dart';
+import 'package:eschool_core/eschool_core.dart';
 import 'package:eschool_teacher/utils/labelKeys.dart';
 import 'package:eschool_teacher/utils/uiUtils.dart';
 import 'package:eschool_teacher/data/models/attendanceEnums.dart';

@@ -1,7 +1,7 @@
 import 'dart:io';
 
 import 'package:dio/dio.dart';
-import 'package:eschool/data/models/studyMaterial.dart';
+import 'package:eschool_core/eschool_core.dart';
 import 'package:eschool/data/repositories/subjectRepository.dart';
 import 'package:eschool/utils/errorMessageKeysAndCodes.dart';
 import 'package:external_path/external_path.dart';

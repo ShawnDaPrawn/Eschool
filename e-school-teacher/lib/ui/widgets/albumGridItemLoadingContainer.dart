@@ -1,5 +1,4 @@
-import 'package:eschool_teacher/ui/widgets/customShimmerContainer.dart';
-import 'package:eschool_teacher/ui/widgets/shimmerLoadingContainer.dart';
+import 'package:eschool_core/eschool_core.dart';
 import 'package:flutter/material.dart';
 
 class AlbumGridItemLoadingContainer extends StatelessWidget {

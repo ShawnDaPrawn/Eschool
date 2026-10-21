@@ -8,11 +8,9 @@ import 'package:eschool/ui/screens/exam/onlineExam/widgets/examTimerContainer.da
 import 'package:eschool/ui/screens/exam/onlineExam/widgets/optionContainer.dart';
 import 'package:eschool/ui/screens/exam/onlineExam/widgets/questionContainer.dart';
 import 'package:eschool/ui/screens/home/homeScreen.dart';
-import 'package:eschool/ui/widgets/customBackButton.dart';
-import 'package:eschool/ui/widgets/screenTopBackgroundContainer.dart';
+import 'package:eschool_core/eschool_core.dart';
 import 'package:eschool/utils/labelKeys.dart';
 import 'package:eschool/utils/uiUtils.dart';
-import 'package:eschool_core/eschool_core.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';

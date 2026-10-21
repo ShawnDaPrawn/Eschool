@@ -1,7 +1,7 @@
 import 'dart:async';
 
 import 'package:eschool_teacher/cubits/chat/chatUsersCubit.dart';
-import 'package:eschool_teacher/data/models/chatMessage.dart';
+import 'package:eschool_core/eschool_core.dart';
 import 'package:eschool_teacher/data/models/chatNotificationData.dart';
 import 'package:eschool_teacher/data/models/chatUser.dart';
 import 'package:eschool_teacher/data/repositories/chatRepository.dart';

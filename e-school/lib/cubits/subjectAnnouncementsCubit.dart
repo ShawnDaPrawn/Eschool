@@ -1,4 +1,4 @@
-import 'package:eschool/data/models/announcement.dart';
+import 'package:eschool_core/eschool_core.dart';
 import 'package:eschool/data/repositories/announcementRepository.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
