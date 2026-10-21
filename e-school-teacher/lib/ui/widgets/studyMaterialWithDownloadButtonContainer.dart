@@ -31,7 +31,7 @@ class StudyMaterialWithDownloadButtonContainer extends StatelessWidget {
             radius: const Radius.circular(10),
             color: Theme.of(
               context,
-            ).colorScheme.onSurface.withValues(alpha: 0.25),
+            ).colorScheme.onSurfaceVariant.withValues(alpha: 0.25),
           ),
           child: Container(
             alignment: Alignment.center,
@@ -44,7 +44,7 @@ class StudyMaterialWithDownloadButtonContainer extends StatelessWidget {
                   child: Text(
                     studyMaterial.fileName,
                     style: TextStyle(
-                      color: Theme.of(context).colorScheme.secondary,
+                      color: Theme.of(context).colorScheme.onSurface,
                       fontSize: 13,
                       fontWeight: FontWeight.w600,
                     ),

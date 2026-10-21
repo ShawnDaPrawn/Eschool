@@ -5,7 +5,6 @@ import 'package:eschool_teacher/data/models/studyMaterial.dart';
 import 'package:eschool_teacher/ui/widgets/bottomSheetTextFieldContainer.dart';
 import 'package:eschool_teacher/ui/widgets/bottomSheetTopBarMenu.dart';
 import 'package:eschool_core/eschool_core.dart';
-import 'package:eschool_teacher/ui/widgets/customRoundedButton.dart';
 import 'package:eschool_teacher/ui/widgets/defaultDropDownLabelContainer.dart';
 import 'package:eschool_teacher/utils/labelKeys.dart';
 import 'package:eschool_teacher/utils/uiUtils.dart';
@@ -95,7 +94,7 @@ class _EditStudyMaterialBottomSheetState
             radius: const Radius.circular(10),
             color: Theme.of(
               context,
-            ).colorScheme.onSurface.withValues(alpha: 0.3),
+            ).colorScheme.onSurfaceVariant.withValues(alpha: 0.3),
           ),
           child: Padding(
             padding: const EdgeInsetsDirectional.only(start: 10),
@@ -152,7 +151,7 @@ class _EditStudyMaterialBottomSheetState
                           radius: 2.5,
                           backgroundColor: Theme.of(
                             context,
-                          ).colorScheme.onSurface,
+                          ).colorScheme.onSurfaceVariant,
                         ),
                         const SizedBox(width: 10),
                         Text(

@@ -2,17 +2,16 @@ import 'package:eschool/cubits/authCubit.dart';
 import 'package:eschool/data/models/result.dart';
 import 'package:eschool/data/models/student.dart';
 import 'package:eschool/data/models/subjectMark.dart';
-import 'package:eschool/ui/styles/colors.dart';
 import 'package:eschool/ui/widgets/screenTopBackgroundContainer.dart';
 import 'package:eschool/ui/widgets/svgButton.dart';
 import 'package:eschool/utils/labelKeys.dart';
 import 'package:eschool/utils/uiUtils.dart';
+import 'package:eschool_core/eschool_core.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 class ResultScreen extends StatelessWidget {
-
   const ResultScreen({required this.result, super.key, this.childId});
   final Result result;
   final int? childId;
@@ -57,6 +56,9 @@ class ResultScreen extends StatelessWidget {
                       Navigator.of(context).pop();
                     },
                     svgIconUrl: UiUtils.getBackButtonPath(context),
+                    tooltip: MaterialLocalizations.of(
+                      context,
+                    ).backButtonTooltip,
                   ),
                 ),
               ),
@@ -65,7 +67,7 @@ class ResultScreen extends StatelessWidget {
                 child: Text(
                   UiUtils.getTranslatedLabel(context, resultKey),
                   style: TextStyle(
-                    color: Theme.of(context).scaffoldBackgroundColor,
+                    color: Theme.of(context).colorScheme.onPrimary,
                     fontSize: UiUtils.screenTitleFontSize,
                   ),
                 ),
@@ -83,7 +85,7 @@ class ResultScreen extends StatelessWidget {
                     maxLines: 1,
                     style: TextStyle(
                       fontSize: UiUtils.screenSubTitleFontSize,
-                      color: Theme.of(context).scaffoldBackgroundColor,
+                      color: Theme.of(context).colorScheme.onPrimary,
                     ),
                   ),
                 ),
@@ -104,12 +106,12 @@ class ResultScreen extends StatelessWidget {
                       BoxShadow(
                         color: Theme.of(
                           context,
-                        ).colorScheme.secondary.withValues(alpha: 0.075),
+                        ).colorScheme.shadow.withValues(alpha: 0.075),
                         offset: const Offset(2.5, 2.5),
                         blurRadius: 5,
                       ),
                     ],
-                    color: Theme.of(context).scaffoldBackgroundColor,
+                    color: Theme.of(context).colorScheme.surface,
                   ),
                   width: MediaQuery.sizeOf(context).width * 0.85,
                   child: Column(
@@ -119,7 +121,7 @@ class ResultScreen extends StatelessWidget {
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                         style: TextStyle(
-                          color: Theme.of(context).colorScheme.secondary,
+                          color: Theme.of(context).colorScheme.onSurface,
                           fontWeight: FontWeight.w600,
                         ),
                       ),
@@ -148,7 +150,7 @@ class ResultScreen extends StatelessWidget {
         overflow: TextOverflow.ellipsis,
         textAlign: TextAlign.center,
         style: TextStyle(
-          color: Theme.of(context).colorScheme.onSurface,
+          color: Theme.of(context).colorScheme.onSurfaceVariant,
           fontSize: 13.5,
         ),
       ),
@@ -170,8 +172,8 @@ class ResultScreen extends StatelessWidget {
         textAlign: TextAlign.center,
         style: TextStyle(
           color: isSubject
-              ? Theme.of(buildContext).colorScheme.onPrimary
-              : Theme.of(buildContext).colorScheme.secondary,
+              ? Theme.of(buildContext).colorScheme.tertiary
+              : Theme.of(buildContext).colorScheme.onSurface,
           fontWeight: FontWeight.w400,
           fontSize: 13,
         ),
@@ -229,12 +231,12 @@ class ResultScreen extends StatelessWidget {
           BoxShadow(
             color: Theme.of(
               context,
-            ).colorScheme.secondary.withValues(alpha: 0.075),
+            ).colorScheme.shadow.withValues(alpha: 0.075),
             offset: const Offset(2.5, 2.5),
             blurRadius: 5,
           ),
         ],
-        color: Theme.of(context).scaffoldBackgroundColor,
+        color: Theme.of(context).colorScheme.surface,
       ),
       width: MediaQuery.sizeOf(context).width * 0.85,
       child: LayoutBuilder(
@@ -267,12 +269,12 @@ class ResultScreen extends StatelessWidget {
           BoxShadow(
             color: Theme.of(
               context,
-            ).colorScheme.secondary.withValues(alpha: 0.075),
+            ).colorScheme.shadow.withValues(alpha: 0.075),
             offset: const Offset(2.5, 2.5),
             blurRadius: 5,
           ),
         ],
-        color: Theme.of(context).scaffoldBackgroundColor,
+        color: Theme.of(context).colorScheme.surface,
       ),
       width: MediaQuery.sizeOf(context).width * 0.85,
       child: LayoutBuilder(
@@ -318,18 +320,18 @@ class ResultScreen extends StatelessWidget {
           BoxShadow(
             color: Theme.of(
               context,
-            ).colorScheme.secondary.withValues(alpha: 0.075),
+            ).colorScheme.shadow.withValues(alpha: 0.075),
             offset: const Offset(2.5, 2.5),
             blurRadius: 5,
           ),
         ],
-        color: Theme.of(context).scaffoldBackgroundColor,
+        color: Theme.of(context).colorScheme.surface,
       ),
       width: MediaQuery.sizeOf(context).width * 0.85,
       child: Text(
         '${UiUtils.getTranslatedLabel(context, obtainedMarksKey)}  :  ${result.obtainedMark}/${result.totalMark}',
         style: TextStyle(
-          color: Theme.of(context).colorScheme.secondary,
+          color: Theme.of(context).colorScheme.onSurface,
           fontSize: 15,
         ),
       ),
@@ -349,7 +351,7 @@ class ResultScreen extends StatelessWidget {
           style: TextStyle(
             color: Theme.of(
               context,
-            ).colorScheme.onSurface.withValues(alpha: 0.75),
+            ).colorScheme.onSurfaceVariant.withValues(alpha: 0.75),
             fontWeight: FontWeight.w400,
             fontSize: 13,
           ),
@@ -359,7 +361,7 @@ class ResultScreen extends StatelessWidget {
         Text(
           value,
           style: TextStyle(
-            color: Theme.of(context).colorScheme.secondary,
+            color: Theme.of(context).colorScheme.onSurface,
             fontWeight: FontWeight.w500,
             fontSize: 15,
           ),
@@ -377,7 +379,7 @@ class ResultScreen extends StatelessWidget {
           padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 15),
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(10),
-            color: Theme.of(context).colorScheme.surface,
+            color: Theme.of(context).colorScheme.surfaceContainerLow,
           ),
           width: MediaQuery.sizeOf(context).width * 0.85,
           child: Row(
@@ -408,9 +410,11 @@ class ResultScreen extends StatelessWidget {
               width: 60,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: result.isPassed ? greenColor : redColor,
+                color: result.isPassed
+                    ? StatusColors.of(context).success
+                    : StatusColors.of(context).danger,
                 border: Border.all(
-                  color: Theme.of(context).colorScheme.surface,
+                  color: Theme.of(context).colorScheme.surfaceContainerLow,
                   width: 8,
                   strokeAlign: BorderSide.strokeAlignOutside,
                 ),
@@ -423,10 +427,12 @@ class ResultScreen extends StatelessWidget {
                 ),
                 maxLines: 1,
                 overflow: TextOverflow.clip,
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 12,
                   fontWeight: FontWeight.w500,
-                  color: Colors.white,
+                  color: result.isPassed
+                      ? StatusColors.of(context).onSuccess
+                      : StatusColors.of(context).onDanger,
                 ),
               ),
             ),

@@ -16,7 +16,6 @@ import 'package:eschool_core/eschool_core.dart';
 import 'package:eschool_teacher/ui/widgets/classSubjectsDropDownMenu.dart';
 import 'package:eschool_teacher/ui/widgets/customAppbar.dart';
 import 'package:eschool_teacher/ui/widgets/customDropDownMenu.dart';
-import 'package:eschool_teacher/ui/widgets/customRoundedButton.dart';
 import 'package:eschool_teacher/ui/widgets/defaultDropDownLabelContainer.dart';
 import 'package:eschool_teacher/ui/widgets/myClassesDropDownMenu.dart';
 import 'package:eschool_teacher/ui/widgets/studyMaterialContainer.dart';
@@ -390,9 +389,7 @@ class _AddOrEditLessonScreenState extends State<AddOrEditLessonScreen> {
                             lessonEditedSuccessfullyKey,
                           ),
                         ),
-                        backgroundColor: Theme.of(
-                          context,
-                        ).colorScheme.onPrimary,
+                        backgroundColor: StatusColors.of(context).success,
                       );
                       Navigator.of(context).pop(true);
                     } else if (state is EditLessonFailure) {
@@ -452,9 +449,7 @@ class _AddOrEditLessonScreenState extends State<AddOrEditLessonScreen> {
                           context,
                           lessonAddedKey,
                         ),
-                        backgroundColor: Theme.of(
-                          context,
-                        ).colorScheme.onPrimary,
+                        backgroundColor: StatusColors.of(context).success,
                       );
                     } else if (state is CreateLessonFailure) {
                       UiUtils.showBottomToastOverlay(

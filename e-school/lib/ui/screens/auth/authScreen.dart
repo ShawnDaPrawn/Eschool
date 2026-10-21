@@ -1,10 +1,10 @@
 import 'package:eschool/app/routes.dart';
 import 'package:eschool/cubits/appConfigurationCubit.dart';
-import 'package:eschool/ui/widgets/customRoundedButton.dart';
 import 'package:eschool/utils/assets.dart';
 import 'package:eschool/utils/constants.dart';
 import 'package:eschool/utils/labelKeys.dart';
 import 'package:eschool/utils/uiUtils.dart';
+import 'package:eschool_core/eschool_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/svg.dart';
@@ -133,7 +133,7 @@ class _AuthScreenState extends State<AuthScreen> with TickerProviderStateMixin {
             width: MediaQuery.sizeOf(context).width,
             height: height,
             decoration: BoxDecoration(
-              color: Theme.of(context).scaffoldBackgroundColor,
+              color: Theme.of(context).colorScheme.surface,
               borderRadius: const BorderRadius.only(
                 topLeft: Radius.circular(30),
                 topRight: Radius.circular(30),
@@ -167,7 +167,7 @@ class _AuthScreenState extends State<AuthScreen> with TickerProviderStateMixin {
                                   fontWeight: FontWeight.w600,
                                   color: UiUtils.getColorScheme(
                                     context,
-                                  ).secondary,
+                                  ).onSurface,
                                 ),
                               ),
                             ),
@@ -190,7 +190,7 @@ class _AuthScreenState extends State<AuthScreen> with TickerProviderStateMixin {
                                   fontWeight: FontWeight.w300,
                                   color: UiUtils.getColorScheme(
                                     context,
-                                  ).onSurface,
+                                  ).onSurfaceVariant,
                                 ),
                               ),
                             ),
@@ -219,7 +219,7 @@ class _AuthScreenState extends State<AuthScreen> with TickerProviderStateMixin {
                               widthPercentage: 0.8,
                               backgroundColor: Theme.of(
                                 context,
-                              ).scaffoldBackgroundColor,
+                              ).colorScheme.surface,
                               buttonTitle:
                                   '${UiUtils.getTranslatedLabel(context, loginAsKey)} ${UiUtils.getTranslatedLabel(context, parentKey)}',
                               titleColor: UiUtils.getColorScheme(

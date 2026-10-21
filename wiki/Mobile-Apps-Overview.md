@@ -33,7 +33,6 @@ Both apps use the same folder structure under `lib/`:
 | `lib/data/repositories/` | One class per domain (`AuthRepository`, `StudentRepository`, `SystemRepository`, ...). Repositories are the only layer that calls `Api`. |
 | `lib/ui/screens/` | Screens. Most screens expose `static Route route(RouteSettings)`, which builds a `CupertinoPageRoute` and provides the screen-local Cubits; a few are wrapped in a `CupertinoPageRoute` directly in `routes.dart`. |
 | `lib/ui/widgets/` | Reusable widgets (error containers, shimmer loaders, bottom sheets, force-update dialog, ...). |
-| `lib/ui/styles/colors.dart` | Theme colour constants (`primaryColor`, `secondaryColor`, ...). |
 | `lib/utils/api.dart` | `Api`: every endpoint URL, and static `post` / `get` / `download` that hand the call to the shared `ApiClient`. Also what the app does on a 401 (`logoutUser`). `ApiException` comes from `eschool_core` and is re-exported here. |
 | `lib/utils/constants.dart` | `baseUrl`, `databaseUrl`, `storageUrl`, notification channel keys, pagination limit, demo-credential switches, animation switches. |
 | `lib/utils/hiveBoxKeys.dart` | Hive box names and keys, SharedPreferences keys. |
@@ -45,7 +44,8 @@ Both apps use the same folder structure under `lib/`:
 | `lib/utils/fileNameUtils.dart` | `sanitizeFileName()` used before saving server-supplied file names. |
 | `lib/utils/animationConfiguration.dart` | `flutter_animate` effect lists, switched off by `isApplicationItemAnimationOn`. |
 | `lib/utils/assets.dart` | `Assets` class with every image/animation path. |
-| `test/translations_test.dart` | The only test in each app (language file consistency). |
+| `test/translations_test.dart` | Language file consistency. |
+| `test/theme_colors_test.dart` | Fails on colours hard-coded outside the shared theme. |
 
 The student app also has `lib/utils/stripeService.dart` (Stripe payment sheet) and `lib/utils/homeBottomsheetMenu.dart` (the "more" menu list).
 
@@ -62,7 +62,7 @@ The student app also has `lib/utils/stripeService.dart` (Stripe payment sheet) a
 7. `initHiveStorage(...)` initialises Hive in `getApplicationSupportDirectory()` (not Documents, which iOS exposes in the Files app because `UIFileSharingEnabled` is on) and moves boxes left in Documents by older versions; then opens the boxes (`showCaseBox`, `authBox`, `settings` in the student app; `authBox`, `settings` in the teacher app).
 8. `runApp(const MyApp())`.
 
-`MyApp` creates the app-wide Cubits in a `MultiBlocProvider` and builds a `MaterialApp` with `initialRoute: Routes.splash`, `onGenerateRoute: Routes.onGenerateRouted`, `navigatorKey: UiUtils.rootNavigatorKey`, the Poppins text theme (`GoogleFonts.poppinsTextTheme`) and the colours from `lib/ui/styles/colors.dart`.
+`MyApp` creates the app-wide Cubits in a `MultiBlocProvider` and builds a `MaterialApp` with `initialRoute: Routes.splash`, `onGenerateRoute: Routes.onGenerateRouted`, `navigatorKey: UiUtils.rootNavigatorKey`, and the shared Material 3 theme `AppTheme.light(font: GoogleFonts.poppinsTextTheme)` from `eschool_core` (see [UI-Standards](UI-Standards)).
 
 The splash screen (`lib/ui/screens/splashScreen.dart`) then:
 

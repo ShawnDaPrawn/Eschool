@@ -1,3 +1,4 @@
+import 'package:eschool_core/eschool_core.dart';
 import 'package:eschool_teacher/app/routes.dart';
 import 'package:eschool_teacher/cubits/lessonDeleteCubit.dart';
 import 'package:eschool_teacher/cubits/lessonsCubit.dart';
@@ -5,7 +6,6 @@ import 'package:eschool_teacher/data/models/classSectionDetails.dart';
 import 'package:eschool_teacher/data/models/lesson.dart';
 import 'package:eschool_teacher/data/models/subject.dart';
 import 'package:eschool_teacher/data/repositories/lessonRepository.dart';
-import 'package:eschool_teacher/ui/styles/colors.dart';
 import 'package:eschool_teacher/ui/widgets/attachmentsBottomsheetContainer.dart';
 import 'package:eschool_teacher/ui/widgets/confirmDeleteDialog.dart';
 import 'package:eschool_teacher/ui/widgets/customShimmerContainer.dart';
@@ -123,7 +123,7 @@ class LessonsContainer extends StatelessWidget {
                       vertical: 15,
                     ),
                     decoration: BoxDecoration(
-                      color: Theme.of(context).colorScheme.surface,
+                      color: Theme.of(context).colorScheme.surfaceContainerLow,
                       borderRadius: BorderRadius.circular(10),
                     ),
                     width: MediaQuery.sizeOf(context).width * 0.85,
@@ -138,7 +138,9 @@ class LessonsContainer extends StatelessWidget {
                                 chapterNameKey,
                               ),
                               style: TextStyle(
-                                color: Theme.of(context).colorScheme.onSurface,
+                                color: Theme.of(
+                                  context,
+                                ).colorScheme.onSurfaceVariant,
                                 fontWeight: FontWeight.w400,
                                 fontSize: 12,
                               ),
@@ -203,7 +205,7 @@ class LessonsContainer extends StatelessWidget {
                         Text(
                           lesson.name,
                           style: TextStyle(
-                            color: Theme.of(context).colorScheme.secondary,
+                            color: Theme.of(context).colorScheme.onSurface,
                             fontWeight: FontWeight.w600,
                             fontSize: 14,
                           ),
@@ -216,7 +218,9 @@ class LessonsContainer extends StatelessWidget {
                             chapterDescriptionKey,
                           ),
                           style: TextStyle(
-                            color: Theme.of(context).colorScheme.onSurface,
+                            color: Theme.of(
+                              context,
+                            ).colorScheme.onSurfaceVariant,
                             fontWeight: FontWeight.w400,
                             fontSize: 12,
                           ),
@@ -226,7 +230,7 @@ class LessonsContainer extends StatelessWidget {
                         Text(
                           lesson.description,
                           style: TextStyle(
-                            color: Theme.of(context).colorScheme.secondary,
+                            color: Theme.of(context).colorScheme.onSurface,
                             fontWeight: FontWeight.w600,
                             fontSize: 14,
                           ),
@@ -247,8 +251,8 @@ class LessonsContainer extends StatelessWidget {
                               },
                               child: Text(
                                 '${lesson.studyMaterials.length} ${UiUtils.getTranslatedLabel(context, attachmentsKey)}',
-                                style: const TextStyle(
-                                  color: assignmentViewButtonColor,
+                                style: TextStyle(
+                                  color: StatusColors.of(context).info,
                                 ),
                               ),
                             ),
@@ -288,8 +292,8 @@ class LessonsContainer extends StatelessWidget {
                               },
                               child: Text(
                                 '${lesson.topicsCount} ${UiUtils.getTranslatedLabel(context, lesson.topicsCount == 1 ? topicKey : topicsKey)}',
-                                style: const TextStyle(
-                                  color: assignmentViewButtonColor,
+                                style: TextStyle(
+                                  color: StatusColors.of(context).info,
                                 ),
                               ),
                             ),

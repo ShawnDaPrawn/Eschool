@@ -1,6 +1,6 @@
+import 'package:eschool_core/eschool_core.dart';
 import 'package:eschool_teacher/app/routes.dart';
 import 'package:eschool_teacher/data/models/chatUser.dart';
-import 'package:eschool_teacher/ui/styles/colors.dart';
 import 'package:eschool_teacher/ui/widgets/customUserProfileImageWidget.dart';
 import 'package:eschool_teacher/utils/extensions.dart';
 import 'package:eschool_teacher/utils/labelKeys.dart';
@@ -11,31 +11,34 @@ import 'package:intl/intl.dart';
 
 class ChatUserItemWidget extends StatelessWidget {
   const ChatUserItemWidget({
-    required this.chatUser, super.key,
+    required this.chatUser,
+    super.key,
     this.showCount = true,
   });
   final ChatUser chatUser;
   final bool showCount;
 
   final double _chatUserContainerHeight = 80;
-  final Color _containerActiveColor = pageBackgroundColor;
-  final Color _containerInactiveColor =
-      secondaryColor; //note: opacity is used in UI with this color
-  final Color _unreadCountBackgroundColor =
-      greenColor; //note: opacity is used in UI with this color
 
-  Container _profileImageBuilder({required String imageUrl}) {
+  Container _profileImageBuilder({
+    required BuildContext context,
+    required String imageUrl,
+  }) {
     return Container(
       clipBehavior: Clip.antiAlias,
       height: 50,
       width: 50,
       decoration: BoxDecoration(
         shape: BoxShape.circle,
-        border: Border.all(color: Colors.black45),
+        border: Border.all(
+          color: Theme.of(
+            context,
+          ).colorScheme.onSurface.withValues(alpha: 0.45),
+        ),
       ),
       child: CustomUserProfileImageWidget(
         profileUrl: imageUrl,
-        color: Colors.black,
+        color: Theme.of(context).colorScheme.onSurface,
       ),
     );
   }
@@ -55,17 +58,20 @@ class ChatUserItemWidget extends StatelessWidget {
     }
   }
 
-  Container _buildUnreadCounter({required int count}) {
+  Container _buildUnreadCounter({
+    required BuildContext context,
+    required int count,
+  }) {
     return Container(
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(10),
-        color: _unreadCountBackgroundColor.withValues(alpha: .8),
+        color: StatusColors.of(context).success.withValues(alpha: .8),
       ),
       padding: const EdgeInsets.symmetric(horizontal: 8),
       child: Text(
         (count > 999) ? '999+' : count.toString(),
-        style: const TextStyle(
-          color: Colors.white,
+        style: TextStyle(
+          color: StatusColors.of(context).onSuccess,
           fontWeight: FontWeight.bold,
           fontSize: 14,
         ),
@@ -98,21 +104,28 @@ class ChatUserItemWidget extends StatelessWidget {
             boxShadow: !chatUser.hasUnreadMessages
                 ? null
                 : [
-                    const BoxShadow(
-                      color: Colors.black12,
+                    BoxShadow(
+                      color: Theme.of(
+                        context,
+                      ).colorScheme.shadow.withValues(alpha: 0.12),
                       spreadRadius: 0.5,
                       blurRadius: 10,
                     ),
                   ],
             color: !chatUser.hasUnreadMessages
-                ? _containerInactiveColor.withValues(alpha: 0.05)
-                : _containerActiveColor,
+                ? Theme.of(
+                    context,
+                  ).colorScheme.onSurface.withValues(alpha: 0.05)
+                : Theme.of(context).colorScheme.surface,
             borderRadius: BorderRadius.circular(12),
           ),
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              _profileImageBuilder(imageUrl: chatUser.profileUrl),
+              _profileImageBuilder(
+                context: context,
+                imageUrl: chatUser.profileUrl,
+              ),
               const SizedBox(width: 10),
               Expanded(
                 child: Column(
@@ -174,6 +187,7 @@ class ChatUserItemWidget extends StatelessWidget {
                           const SizedBox(width: 5),
                           if (chatUser.hasUnreadMessages && showCount)
                             _buildUnreadCounter(
+                              context: context,
                               count: chatUser.unreadNotificationsCount,
                             ),
                         ],

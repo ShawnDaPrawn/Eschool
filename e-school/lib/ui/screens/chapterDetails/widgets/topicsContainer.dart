@@ -29,12 +29,9 @@ class TopicsContainer extends StatelessWidget {
             );
           },
           child: Container(
-            padding: const EdgeInsets.symmetric(
-              horizontal: 20,
-              vertical: 15,
-            ),
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 15),
             decoration: BoxDecoration(
-              color: Theme.of(context).colorScheme.surface,
+              color: Theme.of(context).colorScheme.surfaceContainerLow,
               borderRadius: BorderRadius.circular(10),
             ),
             width: MediaQuery.sizeOf(context).width * 0.85,
@@ -44,7 +41,7 @@ class TopicsContainer extends StatelessWidget {
                 Text(
                   UiUtils.getTranslatedLabel(context, topicNameKey),
                   style: TextStyle(
-                    color: Theme.of(context).colorScheme.onSurface,
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
                     fontWeight: FontWeight.w400,
                     fontSize: 12,
                   ),
@@ -54,7 +51,7 @@ class TopicsContainer extends StatelessWidget {
                 Text(
                   topic.name,
                   style: TextStyle(
-                    color: Theme.of(context).colorScheme.secondary,
+                    color: Theme.of(context).colorScheme.onSurface,
                     fontWeight: FontWeight.w600,
                     fontSize: 14,
                   ),
@@ -64,7 +61,7 @@ class TopicsContainer extends StatelessWidget {
                 Text(
                   UiUtils.getTranslatedLabel(context, topicDescriptionKey),
                   style: TextStyle(
-                    color: Theme.of(context).colorScheme.onSurface,
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
                     fontWeight: FontWeight.w400,
                     fontSize: 12,
                   ),
@@ -74,7 +71,7 @@ class TopicsContainer extends StatelessWidget {
                 Text(
                   topic.description,
                   style: TextStyle(
-                    color: Theme.of(context).colorScheme.secondary,
+                    color: Theme.of(context).colorScheme.onSurface,
                     fontWeight: FontWeight.w600,
                     fontSize: 14,
                   ),

@@ -12,6 +12,7 @@ import 'package:eschool/ui/widgets/screenTopBackgroundContainer.dart';
 
 import 'package:eschool/utils/labelKeys.dart';
 import 'package:eschool/utils/uiUtils.dart';
+import 'package:eschool_core/eschool_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -52,7 +53,7 @@ class SettingsContainer extends StatelessWidget {
             child: Text(
               UiUtils.getTranslatedLabel(context, settingsKey),
               style: TextStyle(
-                color: Theme.of(context).scaffoldBackgroundColor,
+                color: Theme.of(context).colorScheme.onPrimary,
                 fontSize: UiUtils.screenTitleFontSize,
               ),
             ),
@@ -93,7 +94,9 @@ class SettingsContainer extends StatelessWidget {
                   shape: BoxShape.circle,
                 ),
                 alignment: Alignment.center,
-                child: customIcon ?? Icon(icon, color: Colors.white),
+                child:
+                    customIcon ??
+                    Icon(icon, color: Theme.of(context).colorScheme.onPrimary),
               ),
               const SizedBox(width: 15),
               Expanded(
@@ -102,7 +105,7 @@ class SettingsContainer extends StatelessWidget {
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: TextStyle(
-                    color: Theme.of(context).colorScheme.onSurface,
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
                     fontSize: 15,
                     fontWeight: FontWeight.w400,
                   ),
@@ -112,7 +115,7 @@ class SettingsContainer extends StatelessWidget {
                 Icons.chevron_right,
                 color: Theme.of(
                   context,
-                ).colorScheme.onSurface.withValues(alpha: 0.8),
+                ).colorScheme.onSurfaceVariant.withValues(alpha: 0.8),
               ),
             ],
           ),
@@ -219,7 +222,7 @@ class SettingsContainer extends StatelessWidget {
                     context,
                     passwordChangedSuccessfullyKey,
                   ),
-                  backgroundColor: Theme.of(context).colorScheme.onPrimary,
+                  backgroundColor: StatusColors.of(context).success,
                 );
               }
             });
@@ -304,7 +307,7 @@ class SettingsContainer extends StatelessWidget {
                 Text(
                   '${UiUtils.getTranslatedLabel(context, appVersionKey)}  ${context.read<AppConfigurationCubit>().getAppVersion()}',
                   style: TextStyle(
-                    color: Theme.of(context).colorScheme.onSurface,
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
                     fontWeight: FontWeight.w500,
                     fontSize: 11,
                   ),

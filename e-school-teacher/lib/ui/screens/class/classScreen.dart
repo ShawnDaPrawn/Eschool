@@ -205,10 +205,9 @@ class _ClassScreenState extends State<ClassScreen> {
                       child: SvgPicture.asset(
                         Assets.takeAttendance,
                         colorFilter: ColorFilter.mode(
-                          Theme.of(context).scaffoldBackgroundColor,
+                          Theme.of(context).colorScheme.onPrimary,
                           BlendMode.srcIn,
                         ),
-                        // color: Theme.of(context).scaffoldBackgroundColor,
                       ),
                     ),
                   );

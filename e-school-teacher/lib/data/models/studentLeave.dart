@@ -1,7 +1,7 @@
 // ignore_for_file: public_member_api_docs, sort_constructors_first
+import 'package:eschool_core/eschool_core.dart';
 import 'package:eschool_teacher/data/models/student.dart';
 import 'package:eschool_teacher/data/models/studyMaterial.dart';
-import 'package:eschool_teacher/ui/styles/colors.dart';
 import 'package:eschool_teacher/utils/labelKeys.dart';
 import 'package:eschool_teacher/utils/uiUtils.dart';
 import 'package:flutter/cupertino.dart';
@@ -56,9 +56,7 @@ class StudentLeave {
         json['file']?.map((x) => StudyMaterial.fromJson(x)) ?? [],
       ),
       sessionYearId: json['session_year_id'] ?? 0,
-      student: Student.fromUserJson(
-        Map.from(json['user']),
-      ),
+      student: Student.fromUserJson(Map.from(json['user'])),
     );
   }
 
@@ -77,14 +75,15 @@ class StudentLeave {
     }
   }
 
-  Color get statusColor {
+  Color statusColor(BuildContext context) {
+    final palette = StatusColors.of(context);
     switch (status) {
       case '1':
-        return greenColor;
+        return palette.success;
       case '2':
-        return redColor;
+        return palette.danger;
       default:
-        return orangeColor;
+        return palette.warning;
     }
   }
 
@@ -177,8 +176,5 @@ extension LeaveTypeHelper on LeaveType {
 class LeaveDateWithType {
   DateTime date;
   LeaveType type;
-  LeaveDateWithType({
-    required this.date,
-    required this.type,
-  });
+  LeaveDateWithType({required this.date, required this.type});
 }

@@ -49,3 +49,5 @@ app.*.map.json
 .fvm/
 .fvmrc
 .vscode/
+# Written by a failing golden test
+test/goldens/failures/

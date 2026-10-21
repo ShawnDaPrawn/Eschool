@@ -71,7 +71,7 @@ class _HomeContainerState extends State<HomeContainer> {
                     border: Border.all(
                       color: Theme.of(
                         context,
-                      ).scaffoldBackgroundColor.withValues(alpha: 0.1),
+                      ).colorScheme.onPrimary.withValues(alpha: 0.1),
                     ),
                     shape: BoxShape.circle,
                   ),
@@ -82,7 +82,7 @@ class _HomeContainerState extends State<HomeContainer> {
                       border: Border.all(
                         color: Theme.of(
                           context,
-                        ).scaffoldBackgroundColor.withValues(alpha: 0.1),
+                        ).colorScheme.onPrimary.withValues(alpha: 0.1),
                       ),
                       shape: BoxShape.circle,
                     ),
@@ -98,7 +98,7 @@ class _HomeContainerState extends State<HomeContainer> {
                   decoration: BoxDecoration(
                     color: Theme.of(
                       context,
-                    ).scaffoldBackgroundColor.withValues(alpha: 0.1),
+                    ).colorScheme.onPrimary.withValues(alpha: 0.1),
                     shape: BoxShape.circle,
                   ),
                   width: MediaQuery.sizeOf(context).width * 0.35,
@@ -147,9 +147,7 @@ class _HomeContainerState extends State<HomeContainer> {
                               style: TextStyle(
                                 fontSize: 18,
                                 fontWeight: FontWeight.w500,
-                                color: Theme.of(
-                                  context,
-                                ).scaffoldBackgroundColor,
+                                color: Theme.of(context).colorScheme.onPrimary,
                               ),
                             ),
                             Row(
@@ -165,7 +163,7 @@ class _HomeContainerState extends State<HomeContainer> {
                                       fontWeight: FontWeight.w400,
                                       color: Theme.of(
                                         context,
-                                      ).scaffoldBackgroundColor,
+                                      ).colorScheme.onPrimary,
                                     ),
                                   ),
                                 ),
@@ -175,7 +173,7 @@ class _HomeContainerState extends State<HomeContainer> {
                                   height: 12,
                                   color: Theme.of(
                                     context,
-                                  ).scaffoldBackgroundColor,
+                                  ).colorScheme.onPrimary,
                                 ),
                                 const SizedBox(width: 10),
                                 Flexible(
@@ -188,7 +186,7 @@ class _HomeContainerState extends State<HomeContainer> {
                                       fontWeight: FontWeight.w400,
                                       color: Theme.of(
                                         context,
-                                      ).scaffoldBackgroundColor,
+                                      ).colorScheme.onPrimary,
                                     ),
                                   ),
                                 ),
@@ -224,7 +222,7 @@ class _HomeContainerState extends State<HomeContainer> {
             child: Text(
               UiUtils.getTranslatedLabel(context, assignmentsKey),
               style: TextStyle(
-                color: UiUtils.getColorScheme(context).secondary,
+                color: UiUtils.getColorScheme(context).onSurface,
                 fontWeight: FontWeight.w600,
                 fontSize: 16,
               ),
@@ -261,7 +259,7 @@ class _HomeContainerState extends State<HomeContainer> {
             child: Text(
               UiUtils.getTranslatedLabel(context, todaysTimetableKey),
               style: TextStyle(
-                color: UiUtils.getColorScheme(context).secondary,
+                color: UiUtils.getColorScheme(context).onSurface,
                 fontWeight: FontWeight.w600,
                 fontSize: 16,
               ),
@@ -290,7 +288,7 @@ class _HomeContainerState extends State<HomeContainer> {
             child: Text(
               UiUtils.getTranslatedLabel(context, upcomingExamsKey),
               style: TextStyle(
-                color: UiUtils.getColorScheme(context).secondary,
+                color: UiUtils.getColorScheme(context).onSurface,
                 fontWeight: FontWeight.w600,
                 fontSize: 16,
               ),

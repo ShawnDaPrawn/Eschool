@@ -1,3 +1,4 @@
+import 'package:eschool_core/eschool_core.dart';
 import 'package:eschool_teacher/cubits/appConfigurationCubit.dart';
 import 'package:eschool_teacher/cubits/teacherAttendanceCubit.dart';
 import 'package:eschool_teacher/data/models/teacherAttendance.dart';
@@ -12,7 +13,6 @@ import 'package:eschool_teacher/ui/widgets/screenTopBackgroundContainer.dart';
 import 'package:eschool_teacher/utils/extensions.dart';
 import 'package:eschool_teacher/utils/labelKeys.dart';
 import 'package:eschool_teacher/utils/uiUtils.dart';
-import 'package:eschool_teacher/ui/styles/colors.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -88,7 +88,7 @@ class _TeacherAttendenceScreenState extends State<TeacherAttendenceScreen> {
             child: Text(
               UiUtils.getTranslatedLabel(context, attendanceKey),
               style: TextStyle(
-                color: Theme.of(context).scaffoldBackgroundColor,
+                color: Theme.of(context).colorScheme.onPrimary,
                 fontSize: UiUtils.screenTitleFontSize,
               ),
             ),
@@ -101,13 +101,13 @@ class _TeacherAttendenceScreenState extends State<TeacherAttendenceScreen> {
   Color _getColorForAttendanceType(TeacherAttendanceType type) {
     switch (type) {
       case TeacherAttendanceType.fullDayPresent:
-        return palletGreen;
+        return StatusColors.of(context).success;
       case TeacherAttendanceType.fullDayAbsent:
-        return palletRed;
+        return StatusColors.of(context).danger;
       case TeacherAttendanceType.firstHalfAbsent:
-        return palletBlue;
+        return StatusColors.of(context).info;
       case TeacherAttendanceType.secondHalfAbsent:
-        return palletYellow;
+        return StatusColors.of(context).warning;
     }
   }
 
@@ -181,12 +181,14 @@ class _TeacherAttendenceScreenState extends State<TeacherAttendenceScreen> {
         '${day.day}',
         style: TextStyle(
           color:
-              (matchingDay != null &&
-                      matchingDay.type !=
-                          TeacherAttendanceType.fullDayPresent) ||
-                  isToday
-              ? Colors.white
-              : Theme.of(context).colorScheme.secondary,
+              matchingDay != null &&
+                  matchingDay.type != TeacherAttendanceType.fullDayPresent
+              ? Theme.of(context).colorScheme.readableOn(
+                  _getColorForAttendanceType(matchingDay.type),
+                )
+              : isToday
+              ? Theme.of(context).colorScheme.onPrimary
+              : Theme.of(context).colorScheme.onSurface,
         ),
       ),
     );
@@ -200,9 +202,12 @@ class _TeacherAttendenceScreenState extends State<TeacherAttendenceScreen> {
         runSpacing: 16,
         children: [
           _buildLegendItem(Theme.of(context).colorScheme.primary, todayKey),
-          _buildLegendItem(palletRed, fullDayAbsentKey),
-          _buildLegendItem(palletBlue, firstHalfAbsentKey),
-          _buildLegendItem(palletYellow, secondHalfAbsentKey),
+          _buildLegendItem(StatusColors.of(context).danger, fullDayAbsentKey),
+          _buildLegendItem(StatusColors.of(context).info, firstHalfAbsentKey),
+          _buildLegendItem(
+            StatusColors.of(context).warning,
+            secondHalfAbsentKey,
+          ),
         ],
       ),
     );
@@ -222,7 +227,7 @@ class _TeacherAttendenceScreenState extends State<TeacherAttendenceScreen> {
           UiUtils.getTranslatedLabel(context, labelKey),
           style: TextStyle(
             fontSize: 12,
-            color: Theme.of(context).colorScheme.secondary,
+            color: Theme.of(context).colorScheme.onSurface,
           ),
         ),
       ],
@@ -239,13 +244,13 @@ class _TeacherAttendenceScreenState extends State<TeacherAttendenceScreen> {
               BoxShadow(
                 color: Theme.of(
                   context,
-                ).colorScheme.secondary.withValues(alpha: 0.075),
+                ).colorScheme.shadow.withValues(alpha: 0.075),
                 offset: const Offset(2.5, 2.5),
                 blurRadius: 8,
                 spreadRadius: 2,
               ),
             ],
-            color: Theme.of(context).scaffoldBackgroundColor,
+            color: Theme.of(context).colorScheme.surface,
           ),
           width: MediaQuery.sizeOf(context).width * 0.85,
           child: Column(
@@ -260,7 +265,7 @@ class _TeacherAttendenceScreenState extends State<TeacherAttendenceScreen> {
                       child: Text(
                         '${UiUtils.getMonthName(focusedDay.month)} ${focusedDay.year}',
                         style: TextStyle(
-                          color: Theme.of(context).colorScheme.secondary,
+                          color: Theme.of(context).colorScheme.onSurface,
                           fontWeight: FontWeight.w600,
                         ),
                       ),
@@ -336,22 +341,22 @@ class _TeacherAttendenceScreenState extends State<TeacherAttendenceScreen> {
             AttendanceSummaryContainer(
               titleKey: fullDayPresentKey,
               value: report.fullDayPresent.toString(),
-              backgroundColor: palletGreen,
+              backgroundColor: StatusColors.of(context).success,
             ),
             AttendanceSummaryContainer(
               titleKey: fullDayAbsentKey,
               value: report.fullDayAbsent.toString(),
-              backgroundColor: palletRed,
+              backgroundColor: StatusColors.of(context).danger,
             ),
             AttendanceSummaryContainer(
               titleKey: firstHalfAbsentKey,
               value: report.firstHalfAbsent.toString(),
-              backgroundColor: palletBlue,
+              backgroundColor: StatusColors.of(context).info,
             ),
             AttendanceSummaryContainer(
               titleKey: secondHalfAbsentKey,
               value: report.secondHalfAbsent.toString(),
-              backgroundColor: palletYellow,
+              backgroundColor: StatusColors.of(context).warning,
             ),
           ],
         ),
@@ -423,13 +428,13 @@ class _TeacherAttendenceScreenState extends State<TeacherAttendenceScreen> {
                           BoxShadow(
                             color: Theme.of(
                               context,
-                            ).colorScheme.secondary.withValues(alpha: 0.075),
+                            ).colorScheme.shadow.withValues(alpha: 0.075),
                             offset: const Offset(2.5, 2.5),
                             blurRadius: 8,
                             spreadRadius: 2,
                           ),
                         ],
-                        color: Theme.of(context).scaffoldBackgroundColor,
+                        color: Theme.of(context).colorScheme.surface,
                       ),
                       width: MediaQuery.sizeOf(context).width * 0.85,
                       child: Column(
@@ -446,7 +451,7 @@ class _TeacherAttendenceScreenState extends State<TeacherAttendenceScreen> {
                                     style: TextStyle(
                                       color: Theme.of(
                                         context,
-                                      ).colorScheme.secondary,
+                                      ).colorScheme.onSurface,
                                       fontWeight: FontWeight.w600,
                                     ),
                                   ),

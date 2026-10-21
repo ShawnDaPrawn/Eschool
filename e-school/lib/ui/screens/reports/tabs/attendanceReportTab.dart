@@ -8,12 +8,12 @@ import 'package:eschool/cubits/authCubit.dart';
 import 'package:eschool/ui/screens/reports/widgets/sessionYearPickerBottomsheetContainer.dart';
 import 'package:eschool/ui/screens/reports/models/attendanceReport.dart';
 import 'package:eschool/ui/screens/reports/cubits/attendanceReportCubit.dart';
-import 'package:eschool/ui/styles/colors.dart';
 import 'package:eschool/ui/widgets/customShimmerContainer.dart';
 import 'package:eschool/ui/widgets/errorContainer.dart';
 import 'package:eschool/ui/widgets/shimmerLoadingContainer.dart';
 import 'package:eschool/utils/labelKeys.dart';
 import 'package:eschool/utils/uiUtils.dart';
+import 'package:eschool_core/eschool_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:table_calendar/table_calendar.dart';
@@ -199,12 +199,12 @@ class _AttendanceReportTabState extends State<AttendanceReportTab>
       margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
       padding: const EdgeInsets.all(15),
       decoration: BoxDecoration(
-        color: Theme.of(context).scaffoldBackgroundColor,
+        color: Theme.of(context).colorScheme.surface,
         borderRadius: BorderRadius.circular(10),
         border: Border.all(
           color: Theme.of(
             context,
-          ).colorScheme.secondary.withValues(alpha: 0.25),
+          ).colorScheme.onSurface.withValues(alpha: 0.25),
         ),
       ),
       child: Column(
@@ -216,7 +216,7 @@ class _AttendanceReportTabState extends State<AttendanceReportTab>
               style: TextStyle(
                 fontSize: 16,
                 fontWeight: FontWeight.bold,
-                color: Theme.of(context).colorScheme.secondary,
+                color: Theme.of(context).colorScheme.onSurface,
               ),
             ),
           ),
@@ -257,15 +257,15 @@ class _AttendanceReportTabState extends State<AttendanceReportTab>
                 UiUtils.getTranslatedLabel(context, todayKey),
               ),
               _buildLegendItem(
-                palletRed,
+                StatusColors.of(context).danger,
                 UiUtils.getTranslatedLabel(context, fullDayAbsentKey),
               ),
               _buildLegendItem(
-                palletBlue,
+                StatusColors.of(context).info,
                 UiUtils.getTranslatedLabel(context, firstHalfAbsentKey),
               ),
               _buildLegendItem(
-                palletYellow,
+                StatusColors.of(context).warning,
                 UiUtils.getTranslatedLabel(context, secondHalfAbsentKey),
               ),
             ],
@@ -283,25 +283,24 @@ class _AttendanceReportTabState extends State<AttendanceReportTab>
     Color? dotColor;
     Color textColor = Theme.of(
       context,
-    ).colorScheme.secondary.withValues(alpha: 0.7);
+    ).colorScheme.onSurface.withValues(alpha: 0.7);
 
     if (statusMap.containsKey(day.day)) {
       final status = statusMap[day.day];
       if (status == 1) {
-        dotColor = palletRed;
+        dotColor = StatusColors.of(context).danger;
       } else if (status == 2) {
-        dotColor = palletBlue;
+        dotColor = StatusColors.of(context).info;
       } else if (status == 3) {
-        dotColor = palletYellow;
+        dotColor = StatusColors.of(context).warning;
       }
     }
 
-    if (dotColor == null && isToday) {
-      dotColor = Theme.of(context).colorScheme.primary;
-    }
-
     if (dotColor != null) {
-      textColor = Colors.white;
+      textColor = Theme.of(context).colorScheme.readableOn(dotColor);
+    } else if (isToday) {
+      dotColor = Theme.of(context).colorScheme.primary;
+      textColor = Theme.of(context).colorScheme.onPrimary;
     }
 
     return Container(
@@ -340,7 +339,7 @@ class _AttendanceReportTabState extends State<AttendanceReportTab>
             fontSize: 11,
             color: Theme.of(
               context,
-            ).colorScheme.secondary.withValues(alpha: 0.8),
+            ).colorScheme.onSurface.withValues(alpha: 0.8),
           ),
         ),
       ],
@@ -356,7 +355,7 @@ class _AttendanceReportTabState extends State<AttendanceReportTab>
             child: _buildSummaryCard(
               title: UiUtils.getTranslatedLabel(context, totalPresentDayKey),
               value: data.totalPresent.toString(),
-              bgColor: palletGreen.withValues(alpha: 0.2),
+              bgColor: StatusColors.of(context).success.withValues(alpha: 0.2),
             ),
           ),
           const SizedBox(width: 15),
@@ -364,7 +363,7 @@ class _AttendanceReportTabState extends State<AttendanceReportTab>
             child: _buildSummaryCard(
               title: UiUtils.getTranslatedLabel(context, totalAbsentDayKey),
               value: data.totalAbsent.toString(),
-              bgColor: palletRed.withValues(alpha: 0.2),
+              bgColor: StatusColors.of(context).danger.withValues(alpha: 0.2),
             ),
           ),
         ],
@@ -392,7 +391,7 @@ class _AttendanceReportTabState extends State<AttendanceReportTab>
               fontSize: 12,
               color: Theme.of(
                 context,
-              ).colorScheme.secondary.withValues(alpha: 0.7),
+              ).colorScheme.onSurface.withValues(alpha: 0.7),
             ),
           ),
           const SizedBox(height: 5),
@@ -401,7 +400,7 @@ class _AttendanceReportTabState extends State<AttendanceReportTab>
             style: TextStyle(
               fontSize: 18,
               fontWeight: FontWeight.bold,
-              color: Theme.of(context).colorScheme.secondary,
+              color: Theme.of(context).colorScheme.onSurface,
             ),
           ),
         ],
@@ -447,7 +446,7 @@ class _AttendanceReportTabState extends State<AttendanceReportTab>
             style: TextStyle(
               fontSize: 16,
               fontWeight: FontWeight.bold,
-              color: Theme.of(context).colorScheme.secondary,
+              color: Theme.of(context).colorScheme.onSurface,
             ),
           ),
           const SizedBox(height: 24),
@@ -507,7 +506,7 @@ class _AttendanceReportTabState extends State<AttendanceReportTab>
                             style: TextStyle(
                               color: Theme.of(
                                 context,
-                              ).colorScheme.secondary.withValues(alpha: 0.7),
+                              ).colorScheme.onSurface.withValues(alpha: 0.7),
                               fontSize: 10,
                             ),
                           ),
@@ -527,7 +526,7 @@ class _AttendanceReportTabState extends State<AttendanceReportTab>
                           style: TextStyle(
                             color: Theme.of(
                               context,
-                            ).colorScheme.secondary.withValues(alpha: 0.7),
+                            ).colorScheme.onSurface.withValues(alpha: 0.7),
                             fontSize: 12,
                           ),
                         );
@@ -547,7 +546,7 @@ class _AttendanceReportTabState extends State<AttendanceReportTab>
                   getDrawingHorizontalLine: (value) => FlLine(
                     color: Theme.of(
                       context,
-                    ).colorScheme.secondary.withValues(alpha: 0.2),
+                    ).colorScheme.onSurface.withValues(alpha: 0.2),
                     strokeWidth: 1,
                     dashArray: [4, 4],
                   ),
@@ -555,7 +554,7 @@ class _AttendanceReportTabState extends State<AttendanceReportTab>
                   getDrawingVerticalLine: (value) => FlLine(
                     color: Theme.of(
                       context,
-                    ).colorScheme.secondary.withValues(alpha: 0.2),
+                    ).colorScheme.onSurface.withValues(alpha: 0.2),
                     strokeWidth: 1,
                     dashArray: [4, 4],
                   ),
@@ -566,7 +565,7 @@ class _AttendanceReportTabState extends State<AttendanceReportTab>
                     bottom: BorderSide(
                       color: Theme.of(
                         context,
-                      ).colorScheme.secondary.withValues(alpha: 0.5),
+                      ).colorScheme.onSurface.withValues(alpha: 0.5),
                     ),
                   ),
                 ),
@@ -574,22 +573,22 @@ class _AttendanceReportTabState extends State<AttendanceReportTab>
                   _buildBarGroup(
                     0,
                     fullDayPresent,
-                    palletGreen.withValues(alpha: 0.7),
+                    StatusColors.of(context).success.withValues(alpha: 0.7),
                   ),
                   _buildBarGroup(
                     1,
                     fullDayAbsent,
-                    palletRed.withValues(alpha: 0.7),
+                    StatusColors.of(context).danger.withValues(alpha: 0.7),
                   ),
                   _buildBarGroup(
                     2,
                     firstHalfAbsent,
-                    palletBlue.withValues(alpha: 0.7),
+                    StatusColors.of(context).info.withValues(alpha: 0.7),
                   ),
                   _buildBarGroup(
                     3,
                     secondHalfAbsent,
-                    palletYellow.withValues(alpha: 0.7),
+                    StatusColors.of(context).warning.withValues(alpha: 0.7),
                   ),
                 ],
               ),
@@ -601,19 +600,19 @@ class _AttendanceReportTabState extends State<AttendanceReportTab>
             runSpacing: 10,
             children: [
               _buildLegendItem(
-                palletGreen,
+                StatusColors.of(context).success,
                 UiUtils.getTranslatedLabel(context, fullDayPresentKey),
               ),
               _buildLegendItem(
-                palletRed,
+                StatusColors.of(context).danger,
                 UiUtils.getTranslatedLabel(context, fullDayAbsentKey),
               ),
               _buildLegendItem(
-                palletBlue,
+                StatusColors.of(context).info,
                 UiUtils.getTranslatedLabel(context, firstHalfAbsentKey),
               ),
               _buildLegendItem(
-                palletYellow,
+                StatusColors.of(context).warning,
                 UiUtils.getTranslatedLabel(context, secondHalfAbsentKey),
               ),
             ],

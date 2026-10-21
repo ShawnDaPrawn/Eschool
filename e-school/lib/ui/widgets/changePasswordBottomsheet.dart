@@ -1,10 +1,10 @@
 import 'package:eschool/cubits/changePasswordCubit.dart';
 import 'package:eschool/ui/widgets/bottomsheetTopTitleAndCloseButton.dart';
-import 'package:eschool/ui/widgets/customRoundedButton.dart';
 import 'package:eschool/ui/widgets/customTextFieldContainer.dart';
 import 'package:eschool/ui/widgets/passwordHideShowButton.dart';
 import 'package:eschool/utils/labelKeys.dart';
 import 'package:eschool/utils/uiUtils.dart';
+import 'package:eschool_core/eschool_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -58,7 +58,7 @@ class _ChangePasswordBottomsheetState extends State<ChangePasswordBottomsheet> {
           vertical: MediaQuery.sizeOf(context).height * 0.04,
         ),
         decoration: BoxDecoration(
-          color: Theme.of(context).scaffoldBackgroundColor,
+          color: Theme.of(context).colorScheme.surface,
           borderRadius: BorderRadius.only(
             topLeft: Radius.circular(UiUtils.bottomSheetTopRadius),
             topRight: Radius.circular(UiUtils.bottomSheetTopRadius),
@@ -189,7 +189,7 @@ class _ChangePasswordBottomsheetState extends State<ChangePasswordBottomsheet> {
                     height: 40,
                     textSize: 16,
                     widthPercentage: 0.45,
-                    titleColor: Theme.of(context).scaffoldBackgroundColor,
+                    titleColor: Theme.of(context).colorScheme.onPrimary,
                     backgroundColor: Theme.of(context).colorScheme.primary,
                     buttonTitle: UiUtils.getTranslatedLabel(
                       context,

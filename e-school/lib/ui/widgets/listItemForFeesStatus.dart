@@ -8,9 +8,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 class ListItemForFeesStatus extends StatelessWidget {
-
   const ListItemForFeesStatus({
-    required this.className, required this.status, required this.year, required this.fileNamePrefix, required this.fees, required this.receiptProcessing, super.key,
+    required this.className,
+    required this.status,
+    required this.year,
+    required this.fileNamePrefix,
+    required this.fees,
+    required this.receiptProcessing,
+    super.key,
     this.onItemTap,
     this.id,
   });
@@ -33,7 +38,7 @@ class ListItemForFeesStatus extends StatelessWidget {
         width: MediaQuery.sizeOf(context).width * 0.90,
         padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 15),
         decoration: BoxDecoration(
-          color: Theme.of(context).colorScheme.surface,
+          color: Theme.of(context).colorScheme.surfaceContainerLow,
           borderRadius: BorderRadius.circular(10),
         ),
         child: child,
@@ -43,7 +48,7 @@ class ListItemForFeesStatus extends StatelessWidget {
 
   TextStyle _getLabelTextStyle({required BuildContext context}) {
     return TextStyle(
-      color: Theme.of(context).colorScheme.onSurface,
+      color: Theme.of(context).colorScheme.onSurfaceVariant,
       fontSize: 12,
       fontWeight: FontWeight.w400,
     );
@@ -51,7 +56,8 @@ class ListItemForFeesStatus extends StatelessWidget {
 
   Widget _buildLabelAndValueContainer({
     required BuildContext context,
-    required String element2, String element1 = '',
+    required String element2,
+    String element1 = '',
     String element3 = '',
   }) {
     return Row(

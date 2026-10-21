@@ -1,3 +1,4 @@
+import 'package:eschool_core/eschool_core.dart';
 import 'package:eschool_teacher/app/routes.dart';
 import 'package:eschool_teacher/cubits/appConfigurationCubit.dart';
 import 'package:eschool_teacher/cubits/appLocalizationCubit.dart';
@@ -78,7 +79,9 @@ class SettingsContainer extends StatelessWidget {
                   shape: BoxShape.circle,
                 ),
                 alignment: Alignment.center,
-                child: customIcon ?? Icon(icon, color: Colors.white),
+                child:
+                    customIcon ??
+                    Icon(icon, color: Theme.of(context).colorScheme.onPrimary),
               ),
               const SizedBox(width: 15),
               Expanded(
@@ -87,7 +90,7 @@ class SettingsContainer extends StatelessWidget {
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: TextStyle(
-                    color: Theme.of(context).colorScheme.onSurface,
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
                     fontSize: 15,
                   ),
                 ),
@@ -96,7 +99,7 @@ class SettingsContainer extends StatelessWidget {
                 Icons.chevron_right,
                 color: Theme.of(
                   context,
-                ).colorScheme.onSurface.withValues(alpha: 0.8),
+                ).colorScheme.onSurfaceVariant.withValues(alpha: 0.8),
               ),
             ],
           ),
@@ -166,7 +169,7 @@ class SettingsContainer extends StatelessWidget {
                       context,
                       passwordChangedSuccessfullyKey,
                     ),
-                    backgroundColor: Theme.of(context).colorScheme.onPrimary,
+                    backgroundColor: StatusColors.of(context).success,
                   );
                 }
               }
@@ -252,7 +255,7 @@ class SettingsContainer extends StatelessWidget {
                 Text(
                   '${UiUtils.getTranslatedLabel(context, appVersionKey)}  ${context.read<AppConfigurationCubit>().getAppVersion()}',
                   style: TextStyle(
-                    color: Theme.of(context).colorScheme.onSurface,
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
                     fontWeight: FontWeight.w500,
                     fontSize: 11,
                   ),

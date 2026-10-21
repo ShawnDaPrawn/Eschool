@@ -14,7 +14,7 @@ class SemesterBreakContainer extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 10),
       width: MediaQuery.sizeOf(context).width * 0.85,
       decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surface,
+        color: Theme.of(context).colorScheme.surfaceContainerLow,
         borderRadius: BorderRadius.circular(10),
       ),
       child: Column(
@@ -26,7 +26,7 @@ class SemesterBreakContainer extends StatelessWidget {
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
             style: TextStyle(
-              color: Theme.of(context).colorScheme.secondary,
+              color: Theme.of(context).colorScheme.onSurface,
               fontWeight: FontWeight.w600,
               fontSize: 14,
             ),
@@ -41,7 +41,7 @@ class SemesterBreakContainer extends StatelessWidget {
                     padding: const EdgeInsetsDirectional.only(end: 2),
                     child: Icon(
                       Icons.calendar_month_outlined,
-                      color: Theme.of(context).colorScheme.secondary,
+                      color: Theme.of(context).colorScheme.onSurface,
                       size: 12,
                     ),
                   ),
@@ -53,7 +53,7 @@ class SemesterBreakContainer extends StatelessWidget {
               ],
             ),
             style: TextStyle(
-              color: Theme.of(context).colorScheme.onSurface,
+              color: Theme.of(context).colorScheme.onSurfaceVariant,
               fontSize: 12,
             ),
             textAlign: TextAlign.start,

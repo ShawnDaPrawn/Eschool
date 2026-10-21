@@ -94,12 +94,12 @@ class AssignmentsContainer extends StatelessWidget {
                           BoxShadow(
                             color: Theme.of(
                               context,
-                            ).colorScheme.secondary.withValues(alpha: 0.05),
+                            ).colorScheme.shadow.withValues(alpha: 0.05),
                             offset: const Offset(2.5, 2.5),
                             blurRadius: 10,
                           ),
                         ],
-                        color: Theme.of(context).scaffoldBackgroundColor,
+                        color: Theme.of(context).colorScheme.surface,
                         borderRadius: BorderRadius.circular(10),
                       ),
                       width: MediaQuery.sizeOf(context).width * 0.85,
@@ -120,7 +120,7 @@ class AssignmentsContainer extends StatelessWidget {
                                   style: TextStyle(
                                     color: Theme.of(
                                       context,
-                                    ).colorScheme.secondary,
+                                    ).colorScheme.onSurface,
                                     fontWeight: FontWeight.w400,
                                     fontSize: 14,
                                   ),
@@ -179,9 +179,10 @@ class AssignmentsContainer extends StatelessWidget {
                           Text(
                             '${UiUtils.getTranslatedLabel(context, dueDateKey)}: ${UiUtils.formatDateAndTime(assignment.dueDate)}',
                             style: TextStyle(
-                              color: Theme.of(
-                                context,
-                              ).colorScheme.onSurface.withValues(alpha: 0.6),
+                              color: Theme.of(context)
+                                  .colorScheme
+                                  .onSurfaceVariant
+                                  .withValues(alpha: 0.6),
                               fontWeight: FontWeight.w400,
                               fontSize: 11,
                             ),

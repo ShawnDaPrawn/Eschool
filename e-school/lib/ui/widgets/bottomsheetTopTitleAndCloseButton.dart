@@ -4,7 +4,9 @@ import 'package:flutter/material.dart';
 
 class BottomsheetTopTitleAndCloseButton extends StatelessWidget {
   const BottomsheetTopTitleAndCloseButton({
-    required this.onTapCloseButton, required this.titleKey, super.key,
+    required this.onTapCloseButton,
+    required this.titleKey,
+    super.key,
   });
   final String titleKey;
   final Function onTapCloseButton;
@@ -20,7 +22,7 @@ class BottomsheetTopTitleAndCloseButton extends StatelessWidget {
               UiUtils.getTranslatedLabel(context, titleKey),
               style: TextStyle(
                 fontSize: 16,
-                color: Theme.of(context).colorScheme.secondary,
+                color: Theme.of(context).colorScheme.onSurface,
                 fontWeight: FontWeight.w600,
               ),
             ),
@@ -30,7 +32,7 @@ class BottomsheetTopTitleAndCloseButton extends StatelessWidget {
         ),
         Padding(
           padding: const EdgeInsets.symmetric(vertical: 10),
-          child: Divider(color: Theme.of(context).colorScheme.onSurface),
+          child: Divider(color: Theme.of(context).colorScheme.onSurfaceVariant),
         ),
         SizedBox(height: MediaQuery.sizeOf(context).height * 0.0075),
       ],

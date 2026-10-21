@@ -34,7 +34,12 @@ class AcademicCalendarCubit extends Cubit<AcademicCalendarState> {
   final StudentRepository _studentRepository;
   final AppConfigurationCubit appConfigurationCubit;
 
-  Future<void> fetchData({int? childId}) async {
+  /// [colors] are the marker colours of the items, read from the theme by
+  /// the screen before the fetch starts.
+  Future<void> fetchData({
+    required AcademicCalendarColors colors,
+    int? childId,
+  }) async {
     emit(AcademicCalendarFetchInProgress());
     try {
       emit(
@@ -44,14 +49,14 @@ class AcademicCalendarCubit extends Cubit<AcademicCalendarState> {
               (holiday) => AcademicCalendar<Holiday>(
                 data: holiday,
                 date: holiday.date,
-                highlightColor: AcademicCalendarScreen.holidayColor,
+                highlightColor: colors.holiday,
               ),
             ),
             ...(await _systemRepository.fetchEvents()).map<AcademicCalendar>(
               (event) => AcademicCalendar<Event>(
                 data: event,
                 date: event.startDate,
-                highlightColor: AcademicCalendarScreen.eventColor,
+                highlightColor: colors.event,
                 rangeEndDate: event.endDate,
               ),
             ),
@@ -64,7 +69,7 @@ class AcademicCalendarCubit extends Cubit<AcademicCalendarState> {
               (exam) => AcademicCalendar<Exam>(
                 data: exam,
                 date: exam.getStartDate(),
-                highlightColor: AcademicCalendarScreen.examColor,
+                highlightColor: colors.exam,
                 rangeEndDate: exam.getEndDate(),
               ),
             ),
@@ -74,7 +79,7 @@ class AcademicCalendarCubit extends Cubit<AcademicCalendarState> {
                   (breakItem) => AcademicCalendar<SemesterBreak>(
                     data: breakItem,
                     date: breakItem.startDate,
-                    highlightColor: AcademicCalendarScreen.semesterBreakColor,
+                    highlightColor: colors.semesterBreak,
                     rangeEndDate: breakItem.endDate,
                   ),
                 ),

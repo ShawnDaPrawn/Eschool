@@ -8,9 +8,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_tex/flutter_tex.dart';
 
 class QuestionContainer extends StatelessWidget {
-
   const QuestionContainer({
-    required this.isMathQuestion, super.key,
+    required this.isMathQuestion,
+    super.key,
     this.question,
     this.questionColor,
     this.questionNumber,
@@ -44,7 +44,8 @@ class QuestionContainer extends StatelessWidget {
                         ),
                         style: TeXViewStyle(
                           contentColor:
-                              questionColor ?? Theme.of(context).primaryColor,
+                              questionColor ??
+                              Theme.of(context).colorScheme.primary,
                           backgroundColor: Colors.transparent,
                           sizeUnit: TeXViewSizeUnit.pixels,
                           fontStyle: TeXViewFontStyle(fontSize: 20),
@@ -59,7 +60,8 @@ class QuestionContainer extends StatelessWidget {
                           fontSize: 18,
                           fontWeight: FontWeight.w400,
                           color:
-                              questionColor ?? Theme.of(context).primaryColor,
+                              questionColor ??
+                              Theme.of(context).colorScheme.primary,
                         ),
                       ),
               ),
@@ -73,7 +75,9 @@ class QuestionContainer extends StatelessWidget {
                       style: TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.w400,
-                        color: questionColor ?? Theme.of(context).primaryColor,
+                        color:
+                            questionColor ??
+                            Theme.of(context).colorScheme.primary,
                       ),
                     ),
                   ),
@@ -94,7 +98,7 @@ class QuestionContainer extends StatelessWidget {
                   errorWidget: (context, image, _) => Center(
                     child: Icon(
                       Icons.error,
-                      color: Theme.of(context).primaryColor,
+                      color: Theme.of(context).colorScheme.primary,
                     ),
                   ),
                   imageBuilder: (context, imageProvider) {

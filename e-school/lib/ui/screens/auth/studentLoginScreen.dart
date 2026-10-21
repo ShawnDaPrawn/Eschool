@@ -8,7 +8,6 @@ import 'package:eschool/data/repositories/settingsRepository.dart';
 import 'package:eschool/ui/screens/auth/widgets/requestResetPasswordBottomsheet.dart';
 import 'package:eschool/ui/screens/auth/widgets/termsAndConditionAndPrivacyPolicyContainer.dart';
 import 'package:eschool_core/eschool_core.dart';
-import 'package:eschool/ui/widgets/customRoundedButton.dart';
 import 'package:eschool/ui/widgets/customTextFieldContainer.dart';
 import 'package:eschool/ui/widgets/passwordHideShowButton.dart';
 import 'package:eschool/utils/assets.dart';
@@ -146,7 +145,7 @@ class _StudentLoginScreenState extends State<StudentLoginScreen>
                     context,
                     passwordResetRequestKey,
                   ),
-                  backgroundColor: Theme.of(context).colorScheme.onPrimary,
+                  backgroundColor: StatusColors.of(context).success,
                 );
               }
             });
@@ -222,7 +221,7 @@ class _StudentLoginScreenState extends State<StudentLoginScreen>
                       style: TextStyle(
                         fontSize: 34,
                         fontWeight: FontWeight.bold,
-                        color: UiUtils.getColorScheme(context).secondary,
+                        color: UiUtils.getColorScheme(context).onSurface,
                       ),
                     ),
                     const SizedBox(height: 10),
@@ -231,7 +230,7 @@ class _StudentLoginScreenState extends State<StudentLoginScreen>
                       style: TextStyle(
                         fontSize: 24,
                         height: 1.5,
-                        color: UiUtils.getColorScheme(context).secondary,
+                        color: UiUtils.getColorScheme(context).onSurface,
                       ),
                     ),
                     const SizedBox(height: 30),
@@ -245,7 +244,7 @@ class _StudentLoginScreenState extends State<StudentLoginScreen>
                         child: SvgPicture.asset(
                           Assets.userIcon,
                           colorFilter: ColorFilter.mode(
-                            UiUtils.getColorScheme(context).secondary,
+                            UiUtils.getColorScheme(context).onSurface,
                             BlendMode.srcIn,
                           ),
                         ),
@@ -329,9 +328,7 @@ class _StudentLoginScreenState extends State<StudentLoginScreen>
                               context,
                               signInKey,
                             ),
-                            titleColor: Theme.of(
-                              context,
-                            ).scaffoldBackgroundColor,
+                            titleColor: Theme.of(context).colorScheme.onPrimary,
                             showBorder: false,
                             child: state is SignInInProgress
                                 ? const CustomCircularProgressIndicator(
@@ -378,7 +375,7 @@ class _StudentLoginScreenState extends State<StudentLoginScreen>
                                       fontSize: 16,
                                       color: UiUtils.getColorScheme(
                                         context,
-                                      ).secondary,
+                                      ).onSurface,
                                     ),
                                     text:
                                         '${UiUtils.getTranslatedLabel(context, parentKey)}?',

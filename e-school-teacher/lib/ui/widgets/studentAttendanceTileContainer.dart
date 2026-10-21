@@ -1,10 +1,10 @@
+import 'package:eschool_core/eschool_core.dart';
 import 'package:eschool_teacher/data/models/attendanceEnums.dart';
 import 'package:eschool_teacher/data/models/student.dart';
 import 'package:eschool_teacher/ui/widgets/customUserProfileImageWidget.dart';
 import 'package:eschool_teacher/utils/labelKeys.dart';
 import 'package:eschool_teacher/utils/uiUtils.dart';
 import 'package:flutter/material.dart';
-import 'package:eschool_teacher/ui/styles/colors.dart';
 
 class StudentAttendanceTileContainer extends StatelessWidget {
   const StudentAttendanceTileContainer({
@@ -56,14 +56,16 @@ class StudentAttendanceTileContainer extends StatelessWidget {
         child: Container(
           height: 36,
           decoration: BoxDecoration(
-            color: isSelected ? color : Theme.of(context).colorScheme.surface,
+            color: isSelected
+                ? color
+                : Theme.of(context).colorScheme.surfaceContainerLow,
             borderRadius: BorderRadius.circular(10),
             border: isSelected
                 ? null
                 : Border.all(
                     color: Theme.of(
                       context,
-                    ).colorScheme.secondary.withValues(alpha: 0.1),
+                    ).colorScheme.onSurface.withValues(alpha: 0.1),
                     width: 1,
                   ),
           ),
@@ -71,7 +73,11 @@ class StudentAttendanceTileContainer extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               if (isSelected) ...[
-                const Icon(Icons.check_circle, color: Colors.white, size: 16),
+                Icon(
+                  Icons.check_circle,
+                  color: Theme.of(context).colorScheme.readableOn(color),
+                  size: 16,
+                ),
                 const SizedBox(width: 4),
               ],
               Flexible(
@@ -79,8 +85,8 @@ class StudentAttendanceTileContainer extends StatelessWidget {
                   UiUtils.getTranslatedLabel(context, labelKey),
                   style: TextStyle(
                     color: isSelected
-                        ? Colors.white
-                        : Theme.of(context).colorScheme.secondary,
+                        ? Theme.of(context).colorScheme.readableOn(color)
+                        : Theme.of(context).colorScheme.onSurface,
                     fontWeight: FontWeight.w600,
                     fontSize: 12,
                   ),
@@ -113,11 +119,11 @@ class StudentAttendanceTileContainer extends StatelessWidget {
 
     Color badgeColor;
     if (leaveType == AttendanceLeaveType.full) {
-      badgeColor = palletRed;
+      badgeColor = StatusColors.of(context).danger;
     } else if (leaveType == AttendanceLeaveType.secondHalf) {
-      badgeColor = palletYellow;
+      badgeColor = StatusColors.of(context).warning;
     } else {
-      badgeColor = palletBlue;
+      badgeColor = StatusColors.of(context).info;
     }
 
     return Container(
@@ -149,12 +155,12 @@ class StudentAttendanceTileContainer extends StatelessWidget {
             BoxShadow(
               color: Theme.of(
                 context,
-              ).colorScheme.secondary.withValues(alpha: 0.075),
+              ).colorScheme.shadow.withValues(alpha: 0.075),
               blurRadius: 10,
               spreadRadius: 2,
             ),
           ],
-          color: Theme.of(context).scaffoldBackgroundColor,
+          color: Theme.of(context).colorScheme.surface,
           borderRadius: BorderRadius.circular(15),
         ),
         width: MediaQuery.sizeOf(context).width * 0.88,
@@ -173,7 +179,7 @@ class StudentAttendanceTileContainer extends StatelessWidget {
                   child: CustomUserProfileImageWidget(
                     profileUrl: student.image,
                     radius: BorderRadius.circular(8),
-                    color: Colors.black,
+                    color: Theme.of(context).colorScheme.onSurface,
                   ),
                 ),
                 const SizedBox(width: 15),
@@ -184,7 +190,7 @@ class StudentAttendanceTileContainer extends StatelessWidget {
                       Text(
                         student.getFullName(),
                         style: TextStyle(
-                          color: Theme.of(context).colorScheme.secondary,
+                          color: Theme.of(context).colorScheme.onSurface,
                           fontWeight: FontWeight.w600,
                           fontSize: 14,
                         ),
@@ -197,7 +203,7 @@ class StudentAttendanceTileContainer extends StatelessWidget {
                         style: TextStyle(
                           color: Theme.of(
                             context,
-                          ).colorScheme.secondary.withValues(alpha: 0.75),
+                          ).colorScheme.onSurface.withValues(alpha: 0.75),
                           fontWeight: FontWeight.w400,
                           fontSize: 12,
                         ),
@@ -217,7 +223,7 @@ class StudentAttendanceTileContainer extends StatelessWidget {
               Divider(
                 color: Theme.of(
                   context,
-                ).colorScheme.secondary.withValues(alpha: 0.1),
+                ).colorScheme.onSurface.withValues(alpha: 0.1),
               ),
               const SizedBox(height: 8),
               // Bottom section: Attendance Action Buttons
@@ -231,14 +237,14 @@ class StudentAttendanceTileContainer extends StatelessWidget {
                         context: context,
                         labelKey: presentKey,
                         type: AttendanceType.present,
-                        color: palletGreen,
+                        color: StatusColors.of(context).success,
                         currentSelectedType: currentType,
                       ),
                       _buildAttendanceButton(
                         context: context,
                         labelKey: fullDayAbsentKey,
                         type: AttendanceType.absent,
-                        color: palletRed,
+                        color: StatusColors.of(context).danger,
                         currentSelectedType: currentType,
                       ),
                     ],
@@ -250,14 +256,14 @@ class StudentAttendanceTileContainer extends StatelessWidget {
                         context: context,
                         labelKey: firstHalfAbsentKey,
                         type: AttendanceType.firstHalfAbsent,
-                        color: palletBlue,
+                        color: StatusColors.of(context).info,
                         currentSelectedType: currentType,
                       ),
                       _buildAttendanceButton(
                         context: context,
                         labelKey: secondHalfAbsentKey,
                         type: AttendanceType.secondHalfAbsent,
-                        color: palletYellow,
+                        color: StatusColors.of(context).warning,
                         currentSelectedType: currentType,
                       ),
                     ],

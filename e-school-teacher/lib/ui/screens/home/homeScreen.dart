@@ -167,12 +167,12 @@ class _HomeScreenState extends State<HomeScreen>
               BoxShadow(
                 color: UiUtils.getColorScheme(
                   context,
-                ).secondary.withValues(alpha: 0.15),
+                ).shadow.withValues(alpha: 0.15),
                 offset: const Offset(2.5, 2.5),
                 blurRadius: 20,
               ),
             ],
-            color: Theme.of(context).scaffoldBackgroundColor,
+            color: Theme.of(context).colorScheme.surface,
             borderRadius: BorderRadius.circular(10),
           ),
           width: MediaQuery.sizeOf(context).width * 0.8,

@@ -68,8 +68,8 @@ class _ChapterDetailsScreenState extends State<ChapterDetailsScreen> {
                     UiUtils.getTranslatedLabel(context, title),
                     style: TextStyle(
                       color: _selectedTabTitleKey == title
-                          ? Theme.of(context).scaffoldBackgroundColor
-                          : Theme.of(context).colorScheme.onSurface,
+                          ? Theme.of(context).colorScheme.onPrimary
+                          : Theme.of(context).colorScheme.onSurfaceVariant,
                     ),
                   ),
                 ),

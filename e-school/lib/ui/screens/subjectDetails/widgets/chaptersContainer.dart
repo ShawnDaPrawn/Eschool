@@ -37,7 +37,7 @@ class _ChaptersContainerState extends State<ChaptersContainer> {
         child: Container(
           padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 15),
           decoration: BoxDecoration(
-            color: Theme.of(context).colorScheme.surface,
+            color: Theme.of(context).colorScheme.surfaceContainerLow,
             borderRadius: BorderRadius.circular(10),
           ),
           width: MediaQuery.sizeOf(context).width * 0.85,
@@ -47,7 +47,7 @@ class _ChaptersContainerState extends State<ChaptersContainer> {
               Text(
                 UiUtils.getTranslatedLabel(context, chapterNameKey),
                 style: TextStyle(
-                  color: Theme.of(context).colorScheme.onSurface,
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
                   fontWeight: FontWeight.w400,
                   fontSize: 12,
                 ),
@@ -57,7 +57,7 @@ class _ChaptersContainerState extends State<ChaptersContainer> {
               Text(
                 lesson.name,
                 style: TextStyle(
-                  color: Theme.of(context).colorScheme.secondary,
+                  color: Theme.of(context).colorScheme.onSurface,
                   fontWeight: FontWeight.w600,
                   fontSize: 14,
                 ),
@@ -67,7 +67,7 @@ class _ChaptersContainerState extends State<ChaptersContainer> {
               Text(
                 UiUtils.getTranslatedLabel(context, chapterDescriptionKey),
                 style: TextStyle(
-                  color: Theme.of(context).colorScheme.onSurface,
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
                   fontWeight: FontWeight.w400,
                   fontSize: 12,
                 ),
@@ -77,7 +77,7 @@ class _ChaptersContainerState extends State<ChaptersContainer> {
               Text(
                 lesson.description,
                 style: TextStyle(
-                  color: Theme.of(context).colorScheme.secondary,
+                  color: Theme.of(context).colorScheme.onSurface,
                   fontWeight: FontWeight.w600,
                   fontSize: 14,
                 ),

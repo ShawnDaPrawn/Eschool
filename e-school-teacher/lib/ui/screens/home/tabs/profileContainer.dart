@@ -38,10 +38,12 @@ class _ProfileContainerState extends State<ProfileContainer> {
             width: 50,
             height: 50,
             decoration: BoxDecoration(
-              boxShadow: const [
+              boxShadow: [
                 BoxShadow(
-                  color: Color(0x1a212121),
-                  offset: Offset(0, 10),
+                  color: Theme.of(
+                    context,
+                  ).colorScheme.shadow.withValues(alpha: 0.1),
+                  offset: const Offset(0, 10),
                   blurRadius: 16,
                 ),
               ],
@@ -60,7 +62,7 @@ class _ProfileContainerState extends State<ProfileContainer> {
                   Text(
                     label,
                     style: TextStyle(
-                      color: Theme.of(context).colorScheme.onSurface,
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
                       fontWeight: FontWeight.w400,
                       fontSize: 12,
                     ),
@@ -68,7 +70,7 @@ class _ProfileContainerState extends State<ProfileContainer> {
                   Text(
                     value.trim().isEmpty ? '-' : value,
                     style: TextStyle(
-                      color: Theme.of(context).colorScheme.secondary,
+                      color: Theme.of(context).colorScheme.onSurface,
                       fontWeight: FontWeight.w600,
                     ),
                   ),
@@ -92,7 +94,7 @@ class _ProfileContainerState extends State<ProfileContainer> {
             child: Text(
               UiUtils.getTranslatedLabel(context, profileKey),
               style: TextStyle(
-                color: Theme.of(context).scaffoldBackgroundColor,
+                color: Theme.of(context).colorScheme.onPrimary,
                 fontSize: UiUtils.screenTitleFontSize,
               ),
             ),
@@ -111,13 +113,13 @@ class _ProfileContainerState extends State<ProfileContainer> {
           right: MediaQuery.sizeOf(context).width * 0.075,
         ),
         decoration: BoxDecoration(
-          color: Theme.of(context).colorScheme.surface,
+          color: Theme.of(context).colorScheme.surfaceContainerLow,
           borderRadius: BorderRadius.circular(16),
           boxShadow: [
             BoxShadow(
               color: Theme.of(
                 context,
-              ).colorScheme.secondary.withValues(alpha: 0.2),
+              ).colorScheme.shadow.withValues(alpha: 0.2),
               blurRadius: 12,
             ),
           ],
@@ -141,7 +143,7 @@ class _ProfileContainerState extends State<ProfileContainer> {
               teacher.getFullName(),
               style: TextStyle(
                 fontWeight: FontWeight.w600,
-                color: Theme.of(context).colorScheme.secondary,
+                color: Theme.of(context).colorScheme.onSurface,
                 fontSize: 16,
               ),
             ),
@@ -158,7 +160,7 @@ class _ProfileContainerState extends State<ProfileContainer> {
             Divider(
               color: Theme.of(
                 context,
-              ).colorScheme.onSurface.withValues(alpha: 0.1),
+              ).colorScheme.onSurfaceVariant.withValues(alpha: 0.1),
             ),
             const SizedBox(height: 8),
             _buildDownloadIdCardButton(),
@@ -276,7 +278,7 @@ class _ProfileContainerState extends State<ProfileContainer> {
                               personalDetailsKey,
                             ),
                             style: TextStyle(
-                              color: Theme.of(context).colorScheme.secondary,
+                              color: Theme.of(context).colorScheme.onSurface,
                               fontSize: 15,
                               fontWeight: FontWeight.w600,
                             ),
@@ -338,9 +340,10 @@ class _ProfileContainerState extends State<ProfileContainer> {
                         ),
                         if (teacher.dynamicFields?.isNotEmpty ?? false) ...[
                           Divider(
-                            color: Theme.of(
-                              context,
-                            ).colorScheme.onSurface.withValues(alpha: 0.75),
+                            color: Theme.of(context)
+                                .colorScheme
+                                .onSurfaceVariant
+                                .withValues(alpha: 0.75),
                           ),
                           const SizedBox(height: 10),
                           DynamicFieldListContainer(

@@ -14,14 +14,14 @@ class CustomCloseButton extends StatelessWidget {
       child: Container(
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(5),
-          border: Border.all(color: Theme.of(context).colorScheme.secondary),
+          border: Border.all(color: Theme.of(context).colorScheme.onSurface),
         ),
         width: 25,
         height: 25,
         child: Icon(
           Icons.close,
           size: 20,
-          color: Theme.of(context).colorScheme.secondary,
+          color: Theme.of(context).colorScheme.onSurface,
         ),
       ),
     );

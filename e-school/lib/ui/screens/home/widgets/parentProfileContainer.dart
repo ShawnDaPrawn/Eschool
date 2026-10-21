@@ -1,5 +1,4 @@
 import 'package:eschool/cubits/studentParentDetailsCubit.dart';
-import 'package:eschool/ui/styles/colors.dart';
 import 'package:eschool/ui/widgets/customShimmerContainer.dart';
 import 'package:eschool/ui/widgets/errorContainer.dart';
 import 'package:eschool/ui/widgets/parentProfileDetailsContainer.dart';
@@ -76,7 +75,10 @@ class _ParentProfileContainerState extends State<ParentProfileContainer> {
                     child: Container(
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
-                        color: shimmerContentColor,
+                        color: Theme.of(context)
+                            .colorScheme
+                            .surfaceContainerLowest
+                            .withValues(alpha: 0.85),
                       ),
                     ),
                   ),
@@ -88,7 +90,13 @@ class _ParentProfileContainerState extends State<ParentProfileContainer> {
                 children: [
                   const SizedBox(height: 50),
                   ShimmerLoadingContainer(
-                    child: Divider(color: shimmerContentColor, height: 2),
+                    child: Divider(
+                      color: Theme.of(context)
+                          .colorScheme
+                          .surfaceContainerLowest
+                          .withValues(alpha: 0.85),
+                      height: 2,
+                    ),
                   ),
                   _buildParentDetailsValueShimmerLoading(boxConstraints),
                   _buildParentDetailsValueShimmerLoading(boxConstraints),
@@ -113,7 +121,7 @@ class _ParentProfileContainerState extends State<ParentProfileContainer> {
             child: Text(
               UiUtils.getTranslatedLabel(context, parentProfileKey),
               style: TextStyle(
-                color: Theme.of(context).scaffoldBackgroundColor,
+                color: Theme.of(context).colorScheme.onPrimary,
                 fontSize: UiUtils.screenTitleFontSize,
               ),
             ),

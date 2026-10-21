@@ -119,7 +119,7 @@ class _HomeContainerState extends State<HomeContainer> {
             child: Text(
               UiUtils.getTranslatedLabel(context, textKey),
               style: TextStyle(
-                color: Theme.of(context).colorScheme.secondary,
+                color: Theme.of(context).colorScheme.onSurface,
                 fontSize: 16,
                 fontWeight: FontWeight.w600,
               ),
@@ -135,7 +135,7 @@ class _HomeContainerState extends State<HomeContainer> {
                   Text(
                     UiUtils.getTranslatedLabel(context, viewAllKey),
                     style: TextStyle(
-                      color: Theme.of(context).colorScheme.secondary,
+                      color: Theme.of(context).colorScheme.onSurface,
                       fontSize: 14,
                       fontWeight: FontWeight.w500,
                     ),
@@ -143,7 +143,7 @@ class _HomeContainerState extends State<HomeContainer> {
                   const SizedBox(width: 4),
                   Icon(
                     Icons.arrow_right_alt,
-                    color: Theme.of(context).colorScheme.secondary,
+                    color: Theme.of(context).colorScheme.onSurface,
                   ),
                 ],
               ),
@@ -237,7 +237,9 @@ class _HomeContainerState extends State<HomeContainer> {
             ),
             child: EventItemContainer(
               event: events[index],
-              backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+              backgroundColor: Theme.of(
+                context,
+              ).colorScheme.surfaceContainerLowest,
             ),
           ),
         ),
@@ -297,7 +299,7 @@ class _HomeContainerState extends State<HomeContainer> {
       ),
     );
     return Container(
-      color: Theme.of(context).colorScheme.surface,
+      color: Theme.of(context).colorScheme.surfaceContainerLow,
       height: double.maxFinite,
       width: double.maxFinite,
       child: Stack(
@@ -383,7 +385,9 @@ class _HomeContainerState extends State<HomeContainer> {
                             ///[Explore Academics]
                             const SizedBox(height: 6),
                             Container(
-                              color: Theme.of(context).scaffoldBackgroundColor,
+                              color: Theme.of(
+                                context,
+                              ).colorScheme.surfaceContainerLowest,
                               padding: EdgeInsets.symmetric(
                                 horizontal:
                                     MediaQuery.sizeOf(context).width * 0.075,
@@ -428,7 +432,7 @@ class _HomeContainerState extends State<HomeContainer> {
                               ColoredBox(
                                 color: Theme.of(
                                   context,
-                                ).scaffoldBackgroundColor,
+                                ).colorScheme.surfaceContainerLowest,
                                 child: Column(
                                   children: [
                                     const SizedBox(height: 16),

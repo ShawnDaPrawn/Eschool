@@ -9,7 +9,8 @@ import 'package:flutter_animate/flutter_animate.dart';
 
 class HomeEventsContainer extends StatelessWidget {
   const HomeEventsContainer({
-    required this.events, super.key,
+    required this.events,
+    super.key,
     this.animate = true,
   });
   final bool animate;
@@ -49,7 +50,7 @@ class HomeEventsContainer extends StatelessWidget {
               Text(
                 UiUtils.getTranslatedLabel(context, eventsKey),
                 style: TextStyle(
-                  color: UiUtils.getColorScheme(context).secondary,
+                  color: UiUtils.getColorScheme(context).onSurface,
                   fontWeight: FontWeight.w600,
                   fontSize: 16,
                 ),
@@ -66,7 +67,7 @@ class HomeEventsContainer extends StatelessWidget {
                 child: Text(
                   UiUtils.getTranslatedLabel(context, viewAllKey),
                   style: TextStyle(
-                    color: UiUtils.getColorScheme(context).onSurface,
+                    color: UiUtils.getColorScheme(context).onSurfaceVariant,
                     fontSize: 13,
                   ),
                   textAlign: TextAlign.start,

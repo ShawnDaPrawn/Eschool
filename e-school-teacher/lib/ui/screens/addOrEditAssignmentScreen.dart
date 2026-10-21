@@ -7,15 +7,13 @@ import 'package:eschool_teacher/data/models/assignment.dart';
 import 'package:eschool_teacher/data/models/studyMaterial.dart';
 import 'package:eschool_teacher/data/repositories/assignmentRepository.dart';
 import 'package:eschool_teacher/data/repositories/teacherRepository.dart';
-import 'package:eschool_teacher/ui/styles/colors.dart';
 import 'package:eschool_teacher/ui/widgets/assignmentAttachmentContainer.dart';
 import 'package:eschool_teacher/ui/widgets/bottomSheetTextFieldContainer.dart';
 import 'package:eschool_core/eschool_core.dart';
 import 'package:eschool_teacher/ui/widgets/classSubjectsDropDownMenu.dart';
 import 'package:eschool_teacher/ui/widgets/customAppbar.dart';
-import 'package:eschool_teacher/ui/widgets/customCupertinoSwitch.dart';
+import 'package:eschool_teacher/ui/widgets/customSwitch.dart';
 import 'package:eschool_teacher/ui/widgets/customDropDownMenu.dart';
-import 'package:eschool_teacher/ui/widgets/customRoundedButton.dart';
 import 'package:eschool_teacher/ui/widgets/defaultDropDownLabelContainer.dart';
 import 'package:eschool_teacher/ui/widgets/myClassesDropDownMenu.dart';
 import 'package:eschool_teacher/utils/labelKeys.dart';
@@ -197,7 +195,7 @@ class _AddAssignmentScreenState extends State<AddAssignmentScreen> {
               radius: const Radius.circular(10),
               color: Theme.of(
                 context,
-              ).colorScheme.onSurface.withValues(alpha: 0.3),
+              ).colorScheme.onSurfaceVariant.withValues(alpha: 0.3),
             ),
 
             child: LayoutBuilder(
@@ -213,7 +211,7 @@ class _AddAssignmentScreenState extends State<AddAssignmentScreen> {
                           maxLines: 2,
                           overflow: TextOverflow.ellipsis,
                           style: TextStyle(
-                            color: Theme.of(context).colorScheme.secondary,
+                            color: Theme.of(context).colorScheme.onSurface,
                           ),
                         ),
                       ),
@@ -251,7 +249,7 @@ class _AddAssignmentScreenState extends State<AddAssignmentScreen> {
               radius: const Radius.circular(10),
               color: Theme.of(
                 context,
-              ).colorScheme.onSurface.withValues(alpha: 0.3),
+              ).colorScheme.onSurfaceVariant.withValues(alpha: 0.3),
             ),
             child: LayoutBuilder(
               builder: (context, boxConstraints) {
@@ -266,7 +264,7 @@ class _AddAssignmentScreenState extends State<AddAssignmentScreen> {
                           maxLines: 2,
                           overflow: TextOverflow.ellipsis,
                           style: TextStyle(
-                            color: Theme.of(context).colorScheme.secondary,
+                            color: Theme.of(context).colorScheme.onSurface,
                           ),
                         ),
                       ),
@@ -296,16 +294,6 @@ class _AddAssignmentScreenState extends State<AddAssignmentScreen> {
 
   Future<void> openDatePicker() async {
     final temp = await showDatePicker(
-      builder: (context, child) {
-        return Theme(
-          data: Theme.of(context).copyWith(
-            colorScheme: Theme.of(context).colorScheme.copyWith(
-              onPrimary: Theme.of(context).scaffoldBackgroundColor,
-            ),
-          ),
-          child: child!,
-        );
-      },
       context: context,
       initialDate: DateTime.now(),
       firstDate: DateTime.now(),
@@ -319,16 +307,6 @@ class _AddAssignmentScreenState extends State<AddAssignmentScreen> {
 
   Future<void> openTimePicker() async {
     final temp = await showTimePicker(
-      builder: (context, child) {
-        return Theme(
-          data: Theme.of(context).copyWith(
-            colorScheme: Theme.of(context).colorScheme.copyWith(
-              onPrimary: Theme.of(context).scaffoldBackgroundColor,
-            ),
-          ),
-          child: child!,
-        );
-      },
       context: context,
       initialTime: TimeOfDay.now(),
     );
@@ -549,12 +527,12 @@ class _AddAssignmentScreenState extends State<AddAssignmentScreen> {
                   alignment: AlignmentDirectional.centerStart,
                   padding: const EdgeInsetsDirectional.only(start: 20),
                   decoration: BoxDecoration(
-                    color: Theme.of(context).colorScheme.surface,
+                    color: Theme.of(context).colorScheme.surfaceContainerLow,
                     borderRadius: BorderRadius.circular(10),
                     border: Border.all(
                       color: Theme.of(
                         context,
-                      ).colorScheme.onSurface.withValues(alpha: 0.5),
+                      ).colorScheme.onSurfaceVariant.withValues(alpha: 0.5),
                     ),
                   ),
                   width: boxConstraints.maxWidth * 0.475,
@@ -565,7 +543,7 @@ class _AddAssignmentScreenState extends State<AddAssignmentScreen> {
                         : DateFormat('dd-MM-yyyy').format(dueDate!),
                     style: TextStyle(
                       color: dueDate == null
-                          ? hintTextColor
+                          ? Theme.of(context).colorScheme.onSurfaceVariant
                           : Theme.of(context).colorScheme.onSurface,
                       fontSize: UiUtils.textFieldFontSize,
                     ),
@@ -582,12 +560,12 @@ class _AddAssignmentScreenState extends State<AddAssignmentScreen> {
                   alignment: AlignmentDirectional.centerStart,
                   padding: const EdgeInsetsDirectional.only(start: 20),
                   decoration: BoxDecoration(
-                    color: Theme.of(context).colorScheme.surface,
+                    color: Theme.of(context).colorScheme.surfaceContainerLow,
                     borderRadius: BorderRadius.circular(10),
                     border: Border.all(
                       color: Theme.of(
                         context,
-                      ).colorScheme.onSurface.withValues(alpha: 0.5),
+                      ).colorScheme.onSurfaceVariant.withValues(alpha: 0.5),
                     ),
                   ),
                   width: boxConstraints.maxWidth * 0.475,
@@ -598,7 +576,7 @@ class _AddAssignmentScreenState extends State<AddAssignmentScreen> {
                         : '${dueTime!.hour}:${dueTime!.minute}',
                     style: TextStyle(
                       color: dueTime == null
-                          ? hintTextColor
+                          ? Theme.of(context).colorScheme.onSurfaceVariant
                           : Theme.of(context).colorScheme.onSurface,
                       fontSize: UiUtils.textFieldFontSize,
                     ),
@@ -621,12 +599,12 @@ class _AddAssignmentScreenState extends State<AddAssignmentScreen> {
             height: 70,
             padding: const EdgeInsets.symmetric(horizontal: 20),
             decoration: BoxDecoration(
-              color: Theme.of(context).colorScheme.surface,
+              color: Theme.of(context).colorScheme.surfaceContainerLow,
               borderRadius: BorderRadius.circular(10),
               border: Border.all(
                 color: Theme.of(
                   context,
-                ).colorScheme.onSurface.withValues(alpha: 0.5),
+                ).colorScheme.onSurfaceVariant.withValues(alpha: 0.5),
               ),
             ),
             child: Row(
@@ -640,7 +618,7 @@ class _AddAssignmentScreenState extends State<AddAssignmentScreen> {
                         resubmissionOfRejectedAssignmentKey,
                       ),
                       style: TextStyle(
-                        color: hintTextColor,
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
                         fontSize: UiUtils.textFieldFontSize,
                       ),
                     ),
@@ -650,7 +628,7 @@ class _AddAssignmentScreenState extends State<AddAssignmentScreen> {
                 Container(
                   alignment: Alignment.centerRight,
                   width: boxConstraints.maxWidth * 0.1,
-                  child: CustomCupertinoSwitch(
+                  child: CustomSwitch(
                     onChanged: changeAllowedReSubmissionOfRejectedAssignment,
                     value: _allowedReSubmissionOfRejectedAssignment,
                   ),
@@ -767,7 +745,7 @@ class _AddAssignmentScreenState extends State<AddAssignmentScreen> {
                       context,
                       editsucessfullyassignmentkey,
                     ),
-                    backgroundColor: Theme.of(context).colorScheme.onPrimary,
+                    backgroundColor: StatusColors.of(context).success,
                   );
                   Navigator.of(context).pop(true);
                 }
@@ -778,7 +756,7 @@ class _AddAssignmentScreenState extends State<AddAssignmentScreen> {
                       context,
                       state.exception,
                     ),
-                    backgroundColor: Theme.of(context).colorScheme.onPrimary,
+                    backgroundColor: Theme.of(context).colorScheme.error,
                   );
                 }
               },
@@ -827,7 +805,7 @@ class _AddAssignmentScreenState extends State<AddAssignmentScreen> {
                       context,
                       sucessfullyCreateAssignmentKey,
                     ),
-                    backgroundColor: Theme.of(context).colorScheme.onPrimary,
+                    backgroundColor: StatusColors.of(context).success,
                   );
                   Navigator.of(context).pop(true);
                 }

@@ -28,11 +28,11 @@ import 'package:eschool/data/repositories/settingsRepository.dart';
 import 'package:eschool/data/repositories/studentRepository.dart';
 import 'package:eschool/data/repositories/systemInfoRepository.dart';
 import 'package:eschool/ui/screens/exam/onlineExam/cubits/examOnlineCubit.dart';
-import 'package:eschool/ui/styles/colors.dart';
 import 'package:eschool/utils/appLanguages.dart';
 import 'package:eschool/utils/hiveBoxKeys.dart';
 import 'package:eschool/utils/notificationUtils/generalNotificationUtility.dart';
 import 'package:eschool/utils/uiUtils.dart';
+import 'package:eschool_core/eschool_core.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:flutter/foundation.dart';
@@ -219,22 +219,7 @@ class _MyAppState extends State<MyApp> {
 
           return MaterialApp(
             navigatorKey: UiUtils.rootNavigatorKey,
-            theme: Theme.of(context).copyWith(
-              primaryColor: primaryColor,
-              textTheme: GoogleFonts.poppinsTextTheme(
-                Theme.of(context).textTheme,
-              ),
-              scaffoldBackgroundColor: pageBackgroundColor,
-              colorScheme: Theme.of(context).colorScheme.copyWith(
-                primary: primaryColor,
-                onPrimary: onPrimaryColor,
-                secondary: secondaryColor,
-                surface: surfaceColor,
-                error: errorColor,
-                onSecondary: onSecondaryColor,
-                onSurface: onSurfaceColor,
-              ),
-            ),
+            theme: AppTheme.light(font: GoogleFonts.poppinsTextTheme),
             builder: (context, widget) {
               return ScrollConfiguration(
                 behavior: GlobalScrollBehavior(),
@@ -244,11 +229,13 @@ class _MyAppState extends State<MyApp> {
                     statusBarBrightness: Brightness.dark,
                     statusBarIconBrightness: Brightness.light,
                     systemNavigationBarContrastEnforced: false,
-                    systemNavigationBarColor: pageBackgroundColor,
+                    systemNavigationBarColor: Theme.of(
+                      context,
+                    ).colorScheme.surface,
                     systemNavigationBarIconBrightness: Brightness.dark,
                   ),
                   child: ColoredBox(
-                    color: pageBackgroundColor,
+                    color: Theme.of(context).colorScheme.surface,
                     child: SafeArea(
                       top: false,
                       bottom: Platform.isAndroid,

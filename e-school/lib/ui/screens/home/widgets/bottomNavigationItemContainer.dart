@@ -1,4 +1,3 @@
-import 'package:eschool/ui/styles/colors.dart';
 import 'package:eschool/utils/uiUtils.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
@@ -121,9 +120,9 @@ class _BottomNavItemContainerState extends State<BottomNavItemContainer> {
                         ),
                       ),
                   child: Container(
-                    decoration: const BoxDecoration(
+                    decoration: BoxDecoration(
                       shape: BoxShape.circle,
-                      color: redColor,
+                      color: Theme.of(context).colorScheme.error,
                     ),
                     padding: const EdgeInsets.all(4),
                     child: Text(
@@ -131,7 +130,10 @@ class _BottomNavItemContainerState extends State<BottomNavItemContainer> {
                           ? '9+'
                           : widget.notificationCount.toString(),
                       textAlign: TextAlign.center,
-                      style: const TextStyle(color: Colors.white, fontSize: 9),
+                      style: TextStyle(
+                        color: Theme.of(context).colorScheme.onError,
+                        fontSize: 9,
+                      ),
                     ),
                   ),
                 ),

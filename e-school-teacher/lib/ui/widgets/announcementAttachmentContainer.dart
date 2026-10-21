@@ -1,7 +1,7 @@
+import 'package:eschool_core/eschool_core.dart';
 import 'package:eschool_teacher/cubits/deleteStudyMaterialCubit.dart';
 import 'package:eschool_teacher/data/models/studyMaterial.dart';
 import 'package:eschool_teacher/data/repositories/studyMaterialRepositoy.dart';
-import 'package:eschool_teacher/ui/styles/colors.dart';
 import 'package:eschool_teacher/ui/widgets/confirmDeleteDialog.dart';
 import 'package:eschool_teacher/ui/widgets/deleteButton.dart';
 import 'package:eschool_teacher/utils/labelKeys.dart';
@@ -11,7 +11,9 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 class AnnouncementAttachmentContainer extends StatelessWidget {
   const AnnouncementAttachmentContainer({
-    required this.showDeleteButton, required this.studyMaterial, super.key,
+    required this.showDeleteButton,
+    required this.studyMaterial,
+    super.key,
     this.backgroundColor,
     this.onDeleteCallback,
   });
@@ -31,8 +33,8 @@ class AnnouncementAttachmentContainer extends StatelessWidget {
       },
       child: Text(
         studyMaterial.fileName,
-        style: const TextStyle(
-          color: assignmentViewButtonColor,
+        style: TextStyle(
+          color: StatusColors.of(context).info,
           fontWeight: FontWeight.w500,
           height: 1.25,
           fontSize: 13.5,
@@ -81,7 +83,7 @@ class AnnouncementAttachmentContainer extends StatelessWidget {
                   decoration: BoxDecoration(
                     color:
                         backgroundColor ??
-                        Theme.of(context).colorScheme.surface,
+                        Theme.of(context).colorScheme.surfaceContainerLow,
                     borderRadius: BorderRadius.circular(15),
                   ),
                   child: LayoutBuilder(

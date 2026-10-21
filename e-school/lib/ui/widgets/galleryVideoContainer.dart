@@ -170,10 +170,16 @@ class GalleryVideoContainerState extends State<GalleryVideoContainer>
           imagePath: UiUtils.getYoutubeThumbnailUrl(widget.videoUrl) ?? '',
           boxFit: BoxFit.cover,
         ),
-        const ColoredBox(color: Colors.black38),
-        const Align(
+        ColoredBox(
+          color: Theme.of(context).colorScheme.scrim.withValues(alpha: 0.38),
+        ),
+        Align(
           alignment: Alignment.center,
-          child: Icon(Icons.play_circle, color: Colors.white, size: 50),
+          child: Icon(
+            Icons.play_circle,
+            color: Theme.of(context).colorScheme.onInverseSurface,
+            size: 50,
+          ),
         ),
       ],
     );
@@ -288,7 +294,7 @@ class _FullscreenYoutubePlayerState extends State<_FullscreenYoutubePlayer> {
     return PopScope(
       canPop: true,
       child: Scaffold(
-        backgroundColor: Colors.black,
+        backgroundColor: Theme.of(context).colorScheme.scrim,
         body: Listener(
           behavior: HitTestBehavior.translucent,
           onPointerDown: (_) => _showControlsOnTap(),
@@ -322,16 +328,20 @@ class _FullscreenYoutubePlayerState extends State<_FullscreenYoutubePlayer> {
                     child: IgnorePointer(
                       ignoring: !_buttonVisible,
                       child: Material(
-                        color: Colors.black54,
+                        color: Theme.of(
+                          context,
+                        ).colorScheme.scrim.withValues(alpha: 0.54),
                         borderRadius: BorderRadius.circular(20),
                         child: InkWell(
                           borderRadius: BorderRadius.circular(20),
                           onTap: () => Navigator.of(context).pop(),
-                          child: const Padding(
-                            padding: EdgeInsets.all(6),
+                          child: Padding(
+                            padding: const EdgeInsets.all(6),
                             child: Icon(
                               Icons.fullscreen_exit_rounded,
-                              color: Colors.white,
+                              color: Theme.of(
+                                context,
+                              ).colorScheme.onInverseSurface,
                               size: 28,
                             ),
                           ),

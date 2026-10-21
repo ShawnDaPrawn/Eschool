@@ -9,7 +9,6 @@ import 'package:eschool/data/repositories/classRepository.dart';
 import 'package:eschool/data/repositories/studentRepository.dart';
 import 'package:eschool/ui/widgets/customAppbar.dart';
 import 'package:eschool_core/eschool_core.dart';
-import 'package:eschool/ui/widgets/customRoundedButton.dart';
 import 'package:eschool/ui/widgets/customShimmerContainer.dart';
 import 'package:eschool/ui/widgets/errorContainer.dart';
 import 'package:eschool/ui/widgets/shimmerLoadingContainer.dart';
@@ -165,14 +164,12 @@ class _SelectSubjectsScreenState extends State<SelectSubjectsScreen> {
       decoration: BoxDecoration(
         boxShadow: [
           BoxShadow(
-            color: Theme.of(
-              context,
-            ).colorScheme.secondary.withValues(alpha: 0.05),
+            color: Theme.of(context).colorScheme.shadow.withValues(alpha: 0.05),
             offset: const Offset(3.5, 3.5),
             blurRadius: 10,
           ),
         ],
-        color: Theme.of(context).scaffoldBackgroundColor,
+        color: Theme.of(context).colorScheme.surface,
         borderRadius: BorderRadius.circular(10),
       ),
       width: MediaQuery.sizeOf(context).width,
@@ -194,7 +191,7 @@ class _SelectSubjectsScreenState extends State<SelectSubjectsScreen> {
                 child: Text(
                   subject.showType ? subject.subjectNameWithType : subject.name,
                   style: TextStyle(
-                    color: Theme.of(context).colorScheme.secondary,
+                    color: Theme.of(context).colorScheme.onSurface,
                     fontWeight: FontWeight.w600,
                     fontSize: 14,
                   ),
@@ -227,7 +224,7 @@ class _SelectSubjectsScreenState extends State<SelectSubjectsScreen> {
                       ? Icon(
                           Icons.check,
                           size: 17,
-                          color: Theme.of(context).scaffoldBackgroundColor,
+                          color: Theme.of(context).colorScheme.onPrimary,
                         )
                       : const SizedBox(),
                 ),
@@ -250,7 +247,7 @@ class _SelectSubjectsScreenState extends State<SelectSubjectsScreen> {
           Text(
             '${UiUtils.getTranslatedLabel(context, selectAnyKey)} ${electiveSubjectGroup.totalSelectableSubjects}',
             style: TextStyle(
-              color: Theme.of(context).colorScheme.secondary,
+              color: Theme.of(context).colorScheme.onSurface,
               fontSize: 13,
             ),
           ),
@@ -273,7 +270,7 @@ class _SelectSubjectsScreenState extends State<SelectSubjectsScreen> {
         Text(
           UiUtils.getTranslatedLabel(context, electiveSubjectsKey),
           style: TextStyle(
-            color: Theme.of(context).colorScheme.secondary,
+            color: Theme.of(context).colorScheme.onSurface,
             fontSize: 16,
             fontWeight: FontWeight.w600,
           ),
@@ -359,9 +356,7 @@ class _SelectSubjectsScreenState extends State<SelectSubjectsScreen> {
                 showBorder: false,
                 child: state is SelectElectiveSubjectsInProgress
                     ? CustomCircularProgressIndicator(
-                        indicatorColor: Theme.of(
-                          context,
-                        ).scaffoldBackgroundColor,
+                        indicatorColor: Theme.of(context).colorScheme.onPrimary,
                         strokeWidth: 2,
                         widthAndHeight: 18,
                       )

@@ -40,6 +40,7 @@
 - [Configuration](Mobile-App-Configuration)
 - [Building and Releasing](Building-and-Releasing-Apps)
 - [Localization](Localization)
+- [UI Standards](UI-Standards)
 
 **Quality and operations**
 - [Security Model](Security-Model)

@@ -1,5 +1,4 @@
 import 'package:eschool_teacher/data/models/studyMaterial.dart';
-import 'package:eschool_teacher/ui/styles/colors.dart';
 import 'package:eschool_teacher/ui/widgets/customAppbar.dart';
 import 'package:eschool_teacher/ui/widgets/customImageWidget.dart';
 import 'package:eschool_teacher/ui/widgets/errorContainer.dart';
@@ -79,12 +78,15 @@ class _ImageFileScreenState extends State<ImageFileScreen> {
     return Container(
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(20),
-        color: Colors.black38,
+        color: Theme.of(context).colorScheme.scrim.withValues(alpha: 0.38),
       ),
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
       child: Text(
         '$currentValue / $totalValues',
-        style: const TextStyle(color: Colors.white, fontSize: 12),
+        style: TextStyle(
+          color: Theme.of(context).colorScheme.onInverseSurface,
+          fontSize: 12,
+        ),
       ),
     );
   }
@@ -93,7 +95,7 @@ class _ImageFileScreenState extends State<ImageFileScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       floatingActionButton: FloatingActionButton(
-        backgroundColor: primaryColor,
+        backgroundColor: Theme.of(context).colorScheme.primary,
         onPressed: () {
           setState(() {
             isFullScreen = !isFullScreen;
@@ -101,7 +103,7 @@ class _ImageFileScreenState extends State<ImageFileScreen> {
         },
         child: Icon(
           isFullScreen ? Icons.fullscreen_exit : Icons.fullscreen,
-          color: Colors.white,
+          color: Theme.of(context).colorScheme.onPrimary,
         ),
       ),
       body: Stack(
@@ -157,17 +159,21 @@ class _ImageFileScreenState extends State<ImageFileScreen> {
                                           context,
                                           imageFileLoadingKey,
                                         ),
-                                        style: const TextStyle(
+                                        style: TextStyle(
                                           fontSize: 16,
-                                          color: Colors.black,
+                                          color: Theme.of(
+                                            context,
+                                          ).colorScheme.onSurface,
                                         ),
                                       ),
                                       const SizedBox(height: 10),
                                       Text(
                                         '${((progress.downloaded / (progress.totalSize ?? 100)) * 100).toStringAsFixed(2)} %',
-                                        style: const TextStyle(
+                                        style: TextStyle(
                                           fontSize: 16,
-                                          color: primaryColor,
+                                          color: Theme.of(
+                                            context,
+                                          ).colorScheme.primary,
                                           fontWeight: FontWeight.bold,
                                         ),
                                       ),
@@ -183,7 +189,7 @@ class _ImageFileScreenState extends State<ImageFileScreen> {
                                                       boxConstraints.maxWidth,
                                                   color: Theme.of(context)
                                                       .colorScheme
-                                                      .onSurface
+                                                      .onSurfaceVariant
                                                       .withValues(alpha: 0.5),
                                                 ),
                                                 UiUtils.buildProgressContainer(

@@ -9,13 +9,16 @@ import 'package:eschool/utils/animationConfiguration.dart';
 
 import 'package:eschool/utils/labelKeys.dart';
 import 'package:eschool/utils/uiUtils.dart';
-import 'package:flutter/cupertino.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 class AnnouncementContainer extends StatefulWidget {
-  const AnnouncementContainer(
-      {required this.subjectId, super.key, this.childId});
+  const AnnouncementContainer({
+    required this.subjectId,
+    super.key,
+    this.childId,
+  });
   final int subjectId;
   final int? childId;
 
@@ -50,14 +53,14 @@ class _AnnouncementContainerState extends State<AnnouncementContainer> {
             hasMoreAnnouncements &&
             fetchMoreAnnouncementsFailure)
           Center(
-            child: CupertinoButton(
+            child: TextButton(
               child: Text(UiUtils.getTranslatedLabel(context, retryKey)),
               onPressed: () {
                 context.read<SubjectAnnouncementCubit>().fetchMoreAnnouncements(
-                      useParentApi: context.read<AuthCubit>().isParent(),
-                      subjectId: widget.subjectId,
-                      childId: widget.childId,
-                    );
+                  useParentApi: context.read<AuthCubit>().isParent(),
+                  subjectId: widget.subjectId,
+                  childId: widget.childId,
+                );
               },
             ),
           ),
@@ -74,25 +77,26 @@ class _AnnouncementContainerState extends State<AnnouncementContainer> {
           return state.announcements.isEmpty
               ? const NoDataContainer(titleKey: noAnnouncementKey)
               : Column(
-                  children: List.generate(
-                    state.announcements.length,
-                    (index) => index,
-                  )
-                      .map(
-                        (index) => _buildAnnouncementDetailsContainer(
-                          subjectAnnouncement: state.announcements[index],
-                          index: index,
-                          totalAnnouncements: state.announcements.length,
-                          hasMoreAnnouncements: context
-                              .read<SubjectAnnouncementCubit>()
-                              .hasMore(),
-                          hasMoreAnnouncementsInProgress:
-                              state.fetchMoreAnnouncementsInProgress,
-                          fetchMoreAnnouncementsFailure:
-                              state.moreAnnouncementsFetchError,
-                        ),
-                      )
-                      .toList(),
+                  children:
+                      List.generate(
+                            state.announcements.length,
+                            (index) => index,
+                          )
+                          .map(
+                            (index) => _buildAnnouncementDetailsContainer(
+                              subjectAnnouncement: state.announcements[index],
+                              index: index,
+                              totalAnnouncements: state.announcements.length,
+                              hasMoreAnnouncements: context
+                                  .read<SubjectAnnouncementCubit>()
+                                  .hasMore(),
+                              hasMoreAnnouncementsInProgress:
+                                  state.fetchMoreAnnouncementsInProgress,
+                              fetchMoreAnnouncementsFailure:
+                                  state.moreAnnouncementsFetchError,
+                            ),
+                          )
+                          .toList(),
                 );
         }
 
@@ -101,10 +105,10 @@ class _AnnouncementContainerState extends State<AnnouncementContainer> {
             errorMessageCode: state.errorMessage,
             onTapRetry: () {
               context.read<SubjectAnnouncementCubit>().fetchSubjectAnnouncement(
-                    subjectId: widget.subjectId,
-                    useParentApi: context.read<AuthCubit>().isParent(),
-                    childId: widget.childId,
-                  );
+                subjectId: widget.subjectId,
+                useParentApi: context.read<AuthCubit>().isParent(),
+                childId: widget.childId,
+              );
             },
           );
         }

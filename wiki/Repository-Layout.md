@@ -78,14 +78,13 @@ e-school/
 │   ├── data/repositories/      API calls grouped by domain
 │   ├── ui/screens/             Screens, grouped by feature
 │   ├── ui/widgets/             Shared widgets
-│   ├── ui/styles/              Colours and theme
 │   └── utils/                  api.dart (endpoint list and Dio client), constants.dart (base URL), labels, Hive keys, notifications
 ├── assets/
 │   ├── languages/*.json        UI translations
 │   ├── images/, animations/    Images, branding and Lottie files
 ├── google_fonts/               Bundled font files (no runtime font download)
 ├── android/  ios/              Platform projects
-├── test/translations_test.dart Checks that the language files are complete
+├── test/                       translations_test.dart (language files complete), theme_colors_test.dart (no hard-coded colours)
 ├── pubspec.yaml / pubspec.lock
 └── analysis_options.yaml
 ```
@@ -101,15 +100,16 @@ packages/eschool_core/
 ├── lib/eschool_core.dart       The one public library: exports everything below
 ├── lib/src/api/                ApiClient (the Dio calls and their error handling), ApiException, ApiErrorCodes
 ├── lib/src/models/             Models identical in both apps (gallery, chat settings, event schedule, ...)
+├── lib/src/theme/              The Material 3 theme both apps use: brand colours, AppTheme, StatusColors
 ├── lib/src/utils/              Helpers (file name sanitising)
 ├── lib/src/widgets/            Widgets that take everything they need as parameters
-├── test/                       Unit tests, run by CI like the apps' tests
+├── test/                       Unit tests and the theme's screenshot test (test/goldens/), run by CI like the apps' tests
 └── pubspec.yaml / pubspec.lock
 ```
 
 What belongs here and how to move a file in is in the package's [README](https://github.com/ShawnDaPrawn/Eschool/blob/main/packages/eschool_core/README.md). Files in the package use `snake_case` names; the apps' older files use `camelCase`.
 
-The duplication that remains is mostly code that depends on app-specific helpers (`UiUtils`, the colours, label keys, `Api` endpoints and `routes.dart`), which differ between the apps today. Those have to be shared first before the screens, cubits and repositories built on them can move.
+The duplication that remains is mostly code that depends on app-specific helpers (`UiUtils`, label keys, `Api` endpoints and `routes.dart`), which differ between the apps today. Those have to be shared first before the screens, cubits and repositories built on them can move.
 
 ## `documentation/`
 

@@ -10,7 +10,6 @@ import 'package:eschool/data/repositories/chatRepository.dart';
 import 'package:eschool/ui/screens/chat/widget/attachmentDialog.dart';
 import 'package:eschool/ui/screens/chat/widget/messageSendingWidget.dart';
 import 'package:eschool/ui/screens/chat/widget/singleMessageItem.dart';
-import 'package:eschool/ui/styles/colors.dart';
 import 'package:eschool/ui/widgets/customBackButton.dart';
 import 'package:eschool_core/eschool_core.dart';
 import 'package:eschool/ui/widgets/customShimmerContainer.dart';
@@ -142,7 +141,7 @@ class _ChatMessagesScreenState extends State<ChatMessagesScreen> {
                     overflow: TextOverflow.ellipsis,
                     textAlign: TextAlign.center,
                     style: TextStyle(
-                      color: Theme.of(context).scaffoldBackgroundColor,
+                      color: Theme.of(context).colorScheme.onPrimary,
                       fontSize: UiUtils.screenTitleFontSize,
                     ),
                   ),
@@ -155,7 +154,7 @@ class _ChatMessagesScreenState extends State<ChatMessagesScreen> {
                     overflow: TextOverflow.ellipsis,
                     textAlign: TextAlign.center,
                     style: TextStyle(
-                      color: Theme.of(context).scaffoldBackgroundColor,
+                      color: Theme.of(context).colorScheme.onPrimary,
                       fontSize: 12,
                     ),
                   ),
@@ -175,11 +174,13 @@ class _ChatMessagesScreenState extends State<ChatMessagesScreen> {
               margin: const EdgeInsetsDirectional.only(end: 15),
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                border: Border.all(color: Colors.white),
+                border: Border.all(
+                  color: Theme.of(context).colorScheme.onPrimary,
+                ),
               ),
               child: CustomUserProfileImageWidget(
                 profileUrl: widget.chatUser.profileUrl,
-                color: Colors.white,
+                color: Theme.of(context).colorScheme.onPrimary,
               ),
             ),
           ),
@@ -240,7 +241,7 @@ class _ChatMessagesScreenState extends State<ChatMessagesScreen> {
           ? DateFormat('dd MMMM').format(date)
           : DateFormat('dd MMM yyyy').format(date),
       style: TextStyle(
-        color: secondaryColor.withValues(alpha: 0.6),
+        color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.6),
         fontSize: 12,
       ),
     );
@@ -251,16 +252,16 @@ class _ChatMessagesScreenState extends State<ChatMessagesScreen> {
       padding: const EdgeInsets.symmetric(vertical: 5, horizontal: 10),
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(12),
-        color: secondaryColor.withValues(alpha: 0.05),
+        color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.05),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          const SizedBox(
+          SizedBox(
             width: 12,
             height: 12,
             child: CustomCircularProgressIndicator(
-              indicatorColor: primaryColor,
+              indicatorColor: Theme.of(context).colorScheme.primary,
             ),
           ),
           const SizedBox(width: 10),
@@ -284,12 +285,18 @@ class _ChatMessagesScreenState extends State<ChatMessagesScreen> {
         padding: const EdgeInsets.symmetric(vertical: 5, horizontal: 10),
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(12),
-          color: secondaryColor.withValues(alpha: 0.05),
+          color: Theme.of(
+            context,
+          ).colorScheme.onSurface.withValues(alpha: 0.05),
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Icon(Icons.refresh, size: 16, color: primaryColor),
+            Icon(
+              Icons.refresh,
+              size: 16,
+              color: Theme.of(context).colorScheme.primary,
+            ),
             const SizedBox(width: 10),
             Flexible(
               child: Text(
@@ -311,7 +318,7 @@ class _ChatMessagesScreenState extends State<ChatMessagesScreen> {
   Widget _buildAutomaticallyDeleteWarning({required int days}) {
     return Container(
       decoration: BoxDecoration(
-        color: orangeColor.withValues(alpha: 0.1),
+        color: StatusColors.of(context).warning.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(8),
       ),
       padding: const EdgeInsets.all(8),
@@ -320,8 +327,8 @@ class _ChatMessagesScreenState extends State<ChatMessagesScreen> {
         maxLines: 5,
         overflow: TextOverflow.ellipsis,
         textAlign: TextAlign.center,
-        style: const TextStyle(
-          color: orangeColor,
+        style: TextStyle(
+          color: StatusColors.of(context).warning,
           fontSize: 14,
           fontWeight: FontWeight.w500,
         ),
@@ -586,9 +593,9 @@ class _ChatMessagesScreenState extends State<ChatMessagesScreen> {
                                       : const SizedBox.shrink(),
                                 ),
                                 ChatMessageSendingWidget(
-                                  backgroundColor: primaryColor.withValues(
-                                    alpha: 0.25,
-                                  ),
+                                  backgroundColor: Theme.of(
+                                    context,
+                                  ).colorScheme.primary.withValues(alpha: 0.25),
                                   onMessageSend: () {
                                     if (_chatMessageSendTextController.text
                                         .trim()

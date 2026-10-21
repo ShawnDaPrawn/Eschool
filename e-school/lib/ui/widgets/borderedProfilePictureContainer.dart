@@ -4,7 +4,9 @@ import 'package:flutter/material.dart';
 
 class BorderedProfilePictureContainer extends StatelessWidget {
   const BorderedProfilePictureContainer({
-    required this.boxConstraints, required this.imageUrl, super.key,
+    required this.boxConstraints,
+    required this.imageUrl,
+    super.key,
     this.heightAndWidthPercentage,
     this.onTap,
   });
@@ -30,14 +32,14 @@ class BorderedProfilePictureContainer extends StatelessWidget {
         padding: const EdgeInsets.all(4),
         decoration: BoxDecoration(
           shape: BoxShape.circle,
-          border: Border.all(
-            color: Theme.of(context).scaffoldBackgroundColor,
-          ),
+          border: Border.all(color: Theme.of(context).colorScheme.onPrimary),
         ),
-        width: boxConstraints.maxWidth *
+        width:
+            boxConstraints.maxWidth *
             (heightAndWidthPercentage ??
                 UiUtils.defaultProfilePictureHeightAndWidthPercentage),
-        height: boxConstraints.maxWidth *
+        height:
+            boxConstraints.maxWidth *
             (heightAndWidthPercentage ??
                 UiUtils.defaultProfilePictureHeightAndWidthPercentage),
         child: CustomUserProfileImageWidget(profileUrl: imageUrl),

@@ -8,10 +8,8 @@ import 'package:eschool/data/models/student.dart';
 import 'package:eschool/data/repositories/studentRepository.dart';
 import 'package:eschool/ui/screens/fees/widgets/paymentSelection.dart';
 import 'package:eschool/ui/screens/fees/widgets/studentDownloadFeePaidReceiptButton.dart';
-import 'package:eschool/ui/styles/colors.dart';
 import 'package:eschool/ui/widgets/customBackButton.dart';
 import 'package:eschool_core/eschool_core.dart';
-import 'package:eschool/ui/widgets/customRoundedButton.dart';
 import 'package:eschool/ui/widgets/customShimmerContainer.dart';
 import 'package:eschool/ui/widgets/customTabBarContainer.dart';
 import 'package:eschool/ui/widgets/errorContainer.dart';
@@ -211,7 +209,7 @@ class FeesDetailsScreenState extends State<FeesDetailsScreen> {
                         },
                         child: Icon(
                           Icons.history,
-                          color: Theme.of(context).scaffoldBackgroundColor,
+                          color: Theme.of(context).colorScheme.onPrimary,
                           size: 30,
                         ),
                       ),
@@ -228,7 +226,7 @@ class FeesDetailsScreenState extends State<FeesDetailsScreen> {
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
                       style: TextStyle(
-                        color: Theme.of(context).scaffoldBackgroundColor,
+                        color: Theme.of(context).colorScheme.onPrimary,
                         fontSize: UiUtils.screenTitleFontSize,
                       ),
                     ),
@@ -317,8 +315,13 @@ class FeesDetailsScreenState extends State<FeesDetailsScreen> {
                 ),
               //if fee is paid, replace the checkbox with verified mark
               if (feesData.isPaid && isCheckboxRequired)
-                const Expanded(
-                  child: Align(child: Icon(Icons.verified, color: greenColor)),
+                Expanded(
+                  child: Align(
+                    child: Icon(
+                      Icons.verified,
+                      color: StatusColors.of(context).success,
+                    ),
+                  ),
                 ),
               //it there is no checkbox, add a spaces to take it's space for better UI
               if (!isCheckboxRequired) const Spacer(),
@@ -352,8 +355,8 @@ class FeesDetailsScreenState extends State<FeesDetailsScreen> {
                             '${UiUtils.getTranslatedLabel(context, paidOnKey)}: ${UiUtils.formatDate(feesData.paidDate ?? DateTime.now())}',
                             overflow: TextOverflow.ellipsis,
                             maxLines: 1,
-                            style: const TextStyle(
-                              color: greenColor,
+                            style: TextStyle(
+                              color: StatusColors.of(context).success,
                               fontSize: 10,
                             ),
                           ),
@@ -365,7 +368,9 @@ class FeesDetailsScreenState extends State<FeesDetailsScreen> {
                             overflow: TextOverflow.ellipsis,
                             maxLines: 2,
                             style: TextStyle(
-                              color: feesData.isDue ? redColor : null,
+                              color: feesData.isDue
+                                  ? StatusColors.of(context).danger
+                                  : null,
                               fontSize: 10,
                             ),
                           ),
@@ -542,7 +547,7 @@ class FeesDetailsScreenState extends State<FeesDetailsScreen> {
   Widget setDivider() {
     return Divider(
       thickness: 1,
-      color: Theme.of(context).colorScheme.onSurface,
+      color: Theme.of(context).colorScheme.onSurfaceVariant,
     );
   }
 
@@ -876,7 +881,10 @@ class FeesDetailsScreenState extends State<FeesDetailsScreen> {
                       feeTransactionPendingKey,
                     ),
                     textAlign: TextAlign.justify,
-                    style: const TextStyle(fontSize: 11, color: redColor),
+                    style: TextStyle(
+                      fontSize: 11,
+                      color: Theme.of(context).colorScheme.error,
+                    ),
                   ),
                 ),
               CustomRoundedButton(
@@ -907,7 +915,7 @@ class FeesDetailsScreenState extends State<FeesDetailsScreen> {
                 textAlign: TextAlign.center,
                 backgroundColor: UiUtils.getColorScheme(context).primary,
                 buttonTitle: UiUtils.getTranslatedLabel(context, payNowKey),
-                titleColor: Theme.of(context).scaffoldBackgroundColor,
+                titleColor: Theme.of(context).colorScheme.onPrimary,
                 showBorder: false,
                 child: state is FeesPaymentFetchInProgress
                     ? const CustomCircularProgressIndicator(

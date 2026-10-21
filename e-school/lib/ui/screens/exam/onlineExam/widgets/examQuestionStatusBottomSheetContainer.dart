@@ -1,7 +1,6 @@
 import 'package:eschool/ui/screens/exam/onlineExam/cubits/examOnlineCubit.dart';
 import 'package:eschool/ui/screens/exam/onlineExam/models/question.dart';
 import 'package:eschool_core/eschool_core.dart';
-import 'package:eschool/ui/widgets/customRoundedButton.dart';
 import 'package:eschool/utils/labelKeys.dart';
 import 'package:eschool/utils/uiUtils.dart';
 import 'package:flutter/material.dart';
@@ -9,9 +8,10 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 // ignore: must_be_immutable
 class ExamQuestionStatusBottomSheetContainer extends StatelessWidget {
-
   ExamQuestionStatusBottomSheetContainer({
-    required this.pageController, required this.navigateToResultScreen, super.key,
+    required this.pageController,
+    required this.navigateToResultScreen,
+    super.key,
     this.totalAttempted = 0,
   });
   final PageController pageController;
@@ -34,14 +34,14 @@ class ExamQuestionStatusBottomSheetContainer extends StatelessWidget {
               Text(
                 '$questionMark ${UiUtils.getTranslatedLabel(context, marksKey)} ${UiUtils.getTranslatedLabel(context, questionsKey)}',
                 style: TextStyle(
-                  color: UiUtils.getColorScheme(context).onSurface,
+                  color: UiUtils.getColorScheme(context).onSurfaceVariant,
                   fontSize: 14,
                 ),
               ),
               Text(
                 '[${questions.length}]',
                 style: TextStyle(
-                  color: UiUtils.getColorScheme(context).onSurface,
+                  color: UiUtils.getColorScheme(context).onSurfaceVariant,
                   fontSize: 14,
                 ),
               ),
@@ -86,14 +86,18 @@ class ExamQuestionStatusBottomSheetContainer extends StatelessWidget {
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(10),
           color: attempted
-              ? UiUtils.getColorScheme(context).onSecondary
+              ? StatusColors.of(context).success
               : UiUtils.getColorScheme(context).error,
         ),
         height: 35,
         width: 35,
         child: Text(
           '${questionIndex + 1}',
-          style: TextStyle(color: Theme.of(context).scaffoldBackgroundColor),
+          style: TextStyle(
+            color: attempted
+                ? StatusColors.of(context).onSuccess
+                : UiUtils.getColorScheme(context).onError,
+          ),
         ),
       ),
     );
@@ -121,7 +125,7 @@ class ExamQuestionStatusBottomSheetContainer extends StatelessWidget {
             style: TextStyle(
               fontSize: 16,
               fontWeight: FontWeight.bold,
-              color: UiUtils.getColorScheme(context).surface,
+              color: UiUtils.getColorScheme(context).readableOn(bgColor),
             ),
           ),
           Text(
@@ -129,7 +133,7 @@ class ExamQuestionStatusBottomSheetContainer extends StatelessWidget {
             style: TextStyle(
               fontSize: 16,
               fontWeight: FontWeight.bold,
-              color: UiUtils.getColorScheme(context).surface,
+              color: UiUtils.getColorScheme(context).readableOn(bgColor),
             ),
           ),
         ],
@@ -163,7 +167,7 @@ class ExamQuestionStatusBottomSheetContainer extends StatelessWidget {
                     child: Text(
                       '${UiUtils.getTranslatedLabel(context, totalQuestionsKey)} : ${context.read<ExamOnlineCubit>().getQuestions().length} ',
                       style: TextStyle(
-                        color: UiUtils.getColorScheme(context).onSurface,
+                        color: UiUtils.getColorScheme(context).onSurfaceVariant,
                         fontSize: 15,
                         fontWeight: FontWeight.w600,
                       ),
@@ -177,7 +181,7 @@ class ExamQuestionStatusBottomSheetContainer extends StatelessWidget {
                     child: Text(
                       '${UiUtils.getTranslatedLabel(context, totalMarksKey)} : ${context.read<ExamOnlineCubit>().getTotalMarks()} ',
                       style: TextStyle(
-                        color: UiUtils.getColorScheme(context).onSurface,
+                        color: UiUtils.getColorScheme(context).onSurfaceVariant,
                         fontSize: 15,
                         fontWeight: FontWeight.w600,
                       ),
@@ -212,7 +216,7 @@ class ExamQuestionStatusBottomSheetContainer extends StatelessWidget {
               context: context,
               titleText: answeredKey,
               answerCount: totalAttempted,
-              bgColor: UiUtils.getColorScheme(context).onSecondary,
+              bgColor: StatusColors.of(context).success,
             ),
             const SizedBox(height: 20),
             BlocBuilder<ExamOnlineCubit, ExamOnlineState>(
@@ -229,13 +233,13 @@ class ExamQuestionStatusBottomSheetContainer extends StatelessWidget {
                   buttonTitle: UiUtils.getTranslatedLabel(context, submitKey),
                   radius: 10,
                   showBorder: false,
-                  titleColor: UiUtils.getColorScheme(context).surface,
+                  titleColor: UiUtils.getColorScheme(context).onPrimary,
                   height: 50,
                   child: (state is ExamOnlineFetchInProgress)
                       ? CustomCircularProgressIndicator(
                           indicatorColor: Theme.of(
                             context,
-                          ).scaffoldBackgroundColor,
+                          ).colorScheme.onPrimary,
                         )
                       : null,
                 );

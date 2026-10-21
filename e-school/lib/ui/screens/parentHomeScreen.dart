@@ -13,7 +13,6 @@ import 'package:eschool/data/repositories/settingsRepository.dart';
 import 'package:eschool/data/repositories/systemInfoRepository.dart';
 import 'package:eschool/ui/screens/chat/chatUsersScreen.dart';
 import 'package:eschool/ui/screens/home/homeScreen.dart';
-import 'package:eschool/ui/styles/colors.dart';
 import 'package:eschool/ui/widgets/appUnderMaintenanceContainer.dart';
 import 'package:eschool/ui/widgets/borderedProfilePictureContainer.dart';
 import 'package:eschool/ui/widgets/customShimmerContainer.dart';
@@ -135,7 +134,7 @@ class _ParentHomeScreenState extends State<ParentHomeScreen>
                       border: Border.all(
                         color: Theme.of(
                           context,
-                        ).scaffoldBackgroundColor.withValues(alpha: 0.1),
+                        ).colorScheme.onPrimary.withValues(alpha: 0.1),
                       ),
                       shape: BoxShape.circle,
                     ),
@@ -146,7 +145,7 @@ class _ParentHomeScreenState extends State<ParentHomeScreen>
                         border: Border.all(
                           color: Theme.of(
                             context,
-                          ).scaffoldBackgroundColor.withValues(alpha: 0.1),
+                          ).colorScheme.onPrimary.withValues(alpha: 0.1),
                         ),
                         shape: BoxShape.circle,
                       ),
@@ -162,7 +161,7 @@ class _ParentHomeScreenState extends State<ParentHomeScreen>
                     decoration: BoxDecoration(
                       color: Theme.of(
                         context,
-                      ).scaffoldBackgroundColor.withValues(alpha: 0.1),
+                      ).colorScheme.onPrimary.withValues(alpha: 0.1),
                       shape: BoxShape.circle,
                     ),
                     width: MediaQuery.sizeOf(context).width * 0.4,
@@ -212,7 +211,7 @@ class _ParentHomeScreenState extends State<ParentHomeScreen>
                                       fontWeight: FontWeight.w500,
                                       color: Theme.of(
                                         context,
-                                      ).scaffoldBackgroundColor,
+                                      ).colorScheme.onPrimary,
                                     ),
                                   ),
                                   Text(
@@ -227,7 +226,7 @@ class _ParentHomeScreenState extends State<ParentHomeScreen>
                                       fontWeight: FontWeight.w400,
                                       color: Theme.of(
                                         context,
-                                      ).scaffoldBackgroundColor,
+                                      ).colorScheme.onPrimary,
                                     ),
                                   ),
                                 ],
@@ -238,7 +237,7 @@ class _ParentHomeScreenState extends State<ParentHomeScreen>
                         const Spacer(),
                         IconButton(
                           iconSize: 20,
-                          color: Theme.of(context).scaffoldBackgroundColor,
+                          color: Theme.of(context).colorScheme.onPrimary,
                           onPressed: () {
                             Navigator.of(context).pushNamed(Routes.settings);
                           },
@@ -319,7 +318,7 @@ class _ParentHomeScreenState extends State<ParentHomeScreen>
                             overflow: TextOverflow.ellipsis,
                             textAlign: TextAlign.center,
                             style: TextStyle(
-                              color: Theme.of(context).scaffoldBackgroundColor,
+                              color: Theme.of(context).colorScheme.onPrimary,
                               fontWeight: FontWeight.w500,
                               fontSize: 14,
                             ),
@@ -331,7 +330,7 @@ class _ParentHomeScreenState extends State<ParentHomeScreen>
                             maxLines: 2,
                             overflow: TextOverflow.ellipsis,
                             style: TextStyle(
-                              color: Theme.of(context).scaffoldBackgroundColor,
+                              color: Theme.of(context).colorScheme.onPrimary,
                               fontWeight: FontWeight.w500,
                               fontSize: 10,
                             ),
@@ -347,13 +346,11 @@ class _ParentHomeScreenState extends State<ParentHomeScreen>
                               overflow: TextOverflow.ellipsis,
                               textAlign: TextAlign.center,
                               style: TextStyle(
-                                color: Theme.of(
-                                  context,
-                                ).scaffoldBackgroundColor,
+                                color: Theme.of(context).colorScheme.onPrimary,
                                 decoration: TextDecoration.underline,
                                 decorationColor: Theme.of(
                                   context,
-                                ).scaffoldBackgroundColor,
+                                ).colorScheme.onPrimary,
                                 fontWeight: FontWeight.w600,
                                 fontSize: 12,
                               ),
@@ -376,13 +373,13 @@ class _ParentHomeScreenState extends State<ParentHomeScreen>
                           BoxShadow(
                             color: Theme.of(
                               context,
-                            ).colorScheme.secondary.withValues(alpha: 0.3),
+                            ).colorScheme.shadow.withValues(alpha: 0.3),
                             offset: const Offset(0, 5),
                             blurRadius: 20,
                           ),
                         ],
                         shape: BoxShape.circle,
-                        color: Theme.of(context).scaffoldBackgroundColor,
+                        color: Theme.of(context).colorScheme.surface,
                       ),
                       child: Icon(
                         Icons.arrow_forward_ios,
@@ -463,7 +460,7 @@ class _ParentHomeScreenState extends State<ParentHomeScreen>
                   UiUtils.getTranslatedLabel(context, myChildrenKey),
                   style: TextStyle(
                     fontWeight: FontWeight.w600,
-                    color: Theme.of(context).colorScheme.secondary,
+                    color: Theme.of(context).colorScheme.onSurface,
                     fontSize: 16,
                   ),
                 ),
@@ -518,7 +515,7 @@ class _ParentHomeScreenState extends State<ParentHomeScreen>
 
   Widget _buildChatFloatingActionButton() {
     return FloatingActionButton(
-      backgroundColor: primaryColor,
+      backgroundColor: Theme.of(context).colorScheme.primary,
       onPressed: () {
         Navigator.of(
           context,
@@ -534,8 +531,8 @@ class _ParentHomeScreenState extends State<ParentHomeScreen>
                 padding: const EdgeInsets.all(15),
                 child: SvgPicture.asset(
                   Assets.chatIcon,
-                  colorFilter: const ColorFilter.mode(
-                    Colors.white,
+                  colorFilter: ColorFilter.mode(
+                    Theme.of(context).colorScheme.onPrimary,
                     BlendMode.srcIn,
                   ),
                 ),
@@ -545,9 +542,9 @@ class _ParentHomeScreenState extends State<ParentHomeScreen>
                 Align(
                   alignment: AlignmentDirectional.topEnd,
                   child: Container(
-                    decoration: const BoxDecoration(
+                    decoration: BoxDecoration(
                       shape: BoxShape.circle,
-                      color: redColor,
+                      color: Theme.of(context).colorScheme.error,
                     ),
                     margin: const EdgeInsets.all(7),
                     padding: const EdgeInsets.all(4),
@@ -556,7 +553,10 @@ class _ParentHomeScreenState extends State<ParentHomeScreen>
                           ? '9+'
                           : state.totalUnreadUsers.toString(),
                       textAlign: TextAlign.center,
-                      style: const TextStyle(color: Colors.white, fontSize: 9),
+                      style: TextStyle(
+                        color: Theme.of(context).colorScheme.onError,
+                        fontSize: 9,
+                      ),
                     ),
                   ),
                 ),

@@ -9,7 +9,6 @@ import 'package:eschool_teacher/data/repositories/settingsRepository.dart';
 import 'package:eschool_teacher/ui/screens/login/widgets/forgotPasswordRequestBottomsheet.dart';
 import 'package:eschool_teacher/ui/screens/login/widgets/termsAndConditionAndPrivacyPolicyContainer.dart';
 import 'package:eschool_core/eschool_core.dart';
-import 'package:eschool_teacher/ui/widgets/customRoundedButton.dart';
 import 'package:eschool_teacher/ui/widgets/passwordHideShowButton.dart';
 import 'package:eschool_teacher/utils/assets.dart';
 import 'package:eschool_teacher/utils/constants.dart';
@@ -173,7 +172,7 @@ class _LoginScreenState extends State<LoginScreen>
                     context: context,
                     errorMessage:
                         "${UiUtils.getTranslatedLabel(context, passwordUpdateLinkSentKey)} ${value['email']}",
-                    backgroundColor: Theme.of(context).colorScheme.onPrimary,
+                    backgroundColor: StatusColors.of(context).success,
                   );
                 }
               }
@@ -239,7 +238,7 @@ class _LoginScreenState extends State<LoginScreen>
             child: DottedLine(
               dashColor: UiUtils.getColorScheme(
                 context,
-              ).secondary.withAlpha(80),
+              ).onSurface.withAlpha(80),
               dashGapLength: 2,
               dashLength: 3,
             ),
@@ -249,14 +248,14 @@ class _LoginScreenState extends State<LoginScreen>
             style: TextStyle(
               fontSize: 12,
               fontWeight: FontWeight.w400,
-              color: UiUtils.getColorScheme(context).secondary,
+              color: UiUtils.getColorScheme(context).onSurface,
             ),
           ),
           Expanded(
             child: DottedLine(
               dashColor: UiUtils.getColorScheme(
                 context,
-              ).secondary.withAlpha(80),
+              ).onSurface.withAlpha(80),
               dashGapLength: 2,
               dashLength: 3,
             ),
@@ -291,7 +290,7 @@ class _LoginScreenState extends State<LoginScreen>
                     style: TextStyle(
                       fontSize: 34,
                       fontWeight: FontWeight.bold,
-                      color: UiUtils.getColorScheme(context).secondary,
+                      color: UiUtils.getColorScheme(context).onSurface,
                     ),
                   ),
                   const SizedBox(height: 10),
@@ -300,72 +299,45 @@ class _LoginScreenState extends State<LoginScreen>
                     style: TextStyle(
                       fontSize: 24,
                       height: 1.5,
-                      color: UiUtils.getColorScheme(context).secondary,
+                      color: UiUtils.getColorScheme(context).onSurface,
                     ),
                   ),
                   const SizedBox(height: 30),
-                  Container(
-                    padding: const EdgeInsets.only(left: 20),
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(10),
-                      border: Border.all(
-                        color: UiUtils.getColorScheme(context).secondary,
-                      ),
-                    ),
-                    child: TextFormField(
-                      controller: _emailTextEditingController,
-                      textAlignVertical: TextAlignVertical.center,
-                      keyboardType: TextInputType.emailAddress,
-                      decoration: InputDecoration(
-                        suffixIcon: Padding(
-                          padding: const EdgeInsets.all(12),
-                          child: SvgPicture.asset(
-                            Assets.mailIcon,
-                            colorFilter: ColorFilter.mode(
-                              UiUtils.getColorScheme(context).secondary,
-                              BlendMode.srcIn,
-                            ),
-                            // color: UiUtils.getColorScheme(context).secondary,
+                  TextFormField(
+                    controller: _emailTextEditingController,
+                    textAlignVertical: TextAlignVertical.center,
+                    keyboardType: TextInputType.emailAddress,
+                    decoration: _fieldDecoration(
+                      hintText: UiUtils.getTranslatedLabel(context, emailKey),
+                      suffixIcon: Padding(
+                        padding: const EdgeInsets.all(12),
+                        child: SvgPicture.asset(
+                          Assets.mailIcon,
+                          colorFilter: ColorFilter.mode(
+                            UiUtils.getColorScheme(context).onSurfaceVariant,
+                            BlendMode.srcIn,
                           ),
                         ),
-                        hintStyle: TextStyle(
-                          color: UiUtils.getColorScheme(context).secondary,
-                        ),
-                        hintText: UiUtils.getTranslatedLabel(context, emailKey),
-                        border: InputBorder.none,
                       ),
                     ),
                   ),
                   const SizedBox(height: 30),
-                  Container(
-                    padding: const EdgeInsets.only(left: 20),
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(10),
-                      border: Border.all(
-                        color: UiUtils.getColorScheme(context).secondary,
+                  TextFormField(
+                    controller: _passwordTextEditingController,
+                    obscureText: _hidePassword,
+                    textAlignVertical: TextAlignVertical.center,
+                    decoration: _fieldDecoration(
+                      hintText: UiUtils.getTranslatedLabel(
+                        context,
+                        passwordKey,
                       ),
-                    ),
-                    child: TextFormField(
-                      controller: _passwordTextEditingController,
-                      obscureText: _hidePassword,
-                      textAlignVertical: TextAlignVertical.center,
-                      decoration: InputDecoration(
-                        suffixIcon: PasswordHideShowButton(
-                          hidePassword: _hidePassword,
-                          onTap: () {
-                            setState(() {
-                              _hidePassword = !_hidePassword;
-                            });
-                          },
-                        ),
-                        hintStyle: TextStyle(
-                          color: UiUtils.getColorScheme(context).secondary,
-                        ),
-                        hintText: UiUtils.getTranslatedLabel(
-                          context,
-                          passwordKey,
-                        ),
-                        border: InputBorder.none,
+                      suffixIcon: PasswordHideShowButton(
+                        hidePassword: _hidePassword,
+                        onTap: () {
+                          setState(() {
+                            _hidePassword = !_hidePassword;
+                          });
+                        },
                       ),
                     ),
                   ),
@@ -415,7 +387,7 @@ class _LoginScreenState extends State<LoginScreen>
                             context,
                             signInKey,
                           ),
-                          titleColor: Theme.of(context).scaffoldBackgroundColor,
+                          titleColor: Theme.of(context).colorScheme.onPrimary,
                           showBorder: false,
                           child: state is SignInInProgress
                               ? const CustomCircularProgressIndicator(
@@ -439,6 +411,23 @@ class _LoginScreenState extends State<LoginScreen>
             ),
           ),
         ),
+      ),
+    );
+  }
+
+  InputDecoration _fieldDecoration({
+    required String hintText,
+    required Widget suffixIcon,
+  }) {
+    final colorScheme = UiUtils.getColorScheme(context);
+    return InputDecoration(
+      contentPadding: const EdgeInsetsDirectional.fromSTEB(20, 13, 12, 13),
+      suffixIcon: suffixIcon,
+      hintText: hintText,
+      hintStyle: TextStyle(color: colorScheme.onSurfaceVariant),
+      enabledBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(AppTheme.radius),
+        borderSide: BorderSide(color: colorScheme.outline),
       ),
     );
   }

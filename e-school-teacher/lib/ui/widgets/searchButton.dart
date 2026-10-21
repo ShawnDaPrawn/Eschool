@@ -4,7 +4,8 @@ import 'package:flutter/material.dart';
 
 class SearchButton extends StatelessWidget {
   const SearchButton({
-    required this.onTap, super.key,
+    required this.onTap,
+    super.key,
     this.edgeInsetsDirectional,
   });
   final Function onTap;
@@ -13,7 +14,8 @@ class SearchButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: edgeInsetsDirectional ??
+      padding:
+          edgeInsetsDirectional ??
           EdgeInsetsDirectional.only(
             end: UiUtils.screenContentHorizontalPadding,
           ),
@@ -22,14 +24,15 @@ class SearchButton extends StatelessWidget {
           onTap();
         },
         child: Container(
-          decoration:
-              BoxDecoration(border: Border.all(color: Colors.transparent)),
+          decoration: BoxDecoration(
+            border: Border.all(color: Colors.transparent),
+          ),
           width: 25,
           height: 25,
           child: Icon(
             CupertinoIcons.search, //Icons.calendar_month
             size: 25,
-            color: Theme.of(context).scaffoldBackgroundColor,
+            color: Theme.of(context).colorScheme.onPrimary,
           ),
         ),
       ),

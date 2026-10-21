@@ -45,10 +45,14 @@ class CustomDropDownMenu extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 10),
       alignment: Alignment.center,
       decoration: BoxDecoration(
-        color: backgroundColor ?? Theme.of(context).colorScheme.surface,
+        color:
+            backgroundColor ??
+            Theme.of(context).colorScheme.surfaceContainerLow,
         borderRadius: BorderRadius.circular(borderRadius ?? 5),
         border: Border.all(
-          color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.5),
+          color: Theme.of(
+            context,
+          ).colorScheme.onSurfaceVariant.withValues(alpha: 0.5),
         ),
       ),
       width: width,
@@ -65,7 +69,7 @@ class CustomDropDownMenu extends StatelessWidget {
         style: TextStyle(
           fontWeight: FontWeight.w600,
           fontSize: 13,
-          color: Theme.of(context).colorScheme.onSurface,
+          color: Theme.of(context).colorScheme.onSurfaceVariant,
         ),
         items: menu.isEmpty
             ? [

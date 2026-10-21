@@ -30,9 +30,9 @@ class DownloadFileButton extends StatelessWidget {
         child:
             (studyMaterial.fileExtension.toLowerCase() == 'pdf' ||
                 studyMaterial.fileExtension.isImage())
-            ? const Icon(
+            ? Icon(
                 Icons.remove_red_eye_outlined,
-                color: Colors.white,
+                color: Theme.of(context).colorScheme.onPrimary,
                 size: 15,
               )
             : Padding(

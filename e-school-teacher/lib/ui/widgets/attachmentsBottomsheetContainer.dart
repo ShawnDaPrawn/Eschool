@@ -6,9 +6,10 @@ import 'package:eschool_teacher/utils/uiUtils.dart';
 import 'package:flutter/material.dart';
 
 class AttachmentBottomsheetContainer extends StatelessWidget {
-
   const AttachmentBottomsheetContainer({
-    required this.studyMaterials, required this.fromAnnouncementsContainer, super.key,
+    required this.studyMaterials,
+    required this.fromAnnouncementsContainer,
+    super.key,
   });
   final List<StudyMaterial> studyMaterials;
   final bool fromAnnouncementsContainer;
@@ -17,7 +18,7 @@ class AttachmentBottomsheetContainer extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
-        color: Theme.of(context).scaffoldBackgroundColor,
+        color: Theme.of(context).colorScheme.surface,
         borderRadius: BorderRadius.only(
           topLeft: Radius.circular(UiUtils.bottomSheetTopRadius),
           topRight: Radius.circular(UiUtils.bottomSheetTopRadius),
@@ -62,12 +63,12 @@ class AttachmentBottomsheetContainer extends StatelessWidget {
           Container(
             width: MediaQuery.sizeOf(context).width,
             decoration: BoxDecoration(
-              color: Theme.of(context).scaffoldBackgroundColor,
+              color: Theme.of(context).colorScheme.surface,
               border: Border(
                 bottom: BorderSide(
                   color: Theme.of(
                     context,
-                  ).colorScheme.onSurface.withValues(alpha: 0.5),
+                  ).colorScheme.onSurfaceVariant.withValues(alpha: 0.5),
                 ),
               ),
             ),
@@ -81,7 +82,7 @@ class AttachmentBottomsheetContainer extends StatelessWidget {
               textAlign: TextAlign.start,
               style: TextStyle(
                 fontSize: 16,
-                color: Theme.of(context).colorScheme.secondary,
+                color: Theme.of(context).colorScheme.onSurface,
                 fontWeight: FontWeight.w600,
               ),
             ),

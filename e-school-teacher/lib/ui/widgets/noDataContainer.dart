@@ -1,4 +1,4 @@
-import 'package:eschool_teacher/ui/widgets/customRoundedButton.dart';
+import 'package:eschool_core/eschool_core.dart';
 import 'package:eschool_teacher/utils/animationConfiguration.dart';
 import 'package:eschool_teacher/utils/assets.dart';
 import 'package:eschool_teacher/utils/labelKeys.dart';
@@ -9,7 +9,8 @@ import 'package:flutter_svg/flutter_svg.dart';
 
 class NoDataContainer extends StatelessWidget {
   const NoDataContainer({
-    required this.titleKey, super.key,
+    required this.titleKey,
+    super.key,
     this.textColor,
     this.onTapRetry,
     this.retryButtonBackgroundColor,
@@ -48,7 +49,7 @@ class NoDataContainer extends StatelessWidget {
                 UiUtils.getTranslatedLabel(context, titleKey),
                 textAlign: TextAlign.center,
                 style: TextStyle(
-                  color: textColor ?? Theme.of(context).colorScheme.secondary,
+                  color: textColor ?? Theme.of(context).colorScheme.onSurface,
                   fontWeight: FontWeight.w600,
                   fontSize: 16,
                 ),
@@ -68,7 +69,7 @@ class NoDataContainer extends StatelessWidget {
                         textColor ??
                         Theme.of(
                           context,
-                        ).colorScheme.secondary.withValues(alpha: 0.7),
+                        ).colorScheme.onSurface.withValues(alpha: 0.7),
                     fontSize: 14,
                   ),
                 ),
@@ -86,7 +87,7 @@ class NoDataContainer extends StatelessWidget {
                 },
                 titleColor:
                     retryButtonTextColor ??
-                    Theme.of(context).scaffoldBackgroundColor,
+                    Theme.of(context).colorScheme.onPrimary,
                 buttonTitle: UiUtils.getTranslatedLabel(context, retryKey),
                 showBorder: false,
               )

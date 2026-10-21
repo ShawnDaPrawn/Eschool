@@ -3,7 +3,12 @@ import 'package:flutter/material.dart';
 
 class CustomTabBarContainer extends StatelessWidget {
   const CustomTabBarContainer({
-    required this.boxConstraints, required this.alignment, required this.isSelected, required this.onTap, required this.titleKey, super.key,
+    required this.boxConstraints,
+    required this.alignment,
+    required this.isSelected,
+    required this.onTap,
+    required this.titleKey,
+    super.key,
     this.customPostFix,
   });
   final BoxConstraints boxConstraints;
@@ -22,8 +27,9 @@ class CustomTabBarContainer extends StatelessWidget {
           onTap();
         },
         child: Container(
-          decoration:
-              BoxDecoration(border: Border.all(color: Colors.transparent)),
+          decoration: BoxDecoration(
+            border: Border.all(color: Colors.transparent),
+          ),
           alignment: Alignment.center,
           margin: EdgeInsets.only(
             left: boxConstraints.maxWidth * 0.1,
@@ -43,8 +49,8 @@ class CustomTabBarContainer extends StatelessWidget {
                   fontSize: 15,
                   fontWeight: FontWeight.w600,
                   color: isSelected
-                      ? Theme.of(context).colorScheme.onSurface
-                      : Theme.of(context).scaffoldBackgroundColor,
+                      ? Theme.of(context).colorScheme.onSurfaceVariant
+                      : Theme.of(context).colorScheme.onPrimary,
                 ),
                 child: Text(
                   UiUtils.getTranslatedLabel(context, titleKey),

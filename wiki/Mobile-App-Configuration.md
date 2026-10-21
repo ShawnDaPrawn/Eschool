@@ -13,7 +13,7 @@ This page lists every value a deployer has to set before shipping the two Flutte
 | 7 | Firebase iOS | add `ios/Runner/GoogleService-Info.plist` | add `ios/Runner/GoogleService-Info.plist` |
 | 8 | Branding | `assets/images/branding/` | `assets/images/branding/` |
 | 9 | Launcher icons | `flutter_launcher_icons` block in `pubspec.yaml` | same |
-| 10 | Colours | `lib/ui/styles/colors.dart` | `lib/ui/styles/colors.dart` |
+| 10 | Colours | `packages/eschool_core/lib/src/theme/brand_colors.dart` (shared) | same file |
 | 11 | Font | `google_fonts/` + `GoogleFonts.poppinsTextTheme` in `lib/app/app.dart` | same |
 | 12 | Languages | `lib/utils/appLanguages.dart`, `assets/languages/` | same |
 | 13 | Release signing | `android/key.properties` + keystore | same |
@@ -118,22 +118,15 @@ Replace the files keeping their names, then run `dart run flutter_launcher_icons
 
 ## Theme colours
 
-`lib/ui/styles/colors.dart` (values identical in both apps):
+Both apps take their colours from one file in the shared package, [`packages/eschool_core/lib/src/theme/brand_colors.dart`](https://github.com/ShawnDaPrawn/Eschool/blob/main/packages/eschool_core/lib/src/theme/brand_colors.dart):
 
-| Constant | Value | Applied as |
+| Constant | Value | Used as |
 |---|---|---|
-| `primaryColor` | `0xff22577A` | `ThemeData.primaryColor`, `colorScheme.primary` |
-| `secondaryColor` | `0xff212121` | `colorScheme.secondary` |
-| `pageBackgroundColor` | `0xffFFFFFF` | `scaffoldBackgroundColor`, system navigation bar |
-| `surfaceColor` | `0xfff6f6f6` | `colorScheme.surface` |
-| `errorColor` | `0xffff6769` | `colorScheme.error` |
-| `onSurfaceColor` | `0xff484848` | `colorScheme.onSurface` |
-| `onPrimaryColor` | `0xff3bcc97` | `colorScheme.onPrimary` |
-| `onSecondaryColor` | `0xff57cc99` | `colorScheme.onSecondary` |
-| `palletGreen`/`palletYellow`/`palletRed`/`palletBlue` | `onSecondaryColor`, `0xffFFA74F`, `0xffff6769`, `0xff4FA2FF` | status cards (teacher: also `myClassesColors`) |
-| `hintTextColor` | `0xff7c7c7c` | text field hints |
+| `primary` | `0xff22577A` | Seeds the Material 3 colour scheme; `colorScheme.primary` exactly |
+| `accent` | `0xff3bcc97` | Seeds the tertiary roles; `colorScheme.tertiaryContainer` exactly |
+| `success` / `warning` / `danger` / `info` | `0xff57cc99`, `0xffFFA74F`, `0xffff6769`, `0xff4FA2FF` | `StatusColors` (attendance, fees, results, the teacher's class colours); the text on each is picked for contrast |
 
-The teacher file adds `assignmentViewButtonColor` (`0xff65a3fe`) and `assignmentDownloadButtonColor` (`0xfffdb46c`). The colours are wired into `MaterialApp.theme` in `lib/app/app.dart`. The Android launch screen is `res/drawable/launch_background.xml` (and `drawable-v21/`), referenced by `LaunchTheme` in `res/values/styles.xml` and `res/values-night/styles.xml`; `res/values/colors.xml` holds `ic_launcher_background` `#FFFFFF`. Docs: https://shawndaprawn.github.io/Eschool/mobile-app/change-app-theme/
+Every other colour (text, backgrounds, borders, containers, and Material 3's error red) is generated from `primary` by `AppTheme.lightColorScheme()` in `app_theme.dart`, and `lib/app/app.dart` in each app passes `AppTheme.light(...)` to `MaterialApp`. Change the brand in `brand_colors.dart` only, then follow [UI-Standards](UI-Standards#changing-the-brand): the contrast tests and the screenshot test in the shared package check the result. The Android launch screen is `res/drawable/launch_background.xml` (and `drawable-v21/`), referenced by `LaunchTheme` in `res/values/styles.xml` and `res/values-night/styles.xml`; `res/values/colors.xml` holds `ic_launcher_background` `#FFFFFF`. Docs: https://shawndaprawn.github.io/Eschool/mobile-app/change-app-theme/
 
 ## Font
 

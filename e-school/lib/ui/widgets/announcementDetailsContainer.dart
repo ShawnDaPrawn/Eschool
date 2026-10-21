@@ -13,7 +13,7 @@ class AnnouncementDetailsContainer extends StatelessWidget {
       margin: const EdgeInsets.only(bottom: 20),
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 15),
       decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surface,
+        color: Theme.of(context).colorScheme.surfaceContainerLow,
         borderRadius: BorderRadius.circular(10),
       ),
       width: MediaQuery.sizeOf(context).width * 0.85,
@@ -26,7 +26,7 @@ class AnnouncementDetailsContainer extends StatelessWidget {
                 announcement.title,
                 style: TextStyle(
                   height: 1.2,
-                  color: Theme.of(context).colorScheme.secondary,
+                  color: Theme.of(context).colorScheme.onSurface,
                   fontSize: 15,
                   fontWeight: FontWeight.w500,
                 ),
@@ -38,7 +38,7 @@ class AnnouncementDetailsContainer extends StatelessWidget {
                       announcement.description,
                       style: TextStyle(
                         height: 1.2,
-                        color: Theme.of(context).colorScheme.secondary,
+                        color: Theme.of(context).colorScheme.onSurface,
                         fontWeight: FontWeight.w400,
                         fontSize: 11.5,
                       ),
@@ -56,7 +56,7 @@ class AnnouncementDetailsContainer extends StatelessWidget {
                     Icons.calendar_month_outlined,
                     color: Theme.of(
                       context,
-                    ).colorScheme.onSurface.withValues(alpha: 0.75),
+                    ).colorScheme.onSurfaceVariant.withValues(alpha: 0.75),
                     size: 14,
                   ),
                   const SizedBox(width: 5),
@@ -66,7 +66,7 @@ class AnnouncementDetailsContainer extends StatelessWidget {
                       style: TextStyle(
                         color: Theme.of(
                           context,
-                        ).colorScheme.onSurface.withValues(alpha: 0.75),
+                        ).colorScheme.onSurfaceVariant.withValues(alpha: 0.75),
                         fontWeight: FontWeight.w400,
                         fontSize: 10,
                       ),

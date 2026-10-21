@@ -113,7 +113,7 @@ class ChildInformationItemsContainerState
           Text(
             UiUtils.getTranslatedLabel(context, informationKey),
             style: TextStyle(
-              color: UiUtils.getColorScheme(context).secondary,
+              color: UiUtils.getColorScheme(context).onSurface,
               fontWeight: FontWeight.w600,
               fontSize: 16,
             ),
@@ -155,7 +155,7 @@ class ChildInformationItemsContainerState
               border: Border.all(
                 color: Theme.of(
                   context,
-                ).colorScheme.secondary.withValues(alpha: 0.25),
+                ).colorScheme.onSurface.withValues(alpha: 0.25),
               ),
             ),
             child: LayoutBuilder(
@@ -167,9 +167,8 @@ class ChildInformationItemsContainerState
                       margin: const EdgeInsets.symmetric(horizontal: 10),
                       height: 60,
                       decoration: BoxDecoration(
-                        color: Theme.of(
-                          context,
-                        ).colorScheme.onSecondary.withValues(alpha: 0.225),
+                        color: Theme.of(context).colorScheme.tertiaryContainer
+                            .withValues(alpha: 0.225),
                         borderRadius: BorderRadius.circular(15),
                       ),
                       width: boxConstraints.maxWidth * 0.225,
@@ -186,7 +185,7 @@ class ChildInformationItemsContainerState
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                         style: TextStyle(
-                          color: Theme.of(context).colorScheme.secondary,
+                          color: Theme.of(context).colorScheme.onSurface,
                           fontWeight: FontWeight.w500,
                           fontSize: 15,
                         ),
@@ -194,12 +193,14 @@ class ChildInformationItemsContainerState
                     ),
                     const Spacer(),
                     CircleAvatar(
-                      backgroundColor: Theme.of(context).colorScheme.secondary,
+                      backgroundColor: Theme.of(
+                        context,
+                      ).colorScheme.inverseSurface,
                       radius: 17.5,
                       child: Icon(
                         Icons.arrow_forward,
                         size: 22.5,
-                        color: Theme.of(context).scaffoldBackgroundColor,
+                        color: Theme.of(context).colorScheme.onInverseSurface,
                       ),
                     ),
                     SizedBox(width: boxConstraints.maxWidth * 0.035),

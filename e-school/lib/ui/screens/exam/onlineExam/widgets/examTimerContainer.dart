@@ -5,7 +5,9 @@ import 'package:flutter/material.dart';
 
 class ExamTimerContainer extends StatefulWidget {
   const ExamTimerContainer({
-    required this.examDurationInMinutes, required this.navigateToResultScreen, super.key,
+    required this.examDurationInMinutes,
+    required this.navigateToResultScreen,
+    super.key,
   });
   final int examDurationInMinutes;
   final Function navigateToResultScreen;
@@ -68,9 +70,7 @@ class ExamTimerContainerState extends State<ExamTimerContainer> {
       child: Text(
         hours.isEmpty ? '$minutes:$seconds' : '$hours:$minutes:$seconds',
         textAlign: TextAlign.center,
-        style: TextStyle(
-          color: UiUtils.getColorScheme(context).surface,
-        ),
+        style: TextStyle(color: UiUtils.getColorScheme(context).onPrimary),
       ),
     );
   }

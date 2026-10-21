@@ -26,9 +26,16 @@ class HomeAssignmentContainer extends StatelessWidget {
       effects: customItemFadeAppearanceEffects(),
       child: Container(
         decoration: BoxDecoration(
-          color: Theme.of(context).scaffoldBackgroundColor,
+          color: Theme.of(context).colorScheme.surface,
           borderRadius: BorderRadius.circular(10),
-          boxShadow: const [BoxShadow(color: Colors.black26, blurRadius: 1)],
+          boxShadow: [
+            BoxShadow(
+              color: Theme.of(
+                context,
+              ).colorScheme.shadow.withValues(alpha: 0.26),
+              blurRadius: 1,
+            ),
+          ],
         ),
         margin: const EdgeInsets.only(bottom: 20),
         clipBehavior: Clip.antiAlias,
@@ -85,7 +92,7 @@ class HomeAssignmentContainer extends StatelessWidget {
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                         style: TextStyle(
-                          color: UiUtils.getColorScheme(context).secondary,
+                          color: UiUtils.getColorScheme(context).onSurface,
                           fontWeight: FontWeight.w600,
                           fontSize: 14,
                         ),
@@ -104,9 +111,8 @@ class HomeAssignmentContainer extends StatelessWidget {
                         maxLines: 2,
                         overflow: TextOverflow.ellipsis,
                         style: TextStyle(
-                          color: Theme.of(
-                            context,
-                          ).colorScheme.onSurface.withValues(alpha: 0.75),
+                          color: Theme.of(context).colorScheme.onSurfaceVariant
+                              .withValues(alpha: 0.75),
                           fontSize: 12,
                         ),
                       ),

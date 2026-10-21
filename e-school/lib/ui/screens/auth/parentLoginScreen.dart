@@ -7,7 +7,6 @@ import 'package:eschool/data/repositories/settingsRepository.dart';
 import 'package:eschool/ui/screens/auth/widgets/forgotPasswordRequestBottomsheet.dart';
 import 'package:eschool/ui/screens/auth/widgets/termsAndConditionAndPrivacyPolicyContainer.dart';
 import 'package:eschool_core/eschool_core.dart';
-import 'package:eschool/ui/widgets/customRoundedButton.dart';
 import 'package:eschool/ui/widgets/customTextFieldContainer.dart';
 import 'package:eschool/ui/widgets/passwordHideShowButton.dart';
 import 'package:eschool/utils/assets.dart';
@@ -137,7 +136,7 @@ class _ParentLoginScreenState extends State<ParentLoginScreen>
                   context: context,
                   errorMessage:
                       "${UiUtils.getTranslatedLabel(context, passwordUpdateLinkSentKey)} ${value['email']}",
-                  backgroundColor: Theme.of(context).colorScheme.onPrimary,
+                  backgroundColor: StatusColors.of(context).success,
                 );
               }
             });
@@ -214,7 +213,7 @@ class _ParentLoginScreenState extends State<ParentLoginScreen>
                         style: TextStyle(
                           fontSize: 34,
                           fontWeight: FontWeight.bold,
-                          color: UiUtils.getColorScheme(context).secondary,
+                          color: UiUtils.getColorScheme(context).onSurface,
                         ),
                       ),
                       const SizedBox(height: 10),
@@ -223,7 +222,7 @@ class _ParentLoginScreenState extends State<ParentLoginScreen>
                         style: TextStyle(
                           fontSize: 24,
                           height: 1.5,
-                          color: UiUtils.getColorScheme(context).secondary,
+                          color: UiUtils.getColorScheme(context).onSurface,
                         ),
                       ),
                       const SizedBox(height: 30),
@@ -238,7 +237,7 @@ class _ParentLoginScreenState extends State<ParentLoginScreen>
                           child: SvgPicture.asset(
                             Assets.mailIcon,
                             colorFilter: ColorFilter.mode(
-                              UiUtils.getColorScheme(context).secondary,
+                              UiUtils.getColorScheme(context).onSurface,
                               BlendMode.srcIn,
                             ),
                           ),
@@ -311,7 +310,7 @@ class _ParentLoginScreenState extends State<ParentLoginScreen>
                               ),
                               titleColor: Theme.of(
                                 context,
-                              ).scaffoldBackgroundColor,
+                              ).colorScheme.onPrimary,
                               showBorder: false,
                               child: state is SignInInProgress
                                   ? const CustomCircularProgressIndicator(
@@ -358,7 +357,7 @@ class _ParentLoginScreenState extends State<ParentLoginScreen>
                                         fontSize: 16,
                                         color: UiUtils.getColorScheme(
                                           context,
-                                        ).secondary,
+                                        ).onSurface,
                                       ),
                                       text:
                                           '${UiUtils.getTranslatedLabel(context, studentKey)}?',

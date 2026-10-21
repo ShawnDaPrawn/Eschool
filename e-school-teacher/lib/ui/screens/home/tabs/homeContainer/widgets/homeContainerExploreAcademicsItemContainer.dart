@@ -38,7 +38,7 @@ class HomeContainerExploreAcademicsItemContainer extends StatelessWidget {
         borderRadius: BorderRadius.circular(4),
         child: Container(
           decoration: BoxDecoration(
-            color: Theme.of(context).colorScheme.surface,
+            color: Theme.of(context).colorScheme.surfaceContainerLow,
             borderRadius: BorderRadius.circular(4),
           ),
           padding: const EdgeInsets.only(top: 12, left: 8, right: 8),
@@ -51,7 +51,9 @@ class HomeContainerExploreAcademicsItemContainer extends StatelessWidget {
                     width: constraints.maxWidth * 0.6,
                     padding: const EdgeInsets.all(12),
                     decoration: BoxDecoration(
-                      color: Theme.of(context).scaffoldBackgroundColor,
+                      color: Theme.of(
+                        context,
+                      ).colorScheme.surfaceContainerLowest,
                       borderRadius: BorderRadius.circular(4),
                     ),
                     child: SvgPicture.asset(item.iconPath),
@@ -61,7 +63,7 @@ class HomeContainerExploreAcademicsItemContainer extends StatelessWidget {
                     UiUtils.getTranslatedLabel(context, item.titleKey),
                     textAlign: TextAlign.center,
                     style: TextStyle(
-                      color: Theme.of(context).colorScheme.secondary,
+                      color: Theme.of(context).colorScheme.onSurface,
                       fontWeight: FontWeight.w500,
                       fontSize: 12,
                     ),

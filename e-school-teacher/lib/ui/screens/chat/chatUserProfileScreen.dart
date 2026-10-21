@@ -42,10 +42,12 @@ class _ChatUserProfileScreenState extends State<ChatUserProfileScreen> {
             width: 50,
             height: 50,
             decoration: BoxDecoration(
-              boxShadow: const [
+              boxShadow: [
                 BoxShadow(
-                  color: Color(0x1a212121),
-                  offset: Offset(0, 10),
+                  color: Theme.of(
+                    context,
+                  ).colorScheme.shadow.withValues(alpha: 0.1),
+                  offset: const Offset(0, 10),
                   blurRadius: 16,
                 ),
               ],
@@ -64,7 +66,7 @@ class _ChatUserProfileScreenState extends State<ChatUserProfileScreen> {
                   Text(
                     label,
                     style: TextStyle(
-                      color: Theme.of(context).colorScheme.onSurface,
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
                       fontWeight: FontWeight.w400,
                       fontSize: 12,
                     ),
@@ -72,7 +74,7 @@ class _ChatUserProfileScreenState extends State<ChatUserProfileScreen> {
                   Text(
                     value,
                     style: TextStyle(
-                      color: Theme.of(context).colorScheme.onSurface,
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
                       fontWeight: FontWeight.w500,
                       fontSize: 14,
                     ),
@@ -94,7 +96,7 @@ class _ChatUserProfileScreenState extends State<ChatUserProfileScreen> {
       width: MediaQuery.sizeOf(context).width,
       padding: const EdgeInsets.symmetric(horizontal: 12.50, vertical: 15),
       decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surface,
+        color: Theme.of(context).colorScheme.surfaceContainerLow,
         borderRadius: BorderRadius.circular(10),
       ),
       child: Row(
@@ -189,7 +191,7 @@ class _ChatUserProfileScreenState extends State<ChatUserProfileScreen> {
                             style: TextStyle(
                               fontSize: UiUtils.screenTitleFontSize,
                               fontWeight: FontWeight.w500,
-                              color: Theme.of(context).scaffoldBackgroundColor,
+                              color: Theme.of(context).colorScheme.onPrimary,
                             ),
                           ),
                         ),
@@ -204,7 +206,7 @@ class _ChatUserProfileScreenState extends State<ChatUserProfileScreen> {
                       height: MediaQuery.sizeOf(context).width * 0.3,
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
-                        color: Theme.of(context).scaffoldBackgroundColor,
+                        color: Theme.of(context).colorScheme.surface,
                       ),
                       child: Container(
                         decoration: BoxDecoration(
@@ -227,7 +229,7 @@ class _ChatUserProfileScreenState extends State<ChatUserProfileScreen> {
               overflow: TextOverflow.ellipsis,
               style: TextStyle(
                 fontWeight: FontWeight.w500,
-                color: Theme.of(context).colorScheme.secondary,
+                color: Theme.of(context).colorScheme.onSurface,
                 fontSize: 18,
               ),
             ),
@@ -242,7 +244,7 @@ class _ChatUserProfileScreenState extends State<ChatUserProfileScreen> {
                 fontWeight: FontWeight.w500,
                 color: Theme.of(
                   context,
-                ).colorScheme.secondary.withValues(alpha: 0.6),
+                ).colorScheme.onSurface.withValues(alpha: 0.6),
                 fontSize: 14,
               ),
             ),
@@ -254,7 +256,7 @@ class _ChatUserProfileScreenState extends State<ChatUserProfileScreen> {
               child: Divider(
                 color: Theme.of(
                   context,
-                ).colorScheme.onSurface.withValues(alpha: 0.75),
+                ).colorScheme.onSurfaceVariant.withValues(alpha: 0.75),
               ),
             ),
             const SizedBox(height: 10),
@@ -269,7 +271,7 @@ class _ChatUserProfileScreenState extends State<ChatUserProfileScreen> {
                     child: Text(
                       UiUtils.getTranslatedLabel(context, personalDetailsKey),
                       style: TextStyle(
-                        color: Theme.of(context).colorScheme.onSurface,
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
                         fontSize: 15,
                         fontWeight: FontWeight.w500,
                       ),
@@ -303,7 +305,9 @@ class _ChatUserProfileScreenState extends State<ChatUserProfileScreen> {
                             childrenDetailsKey,
                           ),
                           style: TextStyle(
-                            color: Theme.of(context).colorScheme.onSurface,
+                            color: Theme.of(
+                              context,
+                            ).colorScheme.onSurfaceVariant,
                             fontSize: 15,
                             fontWeight: FontWeight.w500,
                           ),

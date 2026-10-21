@@ -12,7 +12,7 @@ import 'package:eschool/ui/widgets/errorContainer.dart';
 import 'package:eschool/ui/widgets/shimmerLoadingContainer.dart';
 import 'package:eschool/utils/labelKeys.dart';
 import 'package:eschool/utils/uiUtils.dart';
-import 'package:eschool/ui/styles/colors.dart';
+import 'package:eschool_core/eschool_core.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -220,12 +220,12 @@ class _LeaveReportTabState extends State<LeaveReportTab>
       margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 15),
       padding: const EdgeInsets.all(15),
       decoration: BoxDecoration(
-        color: Theme.of(context).scaffoldBackgroundColor,
+        color: Theme.of(context).colorScheme.surface,
         borderRadius: BorderRadius.circular(8),
         border: Border.all(
           color: Theme.of(
             context,
-          ).colorScheme.secondary.withValues(alpha: 0.25),
+          ).colorScheme.onSurface.withValues(alpha: 0.25),
         ),
       ),
       child: Row(
@@ -243,21 +243,21 @@ class _LeaveReportTabState extends State<LeaveReportTab>
                     sections: [
                       if (data.completed > 0)
                         PieChartSectionData(
-                          color: palletGreen,
+                          color: StatusColors.of(context).success,
                           value: data.completed.toDouble(),
                           title: '',
                           radius: 12,
                         ),
                       if (data.pending > 0)
                         PieChartSectionData(
-                          color: palletYellow,
+                          color: StatusColors.of(context).warning,
                           value: data.pending.toDouble(),
                           title: '',
                           radius: 12,
                         ),
                       if (data.rejected > 0)
                         PieChartSectionData(
-                          color: palletRed,
+                          color: StatusColors.of(context).danger,
                           value: data.rejected.toDouble(),
                           title: '',
                           radius: 12,
@@ -274,7 +274,7 @@ class _LeaveReportTabState extends State<LeaveReportTab>
                         fontSize: 10,
                         color: Theme.of(
                           context,
-                        ).colorScheme.secondary.withValues(alpha: 0.7),
+                        ).colorScheme.onSurface.withValues(alpha: 0.7),
                       ),
                     ),
                     Text(
@@ -282,7 +282,7 @@ class _LeaveReportTabState extends State<LeaveReportTab>
                       style: TextStyle(
                         fontSize: 20,
                         fontWeight: FontWeight.bold,
-                        color: Theme.of(context).colorScheme.secondary,
+                        color: Theme.of(context).colorScheme.onSurface,
                       ),
                     ),
                   ],
@@ -296,17 +296,17 @@ class _LeaveReportTabState extends State<LeaveReportTab>
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 _buildLegendItem(
-                  palletGreen,
+                  StatusColors.of(context).success,
                   "${UiUtils.getTranslatedLabel(context, completedKey)} : ${data.completed}",
                 ),
                 const SizedBox(height: 8),
                 _buildLegendItem(
-                  palletYellow,
+                  StatusColors.of(context).warning,
                   "${UiUtils.getTranslatedLabel(context, pendingKey)} : ${data.pending}",
                 ),
                 const SizedBox(height: 8),
                 _buildLegendItem(
-                  palletRed,
+                  StatusColors.of(context).danger,
                   "${UiUtils.getTranslatedLabel(context, rejectedKey)} : ${data.rejected}",
                 ),
               ],
@@ -332,7 +332,7 @@ class _LeaveReportTabState extends State<LeaveReportTab>
             fontSize: 13,
             color: Theme.of(
               context,
-            ).colorScheme.secondary.withValues(alpha: 0.8),
+            ).colorScheme.onSurface.withValues(alpha: 0.8),
           ),
         ),
       ],

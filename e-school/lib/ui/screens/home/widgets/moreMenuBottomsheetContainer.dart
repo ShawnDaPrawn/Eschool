@@ -11,7 +11,9 @@ import 'package:flutter_svg/flutter_svg.dart';
 
 class MoreMenuBottomsheetContainer extends StatelessWidget {
   const MoreMenuBottomsheetContainer({
-    required this.onTapMoreMenuItemContainer, required this.closeBottomMenu, super.key,
+    required this.onTapMoreMenuItemContainer,
+    required this.closeBottomMenu,
+    super.key,
   });
   final Function onTapMoreMenuItemContainer;
   final Function closeBottomMenu;
@@ -37,11 +39,11 @@ class MoreMenuBottomsheetContainer extends StatelessWidget {
                 border: Border.all(
                   color: Theme.of(
                     context,
-                  ).colorScheme.onSurface.withValues(alpha: 0.5),
+                  ).colorScheme.onSurfaceVariant.withValues(alpha: 0.5),
                 ),
                 color: Theme.of(
                   context,
-                ).colorScheme.onSecondary.withValues(alpha: 0.2),
+                ).colorScheme.tertiaryContainer.withValues(alpha: 0.2),
                 borderRadius: BorderRadius.circular(15),
               ),
               margin: EdgeInsets.symmetric(
@@ -61,7 +63,7 @@ class MoreMenuBottomsheetContainer extends StatelessWidget {
                 overflow: TextOverflow.ellipsis,
                 textAlign: TextAlign.center,
                 style: TextStyle(
-                  color: Theme.of(context).colorScheme.secondary,
+                  color: Theme.of(context).colorScheme.onSurface,
                   fontSize: 14,
                 ),
               ),
@@ -78,7 +80,7 @@ class MoreMenuBottomsheetContainer extends StatelessWidget {
       padding: const EdgeInsets.only(top: 25, right: 25, left: 25),
       width: MediaQuery.sizeOf(context).width,
       decoration: BoxDecoration(
-        color: Theme.of(context).scaffoldBackgroundColor,
+        color: Theme.of(context).colorScheme.surface,
         borderRadius: const BorderRadius.only(
           topLeft: Radius.circular(25),
           topRight: Radius.circular(25),
@@ -97,7 +99,7 @@ class MoreMenuBottomsheetContainer extends StatelessWidget {
                     decoration: BoxDecoration(
                       border: Border.all(
                         width: 2,
-                        color: Theme.of(context).colorScheme.onSurface,
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
                       ),
                       borderRadius: BorderRadius.circular(
                         boxConstraints.maxWidth * 0.11,
@@ -108,7 +110,7 @@ class MoreMenuBottomsheetContainer extends StatelessWidget {
                           .read<AuthCubit>()
                           .getStudentDetails()
                           .image,
-                      color: Colors.black,
+                      color: Theme.of(context).colorScheme.onSurface,
                     ),
                   ),
                   SizedBox(width: boxConstraints.maxWidth * 0.075),
@@ -124,7 +126,7 @@ class MoreMenuBottomsheetContainer extends StatelessWidget {
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                           style: TextStyle(
-                            color: Theme.of(context).colorScheme.secondary,
+                            color: Theme.of(context).colorScheme.onSurface,
                             fontWeight: FontWeight.w500,
                             fontSize: 18,
                           ),
@@ -142,7 +144,7 @@ class MoreMenuBottomsheetContainer extends StatelessWidget {
                                   fontWeight: FontWeight.w400,
                                   color: Theme.of(
                                     context,
-                                  ).colorScheme.onSurface,
+                                  ).colorScheme.onSurfaceVariant,
                                 ),
                               ),
                             ),
@@ -150,7 +152,9 @@ class MoreMenuBottomsheetContainer extends StatelessWidget {
                             Container(
                               width: 1.5,
                               height: 12,
-                              color: Theme.of(context).colorScheme.onSurface,
+                              color: Theme.of(
+                                context,
+                              ).colorScheme.onSurfaceVariant,
                             ),
                             const SizedBox(width: 10),
                             Flexible(
@@ -163,7 +167,7 @@ class MoreMenuBottomsheetContainer extends StatelessWidget {
                                   fontWeight: FontWeight.w400,
                                   color: Theme.of(
                                     context,
-                                  ).colorScheme.onSurface,
+                                  ).colorScheme.onSurfaceVariant,
                                 ),
                               ),
                             ),
@@ -188,7 +192,7 @@ class MoreMenuBottomsheetContainer extends StatelessWidget {
                         angle: pi,
                         child: Icon(
                           Icons.arrow_back_ios,
-                          color: Theme.of(context).colorScheme.secondary,
+                          color: Theme.of(context).colorScheme.onSurface,
                         ),
                       ),
                     ),
@@ -196,7 +200,7 @@ class MoreMenuBottomsheetContainer extends StatelessWidget {
                 ],
               ),
               Divider(
-                color: Theme.of(context).colorScheme.onSurface,
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
                 height: 50,
               ),
               Wrap(

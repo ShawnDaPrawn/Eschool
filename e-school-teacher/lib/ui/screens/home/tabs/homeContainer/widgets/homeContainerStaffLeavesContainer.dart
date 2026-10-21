@@ -7,7 +7,10 @@ import 'package:flutter/material.dart';
 
 class HomeContainerStaffLeavesContainer extends StatefulWidget {
   const HomeContainerStaffLeavesContainer({
-    required this.today, required this.tomorrow, required this.upcoming, super.key,
+    required this.today,
+    required this.tomorrow,
+    required this.upcoming,
+    super.key,
   });
   final List<StaffLeave> today;
   final List<StaffLeave> tomorrow;
@@ -21,8 +24,10 @@ class HomeContainerStaffLeavesContainer extends StatefulWidget {
 class _HomeContainerStaffLeavesContainerState
     extends State<HomeContainerStaffLeavesContainer>
     with SingleTickerProviderStateMixin {
-  late final TabController _tabController =
-      TabController(length: 3, vsync: this);
+  late final TabController _tabController = TabController(
+    length: 3,
+    vsync: this,
+  );
 
   @override
   void dispose() {
@@ -36,8 +41,9 @@ class _HomeContainerStaffLeavesContainerState
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(8),
         border: Border.all(
-          color:
-              Theme.of(context).colorScheme.secondary.withValues(alpha: 0.25),
+          color: Theme.of(
+            context,
+          ).colorScheme.onSurface.withValues(alpha: 0.25),
         ),
       ),
       child: Column(
@@ -53,13 +59,9 @@ class _HomeContainerStaffLeavesContainerState
                   borderRadius: BorderRadius.circular(2),
                 ),
                 clipBehavior: Clip.antiAlias,
-                child: CustomImageWidget(
-                  imagePath: leave.image,
-                ),
+                child: CustomImageWidget(imagePath: leave.image),
               ),
-              const SizedBox(
-                width: 8,
-              ),
+              const SizedBox(width: 8),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -69,21 +71,19 @@ class _HomeContainerStaffLeavesContainerState
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
                       style: TextStyle(
-                        color: Theme.of(context).colorScheme.secondary,
+                        color: Theme.of(context).colorScheme.onSurface,
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
-                    const SizedBox(
-                      height: 4,
-                    ),
+                    const SizedBox(height: 4),
                     Text(
                       '${UiUtils.getTranslatedLabel(context, roleKey)} : ${leave.role}',
                       textAlign: TextAlign.start,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: TextStyle(
-                        color: Theme.of(context).colorScheme.onSurface,
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
                         fontSize: 14,
                         fontWeight: FontWeight.w500,
                       ),
@@ -94,8 +94,9 @@ class _HomeContainerStaffLeavesContainerState
             ],
           ),
           Divider(
-            color:
-                Theme.of(context).colorScheme.secondary.withValues(alpha: 0.25),
+            color: Theme.of(
+              context,
+            ).colorScheme.onSurface.withValues(alpha: 0.25),
           ),
           Row(
             children: [
@@ -108,36 +109,31 @@ class _HomeContainerStaffLeavesContainerState
                         child: Icon(
                           Icons.calendar_month_outlined,
                           size: 18,
-                          color: Theme.of(context).colorScheme.onSurface,
+                          color: Theme.of(context).colorScheme.onSurfaceVariant,
                         ),
                       ),
-                      TextSpan(
-                        text: ' ${leave.date}',
-                      ),
+                      TextSpan(text: ' ${leave.date}'),
                     ],
                   ),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: TextStyle(
-                    color: Theme.of(context).colorScheme.onSurface,
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
                     fontSize: 14,
                     fontWeight: FontWeight.w400,
                   ),
                 ),
               ),
-              const SizedBox(
-                width: 8,
-              ),
+              const SizedBox(width: 8),
               Container(
                 padding: const EdgeInsets.symmetric(
                   horizontal: 12,
                   vertical: 8,
                 ),
                 decoration: BoxDecoration(
-                  color: Theme.of(context)
-                      .colorScheme
-                      .primary
-                      .withValues(alpha: 0.08),
+                  color: Theme.of(
+                    context,
+                  ).colorScheme.primary.withValues(alpha: 0.08),
                   borderRadius: BorderRadius.circular(4),
                 ),
                 child: Text(
@@ -161,9 +157,7 @@ class _HomeContainerStaffLeavesContainerState
       itemBuilder: (context, index) {
         return _buildStaffLeaveContainer(leaveList[index]);
       },
-      separatorBuilder: (context, index) => const SizedBox(
-        height: 8,
-      ),
+      separatorBuilder: (context, index) => const SizedBox(height: 8),
       itemCount: leaveList.length,
     );
   }
@@ -173,21 +167,21 @@ class _HomeContainerStaffLeavesContainerState
     return Container(
       padding: const EdgeInsets.all(8),
       decoration: BoxDecoration(
-        color: Theme.of(context).scaffoldBackgroundColor,
+        color: Theme.of(context).colorScheme.surfaceContainerLowest,
       ),
       height: 400,
       child: Column(
         children: [
           TabBar(
             controller: _tabController,
-            unselectedLabelColor: Theme.of(context).colorScheme.secondary,
+            unselectedLabelColor: Theme.of(context).colorScheme.onSurface,
             unselectedLabelStyle: const TextStyle(),
-            labelColor: Theme.of(context).scaffoldBackgroundColor,
+            labelColor: Theme.of(context).colorScheme.onTertiaryContainer,
             labelStyle: const TextStyle(fontWeight: FontWeight.bold),
             indicatorSize: TabBarIndicatorSize.tab,
             indicator: BoxDecoration(
               borderRadius: BorderRadius.circular(4),
-              color: Theme.of(context).colorScheme.onPrimary,
+              color: Theme.of(context).colorScheme.tertiaryContainer,
             ),
             indicatorWeight: 0,
             dividerHeight: 0,

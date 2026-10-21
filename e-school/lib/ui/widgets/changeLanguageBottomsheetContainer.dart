@@ -44,7 +44,7 @@ class ChangeLanguageBottomsheetContainer extends StatelessWidget {
                           ) ==
                           selectedLanguage
                       ? Theme.of(context).colorScheme.primary
-                      : Theme.of(context).scaffoldBackgroundColor,
+                      : Theme.of(context).colorScheme.surface,
                 ),
               ),
             ),
@@ -54,7 +54,7 @@ class ChangeLanguageBottomsheetContainer extends StatelessWidget {
                 appLanguage.languageName,
                 style: TextStyle(
                   fontSize: 14,
-                  color: Theme.of(context).colorScheme.secondary,
+                  color: Theme.of(context).colorScheme.onSurface,
                 ),
               ),
             ),
@@ -73,7 +73,7 @@ class ChangeLanguageBottomsheetContainer extends StatelessWidget {
       ),
       width: MediaQuery.sizeOf(context).width,
       decoration: BoxDecoration(
-        color: Theme.of(context).scaffoldBackgroundColor,
+        color: Theme.of(context).colorScheme.surface,
         borderRadius: BorderRadius.only(
           topLeft: Radius.circular(UiUtils.bottomSheetTopRadius),
           topRight: Radius.circular(UiUtils.bottomSheetTopRadius),
@@ -87,13 +87,15 @@ class ChangeLanguageBottomsheetContainer extends StatelessWidget {
             UiUtils.getTranslatedLabel(context, appLanguageKey),
             style: TextStyle(
               fontSize: 16,
-              color: Theme.of(context).colorScheme.secondary,
+              color: Theme.of(context).colorScheme.onSurface,
               fontWeight: FontWeight.bold,
             ),
           ),
           Padding(
             padding: const EdgeInsets.symmetric(vertical: 10),
-            child: Divider(color: Theme.of(context).colorScheme.onSurface),
+            child: Divider(
+              color: Theme.of(context).colorScheme.onSurfaceVariant,
+            ),
           ),
           BlocBuilder<AppLocalizationCubit, AppLocalizationState>(
             builder: (context, state) {

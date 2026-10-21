@@ -7,7 +7,9 @@ import 'package:flutter/material.dart';
 
 class MonthPickerBottomsheetContainer extends StatelessWidget {
   const MonthPickerBottomsheetContainer({
-    required this.monthList, required this.selectedMonth, super.key,
+    required this.monthList,
+    required this.selectedMonth,
+    super.key,
   });
   final List<Month> monthList;
   final Month? selectedMonth;
@@ -16,7 +18,7 @@ class MonthPickerBottomsheetContainer extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
-        color: Theme.of(context).scaffoldBackgroundColor,
+        color: Theme.of(context).colorScheme.surface,
         borderRadius: BorderRadius.only(
           topLeft: Radius.circular(UiUtils.bottomSheetTopRadius),
           topRight: Radius.circular(UiUtils.bottomSheetTopRadius),
@@ -67,7 +69,7 @@ class MonthPickerBottomsheetContainer extends StatelessWidget {
                               textAlign: TextAlign.start,
                               style: TextStyle(
                                 fontSize: 16,
-                                color: Theme.of(context).colorScheme.secondary,
+                                color: Theme.of(context).colorScheme.onSurface,
                                 fontWeight: FontWeight.w500,
                               ),
                             ),

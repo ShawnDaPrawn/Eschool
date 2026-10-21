@@ -1,11 +1,11 @@
 import 'package:eschool/cubits/appConfigurationCubit.dart';
 import 'package:eschool/data/models/examsOnline.dart';
 import 'package:eschool/ui/screens/exam/onlineExam/cubits/examOnlineCubit.dart';
-import 'package:eschool/ui/widgets/customRoundedButton.dart';
 import 'package:eschool/utils/errorMessageKeysAndCodes.dart';
 import 'package:eschool/utils/extensions.dart';
 import 'package:eschool/utils/labelKeys.dart';
 import 'package:eschool/utils/uiUtils.dart';
+import 'package:eschool_core/eschool_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_html/flutter_html.dart';
@@ -64,13 +64,13 @@ class ExamOnlineKeyBottomsheetContainerState
                   width: 1.5,
                   color: rulesAccepted
                       ? UiUtils.getColorScheme(context).primary
-                      : UiUtils.getColorScheme(context).secondary,
+                      : UiUtils.getColorScheme(context).onSurface,
                 ),
               ),
               child: rulesAccepted
                   ? Icon(
                       Icons.check,
-                      color: Theme.of(context).colorScheme.surface,
+                      color: Theme.of(context).colorScheme.onPrimary,
                       size: 15,
                     )
                   : const SizedBox(),
@@ -79,7 +79,7 @@ class ExamOnlineKeyBottomsheetContainerState
           10.sizedBoxWidth,
           Text(
             UiUtils.getTranslatedLabel(context, iAgreeWithExamRulesKey),
-            style: TextStyle(color: UiUtils.getColorScheme(context).secondary),
+            style: TextStyle(color: UiUtils.getColorScheme(context).onSurface),
           ),
         ],
       ),
@@ -91,7 +91,7 @@ class ExamOnlineKeyBottomsheetContainerState
       margin: EdgeInsets.symmetric(
         horizontal: MediaQuery.sizeOf(context).width * 0.127,
       ),
-      child: Divider(color: UiUtils.getColorScheme(context).secondary),
+      child: Divider(color: UiUtils.getColorScheme(context).onSurface),
     );
   }
 
@@ -120,20 +120,24 @@ class ExamOnlineKeyBottomsheetContainerState
       padding: const EdgeInsetsDirectional.only(start: 20),
       height: 55,
       decoration: BoxDecoration(
-        border: Border.all(color: UiUtils.getColorScheme(context).surface),
+        border: Border.all(
+          color: UiUtils.getColorScheme(context).surfaceContainerLow,
+        ),
         borderRadius: BorderRadius.circular(10),
-        color: UiUtils.getColorScheme(context).surface,
+        color: UiUtils.getColorScheme(context).surfaceContainerLow,
       ),
       child: TextField(
         controller: textEditingController,
         style: TextStyle(
           fontWeight: FontWeight.w600,
-          color: UiUtils.getColorScheme(context).onSecondary,
+          color: UiUtils.getColorScheme(context).tertiary,
         ),
         keyboardType: TextInputType.number,
         decoration: InputDecoration(
           hintText: UiUtils.getTranslatedLabel(context, enterExamKey),
-          hintStyle: TextStyle(color: Theme.of(context).hintColor),
+          hintStyle: TextStyle(
+            color: Theme.of(context).colorScheme.onSurfaceVariant,
+          ),
           contentPadding: EdgeInsets.zero,
           border: InputBorder.none,
         ),
@@ -157,7 +161,7 @@ class ExamOnlineKeyBottomsheetContainerState
                 ? widget.exam.subject.subjectNameWithType
                 : widget.exam.subject.name,
             style: TextStyle(
-              color: UiUtils.getColorScheme(context).secondary,
+              color: UiUtils.getColorScheme(context).onSurface,
               fontSize: 14,
               fontWeight: FontWeight.w600,
             ),
@@ -166,7 +170,7 @@ class ExamOnlineKeyBottomsheetContainerState
           Text(
             widget.exam.title,
             style: TextStyle(
-              color: UiUtils.getColorScheme(context).onSecondary,
+              color: UiUtils.getColorScheme(context).tertiary,
               fontSize: 12,
               fontWeight: FontWeight.w600,
             ),
@@ -217,7 +221,7 @@ class ExamOnlineKeyBottomsheetContainerState
               topLeft: Radius.circular(20),
               topRight: Radius.circular(20),
             ),
-            color: Theme.of(context).scaffoldBackgroundColor,
+            color: Theme.of(context).colorScheme.surface,
           ),
           child: Padding(
             padding: MediaQuery.of(context).viewInsets,
@@ -245,7 +249,7 @@ class ExamOnlineKeyBottomsheetContainerState
                                 size: 28,
                                 color: UiUtils.getColorScheme(
                                   context,
-                                ).secondary,
+                                ).onSurface,
                               ),
                             ),
                           ),
@@ -264,7 +268,7 @@ class ExamOnlineKeyBottomsheetContainerState
                       child: Text(
                         UiUtils.getTranslatedLabel(context, examRulesKey),
                         style: TextStyle(
-                          color: UiUtils.getColorScheme(context).secondary,
+                          color: UiUtils.getColorScheme(context).onSurface,
                           fontSize: 16,
                           fontWeight: FontWeight.bold,
                         ),
@@ -339,7 +343,7 @@ class ExamOnlineKeyBottomsheetContainerState
                               },
                         textSize: 18,
                         widthPercentage: 0.75,
-                        titleColor: Theme.of(context).scaffoldBackgroundColor,
+                        titleColor: Theme.of(context).colorScheme.onPrimary,
                         backgroundColor: UiUtils.getColorScheme(
                           context,
                         ).primary,

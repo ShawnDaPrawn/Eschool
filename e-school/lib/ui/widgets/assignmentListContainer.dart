@@ -12,14 +12,18 @@ import 'package:eschool/ui/widgets/subjectImageContainer.dart';
 import 'package:eschool/utils/animationConfiguration.dart';
 import 'package:eschool/utils/labelKeys.dart';
 import 'package:eschool/utils/uiUtils.dart';
-import 'package:flutter/cupertino.dart';
+import 'package:eschool_core/eschool_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 class AssignmentListContainer extends StatelessWidget {
   const AssignmentListContainer({
-    required this.assignmentTabTitle, required this.currentSelectedSubjectId, required this.selectedAssignmentFilter, required this.isAssignmentSubmitted, super.key,
+    required this.assignmentTabTitle,
+    required this.currentSelectedSubjectId,
+    required this.selectedAssignmentFilter,
+    required this.isAssignmentSubmitted,
+    super.key,
     this.childId,
   });
   final String assignmentTabTitle;
@@ -150,7 +154,7 @@ class AssignmentListContainer extends StatelessWidget {
                 end: MediaQuery.sizeOf(context).width * 0.075,
               ),
               decoration: BoxDecoration(
-                color: Theme.of(context).colorScheme.surface,
+                color: Theme.of(context).colorScheme.surfaceContainerLow,
                 borderRadius: BorderRadius.circular(15),
               ),
               width: MediaQuery.sizeOf(context).width,
@@ -199,7 +203,7 @@ class AssignmentListContainer extends StatelessWidget {
                                       style: TextStyle(
                                         color: Theme.of(
                                           context,
-                                        ).colorScheme.secondary,
+                                        ).colorScheme.onSurface,
                                         fontWeight: FontWeight.w600,
                                         fontSize: 14,
                                       ),
@@ -210,8 +214,7 @@ class AssignmentListContainer extends StatelessWidget {
                                       ? Container(
                                           alignment:
                                               AlignmentDirectional.centerEnd,
-                                          width:
-                                              boxConstraints.maxWidth * 0.25,
+                                          width: boxConstraints.maxWidth * 0.25,
                                           child: Text(
                                             "${assignment.createdAt.day.toString().padLeft(2, '0')}-${assignment.createdAt.month.toString().padLeft(2, '0')}-${assignment.createdAt.year}",
                                             maxLines: 1,
@@ -219,7 +222,7 @@ class AssignmentListContainer extends StatelessWidget {
                                             style: TextStyle(
                                               color: Theme.of(
                                                 context,
-                                              ).colorScheme.onSurface,
+                                              ).colorScheme.onSurfaceVariant,
                                               fontWeight: FontWeight.w400,
                                               fontSize: 10.5,
                                             ),
@@ -229,15 +232,14 @@ class AssignmentListContainer extends StatelessWidget {
                                       ? const SizedBox()
                                       : Container(
                                           alignment: Alignment.center,
-                                          width:
-                                              boxConstraints.maxWidth * 0.27,
+                                          width: boxConstraints.maxWidth * 0.27,
                                           decoration: BoxDecoration(
                                             color:
                                                 assignmentSubmittedStatusKey ==
                                                     acceptedKey
-                                                ? Theme.of(
+                                                ? StatusColors.of(
                                                     context,
-                                                  ).colorScheme.onPrimary
+                                                  ).success
                                                 : assignmentSubmittedStatusKey ==
                                                           inReviewKey ||
                                                       assignmentSubmittedStatusKey ==
@@ -264,9 +266,22 @@ class AssignmentListContainer extends StatelessWidget {
                                             overflow: TextOverflow.ellipsis,
                                             style: TextStyle(
                                               fontSize: 10.75,
-                                              color: Theme.of(
-                                                context,
-                                              ).scaffoldBackgroundColor,
+                                              color:
+                                                  assignmentSubmittedStatusKey ==
+                                                      acceptedKey
+                                                  ? StatusColors.of(
+                                                      context,
+                                                    ).onSuccess
+                                                  : assignmentSubmittedStatusKey ==
+                                                            inReviewKey ||
+                                                        assignmentSubmittedStatusKey ==
+                                                            resubmittedKey
+                                                  ? Theme.of(
+                                                      context,
+                                                    ).colorScheme.onPrimary
+                                                  : Theme.of(
+                                                      context,
+                                                    ).colorScheme.onError,
                                             ),
                                           ),
                                         ),
@@ -292,7 +307,7 @@ class AssignmentListContainer extends StatelessWidget {
                                         height: 1,
                                         color: Theme.of(
                                           context,
-                                        ).colorScheme.secondary,
+                                        ).colorScheme.onSurface,
                                         fontWeight: FontWeight.w400,
                                         fontSize: 12,
                                       ),
@@ -314,7 +329,7 @@ class AssignmentListContainer extends StatelessWidget {
                                         height: 1,
                                         color: Theme.of(
                                           context,
-                                        ).colorScheme.secondary,
+                                        ).colorScheme.onSurface,
                                         fontWeight: FontWeight.w400,
                                         fontSize: 11,
                                       ),
@@ -330,7 +345,7 @@ class AssignmentListContainer extends StatelessWidget {
                                 style: TextStyle(
                                   color: Theme.of(
                                     context,
-                                  ).colorScheme.onSurface,
+                                  ).colorScheme.onSurfaceVariant,
                                   fontWeight: FontWeight.bold,
                                   fontSize: 10.5,
                                 ),
@@ -356,7 +371,7 @@ class AssignmentListContainer extends StatelessWidget {
             hasMoreAssignments &&
             fetchMoreAssignmentsFailure)
           Center(
-            child: CupertinoButton(
+            child: TextButton(
               child: Text(UiUtils.getTranslatedLabel(context, retryKey)),
               onPressed: () {
                 context.read<AssignmentsCubit>().fetchMoreAssignments(

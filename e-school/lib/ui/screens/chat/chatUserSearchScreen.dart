@@ -79,7 +79,7 @@ class _ChatUsersSearchScreenState extends State<ChatUsersSearchScreen> {
                 child: Text(
                   UiUtils.getTranslatedLabel(context, searchKey),
                   style: TextStyle(
-                    color: Theme.of(context).scaffoldBackgroundColor,
+                    color: Theme.of(context).colorScheme.onPrimary,
                     fontSize: UiUtils.screenTitleFontSize,
                   ),
                 ),

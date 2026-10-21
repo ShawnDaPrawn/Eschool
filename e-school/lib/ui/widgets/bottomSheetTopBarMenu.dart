@@ -4,7 +4,9 @@ import 'package:flutter/material.dart';
 
 class BottomSheetTopBarMenu extends StatelessWidget {
   const BottomSheetTopBarMenu({
-    required this.onTapCloseButton, required this.title, super.key,
+    required this.onTapCloseButton,
+    required this.title,
+    super.key,
     this.padding,
   });
   final String title;
@@ -14,7 +16,8 @@ class BottomSheetTopBarMenu extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: padding ??
+      padding:
+          padding ??
           EdgeInsets.all(UiUtils.bottomSheetHorizontalContentPadding),
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -24,7 +27,7 @@ class BottomSheetTopBarMenu extends StatelessWidget {
               Text(
                 title,
                 style: TextStyle(
-                  color: Theme.of(context).colorScheme.secondary,
+                  color: Theme.of(context).colorScheme.onSurface,
                   fontWeight: FontWeight.w600,
                 ),
               ),
@@ -38,8 +41,9 @@ class BottomSheetTopBarMenu extends StatelessWidget {
           ),
           Divider(
             height: 20,
-            color:
-                Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.5),
+            color: Theme.of(
+              context,
+            ).colorScheme.onSurfaceVariant.withValues(alpha: 0.5),
           ),
         ],
       ),

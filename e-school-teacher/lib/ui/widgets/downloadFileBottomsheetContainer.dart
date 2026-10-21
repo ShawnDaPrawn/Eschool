@@ -1,7 +1,7 @@
 import 'package:eschool_teacher/cubits/downloadFileCubit.dart';
 import 'package:eschool_teacher/data/models/studyMaterial.dart';
 import 'package:eschool_teacher/ui/widgets/bottomSheetTopBarMenu.dart';
-import 'package:eschool_teacher/ui/widgets/customRoundedButton.dart';
+import 'package:eschool_core/eschool_core.dart';
 import 'package:eschool_teacher/utils/labelKeys.dart';
 import 'package:eschool_teacher/utils/uiUtils.dart';
 import 'package:flutter/material.dart';
@@ -9,7 +9,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 class DownloadFileBottomsheetContainer extends StatefulWidget {
   const DownloadFileBottomsheetContainer({
-    required this.studyMaterial, super.key,
+    required this.studyMaterial,
+    super.key,
   });
   final StudyMaterial studyMaterial;
 
@@ -104,7 +105,7 @@ class _DownloadFileBottomsheetContainerState
                                       width: boxConstraints.maxWidth,
                                       color: Theme.of(context)
                                           .colorScheme
-                                          .onSurface
+                                          .onSurfaceVariant
                                           .withValues(alpha: 0.5),
                                     ),
                                     UiUtils.buildProgressContainer(
@@ -140,7 +141,7 @@ class _DownloadFileBottomsheetContainerState
                   height: 40,
                   textSize: 16,
                   widthPercentage: 0.35,
-                  titleColor: Theme.of(context).scaffoldBackgroundColor,
+                  titleColor: Theme.of(context).colorScheme.onPrimary,
                   backgroundColor: Theme.of(context).colorScheme.primary,
                   buttonTitle: UiUtils.getTranslatedLabel(context, cancelKey),
                   showBorder: false,

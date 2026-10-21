@@ -21,7 +21,6 @@ import 'package:eschool/ui/widgets/errorContainer.dart';
 import 'package:eschool/ui/widgets/listItemForExamAndResult.dart';
 import 'package:eschool/ui/widgets/listItemForOnlineExamAndOnlineResult.dart';
 import 'package:eschool/ui/widgets/shimmerLoadingContainer.dart';
-import 'package:eschool/ui/styles/colors.dart';
 import 'package:eschool/utils/labelKeys.dart';
 import 'package:eschool/utils/uiUtils.dart';
 import 'package:fl_chart/fl_chart.dart';
@@ -382,12 +381,12 @@ class _ExamReportTabState extends State<ExamReportTab>
       margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: Theme.of(context).scaffoldBackgroundColor,
+        color: Theme.of(context).colorScheme.surface,
         borderRadius: BorderRadius.circular(8),
         border: Border.all(
           color: Theme.of(
             context,
-          ).colorScheme.secondary.withValues(alpha: 0.25),
+          ).colorScheme.onSurface.withValues(alpha: 0.25),
         ),
       ),
       child: Column(
@@ -398,7 +397,7 @@ class _ExamReportTabState extends State<ExamReportTab>
               fontSize: 12,
               color: Theme.of(
                 context,
-              ).colorScheme.secondary.withValues(alpha: 0.6),
+              ).colorScheme.onSurface.withValues(alpha: 0.6),
             ),
           ),
           const SizedBox(height: 4),
@@ -414,7 +413,7 @@ class _ExamReportTabState extends State<ExamReportTab>
           Divider(
             color: Theme.of(
               context,
-            ).colorScheme.secondary.withValues(alpha: 0.25),
+            ).colorScheme.onSurface.withValues(alpha: 0.25),
           ),
           const SizedBox(height: 8),
           Row(
@@ -431,7 +430,7 @@ class _ExamReportTabState extends State<ExamReportTab>
                   height: 36,
                   color: Theme.of(
                     context,
-                  ).colorScheme.secondary.withValues(alpha: 0.2),
+                  ).colorScheme.onSurface.withValues(alpha: 0.2),
                 ),
               ],
               _buildStatItem(
@@ -444,7 +443,7 @@ class _ExamReportTabState extends State<ExamReportTab>
                 height: 36,
                 color: Theme.of(
                   context,
-                ).colorScheme.secondary.withValues(alpha: 0.2),
+                ).colorScheme.onSurface.withValues(alpha: 0.2),
               ),
               if (_selectedExamType == ExamType.offline)
                 _buildStatItem(
@@ -483,7 +482,7 @@ class _ExamReportTabState extends State<ExamReportTab>
             fontSize: 12,
             color: Theme.of(
               context,
-            ).colorScheme.secondary.withValues(alpha: 0.6),
+            ).colorScheme.onSurface.withValues(alpha: 0.6),
           ),
         ),
       ],
@@ -528,7 +527,7 @@ class _ExamReportTabState extends State<ExamReportTab>
             style: TextStyle(
               fontSize: 16,
               fontWeight: FontWeight.bold,
-              color: Theme.of(context).colorScheme.secondary,
+              color: Theme.of(context).colorScheme.onSurface,
             ),
           ),
         ),
@@ -536,12 +535,12 @@ class _ExamReportTabState extends State<ExamReportTab>
           margin: const EdgeInsets.symmetric(horizontal: 20),
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
-            color: Theme.of(context).scaffoldBackgroundColor,
+            color: Theme.of(context).colorScheme.surface,
             borderRadius: BorderRadius.circular(8),
             border: Border.all(
               color: Theme.of(
                 context,
-              ).colorScheme.secondary.withValues(alpha: 0.25),
+              ).colorScheme.onSurface.withValues(alpha: 0.25),
             ),
           ),
           child: Column(
@@ -563,7 +562,7 @@ class _ExamReportTabState extends State<ExamReportTab>
                               sections: [
                                 if (_selectedExamType == ExamType.offline) ...[
                                   PieChartSectionData(
-                                    color: palletGreen,
+                                    color: StatusColors.of(context).success,
                                     value: passCount > 0
                                         ? passCount.toDouble()
                                         : 0.001,
@@ -571,7 +570,7 @@ class _ExamReportTabState extends State<ExamReportTab>
                                     radius: 12,
                                   ),
                                   PieChartSectionData(
-                                    color: palletRed,
+                                    color: StatusColors.of(context).danger,
                                     value: failCount > 0
                                         ? failCount.toDouble()
                                         : 0.001,
@@ -580,7 +579,7 @@ class _ExamReportTabState extends State<ExamReportTab>
                                   ),
                                 ] else ...[
                                   PieChartSectionData(
-                                    color: palletGreen,
+                                    color: StatusColors.of(context).success,
                                     value: attemptedCount > 0
                                         ? attemptedCount.toDouble()
                                         : 0.001,
@@ -589,7 +588,7 @@ class _ExamReportTabState extends State<ExamReportTab>
                                   ),
                                 ],
                                 PieChartSectionData(
-                                  color: palletYellow,
+                                  color: StatusColors.of(context).warning,
                                   value: missedCount > 0
                                       ? missedCount.toDouble()
                                       : 0.001,
@@ -610,7 +609,7 @@ class _ExamReportTabState extends State<ExamReportTab>
                                 textAlign: TextAlign.center,
                                 style: TextStyle(
                                   fontSize: 9,
-                                  color: Theme.of(context).colorScheme.secondary
+                                  color: Theme.of(context).colorScheme.onSurface
                                       .withValues(alpha: 0.6),
                                 ),
                               ),
@@ -621,7 +620,7 @@ class _ExamReportTabState extends State<ExamReportTab>
                                   fontWeight: FontWeight.bold,
                                   color: Theme.of(
                                     context,
-                                  ).colorScheme.secondary,
+                                  ).colorScheme.onSurface,
                                 ),
                               ),
                             ],
@@ -635,23 +634,23 @@ class _ExamReportTabState extends State<ExamReportTab>
                       children: [
                         if (_selectedExamType == ExamType.offline) ...[
                           _buildLegendItem(
-                            palletGreen,
+                            StatusColors.of(context).success,
                             '${UiUtils.getTranslatedLabel(context, passKey)} : $passCount',
                           ),
                           const SizedBox(height: 8),
                           _buildLegendItem(
-                            palletRed,
+                            StatusColors.of(context).danger,
                             '${UiUtils.getTranslatedLabel(context, failedKey)} : $failCount',
                           ),
                         ] else ...[
                           _buildLegendItem(
-                            palletGreen,
+                            StatusColors.of(context).success,
                             '${UiUtils.getTranslatedLabel(context, attemptedKey)} : $attemptedCount',
                           ),
                         ],
                         const SizedBox(height: 8),
                         _buildLegendItem(
-                          palletYellow,
+                          StatusColors.of(context).warning,
                           '${UiUtils.getTranslatedLabel(context, missedKey)} : $missedCount',
                         ),
                       ],
@@ -666,7 +665,7 @@ class _ExamReportTabState extends State<ExamReportTab>
                     fontSize: 12,
                     color: Theme.of(
                       context,
-                    ).colorScheme.secondary.withValues(alpha: 0.5),
+                    ).colorScheme.onSurface.withValues(alpha: 0.5),
                   ),
                 ),
                 const SizedBox(height: 6),
@@ -684,11 +683,15 @@ class _ExamReportTabState extends State<ExamReportTab>
                     fontSize: 12,
                     color: Theme.of(
                       context,
-                    ).colorScheme.secondary.withValues(alpha: 0.5),
+                    ).colorScheme.onSurface.withValues(alpha: 0.5),
                   ),
                 ),
                 const SizedBox(height: 6),
-                _buildPerformanceBar(worstName, worstPct, palletRed),
+                _buildPerformanceBar(
+                  worstName,
+                  worstPct,
+                  StatusColors.of(context).danger,
+                ),
               ],
             ],
           ),
@@ -709,7 +712,7 @@ class _ExamReportTabState extends State<ExamReportTab>
                 name,
                 style: TextStyle(
                   fontSize: 13,
-                  color: Theme.of(context).colorScheme.secondary,
+                  color: Theme.of(context).colorScheme.onSurface,
                 ),
                 overflow: TextOverflow.ellipsis,
               ),
@@ -719,7 +722,7 @@ class _ExamReportTabState extends State<ExamReportTab>
               style: TextStyle(
                 fontSize: 13,
                 fontWeight: FontWeight.bold,
-                color: Theme.of(context).colorScheme.secondary,
+                color: Theme.of(context).colorScheme.onSurface,
               ),
             ),
           ],
@@ -752,7 +755,7 @@ class _ExamReportTabState extends State<ExamReportTab>
           text,
           style: TextStyle(
             fontSize: 13,
-            color: Theme.of(context).colorScheme.secondary,
+            color: Theme.of(context).colorScheme.onSurface,
           ),
         ),
       ],
@@ -860,7 +863,7 @@ class _ExamReportTabState extends State<ExamReportTab>
             style: TextStyle(
               fontSize: 16,
               fontWeight: FontWeight.bold,
-              color: Theme.of(context).colorScheme.secondary,
+              color: Theme.of(context).colorScheme.onSurface,
             ),
           ),
         ),
@@ -933,7 +936,7 @@ class _ExamTypePickerSheet extends StatelessWidget {
 
     return Container(
       decoration: BoxDecoration(
-        color: Theme.of(context).scaffoldBackgroundColor,
+        color: Theme.of(context).colorScheme.surface,
         borderRadius: BorderRadius.only(
           topLeft: Radius.circular(UiUtils.bottomSheetTopRadius),
           topRight: Radius.circular(UiUtils.bottomSheetTopRadius),
@@ -972,7 +975,7 @@ class _ExamTypePickerSheet extends StatelessWidget {
                           UiUtils.getTranslatedLabel(context, labels[i]),
                           style: TextStyle(
                             fontSize: 16,
-                            color: Theme.of(context).colorScheme.secondary,
+                            color: Theme.of(context).colorScheme.onSurface,
                             fontWeight: FontWeight.w500,
                           ),
                         ),

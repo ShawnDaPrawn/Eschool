@@ -1,11 +1,9 @@
 import 'package:eschool_teacher/data/models/pickedStudyMaterial.dart';
-import 'package:eschool_teacher/ui/styles/colors.dart';
 import 'package:eschool_teacher/ui/widgets/addedFileContainer.dart';
 import 'package:eschool_teacher/ui/widgets/bottomSheetTextFieldContainer.dart';
 import 'package:eschool_teacher/ui/widgets/bottomSheetTopBarMenu.dart';
 import 'package:eschool_core/eschool_core.dart';
 import 'package:eschool_teacher/ui/widgets/customDropDownMenu.dart';
-import 'package:eschool_teacher/ui/widgets/customRoundedButton.dart';
 import 'package:eschool_teacher/utils/labelKeys.dart';
 import 'package:eschool_teacher/utils/uiUtils.dart';
 import 'package:file_picker/file_picker.dart';
@@ -197,7 +195,9 @@ class _AddStudyMaterialBottomsheetState
                             }
                           },
                           textStyle: TextStyle(
-                            color: hintTextColor,
+                            color: Theme.of(
+                              context,
+                            ).colorScheme.onSurfaceVariant,
                             fontSize: UiUtils.textFieldFontSize,
                           ),
                           borderRadius: 10,

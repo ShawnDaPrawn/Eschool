@@ -8,7 +8,8 @@ import 'package:flutter_animate/flutter_animate.dart';
 
 class HomeContainerTodaysTimetableContainer extends StatefulWidget {
   const HomeContainerTodaysTimetableContainer({
-    required this.timeTableSlots, super.key,
+    required this.timeTableSlots,
+    super.key,
   });
   final List<TimeTableSlot> timeTableSlots;
 
@@ -31,8 +32,9 @@ class _HomeContainerTodaysTimetableContainerState
     super.initState();
 
     _controller = AnimationController(
-      duration:
-          Duration(milliseconds: appearDisappearAnimationDurationMilliseconds),
+      duration: Duration(
+        milliseconds: appearDisappearAnimationDurationMilliseconds,
+      ),
       vsync: this,
     );
     _animation = CurvedAnimation(
@@ -72,7 +74,7 @@ class _HomeContainerTodaysTimetableContainerState
       height: 130,
       margin: EdgeInsets.only(bottom: isLastItem ? 0 : 12),
       decoration: BoxDecoration(
-        color: Theme.of(context).scaffoldBackgroundColor,
+        color: Theme.of(context).colorScheme.surfaceContainerLowest,
         borderRadius: BorderRadius.circular(8),
       ),
       width: double.maxFinite,
@@ -84,8 +86,9 @@ class _HomeContainerTodaysTimetableContainerState
           Container(
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(4),
-              color: UiUtils.getColorFromHexValue(timetable.subject.bgColor)
-                  .withValues(alpha: 0.1),
+              color: UiUtils.getColorFromHexValue(
+                timetable.subject.bgColor,
+              ).withValues(alpha: 0.1),
             ),
             padding: const EdgeInsets.all(8),
             alignment: Alignment.topCenter,
@@ -102,9 +105,7 @@ class _HomeContainerTodaysTimetableContainerState
               ),
             ),
           ),
-          const SizedBox(
-            width: 8,
-          ),
+          const SizedBox(width: 8),
           Expanded(
             child: Padding(
               padding: const EdgeInsets.all(8),
@@ -120,7 +121,7 @@ class _HomeContainerTodaysTimetableContainerState
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                           style: TextStyle(
-                            color: UiUtils.getColorScheme(context).secondary,
+                            color: UiUtils.getColorScheme(context).onSurface,
                             fontWeight: FontWeight.w600,
                             fontSize: 16,
                           ),
@@ -128,9 +129,7 @@ class _HomeContainerTodaysTimetableContainerState
                       ),
                       if (timetable.linkCustomUrl != null &&
                           timetable.linkName != null) ...[
-                        const SizedBox(
-                          width: 5,
-                        ),
+                        const SizedBox(width: 5),
                         Flexible(
                           child: Align(
                             alignment: AlignmentDirectional.centerEnd,
@@ -157,9 +156,7 @@ class _HomeContainerTodaysTimetableContainerState
                       ],
                     ],
                   ),
-                  const SizedBox(
-                    height: 8,
-                  ),
+                  const SizedBox(height: 8),
                   Text(
                     '${UiUtils.getTranslatedLabel(context, subjectKey)} : ${timetable.subject.name}',
                     textAlign: TextAlign.start,
@@ -168,10 +165,9 @@ class _HomeContainerTodaysTimetableContainerState
                     style: TextStyle(
                       height: 1,
                       fontWeight: FontWeight.w600,
-                      color: Theme.of(context)
-                          .colorScheme
-                          .onSurface
-                          .withValues(alpha: 0.8),
+                      color: Theme.of(
+                        context,
+                      ).colorScheme.onSurfaceVariant.withValues(alpha: 0.8),
                       fontSize: 14,
                     ),
                   ),
@@ -186,7 +182,7 @@ class _HomeContainerTodaysTimetableContainerState
                             size: 16,
                             color: Theme.of(context)
                                 .colorScheme
-                                .onSurface
+                                .onSurfaceVariant
                                 .withValues(alpha: 0.8),
                           ),
                         ),
@@ -201,10 +197,9 @@ class _HomeContainerTodaysTimetableContainerState
                     overflow: TextOverflow.ellipsis,
                     style: TextStyle(
                       height: 1,
-                      color: Theme.of(context)
-                          .colorScheme
-                          .onSurface
-                          .withValues(alpha: 0.8),
+                      color: Theme.of(
+                        context,
+                      ).colorScheme.onSurfaceVariant.withValues(alpha: 0.8),
                       fontSize: 14,
                     ),
                   ),
@@ -242,9 +237,7 @@ class _HomeContainerTodaysTimetableContainerState
                 sizeFactor: _animation,
                 child: Column(
                   children: [
-                    const SizedBox(
-                      height: 20,
-                    ),
+                    const SizedBox(height: 20),
                     ...List.generate(
                       widget.timeTableSlots.length > 3
                           ? widget.timeTableSlots.length - 3
@@ -260,9 +253,7 @@ class _HomeContainerTodaysTimetableContainerState
                   ],
                 ),
               ),
-            const SizedBox(
-              height: 10,
-            ),
+            const SizedBox(height: 10),
           ],
         ),
         if (widget.timeTableSlots.length > 3)
@@ -289,19 +280,17 @@ class _HomeContainerTodaysTimetableContainerState
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                           style: TextStyle(
-                            color: UiUtils.getColorScheme(context).secondary,
+                            color: UiUtils.getColorScheme(context).onSurface,
                             fontWeight: FontWeight.w500,
                             fontSize: 14,
                           ),
                         ),
-                        const SizedBox(
-                          width: 4,
-                        ),
+                        const SizedBox(width: 4),
                         Icon(
                           isExpanded
                               ? Icons.arrow_drop_up
                               : Icons.arrow_drop_down,
-                          color: UiUtils.getColorScheme(context).secondary,
+                          color: UiUtils.getColorScheme(context).onSurface,
                           size: 20,
                         ),
                       ],

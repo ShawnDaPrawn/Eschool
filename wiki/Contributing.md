@@ -44,6 +44,7 @@ The fork's commits follow one style (see `git log`):
 | Lock files | `pubspec.lock` is committed; CI runs `flutter pub get --enforce-lockfile`. If you change dependencies, commit the updated lock file |
 | Structure | `lib/cubits/` (state, flutter_bloc), `lib/data/models/` and `lib/data/repositories/` (API access), `lib/ui/screens/` and `lib/ui/widgets/`, `lib/utils/` (`api.dart`, `constants.dart`, `labelKeys.dart`, `uiUtils.dart`) |
 | Translations | `assets/languages/<code>.json` must have exactly the keys of `en.json`, and every language in `lib/utils/appLanguages.dart` needs a file (`test/translations_test.dart`) |
+| UI | Material 3, from the shared theme in `packages/eschool_core/lib/src/theme/`. Colours come from `Theme.of(context).colorScheme` and `StatusColors.of(context)`; `Color(0x...)` and `Colors.*` (except `transparent`) fail `test/theme_colors_test.dart`. Rules and the role for each use: [UI-Standards](UI-Standards) |
 
 ### Documentation site
 

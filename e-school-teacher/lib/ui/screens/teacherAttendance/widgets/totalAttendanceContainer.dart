@@ -27,7 +27,7 @@ class TotalAttendanceContainer extends StatelessWidget {
           Container(
             height: 72,
             width: 1,
-            color: Theme.of(context).scaffoldBackgroundColor,
+            color: Theme.of(context).colorScheme.onPrimary,
           ),
           _buildDetail(context, totalAbsentKey, totalAbsent.toString()),
         ],
@@ -42,7 +42,7 @@ class TotalAttendanceContainer extends StatelessWidget {
         Text(
           UiUtils.getTranslatedLabel(context, titleKey),
           style: TextStyle(
-            color: Theme.of(context).scaffoldBackgroundColor,
+            color: Theme.of(context).colorScheme.onPrimary,
             fontWeight: FontWeight.w600,
             fontSize: 14,
           ),
@@ -52,7 +52,7 @@ class TotalAttendanceContainer extends StatelessWidget {
           width: 48,
           height: 48,
           decoration: BoxDecoration(
-            color: Theme.of(context).scaffoldBackgroundColor,
+            color: Theme.of(context).colorScheme.onPrimary,
             shape: BoxShape.circle,
           ),
           alignment: Alignment.center,

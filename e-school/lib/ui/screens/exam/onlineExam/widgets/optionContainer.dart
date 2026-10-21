@@ -1,14 +1,20 @@
 import 'package:eschool/ui/screens/exam/onlineExam/models/answerOption.dart';
 import 'package:eschool/utils/labelKeys.dart';
 import 'package:eschool/utils/uiUtils.dart';
+import 'package:eschool_core/eschool_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_tex/flutter_tex.dart';
 
 // ignore: must_be_immutable
 class OptionContainer extends StatefulWidget {
-
   OptionContainer({
-    required this.quizType, required this.constraints, required this.answerOption, required this.submitAnswer, required this.submittedAnswerId, required this.totalAnswers, super.key,
+    required this.quizType,
+    required this.constraints,
+    required this.answerOption,
+    required this.submitAnswer,
+    required this.submittedAnswerId,
+    required this.totalAnswers,
+    super.key,
   });
   final Function submitAnswer;
   final AnswerOption answerOption;
@@ -29,12 +35,8 @@ class _OptionContainerState extends State<OptionContainer>
     vsync: this,
     duration: const Duration(milliseconds: 100),
   );
-  late Animation<double> animation =
-      Tween<double>(begin: 0, end: 1).animate(
-    CurvedAnimation(
-      parent: animationController,
-      curve: Curves.easeInToLinear,
-    ),
+  late Animation<double> animation = Tween<double>(begin: 0, end: 1).animate(
+    CurvedAnimation(parent: animationController, curve: Curves.easeInToLinear),
   );
 
   bool isMultipleAnswers = false;
@@ -62,35 +64,38 @@ class _OptionContainerState extends State<OptionContainer>
   }
 
   int calculateMaxLines() {
-    final TextPainter textPainter =
-        TextPainter(text: textSpan, textDirection: Directionality.of(context));
-
-    textPainter.layout(
-      maxWidth: widget.constraints.maxWidth * 0.85,
+    final TextPainter textPainter = TextPainter(
+      text: textSpan,
+      textDirection: Directionality.of(context),
     );
+
+    textPainter.layout(maxWidth: widget.constraints.maxWidth * 0.85);
 
     return textPainter.computeLineMetrics().length;
   }
 
   Color _buildOptionBackgroundColor() {
     if (widget.submittedAnswerId.contains(widget.answerOption.id.toString())) {
-      return Theme.of(context).colorScheme.onPrimary;
+      return StatusColors.of(context).success;
     }
 
-    return Theme.of(context).scaffoldBackgroundColor;
+    return Theme.of(context).colorScheme.surface;
   }
 
   void _onTapOptionContainer() {
     if (isMultipleAnswers) {
       if (newSubmittedId.contains(widget.answerOption.id)) {
         newSubmittedId.remove(widget.answerOption.id);
-      } else if (!widget.submittedAnswerId
-          .contains(widget.answerOption.id!.toString())) {
+      } else if (!widget.submittedAnswerId.contains(
+        widget.answerOption.id!.toString(),
+      )) {
         if (newSubmittedId.length >= widget.totalAnswers) {
           UiUtils.showCustomSnackBar(
             context: context,
-            errorMessage:
-                UiUtils.getTranslatedLabel(context, examMultipleAnsKey),
+            errorMessage: UiUtils.getTranslatedLabel(
+              context,
+              examMultipleAnsKey,
+            ),
             backgroundColor: UiUtils.getColorScheme(context).primary,
             delayDuration: const Duration(seconds: 5),
           );
@@ -100,8 +105,9 @@ class _OptionContainerState extends State<OptionContainer>
       }
       widget.submitAnswer([...newSubmittedId]);
     } else {
-      if (!widget.submittedAnswerId
-          .contains(widget.answerOption.id!.toString())) {
+      if (!widget.submittedAnswerId.contains(
+        widget.answerOption.id!.toString(),
+      )) {
         newSubmittedId.clear();
         newSubmittedId.add(widget.answerOption.id!);
       } else {
@@ -143,7 +149,7 @@ class _OptionContainerState extends State<OptionContainer>
                 ),
                 decoration: BoxDecoration(
                   border: Border.all(
-                    color: Theme.of(context).colorScheme.onSecondary,
+                    color: Theme.of(context).colorScheme.tertiary,
                   ),
                   borderRadius: BorderRadius.circular(15),
                   color: _buildOptionBackgroundColor(),
@@ -156,9 +162,7 @@ class _OptionContainerState extends State<OptionContainer>
                           onTap: (_) {
                             _onTapOptionContainer();
                           },
-                          child: TeXViewDocument(
-                            widget.answerOption.option!,
-                          ),
+                          child: TeXViewDocument(widget.answerOption.option!),
                           id: widget.answerOption.id!.toString(),
                         ),
                         style: TeXViewStyle(

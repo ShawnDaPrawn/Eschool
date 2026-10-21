@@ -1,9 +1,9 @@
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:eschool_core/eschool_core.dart';
 import 'package:eschool_teacher/cubits/deleteStudyMaterialCubit.dart';
 import 'package:eschool_teacher/cubits/updateStudyMaterialCubit.dart';
 import 'package:eschool_teacher/data/models/studyMaterial.dart';
 import 'package:eschool_teacher/data/repositories/studyMaterialRepositoy.dart';
-import 'package:eschool_teacher/ui/styles/colors.dart';
 import 'package:eschool_teacher/ui/widgets/confirmDeleteDialog.dart';
 import 'package:eschool_teacher/ui/widgets/deleteButton.dart';
 import 'package:eschool_teacher/ui/widgets/editButton.dart';
@@ -14,9 +14,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 class StudyMaterialContainer extends StatelessWidget {
-
   const StudyMaterialContainer({
-    required this.studyMaterial, required this.showEditAndDeleteButton, super.key,
+    required this.studyMaterial,
+    required this.showEditAndDeleteButton,
+    super.key,
     this.onDeleteStudyMaterial,
     this.onEditStudyMaterial,
   });
@@ -28,14 +29,14 @@ class StudyMaterialContainer extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final titleTextStyle = TextStyle(
-      color: Theme.of(context).colorScheme.secondary,
+      color: Theme.of(context).colorScheme.onSurface,
       fontWeight: FontWeight.w500,
       height: 1.25,
       fontSize: 13.5,
     );
 
-    const subTitleTextStyle = TextStyle(
-      color: assignmentViewButtonColor,
+    final subTitleTextStyle = TextStyle(
+      color: StatusColors.of(context).info,
       fontSize: 13,
     );
 
@@ -74,7 +75,7 @@ class StudyMaterialContainer extends StatelessWidget {
                     vertical: 15,
                   ),
                   decoration: BoxDecoration(
-                    color: Theme.of(context).colorScheme.surface,
+                    color: Theme.of(context).colorScheme.surfaceContainerLow,
                     borderRadius: BorderRadius.circular(15),
                   ),
                   child: LayoutBuilder(

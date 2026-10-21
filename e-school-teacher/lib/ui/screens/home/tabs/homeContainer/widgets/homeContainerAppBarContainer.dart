@@ -1,7 +1,6 @@
 import 'package:eschool_teacher/app/routes.dart';
 import 'package:eschool_teacher/cubits/authCubit.dart';
 import 'package:eschool_teacher/cubits/chat/chatUsersCubit.dart';
-import 'package:eschool_teacher/ui/styles/colors.dart';
 import 'package:eschool_teacher/ui/widgets/customUserProfileImageWidget.dart';
 import 'package:eschool_teacher/ui/widgets/screenTopBackgroundContainer.dart';
 import 'package:eschool_teacher/utils/assets.dart';
@@ -32,8 +31,8 @@ class HomeContainerAppBarContainer extends StatelessWidget {
                       Assets.chatIcon,
                       width: 25,
                       height: 25,
-                      colorFilter: const ColorFilter.mode(
-                        Colors.white,
+                      colorFilter: ColorFilter.mode(
+                        Theme.of(context).colorScheme.onPrimary,
                         BlendMode.srcIn,
                       ),
                     ),
@@ -46,9 +45,9 @@ class HomeContainerAppBarContainer extends StatelessWidget {
                       Align(
                         alignment: AlignmentDirectional.topEnd,
                         child: Container(
-                          decoration: const BoxDecoration(
+                          decoration: BoxDecoration(
                             shape: BoxShape.circle,
-                            color: redColor,
+                            color: Theme.of(context).colorScheme.error,
                           ),
                           padding: const EdgeInsets.all(4),
                           child: Text(
@@ -60,8 +59,8 @@ class HomeContainerAppBarContainer extends StatelessWidget {
                                           stateChildChats.totalUnreadUsers)
                                       .toString(),
                             textAlign: TextAlign.center,
-                            style: const TextStyle(
-                              color: Colors.white,
+                            style: TextStyle(
+                              color: Theme.of(context).colorScheme.onError,
                               fontSize: 9,
                             ),
                           ),
@@ -96,7 +95,7 @@ class HomeContainerAppBarContainer extends StatelessWidget {
                     border: Border.all(
                       color: Theme.of(
                         context,
-                      ).scaffoldBackgroundColor.withValues(alpha: 0.1),
+                      ).colorScheme.onPrimary.withValues(alpha: 0.1),
                     ),
                     shape: BoxShape.circle,
                   ),
@@ -107,7 +106,7 @@ class HomeContainerAppBarContainer extends StatelessWidget {
                       border: Border.all(
                         color: Theme.of(
                           context,
-                        ).scaffoldBackgroundColor.withValues(alpha: 0.1),
+                        ).colorScheme.onPrimary.withValues(alpha: 0.1),
                       ),
                       shape: BoxShape.circle,
                     ),
@@ -123,7 +122,7 @@ class HomeContainerAppBarContainer extends StatelessWidget {
                   decoration: BoxDecoration(
                     color: Theme.of(
                       context,
-                    ).scaffoldBackgroundColor.withValues(alpha: 0.1),
+                    ).colorScheme.onPrimary.withValues(alpha: 0.1),
                     shape: BoxShape.circle,
                   ),
                   width: MediaQuery.sizeOf(context).width * 0.4,
@@ -146,7 +145,7 @@ class HomeContainerAppBarContainer extends StatelessWidget {
                           shape: BoxShape.circle,
                           border: Border.all(
                             width: 2,
-                            color: Theme.of(context).scaffoldBackgroundColor,
+                            color: Theme.of(context).colorScheme.onPrimary,
                           ),
                         ),
                         width: boxConstraints.maxWidth * 0.175,
@@ -174,9 +173,7 @@ class HomeContainerAppBarContainer extends StatelessWidget {
                               style: TextStyle(
                                 fontSize: 18,
                                 fontWeight: FontWeight.w500,
-                                color: Theme.of(
-                                  context,
-                                ).scaffoldBackgroundColor,
+                                color: Theme.of(context).colorScheme.onPrimary,
                               ),
                             ),
                           ],

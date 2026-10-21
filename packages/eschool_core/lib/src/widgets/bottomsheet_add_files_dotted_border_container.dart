@@ -20,7 +20,9 @@ class BottomsheetAddFilesDottedBorderContainer extends StatelessWidget {
         options: RoundedRectDottedBorderOptions(
           dashPattern: const [10, 10],
           radius: const Radius.circular(10),
-          color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.3),
+          color: Theme.of(
+            context,
+          ).colorScheme.onSurfaceVariant.withValues(alpha: 0.3),
         ),
         child: Container(
           alignment: Alignment.center,
@@ -47,14 +49,14 @@ class BottomsheetAddFilesDottedBorderContainer extends StatelessWidget {
                 child: Icon(
                   Icons.add,
                   size: 20,
-                  color: Theme.of(context).scaffoldBackgroundColor,
+                  color: Theme.of(context).colorScheme.onPrimary,
                 ),
               ),
               SizedBox(width: MediaQuery.sizeOf(context).width * 0.05),
               Text(
                 title,
                 style: TextStyle(
-                  color: Theme.of(context).colorScheme.secondary,
+                  color: Theme.of(context).colorScheme.onSurface,
                 ),
               ),
             ],

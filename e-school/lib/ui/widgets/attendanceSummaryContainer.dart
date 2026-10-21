@@ -1,4 +1,5 @@
 import 'package:eschool/utils/uiUtils.dart';
+import 'package:eschool_core/eschool_core.dart';
 import 'package:flutter/material.dart';
 
 class AttendanceSummaryContainer extends StatelessWidget {
@@ -35,7 +36,7 @@ class AttendanceSummaryContainer extends StatelessWidget {
           Text(
             UiUtils.getTranslatedLabel(context, titleKey),
             style: TextStyle(
-              color: Theme.of(context).scaffoldBackgroundColor,
+              color: Theme.of(context).colorScheme.readableOn(backgroundColor),
               fontWeight: FontWeight.bold,
               fontSize: 12,
             ),
@@ -46,7 +47,7 @@ class AttendanceSummaryContainer extends StatelessWidget {
             width: 48,
             height: 48,
             decoration: BoxDecoration(
-              color: Theme.of(context).scaffoldBackgroundColor,
+              color: Theme.of(context).colorScheme.readableOn(backgroundColor),
               shape: BoxShape.circle,
             ),
             alignment: Alignment.center,

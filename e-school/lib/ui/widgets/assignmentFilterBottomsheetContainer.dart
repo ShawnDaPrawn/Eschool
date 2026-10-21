@@ -5,7 +5,9 @@ import 'package:flutter/material.dart';
 
 class AssignmentFilterBottomsheetContainer extends StatefulWidget {
   const AssignmentFilterBottomsheetContainer({
-    required this.initialAssignmentFilterValue, required this.changeAssignmentFilter, super.key,
+    required this.initialAssignmentFilterValue,
+    required this.changeAssignmentFilter,
+    super.key,
   });
   final AssignmentFilters initialAssignmentFilterValue;
   final Function changeAssignmentFilter;
@@ -53,7 +55,7 @@ class _AssignmentFilterBottomsheetContainerState
                       _currentlySelectedAssignmentFilterValue ==
                           assignmentFilter
                       ? Theme.of(context).colorScheme.primary
-                      : Theme.of(context).scaffoldBackgroundColor,
+                      : Theme.of(context).colorScheme.surface,
                 ),
               ),
             ),
@@ -62,7 +64,7 @@ class _AssignmentFilterBottomsheetContainerState
               title,
               style: TextStyle(
                 fontSize: 14,
-                color: Theme.of(context).colorScheme.secondary,
+                color: Theme.of(context).colorScheme.onSurface,
               ),
             ),
           ],
@@ -80,7 +82,7 @@ class _AssignmentFilterBottomsheetContainerState
       ),
       width: MediaQuery.sizeOf(context).width,
       decoration: BoxDecoration(
-        color: Theme.of(context).scaffoldBackgroundColor,
+        color: Theme.of(context).colorScheme.surface,
         borderRadius: BorderRadius.only(
           topLeft: Radius.circular(UiUtils.bottomSheetTopRadius),
           topRight: Radius.circular(UiUtils.bottomSheetTopRadius),
@@ -94,13 +96,15 @@ class _AssignmentFilterBottomsheetContainerState
             UiUtils.getTranslatedLabel(context, sortByKey),
             style: TextStyle(
               fontSize: 16,
-              color: Theme.of(context).colorScheme.secondary,
+              color: Theme.of(context).colorScheme.onSurface,
               fontWeight: FontWeight.bold,
             ),
           ),
           Padding(
             padding: const EdgeInsets.symmetric(vertical: 10),
-            child: Divider(color: Theme.of(context).colorScheme.onSurface),
+            child: Divider(
+              color: Theme.of(context).colorScheme.onSurfaceVariant,
+            ),
           ),
           _buildAssignmentFilterTile(
             title: UiUtils.getTranslatedLabel(context, assignedDateLatestKey),

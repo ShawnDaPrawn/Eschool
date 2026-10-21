@@ -22,7 +22,9 @@ class _SlidersContainerState extends State<SlidersContainer> {
       child: CircleAvatar(
         backgroundColor: index == _currentSliderIndex
             ? Theme.of(context).colorScheme.primary
-            : Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.75),
+            : Theme.of(
+                context,
+              ).colorScheme.onSurfaceVariant.withValues(alpha: 0.75),
         radius: 3,
       ),
     );

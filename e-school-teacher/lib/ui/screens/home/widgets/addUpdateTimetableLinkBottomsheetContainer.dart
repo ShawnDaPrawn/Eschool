@@ -65,7 +65,7 @@ class _AddUpdateTimetableLinkBottomsheetContaienrState
   Widget build(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
-        color: Theme.of(context).scaffoldBackgroundColor,
+        color: Theme.of(context).colorScheme.surface,
         borderRadius: BorderRadius.only(
           topLeft: Radius.circular(UiUtils.bottomSheetTopRadius),
           topRight: Radius.circular(UiUtils.bottomSheetTopRadius),
@@ -111,7 +111,7 @@ class _AddUpdateTimetableLinkBottomsheetContaienrState
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: TextStyle(
-                      color: Theme.of(context).colorScheme.secondary,
+                      color: Theme.of(context).colorScheme.onSurface,
                       fontWeight: FontWeight.w600,
                     ),
                   ),
@@ -126,7 +126,7 @@ class _AddUpdateTimetableLinkBottomsheetContaienrState
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: TextStyle(
-                      color: Theme.of(context).colorScheme.secondary,
+                      color: Theme.of(context).colorScheme.onSurface,
                       fontWeight: FontWeight.w600,
                     ),
                   ),
@@ -179,9 +179,9 @@ class _AddUpdateTimetableLinkBottomsheetContaienrState
                                       context,
                                       timetableSlotLinkSuccessfullyUpdatedKey,
                                     ),
-                                    backgroundColor: Theme.of(
+                                    backgroundColor: StatusColors.of(
                                       context,
-                                    ).colorScheme.onPrimary,
+                                    ).success,
                                   );
                                   widget.timetableSlot.linkName = state.name;
                                   widget.timetableSlot.linkCustomUrl =
@@ -274,7 +274,7 @@ class CustomOutlinedFilledButton extends StatelessWidget {
                   overflow: TextOverflow.ellipsis,
                   style: TextStyle(
                     color: isFilled
-                        ? Theme.of(context).scaffoldBackgroundColor
+                        ? Theme.of(context).colorScheme.onPrimary
                         : Theme.of(context).colorScheme.primary,
                   ),
                 ),

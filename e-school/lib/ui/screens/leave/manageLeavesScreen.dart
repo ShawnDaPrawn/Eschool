@@ -169,7 +169,7 @@ class _ManageLeavesScreenState extends State<ManageLeavesScreen> {
               children: [
                 Container(
                   decoration: BoxDecoration(
-                    color: Theme.of(context).colorScheme.surface,
+                    color: Theme.of(context).colorScheme.surfaceContainerLow,
                     borderRadius: BorderRadius.circular(4),
                   ),
                   padding: const EdgeInsets.symmetric(vertical: 10),
@@ -183,7 +183,7 @@ class _ManageLeavesScreenState extends State<ManageLeavesScreen> {
                             fontSize: 14,
                             color: Theme.of(
                               context,
-                            ).colorScheme.secondary.withValues(alpha: 0.7),
+                            ).colorScheme.onSurface.withValues(alpha: 0.7),
                             fontWeight: FontWeight.w600,
                           ),
                         ),
@@ -197,7 +197,7 @@ class _ManageLeavesScreenState extends State<ManageLeavesScreen> {
                             fontSize: 14,
                             color: Theme.of(
                               context,
-                            ).colorScheme.secondary.withValues(alpha: 0.7),
+                            ).colorScheme.onSurface.withValues(alpha: 0.7),
                             fontWeight: FontWeight.w600,
                           ),
                         ),
@@ -211,7 +211,7 @@ class _ManageLeavesScreenState extends State<ManageLeavesScreen> {
                             fontSize: 14,
                             color: Theme.of(
                               context,
-                            ).colorScheme.secondary.withValues(alpha: 0.7),
+                            ).colorScheme.onSurface.withValues(alpha: 0.7),
                             fontWeight: FontWeight.w600,
                           ),
                         ),

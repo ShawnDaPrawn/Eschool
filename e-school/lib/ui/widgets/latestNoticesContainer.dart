@@ -70,7 +70,7 @@ class LatestNoticesContainer extends StatelessWidget {
                   Text(
                     UiUtils.getTranslatedLabel(context, latestNoticesKey),
                     style: TextStyle(
-                      color: UiUtils.getColorScheme(context).secondary,
+                      color: UiUtils.getColorScheme(context).onSurface,
                       fontWeight: FontWeight.w600,
                       fontSize: 16,
                     ),
@@ -83,7 +83,7 @@ class LatestNoticesContainer extends StatelessWidget {
                     child: Text(
                       UiUtils.getTranslatedLabel(context, viewAllKey),
                       style: TextStyle(
-                        color: UiUtils.getColorScheme(context).onSurface,
+                        color: UiUtils.getColorScheme(context).onSurfaceVariant,
                         fontSize: 13,
                       ),
                       textAlign: TextAlign.start,

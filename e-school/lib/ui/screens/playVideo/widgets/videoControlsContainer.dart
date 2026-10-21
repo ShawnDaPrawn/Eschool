@@ -131,11 +131,13 @@ class _VideoControlsContainerState extends State<VideoControlsContainer> {
                   _buildCurrentVideoDurationInHMS().isEmpty
                       ? ''
                       : '${_buildCurrentVideoDurationInHMS()} / ${_buildVideoDurationInHMS()}',
-                  style: const TextStyle(color: Colors.white),
+                  style: TextStyle(
+                    color: Theme.of(context).colorScheme.onInverseSurface,
+                  ),
                 ),
                 const Spacer(),
                 IconButton(
-                  color: Colors.white,
+                  color: Theme.of(context).colorScheme.onInverseSurface,
                   padding: EdgeInsets.zero,
                   onPressed: () {
                     if (_allowGesture()) {
@@ -154,7 +156,10 @@ class _VideoControlsContainerState extends State<VideoControlsContainer> {
                         ]);
                         SystemChrome.setEnabledSystemUIMode(
                           SystemUiMode.manual,
-                          overlays: [SystemUiOverlay.top, SystemUiOverlay.bottom],
+                          overlays: [
+                            SystemUiOverlay.top,
+                            SystemUiOverlay.bottom,
+                          ],
                         );
                       }
                     } else {
@@ -184,8 +189,10 @@ class _VideoControlsContainerState extends State<VideoControlsContainer> {
                           : 1.0
                     : widget.videoPlayerController!.value.duration.inSeconds
                           .toDouble(),
-                activeColor: Colors.white,
-                inactiveColor: Colors.white38,
+                activeColor: Theme.of(context).colorScheme.onInverseSurface,
+                inactiveColor: Theme.of(
+                  context,
+                ).colorScheme.onInverseSurface.withValues(alpha: 0.38),
                 value: widget.isYoutubeVideo
                     ? currentVideoDuration.inSeconds.toDouble().clamp(
                         0,

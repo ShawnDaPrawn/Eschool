@@ -17,7 +17,9 @@ import 'package:youtube_player_iframe/youtube_player_iframe.dart';
 
 class PlayVideoScreen extends StatefulWidget {
   const PlayVideoScreen({
-    required this.relatedVideos, required this.currentlyPlayingVideo, super.key,
+    required this.relatedVideos,
+    required this.currentlyPlayingVideo,
+    super.key,
   });
   final List<StudyMaterial> relatedVideos;
   final StudyMaterial currentlyPlayingVideo;
@@ -58,8 +60,8 @@ class _PlayVideoScreenState extends State<PlayVideoScreen>
         duration: const Duration(milliseconds: 500),
       );
 
-  late Animation<double> controlsMenuAnimation =
-      Tween<double>(begin: 0, end: 1).animate(
+  late Animation<double> controlsMenuAnimation = Tween<double>(begin: 0, end: 1)
+      .animate(
         CurvedAnimation(
           parent: controlsMenuAnimationController,
           curve: Curves.easeInOut,
@@ -146,7 +148,9 @@ class _PlayVideoScreenState extends State<PlayVideoScreen>
               }
             },
             child: ColoredBox(
-              color: Colors.black45,
+              color: Theme.of(
+                context,
+              ).colorScheme.scrim.withValues(alpha: 0.45),
               child: Stack(
                 children: [
                   Align(
@@ -166,13 +170,19 @@ class _PlayVideoScreenState extends State<PlayVideoScreen>
                             ]);
                             SystemChrome.setEnabledSystemUIMode(
                               SystemUiMode.manual,
-                              overlays: [SystemUiOverlay.top, SystemUiOverlay.bottom],
+                              overlays: [
+                                SystemUiOverlay.top,
+                                SystemUiOverlay.bottom,
+                              ],
                             );
                             return;
                           }
                           Navigator.of(context).pop();
                         },
                         svgIconUrl: UiUtils.getBackButtonPath(context),
+                        tooltip: MaterialLocalizations.of(
+                          context,
+                        ).backButtonTooltip,
                       ),
                     ),
                   ),
@@ -216,7 +226,7 @@ class _PlayVideoScreenState extends State<PlayVideoScreen>
     return Align(
       alignment: Alignment.topCenter,
       child: Container(
-        color: Colors.black,
+        color: Theme.of(context).colorScheme.scrim,
         padding: EdgeInsets.only(top: MediaQuery.of(context).padding.top),
         child: SizedBox(
           width: MediaQuery.sizeOf(context).width,
@@ -254,7 +264,7 @@ class _PlayVideoScreenState extends State<PlayVideoScreen>
                         child: CustomCircularProgressIndicator(
                           indicatorColor: Theme.of(
                             context,
-                          ).scaffoldBackgroundColor,
+                          ).colorScheme.onInverseSurface,
                         ),
                       ),
               ),
@@ -305,12 +315,12 @@ class _PlayVideoScreenState extends State<PlayVideoScreen>
           padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 15),
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(10),
-            color: Theme.of(context).scaffoldBackgroundColor,
+            color: Theme.of(context).colorScheme.surface,
             boxShadow: [
               BoxShadow(
                 color: Theme.of(
                   context,
-                ).colorScheme.secondary.withValues(alpha: 0.1),
+                ).colorScheme.shadow.withValues(alpha: 0.1),
                 offset: const Offset(5, 5),
                 blurRadius: 10,
               ),
@@ -362,7 +372,9 @@ class _PlayVideoScreenState extends State<PlayVideoScreen>
                         Text(
                           studyMaterial.fileName,
                           style: TextStyle(
-                            color: Theme.of(context).colorScheme.onSurface,
+                            color: Theme.of(
+                              context,
+                            ).colorScheme.onSurfaceVariant,
                             fontWeight: FontWeight.w600,
                             fontSize: 13,
                           ),
@@ -434,10 +446,14 @@ class _PlayVideoScreenState extends State<PlayVideoScreen>
                   height:
                       MediaQuery.sizeOf(context).height *
                       _videoContainerPotraitHeightPercentage,
-                  color: Colors.black45,
+                  color: Theme.of(
+                    context,
+                  ).colorScheme.scrim.withValues(alpha: 0.45),
                   child: Center(
                     child: CustomCircularProgressIndicator(
-                      indicatorColor: Theme.of(context).scaffoldBackgroundColor,
+                      indicatorColor: Theme.of(
+                        context,
+                      ).colorScheme.onInverseSurface,
                     ),
                   ),
                 ),

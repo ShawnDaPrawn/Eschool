@@ -8,7 +8,11 @@ import 'package:flutter/material.dart';
 
 class AddedStudyMaterialContainer extends StatelessWidget {
   const AddedStudyMaterialContainer({
-    required this.file, required this.fileIndex, required this.onDelete, required this.onEdit, super.key,
+    required this.file,
+    required this.fileIndex,
+    required this.onDelete,
+    required this.onEdit,
+    super.key,
   });
   final int fileIndex;
   final PickedStudyMaterial file;
@@ -18,13 +22,13 @@ class AddedStudyMaterialContainer extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final titleTextStyle = TextStyle(
-      color: Theme.of(context).colorScheme.secondary,
+      color: Theme.of(context).colorScheme.onSurface,
       fontWeight: FontWeight.w500,
       fontSize: 13.5,
     );
 
     final subTitleTextStyle = TextStyle(
-      color: Theme.of(context).colorScheme.secondary.withValues(alpha: 0.7),
+      color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7),
       fontSize: 13,
     );
 
@@ -33,7 +37,7 @@ class AddedStudyMaterialContainer extends StatelessWidget {
       width: MediaQuery.sizeOf(context).width * 0.85,
       padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 15),
       decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surface,
+        color: Theme.of(context).colorScheme.surfaceContainerLow,
         borderRadius: BorderRadius.circular(15),
       ),
       child: LayoutBuilder(

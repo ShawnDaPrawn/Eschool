@@ -21,7 +21,7 @@ class StudentLeaveContainer extends StatelessWidget {
       padding: const EdgeInsets.all(15),
       margin: const EdgeInsets.symmetric(vertical: 5),
       decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surface,
+        color: Theme.of(context).colorScheme.surfaceContainerLow,
         borderRadius: BorderRadius.circular(8),
       ),
       child: Column(
@@ -54,7 +54,7 @@ class StudentLeaveContainer extends StatelessWidget {
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
                       style: TextStyle(
-                        color: Theme.of(context).colorScheme.secondary,
+                        color: Theme.of(context).colorScheme.onSurface,
                         fontWeight: FontWeight.w600,
                       ),
                     ),
@@ -63,7 +63,7 @@ class StudentLeaveContainer extends StatelessWidget {
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: TextStyle(
-                        color: Theme.of(context).colorScheme.onSurface,
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
                         fontSize: 11,
                         fontWeight: FontWeight.w400,
                       ),
@@ -75,13 +75,13 @@ class StudentLeaveContainer extends StatelessWidget {
               Container(
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(4),
-                  color: leave.statusColor.withValues(alpha: .1),
+                  color: leave.statusColor(context).withValues(alpha: .1),
                 ),
                 padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 8),
                 child: Text(
                   UiUtils.getTranslatedLabel(context, leave.statusKey),
                   style: TextStyle(
-                    color: leave.statusColor,
+                    color: leave.statusColor(context),
                     fontWeight: FontWeight.w600,
                   ),
                 ),
@@ -92,7 +92,7 @@ class StudentLeaveContainer extends StatelessWidget {
           Divider(
             color: Theme.of(
               context,
-            ).colorScheme.secondary.withValues(alpha: .1),
+            ).colorScheme.onSurface.withValues(alpha: .1),
           ),
           const SizedBox(height: 5),
           Text(
@@ -100,7 +100,7 @@ class StudentLeaveContainer extends StatelessWidget {
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
             style: TextStyle(
-              color: Theme.of(context).colorScheme.secondary,
+              color: Theme.of(context).colorScheme.onSurface,
               fontWeight: FontWeight.w600,
             ),
           ),
@@ -112,14 +112,14 @@ class StudentLeaveContainer extends StatelessWidget {
             style: TextStyle(
               color: Theme.of(
                 context,
-              ).colorScheme.secondary.withValues(alpha: 0.76),
+              ).colorScheme.onSurface.withValues(alpha: 0.76),
             ),
           ),
           const SizedBox(height: 5),
           Divider(
             color: Theme.of(
               context,
-            ).colorScheme.secondary.withValues(alpha: .1),
+            ).colorScheme.onSurface.withValues(alpha: .1),
           ),
           const SizedBox(height: 5),
           Row(
@@ -130,7 +130,7 @@ class StudentLeaveContainer extends StatelessWidget {
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: TextStyle(
-                    color: Theme.of(context).colorScheme.secondary,
+                    color: Theme.of(context).colorScheme.onSurface,
                     fontWeight: FontWeight.w600,
                     fontSize: 16,
                   ),
@@ -164,7 +164,7 @@ class StudentLeaveContainer extends StatelessWidget {
                   child: Text(
                     UiUtils.getTranslatedLabel(context, viewMoreKey),
                     style: TextStyle(
-                      color: Theme.of(context).scaffoldBackgroundColor,
+                      color: Theme.of(context).colorScheme.onPrimary,
                     ),
                   ),
                 ),

@@ -3,7 +3,6 @@ import 'package:eschool/cubits/eventDetailsCubit.dart';
 import 'package:eschool/data/models/event.dart';
 import 'package:eschool_core/eschool_core.dart';
 import 'package:eschool/data/repositories/systemInfoRepository.dart';
-import 'package:eschool/ui/styles/colors.dart';
 import 'package:eschool/ui/widgets/customBackButton.dart';
 import 'package:eschool/ui/widgets/customShimmerContainer.dart';
 import 'package:eschool/ui/widgets/errorContainer.dart';
@@ -69,7 +68,7 @@ class _EventDetailsScreenState extends State<EventDetailsScreen> {
                 maxLines: 2,
                 overflow: TextOverflow.ellipsis,
                 style: TextStyle(
-                  color: Theme.of(context).scaffoldBackgroundColor,
+                  color: Theme.of(context).colorScheme.onPrimary,
                   fontSize: UiUtils.screenTitleFontSize,
                 ),
               ),
@@ -96,7 +95,7 @@ class _EventDetailsScreenState extends State<EventDetailsScreen> {
     return Container(
       margin: const EdgeInsets.only(bottom: 10),
       decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.onPrimary,
+        color: Theme.of(context).colorScheme.tertiaryContainer,
         borderRadius: BorderRadius.circular(10),
       ),
       width: double.maxFinite,
@@ -111,7 +110,7 @@ class _EventDetailsScreenState extends State<EventDetailsScreen> {
                 '${UiUtils.formatTime(daySchedule.startTime!)}\n${UiUtils.getTranslatedLabel(context, toKey)}\n${UiUtils.formatTime(daySchedule.endTime!)}',
                 style: TextStyle(
                   height: 1.3,
-                  color: Theme.of(context).scaffoldBackgroundColor,
+                  color: Theme.of(context).colorScheme.onTertiaryContainer,
                   fontWeight: FontWeight.w600,
                   fontSize: 12,
                 ),
@@ -123,7 +122,7 @@ class _EventDetailsScreenState extends State<EventDetailsScreen> {
           Expanded(
             child: Container(
               constraints: const BoxConstraints(minHeight: 70),
-              color: Theme.of(context).colorScheme.surface,
+              color: Theme.of(context).colorScheme.surfaceContainerLow,
               padding: const EdgeInsets.all(10),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -132,7 +131,7 @@ class _EventDetailsScreenState extends State<EventDetailsScreen> {
                     daySchedule.title,
                     style: TextStyle(
                       height: 1,
-                      color: Theme.of(context).colorScheme.secondary,
+                      color: Theme.of(context).colorScheme.onSurface,
                       fontWeight: FontWeight.w500,
                       fontSize: 14,
                     ),
@@ -144,7 +143,7 @@ class _EventDetailsScreenState extends State<EventDetailsScreen> {
                   ReadMoreText(
                     daySchedule.description,
                     trimLines: 3,
-                    colorClickableText: primaryColor,
+                    colorClickableText: Theme.of(context).colorScheme.primary,
                     trimMode: TrimMode.Line,
                     trimCollapsedText: UiUtils.getTranslatedLabel(
                       context,
@@ -153,7 +152,7 @@ class _EventDetailsScreenState extends State<EventDetailsScreen> {
                     trimExpandedText:
                         ' ${UiUtils.getTranslatedLabel(context, showLessKey)}',
                     style: TextStyle(
-                      color: Theme.of(context).colorScheme.onSurface,
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
                       fontWeight: FontWeight.w400,
                       fontSize: 12,
                     ),
@@ -169,7 +168,7 @@ class _EventDetailsScreenState extends State<EventDetailsScreen> {
                             padding: const EdgeInsetsDirectional.only(end: 2),
                             child: Icon(
                               Icons.calendar_month_outlined,
-                              color: Theme.of(context).colorScheme.secondary,
+                              color: Theme.of(context).colorScheme.onSurface,
                               size: 12,
                             ),
                           ),
@@ -178,7 +177,7 @@ class _EventDetailsScreenState extends State<EventDetailsScreen> {
                       ],
                       style: TextStyle(
                         height: 1,
-                        color: Theme.of(context).colorScheme.secondary,
+                        color: Theme.of(context).colorScheme.onSurface,
                         fontWeight: FontWeight.w400,
                         fontSize: 10,
                       ),

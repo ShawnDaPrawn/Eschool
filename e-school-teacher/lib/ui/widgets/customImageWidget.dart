@@ -8,7 +8,8 @@ import 'package:flutter_svg/svg.dart';
 
 class CustomImageWidget extends StatelessWidget {
   const CustomImageWidget({
-    required this.imagePath, super.key,
+    required this.imagePath,
+    super.key,
     this.isFile = false,
     this.isAsset = false,
     this.boxFit = BoxFit.cover,
@@ -28,53 +29,41 @@ class CustomImageWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return !isFile && !isAsset //it's network in that case
+    return !isFile &&
+            !isAsset //it's network in that case
         ? imagePath.toLowerCase().endsWith('svg')
-            ? SvgPicture.network(
-                imagePath,
-                fit: boxFit,
-              )
-            : CachedNetworkImage(
-                errorWidget: errorWidget ??
-                    (context, image, _) => Center(
-                          child: Icon(
-                            Icons.error,
-                            color: Theme.of(context).primaryColor,
-                          ),
+              ? SvgPicture.network(imagePath, fit: boxFit)
+              : CachedNetworkImage(
+                  errorWidget:
+                      errorWidget ??
+                      (context, image, _) => Center(
+                        child: Icon(
+                          Icons.error,
+                          color: Theme.of(context).colorScheme.primary,
                         ),
-                imageUrl: imagePath,
-                fit: boxFit,
-                placeholder: progressIndicatorBuilder != null
-                    ? null
-                    : (context, url) =>
-                        customLoadingPlaceholder ??
-                        Center(
-                          child: CustomCircularProgressIndicator(
-                            indicatorColor:
-                                UiUtils.getColorScheme(context).primary,
-                          ),
-                        ),
-                progressIndicatorBuilder: progressIndicatorBuilder,
-                imageBuilder: imageBuilder,
-              )
+                      ),
+                  imageUrl: imagePath,
+                  fit: boxFit,
+                  placeholder: progressIndicatorBuilder != null
+                      ? null
+                      : (context, url) =>
+                            customLoadingPlaceholder ??
+                            Center(
+                              child: CustomCircularProgressIndicator(
+                                indicatorColor: UiUtils.getColorScheme(
+                                  context,
+                                ).primary,
+                              ),
+                            ),
+                  progressIndicatorBuilder: progressIndicatorBuilder,
+                  imageBuilder: imageBuilder,
+                )
         : isAsset
-            ? imagePath.toLowerCase().endsWith('svg')
-                ? SvgPicture.asset(
-                    imagePath,
-                    fit: boxFit,
-                  )
-                : Image.asset(
-                    imagePath,
-                    fit: boxFit,
-                  )
-            : imagePath.toLowerCase().endsWith('svg')
-                ? SvgPicture.file(
-                    File(imagePath),
-                    fit: boxFit,
-                  )
-                : Image.file(
-                    File(imagePath),
-                    fit: boxFit,
-                  );
+        ? imagePath.toLowerCase().endsWith('svg')
+              ? SvgPicture.asset(imagePath, fit: boxFit)
+              : Image.asset(imagePath, fit: boxFit)
+        : imagePath.toLowerCase().endsWith('svg')
+        ? SvgPicture.file(File(imagePath), fit: boxFit)
+        : Image.file(File(imagePath), fit: boxFit);
   }
 }

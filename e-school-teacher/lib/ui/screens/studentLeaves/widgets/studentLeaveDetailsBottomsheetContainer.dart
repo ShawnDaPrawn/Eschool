@@ -9,7 +9,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 class StudentLeaveDetailsBottomsheetContainer extends StatefulWidget {
   const StudentLeaveDetailsBottomsheetContainer({
-    required this.leave, super.key,
+    required this.leave,
+    super.key,
   });
   final StudentLeave leave;
 
@@ -32,7 +33,7 @@ class StudentLeaveDetailsBottomsheetContainerState
     return Container(
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(8),
-        color: Theme.of(context).colorScheme.secondary.withValues(alpha: 0.06),
+        color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.06),
       ),
       padding: const EdgeInsets.all(15),
       child: Column(
@@ -45,7 +46,7 @@ class StudentLeaveDetailsBottomsheetContainerState
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
                 style: TextStyle(
-                  color: Theme.of(context).colorScheme.secondary,
+                  color: Theme.of(context).colorScheme.onSurface,
                   fontWeight: FontWeight.w600,
                 ),
               ),
@@ -54,7 +55,7 @@ class StudentLeaveDetailsBottomsheetContainerState
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
                 style: TextStyle(
-                  color: Theme.of(context).colorScheme.secondary,
+                  color: Theme.of(context).colorScheme.onSurface,
                   fontWeight: FontWeight.w600,
                 ),
               ),
@@ -65,7 +66,7 @@ class StudentLeaveDetailsBottomsheetContainerState
             height: 10,
             color: Theme.of(
               context,
-            ).colorScheme.onSurface.withValues(alpha: 0.1),
+            ).colorScheme.onSurfaceVariant.withValues(alpha: 0.1),
           ),
           ...List.generate(
             leave.leaveDetail!.length,
@@ -81,7 +82,7 @@ class StudentLeaveDetailsBottomsheetContainerState
                     style: TextStyle(
                       color: Theme.of(
                         context,
-                      ).colorScheme.secondary.withValues(alpha: 0.7),
+                      ).colorScheme.onSurface.withValues(alpha: 0.7),
                       fontSize: 16,
                     ),
                   ),
@@ -92,7 +93,7 @@ class StudentLeaveDetailsBottomsheetContainerState
                     style: TextStyle(
                       color: Theme.of(
                         context,
-                      ).colorScheme.secondary.withValues(alpha: 0.7),
+                      ).colorScheme.onSurface.withValues(alpha: 0.7),
                       fontSize: 16,
                     ),
                   ),
@@ -116,7 +117,7 @@ class StudentLeaveDetailsBottomsheetContainerState
   Widget build(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
-        color: Theme.of(context).scaffoldBackgroundColor,
+        color: Theme.of(context).colorScheme.surface,
         borderRadius: BorderRadius.only(
           topLeft: Radius.circular(UiUtils.bottomSheetTopRadius),
           topRight: Radius.circular(UiUtils.bottomSheetTopRadius),
@@ -169,7 +170,7 @@ class StudentLeaveDetailsBottomsheetContainerState
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                           style: TextStyle(
-                            color: Theme.of(context).colorScheme.secondary,
+                            color: Theme.of(context).colorScheme.onSurface,
                             fontWeight: FontWeight.w600,
                           ),
                         ),
@@ -179,7 +180,7 @@ class StudentLeaveDetailsBottomsheetContainerState
                           style: TextStyle(
                             color: Theme.of(
                               context,
-                            ).colorScheme.secondary.withValues(alpha: 0.76),
+                            ).colorScheme.onSurface.withValues(alpha: 0.76),
                             fontSize: 16,
                           ),
                         ),
@@ -192,16 +193,17 @@ class StudentLeaveDetailsBottomsheetContainerState
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                             style: TextStyle(
-                              color: Theme.of(context).colorScheme.secondary,
+                              color: Theme.of(context).colorScheme.onSurface,
                               fontWeight: FontWeight.w600,
                             ),
                           ),
                           const SizedBox(height: 5),
                           Divider(
                             height: 20,
-                            color: Theme.of(
-                              context,
-                            ).colorScheme.onSurface.withValues(alpha: 0.6),
+                            color: Theme.of(context)
+                                .colorScheme
+                                .onSurfaceVariant
+                                .withValues(alpha: 0.6),
                           ),
                           ...List.generate(
                             leave.file.length,
@@ -227,7 +229,7 @@ class StudentLeaveDetailsBottomsheetContainerState
                                         style: TextStyle(
                                           color: Theme.of(
                                             context,
-                                          ).colorScheme.secondary,
+                                          ).colorScheme.onSurface,
                                           fontWeight: FontWeight.w600,
                                           fontSize: 16,
                                         ),
@@ -237,7 +239,7 @@ class StudentLeaveDetailsBottomsheetContainerState
                                       Icons.remove_red_eye_outlined,
                                       color: Theme.of(
                                         context,
-                                      ).colorScheme.secondary,
+                                      ).colorScheme.onSurface,
                                     ),
                                   ],
                                 ),
@@ -300,7 +302,7 @@ class StudentLeaveDetailsBottomsheetContainerState
             maxLines: 3,
             textAlign: TextAlign.center,
             style: TextStyle(
-              color: Theme.of(context).colorScheme.secondary,
+              color: Theme.of(context).colorScheme.onSurface,
               fontWeight: FontWeight.w700,
             ),
           ),
@@ -309,7 +311,7 @@ class StudentLeaveDetailsBottomsheetContainerState
             UiUtils.getTranslatedLabel(context, addNoteKey),
             textAlign: TextAlign.left,
             style: TextStyle(
-              color: Theme.of(context).colorScheme.secondary,
+              color: Theme.of(context).colorScheme.onSurface,
               fontWeight: FontWeight.w400,
             ),
           ),
@@ -335,7 +337,7 @@ class StudentLeaveDetailsBottomsheetContainerState
         maxLines: 3,
         textAlign: TextAlign.center,
         style: TextStyle(
-          color: Theme.of(context).colorScheme.secondary,
+          color: Theme.of(context).colorScheme.onSurface,
           fontWeight: FontWeight.w700,
         ),
       ),
@@ -399,7 +401,7 @@ class StudentLeaveDetailsBottomsheetContainerState
             UiUtils.getTranslatedLabel(context, captionKey),
             style: TextStyle(
               color: isAcceptButton
-                  ? Theme.of(context).scaffoldBackgroundColor
+                  ? Theme.of(context).colorScheme.onPrimary
                   : Theme.of(context).colorScheme.primary,
             ),
           ),

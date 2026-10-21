@@ -3,7 +3,6 @@ import 'package:eschool_teacher/cubits/leavesCubit.dart';
 import 'package:eschool_teacher/data/models/leave.dart';
 import 'package:eschool_teacher/data/repositories/leaveRepository.dart';
 import 'package:eschool_teacher/ui/screens/leave/widgets/leaveDetailsBottomsheetContainer.dart';
-import 'package:eschool_teacher/ui/styles/colors.dart';
 import 'package:eschool_teacher/ui/widgets/confirmDeleteDialog.dart';
 import 'package:eschool_teacher/utils/labelKeys.dart';
 import 'package:eschool_teacher/utils/uiUtils.dart';
@@ -21,7 +20,7 @@ class LeaveContainer extends StatelessWidget {
       padding: const EdgeInsets.all(15),
       margin: const EdgeInsets.symmetric(vertical: 5),
       decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surface,
+        color: Theme.of(context).colorScheme.surfaceContainerLow,
         borderRadius: BorderRadius.circular(8),
       ),
       child: Column(
@@ -53,7 +52,7 @@ class LeaveContainer extends StatelessWidget {
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
                   style: TextStyle(
-                    color: Theme.of(context).colorScheme.secondary,
+                    color: Theme.of(context).colorScheme.onSurface,
                     fontWeight: FontWeight.w600,
                   ),
                 ),
@@ -62,13 +61,13 @@ class LeaveContainer extends StatelessWidget {
               Container(
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(4),
-                  color: leave.statusColor.withValues(alpha: .1),
+                  color: leave.statusColor(context).withValues(alpha: .1),
                 ),
                 padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 8),
                 child: Text(
                   UiUtils.getTranslatedLabel(context, leave.statusKey),
                   style: TextStyle(
-                    color: leave.statusColor,
+                    color: leave.statusColor(context),
                     fontWeight: FontWeight.w600,
                   ),
                 ),
@@ -79,7 +78,7 @@ class LeaveContainer extends StatelessWidget {
           Divider(
             color: Theme.of(
               context,
-            ).colorScheme.secondary.withValues(alpha: .1),
+            ).colorScheme.onSurface.withValues(alpha: .1),
           ),
           const SizedBox(height: 5),
           Text(
@@ -87,7 +86,7 @@ class LeaveContainer extends StatelessWidget {
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
             style: TextStyle(
-              color: Theme.of(context).colorScheme.secondary,
+              color: Theme.of(context).colorScheme.onSurface,
               fontWeight: FontWeight.w600,
             ),
           ),
@@ -99,14 +98,14 @@ class LeaveContainer extends StatelessWidget {
             style: TextStyle(
               color: Theme.of(
                 context,
-              ).colorScheme.secondary.withValues(alpha: 0.76),
+              ).colorScheme.onSurface.withValues(alpha: 0.76),
             ),
           ),
           const SizedBox(height: 5),
           Divider(
             color: Theme.of(
               context,
-            ).colorScheme.secondary.withValues(alpha: .1),
+            ).colorScheme.onSurface.withValues(alpha: .1),
           ),
           const SizedBox(height: 5),
           Row(
@@ -117,7 +116,7 @@ class LeaveContainer extends StatelessWidget {
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: TextStyle(
-                    color: Theme.of(context).colorScheme.secondary,
+                    color: Theme.of(context).colorScheme.onSurface,
                     fontWeight: FontWeight.w600,
                     fontSize: 16,
                   ),
@@ -174,24 +173,30 @@ class LeaveContainer extends StatelessWidget {
                               alignment: Alignment.center,
                               decoration: BoxDecoration(
                                 borderRadius: BorderRadius.circular(4),
-                                color: redColor.withValues(alpha: 0.1),
+                                color: Theme.of(
+                                  context,
+                                ).colorScheme.error.withValues(alpha: 0.1),
                               ),
                               padding: const EdgeInsets.all(4),
                               child: state is DeleteLeaveInProgress
-                                  ? const SizedBox(
+                                  ? SizedBox(
                                       width: 24,
                                       height: 24,
                                       child: Padding(
-                                        padding: EdgeInsets.all(3),
+                                        padding: const EdgeInsets.all(3),
                                         child: CircularProgressIndicator(
                                           strokeWidth: 3,
-                                          color: redColor,
+                                          color: Theme.of(
+                                            context,
+                                          ).colorScheme.error,
                                         ),
                                       ),
                                     )
-                                  : const Icon(
+                                  : Icon(
                                       Icons.delete_outline,
-                                      color: redColor,
+                                      color: Theme.of(
+                                        context,
+                                      ).colorScheme.error,
                                     ),
                             ),
                           );
@@ -224,7 +229,7 @@ class LeaveContainer extends StatelessWidget {
                   child: Text(
                     UiUtils.getTranslatedLabel(context, viewMoreKey),
                     style: TextStyle(
-                      color: Theme.of(context).scaffoldBackgroundColor,
+                      color: Theme.of(context).colorScheme.onPrimary,
                     ),
                   ),
                 ),

@@ -1,11 +1,7 @@
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
-class CustomCupertinoSwitch extends StatelessWidget {
-
-  const CustomCupertinoSwitch({
-    required this.onChanged, required this.value, super.key,
-  });
+class CustomSwitch extends StatelessWidget {
+  const CustomSwitch({required this.onChanged, required this.value, super.key});
   final Function onChanged;
   final bool value;
 
@@ -13,9 +9,9 @@ class CustomCupertinoSwitch extends StatelessWidget {
   Widget build(BuildContext context) {
     return Transform.scale(
       scale: 0.65,
-      child: CupertinoSwitch(
-        activeTrackColor: Theme.of(context).colorScheme.primary,
+      child: Switch(
         value: value,
+        materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
         onChanged: (value) {
           onChanged(value);
         },

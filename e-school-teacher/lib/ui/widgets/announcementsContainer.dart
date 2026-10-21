@@ -1,3 +1,4 @@
+import 'package:eschool_core/eschool_core.dart';
 import 'package:eschool_teacher/app/routes.dart';
 import 'package:eschool_teacher/cubits/announcementsCubit.dart';
 import 'package:eschool_teacher/cubits/deleteAnnouncementCubit.dart';
@@ -5,7 +6,6 @@ import 'package:eschool_teacher/data/models/announcement.dart';
 import 'package:eschool_teacher/data/models/classSectionDetails.dart';
 import 'package:eschool_teacher/data/models/subject.dart';
 import 'package:eschool_teacher/data/repositories/announcementRepository.dart';
-import 'package:eschool_teacher/ui/styles/colors.dart';
 import 'package:eschool_teacher/ui/widgets/attachmentsBottomsheetContainer.dart';
 import 'package:eschool_teacher/ui/widgets/confirmDeleteDialog.dart';
 import 'package:eschool_teacher/ui/widgets/customShimmerContainer.dart';
@@ -18,7 +18,6 @@ import 'package:eschool_teacher/utils/animationConfiguration.dart';
 import 'package:eschool_teacher/utils/errorMessageKeysAndCodes.dart';
 import 'package:eschool_teacher/utils/labelKeys.dart';
 import 'package:eschool_teacher/utils/uiUtils.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -89,7 +88,7 @@ class AnnouncementsContainer extends StatelessWidget {
         }
         if (fetchMoreAnnouncementsFailure) {
           return Center(
-            child: CupertinoButton(
+            child: TextButton(
               child: Text(UiUtils.getTranslatedLabel(context, retryKey)),
               onPressed: () {
                 context.read<AnnouncementsCubit>().fetchMoreAnnouncements(
@@ -143,7 +142,7 @@ class AnnouncementsContainer extends StatelessWidget {
                     vertical: 15,
                   ),
                   decoration: BoxDecoration(
-                    color: Theme.of(context).colorScheme.surface,
+                    color: Theme.of(context).colorScheme.surfaceContainerLow,
                     borderRadius: BorderRadius.circular(10),
                   ),
                   width: MediaQuery.sizeOf(context).width * 0.85,
@@ -164,7 +163,7 @@ class AnnouncementsContainer extends StatelessWidget {
                                     height: 1.1,
                                     color: Theme.of(
                                       context,
-                                    ).colorScheme.secondary,
+                                    ).colorScheme.onSurface,
                                     fontSize: 15,
                                   ),
                                 ),
@@ -232,7 +231,7 @@ class AnnouncementsContainer extends StatelessWidget {
                               announcement.description,
                               style: TextStyle(
                                 height: 1.2,
-                                color: Theme.of(context).colorScheme.secondary,
+                                color: Theme.of(context).colorScheme.onSurface,
                                 fontWeight: FontWeight.w400,
                                 fontSize: 11.5,
                               ),
@@ -252,8 +251,8 @@ class AnnouncementsContainer extends StatelessWidget {
                                 },
                                 child: Text(
                                   '${announcement.files.length} ${UiUtils.getTranslatedLabel(context, attachmentsKey)}',
-                                  style: const TextStyle(
-                                    color: assignmentViewButtonColor,
+                                  style: TextStyle(
+                                    color: StatusColors.of(context).info,
                                   ),
                                 ),
                               ),
@@ -267,9 +266,10 @@ class AnnouncementsContainer extends StatelessWidget {
                             children: [
                               Icon(
                                 Icons.calendar_month_outlined,
-                                color: Theme.of(
-                                  context,
-                                ).colorScheme.onSurface.withValues(alpha: 0.75),
+                                color: Theme.of(context)
+                                    .colorScheme
+                                    .onSurfaceVariant
+                                    .withValues(alpha: 0.75),
                                 size: 14,
                               ),
                               const SizedBox(width: 5),
@@ -283,7 +283,7 @@ class AnnouncementsContainer extends StatelessWidget {
                                   style: TextStyle(
                                     color: Theme.of(context)
                                         .colorScheme
-                                        .onSurface
+                                        .onSurfaceVariant
                                         .withValues(alpha: 0.75),
                                     fontWeight: FontWeight.w400,
                                     fontSize: 10,

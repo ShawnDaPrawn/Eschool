@@ -36,7 +36,7 @@ class NoDataContainer extends StatelessWidget {
                 UiUtils.getTranslatedLabel(context, titleKey),
                 textAlign: TextAlign.center,
                 style: TextStyle(
-                  color: textColor ?? Theme.of(context).colorScheme.secondary,
+                  color: textColor ?? Theme.of(context).colorScheme.onSurface,
                   fontSize: 16,
                 ),
               ),

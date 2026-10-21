@@ -1,7 +1,7 @@
 import 'package:eschool_teacher/app/routes.dart';
 import 'package:eschool_teacher/data/models/assignment.dart';
 import 'package:eschool_teacher/ui/widgets/announcementAttachmentContainer.dart';
-import 'package:eschool_teacher/ui/widgets/customCupertinoSwitch.dart';
+import 'package:eschool_teacher/ui/widgets/customSwitch.dart';
 import 'package:eschool_teacher/utils/labelKeys.dart';
 import 'package:eschool_teacher/utils/uiUtils.dart';
 import 'package:flutter/material.dart';
@@ -24,7 +24,7 @@ class _AssignmentDetailsBottomsheetContainerState
     extends State<AssignmentDetailsBottomsheetContainer> {
   TextStyle _getAssignmentDetailsLabelValueTextStyle() {
     return TextStyle(
-      color: Theme.of(context).colorScheme.secondary,
+      color: Theme.of(context).colorScheme.onSurface,
       fontSize: 14,
       fontWeight: FontWeight.w600,
     );
@@ -32,7 +32,7 @@ class _AssignmentDetailsBottomsheetContainerState
 
   TextStyle _getAssignmentDetailsLabelTextStyle() {
     return TextStyle(
-      color: Theme.of(context).colorScheme.onSurface,
+      color: Theme.of(context).colorScheme.onSurfaceVariant,
       fontSize: 12,
       fontWeight: FontWeight.w400,
     );
@@ -45,7 +45,7 @@ class _AssignmentDetailsBottomsheetContainerState
         width: MediaQuery.sizeOf(context).width,
         padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 15),
         decoration: BoxDecoration(
-          color: Theme.of(context).colorScheme.surface,
+          color: Theme.of(context).colorScheme.surfaceContainerLow,
           borderRadius: BorderRadius.circular(10),
         ),
         child: child,
@@ -218,10 +218,7 @@ class _AssignmentDetailsBottomsheetContainerState
                 width: boxConstraints.maxWidth * 0.1,
                 child: SizedBox(
                   width: 30,
-                  child: CustomCupertinoSwitch(
-                    onChanged: (_) {},
-                    value: isResubmission,
-                  ),
+                  child: CustomSwitch(onChanged: (_) {}, value: isResubmission),
                 ),
               ),
             ],
@@ -258,7 +255,7 @@ class _AssignmentDetailsBottomsheetContainerState
   Widget build(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
-        color: Theme.of(context).scaffoldBackgroundColor,
+        color: Theme.of(context).colorScheme.surface,
         borderRadius: BorderRadius.only(
           topLeft: Radius.circular(UiUtils.bottomSheetTopRadius),
           topRight: Radius.circular(UiUtils.bottomSheetTopRadius),
@@ -276,12 +273,12 @@ class _AssignmentDetailsBottomsheetContainerState
           //
           Container(
             decoration: BoxDecoration(
-              color: Theme.of(context).scaffoldBackgroundColor,
+              color: Theme.of(context).colorScheme.surface,
               border: Border(
                 bottom: BorderSide(
                   color: Theme.of(
                     context,
-                  ).colorScheme.onSurface.withValues(alpha: 0.5),
+                  ).colorScheme.onSurfaceVariant.withValues(alpha: 0.5),
                 ),
               ),
             ),
@@ -301,7 +298,7 @@ class _AssignmentDetailsBottomsheetContainerState
                         overflow: TextOverflow.ellipsis,
                         style: TextStyle(
                           fontSize: 16,
-                          color: Theme.of(context).colorScheme.secondary,
+                          color: Theme.of(context).colorScheme.onSurface,
                           fontWeight: FontWeight.w600,
                         ),
                       ),

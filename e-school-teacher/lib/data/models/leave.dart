@@ -1,6 +1,6 @@
 // ignore_for_file: public_member_api_docs, sort_constructors_first
+import 'package:eschool_core/eschool_core.dart';
 import 'package:eschool_teacher/data/models/studyMaterial.dart';
-import 'package:eschool_teacher/ui/styles/colors.dart';
 import 'package:eschool_teacher/utils/labelKeys.dart';
 import 'package:eschool_teacher/utils/uiUtils.dart';
 import 'package:flutter/cupertino.dart';
@@ -56,14 +56,15 @@ class Leave {
     }
   }
 
-  Color get statusColor {
+  Color statusColor(BuildContext context) {
+    final palette = StatusColors.of(context);
     switch (status) {
       case '1':
-        return greenColor;
+        return palette.success;
       case '2':
-        return redColor;
+        return palette.danger;
       default:
-        return orangeColor;
+        return palette.warning;
     }
   }
 

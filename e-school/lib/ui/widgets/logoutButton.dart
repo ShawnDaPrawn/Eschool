@@ -4,7 +4,6 @@ import 'package:eschool/utils/assets.dart';
 import 'package:eschool/utils/labelKeys.dart';
 import 'package:eschool/utils/notificationUtils/generalNotificationUtility.dart';
 import 'package:eschool/utils/uiUtils.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/flutter_svg.dart';
@@ -19,13 +18,12 @@ class LogoutButton extends StatelessWidget {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        backgroundColor: Colors.white,
         title: Text(UiUtils.getTranslatedLabel(context, logoutKey)),
         content: Text(
           UiUtils.getTranslatedLabel(context, logoutDialogMessageKey),
         ),
         actions: [
-          CupertinoButton(
+          TextButton(
             child: Text(UiUtils.getTranslatedLabel(context, yesKey)),
             onPressed: () {
               if (!isBeforeHomePage) {
@@ -42,7 +40,7 @@ class LogoutButton extends StatelessWidget {
               Navigator.of(context).pushReplacementNamed(Routes.auth);
             },
           ),
-          CupertinoButton(
+          TextButton(
             child: Text(UiUtils.getTranslatedLabel(context, noKey)),
             onPressed: () {
               Navigator.of(context).pop();
@@ -55,41 +53,32 @@ class LogoutButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
     return Align(
       alignment: Alignment.bottomCenter,
-      child: InkWell(
-        onTap: () {
-          showLogOutDialog(context);
-        },
-        borderRadius: BorderRadius.circular(20),
-        child: Container(
-          width: MediaQuery.sizeOf(context).width * 0.4,
-          height: 40,
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(20),
-            color: Theme.of(context).colorScheme.secondary,
+      child: SizedBox(
+        width: MediaQuery.sizeOf(context).width * 0.4,
+        height: 40,
+        child: FilledButton.icon(
+          onPressed: () {
+            showLogOutDialog(context);
+          },
+          style: FilledButton.styleFrom(
+            backgroundColor: colorScheme.inverseSurface,
+            foregroundColor: colorScheme.onInverseSurface,
+            shape: const StadiumBorder(),
+            padding: const EdgeInsets.symmetric(horizontal: 12),
           ),
-          child: Center(
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                SizedBox(
-                  height: 16,
-                  width: 16,
-                  child: SvgPicture.asset(Assets.logoutIcon),
-                ),
-                const SizedBox(width: 10),
-                Text(
-                  UiUtils.getTranslatedLabel(context, logoutKey),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: TextStyle(
-                    fontSize: 15,
-                    color: Theme.of(context).scaffoldBackgroundColor,
-                  ),
-                ),
-              ],
-            ),
+          icon: SizedBox(
+            height: 16,
+            width: 16,
+            child: SvgPicture.asset(Assets.logoutIcon),
+          ),
+          label: Text(
+            UiUtils.getTranslatedLabel(context, logoutKey),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: const TextStyle(fontSize: 15, fontWeight: FontWeight.normal),
           ),
         ),
       ),

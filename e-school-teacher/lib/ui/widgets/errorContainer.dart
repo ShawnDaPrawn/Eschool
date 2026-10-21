@@ -1,6 +1,5 @@
-import 'package:eschool_teacher/ui/widgets/customRoundedButton.dart';
+import 'package:eschool_core/eschool_core.dart';
 import 'package:eschool_teacher/utils/animationConfiguration.dart';
-import 'package:eschool_teacher/utils/api.dart';
 import 'package:eschool_teacher/utils/assets.dart';
 import 'package:eschool_teacher/utils/errorMessageKeysAndCodes.dart';
 import 'package:eschool_teacher/utils/labelKeys.dart';
@@ -61,7 +60,7 @@ class ErrorContainer extends StatelessWidget {
               style: TextStyle(
                 color:
                     errorMessageColor ??
-                    Theme.of(context).colorScheme.secondary,
+                    Theme.of(context).colorScheme.onSurface,
                 fontSize: errorMessageFontSize ?? 16,
               ),
             ),
@@ -79,7 +78,7 @@ class ErrorContainer extends StatelessWidget {
               },
               titleColor:
                   retryButtonTextColor ??
-                  Theme.of(context).scaffoldBackgroundColor,
+                  Theme.of(context).colorScheme.onPrimary,
               buttonTitle: UiUtils.getTranslatedLabel(context, retryKey),
               showBorder: false,
               textAlign: TextAlign.center,

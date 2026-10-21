@@ -12,7 +12,7 @@ class LeaveDetailsBottomsheetContainer extends StatelessWidget {
     return Container(
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(8),
-        color: Theme.of(context).colorScheme.secondary.withValues(alpha: 0.06),
+        color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.06),
       ),
       padding: const EdgeInsets.all(15),
       child: Column(
@@ -25,7 +25,7 @@ class LeaveDetailsBottomsheetContainer extends StatelessWidget {
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
                 style: TextStyle(
-                  color: Theme.of(context).colorScheme.secondary,
+                  color: Theme.of(context).colorScheme.onSurface,
                   fontWeight: FontWeight.w600,
                 ),
               ),
@@ -34,7 +34,7 @@ class LeaveDetailsBottomsheetContainer extends StatelessWidget {
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
                 style: TextStyle(
-                  color: Theme.of(context).colorScheme.secondary,
+                  color: Theme.of(context).colorScheme.onSurface,
                   fontWeight: FontWeight.w600,
                 ),
               ),
@@ -45,7 +45,7 @@ class LeaveDetailsBottomsheetContainer extends StatelessWidget {
             height: 10,
             color: Theme.of(
               context,
-            ).colorScheme.onSurface.withValues(alpha: 0.1),
+            ).colorScheme.onSurfaceVariant.withValues(alpha: 0.1),
           ),
           ...List.generate(
             leave.leaveDetail.length,
@@ -63,7 +63,7 @@ class LeaveDetailsBottomsheetContainer extends StatelessWidget {
                     style: TextStyle(
                       color: Theme.of(
                         context,
-                      ).colorScheme.secondary.withValues(alpha: 0.7),
+                      ).colorScheme.onSurface.withValues(alpha: 0.7),
                       fontSize: 16,
                     ),
                   ),
@@ -77,7 +77,7 @@ class LeaveDetailsBottomsheetContainer extends StatelessWidget {
                     style: TextStyle(
                       color: Theme.of(
                         context,
-                      ).colorScheme.secondary.withValues(alpha: 0.7),
+                      ).colorScheme.onSurface.withValues(alpha: 0.7),
                       fontSize: 16,
                     ),
                   ),
@@ -94,7 +94,7 @@ class LeaveDetailsBottomsheetContainer extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
-        color: Theme.of(context).scaffoldBackgroundColor,
+        color: Theme.of(context).colorScheme.surface,
         borderRadius: BorderRadius.only(
           topLeft: Radius.circular(UiUtils.bottomSheetTopRadius),
           topRight: Radius.circular(UiUtils.bottomSheetTopRadius),
@@ -135,7 +135,7 @@ class LeaveDetailsBottomsheetContainer extends StatelessWidget {
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: TextStyle(
-                      color: Theme.of(context).colorScheme.secondary,
+                      color: Theme.of(context).colorScheme.onSurface,
                       fontWeight: FontWeight.w600,
                     ),
                   ),
@@ -145,7 +145,7 @@ class LeaveDetailsBottomsheetContainer extends StatelessWidget {
                     style: TextStyle(
                       color: Theme.of(
                         context,
-                      ).colorScheme.secondary.withValues(alpha: 0.76),
+                      ).colorScheme.onSurface.withValues(alpha: 0.76),
                       fontSize: 16,
                     ),
                   ),
@@ -156,7 +156,7 @@ class LeaveDetailsBottomsheetContainer extends StatelessWidget {
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: TextStyle(
-                        color: Theme.of(context).colorScheme.secondary,
+                        color: Theme.of(context).colorScheme.onSurface,
                         fontWeight: FontWeight.w600,
                       ),
                     ),
@@ -166,7 +166,7 @@ class LeaveDetailsBottomsheetContainer extends StatelessWidget {
                       style: TextStyle(
                         color: Theme.of(
                           context,
-                        ).colorScheme.secondary.withValues(alpha: 0.76),
+                        ).colorScheme.onSurface.withValues(alpha: 0.76),
                         fontSize: 16,
                       ),
                     ),
@@ -180,7 +180,7 @@ class LeaveDetailsBottomsheetContainer extends StatelessWidget {
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: TextStyle(
-                        color: Theme.of(context).colorScheme.secondary,
+                        color: Theme.of(context).colorScheme.onSurface,
                         fontWeight: FontWeight.w600,
                       ),
                     ),
@@ -189,7 +189,7 @@ class LeaveDetailsBottomsheetContainer extends StatelessWidget {
                       height: 20,
                       color: Theme.of(
                         context,
-                      ).colorScheme.onSurface.withValues(alpha: 0.6),
+                      ).colorScheme.onSurfaceVariant.withValues(alpha: 0.6),
                     ),
                     ...List.generate(
                       leave.file.length,
@@ -213,7 +213,7 @@ class LeaveDetailsBottomsheetContainer extends StatelessWidget {
                                   style: TextStyle(
                                     color: Theme.of(
                                       context,
-                                    ).colorScheme.secondary,
+                                    ).colorScheme.onSurface,
                                     fontWeight: FontWeight.w600,
                                     fontSize: 16,
                                   ),
@@ -221,7 +221,7 @@ class LeaveDetailsBottomsheetContainer extends StatelessWidget {
                               ),
                               Icon(
                                 Icons.remove_red_eye_outlined,
-                                color: Theme.of(context).colorScheme.secondary,
+                                color: Theme.of(context).colorScheme.onSurface,
                               ),
                             ],
                           ),

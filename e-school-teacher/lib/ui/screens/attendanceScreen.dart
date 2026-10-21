@@ -7,7 +7,6 @@ import 'package:eschool_teacher/data/repositories/teacherRepository.dart';
 import 'package:eschool_teacher/data/models/attendanceEnums.dart';
 import 'package:eschool_teacher/ui/widgets/customBackButton.dart';
 import 'package:eschool_core/eschool_core.dart';
-import 'package:eschool_teacher/ui/widgets/customRoundedButton.dart';
 import 'package:eschool_teacher/ui/widgets/errorContainer.dart';
 import 'package:eschool_teacher/ui/widgets/screenTopBackgroundContainer.dart';
 import 'package:eschool_teacher/ui/widgets/searchButton.dart';
@@ -86,16 +85,6 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
   Future<void> _changeAttendanceDate() async {
     final pickedDate = await showDatePicker(
       lastDate: DateTime.now(),
-      builder: (context, child) {
-        return Theme(
-          data: Theme.of(context).copyWith(
-            colorScheme: Theme.of(context).colorScheme.copyWith(
-              onPrimary: Theme.of(context).scaffoldBackgroundColor,
-            ),
-          ),
-          child: child!,
-        );
-      },
       context: context,
       initialDate: _selectedAttendanceDate,
       firstDate: context
@@ -183,7 +172,7 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
                     textAlign: TextAlign.center,
                     style: TextStyle(
                       fontSize: UiUtils.screenTitleFontSize,
-                      color: Theme.of(context).scaffoldBackgroundColor,
+                      color: Theme.of(context).colorScheme.onPrimary,
                     ),
                   ),
                 ),
@@ -209,7 +198,7 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
                           child: Icon(
                             Icons.calendar_month,
                             size: 14,
-                            color: Theme.of(context).colorScheme.surface,
+                            color: Theme.of(context).colorScheme.onPrimary,
                           ),
                         ),
                         SizedBox(width: boxConstraints.maxWidth * 0.015),
@@ -219,7 +208,7 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
                           overflow: TextOverflow.ellipsis,
                           style: TextStyle(
                             fontSize: UiUtils.screenSubTitleFontSize,
-                            color: Theme.of(context).scaffoldBackgroundColor,
+                            color: Theme.of(context).colorScheme.onPrimary,
                           ),
                         ),
                       ],
@@ -253,7 +242,7 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
                     context,
                     attendanceSubmittedSuccessfullyKey,
                   ),
-                  backgroundColor: Theme.of(context).colorScheme.onPrimary,
+                  backgroundColor: StatusColors.of(context).success,
                 );
               } else if (submitAttendanceState
                   is SubmitClassAttendanceFailure) {

@@ -31,18 +31,15 @@ class VideosContainer extends StatelessWidget {
             );
           },
           child: Container(
-            padding: const EdgeInsets.symmetric(
-              horizontal: 10,
-              vertical: 10,
-            ),
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(10),
-              color: Theme.of(context).scaffoldBackgroundColor,
+              color: Theme.of(context).colorScheme.surface,
               boxShadow: [
                 BoxShadow(
                   color: Theme.of(
                     context,
-                  ).colorScheme.secondary.withValues(alpha: 0.1),
+                  ).colorScheme.shadow.withValues(alpha: 0.1),
                   offset: const Offset(5, 5),
                   blurRadius: 10,
                 ),
@@ -75,7 +72,9 @@ class VideosContainer extends StatelessWidget {
                           Text(
                             studyMaterial.fileName,
                             style: TextStyle(
-                              color: Theme.of(context).colorScheme.onSurface,
+                              color: Theme.of(
+                                context,
+                              ).colorScheme.onSurfaceVariant,
                               fontWeight: FontWeight.w600,
                               fontSize: 13,
                             ),

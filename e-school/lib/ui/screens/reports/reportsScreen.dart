@@ -144,7 +144,7 @@ class ReportsScreenState extends State<ReportsScreen> {
             child: Text(
               UiUtils.getTranslatedLabel(context, reportsKey),
               style: TextStyle(
-                color: Theme.of(context).scaffoldBackgroundColor,
+                color: Theme.of(context).colorScheme.onPrimary,
                 fontSize: UiUtils.screenTitleFontSize,
               ),
             ),
@@ -284,7 +284,7 @@ class ReportsScreenState extends State<ReportsScreen> {
   Widget build(BuildContext context) {
     final tabs = _getTabs(context);
     return Scaffold(
-      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+      backgroundColor: Theme.of(context).colorScheme.surface,
       body: _buildBody(tabs),
     );
   }

@@ -1,5 +1,6 @@
 import 'dart:math';
 
+import 'package:eschool_core/eschool_core.dart';
 import 'package:eschool_teacher/app/appLocalization.dart';
 import 'package:eschool_teacher/app/routes.dart';
 import 'package:eschool_teacher/cubits/appConfigurationCubit.dart';
@@ -7,10 +8,8 @@ import 'package:eschool_teacher/cubits/appLocalizationCubit.dart';
 import 'package:eschool_teacher/cubits/downloadFileCubit.dart';
 import 'package:eschool_teacher/data/models/studyMaterial.dart';
 import 'package:eschool_teacher/data/repositories/studyMaterialRepositoy.dart';
-import 'package:eschool_teacher/ui/styles/colors.dart';
 import 'package:eschool_teacher/ui/widgets/bottomToastOverlayContainer.dart';
 import 'package:eschool_teacher/ui/widgets/downloadFileBottomsheetContainer.dart';
-import 'package:eschool_teacher/utils/api.dart';
 import 'package:eschool_teacher/utils/assets.dart';
 import 'package:eschool_teacher/utils/constants.dart';
 import 'package:eschool_teacher/utils/errorMessageKeysAndCodes.dart';
@@ -210,12 +209,9 @@ class UiUtils {
     return dateTimes;
   }
 
-  static Color getClassColor(int index) {
-    final int colorIndex = index < myClassesColors.length
-        ? index
-        : (index % myClassesColors.length);
-
-    return myClassesColors[colorIndex];
+  static Color getClassColor(BuildContext context, int index) {
+    final classColors = StatusColors.of(context).cycle;
+    return classColors[index % classColors.length];
   }
 
   static void showFeatureDisableInDemoVersion(BuildContext context) {
@@ -536,22 +532,6 @@ class UiUtils {
     if (bytes == 0) return '0${suffixes[0]}';
     final i = (log(bytes) / log(1024)).floor();
     return ((bytes / pow(1024, i)).toStringAsFixed(decimals)) + suffixes[i];
-  }
-
-  static Color getBlackOrWhiteForegroundColor(Color backgroundColor) {
-    int d = 0;
-    // Counting the perceptive luminance - human eye favors green color...
-    final double luminance =
-        (0.299 * backgroundColor.r +
-            0.587 * backgroundColor.g +
-            0.114 * backgroundColor.b) /
-        255;
-    if (luminance > 0.5) {
-      d = 0;
-    } else {
-      d = 255;
-    }
-    return Color.fromARGB(255, d, d, d);
   }
 
   static String getTimeAgo(BuildContext context, {required DateTime date}) {

@@ -4,7 +4,9 @@ import 'package:flutter_svg/svg.dart';
 
 class CustomDropdownButtonContainer extends StatelessWidget {
   const CustomDropdownButtonContainer({
-    required this.selectedValue, required this.onTap, super.key,
+    required this.selectedValue,
+    required this.onTap,
+    super.key,
   });
   final String selectedValue;
   final void Function() onTap;
@@ -21,7 +23,7 @@ class CustomDropdownButtonContainer extends StatelessWidget {
             border: Border.all(
               color: Theme.of(
                 context,
-              ).colorScheme.secondary.withValues(alpha: 0.6),
+              ).colorScheme.onSurface.withValues(alpha: 0.6),
             ),
             borderRadius: BorderRadius.circular(8),
           ),
@@ -34,7 +36,7 @@ class CustomDropdownButtonContainer extends StatelessWidget {
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: TextStyle(
-                    color: Theme.of(context).colorScheme.secondary,
+                    color: Theme.of(context).colorScheme.onSurface,
                     fontSize: 14,
                   ),
                 ),

@@ -1,3 +1,4 @@
+import 'package:eschool_core/eschool_core.dart';
 import 'package:eschool_teacher/cubits/dashboardCubit.dart';
 import 'package:eschool_teacher/cubits/getStudentLeaveCubit.dart';
 import 'package:eschool_teacher/cubits/sessionYearCubit.dart';
@@ -284,7 +285,7 @@ class ManageStudentLeavesScreenState extends State<ManageStudentLeavesScreen> {
               context,
               leaveRequestStatusUpdatedSuccessfullyKey,
             ),
-            backgroundColor: Theme.of(context).colorScheme.onPrimary,
+            backgroundColor: StatusColors.of(context).success,
           );
         } else if (state is UpdateStudentLeaveStatusFailure) {
           UiUtils.showBottomToastOverlay(
@@ -317,7 +318,9 @@ class ManageStudentLeavesScreenState extends State<ManageStudentLeavesScreen> {
                     children: [
                       Container(
                         decoration: BoxDecoration(
-                          color: Theme.of(context).colorScheme.surface,
+                          color: Theme.of(
+                            context,
+                          ).colorScheme.surfaceContainerLow,
                           borderRadius: BorderRadius.circular(4),
                         ),
                         padding: const EdgeInsets.symmetric(vertical: 10),
@@ -329,7 +332,7 @@ class ManageStudentLeavesScreenState extends State<ManageStudentLeavesScreen> {
                                 textAlign: TextAlign.center,
                                 style: TextStyle(
                                   fontSize: 14,
-                                  color: Theme.of(context).colorScheme.secondary
+                                  color: Theme.of(context).colorScheme.onSurface
                                       .withValues(alpha: 0.7),
                                   fontWeight: FontWeight.w600,
                                 ),
@@ -345,7 +348,7 @@ class ManageStudentLeavesScreenState extends State<ManageStudentLeavesScreen> {
                                 textAlign: TextAlign.start,
                                 style: TextStyle(
                                   fontSize: 14,
-                                  color: Theme.of(context).colorScheme.secondary
+                                  color: Theme.of(context).colorScheme.onSurface
                                       .withValues(alpha: 0.7),
                                   fontWeight: FontWeight.w600,
                                 ),
@@ -361,7 +364,7 @@ class ManageStudentLeavesScreenState extends State<ManageStudentLeavesScreen> {
                                 textAlign: TextAlign.center,
                                 style: TextStyle(
                                   fontSize: 14,
-                                  color: Theme.of(context).colorScheme.secondary
+                                  color: Theme.of(context).colorScheme.onSurface
                                       .withValues(alpha: 0.7),
                                   fontWeight: FontWeight.w600,
                                 ),
