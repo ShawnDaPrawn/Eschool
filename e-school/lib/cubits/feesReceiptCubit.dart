@@ -6,7 +6,7 @@ import 'package:bloc/bloc.dart';
 import 'package:eschool/data/models/paidFees.dart';
 import 'package:eschool/data/repositories/studentRepository.dart';
 import 'package:eschool/utils/api.dart';
-import 'package:eschool/utils/fileNameUtils.dart';
+import 'package:eschool_core/eschool_core.dart';
 import 'package:eschool/utils/labelKeys.dart';
 import 'package:path_provider/path_provider.dart';
 

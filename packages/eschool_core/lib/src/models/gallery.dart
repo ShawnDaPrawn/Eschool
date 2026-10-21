@@ -1,4 +1,4 @@
-import 'package:eschool_teacher/data/models/galleryAlbum.dart';
+import 'gallery_album.dart';
 
 class Gallery {
   final List<GalleryAlbum>? albums;

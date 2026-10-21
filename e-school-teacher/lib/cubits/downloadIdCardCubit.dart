@@ -5,7 +5,7 @@ import 'dart:io';
 import 'package:bloc/bloc.dart';
 import 'package:eschool_teacher/data/repositories/systemInfoRepository.dart';
 import 'package:eschool_teacher/utils/api.dart';
-import 'package:eschool_teacher/utils/fileNameUtils.dart';
+import 'package:eschool_core/eschool_core.dart';
 import 'package:eschool_teacher/utils/labelKeys.dart';
 import 'package:path_provider/path_provider.dart';
 

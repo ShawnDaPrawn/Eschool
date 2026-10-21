@@ -1,9 +1,8 @@
 import 'package:eschool_teacher/cubits/appConfigurationCubit.dart';
-import 'package:eschool_teacher/data/models/academicCalendar.dart';
+import 'package:eschool_core/eschool_core.dart';
 import 'package:eschool_teacher/data/models/event.dart';
 import 'package:eschool_teacher/data/models/exam.dart';
 import 'package:eschool_teacher/data/models/holiday.dart';
-import 'package:eschool_teacher/data/models/semesterBreak.dart';
 import 'package:eschool_teacher/data/repositories/studentRepository.dart';
 import 'package:eschool_teacher/data/repositories/systemInfoRepository.dart';
 import 'package:eschool_teacher/ui/screens/academicCalendar/academicCalendarScreen.dart';

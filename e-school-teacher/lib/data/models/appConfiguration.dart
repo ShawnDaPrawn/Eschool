@@ -1,6 +1,5 @@
-import 'package:eschool_teacher/data/models/chatSettings.dart';
+import 'package:eschool_core/eschool_core.dart';
 import 'package:eschool_teacher/data/models/semester.dart';
-import 'package:eschool_teacher/data/models/semesterBreak.dart';
 import 'package:eschool_teacher/data/models/sessionYear.dart';
 
 class AppConfiguration {

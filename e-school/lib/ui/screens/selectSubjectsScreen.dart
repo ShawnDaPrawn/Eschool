@@ -8,7 +8,7 @@ import 'package:eschool/data/models/electiveSubjectGroup.dart';
 import 'package:eschool/data/repositories/classRepository.dart';
 import 'package:eschool/data/repositories/studentRepository.dart';
 import 'package:eschool/ui/widgets/customAppbar.dart';
-import 'package:eschool/ui/widgets/customCircularProgressIndicator.dart';
+import 'package:eschool_core/eschool_core.dart';
 import 'package:eschool/ui/widgets/customRoundedButton.dart';
 import 'package:eschool/ui/widgets/customShimmerContainer.dart';
 import 'package:eschool/ui/widgets/errorContainer.dart';

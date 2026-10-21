@@ -1,6 +1,6 @@
 //by default language of the app
 
-import 'package:eschool_teacher/data/models/appLanguage.dart';
+import 'package:eschool_core/eschool_core.dart';
 
 const String defaultLanguageCode = 'en';
 
