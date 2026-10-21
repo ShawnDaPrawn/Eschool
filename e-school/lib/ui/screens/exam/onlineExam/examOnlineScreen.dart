@@ -153,7 +153,7 @@ class ExamOnlineScreenState extends State<ExamOnlineScreen>
                   ? widget.exam.subject.subjectNameWithType
                   : widget.exam.subject.name,
               style: TextStyle(
-                color: Theme.of(context).colorScheme.onPrimary,
+                color: Theme.of(context).colorScheme.onInverseSurface,
                 fontSize: UiUtils.screenTitleFontSize,
               ),
             ),
@@ -176,7 +176,7 @@ class ExamOnlineScreenState extends State<ExamOnlineScreen>
                 Text(
                   widget.exam.title,
                   style: TextStyle(
-                    color: UiUtils.getColorScheme(context).onPrimary,
+                    color: UiUtils.getColorScheme(context).onInverseSurface,
                     fontSize: UiUtils.screenSubTitleFontSize,
                   ),
                 ),
@@ -185,14 +185,14 @@ class ExamOnlineScreenState extends State<ExamOnlineScreen>
                   width: 5,
                   height: 5,
                   decoration: BoxDecoration(
-                    color: UiUtils.getColorScheme(context).onPrimary,
+                    color: UiUtils.getColorScheme(context).onInverseSurface,
                     borderRadius: BorderRadius.circular(3),
                   ),
                 ),
                 Text(
                   '${widget.exam.totalMarks} ${UiUtils.getTranslatedLabel(context, marksKey)}',
                   style: TextStyle(
-                    color: UiUtils.getColorScheme(context).onPrimary,
+                    color: UiUtils.getColorScheme(context).onInverseSurface,
                     fontSize: UiUtils.screenSubTitleFontSize,
                   ),
                 ),

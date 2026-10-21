@@ -407,7 +407,8 @@ class _AddLeaveScreenState extends State<AddLeaveScreen> {
                     ),
                   );
                 } else {
-                  return const CustomCircularProgressIndicator(
+                  return CustomCircularProgressIndicator(
+                    indicatorColor: Theme.of(context).colorScheme.primary,
                     strokeWidth: 2,
                     widthAndHeight: 20,
                   );

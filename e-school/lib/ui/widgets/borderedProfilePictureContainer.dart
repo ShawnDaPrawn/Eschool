@@ -9,11 +9,16 @@ class BorderedProfilePictureContainer extends StatelessWidget {
     super.key,
     this.heightAndWidthPercentage,
     this.onTap,
+    this.borderColor,
   });
   final BoxConstraints boxConstraints;
   final String imageUrl;
   final Function? onTap;
   final double? heightAndWidthPercentage;
+
+  /// Defaults to the colour for content on a screen header, where this ring
+  /// is usually drawn.
+  final Color? borderColor;
 
   @override
   Widget build(BuildContext context) {
@@ -32,7 +37,10 @@ class BorderedProfilePictureContainer extends StatelessWidget {
         padding: const EdgeInsets.all(4),
         decoration: BoxDecoration(
           shape: BoxShape.circle,
-          border: Border.all(color: Theme.of(context).colorScheme.onPrimary),
+          border: Border.all(
+            color:
+                borderColor ?? Theme.of(context).colorScheme.onInverseSurface,
+          ),
         ),
         width:
             boxConstraints.maxWidth *

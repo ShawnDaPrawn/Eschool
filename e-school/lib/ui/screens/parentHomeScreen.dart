@@ -134,7 +134,7 @@ class _ParentHomeScreenState extends State<ParentHomeScreen>
                       border: Border.all(
                         color: Theme.of(
                           context,
-                        ).colorScheme.onPrimary.withValues(alpha: 0.1),
+                        ).colorScheme.onInverseSurface.withValues(alpha: 0.1),
                       ),
                       shape: BoxShape.circle,
                     ),
@@ -145,7 +145,7 @@ class _ParentHomeScreenState extends State<ParentHomeScreen>
                         border: Border.all(
                           color: Theme.of(
                             context,
-                          ).colorScheme.onPrimary.withValues(alpha: 0.1),
+                          ).colorScheme.onInverseSurface.withValues(alpha: 0.1),
                         ),
                         shape: BoxShape.circle,
                       ),
@@ -161,7 +161,7 @@ class _ParentHomeScreenState extends State<ParentHomeScreen>
                     decoration: BoxDecoration(
                       color: Theme.of(
                         context,
-                      ).colorScheme.onPrimary.withValues(alpha: 0.1),
+                      ).colorScheme.onInverseSurface.withValues(alpha: 0.1),
                       shape: BoxShape.circle,
                     ),
                     width: MediaQuery.sizeOf(context).width * 0.4,
@@ -211,7 +211,7 @@ class _ParentHomeScreenState extends State<ParentHomeScreen>
                                       fontWeight: FontWeight.w500,
                                       color: Theme.of(
                                         context,
-                                      ).colorScheme.onPrimary,
+                                      ).colorScheme.onInverseSurface,
                                     ),
                                   ),
                                   Text(
@@ -226,7 +226,7 @@ class _ParentHomeScreenState extends State<ParentHomeScreen>
                                       fontWeight: FontWeight.w400,
                                       color: Theme.of(
                                         context,
-                                      ).colorScheme.onPrimary,
+                                      ).colorScheme.onInverseSurface,
                                     ),
                                   ),
                                 ],
@@ -237,7 +237,7 @@ class _ParentHomeScreenState extends State<ParentHomeScreen>
                         const Spacer(),
                         IconButton(
                           iconSize: 20,
-                          color: Theme.of(context).colorScheme.onPrimary,
+                          color: Theme.of(context).colorScheme.onInverseSurface,
                           onPressed: () {
                             Navigator.of(context).pushNamed(Routes.settings);
                           },
@@ -309,6 +309,9 @@ class _ParentHomeScreenState extends State<ParentHomeScreen>
                               heightAndWidthPercentage: 0.35,
                               boxConstraints: boxConstraints,
                               imageUrl: student.image,
+                              borderColor: Theme.of(
+                                context,
+                              ).colorScheme.onPrimary,
                             ),
                           ),
                           const SizedBox(height: 5),

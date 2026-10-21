@@ -57,7 +57,7 @@ class _GalleryAlbumPhotosScreenState extends State<GalleryAlbumPhotosScreen> {
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
                 style: TextStyle(
-                  color: Theme.of(context).colorScheme.onPrimary,
+                  color: Theme.of(context).colorScheme.onInverseSurface,
                   fontSize: UiUtils.screenTitleFontSize,
                 ),
               ),

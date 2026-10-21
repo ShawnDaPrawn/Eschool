@@ -28,7 +28,7 @@ class ScreenTopBackgroundContainer extends StatelessWidget {
           MediaQuery.sizeOf(context).height *
           (heightPercentage ?? UiUtils.appBarBiggerHeightPercentage),
       decoration: BoxDecoration(
-        color: UiUtils.getColorScheme(context).primary,
+        color: UiUtils.getColorScheme(context).inverseSurface,
         borderRadius: const BorderRadius.only(
           bottomLeft: Radius.circular(25),
           bottomRight: Radius.circular(25),

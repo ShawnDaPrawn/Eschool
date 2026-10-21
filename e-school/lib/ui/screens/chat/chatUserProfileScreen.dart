@@ -114,7 +114,9 @@ class _ChatUserProfileScreenState extends State<ChatUserProfileScreen> {
                             style: TextStyle(
                               fontSize: UiUtils.screenTitleFontSize,
                               fontWeight: FontWeight.w500,
-                              color: Theme.of(context).colorScheme.onPrimary,
+                              color: Theme.of(
+                                context,
+                              ).colorScheme.onInverseSurface,
                             ),
                           ),
                         ),

@@ -74,7 +74,7 @@ class _ChatUsersScreenState extends State<ChatUsersScreen> {
             child: Text(
               UiUtils.getTranslatedLabel(context, chatKey),
               style: TextStyle(
-                color: Theme.of(context).colorScheme.onPrimary,
+                color: Theme.of(context).colorScheme.onInverseSurface,
                 fontSize: UiUtils.screenTitleFontSize,
               ),
             ),
@@ -90,7 +90,7 @@ class _ChatUsersScreenState extends State<ChatUsersScreen> {
                 child: Icon(
                   Icons.search,
                   size: 24,
-                  color: Theme.of(context).colorScheme.onPrimary,
+                  color: Theme.of(context).colorScheme.onInverseSurface,
                 ),
               ),
             ),

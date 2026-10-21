@@ -67,7 +67,7 @@ class ResultScreen extends StatelessWidget {
                 child: Text(
                   UiUtils.getTranslatedLabel(context, resultKey),
                   style: TextStyle(
-                    color: Theme.of(context).colorScheme.onPrimary,
+                    color: Theme.of(context).colorScheme.onInverseSurface,
                     fontSize: UiUtils.screenTitleFontSize,
                   ),
                 ),
@@ -85,7 +85,7 @@ class ResultScreen extends StatelessWidget {
                     maxLines: 1,
                     style: TextStyle(
                       fontSize: UiUtils.screenSubTitleFontSize,
-                      color: Theme.of(context).colorScheme.onPrimary,
+                      color: Theme.of(context).colorScheme.onInverseSurface,
                     ),
                   ),
                 ),

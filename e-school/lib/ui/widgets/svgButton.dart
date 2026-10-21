@@ -33,7 +33,7 @@ class SvgButton extends StatelessWidget {
         width: 23,
         height: 23,
         colorFilter: ColorFilter.mode(
-          buttonColor ?? Theme.of(context).colorScheme.onPrimary,
+          buttonColor ?? Theme.of(context).colorScheme.onInverseSurface,
           BlendMode.srcIn,
         ),
       ),

@@ -70,7 +70,9 @@ class ExamTimerContainerState extends State<ExamTimerContainer> {
       child: Text(
         hours.isEmpty ? '$minutes:$seconds' : '$hours:$minutes:$seconds',
         textAlign: TextAlign.center,
-        style: TextStyle(color: UiUtils.getColorScheme(context).onPrimary),
+        style: TextStyle(
+          color: UiUtils.getColorScheme(context).onInverseSurface,
+        ),
       ),
     );
   }

@@ -172,7 +172,7 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
                     textAlign: TextAlign.center,
                     style: TextStyle(
                       fontSize: UiUtils.screenTitleFontSize,
-                      color: Theme.of(context).colorScheme.onPrimary,
+                      color: Theme.of(context).colorScheme.onInverseSurface,
                     ),
                   ),
                 ),
@@ -198,7 +198,9 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
                           child: Icon(
                             Icons.calendar_month,
                             size: 14,
-                            color: Theme.of(context).colorScheme.onPrimary,
+                            color: Theme.of(
+                              context,
+                            ).colorScheme.onInverseSurface,
                           ),
                         ),
                         SizedBox(width: boxConstraints.maxWidth * 0.015),
@@ -208,7 +210,9 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
                           overflow: TextOverflow.ellipsis,
                           style: TextStyle(
                             fontSize: UiUtils.screenSubTitleFontSize,
-                            color: Theme.of(context).colorScheme.onPrimary,
+                            color: Theme.of(
+                              context,
+                            ).colorScheme.onInverseSurface,
                           ),
                         ),
                       ],

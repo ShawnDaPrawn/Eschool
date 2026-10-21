@@ -63,7 +63,9 @@ class _CustomSearchTextFieldState extends State<CustomSearchTextField> {
             borderRadius: BorderRadius.circular(25),
             borderSide: BorderSide(color: Theme.of(context).colorScheme.error),
           ),
-          errorStyle: TextStyle(color: Theme.of(context).colorScheme.onPrimary),
+          errorStyle: TextStyle(
+            color: Theme.of(context).colorScheme.onInverseSurface,
+          ),
         ),
         validator: (value) {
           if (value == null || value.trim().isEmpty) {

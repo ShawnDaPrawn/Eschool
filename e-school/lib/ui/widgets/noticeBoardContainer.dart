@@ -78,7 +78,7 @@ class _NoticeBoardContainerState extends State<NoticeBoardContainer> {
             child: Text(
               UiUtils.getTranslatedLabel(context, noticeBoardKey),
               style: TextStyle(
-                color: Theme.of(context).colorScheme.onPrimary,
+                color: Theme.of(context).colorScheme.onInverseSurface,
                 fontSize: UiUtils.screenTitleFontSize,
               ),
             ),

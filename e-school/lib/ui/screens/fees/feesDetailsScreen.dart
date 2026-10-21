@@ -209,7 +209,7 @@ class FeesDetailsScreenState extends State<FeesDetailsScreen> {
                         },
                         child: Icon(
                           Icons.history,
-                          color: Theme.of(context).colorScheme.onPrimary,
+                          color: Theme.of(context).colorScheme.onInverseSurface,
                           size: 30,
                         ),
                       ),
@@ -226,7 +226,7 @@ class FeesDetailsScreenState extends State<FeesDetailsScreen> {
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
                       style: TextStyle(
-                        color: Theme.of(context).colorScheme.onPrimary,
+                        color: Theme.of(context).colorScheme.onInverseSurface,
                         fontSize: UiUtils.screenTitleFontSize,
                       ),
                     ),

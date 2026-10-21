@@ -71,7 +71,7 @@ class _FeesStatusScreenState extends State<FeesStatusScreen> {
             child: Text(
               UiUtils.getTranslatedLabel(context, feesKey),
               style: TextStyle(
-                color: Theme.of(context).colorScheme.onPrimary,
+                color: Theme.of(context).colorScheme.onInverseSurface,
                 fontSize: UiUtils.screenTitleFontSize,
               ),
             ),

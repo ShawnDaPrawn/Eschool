@@ -113,7 +113,7 @@ class _ExamContainerState extends State<ExamContainer> {
                 child: Text(
                   UiUtils.getTranslatedLabel(context, examsKey),
                   style: TextStyle(
-                    color: Theme.of(context).colorScheme.onPrimary,
+                    color: Theme.of(context).colorScheme.onInverseSurface,
                     fontSize: UiUtils.screenTitleFontSize,
                   ),
                 ),
