@@ -168,10 +168,13 @@ class DailyWorkflowsTest extends TestCase
     {
         $tara = User::findOrFail($this->school->ids['tara_user']);
 
-        // Any search that wasn't a date crashed these lists: date() was given strtotime()'s false.
+        // Any search that wasn't a date crashed the first lists: date() was given strtotime()'s false.
+        // The others searched columns their tables don't have.
         foreach ([
             [$this->superAdmin(), '/teacher_list'], [$this->superAdmin(), '/fees-type/1'], [$this->superAdmin(), '/exam-timetable/1'],
             [$tara, '/lesson/1'], [$tara, '/online-exam/1'],
+            [$this->superAdmin(), '/events/1'], [$this->superAdmin(), '/notifications/1'], [$this->superAdmin(), '/photos-list'],
+            [$this->superAdmin(), '/videos-list'], [$this->superAdmin(), '/leave-master/1'], [$this->superAdmin(), '/sliders/1'],
         ] as [$user, $url]) {
             // These lists read $_GET, which in-process requests don't fill.
             $_GET = ['search' => 'Tara', 'limit' => 10, 'offset' => 0];
@@ -230,6 +233,32 @@ class DailyWorkflowsTest extends TestCase
 
         $this->assertSame('Female', DB::table('parents')->where('id', $id['gina'])->value('gender'));
         $this->assertSame('Female', User::find($id['gina_user'])->gender);
+    }
+
+    public function test_a_list_search_stays_within_the_list_filters(): void
+    {
+        $lastYear = DB::table('session_years')->insertGetId([
+            'name' => 'Old year', 'start_date' => now()->subYears(2), 'end_date' => now()->subYear(), 'fee_due_date' => now()->subYears(2),
+            'fee_due_charges' => 0, 'include_fee_installments' => 0, 'default' => 0,
+        ]);
+        DB::table('holidays')->insert(['session_year_id' => $lastYear, 'date' => now()->subYear()->subMonth(), 'title' => 'Old founders day', 'description' => '-']);
+
+        $_GET = ['search' => 'founders', 'limit' => 10, 'offset' => 0];
+        $response = $this->actingAs($this->superAdmin())->getJson('/holiday/1?'.http_build_query($_GET));
+        $_GET = [];
+
+        // The search was OR-ed onto the session year filter, so other years' holidays matched.
+        $this->assertSame(['Founders day'], collect($response->assertOk()->json('rows'))->pluck('title')->all());
+    }
+
+    public function test_searching_exam_timetables_keeps_the_exam_filter(): void
+    {
+        $_GET = ['search' => 'Science', 'exam_id' => $this->school->ids['unit_test'], 'limit' => 10, 'offset' => 0];
+        $response = $this->actingAs($this->superAdmin())->getJson('/exam-timetable/1?'.http_build_query($_GET));
+        $_GET = [];
+
+        // The search was OR-ed with every other condition, so it listed other exams (and years).
+        $this->assertSame(['Unit test'], collect($response->assertOk()->json('rows'))->pluck('exam_name')->unique()->values()->all());
     }
 
     public function test_deleting_a_lesson_removes_its_and_its_topics_stored_files(): void

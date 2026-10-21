@@ -770,7 +770,7 @@ class StaffController extends Controller
         $sql = Staff::with('user', 'user.roles');
         if (isset($_GET['search']) && ! empty($_GET['search'])) {
             $search = $_GET['search'];
-            $sql->where('id', 'LIKE', "%$search%")
+            $sql->where(fn ($query) => $query->where('id', 'LIKE', "%$search%")
                 ->orwhere('user_id', 'LIKE', "%$search%")
                 ->orWhereHas('user', function ($q) use ($search) {
                     $q->where('first_name', 'LIKE', "%$search%")
@@ -779,7 +779,7 @@ class StaffController extends Controller
                         ->orwhere('email', 'LIKE', "%$search%")
                         // ->orwhere('dob', 'LIKE', "%" . date('Y-m-d', strtotime($search)) . "%")
                         ->orwhere('current_address', 'LIKE', "%$search%");
-                });
+                }));
         }
         $total = $sql->count();
 

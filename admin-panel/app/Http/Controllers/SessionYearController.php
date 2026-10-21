@@ -244,11 +244,11 @@ class SessionYearController extends Controller
         $sql = SessionYear::with('fee_installments')->where('id', '!=', 0);
         if (isset($_GET['search']) && !empty($_GET['search'])) {
             $search = $_GET['search'];
-            $sql->where('id', 'LIKE', "%$search%")
+            $sql->where(fn ($query) => $query->where('id', 'LIKE', "%$search%")
                 ->orwhere('name', 'LIKE', "%$search%")
                 ->orwhere('start_date', 'LIKE', "%$search%")
                 ->orwhere('end_date', 'LIKE', "%$search%")
-                ->orwhere('default', 'LIKE', "%$search%");
+                ->orwhere('default', 'LIKE', "%$search%"));
         }
         $total = $sql->count();
 

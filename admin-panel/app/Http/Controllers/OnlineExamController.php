@@ -862,7 +862,7 @@ class OnlineExamController extends Controller
 
         if (isset($_GET['search']) && ! empty($_GET['search'])) {
             $search = $_GET['search'];
-            $sql = $sql->where('id', 'LIKE', "%$search%")
+            $sql = $sql->where(fn ($query) => $query->where('id', 'LIKE', "%$search%")
                 ->orWhere('question', 'LIKE', "%$search%")
                 ->orWhere('created_at', 'LIKE', '%'.convertDateFormat($search).'%')
                 ->orWhere('updated_at', 'LIKE', '%'.convertDateFormat($search).'%')
@@ -879,7 +879,7 @@ class OnlineExamController extends Controller
                 })
                 ->orWhereHas('options', function ($p) use ($search) {
                     $p->where('option', 'LIKE', "%$search%");
-                });
+                }));
         }
 
         $total = $sql->count();

@@ -323,8 +323,8 @@ class SubjectController extends Controller
 
         if (! empty($_GET['search'])) {
             $search = $_GET['search'];
-            $sql->where('id', 'LIKE', "%$search%")
-                ->orWhere('name', 'LIKE', "%$search%");
+            $sql->where(fn ($query) => $query->where('id', 'LIKE', "%$search%")
+                ->orWhere('name', 'LIKE', "%$search%"));
         }
 
         if (! empty($_GET['medium_id'])) {

@@ -353,7 +353,7 @@ class ResultController extends Controller
 
                 if (isset($_GET['search']) && ! empty($_GET['search'])) {
                     $search = $_GET['search'];
-                    $sql = $sql->where('id', 'LIKE', "%$search%")
+                    $sql = $sql->where(fn ($query) => $query->where('id', 'LIKE', "%$search%")
                         ->orwhere('total_marks', 'LIKE', "%$search%")
                         ->orwhere('grade', 'LIKE', "%$search%")
                         ->orwhere('obtained_marks', 'LIKE', "%$search%")
@@ -365,7 +365,7 @@ class ResultController extends Controller
                         })->where('exam_id', $request->exam_id)
                         ->orWhereHas('session_year', function ($q) use ($search) {
                             $q->where('name', 'LIKE', "%$search%");
-                        });
+                        }));
                 }
                 $total = $sql->count();
 

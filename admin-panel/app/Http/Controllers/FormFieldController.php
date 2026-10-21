@@ -156,11 +156,11 @@ class FormFieldController extends Controller
 
         if (isset($_GET['search']) && ! empty($_GET['search'])) {
             $search = $_GET['search'];
-            $sql->where('id', 'LIKE', "%$search%")
+            $sql->where(fn ($query) => $query->where('id', 'LIKE', "%$search%")
                 ->orwhere('name', 'LIKE', "%$search%")
                 ->orwhere('rank', 'LIKE', "%$search%")
                 ->orwhere('type', 'LIKE', "%$search%")
-                ->orwhere('default_values', 'LIKE', "%$search%");
+                ->orwhere('default_values', 'LIKE', "%$search%"));
         }
         $total = $sql->count();
 

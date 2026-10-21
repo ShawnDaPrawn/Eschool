@@ -332,7 +332,7 @@ class ClassController extends Controller
             ->with('sections', 'medium', 'streams', 'shifts', 'educational_program');
         if (isset($_GET['search']) && ! empty($_GET['search'])) {
             $search = $_GET['search'];
-            $sql->where('id', 'LIKE', "%$search%")->orwhere('name', 'LIKE', "%$search%")
+            $sql->where(fn ($query) => $query->where('id', 'LIKE', "%$search%")->orwhere('name', 'LIKE', "%$search%")
                 ->orWhereHas('sections', function ($q) use ($search) {
                     $q->where('name', 'LIKE', "%$search%");
                 })->orWhereHas('medium', function ($q) use ($search) {
@@ -343,7 +343,7 @@ class ClassController extends Controller
                     $q->where('title', 'LIKE', "%$search%");
                 })->orWhereHas('educational_program', function ($q) use ($search) {
                     $q->where('title', 'LIKE', "%$search%");
-                });
+                }));
         }
         if (! empty($_GET['medium_id'])) {
             $sql = $sql->where('medium_id', $_GET['medium_id']);

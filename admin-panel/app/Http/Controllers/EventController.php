@@ -242,7 +242,7 @@ class EventController extends Controller
         $sql = Event::with('multipleEvent')->where('id', '!=', 0)->where('session_year_id', $session_year_id);
         if (isset($_GET['search']) && !empty($_GET['search'])) {
             $search = $_GET['search'];
-            $sql->where('id', 'LIKE', "%$search%")->orwhere('title', 'LIKE', "%$search%")->orwhere('date', 'LIKE', "%$search%");
+            $sql->where(fn ($query) => $query->where('id', 'LIKE', "%$search%")->orwhere('title', 'LIKE', "%$search%")->orwhere('description', 'LIKE', "%$search%")->orwhere('start_date', 'LIKE', "%$search%"));
         }
         $total = $sql->count();
 
