@@ -16,7 +16,7 @@ import 'package:eschool/ui/widgets/errorContainer.dart';
 import 'package:eschool/ui/widgets/shimmerLoadingContainer.dart';
 import 'package:eschool/utils/labelKeys.dart';
 import 'package:eschool/utils/uiUtils.dart';
-import 'package:eschool/ui/styles/colors.dart';
+import 'package:eschool_core/eschool_core.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:eschool/cubits/studentDashboardCubit.dart';
 import 'package:flutter/material.dart';
@@ -307,12 +307,12 @@ class _AssignmentReportTabState extends State<AssignmentReportTab>
       margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
       padding: const EdgeInsets.symmetric(vertical: 20),
       decoration: BoxDecoration(
-        color: Theme.of(context).scaffoldBackgroundColor,
+        color: Theme.of(context).colorScheme.surface,
         borderRadius: BorderRadius.circular(8),
         border: Border.all(
           color: Theme.of(
             context,
-          ).colorScheme.secondary.withValues(alpha: 0.25),
+          ).colorScheme.onSurface.withValues(alpha: 0.25),
         ),
       ),
       child: Center(
@@ -324,7 +324,7 @@ class _AssignmentReportTabState extends State<AssignmentReportTab>
                 fontSize: 14,
                 color: Theme.of(
                   context,
-                ).colorScheme.secondary.withValues(alpha: 0.7),
+                ).colorScheme.onSurface.withValues(alpha: 0.7),
               ),
             ),
             const SizedBox(height: 8),
@@ -353,7 +353,7 @@ class _AssignmentReportTabState extends State<AssignmentReportTab>
             style: TextStyle(
               fontSize: 16,
               fontWeight: FontWeight.bold,
-              color: Theme.of(context).colorScheme.secondary,
+              color: Theme.of(context).colorScheme.onSurface,
             ),
           ),
         ),
@@ -363,12 +363,12 @@ class _AssignmentReportTabState extends State<AssignmentReportTab>
           ).add(EdgeInsetsGeometry.only(bottom: 10)),
           padding: const EdgeInsets.all(15),
           decoration: BoxDecoration(
-            color: Theme.of(context).scaffoldBackgroundColor,
+            color: Theme.of(context).colorScheme.surface,
             borderRadius: BorderRadius.circular(8),
             border: Border.all(
               color: Theme.of(
                 context,
-              ).colorScheme.secondary.withValues(alpha: 0.25),
+              ).colorScheme.onSurface.withValues(alpha: 0.25),
             ),
           ),
           child: Column(
@@ -388,21 +388,21 @@ class _AssignmentReportTabState extends State<AssignmentReportTab>
                             sections: [
                               if (data.passCount > 0)
                                 PieChartSectionData(
-                                  color: palletGreen,
+                                  color: StatusColors.of(context).success,
                                   value: data.passCount.toDouble(),
                                   title: '',
                                   radius: 12,
                                 ),
                               if (data.pendingCount > 0)
                                 PieChartSectionData(
-                                  color: palletYellow,
+                                  color: StatusColors.of(context).warning,
                                   value: data.pendingCount.toDouble(),
                                   title: '',
                                   radius: 12,
                                 ),
                               if (data.missedCount > 0)
                                 PieChartSectionData(
-                                  color: palletRed,
+                                  color: StatusColors.of(context).danger,
                                   value: data.missedCount.toDouble(),
                                   title: '',
                                   radius: 12,
@@ -419,7 +419,7 @@ class _AssignmentReportTabState extends State<AssignmentReportTab>
                                 fontSize: 10,
                                 color: Theme.of(
                                   context,
-                                ).colorScheme.secondary.withValues(alpha: 0.7),
+                                ).colorScheme.onSurface.withValues(alpha: 0.7),
                               ),
                             ),
                             Text(
@@ -427,7 +427,7 @@ class _AssignmentReportTabState extends State<AssignmentReportTab>
                               style: TextStyle(
                                 fontSize: 20,
                                 fontWeight: FontWeight.bold,
-                                color: Theme.of(context).colorScheme.secondary,
+                                color: Theme.of(context).colorScheme.onSurface,
                               ),
                             ),
                           ],
@@ -441,17 +441,17 @@ class _AssignmentReportTabState extends State<AssignmentReportTab>
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         _buildLegendItem(
-                          palletGreen,
+                          StatusColors.of(context).success,
                           "${UiUtils.getTranslatedLabel(context, passKey)} : ${data.passCount}",
                         ),
                         const SizedBox(height: 8),
                         _buildLegendItem(
-                          palletYellow,
+                          StatusColors.of(context).warning,
                           "${UiUtils.getTranslatedLabel(context, pendingKey)} : ${data.pendingCount}",
                         ),
                         const SizedBox(height: 8),
                         _buildLegendItem(
-                          palletRed,
+                          StatusColors.of(context).danger,
                           "${UiUtils.getTranslatedLabel(context, missedKey)} : ${data.missedCount}",
                         ),
                       ],
@@ -469,7 +469,9 @@ class _AssignmentReportTabState extends State<AssignmentReportTab>
                         onTimeSubmissionKey,
                       ),
                       value: "${data.onTimeSubmission}",
-                      bgColor: palletGreen.withValues(alpha: 0.2),
+                      bgColor: StatusColors.of(
+                        context,
+                      ).success.withValues(alpha: 0.2),
                     ),
                   ),
                   const SizedBox(width: 15),
@@ -480,7 +482,9 @@ class _AssignmentReportTabState extends State<AssignmentReportTab>
                         lateSubmissionKey,
                       ),
                       value: "${data.lateSubmission}",
-                      bgColor: palletYellow.withValues(alpha: 0.2),
+                      bgColor: StatusColors.of(
+                        context,
+                      ).warning.withValues(alpha: 0.2),
                     ),
                   ),
                 ],
@@ -512,7 +516,7 @@ class _AssignmentReportTabState extends State<AssignmentReportTab>
               fontSize: 12,
               color: Theme.of(
                 context,
-              ).colorScheme.secondary.withValues(alpha: 0.8),
+              ).colorScheme.onSurface.withValues(alpha: 0.8),
             ),
           ),
           const SizedBox(height: 4),
@@ -521,7 +525,7 @@ class _AssignmentReportTabState extends State<AssignmentReportTab>
             style: TextStyle(
               fontSize: 18,
               fontWeight: FontWeight.bold,
-              color: Theme.of(context).colorScheme.secondary,
+              color: Theme.of(context).colorScheme.onSurface,
             ),
           ),
         ],
@@ -544,7 +548,7 @@ class _AssignmentReportTabState extends State<AssignmentReportTab>
             fontSize: 13,
             color: Theme.of(
               context,
-            ).colorScheme.secondary.withValues(alpha: 0.8),
+            ).colorScheme.onSurface.withValues(alpha: 0.8),
           ),
         ),
       ],
@@ -571,7 +575,7 @@ class _AssignmentReportTabState extends State<AssignmentReportTab>
                   style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.bold,
-                    color: Theme.of(context).colorScheme.secondary,
+                    color: Theme.of(context).colorScheme.onSurface,
                   ),
                 ),
               ),
@@ -600,7 +604,7 @@ class _AssignmentReportTabState extends State<AssignmentReportTab>
                   style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.bold,
-                    color: Theme.of(context).colorScheme.secondary,
+                    color: Theme.of(context).colorScheme.onSurface,
                   ),
                 ),
               ),
@@ -635,16 +639,16 @@ class _AssignmentReportTabState extends State<AssignmentReportTab>
                 : pendingKey
           : assignmentStatus,
     );
-    Color badgeColor = palletYellow;
+    Color badgeColor = StatusColors.of(context).warning;
 
     if (assignment.assignmentSubmission.status == 1 ||
         assignment.assignmentSubmission.status == 3) {
-      badgeColor = palletGreen;
+      badgeColor = StatusColors.of(context).success;
     } else if (assignment.assignmentSubmission.status == 2 ||
         didMissAssignment) {
-      badgeColor = palletRed;
+      badgeColor = StatusColors.of(context).danger;
     } else if (assignment.assignmentSubmission.status == 0) {
-      badgeColor = palletBlue;
+      badgeColor = StatusColors.of(context).info;
     }
     return Container(
       decoration: BoxDecoration(
@@ -684,7 +688,7 @@ class _AssignmentReportTabState extends State<AssignmentReportTab>
         margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
         padding: const EdgeInsets.all(15),
         decoration: BoxDecoration(
-          color: Theme.of(context).colorScheme.surface,
+          color: Theme.of(context).colorScheme.surfaceContainerLow,
           borderRadius: BorderRadius.circular(12),
         ),
         child: Column(
@@ -699,7 +703,7 @@ class _AssignmentReportTabState extends State<AssignmentReportTab>
                     style: TextStyle(
                       fontSize: 14,
                       fontWeight: FontWeight.bold,
-                      color: Theme.of(context).colorScheme.secondary,
+                      color: Theme.of(context).colorScheme.onSurface,
                     ),
                   ),
                 ),
@@ -713,7 +717,7 @@ class _AssignmentReportTabState extends State<AssignmentReportTab>
                 fontSize: 13,
                 color: Theme.of(
                   context,
-                ).colorScheme.secondary.withValues(alpha: 0.8),
+                ).colorScheme.onSurface.withValues(alpha: 0.8),
               ),
             ),
             const SizedBox(height: 15),
@@ -723,7 +727,7 @@ class _AssignmentReportTabState extends State<AssignmentReportTab>
                 fontSize: 12,
                 color: Theme.of(
                   context,
-                ).colorScheme.secondary.withValues(alpha: 0.6),
+                ).colorScheme.onSurface.withValues(alpha: 0.6),
               ),
             ),
           ],

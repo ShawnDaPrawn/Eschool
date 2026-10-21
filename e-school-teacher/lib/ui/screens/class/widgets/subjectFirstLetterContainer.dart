@@ -13,7 +13,7 @@ class SubjectFirstLetterContainer extends StatelessWidget {
         style: TextStyle(
           fontSize: UiUtils.subjectFirstLetterFontSize,
           fontWeight: FontWeight.w600,
-          color: Theme.of(context).scaffoldBackgroundColor,
+          color: Theme.of(context).colorScheme.onPrimary,
         ),
       ),
     );

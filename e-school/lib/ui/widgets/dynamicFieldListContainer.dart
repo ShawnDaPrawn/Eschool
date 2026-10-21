@@ -8,7 +8,8 @@ import 'package:flutter/material.dart';
 
 class DynamicFieldListContainer extends StatelessWidget {
   const DynamicFieldListContainer({
-    required this.dynamicFields, super.key,
+    required this.dynamicFields,
+    super.key,
     this.showOtherDetailsLabel = true,
   });
   final List<DynamicFieldModel> dynamicFields;
@@ -30,7 +31,7 @@ class DynamicFieldListContainer extends StatelessWidget {
             style: TextStyle(
               color: Theme.of(
                 context,
-              ).colorScheme.onSurface.withValues(alpha: 0.75),
+              ).colorScheme.onSurfaceVariant.withValues(alpha: 0.75),
               fontSize: 13,
             ),
           ),
@@ -73,7 +74,7 @@ class DynamicFieldListContainer extends StatelessWidget {
                         height: 8,
                         decoration: BoxDecoration(
                           shape: BoxShape.circle,
-                          color: Theme.of(context).colorScheme.secondary,
+                          color: Theme.of(context).colorScheme.onSurface,
                         ),
                       ),
                       const SizedBox(width: 5),
@@ -83,7 +84,7 @@ class DynamicFieldListContainer extends StatelessWidget {
                           maxLines: 3,
                           overflow: TextOverflow.ellipsis,
                           style: TextStyle(
-                            color: Theme.of(context).colorScheme.secondary,
+                            color: Theme.of(context).colorScheme.onSurface,
                             fontWeight: FontWeight.w600,
                           ),
                         ),
@@ -99,7 +100,7 @@ class DynamicFieldListContainer extends StatelessWidget {
               maxLines: 5,
               overflow: TextOverflow.ellipsis,
               style: TextStyle(
-                color: Theme.of(context).colorScheme.secondary,
+                color: Theme.of(context).colorScheme.onSurface,
                 fontWeight: FontWeight.w600,
               ),
             ),
@@ -119,7 +120,7 @@ class DynamicFieldListContainer extends StatelessWidget {
             child: Text(
               UiUtils.getTranslatedLabel(context, otherDetailsKey),
               style: TextStyle(
-                color: Theme.of(context).colorScheme.secondary,
+                color: Theme.of(context).colorScheme.onSurface,
                 fontSize: 15,
                 fontWeight: FontWeight.w500,
               ),

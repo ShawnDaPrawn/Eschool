@@ -19,7 +19,7 @@ class LogoutButton extends StatelessWidget {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        backgroundColor: Colors.white,
+        backgroundColor: Theme.of(context).colorScheme.surface,
         title: Text(UiUtils.getTranslatedLabel(context, logoutKey)),
         content: Text(
           UiUtils.getTranslatedLabel(context, logoutDialogMessageKey),
@@ -67,7 +67,7 @@ class LogoutButton extends StatelessWidget {
           height: 40,
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(20),
-            color: Theme.of(context).colorScheme.secondary,
+            color: Theme.of(context).colorScheme.inverseSurface,
           ),
           child: Center(
             child: Row(
@@ -85,7 +85,7 @@ class LogoutButton extends StatelessWidget {
                   overflow: TextOverflow.ellipsis,
                   style: TextStyle(
                     fontSize: 15,
-                    color: Theme.of(context).scaffoldBackgroundColor,
+                    color: Theme.of(context).colorScheme.onInverseSurface,
                   ),
                 ),
               ],

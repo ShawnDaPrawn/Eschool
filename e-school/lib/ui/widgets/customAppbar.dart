@@ -58,7 +58,7 @@ class CustomAppBar extends StatelessWidget {
                     textAlign: TextAlign.center,
                     style: TextStyle(
                       fontSize: UiUtils.screenTitleFontSize,
-                      color: Theme.of(context).scaffoldBackgroundColor,
+                      color: Theme.of(context).colorScheme.onPrimary,
                     ),
                   ),
                 ),
@@ -74,7 +74,7 @@ class CustomAppBar extends StatelessWidget {
                     subTitle ?? '',
                     style: TextStyle(
                       fontSize: UiUtils.screenSubTitleFontSize,
-                      color: Theme.of(context).scaffoldBackgroundColor,
+                      color: Theme.of(context).colorScheme.onPrimary,
                     ),
                   ),
                 ),

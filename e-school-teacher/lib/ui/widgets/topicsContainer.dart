@@ -1,3 +1,4 @@
+import 'package:eschool_core/eschool_core.dart';
 import 'package:eschool_teacher/app/routes.dart';
 import 'package:eschool_teacher/cubits/deleteTopicCubit.dart';
 import 'package:eschool_teacher/cubits/topicsCubit.dart';
@@ -6,7 +7,6 @@ import 'package:eschool_teacher/data/models/lesson.dart';
 import 'package:eschool_teacher/data/models/subject.dart';
 import 'package:eschool_teacher/data/models/topic.dart';
 import 'package:eschool_teacher/data/repositories/topicRepository.dart';
-import 'package:eschool_teacher/ui/styles/colors.dart';
 import 'package:eschool_teacher/ui/widgets/attachmentsBottomsheetContainer.dart';
 import 'package:eschool_teacher/ui/widgets/confirmDeleteDialog.dart';
 import 'package:eschool_teacher/ui/widgets/customShimmerContainer.dart';
@@ -126,7 +126,7 @@ class TopicsContainer extends StatelessWidget {
                       vertical: 15,
                     ),
                     decoration: BoxDecoration(
-                      color: Theme.of(context).colorScheme.surface,
+                      color: Theme.of(context).colorScheme.surfaceContainerLow,
                       borderRadius: BorderRadius.circular(10),
                     ),
                     width: MediaQuery.sizeOf(context).width * 0.85,
@@ -138,7 +138,9 @@ class TopicsContainer extends StatelessWidget {
                             Text(
                               UiUtils.getTranslatedLabel(context, topicNameKey),
                               style: TextStyle(
-                                color: Theme.of(context).colorScheme.onSurface,
+                                color: Theme.of(
+                                  context,
+                                ).colorScheme.onSurfaceVariant,
                                 fontWeight: FontWeight.w400,
                                 fontSize: 12,
                               ),
@@ -198,7 +200,7 @@ class TopicsContainer extends StatelessWidget {
                         Text(
                           topic.name,
                           style: TextStyle(
-                            color: Theme.of(context).colorScheme.secondary,
+                            color: Theme.of(context).colorScheme.onSurface,
                             fontWeight: FontWeight.w600,
                             fontSize: 14,
                           ),
@@ -211,7 +213,9 @@ class TopicsContainer extends StatelessWidget {
                             topicDescriptionKey,
                           ),
                           style: TextStyle(
-                            color: Theme.of(context).colorScheme.onSurface,
+                            color: Theme.of(
+                              context,
+                            ).colorScheme.onSurfaceVariant,
                             fontWeight: FontWeight.w400,
                             fontSize: 12,
                           ),
@@ -221,7 +225,7 @@ class TopicsContainer extends StatelessWidget {
                         Text(
                           topic.description,
                           style: TextStyle(
-                            color: Theme.of(context).colorScheme.secondary,
+                            color: Theme.of(context).colorScheme.onSurface,
                             fontWeight: FontWeight.w600,
                             fontSize: 14,
                           ),
@@ -242,8 +246,8 @@ class TopicsContainer extends StatelessWidget {
                               },
                               child: Text(
                                 '${topic.studyMaterials.length} ${UiUtils.getTranslatedLabel(context, attachmentsKey)}',
-                                style: const TextStyle(
-                                  color: assignmentViewButtonColor,
+                                style: TextStyle(
+                                  color: StatusColors.of(context).info,
                                 ),
                               ),
                             ),

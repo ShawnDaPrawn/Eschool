@@ -1,5 +1,4 @@
 import 'package:any_link_preview/any_link_preview.dart';
-import 'package:eschool/ui/styles/colors.dart';
 import 'package:eschool/ui/widgets/customImageWidget.dart';
 import 'package:eschool/utils/uiUtils.dart';
 import 'package:flutter/material.dart';
@@ -8,11 +7,11 @@ class TriangleContainer extends StatelessWidget {
   const TriangleContainer({
     super.key,
     this.isFlipped = false,
-    this.color = primaryColor,
+    this.color,
     this.size = const Size(20, 20),
   });
   final bool isFlipped;
-  final Color color;
+  final Color? color;
   final Size size;
 
   @override
@@ -22,16 +21,13 @@ class TriangleContainer extends StatelessWidget {
       height: size.height,
       child: ClipPath(
         clipper: TriangleClipper(isFlipped),
-        child: Container(
-          color: color,
-        ),
+        child: Container(color: color ?? Theme.of(context).colorScheme.primary),
       ),
     );
   }
 }
 
 class TriangleClipper extends CustomClipper<Path> {
-
   TriangleClipper(this.isFlipped);
   final bool isFlipped;
 
@@ -59,9 +55,7 @@ class TriangleClipper extends CustomClipper<Path> {
 }
 
 class LinkPreviw extends StatelessWidget {
-  const LinkPreviw({
-    required this.snapshot, required this.link, super.key,
-  });
+  const LinkPreviw({required this.snapshot, required this.link, super.key});
   final String link;
   final AsyncSnapshot snapshot;
 
@@ -79,7 +73,7 @@ class LinkPreviw extends StatelessWidget {
               clipBehavior: Clip.antiAlias,
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(12),
-                color: pageBackgroundColor,
+                color: Theme.of(context).colorScheme.surface,
               ),
               padding: const EdgeInsets.all(8),
               margin: const EdgeInsets.only(bottom: 5),

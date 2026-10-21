@@ -48,7 +48,7 @@ class _TimeTableContainerState extends State<TimeTableContainer> {
             child: Text(
               UiUtils.getTranslatedLabel(context, scheduleKey),
               style: TextStyle(
-                color: Theme.of(context).scaffoldBackgroundColor,
+                color: Theme.of(context).colorScheme.onPrimary,
                 fontSize: UiUtils.screenTitleFontSize,
               ),
             ),
@@ -81,7 +81,7 @@ class _TimeTableContainerState extends State<TimeTableContainer> {
             fontSize: 13,
             fontWeight: FontWeight.w600,
             color: index == _currentSelectedDayIndex
-                ? Theme.of(context).scaffoldBackgroundColor
+                ? Theme.of(context).colorScheme.onPrimary
                 : Theme.of(context).colorScheme.primary,
           ),
         ),
@@ -131,14 +131,12 @@ class _TimeTableContainerState extends State<TimeTableContainer> {
       decoration: BoxDecoration(
         boxShadow: [
           BoxShadow(
-            color: Theme.of(
-              context,
-            ).colorScheme.secondary.withValues(alpha: 0.05),
+            color: Theme.of(context).colorScheme.shadow.withValues(alpha: 0.05),
             offset: const Offset(2.5, 2.5),
             blurRadius: 10,
           ),
         ],
-        color: Theme.of(context).scaffoldBackgroundColor,
+        color: Theme.of(context).colorScheme.surface,
         borderRadius: BorderRadius.circular(10),
       ),
       width: MediaQuery.sizeOf(context).width * 0.85,
@@ -169,7 +167,7 @@ class _TimeTableContainerState extends State<TimeTableContainer> {
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                           style: TextStyle(
-                            color: Theme.of(context).colorScheme.secondary,
+                            color: Theme.of(context).colorScheme.onSurface,
                             fontWeight: FontWeight.w600,
                             fontSize: 14,
                           ),
@@ -182,7 +180,9 @@ class _TimeTableContainerState extends State<TimeTableContainer> {
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                             style: TextStyle(
-                              color: Theme.of(context).colorScheme.onSurface,
+                              color: Theme.of(
+                                context,
+                              ).colorScheme.onSurfaceVariant,
                               fontWeight: FontWeight.w400,
                               fontSize: 12,
                             ),
@@ -196,7 +196,7 @@ class _TimeTableContainerState extends State<TimeTableContainer> {
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: TextStyle(
-                        color: Theme.of(context).colorScheme.onSurface,
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
                         fontWeight: FontWeight.w400,
                         fontSize: 12,
                       ),

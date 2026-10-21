@@ -63,7 +63,7 @@ class CalendarOfflineExamContainer extends StatelessWidget {
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: TextStyle(
-                      color: UiUtils.getColorScheme(context).secondary,
+                      color: UiUtils.getColorScheme(context).onSurface,
                       fontSize: 16,
                     ),
                   ),
@@ -74,7 +74,7 @@ class CalendarOfflineExamContainer extends StatelessWidget {
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: TextStyle(
-                      color: Theme.of(context).colorScheme.secondary,
+                      color: Theme.of(context).colorScheme.onSurface,
                       fontSize: 12,
                     ),
                   ),
@@ -88,7 +88,7 @@ class CalendarOfflineExamContainer extends StatelessWidget {
                             padding: const EdgeInsetsDirectional.only(end: 2),
                             child: Icon(
                               Icons.calendar_month_outlined,
-                              color: Theme.of(context).colorScheme.secondary,
+                              color: Theme.of(context).colorScheme.onSurface,
                               size: 12,
                             ),
                           ),
@@ -109,7 +109,7 @@ class CalendarOfflineExamContainer extends StatelessWidget {
                               padding: const EdgeInsetsDirectional.only(end: 2),
                               child: Icon(
                                 CupertinoIcons.clock,
-                                color: Theme.of(context).colorScheme.secondary,
+                                color: Theme.of(context).colorScheme.onSurface,
                                 size: 12,
                               ),
                             ),
@@ -122,7 +122,7 @@ class CalendarOfflineExamContainer extends StatelessWidget {
                       ],
                       style: TextStyle(
                         height: 1,
-                        color: Theme.of(context).colorScheme.secondary,
+                        color: Theme.of(context).colorScheme.onSurface,
                         fontWeight: FontWeight.w400,
                         fontSize: 10,
                       ),

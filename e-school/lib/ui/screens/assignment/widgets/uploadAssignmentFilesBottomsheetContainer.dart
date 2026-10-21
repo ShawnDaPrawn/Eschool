@@ -2,10 +2,10 @@ import 'package:dotted_border/dotted_border.dart';
 import 'package:eschool/cubits/uploadAssignmentCubit.dart';
 import 'package:eschool/data/models/assignment.dart';
 import 'package:eschool/ui/widgets/bottomsheetTopTitleAndCloseButton.dart';
-import 'package:eschool/ui/widgets/customRoundedButton.dart';
 import 'package:eschool/ui/widgets/customTextFieldContainer.dart';
 import 'package:eschool/utils/labelKeys.dart';
 import 'package:eschool/utils/uiUtils.dart';
+import 'package:eschool_core/eschool_core.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -77,7 +77,7 @@ class _UploadAssignmentBottomsheetContainerState
       margin: const EdgeInsets.only(bottom: 10),
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(15),
-        color: Theme.of(context).colorScheme.surface,
+        color: Theme.of(context).colorScheme.surfaceContainerLow,
       ),
       padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 10),
       child: LayoutBuilder(
@@ -91,7 +91,7 @@ class _UploadAssignmentBottomsheetContainerState
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
                   style: TextStyle(
-                    color: Theme.of(context).colorScheme.secondary,
+                    color: Theme.of(context).colorScheme.onSurface,
                   ),
                 ),
               ),
@@ -182,7 +182,7 @@ class _UploadAssignmentBottomsheetContainerState
                     radius: const Radius.circular(15),
                     color: Theme.of(
                       context,
-                    ).colorScheme.onSurface.withValues(alpha: 0.3),
+                    ).colorScheme.onSurfaceVariant.withValues(alpha: 0.3),
                   ),
                   child: Container(
                     alignment: Alignment.center,
@@ -210,7 +210,7 @@ class _UploadAssignmentBottomsheetContainerState
                           child: Icon(
                             Icons.add,
                             size: 15,
-                            color: Theme.of(context).scaffoldBackgroundColor,
+                            color: Theme.of(context).colorScheme.onPrimary,
                           ),
                         ),
                         SizedBox(
@@ -221,7 +221,7 @@ class _UploadAssignmentBottomsheetContainerState
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                           style: TextStyle(
-                            color: Theme.of(context).colorScheme.secondary,
+                            color: Theme.of(context).colorScheme.onSurface,
                           ),
                         ),
                       ],

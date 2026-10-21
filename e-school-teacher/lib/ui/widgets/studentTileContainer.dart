@@ -26,13 +26,13 @@ class StudentTileContainer extends StatelessWidget {
               BoxShadow(
                 color: Theme.of(
                   context,
-                ).colorScheme.secondary.withValues(alpha: 0.05),
+                ).colorScheme.shadow.withValues(alpha: 0.05),
                 offset: const Offset(2.5, 2.5),
                 blurRadius: 10,
                 spreadRadius: 2.5,
               ),
             ],
-            color: Theme.of(context).scaffoldBackgroundColor,
+            color: Theme.of(context).colorScheme.surface,
             borderRadius: BorderRadius.circular(10),
           ),
           width: MediaQuery.sizeOf(context).width * 0.85,
@@ -62,7 +62,7 @@ class StudentTileContainer extends StatelessWidget {
                         Text(
                           student.getFullName(),
                           style: TextStyle(
-                            color: Theme.of(context).colorScheme.secondary,
+                            color: Theme.of(context).colorScheme.onSurface,
                             fontWeight: FontWeight.w600,
                             fontSize: 14,
                           ),
@@ -72,7 +72,7 @@ class StudentTileContainer extends StatelessWidget {
                           style: TextStyle(
                             color: Theme.of(
                               context,
-                            ).colorScheme.secondary.withValues(alpha: 0.75),
+                            ).colorScheme.onSurface.withValues(alpha: 0.75),
                             fontWeight: FontWeight.w400,
                             fontSize: 12.5,
                           ),

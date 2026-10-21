@@ -1,17 +1,20 @@
 import 'package:eschool/cubits/postFeesPaymentCubit.dart';
 import 'package:eschool/data/models/student.dart';
-import 'package:eschool/ui/widgets/customRoundedButton.dart';
 import 'package:eschool/utils/labelKeys.dart';
 import 'package:eschool/utils/uiUtils.dart';
+import 'package:eschool_core/eschool_core.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:lottie/lottie.dart';
 
 class FeesPaymentVerification extends StatefulWidget {
-
   const FeesPaymentVerification({
-    required this.studentDetails, required this.transactionId, required this.status, required this.isStudentPayingFees, super.key,
+    required this.studentDetails,
+    required this.transactionId,
+    required this.status,
+    required this.isStudentPayingFees,
+    super.key,
     this.paymentId,
     this.paymentSignature,
     this.orderId,
@@ -83,7 +86,7 @@ class FeesPaymentVerificationState extends State<FeesPaymentVerification> {
   Color setTitleColor({required String statusTitle}) {
     switch (statusTitle) {
       case paymentSuccessTitleKey:
-        return UiUtils.getColorScheme(context).onPrimary;
+        return StatusColors.of(context).success;
 
       case paymentFailureTitleKey:
         return UiUtils.getColorScheme(context).error;
@@ -120,7 +123,7 @@ class FeesPaymentVerificationState extends State<FeesPaymentVerification> {
             style: TextStyle(
               fontSize: 14,
               fontWeight: FontWeight.normal,
-              color: UiUtils.getColorScheme(context).secondary,
+              color: UiUtils.getColorScheme(context).onSurface,
             ),
           ),
         ],
@@ -147,7 +150,7 @@ class FeesPaymentVerificationState extends State<FeesPaymentVerification> {
           onTap: () {
             Navigator.of(context).popUntil((route) => route.isFirst);
           },
-          titleColor: Theme.of(context).scaffoldBackgroundColor,
+          titleColor: Theme.of(context).colorScheme.onPrimary,
           buttonTitle: UiUtils.getTranslatedLabel(context, homeKey),
           showBorder: true,
         ),

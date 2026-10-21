@@ -4,7 +4,6 @@ import 'package:eschool_teacher/data/models/reviewAssignmentssubmition.dart';
 import 'package:eschool_teacher/ui/widgets/bottomSheetTextFieldContainer.dart';
 import 'package:eschool_teacher/ui/widgets/bottomSheetTopBarMenu.dart';
 import 'package:eschool_core/eschool_core.dart';
-import 'package:eschool_teacher/ui/widgets/customRoundedButton.dart';
 import 'package:eschool_teacher/utils/labelKeys.dart';
 import 'package:eschool_teacher/utils/uiUtils.dart';
 import 'package:flutter/material.dart';
@@ -12,7 +11,9 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 class RejectAssignmentBottomsheetContainer extends StatefulWidget {
   const RejectAssignmentBottomsheetContainer({
-    required this.assignment, required this.reviewAssignment, super.key,
+    required this.assignment,
+    required this.reviewAssignment,
+    super.key,
   });
   final Assignment assignment;
   final ReviewAssignmentsSubmission reviewAssignment;
@@ -87,9 +88,7 @@ class _RejectAssignmentBottomsheetContainerState
                           context,
                           reviewAssignmentsucessfullukey,
                         ),
-                        backgroundColor: Theme.of(
-                          context,
-                        ).colorScheme.onPrimary,
+                        backgroundColor: StatusColors.of(context).success,
                       );
                       Navigator.of(context).pop(
                         widget.reviewAssignment.copyWith(

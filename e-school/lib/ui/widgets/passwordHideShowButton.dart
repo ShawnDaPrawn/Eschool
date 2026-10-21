@@ -5,7 +5,9 @@ import 'package:flutter_svg/flutter_svg.dart';
 
 class PasswordHideShowButton extends StatelessWidget {
   const PasswordHideShowButton({
-    required this.hidePassword, required this.onTap, super.key,
+    required this.hidePassword,
+    required this.onTap,
+    super.key,
     this.allSidePadding,
   });
   final bool hidePassword;
@@ -23,7 +25,7 @@ class PasswordHideShowButton extends StatelessWidget {
         child: SvgPicture.asset(
           hidePassword ? Assets.hidePasswordIcon : Assets.showPasswordIcon,
           colorFilter: ColorFilter.mode(
-            UiUtils.getColorScheme(context).secondary,
+            UiUtils.getColorScheme(context).onSurface,
             BlendMode.srcIn,
           ),
         ),

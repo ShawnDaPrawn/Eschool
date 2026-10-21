@@ -5,11 +5,9 @@ import 'package:eschool_teacher/data/models/leave.dart';
 import 'package:eschool_teacher/data/repositories/leaveRepository.dart';
 import 'package:eschool_teacher/data/repositories/systemInfoRepository.dart';
 import 'package:eschool_teacher/ui/screens/leave/widgets/oneDayLeaveStatusContainer.dart';
-import 'package:eschool_teacher/ui/styles/colors.dart';
 import 'package:eschool_teacher/ui/widgets/bottomSheetTextFieldContainer.dart';
 import 'package:eschool_core/eschool_core.dart';
 import 'package:eschool_teacher/ui/widgets/customAppbar.dart';
-import 'package:eschool_teacher/ui/widgets/customRoundedButton.dart';
 import 'package:eschool_teacher/ui/widgets/errorContainer.dart';
 import 'package:eschool_teacher/utils/extensions.dart';
 import 'package:eschool_teacher/utils/labelKeys.dart';
@@ -109,16 +107,6 @@ class _AddLeaveScreenState extends State<AddLeaveScreen> {
         .getAppConfiguration()
         .sessionYear;
     showDateRangePicker(
-      builder: (context, child) {
-        return Theme(
-          data: Theme.of(context).copyWith(
-            colorScheme: Theme.of(context).colorScheme.copyWith(
-              onPrimary: Theme.of(context).scaffoldBackgroundColor,
-            ),
-          ),
-          child: child!,
-        );
-      },
       context: context,
       initialDateRange: pickedDateRange,
       firstDate:
@@ -189,7 +177,7 @@ class _AddLeaveScreenState extends State<AddLeaveScreen> {
                 leaveRequestAddedSuccessfullyKey,
               ),
             ),
-            backgroundColor: Theme.of(context).colorScheme.onPrimary,
+            backgroundColor: StatusColors.of(context).success,
           );
           Navigator.of(context).pop(true); //to refresh the previous page
         } else if (state is AddLeaveFailure) {
@@ -355,7 +343,7 @@ class _AddLeaveScreenState extends State<AddLeaveScreen> {
                       child: Text(
                         pickedAttachements[index].name,
                         style: TextStyle(
-                          color: Theme.of(context).colorScheme.secondary,
+                          color: Theme.of(context).colorScheme.onSurface,
                           fontWeight: FontWeight.bold,
                         ),
                       ),
@@ -369,7 +357,9 @@ class _AddLeaveScreenState extends State<AddLeaveScreen> {
                       },
                       child: Icon(
                         Icons.delete_outline,
-                        color: redColor.withValues(alpha: 0.7),
+                        color: Theme.of(
+                          context,
+                        ).colorScheme.error.withValues(alpha: 0.7),
                       ),
                     ),
                   ],

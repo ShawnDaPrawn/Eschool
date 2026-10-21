@@ -108,8 +108,8 @@ class _AssignmentsSubjectContainerState
                     style: TextStyle(
                       color:
                           widget.selectedSubjectId == widget.subjects[index].id
-                          ? Theme.of(context).scaffoldBackgroundColor
-                          : Theme.of(context).colorScheme.onSurface,
+                          ? Theme.of(context).colorScheme.onPrimary
+                          : Theme.of(context).colorScheme.onSurfaceVariant,
                     ),
                   );
                 },

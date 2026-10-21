@@ -54,14 +54,14 @@ class _OneDayLeaveStatusContainerState
                   ? Theme.of(context).colorScheme.primary
                   : Theme.of(
                       context,
-                    ).colorScheme.secondary.withValues(alpha: 0.5),
+                    ).colorScheme.onSurface.withValues(alpha: 0.5),
             ),
             borderRadius: BorderRadius.circular(8),
             color: type == widget.leaveDayDetails.type
                 ? Theme.of(context).colorScheme.primary.withValues(alpha: 0.1)
                 : Theme.of(
                     context,
-                  ).colorScheme.secondary.withValues(alpha: 0.07),
+                  ).colorScheme.onSurface.withValues(alpha: 0.07),
           ),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -74,7 +74,7 @@ class _OneDayLeaveStatusContainerState
                 style: TextStyle(
                   color: type == widget.leaveDayDetails.type
                       ? Theme.of(context).colorScheme.primary
-                      : Theme.of(context).colorScheme.secondary,
+                      : Theme.of(context).colorScheme.onSurface,
                   fontWeight: FontWeight.w500,
                 ),
               ),
@@ -104,7 +104,7 @@ class _OneDayLeaveStatusContainerState
                   getWeekdayNameKey(widget.leaveDayDetails.date.weekday),
                 ),
                 style: TextStyle(
-                  color: Theme.of(context).scaffoldBackgroundColor,
+                  color: Theme.of(context).colorScheme.onPrimary,
                   fontWeight: FontWeight.w600,
                 ),
               ),
@@ -114,7 +114,7 @@ class _OneDayLeaveStatusContainerState
               Icons.calendar_month_outlined,
               color: Theme.of(
                 context,
-              ).colorScheme.secondary.withValues(alpha: 0.6),
+              ).colorScheme.onSurface.withValues(alpha: 0.6),
             ),
             const SizedBox(width: 5),
             Text(
@@ -122,7 +122,7 @@ class _OneDayLeaveStatusContainerState
               style: TextStyle(
                 color: Theme.of(
                   context,
-                ).colorScheme.secondary.withValues(alpha: 0.6),
+                ).colorScheme.onSurface.withValues(alpha: 0.6),
                 fontWeight: FontWeight.w600,
               ),
             ),

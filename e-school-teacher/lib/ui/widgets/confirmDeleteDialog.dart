@@ -29,9 +29,10 @@ class ConfirmDeleteDialog extends StatelessWidget {
           },
         ),
       ],
-      backgroundColor: Colors.white,
-      content:
-          Text(UiUtils.getTranslatedLabel(context, deleteDialogMessageKey)),
+      backgroundColor: Theme.of(context).colorScheme.surface,
+      content: Text(
+        UiUtils.getTranslatedLabel(context, deleteDialogMessageKey),
+      ),
       title: Text(UiUtils.getTranslatedLabel(context, deleteDialogTitleKey)),
     );
   }

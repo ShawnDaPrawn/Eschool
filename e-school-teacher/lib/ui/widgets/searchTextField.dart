@@ -1,13 +1,15 @@
 import 'dart:async';
 
-import 'package:eschool_teacher/ui/styles/colors.dart';
 import 'package:eschool_teacher/utils/labelKeys.dart';
 import 'package:eschool_teacher/utils/uiUtils.dart';
 import 'package:flutter/material.dart';
 
 class CustomSearchTextField extends StatefulWidget {
   const CustomSearchTextField({
-    required this.textController, required this.onSearch, required this.onTextClear, super.key,
+    required this.textController,
+    required this.onSearch,
+    required this.onTextClear,
+    super.key,
   });
   final TextEditingController textController;
   final Function(String) onSearch;
@@ -37,17 +39,17 @@ class _CustomSearchTextFieldState extends State<CustomSearchTextField> {
         decoration: InputDecoration(
           hintStyle: const TextStyle(fontSize: 14),
           hintText: UiUtils.getTranslatedLabel(context, searchHintKey),
-          fillColor: Theme.of(context).scaffoldBackgroundColor,
+          fillColor: Theme.of(context).colorScheme.surface,
           filled: true,
           contentPadding: const EdgeInsets.all(5),
-          prefixIcon: const Icon(
+          prefixIcon: Icon(
             Icons.search,
-            color: primaryColor,
+            color: Theme.of(context).colorScheme.primary,
           ),
           suffixIcon: IconButton(
-            icon: const Icon(
+            icon: Icon(
               Icons.clear,
-              color: primaryColor,
+              color: Theme.of(context).colorScheme.primary,
             ),
             onPressed: () {
               if (_debounce?.isActive ?? false) _debounce?.cancel();
@@ -56,18 +58,12 @@ class _CustomSearchTextFieldState extends State<CustomSearchTextField> {
               _formKey.currentState!.validate();
             },
           ),
-          border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(25),
-          ),
+          border: OutlineInputBorder(borderRadius: BorderRadius.circular(25)),
           errorBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(25),
-            borderSide: const BorderSide(
-              color: redColor,
-            ),
+            borderSide: BorderSide(color: Theme.of(context).colorScheme.error),
           ),
-          errorStyle: TextStyle(
-            color: Theme.of(context).scaffoldBackgroundColor,
-          ),
+          errorStyle: TextStyle(color: Theme.of(context).colorScheme.onPrimary),
         ),
         validator: (value) {
           if (value == null || value.trim().isEmpty) {

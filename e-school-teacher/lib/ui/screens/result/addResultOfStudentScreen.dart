@@ -5,7 +5,6 @@ import 'package:eschool_teacher/data/repositories/studentRepository.dart';
 import 'package:eschool_teacher/ui/screens/result/widget/addMarksContainer.dart';
 import 'package:eschool_teacher/ui/widgets/customAppbar.dart';
 import 'package:eschool_core/eschool_core.dart';
-import 'package:eschool_teacher/ui/widgets/customRoundedButton.dart';
 import 'package:eschool_teacher/utils/labelKeys.dart';
 import 'package:eschool_teacher/utils/uiUtils.dart';
 import 'package:flutter/cupertino.dart';
@@ -79,7 +78,7 @@ class _AddResultScreenState extends State<AddResultScreen> {
 
   TextStyle _getResultTitleTextStyle() {
     return TextStyle(
-      color: Theme.of(context).colorScheme.onSurface,
+      color: Theme.of(context).colorScheme.onSurfaceVariant,
       fontWeight: FontWeight.w600,
       fontSize: 12,
     );
@@ -109,13 +108,13 @@ class _AddResultScreenState extends State<AddResultScreen> {
           BoxShadow(
             color: Theme.of(
               context,
-            ).colorScheme.secondary.withValues(alpha: 0.075),
+            ).colorScheme.shadow.withValues(alpha: 0.075),
             offset: const Offset(2.5, 2.5),
             blurRadius: 5,
             spreadRadius: 1,
           ),
         ],
-        color: Theme.of(context).scaffoldBackgroundColor,
+        color: Theme.of(context).colorScheme.surface,
       ),
       width: MediaQuery.sizeOf(context).width,
       child: LayoutBuilder(
@@ -198,7 +197,7 @@ class _AddResultScreenState extends State<AddResultScreen> {
               context,
               marksAddedSuccessfullyKey,
             ),
-            backgroundColor: Theme.of(context).colorScheme.onPrimary,
+            backgroundColor: StatusColors.of(context).success,
           );
 
           Navigator.of(context).pop('true');
@@ -306,18 +305,18 @@ class _AddResultScreenState extends State<AddResultScreen> {
           BoxShadow(
             color: Theme.of(
               context,
-            ).colorScheme.secondary.withValues(alpha: 0.075),
+            ).colorScheme.shadow.withValues(alpha: 0.075),
             offset: const Offset(2.5, 2.5),
             blurRadius: 5,
           ),
         ],
-        color: Theme.of(context).scaffoldBackgroundColor,
+        color: Theme.of(context).colorScheme.surface,
       ),
       width: MediaQuery.sizeOf(context).width * 0.85,
       child: Text(
         '${UiUtils.getTranslatedLabel(context, obtainedMarksKey)}  :  ${studentResultData.obtainedMarks}/${studentResultData.totalMarks}',
         style: TextStyle(
-          color: Theme.of(context).colorScheme.secondary,
+          color: Theme.of(context).colorScheme.onSurface,
           fontSize: 15,
         ),
       ),
@@ -336,7 +335,7 @@ class _AddResultScreenState extends State<AddResultScreen> {
           style: TextStyle(
             color: Theme.of(
               context,
-            ).colorScheme.onSurface.withValues(alpha: 0.75),
+            ).colorScheme.onSurfaceVariant.withValues(alpha: 0.75),
             fontWeight: FontWeight.w400,
             fontSize: 13,
           ),
@@ -346,7 +345,7 @@ class _AddResultScreenState extends State<AddResultScreen> {
         Text(
           value,
           style: TextStyle(
-            color: Theme.of(context).colorScheme.secondary,
+            color: Theme.of(context).colorScheme.onSurface,
             fontWeight: FontWeight.w500,
             fontSize: 15,
           ),
@@ -361,7 +360,7 @@ class _AddResultScreenState extends State<AddResultScreen> {
       padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 15),
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(10),
-        color: Theme.of(context).colorScheme.surface,
+        color: Theme.of(context).colorScheme.surfaceContainerLow,
       ),
       width: MediaQuery.sizeOf(context).width * 0.85,
       child: Row(

@@ -5,8 +5,15 @@ import 'package:eschool_teacher/data/models/exam.dart';
 import 'package:eschool_teacher/data/models/holiday.dart';
 import 'package:eschool_teacher/data/repositories/studentRepository.dart';
 import 'package:eschool_teacher/data/repositories/systemInfoRepository.dart';
-import 'package:eschool_teacher/ui/screens/academicCalendar/academicCalendarScreen.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+
+typedef AcademicCalendarHighlightColors = ({
+  Color holiday,
+  Color event,
+  Color exam,
+  Color semesterBreak,
+});
 
 abstract class AcademicCalendarState {}
 
@@ -29,10 +36,15 @@ class AcademicCalendarCubit extends Cubit<AcademicCalendarState> {
     this._systemRepository,
     this._studentRepository, {
     required this.appConfigurationCubit,
+    required this.highlights,
   }) : super(AcademicCalendarInitial());
   final SystemRepository _systemRepository;
   final StudentRepository _studentRepository;
   final AppConfigurationCubit appConfigurationCubit;
+
+  /// Resolved from the theme when the cubit is created, because the items
+  /// are built after an await, where no BuildContext is safe to use.
+  final AcademicCalendarHighlightColors highlights;
 
   Future<void> fetchData() async {
     emit(AcademicCalendarFetchInProgress());
@@ -44,14 +56,14 @@ class AcademicCalendarCubit extends Cubit<AcademicCalendarState> {
               (holiday) => AcademicCalendar<Holiday>(
                 data: holiday,
                 date: holiday.date,
-                highlightColor: AcademicCalendarScreen.holidayColor,
+                highlightColor: highlights.holiday,
               ),
             ),
             ...(await _systemRepository.fetchEvents()).map<AcademicCalendar>(
               (event) => AcademicCalendar<Event>(
                 data: event,
                 date: event.startDate,
-                highlightColor: AcademicCalendarScreen.eventColor,
+                highlightColor: highlights.event,
                 rangeEndDate: event.endDate,
               ),
             ),
@@ -62,7 +74,7 @@ class AcademicCalendarCubit extends Cubit<AcademicCalendarState> {
               (exam) => AcademicCalendar<Exam>(
                 data: exam,
                 date: exam.getStartDate(),
-                highlightColor: AcademicCalendarScreen.examColor,
+                highlightColor: highlights.exam,
                 rangeEndDate: exam.getEndDate(),
               ),
             ),
@@ -72,7 +84,7 @@ class AcademicCalendarCubit extends Cubit<AcademicCalendarState> {
                   (breakItem) => AcademicCalendar<SemesterBreak>(
                     data: breakItem,
                     date: breakItem.startDate,
-                    highlightColor: AcademicCalendarScreen.semesterBreakColor,
+                    highlightColor: highlights.semesterBreak,
                     rangeEndDate: breakItem.endDate,
                   ),
                 ),

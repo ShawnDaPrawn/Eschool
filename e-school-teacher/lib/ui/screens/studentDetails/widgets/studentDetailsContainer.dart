@@ -24,7 +24,7 @@ class _StudentDetailsContainerState extends State<StudentDetailsContainer> {
 
   TextStyle _getLabelValueTextStyle() {
     return TextStyle(
-      color: Theme.of(context).colorScheme.secondary,
+      color: Theme.of(context).colorScheme.onSurface,
       fontSize: 14,
       fontWeight: FontWeight.w600,
     );
@@ -32,7 +32,7 @@ class _StudentDetailsContainerState extends State<StudentDetailsContainer> {
 
   TextStyle _getLabelTextStyle() {
     return TextStyle(
-      color: Theme.of(context).colorScheme.onSurface,
+      color: Theme.of(context).colorScheme.onSurfaceVariant,
       fontSize: 11,
       fontWeight: FontWeight.w400,
     );
@@ -45,7 +45,7 @@ class _StudentDetailsContainerState extends State<StudentDetailsContainer> {
         width: MediaQuery.sizeOf(context).width,
         padding: const EdgeInsets.symmetric(horizontal: 12.50, vertical: 15),
         decoration: BoxDecoration(
-          color: Theme.of(context).colorScheme.surface,
+          color: Theme.of(context).colorScheme.surfaceContainerLow,
           borderRadius: BorderRadius.circular(10),
         ),
         child: child,
@@ -505,9 +505,10 @@ class _StudentDetailsContainerState extends State<StudentDetailsContainer> {
                           vertical: 15,
                         ),
                         decoration: BoxDecoration(
-                          color: Theme.of(
-                            context,
-                          ).colorScheme.surface.withValues(alpha: 0.6),
+                          color: Theme.of(context)
+                              .colorScheme
+                              .surfaceContainerLow
+                              .withValues(alpha: 0.6),
                           borderRadius: BorderRadius.circular(10),
                         ),
                         height: 110,

@@ -53,12 +53,10 @@ class _ChildTeachersScreenState extends State<ChildTeachersScreen> {
           BoxShadow(
             offset: const Offset(2.5, 2.5),
             blurRadius: 10,
-            color: Theme.of(
-              context,
-            ).colorScheme.secondary.withValues(alpha: 0.15),
+            color: Theme.of(context).colorScheme.shadow.withValues(alpha: 0.15),
           ),
         ],
-        color: Theme.of(context).scaffoldBackgroundColor,
+        color: Theme.of(context).colorScheme.surface,
         borderRadius: BorderRadius.circular(15),
       ),
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
@@ -109,7 +107,9 @@ class _ChildTeachersScreenState extends State<ChildTeachersScreen> {
                           child: Icon(
                             Icons.call,
                             size: 12,
-                            color: Theme.of(context).colorScheme.onSurface,
+                            color: Theme.of(
+                              context,
+                            ).colorScheme.onSurfaceVariant,
                           ),
                         ),
                         SizedBox(width: boxConstraints.maxWidth * 0.02),
@@ -118,7 +118,9 @@ class _ChildTeachersScreenState extends State<ChildTeachersScreen> {
                           maxLines: 1,
                           style: TextStyle(
                             fontSize: 11,
-                            color: Theme.of(context).colorScheme.onSurface,
+                            color: Theme.of(
+                              context,
+                            ).colorScheme.onSurfaceVariant,
                           ),
                           overflow: TextOverflow.ellipsis,
                         ),

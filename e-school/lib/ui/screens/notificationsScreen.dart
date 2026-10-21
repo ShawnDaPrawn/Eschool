@@ -6,7 +6,6 @@ import 'package:eschool/data/repositories/parentRepository.dart';
 import 'package:eschool/data/repositories/settingsRepository.dart';
 import 'package:eschool/data/repositories/studentRepository.dart';
 import 'package:eschool/ui/screens/home/homeScreen.dart';
-import 'package:eschool/ui/styles/colors.dart';
 import 'package:eschool/ui/widgets/customBackButton.dart';
 import 'package:eschool/ui/widgets/customRefreshIndicator.dart';
 import 'package:eschool/ui/widgets/customShimmerContainer.dart';
@@ -88,7 +87,7 @@ class _NotificationScreenState extends State<NotificationScreen> {
             child: Text(
               UiUtils.getTranslatedLabel(context, notificationsKey),
               style: TextStyle(
-                color: Theme.of(context).scaffoldBackgroundColor,
+                color: Theme.of(context).colorScheme.onPrimary,
                 fontSize: UiUtils.screenTitleFontSize,
               ),
             ),
@@ -136,7 +135,7 @@ class _NotificationScreenState extends State<NotificationScreen> {
     return Container(
       margin: const EdgeInsets.only(bottom: 20),
       decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surface,
+        color: Theme.of(context).colorScheme.surfaceContainerLow,
         borderRadius: BorderRadius.circular(10),
       ),
       width: MediaQuery.sizeOf(context).width * 0.85,
@@ -157,14 +156,16 @@ class _NotificationScreenState extends State<NotificationScreen> {
                         overflow: TextOverflow.ellipsis,
                         style: TextStyle(
                           height: 1.2,
-                          color: Theme.of(context).colorScheme.secondary,
+                          color: Theme.of(context).colorScheme.onSurface,
                           fontSize: 15,
                         ),
                       ),
                       const SizedBox(height: 2),
                       ReadMoreText(
                         notification.message,
-                        colorClickableText: primaryColor,
+                        colorClickableText: Theme.of(
+                          context,
+                        ).colorScheme.primary,
                         trimMode: TrimMode.Line,
                         trimCollapsedText: UiUtils.getTranslatedLabel(
                           context,
@@ -173,7 +174,7 @@ class _NotificationScreenState extends State<NotificationScreen> {
                         trimExpandedText:
                             ' ${UiUtils.getTranslatedLabel(context, showLessKey)}',
                         style: TextStyle(
-                          color: Theme.of(context).colorScheme.onSurface,
+                          color: Theme.of(context).colorScheme.onSurfaceVariant,
                           fontWeight: FontWeight.w400,
                           fontSize: 12,
                         ),
@@ -184,9 +185,10 @@ class _NotificationScreenState extends State<NotificationScreen> {
                         children: [
                           Icon(
                             Icons.calendar_month_outlined,
-                            color: Theme.of(
-                              context,
-                            ).colorScheme.onSurface.withValues(alpha: 0.75),
+                            color: Theme.of(context)
+                                .colorScheme
+                                .onSurfaceVariant
+                                .withValues(alpha: 0.75),
                             size: 14,
                           ),
                           const SizedBox(width: 5),
@@ -199,9 +201,10 @@ class _NotificationScreenState extends State<NotificationScreen> {
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
                               style: TextStyle(
-                                color: Theme.of(
-                                  context,
-                                ).colorScheme.onSurface.withValues(alpha: 0.75),
+                                color: Theme.of(context)
+                                    .colorScheme
+                                    .onSurfaceVariant
+                                    .withValues(alpha: 0.75),
                                 fontWeight: FontWeight.w400,
                                 fontSize: 11,
                               ),

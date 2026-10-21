@@ -1,3 +1,4 @@
+import 'package:eschool_core/eschool_core.dart';
 import 'package:eschool_teacher/app/routes.dart';
 import 'package:eschool_teacher/data/models/classSectionDetails.dart';
 import 'package:eschool_teacher/utils/animationConfiguration.dart';
@@ -18,7 +19,7 @@ class ClassTeacherClassContainer extends StatelessWidget {
   Widget build(BuildContext context) {
     final bool doesClassIncludeStream =
         classDetails.classDetails.stream != null;
-    final Color color = UiUtils.getClassColor(index);
+    final Color color = UiUtils.getClassColor(context, index);
     return Animate(
       effects: customItemZoomAppearanceEffects(),
       child: Material(
@@ -33,7 +34,7 @@ class ClassTeacherClassContainer extends StatelessWidget {
           },
           child: Container(
             decoration: BoxDecoration(
-              color: Theme.of(context).scaffoldBackgroundColor,
+              color: Theme.of(context).colorScheme.surfaceContainerLowest,
               borderRadius: BorderRadius.circular(4),
             ),
             padding: const EdgeInsets.all(12),
@@ -72,7 +73,9 @@ class ClassTeacherClassContainer extends StatelessWidget {
                         overflow: TextOverflow.ellipsis,
                         textAlign: TextAlign.start,
                         style: TextStyle(
-                          color: Theme.of(context).scaffoldBackgroundColor,
+                          color: Theme.of(
+                            context,
+                          ).colorScheme.readableOn(color),
                           fontWeight: FontWeight.w600,
                           fontSize: 16,
                         ),
@@ -90,7 +93,7 @@ class ClassTeacherClassContainer extends StatelessWidget {
                   textAlign: TextAlign.start,
                   style: TextStyle(
                     fontWeight: FontWeight.bold,
-                    color: Theme.of(context).colorScheme.secondary,
+                    color: Theme.of(context).colorScheme.onSurface,
                     fontSize: 16,
                   ),
                 ),
@@ -104,7 +107,7 @@ class ClassTeacherClassContainer extends StatelessWidget {
                     style: TextStyle(
                       color: Theme.of(
                         context,
-                      ).colorScheme.secondary.withValues(alpha: 0.8),
+                      ).colorScheme.onSurface.withValues(alpha: 0.8),
                       fontSize: 14,
                     ),
                   ),

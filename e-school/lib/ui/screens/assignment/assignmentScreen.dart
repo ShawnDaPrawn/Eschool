@@ -111,7 +111,7 @@ class _AssignmentScreenState extends State<AssignmentScreen> {
 
   TextStyle _getAssignmentDetailsLabelValueTextStyle() {
     return TextStyle(
-      color: Theme.of(context).colorScheme.secondary,
+      color: Theme.of(context).colorScheme.onSurface,
       fontSize: 14,
       fontWeight: FontWeight.w600,
     );
@@ -119,7 +119,7 @@ class _AssignmentScreenState extends State<AssignmentScreen> {
 
   TextStyle _getAssignmentDetailsLabelTextStyle() {
     return TextStyle(
-      color: Theme.of(context).colorScheme.onSurface,
+      color: Theme.of(context).colorScheme.onSurfaceVariant,
       fontSize: 12,
       fontWeight: FontWeight.w400,
     );
@@ -229,8 +229,8 @@ class _AssignmentScreenState extends State<AssignmentScreen> {
               isUndoAssignmentSubmissionButtonToBeShown
                   ? Assets.undoAssignmentSubmission
                   : Assets.fileUploadIcon,
-              colorFilter: const ColorFilter.mode(
-                Colors.white,
+              colorFilter: ColorFilter.mode(
+                Theme.of(context).colorScheme.onPrimary,
                 BlendMode.srcIn,
               ),
             ),
@@ -247,7 +247,7 @@ class _AssignmentScreenState extends State<AssignmentScreen> {
         width: MediaQuery.sizeOf(context).width * 0.85,
         padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 15),
         decoration: BoxDecoration(
-          color: Theme.of(context).colorScheme.surface,
+          color: Theme.of(context).colorScheme.surfaceContainerLow,
           borderRadius: BorderRadius.circular(10),
         ),
         child: child,

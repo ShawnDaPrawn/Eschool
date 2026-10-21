@@ -34,7 +34,7 @@ class CustomTextFieldContainer extends StatelessWidget {
       padding: const EdgeInsetsDirectional.only(start: 20),
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(borderRadius ?? 10),
-        border: Border.all(color: UiUtils.getColorScheme(context).secondary),
+        border: Border.all(color: UiUtils.getColorScheme(context).onSurface),
       ),
       child: TextFormField(
         controller: textEditingController,
@@ -50,7 +50,7 @@ class CustomTextFieldContainer extends StatelessWidget {
           hintStyle: TextStyle(
             color: UiUtils.getColorScheme(
               context,
-            ).secondary.withValues(alpha: 0.4),
+            ).onSurface.withValues(alpha: 0.4),
             fontWeight: FontWeight.w400,
           ),
           hintText: UiUtils.getTranslatedLabel(context, hintTextKey),

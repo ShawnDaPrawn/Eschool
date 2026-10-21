@@ -1,3 +1,4 @@
+import 'package:eschool_core/eschool_core.dart';
 import 'package:eschool_teacher/cubits/editReviewAssignmentCubit.dart';
 import 'package:eschool_teacher/cubits/reviewAssignmentCubit.dart';
 import 'package:eschool_teacher/data/models/assignment.dart';
@@ -6,7 +7,6 @@ import 'package:eschool_teacher/data/repositories/reviewAssignmentRepository.dar
 import 'package:eschool_teacher/ui/screens/assignment/widgets/acceptAssignmentBottomsheetContainer.dart';
 import 'package:eschool_teacher/ui/screens/assignment/widgets/rejectAssignmentBottomsheetContainer.dart';
 import 'package:eschool_teacher/ui/screens/chat/widget/messageItemComponents.dart';
-import 'package:eschool_teacher/ui/styles/colors.dart';
 import 'package:eschool_teacher/ui/widgets/attachmentsBottomsheetContainer.dart';
 import 'package:eschool_teacher/ui/widgets/customAppbar.dart';
 import 'package:eschool_teacher/ui/widgets/customRefreshIndicator.dart';
@@ -24,7 +24,6 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 class AssignmentScreen extends StatefulWidget {
-
   const AssignmentScreen({required this.assignment, super.key});
   final Assignment assignment;
 
@@ -221,7 +220,7 @@ class _AssignmentScreenState extends State<AssignmentScreen> {
                 fontSize: 12,
                 fontWeight: FontWeight.w600,
                 color: _currentlySelectedAssignmentFilter == title
-                    ? Theme.of(context).scaffoldBackgroundColor
+                    ? Theme.of(context).colorScheme.onPrimary
                     : Theme.of(context).colorScheme.primary,
               ),
             ),
@@ -231,7 +230,7 @@ class _AssignmentScreenState extends State<AssignmentScreen> {
               style: TextStyle(
                 fontSize: 11.5,
                 color: _currentlySelectedAssignmentFilter == title
-                    ? Theme.of(context).scaffoldBackgroundColor
+                    ? Theme.of(context).colorScheme.onPrimary
                     : Theme.of(context).colorScheme.primary,
               ),
             ),
@@ -290,7 +289,7 @@ class _AssignmentScreenState extends State<AssignmentScreen> {
           }
         }).toList(),
         style: TextStyle(
-          color: Theme.of(context).colorScheme.secondary.withValues(alpha: 0.7),
+          color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7),
           fontSize: 12,
           fontWeight: FontWeight.w600,
         ),
@@ -306,6 +305,7 @@ class _AssignmentScreenState extends State<AssignmentScreen> {
     required double width,
     required Function onTap,
     required Color backgroundColor,
+    required Color foregroundColor,
   }) {
     return InkWell(
       onTap: () {
@@ -325,10 +325,7 @@ class _AssignmentScreenState extends State<AssignmentScreen> {
           UiUtils.getTranslatedLabel(context, title),
           maxLines: 1,
           overflow: TextOverflow.ellipsis,
-          style: TextStyle(
-            fontSize: 10.75,
-            color: Theme.of(context).scaffoldBackgroundColor,
-          ),
+          style: TextStyle(fontSize: 10.75, color: foregroundColor),
         ),
       ),
     );
@@ -346,7 +343,7 @@ class _AssignmentScreenState extends State<AssignmentScreen> {
         width: MediaQuery.sizeOf(context).width * 0.85,
         padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 15),
         decoration: BoxDecoration(
-          color: Theme.of(context).colorScheme.surface,
+          color: Theme.of(context).colorScheme.surfaceContainerLow,
           borderRadius: BorderRadius.circular(15),
         ),
         child: LayoutBuilder(
@@ -386,7 +383,7 @@ class _AssignmentScreenState extends State<AssignmentScreen> {
                                 style: TextStyle(
                                   color: Theme.of(
                                     context,
-                                  ).colorScheme.secondary,
+                                  ).colorScheme.onSurface,
                                   fontWeight: FontWeight.w500,
                                   fontSize: 13,
                                 ),
@@ -403,9 +400,7 @@ class _AssignmentScreenState extends State<AssignmentScreen> {
                                         color:
                                             reviewAssignment.status == 1 ||
                                                 reviewAssignment.status == 3
-                                            ? Theme.of(
-                                                context,
-                                              ).colorScheme.onPrimary
+                                            ? StatusColors.of(context).success
                                             : Theme.of(
                                                 context,
                                               ).colorScheme.error,
@@ -429,9 +424,15 @@ class _AssignmentScreenState extends State<AssignmentScreen> {
                                         overflow: TextOverflow.ellipsis,
                                         style: TextStyle(
                                           fontSize: 10.75,
-                                          color: Theme.of(
-                                            context,
-                                          ).scaffoldBackgroundColor,
+                                          color:
+                                              reviewAssignment.status == 1 ||
+                                                  reviewAssignment.status == 3
+                                              ? StatusColors.of(
+                                                  context,
+                                                ).onSuccess
+                                              : Theme.of(
+                                                  context,
+                                                ).colorScheme.onError,
                                         ),
                                       ),
                                     )
@@ -445,7 +446,7 @@ class _AssignmentScreenState extends State<AssignmentScreen> {
                           style: TextStyle(
                             color: Theme.of(
                               context,
-                            ).colorScheme.secondary.withValues(alpha: 0.7),
+                            ).colorScheme.onSurface.withValues(alpha: 0.7),
                             fontWeight: FontWeight.w400,
                             fontSize: 11,
                           ),
@@ -466,7 +467,7 @@ class _AssignmentScreenState extends State<AssignmentScreen> {
                         Text(
                           reviewAssignment.feedback,
                           style: TextStyle(
-                            color: Theme.of(context).colorScheme.secondary,
+                            color: Theme.of(context).colorScheme.onSurface,
                             fontWeight: FontWeight.w600,
                             fontSize: 12,
                           ),
@@ -492,8 +493,8 @@ class _AssignmentScreenState extends State<AssignmentScreen> {
                             },
                             child: Text(
                               '${reviewAssignment.file.length} ${UiUtils.getTranslatedLabel(context, attachmentsKey)}',
-                              style: const TextStyle(
-                                color: assignmentViewButtonColor,
+                              style: TextStyle(
+                                color: StatusColors.of(context).info,
                               ),
                             ),
                           ),
@@ -531,8 +532,8 @@ class _AssignmentScreenState extends State<AssignmentScreen> {
                             },
                             child: Text(
                               '${reviewAssignment.file.length} ${UiUtils.getTranslatedLabel(context, attachmentsKey)}',
-                              style: const TextStyle(
-                                color: assignmentViewButtonColor,
+                              style: TextStyle(
+                                color: StatusColors.of(context).info,
                               ),
                             ),
                           ),
@@ -554,7 +555,7 @@ class _AssignmentScreenState extends State<AssignmentScreen> {
                           Text(
                             reviewAssignment.feedback,
                             style: TextStyle(
-                              color: Theme.of(context).colorScheme.secondary,
+                              color: Theme.of(context).colorScheme.onSurface,
                               fontWeight: FontWeight.w600,
                               fontSize: 12,
                             ),
@@ -570,7 +571,7 @@ class _AssignmentScreenState extends State<AssignmentScreen> {
                             style: TextStyle(
                               color: Theme.of(
                                 context,
-                              ).colorScheme.secondary.withValues(alpha: 0.7),
+                              ).colorScheme.onSurface.withValues(alpha: 0.7),
                               fontWeight: FontWeight.w500,
                               fontSize: 12,
                             ),
@@ -581,7 +582,7 @@ class _AssignmentScreenState extends State<AssignmentScreen> {
                           Text(
                             '${reviewAssignment.points} / ${widget.assignment.points}',
                             style: TextStyle(
-                              color: Theme.of(context).colorScheme.secondary,
+                              color: Theme.of(context).colorScheme.onSurface,
                               fontWeight: FontWeight.w600,
                               fontSize: 12,
                             ),
@@ -607,8 +608,8 @@ class _AssignmentScreenState extends State<AssignmentScreen> {
                             },
                             child: Text(
                               '${reviewAssignment.file.length} ${UiUtils.getTranslatedLabel(context, attachmentsKey)}',
-                              style: const TextStyle(
-                                color: assignmentViewButtonColor,
+                              style: TextStyle(
+                                color: StatusColors.of(context).info,
                               ),
                             ),
                           ),
@@ -632,9 +633,8 @@ class _AssignmentScreenState extends State<AssignmentScreen> {
                         onTap: () {
                           openAcceptAssignmentBottomsheet(reviewAssignment);
                         },
-                        backgroundColor: Theme.of(
-                          context,
-                        ).colorScheme.onPrimary,
+                        backgroundColor: StatusColors.of(context).success,
+                        foregroundColor: StatusColors.of(context).onSuccess,
                       ),
                     if (assignmentFilterType == acceptedKey ||
                         assignmentFilterType == rejectedKey)
@@ -648,6 +648,7 @@ class _AssignmentScreenState extends State<AssignmentScreen> {
                           openRejectAssignmentBottomsheet(reviewAssignment);
                         },
                         backgroundColor: Theme.of(context).colorScheme.error,
+                        foregroundColor: Theme.of(context).colorScheme.onError,
                       ),
                   ],
                 ),

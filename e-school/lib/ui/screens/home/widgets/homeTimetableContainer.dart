@@ -27,8 +27,9 @@ class _HomeTimetableContainerState extends State<HomeTimetableContainer>
     super.initState();
 
     _controller = AnimationController(
-      duration:
-          Duration(milliseconds: appearDisappearAnimationDurationMilliseconds),
+      duration: Duration(
+        milliseconds: appearDisappearAnimationDurationMilliseconds,
+      ),
       vsync: this,
     );
     _animation = CurvedAnimation(
@@ -67,7 +68,7 @@ class _HomeTimetableContainerState extends State<HomeTimetableContainer>
     return Container(
       margin: EdgeInsets.only(bottom: isLastItem ? 0 : 20),
       decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surface,
+        color: Theme.of(context).colorScheme.surfaceContainerLow,
         borderRadius: BorderRadius.circular(10),
       ),
       width: double.maxFinite,
@@ -88,9 +89,7 @@ class _HomeTimetableContainerState extends State<HomeTimetableContainer>
                 boxFit: BoxFit.scaleDown,
               ),
             ),
-            const SizedBox(
-              width: 10,
-            ),
+            const SizedBox(width: 10),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -104,7 +103,7 @@ class _HomeTimetableContainerState extends State<HomeTimetableContainer>
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                           style: TextStyle(
-                            color: UiUtils.getColorScheme(context).secondary,
+                            color: UiUtils.getColorScheme(context).onSurface,
                             fontWeight: FontWeight.w600,
                             fontSize: 14,
                           ),
@@ -112,9 +111,7 @@ class _HomeTimetableContainerState extends State<HomeTimetableContainer>
                       ),
                       if (timetable.linkCustomUrl != null &&
                           timetable.linkName != null) ...[
-                        const SizedBox(
-                          width: 5,
-                        ),
+                        const SizedBox(width: 5),
                         Flexible(
                           child: Align(
                             alignment: AlignmentDirectional.centerEnd,
@@ -141,19 +138,16 @@ class _HomeTimetableContainerState extends State<HomeTimetableContainer>
                       ],
                     ],
                   ),
-                  const SizedBox(
-                    height: 5,
-                  ),
+                  const SizedBox(height: 5),
                   Text(
                     '${UiUtils.formatTime(timetable.startTime)} ${UiUtils.getTranslatedLabel(context, toKey)} ${UiUtils.formatTime(timetable.endTime)} | ${timetable.teacherFirstName} ${timetable.teacherLastName}',
                     textAlign: TextAlign.start,
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
                     style: TextStyle(
-                      color: Theme.of(context)
-                          .colorScheme
-                          .onSurface
-                          .withValues(alpha: 0.75),
+                      color: Theme.of(
+                        context,
+                      ).colorScheme.onSurfaceVariant.withValues(alpha: 0.75),
                       fontSize: 12,
                     ),
                   ),
@@ -191,9 +185,7 @@ class _HomeTimetableContainerState extends State<HomeTimetableContainer>
                 sizeFactor: _animation,
                 child: Column(
                   children: [
-                    const SizedBox(
-                      height: 20,
-                    ),
+                    const SizedBox(height: 20),
                     ...List.generate(
                       widget.timeTableSlots.length > 3
                           ? widget.timeTableSlots.length - 3
@@ -209,9 +201,7 @@ class _HomeTimetableContainerState extends State<HomeTimetableContainer>
                   ],
                 ),
               ),
-            const SizedBox(
-              height: 10,
-            ),
+            const SizedBox(height: 10),
           ],
         ),
         if (widget.timeTableSlots.length > 3)

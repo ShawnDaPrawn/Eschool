@@ -1,8 +1,6 @@
 import 'dart:io';
 import 'package:eschool_teacher/cubits/appConfigurationCubit.dart';
 import 'package:eschool_core/eschool_core.dart';
-import 'package:eschool_teacher/ui/styles/colors.dart';
-import 'package:eschool_teacher/ui/widgets/customRoundedButton.dart';
 import 'package:eschool_teacher/utils/assets.dart';
 import 'package:eschool_teacher/utils/errorMessageKeysAndCodes.dart';
 import 'package:eschool_teacher/utils/labelKeys.dart';
@@ -106,7 +104,7 @@ class _AttachmentDialogWidgetState extends State<AttachmentDialogWidget> {
               ErrorMessageKeysAndCode.permissionNotGivenCode,
             ),
           ),
-          backgroundColor: errorColor,
+          backgroundColor: Theme.of(context).colorScheme.error,
         );
       }
     } catch (_) {
@@ -119,7 +117,7 @@ class _AttachmentDialogWidgetState extends State<AttachmentDialogWidget> {
               ErrorMessageKeysAndCode.defaultErrorMessageCode,
             ),
           ),
-          backgroundColor: errorColor,
+          backgroundColor: Theme.of(context).colorScheme.error,
         );
       }
     }
@@ -139,18 +137,18 @@ class _AttachmentDialogWidgetState extends State<AttachmentDialogWidget> {
     return Container(
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(12),
-        color: secondaryColor.withValues(alpha: 0.05),
+        color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.05),
       ),
       padding: const EdgeInsets.all(10),
       child: loading
           ? Container(
               height: 100,
               alignment: Alignment.center,
-              child: const SizedBox(
+              child: SizedBox(
                 height: 30,
                 width: 30,
                 child: CustomCircularProgressIndicator(
-                  indicatorColor: primaryColor,
+                  indicatorColor: Theme.of(context).colorScheme.primary,
                 ),
               ),
             )
@@ -200,15 +198,17 @@ class _AttachmentDialogWidgetState extends State<AttachmentDialogWidget> {
                                     width: 60,
                                     height: 60,
                                     decoration: BoxDecoration(
-                                      color: primaryColor,
+                                      color: Theme.of(
+                                        context,
+                                      ).colorScheme.primary,
                                       borderRadius: BorderRadius.circular(12),
                                     ),
                                     padding: const EdgeInsets.all(15),
                                     child: SvgPicture.asset(
                                       e['image']! as String,
                                       fit: BoxFit.cover,
-                                      colorFilter: const ColorFilter.mode(
-                                        Colors.white,
+                                      colorFilter: ColorFilter.mode(
+                                        Theme.of(context).colorScheme.onPrimary,
                                         BlendMode.srcIn,
                                       ),
                                     ),
@@ -220,7 +220,8 @@ class _AttachmentDialogWidgetState extends State<AttachmentDialogWidget> {
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
                                 style: TextStyle(
-                                  color: secondaryColor.withValues(alpha: 0.7),
+                                  color: Theme.of(context).colorScheme.onSurface
+                                      .withValues(alpha: 0.7),
                                 ),
                                 textAlign: TextAlign.center,
                               ),
@@ -249,10 +250,10 @@ class _AttachmentDialogWidgetState extends State<AttachmentDialogWidget> {
                               : pickedImages)} (${selectedFilePaths.length})',
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.bold,
-                            color: primaryColor,
+                            color: Theme.of(context).colorScheme.primary,
                           ),
                           textAlign: TextAlign.start,
                         ),
@@ -262,7 +263,10 @@ class _AttachmentDialogWidgetState extends State<AttachmentDialogWidget> {
                         onTap: () {
                           onFilesPicked();
                         },
-                        child: const Icon(Icons.add, color: primaryColor),
+                        child: Icon(
+                          Icons.add,
+                          color: Theme.of(context).colorScheme.primary,
+                        ),
                       ),
                       const SizedBox(width: 10),
                     ],
@@ -285,7 +289,9 @@ class _AttachmentDialogWidgetState extends State<AttachmentDialogWidget> {
                                     Container(
                                       decoration: BoxDecoration(
                                         borderRadius: BorderRadius.circular(12),
-                                        color: primaryColor,
+                                        color: Theme.of(
+                                          context,
+                                        ).colorScheme.primary,
                                       ),
                                       padding: const EdgeInsets.all(5),
                                       height: 100,
@@ -298,8 +304,10 @@ class _AttachmentDialogWidgetState extends State<AttachmentDialogWidget> {
                                             Assets.documentAttach,
                                             width: 25,
                                             height: 25,
-                                            colorFilter: const ColorFilter.mode(
-                                              Colors.white,
+                                            colorFilter: ColorFilter.mode(
+                                              Theme.of(
+                                                context,
+                                              ).colorScheme.onPrimary,
                                               BlendMode.srcIn,
                                             ),
                                           ),
@@ -308,8 +316,10 @@ class _AttachmentDialogWidgetState extends State<AttachmentDialogWidget> {
                                             selectedFilePaths[index]
                                                 .split('/')
                                                 .last,
-                                            style: const TextStyle(
-                                              color: Colors.white,
+                                            style: TextStyle(
+                                              color: Theme.of(
+                                                context,
+                                              ).colorScheme.onPrimary,
                                               fontWeight: FontWeight.bold,
                                               fontSize: 12,
                                             ),
@@ -325,18 +335,23 @@ class _AttachmentDialogWidgetState extends State<AttachmentDialogWidget> {
                                       child: Container(
                                         margin: const EdgeInsets.all(5),
                                         padding: const EdgeInsets.all(2),
-                                        decoration: const BoxDecoration(
+                                        decoration: BoxDecoration(
                                           shape: BoxShape.circle,
-                                          color: Colors.white24,
+                                          color: Theme.of(context)
+                                              .colorScheme
+                                              .onPrimary
+                                              .withValues(alpha: 0.24),
                                         ),
                                         child: InkWell(
                                           onTap: () {
                                             selectedFilePaths.removeAt(index);
                                             setState(() {});
                                           },
-                                          child: const Icon(
+                                          child: Icon(
                                             Icons.close_rounded,
-                                            color: redColor,
+                                            color: Theme.of(
+                                              context,
+                                            ).colorScheme.error,
                                             size: 18,
                                           ),
                                         ),
@@ -359,7 +374,9 @@ class _AttachmentDialogWidgetState extends State<AttachmentDialogWidget> {
                                     Container(
                                       decoration: BoxDecoration(
                                         borderRadius: BorderRadius.circular(12),
-                                        color: primaryColor,
+                                        color: Theme.of(
+                                          context,
+                                        ).colorScheme.primary,
                                       ),
                                       height: 100,
                                       width: 130,
@@ -374,18 +391,23 @@ class _AttachmentDialogWidgetState extends State<AttachmentDialogWidget> {
                                       child: Container(
                                         margin: const EdgeInsets.all(5),
                                         padding: const EdgeInsets.all(2),
-                                        decoration: const BoxDecoration(
+                                        decoration: BoxDecoration(
                                           shape: BoxShape.circle,
-                                          color: Colors.white24,
+                                          color: Theme.of(context)
+                                              .colorScheme
+                                              .onPrimary
+                                              .withValues(alpha: 0.24),
                                         ),
                                         child: InkWell(
                                           onTap: () {
                                             selectedFilePaths.removeAt(index);
                                             setState(() {});
                                           },
-                                          child: const Icon(
+                                          child: Icon(
                                             Icons.close_rounded,
-                                            color: redColor,
+                                            color: Theme.of(
+                                              context,
+                                            ).colorScheme.error,
                                             size: 18,
                                           ),
                                         ),
@@ -437,7 +459,7 @@ class _AttachmentDialogWidgetState extends State<AttachmentDialogWidget> {
                             context,
                             sendKey,
                           ),
-                          titleColor: Theme.of(context).scaffoldBackgroundColor,
+                          titleColor: Theme.of(context).colorScheme.onPrimary,
                           showBorder: false,
                         ),
                       ),

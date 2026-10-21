@@ -34,7 +34,7 @@ class ListItemForExamAndResult extends StatelessWidget {
         width: index == null ? null : MediaQuery.sizeOf(context).width * 0.85,
         padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 15),
         decoration: BoxDecoration(
-          color: UiUtils.getColorScheme(context).surface,
+          color: UiUtils.getColorScheme(context).surfaceContainerLow,
           borderRadius: BorderRadius.circular(10),
         ),
         child: child,
@@ -44,7 +44,7 @@ class ListItemForExamAndResult extends StatelessWidget {
 
   TextStyle _getExamDetailsLabelTextStyle({required BuildContext context}) {
     return TextStyle(
-      color: UiUtils.getColorScheme(context).onSurface,
+      color: UiUtils.getColorScheme(context).onSurfaceVariant,
       fontSize: 12,
       fontWeight: FontWeight.w400,
     );
@@ -75,7 +75,7 @@ class ListItemForExamAndResult extends StatelessWidget {
 
   TextStyle _getExamNameValueTextStyle({required BuildContext context}) {
     return TextStyle(
-      color: UiUtils.getColorScheme(context).secondary,
+      color: UiUtils.getColorScheme(context).onSurface,
       fontSize: 14,
       fontWeight: FontWeight.w600,
     );

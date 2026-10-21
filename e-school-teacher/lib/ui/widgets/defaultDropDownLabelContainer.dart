@@ -25,10 +25,12 @@ class DefaultDropDownLabelContainer extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 10),
       alignment: AlignmentDirectional.centerStart,
       decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surface,
+        color: Theme.of(context).colorScheme.surfaceContainerLow,
         borderRadius: BorderRadius.circular(radius ?? 5),
         border: Border.all(
-          color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.5),
+          color: Theme.of(
+            context,
+          ).colorScheme.onSurfaceVariant.withValues(alpha: 0.5),
         ),
       ),
       width: width,
@@ -38,9 +40,9 @@ class DefaultDropDownLabelContainer extends StatelessWidget {
         style: TextStyle(
           fontWeight: highlight ? FontWeight.w600 : FontWeight.w400,
           fontSize: 13,
-          color: Theme.of(
-            context,
-          ).colorScheme.onSurface.withValues(alpha: highlight ? 1 : 0.75),
+          color: Theme.of(context).colorScheme.onSurfaceVariant.withValues(
+            alpha: highlight ? 1 : 0.75,
+          ),
         ),
       ),
     );

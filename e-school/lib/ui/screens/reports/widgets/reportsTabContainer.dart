@@ -72,8 +72,8 @@ class _ReportsTabContainerState extends State<ReportsTabContainer> {
                 widget.tabs[index],
                 style: TextStyle(
                   color: widget.selectedTabIndex == index
-                      ? Theme.of(context).scaffoldBackgroundColor
-                      : Theme.of(context).colorScheme.onSurface,
+                      ? Theme.of(context).colorScheme.onPrimary
+                      : Theme.of(context).colorScheme.onSurfaceVariant,
                 ),
               ),
             ),

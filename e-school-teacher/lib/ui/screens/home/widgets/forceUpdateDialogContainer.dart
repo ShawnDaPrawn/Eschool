@@ -26,7 +26,7 @@ class ForceUpdateDialogContainer extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      color: Colors.black.withValues(alpha: 0.5),
+      color: Theme.of(context).colorScheme.scrim.withValues(alpha: 0.5),
       width: MediaQuery.sizeOf(context).width,
       height: MediaQuery.sizeOf(context).height,
       child: Center(
@@ -42,7 +42,7 @@ class ForceUpdateDialogContainer extends StatelessWidget {
                 actions: [_buildUpdateButton(context)],
               )
             : AlertDialog(
-                backgroundColor: Colors.white,
+                backgroundColor: Theme.of(context).colorScheme.surface,
                 title: Text(
                   UiUtils.getTranslatedLabel(context, updateAvailableKey),
                 ),

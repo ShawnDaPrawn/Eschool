@@ -1,7 +1,7 @@
 import 'package:eschool/data/models/feesTransaction.dart';
-import 'package:eschool/ui/styles/colors.dart';
 import 'package:eschool/utils/labelKeys.dart';
 import 'package:eschool/utils/uiUtils.dart';
+import 'package:eschool_core/eschool_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 
@@ -29,7 +29,7 @@ class FeeTransactionItemContainer extends StatelessWidget {
         padding: const EdgeInsets.all(8),
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(10),
-          color: Theme.of(context).colorScheme.surface,
+          color: Theme.of(context).colorScheme.surfaceContainerLow,
         ),
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -133,10 +133,10 @@ class FeeTransactionItemContainer extends StatelessWidget {
                   width: 80,
                   decoration: BoxDecoration(
                     color: transaction.paymentStatus == 1
-                        ? greenColor
+                        ? StatusColors.of(context).success
                         : transaction.paymentStatus == 0
-                        ? redColor
-                        : orangeColor,
+                        ? StatusColors.of(context).danger
+                        : StatusColors.of(context).warning,
                     borderRadius: BorderRadius.circular(5),
                   ),
                   child: Text(
@@ -145,7 +145,14 @@ class FeeTransactionItemContainer extends StatelessWidget {
                       transaction.paymentStatusKey,
                     ),
                     textAlign: TextAlign.center,
-                    style: const TextStyle(color: Colors.white, fontSize: 12),
+                    style: TextStyle(
+                      color: transaction.paymentStatus == 1
+                          ? StatusColors.of(context).onSuccess
+                          : transaction.paymentStatus == 0
+                          ? StatusColors.of(context).onDanger
+                          : StatusColors.of(context).onWarning,
+                      fontSize: 12,
+                    ),
                   ),
                 ),
                 Text(

@@ -8,12 +8,11 @@ import 'package:eschool/ui/screens/exam/onlineExam/widgets/examTimerContainer.da
 import 'package:eschool/ui/screens/exam/onlineExam/widgets/optionContainer.dart';
 import 'package:eschool/ui/screens/exam/onlineExam/widgets/questionContainer.dart';
 import 'package:eschool/ui/screens/home/homeScreen.dart';
-import 'package:eschool/ui/styles/colors.dart';
 import 'package:eschool/ui/widgets/customBackButton.dart';
-import 'package:eschool/ui/widgets/customRoundedButton.dart';
 import 'package:eschool/ui/widgets/screenTopBackgroundContainer.dart';
 import 'package:eschool/utils/labelKeys.dart';
 import 'package:eschool/utils/uiUtils.dart';
+import 'package:eschool_core/eschool_core.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -109,7 +108,7 @@ class ExamOnlineScreenState extends State<ExamOnlineScreen>
       showDialog(
         context: context,
         builder: (context) => AlertDialog(
-          backgroundColor: Colors.white,
+          backgroundColor: Theme.of(context).colorScheme.surface,
           title: Text(UiUtils.getTranslatedLabel(context, quitExamKey)),
           content: Text(
             UiUtils.getTranslatedLabel(context, quitExamDisclaimerKey),
@@ -154,7 +153,7 @@ class ExamOnlineScreenState extends State<ExamOnlineScreen>
                   ? widget.exam.subject.subjectNameWithType
                   : widget.exam.subject.name,
               style: TextStyle(
-                color: Theme.of(context).scaffoldBackgroundColor,
+                color: Theme.of(context).colorScheme.onPrimary,
                 fontSize: UiUtils.screenTitleFontSize,
               ),
             ),
@@ -177,7 +176,7 @@ class ExamOnlineScreenState extends State<ExamOnlineScreen>
                 Text(
                   widget.exam.title,
                   style: TextStyle(
-                    color: UiUtils.getColorScheme(context).surface,
+                    color: UiUtils.getColorScheme(context).onPrimary,
                     fontSize: UiUtils.screenSubTitleFontSize,
                   ),
                 ),
@@ -186,14 +185,14 @@ class ExamOnlineScreenState extends State<ExamOnlineScreen>
                   width: 5,
                   height: 5,
                   decoration: BoxDecoration(
-                    color: UiUtils.getColorScheme(context).surface,
+                    color: UiUtils.getColorScheme(context).onPrimary,
                     borderRadius: BorderRadius.circular(3),
                   ),
                 ),
                 Text(
                   '${widget.exam.totalMarks} ${UiUtils.getTranslatedLabel(context, marksKey)}',
                   style: TextStyle(
-                    color: UiUtils.getColorScheme(context).surface,
+                    color: UiUtils.getColorScheme(context).onPrimary,
                     fontSize: UiUtils.screenSubTitleFontSize,
                   ),
                 ),
@@ -260,12 +259,14 @@ class ExamOnlineScreenState extends State<ExamOnlineScreen>
       builder: (context, state) {
         if (state is ExamOnlineFetchSuccess) {
           return Container(
-            decoration: const BoxDecoration(
-              color: pageBackgroundColor,
+            decoration: BoxDecoration(
+              color: Theme.of(context).colorScheme.surface,
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black12,
-                  offset: Offset(0, -2),
+                  color: Theme.of(
+                    context,
+                  ).colorScheme.shadow.withValues(alpha: 0.12),
+                  offset: const Offset(0, -2),
                   blurRadius: 2,
                 ),
               ],
@@ -319,7 +320,7 @@ class ExamOnlineScreenState extends State<ExamOnlineScreen>
                     alignment: Alignment.center,
                     child: Icon(
                       Icons.arrow_back_ios,
-                      color: UiUtils.getColorScheme(context).surface,
+                      color: UiUtils.getColorScheme(context).onPrimary,
                       size: 18,
                     ),
                   ),
@@ -348,7 +349,7 @@ class ExamOnlineScreenState extends State<ExamOnlineScreen>
                     alignment: Alignment.center,
                     child: Icon(
                       Icons.arrow_forward_ios,
-                      color: UiUtils.getColorScheme(context).surface,
+                      color: UiUtils.getColorScheme(context).onPrimary,
                       size: 18,
                     ),
                   ),
@@ -399,7 +400,7 @@ class ExamOnlineScreenState extends State<ExamOnlineScreen>
                     QuestionContainer(
                       key: PageStorageKey('question_$index'),
                       isMathQuestion: state.questions[index].questionType == 1,
-                      questionColor: UiUtils.getColorScheme(context).secondary,
+                      questionColor: UiUtils.getColorScheme(context).onSurface,
                       questionNumber: index + 1,
                       question: state.questions[index],
                       note: state.questions[index].note,
@@ -415,7 +416,7 @@ class ExamOnlineScreenState extends State<ExamOnlineScreen>
                                     style: TextStyle(
                                       color: UiUtils.getColorScheme(
                                         context,
-                                      ).onSurface,
+                                      ).onSurfaceVariant,
                                     ),
                                   ),
                                 ),
@@ -459,9 +460,9 @@ class ExamOnlineScreenState extends State<ExamOnlineScreen>
     isExamCompleted = true;
     return Container(
       alignment: Alignment.center,
-      color: UiUtils.getColorScheme(context).secondary.withValues(alpha: 0.5),
+      color: UiUtils.getColorScheme(context).scrim.withValues(alpha: 0.5),
       child: AlertDialog(
-        backgroundColor: Colors.white,
+        backgroundColor: Theme.of(context).colorScheme.surface,
         content: Column(
           mainAxisSize: MainAxisSize.min,
           mainAxisAlignment: MainAxisAlignment.center,
@@ -474,7 +475,7 @@ class ExamOnlineScreenState extends State<ExamOnlineScreen>
               UiUtils.getTranslatedLabel(context, examCompletedKey),
               textAlign: TextAlign.center,
               style: TextStyle(
-                color: UiUtils.getColorScheme(context).secondary,
+                color: UiUtils.getColorScheme(context).onSurface,
               ),
             ),
           ],
@@ -484,7 +485,7 @@ class ExamOnlineScreenState extends State<ExamOnlineScreen>
           CustomRoundedButton(
             backgroundColor: UiUtils.getColorScheme(context).primary,
             buttonTitle: UiUtils.getTranslatedLabel(context, homeKey),
-            titleColor: Theme.of(context).scaffoldBackgroundColor,
+            titleColor: Theme.of(context).colorScheme.onPrimary,
             showBorder: false,
             widthPercentage: 0.3,
             height: 45,
@@ -495,7 +496,7 @@ class ExamOnlineScreenState extends State<ExamOnlineScreen>
             },
           ),
           CustomRoundedButton(
-            backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+            backgroundColor: Theme.of(context).colorScheme.surface,
             buttonTitle: UiUtils.getTranslatedLabel(context, resultKey),
             titleColor: UiUtils.getColorScheme(context).primary,
             showBorder: true,

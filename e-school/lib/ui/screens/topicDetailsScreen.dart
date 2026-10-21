@@ -96,7 +96,7 @@ class _TopicDetailsScreenState extends State<TopicDetailsScreen> {
                     overflow: TextOverflow.ellipsis,
                     textAlign: TextAlign.center,
                     style: TextStyle(
-                      color: Theme.of(context).scaffoldBackgroundColor,
+                      color: Theme.of(context).colorScheme.onPrimary,
                       fontSize: UiUtils.screenTitleFontSize,
                     ),
                   ),

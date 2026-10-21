@@ -1,10 +1,9 @@
 import 'package:eschool/app/routes.dart';
 import 'package:eschool/data/models/event.dart';
-import 'package:eschool/ui/styles/colors.dart';
 import 'package:eschool/ui/widgets/customImageWidget.dart';
-import 'package:eschool/ui/widgets/customRoundedButton.dart';
 import 'package:eschool/utils/labelKeys.dart';
 import 'package:eschool/utils/uiUtils.dart';
+import 'package:eschool_core/eschool_core.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:readmore/readmore.dart';
@@ -29,7 +28,7 @@ class EventItemContainer extends StatelessWidget {
                 padding: const EdgeInsetsDirectional.only(end: 2),
                 child: Icon(
                   Icons.calendar_month_outlined,
-                  color: Theme.of(context).colorScheme.secondary,
+                  color: Theme.of(context).colorScheme.onSurface,
                   size: 12,
                 ),
               ),
@@ -52,7 +51,7 @@ class EventItemContainer extends StatelessWidget {
                 padding: const EdgeInsetsDirectional.only(end: 2),
                 child: Icon(
                   Icons.calendar_month_outlined,
-                  color: Theme.of(context).colorScheme.secondary,
+                  color: Theme.of(context).colorScheme.onSurface,
                   size: 12,
                 ),
               ),
@@ -72,7 +71,7 @@ class EventItemContainer extends StatelessWidget {
                 padding: const EdgeInsetsDirectional.only(end: 2),
                 child: Icon(
                   CupertinoIcons.clock,
-                  color: Theme.of(context).colorScheme.secondary,
+                  color: Theme.of(context).colorScheme.onSurface,
                   size: 12,
                 ),
               ),
@@ -85,7 +84,7 @@ class EventItemContainer extends StatelessWidget {
         ],
         style: TextStyle(
           height: 1,
-          color: Theme.of(context).colorScheme.secondary,
+          color: Theme.of(context).colorScheme.onSurface,
           fontWeight: FontWeight.w400,
           fontSize: 10,
         ),
@@ -114,7 +113,7 @@ class EventItemContainer extends StatelessWidget {
       child: Container(
         margin: const EdgeInsets.only(bottom: 20),
         decoration: BoxDecoration(
-          color: Theme.of(context).colorScheme.surface,
+          color: Theme.of(context).colorScheme.surfaceContainerLow,
           borderRadius: BorderRadius.circular(10),
         ),
         width: double.maxFinite,
@@ -139,7 +138,7 @@ class EventItemContainer extends StatelessWidget {
                     event.title,
                     style: TextStyle(
                       height: 1,
-                      color: Theme.of(context).colorScheme.secondary,
+                      color: Theme.of(context).colorScheme.onSurface,
                       fontWeight: FontWeight.w600,
                       fontSize: 16,
                     ),
@@ -151,7 +150,7 @@ class EventItemContainer extends StatelessWidget {
                   ReadMoreText(
                     event.description,
                     trimLines: isDetailsScreen ? 10 : 3,
-                    colorClickableText: primaryColor,
+                    colorClickableText: Theme.of(context).colorScheme.primary,
                     trimMode: TrimMode.Line,
                     trimCollapsedText: UiUtils.getTranslatedLabel(
                       context,
@@ -160,7 +159,7 @@ class EventItemContainer extends StatelessWidget {
                     trimExpandedText:
                         ' ${UiUtils.getTranslatedLabel(context, showLessKey)}',
                     style: TextStyle(
-                      color: Theme.of(context).colorScheme.onSurface,
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
                       fontWeight: FontWeight.w400,
                       fontSize: 12,
                     ),
@@ -172,7 +171,7 @@ class EventItemContainer extends StatelessWidget {
                       textSize: 16,
                       height: null,
                       radius: 4,
-                      backgroundColor: primaryColor,
+                      backgroundColor: Theme.of(context).colorScheme.primary,
                       buttonTitle: UiUtils.getTranslatedLabel(
                         context,
                         viewDetailsKey,

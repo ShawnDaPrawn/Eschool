@@ -177,7 +177,7 @@ class _AssignmentsContainerState extends State<AssignmentsContainer> {
                 child: Text(
                   UiUtils.getTranslatedLabel(context, assignmentsKey),
                   style: TextStyle(
-                    color: Theme.of(context).scaffoldBackgroundColor,
+                    color: Theme.of(context).colorScheme.onPrimary,
                     fontSize: UiUtils.screenTitleFontSize,
                   ),
                 ),

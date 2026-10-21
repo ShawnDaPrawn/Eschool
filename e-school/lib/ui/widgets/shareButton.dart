@@ -19,7 +19,7 @@ class ShareButton extends StatelessWidget {
         child: Icon(
           Icons.share_outlined,
           size: 15,
-          color: Theme.of(context).scaffoldBackgroundColor,
+          color: Theme.of(context).colorScheme.onPrimary,
         ),
       ),
     );

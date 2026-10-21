@@ -7,7 +7,9 @@ import 'package:flutter/material.dart';
 
 class SessionYearPickerBottomsheetContainer extends StatelessWidget {
   const SessionYearPickerBottomsheetContainer({
-    required this.sessionYearList, required this.selectedSessionYear, super.key,
+    required this.sessionYearList,
+    required this.selectedSessionYear,
+    super.key,
   });
   final List<SessionYear> sessionYearList;
   final SessionYear selectedSessionYear;
@@ -16,7 +18,7 @@ class SessionYearPickerBottomsheetContainer extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
-        color: Theme.of(context).scaffoldBackgroundColor,
+        color: Theme.of(context).colorScheme.surface,
         borderRadius: BorderRadius.only(
           topLeft: Radius.circular(UiUtils.bottomSheetTopRadius),
           topRight: Radius.circular(UiUtils.bottomSheetTopRadius),
@@ -64,7 +66,7 @@ class SessionYearPickerBottomsheetContainer extends StatelessWidget {
                               textAlign: TextAlign.start,
                               style: TextStyle(
                                 fontSize: 16,
-                                color: Theme.of(context).colorScheme.secondary,
+                                color: Theme.of(context).colorScheme.onSurface,
                                 fontWeight: FontWeight.w500,
                               ),
                             ),

@@ -20,3 +20,4 @@ export 'src/widgets/bottomsheet_add_files_dotted_border_container.dart';
 export 'src/widgets/custom_circular_progress_indicator.dart';
 export 'src/widgets/custom_close_button.dart';
 export 'src/widgets/custom_radio_container.dart';
+export 'src/widgets/custom_rounded_button.dart';

@@ -4,7 +4,9 @@ import 'package:flutter/material.dart';
 //It will be in use when using appbar with bigger height percentage
 class AppBarTitleContainer extends StatelessWidget {
   const AppBarTitleContainer({
-    required this.boxConstraints, required this.title, super.key,
+    required this.boxConstraints,
+    required this.title,
+    super.key,
   });
   final BoxConstraints boxConstraints;
   final String title;
@@ -21,7 +23,7 @@ class AppBarTitleContainer extends StatelessWidget {
           overflow: TextOverflow.ellipsis,
           textAlign: TextAlign.center,
           style: TextStyle(
-            color: Theme.of(context).scaffoldBackgroundColor,
+            color: Theme.of(context).colorScheme.onPrimary,
             fontSize: UiUtils.screenTitleFontSize,
           ),
         ),

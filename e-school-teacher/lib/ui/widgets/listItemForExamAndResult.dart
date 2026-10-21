@@ -3,9 +3,14 @@ import 'package:eschool_teacher/utils/uiUtils.dart';
 import 'package:flutter/material.dart';
 
 class ListItemForExamAndResult extends StatelessWidget {
-
   const ListItemForExamAndResult({
-    required this.examStartingDate, required this.examName, required this.resultGrade, required this.resultPercentage, required this.onItemTap, required this.className, super.key,
+    required this.examStartingDate,
+    required this.examName,
+    required this.resultGrade,
+    required this.resultPercentage,
+    required this.onItemTap,
+    required this.className,
+    super.key,
   });
   final String examStartingDate;
   final String examName;
@@ -24,7 +29,7 @@ class ListItemForExamAndResult extends StatelessWidget {
         width: MediaQuery.sizeOf(context).width * 0.85,
         padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 15),
         decoration: BoxDecoration(
-          color: Theme.of(context).colorScheme.surface,
+          color: Theme.of(context).colorScheme.surfaceContainerLow,
           borderRadius: BorderRadius.circular(10),
         ),
         child: child,
@@ -34,7 +39,7 @@ class ListItemForExamAndResult extends StatelessWidget {
 
   TextStyle _getExamDetailsLabelTextStyle({required BuildContext context}) {
     return TextStyle(
-      color: Theme.of(context).colorScheme.onSurface,
+      color: Theme.of(context).colorScheme.onSurfaceVariant,
       fontSize: 12,
       fontWeight: FontWeight.w400,
     );
@@ -70,7 +75,7 @@ class ListItemForExamAndResult extends StatelessWidget {
 
   TextStyle _getExamNameValueTextStyle({required BuildContext context}) {
     return TextStyle(
-      color: Theme.of(context).colorScheme.secondary,
+      color: Theme.of(context).colorScheme.onSurface,
       fontSize: 14,
       fontWeight: FontWeight.w600,
     );

@@ -6,7 +6,8 @@ import 'package:flutter/material.dart';
 
 class CustomAppBar extends StatelessWidget {
   const CustomAppBar({
-    required this.title, super.key,
+    required this.title,
+    super.key,
     this.onPressBackButton,
     this.showBackButton,
     this.subTitle,
@@ -56,7 +57,7 @@ class CustomAppBar extends StatelessWidget {
                     textAlign: TextAlign.center,
                     style: TextStyle(
                       fontSize: UiUtils.screenTitleFontSize,
-                      color: Theme.of(context).scaffoldBackgroundColor,
+                      color: Theme.of(context).colorScheme.onPrimary,
                     ),
                   ),
                 ),
@@ -66,7 +67,8 @@ class CustomAppBar extends StatelessWidget {
                   alignment: Alignment.center,
                   width: boxConstraints.maxWidth * 0.6,
                   margin: EdgeInsets.only(
-                    top: boxConstraints.maxHeight * 0.25 +
+                    top:
+                        boxConstraints.maxHeight * 0.25 +
                         UiUtils.screenTitleFontSize,
                   ),
                   child: Text(
@@ -75,7 +77,7 @@ class CustomAppBar extends StatelessWidget {
                     overflow: TextOverflow.ellipsis,
                     style: TextStyle(
                       fontSize: UiUtils.screenSubTitleFontSize,
-                      color: Theme.of(context).scaffoldBackgroundColor,
+                      color: Theme.of(context).colorScheme.onPrimary,
                     ),
                   ),
                 ),
@@ -84,9 +86,7 @@ class CustomAppBar extends StatelessWidget {
                 Align(
                   alignment: AlignmentDirectional.centerEnd,
                   child: Padding(
-                    padding: const EdgeInsetsDirectional.only(
-                      end: 10,
-                    ),
+                    padding: const EdgeInsetsDirectional.only(end: 10),
                     child: actionButton,
                   ),
                 ),

@@ -65,7 +65,7 @@ class _HomeGalleryContainerState extends State<HomeGalleryContainer> {
               Text(
                 UiUtils.getTranslatedLabel(context, galleryKey),
                 style: TextStyle(
-                  color: UiUtils.getColorScheme(context).secondary,
+                  color: UiUtils.getColorScheme(context).onSurface,
                   fontWeight: FontWeight.w600,
                   fontSize: 16,
                 ),
@@ -82,7 +82,7 @@ class _HomeGalleryContainerState extends State<HomeGalleryContainer> {
                 child: Text(
                   UiUtils.getTranslatedLabel(context, viewAllKey),
                   style: TextStyle(
-                    color: UiUtils.getColorScheme(context).onSurface,
+                    color: UiUtils.getColorScheme(context).onSurfaceVariant,
                     fontSize: 13,
                   ),
                   textAlign: TextAlign.start,

@@ -14,7 +14,7 @@ import 'package:eschool/ui/widgets/loadMoreErrorWidget.dart';
 import 'package:eschool/ui/widgets/shimmerLoadingContainer.dart';
 import 'package:eschool/utils/labelKeys.dart';
 import 'package:eschool/utils/uiUtils.dart';
-import 'package:eschool/ui/styles/colors.dart';
+import 'package:eschool_core/eschool_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:fl_chart/fl_chart.dart';
@@ -181,12 +181,12 @@ class _FeesReportTabState extends State<FeesReportTab>
       margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
       padding: const EdgeInsets.all(15),
       decoration: BoxDecoration(
-        color: Theme.of(context).scaffoldBackgroundColor,
+        color: Theme.of(context).colorScheme.surface,
         borderRadius: BorderRadius.circular(10),
         border: Border.all(
           color: Theme.of(
             context,
-          ).colorScheme.secondary.withValues(alpha: 0.25),
+          ).colorScheme.onSurface.withValues(alpha: 0.25),
         ),
       ),
       child: Column(
@@ -206,7 +206,7 @@ class _FeesReportTabState extends State<FeesReportTab>
                         fontSize: 14,
                         color: Theme.of(
                           context,
-                        ).colorScheme.secondary.withValues(alpha: 0.7),
+                        ).colorScheme.onSurface.withValues(alpha: 0.7),
                       ),
                     ),
                     const SizedBox(height: 5),
@@ -244,7 +244,7 @@ class _FeesReportTabState extends State<FeesReportTab>
                           PieChartSectionData(
                             color: Theme.of(
                               context,
-                            ).colorScheme.secondary.withValues(alpha: 0.1),
+                            ).colorScheme.onSurface.withValues(alpha: 0.1),
                             value: 100 - paidPercentage,
                             title: '',
                             radius: 10,
@@ -262,7 +262,7 @@ class _FeesReportTabState extends State<FeesReportTab>
                               fontSize: 9,
                               color: Theme.of(
                                 context,
-                              ).colorScheme.secondary.withValues(alpha: 0.6),
+                              ).colorScheme.onSurface.withValues(alpha: 0.6),
                             ),
                           ),
                           Text(
@@ -270,7 +270,7 @@ class _FeesReportTabState extends State<FeesReportTab>
                             style: TextStyle(
                               fontSize: 12,
                               fontWeight: FontWeight.bold,
-                              color: Theme.of(context).colorScheme.secondary,
+                              color: Theme.of(context).colorScheme.onSurface,
                             ),
                           ),
                         ],
@@ -291,7 +291,9 @@ class _FeesReportTabState extends State<FeesReportTab>
                     strVal: totalPaid.toStringAsFixed(0),
                     context: context,
                   ),
-                  bgColor: palletGreen.withValues(alpha: 0.2),
+                  bgColor: StatusColors.of(
+                    context,
+                  ).success.withValues(alpha: 0.2),
                 ),
               ),
               const SizedBox(width: 10),
@@ -302,7 +304,9 @@ class _FeesReportTabState extends State<FeesReportTab>
                     strVal: totalPending.toStringAsFixed(0),
                     context: context,
                   ),
-                  bgColor: palletYellow.withValues(alpha: 0.2),
+                  bgColor: StatusColors.of(
+                    context,
+                  ).warning.withValues(alpha: 0.2),
                 ),
               ),
             ],
@@ -314,7 +318,7 @@ class _FeesReportTabState extends State<FeesReportTab>
                 child: _buildSmallStatCard(
                   title: UiUtils.getTranslatedLabel(context, lastPaymentKey),
                   value: lastPayment,
-                  bgColor: palletBlue.withValues(alpha: 0.1),
+                  bgColor: StatusColors.of(context).info.withValues(alpha: 0.1),
                 ),
               ),
               const SizedBox(width: 10),
@@ -322,7 +326,9 @@ class _FeesReportTabState extends State<FeesReportTab>
                 child: _buildSmallStatCard(
                   title: UiUtils.getTranslatedLabel(context, nextDueKey),
                   value: nextDue,
-                  bgColor: palletRed.withValues(alpha: 0.1),
+                  bgColor: StatusColors.of(
+                    context,
+                  ).danger.withValues(alpha: 0.1),
                 ),
               ),
             ],
@@ -352,7 +358,7 @@ class _FeesReportTabState extends State<FeesReportTab>
               fontSize: 12,
               color: Theme.of(
                 context,
-              ).colorScheme.secondary.withValues(alpha: 0.8),
+              ).colorScheme.onSurface.withValues(alpha: 0.8),
             ),
           ),
           const SizedBox(height: 5),
@@ -361,7 +367,7 @@ class _FeesReportTabState extends State<FeesReportTab>
             style: TextStyle(
               fontSize: 16,
               fontWeight: FontWeight.w600,
-              color: Theme.of(context).colorScheme.secondary,
+              color: Theme.of(context).colorScheme.onSurface,
             ),
           ),
         ],
@@ -385,7 +391,7 @@ class _FeesReportTabState extends State<FeesReportTab>
             style: TextStyle(
               fontSize: 16,
               fontWeight: FontWeight.w600,
-              color: Theme.of(context).colorScheme.secondary,
+              color: Theme.of(context).colorScheme.onSurface,
             ),
           ),
         ),
@@ -393,12 +399,12 @@ class _FeesReportTabState extends State<FeesReportTab>
           margin: const EdgeInsets.symmetric(horizontal: 20),
           padding: const EdgeInsets.all(15),
           decoration: BoxDecoration(
-            color: Theme.of(context).scaffoldBackgroundColor,
+            color: Theme.of(context).colorScheme.surface,
             borderRadius: BorderRadius.circular(8),
             border: Border.all(
               color: Theme.of(
                 context,
-              ).colorScheme.secondary.withValues(alpha: 0.25),
+              ).colorScheme.onSurface.withValues(alpha: 0.25),
             ),
           ),
           child: Row(
@@ -415,13 +421,13 @@ class _FeesReportTabState extends State<FeesReportTab>
                         startDegreeOffset: -90,
                         sections: [
                           PieChartSectionData(
-                            color: palletGreen,
+                            color: StatusColors.of(context).success,
                             value: completed.toDouble(),
                             title: '',
                             radius: 10,
                           ),
                           PieChartSectionData(
-                            color: palletYellow,
+                            color: StatusColors.of(context).warning,
                             value: pending.toDouble(),
                             title: '',
                             radius: 10,
@@ -439,7 +445,7 @@ class _FeesReportTabState extends State<FeesReportTab>
                               fontSize: 10,
                               color: Theme.of(
                                 context,
-                              ).colorScheme.secondary.withValues(alpha: 0.7),
+                              ).colorScheme.onSurface.withValues(alpha: 0.7),
                             ),
                           ),
                           Text(
@@ -447,7 +453,7 @@ class _FeesReportTabState extends State<FeesReportTab>
                             style: TextStyle(
                               fontSize: 16,
                               fontWeight: FontWeight.bold,
-                              color: Theme.of(context).colorScheme.secondary,
+                              color: Theme.of(context).colorScheme.onSurface,
                             ),
                           ),
                         ],
@@ -466,7 +472,7 @@ class _FeesReportTabState extends State<FeesReportTab>
                         width: 8,
                         height: 8,
                         decoration: BoxDecoration(
-                          color: palletGreen,
+                          color: StatusColors.of(context).success,
                           shape: BoxShape.circle,
                         ),
                       ),
@@ -477,7 +483,7 @@ class _FeesReportTabState extends State<FeesReportTab>
                           fontSize: 14,
                           color: Theme.of(
                             context,
-                          ).colorScheme.secondary.withValues(alpha: 0.8),
+                          ).colorScheme.onSurface.withValues(alpha: 0.8),
                         ),
                       ),
                     ],
@@ -489,7 +495,7 @@ class _FeesReportTabState extends State<FeesReportTab>
                         width: 8,
                         height: 8,
                         decoration: BoxDecoration(
-                          color: palletYellow,
+                          color: StatusColors.of(context).warning,
                           shape: BoxShape.circle,
                         ),
                       ),
@@ -500,7 +506,7 @@ class _FeesReportTabState extends State<FeesReportTab>
                           fontSize: 14,
                           color: Theme.of(
                             context,
-                          ).colorScheme.secondary.withValues(alpha: 0.8),
+                          ).colorScheme.onSurface.withValues(alpha: 0.8),
                         ),
                       ),
                     ],
@@ -529,7 +535,7 @@ class _FeesReportTabState extends State<FeesReportTab>
             style: TextStyle(
               fontSize: 16,
               fontWeight: FontWeight.bold,
-              color: Theme.of(context).colorScheme.secondary,
+              color: Theme.of(context).colorScheme.onSurface,
             ),
           ),
         );

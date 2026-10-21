@@ -11,23 +11,28 @@ class ConfirmDeleteDialog extends StatelessWidget {
     return AlertDialog(
       actions: [
         CupertinoButton(
-          child: Text(UiUtils.getTranslatedLabel(context, yesKey),
-              style: TextStyle(color: Theme.of(context).colorScheme.primary)),
+          child: Text(
+            UiUtils.getTranslatedLabel(context, yesKey),
+            style: TextStyle(color: Theme.of(context).colorScheme.primary),
+          ),
           onPressed: () {
             Navigator.of(context).pop(true);
           },
         ),
         CupertinoButton(
-          child: Text(UiUtils.getTranslatedLabel(context, noKey),
-              style: TextStyle(color: Theme.of(context).colorScheme.primary)),
+          child: Text(
+            UiUtils.getTranslatedLabel(context, noKey),
+            style: TextStyle(color: Theme.of(context).colorScheme.primary),
+          ),
           onPressed: () {
             Navigator.of(context).pop();
           },
         ),
       ],
-      backgroundColor: Colors.white,
-      content:
-          Text(UiUtils.getTranslatedLabel(context, deleteDialogMessageKey)),
+      backgroundColor: Theme.of(context).colorScheme.surface,
+      content: Text(
+        UiUtils.getTranslatedLabel(context, deleteDialogMessageKey),
+      ),
       title: Text(UiUtils.getTranslatedLabel(context, deleteDialogTitleKey)),
     );
   }

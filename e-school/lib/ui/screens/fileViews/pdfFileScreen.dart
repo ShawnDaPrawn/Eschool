@@ -1,7 +1,6 @@
 import 'package:eschool/cubits/pdfFileCubit.dart';
 import 'package:eschool/data/models/studyMaterial.dart';
 import 'package:eschool/data/repositories/subjectRepository.dart';
-import 'package:eschool/ui/styles/colors.dart';
 import 'package:eschool/ui/widgets/customAppbar.dart';
 import 'package:eschool/ui/widgets/errorContainer.dart';
 import 'package:eschool/utils/assets.dart';
@@ -61,7 +60,7 @@ class _PdfFileScreenState extends State<PdfFileScreen> {
         builder: (context, state) {
           if (state is PdfFileSaveSuccess) {
             return FloatingActionButton(
-              backgroundColor: primaryColor,
+              backgroundColor: Theme.of(context).colorScheme.primary,
               onPressed: () {
                 setState(() {
                   isFullScreen = !isFullScreen;
@@ -69,7 +68,7 @@ class _PdfFileScreenState extends State<PdfFileScreen> {
               },
               child: Icon(
                 isFullScreen ? Icons.fullscreen_exit : Icons.fullscreen,
-                color: Colors.white,
+                color: Theme.of(context).colorScheme.onPrimary,
               ),
             );
           }
@@ -104,17 +103,17 @@ class _PdfFileScreenState extends State<PdfFileScreen> {
                             context,
                             pdfFileLoadingKey,
                           ),
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontSize: 16,
-                            color: Colors.black,
+                            color: Theme.of(context).colorScheme.onSurface,
                           ),
                         ),
                         const SizedBox(height: 10),
                         Text(
                           '${state.uploadedPercentage.toStringAsFixed(2)} %',
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontSize: 16,
-                            color: primaryColor,
+                            color: Theme.of(context).colorScheme.primary,
                             fontWeight: FontWeight.bold,
                           ),
                         ),
@@ -129,7 +128,7 @@ class _PdfFileScreenState extends State<PdfFileScreen> {
                                     width: boxConstraints.maxWidth,
                                     color: Theme.of(context)
                                         .colorScheme
-                                        .onSurface
+                                        .onSurfaceVariant
                                         .withValues(alpha: 0.5),
                                   ),
                                   UiUtils.buildProgressContainer(
@@ -175,7 +174,7 @@ class _PdfFileScreenState extends State<PdfFileScreen> {
                       icon: Icon(
                         Icons.open_in_new_outlined,
                         size: 20,
-                        color: Theme.of(context).scaffoldBackgroundColor,
+                        color: Theme.of(context).colorScheme.onPrimary,
                       ),
                       onPressed: () {
                         OpenFilex.open(widget.pdfFileMaterial.fileUrl);

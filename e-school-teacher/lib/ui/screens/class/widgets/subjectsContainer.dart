@@ -41,12 +41,12 @@ class SubjectsContainer extends StatelessWidget {
               BoxShadow(
                 color: Theme.of(
                   context,
-                ).colorScheme.secondary.withValues(alpha: 0.05),
+                ).colorScheme.shadow.withValues(alpha: 0.05),
                 offset: const Offset(2.5, 2.5),
                 blurRadius: 10,
               ),
             ],
-            color: Theme.of(context).scaffoldBackgroundColor,
+            color: Theme.of(context).colorScheme.surface,
             borderRadius: BorderRadius.circular(10),
           ),
           height: 80,
@@ -70,7 +70,7 @@ class SubjectsContainer extends StatelessWidget {
                       overflow: TextOverflow.ellipsis,
                       maxLines: 1,
                       style: TextStyle(
-                        color: Theme.of(context).colorScheme.secondary,
+                        color: Theme.of(context).colorScheme.onSurface,
                         fontWeight: FontWeight.w600,
                         fontSize: 14,
                       ),

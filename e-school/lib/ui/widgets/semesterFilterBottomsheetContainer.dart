@@ -30,7 +30,7 @@ class _SemesterFilterBottomsheetContainerState
       ),
       width: MediaQuery.sizeOf(context).width,
       decoration: BoxDecoration(
-        color: Theme.of(context).scaffoldBackgroundColor,
+        color: Theme.of(context).colorScheme.surface,
         borderRadius: BorderRadius.only(
           topLeft: Radius.circular(UiUtils.bottomSheetTopRadius),
           topRight: Radius.circular(UiUtils.bottomSheetTopRadius),
@@ -44,13 +44,15 @@ class _SemesterFilterBottomsheetContainerState
             UiUtils.getTranslatedLabel(context, sortByKey),
             style: TextStyle(
               fontSize: 16,
-              color: Theme.of(context).colorScheme.secondary,
+              color: Theme.of(context).colorScheme.onSurface,
               fontWeight: FontWeight.bold,
             ),
           ),
           Padding(
             padding: const EdgeInsets.symmetric(vertical: 10),
-            child: Divider(color: Theme.of(context).colorScheme.onSurface),
+            child: Divider(
+              color: Theme.of(context).colorScheme.onSurfaceVariant,
+            ),
           ),
           BlocBuilder<SemestersCubit, SemesterState>(
             builder: (context, state) {
@@ -70,7 +72,7 @@ class _SemesterFilterBottomsheetContainerState
                         title: Text(
                           semester.name ?? "",
                           style: TextStyle(
-                            color: Theme.of(context).colorScheme.secondary,
+                            color: Theme.of(context).colorScheme.onSurface,
                             fontSize: 16,
                           ),
                         ),

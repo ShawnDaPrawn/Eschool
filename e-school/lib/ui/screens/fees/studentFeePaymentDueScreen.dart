@@ -4,9 +4,7 @@ import 'package:eschool/cubits/askParentsToPayFeesCubit.dart';
 import 'package:eschool/cubits/authCubit.dart';
 import 'package:eschool/cubits/userProfileCubit.dart';
 import 'package:eschool/data/repositories/authRepository.dart';
-import 'package:eschool/ui/styles/colors.dart';
 import 'package:eschool_core/eschool_core.dart';
-import 'package:eschool/ui/widgets/customRoundedButton.dart';
 import 'package:eschool/ui/widgets/logoutButton.dart';
 import 'package:eschool/utils/assets.dart';
 import 'package:eschool/utils/labelKeys.dart';
@@ -85,7 +83,7 @@ class _StudentFeePaymentDueScreenState
                     UiUtils.getTranslatedLabel(context, feePaymentDueKey),
                     textAlign: TextAlign.center,
                     style: TextStyle(
-                      color: Theme.of(context).colorScheme.secondary,
+                      color: Theme.of(context).colorScheme.onSurface,
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
                     ),
@@ -98,7 +96,7 @@ class _StudentFeePaymentDueScreenState
                     ),
                     textAlign: TextAlign.center,
                     style: TextStyle(
-                      color: Theme.of(context).colorScheme.secondary,
+                      color: Theme.of(context).colorScheme.onSurface,
                       fontSize: 16,
                     ),
                   ),
@@ -147,7 +145,7 @@ class _StudentFeePaymentDueScreenState
                                   .askParentOrGuardianToPayFeesKey();
                             }
                           },
-                          titleColor: Theme.of(context).scaffoldBackgroundColor,
+                          titleColor: Theme.of(context).colorScheme.onPrimary,
                           textAlign: TextAlign.center,
                           buttonTitle: UiUtils.getTranslatedLabel(
                             context,
@@ -158,7 +156,7 @@ class _StudentFeePaymentDueScreenState
                               ? CustomCircularProgressIndicator(
                                   indicatorColor: Theme.of(
                                     context,
-                                  ).scaffoldBackgroundColor,
+                                  ).colorScheme.onPrimary,
                                   strokeWidth: 2,
                                   widthAndHeight: 18,
                                 )
@@ -262,12 +260,18 @@ class _StudentFeePaymentDueScreenState
                 alignment: AlignmentDirectional.topEnd,
                 child: Container(
                   decoration: BoxDecoration(
-                    color: redColor.withValues(alpha: 0.1),
+                    color: Theme.of(
+                      context,
+                    ).colorScheme.error.withValues(alpha: 0.1),
                     shape: BoxShape.circle,
                   ),
                   child: IconButton(
                     tooltip: UiUtils.getTranslatedLabel(context, logoutKey),
-                    icon: const Icon(Icons.logout, color: redColor, size: 30),
+                    icon: Icon(
+                      Icons.logout,
+                      color: Theme.of(context).colorScheme.error,
+                      size: 30,
+                    ),
                     onPressed: () {
                       LogoutButton.showLogOutDialog(
                         context,

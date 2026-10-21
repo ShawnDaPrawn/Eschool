@@ -9,7 +9,6 @@ import 'package:eschool_teacher/data/repositories/settingsRepository.dart';
 import 'package:eschool_teacher/ui/screens/login/widgets/forgotPasswordRequestBottomsheet.dart';
 import 'package:eschool_teacher/ui/screens/login/widgets/termsAndConditionAndPrivacyPolicyContainer.dart';
 import 'package:eschool_core/eschool_core.dart';
-import 'package:eschool_teacher/ui/widgets/customRoundedButton.dart';
 import 'package:eschool_teacher/ui/widgets/passwordHideShowButton.dart';
 import 'package:eschool_teacher/utils/assets.dart';
 import 'package:eschool_teacher/utils/constants.dart';
@@ -173,7 +172,7 @@ class _LoginScreenState extends State<LoginScreen>
                     context: context,
                     errorMessage:
                         "${UiUtils.getTranslatedLabel(context, passwordUpdateLinkSentKey)} ${value['email']}",
-                    backgroundColor: Theme.of(context).colorScheme.onPrimary,
+                    backgroundColor: StatusColors.of(context).success,
                   );
                 }
               }
@@ -239,7 +238,7 @@ class _LoginScreenState extends State<LoginScreen>
             child: DottedLine(
               dashColor: UiUtils.getColorScheme(
                 context,
-              ).secondary.withAlpha(80),
+              ).onSurface.withAlpha(80),
               dashGapLength: 2,
               dashLength: 3,
             ),
@@ -249,14 +248,14 @@ class _LoginScreenState extends State<LoginScreen>
             style: TextStyle(
               fontSize: 12,
               fontWeight: FontWeight.w400,
-              color: UiUtils.getColorScheme(context).secondary,
+              color: UiUtils.getColorScheme(context).onSurface,
             ),
           ),
           Expanded(
             child: DottedLine(
               dashColor: UiUtils.getColorScheme(
                 context,
-              ).secondary.withAlpha(80),
+              ).onSurface.withAlpha(80),
               dashGapLength: 2,
               dashLength: 3,
             ),
@@ -291,7 +290,7 @@ class _LoginScreenState extends State<LoginScreen>
                     style: TextStyle(
                       fontSize: 34,
                       fontWeight: FontWeight.bold,
-                      color: UiUtils.getColorScheme(context).secondary,
+                      color: UiUtils.getColorScheme(context).onSurface,
                     ),
                   ),
                   const SizedBox(height: 10),
@@ -300,7 +299,7 @@ class _LoginScreenState extends State<LoginScreen>
                     style: TextStyle(
                       fontSize: 24,
                       height: 1.5,
-                      color: UiUtils.getColorScheme(context).secondary,
+                      color: UiUtils.getColorScheme(context).onSurface,
                     ),
                   ),
                   const SizedBox(height: 30),
@@ -309,7 +308,7 @@ class _LoginScreenState extends State<LoginScreen>
                     decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(10),
                       border: Border.all(
-                        color: UiUtils.getColorScheme(context).secondary,
+                        color: UiUtils.getColorScheme(context).onSurface,
                       ),
                     ),
                     child: TextFormField(
@@ -322,14 +321,14 @@ class _LoginScreenState extends State<LoginScreen>
                           child: SvgPicture.asset(
                             Assets.mailIcon,
                             colorFilter: ColorFilter.mode(
-                              UiUtils.getColorScheme(context).secondary,
+                              UiUtils.getColorScheme(context).onSurface,
                               BlendMode.srcIn,
                             ),
-                            // color: UiUtils.getColorScheme(context).secondary,
+                            // color: UiUtils.getColorScheme(context).onSurface,
                           ),
                         ),
                         hintStyle: TextStyle(
-                          color: UiUtils.getColorScheme(context).secondary,
+                          color: UiUtils.getColorScheme(context).onSurface,
                         ),
                         hintText: UiUtils.getTranslatedLabel(context, emailKey),
                         border: InputBorder.none,
@@ -342,7 +341,7 @@ class _LoginScreenState extends State<LoginScreen>
                     decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(10),
                       border: Border.all(
-                        color: UiUtils.getColorScheme(context).secondary,
+                        color: UiUtils.getColorScheme(context).onSurface,
                       ),
                     ),
                     child: TextFormField(
@@ -359,7 +358,7 @@ class _LoginScreenState extends State<LoginScreen>
                           },
                         ),
                         hintStyle: TextStyle(
-                          color: UiUtils.getColorScheme(context).secondary,
+                          color: UiUtils.getColorScheme(context).onSurface,
                         ),
                         hintText: UiUtils.getTranslatedLabel(
                           context,
@@ -415,7 +414,7 @@ class _LoginScreenState extends State<LoginScreen>
                             context,
                             signInKey,
                           ),
-                          titleColor: Theme.of(context).scaffoldBackgroundColor,
+                          titleColor: Theme.of(context).colorScheme.onPrimary,
                           showBorder: false,
                           child: state is SignInInProgress
                               ? const CustomCircularProgressIndicator(

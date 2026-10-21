@@ -1,7 +1,7 @@
+import 'package:eschool_core/eschool_core.dart';
 import 'package:eschool_teacher/app/routes.dart';
 import 'package:eschool_teacher/cubits/chat/chatUsersCubit.dart';
 import 'package:eschool_teacher/ui/screens/chat/widget/chatUserItem.dart';
-import 'package:eschool_teacher/ui/styles/colors.dart';
 import 'package:eschool_teacher/ui/widgets/appBarTitleContainer.dart';
 import 'package:eschool_teacher/ui/widgets/customBackButton.dart';
 import 'package:eschool_teacher/ui/widgets/customShimmerContainer.dart';
@@ -69,14 +69,14 @@ class _ChatUsersScreenState extends State<ChatUsersScreen> {
         : Container(
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(10),
-              color: greenColor.withValues(alpha: .8),
+              color: StatusColors.of(context).success.withValues(alpha: .8),
             ),
             margin: const EdgeInsetsDirectional.only(start: 5),
             padding: const EdgeInsets.symmetric(horizontal: 8),
             child: Text(
               (count > 999) ? '999+' : count.toString(),
-              style: const TextStyle(
-                color: Colors.white,
+              style: TextStyle(
+                color: StatusColors.of(context).onSuccess,
                 fontWeight: FontWeight.bold,
                 fontSize: 12,
               ),
@@ -124,7 +124,7 @@ class _ChatUsersScreenState extends State<ChatUsersScreen> {
                       child: Icon(
                         Icons.search,
                         size: 24,
-                        color: Theme.of(context).scaffoldBackgroundColor,
+                        color: Theme.of(context).colorScheme.onPrimary,
                       ),
                     ),
                   ),

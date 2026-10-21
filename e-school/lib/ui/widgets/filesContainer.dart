@@ -32,12 +32,12 @@ class _FilesContainerState extends State<FilesContainer> {
           padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 15),
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(10),
-            color: Theme.of(context).scaffoldBackgroundColor,
+            color: Theme.of(context).colorScheme.surface,
             boxShadow: [
               BoxShadow(
                 color: Theme.of(
                   context,
-                ).colorScheme.secondary.withValues(alpha: 0.1),
+                ).colorScheme.shadow.withValues(alpha: 0.1),
                 offset: const Offset(5, 5),
                 blurRadius: 10,
               ),
@@ -56,7 +56,7 @@ class _FilesContainerState extends State<FilesContainer> {
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
                       style: TextStyle(
-                        color: Theme.of(context).colorScheme.onSurface,
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
                         fontWeight: FontWeight.w500,
                         fontSize: 13,
                       ),

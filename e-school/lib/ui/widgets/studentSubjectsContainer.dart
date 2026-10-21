@@ -52,7 +52,7 @@ class StudentSubjectsContainer extends StatelessWidget {
               maxLines: 2,
               overflow: TextOverflow.ellipsis,
               style: TextStyle(
-                color: UiUtils.getColorScheme(context).secondary,
+                color: UiUtils.getColorScheme(context).onSurface,
                 fontWeight: FontWeight.w400,
                 fontSize: 14,
               ),
@@ -83,7 +83,7 @@ class StudentSubjectsContainer extends StatelessWidget {
                 child: Text(
                   UiUtils.getTranslatedLabel(context, subjectsTitleKey),
                   style: TextStyle(
-                    color: UiUtils.getColorScheme(context).secondary,
+                    color: UiUtils.getColorScheme(context).onSurface,
                     fontWeight: FontWeight.w600,
                     fontSize: 16,
                   ),

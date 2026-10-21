@@ -21,7 +21,7 @@ class AddedFileContainer extends StatelessWidget {
             radius: const Radius.circular(10),
             color: Theme.of(
               context,
-            ).colorScheme.onSurface.withValues(alpha: 0.3),
+            ).colorScheme.onSurfaceVariant.withValues(alpha: 0.3),
           ),
           child: Padding(
             padding: const EdgeInsetsDirectional.only(start: 10),

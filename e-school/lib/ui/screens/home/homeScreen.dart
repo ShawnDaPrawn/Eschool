@@ -328,12 +328,12 @@ class HomeScreenState extends State<HomeScreen>
               BoxShadow(
                 color: UiUtils.getColorScheme(
                   context,
-                ).secondary.withValues(alpha: 0.15),
+                ).shadow.withValues(alpha: 0.15),
                 offset: const Offset(2.5, 2.5),
                 blurRadius: 20,
               ),
             ],
-            color: Theme.of(context).scaffoldBackgroundColor,
+            color: Theme.of(context).colorScheme.surface,
             borderRadius: BorderRadius.circular(10),
           ),
           width: MediaQuery.sizeOf(context).width * 0.85,
@@ -382,7 +382,7 @@ class HomeScreenState extends State<HomeScreen>
       child: Container(
         width: MediaQuery.sizeOf(context).width,
         height: MediaQuery.sizeOf(context).height,
-        color: Theme.of(context).colorScheme.secondary.withValues(alpha: 0.75),
+        color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.75),
       ),
     );
   }

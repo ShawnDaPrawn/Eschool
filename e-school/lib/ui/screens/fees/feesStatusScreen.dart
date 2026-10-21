@@ -5,7 +5,6 @@ import 'package:eschool/cubits/feesReceiptCubit.dart';
 import 'package:eschool/cubits/studentFeesCubit.dart';
 import 'package:eschool/data/models/paidFees.dart';
 import 'package:eschool/data/models/student.dart';
-import 'package:eschool/ui/styles/colors.dart';
 import 'package:eschool/ui/widgets/customBackButton.dart';
 import 'package:eschool/ui/widgets/customRefreshIndicator.dart';
 import 'package:eschool/ui/widgets/customShimmerContainer.dart';
@@ -72,7 +71,7 @@ class _FeesStatusScreenState extends State<FeesStatusScreen> {
             child: Text(
               UiUtils.getTranslatedLabel(context, feesKey),
               style: TextStyle(
-                color: Theme.of(context).scaffoldBackgroundColor,
+                color: Theme.of(context).colorScheme.onPrimary,
                 fontSize: UiUtils.screenTitleFontSize,
               ),
             ),
@@ -178,7 +177,7 @@ class _FeesStatusScreenState extends State<FeesStatusScreen> {
                           context,
                           unableToOpenKey,
                         ),
-                        backgroundColor: errorColor,
+                        backgroundColor: Theme.of(context).colorScheme.error,
                       );
                     }
                   }

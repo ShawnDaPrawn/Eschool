@@ -7,7 +7,9 @@ import 'package:flutter/material.dart';
 
 class ParentProfileDetailsContainer extends StatelessWidget {
   const ParentProfileDetailsContainer({
-    required this.nameKey, required this.parent, super.key,
+    required this.nameKey,
+    required this.parent,
+    super.key,
   });
   final String nameKey; //motherName,fatherName,guardianName and name
   final Parent parent;
@@ -27,7 +29,7 @@ class ParentProfileDetailsContainer extends StatelessWidget {
             style: TextStyle(
               color: Theme.of(
                 context,
-              ).colorScheme.onSurface.withValues(alpha: 0.75),
+              ).colorScheme.onSurfaceVariant.withValues(alpha: 0.75),
               fontSize: 13,
             ),
           ),
@@ -35,7 +37,7 @@ class ParentProfileDetailsContainer extends StatelessWidget {
           Text(
             value,
             style: TextStyle(
-              color: Theme.of(context).colorScheme.secondary,
+              color: Theme.of(context).colorScheme.onSurface,
               fontWeight: FontWeight.w600,
             ),
           ),
@@ -50,7 +52,7 @@ class ParentProfileDetailsContainer extends StatelessWidget {
       width: MediaQuery.sizeOf(context).width * 0.8,
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(15),
-        color: Theme.of(context).colorScheme.surface,
+        color: Theme.of(context).colorScheme.surfaceContainerLow,
       ),
       child: Stack(
         clipBehavior: Clip.none,
@@ -64,7 +66,7 @@ class ParentProfileDetailsContainer extends StatelessWidget {
               padding: const EdgeInsets.all(10),
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: Theme.of(context).scaffoldBackgroundColor,
+                color: Theme.of(context).colorScheme.surface,
               ),
               child: Container(
                 decoration: BoxDecoration(
@@ -83,7 +85,7 @@ class ParentProfileDetailsContainer extends StatelessWidget {
               Divider(
                 color: Theme.of(
                   context,
-                ).colorScheme.onSurface.withValues(alpha: 0.75),
+                ).colorScheme.onSurfaceVariant.withValues(alpha: 0.75),
                 height: 1.25,
               ),
               const SizedBox(height: 20),

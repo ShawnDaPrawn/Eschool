@@ -13,7 +13,7 @@ class EditButton extends StatelessWidget {
       child: Icon(
         Icons.edit,
         size: 22.5,
-        color: Theme.of(context).colorScheme.onPrimary,
+        color: Theme.of(context).colorScheme.tertiary,
       ),
     );
   }

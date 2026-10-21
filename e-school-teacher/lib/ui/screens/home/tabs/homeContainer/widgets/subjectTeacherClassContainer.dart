@@ -7,14 +7,16 @@ import 'package:flutter_animate/flutter_animate.dart';
 
 class SubjectTeacherClassContainer extends StatelessWidget {
   const SubjectTeacherClassContainer({
-    required this.classDetails, required this.index, super.key,
+    required this.classDetails,
+    required this.index,
+    super.key,
   });
   final ClassSectionDetails classDetails;
   final int index;
 
   @override
   Widget build(BuildContext context) {
-    final Color color = UiUtils.getClassColor(index);
+    final Color color = UiUtils.getClassColor(context, index);
     return Animate(
       effects: customItemZoomAppearanceEffects(),
       child: Material(
@@ -32,7 +34,7 @@ class SubjectTeacherClassContainer extends StatelessWidget {
           },
           child: Container(
             decoration: BoxDecoration(
-              color: Theme.of(context).scaffoldBackgroundColor,
+              color: Theme.of(context).colorScheme.surfaceContainerLowest,
               borderRadius: BorderRadius.circular(4),
             ),
             constraints: const BoxConstraints(minWidth: 170, maxWidth: 250),
@@ -52,9 +54,7 @@ class SubjectTeacherClassContainer extends StatelessWidget {
                         borderRadius: BorderRadius.circular(8),
                       ),
                     ),
-                    const SizedBox(
-                      width: 6,
-                    ),
+                    const SizedBox(width: 6),
                     Flexible(
                       child: Text(
                         classDetails.getClassSectionNameWithSemester(
@@ -64,7 +64,7 @@ class SubjectTeacherClassContainer extends StatelessWidget {
                         overflow: TextOverflow.ellipsis,
                         textAlign: TextAlign.start,
                         style: TextStyle(
-                          color: Theme.of(context).colorScheme.secondary,
+                          color: Theme.of(context).colorScheme.onSurface,
                           fontWeight: FontWeight.w600,
                           fontSize: 16,
                           height: 1,
@@ -80,10 +80,9 @@ class SubjectTeacherClassContainer extends StatelessWidget {
                   overflow: TextOverflow.ellipsis,
                   textAlign: TextAlign.start,
                   style: TextStyle(
-                    color: Theme.of(context)
-                        .colorScheme
-                        .secondary
-                        .withValues(alpha: 0.8),
+                    color: Theme.of(
+                      context,
+                    ).colorScheme.onSurface.withValues(alpha: 0.8),
                     fontSize: 14,
                   ),
                 ),

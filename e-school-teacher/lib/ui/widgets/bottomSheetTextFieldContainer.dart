@@ -1,12 +1,13 @@
-import 'package:eschool_teacher/ui/styles/colors.dart';
 import 'package:eschool_teacher/utils/uiUtils.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 class BottomSheetTextFieldContainer extends StatelessWidget {
-
   const BottomSheetTextFieldContainer({
-    required this.hintText, required this.maxLines, required this.textEditingController, super.key,
+    required this.hintText,
+    required this.maxLines,
+    required this.textEditingController,
+    super.key,
     this.height,
     this.textInputFormatter,
     this.suffix,
@@ -39,10 +40,12 @@ class BottomSheetTextFieldContainer extends StatelessWidget {
       alignment: contentAlignment ?? Alignment.center,
       padding: contentPadding ?? const EdgeInsetsDirectional.only(start: 20),
       decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surface,
+        color: Theme.of(context).colorScheme.surfaceContainerLow,
         borderRadius: BorderRadius.circular(10),
         border: Border.all(
-          color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.5),
+          color: Theme.of(
+            context,
+          ).colorScheme.onSurfaceVariant.withValues(alpha: 0.5),
         ),
       ),
       width: MediaQuery.sizeOf(context).width,
@@ -53,7 +56,7 @@ class BottomSheetTextFieldContainer extends StatelessWidget {
         keyboardType: keyboardType,
         controller: textEditingController,
         style: TextStyle(
-          color: Theme.of(context).colorScheme.secondary,
+          color: Theme.of(context).colorScheme.onSurface,
           fontSize: UiUtils.textFieldFontSize,
         ),
         maxLines: maxLines,
@@ -62,7 +65,7 @@ class BottomSheetTextFieldContainer extends StatelessWidget {
           suffixIcon: suffix,
           hintText: hintText,
           hintStyle: TextStyle(
-            color: hintTextColor,
+            color: Theme.of(context).colorScheme.onSurfaceVariant,
             fontSize: UiUtils.textFieldFontSize,
           ),
           border: InputBorder.none,

@@ -1,9 +1,12 @@
 import 'package:eschool/utils/constants.dart';
+import 'package:eschool_core/eschool_core.dart';
 import 'package:flutter/material.dart';
 
 class ErrorMessageOverlayContainer extends StatefulWidget {
   const ErrorMessageOverlayContainer({
-    required this.errorMessage, required this.backgroundColor, super.key,
+    required this.errorMessage,
+    required this.backgroundColor,
+    super.key,
   });
   final String errorMessage;
   final Color backgroundColor;
@@ -64,10 +67,7 @@ class _ErrorMessageOverlayContainerState
               child: Container(
                 alignment: Alignment.center,
                 width: MediaQuery.sizeOf(context).width * 0.8,
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 8,
-                  vertical: 8,
-                ),
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
                 decoration: BoxDecoration(
                   color: widget.backgroundColor,
                   borderRadius: BorderRadius.circular(10),
@@ -76,7 +76,9 @@ class _ErrorMessageOverlayContainerState
                   widget.errorMessage,
                   style: TextStyle(
                     fontSize: 13.5,
-                    color: Theme.of(context).scaffoldBackgroundColor,
+                    color: Theme.of(
+                      context,
+                    ).colorScheme.readableOn(widget.backgroundColor),
                   ),
                 ),
               ),

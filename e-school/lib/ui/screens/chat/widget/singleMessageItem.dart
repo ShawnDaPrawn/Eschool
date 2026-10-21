@@ -3,7 +3,6 @@ import 'package:eschool/app/routes.dart';
 import 'package:eschool/data/models/chatMessage.dart';
 import 'package:eschool/data/models/studyMaterial.dart';
 import 'package:eschool/ui/screens/chat/widget/messageItemComponents.dart';
-import 'package:eschool/ui/styles/colors.dart';
 import 'package:eschool_core/eschool_core.dart';
 import 'package:eschool/ui/widgets/customImageWidget.dart';
 import 'package:eschool/utils/assets.dart';
@@ -14,9 +13,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 
 class SingleChatMessageItem extends StatefulWidget {
-
   const SingleChatMessageItem({
-    required this.chatMessage, required this.isLoading, required this.isError, required this.onRetry, required this.currentUserId, super.key,
+    required this.chatMessage,
+    required this.isLoading,
+    required this.isError,
+    required this.onRetry,
+    required this.currentUserId,
+    super.key,
     this.showTime = true,
   });
   final ChatMessage chatMessage;
@@ -34,9 +37,11 @@ class _SingleChatMessageItemState extends State<SingleChatMessageItem> {
   final double _messageItemBorderRadius = 12;
 
   //note: opacity is used in UI with this color
-  final Color _sentMessageBackgroundColor = secondaryColor;
+  Color get _sentMessageBackgroundColor =>
+      Theme.of(context).colorScheme.onSurface;
 
-  final Color _receivedMessageBackgroundColor = primaryColor;
+  Color get _receivedMessageBackgroundColor =>
+      Theme.of(context).colorScheme.primary;
 
   final ValueNotifier _linkAddNotifier = ValueNotifier('');
 
@@ -115,8 +120,8 @@ class _SingleChatMessageItemState extends State<SingleChatMessageItem> {
                   TextSpan(
                     style: TextStyle(
                       color: textMessage.senderId == widget.currentUserId
-                          ? Colors.black
-                          : Colors.white,
+                          ? Theme.of(context).colorScheme.onSurface
+                          : Theme.of(context).colorScheme.onPrimary,
                     ),
                     children: replaceLink(text: textMessage.message).map((
                       data,
@@ -136,11 +141,11 @@ class _SingleChatMessageItemState extends State<SingleChatMessageItem> {
                             decoration: TextDecoration.underline,
                             decorationColor:
                                 textMessage.senderId == widget.currentUserId
-                                ? Colors.black
-                                : Colors.white,
+                                ? Theme.of(context).colorScheme.onSurface
+                                : Theme.of(context).colorScheme.onPrimary,
                             color: textMessage.senderId == widget.currentUserId
-                                ? Colors.black
-                                : Colors.white,
+                                ? Theme.of(context).colorScheme.onSurface
+                                : Theme.of(context).colorScheme.onPrimary,
                           ),
                         );
                       }
@@ -154,8 +159,8 @@ class _SingleChatMessageItemState extends State<SingleChatMessageItem> {
                               style: TextStyle(
                                 color:
                                     textMessage.senderId == widget.currentUserId
-                                    ? Colors.black
-                                    : Colors.white,
+                                    ? Theme.of(context).colorScheme.onSurface
+                                    : Theme.of(context).colorScheme.onPrimary,
                                 fontWeight: FontWeight.bold,
                               ),
                             );
@@ -165,15 +170,15 @@ class _SingleChatMessageItemState extends State<SingleChatMessageItem> {
                             style: TextStyle(
                               color:
                                   textMessage.senderId == widget.currentUserId
-                                  ? Colors.black
-                                  : Colors.white,
+                                  ? Theme.of(context).colorScheme.onSurface
+                                  : Theme.of(context).colorScheme.onPrimary,
                             ),
                           );
                         }).toList(),
                         style: TextStyle(
                           color: textMessage.senderId == widget.currentUserId
-                              ? Colors.black
-                              : Colors.white,
+                              ? Theme.of(context).colorScheme.onSurface
+                              : Theme.of(context).colorScheme.onPrimary,
                         ),
                       );
                     }).toList(),
@@ -181,8 +186,8 @@ class _SingleChatMessageItemState extends State<SingleChatMessageItem> {
                   textAlign: TextAlign.start,
                   style: TextStyle(
                     color: textMessage.senderId == widget.currentUserId
-                        ? Colors.black
-                        : Colors.white,
+                        ? Theme.of(context).colorScheme.onSurface
+                        : Theme.of(context).colorScheme.onPrimary,
                   ),
                 ),
               ],
@@ -318,7 +323,7 @@ class _SingleChatMessageItemState extends State<SingleChatMessageItem> {
                     bottomEnd: Radius.circular(_messageItemBorderRadius),
                     bottomStart: Radius.circular(_messageItemBorderRadius),
                   ),
-                  color: primaryColor,
+                  color: Theme.of(context).colorScheme.primary,
                 ),
                 clipBehavior: Clip.antiAlias,
                 child: SizedBox(
@@ -334,8 +339,8 @@ class _SingleChatMessageItemState extends State<SingleChatMessageItem> {
                             isPdf
                                 ? Assets.pdfFileMessage
                                 : Assets.anyFileMessage,
-                            colorFilter: const ColorFilter.mode(
-                              Colors.white,
+                            colorFilter: ColorFilter.mode(
+                              Theme.of(context).colorScheme.onPrimary,
                               BlendMode.srcIn,
                             ),
                           ),
@@ -345,7 +350,9 @@ class _SingleChatMessageItemState extends State<SingleChatMessageItem> {
                         flex: 3,
                         child: Container(
                           height: double.maxFinite,
-                          color: UiUtils.getColorScheme(context).surface,
+                          color: UiUtils.getColorScheme(
+                            context,
+                          ).surfaceContainerLow,
                           padding: const EdgeInsets.all(10),
                           child: Text(
                             filePath.split('/').last,
@@ -386,7 +393,9 @@ class _SingleChatMessageItemState extends State<SingleChatMessageItem> {
                 ),
                 style: TextStyle(
                   fontSize: 12,
-                  color: secondaryColor.withValues(alpha: 0.4),
+                  color: Theme.of(
+                    context,
+                  ).colorScheme.onSurface.withValues(alpha: 0.4),
                 ),
               ),
             ),
@@ -427,13 +436,13 @@ class _SingleChatMessageItemState extends State<SingleChatMessageItem> {
                 ? AlignmentDirectional.centerEnd
                 : AlignmentDirectional.centerStart,
             child: widget.isLoading
-                ? const Padding(
-                    padding: EdgeInsets.all(5),
+                ? Padding(
+                    padding: const EdgeInsets.all(5),
                     child: SizedBox(
                       height: 12,
                       width: 12,
                       child: CustomCircularProgressIndicator(
-                        indicatorColor: primaryColor,
+                        indicatorColor: Theme.of(context).colorScheme.primary,
                       ),
                     ),
                   )
@@ -445,7 +454,11 @@ class _SingleChatMessageItemState extends State<SingleChatMessageItem> {
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        const Icon(Icons.refresh, size: 10, color: redColor),
+                        Icon(
+                          Icons.refresh,
+                          size: 10,
+                          color: Theme.of(context).colorScheme.error,
+                        ),
                         const SizedBox(width: 2),
                         Flexible(
                           child: Text(
@@ -455,9 +468,9 @@ class _SingleChatMessageItemState extends State<SingleChatMessageItem> {
                             ),
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
-                            style: const TextStyle(
+                            style: TextStyle(
                               fontSize: 10,
-                              color: redColor,
+                              color: Theme.of(context).colorScheme.error,
                             ),
                           ),
                         ),

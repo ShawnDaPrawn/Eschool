@@ -2,9 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 class AddMarksContainer extends StatelessWidget {
-
   const AddMarksContainer({
-    required this.title, required this.alias, required this.totalMarks, required this.obtainedMarksTextEditingController, super.key,
+    required this.title,
+    required this.alias,
+    required this.totalMarks,
+    required this.obtainedMarksTextEditingController,
+    super.key,
     this.isReadOnly,
   });
   final String title;
@@ -36,7 +39,7 @@ class AddMarksContainer extends StatelessWidget {
                 child: Text(
                   alias,
                   style: TextStyle(
-                    color: Theme.of(context).colorScheme.secondary,
+                    color: Theme.of(context).colorScheme.onSurface,
                     fontSize: 12,
                     fontWeight: FontWeight.w600,
                   ),
@@ -48,7 +51,7 @@ class AddMarksContainer extends StatelessWidget {
                 child: Text(
                   studentName,
                   style: TextStyle(
-                    color: Theme.of(context).colorScheme.secondary,
+                    color: Theme.of(context).colorScheme.onSurface,
                     fontSize: 12,
                     fontWeight: FontWeight.w600,
                   ),
@@ -56,12 +59,12 @@ class AddMarksContainer extends StatelessWidget {
               ),
               Container(
                 decoration: BoxDecoration(
-                  color: Theme.of(context).colorScheme.surface,
+                  color: Theme.of(context).colorScheme.surfaceContainerLow,
                   borderRadius: BorderRadius.circular(5),
                   border: Border.all(
                     color: Theme.of(
                       context,
-                    ).colorScheme.onSurface.withValues(alpha: 0.5),
+                    ).colorScheme.onSurfaceVariant.withValues(alpha: 0.5),
                   ),
                 ),
                 width: boxConstraints.maxWidth * 0.22,
@@ -75,7 +78,7 @@ class AddMarksContainer extends StatelessWidget {
                   textAlignVertical: TextAlignVertical.center,
                   textAlign: TextAlign.center,
                   style: TextStyle(
-                    color: Theme.of(context).colorScheme.secondary,
+                    color: Theme.of(context).colorScheme.onSurface,
                     fontSize: 12,
                   ),
                   controller: obtainedMarksTextEditingController,
@@ -96,7 +99,7 @@ class AddMarksContainer extends StatelessWidget {
                 child: Text(
                   totalMarks,
                   style: TextStyle(
-                    color: Theme.of(context).colorScheme.secondary,
+                    color: Theme.of(context).colorScheme.onSurface,
                     fontSize: 12,
                   ),
                 ),

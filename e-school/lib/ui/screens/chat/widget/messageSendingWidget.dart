@@ -8,7 +8,11 @@ import 'package:flutter_svg/svg.dart';
 
 class ChatMessageSendingWidget extends StatelessWidget {
   const ChatMessageSendingWidget({
-    required this.onMessageSend, required this.textController, required this.backgroundColor, required this.onAttachmentTap, super.key,
+    required this.onMessageSend,
+    required this.textController,
+    required this.backgroundColor,
+    required this.onAttachmentTap,
+    super.key,
   });
   final Function() onMessageSend;
   final Function() onAttachmentTap;
@@ -31,8 +35,8 @@ class ChatMessageSendingWidget extends StatelessWidget {
               Assets.attachment,
               width: 20,
               height: 20,
-              colorFilter: const ColorFilter.mode(
-                Colors.black,
+              colorFilter: ColorFilter.mode(
+                Theme.of(context).colorScheme.onSurface,
                 BlendMode.srcIn,
               ),
             ),
@@ -55,13 +59,19 @@ class ChatMessageSendingWidget extends StatelessWidget {
                     chatSendHintKey,
                   ),
                   counterText: '',
-                  hintStyle: const TextStyle(color: Colors.black, fontSize: 14),
+                  hintStyle: TextStyle(
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                    fontSize: 14,
+                  ),
                 ),
                 onSubmitted: (value) {
                   onMessageSend();
                 },
-                cursorColor: Colors.black,
-                style: const TextStyle(color: Colors.black, fontSize: 14),
+                cursorColor: Theme.of(context).colorScheme.onSurface,
+                style: TextStyle(
+                  color: Theme.of(context).colorScheme.onSurface,
+                  fontSize: 14,
+                ),
               ),
             ),
           ),
@@ -71,8 +81,8 @@ class ChatMessageSendingWidget extends StatelessWidget {
               Assets.messageSendIcon,
               width: 20,
               height: 20,
-              colorFilter: const ColorFilter.mode(
-                Colors.black,
+              colorFilter: ColorFilter.mode(
+                Theme.of(context).colorScheme.onSurface,
                 BlendMode.srcIn,
               ),
             ),

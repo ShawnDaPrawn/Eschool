@@ -190,7 +190,7 @@ class _ResultsContainerState extends State<ResultsContainer> {
                 child: Text(
                   UiUtils.getTranslatedLabel(context, resultsKey),
                   style: TextStyle(
-                    color: Theme.of(context).scaffoldBackgroundColor,
+                    color: Theme.of(context).colorScheme.onPrimary,
                     fontSize: UiUtils.screenTitleFontSize,
                   ),
                 ),

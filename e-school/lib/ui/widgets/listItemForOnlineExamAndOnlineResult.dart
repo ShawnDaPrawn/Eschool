@@ -4,9 +4,14 @@ import 'package:eschool/utils/uiUtils.dart';
 import 'package:flutter/material.dart';
 
 class ListItemForOnlineExamAndOnlineResult extends StatelessWidget {
-
   const ListItemForOnlineExamAndOnlineResult({
-    required this.examStartingDate, required this.examName, required this.totalMarks, required this.marks, required this.onItemTap, required this.subjectName, super.key,
+    required this.examStartingDate,
+    required this.examName,
+    required this.totalMarks,
+    required this.marks,
+    required this.onItemTap,
+    required this.subjectName,
+    super.key,
     this.examEndingDate,
     this.isSubjectSelected = false,
   });
@@ -29,7 +34,7 @@ class ListItemForOnlineExamAndOnlineResult extends StatelessWidget {
         width: MediaQuery.sizeOf(context).width * 0.90,
         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 15),
         decoration: BoxDecoration(
-          color: UiUtils.getColorScheme(context).surface,
+          color: UiUtils.getColorScheme(context).surfaceContainerLow,
           borderRadius: BorderRadius.circular(10),
         ),
         child: child,
@@ -39,7 +44,7 @@ class ListItemForOnlineExamAndOnlineResult extends StatelessWidget {
 
   TextStyle _getLabelsTextStyle({required BuildContext context}) {
     return TextStyle(
-      color: UiUtils.getColorScheme(context).onSurface,
+      color: UiUtils.getColorScheme(context).onSurfaceVariant,
       fontSize: 12,
       fontWeight: FontWeight.w400,
     );
@@ -58,7 +63,7 @@ class ListItemForOnlineExamAndOnlineResult extends StatelessWidget {
               (marks == '') //for exams only,and not results
                   ? Icon(
                       Icons.access_time_rounded,
-                      color: UiUtils.getColorScheme(context).onSurface,
+                      color: UiUtils.getColorScheme(context).onSurfaceVariant,
                       size: 15,
                     )
                   : const SizedBox.shrink(),
@@ -95,7 +100,9 @@ class ListItemForOnlineExamAndOnlineResult extends StatelessWidget {
                     (marks == '') //for exams only,and not results
                         ? Icon(
                             Icons.access_time_rounded,
-                            color: UiUtils.getColorScheme(context).onSurface,
+                            color: UiUtils.getColorScheme(
+                              context,
+                            ).onSurfaceVariant,
                             size: 15,
                           )
                         : const SizedBox.shrink(),
@@ -125,7 +132,7 @@ class ListItemForOnlineExamAndOnlineResult extends StatelessWidget {
 
   TextStyle _getExamNameAndMarksTextStyle({required BuildContext context}) {
     return TextStyle(
-      color: UiUtils.getColorScheme(context).secondary,
+      color: UiUtils.getColorScheme(context).onSurface,
       fontSize: 14,
       fontWeight: FontWeight.w600,
     );

@@ -5,9 +5,10 @@ import 'package:flutter/material.dart';
 List<String> examFilters = [allExamsKey, upComingKey, onGoingKey, completedKey];
 
 class ExamFiltersContainer extends StatefulWidget {
-
   const ExamFiltersContainer({
-    required this.onTapSubject, required this.selectedExamFilterIndex, super.key,
+    required this.onTapSubject,
+    required this.selectedExamFilterIndex,
+    super.key,
   });
   final Function(int) onTapSubject;
   final int selectedExamFilterIndex;
@@ -59,8 +60,8 @@ class _ExamFiltersContainerState extends State<ExamFiltersContainer> {
                 UiUtils.getTranslatedLabel(context, examFilters[index]),
                 style: TextStyle(
                   color: widget.selectedExamFilterIndex == index
-                      ? Theme.of(context).scaffoldBackgroundColor
-                      : Theme.of(context).colorScheme.onSurface,
+                      ? Theme.of(context).colorScheme.onPrimary
+                      : Theme.of(context).colorScheme.onSurfaceVariant,
                 ),
               ),
             ),

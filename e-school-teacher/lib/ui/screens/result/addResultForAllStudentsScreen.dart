@@ -10,7 +10,6 @@ import 'package:eschool_teacher/ui/screens/result/widget/addMarksContainer.dart'
 import 'package:eschool_teacher/ui/widgets/customAppbar.dart';
 import 'package:eschool_core/eschool_core.dart';
 import 'package:eschool_teacher/ui/widgets/customDropDownMenu.dart';
-import 'package:eschool_teacher/ui/widgets/customRoundedButton.dart';
 import 'package:eschool_teacher/ui/widgets/customShimmerContainer.dart';
 import 'package:eschool_teacher/ui/widgets/defaultDropDownLabelContainer.dart';
 import 'package:eschool_teacher/ui/widgets/errorContainer.dart';
@@ -345,7 +344,7 @@ class _AddResultForAllStudentsState extends State<AddResultForAllStudents> {
 
   TextStyle _getResultTitleTextStyle() {
     return TextStyle(
-      color: Theme.of(context).colorScheme.onSurface,
+      color: Theme.of(context).colorScheme.onSurfaceVariant,
       fontWeight: FontWeight.w600,
       fontSize: 12,
     );
@@ -361,13 +360,13 @@ class _AddResultForAllStudentsState extends State<AddResultForAllStudents> {
           BoxShadow(
             color: Theme.of(
               context,
-            ).colorScheme.secondary.withValues(alpha: 0.075),
+            ).colorScheme.shadow.withValues(alpha: 0.075),
             offset: const Offset(2.5, 2.5),
             blurRadius: 5,
             spreadRadius: 1,
           ),
         ],
-        color: Theme.of(context).scaffoldBackgroundColor,
+        color: Theme.of(context).colorScheme.surface,
       ),
       width: MediaQuery.sizeOf(context).width,
       child: LayoutBuilder(
@@ -430,7 +429,7 @@ class _AddResultForAllStudentsState extends State<AddResultForAllStudents> {
               context,
               marksAddedSuccessfullyKey,
             ),
-            backgroundColor: Theme.of(context).colorScheme.onPrimary,
+            backgroundColor: StatusColors.of(context).success,
           );
 
           for (final element in obtainedMarksTextEditingController) {

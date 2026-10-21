@@ -14,7 +14,6 @@ import 'package:eschool_teacher/ui/screens/academicCalendar/widgets/downloadAcad
 import 'package:eschool_teacher/ui/screens/academicCalendar/widgets/holidayContainer.dart';
 import 'package:eschool_teacher/ui/screens/academicCalendar/widgets/listItemForEvents.dart';
 import 'package:eschool_teacher/ui/screens/academicCalendar/widgets/semesterBreakContainer.dart';
-import 'package:eschool_teacher/ui/styles/colors.dart';
 import 'package:eschool_teacher/ui/widgets/customBackButton.dart';
 import 'package:eschool_teacher/ui/widgets/customShimmerContainer.dart';
 import 'package:eschool_teacher/ui/widgets/errorContainer.dart';
@@ -35,10 +34,16 @@ import 'package:table_calendar/table_calendar.dart';
 class AcademicCalendarScreen extends StatefulWidget {
   const AcademicCalendarScreen({super.key});
 
-  static Color holidayColor = onPrimaryColor;
-  static Color eventColor = primaryColor;
-  static Color examColor = redColor;
-  static Color semesterBreakColor = greyColor;
+  /// The highlight colour of each kind of calendar item.
+  static AcademicCalendarHighlightColors highlightColors(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    return (
+      holiday: colorScheme.tertiary,
+      event: colorScheme.primary,
+      exam: StatusColors.of(context).danger,
+      semesterBreak: colorScheme.outline,
+    );
+  }
 
   static Route route(RouteSettings routeSettings) {
     return CupertinoPageRoute(
@@ -47,6 +52,7 @@ class AcademicCalendarScreen extends StatefulWidget {
           SystemRepository(),
           StudentRepository(),
           appConfigurationCubit: context.read<AppConfigurationCubit>(),
+          highlights: highlightColors(context),
         ),
         child: const AcademicCalendarScreen(),
       ),
@@ -118,7 +124,7 @@ class _AcademicCalendarScreenState extends State<AcademicCalendarScreen>
   Widget _buildTabBar() {
     return Container(
       decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.secondary.withValues(alpha: 0.05),
+        color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.05),
         borderRadius: BorderRadius.circular(8),
       ),
       child: Row(
@@ -135,10 +141,17 @@ class _AcademicCalendarScreenState extends State<AcademicCalendarScreen>
                 duration: const Duration(milliseconds: 300),
                 decoration: currentTabIndex == index
                     ? BoxDecoration(
-                        color: Theme.of(context).scaffoldBackgroundColor,
+                        color: Theme.of(
+                          context,
+                        ).colorScheme.surfaceContainerLowest,
                         borderRadius: BorderRadius.circular(4),
-                        boxShadow: const [
-                          BoxShadow(color: Colors.black12, blurRadius: 1),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Theme.of(
+                              context,
+                            ).colorScheme.shadow.withValues(alpha: 0.12),
+                            blurRadius: 1,
+                          ),
                         ],
                       )
                     : null,
@@ -161,7 +174,7 @@ class _AcademicCalendarScreenState extends State<AcademicCalendarScreen>
                       style: TextStyle(
                         color: currentTabIndex == index && index == 0
                             ? Theme.of(context).colorScheme.primary
-                            : Theme.of(context).colorScheme.secondary,
+                            : Theme.of(context).colorScheme.onSurface,
                         fontWeight: FontWeight.w600,
                       ),
                     ),
@@ -173,11 +186,17 @@ class _AcademicCalendarScreenState extends State<AcademicCalendarScreen>
                         decoration: BoxDecoration(
                           shape: BoxShape.circle,
                           color: index == 1
-                              ? AcademicCalendarScreen.holidayColor
+                              ? AcademicCalendarScreen.highlightColors(
+                                  context,
+                                ).holiday
                               : index == 2
-                              ? AcademicCalendarScreen.eventColor
+                              ? AcademicCalendarScreen.highlightColors(
+                                  context,
+                                ).event
                               : index == 3
-                              ? AcademicCalendarScreen.examColor
+                              ? AcademicCalendarScreen.highlightColors(
+                                  context,
+                                ).exam
                               : null,
                         ),
                       ),
@@ -206,7 +225,7 @@ class _AcademicCalendarScreenState extends State<AcademicCalendarScreen>
                 child: Text(
                   UiUtils.getTranslatedLabel(context, academicCalendarKey),
                   style: TextStyle(
-                    color: Theme.of(context).scaffoldBackgroundColor,
+                    color: Theme.of(context).colorScheme.onPrimary,
                     fontSize: UiUtils.screenTitleFontSize,
                   ),
                 ),
@@ -271,12 +290,12 @@ class _AcademicCalendarScreenState extends State<AcademicCalendarScreen>
     return Container(
       padding: const EdgeInsets.all(5),
       decoration: BoxDecoration(
-        color: Theme.of(context).scaffoldBackgroundColor,
+        color: Theme.of(context).colorScheme.surface,
         boxShadow: [
           BoxShadow(
             color: Theme.of(
               context,
-            ).colorScheme.secondary.withValues(alpha: 0.075),
+            ).colorScheme.shadow.withValues(alpha: 0.075),
             offset: const Offset(5, 5),
             blurRadius: 10,
           ),
@@ -417,12 +436,12 @@ class _AcademicCalendarScreenState extends State<AcademicCalendarScreen>
                             BoxShadow(
                               color: Theme.of(
                                 context,
-                              ).colorScheme.secondary.withValues(alpha: 0.075),
+                              ).colorScheme.shadow.withValues(alpha: 0.075),
                               offset: const Offset(2.5, 2.5),
                               blurRadius: 5,
                             ),
                           ],
-                          color: Theme.of(context).scaffoldBackgroundColor,
+                          color: Theme.of(context).colorScheme.surface,
                         ),
                         width: MediaQuery.sizeOf(context).width * 0.85,
                         child: Stack(
@@ -433,7 +452,7 @@ class _AcademicCalendarScreenState extends State<AcademicCalendarScreen>
                                 style: TextStyle(
                                   color: Theme.of(
                                     context,
-                                  ).colorScheme.secondary,
+                                  ).colorScheme.onSurface,
                                   fontWeight: FontWeight.w600,
                                 ),
                               ),

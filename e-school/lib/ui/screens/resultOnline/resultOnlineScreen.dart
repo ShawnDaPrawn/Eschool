@@ -3,7 +3,6 @@ import 'package:eschool/cubits/resultOnlineCubit.dart';
 import 'package:eschool/data/models/resultOnlineDetails.dart';
 import 'package:eschool/data/repositories/resultRepository.dart';
 import 'package:eschool/ui/widgets/customBackButton.dart';
-import 'package:eschool/ui/widgets/customRoundedButton.dart';
 import 'package:eschool/ui/widgets/customShimmerContainer.dart';
 import 'package:eschool/ui/widgets/errorContainer.dart';
 import 'package:eschool/ui/widgets/screenTopBackgroundContainer.dart';
@@ -11,13 +10,17 @@ import 'package:eschool/ui/widgets/shimmerLoadingContainer.dart';
 import 'package:eschool/utils/extensions.dart';
 import 'package:eschool/utils/labelKeys.dart';
 import 'package:eschool/utils/uiUtils.dart';
+import 'package:eschool_core/eschool_core.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 class ResultOnlineScreen extends StatefulWidget {
   const ResultOnlineScreen({
-    required this.examId, required this.examName, required this.subjectName, super.key,
+    required this.examId,
+    required this.examName,
+    required this.subjectName,
+    super.key,
     this.childId,
     this.totalMarks,
     this.obtainedMarks,
@@ -80,7 +83,7 @@ class ResultOnlineScreenState extends State<ResultOnlineScreen> {
                     child: Text(
                       UiUtils.getTranslatedLabel(context, examResultKey),
                       style: setTextStyle(
-                        txtColor: Theme.of(context).scaffoldBackgroundColor,
+                        txtColor: Theme.of(context).colorScheme.onPrimary,
                         txtSize: UiUtils.screenTitleFontSize,
                       ),
                     ),
@@ -93,14 +96,14 @@ class ResultOnlineScreenState extends State<ResultOnlineScreen> {
                   Text(
                     widget.subjectName,
                     style: setTextStyle(
-                      txtColor: Theme.of(context).scaffoldBackgroundColor,
+                      txtColor: Theme.of(context).colorScheme.onPrimary,
                       txtSize: UiUtils.screenSubTitleFontSize,
                     ),
                   ),
                   Text(
                     widget.examName,
                     style: setTextStyle(
-                      txtColor: Theme.of(context).scaffoldBackgroundColor,
+                      txtColor: Theme.of(context).colorScheme.onPrimary,
                       txtSize: UiUtils.screenTitleFontSize,
                       fontWeight: FontWeight.bold,
                     ),
@@ -145,7 +148,7 @@ class ResultOnlineScreenState extends State<ResultOnlineScreen> {
         Text(
           '$titleTxt ${UiUtils.getTranslatedLabel(context, marksKey)} ${UiUtils.getTranslatedLabel(context, questionsKey)}',
           style: setTextStyle(
-            txtColor: UiUtils.getColorScheme(context).onSurface,
+            txtColor: UiUtils.getColorScheme(context).onSurfaceVariant,
             txtSize: 16,
             fontWeight: FontWeight.w600,
           ),
@@ -153,7 +156,7 @@ class ResultOnlineScreenState extends State<ResultOnlineScreen> {
         Text(
           '[ $totalQuestions ]',
           style: setTextStyle(
-            txtColor: UiUtils.getColorScheme(context).onSurface,
+            txtColor: UiUtils.getColorScheme(context).onSurfaceVariant,
             txtSize: 16,
             fontWeight: FontWeight.w600,
           ),
@@ -183,7 +186,9 @@ class ResultOnlineScreenState extends State<ResultOnlineScreen> {
                   Text(
                     correctAnswerCount,
                     style: setTextStyle(
-                      txtColor: UiUtils.getColorScheme(context).onSurface,
+                      txtColor: UiUtils.getColorScheme(
+                        context,
+                      ).onSurfaceVariant,
                       txtSize: 18,
                       fontWeight: FontWeight.bold,
                     ),
@@ -194,13 +199,13 @@ class ResultOnlineScreenState extends State<ResultOnlineScreen> {
                     style: setTextStyle(
                       txtColor: Theme.of(
                         context,
-                      ).colorScheme.onSurface.withValues(alpha: 0.7),
+                      ).colorScheme.onSurfaceVariant.withValues(alpha: 0.7),
                       txtSize: 12,
                     ),
                   ),
                   5.sizedBoxHeight,
                   setCurvedBottomContainer(
-                    bgColor: UiUtils.getColorScheme(context).onSecondary,
+                    bgColor: StatusColors.of(context).success,
                   ),
                 ],
               ),
@@ -213,7 +218,7 @@ class ResultOnlineScreenState extends State<ResultOnlineScreen> {
                   width: 20,
                   color: UiUtils.getColorScheme(
                     context,
-                  ).onSurface.withValues(alpha: 0.4),
+                  ).onSurfaceVariant.withValues(alpha: 0.4),
                 ),
               ),
               Column(
@@ -221,7 +226,9 @@ class ResultOnlineScreenState extends State<ResultOnlineScreen> {
                   Text(
                     incorrectAnswerCount,
                     style: setTextStyle(
-                      txtColor: UiUtils.getColorScheme(context).onSurface,
+                      txtColor: UiUtils.getColorScheme(
+                        context,
+                      ).onSurfaceVariant,
                       txtSize: 18,
                       fontWeight: FontWeight.bold,
                     ),
@@ -232,7 +239,7 @@ class ResultOnlineScreenState extends State<ResultOnlineScreen> {
                     style: setTextStyle(
                       txtColor: Theme.of(
                         context,
-                      ).colorScheme.onSurface.withValues(alpha: 0.7),
+                      ).colorScheme.onSurfaceVariant.withValues(alpha: 0.7),
                       txtSize: 12,
                     ),
                   ),
@@ -270,7 +277,7 @@ class ResultOnlineScreenState extends State<ResultOnlineScreen> {
         width: MediaQuery.sizeOf(context).width * 0.9,
         padding: const EdgeInsets.only(top: 15, left: 23, right: 23),
         decoration: BoxDecoration(
-          color: UiUtils.getColorScheme(context).surface,
+          color: UiUtils.getColorScheme(context).surfaceContainerLow,
           borderRadius: BorderRadius.circular(20),
         ),
         child: child,
@@ -298,7 +305,7 @@ class ResultOnlineScreenState extends State<ResultOnlineScreen> {
             Text(
               questionsCount,
               style: setTextStyle(
-                txtColor: Theme.of(context).scaffoldBackgroundColor,
+                txtColor: Theme.of(context).colorScheme.readableOn(bgColor),
                 txtSize: 18,
                 fontWeight: FontWeight.bold,
               ),
@@ -306,7 +313,7 @@ class ResultOnlineScreenState extends State<ResultOnlineScreen> {
             Text(
               questionTypeTxt,
               style: setTextStyle(
-                txtColor: Theme.of(context).scaffoldBackgroundColor,
+                txtColor: Theme.of(context).colorScheme.readableOn(bgColor),
                 txtSize: 12,
               ),
             ),
@@ -350,7 +357,7 @@ class ResultOnlineScreenState extends State<ResultOnlineScreen> {
                             context,
                             correctAnswersKey,
                           ),
-                          bgColor: UiUtils.getColorScheme(context).onPrimary,
+                          bgColor: StatusColors.of(context).success,
                         ),
                       ),
                       Align(

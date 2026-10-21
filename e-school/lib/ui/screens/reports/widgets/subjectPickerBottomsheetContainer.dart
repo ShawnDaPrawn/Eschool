@@ -19,14 +19,18 @@ class SubjectPickerBottomsheetContainer extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
-        color: Theme.of(context).scaffoldBackgroundColor,
+        color: Theme.of(context).colorScheme.surface,
         borderRadius: BorderRadius.only(
           topLeft: Radius.circular(UiUtils.bottomSheetTopRadius),
           topRight: Radius.circular(UiUtils.bottomSheetTopRadius),
         ),
       ),
-      padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
-      constraints: BoxConstraints(maxHeight: MediaQuery.sizeOf(context).height * 0.7),
+      padding: EdgeInsets.only(
+        bottom: MediaQuery.of(context).viewInsets.bottom,
+      ),
+      constraints: BoxConstraints(
+        maxHeight: MediaQuery.sizeOf(context).height * 0.7,
+      ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
@@ -52,8 +56,8 @@ class SubjectPickerBottomsheetContainer extends StatelessWidget {
                 final String label = isAllSubjects
                     ? UiUtils.getTranslatedLabel(context, allSubjectsKey)
                     : (subjects[index - 1].showType
-                        ? subjects[index - 1].subjectNameWithType
-                        : subjects[index - 1].name);
+                          ? subjects[index - 1].subjectNameWithType
+                          : subjects[index - 1].name);
 
                 return Material(
                   color: Colors.transparent,
@@ -74,7 +78,7 @@ class SubjectPickerBottomsheetContainer extends StatelessWidget {
                               label,
                               style: TextStyle(
                                 fontSize: 16,
-                                color: Theme.of(context).colorScheme.secondary,
+                                color: Theme.of(context).colorScheme.onSurface,
                                 fontWeight: FontWeight.w500,
                               ),
                             ),

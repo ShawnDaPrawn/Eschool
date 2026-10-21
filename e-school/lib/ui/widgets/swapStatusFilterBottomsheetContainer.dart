@@ -6,7 +6,9 @@ import 'package:flutter/material.dart';
 
 class SwapStatusFilterBottomsheetContainer extends StatelessWidget {
   const SwapStatusFilterBottomsheetContainer({
-    required this.statusList, required this.selectedStatus, super.key,
+    required this.statusList,
+    required this.selectedStatus,
+    super.key,
   });
   final List<String> statusList;
   final String selectedStatus;
@@ -15,7 +17,7 @@ class SwapStatusFilterBottomsheetContainer extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
-        color: Theme.of(context).scaffoldBackgroundColor,
+        color: Theme.of(context).colorScheme.surface,
         borderRadius: BorderRadius.only(
           topLeft: Radius.circular(UiUtils.bottomSheetTopRadius),
           topRight: Radius.circular(UiUtils.bottomSheetTopRadius),
@@ -66,7 +68,7 @@ class SwapStatusFilterBottomsheetContainer extends StatelessWidget {
                               textAlign: TextAlign.start,
                               style: TextStyle(
                                 fontSize: 16,
-                                color: Theme.of(context).colorScheme.secondary,
+                                color: Theme.of(context).colorScheme.onSurface,
                                 fontWeight: FontWeight.w500,
                               ),
                             ),

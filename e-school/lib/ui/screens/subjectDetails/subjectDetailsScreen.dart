@@ -114,7 +114,7 @@ class _SubjectDetailsScreenState extends State<SubjectDetailsScreen> {
                       ? widget.subject.subjectNameWithType
                       : widget.subject.name,
                   style: TextStyle(
-                    color: Theme.of(context).scaffoldBackgroundColor,
+                    color: Theme.of(context).colorScheme.onPrimary,
                     fontSize: UiUtils.screenTitleFontSize,
                   ),
                 ),

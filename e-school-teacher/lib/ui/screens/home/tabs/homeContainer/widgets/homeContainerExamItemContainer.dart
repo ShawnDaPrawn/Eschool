@@ -40,7 +40,7 @@ class HomeContainerExamItemContainer extends StatelessWidget {
         width: 270,
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: Theme.of(context).colorScheme.surface,
+          color: Theme.of(context).colorScheme.surfaceContainerLow,
           borderRadius: BorderRadius.circular(8),
         ),
         child: Column(
@@ -52,20 +52,18 @@ class HomeContainerExamItemContainer extends StatelessWidget {
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
               style: TextStyle(
-                color: Theme.of(context).colorScheme.onSurface,
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
                 fontSize: 14,
                 fontWeight: FontWeight.w400,
               ),
             ),
-            const SizedBox(
-              height: 6,
-            ),
+            const SizedBox(height: 6),
             Text(
               exam.examName ?? '--',
               maxLines: 2,
               overflow: TextOverflow.ellipsis,
               style: TextStyle(
-                color: Theme.of(context).colorScheme.secondary,
+                color: Theme.of(context).colorScheme.onSurface,
                 fontSize: 16,
                 fontWeight: FontWeight.bold,
               ),
@@ -79,7 +77,7 @@ class HomeContainerExamItemContainer extends StatelessWidget {
                     child: Icon(
                       Icons.calendar_month_outlined,
                       size: 18,
-                      color: Theme.of(context).colorScheme.onSurface,
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
                     ),
                   ),
                   TextSpan(
@@ -91,7 +89,7 @@ class HomeContainerExamItemContainer extends StatelessWidget {
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
               style: TextStyle(
-                color: Theme.of(context).colorScheme.onSurface,
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
                 fontSize: 14,
                 fontWeight: FontWeight.w400,
               ),

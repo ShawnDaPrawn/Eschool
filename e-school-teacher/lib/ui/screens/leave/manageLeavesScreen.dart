@@ -228,7 +228,9 @@ class _ManageLeavesScreenState extends State<ManageLeavesScreen> {
   Widget _totalContainer({required String titleKey, required double total}) {
     return Container(
       decoration: BoxDecoration(
-        color: Theme.of(context).scaffoldBackgroundColor.withValues(alpha: 0.8),
+        color: Theme.of(
+          context,
+        ).colorScheme.surfaceContainerLowest.withValues(alpha: 0.8),
         borderRadius: BorderRadius.circular(10),
       ),
       padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 15),
@@ -241,7 +243,7 @@ class _ManageLeavesScreenState extends State<ManageLeavesScreen> {
                 : total.toStringAsFixed(1),
             style: TextStyle(
               fontSize: 22,
-              color: Theme.of(context).colorScheme.secondary,
+              color: Theme.of(context).colorScheme.onSurface,
               fontWeight: FontWeight.w600,
             ),
           ),
@@ -252,7 +254,7 @@ class _ManageLeavesScreenState extends State<ManageLeavesScreen> {
               fontSize: 14,
               color: Theme.of(
                 context,
-              ).colorScheme.secondary.withValues(alpha: 0.7),
+              ).colorScheme.onSurface.withValues(alpha: 0.7),
               fontWeight: FontWeight.w600,
             ),
           ),
@@ -273,7 +275,7 @@ class _ManageLeavesScreenState extends State<ManageLeavesScreen> {
           decoration: BoxDecoration(
             color: Theme.of(
               context,
-            ).colorScheme.secondary.withValues(alpha: 0.06),
+            ).colorScheme.onSurface.withValues(alpha: 0.06),
           ),
           child: Row(
             children: [
@@ -303,7 +305,7 @@ class _ManageLeavesScreenState extends State<ManageLeavesScreen> {
               children: [
                 Container(
                   decoration: BoxDecoration(
-                    color: Theme.of(context).colorScheme.surface,
+                    color: Theme.of(context).colorScheme.surfaceContainerLow,
                     borderRadius: BorderRadius.circular(4),
                   ),
                   padding: const EdgeInsets.symmetric(vertical: 10),
@@ -317,7 +319,7 @@ class _ManageLeavesScreenState extends State<ManageLeavesScreen> {
                             fontSize: 14,
                             color: Theme.of(
                               context,
-                            ).colorScheme.secondary.withValues(alpha: 0.7),
+                            ).colorScheme.onSurface.withValues(alpha: 0.7),
                             fontWeight: FontWeight.w600,
                           ),
                         ),
@@ -331,7 +333,7 @@ class _ManageLeavesScreenState extends State<ManageLeavesScreen> {
                             fontSize: 14,
                             color: Theme.of(
                               context,
-                            ).colorScheme.secondary.withValues(alpha: 0.7),
+                            ).colorScheme.onSurface.withValues(alpha: 0.7),
                             fontWeight: FontWeight.w600,
                           ),
                         ),
@@ -345,7 +347,7 @@ class _ManageLeavesScreenState extends State<ManageLeavesScreen> {
                             fontSize: 14,
                             color: Theme.of(
                               context,
-                            ).colorScheme.secondary.withValues(alpha: 0.7),
+                            ).colorScheme.onSurface.withValues(alpha: 0.7),
                             fontWeight: FontWeight.w600,
                           ),
                         ),
