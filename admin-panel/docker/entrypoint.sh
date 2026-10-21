@@ -4,7 +4,8 @@ cd /var/www/html
 
 # One image, three jobs on Cloud Run, chosen by CONTAINER_ROLE:
 #   web             Apache serving the panel, the API and the public pages (the
-#                   default). The only role that migrates the database.
+#                   default). The only role that migrates the database and runs
+#                   the installer seeders.
 #   worker          php artisan queue:work, restarted whenever it exits (it stops
 #                   itself after an hour); no migrations.
 #   scheduler       one php artisan schedule:run, then exit: a Cloud Run Job that
@@ -83,6 +84,13 @@ case "$ROLE" in
     web)
         php docker/migrate.php
         php docker/provision-admin.php
+        # New roles, permissions and email templates reach an existing install here
+        # (the System Update page and the /seeder_install URL used to do this). Both
+        # seeders are idempotent; InstallationSeeder clears the caches, so the config is
+        # cached again after them.
+        php artisan db:seed --class=InstallationSeeder --force
+        php artisan db:seed --class=EmailSeeder --force
+        php artisan config:cache
         exec apache2-foreground
         ;;
     worker)

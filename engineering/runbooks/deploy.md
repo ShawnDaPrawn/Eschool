@@ -21,7 +21,7 @@ Production is never deployed by a merge. The production workflow refuses any ref
 2. Authenticates to Google Cloud through Workload Identity Federation as `navigateed-deployer` (no stored key).
 3. Production only: `gcloud sql backups create` on `navigateed-mysql`, and lists it.
 4. Builds `admin-panel/Dockerfile` with `APP_RELEASE` set to the tag or commit, pushes it to Artifact Registry as `admin-panel:<commit>` (and `admin-panel:<tag>` for a tag), and deploys by digest.
-5. Deploys `navigateed-admin`. Its new revision starts in the web role: config cache, migrations (one instance at a time, behind a MySQL lock), admin provisioning, then Apache. Cloud Run sends traffic to it only once it listens; until then the previous revision serves. A failed migration fails the revision and the deploy stops here with the old revision still serving.
+5. Deploys `navigateed-admin`. Its new revision starts in the web role: config cache, migrations (one instance at a time, behind a MySQL lock), admin provisioning, `InstallationSeeder` and `EmailSeeder` (new roles, permissions and e-mail templates), config cache again, then Apache. Cloud Run sends traffic to it only once it listens; until then the previous revision serves. A failed migration fails the revision and the deploy stops here with the old revision still serving.
 6. Deploys `navigateed-worker` (worker role) with the same image.
 7. Updates the `navigateed-scheduler` job's image; the next minute's run uses it.
 8. Builds the Flutter web portals with `API_BASE_URL`, `ENV` and `FLAVOR` defines, once `e-school/web` and `e-school-teacher/web` exist.
