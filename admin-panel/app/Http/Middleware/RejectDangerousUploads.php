@@ -30,12 +30,27 @@ class RejectDangerousUploads
     /** Content types detected from the file itself (PHP source has no mapped extension). */
     private const BLOCKED_MIME_PATTERN = '#php|html|javascript|ecmascript|^(text|application)/x-(sh|shellscript|perl|python|ruby|msdownload|executable|dosexec)$|^(text|application)/xml$#i';
 
+    /**
+     * Images are decoded at about 4 bytes a pixel whatever their file size, so a
+     * small, highly compressed picture can need gigabytes. 30 megapixels covers
+     * phone and camera photos.
+     */
+    public const MAX_IMAGE_PIXELS = 30_000_000;
+
+    /** SVGs are parsed into a DOM to sanitise them, which takes many times their size. */
+    public const MAX_SVG_BYTES = 2 * 1024 * 1024;
+
     public function handle(Request $request, Closure $next)
     {
         foreach ($this->files($request->allFiles()) as $file) {
-            if ($this->isDangerous($file) || ! $this->sanitizeSvg($file)) {
-                $message = trans('The file type is not allowed.');
+            $message = match (true) {
+                $this->isDangerous($file) => trans('The file type is not allowed.'),
+                $this->hasTooManyPixels($file) => trans('The image is too large. Please upload one of at most 30 megapixels.'),
+                ! $this->sanitizeSvg($file) => trans('The SVG file is too large or not valid.'),
+                default => null,
+            };
 
+            if ($message !== null) {
                 if ($request->is('api/*') || $request->expectsJson() || $request->ajax()) {
                     return response()->json(['error' => true, 'message' => $message, 'code' => 102], 422);
                 }
@@ -58,9 +73,17 @@ class RejectDangerousUploads
             || preg_match(self::BLOCKED_MIME_PATTERN, (string) $file->getMimeType()) === 1;
     }
 
+    /** Reads only the image header, so it is cheap even for a huge file. */
+    private function hasTooManyPixels(UploadedFile $file): bool
+    {
+        $size = @getimagesize($file->getRealPath());
+
+        return is_array($size) && $size[0] * $size[1] > self::MAX_IMAGE_PIXELS;
+    }
+
     /**
      * Rewrites an uploaded SVG without scripts, event handlers or remote references.
-     * Returns false for an SVG that can't be parsed (it is refused).
+     * Returns false for an SVG that is too large or can't be parsed (it is refused).
      */
     private function sanitizeSvg(UploadedFile $file): bool
     {
@@ -69,6 +92,9 @@ class RejectDangerousUploads
             || str_contains((string) $file->getMimeType(), 'svg');
         if (! $isSvg) {
             return true;
+        }
+        if ($file->getSize() > self::MAX_SVG_BYTES) {
+            return false;
         }
 
         $sanitizer = new Sanitizer();

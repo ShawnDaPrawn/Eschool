@@ -18,6 +18,11 @@ class RateLimitTest extends TestCase
         parent::setUp();
 
         Route::middleware('web')->get('/_client-ip', fn (Request $request) => $request->ip());
+        Route::middleware('api')->match(['get', 'post'], 'api/_page', fn (Request $request) => response()->json([
+            'limit' => $request->input('limit'),
+            'offset' => $request->input('offset'),
+            'get_limit' => $_GET['limit'] ?? null,
+        ]));
     }
 
     public function test_a_visitor_cannot_choose_their_address_with_forwarded_headers(): void
@@ -56,6 +61,45 @@ class RateLimitTest extends TestCase
         $this->assertSame(PHP_INT_MAX, $webhook->maxAttempts);
 
         $this->assertContains('throttle:web', app('router')->getMiddlewareGroups()['web']);
+    }
+
+    public function test_page_sizes_and_offsets_are_kept_in_range(): void
+    {
+        // List endpoints pass these straight to the query; a negative limit meant no LIMIT at all.
+        $_GET = ['limit' => '100000000', 'offset' => '-5'];
+        try {
+            $this->getJson('/api/_page?limit=100000000&offset=-5')
+                ->assertExactJson(['limit' => '1000', 'offset' => '0', 'get_limit' => '1000']);
+        } finally {
+            $_GET = [];
+        }
+
+        $this->getJson('/api/_page?limit=-1')->assertJson(['limit' => '1']);
+        $this->getJson('/api/_page?limit[]=5')->assertJson(['limit' => null]);
+        $this->postJson('/api/_page', ['limit' => 25])->assertJson(['limit' => '25']);
+    }
+
+    public function test_large_json_bodies_are_refused_before_they_are_parsed(): void
+    {
+        $body = json_encode(['answers_data' => array_fill(0, 200000, ['question_id' => 1])]);
+        $this->assertGreaterThan(\App\Http\Middleware\LimitRequestInput::MAX_JSON_BYTES, strlen($body));
+
+        $this->call('POST', '/api/_page', [], [], [], ['CONTENT_TYPE' => 'application/json', 'HTTP_ACCEPT' => 'application/json', 'CONTENT_LENGTH' => strlen($body)], $body)
+            ->assertStatus(413);
+    }
+
+    public function test_pdf_and_import_routes_have_their_own_tighter_limit(): void
+    {
+        $app = RateLimiter::limiter('heavy')(Request::create('/api/student/id-card-pdf'));
+        $this->assertSame(10, $app->maxAttempts);
+        $this->assertSame(30, RateLimiter::limiter('heavy')(Request::create('/generate-result/1'))->maxAttempts);
+
+        foreach (['api/student/id-card-pdf', 'api/parent/fees-paid-receipt-pdf', 'api/teacher/get-student-result-pdf'] as $uri) {
+            $route = Route::getRoutes()->match(Request::create('/'.$uri));
+            $this->assertContains('throttle:heavy', $route->gatherMiddleware(), $uri);
+        }
+        $route = Route::getRoutes()->match(Request::create('/students/store_bulk', 'POST'));
+        $this->assertContains('throttle:heavy', $route->gatherMiddleware());
     }
 
     public function test_too_many_requests_from_one_address_are_refused(): void

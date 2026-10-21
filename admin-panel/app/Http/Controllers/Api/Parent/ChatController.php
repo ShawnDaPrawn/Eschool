@@ -228,10 +228,11 @@ class ChatController extends Controller
         $chatSettings = getSettings();
         $maxFiles = max(1, (int) ($chatSettings['max_files_or_images_in_one_message'] ?? 10));
         $maxFileKb = max(1, (int) ceil(((float) ($chatSettings['max_file_size_in_bytes'] ?? 10)) * 1000000 / 1024));
+        $maxChars = max(1, (int) ($chatSettings['max_characters_in_text_message'] ?? 500));
 
         $validator = Validator::make($request->all(), [
             'receiver_id' => 'required|integer',
-            'message' => 'required_without:file',
+            'message' => 'required_without:file|nullable|string|max:'.$maxChars,
             'file' => 'nullable|array|max:'.$maxFiles,
             'file.*' => 'file|max:'.$maxFileKb,
         ]);

@@ -13,6 +13,9 @@ use RuntimeException;
 
 class IdCardService
 {
+    /** One PDF covers at most this many people (the largest page the lists offer). */
+    public const MAX_CARDS = 500;
+
     /** mm -> points (dompdf paper units) */
     private const MM_TO_PT = 2.8346456693;
 
@@ -30,6 +33,9 @@ class IdCardService
      */
     public function buildPdf(array $studentIds): DomPdf
     {
+        if (count($studentIds) > self::MAX_CARDS) {
+            throw new RuntimeException(trans('Select at most :count people per ID card PDF.', ['count' => self::MAX_CARDS]));
+        }
         $settings = getSettings();
 
         if (! isset($settings['student_id_card_fields'])) {
@@ -72,6 +78,9 @@ class IdCardService
      */
     public function buildStaffPdf(array $userIds): DomPdf
     {
+        if (count($userIds) > self::MAX_CARDS) {
+            throw new RuntimeException(trans('Select at most :count people per ID card PDF.', ['count' => self::MAX_CARDS]));
+        }
         $settings = getSettings();
 
         if (! isset($settings['staff_id_card_fields'])) {

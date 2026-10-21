@@ -492,22 +492,23 @@ class FeesPaymentService
      */
     private function ids(array $rows, string $emptyMessage): array
     {
+        // Keyed by id so the duplicate check stays linear for long lists.
         $ids = [];
         foreach ($rows as $row) {
             $id = is_array($row) ? ($row['id'] ?? null) : $row;
             if (! is_numeric($id) || (int) $id <= 0 || (string) (int) $id !== (string) $id) {
                 $this->fail('Invalid fee selected.');
             }
-            if (in_array((int) $id, $ids, true)) {
+            if (isset($ids[(int) $id])) {
                 $this->fail('The same fee was selected twice.');
             }
-            $ids[] = (int) $id;
+            $ids[(int) $id] = true;
         }
         if ($ids === []) {
             $this->fail($emptyMessage);
         }
 
-        return $ids;
+        return array_keys($ids);
     }
 
     /**

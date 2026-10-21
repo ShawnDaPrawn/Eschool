@@ -75,6 +75,15 @@ class RouteServiceProvider extends ServiceProvider
                 : Limit::perMinute(300)->by('web-ip:'.$request->ip());
         });
 
+        // PDFs, exports and bulk imports each take seconds of CPU and a lot of
+        // memory, so one user can't run them back to back. Staff get more: printing
+        // a class's report cards one by one is normal.
+        RateLimiter::for('heavy', function (Request $request) {
+            $key = 'heavy:'.($request->user()?->id ?: $request->ip());
+
+            return $request->is('api/*') ? Limit::perMinute(10)->by($key) : Limit::perMinute(30)->by($key);
+        });
+
         // App logins and password resets. Default passwords are dates of birth, so
         // guesses are limited per account as well as per address.
         RateLimiter::for('login', function (Request $request) {
