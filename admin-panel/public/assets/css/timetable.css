@@ -18,21 +18,16 @@
 .timetable-day {
     display: flex;
     flex-direction: column;
-    background: #fff;
-    border: 1px solid rgba(27, 27, 27, 0.06);
+    background: var(--md-sys-color-surface-container-lowest);
+    border: 1px solid var(--md-sys-color-outline-variant);
     border-radius: 14px;
-    box-shadow:
-        0 1px 2px rgba(16, 24, 40, 0.04),
-        0 2px 6px rgba(16, 24, 40, 0.04);
+    box-shadow: var(--md-sys-elevation-level1);
     overflow: hidden;
     transition: box-shadow 0.25s ease, border-color 0.25s ease, transform 0.25s ease;
 }
 
 .timetable-day:hover {
-    box-shadow:
-        0 2px 4px rgba(16, 24, 40, 0.05),
-        0 6px 16px rgba(16, 24, 40, 0.05),
-        0 12px 28px rgba(16, 24, 40, 0.04);
+    box-shadow: var(--md-sys-elevation-level2);
 }
 
 /* --- Day header (theme-tinted bar) ---------------------------- */
@@ -41,8 +36,8 @@
     align-items: center;
     gap: 0.5rem;
     padding: 0.75rem 1rem;
-    background: color-mix(in srgb, var(--theme-color) 8%, #fff);
-    border-bottom: 1px solid color-mix(in srgb, var(--theme-color) 12%, rgba(27, 27, 27, 0.06));
+    background: var(--md-sys-color-inverse-surface);
+    border-bottom: 1px solid var(--md-sys-color-outline-variant);
 }
 
 .timetable-day__head::before {
@@ -50,7 +45,7 @@
     flex: 0 0 auto;
     width: 18px;
     height: 18px;
-    background-color: var(--theme-color);
+    background-color: var(--md-sys-color-on-inverse-surface);
     -webkit-mask-repeat: no-repeat;
     mask-repeat: no-repeat;
     -webkit-mask-position: center;
@@ -63,9 +58,10 @@
 
 .timetable-day__name {
     flex: 1 1 auto;
-    font-family: "Roboto-Medium", "ubuntu-medium", sans-serif;
+    font-family: var(--md-ref-typeface-plain);
+    font-weight: 500;
     font-size: 0.9375rem;
-    color: #343a40;
+    color: var(--md-sys-color-on-inverse-surface);
     text-transform: capitalize;
     letter-spacing: -0.005em;
 }
@@ -77,10 +73,11 @@
     text-align: center;
     font-size: 0.75rem;
     line-height: 1.4;
-    font-family: "Roboto-Medium", "ubuntu-medium", sans-serif;
-    color: var(--theme-color);
-    background: color-mix(in srgb, var(--theme-color) 12%, transparent);
-    border: 1px solid color-mix(in srgb, var(--theme-color) 25%, transparent);
+    font-family: var(--md-ref-typeface-plain);
+    font-weight: 500;
+    color: var(--md-sys-color-on-inverse-surface);
+    background: color-mix(in srgb, var(--md-sys-color-on-inverse-surface) 12%, transparent);
+    border: 1px solid color-mix(in srgb, var(--md-sys-color-on-inverse-surface) 25%, transparent);
     border-radius: 10rem;
 }
 
@@ -98,24 +95,24 @@
     padding: 0.75rem 0.25rem;
     text-align: center;
     font-size: 0.8125rem;
-    color: #8c8c8c;
+    color: var(--md-sys-color-on-surface-variant);
 }
 
 /* --- Single period card --------------------------------------- */
 .timetable-period {
     position: relative;
     padding: 0.625rem 0.75rem 0.625rem 0.875rem;
-    background: #fff;
-    border: 1px solid rgba(27, 27, 27, 0.06);
-    border-left: 3px solid var(--theme-color);
+    background: var(--md-sys-color-surface-container-lowest);
+    border: 1px solid var(--md-sys-color-outline-variant);
+    border-left: 3px solid var(--md-sys-color-primary);
     border-radius: 10px;
     transition: background-color 0.2s ease, border-color 0.2s ease;
 }
 
 .timetable-period:hover {
-    background: color-mix(in srgb, var(--theme-color) 4%, #fff);
-    border-color: color-mix(in srgb, var(--theme-color) 18%, rgba(27, 27, 27, 0.06));
-    border-left-color: var(--theme-color);
+    background: color-mix(in srgb, var(--md-sys-color-primary) 4%, var(--md-sys-color-surface-container-lowest));
+    border-color: color-mix(in srgb, var(--md-sys-color-primary) 18%, var(--md-sys-color-outline-variant));
+    border-left-color: var(--md-sys-color-primary);
 }
 
 /* Time chip with clock icon */
@@ -125,8 +122,9 @@
     gap: 0.3125rem;
     margin-bottom: 0.375rem;
     font-size: 0.75rem;
-    color: rgba(27, 27, 27, 0.7);
-    font-family: "Roboto-Medium", "ubuntu-medium", sans-serif;
+    color: var(--md-sys-color-on-surface-variant);
+    font-family: var(--md-ref-typeface-plain);
+    font-weight: 500;
 }
 
 .timetable-period__time::before {
@@ -151,9 +149,10 @@
     align-items: center;
     flex-wrap: wrap;
     gap: 0.375rem;
-    font-family: "Roboto-Medium", "ubuntu-medium", sans-serif;
+    font-family: var(--md-ref-typeface-plain);
+    font-weight: 500;
     font-size: 0.875rem;
-    color: #343a40;
+    color: var(--md-sys-color-on-surface);
     line-height: 1.3;
 }
 
@@ -168,7 +167,7 @@
     gap: 0.3125rem;
     margin-top: 0.3125rem;
     font-size: 0.8125rem;
-    color: #8c8c8c;
+    color: var(--md-sys-color-on-surface-variant);
 }
 
 .timetable-period__teacher::before {
@@ -191,8 +190,9 @@
 .timetable-period__class {
     margin-bottom: 0.25rem;
     font-size: 0.75rem;
-    color: var(--theme-color);
-    font-family: "Roboto-Medium", "ubuntu-medium", sans-serif;
+    color: var(--md-sys-color-primary);
+    font-family: var(--md-ref-typeface-plain);
+    font-weight: 500;
     text-transform: uppercase;
     letter-spacing: 0.02em;
 }
@@ -202,7 +202,7 @@
     display: inline-block;
     margin-top: 0.4375rem;
     font-size: 0.8125rem;
-    color: var(--theme-color);
+    color: var(--md-sys-color-primary);
 }
 
 .timetable-period__actions {
@@ -217,9 +217,9 @@
     padding: 2rem 1.5rem;
     max-width: 28rem;
     text-align: center;
-    color: #8c8c8c;
-    background: color-mix(in srgb, var(--theme-color) 3%, #fff);
-    border: 1px dashed color-mix(in srgb, var(--theme-color) 18%, rgba(27, 27, 27, 0.08));
+    color: var(--md-sys-color-on-surface-variant);
+    background: color-mix(in srgb, var(--md-sys-color-primary) 3%, var(--md-sys-color-surface-container-lowest));
+    border: 1px dashed color-mix(in srgb, var(--md-sys-color-primary) 18%, var(--md-sys-color-outline-variant));
     border-radius: 14px;
 }
 
@@ -229,7 +229,7 @@
     width: 32px;
     height: 32px;
     margin: 0 auto 0.5rem;
-    background-color: color-mix(in srgb, var(--theme-color) 55%, #8c8c8c);
+    background-color: color-mix(in srgb, var(--md-sys-color-primary) 55%, var(--md-sys-color-on-surface-variant));
     -webkit-mask-repeat: no-repeat;
     mask-repeat: no-repeat;
     -webkit-mask-position: center;
@@ -241,19 +241,20 @@
 }
 
 .timetable-empty strong {
-    font-family: "Roboto-Medium", "ubuntu-medium", sans-serif;
-    color: #343a40;
+    font-family: var(--md-ref-typeface-plain);
+    font-weight: 500;
+    color: var(--md-sys-color-on-surface);
 }
 
 /* --- RTL: flip the period accent strip to the inline-end ------ */
 [dir="rtl"] .timetable-period {
-    border-left: 1px solid rgba(27, 27, 27, 0.06);
-    border-right: 3px solid var(--theme-color);
+    border-left: 1px solid var(--md-sys-color-outline-variant);
+    border-right: 3px solid var(--md-sys-color-primary);
     padding: 0.625rem 0.875rem 0.625rem 0.75rem;
 }
 
 [dir="rtl"] .timetable-period:hover {
-    border-right-color: var(--theme-color);
+    border-right-color: var(--md-sys-color-primary);
 }
 
 /* =============================================================
@@ -264,9 +265,9 @@
 
 /* --- Filters card: session-year + class-section selectors ----- */
 .tt-filters .form-label {
-    font-family: "Roboto-Medium", "ubuntu-medium", sans-serif;
+    font-family: var(--md-ref-typeface-plain);
     font-weight: 500;
-    color: #343a40;
+    color: var(--md-sys-color-on-surface);
     margin-bottom: 0.375rem;
 }
 
@@ -285,11 +286,11 @@
     width: 100%;
     min-height: 320px;
     gap: 0.875rem;
-    color: rgba(27, 27, 27, 0.7);
+    color: var(--md-sys-color-on-surface-variant);
 }
 
 .tt-loader__spinner {
-    color: var(--theme-color);
+    color: var(--md-sys-color-primary);
     animation: tt-spin 0.8s linear infinite;
 }
 
@@ -317,9 +318,9 @@
     gap: 0.375rem;
     padding: 0.3125rem;
     margin-bottom: 1.5rem;
-    border: 1px solid rgba(27, 27, 27, 0.06);
+    border: 1px solid var(--md-sys-color-outline-variant);
     border-radius: 12px;
-    background: color-mix(in srgb, var(--theme-color) 4%, #f7f8fa);
+    background: var(--md-sys-color-surface-container);
 }
 
 .tt-days.timetable_nav .nav-item {
@@ -334,8 +335,8 @@
     border: 0;
     border-radius: 9px;
     background: transparent;
-    color: rgba(27, 27, 27, 0.7);
-    font-family: "Roboto-Medium", "ubuntu-medium", sans-serif;
+    color: var(--md-sys-color-on-surface-variant);
+    font-family: var(--md-ref-typeface-plain);
     font-weight: 500;
     font-size: 0.875rem;
     white-space: nowrap;
@@ -343,16 +344,14 @@
 }
 
 .tt-days.timetable_nav .nav-link:hover {
-    background: color-mix(in srgb, var(--theme-color) 7%, transparent);
-    color: var(--theme-color);
+    background: color-mix(in srgb, var(--md-sys-color-primary) 7%, transparent);
+    color: var(--md-sys-color-primary);
 }
 
 .tt-days.timetable_nav .nav-link.active {
-    background: #fff;
-    color: var(--theme-color);
-    box-shadow:
-        0 1px 2px rgba(16, 24, 40, 0.06),
-        0 2px 6px rgba(16, 24, 40, 0.06);
+    background: var(--md-sys-color-surface-container-lowest);
+    color: var(--md-sys-color-primary);
+    box-shadow: var(--md-sys-elevation-level1);
 }
 
 /* --- Column header (desktop) — aligns with the .tt-row grid --- */
@@ -369,28 +368,28 @@
 .tt-grid-head {
     padding: 0 0.875rem 0.625rem;
     margin-bottom: 0.5rem;
-    border-bottom: 1px solid rgba(27, 27, 27, 0.06);
+    border-bottom: 1px solid var(--md-sys-color-outline-variant);
 }
 
 .tt-grid-head__label {
     display: inline-flex;
     align-items: center;
     gap: 0.375rem;
-    font-family: "Roboto-Medium", "ubuntu-medium", sans-serif;
+    font-family: var(--md-ref-typeface-plain);
     font-weight: 500;
     font-size: 0.75rem;
     letter-spacing: 0.02em;
     text-transform: uppercase;
-    color: #475569;
+    color: var(--md-sys-color-on-surface-variant);
 }
 
 .tt-grid-head__label .lc-icon {
-    color: var(--theme-color);
+    color: var(--md-sys-color-primary);
     flex: none;
 }
 
 .tt-grid-head__label .req {
-    color: #dc3545;
+    color: var(--md-sys-color-error);
 }
 
 /* --- Period rows --------------------------------------------- */
@@ -403,17 +402,15 @@
 .tt-row {
     padding: 0.625rem 0.875rem;
     margin: 0;
-    border: 1px solid rgba(27, 27, 27, 0.06);
+    border: 1px solid var(--md-sys-color-outline-variant);
     border-radius: 12px;
-    background: #fff;
+    background: var(--md-sys-color-surface-container-lowest);
     transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
 
 .tt-row:hover {
-    border-color: color-mix(in srgb, var(--theme-color) 22%, rgba(27, 27, 27, 0.06));
-    box-shadow:
-        0 1px 2px rgba(16, 24, 40, 0.04),
-        0 2px 6px rgba(16, 24, 40, 0.04);
+    border-color: color-mix(in srgb, var(--md-sys-color-primary) 22%, var(--md-sys-color-outline-variant));
+    box-shadow: var(--md-sys-elevation-level1);
 }
 
 .tt-row .form-control {
@@ -432,17 +429,17 @@
     width: 38px;
     height: 38px;
     padding: 0;
-    border: 1px solid color-mix(in srgb, #dc3545 22%, transparent);
+    border: 1px solid color-mix(in srgb, var(--md-sys-color-error) 22%, transparent);
     border-radius: 9px;
-    background: color-mix(in srgb, #dc3545 8%, #fff);
-    color: #b42318;
+    background: color-mix(in srgb, var(--md-sys-color-error) 8%, var(--md-sys-color-surface-container-lowest));
+    color: var(--md-sys-color-error);
     transition: background 0.2s ease, border-color 0.2s ease, color 0.2s ease;
 }
 
 .tt-row__remove:hover {
-    background: color-mix(in srgb, #dc3545 14%, #fff);
-    border-color: color-mix(in srgb, #dc3545 35%, transparent);
-    color: #b42318;
+    background: color-mix(in srgb, var(--md-sys-color-error) 14%, var(--md-sys-color-surface-container-lowest));
+    border-color: color-mix(in srgb, var(--md-sys-color-error) 35%, transparent);
+    color: var(--md-sys-color-error);
 }
 
 .tt-row__remove:disabled,
@@ -460,7 +457,7 @@
     gap: 0.75rem;
     margin-top: 1.25rem;
     padding-top: 1.25rem;
-    border-top: 1px solid rgba(27, 27, 27, 0.06);
+    border-top: 1px solid var(--md-sys-color-outline-variant);
 }
 
 /* Add-period — a dashed ghost button reading as "insert another row". */
@@ -469,20 +466,20 @@
     align-items: center;
     gap: 0.5rem;
     padding: 0.5rem 1rem;
-    border: 1px dashed color-mix(in srgb, var(--theme-color) 40%, rgba(27, 27, 27, 0.18));
+    border: 1px dashed color-mix(in srgb, var(--md-sys-color-primary) 40%, var(--md-sys-color-outline-variant));
     border-radius: 10px;
-    background: color-mix(in srgb, var(--theme-color) 5%, #fff);
-    color: var(--theme-color);
-    font-family: "Roboto-Medium", "ubuntu-medium", sans-serif;
+    background: color-mix(in srgb, var(--md-sys-color-primary) 5%, var(--md-sys-color-surface-container-lowest));
+    color: var(--md-sys-color-primary);
+    font-family: var(--md-ref-typeface-plain);
     font-weight: 500;
     font-size: 0.875rem;
     transition: background 0.2s ease, border-color 0.2s ease;
 }
 
 .tt-add:hover {
-    background: color-mix(in srgb, var(--theme-color) 10%, #fff);
-    border-color: var(--theme-color);
-    color: var(--theme-color);
+    background: color-mix(in srgb, var(--md-sys-color-primary) 10%, var(--md-sys-color-surface-container-lowest));
+    border-color: var(--md-sys-color-primary);
+    color: var(--md-sys-color-primary);
 }
 
 .tt-footer .btn-theme {
@@ -505,10 +502,10 @@
         content: attr(data-label);
         display: block;
         margin-bottom: 0.25rem;
-        font-family: "Roboto-Medium", "ubuntu-medium", sans-serif;
+        font-family: var(--md-ref-typeface-plain);
         font-weight: 500;
         font-size: 0.75rem;
-        color: #8c8c8c;
+        color: var(--md-sys-color-on-surface-variant);
     }
 
     .tt-row .tt-cell--wide {
@@ -524,7 +521,7 @@
 
     .tt-row__remove::after {
         content: attr(data-label);
-        font-family: "Roboto-Medium", "ubuntu-medium", sans-serif;
+        font-family: var(--md-ref-typeface-plain);
         font-weight: 500;
         font-size: 0.875rem;
     }

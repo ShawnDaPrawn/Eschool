@@ -1,0 +1,1555 @@
+/*
+ * Material 3 components for the admin panel.
+ *
+ * The same components as the apps' Flutter theme (packages/eschool_core,
+ * AppTheme): Material 3's defaults, with a 10px corner on buttons, text
+ * fields and cards (AppTheme.radius = --app-radius). The template's
+ * Bootstrap 4 markup is restyled in place, so no view has to change.
+ *
+ * Load order: after m3-base.css and before the redesign stylesheets
+ * (sidebar, header, content, tables and the per-page sheets), so those can
+ * still refine a component for one screen. Specificity notes are next to the
+ * rules that need them. Values are tokens from m3-tokens.css only.
+ * See wiki/UI-Standards.md#admin-panel-and-website.
+ */
+
+/* ── Buttons ─────────────────────────────────────────────────────────────
+   Filled, tonal, outlined and text buttons: 40px high, label-large, 10px
+   corners. Each variant only sets the four custom properties below; the
+   shared rules apply them, with M3 state layers for hover, focus and press.
+   The doubled .btn.btn outranks the template's `.btn-x:not(.btn-light)`
+   rules (0,2,0) and Bootstrap's `:not(:disabled):not(.disabled):active`
+   (0,4,0) is matched by the state selectors. */
+
+.btn {
+    --btn-container: transparent;
+    --btn-content: var(--md-sys-color-primary);
+    --btn-outline: transparent;
+    --btn-hover-elevation: none;
+}
+
+.btn-primary,
+.btn-theme,
+.btn-gradient-primary {
+    --btn-container: var(--md-sys-color-primary);
+    --btn-content: var(--md-sys-color-on-primary);
+    --btn-hover-elevation: var(--md-sys-elevation-level1);
+}
+
+.btn-danger,
+.btn-gradient-danger {
+    --btn-container: var(--md-sys-color-error);
+    --btn-content: var(--md-sys-color-on-error);
+    --btn-hover-elevation: var(--md-sys-elevation-level1);
+}
+
+.btn-success,
+.btn-gradient-success {
+    --btn-container: var(--app-status-success);
+    --btn-content: var(--app-status-on-success);
+    --btn-hover-elevation: var(--md-sys-elevation-level1);
+}
+
+.btn-warning,
+.btn-gradient-warning {
+    --btn-container: var(--app-status-warning);
+    --btn-content: var(--app-status-on-warning);
+    --btn-hover-elevation: var(--md-sys-elevation-level1);
+}
+
+.btn-info,
+.btn-gradient-info {
+    --btn-container: var(--app-status-info);
+    --btn-content: var(--app-status-on-info);
+    --btn-hover-elevation: var(--md-sys-elevation-level1);
+}
+
+.btn-dark,
+.btn-gradient-dark {
+    --btn-container: var(--md-sys-color-inverse-surface);
+    --btn-content: var(--md-sys-color-on-inverse-surface);
+    --btn-hover-elevation: var(--md-sys-elevation-level1);
+}
+
+/* Tonal: secondary emphasis between filled and outlined. */
+.btn-light,
+.btn-inverse-primary,
+.btn-inverse-info,
+.btn-inverse-dark,
+.btn-inverse-secondary,
+.btn-inverse-light {
+    --btn-container: var(--md-sys-color-secondary-container);
+    --btn-content: var(--md-sys-color-on-secondary-container);
+}
+
+.btn-inverse-danger {
+    --btn-container: color-mix(in srgb, var(--md-sys-color-error) 14%, var(--md-sys-color-surface-container-lowest));
+    --btn-content: var(--md-sys-color-error);
+}
+
+.btn-inverse-success {
+    --btn-container: color-mix(in srgb, var(--app-status-success) 16%, var(--md-sys-color-surface-container-lowest));
+    --btn-content: var(--app-status-success-text);
+}
+
+.btn-inverse-warning {
+    --btn-container: color-mix(in srgb, var(--app-status-warning) 18%, var(--md-sys-color-surface-container-lowest));
+    --btn-content: var(--app-status-warning-text);
+}
+
+/* Outlined: the secondary action next to a filled one (Cancel, Close). */
+.btn-secondary,
+.btn-outline-primary,
+.btn-outline-secondary,
+.btn-outline-dark,
+.btn-outline-info,
+.btn-outline-light {
+    --btn-outline: var(--md-sys-color-outline);
+}
+
+.btn-outline-danger {
+    --btn-outline: var(--md-sys-color-outline);
+    --btn-content: var(--md-sys-color-error);
+}
+
+.btn-outline-success {
+    --btn-outline: var(--md-sys-color-outline);
+    --btn-content: var(--app-status-success-text);
+}
+
+.btn-outline-warning {
+    --btn-outline: var(--md-sys-color-outline);
+    --btn-content: var(--app-status-warning-text);
+}
+
+.btn.btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    min-height: 40px;
+    padding: 0 24px;
+    border: 1px solid var(--btn-outline);
+    border-radius: var(--app-radius);
+    background-color: var(--btn-container);
+    background-image: none;
+    color: var(--btn-content);
+    box-shadow: none;
+    font-family: var(--md-ref-typeface-plain);
+    font-size: var(--md-sys-typescale-label-large-size);
+    line-height: var(--md-sys-typescale-label-large-line-height);
+    font-weight: var(--md-sys-typescale-label-large-weight);
+    letter-spacing: var(--md-sys-typescale-label-large-tracking);
+    text-transform: none;
+    text-decoration: none;
+    vertical-align: middle;
+    transition: background-color 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+}
+
+/* <input type="submit" class="btn"> can't be a flex box. */
+input.btn.btn {
+    display: inline-block;
+}
+
+.btn.btn i,
+.btn.btn .fa {
+    font-size: 18px;
+    line-height: 1;
+}
+
+.btn.btn svg {
+    flex: 0 0 auto;
+    width: 18px;
+    height: 18px;
+}
+
+.btn.btn:not(:disabled):not(.disabled):hover {
+    background-color: color-mix(in srgb, var(--btn-content) var(--md-sys-state-hover-opacity), var(--btn-container));
+    border-color: var(--btn-outline);
+    color: var(--btn-content);
+    box-shadow: var(--btn-hover-elevation);
+    text-decoration: none;
+}
+
+.btn.btn:not(:disabled):not(.disabled):focus,
+.btn.btn:not(:disabled):not(.disabled).focus {
+    background-color: color-mix(in srgb, var(--btn-content) var(--md-sys-state-focus-opacity), var(--btn-container));
+    border-color: var(--btn-outline);
+    color: var(--btn-content);
+    box-shadow: none;
+    outline: 0;
+}
+
+.btn.btn:not(:disabled):not(.disabled):active,
+.btn.btn:not(:disabled):not(.disabled).active,
+.show>.btn.btn.dropdown-toggle {
+    background-color: color-mix(in srgb, var(--btn-content) var(--md-sys-state-pressed-opacity), var(--btn-container));
+    border-color: var(--btn-outline);
+    color: var(--btn-content);
+    box-shadow: none;
+}
+
+.btn.btn:not(:disabled):not(.disabled):active:focus,
+.btn.btn:not(:disabled):not(.disabled).active:focus {
+    box-shadow: none;
+}
+
+.btn.btn:focus-visible {
+    outline: 3px solid var(--md-sys-color-secondary);
+    outline-offset: 2px;
+}
+
+/* Disabled: on-surface at 38% on a 12% container (none for outlined and
+   text buttons, whose outline drops to 12%). */
+.btn.btn:disabled,
+.btn.btn.disabled {
+    opacity: 1;
+    box-shadow: none;
+    cursor: default;
+    color: color-mix(in srgb, var(--md-sys-color-on-surface) var(--md-sys-state-disabled-content-opacity), transparent);
+    background-color: color-mix(in srgb, var(--md-sys-color-on-surface) var(--md-sys-state-disabled-container-opacity), transparent);
+    border-color: transparent;
+}
+
+.btn.btn-secondary:disabled,
+.btn.btn-secondary.disabled,
+.btn.btn-link:disabled,
+.btn.btn-link.disabled,
+.btn[class*="btn-outline-"]:disabled,
+.btn[class*="btn-outline-"].disabled {
+    background-color: transparent;
+}
+
+.btn.btn-secondary:disabled,
+.btn.btn-secondary.disabled,
+.btn[class*="btn-outline-"]:disabled,
+.btn[class*="btn-outline-"].disabled {
+    border-color: color-mix(in srgb, var(--md-sys-color-on-surface) var(--md-sys-state-disabled-container-opacity), transparent);
+}
+
+/* Text button */
+.btn.btn-link {
+    padding: 0 12px;
+}
+
+/* Sizes. M3 has one standard height (40px); the template's small buttons
+   become M3's 32px extra-small, and large ones 48px. */
+.btn.btn-sm,
+.btn.btn-xs,
+.btn-group-sm>.btn.btn {
+    min-height: 32px;
+    padding: 0 16px;
+    gap: 6px;
+}
+
+.btn.btn-lg,
+.btn-group-lg>.btn.btn {
+    min-height: 48px;
+    padding: 0 28px;
+}
+
+.btn.btn-block {
+    display: flex;
+    width: 100%;
+}
+
+/* Icon buttons (icon only): 40px circles. */
+.btn.btn-icon,
+.btn.btn-rounded {
+    border-radius: var(--md-sys-shape-corner-full);
+}
+
+.btn.btn-icon {
+    width: 40px;
+    height: 40px;
+    min-height: 40px;
+    padding: 0;
+    gap: 0;
+}
+
+.btn.btn-icon.btn-sm,
+.btn.btn-icon.btn-xs {
+    width: 32px;
+    height: 32px;
+    min-height: 32px;
+}
+
+/* Bootstrap's close (×), used in alerts, cards and dialogs: a standard icon
+   button. */
+.close {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    padding: 0;
+    border-radius: var(--md-sys-shape-corner-full);
+    color: var(--md-sys-color-on-surface-variant);
+    font-size: 1.5rem;
+    font-weight: 400;
+    text-shadow: none;
+    opacity: 1;
+    transition: background-color 0.15s ease;
+}
+
+.close:not(:disabled):not(.disabled):hover,
+.close:not(:disabled):not(.disabled):focus {
+    color: var(--md-sys-color-on-surface-variant);
+    background-color: color-mix(in srgb, var(--md-sys-color-on-surface-variant) var(--md-sys-state-hover-opacity), transparent);
+    opacity: 1;
+    outline: 0;
+}
+
+.close:focus-visible {
+    outline: 3px solid var(--md-sys-color-secondary);
+    outline-offset: 2px;
+}
+
+/* ── Text fields ─────────────────────────────────────────────────────────
+   Flutter's TextField with OutlineInputBorder(radius: 10): a 1px outline
+   that turns 2px primary on focus (the inset shadow adds the second pixel,
+   so nothing moves), on the surface it sits on. 48px is Flutter's dense
+   field; the label sits above it on the web. */
+
+.form-control,
+.asColorPicker-input,
+.dataTables_wrapper select,
+.typeahead,
+.tt-query,
+.tt-hint {
+    height: 48px;
+    padding: 0 16px;
+    border: 1px solid var(--md-sys-color-outline);
+    border-radius: var(--app-radius);
+    background-color: transparent;
+    color: var(--md-sys-color-on-surface);
+    font-family: var(--md-ref-typeface-plain);
+    font-size: var(--md-sys-typescale-body-large-size);
+    line-height: var(--md-sys-typescale-body-large-line-height);
+    box-shadow: none;
+    transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+textarea.form-control {
+    height: auto;
+    min-height: 96px;
+    padding: 12px 16px;
+}
+
+select.form-control[multiple],
+select.form-control[size] {
+    height: auto;
+    padding: 8px 12px;
+}
+
+.form-control::placeholder {
+    color: var(--md-sys-color-on-surface-variant);
+    opacity: 1;
+}
+
+.form-control:hover:not(:disabled):not(:focus):not(.is-invalid):not(.error) {
+    border-color: var(--md-sys-color-on-surface);
+}
+
+.form-control:focus,
+.asColorPicker-input:focus,
+.typeahead:focus,
+.tt-query:focus {
+    border-color: var(--md-sys-color-primary);
+    background-color: transparent;
+    color: var(--md-sys-color-on-surface);
+    box-shadow: inset 0 0 0 1px var(--md-sys-color-primary);
+    outline: 0;
+}
+
+/* Read-only fields are still interactive (date pickers), so they keep the
+   normal look; disabled ones fade. */
+.form-control[readonly] {
+    background-color: transparent;
+}
+
+.form-control:disabled {
+    background-color: transparent;
+    border-color: color-mix(in srgb, var(--md-sys-color-on-surface) var(--md-sys-state-disabled-container-opacity), transparent);
+    color: color-mix(in srgb, var(--md-sys-color-on-surface) var(--md-sys-state-disabled-content-opacity), transparent);
+}
+
+.form-control.is-invalid,
+.form-control.error,
+.was-validated .form-control:invalid {
+    border-color: var(--md-sys-color-error);
+}
+
+.form-control.is-invalid:focus,
+.form-control.error:focus,
+.was-validated .form-control:invalid:focus {
+    border-color: var(--md-sys-color-error);
+    box-shadow: inset 0 0 0 1px var(--md-sys-color-error);
+}
+
+.form-control-sm {
+    height: 40px;
+    padding: 0 12px;
+    font-size: var(--md-sys-typescale-body-medium-size);
+    line-height: var(--md-sys-typescale-body-medium-line-height);
+}
+
+.form-control-lg {
+    height: 56px;
+}
+
+/* Native select: the same box with a chevron in on-surface-variant
+   (#64748b, written out: a data URI can't read CSS variables). The template
+   swaps the select's border for a faint outline (select.form-control, 0,1,1). */
+select.form-control,
+select.form-control:focus {
+    border: 1px solid var(--md-sys-color-outline);
+    outline: 0;
+    color: var(--md-sys-color-on-surface);
+}
+
+select.form-control:focus {
+    border-color: var(--md-sys-color-primary);
+}
+
+select.form-control:not([multiple]):not([size]) {
+    -webkit-appearance: none;
+    appearance: none;
+    padding-inline-end: 44px;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2364748b' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 14px center;
+    background-size: 20px 20px;
+}
+
+[dir="rtl"] select.form-control:not([multiple]):not([size]) {
+    background-position: left 14px center;
+}
+
+/* Labels above the field, helper and error text. */
+.form-group>label,
+.form-group label:not(.form-check-label):not(.error):not(.custom-control-label) {
+    margin-bottom: 8px;
+    color: var(--md-sys-color-on-surface);
+    font-size: var(--md-sys-typescale-body-medium-size);
+    line-height: var(--md-sys-typescale-body-medium-line-height);
+    font-weight: 500;
+}
+
+.form-text,
+.form-group small.text-muted {
+    margin-top: 4px;
+    font-size: var(--md-sys-typescale-body-small-size);
+    line-height: var(--md-sys-typescale-body-small-line-height);
+}
+
+label.error,
+.invalid-feedback {
+    display: block;
+    margin-top: 4px;
+    color: var(--md-sys-color-error);
+    font-size: var(--md-sys-typescale-body-small-size);
+    line-height: var(--md-sys-typescale-body-small-line-height);
+    font-weight: 400;
+}
+
+/* Input groups: one field with an attached button or affix. The joined edges
+   are square, the outer corners keep the 10px radius, and attached buttons
+   match the field's height. */
+.input-group>.form-control:not(:last-child),
+.input-group>.custom-select:not(:last-child) {
+    border-start-end-radius: 0;
+    border-end-end-radius: 0;
+}
+
+.input-group>.form-control:not(:first-child),
+.input-group>.custom-select:not(:first-child) {
+    border-start-start-radius: 0;
+    border-end-start-radius: 0;
+}
+
+.input-group>.input-group-append>.btn.btn,
+.input-group>.input-group-append>.input-group-text {
+    min-height: 48px;
+    height: 100%;
+    border-start-start-radius: 0;
+    border-end-start-radius: 0;
+    border-start-end-radius: var(--app-radius);
+    border-end-end-radius: var(--app-radius);
+}
+
+.input-group>.input-group-prepend>.btn.btn,
+.input-group>.input-group-prepend>.input-group-text {
+    min-height: 48px;
+    height: 100%;
+    border-start-end-radius: 0;
+    border-end-end-radius: 0;
+    border-start-start-radius: var(--app-radius);
+    border-end-start-radius: var(--app-radius);
+}
+
+.input-group-text {
+    padding: 0 16px;
+    border: 1px solid var(--md-sys-color-outline);
+    background-color: transparent;
+    color: var(--md-sys-color-on-surface-variant);
+    font-size: var(--md-sys-typescale-body-large-size);
+}
+
+/* ── Select2 ─────────────────────────────────────────────────────────────
+   The closed field matches .form-control; the open list is an M3 menu. */
+
+.select2-container--default .select2-selection--single,
+.select2-container--default .select2-selection--multiple {
+    min-height: 48px;
+    border: 1px solid var(--md-sys-color-outline);
+    border-radius: var(--app-radius);
+    background-color: transparent;
+    transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.select2-container--default .select2-selection--single {
+    height: 48px;
+    padding: 0;
+}
+
+.select2-container--default .select2-selection--single .select2-selection__rendered {
+    padding-inline-start: 16px;
+    padding-inline-end: 44px;
+    line-height: 46px;
+    color: var(--md-sys-color-on-surface);
+    font-family: var(--md-ref-typeface-plain);
+    font-size: var(--md-sys-typescale-body-large-size);
+}
+
+.select2-container--default .select2-selection--single .select2-selection__placeholder,
+.select2-container--default .select2-selection--multiple .select2-selection__placeholder {
+    color: var(--md-sys-color-on-surface-variant);
+}
+
+.select2-container--default .select2-selection--single .select2-selection__arrow {
+    top: 0;
+    right: 12px;
+    width: 20px;
+    height: 46px;
+}
+
+[dir="rtl"] .select2-container--default .select2-selection--single .select2-selection__arrow {
+    right: auto;
+    left: 12px;
+}
+
+.select2-container--default .select2-selection--single .select2-selection__arrow b {
+    border-color: var(--md-sys-color-on-surface-variant) transparent transparent transparent;
+}
+
+.select2-container--default.select2-container--open .select2-selection--single .select2-selection__arrow b {
+    border-color: transparent transparent var(--md-sys-color-on-surface-variant) transparent;
+}
+
+.select2-container--default:not(.select2-container--disabled) .select2-selection:hover {
+    border-color: var(--md-sys-color-on-surface);
+}
+
+.select2-container--default.select2-container--focus .select2-selection,
+.select2-container--default.select2-container--open .select2-selection {
+    border-color: var(--md-sys-color-primary);
+    box-shadow: inset 0 0 0 1px var(--md-sys-color-primary);
+}
+
+.select2-container--default.select2-container--disabled .select2-selection {
+    background-color: transparent;
+    border-color: color-mix(in srgb, var(--md-sys-color-on-surface) var(--md-sys-state-disabled-container-opacity), transparent);
+}
+
+.select2-container--default .select2-selection--multiple {
+    padding: 0 8px;
+}
+
+.select2-container--default .select2-selection--multiple .select2-selection__rendered {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px;
+    min-height: 46px;
+    margin: 0;
+    padding: 6px 0;
+}
+
+/* Chosen values: M3 input chips. */
+.select2-container--default .select2-selection--multiple .select2-selection__choice {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    height: 32px;
+    margin: 0;
+    padding: 0 12px 0 8px;
+    border: 1px solid var(--md-sys-color-outline-variant);
+    border-radius: var(--md-sys-shape-corner-small);
+    background: var(--md-sys-color-surface-container-low);
+    color: var(--md-sys-color-on-surface-variant);
+    font-family: var(--md-ref-typeface-plain);
+    font-size: var(--md-sys-typescale-label-large-size);
+    font-weight: 500;
+    line-height: 1;
+}
+
+/* Select2's RTL rule gives chips margin-right: auto, which spreads them
+   across the flex row. */
+.select2-container--default[dir="rtl"] .select2-selection--multiple .select2-selection__choice,
+[dir="rtl"] .select2-container--default .select2-selection--multiple .select2-selection__choice {
+    margin: 0;
+}
+
+.select2-container--default .select2-selection--multiple .select2-selection__choice .select2-selection__choice__remove {
+    margin: 0;
+    color: var(--md-sys-color-on-surface-variant);
+    font-size: 18px;
+    font-weight: 400;
+}
+
+.select2-container--default .select2-selection--multiple .select2-selection__choice .select2-selection__choice__remove:hover {
+    color: var(--md-sys-color-on-surface);
+}
+
+.select2-container--default .select2-search--inline {
+    margin: 0;
+}
+
+.select2-container--default .select2-search--inline .select2-search__field {
+    height: 32px;
+    margin: 0;
+    padding-inline-start: 8px;
+    color: var(--md-sys-color-on-surface);
+    font-family: var(--md-ref-typeface-plain);
+    font-size: var(--md-sys-typescale-body-large-size);
+}
+
+/* rtl.css colours each chip with :nth-child(5n+N) (0,4,0); repaint them. */
+[dir="rtl"] .select2-container--default .select2-selection--multiple .select2-selection__choice:nth-child(5n+1),
+[dir="rtl"] .select2-container--default .select2-selection--multiple .select2-selection__choice:nth-child(5n+2),
+[dir="rtl"] .select2-container--default .select2-selection--multiple .select2-selection__choice:nth-child(5n+3),
+[dir="rtl"] .select2-container--default .select2-selection--multiple .select2-selection__choice:nth-child(5n+4),
+[dir="rtl"] .select2-container--default .select2-selection--multiple .select2-selection__choice:nth-child(5n+5) {
+    background: var(--md-sys-color-surface-container-low);
+    color: var(--md-sys-color-on-surface-variant);
+}
+
+/* The open list (M3 menu). */
+.select2-container--default .select2-dropdown {
+    border: 0;
+    border-radius: var(--md-sys-shape-corner-extra-small);
+    background: var(--md-sys-color-surface-container);
+    box-shadow: var(--md-sys-elevation-level2);
+    overflow: hidden;
+}
+
+.select2-container--default .select2-dropdown--below {
+    margin-top: 4px;
+}
+
+.select2-container--default .select2-dropdown--above {
+    margin-top: -4px;
+}
+
+.select2-container--default .select2-results>.select2-results__options {
+    padding: 8px 0;
+}
+
+.select2-container--default .select2-results__option {
+    display: flex;
+    align-items: center;
+    min-height: 48px;
+    padding: 0 12px;
+    color: var(--md-sys-color-on-surface);
+    font-family: var(--md-ref-typeface-plain);
+    font-size: var(--md-sys-typescale-label-large-size);
+    font-weight: 500;
+}
+
+.select2-container--default .select2-results__option--highlighted[aria-selected] {
+    background: color-mix(in srgb, var(--md-sys-color-on-surface) var(--md-sys-state-hover-opacity), transparent);
+    color: var(--md-sys-color-on-surface);
+}
+
+.select2-container--default .select2-results__option[aria-selected=true] {
+    background: var(--md-sys-color-secondary-container);
+    color: var(--md-sys-color-on-secondary-container);
+}
+
+.select2-container--default .select2-results__option[aria-disabled=true] {
+    color: color-mix(in srgb, var(--md-sys-color-on-surface) var(--md-sys-state-disabled-content-opacity), transparent);
+}
+
+.select2-container--default .select2-search--dropdown {
+    padding: 8px 12px 0;
+}
+
+.select2-container--default .select2-search--dropdown .select2-search__field {
+    height: 40px;
+    padding: 0 12px;
+    border: 1px solid var(--md-sys-color-outline);
+    border-radius: var(--app-radius);
+    background: transparent;
+    color: var(--md-sys-color-on-surface);
+}
+
+.select2-container--default .select2-search--dropdown .select2-search__field:focus {
+    border-color: var(--md-sys-color-primary);
+    box-shadow: inset 0 0 0 1px var(--md-sys-color-primary);
+    outline: 0;
+}
+
+/* ── Checkboxes and radio buttons ────────────────────────────────────────
+   The template draws them with .input-helper::before (box) and ::after
+   (tick / dot). The empty .input-helper itself becomes M3's 40px circular
+   state layer, and the two pseudo-elements sit centred in it. The
+   template's box border is !important, so the border colour has to be. */
+
+.form-check .form-check-label input+.input-helper {
+    position: absolute;
+    top: -11px;
+    left: -11px;
+    width: 40px;
+    height: 40px;
+    border-radius: var(--md-sys-shape-corner-full);
+    pointer-events: none;
+    transition: background-color 0.15s ease;
+}
+
+[dir="rtl"] .form-check .form-check-label input+.input-helper,
+.rtl .form-check .form-check-label input+.input-helper {
+    left: auto;
+    right: -11px;
+}
+
+.form-check .form-check-label input[type="checkbox"]+.input-helper:before,
+.form-check .form-check-label input[type="checkbox"]+.input-helper:after,
+.form-check .form-check-label input[type="radio"]+.input-helper:before {
+    top: 11px;
+    left: 11px;
+    right: auto;
+}
+
+[dir="rtl"] .form-check .form-check-label input[type="checkbox"]+.input-helper:before,
+[dir="rtl"] .form-check .form-check-label input[type="checkbox"]+.input-helper:after,
+[dir="rtl"] .form-check .form-check-label input[type="radio"]+.input-helper:before,
+.rtl .form-check .form-check-label input[type="checkbox"]+.input-helper:before,
+.rtl .form-check .form-check-label input[type="checkbox"]+.input-helper:after,
+.rtl .form-check .form-check-label input[type="radio"]+.input-helper:before {
+    left: auto;
+    right: 11px;
+}
+
+.form-check .form-check-label:hover input+.input-helper {
+    background-color: color-mix(in srgb, var(--md-sys-color-on-surface) var(--md-sys-state-hover-opacity), transparent);
+}
+
+.form-check .form-check-label:hover input:checked+.input-helper {
+    background-color: color-mix(in srgb, var(--md-sys-color-primary) var(--md-sys-state-hover-opacity), transparent);
+}
+
+.form-check .form-check-label input:focus-visible+.input-helper {
+    background-color: color-mix(in srgb, var(--md-sys-color-on-surface) var(--md-sys-state-focus-opacity), transparent);
+}
+
+.form-check .form-check-label input:disabled+.input-helper {
+    background-color: transparent;
+}
+
+/* Checkbox: 18px, 2px corners, on-surface-variant outline; checked fills
+   with primary and shows the on-primary tick. */
+.form-check .form-check-label input[type="checkbox"]+.input-helper:before {
+    border: 2px solid var(--md-sys-color-on-surface-variant) !important;
+    border-radius: 2px;
+    background: transparent;
+}
+
+.form-check .form-check-label input[type="checkbox"]:checked+.input-helper:before {
+    border-color: var(--md-sys-color-primary) !important;
+    background: var(--md-sys-color-primary);
+}
+
+.form-check .form-check-label input[type="checkbox"]:disabled+.input-helper:before {
+    border-color: color-mix(in srgb, var(--md-sys-color-on-surface) var(--md-sys-state-disabled-content-opacity), transparent) !important;
+}
+
+.form-check .form-check-label input[type="checkbox"]:disabled:checked+.input-helper:before {
+    border-color: transparent !important;
+    background: color-mix(in srgb, var(--md-sys-color-on-surface) var(--md-sys-state-disabled-content-opacity), transparent);
+}
+
+.form-check .form-check-label input[type="checkbox"]:disabled:checked+.input-helper:after {
+    background-color: transparent;
+}
+
+/* Radio: 20px ring in on-surface-variant; checked is a primary ring with a
+   10px primary dot (not a filled disc). */
+.form-check .form-check-label input[type="radio"]+.input-helper:before {
+    border: 2px solid var(--md-sys-color-on-surface-variant);
+    background: transparent;
+}
+
+.form-check .form-check-label input[type="radio"]+.input-helper:after {
+    top: 16px;
+    left: 16px;
+    width: 10px;
+    height: 10px;
+    background: var(--md-sys-color-primary);
+}
+
+[dir="rtl"] .form-check .form-check-label input[type="radio"]+.input-helper:after,
+.rtl .form-check .form-check-label input[type="radio"]+.input-helper:after {
+    left: auto;
+    right: 16px;
+}
+
+.form-check .form-check-label input[type="radio"]:checked+.input-helper:before {
+    border: 2px solid var(--md-sys-color-primary);
+    background: transparent;
+}
+
+.form-check .form-check-label input[type="radio"]:disabled+.input-helper:before,
+.form-check .form-check-label input[type="radio"]:disabled:checked+.input-helper:before {
+    border-color: color-mix(in srgb, var(--md-sys-color-on-surface) var(--md-sys-state-disabled-content-opacity), transparent);
+    background: transparent;
+}
+
+.form-check .form-check-label input[type="radio"]:disabled:checked+.input-helper:after {
+    background: color-mix(in srgb, var(--md-sys-color-on-surface) var(--md-sys-state-disabled-content-opacity), transparent);
+}
+
+/* Plain checkboxes and radios without the template markup. */
+input[type="checkbox"],
+input[type="radio"] {
+    accent-color: var(--md-sys-color-primary);
+}
+
+/* Bootstrap custom controls. */
+.custom-control-label::before {
+    border: 2px solid var(--md-sys-color-on-surface-variant);
+    background-color: transparent;
+}
+
+.custom-checkbox .custom-control-label::before {
+    border-radius: 2px;
+}
+
+.custom-control-input:checked~.custom-control-label::before {
+    border-color: var(--md-sys-color-primary);
+    background-color: var(--md-sys-color-primary);
+}
+
+.custom-control-input:focus~.custom-control-label::before {
+    box-shadow: 0 0 0 11px color-mix(in srgb, var(--md-sys-color-on-surface) var(--md-sys-state-focus-opacity), transparent);
+}
+
+.custom-control-input:focus:not(:checked)~.custom-control-label::before {
+    border-color: var(--md-sys-color-on-surface-variant);
+}
+
+/* Switch: M3's 52x32 track with a 16px thumb that grows to 24px when on. */
+.custom-switch {
+    min-height: 32px;
+    padding-left: 64px;
+}
+
+.custom-switch .custom-control-label {
+    line-height: 32px;
+}
+
+.custom-switch .custom-control-label::before {
+    top: 0;
+    left: -64px;
+    width: 52px;
+    height: 32px;
+    border: 2px solid var(--md-sys-color-outline);
+    border-radius: var(--md-sys-shape-corner-full);
+    background-color: var(--md-sys-color-surface-container-highest);
+}
+
+.custom-switch .custom-control-label::after {
+    top: 8px;
+    left: -56px;
+    width: 16px;
+    height: 16px;
+    border-radius: var(--md-sys-shape-corner-full);
+    background-color: var(--md-sys-color-outline);
+    transition: transform 0.15s ease, width 0.15s ease, height 0.15s ease, top 0.15s ease, left 0.15s ease, background-color 0.15s ease;
+}
+
+.custom-switch .custom-control-input:checked~.custom-control-label::before {
+    border-color: var(--md-sys-color-primary);
+    background-color: var(--md-sys-color-primary);
+}
+
+.custom-switch .custom-control-input:checked~.custom-control-label::after {
+    top: 4px;
+    left: -40px;
+    width: 24px;
+    height: 24px;
+    transform: none;
+    background-color: var(--md-sys-color-on-primary);
+}
+
+/* ── Tabs (M3 primary tabs) ──────────────────────────────────────────────
+   Text tabs on a divider; the active one is primary with a 3px indicator. */
+
+.nav-tabs {
+    border-bottom: 1px solid var(--md-sys-color-outline-variant);
+}
+
+.nav-tabs .nav-item {
+    margin-bottom: 0;
+}
+
+.nav-tabs .nav-link {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    min-height: 48px;
+    margin-bottom: -1px;
+    padding: 0 16px;
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+    color: var(--md-sys-color-on-surface-variant);
+    font-family: var(--md-ref-typeface-plain);
+    font-size: var(--md-sys-typescale-title-small-size);
+    line-height: var(--md-sys-typescale-title-small-line-height);
+    font-weight: var(--md-sys-typescale-title-small-weight);
+    letter-spacing: var(--md-sys-typescale-title-small-tracking);
+    transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+.nav-tabs .nav-link:hover,
+.nav-tabs .nav-link:focus {
+    border: 0;
+    background: color-mix(in srgb, var(--md-sys-color-on-surface) var(--md-sys-state-hover-opacity), transparent);
+    color: var(--md-sys-color-on-surface);
+}
+
+.nav-tabs .nav-link.active,
+.nav-tabs .nav-item.show .nav-link {
+    border: 0;
+    background: transparent;
+    color: var(--md-sys-color-primary);
+}
+
+.nav-tabs .nav-link.active::after,
+.nav-tabs .nav-item.show .nav-link::after {
+    content: "";
+    position: absolute;
+    left: 16px;
+    right: 16px;
+    bottom: 0;
+    height: 3px;
+    border-radius: 3px 3px 0 0;
+    background: var(--md-sys-color-primary);
+}
+
+.nav-tabs .nav-link.disabled {
+    background: transparent;
+    color: color-mix(in srgb, var(--md-sys-color-on-surface) var(--md-sys-state-disabled-content-opacity), transparent);
+}
+
+/* Pills: M3 segmented-style selection. */
+.nav-pills .nav-link {
+    min-height: 40px;
+    padding: 0 16px;
+    border-radius: var(--md-sys-shape-corner-full);
+    color: var(--md-sys-color-on-surface-variant);
+    font-size: var(--md-sys-typescale-label-large-size);
+    font-weight: 500;
+}
+
+.nav-pills .nav-link.active,
+.nav-pills .show>.nav-link {
+    background: var(--md-sys-color-secondary-container);
+    color: var(--md-sys-color-on-secondary-container);
+}
+
+/* ── Dialogs (Bootstrap modals and SweetAlert2) ──────────────────────────
+   M3 basic dialog: surface-container-high, 28px corners, 24px padding,
+   headline-small title, no header or footer rules, actions at the end.
+   Dialogs with an id-scoped design in content.css or a page stylesheet keep
+   it. The (0,4,0) selectors match the template's padding rules. */
+
+.modal-backdrop {
+    background-color: var(--md-sys-color-scrim);
+}
+
+.modal-backdrop.show {
+    opacity: 0.32;
+}
+
+.modal .modal-dialog {
+    margin-top: 1.75rem;
+}
+
+.modal.fade .modal-dialog {
+    transform: translateY(-8px);
+    transition: transform 0.2s cubic-bezier(0.2, 0, 0, 1), opacity 0.2s ease;
+}
+
+.modal.show .modal-dialog {
+    transform: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .modal.fade .modal-dialog {
+        transition: none;
+    }
+}
+
+.modal-content {
+    border: 0;
+    border-radius: var(--md-sys-shape-corner-extra-large);
+    background-color: var(--md-sys-color-surface-container-high);
+    box-shadow: var(--md-sys-elevation-level3);
+    overflow: hidden;
+}
+
+.modal .modal-dialog .modal-content .modal-header {
+    align-items: flex-start;
+    padding: 24px 24px 16px;
+    border-bottom: 0;
+    background-color: transparent;
+}
+
+.modal-title {
+    margin: 0;
+    color: var(--md-sys-color-on-surface);
+    font-family: var(--md-ref-typeface-plain);
+    font-size: var(--md-sys-typescale-headline-small-size);
+    line-height: var(--md-sys-typescale-headline-small-line-height);
+    font-weight: var(--md-sys-typescale-headline-small-weight);
+    letter-spacing: 0;
+    text-transform: none;
+}
+
+/* The close (×) in a dialog header is a standard icon button, pulled in so
+   its glyph lines up with the 24px padding. (0,5,0) beats the template's
+   negative-margin .close rule. */
+.modal .modal-dialog .modal-content .modal-header .close {
+    margin: -8px -8px -8px auto;
+    padding: 0;
+}
+
+[dir="rtl"] .modal .modal-dialog .modal-content .modal-header .close {
+    margin: -8px auto -8px -8px;
+}
+
+.modal .modal-dialog .modal-content .modal-header .close span {
+    color: inherit;
+    font-size: inherit;
+    font-weight: inherit;
+}
+
+.modal .modal-dialog .modal-content .modal-body {
+    padding: 0 24px 8px;
+    color: var(--md-sys-color-on-surface);
+    font-size: var(--md-sys-typescale-body-medium-size);
+}
+
+.modal .modal-dialog .modal-content .modal-footer {
+    justify-content: flex-end;
+    gap: 8px;
+    padding: 16px 24px 24px;
+    border-top: 0;
+    background-color: transparent;
+}
+
+.modal .modal-dialog .modal-content .modal-footer>* {
+    margin: 0;
+}
+
+.modal-body::-webkit-scrollbar {
+    width: 6px;
+}
+
+.modal-body::-webkit-scrollbar-thumb {
+    border-radius: var(--md-sys-shape-corner-full);
+    background: color-mix(in srgb, var(--md-sys-color-on-surface) 24%, transparent);
+}
+
+.modal-body::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+/* SweetAlert2 injects its stylesheet after ours, so these carry one more
+   class than its own rules. Its buttons are the panel's .btn classes (see
+   the Swal defaults in custom.js). */
+.swal2-container .swal2-popup {
+    width: min(32em, calc(100vw - 32px));
+    padding: 24px;
+    border-radius: var(--md-sys-shape-corner-extra-large);
+    background: var(--md-sys-color-surface-container-high);
+    box-shadow: var(--md-sys-elevation-level3);
+    color: var(--md-sys-color-on-surface);
+    font-family: var(--md-ref-typeface-plain);
+}
+
+.swal2-container.swal2-backdrop-show {
+    background: color-mix(in srgb, var(--md-sys-color-scrim) 32%, transparent);
+}
+
+/* The icon is drawn in em, so the font size scales all of it (5em = 48px). */
+.swal2-popup .swal2-icon {
+    margin: 0 auto 16px;
+    font-size: 9.6px;
+}
+
+.swal2-popup .swal2-icon.swal2-warning,
+.swal2-popup .swal2-icon.swal2-question {
+    border-color: var(--md-sys-color-secondary);
+    color: var(--md-sys-color-secondary);
+}
+
+.swal2-popup .swal2-icon.swal2-error {
+    border-color: var(--md-sys-color-error);
+    color: var(--md-sys-color-error);
+}
+
+.swal2-popup .swal2-icon.swal2-info {
+    border-color: var(--app-status-info);
+    color: var(--app-status-info);
+}
+
+.swal2-popup .swal2-title {
+    margin: 0 0 16px;
+    padding: 0;
+    color: var(--md-sys-color-on-surface);
+    font-size: var(--md-sys-typescale-headline-small-size);
+    line-height: var(--md-sys-typescale-headline-small-line-height);
+    font-weight: var(--md-sys-typescale-headline-small-weight);
+}
+
+.swal2-popup .swal2-html-container {
+    margin: 0;
+    padding: 0;
+    /* on-surface: the muted grey is only 3.9:1 on surface-container-high. */
+    color: var(--md-sys-color-on-surface);
+    font-size: var(--md-sys-typescale-body-medium-size);
+    line-height: var(--md-sys-typescale-body-medium-line-height);
+}
+
+.swal2-popup .swal2-actions {
+    justify-content: flex-end;
+    gap: 8px;
+    width: 100%;
+    margin: 24px 0 0;
+    padding: 0;
+}
+
+.swal2-popup .swal2-actions .btn {
+    margin: 0;
+}
+
+/* Cancel first (left), confirm last (right), as M3 dialogs order them. */
+.swal2-popup .swal2-actions .swal2-cancel {
+    order: 1;
+}
+
+.swal2-popup .swal2-actions .swal2-confirm {
+    order: 2;
+}
+
+/* ── Menus (Bootstrap dropdowns) ─────────────────────────────────────────
+   M3 menu: surface-container, 4px corners, level-2 shadow, 48px items. */
+
+.dropdown-menu {
+    min-width: 112px;
+    padding: 8px 0;
+    border: 0;
+    border-radius: var(--md-sys-shape-corner-extra-small);
+    background: var(--md-sys-color-surface-container);
+    box-shadow: var(--md-sys-elevation-level2);
+    color: var(--md-sys-color-on-surface);
+    font-family: var(--md-ref-typeface-plain);
+    font-size: var(--md-sys-typescale-label-large-size);
+}
+
+.dropdown-menu .dropdown-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    min-height: 48px;
+    padding: 0 12px;
+    background: transparent;
+    color: var(--md-sys-color-on-surface);
+    font-size: var(--md-sys-typescale-label-large-size);
+    line-height: var(--md-sys-typescale-label-large-line-height);
+    font-weight: 500;
+    white-space: nowrap;
+}
+
+.dropdown-menu .dropdown-item i,
+.dropdown-menu .dropdown-item svg {
+    color: var(--md-sys-color-on-surface-variant);
+}
+
+.dropdown-menu .dropdown-item:hover,
+.dropdown-menu .dropdown-item:focus {
+    background: color-mix(in srgb, var(--md-sys-color-on-surface) var(--md-sys-state-hover-opacity), transparent);
+    color: var(--md-sys-color-on-surface);
+}
+
+.dropdown-menu .dropdown-item.active,
+.dropdown-menu .dropdown-item:active {
+    background: var(--md-sys-color-secondary-container);
+    color: var(--md-sys-color-on-secondary-container);
+}
+
+.dropdown-menu .dropdown-item.disabled,
+.dropdown-menu .dropdown-item:disabled {
+    background: transparent;
+    color: color-mix(in srgb, var(--md-sys-color-on-surface) var(--md-sys-state-disabled-content-opacity), transparent);
+}
+
+.dropdown-menu .dropdown-divider {
+    margin: 8px 0;
+    border-top-color: var(--md-sys-color-outline-variant);
+}
+
+.dropdown-menu .dropdown-header {
+    padding: 8px 12px;
+    color: var(--md-sys-color-on-surface-variant);
+    font-size: var(--md-sys-typescale-label-medium-size);
+    font-weight: 500;
+}
+
+/* ── Tooltips (M3 plain tooltip) ─────────────────────────────────────── */
+
+.tooltip {
+    font-family: var(--md-ref-typeface-plain);
+}
+
+.tooltip.show {
+    opacity: 1;
+}
+
+.tooltip .tooltip-inner {
+    min-height: 24px;
+    max-width: 200px;
+    padding: 4px 8px;
+    border-radius: var(--md-sys-shape-corner-extra-small);
+    background: var(--md-sys-color-inverse-surface);
+    color: var(--md-sys-color-on-inverse-surface);
+    font-size: var(--md-sys-typescale-body-small-size);
+    line-height: var(--md-sys-typescale-body-small-line-height);
+    text-align: start;
+}
+
+.tooltip .arrow {
+    display: none;
+}
+
+/* ── Snackbars (jquery-toast) ────────────────────────────────────────────
+   M3 snackbar: inverse-surface, 4px corners, at the bottom of the screen.
+   A status icon (a mask in the status colour) and a 2px countdown bar say
+   what kind of message it is. The plugin positions .jq-toast-wrap and sets
+   the text colour with !important. */
+
+.jq-toast-wrap.top-right,
+.jq-toast-wrap.top-left,
+.jq-toast-wrap.top-center,
+.jq-toast-wrap.bottom-right,
+.jq-toast-wrap.bottom-left,
+.jq-toast-wrap.bottom-center,
+.jq-toast-wrap.mid-center {
+    top: auto;
+    right: auto;
+    bottom: 24px;
+    left: 50%;
+    width: 560px;
+    max-width: calc(100vw - 32px);
+    margin: 0;
+    transform: translateX(-50%);
+    z-index: 9100 !important;
+}
+
+.jq-toast-wrap .jq-toast-single {
+    position: relative;
+    display: flex;
+    align-items: center;
+    width: 100%;
+    min-height: 48px;
+    margin: 8px 0 0;
+    padding: 14px 16px;
+    padding-inline-end: 48px;
+    border: 0;
+    border-radius: var(--md-sys-shape-corner-extra-small);
+    background-color: var(--md-sys-color-inverse-surface);
+    color: var(--md-sys-color-on-inverse-surface) !important;
+    box-shadow: var(--md-sys-elevation-level3);
+    font-family: var(--md-ref-typeface-plain);
+    font-size: var(--md-sys-typescale-body-medium-size);
+    line-height: var(--md-sys-typescale-body-medium-line-height);
+    overflow: hidden;
+}
+
+.jq-toast-wrap .jq-toast-single h2 {
+    margin: 0 0 4px;
+    color: var(--md-sys-color-on-inverse-surface);
+    font-family: var(--md-ref-typeface-plain);
+    font-size: var(--md-sys-typescale-title-small-size);
+}
+
+.jq-toast-wrap .jq-toast-single a {
+    color: var(--md-sys-color-inverse-primary);
+    border-bottom-color: var(--md-sys-color-inverse-primary);
+}
+
+.jq-toast-wrap .jq-toast-single.jq-has-icon {
+    padding-inline-start: 52px;
+    background-image: none;
+}
+
+.jq-toast-wrap .jq-toast-single.jq-has-icon::before {
+    content: "";
+    position: absolute;
+    inset-inline-start: 16px;
+    top: 50%;
+    width: 22px;
+    height: 22px;
+    transform: translateY(-50%);
+    background-color: var(--toast-icon-color);
+    -webkit-mask: var(--toast-icon) no-repeat center / contain;
+    mask: var(--toast-icon) no-repeat center / contain;
+}
+
+.jq-toast-wrap .jq-toast-single.jq-icon-success {
+    background-color: var(--md-sys-color-inverse-surface);
+    --toast-icon: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M22 11.08V12a10 10 0 1 1-5.93-9.14'/%3E%3Cpolyline points='22 4 12 14.01 9 11.01'/%3E%3C/svg%3E");
+    --toast-icon-color: var(--app-status-success);
+}
+
+.jq-toast-wrap .jq-toast-single.jq-icon-error {
+    background-color: var(--md-sys-color-inverse-surface);
+    --toast-icon: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='12' cy='12' r='10'/%3E%3Cline x1='12' y1='8' x2='12' y2='12'/%3E%3Cline x1='12' y1='16' x2='12.01' y2='16'/%3E%3C/svg%3E");
+    --toast-icon-color: var(--app-status-danger);
+}
+
+.jq-toast-wrap .jq-toast-single.jq-icon-warning {
+    background-color: var(--md-sys-color-inverse-surface);
+    --toast-icon: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z'/%3E%3Cline x1='12' y1='9' x2='12' y2='13'/%3E%3Cline x1='12' y1='17' x2='12.01' y2='17'/%3E%3C/svg%3E");
+    --toast-icon-color: var(--app-status-warning);
+}
+
+.jq-toast-wrap .jq-toast-single.jq-icon-info {
+    background-color: var(--md-sys-color-inverse-surface);
+    --toast-icon: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='12' cy='12' r='10'/%3E%3Cline x1='12' y1='16' x2='12' y2='12'/%3E%3Cline x1='12' y1='8' x2='12.01' y2='8'/%3E%3C/svg%3E");
+    --toast-icon-color: var(--app-status-info);
+}
+
+/* Close (×): an icon button on the inverse surface. */
+.jq-toast-wrap .close-jq-toast-single {
+    position: absolute;
+    top: 50%;
+    right: 8px;
+    left: auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    margin: 0;
+    transform: translateY(-50%);
+    border-radius: var(--md-sys-shape-corner-full);
+    color: var(--md-sys-color-on-inverse-surface);
+    font-size: 20px;
+    line-height: 1;
+    transition: background-color 0.15s ease;
+}
+
+.jq-toast-wrap .close-jq-toast-single:hover {
+    background: color-mix(in srgb, var(--md-sys-color-on-inverse-surface) var(--md-sys-state-hover-opacity), transparent);
+}
+
+[dir="rtl"] .jq-toast-wrap .close-jq-toast-single {
+    right: auto;
+    left: 8px;
+}
+
+/* Countdown to auto-dismiss: the plugin animates the width; the inline
+   loaderBg colour is replaced by the status colour. */
+.jq-toast-wrap .jq-toast-single .jq-toast-loader {
+    display: block !important;
+    top: auto;
+    bottom: 0;
+    left: 0;
+    height: 2px;
+    border-radius: 0;
+    background: var(--md-sys-color-inverse-primary) !important;
+}
+
+[dir="rtl"] .jq-toast-wrap .jq-toast-single .jq-toast-loader {
+    left: auto;
+    right: 0;
+}
+
+.jq-toast-wrap .jq-toast-single.jq-icon-success .jq-toast-loader {
+    background: var(--app-status-success) !important;
+}
+
+.jq-toast-wrap .jq-toast-single.jq-icon-error .jq-toast-loader {
+    background: var(--app-status-danger) !important;
+}
+
+.jq-toast-wrap .jq-toast-single.jq-icon-warning .jq-toast-loader {
+    background: var(--app-status-warning) !important;
+}
+
+.jq-toast-wrap .jq-toast-single.jq-icon-info .jq-toast-loader {
+    background: var(--app-status-info) !important;
+}
+
+/* ── Progress (M3 linear progress indicator) ─────────────────────────── */
+
+.progress {
+    height: 4px;
+    border-radius: var(--md-sys-shape-corner-full);
+    background-color: var(--md-sys-color-secondary-container);
+    overflow: hidden;
+}
+
+.progress .progress-bar {
+    border-radius: var(--md-sys-shape-corner-full);
+    background-color: var(--md-sys-color-primary);
+    background-image: none;
+}
+
+.progress.progress-md {
+    height: 8px;
+}
+
+.progress.progress-lg,
+.progress.progress-xl {
+    height: 12px;
+}
+
+/* ── Lists ───────────────────────────────────────────────────────────────
+   M3 lists: rows split by dividers, no box around each row. */
+
+.list-group-item {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    min-height: 56px;
+    padding: 8px 16px;
+    border: 0;
+    border-bottom: 1px solid var(--md-sys-color-outline-variant);
+    background-color: transparent;
+    color: var(--md-sys-color-on-surface);
+    font-size: var(--md-sys-typescale-body-large-size);
+}
+
+.list-group-item:last-child {
+    border-bottom: 0;
+}
+
+.list-group-item-action:hover,
+.list-group-item-action:focus {
+    background-color: color-mix(in srgb, var(--md-sys-color-on-surface) var(--md-sys-state-hover-opacity), transparent);
+    color: var(--md-sys-color-on-surface);
+}
+
+.list-group-item.active {
+    border-color: var(--md-sys-color-outline-variant);
+    background-color: var(--md-sys-color-secondary-container);
+    color: var(--md-sys-color-on-secondary-container);
+}
+
+.list-group-item.disabled,
+.list-group-item:disabled {
+    background-color: transparent;
+    color: color-mix(in srgb, var(--md-sys-color-on-surface) var(--md-sys-state-disabled-content-opacity), transparent);
+}
+
+/* ── Pagination ──────────────────────────────────────────────────────────
+   No M3 component; built from M3 parts: 40px circular text buttons, the
+   current page in secondary-container. */
+
+.pagination {
+    gap: 4px;
+    align-items: center;
+}
+
+.pagination .page-item .page-link {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 40px;
+    height: 40px;
+    margin: 0;
+    padding: 0 12px;
+    border: 0;
+    border-radius: var(--md-sys-shape-corner-full);
+    background: transparent;
+    color: var(--md-sys-color-on-surface-variant);
+    font-size: var(--md-sys-typescale-label-large-size);
+    font-weight: 500;
+    box-shadow: none;
+}
+
+.pagination .page-item .page-link:hover,
+.pagination .page-item .page-link:focus {
+    background: color-mix(in srgb, var(--md-sys-color-on-surface-variant) var(--md-sys-state-hover-opacity), transparent);
+    color: var(--md-sys-color-on-surface);
+}
+
+.pagination .page-item.active .page-link {
+    background: var(--md-sys-color-secondary-container);
+    color: var(--md-sys-color-on-secondary-container);
+}
+
+.pagination .page-item.disabled .page-link {
+    background: transparent;
+    color: color-mix(in srgb, var(--md-sys-color-on-surface) var(--md-sys-state-disabled-content-opacity), transparent);
+}
+
+/* ── Alerts (no M3 component: tonal containers) ─────────────────────── */
+
+.alert {
+    padding: 12px 16px;
+    border: 0;
+    border-radius: var(--md-sys-shape-corner-medium);
+    font-size: var(--md-sys-typescale-body-medium-size);
+    line-height: var(--md-sys-typescale-body-medium-line-height);
+}
+
+.alert-primary,
+.alert-secondary,
+.alert-light,
+.alert-dark {
+    background: var(--md-sys-color-secondary-container);
+    color: var(--md-sys-color-on-secondary-container);
+}
+
+.alert-success {
+    background: color-mix(in srgb, var(--app-status-success) 14%, var(--md-sys-color-surface-container-lowest));
+    color: var(--app-status-success-text);
+}
+
+.alert-warning {
+    background: color-mix(in srgb, var(--app-status-warning) 16%, var(--md-sys-color-surface-container-lowest));
+    color: var(--app-status-warning-text);
+}
+
+.alert-danger {
+    background: color-mix(in srgb, var(--md-sys-color-error) 12%, var(--md-sys-color-surface-container-lowest));
+    color: var(--md-sys-color-error);
+}
+
+.alert-info {
+    background: color-mix(in srgb, var(--app-status-info) 12%, var(--md-sys-color-surface-container-lowest));
+    color: var(--app-status-info-text);
+}
+
+.alert .alert-link {
+    color: inherit;
+    font-weight: 600;
+}

@@ -183,7 +183,7 @@
                     <div class="installment-meta text-right">
                         <strong>{{ $currencySymbol }} {{ number_format($ledgerRow->amount ?? 0, 2) }}</strong>
                         @if($ledgerRow->is_paid && isset($ledgerRow->mode))
-                        <div class="small mt-1" style="color: var(--theme-color);">
+                        <div class="small mt-1" style="color: var(--md-sys-color-primary);">
                             @if($ledgerRow->mode == 0)
                             {{ __('mode') }}: {{ __('cash') }}
                             @elseif($ledgerRow->mode == 1)
@@ -233,7 +233,7 @@
                     <div class="installment-meta text-right">
                         <div class="text-muted small">{{ __('date') }}: {{ date('d-m-Y', strtotime($payment->date)) }}</div>
 
-                        <div class="small mt-1" style="color: var(--theme-color);">
+                        <div class="small mt-1" style="color: var(--md-sys-color-primary);">
                             @if($payment->mode == 0)
                             {{ __('mode') }}: {{ __('cash') }}
                             @elseif($payment->mode == 1)

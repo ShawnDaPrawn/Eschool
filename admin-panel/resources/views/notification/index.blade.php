@@ -12,15 +12,15 @@
             font-size: 0.7rem;
             font-weight: 600;
             line-height: 1;
-            background-color: color-mix(in srgb, var(--theme-color) 14%, transparent);
-            color: var(--theme-color);
-            border: 1px solid color-mix(in srgb, var(--theme-color) 25%, transparent);
+            background-color: color-mix(in srgb, var(--md-sys-color-primary) 14%, transparent);
+            color: var(--md-sys-color-primary);
+            border: 1px solid color-mix(in srgb, var(--md-sys-color-primary) 25%, transparent);
         }
 
         #recipientsTabs .nav-link.active .recipients-tab-badge {
-            background-color: var(--theme-color);
+            background-color: var(--md-sys-color-primary);
             color: #fff;
-            border-color: var(--theme-color);
+            border-color: var(--md-sys-color-primary);
         }
     </style>
 @endsection
@@ -96,7 +96,7 @@
                         <h4 class="card-title">{{ __('recipients') }}</h4>
 
                         <div id="recipients_empty_state" class="text-center" style="padding: 2.5rem 1rem; color: #8c8c8c;">
-                            <div style="font-size: 2.5rem; color: var(--theme-color); opacity: 0.8;">
+                            <div style="font-size: 2.5rem; color: var(--md-sys-color-primary); opacity: 0.8;">
                                 <i class="fa fa-users"></i>
                             </div>
                             <h5 id="recipients_empty_title" class="mt-3" style="color: #343a40; font-weight: 600;">

@@ -1,0 +1,143 @@
+/*
+ * Material 3 design tokens for the admin panel and website.
+ *
+ * Generated from the apps' theme (packages/eschool_core) by
+ * packages/eschool_core/test/web_tokens_test.dart. Do not edit;
+ * change brand_colors.dart or app_theme.dart and regenerate with
+ *   UPDATE_WEB_TOKENS=1 flutter test test/web_tokens_test.dart
+ */
+:root {
+
+    /* Colour roles */
+    --md-sys-color-primary: #6d28d9;
+    --md-sys-color-on-primary: #ffffff;
+    --md-sys-color-primary-container: #6d28d9;
+    --md-sys-color-on-primary-container: #dac5ff;
+    --md-sys-color-inverse-primary: #d3bbff;
+    --md-sys-color-secondary: #6a509d;
+    --md-sys-color-on-secondary: #ffffff;
+    --md-sys-color-secondary-container: #c7aaff;
+    --md-sys-color-on-secondary-container: #543a86;
+    --md-sys-color-tertiary: #1b213c;
+    --md-sys-color-on-tertiary: #ffffff;
+    --md-sys-color-tertiary-container: #313653;
+    --md-sys-color-on-tertiary-container: #ffffff;
+    --md-sys-color-error: #b61722;
+    --md-sys-color-on-error: #ffffff;
+    --md-sys-color-error-container: #da3437;
+    --md-sys-color-on-error-container: #fffbff;
+    --md-sys-color-surface: #ffffff;
+    --md-sys-color-on-surface: #000000;
+    --md-sys-color-on-surface-variant: #64748b;
+    --md-sys-color-surface-dim: #d8dae0;
+    --md-sys-color-surface-bright: #ffffff;
+    --md-sys-color-surface-container-lowest: #ffffff;
+    --md-sys-color-surface-container-low: #f8f9fa;
+    --md-sys-color-surface-container: #ecedf4;
+    --md-sys-color-surface-container-high: #e7e8ee;
+    --md-sys-color-surface-container-highest: #e1e2e8;
+    --md-sys-color-inverse-surface: #313653;
+    --md-sys-color-on-inverse-surface: #ffffff;
+    --md-sys-color-outline: #73777f;
+    --md-sys-color-outline-variant: rgba(0, 0, 0, 0.10);
+    --md-sys-color-shadow: #000000;
+    --md-sys-color-scrim: #000000;
+
+    /* Status colours (StatusColors), each with its own text colour */
+    --app-status-success: #22c55e;
+    --app-status-on-success: #000000;
+    --app-status-warning: #eab308;
+    --app-status-on-warning: #000000;
+    --app-status-danger: #ef4444;
+    --app-status-on-danger: #000000;
+    --app-status-info: #3b82f6;
+    --app-status-on-info: #000000;
+
+    /* State layers: opacity of the content colour over a component */
+    --md-sys-state-hover-opacity: 8%;
+    --md-sys-state-focus-opacity: 10%;
+    --md-sys-state-pressed-opacity: 10%;
+    --md-sys-state-disabled-content-opacity: 38%;
+    --md-sys-state-disabled-container-opacity: 12%;
+
+    /* Shape */
+    --md-sys-shape-corner-extra-small: 4px;
+    --md-sys-shape-corner-small: 8px;
+    --md-sys-shape-corner-medium: 12px;
+    --md-sys-shape-corner-large: 16px;
+    --md-sys-shape-corner-extra-large: 28px;
+    --md-sys-shape-corner-full: 9999px;
+    --app-radius: 10px;
+    --app-radius-sheet: 20px;
+
+    /* Elevation */
+    --md-sys-elevation-level0: none;
+    --md-sys-elevation-level1: 0 1px 2px 0 rgba(0, 0, 0, 0.3), 0 1px 3px 1px rgba(0, 0, 0, 0.15);
+    --md-sys-elevation-level2: 0 1px 2px 0 rgba(0, 0, 0, 0.3), 0 2px 6px 2px rgba(0, 0, 0, 0.15);
+    --md-sys-elevation-level3: 0 1px 3px 0 rgba(0, 0, 0, 0.3), 0 4px 8px 3px rgba(0, 0, 0, 0.15);
+    --md-sys-elevation-level4: 0 2px 3px 0 rgba(0, 0, 0, 0.3), 0 6px 10px 4px rgba(0, 0, 0, 0.15);
+    --md-sys-elevation-level5: 0 4px 4px 0 rgba(0, 0, 0, 0.3), 0 8px 12px 6px rgba(0, 0, 0, 0.15);
+
+    /* Type scale (the apps' Material 3 typography, in Poppins) */
+    --md-ref-typeface-plain: 'Poppins', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+    --md-sys-typescale-display-large-size: 57px;
+    --md-sys-typescale-display-large-line-height: 64px;
+    --md-sys-typescale-display-large-weight: 400;
+    --md-sys-typescale-display-large-tracking: -0.25px;
+    --md-sys-typescale-display-medium-size: 45px;
+    --md-sys-typescale-display-medium-line-height: 52px;
+    --md-sys-typescale-display-medium-weight: 400;
+    --md-sys-typescale-display-medium-tracking: 0px;
+    --md-sys-typescale-display-small-size: 36px;
+    --md-sys-typescale-display-small-line-height: 44px;
+    --md-sys-typescale-display-small-weight: 400;
+    --md-sys-typescale-display-small-tracking: 0px;
+    --md-sys-typescale-headline-large-size: 32px;
+    --md-sys-typescale-headline-large-line-height: 40px;
+    --md-sys-typescale-headline-large-weight: 400;
+    --md-sys-typescale-headline-large-tracking: 0px;
+    --md-sys-typescale-headline-medium-size: 28px;
+    --md-sys-typescale-headline-medium-line-height: 36px;
+    --md-sys-typescale-headline-medium-weight: 400;
+    --md-sys-typescale-headline-medium-tracking: 0px;
+    --md-sys-typescale-headline-small-size: 24px;
+    --md-sys-typescale-headline-small-line-height: 32px;
+    --md-sys-typescale-headline-small-weight: 400;
+    --md-sys-typescale-headline-small-tracking: 0px;
+    --md-sys-typescale-title-large-size: 22px;
+    --md-sys-typescale-title-large-line-height: 28px;
+    --md-sys-typescale-title-large-weight: 400;
+    --md-sys-typescale-title-large-tracking: 0px;
+    --md-sys-typescale-title-medium-size: 16px;
+    --md-sys-typescale-title-medium-line-height: 24px;
+    --md-sys-typescale-title-medium-weight: 500;
+    --md-sys-typescale-title-medium-tracking: 0.15px;
+    --md-sys-typescale-title-small-size: 14px;
+    --md-sys-typescale-title-small-line-height: 20px;
+    --md-sys-typescale-title-small-weight: 500;
+    --md-sys-typescale-title-small-tracking: 0.1px;
+    --md-sys-typescale-body-large-size: 16px;
+    --md-sys-typescale-body-large-line-height: 24px;
+    --md-sys-typescale-body-large-weight: 400;
+    --md-sys-typescale-body-large-tracking: 0.5px;
+    --md-sys-typescale-body-medium-size: 14px;
+    --md-sys-typescale-body-medium-line-height: 20px;
+    --md-sys-typescale-body-medium-weight: 400;
+    --md-sys-typescale-body-medium-tracking: 0.25px;
+    --md-sys-typescale-body-small-size: 12px;
+    --md-sys-typescale-body-small-line-height: 16px;
+    --md-sys-typescale-body-small-weight: 400;
+    --md-sys-typescale-body-small-tracking: 0.4px;
+    --md-sys-typescale-label-large-size: 14px;
+    --md-sys-typescale-label-large-line-height: 20px;
+    --md-sys-typescale-label-large-weight: 500;
+    --md-sys-typescale-label-large-tracking: 0.1px;
+    --md-sys-typescale-label-medium-size: 12px;
+    --md-sys-typescale-label-medium-line-height: 16px;
+    --md-sys-typescale-label-medium-weight: 500;
+    --md-sys-typescale-label-medium-tracking: 0.5px;
+    --md-sys-typescale-label-small-size: 11px;
+    --md-sys-typescale-label-small-line-height: 16px;
+    --md-sys-typescale-label-small-weight: 500;
+    --md-sys-typescale-label-small-tracking: 0.5px;
+}

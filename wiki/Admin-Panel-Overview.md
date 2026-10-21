@@ -180,12 +180,12 @@ Blade templates live in [resources/views](https://github.com/ShawnDaPrawn/Eschoo
 |---|---|---|
 | `layouts/master.blade.php` | 108 admin views | Includes `layouts.include` (CSS, theme colours, early scripts), `layouts.header`, `layouts.sidebar`, `layouts.footer`, `layouts.footer_js`, then `after-update-note-modal`. Sections: `title`, `css`, `content`, `js`, `script`. |
 | `web/master.blade.php` | 7 public website views | Reads `web_settings` rows (`about_us`, `who_we_are`, `teacher`, `photos`, `videos`, `question`, `registration`) to decide which sections show. See [Public-Website](Public-Website). |
-| `errors::minimal` | `resources/views/errors/*` | Error pages 401 to 503. |
+| `errors::minimal` | `resources/views/errors/*` | Error pages 401 to 503, on the design tokens. `403.blade.php` adds the exception message and a Go Back button. |
 
 Points worth knowing:
 
 - RTL: the layouts read `Session::get('language')`; when its `is_rtl` is set they add `dir="rtl"` and load `assets/css/rtl.css` instead of `style.css`.
-- Theme: `layouts/include.blade.php` writes the `theme_color` and `secondary_color` settings into CSS variables `--theme-color` and `--secondary-color`, and the `login_image` setting into `--image-url`.
+- Theme: `layouts/include.blade.php` loads the Material 3 design tokens (`assets/css/m3-tokens.css`, generated from the apps' theme) and `m3-base.css`, so the panel uses the same colours, type and shapes as the apps; see [UI-Standards](UI-Standards#admin-panel-and-website). It writes the `login_image` setting into `--image-url`. The `theme_color` and `secondary_color` settings now only colour the printed certificates and result sheets.
 - Translations for JavaScript come from `<script src="{{ route('common.language.read') }}">`, which defines `window.languageLabels`. See [Localization](Localization).
 - Logos and favicon come from the `logo1`, `logo2` and `favicon` settings through `schoolLogoUrl()` and `schoolSetting()`; the school name in titles and footers is `config('app.name')`, which the `school_name` setting overrides. No view calls `env()` (enforced by `SettingsConfigTest`).
 - `resources/views/components`: `x-icon` (inline Lucide SVG icons by name), `form/image-upload`, `form/status-radio`, `wizard`, `web-settings/section`.

@@ -11,7 +11,7 @@
         <div class="dash-card dash-stat-card">
             <span class="dash-stat-icon"><i class="{{ $card['icon'] }}"></i></span>
             <div class="dash-stat-text">
-                <b class="dash-stat-label">{{ $card['label'] }}</b>
+                <span class="dash-stat-label">{{ $card['label'] }}</span>
                 <span class="dash-stat-value">{{ number_format((int) $card['value']) }}</span>
             </div>
         </div>

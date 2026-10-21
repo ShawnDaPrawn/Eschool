@@ -53,10 +53,8 @@
                                     {{ isset($about->content) ? $about->content : '' }}
 
                                 </span>
-                                <button class="commonBtn">
-                                    <a href="{{ route('about.us') }}">{{ __('read_more') }}</a> <i
-                                        class="fa-solid fa-arrow-right"></i>
-                                </button>
+                                <a class="commonBtn" href="{{ route('about.us') }}">{{ __('read_more') }}
+                                    <i class="fa-solid fa-arrow-right" aria-hidden="true"></i></a>
                             </div>
                         </div>
 
@@ -198,7 +196,7 @@
                                                     <span class="eventType"
                                                         style="display: none">{{ $item->type }}</span>
                                                     <span class="eventDesc">{{ $item->description }}</span>
-                                                    <span class="eventReadMoreBtn">{{ __('view_details') }}</span>
+                                                    <button type="button" class="eventReadMoreBtn">{{ __('view_details') }}</button>
                                                     <span class="image" style="display: none">{{ $item->image }}</span>
                                                     <span class="eventDetails"
                                                         style="display: none">{{ $item->multipleEvent }}</span>
@@ -214,7 +212,8 @@
                                 <div class="modal-content modal-dialog-scrollable">
                                     <div class="modal-header">
                                         <h4 id="fullEventTitle"></h4>
-                                        <span class="close">&times;</span>
+                                        <button type="button" class="close" aria-label="{{ __('close') }}"><i
+                                                class="fa-solid fa-xmark" aria-hidden="true"></i></button>
                                     </div>
                                     <div class="event-modal-body">
                                         <span class="eventDate" id="fullEventDate"></span>
@@ -278,12 +277,10 @@
                         <div class="col-12">
                             <div class="commonSlider">
                                 <div class="viewAllBtn">
-                                    <button class="commonBtn">
-                                        <a href="{{ route('photo') }}">
-                                            {{ __('view_all') }}
-                                            <i class="fa-solid fa-circle-chevron-right"></i>
-                                        </a>
-                                    </button>
+                                    <a class="commonBtn" href="{{ route('photo') }}">
+                                        {{ __('view_all') }}
+                                        <i class="fa-solid fa-circle-chevron-right" aria-hidden="true"></i>
+                                    </a>
                                 </div>
                                 <div class="slider-content owl-carousel">
                                     @if (isset($images))
@@ -307,10 +304,10 @@
                                 </div>
                                 <!-- Navigation buttons -->
                                 <div class="navigationBtns">
-                                    <button class="prev commonBtn">
+                                    <button type="button" class="prev commonBtn" aria-label="{{ __('Previous') }}">
                                         <i class="fa-solid fa-arrow-left"></i>
                                     </button>
-                                    <button class="next commonBtn">
+                                    <button type="button" class="next commonBtn" aria-label="{{ __('Next') }}">
                                         <i class="fa-solid fa-arrow-right"></i>
                                     </button>
                                 </div>
@@ -344,12 +341,10 @@
                         <div class="col-12">
                             <div class="commonSlider">
                                 <div class="viewAllBtn">
-                                    <button class="commonBtn">
-                                        <a href="{{ route('video') }}">
-                                            {{ __('view_all') }}
-                                            <i class="fa-solid fa-circle-chevron-right"></i>
-                                        </a>
-                                    </button>
+                                    <a class="commonBtn" href="{{ route('video') }}">
+                                        {{ __('view_all') }}
+                                        <i class="fa-solid fa-circle-chevron-right" aria-hidden="true"></i>
+                                    </a>
                                 </div>
 
                                 <div class="slider-content owl-carousel">
@@ -368,10 +363,10 @@
 
                                 <!-- Navigation buttons -->
                                 <div class="navigationBtns">
-                                    <button class="prev commonBtn">
+                                    <button type="button" class="prev commonBtn" aria-label="{{ __('Previous') }}">
                                         <i class="fa-solid fa-arrow-left"></i>
                                     </button>
-                                    <button class="next commonBtn">
+                                    <button type="button" class="next commonBtn" aria-label="{{ __('Next') }}">
                                         <i class="fa-solid fa-arrow-right"></i>
                                     </button>
                                 </div>
@@ -471,11 +466,8 @@
                                             alt="...">
                                     </span>
                                     <span class="appName"> {{ __('student_parent_app') }}</span>
-                                    <span class="demoBtn"><a
-                                            href="{{ isset($settings['app_link']) ? $settings['app_link'] : '' }}"
-                                            style="color: #ffffff !important">{{ __('android_demo') }}</a>
-                                        <i class="fa-solid fa-arrow-right"></i>
-                                    </span>
+                                    <a class="demoBtn" href="{{ isset($settings['app_link']) ? $settings['app_link'] : '' }}">{{ __('android_demo') }}
+                                        <i class="fa-solid fa-arrow-right" aria-hidden="true"></i></a>
                                 </div>
                             </div>
                             <div class="col-12 col-sm-6 col-md-6 col-lg-3">
@@ -485,12 +477,8 @@
                                             alt="...">
                                     </span>
                                     <span class="appName">{{ __('student_parent_app') }}</span>
-                                    <span class="demoBtn"><a
-                                            href="{{ isset($settings['ios_app_link']) ? $settings['ios_app_link'] : '' }}"
-                                            style="color: #ffffff !important">
-                                            {{ __('ios_demo') }}</a>
-                                        <i class="fa-solid fa-arrow-right"></i>
-                                    </span>
+                                    <a class="demoBtn" href="{{ isset($settings['ios_app_link']) ? $settings['ios_app_link'] : '' }}">{{ __('ios_demo') }}
+                                        <i class="fa-solid fa-arrow-right" aria-hidden="true"></i></a>
                                 </div>
                             </div>
                             <div class="col-12 col-sm-6 col-md-6 col-lg-3">
@@ -500,12 +488,8 @@
                                             alt="...">
                                     </span>
                                     <span class="appName">{{ __('teacher_app') }}</span>
-                                    <span class="demoBtn"><a
-                                            href="{{ isset($settings['teacher_app_link']) ? $settings['teacher_app_link'] : '' }}"
-                                            style="color: #ffffff !important">
-                                            {{ __('android_demo') }}</a>
-                                        <i class="fa-solid fa-arrow-right"></i>
-                                    </span>
+                                    <a class="demoBtn" href="{{ isset($settings['teacher_app_link']) ? $settings['teacher_app_link'] : '' }}">{{ __('android_demo') }}
+                                        <i class="fa-solid fa-arrow-right" aria-hidden="true"></i></a>
                                 </div>
                             </div>
                             <div class="col-12 col-sm-6 col-md-6 col-lg-3">
@@ -515,12 +499,8 @@
                                             alt="...">
                                     </span>
                                     <span class="appName">{{ __('teacher_app') }}</span>
-                                    <span class="demoBtn"><a
-                                            href="{{ isset($settings['teacher_ios_app_link']) ? $settings['teacher_ios_app_link'] : '' }}"
-                                            style="color: #ffffff !important">
-                                            {{ __('ios_demo') }}</a>
-                                        <i class="fa-solid fa-arrow-right"></i>
-                                    </span>
+                                    <a class="demoBtn" href="{{ isset($settings['teacher_ios_app_link']) ? $settings['teacher_ios_app_link'] : '' }}">{{ __('ios_demo') }}
+                                        <i class="fa-solid fa-arrow-right" aria-hidden="true"></i></a>
                                 </div>
                             </div>
                         </div>

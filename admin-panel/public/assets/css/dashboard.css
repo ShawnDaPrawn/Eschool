@@ -1,32 +1,44 @@
 /* ==========================================================================
-   Super Admin Dashboard
-   Clean white cards on a light page. Primary accent follows --theme-color.
+   Dashboards (super admin, staff, teacher)
+   Material 3 on the Navigate Wealth palette, from the design tokens in
+   m3-tokens.css: outlined cards on the low surface, a navy headline stat,
+   title-medium card titles, list rows with dividers and icon empty states.
    ========================================================================== */
 
 .dashboard-page {
-    color: var(--dash-text);
+    color: var(--md-sys-color-on-surface);
 }
 
 /* ---- Header ---- */
+.dash-header-date {
+    margin: 0 0 .25rem;
+    font-size: var(--md-sys-typescale-label-large-size);
+    line-height: var(--md-sys-typescale-label-large-line-height);
+    font-weight: 500;
+    color: var(--md-sys-color-primary);
+}
+
 .dash-header-title {
-    font-size: 1.6rem;
+    font-size: var(--md-sys-typescale-headline-small-size);
+    line-height: var(--md-sys-typescale-headline-small-line-height);
     font-weight: 600;
-    margin: 0 0 .35rem;
-    color: var(--dash-text);
+    margin: 0 0 .25rem;
+    color: var(--md-sys-color-on-surface);
 }
 
 .dash-header-subtitle {
     margin: 0;
-    color: var(--dash-muted);
-    font-size: .9rem;
+    color: var(--md-sys-color-on-surface-variant);
+    font-size: var(--md-sys-typescale-body-medium-size);
+    line-height: var(--md-sys-typescale-body-medium-line-height);
 }
 
-/* ---- Card shell ---- */
+/* ---- Card shell (Material 3 outlined card) ---- */
 .dash-card {
-    background: var(--dash-card-bg);
-    border: 1px solid var(--dash-border);
-    border-radius: var(--dash-radius);
-    box-shadow: 0 1px 2px rgba(16, 24, 40, .04);
+    background: var(--md-sys-color-surface-container-lowest);
+    border: 1px solid var(--md-sys-color-outline-variant);
+    border-radius: var(--app-radius);
+    box-shadow: none;
 }
 
 .dash-widget {
@@ -40,19 +52,20 @@
     justify-content: space-between;
     gap: .75rem;
     flex-wrap: wrap;
-    padding: 1.1rem 1.25rem;
-    border-bottom: 1px solid var(--dash-border);
+    min-height: 68px;
+    padding: 1rem 1.25rem .25rem;
 }
 
 .dash-card-title {
-    font-size: 1.02rem;
+    font-size: var(--md-sys-typescale-title-medium-size);
+    line-height: var(--md-sys-typescale-title-medium-line-height);
     font-weight: 600;
     margin: 0;
-    color: var(--dash-text);
+    color: var(--md-sys-color-on-surface);
 }
 
 .dash-card-body {
-    padding: 1.25rem;
+    padding: .75rem 1.25rem 1.25rem;
     flex: 1 1 auto;
 }
 
@@ -65,63 +78,96 @@
 
 .dash-stat-card {
     display: flex;
-    align-items: center;
-    gap: .85rem;
-    padding: 1.1rem 1.25rem;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: .75rem;
+    padding: 1.25rem;
+    min-width: 0;
 }
 
 .dash-stat-icon {
     flex: 0 0 auto;
-    width: 44px;
-    height: 44px;
-    border-radius: 10px;
+    width: 40px;
+    height: 40px;
+    border-radius: var(--md-sys-shape-corner-full);
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    background: color-mix(in srgb, var(--dash-green) 12%, #ffffff);
-    color: var(--dash-green);
-    font-size: 1.1rem;
+    background: color-mix(in srgb, var(--md-sys-color-primary) 12%, var(--md-sys-color-surface-container-lowest));
+    color: var(--md-sys-color-primary);
+    font-size: 1rem;
 }
 
 .dash-stat-text {
     display: flex;
     flex-direction: column;
+    gap: .15rem;
     min-width: 0;
 }
 
 .dash-stat-label {
-    font-size: .82rem;
-    color: var(--dash-muted);
-    line-height: 1.2;
+    font-size: var(--md-sys-typescale-label-large-size);
+    line-height: var(--md-sys-typescale-label-large-line-height);
+    font-weight: 500;
+    color: var(--md-sys-color-on-surface-variant);
 }
 
 .dash-stat-value {
-    font-size: 1.5rem;
-    font-weight: 700;
-    color: var(--dash-text);
-    line-height: 1.25;
+    font-size: var(--md-sys-typescale-headline-medium-size);
+    line-height: var(--md-sys-typescale-headline-medium-line-height);
+    font-weight: 600;
+    color: var(--md-sys-color-on-surface);
+    font-variant-numeric: tabular-nums;
 }
 
-/* ---- Native select (dashboard filters) ---- */
+/* The first stat is the headline figure: a navy card, matching the sidebar. */
+.dash-stat-row > .dash-stat-card:first-child {
+    background: var(--md-sys-color-inverse-surface);
+    border-color: var(--md-sys-color-inverse-surface);
+}
+
+.dash-stat-row > .dash-stat-card:first-child .dash-stat-icon {
+    background: color-mix(in srgb, var(--md-sys-color-on-inverse-surface) 14%, transparent);
+    color: var(--md-sys-color-on-inverse-surface);
+}
+
+.dash-stat-row > .dash-stat-card:first-child .dash-stat-label {
+    color: color-mix(in srgb, var(--md-sys-color-on-inverse-surface) 80%, transparent);
+}
+
+.dash-stat-row > .dash-stat-card:first-child .dash-stat-value {
+    color: var(--md-sys-color-on-inverse-surface);
+}
+
+/* ---- Native select (dashboard filters): a 40px M3 outlined field ---- */
 .dash-select {
     appearance: none;
     -webkit-appearance: none;
-    border: 1px solid var(--dash-border);
-    border-radius: 8px;
-    background: #fff;
-    color: var(--dash-text);
-    font-size: .85rem;
-    padding: .42rem 2rem .42rem .75rem;
+    height: 40px;
+    border: 1px solid var(--md-sys-color-outline);
+    border-radius: var(--app-radius);
+    background-color: var(--md-sys-color-surface-container-lowest);
+    color: var(--md-sys-color-on-surface);
+    font-size: var(--md-sys-typescale-label-large-size);
+    padding: 0 2.5rem 0 1rem;
     max-width: 100%;
     cursor: pointer;
-    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%238a8f9c' stroke-width='2'><path d='M6 9l6 6 6-6'/></svg>");
+    transition: border-color .15s ease, box-shadow .15s ease;
+    /* Chevron in --md-sys-color-on-surface-variant (#64748b), written out
+       because a data URI can't read CSS variables. */
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%2364748b' stroke-width='2'><path d='M6 9l6 6 6-6'/></svg>");
     background-repeat: no-repeat;
     background-position: right .6rem center;
 }
 
+.dash-select:hover {
+    border-color: var(--md-sys-color-on-surface);
+}
+
 .dash-select:focus {
     outline: none;
-    border-color: var(--dash-green);
+    border-color: var(--md-sys-color-primary);
+    box-shadow: 0 0 0 1px var(--md-sys-color-primary);
 }
 
 /* ---- Header actions / links ---- */
@@ -132,39 +178,72 @@
     flex-wrap: wrap;
 }
 
+/* M3 text button */
 .dash-link {
-    color: var(--dash-green);
-    font-size: .85rem;
-    font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+    height: 36px;
+    padding: 0 .75rem;
+    margin-inline-end: -.75rem;
+    border-radius: var(--md-sys-shape-corner-full);
+    color: var(--md-sys-color-primary);
+    font-size: var(--md-sys-typescale-label-large-size);
+    font-weight: 500;
     text-decoration: none;
     white-space: nowrap;
+    transition: background-color .15s ease;
 }
 
-.dash-link:hover {
-    text-decoration: underline;
-    color: var(--dash-green);
+.dash-link:hover,
+.dash-link:focus-visible {
+    text-decoration: none;
+    color: var(--md-sys-color-primary);
+    background: color-mix(in srgb, var(--md-sys-color-primary) var(--md-sys-state-hover-opacity), transparent);
 }
 
-/* ---- Empty / footnote ---- */
+.dash-head-actions .dash-link {
+    margin-inline-end: 0;
+}
+
+/* ---- Empty state / footnote ---- */
 .dash-empty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: .75rem;
     text-align: center;
-    color: var(--dash-muted);
-    font-size: .88rem;
-    padding: 1.75rem .5rem;
+    color: var(--md-sys-color-on-surface-variant);
+    font-size: var(--md-sys-typescale-body-medium-size);
+    padding: 2rem .5rem;
+}
+
+.dash-empty[hidden] {
+    display: none;
+}
+
+/* An inbox glyph in a tonal circle. The glyph's stroke is
+   --md-sys-color-on-surface-variant (#64748b), written out because a data URI
+   can't read CSS variables. */
+.dash-empty::before {
+    content: "";
+    width: 56px;
+    height: 56px;
+    border-radius: var(--md-sys-shape-corner-full);
+    background: var(--md-sys-color-surface-container) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2364748b' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M22 12h-6l-2 3h-4l-2-3H2'/%3E%3Cpath d='M5.45 5.11 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z'/%3E%3C/svg%3E") center / 24px 24px no-repeat;
 }
 
 .dash-footnote {
     margin: 1rem 0 0;
-    font-size: .76rem;
-    color: var(--dash-muted);
-    font-style: italic;
+    font-size: var(--md-sys-typescale-body-small-size);
+    color: var(--md-sys-color-on-surface-variant);
 }
 
 /* ---- Skeleton loader ---- */
 .widget-skeleton {
     min-height: 180px;
-    border-radius: 10px;
-    background: linear-gradient(90deg, #f1f1f4 25%, #e7e7ee 37%, #f1f1f4 63%);
+    border-radius: var(--md-sys-shape-corner-small);
+    background: linear-gradient(90deg, var(--md-sys-color-surface-container) 25%, var(--md-sys-color-surface-container-high) 37%, var(--md-sys-color-surface-container) 63%);
     background-size: 400% 100%;
     animation: dash-shimmer 1.2s ease-in-out infinite;
 }
@@ -179,25 +258,71 @@
     }
 }
 
+@media (prefers-reduced-motion: reduce) {
+    .widget-skeleton {
+        animation: none;
+    }
+}
+
 /* ---- Dots ---- */
 .dash-dot {
     width: 10px;
     height: 10px;
     border-radius: 50%;
     flex: 0 0 auto;
-    margin-top: .35rem;
 }
 
+/* Same colours as the fees donut in dashboard.js. */
 .dot-collected {
-    background: var(--dash-green);
+    background: var(--app-status-success);
 }
 
 .dot-dues {
-    background: var(--dash-amber);
+    background: var(--app-status-warning);
 }
 
 .dot-overdue {
-    background: var(--dash-red);
+    background: var(--app-status-danger);
+}
+
+/* ---- List rows (events, notices, leaves, timetable, exams, assignments) ----
+   Material 3 lists: rows separated by dividers, not boxed one by one. */
+.event-item,
+.notice-item,
+.leave-item,
+.timetable-item,
+.exam-item,
+.assignment-item {
+    display: flex;
+    align-items: center;
+    gap: .85rem;
+    padding: .75rem 0;
+    border: 0;
+    border-radius: 0;
+}
+
+.event-item + .event-item,
+.notice-item + .notice-item,
+.leave-item + .leave-item,
+.timetable-item + .timetable-item,
+.exam-item + .exam-item,
+.assignment-item + .assignment-item {
+    border-top: 1px solid var(--md-sys-color-outline-variant);
+}
+
+/* Leading avatar placeholder: a tonal circle with the item's icon. */
+.event-thumb-placeholder,
+.notice-thumb-placeholder,
+.assignment-thumb {
+    width: 40px;
+    height: 40px;
+    border-radius: var(--md-sys-shape-corner-full);
+    flex: 0 0 auto;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: color-mix(in srgb, var(--md-sys-color-primary) 12%, var(--md-sys-color-surface-container-lowest));
+    color: var(--md-sys-color-primary);
 }
 
 /* ---- Fees Collection ---- */
@@ -208,56 +333,60 @@
 
 .fees-grid {
     display: flex;
-    align-items: stretch;
-    gap: 1.25rem;
+    align-items: center;
+    gap: 1.5rem;
     flex-wrap: wrap;
     flex: 1 1 auto;
 }
 
 .fees-chart {
-    flex: 1 1 280px;
-    min-width: 220px;
+    flex: 1 1 220px;
+    min-width: 200px;
     display: flex;
+    flex-direction: column;
     align-items: center;
     justify-content: center;
 }
 
 #fees-donut {
     width: 100%;
-    max-width: 320px;
+    max-width: 240px;
+}
+
+.fees-chart .dash-empty {
+    padding: 1rem .5rem;
 }
 
 .fees-legend {
     flex: 1 1 200px;
     display: flex;
     flex-direction: column;
-    gap: .75rem;
     justify-content: center;
 }
 
 .fees-legend-row {
     display: flex;
-    gap: .6rem;
     align-items: center;
-    border: 1px solid var(--dash-border);
-    border-radius: 10px;
-    padding: .7rem .85rem;
+    gap: .75rem;
+    padding: .85rem 0;
 }
 
-.fees-legend-text {
-    display: flex;
-    flex-direction: column;
+.fees-legend-row + .fees-legend-row {
+    border-top: 1px solid var(--md-sys-color-outline-variant);
 }
 
 .fees-legend-label {
-    font-size: .8rem;
-    color: var(--dash-muted);
+    flex: 1 1 auto;
+    font-size: var(--md-sys-typescale-body-medium-size);
+    color: var(--md-sys-color-on-surface-variant);
 }
 
 .fees-legend-value {
-    font-size: 1.05rem;
-    font-weight: 700;
-    color: var(--dash-text);
+    font-size: var(--md-sys-typescale-title-medium-size);
+    font-weight: 600;
+    color: var(--md-sys-color-on-surface);
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
 }
 
 /* ---- Total Students ---- */
@@ -268,49 +397,51 @@
 }
 
 .students-ratio {
-    margin-top: 1rem;
+    margin-top: .5rem;
     display: flex;
     flex-direction: column;
-    gap: .9rem;
+    gap: 1rem;
 }
 
 .ratio-head {
     display: flex;
     justify-content: space-between;
-    font-size: .85rem;
-    margin-bottom: .35rem;
+    font-size: var(--md-sys-typescale-body-medium-size);
+    margin-bottom: .4rem;
 }
 
 .ratio-label {
-    color: var(--dash-muted);
+    color: var(--md-sys-color-on-surface-variant);
 }
 
 .ratio-value {
-    font-weight: 700;
-    color: var(--dash-text);
+    font-weight: 600;
+    color: var(--md-sys-color-on-surface);
+    font-variant-numeric: tabular-nums;
 }
 
+/* M3 linear progress indicator */
 .dash-progress {
-    height: 8px;
-    border-radius: 99px;
-    background: var(--dash-track);
+    height: 6px;
+    border-radius: var(--md-sys-shape-corner-full);
+    background: var(--md-sys-color-surface-container);
     overflow: hidden;
 }
 
 .dash-progress-bar {
     height: 100%;
     width: 0;
-    border-radius: 99px;
+    border-radius: var(--md-sys-shape-corner-full);
     transition: width .5s ease;
-    background: var(--dash-green);
+    background: var(--md-sys-color-primary);
 }
 
 .dash-progress-bar--boys {
-    background: var(--dash-navy);
+    background: var(--md-sys-color-inverse-surface);
 }
 
 .dash-progress-bar--girls {
-    background: var(--dash-green);
+    background: var(--md-sys-color-primary);
 }
 
 /* ---- Assessment ---- */
@@ -322,59 +453,50 @@
 
 .assessment-row {
     display: grid;
-    grid-template-columns: 130px 1fr 56px;
+    grid-template-columns: 140px 1fr 64px;
     align-items: center;
     gap: .75rem;
 }
 
 .assessment-name {
-    font-size: .88rem;
-    color: var(--dash-text);
+    font-size: var(--md-sys-typescale-body-medium-size);
+    color: var(--md-sys-color-on-surface);
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
 }
 
 .assessment-pct {
-    font-size: .85rem;
-    font-weight: 700;
-    text-align: right;
-    color: var(--dash-text);
+    font-size: var(--md-sys-typescale-label-large-size);
+    font-weight: 600;
+    text-align: end;
+    color: var(--md-sys-color-on-surface);
+    font-variant-numeric: tabular-nums;
 }
 
 .assessment-row .dash-progress {
-    height: 10px;
+    height: 8px;
 }
 
 .assessment-row .dash-progress-bar {
-    background: var(--dash-green);
+    background: var(--md-sys-color-primary);
 }
 
 /* ---- Leaves ---- */
 .leaves-list {
     display: flex;
     flex-direction: column;
-    gap: .6rem;
     max-height: 360px;
     overflow-y: auto;
 }
 
-.leave-item {
-    display: flex;
-    align-items: center;
-    gap: .75rem;
-    border: 1px solid var(--dash-border);
-    border-radius: 10px;
-    padding: .6rem .8rem;
-}
-
 .leave-avatar {
-    width: 38px;
-    height: 38px;
+    width: 40px;
+    height: 40px;
     border-radius: 50%;
     object-fit: cover;
     flex: 0 0 auto;
-    background: var(--dash-track);
+    background: var(--md-sys-color-surface-container);
 }
 
 .leave-info {
@@ -384,41 +506,41 @@
 }
 
 .leave-name {
-    font-size: .9rem;
-    font-weight: 600;
-    color: var(--dash-text);
+    font-size: var(--md-sys-typescale-body-large-size);
+    font-weight: 500;
+    color: var(--md-sys-color-on-surface);
 }
 
 .leave-meta {
     display: flex;
     align-items: center;
     gap: .5rem;
-    margin-top: .2rem;
+    margin-top: .15rem;
 }
 
 .leave-date {
-    font-size: .78rem;
-    color: var(--dash-muted);
+    font-size: var(--md-sys-typescale-body-small-size);
+    color: var(--md-sys-color-on-surface-variant);
 }
 
 .leave-type-chip {
-    font-size: .72rem;
-    padding: .12rem .5rem;
-    border-radius: 6px;
-    background: var(--dash-track);
-    color: var(--dash-muted);
+    font-size: var(--md-sys-typescale-label-small-size);
+    font-weight: 500;
+    padding: .1rem .5rem;
+    border-radius: var(--md-sys-shape-corner-extra-small);
+    background: var(--md-sys-color-surface-container);
+    color: var(--md-sys-color-on-surface-variant);
     text-transform: capitalize;
 }
 
 .leave-status {
-    margin-left: auto;
-    font-size: .74rem;
-    font-weight: 600;
-    padding: .2rem .6rem;
-    border-radius: 99px;
-    color: var(--dash-green);
-    background: color-mix(in srgb, var(--dash-green) 12%, #ffffff);
-    border: 1px solid color-mix(in srgb, var(--dash-green) 35%, #ffffff);
+    margin-inline-start: auto;
+    font-size: var(--md-sys-typescale-label-medium-size);
+    font-weight: 500;
+    padding: .2rem .65rem;
+    border-radius: var(--md-sys-shape-corner-small);
+    color: var(--app-status-success-text);
+    background: color-mix(in srgb, var(--app-status-success) 14%, var(--md-sys-color-surface-container-lowest));
     white-space: nowrap;
 }
 
@@ -426,45 +548,23 @@
 .events-grid {
     display: grid;
     grid-template-columns: 1fr 1fr;
-    gap: 1.25rem;
+    gap: 1.5rem;
 }
 
 .events-list {
     display: flex;
     flex-direction: column;
-    gap: .6rem;
     max-height: 320px;
     overflow-y: auto;
-}
-
-.event-item {
-    display: flex;
-    align-items: center;
-    gap: .7rem;
-    border: 1px solid var(--dash-border);
-    border-radius: 10px;
-    padding: .55rem .7rem;
 }
 
 .event-thumb {
     width: 40px;
     height: 40px;
-    border-radius: 8px;
+    border-radius: 50%;
     object-fit: cover;
     flex: 0 0 auto;
-    background: var(--dash-track);
-}
-
-.event-thumb-placeholder {
-    width: 40px;
-    height: 40px;
-    border-radius: 8px;
-    flex: 0 0 auto;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    background: color-mix(in srgb, var(--dash-green) 12%, #ffffff);
-    color: var(--dash-green);
+    background: var(--md-sys-color-surface-container);
 }
 
 .event-info {
@@ -474,41 +574,44 @@
 }
 
 .event-title {
-    font-size: .88rem;
-    font-weight: 600;
-    color: var(--dash-text);
+    font-size: var(--md-sys-typescale-body-large-size);
+    font-weight: 500;
+    line-height: 1.35;
+    color: var(--md-sys-color-on-surface);
 }
 
 .event-when {
-    font-size: .76rem;
-    color: var(--dash-muted);
+    font-size: var(--md-sys-typescale-body-small-size);
+    color: var(--md-sys-color-on-surface-variant);
     margin-top: .15rem;
 }
 
-/* Calendar */
+/* Calendar (M3 date picker grid) */
 .events-calendar {
-    font-size: .8rem;
+    font-size: var(--md-sys-typescale-body-small-size);
 }
 
 .cal-head {
     display: flex;
     align-items: center;
     justify-content: center;
+    font-size: var(--md-sys-typescale-title-small-size);
     font-weight: 600;
     margin-bottom: .6rem;
-    color: var(--dash-text);
+    color: var(--md-sys-color-on-surface);
 }
 
 .cal-grid {
     display: grid;
     grid-template-columns: repeat(7, 1fr);
-    gap: 4px;
+    gap: 2px;
 }
 
 .cal-dow {
     text-align: center;
-    font-size: .72rem;
-    color: var(--dash-muted);
+    font-size: var(--md-sys-typescale-label-small-size);
+    font-weight: 500;
+    color: var(--md-sys-color-on-surface-variant);
     padding: .25rem 0;
 }
 
@@ -518,9 +621,10 @@
     align-items: center;
     justify-content: center;
     border-radius: 50%;
-    font-size: .78rem;
-    color: var(--dash-text);
+    font-size: var(--md-sys-typescale-body-small-size);
+    color: var(--md-sys-color-on-surface);
     position: relative;
+    font-variant-numeric: tabular-nums;
 }
 
 .cal-day.is-muted {
@@ -528,8 +632,8 @@
 }
 
 .cal-day.is-today {
-    background: var(--dash-green);
-    color: #fff;
+    background: var(--md-sys-color-primary);
+    color: var(--md-sys-color-on-primary);
     font-weight: 600;
 }
 
@@ -540,53 +644,39 @@
     bottom: 3px;
     left: 50%;
     transform: translateX(-50%);
-    width: 5px;
-    height: 5px;
+    width: 4px;
+    height: 4px;
     border-radius: 50%;
-    background: var(--dash-green);
+    background: var(--md-sys-color-primary);
 }
 
 .cal-day.has-holiday::after {
-    background: var(--dash-red);
+    background: var(--app-status-danger);
 }
 
 .cal-day.is-today.has-event::after,
 .cal-day.is-today.has-holiday::after {
-    background: #fff;
+    background: var(--md-sys-color-on-primary);
 }
 
 /* ---- Noticeboard ---- */
 .notices-list {
     display: flex;
     flex-direction: column;
-    gap: .9rem;
     overflow-y: auto;
 }
 
 .notice-item {
-    display: flex;
-    gap: .85rem;
-    border: 1px solid var(--dash-border);
-    border-radius: 10px;
-    padding: .85rem;
+    align-items: flex-start;
 }
 
-.notice-thumb img,
-.notice-thumb-placeholder {
-    width: 46px;
-    height: 46px;
-    border-radius: 8px;
+.notice-thumb img {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
     object-fit: cover;
     flex: 0 0 auto;
-    background: var(--dash-track);
-}
-
-.notice-thumb-placeholder {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    background: color-mix(in srgb, var(--dash-green) 12%, #ffffff);
-    color: var(--dash-green);
+    background: var(--md-sys-color-surface-container);
 }
 
 .notice-body {
@@ -602,32 +692,33 @@
 }
 
 .notice-title {
-    font-size: .92rem;
-    font-weight: 600;
+    font-size: var(--md-sys-typescale-body-large-size);
+    font-weight: 500;
     margin: 0;
-    color: var(--dash-text);
+    color: var(--md-sys-color-on-surface);
 }
 
 .dash-chip {
-    font-size: .72rem;
-    padding: .15rem .55rem;
-    border-radius: 6px;
-    background: color-mix(in srgb, var(--dash-green) 10%, #ffffff);
-    color: var(--dash-green);
+    font-size: var(--md-sys-typescale-label-medium-size);
+    font-weight: 500;
+    padding: .15rem .6rem;
+    border-radius: var(--md-sys-shape-corner-small);
+    background: color-mix(in srgb, var(--md-sys-color-primary) 10%, var(--md-sys-color-surface-container-lowest));
+    color: var(--md-sys-color-primary);
     white-space: nowrap;
     flex: 0 0 auto;
 }
 
 .notice-date {
-    font-size: .76rem;
-    color: var(--dash-muted);
+    font-size: var(--md-sys-typescale-body-small-size);
+    color: var(--md-sys-color-on-surface-variant);
     display: block;
-    margin: .15rem 0 .4rem;
+    margin: .1rem 0 .3rem;
 }
 
 .notice-desc {
-    font-size: .82rem;
-    color: var(--dash-muted);
+    font-size: var(--md-sys-typescale-body-medium-size);
+    color: var(--md-sys-color-on-surface-variant);
     margin: 0;
     display: -webkit-box;
     -webkit-line-clamp: 2;
@@ -636,7 +727,7 @@
 }
 
 #noticeboard-card .notices-list {
-    max-height: 280px;
+    max-height: 320px;
 }
 
 /* ---- Responsive ---- */
@@ -649,6 +740,29 @@
 @media (max-width: 768px) {
     .dash-stat-row {
         grid-template-columns: repeat(2, 1fr);
+        gap: .75rem;
+    }
+
+    /* The headline stat spans the row; the others sit two by two. */
+    .dash-stat-row > .dash-stat-card:first-child {
+        grid-column: 1 / -1;
+    }
+
+    .dash-stat-card {
+        padding: 1rem;
+        gap: .5rem;
+    }
+
+    .dash-stat-icon {
+        width: 36px;
+        height: 36px;
+        font-size: .9rem;
+    }
+
+    .dash-stat-row > .dash-stat-card:first-child {
+        flex-direction: row-reverse;
+        align-items: center;
+        justify-content: space-between;
     }
 
     .events-grid {
@@ -656,25 +770,14 @@
     }
 
     .assessment-row {
-        grid-template-columns: 110px 1fr 48px;
-    }
-}
-
-@media (max-width: 480px) {
-    .dash-stat-row {
-        grid-template-columns: 1fr;
+        grid-template-columns: 110px 1fr 56px;
     }
 }
 
 /* ---- RTL ---- */
 html[dir="rtl"] .dash-select {
-    padding: .42rem .75rem .42rem 2rem;
+    padding: 0 .75rem 0 2rem;
     background-position: left .6rem center;
-}
-
-html[dir="rtl"] .leave-status {
-    margin-left: 0;
-    margin-right: auto;
 }
 
 /* ==========================================================================
@@ -692,17 +795,10 @@ html[dir="rtl"] .leave-status {
     }
 }
 
-@media (max-width: 480px) {
-    .dash-stat-row--3 {
-        grid-template-columns: 1fr;
-    }
-}
-
 /* ---- Pending leave status (teacher) ---- */
 .leave-status--pending {
-    color: var(--dash-amber);
-    background: color-mix(in srgb, var(--dash-amber) 14%, #ffffff);
-    border-color: color-mix(in srgb, var(--dash-amber) 38%, #ffffff);
+    color: var(--app-status-warning-text);
+    background: color-mix(in srgb, var(--app-status-warning) 16%, var(--md-sys-color-surface-container-lowest));
 }
 
 /* ---- Today's Timetable ---- */
@@ -711,53 +807,35 @@ html[dir="rtl"] .leave-status {
 .exams-list {
     display: flex;
     flex-direction: column;
-    gap: .6rem;
     max-height: 360px;
     overflow-y: auto;
 }
 
-.timetable-item {
-    display: flex;
-    align-items: center;
-    gap: .85rem;
-    border: 1px solid var(--dash-border);
-    border-radius: 10px;
-    padding: .7rem .85rem;
-}
-
 .timetable-time {
-    font-size: .82rem;
+    font-size: var(--md-sys-typescale-label-large-size);
     font-weight: 600;
-    color: var(--dash-text);
+    color: var(--md-sys-color-on-surface);
     white-space: nowrap;
     flex: 0 0 auto;
+    font-variant-numeric: tabular-nums;
 }
 
 .timetable-class {
-    font-size: .84rem;
-    color: var(--dash-muted);
-    padding-left: .85rem;
-    border-left: 2px solid var(--dash-border);
+    font-size: var(--md-sys-typescale-body-medium-size);
+    color: var(--md-sys-color-on-surface-variant);
+    padding-inline-start: .85rem;
+    border-inline-start: 2px solid var(--md-sys-color-primary);
     min-width: 0;
 }
 
 /* ---- Upcoming Exams ---- */
-.exam-item {
-    display: flex;
-    align-items: center;
-    gap: .85rem;
-    border: 1px solid var(--dash-border);
-    border-radius: 10px;
-    padding: .6rem .7rem;
-}
-
 .exam-date {
     flex: 0 0 auto;
-    width: 56px;
+    width: 52px;
     height: 56px;
-    border-radius: 10px;
-    background: var(--dash-green);
-    color: #fff;
+    border-radius: var(--md-sys-shape-corner-small);
+    background: color-mix(in srgb, var(--md-sys-color-primary) 12%, var(--md-sys-color-surface-container-lowest));
+    color: var(--md-sys-color-primary);
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -766,12 +844,13 @@ html[dir="rtl"] .leave-status {
 }
 
 .exam-day {
-    font-size: 1.1rem;
-    font-weight: 700;
+    font-size: var(--md-sys-typescale-title-large-size);
+    font-weight: 600;
 }
 
 .exam-month {
-    font-size: .62rem;
+    font-size: var(--md-sys-typescale-label-small-size);
+    font-weight: 500;
     text-transform: uppercase;
     letter-spacing: .04em;
 }
@@ -788,42 +867,21 @@ html[dir="rtl"] .leave-status {
 }
 
 .exam-name {
-    font-size: .9rem;
-    font-weight: 600;
-    color: var(--dash-text);
+    font-size: var(--md-sys-typescale-body-large-size);
+    font-weight: 500;
+    color: var(--md-sys-color-on-surface);
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
 }
 
 .exam-sub {
-    font-size: .78rem;
-    color: var(--dash-muted);
+    font-size: var(--md-sys-typescale-body-small-size);
+    color: var(--md-sys-color-on-surface-variant);
     margin-top: .15rem;
 }
 
 /* ---- Assignments To Review ---- */
-.assignment-item {
-    display: flex;
-    align-items: center;
-    gap: .75rem;
-    border: 1px solid var(--dash-border);
-    border-radius: 10px;
-    padding: .6rem .75rem;
-}
-
-.assignment-thumb {
-    width: 40px;
-    height: 40px;
-    border-radius: 8px;
-    flex: 0 0 auto;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    background: color-mix(in srgb, var(--dash-green) 12%, #ffffff);
-    color: var(--dash-green);
-}
-
 .assignment-info {
     display: flex;
     flex-direction: column;
@@ -832,27 +890,27 @@ html[dir="rtl"] .leave-status {
 }
 
 .assignment-title {
-    font-size: .88rem;
-    font-weight: 600;
-    color: var(--dash-text);
+    font-size: var(--md-sys-typescale-body-large-size);
+    font-weight: 500;
+    color: var(--md-sys-color-on-surface);
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
 }
 
 .assignment-meta {
-    font-size: .76rem;
-    color: var(--dash-muted);
+    font-size: var(--md-sys-typescale-body-small-size);
+    color: var(--md-sys-color-on-surface-variant);
     margin-top: .15rem;
 }
 
 .assignment-submitted {
     flex: 0 0 auto;
-    font-size: .74rem;
-    font-weight: 600;
-    color: var(--dash-text);
-    background: var(--dash-track);
-    border-radius: 99px;
+    font-size: var(--md-sys-typescale-label-medium-size);
+    font-weight: 500;
+    color: var(--md-sys-color-on-surface-variant);
+    background: var(--md-sys-color-surface-container);
+    border-radius: var(--md-sys-shape-corner-small);
     padding: .2rem .6rem;
     white-space: nowrap;
 }
