@@ -6,6 +6,7 @@ namespace Tests\Feature;
 
 use App\Models\Staff;
 use App\Models\User;
+use App\Providers\RouteServiceProvider;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Route;
@@ -51,6 +52,16 @@ class RemovedFeaturesTest extends TestCase
                 $this->get('/'.$url)->assertNotFound();
             }
         }
+    }
+
+    /** Routes come from withRouting() in bootstrap/app.php only; RouteServiceProvider loaded them a second time. */
+    public function test_routes_are_registered_once(): void
+    {
+        $provider = $this->app->getProvider(RouteServiceProvider::class);
+
+        $this->assertNotNull($provider);
+        $this->assertNull((fn () => $this->loadRoutesUsing)->call($provider));
+        $this->assertFalse(method_exists($provider, 'map'));
     }
 
     private function teacher(): User
