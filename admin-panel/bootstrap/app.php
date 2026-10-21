@@ -38,6 +38,8 @@ return Application::configure(basePath: dirname(__DIR__))
             'webhook/*',
         ]);
 
+        // Outermost, so every response and every log line of the request has its id.
+        $middleware->prepend(\App\Http\Middleware\AssignRequestId::class);
         $middleware->append(\App\Http\Middleware\SecurityHeaders::class);
         $middleware->append(\App\Http\Middleware\LimitRequestInput::class);
 

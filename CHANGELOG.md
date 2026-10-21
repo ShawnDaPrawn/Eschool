@@ -14,3 +14,4 @@ Phase 0 (Groundwork), in progress on the phase branch.
 ### Added
 
 - Engineering folder: the spec template, decision records (ADR 0001 to 0005) and the self-test template under `engineering/`, and this changelog.
+- Structured JSON logs (`LOG_CHANNEL=json`) to stderr with a request id, user id, school id and route on every line, an `X-Request-Id` response header, and exceptions formatted for Cloud Error Reporting. Log context carries ids only, never request bodies; e-mail addresses, ID numbers and phone numbers in messages are masked.
