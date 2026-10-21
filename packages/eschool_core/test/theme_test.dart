@@ -9,9 +9,15 @@ void main() {
     expect(theme.useMaterial3, isTrue);
   });
 
-  test('keeps the brand colours exact', () {
+  test('uses the design system colours exactly', () {
     expect(scheme.primary, BrandColors.primary);
     expect(scheme.tertiaryContainer, BrandColors.accent);
+    expect(scheme.inverseSurface, BrandColors.darkNavy);
+    expect(scheme.surface, BrandColors.background);
+    expect(scheme.surfaceContainerLow, BrandColors.lightGray);
+    expect(scheme.onSurface, BrandColors.text);
+    expect(scheme.onSurfaceVariant, BrandColors.mutedText);
+    expect(scheme.outlineVariant, BrandColors.border);
   });
 
   test('carries the status colours', () {
@@ -45,7 +51,19 @@ void main() {
         scheme.onTertiaryContainer,
         scheme.tertiaryContainer,
       ),
+      'onSurfaceVariant on surfaceContainerLow': (
+        scheme.onSurfaceVariant,
+        scheme.surfaceContainerLow,
+      ),
+      'onInverseSurface on inverseSurface': (
+        scheme.onInverseSurface,
+        scheme.inverseSurface,
+      ),
       'onError on error': (scheme.onError, scheme.error),
+      'onErrorContainer on errorContainer': (
+        scheme.onErrorContainer,
+        scheme.errorContainer,
+      ),
       'error on surface': (scheme.error, scheme.surface),
       'onSuccess on success': (status.onSuccess, status.success),
       'onWarning on warning': (status.onWarning, status.warning),
