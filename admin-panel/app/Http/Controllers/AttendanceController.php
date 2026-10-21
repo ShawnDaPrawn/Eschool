@@ -31,6 +31,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\Facades\Response;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Validation\ValidationException;
 use Maatwebsite\Excel\Facades\Excel;
 
 class AttendanceController extends Controller
@@ -679,14 +680,19 @@ class AttendanceController extends Controller
             return response()->json($response);
         }
         try {
-            $class_section_id = $request->class_section_id;
-            $date = $request->date;
-            Excel::import(new AttendanceImport($class_section_id, $date), $request->file);
+            Excel::import(new AttendanceImport($request->class_section_id), $request->file);
             $response = [
                 'error' => false,
                 'message' => trans('data_store_successfully'),
             ];
+        } catch (ValidationException $e) {
+            // Which row is wrong and why, instead of "Oops! Error occurred".
+            $response = [
+                'error' => true,
+                'message' => $e->validator->errors()->first(),
+            ];
         } catch (Exception $e) {
+            report($e);
             $response = [
                 'error' => true,
                 'message' => trans('error_occurred'),

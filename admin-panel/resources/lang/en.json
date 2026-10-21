@@ -1406,5 +1406,6 @@
     "you_cannot_apply_leave_holiday": "You cannot for apply leave on holiday",
     "same_subject_cannot_be_assigned_twice_in_the_same_semester": "The same subject cannot be assigned more than once within the same semester",
     "please_pick_leave_type_for_selected_dates": "Please pick your leave type for the selected dates",
-    "page_not_published_yet": "This page has not been published yet."
+    "page_not_published_yet": "This page has not been published yet.",
+    "student_not_in_this_class_section": "This student is not in the chosen class section this year."
 }

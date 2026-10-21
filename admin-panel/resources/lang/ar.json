@@ -1375,6 +1375,6 @@
     "no_installments_found": "لم يتم العثور على أقساط",
     "payment_history": "سجل المدفوعات",
     "installments_paid": "أقساط مدفوعة",
-    "secure_billing_ledger": "سجل فواتير آمن"
-
+    "secure_billing_ledger": "سجل فواتير آمن",
+    "student_not_in_this_class_section": "هذا الطالب ليس في الشعبة المختارة لهذا العام."
 }

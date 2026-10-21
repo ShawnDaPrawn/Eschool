@@ -59,7 +59,7 @@ The `title` and `message` columns are 128 characters and the MySQL connection is
 | `GET /api/parent/get-notification` | `Parent\NotificationController::getNotifications` |
 | `GET /api/teacher/get-notification` | `Teacher\NotificationController::getNotifications` |
 
-All three return `Notification` rows of the current session year (`session_year` setting) where the id is in the user's `user_notifications` **or** `send_to` is 1 or 4, newest first, Laravel-paginated (15 per page, `?page=`). Because the admin panel's absence alert is stored with `send_to = 4`, those alerts appear in every user's list, not only the parents'. Notifications without `user_notifications` rows and with another `send_to` (for example the fee reminder below) never appear in any list.
+All three return `Notification` rows of the current session year (`session_year` setting) where the id is in the user's `user_notifications` **or** `send_to` is 1 or 4, newest first, Laravel-paginated (15 per page, `?page=`). Notifications without `user_notifications` rows and with another `send_to` (for example the fee reminder below) never appear in any list.
 
 ## What triggers a notification
 
@@ -75,7 +75,7 @@ All three return `Notification` rows of the current session year (`session_year`
 | New / updated assignment | `AssignmentController::store` / `update`, `Teacher\AssignmentController::createAssignment` / `updateAssignment` | Students of the class section (for a new assignment in an elective subject, only those who chose it) | `send_to` 3, user rows | `assignment` |
 | Assignment submission accepted / rejected | `AssignmentController::updateAssignmentSubmission`, `Teacher\AssignmentController::updateAssignmentSubmission` | The student | `send_to` 3, user rows | `assignment` |
 | Assignment submitted | `Student\AssignmentController::submitAssignment` | Subject teachers of that subject and class section | `send_to` 2, user rows | `assignment_submission` |
-| Student marked absent (admin panel or teacher app) | `AttendanceController::store`, `Teacher\AttendanceController::submitAttendance`, both through `AbsenceAlertService::notify()` | Father, mother and guardian users of each student newly marked absent (not again when the day is saved again) | `send_to` 2, user rows | `attendance` |
+| Student marked absent (admin panel, attendance sheet upload or teacher app) | `AttendanceController::store`, `AttendanceImport`, `Teacher\AttendanceController::submitAttendance`, all through `AbsenceAlertService::notify()` | Father, mother and guardian users of each student newly marked absent (not again when the day is saved again) | `send_to` 2, user rows | `attendance` |
 | Student leave applied | `Student\LeaveController::applyLeave`, `Parent\LeaveController::applyLeave` | Class teachers of the student's class section | `send_to` 3, user rows | `leave` |
 | Student leave approved / rejected | `Leave\StudentLeaveController::studentLeaveStatusUpdate`, `Teacher\LeaveController::studentLeaveStatusUpdate` | The student's parents | `send_to` 3, user rows | `leave` |
 | Chat message | `sendMessage` in the three API controllers | The receiver | none | `chat` (with `sender_info`) |

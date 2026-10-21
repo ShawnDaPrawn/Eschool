@@ -287,7 +287,7 @@ Attendance types differ between the database and the app. The database (`Attenda
 
 - **Scope:** `isClassTeacherOf()` for the current session year, and `allStudentsInClassSection()` for every `student_id` (403 `no_permission_message` otherwise).
 - **Behaviour:** upserts `attendances` rows keyed on the existing row id for that student, section and date, with `session_year_id` and `status = 1`. An approved leave for the student's user on that date overrides the submitted type (`Attendance::leaveTypeToType()`). The leave has to be rejected before the type can be changed.
-- **Side effects:** for each student saved as Absent (including full-day leave), one `notifications` row (`type = attendance`, `send_to = 3`, title `Attendance Alert`) and an FCM push to the users of the student's `father_id` and `mother_id` parents. Guardians are not notified.
+- **Side effects:** for each student newly saved as Absent (including full-day leave; not again when the day is saved again), `AbsenceAlertService::notify()` stores one `notifications` row (`type = attendance`, `send_to = 2`, title `Attendance Alert`) with `user_notifications` rows for the student's father, mother and guardian users, and sends them an FCM push.
 
 #### GET attendance-report
 

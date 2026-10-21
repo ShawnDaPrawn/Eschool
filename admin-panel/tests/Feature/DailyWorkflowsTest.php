@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Imports\AttendanceImport;
 use App\Imports\StudentsImport;
 use App\Models\File;
 use App\Models\Lesson;
@@ -14,6 +15,7 @@ use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Validation\ValidationException;
 use Maatwebsite\Excel\Facades\Excel;
 use Tests\Concerns\RunsAppServer;
 use Tests\Support\DemoSchool;
@@ -123,6 +125,40 @@ class DailyWorkflowsTest extends TestCase
         $this->assertSame(['ravi.naidoo@example.com', 'priya.naidoo@example.com', 'lerato.mokoena@example.com'],
             $sent->map(fn ($m) => $m->getTo()[0]->getAddress())->all());
         $this->assertStringContainsString('Thabo Mokoena', $sent->last()->getHtmlBody());
+    }
+
+    public function test_an_uploaded_attendance_sheet_is_saved_like_the_attendance_form(): void
+    {
+        $id = $this->school->ids;
+        $date = now()->subDays(20)->format('d-m-Y');
+        $sheet = function (array $rows) {
+            $path = tempnam(sys_get_temp_dir(), 'attendance');
+            file_put_contents($path, "student_id,admission_no,roll_number,name,date,type\n".implode("\n", $rows));
+
+            return new UploadedFile($path, 'attendance.csv', 'text/csv', null, true);
+        };
+        $before = Notification::max('id') ?? 0;
+
+        Excel::import(new AttendanceImport($id['section_a']), $sheet(["{$id['asha']},GR-ASHA,1,Asha,$date,1", "{$id['ben']},GR-BEN,2,Ben,$date,0"]));
+
+        // Uploaded absences never alerted anyone.
+        $alerts = Notification::where('id', '>', $before)->where('title', 'Attendance Alert')->get();
+        $this->assertCount(1, $alerts);
+        $this->assertSame([$id['gina_user']], UserNotification::where('notification_id', $alerts[0]->id)->pluck('user_id')->all());
+
+        // Any mistake was "Oops! Error occurred", and a student from another class was saved under this one.
+        foreach ([
+            'Row 3: The type must be' => ["{$id['asha']},GR-ASHA,1,Asha,$date,1", "{$id['ben']},GR-BEN,2,Ben,$date,7"],
+            'Row 2: '.trans('student_not_in_this_class_section') => ["{$id['cara']},GR-CARA,1,Cara,$date,1"],
+        ] as $message => $rows) {
+            try {
+                Excel::import(new AttendanceImport($id['section_a']), $sheet($rows));
+                $this->fail("Accepted a sheet that should fail with: $message");
+            } catch (ValidationException $e) {
+                $this->assertStringStartsWith($message, $e->validator->errors()->first());
+            }
+        }
+        $this->assertSame(0, DB::table('attendances')->where('student_id', $id['cara'])->where('class_section_id', $id['section_a'])->count());
     }
 
     public function test_deleting_a_lesson_removes_its_and_its_topics_stored_files(): void
