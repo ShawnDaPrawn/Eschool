@@ -8,7 +8,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Category;
 use App\Models\ClassSchool;
 use App\Models\ClassSection;
-use App\Models\EmailTempalate;
+use App\Models\EmailTemplate;
 use App\Models\FormField;
 use App\Models\Parents;
 use App\Models\SessionYear;
@@ -300,7 +300,7 @@ class OnlineRegistrationController extends Controller
                     $class_section_name = $classSection->class->name.' - '.$classSection->section->name.' '.$classSection->class->medium->name.'  '.($classSection->class->streams->name ?? '');
                 }
                 // Send User Credentials via Email
-                $AcceptTemplate = EmailTempalate::where('type', 'student_registration')->value('content');
+                $AcceptTemplate = EmailTemplate::where('type', 'student_registration')->value('content');
                 $applink = Settings::whereIn('type', ['teacher_app_link', 'teacher_ios_app_link'])
                     ->pluck('message', 'type')
                     ->toArray();
@@ -375,7 +375,7 @@ class OnlineRegistrationController extends Controller
                 $user->update();
                 // dd($user);
 
-                $rejectionTemplate = EmailTempalate::where('type', 'student_application_regect')->value('content');
+                $rejectionTemplate = EmailTemplate::where('type', 'student_application_regect')->value('content');
 
                 if (empty($rejectionTemplate)) {
                     \Log::warning('Skipping student rejection email: "student_application_regect" email template has no content.');

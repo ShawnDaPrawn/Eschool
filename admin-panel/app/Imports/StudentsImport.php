@@ -11,7 +11,7 @@ use App\Models\Category;
 use App\Models\Students;
 use App\Models\SessionYear;
 use App\Models\ClassSection;
-use App\Models\EmailTempalate;
+use App\Models\EmailTemplate;
 use App\Models\StudentSessions;
 use App\Services\EmailTemplateService;
 use App\Services\MailService;
@@ -430,7 +430,7 @@ class StudentsImport extends DefaultValueBinder implements SkipsEmptyRows, ToCol
      */
     private function sendWelcomeEmail(array $data): void
     {
-        $this->registrationTemplate ??= (string) EmailTempalate::where('type', 'student_registration')->value('content');
+        $this->registrationTemplate ??= (string) EmailTemplate::where('type', 'student_registration')->value('content');
         $data['body'] = EmailTemplateService::render($this->registrationTemplate, $data);
 
         MailService::sendWithFallback('students.email', $data, function ($message) use ($data) {

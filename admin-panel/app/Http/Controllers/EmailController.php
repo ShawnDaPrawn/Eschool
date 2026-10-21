@@ -3,7 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Services\ResponseService;
-use App\Models\EmailTempalate;
+use App\Models\EmailTemplate;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -15,7 +15,7 @@ class EmailController extends Controller
             return redirect(route('home'))->withErrors(['message' => trans('no_permission_message')]);
         }
 
-        $Emailtemplate = EmailTempalate::whereIn('type', ['student_registration', 'staff_registration', 'student_application_regect'])
+        $Emailtemplate = EmailTemplate::whereIn('type', ['student_registration', 'staff_registration', 'student_application_regect'])
             ->get()->keyBy('type');
 
         $template = $Emailtemplate->get('student_registration');
@@ -54,7 +54,7 @@ class EmailController extends Controller
 
         $config = $map[$request->type];
 
-        EmailTempalate::updateOrCreate(
+        EmailTemplate::updateOrCreate(
             ['type' => $config['type']],
             [
                 'subject' => $config['subject'],

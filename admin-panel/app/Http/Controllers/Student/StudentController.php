@@ -10,7 +10,7 @@ use App\Models\Attendance;
 use App\Models\Category;
 use App\Models\ClassSection;
 use App\Models\ClassTeacher;
-use App\Models\EmailTempalate;
+use App\Models\EmailTemplate;
 use App\Models\ExamMarks;
 use App\Models\ExamResult;
 use App\Models\FormField;
@@ -617,7 +617,7 @@ class StudentController extends Controller
             $school_email = $settings['school_email'];
             $school_contact = $settings['school_phone'];
 
-            $AcceptTemplate = EmailTempalate::where('type', 'student_registration')->value('content');
+            $AcceptTemplate = EmailTemplate::where('type', 'student_registration')->value('content');
             $applink = Settings::whereIn('type', ['teacher_app_link', 'teacher_ios_app_link'])
                 ->pluck('message', 'type')
                 ->toArray();
@@ -718,7 +718,7 @@ class StudentController extends Controller
                 //     $message->to($mother_data['email'])->subject($mother_data['subject']);
                 // });
             } else {
-                $template = EmailTempalate::where('type', 'student_registration')->value('content');
+                $template = EmailTemplate::where('type', 'student_registration')->value('content');
                 if (empty($template)) {
                     $template = "Hello , registration successful! Thank you for joining {$school_name}.";
                 }

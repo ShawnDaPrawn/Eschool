@@ -319,8 +319,9 @@ class Students extends Model
     {
         $user = Auth::user();
 
-        // Admin and Super Admin can see all students
-        if ($user->hasRole('Super Admin') || $user->hasRole('Admin')) {
+        // Super Admin can see all students. (There is no seeded 'Admin' role; the old
+        // check for one let any custom role named "Admin" see every student.)
+        if ($user->hasRole('Super Admin')) {
             return $query;
         }
 

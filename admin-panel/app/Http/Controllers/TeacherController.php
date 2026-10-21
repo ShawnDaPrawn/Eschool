@@ -6,7 +6,7 @@ namespace App\Http\Controllers;
 
 use App\Services\ResponseService;
 use App\Models\ClassTeacher;
-use App\Models\EmailTempalate;
+use App\Models\EmailTemplate;
 use App\Models\FormField;
 use App\Models\Settings;
 use App\Models\SubjectTeacher;
@@ -332,7 +332,7 @@ class TeacherController extends Controller
                 $school_contact = getSettings('school_phone');
 
                 $applink = Settings::whereIn('type', ['teacher_app_link', 'teacher_ios_app_link'])->pluck('message', 'type')->toArray();
-                $staffTemplate = EmailTempalate::where('type', 'staff_registration')->value('content');
+                $staffTemplate = EmailTemplate::where('type', 'staff_registration')->value('content');
 
                 $cleanSchoolName = is_array($school_name) ? ($school_name['school_name'] ?? '') : $school_name;
                 $cleanSchoolEmail = is_array($school_email) ? ($school_email['school_email'] ?? '') : $school_email;

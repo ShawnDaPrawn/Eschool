@@ -2,7 +2,7 @@
 
 namespace Database\Seeders;
 
-use App\Models\EmailTempalate;
+use App\Models\EmailTemplate;
 use Illuminate\Database\Seeder;
 
 class EmailSeeder extends Seeder
@@ -64,7 +64,7 @@ Regards,<br>
 </html>
 HTML;
 
-        EmailTempalate::firstOrCreate(
+        EmailTemplate::firstOrCreate(
             ['type' => 'student_registration'],
             [
                 'subject' => 'Student Admission Confirmation',
@@ -108,7 +108,7 @@ Regards,<br>
 </html>
 HTML;
 
-        EmailTempalate::firstOrCreate(
+        EmailTemplate::firstOrCreate(
             ['type' => 'staff_registration'],
             [
                 'subject' => 'Staff Registration Confirmation',
@@ -141,7 +141,7 @@ Sincerely,
 {$school_email}
 HTML;
 
-        EmailTempalate::firstOrCreate(
+        EmailTemplate::firstOrCreate(
             ['type' => 'student_application_regect'],
             [
                 'subject' => 'student application rejection',

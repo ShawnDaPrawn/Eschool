@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers;
 
-use App\Models\EmailTempalate;
+use App\Models\EmailTemplate;
 use App\Models\Leave;
 use App\Models\LeaveDetail;
 use App\Models\LeaveMaster;
@@ -580,7 +580,7 @@ class StaffController extends Controller
                 // MailService::sendWithFallback('staff.email', $data, function ($message) use ($data) {
                 //     $message->to($data['email'])->subject($data['subject']);
                 // });
-                $AcceptTemplate = EmailTempalate::where('type', 'staff_registration')->value('content');
+                $AcceptTemplate = EmailTemplate::where('type', 'staff_registration')->value('content');
 
                 $applink = Settings::whereIn('type', ['teacher_app_link', 'teacher_ios_app_link'])
                     ->pluck('message', 'type')
@@ -665,8 +665,8 @@ class StaffController extends Controller
                 $school_email = getSettings('school_email');
                 $school_contact = getSettings('school_contact');
 
-                // $stafftemplate = EmailTempalate::where('type', 'staff_registration')->first();
-                $stafftemplate = EmailTempalate::where('type', 'staff_registration')->value('content');
+                // $stafftemplate = EmailTemplate::where('type', 'staff_registration')->first();
+                $stafftemplate = EmailTemplate::where('type', 'staff_registration')->value('content');
 
                 // $data = [
                 //     'subject' => 'Welcome to ' . $school_name['school_name'],
@@ -682,7 +682,7 @@ class StaffController extends Controller
                 // MailService::sendWithFallback('staff.email', $data, function ($message) use ($data) {
                 //     $message->to($data['email'])->subject($data['subject']);
                 // });
-                $AcceptTemplate = EmailTempalate::where('type', 'staff_registration')->value('content');
+                $AcceptTemplate = EmailTemplate::where('type', 'staff_registration')->value('content');
 
                 $applink = Settings::whereIn('type', ['teacher_app_link', 'teacher_ios_app_link'])
                     ->pluck('message', 'type')
