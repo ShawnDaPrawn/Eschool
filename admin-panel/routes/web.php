@@ -369,10 +369,6 @@ Route::group(['middleware' => ['Role', 'auth']], function () {
 
         Route::get('fees/paid/receipt-pdf/{id}', [FeesTypeController::class, 'feesPaidReceiptPDF'])->name('fees.paid.receipt.pdf');
 
-        // //Pending Fees
-        // Route::get('fees/fees-pending',[FeesTypeController::class,'feesPendingIndex'])->name('fees.pending.index');
-        // Route::get('fees/fees-pending/list', [FeesTypeController::class, 'feesPendingList'])->name('fees.pending.list');
-
         // Online Exam
         Route::get('online-exam/terms-conditions', [OnlineExamController::class, 'onlineExamTermsConditionIndex'])->name('online-exam.terms-conditions');
         Route::post('online-exam/store-terms-conditions', [OnlineExamController::class, 'storeOnlineExamTermsCondition'])->name('online-exam.store-terms-conditions');
