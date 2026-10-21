@@ -1,22 +1,25 @@
 import 'dart:async';
-import 'dart:io';
 import 'dart:math';
 
 import 'package:awesome_notifications/awesome_notifications.dart';
-import 'package:eschool_teacher/data/models/chatNotificationData.dart';
-import 'package:eschool_teacher/data/repositories/settingsRepository.dart';
-import 'package:eschool_teacher/utils/constants.dart';
+import 'package:eschool_notifications/src/chat_notification_data.dart';
+import 'package:eschool_notifications/src/notification_config.dart';
+import 'package:eschool_notifications/src/notification_preferences.dart';
+import 'package:eschool_notifications/src/notification_platform.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
+
+/// The Android channel chat messages are shown on.
+const String chatNotificationChannelKey = 'chat_notifications_channel';
 
 class ChatNotificationsUtils {
   static int? currentChattingUserId;
 
-  static late StreamController<ChatNotificationData>
-  notificationStreamController;
+  static StreamController<ChatNotificationData> notificationStreamController =
+      StreamController.broadcast();
 
   static void initialize() {
     //remove old data when initializing to remove terminated state data
-    SettingsRepository().setBackgroundChatNotificationData(data: []);
+    const NotificationPreferences().setBackgroundChatNotificationData(data: []);
     notificationStreamController = StreamController.broadcast();
   }
 
@@ -27,13 +30,15 @@ class ChatNotificationsUtils {
   //foreground chat notification handler
   static void addChatStreamAndShowNotification({
     required RemoteMessage message,
+    required NotificationConfig config,
   }) {
     final chatNotification = ChatNotificationData.fromRemoteMessage(
       remoteMessage: message,
+      config: config,
     );
     notificationStreamController.add(chatNotification);
     if (currentChattingUserId != chatNotification.fromUser.userId &&
-        Platform.isAndroid) {
+        NotificationPlatform.isAndroid) {
       createChatNotification(chatData: chatNotification, message: message);
     }
   }

@@ -107,7 +107,7 @@ These are client configs (an API key restricted to the app id), not the admin pa
 
 Firebase products used: Cloud Messaging (`firebase_messaging`), Crashlytics (`firebase_crashlytics`, Gradle plugin `com.google.firebase.crashlytics` 3.0.2) and the Analytics SDK (declared, not called from Dart). Android uses Firebase BoM `31.0.2`. iOS `AppDelegate.swift` calls `FirebaseApp.configure()` if no app exists yet; `Info.plist` sets `FirebaseAppDelegateProxyEnabled` to `false` and enables the `fetch` and `remote-notification` background modes; `Runner.entitlements` contains `aps-environment` = `development`. APNs must be configured in Firebase for iOS push: https://firebase.flutter.dev/docs/messaging/apple-integration (linked from the docs page).
 
-Android notification small icon: `@drawable/ic_launcher_foreground` (manifest meta-data `com.google.firebase.messaging.default_notification_icon` and `AwesomeNotifications().initialize('resource://drawable/ic_launcher_foreground', ...)`); the PNGs are in `android/app/src/main/res/drawable-*/`.
+Android notification small icon: `@drawable/ic_launcher_foreground` (manifest meta-data `com.google.firebase.messaging.default_notification_icon` and `AwesomeNotifications().initialize('resource://drawable/ic_launcher_foreground', ...)` in `packages/eschool_notifications`; the channels are `basic_channel` and `chat_notifications_channel`); the PNGs are in `android/app/src/main/res/drawable-*/`.
 
 Both apps' notifications are sent by the admin panel through the FCM HTTP v1 API, so the admin panel must point at the same Firebase project: Settings > Notification Settings stores the project id (`project_id`) and the service account JSON (`service_account_file`), read by `admin-panel/app/Helpers/notification_helper.php`. See [Notifications](Notifications) and https://shawndaprawn.github.io/Eschool/admin-panel/notification-settings/.
 
@@ -180,7 +180,6 @@ Lottie files in `assets/animations/`: student app `onboarding.json` (login choic
 |---|---|---|
 | `errorMessageDisplayDuration` | 3000 ms | Snack bar duration. |
 | `offsetLimitPaginationAPIDefaultItemFetchLimit` | `15` | `limit` for offset/limit APIs (chat users and messages). |
-| `notificationChannelKey`, `chatNotificationChannelKey` | `basic_channel`, `chat_notifications_channel` | Android notification channels. |
 | `showDefaultCredentials` | `false` | Pre-fills demo logins. Student app: `defaultStudentGRNumber` `student123`, `defaultStudentPassword` `student123`, `defaultParentEmail` `parent@gmail.com`, `defaultParentPassword` `parent123`. Teacher app: `defaultTeacherEmail` `teacher@gmail.com`, `defaultTeacherPassword` `teacher123`. Keep it `false` in production. |
 | `homeMenuBottomSheetAnimationDuration`, `changeSliderDuration`, `numberOfLatestNoticesInHomeScreen` | 300 ms, 5 s, 3 | Student app only. |
 

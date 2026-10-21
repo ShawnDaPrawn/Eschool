@@ -1,9 +1,8 @@
 import 'dart:async';
 
-import 'package:eschool/data/models/chatNotificationData.dart';
+import 'package:eschool_notifications/eschool_notifications.dart';
 import 'package:eschool/data/models/chatUser.dart';
 import 'package:eschool/data/repositories/chatRepository.dart';
-import 'package:eschool/utils/notificationUtils/chatNotificationsUtils.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 /*
@@ -67,7 +66,7 @@ class ChatUsersCubit extends Cubit<ChatUsersState> {
     _streamSubscription = ChatNotificationsUtils
         .notificationStreamController.stream
         .listen((event) {
-      makeUserFirstOrAddFirst(event.fromUser);
+      makeUserFirstOrAddFirst(event.fromUser as ChatUser);
     });
   }
 

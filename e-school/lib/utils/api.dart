@@ -4,7 +4,7 @@ import 'package:eschool_session/eschool_session.dart';
 import 'package:eschool/app/routes.dart';
 import 'package:eschool/cubits/authCubit.dart';
 import 'package:eschool/utils/constants.dart';
-import 'package:eschool/utils/notificationUtils/generalNotificationUtility.dart';
+import 'package:eschool_notifications/eschool_notifications.dart';
 import 'package:eschool/utils/uiUtils.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -118,7 +118,8 @@ class Api {
   //
   static String subjectsByChildId = '${databaseUrl}parent/subjects';
   static String parentLogin = '${databaseUrl}parent/login';
-  static String parentPolicyAcceptance = '${databaseUrl}parent/policy-acceptance';
+  static String parentPolicyAcceptance =
+      '${databaseUrl}parent/policy-acceptance';
   static String parentProfile = '${databaseUrl}parent/get-profile-data';
   static String lessonsOfSubjectParent = '${databaseUrl}parent/lessons';
   static String getstudyMaterialsOfTopicParent =

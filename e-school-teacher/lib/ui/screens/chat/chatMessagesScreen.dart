@@ -13,7 +13,7 @@ import 'package:eschool_teacher/ui/screens/chat/widget/messageSendingWidget.dart
 import 'package:eschool_teacher/ui/screens/chat/widget/singleMessageItem.dart';
 import 'package:eschool_teacher/ui/widgets/noDataContainer.dart';
 import 'package:eschool_teacher/utils/labelKeys.dart';
-import 'package:eschool_teacher/utils/notificationUtils/chatNotificationsUtils.dart';
+import 'package:eschool_notifications/eschool_notifications.dart';
 import 'package:eschool_teacher/utils/uiUtils.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';

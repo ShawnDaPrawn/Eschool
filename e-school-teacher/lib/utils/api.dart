@@ -4,7 +4,7 @@ import 'package:eschool_session/eschool_session.dart';
 import 'package:eschool_teacher/app/routes.dart';
 import 'package:eschool_teacher/cubits/authCubit.dart';
 import 'package:eschool_teacher/utils/constants.dart';
-import 'package:eschool_teacher/utils/notificationUtils/generalNotificationUtility.dart';
+import 'package:eschool_notifications/eschool_notifications.dart';
 import 'package:eschool_teacher/utils/uiUtils.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';

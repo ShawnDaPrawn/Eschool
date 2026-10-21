@@ -33,15 +33,16 @@ import 'package:eschool/utils/assets.dart';
 import 'package:eschool/utils/constants.dart';
 import 'package:eschool/utils/homeBottomsheetMenu.dart';
 import 'package:eschool/utils/labelKeys.dart';
-import 'package:eschool/utils/notificationUtils/chatNotificationsUtils.dart';
-import 'package:eschool/utils/notificationUtils/generalNotificationUtility.dart';
+import 'package:eschool_notifications/eschool_notifications.dart';
 import 'package:eschool/utils/uiUtils.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 //value notifier to show notification icon active/deactivated
-ValueNotifier<int> notificationCountValueNotifier = ValueNotifier(0);
+/// The unread badge; kept by eschool_notifications.
+ValueNotifier<int> get notificationCountValueNotifier =>
+    NotificationUtility.unreadCount;
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -188,7 +189,7 @@ class HomeScreenState extends State<HomeScreen>
       //setup notification callback here
       NotificationUtility.setUpNotificationService(context);
       NotificationUtility.subscribeOrUnsubscribeToNotificationTopics(
-        isParent: false,
+        audience: NotificationAudience.students,
         isUnsubscribe: false,
       );
     });

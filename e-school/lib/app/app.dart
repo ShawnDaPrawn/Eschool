@@ -33,7 +33,8 @@ import 'package:eschool/data/repositories/systemInfoRepository.dart';
 import 'package:eschool/ui/screens/exam/onlineExam/cubits/examOnlineCubit.dart';
 import 'package:eschool/utils/appLanguages.dart';
 import 'package:eschool/utils/hiveBoxKeys.dart';
-import 'package:eschool/utils/notificationUtils/generalNotificationUtility.dart';
+import 'package:eschool_notifications/eschool_notifications.dart';
+import 'package:eschool/utils/notificationConfig.dart';
 import 'package:eschool/utils/uiUtils.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
@@ -76,6 +77,7 @@ Future<void> initializeApp() async {
     return true;
   };
 
+  NotificationUtility.configure(notificationConfig, session: Api.session);
   await NotificationUtility.initializeAwesomeNotification();
 
   await initHiveStorage([showCaseBoxKey, authBoxKey, settingsBoxKey]);

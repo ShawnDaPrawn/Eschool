@@ -66,7 +66,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        app: [e-school, e-school-teacher, packages/eschool_core, packages/eschool_session]
+        app: [e-school, e-school-teacher, packages/eschool_core, packages/eschool_session, packages/eschool_notifications]
     defaults:
       run:
         working-directory: ${{ matrix.app }}

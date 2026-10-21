@@ -17,9 +17,8 @@ const Duration errorMessageDisplayDuration = Duration(milliseconds: 3000);
 //the limit used in pagination APIs where offset and limit logic is used, change to fetch items accordingly
 const int offsetLimitPaginationAPIDefaultItemFetchLimit = 15;
 
-//notification channel keys
-const String notificationChannelKey = 'basic_channel';
-const String chatNotificationChannelKey = 'chat_notifications_channel';
+//notification channel keys (basic_channel, chat_notifications_channel) are in
+//eschool_notifications
 
 //to enable and disable default credentials in login page
 const bool showDefaultCredentials = false;

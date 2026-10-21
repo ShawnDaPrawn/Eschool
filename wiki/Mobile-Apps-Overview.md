@@ -39,7 +39,7 @@ Both apps use the same folder structure under `lib/`:
 | `lib/utils/labelKeys.dart` | Constants for every translation key; re-exports the keys the shared widgets use from `eschool_core`. |
 | `lib/utils/errorMessageKeysAndCodes.dart` | `ErrorMessageKeysAndCode`: maps API error codes to translation keys. |
 | `lib/utils/uiUtils.dart` | `UiUtils`: `rootNavigatorKey`, `getTranslatedLabel()`, snack bars, date helpers, `forceUpdate()`, `launchWebUrl()`. The sizes and helpers that were the same in both apps forward to `SharedUiUtils` in `eschool_core`. |
-| `lib/utils/notificationUtils/` | `generalNotificationUtility.dart` (`NotificationUtility`) and `chatNotificationsUtils.dart` (`ChatNotificationsUtils`). |
+| `lib/utils/notificationConfig.dart` | The app's `NotificationConfig` (channel description, types that do not raise the badge, tap routing by `data['type']`, the background handler) for `NotificationUtility` and `ChatNotificationsUtils` in [`packages/eschool_notifications`](https://github.com/ShawnDaPrawn/Eschool/tree/main/packages/eschool_notifications). |
 | `lib/utils/fileNameUtils.dart` | `sanitizeFileName()` used before saving server-supplied file names. |
 | `lib/utils/assets.dart` | `Assets` class with every image/animation path; the files the shared widgets draw point at `SharedAssets`. |
 | `test/translations_test.dart` | Language file consistency. |
@@ -72,7 +72,7 @@ Files that were the same in both apps live once in [`packages/eschool_core`](htt
 3. Locks orientation to `DeviceOrientation.portraitUp`.
 4. `Firebase.initializeApp()` with no options, so Firebase is configured from the native files (`google-services.json`, `GoogleService-Info.plist`). There is no `firebase_options.dart`.
 5. Routes `FlutterError.onError` and `PlatformDispatcher.instance.onError` to Firebase Crashlytics.
-6. `NotificationUtility.initializeAwesomeNotification()` creates the two Android channels `basic_channel` and `chat_notifications_channel`.
+6. `NotificationUtility.configure(notificationConfig, session: Api.session)`, then `NotificationUtility.initializeAwesomeNotification()` creates the two Android channels `basic_channel` and `chat_notifications_channel` (both from `eschool_notifications`).
 7. `initHiveStorage(...)` initialises Hive in `getApplicationSupportDirectory()` (not Documents, which iOS exposes in the Files app because `UIFileSharingEnabled` is on) and moves boxes left in Documents by older versions; then opens the boxes (`showCaseBox`, `authBox`, `settings` in the student app; `authBox`, `settings` in the teacher app).
 8. `runApp(const MyApp())`.
 
@@ -218,12 +218,12 @@ The rules of `ForceUpdate.isRequired()`, unchanged from the apps' own check:
 
 ## Push notifications
 
-Both apps use `firebase_messaging` for delivery and `awesome_notifications` (not `flutter_local_notifications`) to display notifications on Android.
+Both apps use `firebase_messaging` for delivery and `awesome_notifications` (not `flutter_local_notifications`) to display notifications on Android. The code is in the shared package `packages/eschool_notifications`; each app's `lib/utils/notificationConfig.dart` holds what differs (see the package README). The web portals have no push notifications in Phase 0 and list notifications from the API.
 
-- After login the apps subscribe to FCM topics: student app `studentsAndroid`/`studentsIOS` or `parentsAndroid`/`parentsIOS` plus `allAndroid`/`allIOS`; teacher app `teachersAndroid`/`teachersIOS` plus `allAndroid`/`allIOS`. These match the topic map in `sendNotificationToTopic()` in `admin-panel/app/Helpers/notification_helper.php`. Individual notifications are sent to the stored `fcm_id` instead.
+- After login the apps subscribe to FCM topics by audience (`NotificationAudience.students`, `parents` or `teachers`): student app `studentsAndroid`/`studentsIOS` or `parentsAndroid`/`parentsIOS` plus `allAndroid`/`allIOS`; teacher app `teachersAndroid`/`teachersIOS` plus `allAndroid`/`allIOS`. These match the topic map in `sendNotificationToTopic()` in `admin-panel/app/Helpers/notification_helper.php`. Individual notifications are sent to the stored `fcm_id` instead.
 - Android messages are data-only; `NotificationUtility.createLocalNotification()` builds the visible notification (big picture when `image` is set). iOS messages carry a `notification` block and are shown by the system.
-- The payload `type` decides the tap action (`noticeboard`, `assignment`, `custom`, `Online`, `fees-due`, `chat`, ...). Chat messages go through `ChatNotificationsUtils` and the `chat_notifications_channel`.
-- The unread badge count is kept in SharedPreferences (`notificationCount`); types in `notificaitonTypesToNotIncrementCount` (notice board, class, chat and, in the student app, fee-due) do not increment it.
+- The payload `type` decides the tap action (`noticeboard`, `assignment`, `custom`, `Online`, `fees-due`, `chat`, ...), in each app's `onNotificationTap()`. Chat messages go through `ChatNotificationsUtils` and the `chat_notifications_channel`.
+- The unread badge count is kept in SharedPreferences (`notificationCount`) and shown from `NotificationUtility.unreadCount`; types in `notificaitonTypesToNotIncrementCount` (notice board, class, chat and, in the student app, fee-due) do not increment it.
 
 Server-side sending is covered on [Notifications](Notifications); chat on [Chat](Chat).
 

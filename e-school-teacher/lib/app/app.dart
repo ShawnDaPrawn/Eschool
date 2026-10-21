@@ -19,7 +19,8 @@ import 'package:eschool_teacher/data/repositories/systemInfoRepository.dart';
 import 'package:eschool_teacher/data/repositories/teacherRepository.dart';
 import 'package:eschool_teacher/utils/appLanguages.dart';
 import 'package:eschool_teacher/utils/hiveBoxKeys.dart';
-import 'package:eschool_teacher/utils/notificationUtils/generalNotificationUtility.dart';
+import 'package:eschool_notifications/eschool_notifications.dart';
+import 'package:eschool_teacher/utils/notificationConfig.dart';
 import 'package:eschool_teacher/utils/uiUtils.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
@@ -60,6 +61,7 @@ Future<void> initializeApp() async {
     return true;
   };
 
+  NotificationUtility.configure(notificationConfig, session: Api.session);
   await NotificationUtility.initializeAwesomeNotification();
 
   SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);

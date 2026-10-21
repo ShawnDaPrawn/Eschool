@@ -2,7 +2,7 @@
 import 'dart:convert';
 
 import 'package:eschool_core/eschool_core.dart';
-import 'package:eschool_teacher/data/models/chatUser.dart';
+import 'package:eschool_notifications/src/notification_config.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 
 /*
@@ -13,25 +13,26 @@ also useful to get data of notifications that came while in background
 */
 class ChatNotificationData {
   ChatMessage receivedMessage;
-  ChatUser fromUser;
-  ChatNotificationData(
-    this.receivedMessage,
-    this.fromUser,
-  );
+
+  /// The app's own `ChatUser`; cast it back to read the app's fields.
+  ChatSender fromUser;
+
+  ChatNotificationData(this.receivedMessage, this.fromUser);
 
   factory ChatNotificationData.fromRemoteMessage({
     required RemoteMessage remoteMessage,
+    required NotificationConfig config,
   }) {
     final data = jsonDecode(remoteMessage.data['sender_info']);
     return ChatNotificationData(
       ChatMessage.fromJsonAPI(data['last_message']),
-      ChatUser.fromJsonAPI(data),
+      config.chatSenderFromApi(data),
     );
   }
 
   ChatNotificationData copyWith({
     ChatMessage? receivedMessage,
-    ChatUser? fromUser,
+    ChatSender? fromUser,
   }) {
     return ChatNotificationData(
       receivedMessage ?? this.receivedMessage,
@@ -46,17 +47,25 @@ class ChatNotificationData {
     };
   }
 
-  factory ChatNotificationData.fromMap(Map<String, dynamic> map) {
+  factory ChatNotificationData.fromMap(
+    Map<String, dynamic> map, {
+    required NotificationConfig config,
+  }) {
     return ChatNotificationData(
       ChatMessage.fromMap(map['receivedMessage'] as Map<String, dynamic>),
-      ChatUser.fromMap(map['fromUser'] as Map<String, dynamic>),
+      config.chatSenderFromMap(map['fromUser'] as Map<String, dynamic>),
     );
   }
 
   String toJson() => json.encode(toMap());
 
-  factory ChatNotificationData.fromJson(String source) =>
-      ChatNotificationData.fromMap(json.decode(source) as Map<String, dynamic>);
+  factory ChatNotificationData.fromJson(
+    String source, {
+    required NotificationConfig config,
+  }) => ChatNotificationData.fromMap(
+    json.decode(source) as Map<String, dynamic>,
+    config: config,
+  );
 
   @override
   String toString() =>

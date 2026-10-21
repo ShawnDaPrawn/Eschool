@@ -12,15 +12,16 @@ import 'package:eschool_teacher/ui/screens/home/widgets/bottomNavigationItemCont
 import 'package:eschool_teacher/ui/screens/home/widgets/forceUpdateDialogContainer.dart';
 import 'package:eschool_teacher/utils/assets.dart';
 import 'package:eschool_teacher/utils/labelKeys.dart';
-import 'package:eschool_teacher/utils/notificationUtils/chatNotificationsUtils.dart';
-import 'package:eschool_teacher/utils/notificationUtils/generalNotificationUtility.dart';
+import 'package:eschool_notifications/eschool_notifications.dart';
 import 'package:eschool_teacher/utils/uiUtils.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 //value notifier to show notification icon active/deavtive
-ValueNotifier<int> notificationCountValueNotifier = ValueNotifier(0);
+/// The unread badge; kept by eschool_notifications.
+ValueNotifier<int> get notificationCountValueNotifier =>
+    NotificationUtility.unreadCount;
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -89,6 +90,7 @@ class _HomeScreenState extends State<HomeScreen>
         //setup notification callback here
         NotificationUtility.setUpNotificationService(context);
         NotificationUtility.subscribeOrUnsubscribeToNotificationTopics(
+          audience: NotificationAudience.teachers,
           isUnsubscribe: false,
         );
         //fetch chat users for chat count

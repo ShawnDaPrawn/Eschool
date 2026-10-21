@@ -21,8 +21,7 @@ import 'package:eschool/ui/widgets/shimmerLoaders/announcementShimmerLoadingCont
 import 'package:eschool/ui/widgets/slidersContainer.dart';
 import 'package:eschool/utils/assets.dart';
 import 'package:eschool/utils/labelKeys.dart';
-import 'package:eschool/utils/notificationUtils/chatNotificationsUtils.dart';
-import 'package:eschool/utils/notificationUtils/generalNotificationUtility.dart';
+import 'package:eschool_notifications/eschool_notifications.dart';
 import 'package:eschool/utils/uiUtils.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -66,7 +65,7 @@ class _ParentHomeScreenState extends State<ParentHomeScreen>
       context.read<SlidersCubit>().fetchSliders();
       NotificationUtility.setUpNotificationService(context);
       NotificationUtility.subscribeOrUnsubscribeToNotificationTopics(
-        isParent: true,
+        audience: NotificationAudience.parents,
         isUnsubscribe: false,
       );
       context.read<NoticeBoardCubit>().fetchNoticeBoardDetails(
