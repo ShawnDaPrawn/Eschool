@@ -15,9 +15,9 @@ import 'package:flutter_svg/svg.dart';
 import 'package:open_filex/open_filex.dart';
 
 class ResultListScreen extends StatelessWidget {
-
   const ResultListScreen({
-    required this.classSectionId, super.key,
+    required this.classSectionId,
+    super.key,
     this.studentId,
     this.studentName,
     this.className,
@@ -124,12 +124,15 @@ class ResultListScreen extends StatelessWidget {
                             builder: (context, state) {
                               if (state
                                   is DownloadResultPdfDownloadInProgress) {
-                                return const SizedBox(
+                                return SizedBox(
                                   height: 25,
                                   width: 25,
                                   child: CustomCircularProgressIndicator(
                                     strokeWidth: 2,
                                     widthAndHeight: 20,
+                                    indicatorColor: Theme.of(
+                                      context,
+                                    ).colorScheme.onInverseSurface,
                                   ),
                                 );
                               } else {

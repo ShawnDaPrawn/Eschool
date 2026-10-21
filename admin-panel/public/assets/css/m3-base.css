@@ -1,0 +1,224 @@
+/*
+ * Material 3 base for the admin panel and the public website.
+ *
+ * Load order: m3-tokens.css (the design tokens generated from the apps'
+ * theme) first, then the template (style.css / rtl.css), then this file,
+ * then the redesign stylesheets. It sets the typeface and points the legacy
+ * colour variables the older stylesheets use at the design tokens, so the
+ * whole panel follows the Navigate Wealth palette. Write new styles against
+ * the --md-sys-* and --app-* tokens directly; see wiki/UI-Standards.md.
+ */
+
+@font-face {
+    font-family: 'Poppins';
+    font-style: normal;
+    font-weight: 400;
+    font-display: swap;
+    src: url('../fonts/poppins/Poppins-Regular.woff2') format('woff2');
+}
+
+@font-face {
+    font-family: 'Poppins';
+    font-style: italic;
+    font-weight: 400;
+    font-display: swap;
+    src: url('../fonts/poppins/Poppins-Italic.woff2') format('woff2');
+}
+
+@font-face {
+    font-family: 'Poppins';
+    font-style: normal;
+    font-weight: 500;
+    font-display: swap;
+    src: url('../fonts/poppins/Poppins-Medium.woff2') format('woff2');
+}
+
+@font-face {
+    font-family: 'Poppins';
+    font-style: normal;
+    font-weight: 600;
+    font-display: swap;
+    src: url('../fonts/poppins/Poppins-SemiBold.woff2') format('woff2');
+}
+
+@font-face {
+    font-family: 'Poppins';
+    font-style: normal;
+    font-weight: 700;
+    font-display: swap;
+    src: url('../fonts/poppins/Poppins-Bold.woff2') format('woff2');
+}
+
+/*
+ * The older stylesheets ask for these names; they all resolve to Poppins so
+ * the whole panel and site share the apps' typeface. This file must load after
+ * style.css / rtl.css so these declarations win.
+ */
+
+@font-face {
+    font-family: 'Roboto-Light';
+    font-display: swap;
+    src: url('../fonts/poppins/Poppins-Regular.woff2') format('woff2');
+}
+
+@font-face {
+    font-family: 'Roboto-Regular';
+    font-display: swap;
+    src: url('../fonts/poppins/Poppins-Regular.woff2') format('woff2');
+}
+
+@font-face {
+    font-family: 'Roboto-Medium';
+    font-display: swap;
+    src: url('../fonts/poppins/Poppins-Medium.woff2') format('woff2');
+}
+
+@font-face {
+    font-family: 'Roboto-Bold';
+    font-display: swap;
+    src: url('../fonts/poppins/Poppins-Bold.woff2') format('woff2');
+}
+
+@font-face {
+    font-family: 'Roboto';
+    font-weight: 400;
+    font-display: swap;
+    src: url('../fonts/poppins/Poppins-Regular.woff2') format('woff2');
+}
+
+@font-face {
+    font-family: 'Roboto';
+    font-weight: 500;
+    font-display: swap;
+    src: url('../fonts/poppins/Poppins-Medium.woff2') format('woff2');
+}
+
+@font-face {
+    font-family: 'Roboto';
+    font-weight: 600;
+    font-display: swap;
+    src: url('../fonts/poppins/Poppins-SemiBold.woff2') format('woff2');
+}
+
+@font-face {
+    font-family: 'Roboto';
+    font-weight: 700;
+    font-display: swap;
+    src: url('../fonts/poppins/Poppins-Bold.woff2') format('woff2');
+}
+
+:root {
+    /*
+     * Status colours as text or icons on light surfaces. The raw status
+     * colours are fills; as text they are too faint (warning is 1.9:1 on
+     * white). Mixed 55% with on-surface they pass AA (4.5:1) on white and on
+     * the pale status tints.
+     */
+    --app-status-success-text: color-mix(in srgb, var(--app-status-success) 55%, var(--md-sys-color-on-surface));
+    --app-status-warning-text: color-mix(in srgb, var(--app-status-warning) 55%, var(--md-sys-color-on-surface));
+    --app-status-danger-text: color-mix(in srgb, var(--app-status-danger) 55%, var(--md-sys-color-on-surface));
+    --app-status-info-text: color-mix(in srgb, var(--app-status-info) 55%, var(--md-sys-color-on-surface));
+
+    /* Legacy names used by style.css / rtl.css, kept so those rules follow
+       the tokens. Don't use them in new rules. */
+    --theme-color: var(--md-sys-color-primary);
+    --secondary-color: var(--md-sys-color-inverse-surface);
+}
+
+/*
+ * Bootstrap's muted text, in the token grey. The template's own (#9c9fa6) is
+ * 2.6:1 on white, below WCAG AA; on-surface-variant is 4.8:1. The template
+ * marks its rule !important, so this one has to as well.
+ */
+.text-muted {
+    color: var(--md-sys-color-on-surface-variant) !important;
+}
+
+/*
+ * Bootstrap's colour utilities, pointed at the tokens (Bootstrap and the
+ * template mark them !important too). 722 required-field asterisks use
+ * .text-danger alone.
+ */
+.text-primary {
+    color: var(--md-sys-color-primary) !important;
+}
+
+.text-secondary {
+    color: var(--md-sys-color-on-surface-variant) !important;
+}
+
+.text-dark {
+    color: var(--md-sys-color-on-surface) !important;
+}
+
+.text-danger {
+    color: var(--md-sys-color-error) !important;
+}
+
+.text-success {
+    color: var(--app-status-success-text) !important;
+}
+
+.text-warning {
+    color: var(--app-status-warning-text) !important;
+}
+
+.text-info {
+    color: var(--app-status-info-text) !important;
+}
+
+.bg-primary {
+    background-color: var(--md-sys-color-primary) !important;
+}
+
+.bg-secondary {
+    background-color: var(--md-sys-color-secondary-container) !important;
+}
+
+.bg-success {
+    background-color: var(--app-status-success) !important;
+}
+
+.bg-danger {
+    background-color: var(--md-sys-color-error) !important;
+}
+
+.bg-warning {
+    background-color: var(--app-status-warning) !important;
+}
+
+.bg-info {
+    background-color: var(--app-status-info) !important;
+}
+
+.bg-light {
+    background-color: var(--md-sys-color-surface-container-low) !important;
+}
+
+.bg-white {
+    background-color: var(--md-sys-color-surface-container-lowest) !important;
+}
+
+.bg-dark {
+    background-color: var(--md-sys-color-inverse-surface) !important;
+}
+
+.border-primary {
+    border-color: var(--md-sys-color-primary) !important;
+}
+
+.border-success {
+    border-color: var(--app-status-success) !important;
+}
+
+.border-danger {
+    border-color: var(--md-sys-color-error) !important;
+}
+
+.border-warning {
+    border-color: var(--app-status-warning) !important;
+}
+
+.border-secondary {
+    border-color: var(--md-sys-color-outline) !important;
+}

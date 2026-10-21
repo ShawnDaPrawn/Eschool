@@ -32,7 +32,7 @@ class SearchButton extends StatelessWidget {
           child: Icon(
             CupertinoIcons.search, //Icons.calendar_month
             size: 25,
-            color: Theme.of(context).colorScheme.onPrimary,
+            color: Theme.of(context).colorScheme.onInverseSurface,
           ),
         ),
       ),

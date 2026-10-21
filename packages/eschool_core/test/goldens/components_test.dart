@@ -11,7 +11,7 @@ import 'package:flutter_test/flutter_test.dart';
 // and look at the new images before committing them.
 void main() {
   testWidgets('theme and shared widgets', (tester) async {
-    tester.view.physicalSize = const Size(420, 980);
+    tester.view.physicalSize = const Size(420, 1060);
     tester.view.devicePixelRatio = 1;
     addTearDown(tester.view.reset);
 
@@ -157,6 +157,21 @@ class _Gallery extends StatelessWidget {
           BottomsheetAddFilesDottedBorderContainer(
             onTap: () {},
             title: 'Add files',
+          ),
+          // A screen header: the apps draw these in the inverse surface.
+          Container(
+            height: 70,
+            alignment: Alignment.center,
+            decoration: BoxDecoration(
+              color: scheme.inverseSurface,
+              borderRadius: const BorderRadius.vertical(
+                bottom: Radius.circular(25),
+              ),
+            ),
+            child: Text(
+              'Header',
+              style: TextStyle(color: scheme.onInverseSurface),
+            ),
           ),
           Container(
             height: 70,

@@ -49,8 +49,8 @@ class CustomTabBarContainer extends StatelessWidget {
                   fontSize: 15,
                   fontWeight: FontWeight.w600,
                   color: isSelected
-                      ? Theme.of(context).colorScheme.onSurfaceVariant
-                      : Theme.of(context).colorScheme.onPrimary,
+                      ? Theme.of(context).colorScheme.primary
+                      : Theme.of(context).colorScheme.onInverseSurface,
                 ),
                 child: Text(
                   UiUtils.getTranslatedLabel(context, titleKey),

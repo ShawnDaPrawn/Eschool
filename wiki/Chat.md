@@ -26,13 +26,15 @@ Each app role has the same four endpoints under its prefix, all behind `auth:san
 | `POST get-user-message` | `user_id`, `offset`, `limit` (1 to 100, default 100) | `user_id`, `offset`, `limit` (default 100) | `user_id`, `offset`, `limit` (default 100) |
 | `POST read-all-message` | `user_id` | `user_id` | `user_id` |
 
-`get-user-list` returns `{items, total_items, total_unread_users}`; each item has the contact's `id`, `user_id`, names, `image`, contact details, `subjects`, `last_message` (`id`, `body`, `date`, `files`) and `unread_message`, sorted by the last message date, newest first. Each list loads the message's `file` rows, so `last_message` also has `file`, and `files` holds the attachment URLs. Teacher items for students add `roll_no`, `admission_no`, `gender`, `dob`, `address`, `class_name`; for parents, `occupation` and their `children`.
+`get-user-list` returns `{items, total_items, total_unread_users}`; each item has the contact's `id`, `user_id`, names, `image`, contact details, `subjects`, `last_message` (`id`, `body`, `date`, `files`) and `unread_message`, sorted by the last message, newest first. Each list loads the message's `file` rows, so `last_message` also has `file`, and `files` holds the attachment URLs. Teacher items for students add `roll_no`, `admission_no`, `gender`, `dob`, `address`, `class_name`; for parents, `occupation` and their `children`.
 
 `send-message` returns the new message as `{id, sender_id, body, date, files[]}`, where `files` are full URLs (`asset('storage/<file_name>')`).
 
 `get-user-message` returns `{items, total_items}`, newest first, each item `{id, sender_id, body, date, files[]}`. The parent version selects exactly the two directions of the conversation; the student and teacher versions select rows whose sender and receiver are each one of the two users.
 
-`read-all-message` sets `last_read_message_id` on the caller's read pointer for `user_id` to the newest message that user sent the caller. It updates an existing pointer only; if the other person has never messaged the caller, nothing changes.
+`read-all-message` sets `last_read_message_id` on the caller's read pointer for `user_id` to the newest message that user sent the caller.
+
+"Newest" means the highest message `id`, everywhere in chat. `date` and `created_at` are local times in the school's time zone, so after the time zone changes (General Settings, or the migration that moved the India default to Johannesburg) messages sent earlier can carry later times; ordering by them put old messages first and left unread badges stuck. It updates an existing pointer only; if the other person has never messaged the caller, nothing changes.
 
 ## Who may chat with whom
 

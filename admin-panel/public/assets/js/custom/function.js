@@ -1,8 +1,22 @@
 "use strict";
 
+// Confirm dialogs (SweetAlert2) use the panel's Material 3 buttons from
+// m3-components.css instead of SweetAlert2's own button colours, which the
+// calls' confirmButtonColor / cancelButtonColor would otherwise set.
+if (window.Swal) {
+    window.Swal = window.Swal.mixin({
+        buttonsStyling: false,
+        customClass: {
+            confirmButton: "btn btn-theme",
+            denyButton: "btn btn-secondary",
+            cancelButton: "btn btn-secondary",
+        },
+    });
+}
+
 function trans(label) {
-    // return window.languageLabels.hasOwnProperty(label) ? window.languageLabels[label] : label;
-    return window?.languageLabels[label] || label;
+    // The public website doesn't load /common/js/lang, so the labels may be missing.
+    return (window.languageLabels && window.languageLabels[label]) || label;
 }
 
 /**

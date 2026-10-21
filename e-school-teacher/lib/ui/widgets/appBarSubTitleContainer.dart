@@ -30,7 +30,7 @@ class AppBarSubTitleContainer extends StatelessWidget {
           overflow: TextOverflow.ellipsis,
           style: TextStyle(
             fontSize: UiUtils.screenSubTitleFontSize,
-            color: Theme.of(context).colorScheme.onPrimary,
+            color: Theme.of(context).colorScheme.onInverseSurface,
           ),
         ),
       ),

@@ -103,7 +103,7 @@ class ChatController extends Controller
                             ->where('modal_id', $user->id);
                     })
                     ->select('id', 'body', 'date')
-                    ->latest()
+                    ->latest('id')
                     ->first();
 
                 $lastReadMessage = ReadMessage::where('modal_id', $user->id)
@@ -148,7 +148,7 @@ class ChatController extends Controller
             $totalunreadusers = count($unreadusers);
 
             $data = collect($data)->sortByDesc(function ($item) {
-                return optional($item['last_message'])->date ?? 0;
+                return optional($item['last_message'])->id ?? 0;
             })->values();
 
             return ResponseService::successResponse('Data Fetched Successfully', [
@@ -342,7 +342,7 @@ class ChatController extends Controller
                         ->orWhere('sender_id', Auth::id());
                 })
                 ->select('id', 'sender_id', 'body', 'date')
-                ->latest('date');
+                ->latest('id');
 
             $total_items = $messages->count();
 
@@ -372,7 +372,7 @@ class ChatController extends Controller
             $user = Auth::id();
             $teacher = $request->user_id;
 
-            $lastMessage = ChatMessage::where('sender_id', $teacher)->where('modal_id', $user)->latest()->first();
+            $lastMessage = ChatMessage::where('sender_id', $teacher)->where('modal_id', $user)->latest('id')->first();
             if ($lastMessage) {
                 $message_id = $lastMessage->id;
             }

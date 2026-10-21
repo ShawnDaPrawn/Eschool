@@ -25,7 +25,7 @@ Daily chat cleanup and Sanctum pruning (`routes/console.php`) do not run until s
 
 System Update (installing an uploaded zip) is off on Cloud Run (`config/system_update.php`, `SYSTEM_UPDATE_ENABLED`); release by deploying a new image.
 
-`config/trustedproxy.php` trusts Google's front end on Cloud Run (it detects `K_SERVICE`), so HTTPS stays HTTPS and rate limits see each visitor's real address. `bootstrap/app.php` trusts the `APP_URL` host. A production `APP_URL` that does not match the browser host returns 400.
+`config/trustedproxy.php` trusts Google's front end on Cloud Run (it detects `K_SERVICE`), so HTTPS stays HTTPS and rate limits see each visitor's real address. Once the panel is installed, `bootstrap/app.php` trusts the `APP_URL` host, `localhost`, `127.0.0.1` and `TRUSTED_HOSTS`. A production `APP_URL` that does not match the browser host returns 400; see [HTTPS, proxies and hosts](#https-proxies-and-hosts).
 
 The request limits (see [Security-Model](Security-Model#request-limits)) stop one client from overloading the service, but not a flood from many addresses. For that, put the service behind an external Application Load Balancer with a Cloud Armor policy (rate-based rules, and Adaptive Protection if available) and set the Cloud Run ingress to "internal and Cloud Load Balancing". Setting a maximum number of instances caps the bill during a flood.
 
@@ -190,7 +190,7 @@ php artisan optimize:clear  # remove them again
 - Re-run `php artisan optimize` after editing `.env`, after deploying new code and after a System Update. `InstallationSeeder` (run by the installer, by System Update and by `/seeder_install`) and the installer's finish step clear the config, route, view and application caches.
 - CI checks that the caches build: `php artisan config:cache && php artisan route:cache && php artisan view:cache && php artisan optimize:clear`.
 - `bootstrap/cache/config.php` contains every secret from `.env` and, because `config:cache` boots the app, the database values `SettingsConfigService` applied at that moment (SMTP password, Paystack secret key). Keep it out of the web root and out of backups that leave the server unencrypted.
-- The admin header's "Cache Clear" button calls `GET /clear` (any signed-in user), which runs `view:clear`, `route:clear`, `config:clear` and `cache:clear`.
+- The admin header's "Cache Clear" button posts to `POST /clear` (Super Admin only), which runs `view:clear`, `route:clear`, `config:clear` and `cache:clear`.
 - Spatie caches roles and permissions for 24 hours in the default cache store. The package resets that cache when roles or permissions are changed through its models; after editing the tables by hand, run `php artisan permission:cache-reset`.
 - With OPcache enabled (`validate_timestamps=0`), reload PHP-FPM after each deployment.
 
@@ -201,9 +201,15 @@ php artisan optimize:clear  # remove them again
 - The release builds of the mobile apps require an HTTPS server URL; see [Mobile-App-Configuration](Mobile-App-Configuration).
 - Payment gateway webhooks (`POST /webhook/razorpay`, `/webhook/stripe`, `/webhook/paystack`, `/webhook/flutterwave`) must be reachable from the internet; they are exempt from CSRF. See [Payments](Payments).
 
-Behind a load balancer or reverse proxy that terminates TLS, set `TRUSTED_PROXIES` in `.env` to the proxy's addresses or ranges, comma-separated (read by [config/trustedproxy.php](https://github.com/ShawnDaPrawn/Eschool/blob/main/admin-panel/config/trustedproxy.php)). Use `*` only if visitors cannot reach the server except through the proxy. Without it, `X-Forwarded-Proto` is ignored: `isSecure()` is false, `url()`, `asset()` and `route()` produce `http://` links, HSTS is not sent, and every visitor counts as the proxy's address in the rate limits. On Cloud Run (`K_SERVICE` set) the default is `*`, because only Google's front end can reach the container. From trusted proxies only `X-Forwarded-For` and `X-Forwarded-Proto` are used; `X-Forwarded-Host`, `-Port` and `-Prefix` are ignored, because Cloud Run passes a visitor's own copies through. The class `app/Http/Middleware/TrustProxies.php` is not registered, so editing it has no effect.
+Behind a load balancer or reverse proxy that terminates TLS, set `TRUSTED_PROXIES` in `.env` to the proxy's addresses or ranges, comma-separated (read by [config/trustedproxy.php](https://github.com/ShawnDaPrawn/Eschool/blob/main/admin-panel/config/trustedproxy.php)). Use `*` only if visitors cannot reach the server except through the proxy. Without it, `X-Forwarded-Proto` is ignored: `isSecure()` is false, `url()`, `asset()` and `route()` produce `http://` links, HSTS is not sent, and every visitor counts as the proxy's address in the rate limits. On Cloud Run (`K_SERVICE` set) the default is `*`, because only Google's front end can reach the container. From trusted proxies only `X-Forwarded-For` and `X-Forwarded-Proto` are used; `X-Forwarded-Host`, `-Port` and `-Prefix` are ignored, because Cloud Run passes a visitor's own copies through. The classes `app/Http/Middleware/TrustProxies.php` and `TrustHosts.php` are not registered, so editing them has no effect.
 
-`bootstrap/app.php` calls `$middleware->trustHosts()`, so in production only the `APP_URL` host (and its subdomains) plus `localhost` are answered. Password reset links are built from `APP_URL` whatever host a request names, so `APP_URL` must be the address people use. Configuring the web server to answer only for your real host names (a catch-all `default_server` that returns 444 on Nginx, or a `ServerName`-only virtual host on Apache) is still a good idea.
+Host names are checked too (`$middleware->trustHosts()`), so links built from the request can't be pointed at another site. With `APP_ENV=production`, a request whose `Host` is not one of these gets 400 Bad Request:
+
+- the `APP_URL` host and its subdomains;
+- `localhost` and `127.0.0.1`;
+- each name in `TRUSTED_HOSTS` (`config('app.trusted_hosts')`, comma separated), for a school reached under more than one name or by IP address.
+
+The check starts once `storage/installed` exists: before that, `APP_URL` is still `.env.example`'s `http://localhost`, so the install wizard answers on whatever address the school opens it on, and its last step writes the real `APP_URL`. `APP_ENV=local` and the test suite skip the check. Password reset links are built from `APP_URL` whatever host a request names, so `APP_URL` must be the address people use.
 
 With more than one server, point `CACHE_LIMITER` at a cache store they share (`database` or `redis`) so rate limits and the wrong-password lockout count across all of them.
 

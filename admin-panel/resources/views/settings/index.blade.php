@@ -136,6 +136,7 @@
                         <div class="form-group col-md-4 col-sm-12">
                             <label>{{ __('theme') }} {{ __('color') }} <span class="text-danger">*</span></label>
                             <input name="theme_color" value="{{ $settings['theme_color'] ?? '' }}" type="text" required placeholder="{{ __('color') }}" class="color-picker" />
+                            <small class="form-text text-muted">{{ __('certificate_colours_hint') }}</small>
                         </div>
 
                         <div class="form-group col-md-4 col-sm-12">

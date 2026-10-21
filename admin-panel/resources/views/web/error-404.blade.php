@@ -5,6 +5,8 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
     <title>{{ config('app.name') }}</title>
+    {{-- Material 3 design tokens, generated from the apps' theme (packages/eschool_core). Load first. --}}
+    <link rel="stylesheet" href="{{ asset('/assets/css/m3-tokens.css') }}?v={{ filemtime(public_path('assets/css/m3-tokens.css')) }}">
     <!-- plugins:css -->
     {{-- <link rel="stylesheet" href="../../assets/vendors/mdi/css/materialdesignicons.min.css">
     <link rel="stylesheet" href="../../assets/vendors/ti-icons/css/themify-icons.css"> --}}
@@ -12,20 +14,48 @@
     <link rel="stylesheet" href="{{ asset('/assets/fonts/font-awesome.min.css') }}" async/>
 
     <link rel="stylesheet" href="{{ asset('/assets/css/style.css') }}">
+    {{-- Typeface and legacy colour variables (--theme-color …) mapped to the tokens — after style.css. --}}
+    <link rel="stylesheet" href="{{ asset('/assets/css/m3-base.css') }}?v={{ filemtime(public_path('assets/css/m3-base.css')) }}">
     <!-- End layout styles -->
     <link rel="shortcut icon" href="{{ url(Storage::url(schoolSetting('favicon'))) }}"/>
   </head>
-    @php
-        $theme_color = getSettings('theme_color');
-        $secondary_color = getSettings('secondary_color');
-
-        // echo json_encode($theme_color);
-        $theme_color = $theme_color['theme_color'];
-        $secondary_color =   $secondary_color['secondary_color'];
-    @endphp
+{{-- Colours come from the design tokens, not the school theme-colour setting. The page is a
+     large solid block, so it is Dark Navy with white text; the link uses the purple
+     that reads on navy. --}}
 <style>
-    :root {
-        --theme-color: <?=$theme_color ?>;
+    .error-page.bg-primary {
+        background-color: var(--md-sys-color-inverse-surface) !important;
+        color: var(--md-sys-color-on-inverse-surface);
+    }
+
+    /* "Back to home": a Material 3 filled button on navy, in the inverse
+       roles (inverse-primary with a dark primary label, 7.8:1), 40px high
+       with the app's 10px corners. */
+    .error-page a.text-white {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        height: 40px;
+        padding: 0 24px;
+        border-radius: var(--app-radius);
+        background-color: var(--md-sys-color-inverse-primary);
+        color: color-mix(in srgb, var(--md-sys-color-primary) 55%, var(--md-sys-color-on-surface)) !important;
+        font-size: var(--md-sys-typescale-label-large-size);
+        line-height: var(--md-sys-typescale-label-large-line-height);
+        font-weight: var(--md-sys-typescale-label-large-weight);
+        letter-spacing: var(--md-sys-typescale-label-large-tracking);
+        text-decoration: none;
+        transition: background-color 0.2s, box-shadow 0.2s;
+    }
+
+    .error-page a.text-white:hover {
+        background-color: color-mix(in srgb, var(--md-sys-color-primary) var(--md-sys-state-hover-opacity), var(--md-sys-color-inverse-primary));
+        box-shadow: var(--md-sys-elevation-level1);
+    }
+
+    .error-page a.text-white:focus-visible {
+        outline: 3px solid var(--md-sys-color-inverse-primary);
+        outline-offset: 2px;
     }
 </style>
   <body>

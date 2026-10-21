@@ -9,7 +9,9 @@ class TabBackgroundContainer extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(5),
       decoration: BoxDecoration(
-        border: Border.all(color: Theme.of(context).colorScheme.onPrimary),
+        border: Border.all(
+          color: Theme.of(context).colorScheme.onInverseSurface,
+        ),
         borderRadius: BorderRadius.circular(15),
       ),
       margin: EdgeInsets.only(
@@ -21,7 +23,7 @@ class TabBackgroundContainer extends StatelessWidget {
       width: boxConstraints.maxWidth * 0.375,
       child: Container(
         decoration: BoxDecoration(
-          color: Theme.of(context).colorScheme.onPrimary,
+          color: Theme.of(context).colorScheme.onInverseSurface,
           borderRadius: BorderRadius.circular(10),
         ),
       ),

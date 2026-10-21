@@ -85,7 +85,7 @@ class _NotificationScreenState extends State<NotificationScreen> {
             child: Text(
               UiUtils.getTranslatedLabel(context, notificationsKey),
               style: TextStyle(
-                color: Theme.of(context).colorScheme.onPrimary,
+                color: Theme.of(context).colorScheme.onInverseSurface,
                 fontSize: UiUtils.screenTitleFontSize,
               ),
             ),

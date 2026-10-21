@@ -29,7 +29,8 @@ flowchart LR
 | `APP_KEY` | empty | none | Encryption key for cookies, sessions and signed URLs. Must be generated before the first web request (`php artisan key:generate`); with an empty key every web page fails with `MissingAppKeyException`. The installer generates a fresh one at the end (`key:generate --force`). |
 | `APP_ENV` | `production` | `production` | Environment name. In `production`, `db:seed` and `migrate` need `--force`. |
 | `APP_DEBUG` | `false` | `false` | Detailed error pages, the `details` field in API errors, and Debugbar (when the dev package is installed). Keep `false` in production. |
-| `APP_URL` | `http://localhost` | `http://localhost` | `config('app.url')`. Used for the public disk URL (`APP_URL/storage`), Sanctum's stateful domains, footer links, and the default of `SESSION_SECURE_COOKIE` (true when it starts with `https://`). The installer's Keys step writes it. |
+| `APP_URL` | `http://localhost` | `http://localhost` | `config('app.url')`. Used for the public disk URL (`APP_URL/storage`), Sanctum's stateful domains, footer links, the trusted host names, and the default of `SESSION_SECURE_COOKIE` (true when it starts with `https://`). The installer's Keys step writes it. |
+| `TRUSTED_HOSTS` | empty | empty | `config('app.trusted_hosts')`. Other host names the panel answers on besides the `APP_URL` host and its subdomains, comma separated. In production any other host gets 400 once installed; see [Deployment](Deployment#https-proxies-and-hosts). |
 | `DEMO_MODE` | `false` | `false` | `config('app.demo_mode')`. When true, `DemoMiddleware` blocks most non-GET requests, the login page offers sample accounts, the payment and mail settings forms show `xxxx` instead of the stored values, and `GET /api/settings?type=app_settings` returns `is_demo`. |
 
 ### Logging

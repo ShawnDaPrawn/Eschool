@@ -38,48 +38,24 @@
     }
 
     function themeColors() {
-        // Read the literal settings-driven colors from :root (--theme-color / --secondary-color).
-        // Reading the chained --dash-* vars could return an unresolved "var(...)" string in some
-        // browsers, which would break ApexCharts colors — so use the source values here.
+        // The design tokens from m3-tokens.css (generated from the apps' theme), so the
+        // charts follow the same palette as the rest of the panel and the apps.
         var rootStyles = getComputedStyle(document.documentElement);
-        function readVar(name, fallback) {
-            var v = (rootStyles.getPropertyValue(name) || "").trim();
-            return !v || v.indexOf("var(") !== -1 ? fallback : v;
+        function token(name) {
+            return (rootStyles.getPropertyValue(name) || "").trim();
         }
-        var green = readVar("--theme-color", "#2bb673");
-        var navy = readVar("--secondary-color", "#1b3b5f");
         return {
-            green: green,
-            greenLight: mix(green, "#ffffff", 0.55),
-            navy: navy,
-            amber: "#f5b13d",
-            red: "#fc5a6b",
-            track: "#eef0f4",
-        };
-    }
-
-    // Mix two hex colors (ratio = weight of color b).
-    function mix(a, b, ratio) {
-        var ca = hexToRgb(a);
-        var cb = hexToRgb(b);
-        if (!ca || !cb) return a;
-        var r = Math.round(ca.r * (1 - ratio) + cb.r * ratio);
-        var g = Math.round(ca.g * (1 - ratio) + cb.g * ratio);
-        var bl = Math.round(ca.b * (1 - ratio) + cb.b * ratio);
-        return "rgb(" + r + "," + g + "," + bl + ")";
-    }
-
-    function hexToRgb(hex) {
-        hex = (hex || "").trim();
-        var m = hex.replace("#", "");
-        if (m.length === 3) {
-            m = m[0] + m[0] + m[1] + m[1] + m[2] + m[2];
-        }
-        if (m.length !== 6) return null;
-        return {
-            r: parseInt(m.slice(0, 2), 16),
-            g: parseInt(m.slice(2, 4), 16),
-            b: parseInt(m.slice(4, 6), 16),
+            primary: token("--md-sys-color-primary"),
+            navy: token("--md-sys-color-inverse-surface"),
+            success: token("--app-status-success"),
+            warning: token("--app-status-warning"),
+            danger: token("--app-status-danger"),
+            track: token("--md-sys-color-surface-container"),
+            surface: token("--md-sys-color-surface-container-lowest"),
+            text: token("--md-sys-color-on-surface"),
+            muted: token("--md-sys-color-on-surface-variant"),
+            grid: token("--md-sys-color-outline-variant"),
+            font: token("--md-ref-typeface-plain"),
         };
     }
 
@@ -139,6 +115,7 @@
         if (charts[key]) {
             charts[key].destroy();
         }
+        options.chart = Object.assign({ fontFamily: themeColors().font }, options.chart);
         charts[key] = new ApexCharts(el, options);
         charts[key].render();
     }
@@ -152,7 +129,7 @@
         var boys = Number(el.dataset.boys) || 0;
         var girls = Number(el.dataset.girls) || 0;
         var colors = themeColors();
-        var navy = colors.navy; // outer ring (boys), matching the bar color (--dash-navy)
+        var navy = colors.navy; // outer ring (boys), matching the bar colour
 
         // Shares of the total student body (outer = boys, inner = girls).
         var denom = total > 0 ? total : boys + girls;
@@ -160,10 +137,10 @@
         var girlsPct = denom > 0 ? Math.round((girls * 100) / denom) : 0;
 
         renderChart("students", el, {
-            chart: { type: "radialBar", height: 280 },
+            chart: { type: "radialBar", height: 260 },
             series: [boysPct, girlsPct],
             labels: [t("boys"), t("girls")],
-            colors: [navy, colors.green],
+            colors: [navy, colors.primary],
             stroke: { lineCap: "round" },
             legend: { show: false },
             plotOptions: {
@@ -171,12 +148,12 @@
                     hollow: { size: "48%" },
                     track: { background: colors.track, strokeWidth: "100%", margin: 8 },
                     dataLabels: {
-                        name: { offsetY: 22, color: "#8a8f9c", fontSize: "13px" },
+                        name: { offsetY: 22, color: colors.muted, fontSize: "13px" },
                         value: {
                             offsetY: -14,
                             fontSize: "28px",
                             fontWeight: 700,
-                            color: "#1f2937",
+                            color: colors.text,
                             formatter: function (val) {
                                 return val + "%";
                             },
@@ -184,7 +161,7 @@
                         total: {
                             show: true,
                             label: t("total_students"),
-                            color: "#8a8f9c",
+                            color: colors.muted,
                             fontSize: "13px",
                             formatter: function () {
                                 return fmtNumber(total);
@@ -217,16 +194,51 @@
                 var sum = (Number(data.collected) || 0) + (Number(data.upcoming_dues) || 0) + (Number(data.overdue) || 0);
                 var el = document.getElementById("fees-donut");
 
+                // Nothing billed yet: show the empty state instead of a bare grey ring.
+                toggleEmpty(card, sum <= 0);
+                if (sum <= 0) {
+                    if (charts.fees) charts.fees.destroy();
+                    delete charts.fees;
+                    if (el) el.innerHTML = "";
+                    setLoaded(card);
+                    return;
+                }
+
                 renderChart("fees", el, {
-                    chart: { type: "donut", height: 300 },
-                    series: sum > 0 ? [data.collected, data.upcoming_dues, data.overdue] : [1],
-                    labels: sum > 0 ? [t("collected"), t("upcoming_dues"), t("overdue_amount")] : [t("no_data_found")],
-                    colors: sum > 0 ? [colors.green, colors.amber, colors.red] : [colors.track],
-                    stroke: { width: 0 },
+                    chart: { type: "donut", height: 240 },
+                    series: [data.collected, data.upcoming_dues, data.overdue],
+                    labels: [t("collected"), t("upcoming_dues"), t("overdue_amount")],
+                    colors: [colors.success, colors.warning, colors.danger],
+                    stroke: { width: 2, colors: [colors.surface] },
                     legend: { show: false },
                     dataLabels: { enabled: false },
-                    tooltip: { enabled: sum > 0, y: { formatter: function (v) { return money(v); } } },
-                    plotOptions: { pie: { donut: { size: "70%" } } },
+                    tooltip: { y: { formatter: function (v) { return money(v); } } },
+                    states: { hover: { filter: { type: "none" } } },
+                    plotOptions: {
+                        pie: {
+                            donut: {
+                                size: "74%",
+                                labels: {
+                                    show: true,
+                                    name: { offsetY: 22, color: colors.muted, fontSize: "13px" },
+                                    value: {
+                                        offsetY: -12,
+                                        color: colors.text,
+                                        fontSize: "20px",
+                                        fontWeight: 600,
+                                        formatter: function (v) { return money(v); },
+                                    },
+                                    total: {
+                                        show: true,
+                                        label: t("total"),
+                                        color: colors.muted,
+                                        fontSize: "13px",
+                                        formatter: function () { return money(sum); },
+                                    },
+                                },
+                            },
+                        },
+                    },
                 });
 
                 setLoaded(card);
@@ -257,18 +269,23 @@
 
                 var colors = themeColors();
                 renderChart("attendance", el, {
-                    chart: { type: "bar", stacked: true, height: 300, toolbar: { show: false } },
+                    chart: { type: "bar", stacked: true, height: 280, toolbar: { show: false } },
                     series: [
                         { name: t("present"), data: sections.map(function (s) { return Number(s.present_pct) || 0; }) },
                         { name: t("absent"), data: sections.map(function (s) { return Number(s.absent_pct) || 0; }) },
                     ],
-                    colors: [colors.green, colors.red],
-                    xaxis: { categories: sections.map(function (s) { return s.label; }) },
-                    yaxis: { max: 100, min: 0, labels: { formatter: function (v) { return Math.round(v) + "%"; } } },
-                    plotOptions: { bar: { horizontal: false, columnWidth: "45%", borderRadius: 4 } },
+                    colors: [colors.success, colors.danger],
+                    xaxis: {
+                        categories: sections.map(function (s) { return s.label; }),
+                        axisBorder: { show: false },
+                        axisTicks: { show: false },
+                        labels: { style: { colors: colors.muted } },
+                    },
+                    yaxis: { max: 100, min: 0, tickAmount: 4, labels: { style: { colors: colors.muted }, formatter: function (v) { return Math.round(v) + "%"; } } },
+                    plotOptions: { bar: { horizontal: false, columnWidth: "36%", borderRadius: 6, borderRadiusApplication: "end", borderRadiusWhenStacked: "last" } },
                     dataLabels: { enabled: false },
-                    legend: { position: "top", horizontalAlign: "right" },
-                    grid: { borderColor: "#eef0f4" },
+                    legend: { position: "top", horizontalAlign: "left", markers: { shape: "circle", size: 5 }, labels: { colors: colors.text }, itemMargin: { horizontal: 10 } },
+                    grid: { borderColor: colors.grid, strokeDashArray: 4 },
                     tooltip: { y: { formatter: function (v) { return (Number(v) || 0).toFixed(1) + "%"; } } },
                 });
             })
@@ -302,7 +319,7 @@
                         return (
                             '<div class="assessment-row">' +
                             '<span class="assessment-name" title="' + escapeHtml(s.name) + '">' + escapeHtml(s.name) + "</span>" +
-                            '<div class="dash-progress"><div class="dash-progress-bar" style="width:' + pct + "%;background:" + colors.green + '"></div></div>' +
+                            '<div class="dash-progress"><div class="dash-progress-bar" style="width:' + pct + "%;background:" + colors.primary + '"></div></div>' +
                             '<span class="assessment-pct">' + pct.toFixed(2) + "%</span>" +
                             "</div>"
                         );

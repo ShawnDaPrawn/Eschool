@@ -9,106 +9,12 @@
  * put it in a dedicated sheet here rather than only in the LTR bundle.
  */
 
-/* ── Dashboard surface tokens (global) ───────────────────────────────────
-   Promoted from the per-scope copies that lived on `.card` (here) and
-   `.dashboard-page` (dashboard.css) to a single :root definition so the same
-   card surface language is available project-wide. content.css loads on every
-   admin page in both bundles, so these resolve everywhere. The two brand tokens
-   chain off the DB-driven vars emitted in layouts/include.blade.php. */
-:root {
-    --dash-green: var(--theme-color, #2bb673);
-    --dash-navy: var(--secondary-color, #1b3b5f);
-    --dash-amber: #f5b13d;
-    --dash-red: #fc5a6b;
-    --dash-bg: #f4f3f8;
-    --dash-card-bg: #ffffff;
-    --dash-border: #ececf1;
-    --dash-text: #1f2937;
-    --dash-muted: #8a8f9c;
-    --dash-track: #eef0f4;
-    --dash-radius: 14px;
-}
-
 /* ── Tables ──────────────────────────────────────────────────────────── */
 /* The bootstrap-table list-table redesign (toolbar, header, rows, row actions,
    pagination, dropdowns) lives in its own sheet — public/assets/css/tables.css —
    loaded AFTER the bootstrap-table plugin CSS so it can outrank the plugin's
    defaults on load order (content.css loads before them and cannot). Row hover
    moved there too, so all table styling stays in one place. */
-
-/* ── Form fields ─────────────────────────────────────────────────────── */
-
-.form-control,
-.asColorPicker-input,
-.dataTables_wrapper select,
-.jsgrid .jsgrid-table .jsgrid-filter-row input[type=text],
-.jsgrid .jsgrid-table .jsgrid-filter-row select,
-.jsgrid .jsgrid-table .jsgrid-filter-row input[type=number],
-.select2-container--default .select2-selection--single,
-.select2-container--default .select2-selection--single .select2-search__field,
-.typeahead,
-.tt-query,
-.tt-hint {
-    border-radius: 10px;
-}
-
-.form-control-sm {
-    border-radius: 8px;
-}
-
-.form-control-lg {
-    border-radius: 12px;
-}
-
-/* Focus state — theme border + soft 0.2rem glow. Declared on both the
-   Bootstrap focus group and the late typeahead override (see DESIGN.md
-   "Form field focus state") so the cascade always lands on a visible state. */
-.form-control:focus,
-.asColorPicker-input:focus,
-.dataTables_wrapper select:focus,
-.jsgrid .jsgrid-table .jsgrid-filter-row input:focus[type=text],
-.jsgrid .jsgrid-table .jsgrid-filter-row select:focus,
-.jsgrid .jsgrid-table .jsgrid-filter-row input:focus[type=number],
-.select2-container--default .select2-selection--single:focus,
-.select2-container--default .select2-selection--single .select2-search__field:focus,
-.typeahead:focus,
-.tt-query:focus,
-.tt-hint:focus {
-    border-color: var(--theme-color);
-    -webkit-box-shadow: 0 0 0 0.2rem color-mix(in srgb, var(--theme-color) 25%, transparent);
-    box-shadow: 0 0 0 0.2rem color-mix(in srgb, var(--theme-color) 25%, transparent);
-}
-
-/* Input-group reads as one rounded field on the 10px scale. The legacy sheet
-   leaves the addon (.input-group-text) at a stray 2px radius and squares the
-   trailing button, so a grouped field (e.g. the "30 | Days" cleanup input)
-   looked flat next to standalone .form-controls. Round the leading input's
-   left edge and the trailing addon/button's right edge to match. */
-.input-group>.form-control:first-child {
-    border-top-left-radius: 10px;
-    border-bottom-left-radius: 10px;
-}
-
-.input-group>.input-group-append:last-child>.input-group-text,
-.input-group>.input-group-append:last-child>.btn {
-    border-top-right-radius: 10px;
-    border-bottom-right-radius: 10px;
-}
-
-[dir="rtl"] .input-group>.form-control:first-child {
-    border-top-left-radius: 0;
-    border-bottom-left-radius: 0;
-    border-top-right-radius: 10px;
-    border-bottom-right-radius: 10px;
-}
-
-[dir="rtl"] .input-group>.input-group-append:last-child>.input-group-text,
-[dir="rtl"] .input-group>.input-group-append:last-child>.btn {
-    border-top-right-radius: 0;
-    border-bottom-right-radius: 0;
-    border-top-left-radius: 10px;
-    border-bottom-left-radius: 10px;
-}
 
 /* ── Color picker (asColorPicker) ────────────────────────────────────────
    The plugin renders the text input + a trigger swatch side by side inside
@@ -125,11 +31,11 @@
 .asColorPicker-trigger {
     height: auto;
     padding: 0;
-    border: 1px solid #ced4da;
+    border: 1px solid var(--md-sys-color-outline);
     border-left: 0;
     border-radius: 0 10px 10px 0;
     overflow: hidden;
-    background: #ffffff;
+    background: var(--md-sys-color-surface-container-lowest);
     line-height: 0;
 }
 
@@ -150,399 +56,21 @@
 
 [dir="rtl"] .asColorPicker-trigger,
 .rtl .asColorPicker-trigger {
-    border-left: 1px solid #ced4da;
+    border-left: 1px solid var(--md-sys-color-outline);
     border-right: 0;
     border-radius: 10px 0 0 10px;
-}
-
-/* ── Buttons ─────────────────────────────────────────────────────────── */
-
-.btn,
-.fc button,
-.ajax-upload-dragdrop .ajax-file-upload,
-.swal2-modal .swal2-buttonswrapper .swal2-styled,
-.swal2-modal .swal2-buttonswrapper .swal2-styled.swal2-confirm,
-.swal2-modal .swal2-buttonswrapper .swal2-styled.swal2-cancel,
-.wizard>.actions a {
-    border-radius: 10px;
-}
-
-.btn-theme,
-.btn-theme:hover {
-    border-radius: 12px;
-}
-
-.btn-secondary {
-    color: #fff;
-    background-color: #64748b;
-    border-color: #64748b;
-}
-
-.btn-secondary:hover {
-    color: #fff;
-    background-color: #566379;
-    border-color: #515d72;
-}
-
-.btn-secondary:focus,
-.btn-secondary.focus {
-    color: #fff;
-    background-color: #566379;
-    border-color: #515d72;
-    -webkit-box-shadow: 0 0 0 0.2rem rgba(100, 116, 139, 0.45);
-    box-shadow: 0 0 0 0.2rem rgba(100, 116, 139, 0.45);
-}
-
-.btn-secondary.disabled,
-.btn-secondary:disabled {
-    color: #fff;
-    background-color: #94a0b1;
-    border-color: #94a0b1;
-}
-
-.btn-secondary:not(:disabled):not(.disabled):active,
-.btn-secondary:not(:disabled):not(.disabled).active,
-.show>.btn-secondary.dropdown-toggle {
-    color: #fff;
-    background-color: #475569;
-    border-color: #424f61;
-}
-
-.btn-secondary:not(:disabled):not(.disabled):active:focus,
-.btn-secondary:not(:disabled):not(.disabled).active:focus,
-.show>.btn-secondary.dropdown-toggle:focus {
-    -webkit-box-shadow: 0 0 0 0.2rem rgba(100, 116, 139, 0.45);
-    box-shadow: 0 0 0 0.2rem rgba(100, 116, 139, 0.45);
-}
-
-.btn-secondary:not(.btn-light):focus,
-.btn-secondary:not(.btn-light):active {
-    background: #566379;
-    border-color: #515d72;
-}
-
-/* Solid semantic buttons — flat saturated fills aligned to the badge SOLID tier
-   palette (DESIGN.md "Badges"): primary→brand var, the rest fixed semantic
-   status hexes (NOT brand). Replaces the legacy Star-Admin neon (#b66dff /
-   #1bcfb4 / #198ae3 / #fed713 / #fe7c96). Loads after style.css/rtl.css so the
-   single-class rules win on load order; the :active group mirrors the legacy
-   selector specificity to beat its gradient-reassert. */
-.btn-primary {
-    color: #fff;
-    background-color: var(--theme-color);
-    border-color: var(--theme-color);
-}
-
-.btn-primary:hover {
-    color: #fff;
-    background-color: color-mix(in srgb, var(--theme-color) 88%, #000);
-    border-color: color-mix(in srgb, var(--theme-color) 84%, #000);
-}
-
-.btn-primary:focus,
-.btn-primary.focus {
-    color: #fff;
-    background-color: color-mix(in srgb, var(--theme-color) 88%, #000);
-    border-color: color-mix(in srgb, var(--theme-color) 84%, #000);
-    box-shadow: 0 0 0 0.2rem color-mix(in srgb, var(--theme-color) 40%, transparent);
-}
-
-.btn-primary.disabled,
-.btn-primary:disabled {
-    color: #fff;
-    background-color: color-mix(in srgb, var(--theme-color) 55%, #fff);
-    border-color: color-mix(in srgb, var(--theme-color) 55%, #fff);
-}
-
-.btn-primary:not(:disabled):not(.disabled):active,
-.btn-primary:not(:disabled):not(.disabled).active,
-.show>.btn-primary.dropdown-toggle {
-    color: #fff;
-    background-color: color-mix(in srgb, var(--theme-color) 80%, #000);
-    border-color: color-mix(in srgb, var(--theme-color) 76%, #000);
-}
-
-.btn-primary:not(:disabled):not(.disabled):active:focus,
-.btn-primary:not(:disabled):not(.disabled).active:focus,
-.show>.btn-primary.dropdown-toggle:focus {
-    box-shadow: 0 0 0 0.2rem color-mix(in srgb, var(--theme-color) 40%, transparent);
-}
-
-.btn-success {
-    color: #fff;
-    background-color: #198754;
-    border-color: #198754;
-}
-
-.btn-success:hover {
-    color: #fff;
-    background-color: #157347;
-    border-color: #146c43;
-}
-
-.btn-success:focus,
-.btn-success.focus {
-    color: #fff;
-    background-color: #157347;
-    border-color: #146c43;
-    box-shadow: 0 0 0 0.2rem rgba(25, 135, 84, 0.4);
-}
-
-.btn-success.disabled,
-.btn-success:disabled {
-    color: #fff;
-    background-color: #8cc3aa;
-    border-color: #8cc3aa;
-}
-
-.btn-success:not(:disabled):not(.disabled):active,
-.btn-success:not(:disabled):not(.disabled).active,
-.show>.btn-success.dropdown-toggle {
-    color: #fff;
-    background-color: #146c43;
-    border-color: #13653f;
-}
-
-.btn-success:not(:disabled):not(.disabled):active:focus,
-.btn-success:not(:disabled):not(.disabled).active:focus,
-.show>.btn-success.dropdown-toggle:focus {
-    box-shadow: 0 0 0 0.2rem rgba(25, 135, 84, 0.4);
-}
-
-.btn-info {
-    color: #fff;
-    background-color: #0e7490;
-    border-color: #0e7490;
-}
-
-.btn-info:hover {
-    color: #fff;
-    background-color: #0c6379;
-    border-color: #0b5c70;
-}
-
-.btn-info:focus,
-.btn-info.focus {
-    color: #fff;
-    background-color: #0c6379;
-    border-color: #0b5c70;
-    box-shadow: 0 0 0 0.2rem rgba(14, 116, 144, 0.4);
-}
-
-.btn-info.disabled,
-.btn-info:disabled {
-    color: #fff;
-    background-color: #87bac8;
-    border-color: #87bac8;
-}
-
-.btn-info:not(:disabled):not(.disabled):active,
-.btn-info:not(:disabled):not(.disabled).active,
-.show>.btn-info.dropdown-toggle {
-    color: #fff;
-    background-color: #0b5c70;
-    border-color: #0a5567;
-}
-
-.btn-info:not(:disabled):not(.disabled):active:focus,
-.btn-info:not(:disabled):not(.disabled).active:focus,
-.show>.btn-info.dropdown-toggle:focus {
-    box-shadow: 0 0 0 0.2rem rgba(14, 116, 144, 0.4);
-}
-
-/* Warning carries DARK ink — the amber fill is too light for white text
-   (matches the badge SOLID warning #1f2937 ink). */
-.btn-warning {
-    color: #fff;
-    background-color: #ffc107;
-    border-color: #ffc107;
-}
-
-.btn-warning:hover {
-    color: #fff;
-    background-color: #e0a800;
-    border-color: #d39e00;
-}
-
-.btn-warning:focus,
-.btn-warning.focus {
-    color: #fff;
-    background-color: #e0a800;
-    border-color: #d39e00;
-    box-shadow: 0 0 0 0.2rem rgba(255, 193, 7, 0.4);
-}
-
-.btn-warning.disabled,
-.btn-warning:disabled {
-    color: #fff;
-    background-color: #ffdf7e;
-    border-color: #ffdf7e;
-}
-
-.btn-warning:not(:disabled):not(.disabled):active,
-.btn-warning:not(:disabled):not(.disabled).active,
-.show>.btn-warning.dropdown-toggle {
-    color: #fff;
-    background-color: #c69500;
-    border-color: #b98c00;
-}
-
-.btn-warning:not(:disabled):not(.disabled):active:focus,
-.btn-warning:not(:disabled):not(.disabled).active:focus,
-.show>.btn-warning.dropdown-toggle:focus {
-    box-shadow: 0 0 0 0.2rem rgba(255, 193, 7, 0.4);
-}
-
-.btn-danger {
-    color: #fff;
-    background-color: #dc3545;
-    border-color: #dc3545;
-}
-
-.btn-danger:hover {
-    color: #fff;
-    background-color: #bb2d3b;
-    border-color: #b02a37;
-}
-
-.btn-danger:focus,
-.btn-danger.focus {
-    color: #fff;
-    background-color: #bb2d3b;
-    border-color: #b02a37;
-    box-shadow: 0 0 0 0.2rem rgba(220, 53, 69, 0.4);
-}
-
-.btn-danger.disabled,
-.btn-danger:disabled {
-    color: #fff;
-    background-color: #eda1a9;
-    border-color: #eda1a9;
-}
-
-.btn-danger:not(:disabled):not(.disabled):active,
-.btn-danger:not(:disabled):not(.disabled).active,
-.show>.btn-danger.dropdown-toggle {
-    color: #fff;
-    background-color: #b02a37;
-    border-color: #a52834;
-}
-
-.btn-danger:not(:disabled):not(.disabled):active:focus,
-.btn-danger:not(:disabled):not(.disabled).active:focus,
-.show>.btn-danger.dropdown-toggle:focus {
-    box-shadow: 0 0 0 0.2rem rgba(220, 53, 69, 0.4);
-}
-
-/* ── Solid-button state overrides: beat the legacy `.btn-{v}:not(.btn-light)`
-   chain (specificity 0,3,0) ─────────────────────────────────────────────────
-   The legacy bundle reasserts the NEON fill on :focus/:active via
-   `.btn-{v}:not(.btn-light):focus, …:active { background:<neon>; border-color }`
-   and forces white ink via `.btn-{v}:not(.btn-light){ color:#fff }` — both
-   outrank a plain `.btn-{v}:hover/:focus` (0,2,0), so without these the buttons
-   snapped back to the old colours on hover/focus/active. Mirror the selectors
-   here (later sheet wins at equal specificity, no !important) so EVERY state
-   carries the modern fill. Same playbook as `.btn-secondary:not(.btn-light)`. */
-
-.btn-primary:not(.btn-light) {
-    color: #fff;
-}
-
-.btn-primary:not(.btn-light):hover,
-.btn-primary:not(.btn-light):focus {
-    color: #fff;
-    background: color-mix(in srgb, var(--theme-color) 88%, #000);
-    border-color: color-mix(in srgb, var(--theme-color) 84%, #000);
-}
-
-.btn-primary:not(.btn-light):active {
-    color: #fff;
-    background: color-mix(in srgb, var(--theme-color) 80%, #000);
-    border-color: color-mix(in srgb, var(--theme-color) 76%, #000);
-}
-
-.btn-success:not(.btn-light) {
-    color: #fff;
-}
-
-.btn-success:not(.btn-light):hover,
-.btn-success:not(.btn-light):focus {
-    color: #fff;
-    background: #157347;
-    border-color: #146c43;
-}
-
-.btn-success:not(.btn-light):active {
-    color: #fff;
-    background: #146c43;
-    border-color: #13653f;
-}
-
-.btn-info:not(.btn-light) {
-    color: #fff;
-}
-
-.btn-info:not(.btn-light):hover,
-.btn-info:not(.btn-light):focus {
-    color: #fff;
-    background: #0c6379;
-    border-color: #0b5c70;
-}
-
-.btn-info:not(.btn-light):active {
-    color: #fff;
-    background: #0b5c70;
-    border-color: #0a5567;
-}
-
-.btn-warning:not(.btn-light) {
-    color: #fff;
-}
-
-.btn-warning:not(.btn-light):hover,
-.btn-warning:not(.btn-light):focus {
-    color: #fff;
-    background: #e0a800;
-    border-color: #d39e00;
-}
-
-.btn-warning:not(.btn-light):active {
-    color: #fff;
-    background: #c69500;
-    border-color: #b98c00;
-}
-
-.btn-danger:not(.btn-light) {
-    color: #fff;
-}
-
-.btn-danger:not(.btn-light):hover,
-.btn-danger:not(.btn-light):focus {
-    color: #fff;
-    background: #bb2d3b;
-    border-color: #b02a37;
-}
-
-.btn-danger:not(.btn-light):active {
-    color: #fff;
-    background: #b02a37;
-    border-color: #a52834;
 }
 
 /* ── Cards ───────────────────────────────────────────────────────────── */
 
 .card {
-    background: var(--dash-card-bg);
-    border: 1px solid var(--dash-border);
-    border-radius: var(--dash-radius);
-    box-shadow: 0 1px 2px rgba(16, 24, 40, .04);
-}
-
-.card:hover {
-    border-color: rgba(27, 27, 27, 0.09);
-    box-shadow:
-        0 1px 2px rgba(16, 24, 40, 0.04),
-        0 2px 6px rgba(16, 24, 40, 0.04);
+    /* Material 3 outlined card: a hairline border on the lowest surface and
+       no shadow. Cards hold content and aren't buttons, so they don't lift on
+       hover. */
+    background: var(--md-sys-color-surface-container-lowest);
+    border: 1px solid var(--md-sys-color-outline-variant);
+    border-radius: var(--app-radius);
+    box-shadow: none;
 }
 
 /* Card body — trimmed from the legacy bulky 2.5rem (40px) to a comfortable
@@ -562,17 +90,17 @@
 }
 
 .card>.list-group:first-child {
-    border-top-left-radius: 13px;
-    border-top-right-radius: 13px;
+    border-top-left-radius: calc(var(--app-radius) - 1px);
+    border-top-right-radius: calc(var(--app-radius) - 1px);
 }
 
 .card>.list-group:last-child {
-    border-bottom-right-radius: 13px;
-    border-bottom-left-radius: 13px;
+    border-bottom-right-radius: calc(var(--app-radius) - 1px);
+    border-bottom-left-radius: calc(var(--app-radius) - 1px);
 }
 
 .card-link {
-    color: var(--theme-color);
+    color: var(--md-sys-color-primary);
     transition: opacity 0.2s ease;
 }
 
@@ -583,38 +111,38 @@
 
 .card-header {
     padding: 0.875rem 1.25rem;
-    background-color: rgba(0, 0, 0, 0.015);
-    border-bottom: 1px solid rgba(27, 27, 27, 0.06);
+    background-color: var(--md-sys-color-surface-container-low);
+    border-bottom: 1px solid var(--md-sys-color-outline-variant);
 }
 
 .card-header:first-child {
-    border-radius: 13px 13px 0 0;
+    border-radius: calc(var(--app-radius) - 1px) calc(var(--app-radius) - 1px) 0 0;
 }
 
 .card-footer {
     padding: 0.875rem 1.25rem;
-    background-color: rgba(0, 0, 0, 0.015);
-    border-top: 1px solid rgba(27, 27, 27, 0.06);
+    background-color: var(--md-sys-color-surface-container-low);
+    border-top: 1px solid var(--md-sys-color-outline-variant);
 }
 
 .card-footer:last-child {
-    border-radius: 0 0 13px 13px;
+    border-radius: 0 0 calc(var(--app-radius) - 1px) calc(var(--app-radius) - 1px);
 }
 
 .card-img-overlay {
-    border-radius: 13px;
+    border-radius: calc(var(--app-radius) - 1px);
 }
 
 .card-img,
 .card-img-top {
-    border-top-left-radius: 13px;
-    border-top-right-radius: 13px;
+    border-top-left-radius: calc(var(--app-radius) - 1px);
+    border-top-right-radius: calc(var(--app-radius) - 1px);
 }
 
 .card-img,
 .card-img-bottom {
-    border-bottom-right-radius: 13px;
-    border-bottom-left-radius: 13px;
+    border-bottom-right-radius: calc(var(--app-radius) - 1px);
+    border-bottom-left-radius: calc(var(--app-radius) - 1px);
 }
 
 /* ── Title hierarchy: page-title (page H1) vs card-title (section label) ──
@@ -644,12 +172,12 @@
 .page-header {
     margin: 0 0 1.5rem 0;
     padding-bottom: 1rem;
-    border-bottom: 1px solid rgba(27, 27, 27, 0.06);
+    border-bottom: 1px solid var(--md-sys-color-outline-variant);
 }
 
 .page-title {
-    color: #343a40;
-    font-family: "Roboto-Bold", "ubuntu-bold", sans-serif;
+    color: var(--md-sys-color-on-surface);
+    font-family: var(--md-ref-typeface-plain);
     font-weight: 700;
     font-size: 1.5rem;
     line-height: 1.3;
@@ -667,18 +195,18 @@
    Harmless when unused; uses the documented Subtitle/supporting token. */
 .page-subtitle {
     margin: 0.35rem 0 0 0;
-    font-family: "Roboto-Regular", "ubuntu-regular", sans-serif;
+    font-family: var(--md-ref-typeface-plain);
     font-size: 0.875rem;
     font-weight: 400;
     letter-spacing: 0;
-    color: #8c8c8c;
+    color: var(--md-sys-color-on-surface-variant);
 }
 
 /* Card section label — quiet Medium face. Base rule covers every .card-title,
    including the rare one that sits in a modal outside a .card. (Replaces the old
    inert `.card-title { font-weight: 600; letter-spacing: -0.01em }`.) */
 .card-title {
-    font-family: "Roboto-Medium", "ubuntu-medium", sans-serif;
+    font-family: var(--md-ref-typeface-plain);
     font-weight: 500;
     letter-spacing: -0.005em;
 }
@@ -688,7 +216,7 @@
    legacy same-specificity rule in style.css / rtl.css (font-size 1.125rem +
    text-transform: capitalize). */
 .card .card-title {
-    color: #343a40;
+    color: var(--md-sys-color-on-surface);
     font-size: 1rem;
     line-height: 1.4;
     text-transform: none;
@@ -711,64 +239,49 @@
 }
 
 /* ── Layout: main-panel, content-wrapper, footer ─────────────────────── */
+/* Material 3 page: the content area is the page surface (Light Gray), and
+   cards sit directly on it. No panel-within-a-panel. */
 
+.page-body-wrapper,
 .main-panel {
-    border-radius: 16px;
+    background: var(--md-sys-color-surface-container-low);
 }
 
 .content-wrapper {
-    background: linear-gradient(120deg,
-            color-mix(in srgb, var(--theme-color) 6%, #ffffff) 0%,
-            color-mix(in srgb, var(--secondary-color, var(--theme-color)) 2%, #fefefe) 100%);
-    border-radius: 20px;
-    padding: 1.75rem 1.5rem;
+    background: transparent;
+    border: 0;
+    border-radius: 0;
+    box-shadow: none;
+    margin: 0;
+    padding: 2rem 2rem 1.5rem;
     width: auto;
-    border: 1px solid color-mix(in srgb, var(--theme-color) 10%, rgba(27, 27, 27, 0.07));
-    margin: 20px 20px 20px 40px;
-    box-shadow: 0 1px 2px rgba(16, 24, 40, 0.04),
-        0 4px 12px rgba(16, 24, 40, 0.04),
-        0 12px 32px rgba(16, 24, 40, 0.03);
     -webkit-box-flex: 1;
     -ms-flex-positive: 1;
     flex-grow: 1;
-    transition: box-shadow 0.3s ease, border-color 0.3s ease;
-}
-
-
-/* RTL: mirror the top accent strip so theme starts at the inline-start (right). */
-[dir="rtl"] .content-wrapper {
-    background: linear-gradient(240deg,
-            color-mix(in srgb, var(--theme-color) 6%, #ffffff) 0%,
-            color-mix(in srgb, var(--secondary-color, var(--theme-color)) 2%, #fefefe) 100%);
 }
 
 @media (max-width: 991px) {
     .content-wrapper {
-        margin: 0 12px;
-        padding: 1.75rem 1.25rem;
-        border-radius: 16px;
+        margin: 0;
+        padding: 1.5rem 1rem 1rem;
     }
 }
 
 .footer {
-    background: linear-gradient(180deg, #ffffff 0%, #fbfbfd 100%);
-    border: 1px solid rgba(27, 27, 27, 0.06);
-    border-radius: 16px;
-    padding: 1.125rem 1.75rem;
-    margin: 0px 20px 20px 40px;
-    box-shadow: 0 1px 2px rgba(16, 24, 40, 0.03),
-        0 2px 6px rgba(16, 24, 40, 0.03);
-    transition: box-shadow 0.25s ease, border-color 0.25s ease;
-    -moz-transition: box-shadow 0.25s ease, border-color 0.25s ease;
-    -webkit-transition: box-shadow 0.25s ease, border-color 0.25s ease;
-    -ms-transition: box-shadow 0.25s ease, border-color 0.25s ease;
-    font-size: calc(0.875rem - 0.05rem);
-    font-family: "Roboto-Regular", sans-serif;
-    color: rgba(27, 27, 27, 0.7);
+    background: transparent;
+    border: 0;
+    border-top: 1px solid var(--md-sys-color-outline-variant);
+    border-radius: 0;
+    padding: 1rem 0;
+    margin: 0 2rem;
+    box-shadow: none;
+    font-size: var(--md-sys-typescale-body-small-size);
+    font-family: var(--md-ref-typeface-plain);
+    color: var(--md-sys-color-on-surface-variant);
 }
 
 .footer a {
-    color: var(--theme-color);
+    color: var(--md-sys-color-primary);
     font-size: inherit;
     font-weight: 600;
     text-decoration: none;
@@ -790,120 +303,20 @@
     font-size: inherit;
     font-weight: 600;
     letter-spacing: 0.02em;
-    color: rgba(27, 27, 27, 0.7);
-    background: color-mix(in srgb, var(--theme-color) 5%, #ffffff);
-    border: 1px solid rgba(27, 27, 27, 0.08);
+    color: var(--md-sys-color-on-surface-variant);
+    background: color-mix(in srgb, var(--md-sys-color-primary) 5%, var(--md-sys-color-surface-container-lowest));
+    border: 1px solid var(--md-sys-color-outline-variant);
     border-radius: 8px;
 }
 
 @media (max-width: 991px) {
     .footer {
-        margin: 12px 12px 16px;
-        padding: 1rem 1.25rem;
-        border-radius: 12px;
+        margin: 0 1rem;
+        padding: 1rem 0;
         /* override the legacy rtl.css ≤991 rule (margin-left:0; width:100%) that
-           would otherwise overflow the new card-style footer past its margins. */
+           would otherwise overflow the footer past its margins. */
         width: auto;
     }
-}
-
-/* ── Select2 — themed via DESIGN.md tokens ───────────────────────────── */
-
-.select2-container--default .select2-results__option--highlighted[aria-selected] {
-    background: color-mix(in srgb, var(--theme-color) 12%, transparent);
-    color: var(--theme-color);
-}
-
-.select2-container--default .select2-results__option[aria-selected=true] {
-    background: color-mix(in srgb, var(--theme-color) 8%, transparent);
-    color: var(--theme-color);
-    font-weight: 500;
-}
-
-.select2-container--default .select2-selection--single,
-.select2-container--default .select2-selection--multiple {
-    border-color: #ced4da;
-    border-radius: 10px;
-}
-
-.select2-container--default .select2-dropdown {
-    border-color: rgba(27, 27, 27, 0.06);
-    border-radius: 10px;
-    box-shadow:
-        0 1px 2px rgba(16, 24, 40, 0.03),
-        0 2px 6px rgba(16, 24, 40, 0.03);
-    overflow: hidden;
-    font-size: .8125rem;
-}
-
-.select2-container--default .select2-selection--single .select2-search__field,
-.select2-container--default .select2-dropdown .select2-search__field,
-.select2-container--default .select2-selection--multiple .select2-search__field {
-    border-color: #ced4da;
-    border-radius: 8px;
-}
-
-.select2-container--default.select2-container--focus .select2-selection--multiple,
-.select2-container--default.select2-container--focus .select2-selection--single {
-    border-color: var(--theme-color);
-    box-shadow: none;
-}
-
-.select2-container--default .select2-selection--multiple .select2-selection__choice {
-    background: color-mix(in srgb, var(--theme-color) 12%, #ffffff);
-    color: var(--theme-color);
-    border: 1px solid color-mix(in srgb, var(--theme-color) 25%, transparent);
-    border-radius: 8px;
-    padding: 4px 10px;
-    margin-top: 4px;
-    margin-right: 6px;
-    font-size: .8125rem;
-    font-weight: 500;
-    font-family: inherit;
-    line-height: 1.4;
-    transition: background 0.2s ease, border-color 0.2s ease;
-}
-
-.select2-container--default .select2-selection--multiple .select2-selection__choice:hover {
-    background: color-mix(in srgb, var(--theme-color) 18%, #ffffff);
-    border-color: color-mix(in srgb, var(--theme-color) 40%, transparent);
-}
-
-.select2-container--default .select2-selection--multiple .select2-selection__choice .select2-selection__choice__remove {
-    color: var(--theme-color);
-    opacity: 0.7;
-    margin-right: 6px;
-    font-weight: 700;
-    transition: opacity 0.2s ease;
-}
-
-.select2-container--default .select2-selection--multiple .select2-selection__choice .select2-selection__choice__remove:hover {
-    color: var(--theme-color);
-    opacity: 1;
-}
-
-/* RTL: flip the chip + remove-button spacing to the inline-start. */
-[dir="rtl"] .select2-container--default .select2-selection--multiple .select2-selection__choice {
-    margin-right: 0;
-    margin-left: 6px;
-}
-
-[dir="rtl"] .select2-container--default .select2-selection--multiple .select2-selection__choice .select2-selection__choice__remove {
-    margin-right: 0;
-    margin-left: 6px;
-}
-
-/* RTL: rtl.css ships legacy rainbow chips via :nth-child(5n+N) (specificity 0,4,0,
-   which outranks the flat chip rule above). Repaint all variants back to the single
-   theme tint so RTL matches LTR. The [dir="rtl"] prefix lifts these to 0,5,0 so they
-   win over the nth-child rules. */
-[dir="rtl"] .select2-container--default .select2-selection--multiple .select2-selection__choice:nth-child(5n+1),
-[dir="rtl"] .select2-container--default .select2-selection--multiple .select2-selection__choice:nth-child(5n+2),
-[dir="rtl"] .select2-container--default .select2-selection--multiple .select2-selection__choice:nth-child(5n+3),
-[dir="rtl"] .select2-container--default .select2-selection--multiple .select2-selection__choice:nth-child(5n+4),
-[dir="rtl"] .select2-container--default .select2-selection--multiple .select2-selection__choice:nth-child(5n+5) {
-    background: color-mix(in srgb, var(--theme-color) 12%, #ffffff);
-    color: var(--theme-color);
 }
 
 /* ── Badges ──────────────────────────────────────────────────────────────
@@ -931,7 +344,7 @@
  * below sets background, color AND border together, or a stale brand-foreign
  * ring / fill / white text leaks through.
  *
- * PALETTE: only .badge-primary / .badge-theme are brand (var(--theme-color));
+ * PALETTE: only .badge-primary / .badge-theme are brand (var(--md-sys-color-primary));
  * every other variant uses a FIXED accessible status hex — NOT brand — matching
  * the header alert-danger #dc3545 decision and the existing #198754 soft-success.
  * Soft/outline INK is a deep shade (success #166534, danger #b42318, warning
@@ -961,17 +374,19 @@
  * -event in academic_calendar_pdf.blade.php (dompdf can't do color-mix). */
 
 .badge {
-    display: inline-block;
-    padding: 0.375rem 0.5625rem;
+    /* M3 label chip: 24px high, 8px corners, label-medium. */
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 24px;
+    padding: 0 8px;
     border: 1px solid transparent;
-    border-radius: 8px;
-    /* = form-control-sm rung; not a new radius */
-    font-family: "Roboto-Medium", "ubuntu-medium", sans-serif;
-    font-size: 11px;
+    border-radius: var(--md-sys-shape-corner-small);
+    font-family: var(--md-ref-typeface-plain);
+    font-size: var(--md-sys-typescale-label-medium-size);
     font-weight: 500;
-    /* inert vs single-weight faces; family carries weight */
-    line-height: 1;
-    letter-spacing: 0.01em;
+    line-height: var(--md-sys-typescale-label-medium-line-height);
+    letter-spacing: var(--md-sys-typescale-label-medium-tracking);
     vertical-align: baseline;
     transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease;
 }
@@ -993,74 +408,74 @@ a.badge:focus {
 
 /* ── Tier 1: SOFT (default .badge-{variant}) ─────────────────────────────── */
 
-/* Brand: primary + theme are the ONLY var(--theme-color) badges. */
+/* Brand: primary + theme are the ONLY var(--md-sys-color-primary) badges. */
 .badge-primary,
 .badge-theme {
-    background-color: color-mix(in srgb, var(--theme-color) 12%, #ffffff);
-    color: var(--theme-color);
-    border-color: color-mix(in srgb, var(--theme-color) 30%, transparent);
+    background-color: color-mix(in srgb, var(--md-sys-color-primary) 12%, var(--md-sys-color-surface-container-lowest));
+    color: var(--md-sys-color-primary);
+    border-color: color-mix(in srgb, var(--md-sys-color-primary) 30%, transparent);
 }
 
 .badge-success,
 .badge-online,
 .badge-soft-success {
-    background-color: color-mix(in srgb, #198754 13%, #ffffff);
-    color: #166534;
-    border-color: color-mix(in srgb, #198754 32%, transparent);
+    background-color: color-mix(in srgb, var(--app-status-success) 13%, var(--md-sys-color-surface-container-lowest));
+    color: var(--app-status-success-text);
+    border-color: color-mix(in srgb, var(--app-status-success) 32%, transparent);
 }
 
 .badge-danger,
 .badge-soft-danger {
-    background-color: color-mix(in srgb, #dc3545 13%, #ffffff);
-    color: #b42318;
-    border-color: color-mix(in srgb, #dc3545 32%, transparent);
+    background-color: color-mix(in srgb, var(--app-status-danger) 13%, var(--md-sys-color-surface-container-lowest));
+    color: var(--app-status-danger-text);
+    border-color: color-mix(in srgb, var(--app-status-danger) 32%, transparent);
 }
 
 /* Warning — amber tint, deep #92400e ink so 11px text clears WCAG AA on the tint. */
 .badge-warning,
 .badge-busy,
 .badge-soft-warning {
-    background-color: color-mix(in srgb, #d97706 15%, #ffffff);
-    color: #92400e;
-    border-color: color-mix(in srgb, #d97706 34%, transparent);
+    background-color: color-mix(in srgb, var(--app-status-warning) 15%, var(--md-sys-color-surface-container-lowest));
+    color: var(--app-status-warning-text);
+    border-color: color-mix(in srgb, var(--app-status-warning) 34%, transparent);
 }
 
 /* Info — calmer, more legible cyan than the legacy electric #198ae3. */
 .badge-info,
 .badge-offline,
 .badge-soft-info {
-    background-color: color-mix(in srgb, #0e7490 13%, #ffffff);
-    color: #155e75;
-    border-color: color-mix(in srgb, #0e7490 32%, transparent);
+    background-color: color-mix(in srgb, var(--app-status-info) 13%, var(--md-sys-color-surface-container-lowest));
+    color: var(--app-status-info-text);
+    border-color: color-mix(in srgb, var(--app-status-info) 32%, transparent);
 }
 
 /* Secondary — the adopted .btn-secondary slate (replaces the muddy #c3bdbd). */
 .badge-secondary,
 .badge-soft-secondary {
-    background-color: color-mix(in srgb, #64748b 14%, #ffffff);
-    color: #475569;
-    border-color: color-mix(in srgb, #64748b 32%, transparent);
+    background-color: color-mix(in srgb, var(--md-sys-color-on-surface-variant) 14%, var(--md-sys-color-surface-container-lowest));
+    color: var(--md-sys-color-on-surface-variant);
+    border-color: color-mix(in srgb, var(--md-sys-color-on-surface-variant) 32%, transparent);
 }
 
 .badge-dark,
 .badge-soft-dark {
-    background-color: color-mix(in srgb, #334155 14%, #ffffff);
-    color: #334155;
-    border-color: color-mix(in srgb, #334155 32%, transparent);
+    background-color: color-mix(in srgb, var(--md-sys-color-tertiary-container) 14%, var(--md-sys-color-surface-container-lowest));
+    color: var(--md-sys-color-tertiary);
+    border-color: color-mix(in srgb, var(--md-sys-color-tertiary) 32%, transparent);
 }
 
 /* Light — neutral gray chip with slate ink (the legacy white-on-#f8f9fa was
    invisible). */
 .badge-light {
-    background-color: #f1f5f9;
-    color: #475569;
-    border-color: rgba(27, 27, 27, 0.10);
+    background-color: var(--md-sys-color-surface-container);
+    color: var(--md-sys-color-on-surface-variant);
+    border-color: var(--md-sys-color-outline-variant);
 }
 
 .badge-soft-primary {
-    background-color: color-mix(in srgb, var(--theme-color) 12%, #ffffff);
-    color: var(--theme-color);
-    border-color: color-mix(in srgb, var(--theme-color) 30%, transparent);
+    background-color: color-mix(in srgb, var(--md-sys-color-primary) 12%, var(--md-sys-color-surface-container-lowest));
+    color: var(--md-sys-color-primary);
+    border-color: color-mix(in srgb, var(--md-sys-color-primary) 30%, transparent);
 }
 
 /* ── Tier 1 cascade trap: preview-list status dots ───────────────────────
@@ -1072,21 +487,21 @@ a.badge:focus {
    These preview-list dots are effectively unused in this project — belt-and-
    braces so nothing loud survives anywhere. */
 .preview-list .preview-item .preview-thumbnail .badge.badge-online {
-    background-color: color-mix(in srgb, #198754 13%, #ffffff);
-    color: #166534;
-    border: 1px solid color-mix(in srgb, #198754 32%, transparent);
+    background-color: color-mix(in srgb, var(--app-status-success) 13%, var(--md-sys-color-surface-container-lowest));
+    color: var(--app-status-success-text);
+    border: 1px solid color-mix(in srgb, var(--app-status-success) 32%, transparent);
 }
 
 .preview-list .preview-item .preview-thumbnail .badge.badge-offline {
-    background-color: color-mix(in srgb, #0e7490 13%, #ffffff);
-    color: #155e75;
-    border: 1px solid color-mix(in srgb, #0e7490 32%, transparent);
+    background-color: color-mix(in srgb, var(--app-status-info) 13%, var(--md-sys-color-surface-container-lowest));
+    color: var(--app-status-info-text);
+    border: 1px solid color-mix(in srgb, var(--app-status-info) 32%, transparent);
 }
 
 .preview-list .preview-item .preview-thumbnail .badge.badge-busy {
-    background-color: color-mix(in srgb, #d97706 15%, #ffffff);
-    color: #92400e;
-    border: 1px solid color-mix(in srgb, #d97706 34%, transparent);
+    background-color: color-mix(in srgb, var(--app-status-warning) 15%, var(--md-sys-color-surface-container-lowest));
+    color: var(--app-status-warning-text);
+    border: 1px solid color-mix(in srgb, var(--app-status-warning) 34%, transparent);
 }
 
 /* ── Tier 2: SOLID emphasis ──────────────────────────────────────────────
@@ -1108,60 +523,60 @@ a.badge:focus {
 }
 
 .badge-gradient-primary {
-    background-color: var(--theme-color);
-    color: #ffffff;
-    border-color: var(--theme-color);
+    background-color: var(--md-sys-color-primary);
+    color: var(--md-sys-color-on-primary);
+    border-color: var(--md-sys-color-primary);
 }
 
 .badge-gradient-secondary {
-    background-color: #64748b;
-    color: #ffffff;
-    border-color: #64748b;
+    background-color: var(--md-sys-color-tertiary-container);
+    color: var(--md-sys-color-on-tertiary-container);
+    border-color: var(--md-sys-color-tertiary-container);
 }
 
 .badge-gradient-success {
-    background-color: #198754;
-    color: #ffffff;
-    border-color: #198754;
+    background-color: var(--app-status-success);
+    color: var(--app-status-on-success);
+    border-color: var(--app-status-success);
 }
 
 .badge-gradient-info {
-    background-color: #0e7490;
-    color: #ffffff;
-    border-color: #0e7490;
+    background-color: var(--app-status-info);
+    color: var(--app-status-on-info);
+    border-color: var(--app-status-info);
 }
 
 .badge-gradient-warning {
-    background-color: #d97706;
-    color: #1f2937;
+    background-color: var(--app-status-warning);
+    color: var(--app-status-on-warning);
     /* dark ink — amber fill is too light for white text */
-    border-color: #d97706;
+    border-color: var(--app-status-warning);
 }
 
 .badge-gradient-danger {
-    background-color: #dc3545;
-    color: #ffffff;
-    border-color: #dc3545;
+    background-color: var(--app-status-danger);
+    color: var(--app-status-on-danger);
+    border-color: var(--app-status-danger);
 }
 
 .badge-gradient-dark {
-    background-color: #334155;
-    color: #ffffff;
-    border-color: #334155;
+    background-color: var(--md-sys-color-tertiary-container);
+    color: var(--md-sys-color-on-tertiary-container);
+    border-color: var(--md-sys-color-tertiary-container);
 }
 
 .badge-gradient-light {
-    background-color: #e2e8f0;
-    color: #334155;
-    border-color: #cbd5e1;
+    background-color: var(--md-sys-color-surface-container-highest);
+    color: var(--md-sys-color-on-surface);
+    border-color: var(--md-sys-color-outline-variant);
 }
 
 /* LATEST is the canonical solid emphasis tag — align it to the solid success
    fill (was an ad-hoc #10B981) so the emphasis tier reads as one language. */
 .badge-latest {
-    background-color: #198754;
-    color: #ffffff;
-    border-color: #198754;
+    background-color: var(--app-status-success);
+    color: var(--app-status-on-success);
+    border-color: var(--app-status-success);
 }
 
 /* ── Tier 3: OUTLINE (.badge-outline-*) ──────────────────────────────────
@@ -1169,198 +584,50 @@ a.badge:focus {
    legacy brand-foreign hexes onto the shared palette. */
 .badge-outline-primary {
     background-color: transparent;
-    color: var(--theme-color);
-    border-color: color-mix(in srgb, var(--theme-color) 55%, transparent);
+    color: var(--md-sys-color-primary);
+    border-color: color-mix(in srgb, var(--md-sys-color-primary) 55%, transparent);
 }
 
 .badge-outline-secondary {
     background-color: transparent;
-    color: #475569;
-    border-color: color-mix(in srgb, #64748b 55%, transparent);
+    color: var(--md-sys-color-on-surface-variant);
+    border-color: color-mix(in srgb, var(--md-sys-color-on-surface-variant) 55%, transparent);
 }
 
 .badge-outline-success {
     background-color: transparent;
-    color: #166534;
-    border-color: color-mix(in srgb, #198754 55%, transparent);
+    color: var(--app-status-success-text);
+    border-color: color-mix(in srgb, var(--app-status-success) 55%, transparent);
 }
 
 .badge-outline-info {
     background-color: transparent;
-    color: #155e75;
-    border-color: color-mix(in srgb, #0e7490 55%, transparent);
+    color: var(--app-status-info-text);
+    border-color: color-mix(in srgb, var(--app-status-info) 55%, transparent);
 }
 
 .badge-outline-warning {
     background-color: transparent;
-    color: #92400e;
-    border-color: color-mix(in srgb, #d97706 55%, transparent);
+    color: var(--app-status-warning-text);
+    border-color: color-mix(in srgb, var(--app-status-warning) 55%, transparent);
 }
 
 .badge-outline-danger {
     background-color: transparent;
-    color: #b42318;
-    border-color: color-mix(in srgb, #dc3545 55%, transparent);
+    color: var(--app-status-danger-text);
+    border-color: color-mix(in srgb, var(--app-status-danger) 55%, transparent);
 }
 
 .badge-outline-dark {
     background-color: transparent;
-    color: #334155;
-    border-color: color-mix(in srgb, #334155 55%, transparent);
+    color: var(--md-sys-color-tertiary);
+    border-color: color-mix(in srgb, var(--md-sys-color-tertiary) 55%, transparent);
 }
 
 .badge-outline-light {
     background-color: transparent;
-    color: #475569;
-    border-color: rgba(27, 27, 27, 0.18);
-}
-
-/* ── Modals ───────────────────────────────────────────────────────────────
-   Plain-white, modern dialog surface over the legacy Star-Admin look (lilac
-   #f2edf3 fill, 0.3rem radius, #ebedf2 borders, a 100px dialog drop, and the
-   .modal .modal-dialog .modal-content ... override chain at style.css:22722).
-   Loaded after style.css/rtl.css in both bundles, so it wins. Direction-
-   neutral — the header/footer are flex rows, so no [dir="rtl"] flips needed.
-   ID-scoped bespoke modals (#createSessionYearModal, #assignModal,
-   #promoteModal, the elective modal) keep their own designs — class selectors
-   here can't beat their ID rules. Modal = top-most overlay, so it carries the
-   deepest shadow tier in the system (above the wrapper). */
-
-/* Backdrop — softer slate scrim + a faint blur instead of flat 50% black. */
-.modal-backdrop {
-    background-color: rgb(16, 24, 40);
-    -webkit-backdrop-filter: blur(2px);
-    backdrop-filter: blur(2px);
-}
-
-.modal-backdrop.show {
-    opacity: 0.4;
-}
-
-/* Dialog — a calmer drop than the legacy 100px, with a refined slide+scale
-   entrance. (0,2,0) matches the legacy margin-top rule; content.css wins on
-   load order.) */
-.modal .modal-dialog {
-    margin-top: 1.75rem;
-}
-
-.modal.fade .modal-dialog {
-    transform: translateY(-16px) scale(0.98);
-    transition: transform 0.22s cubic-bezier(0.25, 0.1, 0.25, 1), opacity 0.22s ease;
-}
-
-.modal.show .modal-dialog {
-    transform: none;
-}
-
-@media (prefers-reduced-motion: reduce) {
-    .modal.fade .modal-dialog {
-        transition: none;
-    }
-}
-
-/* Surface — pure white, hairline border, 16px radius (on the DESIGN.md scale,
-   the prominent floating-container tier), deepest soft shadow. overflow:hidden
-   lets the header/footer corners hug the outer radius without per-edge math. */
-.modal-content {
-    background-color: #fff;
-    border: 1px solid rgba(27, 27, 27, 0.06);
-    border-radius: 16px;
-    overflow: hidden;
-    box-shadow:
-        0 4px 6px rgba(16, 24, 40, 0.04),
-        0 12px 24px rgba(16, 24, 40, 0.08),
-        0 24px 48px rgba(16, 24, 40, 0.12);
-}
-
-/* Header — white, hairline underline. Scoped to (0,4,0) to beat the legacy
-   .modal .modal-dialog .modal-content .modal-header padding rule. */
-.modal .modal-dialog .modal-content .modal-header {
-    align-items: center;
-    padding: 1.125rem 1.5rem;
-    background-color: #fff;
-    border-bottom: 1px solid rgba(27, 27, 27, 0.06);
-}
-
-.modal-title {
-    font-family: "Roboto-Medium", "ubuntu-medium", sans-serif;
-    font-size: 1.0625rem;
-    font-weight: 500;
-    color: #343a40;
-    text-transform: none;
-    letter-spacing: -0.01em;
-}
-
-/* Close — a clean rounded ghost button (8px = .form-control-sm tier), muted →
-   theme-tint on hover. Overrides the legacy negative-margin × glyph treatment.
-   (0,5,0) so it outranks the legacy .modal-header .close span colour rule. */
-.modal .modal-dialog .modal-content .modal-header .close {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 32px;
-    height: 32px;
-    padding: 0;
-    margin: 0;
-    font-size: 1.5rem;
-    font-weight: 400;
-    line-height: 1;
-    color: #8c8c8c;
-    opacity: 1;
-    border-radius: 8px;
-    transition: color 0.2s ease, background-color 0.2s ease;
-}
-
-.modal .modal-dialog .modal-content .modal-header .close:hover,
-.modal .modal-dialog .modal-content .modal-header .close:focus {
-    color: var(--theme-color);
-    background-color: color-mix(in srgb, var(--theme-color) 8%, transparent);
-    opacity: 1;
-    outline: none;
-}
-
-.modal .modal-dialog .modal-content .modal-header .close span {
-    font-size: inherit;
-    font-weight: inherit;
-    color: inherit;
-}
-
-/* Body — comfortable breathing room. (0,4,0) beats the legacy 35px padding. */
-.modal .modal-dialog .modal-content .modal-body {
-    padding: 1.5rem;
-    color: #343a40;
-}
-
-/* Footer — white, hairline divider, right-aligned action gap. (0,4,0) beats
-   the legacy 15px footer padding. */
-.modal .modal-dialog .modal-content .modal-footer {
-    gap: 0.625rem;
-    padding: 1rem 1.5rem;
-    background-color: #fff;
-    border-top: 1px solid rgba(27, 27, 27, 0.06);
-}
-
-.modal .modal-dialog .modal-content .modal-footer>* {
-    margin: 0;
-}
-
-/* Scrollable body — slim neutral scrollbar matching the redesign tone. */
-.modal-body::-webkit-scrollbar {
-    width: 6px;
-    height: 6px;
-}
-
-.modal-body::-webkit-scrollbar-thumb {
-    background: rgba(27, 27, 27, 0.18);
-    border-radius: 10px;
-}
-
-.modal-body::-webkit-scrollbar-thumb:hover {
-    background: rgba(27, 27, 27, 0.3);
-}
-
-.modal-body::-webkit-scrollbar-track {
-    background: transparent;
+    color: var(--md-sys-color-on-surface-variant);
+    border-color: var(--md-sys-color-outline);
 }
 
 /* ── Note banners / callouts ──────────────────────────────────────────────
@@ -1386,262 +653,38 @@ a.badge:focus {
 }
 
 .note-banner strong {
-    font-family: "Roboto-Medium", "ubuntu-medium", sans-serif;
+    font-family: var(--md-ref-typeface-plain);
     font-weight: 600;
 }
 
 .note-banner-danger {
-    background: color-mix(in srgb, #dc3545 8%, #ffffff);
-    border: 1px solid color-mix(in srgb, #dc3545 28%, transparent);
-    color: #b42318;
+    background: color-mix(in srgb, var(--md-sys-color-error) 8%, var(--md-sys-color-surface-container-lowest));
+    border: 1px solid color-mix(in srgb, var(--md-sys-color-error) 28%, transparent);
+    color: var(--md-sys-color-error);
 }
 
 .note-banner-danger svg {
-    color: #dc3545;
+    color: var(--md-sys-color-error);
 }
 
 .note-banner-warning {
-    background: color-mix(in srgb, #ffc107 14%, #ffffff);
-    border: 1px solid color-mix(in srgb, #ffc107 35%, transparent);
-    color: #856404;
+    background: color-mix(in srgb, var(--app-status-warning) 14%, var(--md-sys-color-surface-container-lowest));
+    border: 1px solid color-mix(in srgb, var(--app-status-warning) 35%, transparent);
+    color: var(--app-status-warning-text);
 }
 
 .note-banner-warning svg {
-    color: #e0a800;
+    color: var(--app-status-warning);
 }
 
 .note-banner-info {
-    background: color-mix(in srgb, #0e7490 8%, #ffffff);
-    border: 1px solid color-mix(in srgb, #0e7490 25%, transparent);
-    color: #155e75;
+    background: color-mix(in srgb, var(--app-status-info) 8%, var(--md-sys-color-surface-container-lowest));
+    border: 1px solid color-mix(in srgb, var(--app-status-info) 25%, transparent);
+    color: var(--app-status-info-text);
 }
 
 .note-banner-info svg {
-    color: #0e7490;
-}
-
-/* Radios — repaint the legacy Star-Admin lilac (#b66dff / #da8cff→#9a55ff) into the
-   brand theme colour. style.css (LTR) already uses var(--theme-color), but rtl.css
-   still ships the hardcoded lilac, so RTL radios lose the brand colour. content.css
-   loads after both bundles, so these identical selectors win on order for LTR and RTL
-   alike. */
-.form-check .form-check-label input[type="radio"]+.input-helper:before {
-    border-color: var(--theme-color);
-}
-
-.form-check .form-check-label input[type="radio"]:checked+.input-helper:before {
-    background: var(--theme-color);
-}
-
-/* Disabled radios — muted theme tint. */
-.form-check .form-check-label input[type="radio"]:disabled+.input-helper:before {
-    border-color: color-mix(in srgb, var(--theme-color) 35%, #ffffff);
-}
-
-.form-check .form-check-label input[type="radio"]:disabled:checked+.input-helper:before {
-    background: color-mix(in srgb, var(--theme-color) 50%, #ffffff);
-}
-
-/* ============================================================
-   Toasts (jquery-toast-plugin) — modern white-overlay tier
-   ------------------------------------------------------------
-   Replaces the legacy Star-Admin neon toasts: the plugin's dark
-   #444 fill / PNG icons / 4px radius (jquery.toast.min.css) AND the
-   bundle overrides at style.css:27864 that paint the old neon
-   (#1bcfb4 / #fed713 / #198ae3 / #fe7c96). content.css loads after
-   style.css/rtl.css, so the .jq-toast-wrap-prefixed selectors below
-   beat those legacy rules on specificity + order, LTR and RTL alike.
-
-   Look: clean #fff card (modal/overlay tier) — hairline border, a
-   semantic inline-start accent bar, a Lucide icon as a fixed-hue SVG
-   data-URI (semantic status colours are NOT brand, so a literal hex
-   in the data-URI is correct — same rationale as the table sort
-   arrows), deep document ink, 12px radius, overlay shadow, and a
-   semantic progress loader. Palette matches the badge/solid-button
-   system: success #198754, danger #dc3545, warning #d97706, info
-   #0e7490. The API (showSuccessToast / showErrorToast) is unchanged.
-   ============================================================ */
-
-/* Container — wider than the plugin's cramped 250px, clears the fixed navbar */
-.jq-toast-wrap {
-    width: 360px;
-    max-width: calc(100vw - 40px);
-    z-index: 9100 !important;
-}
-
-.jq-toast-wrap.top-right {
-    top: 86px;
-    right: 24px;
-}
-
-.jq-toast-wrap.top-left {
-    top: 86px;
-    left: 24px;
-}
-
-[dir="rtl"] .jq-toast-wrap.top-right {
-    right: auto;
-    left: 24px;
-}
-
-/* Single toast — white overlay card */
-.jq-toast-wrap .jq-toast-single {
-    width: 100%;
-    margin: 0 0 12px;
-    padding: 14px 18px;
-    padding-inline-end: 42px;
-    border-radius: 12px;
-    background-color: #fff;
-    color: #343a40 !important;
-    /* override the plugin's color:#fff !important */
-    border: 1px solid rgba(27, 27, 27, 0.06);
-    border-inline-start: 3px solid rgba(27, 27, 27, 0.18);
-    /* per-type accent overrides below; auto-flips for RTL */
-    font-family: "Roboto-Regular", "ubuntu-regular", sans-serif;
-    font-size: 0.875rem;
-    line-height: 1.45;
-    box-shadow:
-        0 2px 4px rgba(16, 24, 40, 0.05),
-        0 8px 20px rgba(16, 24, 40, 0.10),
-        0 16px 32px rgba(16, 24, 40, 0.06);
-    overflow: hidden;
-    transition: box-shadow 0.25s ease, transform 0.25s ease;
-}
-
-.jq-toast-wrap .jq-toast-single:hover {
-    box-shadow:
-        0 4px 6px rgba(16, 24, 40, 0.06),
-        0 12px 28px rgba(16, 24, 40, 0.12),
-        0 20px 40px rgba(16, 24, 40, 0.08);
-}
-
-/* Optional heading + body links */
-.jq-toast-wrap .jq-toast-single h2 {
-    font-family: "Roboto-Medium", "ubuntu-medium", sans-serif;
-    font-size: 0.9375rem;
-    margin: 0 0 4px;
-    color: #343a40;
-}
-
-.jq-toast-wrap .jq-toast-single a {
-    color: var(--theme-color);
-    border-bottom-color: color-mix(in srgb, var(--theme-color) 40%, transparent);
-}
-
-/* Icon — Lucide SVG data-URI, positioned on the inline-start */
-.jq-toast-wrap .jq-toast-single.jq-has-icon {
-    padding-inline-start: 52px;
-    background-repeat: no-repeat;
-    background-position: left 18px center;
-    background-size: 22px 22px;
-}
-
-[dir="rtl"] .jq-toast-wrap .jq-toast-single.jq-has-icon {
-    background-position: right 18px center;
-}
-
-/* Success — check-circle, green */
-.jq-toast-wrap .jq-toast-single.jq-icon-success {
-    background-color: #fff;
-    border-inline-start-color: #198754;
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%23198754' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M22 11.08V12a10 10 0 1 1-5.93-9.14'/%3E%3Cpolyline points='22 4 12 14.01 9 11.01'/%3E%3C/svg%3E");
-}
-
-/* Error — alert-circle, red */
-.jq-toast-wrap .jq-toast-single.jq-icon-error {
-    background-color: #fff;
-    border-inline-start-color: #dc3545;
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%23dc3545' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='12' cy='12' r='10'/%3E%3Cline x1='12' y1='8' x2='12' y2='12'/%3E%3Cline x1='12' y1='16' x2='12.01' y2='16'/%3E%3C/svg%3E");
-}
-
-/* Warning — alert-triangle, amber */
-.jq-toast-wrap .jq-toast-single.jq-icon-warning {
-    background-color: #fff;
-    border-inline-start-color: #d97706;
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%23d97706' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z'/%3E%3Cline x1='12' y1='9' x2='12' y2='13'/%3E%3Cline x1='12' y1='17' x2='12.01' y2='17'/%3E%3C/svg%3E");
-}
-
-/* Info — info circle, teal */
-.jq-toast-wrap .jq-toast-single.jq-icon-info {
-    background-color: #fff;
-    border-inline-start-color: #0e7490;
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%230e7490' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='12' cy='12' r='10'/%3E%3Cline x1='12' y1='16' x2='12' y2='12'/%3E%3Cline x1='12' y1='8' x2='12.01' y2='8'/%3E%3C/svg%3E");
-}
-
-/* Close (×) — muted ghost, hovers to ink (overlay close convention) */
-.jq-toast-wrap .close-jq-toast-single {
-    top: 11px;
-    right: 14px;
-    left: auto;
-    font-size: 17px;
-    line-height: 1;
-    color: #b6bcc6;
-    transition: color 0.2s ease;
-}
-
-.jq-toast-wrap .close-jq-toast-single:hover {
-    color: #343a40;
-}
-
-[dir="rtl"] .jq-toast-wrap .close-jq-toast-single {
-    right: auto;
-    left: 14px;
-}
-
-/* Progress loader — sleek bottom hairline. The plugin animates this bar's
-   width 0→100% over hideAfter (timing + loaderBg are set inline by the JS),
-   so it doubles as a live countdown to auto-dismiss. We re-anchor it from the
-   glitchy top edge (top:-2px) to a clean 2px strip flush with the card's
-   bottom, and tint it per toast type — overriding the inline loaderBg so it
-   always matches the accent, never the legacy neon. overflow:hidden on the
-   card clips it to the 12px corner radius. RTL grows from the inline-start. */
-.jq-toast-wrap .jq-toast-single .jq-toast-loader {
-    display: block !important;
-    top: auto;
-    bottom: 0;
-    left: 0;
-    height: 2px;
-    border-radius: 0;
-    background: var(--theme-color) !important;
-}
-
-[dir="rtl"] .jq-toast-wrap .jq-toast-single .jq-toast-loader {
-    left: auto;
-    right: 0;
-}
-
-.jq-toast-wrap .jq-toast-single.jq-icon-success .jq-toast-loader {
-    background: #198754 !important;
-}
-
-.jq-toast-wrap .jq-toast-single.jq-icon-error .jq-toast-loader {
-    background: #dc3545 !important;
-}
-
-.jq-toast-wrap .jq-toast-single.jq-icon-warning .jq-toast-loader {
-    background: #d97706 !important;
-}
-
-.jq-toast-wrap .jq-toast-single.jq-icon-info .jq-toast-loader {
-    background: #0e7490 !important;
-}
-
-/* Tablet / mobile — full-width strip with safe side gutters */
-@media (max-width: 575.98px) {
-
-    .jq-toast-wrap.top-right,
-    .jq-toast-wrap.top-left {
-        width: auto;
-        max-width: none;
-        left: 12px;
-        right: 12px;
-        top: 78px;
-    }
-
-    [dir="rtl"] .jq-toast-wrap.top-right {
-        left: 12px;
-        right: 12px;
-    }
+    color: var(--app-status-info);
 }
 
 /* ==========================================================================
@@ -1656,8 +699,8 @@ a.badge:focus {
     justify-content: center;
     max-width: 100%;
     padding: 12px;
-    background-color: #fff;
-    border: 1px solid rgba(27, 27, 27, 0.06);
+    background-color: var(--md-sys-color-surface-container-lowest);
+    border: 1px solid var(--md-sys-color-outline-variant);
     border-radius: 12px;
 }
 
@@ -1680,7 +723,7 @@ a.badge:focus {
    [dir="rtl"] at the end of this block.
    ============================================================ */
 .create-session-year-modal {
-    background-color: #ffffff;
+    background-color: var(--md-sys-color-surface);
 }
 
 .create-session-year-btn {
@@ -1697,26 +740,26 @@ a.badge:focus {
 #createSessionYearModal .modal-content {
     border-radius: 12px;
     border: none;
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
+    box-shadow: var(--md-sys-elevation-level5);
 }
 
 #createSessionYearModal .modal-header {
     padding: 24px 24px 20px;
-    border-bottom: 1px solid #e8e8e8;
-    background-color: #fff;
+    border-bottom: 1px solid var(--md-sys-color-outline-variant);
+    background-color: var(--md-sys-color-surface);
     border-radius: 12px 12px 0 0;
 }
 
 #createSessionYearModal .modal-title {
     font-size: 20px;
     font-weight: 600;
-    color: #1a1a1a;
+    color: var(--md-sys-color-on-surface);
 }
 
 #createSessionYearModal .close {
     font-size: 28px;
     font-weight: 300;
-    color: #666;
+    color: var(--md-sys-color-on-surface-variant);
     opacity: 1;
     padding: 0;
     margin: 0;
@@ -1730,8 +773,8 @@ a.badge:focus {
 }
 
 #createSessionYearModal .close:hover {
-    background-color: #f5f5f5;
-    color: #333;
+    background-color: var(--md-sys-color-surface-container);
+    color: var(--md-sys-color-on-surface);
 }
 
 #createSessionYearModal .modal-body {
@@ -1745,17 +788,17 @@ a.badge:focus {
 }
 
 #createSessionYearModal .modal-body::-webkit-scrollbar-track {
-    background: #f1f1f1;
+    background: var(--md-sys-color-surface-container);
     border-radius: 10px;
 }
 
 #createSessionYearModal .modal-body::-webkit-scrollbar-thumb {
-    background: #c1c1c1;
+    background: color-mix(in srgb, var(--md-sys-color-outline) 40%, transparent);
     border-radius: 10px;
 }
 
 #createSessionYearModal .modal-body::-webkit-scrollbar-thumb:hover {
-    background: #a8a8a8;
+    background: color-mix(in srgb, var(--md-sys-color-outline) 60%, transparent);
 }
 
 .section-header {
@@ -1765,7 +808,7 @@ a.badge:focus {
     margin-bottom: 16px;
     font-size: 14px;
     font-weight: 600;
-    color: #1a1a1a;
+    color: var(--md-sys-color-on-surface);
 }
 
 .section-header:first-child {
@@ -1774,15 +817,15 @@ a.badge:focus {
 
 .section-header i {
     font-size: 16px;
-    color: #666;
+    color: var(--md-sys-color-on-surface-variant);
 }
 
 .section-badge {
     margin-left: auto;
     font-size: 11px;
     font-weight: 500;
-    color: #666;
-    background-color: #f5f5f5;
+    color: var(--md-sys-color-on-surface-variant);
+    background-color: var(--md-sys-color-surface-container);
     padding: 4px 10px;
     border-radius: 12px;
 }
@@ -1794,29 +837,29 @@ a.badge:focus {
 #createSessionYearModal .form-group label {
     font-size: 13px;
     font-weight: 500;
-    color: #333;
+    color: var(--md-sys-color-on-surface);
     margin-bottom: 6px;
     display: block;
 }
 
 #createSessionYearModal .form-control {
     height: 40px;
-    border: 1px solid #d9d9d9;
+    border: 1px solid var(--md-sys-color-outline);
     border-radius: 6px;
     font-size: 14px;
     padding: 8px 12px;
-    color: #1a1a1a;
+    color: var(--md-sys-color-on-surface);
     transition: all 0.2s ease;
 }
 
 #createSessionYearModal .form-control:focus {
-    border-color: var(--theme-color);
-    box-shadow: 0 0 0 3px color-mix(in srgb, var(--theme-color) 25%, transparent);
+    border-color: var(--md-sys-color-primary);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--md-sys-color-primary) 24%, transparent);
     outline: none;
 }
 
 #createSessionYearModal .form-control::placeholder {
-    color: #999;
+    color: var(--md-sys-color-on-surface-variant);
     font-size: 13px;
 }
 
@@ -1825,7 +868,7 @@ a.badge:focus {
     align-items: center;
     justify-content: space-between;
     padding: 16px;
-    background-color: #fafafa;
+    background-color: var(--md-sys-color-surface-container-low);
     border-radius: 8px;
     margin-bottom: 16px;
 }
@@ -1839,12 +882,12 @@ a.badge:focus {
 .installment-toggle-label span {
     font-size: 14px;
     font-weight: 500;
-    color: #1a1a1a;
+    color: var(--md-sys-color-on-surface);
 }
 
 .installment-toggle-label small {
     font-size: 12px;
-    color: #666;
+    color: var(--md-sys-color-on-surface-variant);
 }
 
 .toggle-switch {
@@ -1868,7 +911,7 @@ a.badge:focus {
     left: 0;
     right: 0;
     bottom: 0;
-    background-color: #d9d9d9;
+    background-color: var(--md-sys-color-surface-container-highest);
     transition: 0.3s;
     border-radius: 24px;
 }
@@ -1880,13 +923,13 @@ a.badge:focus {
     width: 18px;
     left: 3px;
     bottom: 3px;
-    background-color: white;
+    background-color: var(--md-sys-color-surface-container-lowest);
     transition: 0.3s;
     border-radius: 50%;
 }
 
 .toggle-switch input:checked+.toggle-slider {
-    background-color: var(--theme-color);
+    background-color: var(--md-sys-color-primary);
 }
 
 .toggle-switch input:checked+.toggle-slider:before {
@@ -1898,8 +941,8 @@ a.badge:focus {
 }
 
 .installment-item {
-    background-color: #fafafa;
-    border: 1px solid #e8e8e8;
+    background-color: var(--md-sys-color-surface-container-low);
+    border: 1px solid var(--md-sys-color-outline-variant);
     border-radius: 8px;
     padding: 16px;
     margin-bottom: 12px;
@@ -1916,7 +959,7 @@ a.badge:focus {
 .installment-header span {
     font-size: 13px;
     font-weight: 600;
-    color: #333;
+    color: var(--md-sys-color-on-surface);
 }
 
 .btn-remove-installment {
@@ -1924,7 +967,7 @@ a.badge:focus {
     border: none;
     padding: 4px;
     cursor: pointer;
-    color: #999;
+    color: var(--md-sys-color-on-surface-variant);
     transition: all 0.2s ease;
     width: 24px;
     height: 24px;
@@ -1935,17 +978,17 @@ a.badge:focus {
 }
 
 .btn-remove-installment:hover {
-    background-color: #fee;
-    color: #e74c3c;
+    background-color: color-mix(in srgb, var(--md-sys-color-error) 8%, var(--md-sys-color-surface-container-lowest));
+    color: var(--md-sys-color-error);
 }
 
 .btn-add-installment {
     width: 100%;
     height: 40px;
-    border: 1px dashed #d9d9d9;
-    background-color: #fff;
+    border: 1px dashed var(--md-sys-color-outline);
+    background-color: var(--md-sys-color-surface-container-lowest);
     border-radius: 6px;
-    color: var(--theme-color);
+    color: var(--md-sys-color-primary);
     font-size: 14px;
     font-weight: 500;
     cursor: pointer;
@@ -1957,8 +1000,8 @@ a.badge:focus {
 }
 
 .btn-add-installment:hover {
-    border-color: var(--theme-color);
-    background-color: color-mix(in srgb, var(--theme-color) 6%, #fff);
+    border-color: var(--md-sys-color-primary);
+    background-color: color-mix(in srgb, var(--md-sys-color-primary) 6%, var(--md-sys-color-surface-container-lowest));
 }
 
 .data-transfer-options {
@@ -1971,20 +1014,20 @@ a.badge:focus {
     display: flex;
     align-items: center;
     padding: 12px;
-    background-color: #fafafa;
-    border: 1px solid #e8e8e8;
+    background-color: var(--md-sys-color-surface-container-low);
+    border: 1px solid var(--md-sys-color-outline-variant);
     border-radius: 6px;
     cursor: pointer;
     transition: all 0.2s ease;
     margin: 0;
     font-size: 13px;
     font-weight: 400;
-    color: #333;
+    color: var(--md-sys-color-on-surface);
 }
 
 .checkbox-option:hover {
-    background-color: #f5f5f5;
-    border-color: #d9d9d9;
+    background-color: var(--md-sys-color-surface-container);
+    border-color: var(--md-sys-color-outline);
 }
 
 .checkbox-option input[type="checkbox"] {
@@ -1992,13 +1035,13 @@ a.badge:focus {
     height: 18px;
     margin-right: 12px;
     cursor: pointer;
-    accent-color: var(--theme-color);
+    accent-color: var(--md-sys-color-primary);
 }
 
 #createSessionYearModal .modal-footer {
     padding: 16px 24px;
-    border-top: 1px solid #e8e8e8;
-    background-color: #fafafa;
+    border-top: 1px solid var(--md-sys-color-outline-variant);
+    background-color: var(--md-sys-color-surface-container-low);
     border-radius: 0 0 12px 12px;
     display: flex;
     gap: 12px;
@@ -2054,8 +1097,8 @@ a.badge:focus {
 .delete-session-modal-content {
     border-radius: 12px;
     border: none;
-    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
-    background-color: #ffffff;
+    box-shadow: var(--md-sys-elevation-level5);
+    background-color: var(--md-sys-color-surface);
 }
 
 .delete-session-modal-content .modal-header {
@@ -2075,23 +1118,23 @@ a.badge:focus {
 .delete-session-modal-content .modal-title {
     font-size: 20px;
     font-weight: 600;
-    color: #1a1a1a;
+    color: var(--md-sys-color-on-surface);
 }
 
 .delete-session-modal-content .session-year-label {
     font-size: 14px;
-    color: #666;
+    color: var(--md-sys-color-on-surface-variant);
 }
 
 .delete-session-modal-content .session-year-value {
     font-weight: 600;
-    color: #1a1a1a;
+    color: var(--md-sys-color-on-surface);
 }
 
 .delete-session-modal-content .delete-icon-container {
     width: 44px;
     height: 44px;
-    background-color: #fee;
+    background-color: color-mix(in srgb, var(--md-sys-color-error) 8%, var(--md-sys-color-surface-container-lowest));
     border-radius: 8px;
     display: flex;
     align-items: center;
@@ -2100,49 +1143,49 @@ a.badge:focus {
 }
 
 .delete-session-modal-content .delete-icon-container i {
-    color: #dc3545;
+    color: var(--md-sys-color-error);
     font-size: 20px;
 }
 
 .delete-session-modal-content .warning-box {
-    background-color: #fff5f5;
-    border-left: 4px solid #dc3545;
+    background-color: color-mix(in srgb, var(--md-sys-color-error) 5%, var(--md-sys-color-surface-container-lowest));
+    border-left: 4px solid var(--md-sys-color-error);
     padding: 16px;
     border-radius: 4px;
 }
 
 .delete-session-modal-content .warning-icon {
-    color: #dc3545;
+    color: var(--md-sys-color-error);
     font-size: 18px;
     margin-top: 2px;
 }
 
 .delete-session-modal-content .warning-title {
     font-weight: 600;
-    color: #dc3545;
+    color: var(--md-sys-color-error);
     font-size: 14px;
     margin-bottom: 4px;
 }
 
 .delete-session-modal-content .warning-text {
     font-size: 14px;
-    color: #666;
+    color: var(--md-sys-color-on-surface-variant);
     line-height: 1.5;
 }
 
 .delete-session-modal-content .choice-option {
-    border: 2px solid #e0e0e0;
+    border: 2px solid var(--md-sys-color-outline-variant);
     border-radius: 8px;
     transition: all 0.2s ease;
 }
 
 .delete-session-modal-content .choice-option:hover {
-    border-color: #b8b8b8;
+    border-color: var(--md-sys-color-outline);
 }
 
 .delete-session-modal-content .choice-option:has(input:checked) {
-    border-color: var(--theme-color);
-    background-color: color-mix(in srgb, var(--theme-color) 6%, #fff);
+    border-color: var(--md-sys-color-primary);
+    background-color: color-mix(in srgb, var(--md-sys-color-primary) 6%, var(--md-sys-color-surface-container-lowest));
 }
 
 .delete-session-modal-content .custom-radio-container {
@@ -2163,7 +1206,7 @@ a.badge:focus {
 .delete-session-modal-content .radio-checkmark {
     width: 20px;
     height: 20px;
-    border: 2px solid #d0d0d0;
+    border: 2px solid var(--md-sys-color-outline);
     border-radius: 50%;
     margin-right: 12px;
     flex-shrink: 0;
@@ -2173,7 +1216,7 @@ a.badge:focus {
 }
 
 .delete-session-modal-content .custom-radio-container input:checked~.radio-checkmark {
-    border-color: var(--theme-color);
+    border-color: var(--md-sys-color-primary);
 }
 
 .delete-session-modal-content .custom-radio-container input:checked~.radio-checkmark::after {
@@ -2182,7 +1225,7 @@ a.badge:focus {
     width: 10px;
     height: 10px;
     border-radius: 50%;
-    background-color: var(--theme-color);
+    background-color: var(--md-sys-color-primary);
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
@@ -2195,13 +1238,13 @@ a.badge:focus {
 .delete-session-modal-content .radio-title {
     font-weight: 600;
     font-size: 15px;
-    color: #1a1a1a;
+    color: var(--md-sys-color-on-surface);
     margin-bottom: 4px;
 }
 
 .delete-session-modal-content .radio-description {
     font-size: 13px;
-    color: #666;
+    color: var(--md-sys-color-on-surface-variant);
     line-height: 1.4;
 }
 
@@ -2218,18 +1261,18 @@ a.badge:focus {
     cursor: pointer;
     margin: 0;
     position: relative;
-    border: 1px solid #e0e0e0;
+    border: 1px solid var(--md-sys-color-outline-variant);
     border-radius: 6px;
     transition: all 0.2s ease;
 }
 
 .delete-session-modal-content .custom-checkbox-container:hover {
-    background-color: #f8f9fa;
+    background-color: var(--md-sys-color-surface-container);
 }
 
 .delete-session-modal-content .custom-checkbox-container:has(input:checked) {
-    background-color: color-mix(in srgb, var(--theme-color) 6%, #fff);
-    border-color: var(--theme-color);
+    background-color: color-mix(in srgb, var(--md-sys-color-primary) 6%, var(--md-sys-color-surface-container-lowest));
+    border-color: var(--md-sys-color-primary);
 }
 
 .delete-session-modal-content .custom-checkbox-container input[type="checkbox"] {
@@ -2241,7 +1284,7 @@ a.badge:focus {
 .delete-session-modal-content .checkbox-checkmark {
     width: 20px;
     height: 20px;
-    border: 2px solid #d0d0d0;
+    border: 2px solid var(--md-sys-color-outline);
     border-radius: 4px;
     margin-right: 12px;
     flex-shrink: 0;
@@ -2251,15 +1294,15 @@ a.badge:focus {
 }
 
 .delete-session-modal-content .custom-checkbox-container input:checked~.checkbox-checkmark {
-    background-color: var(--theme-color);
-    border-color: var(--theme-color);
+    background-color: var(--md-sys-color-primary);
+    border-color: var(--md-sys-color-primary);
 }
 
 .delete-session-modal-content .custom-checkbox-container input:checked~.checkbox-checkmark::after {
     content: '\f00c';
     font-family: 'FontAwesome';
     position: absolute;
-    color: white;
+    color: var(--md-sys-color-on-primary);
     font-size: 12px;
     top: 50%;
     left: 50%;
@@ -2273,26 +1316,26 @@ a.badge:focus {
 .delete-session-modal-content .checkbox-title {
     font-weight: 600;
     font-size: 14px;
-    color: #1a1a1a;
+    color: var(--md-sys-color-on-surface);
     margin-bottom: 3px;
 }
 
 .delete-session-modal-content .checkbox-description {
     font-size: 13px;
-    color: #666;
+    color: var(--md-sys-color-on-surface-variant);
     line-height: 1.3;
 }
 
 .delete-session-modal-content .section-title {
     font-weight: 600;
     font-size: 15px;
-    color: #1a1a1a;
+    color: var(--md-sys-color-on-surface);
     margin-bottom: 2px;
 }
 
 .delete-session-modal-content .section-subtitle {
     font-size: 13px;
-    color: #666;
+    color: var(--md-sys-color-on-surface-variant);
 }
 
 .delete-session-modal-content .delete-items-list {
@@ -2306,7 +1349,7 @@ a.badge:focus {
     padding-left: 24px;
     position: relative;
     font-size: 14px;
-    color: #333;
+    color: var(--md-sys-color-on-surface);
     line-height: 1.5;
     display: flex;
     align-items: center;
@@ -2317,27 +1360,27 @@ a.badge:focus {
     content: '•';
     position: absolute;
     left: 8px;
-    color: #dc3545;
+    color: var(--md-sys-color-error);
     font-weight: bold;
     font-size: 18px;
 }
 
 .delete-session-modal-content .btn-light {
-    background-color: #f8f9fa;
-    border: 1px solid #dee2e6;
-    color: #495057;
+    background-color: var(--md-sys-color-surface-container-low);
+    border: 1px solid var(--md-sys-color-outline-variant);
+    color: var(--md-sys-color-on-surface-variant);
     font-weight: 500;
     padding: 8px 20px;
     transition: all 0.2s ease;
 }
 
 .delete-session-modal-content .btn-light:hover {
-    background-color: #e9ecef;
-    border-color: #adb5bd;
+    background-color: var(--md-sys-color-surface-container);
+    border-color: var(--md-sys-color-outline);
 }
 
 .delete-session-modal-content .select-all-btn {
-    color: var(--theme-color);
+    color: var(--md-sys-color-primary);
     font-weight: 500;
     font-size: 14px;
     text-decoration: none;
@@ -2345,7 +1388,7 @@ a.badge:focus {
 }
 
 .delete-session-modal-content .select-all-btn:hover {
-    color: color-mix(in srgb, var(--theme-color) 85%, #000);
+    color: color-mix(in srgb, var(--md-sys-color-primary) 85%, var(--md-sys-color-on-surface));
     text-decoration: underline;
 }
 
@@ -2377,17 +1420,17 @@ a.badge:focus {
 }
 
 .delete-session-modal-content .modal-body::-webkit-scrollbar-track {
-    background: #f1f1f1;
+    background: var(--md-sys-color-surface-container);
     border-radius: 10px;
 }
 
 .delete-session-modal-content .modal-body::-webkit-scrollbar-thumb {
-    background: #c1c1c1;
+    background: color-mix(in srgb, var(--md-sys-color-outline) 40%, transparent);
     border-radius: 10px;
 }
 
 .delete-session-modal-content .modal-body::-webkit-scrollbar-thumb:hover {
-    background: #a8a8a8;
+    background: color-mix(in srgb, var(--md-sys-color-outline) 60%, transparent);
 }
 
 @media (max-width: 576px) {
@@ -2416,7 +1459,7 @@ a.badge:focus {
 /* RTL — mirror the direction-dependent properties so the modal matches LTR */
 [dir="rtl"] .delete-session-modal-content .warning-box {
     border-left: 0;
-    border-right: 4px solid #dc3545;
+    border-right: 4px solid var(--md-sys-color-error);
 }
 
 [dir="rtl"] .delete-session-modal-content .radio-checkmark,
@@ -2443,7 +1486,7 @@ a.badge:focus {
    actions. Previously these lived ONLY in style.css, so in RTL (rtl.css bundle,
    no style.css) the whole modal rendered unstyled, and in LTR it used a
    brand-foreign green (#10B981). Moved here so it lands in BOTH bundles, with
-   brand tied to var(--theme-color) and the pass/fail/leaving states on the same
+   brand tied to var(--md-sys-color-primary) and the pass/fail/leaving states on the same
    fixed semantic palette as badges/solid buttons. Rules are direction-neutral
    (logical properties), so LTR and RTL are identical — no [dir="rtl"] flips. */
 
@@ -2463,7 +1506,7 @@ a.badge:focus {
     display: block;
     font-size: 0.8125rem;
     line-height: 1.25rem;
-    color: rgba(27, 27, 27, 0.7);
+    color: var(--md-sys-color-on-surface-variant);
 }
 
 /* Student info panel — neutral tinted surface, hairline border, 10px radius. */
@@ -2473,8 +1516,8 @@ a.badge:focus {
     gap: 16px;
     margin-bottom: 20px;
     padding: 16px;
-    background: #f8f9fb;
-    border: 1px solid rgba(27, 27, 27, 0.06);
+    background: var(--md-sys-color-surface-container-low);
+    border: 1px solid var(--md-sys-color-outline-variant);
     border-radius: 10px;
 }
 
@@ -2490,15 +1533,16 @@ a.badge:focus {
     font-weight: 500;
     text-transform: uppercase;
     letter-spacing: 0.5px;
-    color: rgba(27, 27, 27, 0.7);
+    color: var(--md-sys-color-on-surface-variant);
 }
 
 #promoteModal .promote-info-value {
     margin: 0;
-    font-family: "Roboto-Medium", "ubuntu-medium", sans-serif;
+    font-family: var(--md-ref-typeface-plain);
+    font-weight: 500;
     font-size: 0.9375rem;
     line-height: 1.375rem;
-    color: #343a40;
+    color: var(--md-sys-color-on-surface);
 }
 
 #promoteModal .promote-form-group {
@@ -2512,7 +1556,7 @@ a.badge:focus {
     font-weight: 500;
     font-size: 0.875rem;
     line-height: 1.25rem;
-    color: #374151;
+    color: var(--md-sys-color-on-surface);
 }
 
 /* Promote selects — themed form-field look (10px radius, theme focus glow),
@@ -2527,12 +1571,12 @@ a.badge:focus {
     height: 44px;
     padding-block: 0.625rem;
     padding-inline: 0.875rem 2.5rem;
-    background: #fff;
-    border: 1px solid #ced4da;
+    background: var(--md-sys-color-surface-container-lowest);
+    border: 1px solid var(--md-sys-color-outline);
     border-radius: 10px;
     font-size: 0.875rem;
     line-height: 1.25rem;
-    color: #343a40;
+    color: var(--md-sys-color-on-surface);
     -webkit-appearance: none;
     -moz-appearance: none;
     appearance: none;
@@ -2541,8 +1585,8 @@ a.badge:focus {
 
 #promoteModal .promote-select:focus {
     outline: none;
-    border-color: var(--theme-color);
-    box-shadow: 0 0 0 0.2rem color-mix(in srgb, var(--theme-color) 25%, transparent);
+    border-color: var(--md-sys-color-primary);
+    box-shadow: 0 0 0 0.2rem color-mix(in srgb, var(--md-sys-color-primary) 24%, transparent);
 }
 
 #promoteModal .promote-select-wrapper::after {
@@ -2555,7 +1599,7 @@ a.badge:focus {
     height: 0;
     border-left: 5px solid transparent;
     border-right: 5px solid transparent;
-    border-top: 5px solid #9ca3af;
+    border-top: 5px solid var(--md-sys-color-on-surface-variant);
     pointer-events: none;
 }
 
@@ -2570,40 +1614,40 @@ a.badge:focus {
 
 #promoteModal .promote-toggle-btn {
     padding: 12px 20px;
-    background: #fff;
-    border: 1px solid #ced4da;
+    background: var(--md-sys-color-surface-container-lowest);
+    border: 1px solid var(--md-sys-color-outline);
     border-radius: 10px;
     font-weight: 500;
     font-size: 0.875rem;
     line-height: 1.25rem;
-    color: rgba(27, 27, 27, 0.7);
+    color: var(--md-sys-color-on-surface-variant);
     cursor: pointer;
     outline: none;
     transition: all 0.15s ease-in-out;
 }
 
 #promoteModal .promote-toggle-btn:hover {
-    border-color: rgba(27, 27, 27, 0.18);
-    background: #f8f9fb;
+    border-color: var(--md-sys-color-outline);
+    background: var(--md-sys-color-surface-container);
 }
 
 #promoteModal .promote-toggle-pass.active,
 #promoteModal .promote-toggle-yes.active {
-    background: color-mix(in srgb, #198754 12%, transparent);
-    border-color: color-mix(in srgb, #198754 35%, transparent);
-    color: #166534;
+    background: color-mix(in srgb, var(--app-status-success) 12%, transparent);
+    border-color: color-mix(in srgb, var(--app-status-success) 35%, transparent);
+    color: var(--app-status-success-text);
 }
 
 #promoteModal .promote-toggle-fail.active {
-    background: color-mix(in srgb, #dc3545 12%, transparent);
-    border-color: color-mix(in srgb, #dc3545 35%, transparent);
-    color: #b42318;
+    background: color-mix(in srgb, var(--app-status-danger) 12%, transparent);
+    border-color: color-mix(in srgb, var(--app-status-danger) 35%, transparent);
+    color: var(--app-status-danger-text);
 }
 
 #promoteModal .promote-toggle-no.active {
-    background: color-mix(in srgb, #d97706 12%, transparent);
-    border-color: color-mix(in srgb, #d97706 35%, transparent);
-    color: #92400e;
+    background: color-mix(in srgb, var(--app-status-warning) 12%, transparent);
+    border-color: color-mix(in srgb, var(--app-status-warning) 35%, transparent);
+    color: var(--app-status-warning-text);
 }
 
 /* Footer actions — flex row, direction-neutral gap (no per-button margin that
@@ -2617,43 +1661,43 @@ a.badge:focus {
 #promoteModal .promote-btn-cancel {
     margin: 0;
     padding: 10px 20px;
-    background: #fff;
-    border: 1px solid #ced4da;
+    background: var(--md-sys-color-surface-container-lowest);
+    border: 1px solid var(--md-sys-color-outline);
     border-radius: 10px;
     font-weight: 500;
     font-size: 0.875rem;
     line-height: 1.25rem;
-    color: #475569;
+    color: var(--md-sys-color-on-surface-variant);
     transition: all 0.2s ease;
 }
 
 #promoteModal .promote-btn-cancel:hover {
-    background: #f8f9fb;
-    border-color: rgba(27, 27, 27, 0.18);
-    color: #334155;
+    background: var(--md-sys-color-surface-container);
+    border-color: var(--md-sys-color-outline);
+    color: var(--md-sys-color-on-surface);
 }
 
 #promoteModal .promote-btn-update {
     padding: 10px 20px;
-    background: var(--theme-color);
-    border: 1px solid var(--theme-color);
+    background: var(--md-sys-color-primary);
+    border: 1px solid var(--md-sys-color-primary);
     border-radius: 10px;
     font-weight: 500;
     font-size: 0.875rem;
     line-height: 1.25rem;
-    color: #fff;
+    color: var(--md-sys-color-on-primary);
     transition: all 0.2s ease;
 }
 
 #promoteModal .promote-btn-update:hover {
-    background: color-mix(in srgb, var(--theme-color) 88%, #000);
-    border-color: color-mix(in srgb, var(--theme-color) 88%, #000);
-    color: #fff;
+    background: color-mix(in srgb, var(--md-sys-color-primary) 88%, var(--md-sys-color-on-surface));
+    border-color: color-mix(in srgb, var(--md-sys-color-primary) 88%, var(--md-sys-color-on-surface));
+    color: var(--md-sys-color-on-primary);
 }
 
 #promoteModal .promote-btn-update:disabled {
-    background: color-mix(in srgb, var(--theme-color) 45%, #fff);
-    border-color: color-mix(in srgb, var(--theme-color) 45%, #fff);
+    background: color-mix(in srgb, var(--md-sys-color-primary) 45%, var(--md-sys-color-surface-container-lowest));
+    border-color: color-mix(in srgb, var(--md-sys-color-primary) 45%, var(--md-sys-color-surface-container-lowest));
     cursor: not-allowed;
 }
 
@@ -2684,7 +1728,7 @@ a.badge:focus {
    breakdown). Surface/header/title/close inherit the generic .modal-* redesign
    above. Like #promoteModal, these styles previously lived ONLY in style.css,
    so RTL rendered them unstyled and LTR used brand-foreign green (#10B981).
-   Moved here for both bundles: brand/selection states use var(--theme-color),
+   Moved here for both bundles: brand/selection states use var(--md-sys-color-primary),
    summary tiles + progress bands use the fixed semantic palette (matching
    badges/solid buttons), grade chips are a neutral soft chip. Direction-neutral
    (logical properties), so LTR and RTL are identical. Scoped under the modal id
@@ -2694,7 +1738,7 @@ a.badge:focus {
    white modal-body rule at 0,4,0 via the id). */
 #studentResultModal .modal-body {
     padding: 1.5rem;
-    background: #f8f9fb;
+    background: var(--md-sys-color-surface-container-low);
 }
 
 /* Header — avatar + meta on the inline-start. */
@@ -2709,7 +1753,7 @@ a.badge:focus {
     height: 56px;
     border-radius: 50%;
     overflow: hidden;
-    background: #f1f5f9;
+    background: var(--md-sys-color-surface-container);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -2735,11 +1779,11 @@ a.badge:focus {
     gap: 8px;
     font-size: 0.8125rem;
     line-height: 1.125rem;
-    color: rgba(27, 27, 27, 0.7);
+    color: var(--md-sys-color-on-surface-variant);
 }
 
 #studentResultModal .meta-divider {
-    color: #cbd5e1;
+    color: var(--md-sys-color-outline-variant);
 }
 
 /* Summary cards — white tiles on the gray canvas, card radius/shadow tier. */
@@ -2755,18 +1799,15 @@ a.badge:focus {
     align-items: center;
     gap: 12px;
     padding: 16px;
-    background: #fff;
-    border: 1px solid rgba(27, 27, 27, 0.06);
+    background: var(--md-sys-color-surface-container-lowest);
+    border: 1px solid var(--md-sys-color-outline-variant);
     border-radius: 14px;
     transition: box-shadow 0.25s ease, transform 0.25s ease;
 }
 
 #studentResultModal .result-summary-card:hover {
     transform: translateY(-2px);
-    box-shadow:
-        0 2px 4px rgba(16, 24, 40, 0.05),
-        0 6px 16px rgba(16, 24, 40, 0.05),
-        0 12px 28px rgba(16, 24, 40, 0.04);
+    box-shadow: var(--md-sys-elevation-level2);
 }
 
 #studentResultModal .summary-icon {
@@ -2783,23 +1824,23 @@ a.badge:focus {
    (info / success / danger). Icons are fill="currentColor", so the tile colour
    sets both the glyph and (tinted) the background. */
 #studentResultModal .summary-icon-total {
-    color: var(--theme-color);
-    background: color-mix(in srgb, var(--theme-color) 12%, transparent);
+    color: var(--md-sys-color-primary);
+    background: color-mix(in srgb, var(--md-sys-color-primary) 12%, transparent);
 }
 
 #studentResultModal .summary-icon-average {
-    color: #0e7490;
-    background: color-mix(in srgb, #0e7490 12%, transparent);
+    color: var(--app-status-info);
+    background: color-mix(in srgb, var(--app-status-info) 12%, transparent);
 }
 
 #studentResultModal .summary-icon-highest {
-    color: #198754;
-    background: color-mix(in srgb, #198754 12%, transparent);
+    color: var(--app-status-success);
+    background: color-mix(in srgb, var(--app-status-success) 12%, transparent);
 }
 
 #studentResultModal .summary-icon-lowest {
-    color: #dc3545;
-    background: color-mix(in srgb, #dc3545 12%, transparent);
+    color: var(--app-status-danger);
+    background: color-mix(in srgb, var(--app-status-danger) 12%, transparent);
 }
 
 #studentResultModal .summary-content {
@@ -2812,15 +1853,16 @@ a.badge:focus {
     font-size: 0.75rem;
     line-height: 1rem;
     font-weight: 500;
-    color: rgba(27, 27, 27, 0.7);
+    color: var(--md-sys-color-on-surface-variant);
 }
 
 #studentResultModal .summary-value {
     margin: 0;
-    font-family: "Roboto-Bold", "ubuntu-bold", sans-serif;
+    font-family: var(--md-ref-typeface-plain);
+    font-weight: 700;
     font-size: 1.25rem;
     line-height: 1.5rem;
-    color: #343a40;
+    color: var(--md-sys-color-on-surface);
 }
 
 /* Main content — exam history (narrow) + subject breakdown (wide). */
@@ -2832,8 +1874,8 @@ a.badge:focus {
 
 #studentResultModal .result-section {
     padding: 20px;
-    background: #fff;
-    border: 1px solid rgba(27, 27, 27, 0.06);
+    background: var(--md-sys-color-surface-container-lowest);
+    border: 1px solid var(--md-sys-color-outline-variant);
     border-radius: 14px;
 }
 
@@ -2842,14 +1884,15 @@ a.badge:focus {
     align-items: center;
     gap: 8px;
     margin: 0 0 16px;
-    font-family: "Roboto-Medium", "ubuntu-medium", sans-serif;
+    font-family: var(--md-ref-typeface-plain);
+    font-weight: 500;
     font-size: 0.9375rem;
     line-height: 1.25rem;
-    color: #343a40;
+    color: var(--md-sys-color-on-surface);
 }
 
 #studentResultModal .result-section-title svg {
-    color: rgba(27, 27, 27, 0.7);
+    color: var(--md-sys-color-on-surface-variant);
 }
 
 /* Exam history list. */
@@ -2867,18 +1910,18 @@ a.badge:focus {
 }
 
 #studentResultModal .exam-history-list::-webkit-scrollbar-track {
-    background: #f1f5f9;
+    background: var(--md-sys-color-surface-container);
     border-radius: 3px;
 }
 
 #studentResultModal .exam-history-list::-webkit-scrollbar-thumb {
-    background: #cbd5e1;
+    background: color-mix(in srgb, var(--md-sys-color-outline) 40%, transparent);
     border-radius: 3px;
 }
 
 #studentResultModal .exam-history-item {
     padding: 14px;
-    border: 1px solid rgba(27, 27, 27, 0.06);
+    border: 1px solid var(--md-sys-color-outline-variant);
     border-radius: 10px;
     cursor: pointer;
     transition: border-color 0.2s ease, background 0.2s ease;
@@ -2886,13 +1929,13 @@ a.badge:focus {
 
 /* Hover/selected exam = brand selection state. */
 #studentResultModal .exam-history-item:hover {
-    border-color: color-mix(in srgb, var(--theme-color) 45%, transparent);
-    background: #f8f9fb;
+    border-color: color-mix(in srgb, var(--md-sys-color-primary) 45%, transparent);
+    background: var(--md-sys-color-surface-container);
 }
 
 #studentResultModal .exam-history-item.active {
-    border-color: var(--theme-color);
-    background: color-mix(in srgb, var(--theme-color) 8%, transparent);
+    border-color: var(--md-sys-color-primary);
+    background: color-mix(in srgb, var(--md-sys-color-primary) 8%, transparent);
 }
 
 #studentResultModal .exam-header {
@@ -2907,10 +1950,11 @@ a.badge:focus {
     align-items: center;
     gap: 6px;
     margin: 0;
-    font-family: "Roboto-Medium", "ubuntu-medium", sans-serif;
+    font-family: var(--md-ref-typeface-plain);
+    font-weight: 500;
     font-size: 0.875rem;
     line-height: 1.25rem;
-    color: #343a40;
+    color: var(--md-sys-color-on-surface);
 }
 
 #studentResultModal .exam-badge {
@@ -2923,8 +1967,8 @@ a.badge:focus {
 
 /* "Latest" emphasis chip — brand solid. */
 #studentResultModal .badge-latest {
-    background: var(--theme-color);
-    color: #fff;
+    background: var(--md-sys-color-primary);
+    color: var(--md-sys-color-on-primary);
 }
 
 /* Grade chips (exam + overall) — neutral soft chip; their per-grade colour, if
@@ -2935,15 +1979,15 @@ a.badge:focus {
     border-radius: 8px;
     font-size: 0.8125rem;
     font-weight: 600;
-    background: #f1f5f9;
-    color: #475569;
+    background: var(--md-sys-color-surface-container);
+    color: var(--md-sys-color-on-surface-variant);
 }
 
 #studentResultModal .exam-date {
     margin-bottom: 10px;
     font-size: 0.75rem;
     line-height: 1rem;
-    color: rgba(27, 27, 27, 0.7);
+    color: var(--md-sys-color-on-surface-variant);
 }
 
 #studentResultModal .exam-result {
@@ -2953,16 +1997,17 @@ a.badge:focus {
 }
 
 #studentResultModal .exam-percentage {
-    font-family: "Roboto-Medium", "ubuntu-medium", sans-serif;
+    font-family: var(--md-ref-typeface-plain);
+    font-weight: 500;
     font-size: 1rem;
     line-height: 1.375rem;
-    color: #343a40;
+    color: var(--md-sys-color-on-surface);
 }
 
 #studentResultModal .exam-marks {
     font-size: 0.8125rem;
     line-height: 1.125rem;
-    color: rgba(27, 27, 27, 0.7);
+    color: var(--md-sys-color-on-surface-variant);
 }
 
 /* Subject breakdown. */
@@ -2997,7 +2042,7 @@ a.badge:focus {
     font-size: 0.875rem;
     line-height: 1.25rem;
     font-weight: 500;
-    color: #374151;
+    color: var(--md-sys-color-on-surface);
 }
 
 #studentResultModal .subject-grade {
@@ -3005,15 +2050,15 @@ a.badge:focus {
     border-radius: 8px;
     font-size: 0.75rem;
     font-weight: 600;
-    background: #f1f5f9;
-    color: #475569;
+    background: var(--md-sys-color-surface-container);
+    color: var(--md-sys-color-on-surface-variant);
 }
 
 #studentResultModal .subject-progress-bar {
     position: relative;
     width: 100%;
     height: 8px;
-    background: #e5e7eb;
+    background: var(--md-sys-color-surface-container);
     border-radius: 4px;
     overflow: hidden;
 }
@@ -3026,15 +2071,15 @@ a.badge:focus {
 
 /* Performance bands — fixed semantic hues (not brand). */
 #studentResultModal .progress-green {
-    background: #198754;
+    background: var(--app-status-success);
 }
 
 #studentResultModal .progress-blue {
-    background: #0e7490;
+    background: var(--app-status-info);
 }
 
 #studentResultModal .progress-yellow {
-    background: #d97706;
+    background: var(--app-status-warning);
 }
 
 #studentResultModal .subject-marks {
@@ -3047,11 +2092,11 @@ a.badge:focus {
 
 #studentResultModal .marks-obtained {
     font-weight: 500;
-    color: #343a40;
+    color: var(--md-sys-color-on-surface);
 }
 
 #studentResultModal .marks-percentage {
-    color: rgba(27, 27, 27, 0.7);
+    color: var(--md-sys-color-on-surface-variant);
 }
 
 /* Total footer. */
@@ -3062,30 +2107,33 @@ a.badge:focus {
     gap: 12px;
     margin-top: 8px;
     padding: 16px;
-    background: #f8f9fb;
+    background: var(--md-sys-color-surface-container-low);
     border-radius: 10px;
 }
 
 #studentResultModal .total-label {
-    font-family: "Roboto-Medium", "ubuntu-medium", sans-serif;
+    font-family: var(--md-ref-typeface-plain);
+    font-weight: 500;
     font-size: 0.875rem;
     line-height: 1.25rem;
-    color: #374151;
+    color: var(--md-sys-color-on-surface);
 }
 
 #studentResultModal .total-values {
     text-align: center;
-    font-family: "Roboto-Medium", "ubuntu-medium", sans-serif;
+    font-family: var(--md-ref-typeface-plain);
+    font-weight: 500;
     font-size: 0.9375rem;
     line-height: 1.375rem;
-    color: #343a40;
+    color: var(--md-sys-color-on-surface);
 }
 
 #studentResultModal .total-percentage {
-    font-family: "Roboto-Bold", "ubuntu-bold", sans-serif;
+    font-family: var(--md-ref-typeface-plain);
+    font-weight: 700;
     font-size: 1.125rem;
     line-height: 1.5rem;
-    color: var(--theme-color);
+    color: var(--md-sys-color-primary);
 }
 
 @media (max-width: 768px) {

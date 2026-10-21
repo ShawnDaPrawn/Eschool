@@ -9,38 +9,37 @@
     --idc-r-chip: 999px;
     --idc-r-photo-sq: 12px;
     --idc-r-cardface: 10px;
-    --idc-sh-card: 0 1px 2px rgba(16, 24, 40, .04), 0 4px 12px rgba(16, 24, 40, .05);
-    --idc-sh-card-hover: 0 2px 6px rgba(16, 24, 40, .06), 0 10px 24px rgba(16, 24, 40, .08);
-    --idc-sh-focus: 0 0 0 3px rgba(7, 165, 165, .22);
-    --idc-sh-focus: 0 0 0 3px color-mix(in srgb, var(--theme-color) 22%, transparent);
+    --idc-sh-card: var(--md-sys-elevation-level1);
+    --idc-sh-card-hover: var(--md-sys-elevation-level2);
+    --idc-sh-focus: 0 0 0 3px color-mix(in srgb, var(--md-sys-color-primary) 24%, transparent);
+    /* --idc-sh-face and --idc-text are consumed by the rendered ID card (the document
+       below), so they keep their original values; the settings UI uses M3 tokens. */
+    /* design-tokens: off (the printed card's own colours) */
     --idc-sh-face: 0 1px 1px rgba(16, 24, 40, .04), 0 12px 28px -8px rgba(16, 24, 40, .18), 0 28px 60px -20px rgba(16, 24, 40, .16);
-    --idc-tint-06: #f3fafa;
-    --idc-tint-06: color-mix(in srgb, var(--theme-color) 6%, #fff);
-    --idc-tint-08: #eef6f6;
-    --idc-tint-08: color-mix(in srgb, var(--theme-color) 8%, #fff);
-    --idc-tint-10: #e9f4f4;
-    --idc-tint-10: color-mix(in srgb, var(--theme-color) 10%, #fff);
-    --idc-tint-14: #def0f0;
-    --idc-tint-14: color-mix(in srgb, var(--theme-color) 14%, #fff);
-    --idc-border-accent: #b9dede;
-    --idc-border-accent: color-mix(in srgb, var(--theme-color) 35%, #e7eaee);
+    /* design-tokens: on */
+    --idc-tint-06: color-mix(in srgb, var(--md-sys-color-primary) 6%, var(--md-sys-color-surface-container-lowest));
+    --idc-tint-08: color-mix(in srgb, var(--md-sys-color-primary) 8%, var(--md-sys-color-surface-container-lowest));
+    --idc-tint-10: color-mix(in srgb, var(--md-sys-color-primary) 10%, var(--md-sys-color-surface-container-lowest));
+    --idc-tint-14: color-mix(in srgb, var(--md-sys-color-primary) 14%, var(--md-sys-color-surface-container-lowest));
+    --idc-border-accent: color-mix(in srgb, var(--md-sys-color-primary) 35%, var(--md-sys-color-outline-variant));
     /* darkened theme ink for text/icons on light tints — keeps brand hue but legible on any theme_color */
-    --idc-accent-ink: #0a6e6e;
-    --idc-accent-ink: color-mix(in srgb, var(--theme-color) 72%, #000);
+    --idc-accent-ink: color-mix(in srgb, var(--md-sys-color-primary) 72%, var(--md-sys-color-on-surface));
     /* required-field asterisk — always red regardless of theme_color */
-    --idc-req: #e5484d;
-    --idc-page: #f8fafc;
-    --idc-surface: #fff;
-    --idc-border: #e7eaee;
-    --idc-divider: #f1f2f6;
+    --idc-req: var(--md-sys-color-error);
+    --idc-page: var(--md-sys-color-surface-container-low);
+    --idc-surface: var(--md-sys-color-surface-container-lowest);
+    --idc-border: var(--md-sys-color-outline-variant);
+    --idc-divider: var(--md-sys-color-outline-variant);
+    /* design-tokens: off */
     --idc-text: #1d2433;
-    --idc-text-2: #344054;
-    --idc-muted: #667085;
-    --idc-hint: #98a2b3;
-    --idc-disabled: #f2f4f7;
-    --idc-pill-rest: #f8f9fb;
-    --idc-stage: #eef1f5;
-    --idc-stage-dot: #dfe3ea;
+    /* design-tokens: on */
+    --idc-text-2: var(--md-sys-color-on-surface);
+    --idc-muted: var(--md-sys-color-on-surface-variant);
+    --idc-hint: var(--md-sys-color-on-surface-variant);
+    --idc-disabled: var(--md-sys-color-surface-container);
+    --idc-pill-rest: var(--md-sys-color-surface-container-low);
+    --idc-stage: var(--md-sys-color-surface-container);
+    --idc-stage-dot: var(--md-sys-color-surface-container-highest);
 }
 
 /* ---- Config column (stack of settings cards) ---- */
@@ -138,17 +137,17 @@
 .idc-section .form-control,
 .idc-section input[type=number] {
     height: 42px;
-    border: 1px solid var(--idc-border);
+    border: 1px solid var(--md-sys-color-outline);
     border-radius: var(--idc-r-control);
     font-size: 14px;
-    color: var(--idc-text);
-    background: #fff;
+    color: var(--md-sys-color-on-surface);
+    background: var(--md-sys-color-surface-container-lowest);
     transition: border-color .15s, box-shadow .15s;
 }
 
 .idc-section .form-control:focus,
 .idc-section input[type=number]:focus {
-    border-color: var(--theme-color);
+    border-color: var(--md-sys-color-primary);
     box-shadow: var(--idc-sh-focus);
     outline: none;
 }
@@ -172,7 +171,7 @@
     border: 1px solid var(--idc-border);
     border-radius: var(--idc-r-control);
     background: var(--idc-pill-rest);
-    color: #475467;
+    color: var(--md-sys-color-on-surface-variant);
     font-size: 14px;
     font-weight: 500;
     line-height: 1;
@@ -195,9 +194,9 @@
 }
 
 .idc-pill:hover {
-    border-color: #cdd3dc;
-    background: #fff;
-    color: var(--idc-text);
+    border-color: var(--md-sys-color-outline);
+    background: var(--md-sys-color-surface-container-lowest);
+    color: var(--md-sys-color-on-surface);
 }
 
 .idc-pill:hover .lc-icon {
@@ -206,16 +205,16 @@
 }
 
 .idc-pill:focus-within {
-    border-color: var(--theme-color);
+    border-color: var(--md-sys-color-primary);
     box-shadow: var(--idc-sh-focus);
 }
 
 .idc-pill.is-active {
-    border-color: var(--theme-color);
+    border-color: var(--md-sys-color-primary);
     background: var(--idc-tint-14);
-    color: var(--idc-text);
+    color: var(--md-sys-color-on-surface);
     font-weight: 600;
-    box-shadow: 0 0 0 1px var(--theme-color) inset;
+    box-shadow: 0 0 0 1px var(--md-sys-color-primary) inset;
 }
 
 .idc-pill.is-active .lc-icon {
@@ -258,12 +257,12 @@
     padding: 4px 6px;
     border: 1px solid var(--idc-border);
     border-radius: var(--idc-r-control);
-    background: #fff;
+    background: var(--md-sys-color-surface-container-lowest);
     transition: border-color .15s, box-shadow .15s;
 }
 
 .idc-swatch-well:focus-within {
-    border-color: var(--theme-color);
+    border-color: var(--md-sys-color-primary);
     box-shadow: var(--idc-sh-focus);
 }
 
@@ -289,7 +288,7 @@
     object-fit: cover;
     border: 1px solid var(--idc-border);
     border-radius: 8px;
-    background: #fff;
+    background: var(--md-sys-color-surface-container-lowest);
 }
 
 .idc-bg-row .btn {
@@ -316,7 +315,7 @@
     width: 100%;
     height: 6px;
     border-radius: 999px;
-    background: var(--idc-border);
+    background: var(--md-sys-color-surface-container);
     outline: none;
     margin: 4px 0 0;
 }
@@ -327,9 +326,9 @@
     width: 16px;
     height: 16px;
     border-radius: 50%;
-    background: var(--theme-color);
-    border: 2px solid #fff;
-    box-shadow: 0 1px 3px rgba(16, 24, 40, .3);
+    background: var(--md-sys-color-primary);
+    border: 2px solid var(--md-sys-color-surface-container-lowest);
+    box-shadow: var(--md-sys-elevation-level1);
     cursor: pointer;
 }
 
@@ -337,9 +336,9 @@
     width: 16px;
     height: 16px;
     border-radius: 50%;
-    background: var(--theme-color);
-    border: 2px solid #fff;
-    box-shadow: 0 1px 3px rgba(16, 24, 40, .3);
+    background: var(--md-sys-color-primary);
+    border: 2px solid var(--md-sys-color-surface-container-lowest);
+    box-shadow: var(--md-sys-elevation-level1);
     cursor: pointer;
 }
 
@@ -377,7 +376,7 @@
     padding: 10px 12px;
     border: 1px solid var(--idc-border);
     border-radius: var(--idc-r-control);
-    background: #fff;
+    background: var(--md-sys-color-surface-container-lowest);
     cursor: pointer;
     font-size: 13px;
     color: var(--idc-text-2);
@@ -387,8 +386,8 @@
 }
 
 .idc-check:hover {
-    border-color: #cdd3dc;
-    background: #f8f9fb;
+    border-color: var(--md-sys-color-outline);
+    background: var(--md-sys-color-surface-container-low);
 }
 
 .idc-check input {
@@ -402,9 +401,9 @@
     flex: 0 0 18px;
     width: 18px;
     height: 18px;
-    border: 1.5px solid #cdd3dc;
+    border: 1.5px solid var(--md-sys-color-outline);
     border-radius: 6px;
-    background: #fff;
+    background: var(--md-sys-color-surface-container-lowest);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -412,15 +411,15 @@
 }
 
 .idc-check .idc-box .lc-icon {
-    color: #fff;
+    color: var(--md-sys-color-on-primary);
     opacity: 0;
     transform: scale(.6);
     transition: all .12s;
 }
 
 .idc-check input:checked+.idc-box {
-    background: var(--theme-color);
-    border-color: var(--theme-color);
+    background: var(--md-sys-color-primary);
+    border-color: var(--md-sys-color-primary);
 }
 
 .idc-check input:checked+.idc-box .lc-icon {
@@ -438,7 +437,7 @@
 }
 
 .idc-check.is-checked .idc-check-label {
-    color: var(--idc-text);
+    color: var(--md-sys-color-on-surface);
     font-weight: 500;
 }
 
@@ -469,20 +468,20 @@
 }
 
 .idc-actions #idc-reset {
-    background: #fff;
+    background: var(--md-sys-color-surface-container-lowest);
     border: 1px solid var(--idc-border);
-    color: #475467;
+    color: var(--md-sys-color-on-surface-variant);
 }
 
 .idc-actions #idc-reset:hover {
-    background: #f8f9fb;
-    border-color: #d0d5dd;
+    background: var(--md-sys-color-surface-container-low);
+    border-color: var(--md-sys-color-outline);
 }
 
 .idc-actions #create-btn {
-    background: var(--theme-color);
-    border: 1px solid var(--theme-color);
-    color: #fff;
+    background: var(--md-sys-color-primary);
+    border: 1px solid var(--md-sys-color-primary);
+    color: var(--md-sys-color-on-primary);
 }
 
 .idc-actions #create-btn:hover {
@@ -528,7 +527,7 @@
     padding: 6px 12px;
     border-radius: var(--idc-r-chip);
     border: 1px solid var(--idc-border);
-    background: #fff;
+    background: var(--md-sys-color-surface-container-lowest);
     font-size: 12px;
     font-weight: 600;
     color: var(--idc-text-2);
@@ -540,7 +539,7 @@
     width: 7px;
     height: 7px;
     border-radius: 50%;
-    background: var(--theme-color);
+    background: var(--md-sys-color-primary);
 }
 
 .idc-live-dot::after {
@@ -548,7 +547,7 @@
     position: absolute;
     inset: -4px;
     border-radius: 50%;
-    background: var(--theme-color);
+    background: var(--md-sys-color-primary);
     opacity: .35;
     animation: idcPulse 1.6s ease-out infinite;
 }
@@ -582,10 +581,10 @@
     padding: 6px 12px;
     border-radius: var(--idc-r-chip);
     border: 1px solid var(--idc-border);
-    background: #fff;
+    background: var(--md-sys-color-surface-container-lowest);
     font-size: 12px;
     font-weight: 600;
-    color: #475467;
+    color: var(--md-sys-color-on-surface-variant);
     font-variant-numeric: tabular-nums;
 }
 
@@ -615,7 +614,7 @@
     position: absolute;
     inset: 0;
     border-radius: var(--idc-r-stage);
-    background: radial-gradient(120% 90% at 50% 45%, transparent 55%, rgba(16, 24, 40, .06));
+    background: radial-gradient(120% 90% at 50% 45%, transparent 55%, color-mix(in srgb, var(--md-sys-color-shadow) 6%, transparent));
     pointer-events: none;
 }
 
@@ -626,6 +625,7 @@
     transition: transform .25s ease;
 }
 
+/* design-tokens: off (the rendered card mirrors the printed template's colours) */
 /* ============================================================
    RENDERED ID CARD (preview face) — WYSIWYG of id_card_template.
    Colours come ONLY from header/footer/text settings, never brand.
@@ -864,6 +864,8 @@
 /* The card is always rendered LTR (it carries dir="ltr"), so its layout must NOT flip with the
    surrounding RTL panel. No [dir="rtl"] .idc-card overrides here on purpose — the base LTR styles
    above are the single source of truth for both LTR and RTL pages. */
+
+/* design-tokens: on */
 
 /* ============================================================
    RESPONSIVE

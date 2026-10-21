@@ -34,10 +34,12 @@ class DownloadAcademicCalendarContainer extends StatelessWidget {
       },
       builder: (context, state) {
         if (state is AcademicCalendarPdfDownloadInProgress) {
-          return const SizedBox(
+          return SizedBox(
             height: 24,
             width: 24,
-            child: CustomCircularProgressIndicator(),
+            child: CustomCircularProgressIndicator(
+              indicatorColor: Theme.of(context).colorScheme.onInverseSurface,
+            ),
           );
         } else {
           return GestureDetector(

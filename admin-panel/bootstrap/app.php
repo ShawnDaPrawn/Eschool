@@ -20,11 +20,19 @@ return Application::configure(basePath: dirname(__DIR__))
         // a visitor's own X-Forwarded-Host/-Port/-Prefix through unchanged, and
         // those would change the links the app builds.
         $middleware->trustProxies(headers: Request::HEADER_X_FORWARDED_FOR | Request::HEADER_X_FORWARDED_PROTO);
-        // Hosts are limited to APP_URL plus local development.
-        $middleware->trustHosts(at: [
-            '^localhost$',
-            '^127\.0\.0\.1$',
-        ]);
+        // Hosts are limited to APP_URL plus local development and TRUSTED_HOSTS. Until
+        // the install wizard has finished, APP_URL is still .env.example's placeholder,
+        // so the wizard answers on whichever address the school opens it on.
+        $middleware->trustHosts(at: fn () => file_exists(storage_path('installed'))
+            ? [
+                '^localhost$',
+                '^127\.0\.0\.1$',
+                ...array_map(
+                    fn (string $host) => '^'.preg_quote($host).'$',
+                    array_filter(array_map('trim', explode(',', (string) config('app.trusted_hosts'))))
+                ),
+            ]
+            : ['.*']);
 
         $middleware->validateCsrfTokens(except: [
             'webhook/*',

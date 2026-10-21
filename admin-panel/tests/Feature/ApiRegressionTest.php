@@ -215,6 +215,30 @@ class ApiRegressionTest extends TestCase
         $this->assertStringEndsWith('storage/chat/report.png', $gina['last_message']['files'][0] ?? '', json_encode($gina));
     }
 
+    public function test_chat_keeps_the_order_messages_were_sent_in_when_the_time_zone_changes(): void
+    {
+        $id = self::$school->ids;
+        // Sent before the school's time zone moved back (India to Johannesburg is 3.5 hours),
+        // so its local time stamp is later than a message sent now.
+        DB::table('chat_messages')->insert([
+            'modal_type' => 'App/Models/User', 'modal_id' => $id['tara_user'], 'sender_id' => $id['mona_user'], 'body' => 'Before the change',
+            'date' => now()->addHours(3), 'created_at' => now()->addHours(3), 'updated_at' => now()->addHours(3),
+        ]);
+        $tara = $this->apiClient(self::$school->tokens['tara']);
+        $mona = fn () => collect($tara->get('/api/teacher/get-user-list', ['isParent' => 1, 'offset' => 0, 'limit' => 50])->json('data.items'))
+            ->firstWhere('user_id', $id['mona_user']);
+
+        $this->assertFalse($this->apiClient(self::$school->tokens['mona'])
+            ->post('/api/parent/send-message', ['receiver_id' => $id['tara_user'], 'message' => 'After the change'])->json('error'));
+
+        // Chat went by time stamp: the preview, the thread and "read all" all took the
+        // older message as the latest, so the unread badge never cleared.
+        $this->assertSame('After the change', $mona()['last_message']['body'] ?? null);
+        $this->assertSame('After the change', $tara->post('/api/teacher/get-user-message', ['user_id' => $id['mona_user'], 'offset' => 0, 'limit' => 10])->json('data.items.0.body'));
+        $tara->post('/api/teacher/read-all-message', ['user_id' => $id['mona_user']]);
+        $this->assertSame(0, $mona()['unread_message']);
+    }
+
     public function test_the_holiday_list_holds_only_the_current_years_holidays(): void
     {
         $lastYear = DB::table('session_years')->insertGetId([

@@ -17,7 +17,7 @@ class TotalAttendanceContainer extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 16),
       decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.primary,
+        color: Theme.of(context).colorScheme.inverseSurface,
         borderRadius: BorderRadius.circular(8),
       ),
       child: Row(
@@ -27,7 +27,7 @@ class TotalAttendanceContainer extends StatelessWidget {
           Container(
             height: 72,
             width: 1,
-            color: Theme.of(context).colorScheme.onPrimary,
+            color: Theme.of(context).colorScheme.onInverseSurface,
           ),
           _buildDetail(context, totalAbsentKey, totalAbsent.toString()),
         ],
@@ -42,7 +42,7 @@ class TotalAttendanceContainer extends StatelessWidget {
         Text(
           UiUtils.getTranslatedLabel(context, titleKey),
           style: TextStyle(
-            color: Theme.of(context).colorScheme.onPrimary,
+            color: Theme.of(context).colorScheme.onInverseSurface,
             fontWeight: FontWeight.w600,
             fontSize: 14,
           ),
@@ -52,14 +52,14 @@ class TotalAttendanceContainer extends StatelessWidget {
           width: 48,
           height: 48,
           decoration: BoxDecoration(
-            color: Theme.of(context).colorScheme.onPrimary,
+            color: Theme.of(context).colorScheme.onInverseSurface,
             shape: BoxShape.circle,
           ),
           alignment: Alignment.center,
           child: Text(
             value,
             style: TextStyle(
-              color: Theme.of(context).colorScheme.primary,
+              color: Theme.of(context).colorScheme.inverseSurface,
               fontWeight: FontWeight.bold,
               fontSize: 16,
             ),

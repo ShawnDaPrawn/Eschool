@@ -84,7 +84,7 @@ class _FeesTransactionScreenState extends State<FeesTransactionScreen> {
             child: Text(
               UiUtils.getTranslatedLabel(context, feesTransactionKey),
               style: TextStyle(
-                color: Theme.of(context).colorScheme.onPrimary,
+                color: Theme.of(context).colorScheme.onInverseSurface,
                 fontSize: UiUtils.screenTitleFontSize,
               ),
             ),
