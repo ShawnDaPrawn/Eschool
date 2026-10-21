@@ -3,13 +3,13 @@
 namespace Tests\Concerns;
 
 use GuzzleHttp\Cookie\CookieJar;
+use Illuminate\Filesystem\Filesystem;
 use Illuminate\Foundation\Testing\RefreshDatabaseState;
 use Illuminate\Http\Client\PendingRequest;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Str;
-use Symfony\Component\Filesystem\Filesystem;
 use Symfony\Component\Process\Process;
 
 /**
@@ -120,17 +120,19 @@ trait RunsAppServer
 
         // tearDownAfterClass runs after Laravel has flushed the application, so the
         // File facade is gone. PHPUnit records a thrown exception here as an error
-        // and exits 2, while every test still shows as passed.
+        // and exits 2, while every test still shows as passed. The filesystem class
+        // itself does not need the container.
         $storage = self::$appServerStorage;
         $log = $storage.'/logs/laravel.log';
         if (($keep = getenv('TEST_SERVER_LOG')) && is_file($log)) {
             copy($log, $keep);
         }
-        if ($storage !== '') {
-            (new Filesystem)->remove($storage);
-        }
-        // Make the next RefreshDatabase test start from an empty database again.
+        // Make the next RefreshDatabase test start from an empty database again,
+        // even if removing the directory fails.
         RefreshDatabaseState::$migrated = false;
+        if ($storage !== '') {
+            (new Filesystem)->deleteDirectory($storage);
+        }
     }
 
     protected function appClient(): PendingRequest
