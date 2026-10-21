@@ -74,7 +74,7 @@ An exam's status for a class is derived from its timetable dates and is computed
   - `grade = findExamGrade(session_year_id, obtained_marks / total_marks * 100)`
   - `ExamMarks::updateOrInsert(['id' => exam_marks_id], [...])`
 
-**Teacher app** (`POST /api/teacher/submit-exam-marks/subject` and `/student`, `TeacherApiController`):
+**Teacher app** (`POST /api/teacher/submit-exam-marks/subject` and `/student`, `Teacher\ExamController`):
 
 - Refused with `exam_published` if the exam is already published.
 - The teacher must be class teacher of the section or teach the subject there, every student must be in the section, and the exam must be Completed for the class.
@@ -136,7 +136,7 @@ PDFs are rendered with dompdf (`barryvdh/laravel-dompdf` `^3.1`, facade `PDF`/`P
 |---|---|---|---|
 | `StudentController::generateResult($id)` | `generate-result` | `students.result_template` | All **published** exams of the current session year that have papers in the student's subjects (core plus electives, semester filter ignored). Per subject: marks per exam, totals and a grade; overall total, percentage, grade and Passed/Failed. Streamed as `result.pdf` |
 | `StudentController::generateExamResult($id)` | `view-exam-result` | `students.exam_result_template` | One published exam. Query string `exam_id` (required), `session_year_id` (defaults to current), `semester_id` (optional filter on the exam). Only subjects that are in both the student's subject list and the exam timetable |
-| `TeacherApiController::getStudentResultPdf` (`GET /api/teacher/get-student-result-pdf`) | Teacher who teaches the student | `students.result_template` | Same report as `generateResult`, returned base64-encoded in the JSON `pdf` field |
+| `Teacher\ExamController::getStudentResultPdf` (`GET /api/teacher/get-student-result-pdf`) | Teacher who teaches the student | `students.result_template` | Same report as `generateResult`, returned base64-encoded in the JSON `pdf` field |
 
 The grades printed in these PDFs are looked up directly with `Grade::where('starting_range', '<=', $p)->where('ending_range', '>=', $p)` on the **rounded** percentage, without a session-year filter, so the first matching band of any year is used. `findExamGrade()` (used when saving marks and publishing) filters by session year and uses `floor()`. The two can disagree when bands differ between years.
 
