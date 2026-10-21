@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers;
 
+use App\Http\Middleware\RequirePasswordChange;
 use App\Models\Announcement;
 use App\Models\Assignment;
 use App\Models\AssignmentSubmission;
@@ -81,24 +82,33 @@ class HomeController extends Controller
 
     public function changePassword(Request $request): JsonResponse
     {
-        $id = Auth::id();
         $request->validate([
             'old_password' => 'required',
             'new_password' => 'required|min:8',
             'confirm_password' => 'required|same:new_password',
         ]);
 
-        $user = User::find($id);
+        $user = $request->user();
         if (! $user || ! Hash::check((string) $request->input('old_password'), $user->password)) {
             return response()->json([
                 'error' => true,
                 'message' => trans('current_password_incorrect'),
             ]);
         }
+        if (RequirePasswordChange::isDefaultPassword($user, (string) $request->input('new_password'))) {
+            return response()->json([
+                'error' => true,
+                'message' => trans('Choose a password other than the default one.'),
+            ]);
+        }
 
         try {
-            $data = ['password' => Hash::make($request->input('new_password'))];
-            User::where('id', $id)->update($data);
+            // Saved on the signed-in user so this session keeps working; other
+            // sessions and the apps are signed out (AuthenticateSession, tokens).
+            $user->password = Hash::make($request->input('new_password'));
+            $user->save();
+            $user->tokens()->delete();
+            $request->session()->forget(RequirePasswordChange::SESSION_KEY);
 
             return response()->json([
                 'error' => false,
@@ -1030,15 +1040,6 @@ class HomeController extends Controller
             ->orderBy('date', 'ASC')
             ->take(10)
             ->get();
-    }
-
-    public function logout(Request $request): RedirectResponse
-    {
-        Auth::logout();
-        $request->session()->flush();
-        $request->session()->regenerate();
-
-        return redirect('/');
     }
 
     public function getSubjectByClassSection(Request $request): JsonResponse

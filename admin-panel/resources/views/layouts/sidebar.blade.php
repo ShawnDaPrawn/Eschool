@@ -37,11 +37,14 @@ $current_session_id_sidebar = getSettings('session_year')['session_year'];
                         <x-icon name="close" :size="20" />
                     </button>
                 </div>
-                <div class="sidebar-mobile-actions">
-                    <a href="{{ url('clear') }}">
-                        <input class="btn btn-inverse-info btn-sm" type="submit" value="{{ __('cache_clear') }}">
-                    </a>
-                </div>
+                @if (Auth::user()->hasRole('Super Admin'))
+                    <div class="sidebar-mobile-actions">
+                        <form action="{{ url('clear') }}" method="POST" class="m-0">
+                            @csrf
+                            <input class="btn btn-inverse-info btn-sm" type="submit" value="{{ __('cache_clear') }}">
+                        </form>
+                    </div>
+                @endif
             </div>
         </li>
         {{-- End mobile-only header controls --}}

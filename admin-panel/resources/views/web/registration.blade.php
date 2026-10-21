@@ -631,9 +631,10 @@
             // Google invalidates a g-recaptcha token after the first verify attempt
             // (pass or fail). The server only verifies it once every other field has
             // already passed validation, so a "recaptcha_error" response means the
-            // token itself is now dead and the widget must be reset before retrying.
-            // Ordinary validation errors (e.g. a duplicate email) don't touch
-            // reCAPTCHA at all, so the checkbox should stay checked for those.
+            // token is now dead (reCAPTCHA failed, or an email that already has an
+            // account was found after it) and the widget must be reset before
+            // retrying. Other validation errors don't touch reCAPTCHA, so the
+            // checkbox stays checked for those.
             function errorCallback(response) {
                 if (response && response.recaptcha_error && typeof grecaptcha !== 'undefined' && $('.g-recaptcha').length) {
                     grecaptcha.reset();

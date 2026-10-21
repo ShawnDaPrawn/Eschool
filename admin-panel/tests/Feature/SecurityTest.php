@@ -19,9 +19,7 @@ class SecurityTest extends TestCase
 {
     use RefreshDatabase;
 
-    private const MAINTENANCE_URLS = ['clear', 'storage-link', 'migrate', 'seeder_install'];
-
-    private const SUPER_ADMIN_URLS = ['storage-link', 'migrate', 'seeder_install'];
+    private const MAINTENANCE_URLS = ['storage-link', 'migrate', 'seeder_install'];
 
     protected function setUp(): void
     {
@@ -34,15 +32,18 @@ class SecurityTest extends TestCase
         foreach (self::MAINTENANCE_URLS as $url) {
             $this->get('/'.$url)->assertRedirect(route('login'));
         }
+        $this->post('/clear')->assertRedirect(route('login'));
     }
 
     public function test_maintenance_urls_are_forbidden_for_other_roles(): void
     {
         $teacher = $this->teacher();
 
-        foreach (self::SUPER_ADMIN_URLS as $url) {
+        foreach (self::MAINTENANCE_URLS as $url) {
             $this->actingAs($teacher)->get('/'.$url)->assertForbidden();
         }
+        // Clearing the cache can reset rate limits.
+        $this->actingAs($teacher)->post('/clear')->assertForbidden();
     }
 
     public function test_there_is_no_public_sign_up(): void
@@ -95,9 +96,11 @@ class SecurityTest extends TestCase
         $this->assertAuthenticated();
     }
 
-    public function test_logged_in_user_can_clear_the_cache(): void
+    public function test_super_admin_can_clear_the_cache_with_a_form_post(): void
     {
-        $this->actingAs($this->superAdmin())->get('/clear')->assertRedirect();
+        // Not a link, which another site could send a signed-in user to.
+        $this->actingAs($this->superAdmin())->get('/clear')->assertStatus(405);
+        $this->actingAs($this->superAdmin())->from('/home')->post('/clear')->assertRedirect('/home');
     }
 
     public function test_other_roles_cannot_create_accounts_through_users(): void

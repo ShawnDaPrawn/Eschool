@@ -103,12 +103,17 @@
                 </div>
             </li>
 
-            <li class="nav-item d-flex align-items-center">
-                <a class="topbar-action-btn" href="{{ url('clear') }}">
-                    <x-icon name="refresh" :size="16" />
-                    <span>{{ __('cache_clear') }}</span>
-                </a>
-            </li>
+            @if (Auth::user()->hasRole('Super Admin'))
+                <li class="nav-item d-flex align-items-center">
+                    <form action="{{ url('clear') }}" method="POST" class="m-0">
+                        @csrf
+                        <button type="submit" class="topbar-action-btn">
+                            <x-icon name="refresh" :size="16" />
+                            <span>{{ __('cache_clear') }}</span>
+                        </button>
+                    </form>
+                </li>
+            @endif
             <li class="nav-item dropdown">
                 <a class="nav-link count-indicator dropdown-toggle" id="messageDropdown" href="#"
                     data-toggle="dropdown" aria-expanded="false">

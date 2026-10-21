@@ -944,6 +944,8 @@ class StaffController extends Controller
             if (Storage::disk('public')->exists($user->image)) {
                 Storage::disk('public')->delete($user->image);
             }
+            // Signed out of the apps even if the account is restored later.
+            $user->tokens()->delete();
             $user->delete();
 
             $staff = Staff::where('user_id', $id);

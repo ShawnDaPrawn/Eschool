@@ -24,8 +24,12 @@
         <a class="dropdown-item" href="{{ route('resetpassword') }}">
             <x-icon name="refresh" :size="18" />{{ __('change_password') }}</a>
         <div class="dropdown-divider"></div>
-        <a class="dropdown-item" href="{{ route('logout') }}">
-            <x-icon name="sign-out" :size="18" /> {{ __('signout') }}
-        </a>
+        {{-- A form, so another site can't sign people out with a link or image. --}}
+        <form action="{{ route('logout') }}" method="POST" class="m-0">
+            @csrf
+            <button type="submit" class="dropdown-item">
+                <x-icon name="sign-out" :size="18" /> {{ __('signout') }}
+            </button>
+        </form>
     </div>
 </li>

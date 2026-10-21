@@ -3,6 +3,7 @@
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
+use Illuminate\Http\Request;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
@@ -15,6 +16,10 @@ return Application::configure(basePath: dirname(__DIR__))
 
         // Trusted proxies come from config/trustedproxy.php (all callers on Cloud
         // Run, which terminates TLS; none elsewhere unless TRUSTED_PROXIES is set).
+        // Only the client address and scheme are taken from them: Cloud Run passes
+        // a visitor's own X-Forwarded-Host/-Port/-Prefix through unchanged, and
+        // those would change the links the app builds.
+        $middleware->trustProxies(headers: Request::HEADER_X_FORWARDED_FOR | Request::HEADER_X_FORWARDED_PROTO);
         // Hosts are limited to APP_URL plus local development.
         $middleware->trustHosts(at: [
             '^localhost$',
@@ -34,8 +39,10 @@ return Application::configure(basePath: dirname(__DIR__))
             \App\Http\Middleware\EncryptCookies::class,
             \Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse::class,
             \Illuminate\Session\Middleware\StartSession::class,
-            // \Illuminate\Session\Middleware\AuthenticateSession::class,
+            // Signs out other sessions when the password changes.
+            \Illuminate\Session\Middleware\AuthenticateSession::class,
             \Illuminate\View\Middleware\ShareErrorsFromSession::class,
+            \App\Http\Middleware\RequirePasswordChange::class,
             // After the session starts, so signed-in users are counted per account.
             'throttle:web',
             \Illuminate\Routing\Middleware\SubstituteBindings::class,

@@ -84,15 +84,20 @@ class RouteServiceProvider extends ServiceProvider
             return $request->is('api/*') ? Limit::perMinute(10)->by($key) : Limit::perMinute(30)->by($key);
         });
 
-        // App logins and password resets. Default passwords are dates of birth, so
-        // guesses are limited per account as well as per address.
+        // Panel and app logins and password resets. Default passwords are dates of
+        // birth, so guesses are limited per account (one count across the panel
+        // and every app) as well as per address. Wrong passwords are also counted
+        // over a longer time; see AppServiceProvider::limitFailedLogins().
         RateLimiter::for('login', function (Request $request) {
             $account = strtolower(trim((string) ($request->input('email') ?? $request->input('gr_number') ?? $request->input('gr_no') ?? '')));
 
             return [
-                Limit::perMinute(5)->by('login:'.$request->path().'|'.$account),
+                Limit::perMinute(5)->by('login:'.$account),
                 Limit::perMinute(20)->by('login-ip:'.$request->ip()),
             ];
         });
+
+        // Checking or changing the signed-in user's own password.
+        RateLimiter::for('password', fn (Request $request) => Limit::perMinute(20)->by('password:'.($request->user()?->id ?: $request->ip())));
     }
 }

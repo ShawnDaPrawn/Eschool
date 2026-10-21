@@ -102,6 +102,8 @@ class PasswordController extends Controller
             $user->reset_request = 0;
             $user->password = Hash::make(date('dmY', strtotime((string) $user->dob)));
             $user->save();
+            // Whoever had the old password is signed out of the app.
+            $user->tokens()->delete();
 
             $response = [
                 'error' => false,

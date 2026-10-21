@@ -63,7 +63,7 @@ use Illuminate\Support\Facades\Storage;
 // Manual Authentication Routes
 
 Route::get('login', [App\Http\Controllers\Auth\LoginController::class, 'showLoginForm'])->middleware('guest')->name('login');
-Route::post('login', [App\Http\Controllers\Auth\LoginController::class, 'login'])->middleware('guest');
+Route::post('login', [App\Http\Controllers\Auth\LoginController::class, 'login'])->middleware(['guest', 'throttle:login']);
 Route::post('logout', [App\Http\Controllers\Auth\LoginController::class, 'logout'])->name('logout');
 
 // There is no public sign-up. Staff create accounts, and those accounts always
@@ -109,7 +109,6 @@ Route::group(['middleware' => ['Role', 'auth']], function () {
         Route::get('home/widget/teacher-exams', [HomeController::class, 'teacherExamsWidget'])->name('home.widget.teacher-exams');
         Route::get('home/widget/teacher-assignments', [HomeController::class, 'teacherAssignmentsWidget'])->name('home.widget.teacher-assignments');
 
-        Route::get('/logout', [HomeController::class, 'logout'])->name('home.logout');
         Route::get('subject-by-class-section', [HomeController::class, 'getSubjectByClassSection'])->name('class-section.by.subject');
         Route::get('teacher-by-class-subject', [HomeController::class, 'getTeacherByClassSubject'])->name('teacher.by.class.subject');
         // new reset password controller
@@ -329,8 +328,9 @@ Route::group(['middleware' => ['Role', 'auth']], function () {
         Route::get('promote-student-list', [StudentSessionController::class, 'show']);
 
         Route::get('resetpassword', [HomeController::class, 'resetpassword'])->name('resetpassword');
-        Route::get('checkPassword', [HomeController::class, 'checkPassword']);
-        Route::post('changePassword', [HomeController::class, 'changePassword']);
+        // POST so the password isn't written to access logs with the URL.
+        Route::post('checkPassword', [HomeController::class, 'checkPassword'])->middleware('throttle:password');
+        Route::post('changePassword', [HomeController::class, 'changePassword'])->middleware('throttle:password');
 
         Route::get('edit-profile', [HomeController::class, 'editProfile'])->name('edit-profile');
         Route::post('update-profile', [HomeController::class, 'updateProfile'])->name('update-profile');
@@ -548,16 +548,18 @@ Route::get('/terms-conditions', function () {
     echo ! empty($settings['terms_condition']) ? $settings['terms_condition'] : e(trans('page_not_published_yet'));
 });
 
-// Maintenance actions: the header's Cache Clear button needs a logged-in user;
-// the rest are Super Admin only. They used to be reachable without logging in.
-Route::get('clear', function () {
+// Maintenance actions, Super Admin only. They used to be reachable without
+// logging in. Cache Clear is a form post: as a link, another site could send a
+// signed-in user to it, and clearing the cache also resets rate limits when they
+// share the default cache store.
+Route::post('clear', function () {
     Artisan::call('view:clear');
     Artisan::call('route:clear');
     Artisan::call('config:clear');
     Artisan::call('cache:clear');
 
     return redirect()->back();
-})->middleware('auth');
+})->middleware(['auth', 'role:Super Admin']);
 
 Route::group(['middleware' => ['auth', 'role:Super Admin']], static function () {
     Route::get('storage-link', function () {

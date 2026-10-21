@@ -316,12 +316,14 @@ class WebController extends Controller
             return response()->json($response);
         }
 
-        // Validate father/mother/guardian fields and check for email conflicts up
-        // front, before the reCAPTCHA token is verified. Google invalidates a
-        // g-recaptcha token the first time it's checked (pass or fail), so
-        // verifying it before these checks meant a resubmission after fixing an
-        // unrelated field (e.g. a duplicate email) silently reused the now-dead
-        // token and failed reCAPTCHA instead of succeeding.
+        // Validate father/mother/guardian fields up front, before the reCAPTCHA
+        // token is verified. Google invalidates a g-recaptcha token the first time
+        // it's checked (pass or fail), so verifying it before these checks meant a
+        // resubmission after fixing an unrelated field silently reused the
+        // now-dead token and failed reCAPTCHA instead of succeeding. Emails that
+        // already have an account are only reported after reCAPTCHA, so the form
+        // can't be used to find out which addresses have accounts.
+        $emailTaken = null;
         $fatherParent = null;
         $motherParent = null;
         $guardianParent = null;
@@ -363,16 +365,9 @@ class WebController extends Controller
             // Parents row — catch that here instead of letting the users_email_unique
             // constraint throw a raw QueryException below.
             if (! $fatherParent && User::where('email', $request->father_email)->exists()) {
-                return response()->json([
-                    'error' => true,
-                    'message' => __('The father email has already been taken.'),
-                ]);
-            }
-            if (! $motherParent && User::where('email', $request->mother_email)->exists()) {
-                return response()->json([
-                    'error' => true,
-                    'message' => __('The mother email has already been taken.'),
-                ]);
+                $emailTaken = __('The father email has already been taken.');
+            } elseif (! $motherParent && User::where('email', $request->mother_email)->exists()) {
+                $emailTaken = __('The mother email has already been taken.');
             }
         }
 
@@ -380,10 +375,7 @@ class WebController extends Controller
             $guardianParent = Parents::with('user')->where('email', $request->guardian_email)->first();
 
             if (! $guardianParent && User::where('email', $request->guardian_email)->exists()) {
-                return response()->json([
-                    'error' => true,
-                    'message' => __('The guardian email has already been taken.'),
-                ]);
+                $emailTaken = __('The guardian email has already been taken.');
             }
         }
 
@@ -393,6 +385,14 @@ class WebController extends Controller
                 'message' => __('The Re-captcha field is required.'),
                 // Lets the frontend tell this apart from an ordinary validation
                 // error and reset the (now-consumed) widget only when needed.
+                'recaptcha_error' => true,
+            ]);
+        }
+        if ($emailTaken) {
+            return response()->json([
+                'error' => true,
+                'message' => $emailTaken,
+                // The token has been used now, so the widget needs a reset too.
                 'recaptcha_error' => true,
             ]);
         }
