@@ -372,7 +372,7 @@ class PaymentWebhookTest extends TestCase
         $this->fail('The fee payment request was accepted.');
     }
 
-    private function razorpayPayload(string $orderId, int $amount, array $notes = [], string $currency = 'INR'): string
+    private function razorpayPayload(string $orderId, int $amount, array $notes = [], string $currency = 'ZAR'): string
     {
         return json_encode([
             'event' => 'payment.captured',
@@ -424,8 +424,8 @@ class PaymentWebhookTest extends TestCase
         ]);
         $settings = self::SECRETS + [
             'session_year' => $this->sessionYearId,
-            'currency_code' => 'INR',
-            'razorpay_currency_code' => 'INR',
+            'currency_code' => 'ZAR',
+            'razorpay_currency_code' => 'ZAR',
             'stripe_currency_code' => 'USD',
             'paystack_currency_code' => 'NGN',
             'flutterwave_currency_code' => 'NGN',

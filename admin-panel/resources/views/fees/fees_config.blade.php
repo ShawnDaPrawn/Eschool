@@ -36,13 +36,13 @@
                     <div class="form-group col-md-4">
                         <label>{{ __('currency_code') }} <span class="text-danger">*</span></label>
                         <input name="currency_code" value="{{ isset($settings['currency_code']) ? $settings['currency_code'] : '' }}" type="text" placeholder="{{ __('currency_code') }}" class="form-control" />
-                        <span class="field-hint">{{__('eg_currency_code_inr')}}</span>
+                        <span class="field-hint">{{__('eg_currency_code_zar')}}</span>
                     </div>
 
                     <div class="form-group col-md-4">
                         <label>{{ __('currency_symbol') }} <span class="text-danger">*</span></label>
                         <input name="currency_symbol" value="{{ isset($settings['currency_symbol']) ? $settings['currency_symbol'] : '' }}" type="text" placeholder="{{ __('currency_symbol') }}" class="form-control" />
-                        <span class="field-hint">{{__('eg_currency_symbol_₹')}}</span>
+                        <span class="field-hint">{{__('eg_currency_symbol_r')}}</span>
                     </div>
 
                     <div class="form-group col-md-4">

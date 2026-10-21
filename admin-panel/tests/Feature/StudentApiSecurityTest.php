@@ -311,7 +311,7 @@ class StudentApiSecurityTest extends TestCase
             'fee_due_date' => $now->copy()->addDays(30)->toDateString(), 'fee_due_charges' => 0, 'created_at' => $now, 'updated_at' => $now,
         ]);
         $settings = [
-            'session_year' => $sessionYear, 'currency_code' => 'INR', 'currency_symbol' => 'Rs',
+            'session_year' => $sessionYear, 'currency_code' => 'ZAR', 'currency_symbol' => 'R',
             'razorpay_status' => 1, 'razorpay_api_key' => 'rzp_public_key', 'razorpay_secret_key' => self::SECRETS[0], 'razorpay_webhook_secret' => self::SECRETS[1],
             'stripe_status' => 1, 'stripe_publishable_key' => 'pk_public', 'stripe_secret_key' => self::SECRETS[2], 'stripe_webhook_secret' => self::SECRETS[3],
             'paystack_status' => 1, 'paystack_public_key' => 'pk_paystack', 'paystack_secret_key' => self::SECRETS[4],

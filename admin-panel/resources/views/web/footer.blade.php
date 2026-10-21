@@ -78,7 +78,7 @@
                         <i class="fa-solid fa-phone-volume"></i>
                     </span>
                     <span>
-                        <a href="tel:{{$settings['school_phone']}}">{{isset($settings['school_phone']) ? $settings['school_phone'] : '( +91 ) 12345 67890'}}</a>
+                        <a href="tel:{{$settings['school_phone']}}">{{isset($settings['school_phone']) ? $settings['school_phone'] : '+27 12 345 6789'}}</a>
                     </span>
                 </span>
             <span class="iconsWrapper">
@@ -86,7 +86,7 @@
                     <i class="fa-solid fa-envelope"></i>
                 </span>
                 <span>
-                        <a href="mailto:{{$settings['school_email']}}">{{isset($settings['school_email'])? $settings['school_email'] :  'Schoolinfous@gmail.com'}}</a>
+                        <a href="mailto:{{$settings['school_email']}}">{{isset($settings['school_email'])? $settings['school_email'] :  'info@tokensoft.tech'}}</a>
                 </span>
             </span>
             <span class="iconsWrapper">
@@ -94,8 +94,7 @@
                     <i class="fa-solid fa-location-dot location"></i>
                 </span>
                 <span>
-                    {{isset($settings['school_address']) ? $settings['school_address'] : ' 4517 Washington Ave. Manchester, Kentucky
-                    39495.'}}
+                    {{isset($settings['school_address']) ? $settings['school_address'] : 'Pretoria, South Africa'}}
                 </span>
             </span>
           </div>
@@ -103,7 +102,7 @@
       </div>
     </div>
     <div class="copyRightText">
-      <span>{{__('copyright')}} © <?= date('Y'); ?> <a href="{{config('app.url')}}" target="_blank">{{config('app.name')}}</a>. {{__('all_rights_reserved')}}.</span>
+      <span>{{__('copyright')}} © <?= date('Y'); ?> <a href="{{config('app.url')}}" target="_blank">{{config('app.name')}}</a>. {{__('all_rights_reserved')}}. Tokensoft, Pretoria.</span>
     </div>
   </footer>
   <script>

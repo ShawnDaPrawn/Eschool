@@ -9,7 +9,7 @@ Short definitions of the domain terms used in the admin panel code, the API and 
 | Assignment | Homework for a class section and subject, with due date, points and optional resubmission | `Assignment` / `assignments` |
 | Assignment submission | A student's answer to an assignment. Status 0 pending/in review, 1 accepted, 2 rejected, 3 resubmitted | `AssignmentSubmission` / `assignment_submissions` |
 | Attendance type | Daily student attendance value: 0 absent, 1 present, 3 holiday, 4 first half, 5 second half (`Attendance::TYPE_*`) | `attendances.type` |
-| Category | A student category (for example a caste or quota category) chosen on admission | `Category` / `categories` |
+| Category | A student category chosen on admission. The sample data uses General, Boarding, Day scholar and Bursary | `Category` / `categories` |
 | Choiceable fee | A fee that is optional for the student (`choiceable = 1`); compulsory fees have `choiceable = 0`. Optional fees a student pays are recorded in `fees_choiceables` | `fees_classes.choiceable`, `FeesChoiceable` / `fees_choiceables` |
 | Class | A grade or year group, belonging to one medium and optionally a stream, shift and educational program. Class names may contain only letters, digits and underscores | `ClassSchool` / `classes` |
 | Class section | A class combined with a section (for example "10 A"). Students, timetables, attendance, lessons and assignments attach to class sections | `ClassSection` / `class_sections` |

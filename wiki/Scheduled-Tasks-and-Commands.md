@@ -35,7 +35,7 @@ Schedule::command('sanctum:prune-expired --hours=24')->daily();
 | `app:cleanup-old-chat-messages` | `daily()`: 00:00 | `withoutOverlapping()`: a cache mutex, expiring after 1440 minutes, skips a run while the previous one is still going | Chat retention |
 | `sanctum:prune-expired --hours=24` | `daily()`: 00:00 | none | Remove expired app tokens |
 
-"Midnight" is in the scheduler timezone: `config('app.schedule_timezone')` is not set, so Laravel uses `config('app.timezone')`. `SettingsConfigService` sets that from the `time_zone` setting (General Settings) on every boot, falling back to `TIMEZONE` in `.env` and then `UTC`. Because the settings migration seeds `time_zone = Asia/Kolkata`, a fresh install runs these at midnight India time until the timezone is changed.
+"Midnight" is in the scheduler timezone: `config('app.schedule_timezone')` is not set, so Laravel uses `config('app.timezone')`. `SettingsConfigService` sets that from the `time_zone` setting (General Settings) on every boot, falling back to `TIMEZONE` in `.env` and then `UTC`. Because the settings migration seeds `time_zone = Africa/Johannesburg`, a fresh install runs these at midnight South Africa Standard Time (Pretoria) until the timezone is changed.
 
 Nothing runs unless cron calls the scheduler every minute:
 

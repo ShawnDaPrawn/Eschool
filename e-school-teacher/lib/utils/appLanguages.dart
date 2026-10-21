@@ -10,7 +10,6 @@ const String defaultLanguageCode = 'en';
 const List<AppLanguage> appLanguages = [
   //Please add language code here and language name
   AppLanguage(languageCode: 'en', languageName: 'English'),
-  AppLanguage(languageCode: 'hi', languageName: 'हिन्दी - Hindi'),
   AppLanguage(languageCode: 'ur', languageName: 'اردو - Urdu'),
   AppLanguage(languageCode: 'tr', languageName: 'Türkçe - Turkish'),
   AppLanguage(languageCode: 'ar', languageName: 'العربية - Arabic'),
@@ -26,7 +25,8 @@ const List<AppLanguage> appLanguages = [
   ),
 
   //
-  //For example you are adding gujarati language
-  //AppLanguage(languageCode: "gu", languageName: "ગુજરાતી - Gujarati"),
+  // English is the default. To add another language, add it here and create
+  // assets/languages/<code>.json with the same keys as en.json. For example:
+  //AppLanguage(languageCode: 'af', languageName: 'Afrikaans'),
   //
 ];

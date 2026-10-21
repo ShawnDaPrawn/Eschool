@@ -12,7 +12,7 @@ sidebar_position: 2
 
 ## Mediums and Sections
 
-The Academics feature in e-School allows the admin to define the mediums (languages) in which the school operates, such as English, Hindi, and Gujarati. Additionally, the admin can create sections for classes, such as A, B, C, and so on.
+The Academics feature in e-School allows the admin to define the mediums (languages) in which the school operates, such as English and Afrikaans. Additionally, the admin can create sections for classes, such as A, B, C, and so on.
 
 ## Stream and Shifts
 
@@ -26,7 +26,7 @@ The admin can create new subjects within e-School. Each subject can be associate
 
 ## Class
 
-In e-School, the admin can add classes by choosing the mediums and sections that each class will have. For example, selecting English as the medium and A, B, C as the sections will automatically create classes like 10 A English, 10 B English, and 10 C English. Similarly, selecting Gujarati as the medium and A, B, C as the sections will create classes like 10 A Gujarati, 10A Gujarati, and 10 C Gujarati. Optionally a shift can be chosen for any class to indicate the time-zone it'll be taken on. There is also an option of sub-dividing classes into streams based on student's subject preference.
+In e-School, the admin can add classes by choosing the mediums and sections that each class will have. For example, selecting English as the medium and A, B, C as the sections will automatically create classes like 10 A English, 10 B English, and 10 C English. Similarly, selecting Afrikaans as the medium and A, B, C as the sections will create classes like 10 A Afrikaans, 10 B Afrikaans, and 10 C Afrikaans. Optionally a shift can be chosen for any class to indicate the time-zone it'll be taken on. There is also an option of sub-dividing classes into streams based on student's subject preference.
 
 ## Class Assign Subject
 

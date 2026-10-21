@@ -27,19 +27,27 @@ return new class extends Migration
             ],
             [
                 'type' => 'school_email',
-                'message' => 'eschool@gmail.com',
+                'message' => 'info@tokensoft.tech',
             ],
             [
                 'type' => 'school_phone',
-                'message' => '9876543210',
+                'message' => '+27 12 345 6789',
             ],
             [
                 'type' => 'school_address',
-                'message' => 'India',
+                'message' => 'Pretoria, South Africa',
             ],
             [
                 'type' => 'time_zone',
-                'message' => 'Asia/Kolkata',
+                'message' => 'Africa/Johannesburg',
+            ],
+            [
+                'type' => 'currency_code',
+                'message' => 'ZAR',
+            ],
+            [
+                'type' => 'currency_symbol',
+                'message' => 'R',
             ],
             [
                 'type' => 'date_formate',

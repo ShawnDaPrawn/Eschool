@@ -4,12 +4,11 @@ This page explains how translations work in the three user interfaces: the two F
 
 ### Languages shipped
 
-Both apps ship the same nine languages. Files are in `assets/languages/` (declared as an asset folder in `pubspec.yaml`), and the list the user can choose from is `appLanguages` in `lib/utils/appLanguages.dart`.
+Both apps ship the same eight languages. English is the default. Files are in `assets/languages/` (declared as an asset folder in `pubspec.yaml`), and the list the user can choose from is `appLanguages` in `lib/utils/appLanguages.dart`.
 
 | Code | Name shown (`languageName`) | File | Direction |
 |---|---|---|---|
 | `en` | English | `en.json` | LTR (default, `defaultLanguageCode = 'en'`) |
-| `hi` | हिन्दी - Hindi | `hi.json` | LTR |
 | `ur` | اردو - Urdu | `ur.json` | RTL |
 | `tr` | Türkçe - Turkish | `tr.json` | LTR |
 | `ar` | العربية - Arabic | `ar.json` | RTL |
@@ -62,7 +61,7 @@ Do this in each app you want to translate (`e-school/` and/or `e-school-teacher/
    const List<AppLanguage> appLanguages = [
      AppLanguage(languageCode: 'en', languageName: 'English'),
      // ...
-     AppLanguage(languageCode: 'gu', languageName: 'ગુજરાતી - Gujarati'),
+     AppLanguage(languageCode: 'af', languageName: 'Afrikaans'),
    ];
    ```
 

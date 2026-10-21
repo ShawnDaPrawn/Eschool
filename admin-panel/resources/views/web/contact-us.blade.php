@@ -45,7 +45,7 @@
                                         <span class="text">{{ __('phone_number') }}</span>
                                     </div>
                                     <div class="contactDetailsWrapper">
-                                        <span class="numb"><a href="tel:{{$settings['school_phone']}}">{{ __('phone') }}: {{isset($settings['school_phone']) ? $settings['school_phone'] : '( +91 ) 12345 67890'}}</a></span>
+                                        <span class="numb"><a href="tel:{{$settings['school_phone']}}">{{ __('phone') }}: {{isset($settings['school_phone']) ? $settings['school_phone'] : '+27 12 345 6789'}}</a></span>
                                     </div>
                                 </div>
                             </div>
@@ -58,7 +58,7 @@
                                         <span class="text">{{ __('email') }}</span>
                                     </div>
                                     <div class="contactDetailsWrapper">
-                                        <span class="numb"><a href="mailto:{{$settings['school_email']}}">{{ __('mail_us') }}: {{isset($settings['school_email'])? $settings['school_email'] :  'Schoolinfous@gmail.com'}}</a></span>
+                                        <span class="numb"><a href="mailto:{{$settings['school_email']}}">{{ __('mail_us') }}: {{isset($settings['school_email'])? $settings['school_email'] :  'info@tokensoft.tech'}}</a></span>
                                     </div>
                                 </div>
                             </div>
@@ -71,8 +71,7 @@
                                         <span class="text">{{ __('address') }}</span>
                                     </div>
                                     <div class="contactDetailsWrapper">
-                                        <span class="numb">{{ __('address') }}:  {{isset($settings['school_address']) ? $settings['school_address'] : ' 4517 Washington Ave. Manchester, Kentucky
-                                            39495.'}}</span>
+                                        <span class="numb">{{ __('address') }}:  {{isset($settings['school_address']) ? $settings['school_address'] : 'Pretoria, South Africa'}}</span>
                                     </div>
                                 </div>
                             </div>

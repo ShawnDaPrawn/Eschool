@@ -26,9 +26,9 @@ class DummyDataSeeder extends Seeder {
      */
     public function run() {
         $medium = [
-            ['id' => 1, 'name' => 'Hindi'],
+            ['id' => 1, 'name' => 'Afrikaans'],
             ['id' => 2, 'name' => 'English'],
-            ['id' => 3, 'name' => 'Gujarati'],
+            ['id' => 3, 'name' => 'Sepedi'],
         ];
         Mediums::upsert($medium, ['id'], ['name']);
 
@@ -58,20 +58,20 @@ class DummyDataSeeder extends Seeder {
             ['id' => 1, 'name' => 'Maths', 'code' => 'MA', 'bg_color' => '#5031f7', 'image' => 'subject.png', 'medium_id' => 2, 'type' => 'Practical'],
             ['id' => 2, 'name' => 'Science', 'code' => 'SC', 'bg_color' => '#5031f7', 'image' => 'subject.png', 'medium_id' => 2, 'type' => 'Practical'],
             ['id' => 3, 'name' => 'English', 'code' => 'EN', 'bg_color' => '#5031f7', 'image' => 'subject.png', 'medium_id' => 2, 'type' => 'Theory'],
-            ['id' => 4, 'name' => 'Gujarati', 'code' => 'GJ', 'bg_color' => '#5031f7', 'image' => 'subject.png', 'medium_id' => 2, 'type' => 'Theory'],
-            ['id' => 5, 'name' => 'Sanskrit', 'code' => 'SN', 'bg_color' => '#5031f7', 'image' => 'subject.png', 'medium_id' => 2, 'type' => 'Theory'],
-            ['id' => 6, 'name' => 'Hindi', 'code' => 'HN', 'bg_color' => '#5031f7', 'image' => 'subject.png', 'medium_id' => 2, 'type' => 'Theory'],
+            ['id' => 4, 'name' => 'Afrikaans', 'code' => 'AF', 'bg_color' => '#5031f7', 'image' => 'subject.png', 'medium_id' => 2, 'type' => 'Theory'],
+            ['id' => 5, 'name' => 'Life Orientation', 'code' => 'LO', 'bg_color' => '#5031f7', 'image' => 'subject.png', 'medium_id' => 2, 'type' => 'Theory'],
+            ['id' => 6, 'name' => 'Geography', 'code' => 'GE', 'bg_color' => '#5031f7', 'image' => 'subject.png', 'medium_id' => 2, 'type' => 'Theory'],
             ['id' => 7, 'name' => 'Computer', 'code' => 'CMP', 'bg_color' => '#5031f7', 'image' => 'subject.png', 'medium_id' => 2, 'type' => 'Practical'],
-            ['id' => 8, 'name' => 'PT', 'code' => 'PT', 'bg_color' => '#5031f7', 'image' => 'subject.png', 'medium_id' => 2, 'type' => 'Practical'],
+            ['id' => 8, 'name' => 'Physical Education', 'code' => 'PE', 'bg_color' => '#5031f7', 'image' => 'subject.png', 'medium_id' => 2, 'type' => 'Practical'],
 
         ];
         Subject::upsert($subjects, ['id'], ['name', 'code', 'bg_color', 'image', 'medium_id', 'type']);
 
         $session_years = [
-            ['id' => 1, 'name' => '2022', 'default' => 1, 'start_date' => Carbon::create('2022', '06', '01'), 'end_date' => Carbon::create('2023', '04', '30')],
-            ['id' => 2, 'name' => '2023', 'default' => 0, 'start_date' => Carbon::create('2023', '06', '01'), 'end_date' => Carbon::create('2024', '04', '30')],
-            ['id' => 3, 'name' => '2024', 'default' => 0, 'start_date' => Carbon::create('2024', '06', '01'), 'end_date' => Carbon::create('2025', '04', '30')],
-            ['id' => 4, 'name' => '2025', 'default' => 0, 'start_date' => Carbon::create('2025', '06', '01'), 'end_date' => Carbon::create('2026', '04', '30')],
+            ['id' => 1, 'name' => '2022', 'default' => 1, 'start_date' => Carbon::create('2022', '01', '15'), 'end_date' => Carbon::create('2022', '12', '09')],
+            ['id' => 2, 'name' => '2023', 'default' => 0, 'start_date' => Carbon::create('2023', '01', '15'), 'end_date' => Carbon::create('2023', '12', '09')],
+            ['id' => 3, 'name' => '2024', 'default' => 0, 'start_date' => Carbon::create('2024', '01', '15'), 'end_date' => Carbon::create('2024', '12', '09')],
+            ['id' => 4, 'name' => '2025', 'default' => 0, 'start_date' => Carbon::create('2025', '01', '15'), 'end_date' => Carbon::create('2025', '12', '09')],
         ];
         SessionYear::upsert($session_years, ['id'], ['name', 'default', 'start_date', 'end_date']);
 
@@ -81,10 +81,10 @@ class DummyDataSeeder extends Seeder {
         Settings::upsert($session_year_settings, ['id'], ['type', 'message']);
 
         $student_categories = [
-            ['id' => 1, 'name' => 'SC', 'status' => 1],
-            ['id' => 2, 'name' => 'ST', 'status' => 1],
-            ['id' => 3, 'name' => 'OBC', 'status' => 1],
-            ['id' => 4, 'name' => 'General', 'status' => 1],
+            ['id' => 1, 'name' => 'General', 'status' => 1],
+            ['id' => 2, 'name' => 'Boarding', 'status' => 1],
+            ['id' => 3, 'name' => 'Day scholar', 'status' => 1],
+            ['id' => 4, 'name' => 'Bursary', 'status' => 1],
         ];
         Category::upsert($student_categories, ['id'], ['name', 'status']);
 
@@ -95,37 +95,37 @@ class DummyDataSeeder extends Seeder {
                 'id' => 2,
                 'image' => 'parents/user.png',
                 'password' => Hash::make('01011999'),
-                'first_name' => 'Sachin',
-                'last_name' => 'Tendulkar',
+                'first_name' => 'Michael',
+                'last_name' => 'Stevens',
                 'email' => 'father@gmail.com',
                 'mobile' => 1234567890,
                 'gender' => 'Male',
-                'current_address' => 'Mumbai',
-                'permanent_address' => 'Mumbai'
+                'current_address' => 'Pretoria',
+                'permanent_address' => 'Pretoria'
             ],
             [
                 'id' => 3,
                 'image' => 'parents/user.png',
                 'password' => Hash::make('01011999'),
-                'first_name' => 'Anjali',
-                'last_name' => 'Tendulkar',
+                'first_name' => 'Sarah',
+                'last_name' => 'Stevens',
                 'email' => 'mother@gmail.com',
                 'mobile' => 1234567890,
                 'gender' => 'Female',
-                'current_address' => 'Mumbai',
-                'permanent_address' => 'Mumbai'
+                'current_address' => 'Pretoria',
+                'permanent_address' => 'Pretoria'
             ],
             [
                 'id' => 4,
                 'image' => 'students/user.png',
                 'password' => Hash::make('01011999'),
-                'first_name' => 'Arjun',
-                'last_name' => 'Tendulkar',
+                'first_name' => 'Liam',
+                'last_name' => 'Stevens',
                 'email' => 'student@gmail.com',
                 'mobile' => 1234567890,
                 'gender' => 'Male',
-                'current_address' => 'Mumbai',
-                'permanent_address' => 'Mumbai'
+                'current_address' => 'Pretoria',
+                'permanent_address' => 'Pretoria'
             ]
         ];
 
@@ -136,10 +136,10 @@ class DummyDataSeeder extends Seeder {
             [
                 'id' => 1,
                 'user_id' => 2,
-                'first_name' => 'Sachin',
-                'last_name' => 'Tendulkar',
+                'first_name' => 'Michael',
+                'last_name' => 'Stevens',
                 'image' => 'parents/user.png',
-                'occupation' => 'Cricketer',
+                'occupation' => 'Engineer',
                 'email' => 'father@gmail.com',
                 'mobile' => 1234567890,
                 'gender' => 'Male',
@@ -147,10 +147,10 @@ class DummyDataSeeder extends Seeder {
             [
                 'id' => 2,
                 'user_id' => 3,
-                'first_name' => 'Anjali',
-                'last_name' => 'Tendulkar',
+                'first_name' => 'Sarah',
+                'last_name' => 'Stevens',
                 'image' => 'parents/user.png',
-                'occupation' => 'Housewife',
+                'occupation' => 'Teacher',
                 'email' => 'mother@gmail.com',
                 'mobile' => 1234567890,
                 'gender' => 'Female',
@@ -159,10 +159,10 @@ class DummyDataSeeder extends Seeder {
             [
                 'id' => 2,
                 'user_id' => 3,
-                'first_name' => 'Ajit',
-                'last_name' => 'Tendulkar',
+                'first_name' => 'Andrew',
+                'last_name' => 'Stevens',
                 'image' => 'parents/user.png',
-                'occupation' => 'Job',
+                'occupation' => 'Accountant',
                 'email' => 'guardian@gmail.com',
                 'mobile' => 1234567890,
                 'gender' => 'Male',
@@ -179,8 +179,8 @@ class DummyDataSeeder extends Seeder {
             'category_id' => 1,
             'admission_no' => 12345667,
             'roll_number' => 1,
-            'caste' => 'Hindu',
-            'religion' => 'Hindu',
+            'caste' => '',
+            'religion' => 'Christian',
             'blood_group' => 'B+',
             'height' => '5.5',
             'weight' => '59',
