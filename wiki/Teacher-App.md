@@ -8,7 +8,8 @@ This page covers the teacher Flutter app in `e-school-teacher/` (Dart package `e
 | Forgot password | `login/widgets/forgotPasswordRequestBottomsheet.dart` | `ForgotPasswordRequestCubit` → POST `forgot-password` with `email`. |
 | Store session | `AuthCubit.authenticateUser(jwtToken, teacher)` | Hive `authBox`: `jwtToken`, `isLogIn`, `teacherDetails`. |
 | Push topics | `NotificationUtility.subscribeOrUnsubscribeToNotificationTopics()` | `teachersAndroid`/`teachersIOS` and `allAndroid`/`allIOS`. |
-| Splash | `splashScreen.dart` | Fetches the server configuration, refreshes the profile (GET `teacher/get-profile-details`; a failed fetch signs the user out), then opens `Routes.login` or `Routes.home`. |
+| First sign-in | `login/policyScreen.dart` (`Routes.policies`) | After a successful login, and on a later launch only when acceptance is still missing. GET and POST `teacher/policy-acceptance`. NavigateEd, then the school's privacy notice and terms when the school has written either one. "Not now" signs out. | 
+| Splash | `splashScreen.dart` | Fetches the server configuration. A signed-in teacher who has already accepted goes on to the profile refresh (GET `teacher/get-profile-details`; a failed fetch signs the user out) and `Routes.home`. Otherwise the terms screen, or `Routes.login` when nobody is signed in. |
 | Logout | `home/widgets/logoutButton.dart` | `AuthCubit.signOut()` (POST `logout`, clear Hive, unsubscribe topics) and back to `Routes.login`. |
 
 The configuration keys this app reads are the `teacher_*` variants (`teacher_app_version`, `teacher_force_app_update`, `teacher_app_maintenance`, ...), see [Mobile-Apps-Overview](Mobile-Apps-Overview#app-configuration-from-the-server).
@@ -36,6 +37,7 @@ All names from `Routes` in [e-school-teacher/lib/app/routes.dart](https://github
 |---|---|---|---|
 | `splash` | `splash` | `SplashScreen` | `splashScreen.dart` |
 | `login` | `login` | `LoginScreen` | `login/loginScreen.dart` |
+| `policies` | `policies` | `PolicyScreen` | `login/policyScreen.dart` |
 | `home` | `/` | `HomeScreen` | `home/homeScreen.dart` |
 | `classScreen` | `/class` | `ClassScreen` | `class/classScreen.dart` |
 | `subject` | `/subject` | `SubjectScreen` | `subjectScreen.dart` |

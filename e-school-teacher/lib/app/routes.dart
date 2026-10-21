@@ -26,6 +26,7 @@ import 'package:eschool_teacher/ui/screens/leave/addLeaveScreen.dart';
 import 'package:eschool_teacher/ui/screens/leave/manageLeavesScreen.dart';
 import 'package:eschool_teacher/ui/screens/lessonsScreen.dart';
 import 'package:eschool_teacher/ui/screens/login/loginScreen.dart';
+import 'package:eschool_teacher/ui/screens/login/policyScreen.dart';
 import 'package:eschool_teacher/ui/screens/notificationsScreen.dart';
 import 'package:eschool_teacher/ui/screens/privacyPolicyScreen.dart';
 import 'package:eschool_teacher/ui/screens/result/addResultForAllStudentsScreen.dart';
@@ -46,6 +47,7 @@ import 'package:flutter/material.dart';
 // ignore: avoid_classes_with_only_static_members
 class Routes {
   static const String splash = 'splash';
+  static const String policies = 'policies';
   static const String home = '/';
   static const String login = 'login';
   static const String classScreen = '/class';
@@ -133,6 +135,10 @@ class Routes {
       case login:
         {
           return LoginScreen.route(routeSettings);
+        }
+      case policies:
+        {
+          return PolicyScreen.route(routeSettings);
         }
       case home:
         {

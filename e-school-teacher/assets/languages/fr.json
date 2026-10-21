@@ -425,5 +425,12 @@
     "secondHalfAbsent": "Deuxième mi-temps absent",
     "fullDayLeave": "Congé d'une journée",
     "firstHalfLeave": "Congé du matin",
-    "secondHalfLeave": "Congé de l'après-midi"
+    "secondHalfLeave": "Congé de l'après-midi",
+    "navigateEd": "NavigateEd",
+    "yourSchool": "Votre école",
+    "schoolPoliciesIntro": "Votre école vous demande d'accepter ceci avant d'utiliser l'application.",
+    "iHaveReadAndAccept": "J'ai lu ceci et je l'accepte",
+    "acceptAndContinue": "Accepter et continuer",
+    "notNow": "Pas maintenant",
+    "pleaseAcceptTermsAndCondition": "Veuillez accepter les termes et conditions"
 }

@@ -13,7 +13,7 @@ Every parent route passes through these layers, in order:
 | `auth:sanctum` | all routes except `login` | Needs `Authorization: Bearer <token>`. `App\Http\Middleware\Authenticate` redirects to the web `login` route unless the request expects JSON, so send `Accept: application/json` to get a 401 instead. |
 | `role:Parent` | all routes except `login` | Spatie `RoleMiddleware`. Student and teacher tokens get HTTP 403 (asserted in `tests/Feature/AccessControlTest.php`). |
 | `parent.children.session.active` | every authenticated route except `policy-acceptance` | [`EnsureParentChildrenSessionIsActive`](https://github.com/ShawnDaPrawn/Eschool/blob/main/admin-panel/app/Http/Middleware/EnsureParentChildrenSessionIsActive.php), described below. A parent can accept the terms before this check runs. |
-| `parent.policy` | every authenticated route except `policy-acceptance` | [`RequireParentPolicyAcceptance`](https://github.com/ShawnDaPrawn/Eschool/blob/main/admin-panel/app/Http/Middleware/RequireParentPolicyAcceptance.php). HTTP 403, `code` `policy_acceptance_required`, until the parent has accepted the current NavigateEd text and, when the school has written one, the current school privacy notice and terms. See [Terms a parent must accept](#terms-a-parent-must-accept). |
+| `parent.policy` | every authenticated route except `policy-acceptance` | [`RequireParentPolicyAcceptance`](https://github.com/ShawnDaPrawn/Eschool/blob/main/admin-panel/app/Http/Middleware/RequireParentPolicyAcceptance.php). HTTP 403, `code` `policy_acceptance_required`, until the parent's first sign-in has accepted NavigateEd and, when the school had already written one, the school privacy notice and terms. Opening the app later does not ask again. See [Terms a parent must accept](#terms-a-parent-must-accept). |
 | [`CheckChild`](https://github.com/ShawnDaPrawn/Eschool/blob/main/admin-panel/app/Http/Middleware/CheckChild.php) | the child-scoped group | Requires a `child_id` that belongs to the parent. Described below. |
 
 Controllers answer through [`ResponseService`](https://github.com/ShawnDaPrawn/Eschool/blob/main/admin-panel/app/Services/ResponseService.php). Success and error bodies share one envelope, almost always with HTTP 200:
@@ -183,7 +183,7 @@ Errors: code 101 for bad credentials or a non-Parent account. Code `null` with "
 
 Side effects: updates `fcm_id` and `device_type`. The Sanctum token is created *before* the session checks, so a refused login still leaves an unused row in `personal_access_tokens`.
 
-Login does not record that the parent accepted anything. The app then opens `ParentPolicyScreen` and calls `policy-acceptance` before `get-profile-data`. An app that skips that screen gets HTTP 403 `policy_acceptance_required` on every other parent route. Ship the parent app and this server together: an older app keeps its token but cannot load a parent home until it is updated.
+Login does not record that the parent accepted anything. On the first sign-in the app opens `ParentPolicyScreen` and calls `policy-acceptance` before `get-profile-data`. A later launch goes to the parent home when that acceptance is already stored. An app that skips the screen on the first sign-in gets HTTP 403 `policy_acceptance_required` on every other parent route. Ship the parent app and this server together: an older app keeps its token but cannot load a parent home until it is updated. Teachers use the same acceptance on `teacher/policy-acceptance`.
 
 ### Terms a parent must accept
 
@@ -195,12 +195,12 @@ GET returns `code` 200 and `data` from `ParentPolicyService::status()`:
 |---|---|
 | `school_name` | The `school_name` setting. |
 | `navigateed.required` | Always true. |
-| `navigateed.accepted` | The parent has a `policy_acceptances` row for document `navigateed` and the current version. |
+| `navigateed.accepted` | A `policy_acceptances` row exists for document `navigateed`. The stored version does not have to match the text shown today. |
 | `navigateed.version` | SHA-256 of the fixed NavigateEd text. The school cannot edit that text. |
 | `navigateed.title`, `navigateed.body` | The title and the text the app shows. |
 | `school.required` | True when `privacy_policy` or `terms_condition` has text or an image. A blank page is left out and does not block the parent. |
-| `school.accepted` | True when the school requires nothing, or the parent accepted the current school version. |
-| `school.version` | SHA-256 of the privacy HTML, a separator and the terms HTML, or `null` when neither has content. Changing either document changes the version. |
+| `school.accepted` | True when the school requires nothing, or a `school` acceptance row exists. Accepting NavigateEd while both pages are blank also writes that row, so a page added later does not ask again. |
+| `school.version` | SHA-256 of the privacy HTML, a separator and the terms HTML, or `null` when neither has content. The first sign-in posts this value. Editing either page changes the hash and does not ask again. |
 | `school.privacy_policy`, `school.terms` | The HTML the school saved, or `""` when that page has no content. |
 
 POST body: `document` (`navigateed` or `school`) and `version` (the version from the GET). The school document is refused until NavigateEd is accepted. A version that does not match the current text returns HTTP 200, `error: true`, `code: null`, and the message "These terms have changed. Please read them again." A matching version writes one `policy_acceptances` row per user and document (`version`, `accepted_at`) and returns the new status with `error: false`.

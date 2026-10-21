@@ -260,7 +260,7 @@ Other keys:
 
 `GET /privacy-policy` and `GET /terms-conditions` print the `privacy_policy` and `terms_condition` settings directly.
 
-A parent must accept those two pages in the app after accepting NavigateEd's own terms. The school writes them on the branding card of General Settings, or on the Privacy Policy and Terms pages (`POST /setting-update`). Leaving a page blank stores an empty string: that page is not shown and does not block parents. Saving a change changes the version, so every parent is asked again. See [API-Parent](API-Parent#terms-a-parent-must-accept).
+A parent or teacher accepts those two pages in the app, after NavigateEd's own terms, the first time they sign in. The school writes them on the branding card of General Settings, or on the Privacy Policy and Terms pages (`POST /setting-update`). Leaving a page blank stores an empty string: that page is not shown. Editing a page later does not ask anyone again. See [API-Parent](API-Parent#terms-a-parent-must-accept).
 
 ## UI settings versus .env
 

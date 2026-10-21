@@ -3,9 +3,11 @@ import 'package:eschool/cubits/appConfigurationCubit.dart';
 import 'package:eschool/cubits/authCubit.dart';
 import 'package:eschool/cubits/userProfileCubit.dart';
 import 'package:eschool/data/repositories/authRepository.dart';
+import 'package:eschool/data/repositories/policyRepository.dart';
 import 'package:eschool/ui/widgets/errorContainer.dart';
 import 'package:eschool/utils/animationConfiguration.dart';
 import 'package:eschool/utils/assets.dart';
+import 'package:eschool_core/eschool_core.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
@@ -37,6 +39,9 @@ class _SplashScreenState extends State<SplashScreen> {
 
   final int _navigationCriteriaTotal = 2;
   int _navigationCriteria = 0;
+  bool _parentPoliciesPending = false;
+  String? _policyError;
+  bool _leftSplash = false;
 
   @override
   void initState() {
@@ -51,8 +56,12 @@ class _SplashScreenState extends State<SplashScreen> {
   }
 
   void navigateToNextScreen() {
+    if (_leftSplash || !mounted) {
+      return;
+    }
     _navigationCriteria++;
     if (_navigationCriteria >= _navigationCriteriaTotal) {
+      _leftSplash = true;
       if (context.read<AuthCubit>().state is Unauthenticated) {
         Navigator.of(context).pushReplacementNamed(Routes.auth);
       } else {
@@ -67,8 +76,10 @@ class _SplashScreenState extends State<SplashScreen> {
           } else {
             Navigator.of(context).pushReplacementNamed(Routes.home);
           }
-        } else {
+        } else if (_parentPoliciesPending) {
           Navigator.of(context).pushReplacementNamed(Routes.parentPolicies);
+        } else {
+          Navigator.of(context).pushReplacementNamed(Routes.parentHome);
         }
       }
     }
@@ -78,6 +89,34 @@ class _SplashScreenState extends State<SplashScreen> {
     Future.delayed(Duration.zero, () {
       context.read<UserProfileCubit>().fetchAndSetUserProfile(autoLogout: true);
     });
+  }
+
+  /// Returning parents go home. The terms screen is only for a first sign-in
+  /// that has not been accepted yet.
+  Future<void> _decideParentEntry() async {
+    setState(() => _policyError = null);
+    try {
+      final status = await PolicyRepository().status();
+      if (!mounted) {
+        return;
+      }
+      if (PolicyRepository.pending(status)) {
+        _parentPoliciesPending = true;
+        navigateToNextScreen();
+      } else {
+        fetchAndSetUserProfile();
+      }
+    } on ApiException catch (error) {
+      if (!mounted) {
+        return;
+      }
+      setState(() => _policyError = error.errorMessage);
+    } catch (error) {
+      if (!mounted) {
+        return;
+      }
+      setState(() => _policyError = error.toString());
+    }
   }
 
   @override
@@ -103,17 +142,22 @@ class _SplashScreenState extends State<SplashScreen> {
           return BlocConsumer<AppConfigurationCubit, AppConfigurationState>(
             listener: (context, appConfigState) {
               if (appConfigState is AppConfigurationFetchSuccess) {
-                // Parents accept NavigateEd and the school's terms before
-                // their profile, and the rest of the parent API, will load.
                 if (context.read<AuthCubit>().isParent()) {
-                  navigateToNextScreen();
+                  _decideParentEntry();
                 } else {
                   fetchAndSetUserProfile();
                 }
               }
             },
             builder: (context, appConfigState) {
-              if (appConfigState is AppConfigurationFetchFailure) {
+              if (_policyError != null) {
+                return Center(
+                  child: ErrorContainer(
+                    onTapRetry: _decideParentEntry,
+                    errorMessageText: _policyError,
+                  ),
+                );
+              } else if (appConfigState is AppConfigurationFetchFailure) {
                 return Center(
                   child: ErrorContainer(
                     onTapRetry: () {

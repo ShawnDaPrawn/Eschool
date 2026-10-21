@@ -425,5 +425,12 @@
   "liveClassLink": "Canlı Sınıf/Özel Bağlantı URL'si",
   "acceptedSuccessMsg": "İzin isteği başarıyla kabul edildi",
   "unableToOpenLink": "Hata! Bu bağlantıyı açamadık.",
-  "timetableSlotLinkSuccessfullyUpdated": "Zaman çizelgesi slot bağlantısı başarıyla güncellendi!"
+  "timetableSlotLinkSuccessfullyUpdated": "Zaman çizelgesi slot bağlantısı başarıyla güncellendi!",
+  "navigateEd": "NavigateEd",
+  "yourSchool": "Okulunuz",
+  "schoolPoliciesIntro": "Okulunuz, uygulamayı kullanmadan önce bunu kabul etmenizi istiyor.",
+  "iHaveReadAndAccept": "Bunu okudum ve kabul ediyorum",
+  "acceptAndContinue": "Kabul et ve devam et",
+  "notNow": "Şimdi değil",
+  "pleaseAcceptTermsAndCondition": "Lütfen şartlar ve koşulları kabul edin"
 }

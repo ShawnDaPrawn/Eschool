@@ -425,5 +425,12 @@
     "secondHalfAbsent": "Second Half Absent",
     "fullDayLeave": "Full Day Leave",
     "firstHalfLeave": "First Half Leave",
-    "secondHalfLeave": "Second Half Leave"
+    "secondHalfLeave": "Second Half Leave",
+    "navigateEd": "NavigateEd",
+    "yourSchool": "Your school",
+    "schoolPoliciesIntro": "Your school asks you to accept this before you use the app.",
+    "iHaveReadAndAccept": "I have read this and I accept",
+    "acceptAndContinue": "Accept and continue",
+    "notNow": "Not now",
+    "pleaseAcceptTermsAndCondition": "Please accept terms and condition"
 }

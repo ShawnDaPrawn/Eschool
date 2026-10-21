@@ -338,7 +338,7 @@ class DemoSchool
             'password' => Hash::make('secret123'), 'gender' => 'Female', 'mobile' => '0123456789',
         ]);
         $user->assignRole($role);
-        if ($role === 'Parent') {
+        if ($role === 'Parent' || $role === 'Teacher') {
             ParentPolicyService::acceptCurrent($user);
         }
 

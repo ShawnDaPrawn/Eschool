@@ -425,5 +425,12 @@
   "editTimetableLink": "Edit Tautan Jadwal",
   "studentPendingLeaveRequests": "Permintaan Cuti Terbaru",
   "firstHalfLeave": "Cuti Babak Pertama",
-  "secondHalfLeave": "Cuti Babak Kedua"
+  "secondHalfLeave": "Cuti Babak Kedua",
+  "navigateEd": "NavigateEd",
+  "yourSchool": "Sekolah Anda",
+  "schoolPoliciesIntro": "Sekolah Anda meminta Anda menerima ini sebelum menggunakan aplikasi.",
+  "iHaveReadAndAccept": "Saya telah membaca ini dan saya menerima",
+  "acceptAndContinue": "Terima dan lanjutkan",
+  "notNow": "Tidak sekarang",
+  "pleaseAcceptTermsAndCondition": "Harap terima syarat dan ketentuan"
 }

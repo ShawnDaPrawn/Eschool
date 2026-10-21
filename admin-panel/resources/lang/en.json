@@ -1148,7 +1148,7 @@
     "school_information": "School Information",
     "branding_appearance": "Branding & Appearance",
     "school_privacy_and_terms": "Privacy and terms",
-    "school_privacy_and_terms_hint": "Parents accept NavigateEd's terms when they sign in, then these. Write them in the school's own words. Leave one blank if you do not need it. Saving a change asks every parent to accept again.",
+    "school_privacy_and_terms_hint": "Parents and teachers accept NavigateEd's terms the first time they sign in, then these. Write them in the school's own words. Leave one blank if you do not need it.",
     "localization_preferences": "Localization & Preferences",
     "sessionYearFilterInfo": "This filter lets you view data for different session years. The system’s active session year can only be changed from Settings.",
     "menu": "Menu",

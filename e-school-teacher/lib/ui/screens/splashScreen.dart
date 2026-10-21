@@ -3,9 +3,11 @@ import 'package:eschool_teacher/cubits/appConfigurationCubit.dart';
 import 'package:eschool_teacher/cubits/authCubit.dart';
 import 'package:eschool_teacher/cubits/userProfileCubit.dart';
 import 'package:eschool_teacher/data/repositories/authRepository.dart';
+import 'package:eschool_teacher/data/repositories/policyRepository.dart';
 import 'package:eschool_teacher/ui/widgets/errorContainer.dart';
 import 'package:eschool_teacher/utils/animationConfiguration.dart';
 import 'package:eschool_teacher/utils/assets.dart';
+import 'package:eschool_core/eschool_core.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
@@ -37,6 +39,9 @@ class _SplashScreenState extends State<SplashScreen> {
 
   final int _navigationCriteriaTotal = 2;
   int _navigationCriteria = 0;
+  bool _policiesPending = false;
+  String? _policyError;
+  bool _leftSplash = false;
 
   @override
   void initState() {
@@ -55,6 +60,33 @@ class _SplashScreenState extends State<SplashScreen> {
     });
   }
 
+  /// A teacher who already accepted on their first sign-in goes home.
+  Future<void> _decideEntry() async {
+    setState(() => _policyError = null);
+    try {
+      final status = await PolicyRepository().status();
+      if (!mounted) {
+        return;
+      }
+      if (PolicyRepository.pending(status)) {
+        _policiesPending = true;
+        navigateToNextScreen();
+      } else {
+        fetchAndSetUserProfile();
+      }
+    } on ApiException catch (error) {
+      if (!mounted) {
+        return;
+      }
+      setState(() => _policyError = error.errorMessage);
+    } catch (error) {
+      if (!mounted) {
+        return;
+      }
+      setState(() => _policyError = error.toString());
+    }
+  }
+
   void fetchAppConfiguration() {
     Future.delayed(Duration.zero, () {
       if (context.mounted) {
@@ -64,10 +96,16 @@ class _SplashScreenState extends State<SplashScreen> {
   }
 
   void navigateToNextScreen() {
+    if (_leftSplash || !mounted) {
+      return;
+    }
     _navigationCriteria++;
     if (_navigationCriteria >= _navigationCriteriaTotal) {
+      _leftSplash = true;
       if (context.read<AuthCubit>().state is Unauthenticated) {
         Navigator.of(context).pushReplacementNamed(Routes.login);
+      } else if (_policiesPending) {
+        Navigator.of(context).pushReplacementNamed(Routes.policies);
       } else {
         Navigator.of(context).pushReplacementNamed(Routes.home);
       }
@@ -87,11 +125,22 @@ class _SplashScreenState extends State<SplashScreen> {
           return BlocConsumer<AppConfigurationCubit, AppConfigurationState>(
             listener: (context, appConfigState) {
               if (appConfigState is AppConfigurationFetchSuccess) {
-                fetchAndSetUserProfile();
+                if (context.read<AuthCubit>().state is Authenticated) {
+                  _decideEntry();
+                } else {
+                  fetchAndSetUserProfile();
+                }
               }
             },
             builder: (context, appConfigState) {
-              if (appConfigState is AppConfigurationFetchFailure) {
+              if (_policyError != null) {
+                return Center(
+                  child: ErrorContainer(
+                    onTapRetry: _decideEntry,
+                    errorMessageText: _policyError,
+                  ),
+                );
+              } else if (appConfigState is AppConfigurationFetchFailure) {
                 return Center(
                   child: ErrorContainer(
                     onTapRetry: () {

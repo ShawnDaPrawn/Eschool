@@ -10,7 +10,8 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
 /**
- * Parent app: NavigateEd's terms, then the school's privacy notice and terms.
+ * Parent and teacher apps: NavigateEd's terms, then the school's privacy
+ * notice and terms, on the first sign-in.
  */
 class PolicyController extends Controller
 {

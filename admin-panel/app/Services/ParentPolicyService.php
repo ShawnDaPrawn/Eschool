@@ -8,12 +8,12 @@ use App\Models\PolicyAcceptance;
 use App\Models\User;
 
 /**
- * What a parent must accept before the parent API will answer.
+ * What a parent or teacher accepts once, on their first sign-in.
  *
  * NavigateEd's own terms come first. The school's privacy notice and terms,
  * edited under General Settings with the branding, come after, and only when
- * the school has written at least one of them. Saving a new version asks
- * every parent to accept again.
+ * the school has already written at least one of them. Opening the app later
+ * does not ask again, and editing the pages does not ask again.
  */
 class ParentPolicyService
 {
@@ -42,14 +42,14 @@ TEXT;
             'school_name' => (string) (getSettings('school_name')['school_name'] ?? ''),
             'navigateed' => [
                 'required' => true,
-                'accepted' => $this->accepted($user, self::NAVIGATEED, $navigateedVersion),
+                'accepted' => $this->accepted($user, self::NAVIGATEED),
                 'version' => $navigateedVersion,
                 'title' => 'NavigateEd',
                 'body' => self::NAVIGATEED_BODY,
             ],
             'school' => [
                 'required' => $schoolVersion !== null,
-                'accepted' => $schoolVersion === null || $this->accepted($user, self::SCHOOL, $schoolVersion),
+                'accepted' => $schoolVersion === null || $this->accepted($user, self::SCHOOL),
                 'version' => $schoolVersion,
                 'privacy_policy' => $this->hasContent($privacy) ? $privacy : '',
                 'terms' => $this->hasContent($terms) ? $terms : '',
@@ -92,10 +92,12 @@ TEXT;
             return ['ok' => false, 'message' => 'These terms have changed. Please read them again.', 'status' => $status];
         }
 
-        PolicyAcceptance::query()->updateOrCreate(
-            ['user_id' => $user->id, 'document' => $document],
-            ['version' => $version, 'accepted_at' => now()],
-        );
+        $this->record($user, $document, $version);
+        // The school had nothing to show on this first sign-in. Remember that,
+        // so a page written later does not stop them on the next visit.
+        if ($document === self::NAVIGATEED && ! $status['school']['required']) {
+            $this->record($user, self::SCHOOL, hash('sha256', ''));
+        }
 
         return [
             'ok' => true,
@@ -120,13 +122,20 @@ TEXT;
         return hash('sha256', self::NAVIGATEED_BODY);
     }
 
-    private function accepted(User $user, string $document, string $version): bool
+    private function accepted(User $user, string $document): bool
     {
         return PolicyAcceptance::query()
             ->where('user_id', $user->id)
             ->where('document', $document)
-            ->where('version', $version)
             ->exists();
+    }
+
+    private function record(User $user, string $document, string $version): void
+    {
+        PolicyAcceptance::query()->updateOrCreate(
+            ['user_id' => $user->id, 'document' => $document],
+            ['version' => $version, 'accepted_at' => now()],
+        );
     }
 
     /** @return array{0: string, 1: string} */

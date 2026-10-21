@@ -9,6 +9,7 @@ use App\Models\Notification;
 use App\Models\Teacher;
 use App\Models\User;
 use App\Models\UserNotification;
+use App\Services\ParentPolicyService;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Tests\Concerns\RunsAppServer;
@@ -320,6 +321,7 @@ class ApiRegressionTest extends TestCase
             'gender' => 'Male', 'mobile' => '9876543210',
         ]);
         $sam->assignRole('Teacher');
+        ParentPolicyService::acceptCurrent($sam);
         $teacher = Teacher::forceCreate(['user_id' => $sam->id, 'qualification' => 'B.Ed']);
         DB::table('subject_teachers')->insert([
             'class_section_id' => $id['section_a'], 'subject_id' => $id['maths'], 'teacher_id' => $teacher->id, 'session_year_id' => 1,

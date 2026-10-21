@@ -355,7 +355,7 @@ class _LoginScreenState extends State<LoginScreen>
                           SettingsRepository().setNotificationCount(0);
                           Navigator.of(
                             context,
-                          ).pushReplacementNamed(Routes.home);
+                          ).pushReplacementNamed(Routes.policies);
                         } else if (state is SignInFailure) {
                           UiUtils.showBottomToastOverlay(
                             context: context,

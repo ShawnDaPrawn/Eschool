@@ -10,8 +10,8 @@ use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
 
 /**
- * A parent can sign in, then must accept NavigateEd and the school's privacy
- * notice and terms before any other parent API will answer.
+ * A parent or teacher accepts NavigateEd, and the school's privacy notice and
+ * terms when those already exist, once. Later visits are not asked again.
  */
 class RequireParentPolicyAcceptance
 {
@@ -20,7 +20,7 @@ class RequireParentPolicyAcceptance
     public function handle(Request $request, Closure $next): Response
     {
         $user = $request->user();
-        if (! $user || $request->is('api/parent/policy-acceptance') || ! $this->policies->needsAcceptance($user)) {
+        if (! $user || $request->is('api/parent/policy-acceptance', 'api/teacher/policy-acceptance') || ! $this->policies->needsAcceptance($user)) {
             return $next($request);
         }
 

@@ -1,4 +1,4 @@
-The admin panel serves a JSON REST API under `/api` that both Flutter apps use. Routes are declared in [`routes/api.php`](https://github.com/ShawnDaPrawn/Eschool/blob/main/admin-panel/routes/api.php) and handled by the four controllers in [`app/Http/Controllers/Api/`](https://github.com/ShawnDaPrawn/Eschool/tree/main/admin-panel/app/Http/Controllers/Api). This page covers what every endpoint has in common (base URL, authentication, middleware, response envelope, error codes, limits) and ends with the master index of all 157 routes. Per-role details are on [API-Student](API-Student), [API-Parent](API-Parent) and [API-Teacher](API-Teacher).
+The admin panel serves a JSON REST API under `/api` that both Flutter apps use. Routes are declared in [`routes/api.php`](https://github.com/ShawnDaPrawn/Eschool/blob/main/admin-panel/routes/api.php) and handled by the four controllers in [`app/Http/Controllers/Api/`](https://github.com/ShawnDaPrawn/Eschool/tree/main/admin-panel/app/Http/Controllers/Api). This page covers what every endpoint has in common (base URL, authentication, middleware, response envelope, error codes, limits) and ends with the master index of all 159 routes. Per-role details are on [API-Student](API-Student), [API-Parent](API-Parent) and [API-Teacher](API-Teacher).
 
 ## At a glance
 
@@ -13,7 +13,7 @@ The admin panel serves a JSON REST API under `/api` that both Flutter apps use. 
 | Request bodies | Form fields (`multipart/form-data` from the apps); query string for `GET` |
 | Server time | `app.timezone`, which `SettingsConfigService::apply()` (called from `AppServiceProvider`) sets from the `time_zone` setting on every boot, falling back to `TIMEZONE` in `.env` (default `UTC`). Exam windows, due dates and "today" in the API use it, except where the code asks for UTC explicitly. |
 | Response | JSON object with `error`, `message`, `data`, `code` (see [Response envelope](#response-envelope)) |
-| Route count | 157: 1 logout, 49 student, 43 parent, 51 teacher, 13 general |
+| Route count | 159: 1 logout, 49 student, 43 parent, 53 teacher, 13 general |
 
 ## Base URL and how the apps build it
 
@@ -35,7 +35,7 @@ The Flutter apps hard-code the server address in one constant each:
 | `/api/logout` | all apps | none | `auth:sanctum` | 1 |
 | `/api/student/*` | e-school, student login | `login`, `forgot-password` | `auth:sanctum`, `role:Student`, `student.session.active` | 49 |
 | `/api/parent/*` | e-school, parent login | `login` | `policy-acceptance` is `auth:sanctum` and `role:Parent` only. Every other authenticated parent route adds `parent.children.session.active` and `parent.policy`; child-scoped routes also add `CheckChild` | 43 |
-| `/api/teacher/*` | e-school-teacher | `login` | `auth:sanctum`, `role:Teacher`; two routes add `CheckStudent` | 51 |
+| `/api/teacher/*` | e-school-teacher | `login` | `policy-acceptance` is `auth:sanctum` and `role:Teacher` only. Every other authenticated teacher route also has `teacher.policy`; two routes add `CheckStudent` | 53 |
 | `/api/*` (general) | all apps | 12 read-only/info endpoints plus `forgot-password` | `change-password` only: `auth:sanctum` | 13 |
 
 The role middleware was added in commit `439395d`. Before it, teacher endpoints accepted student and parent tokens.
@@ -64,7 +64,7 @@ All aliases are defined in `bootstrap/app.php` (`$middleware->alias([...])`).
 | `role:Student` / `role:Parent` / `role:Teacher` | the three role groups | `Spatie\Permission\Middleware\RoleMiddleware`. Note: the alias `role` is spatie's; the app's own `CheckRole` is aliased `Role` and guards the admin panel, not the API | HTTP 403 (spatie `UnauthorizedException`) |
 | `student.session.active` (`EnsureStudentSessionIsActive`) | student group | Requires role Student, `users.status = 1`, a `students` row, and a `student_sessions` row for the current session year with `status != 0` | HTTP 403 `{"error":true,"message":"You Don't have enough permissions.","data":null,"code":403}`; HTTP 401 `{"message":"...","code":"SESSION_NOT_ACTIVE"}` when the session row is missing or inactive |
 | `parent.children.session.active` (`EnsureParentChildrenSessionIsActive`) | authenticated parent routes except `policy-acceptance` | Requires a `parents` row; at least one child (as father, mother or guardian) must have a current-year `student_sessions` row, and at least one of those must have `status = 1` | HTTP 403 `{"error":true,"message":...}`; HTTP 401 with `code` `SESSION_NOT_ACTIVE` or `ACCOUNT_DEACTIVATED` |
-| `parent.policy` (`RequireParentPolicyAcceptance`) | the same parent routes | The parent must have accepted the current NavigateEd text, and the school's current privacy notice and terms when the school has written either one | HTTP 403 `{"error":true,"message":"Accept the terms before you continue.","code":"policy_acceptance_required"}` |
+| `parent.policy` / `teacher.policy` (`RequireParentPolicyAcceptance`) | authenticated parent routes except `policy-acceptance`, and authenticated teacher routes except `policy-acceptance` | The parent or teacher must have accepted NavigateEd once, and the school's privacy notice and terms if those pages already existed on that first sign-in. Later visits, and later edits of the pages, are not asked again | HTTP 403 `{"error":true,"message":"Accept the terms before you continue.","code":"policy_acceptance_required"}` |
 | `CheckChild` | parent child-scoped routes | Validates `child_id` as an integer and looks it up through `Parents::children()`; stores the student model on the request as attribute `child` | HTTP 200 `{"error":true,"message":"Invalid Child ID Passed.","code":105}` |
 | `CheckStudent` | `teacher/get-student-result`, `teacher/get-student-marks` | `student_id` must be in a class section where the teacher is a class teacher (`class_teachers.class_teacher_id`) | HTTP 200 `{"error":true,"message":"Invalid Student ID Passed.","code":105}` |
 
@@ -346,10 +346,10 @@ Every route in `routes/api.php`, in file order. All paths are relative to `/api/
 | **S** | `auth:sanctum`, `role:Student`, `student.session.active` |
 | **P** | `auth:sanctum`, `role:Parent`, `parent.children.session.active`, `parent.policy` |
 | **P+C** | **P** plus `CheckChild` (the inner group repeats `auth:sanctum`; Laravel de-duplicates it) |
-| **T** | `auth:sanctum`, `role:Teacher` |
+| **T** | `auth:sanctum`, `role:Teacher`, `teacher.policy` |
 | **T+S** | **T** plus `CheckStudent` (same de-duplication) |
 
-The table matches `php artisan route:list --path=api`, which reports 157 routes; `GET` routes also answer `HEAD`.
+The table matches `php artisan route:list --path=api`, which reports 159 routes; `GET` routes also answer `HEAD`.
 
 Controller names are shortened: `Api` = `ApiController`, `Student\Area`, `Parent\Area` and `Teacher\Area` = `Api/<Role>/AreaController`.
 
@@ -466,6 +466,8 @@ Controller names are shortened: `Api` = `ApiController`, `Student\Area`, `Parent
 | Method | Path | Controller@method | Middleware |
 | --- | --- | --- | --- |
 | POST | `teacher/login` | `Teacher\Auth@login` | `throttle:login` |
+| GET | `teacher/policy-acceptance` | `Parent\Policy@show` | `auth:sanctum`, `role:Teacher` |
+| POST | `teacher/policy-acceptance` | `Parent\Policy@store` | `auth:sanctum`, `role:Teacher` |
 | GET | `teacher/dashboard` | `Teacher\Dashboard@dashboard` | T |
 | GET | `teacher/classes` | `Teacher\Class@classes` | T |
 | GET | `teacher/subjects` | `Teacher\Class@subjects` | T |

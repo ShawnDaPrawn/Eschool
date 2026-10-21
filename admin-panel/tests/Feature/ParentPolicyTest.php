@@ -52,20 +52,22 @@ class ParentPolicyTest extends TestCase
         $this->assertFalse(app(ParentPolicyService::class)->needsAcceptance($parent->fresh()));
     }
 
-    public function test_changing_the_school_terms_asks_the_parent_again(): void
+    public function test_the_first_sign_in_includes_the_school_pages_and_later_edits_do_not(): void
     {
         $parent = $this->parent();
-        ParentPolicyService::acceptCurrent($parent);
-
         Settings::create(['type' => 'privacy_policy', 'message' => '<p>We keep attendance and photos.</p>']);
         Settings::create(['type' => 'terms_condition', 'message' => '<p>Fees are due on the first.</p>']);
 
         $token = $parent->createToken('phone')->plainTextToken;
         $status = $this->withToken($token)->getJson('/api/parent/policy-acceptance');
-        $status->assertJsonPath('data.navigateed.accepted', true);
+        $status->assertJsonPath('data.navigateed.accepted', false);
         $status->assertJsonPath('data.school.required', true);
-        $status->assertJsonPath('data.school.accepted', false);
         $this->assertStringContainsString('photos', $status->json('data.school.privacy_policy'));
+
+        $this->withToken($token)->postJson('/api/parent/policy-acceptance', [
+            'document' => 'navigateed',
+            'version' => $status->json('data.navigateed.version'),
+        ])->assertJsonPath('data.navigateed.accepted', true);
 
         $this->assertTrue(app(ParentPolicyService::class)->needsAcceptance($parent->fresh()));
 
@@ -76,8 +78,33 @@ class ParentPolicyTest extends TestCase
 
         Settings::where('type', 'terms_condition')->update(['message' => '<p>Fees are due on the seventh.</p>']);
 
-        $this->withToken($token)->getJson('/api/parent/policy-acceptance')
-            ->assertJsonPath('data.school.accepted', false);
+        $again = $this->withToken($token)->getJson('/api/parent/policy-acceptance');
+        $again->assertJsonPath('data.navigateed.accepted', true);
+        $again->assertJsonPath('data.school.accepted', true);
+        $this->assertFalse(app(ParentPolicyService::class)->needsAcceptance($parent->fresh()));
+    }
+
+    public function test_a_teacher_accepts_once_on_the_first_sign_in(): void
+    {
+        $teacher = $this->teacher();
+        $request = Request::create('/api/teacher/dashboard', 'GET');
+        $request->setUserResolver(fn () => $teacher);
+
+        $blocked = app(RequireParentPolicyAcceptance::class)->handle($request, fn () => response('next'));
+        $this->assertSame(403, $blocked->getStatusCode());
+
+        $token = $teacher->createToken('phone')->plainTextToken;
+        $version = $this->withToken($token)->getJson('/api/teacher/policy-acceptance')->json('data.navigateed.version');
+        $this->withToken($token)->postJson('/api/teacher/policy-acceptance', [
+            'document' => 'navigateed',
+            'version' => $version,
+        ])->assertJsonPath('data.navigateed.accepted', true);
+
+        $open = app(RequireParentPolicyAcceptance::class)->handle($request, fn () => response('next'));
+        $this->assertSame('next', $open->getContent());
+
+        Settings::create(['type' => 'privacy_policy', 'message' => '<p>Added after the teacher had signed in.</p>']);
+        $this->assertFalse(app(ParentPolicyService::class)->needsAcceptance($teacher->fresh()));
     }
 
     public function test_other_parent_routes_wait_until_the_terms_are_accepted(): void
@@ -120,6 +147,21 @@ class ParentPolicyTest extends TestCase
             'mobile' => '0000000000',
         ]);
         $user->assignRole('Parent');
+
+        return $user;
+    }
+
+    private function teacher(): User
+    {
+        $user = User::create([
+            'first_name' => 'Tara',
+            'last_name' => 'Teacher',
+            'email' => 'tara.teacher@example.com',
+            'password' => Hash::make('secret123'),
+            'gender' => 'Female',
+            'mobile' => '0000000000',
+        ]);
+        $user->assignRole('Teacher');
 
         return $user;
     }

@@ -425,5 +425,12 @@
     "secondHalfAbsent": "دوسرا ہاف غیر حاضر",
     "fullDayLeave": "پورے دن کی چھٹی",
     "firstHalfLeave": "پہلے آدھے دن کی چھٹی",
-    "secondHalfLeave": "دوسرے آدھے دن کی چھٹی"
+    "secondHalfLeave": "دوسرے آدھے دن کی چھٹی",
+    "navigateEd": "NavigateEd",
+    "yourSchool": "آپ کا اسکول",
+    "schoolPoliciesIntro": "آپ کا اسکول ایپ استعمال کرنے سے پہلے اسے قبول کرنے کو کہتا ہے۔",
+    "iHaveReadAndAccept": "میں نے یہ پڑھ لیا ہے اور قبول کرتا ہوں",
+    "acceptAndContinue": "قبول کریں اور آگے بڑھیں",
+    "notNow": "ابھی نہیں",
+    "pleaseAcceptTermsAndCondition": "شرائط قبول کریں اور شرط "
 }

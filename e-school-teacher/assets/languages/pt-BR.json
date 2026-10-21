@@ -425,5 +425,12 @@
   "studentPendingLeaveRequests": "Solicitações de licença recentes",
   "firstHalfLeave": "Licença no primeiro semestre",
   "unableToOpenLink": "Ops! Não foi possível abrir este link.",
-  "linkTitle": "Título do link personalizado"
+  "linkTitle": "Título do link personalizado",
+  "navigateEd": "NavigateEd",
+  "yourSchool": "Sua escola",
+  "schoolPoliciesIntro": "Sua escola pede que você aceite isto antes de usar o aplicativo.",
+  "iHaveReadAndAccept": "Li isto e aceito",
+  "acceptAndContinue": "Aceitar e continuar",
+  "notNow": "Agora não",
+  "pleaseAcceptTermsAndCondition": "Por favor, aceite os termos e condições"
 }

@@ -26,6 +26,7 @@ class Api {
   //
   static String login = '${databaseUrl}teacher/login';
   static String profile = '${databaseUrl}teacher/get-profile-details';
+  static String policyAcceptance = '${databaseUrl}teacher/policy-acceptance';
   static String forgotPassword = '${databaseUrl}forgot-password';
   static String logout = '${databaseUrl}logout';
   static String changePassword = '${databaseUrl}change-password';
