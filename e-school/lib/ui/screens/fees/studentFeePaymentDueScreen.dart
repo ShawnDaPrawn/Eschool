@@ -5,7 +5,7 @@ import 'package:eschool/cubits/authCubit.dart';
 import 'package:eschool/cubits/userProfileCubit.dart';
 import 'package:eschool/data/repositories/authRepository.dart';
 import 'package:eschool/ui/styles/colors.dart';
-import 'package:eschool/ui/widgets/customCircularProgressIndicator.dart';
+import 'package:eschool_core/eschool_core.dart';
 import 'package:eschool/ui/widgets/customRoundedButton.dart';
 import 'package:eschool/ui/widgets/logoutButton.dart';
 import 'package:eschool/utils/assets.dart';

@@ -100,11 +100,34 @@ class OnlineExamQuestionController extends Controller
             return redirect(route('home'))->withErrors($response);
         }
 
-        $filePath = Storage::disk('public')->path('online_exam_questions_sample.csv');
+        // Built here rather than shipped as a file (which never existed on a fresh
+        // install), so the columns always match what the importer reads.
+        $examples = [
+            [
+                'question_type' => 0, 'question' => 'What is the capital of France?',
+                'option1' => 'Berlin', 'option2' => 'Paris', 'option3' => 'Madrid', 'option4' => 'Rome',
+                'correct_options' => '2',
+            ],
+            [
+                'question_type' => 0, 'question' => 'Which of these are prime numbers?',
+                'option1' => '2', 'option2' => '4', 'option3' => '5', 'option4' => '9',
+                'correct_options' => '1|3', 'note' => 'More than one answer is correct',
+            ],
+            [
+                'question_type' => 1, 'question' => 'Solve \( x^2 = 25 \) for \( x > 0 \)',
+                'option1' => '\( x = 5 \)', 'option2' => '\( x = -5 \)', 'option3' => '\( x = 25 \)',
+                'correct_options' => '1',
+            ],
+        ];
 
-        return response()->download($filePath, 'online_exam_questions_sample.csv', [
-            'Content-Type' => 'text/csv',
-        ]);
+        return response()->streamDownload(function () use ($examples) {
+            $out = fopen('php://output', 'w');
+            fputcsv($out, OnlineExamQuestionsImport::COLUMNS);
+            foreach ($examples as $example) {
+                fputcsv($out, array_map(fn ($column) => $example[$column] ?? '', OnlineExamQuestionsImport::COLUMNS));
+            }
+            fclose($out);
+        }, 'online_exam_questions_sample.csv', ['Content-Type' => 'text/csv']);
     }
 
     public function storeBulkData(Request $request)

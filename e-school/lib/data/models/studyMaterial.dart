@@ -1,5 +1,5 @@
 // ignore_for_file: public_member_api_docs, sort_constructors_first
-import 'package:eschool/utils/fileNameUtils.dart';
+import 'package:eschool_core/eschool_core.dart';
 
 enum StudyMaterialType { file, youtubeVideo, uploadedVideoUrl, other }
 

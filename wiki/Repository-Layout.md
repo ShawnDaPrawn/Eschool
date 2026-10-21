@@ -9,6 +9,7 @@ Eschool/
 ├── admin-panel/                         Laravel 12 app: admin panel, public website, REST API
 ├── e-school/                            Flutter app for students and parents
 ├── e-school-teacher/                    Flutter app for teachers
+├── packages/eschool_core/               Dart package both Flutter apps depend on (code shared by the two)
 ├── documentation/                       Docusaurus site with end-user setup and feature guides
 ├── wiki/                                Source of this wiki (published to the Wiki tab)
 └── .github/workflows/                   CI, and the job that publishes this wiki
@@ -19,6 +20,7 @@ Eschool/
 | `admin-panel` | PHP 8.3, Laravel 12, MySQL/MariaDB | `public/index.php` | Database, Firebase Cloud Messaging, payment gateways, SMTP |
 | `e-school` | Dart 3.8+, Flutter | `lib/main.dart` | `admin-panel` at `/api/student/*`, `/api/parent/*` and shared `/api/*` routes |
 | `e-school-teacher` | Dart 3.8+, Flutter | `lib/main.dart` | `admin-panel` at `/api/teacher/*` and shared `/api/*` routes |
+| `packages/eschool_core` | Dart 3.8+, Flutter package | `lib/eschool_core.dart` | Nothing. Both apps depend on it by path |
 | `documentation` | Node 22, Docusaurus 3 | `docusaurus.config.js` | Nothing at runtime. It is a static site on GitHub Pages |
 
 ## `admin-panel/`
@@ -32,7 +34,7 @@ admin-panel/
 │   ├── Helpers/                Global helper functions (settings, notifications)
 │   ├── Http/
 │   │   ├── Controllers/        Admin panel and public website controllers
-│   │   ├── Controllers/Api/    REST API: ApiController, StudentApiController, ParentApiController, TeacherApiController
+│   │   ├── Controllers/Api/    REST API: ApiController, then Student/, Parent/ and Teacher/ (one controller per area)
 │   │   ├── Controllers/Auth/   Web login and password reset
 │   │   ├── Middleware/         Role checks, session-year guards, upload filter, security headers
 │   │   ├── Requests/  Resources/
@@ -89,6 +91,25 @@ e-school/
 ```
 
 The Dart package names are `eschool` and `eschool_teacher`. Every import uses them, so do not rename them. The comment at the top of each `pubspec.yaml` says the same. To change the name users see, follow [Mobile App Configuration](Mobile-App-Configuration).
+
+## `packages/eschool_core/`
+
+Code that both Flutter apps need, kept once instead of copied into each. Both apps list it as a path dependency (`eschool_core: path: ../packages/eschool_core`) and import it with `import 'package:eschool_core/eschool_core.dart';`.
+
+```text
+packages/eschool_core/
+├── lib/eschool_core.dart       The one public library: exports everything below
+├── lib/src/api/                ApiClient (the Dio calls and their error handling), ApiException, ApiErrorCodes
+├── lib/src/models/             Models identical in both apps (gallery, chat settings, event schedule, ...)
+├── lib/src/utils/              Helpers (file name sanitising)
+├── lib/src/widgets/            Widgets that take everything they need as parameters
+├── test/                       Unit tests, run by CI like the apps' tests
+└── pubspec.yaml / pubspec.lock
+```
+
+What belongs here and how to move a file in is in the package's [README](https://github.com/ShawnDaPrawn/Eschool/blob/main/packages/eschool_core/README.md). Files in the package use `snake_case` names; the apps' older files use `camelCase`.
+
+The duplication that remains is mostly code that depends on app-specific helpers (`UiUtils`, the colours, label keys, `Api` endpoints and `routes.dart`), which differ between the apps today. Those have to be shared first before the screens, cubits and repositories built on them can move.
 
 ## `documentation/`
 

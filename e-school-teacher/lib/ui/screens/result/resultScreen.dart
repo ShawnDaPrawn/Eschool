@@ -4,7 +4,7 @@ import 'package:eschool_teacher/cubits/studentCompletedExamWithResultCubit.dart'
 import 'package:eschool_teacher/data/repositories/studentRepository.dart';
 import 'package:eschool_teacher/ui/screens/result/widget/resultsContainer.dart';
 import 'package:eschool_teacher/ui/widgets/customAppbar.dart';
-import 'package:eschool_teacher/ui/widgets/customCircularProgressIndicator.dart';
+import 'package:eschool_core/eschool_core.dart';
 import 'package:eschool_teacher/utils/assets.dart';
 import 'package:eschool_teacher/utils/labelKeys.dart';
 import 'package:eschool_teacher/utils/uiUtils.dart';

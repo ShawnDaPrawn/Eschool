@@ -4,19 +4,19 @@ use App\Http\Controllers\AnnouncementController;
 use App\Http\Controllers\AssignmentController;
 use App\Http\Controllers\AttendanceController;
 use App\Http\Controllers\CategoryController;
-use App\Http\Controllers\ClassSchoolController;
+use App\Http\Controllers\Classes;
 use App\Http\Controllers\ClassTeacherController;
 use App\Http\Controllers\Controller;
 use App\Http\Controllers\EmailController;
 use App\Http\Controllers\EventController;
-use App\Http\Controllers\ExamController;
+use App\Http\Controllers\Exam;
 use App\Http\Controllers\ExamTimetableController;
-use App\Http\Controllers\FeesTypeController;
+use App\Http\Controllers\Fees;
 use App\Http\Controllers\FormFieldController;
 use App\Http\Controllers\HolidayController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\LanguageController;
-use App\Http\Controllers\LeaveController;
+use App\Http\Controllers\Leave;
 use App\Http\Controllers\LeaveMasterController;
 use App\Http\Controllers\LessonController;
 use App\Http\Controllers\LessonTopicController;
@@ -35,7 +35,7 @@ use App\Http\Controllers\ShiftController;
 use App\Http\Controllers\SliderController;
 use App\Http\Controllers\StaffController;
 use App\Http\Controllers\StreamController;
-use App\Http\Controllers\StudentController;
+use App\Http\Controllers\Student;
 use App\Http\Controllers\StudentSessionController;
 use App\Http\Controllers\SubjectController;
 use App\Http\Controllers\SubjectTeacherController;
@@ -134,29 +134,29 @@ Route::group(['middleware' => ['Role', 'auth']], function () {
         Route::resource('section', SectionController::class)->except(['create', 'edit']);
         Route::get('section_list', [SectionController::class, 'show']);
 
-        Route::get('class/select-elective-subjects', [ClassSchoolController::class, 'selectElectiveSubjects'])->name('class.select-elective-subjects');
-        Route::get('get-elective-subjects-by-class', [ClassSchoolController::class, 'getElectiveSubjects'])
+        Route::get('class/select-elective-subjects', [Classes\ElectiveController::class, 'selectElectiveSubjects'])->name('class.select-elective-subjects');
+        Route::get('get-elective-subjects-by-class', [Classes\ElectiveController::class, 'getElectiveSubjects'])
             ->name('get.elective.subjects');
-        Route::get('get-elective-groups-by-class', [ClassSchoolController::class, 'getElectiveGroups'])
+        Route::get('get-elective-groups-by-class', [Classes\ElectiveController::class, 'getElectiveGroups'])
             ->name('get.elective.groups');
-        Route::get('students-subject-data', [ClassSchoolController::class, 'fetchStudentSubjects'])
+        Route::get('students-subject-data', [Classes\ElectiveController::class, 'fetchStudentSubjects'])
             ->name('students-subject-data');
-        Route::get('/get-student-assigned-subjects', [ClassSchoolController::class, 'getStudentAssignedSubjects'])->name('student.assigned.subjects');
-        Route::post('assign-elective-subjects', [ClassSchoolController::class, 'assignElectiveSubject'])
+        Route::get('/get-student-assigned-subjects', [Classes\ElectiveController::class, 'getStudentAssignedSubjects'])->name('student.assigned.subjects');
+        Route::post('assign-elective-subjects', [Classes\ElectiveController::class, 'assignElectiveSubject'])
             ->name('assign-elective-subjects');
 
-        Route::get('get-class-sections/{class_id}', [ClassSchoolController::class, 'getClassSections']);
+        Route::get('get-class-sections/{class_id}', [Classes\ClassController::class, 'getClassSections']);
 
-        Route::get('class/subject', [ClassSchoolController::class, 'subject'])->name('class.subject');
-        Route::post('class/subject', [ClassSchoolController::class, 'update_subjects'])->name('class.subject.update');
-        Route::delete('class/subject/{class_subject_id}', [ClassSchoolController::class, 'subject_destroy'])->name('class.subject.delete');
-        Route::delete('class/subject-group/{group_id}', [ClassSchoolController::class, 'subject_group_destroy'])->name('class.subject-group.delete');
-        Route::get('class/subject/list', [ClassSchoolController::class, 'subject_list'])->name('class.subject.list');
-        Route::get('class/subject/semester-details/{class_id}', [ClassSchoolController::class, 'subjectSemesterDetails'])->name('class.subject.semester-details');
-        Route::get('class-list', [ClassSchoolController::class, 'show']);
-        Route::resource('class', ClassSchoolController::class)->except(['create', 'edit']);
+        Route::get('class/subject', [Classes\SubjectController::class, 'subject'])->name('class.subject');
+        Route::post('class/subject', [Classes\SubjectController::class, 'update_subjects'])->name('class.subject.update');
+        Route::delete('class/subject/{class_subject_id}', [Classes\SubjectController::class, 'subject_destroy'])->name('class.subject.delete');
+        Route::delete('class/subject-group/{group_id}', [Classes\SubjectController::class, 'subject_group_destroy'])->name('class.subject-group.delete');
+        Route::get('class/subject/list', [Classes\SubjectController::class, 'subject_list'])->name('class.subject.list');
+        Route::get('class/subject/semester-details/{class_id}', [Classes\SubjectController::class, 'subjectSemesterDetails'])->name('class.subject.semester-details');
+        Route::get('class-list', [Classes\ClassController::class, 'show']);
+        Route::resource('class', Classes\ClassController::class)->except(['create', 'edit']);
 
-        Route::get('class-subject-list/{medium_id}', [ClassSchoolController::class, 'getSubjectsByMediumId']);
+        Route::get('class-subject-list/{medium_id}', [Classes\SubjectController::class, 'getSubjectsByMediumId']);
 
         Route::get('assign/class/teacher', [ClassTeacherController::class, 'teacher'])->name('class.teacher');
         Route::post('class/teacher/store', [ClassTeacherController::class, 'assign_teacher'])->name('class.teacher.store');
@@ -183,30 +183,31 @@ Route::group(['middleware' => ['Role', 'auth']], function () {
         Route::get('email-tamplate', [EmailController::class, 'index'])->name('email.Template');
         Route::post('email/store', [EmailController::class, 'store'])->name('email.store');
 
-        Route::get('students-report', [StudentController::class, 'detail'])->name('students.report');
+        Route::get('students-report', [Student\ReportController::class, 'detail'])->name('students.report');
 
         Route::get('staff-attendance/check-leave', [AttendanceController::class, 'checkStaffLeave'])->name('staff-attendance.check-leave');
         Route::get('get-session-year-months', [AttendanceController::class, 'getSessionYearMonths']);
 
-        Route::post('student-result-details', [StudentController::class, 'getStudentResultDetails']);
-        Route::get('students-list', [StudentController::class, 'index'])->name('students.list');
-        Route::get('students-list-data', [StudentController::class, 'show'])->name('students.list.data');
-        Route::get('student-class-sections', [StudentController::class, 'getClassSectionsBySessionYear'])->name('student.class-sections');
-        Route::get('students/assign-class', [StudentController::class, 'assignClass'])->name('students.assign-class');
-        Route::post('students/assign-class', [StudentController::class, 'assignClass_store'])->name('students.assign-class.store');
-        Route::get('students/new-student-list', [StudentController::class, 'newStudentList'])->name('students.new-student-list');
-        Route::get('students/create_bulk', [StudentController::class, 'createBulkData'])->name('students.create-bulk-data');
-        Route::post('students/store_bulk', [StudentController::class, 'storeBulkData'])->name('students.store-bulk-data');
-        Route::resource('students', StudentController::class)->except(['edit']);
+        Route::post('student-result-details', [Student\ResultController::class, 'getStudentResultDetails']);
+        Route::get('students-list', [Student\StudentController::class, 'index'])->name('students.list');
+        Route::get('students-list-data', [Student\StudentController::class, 'show'])->name('students.list.data');
+        Route::get('student-class-sections', [Student\ClassAssignmentController::class, 'getClassSectionsBySessionYear'])->name('student.class-sections');
+        Route::get('students/assign-class', [Student\ClassAssignmentController::class, 'assignClass'])->name('students.assign-class');
+        Route::post('students/assign-class', [Student\ClassAssignmentController::class, 'assignClass_store'])->name('students.assign-class.store');
+        Route::get('students/new-student-list', [Student\ClassAssignmentController::class, 'newStudentList'])->name('students.new-student-list');
+        Route::get('students/create_bulk', [Student\BulkImportController::class, 'createBulkData'])->name('students.create-bulk-data');
+        Route::get('students/download-sample', [Student\BulkImportController::class, 'downloadSampleFile'])->name('students.download-sample');
+        Route::post('students/store_bulk', [Student\BulkImportController::class, 'storeBulkData'])->name('students.store-bulk-data');
+        Route::resource('students', Student\StudentController::class)->except(['edit']);
 
         // student generate roll number
-        Route::get('student/assign-roll-number', [StudentController::class, 'indexStudentRollNumber'])->name('students.index-students-roll-number');
-        Route::get('student/list-assign-roll-number/{class_section_id}', [StudentController::class, 'listStudentRollNumber'])->name('students.list-students-roll-number');
-        Route::post('student/store-roll-number', [StudentController::class, 'storeStudentRollNumber'])->name('students.store-roll-number');
+        Route::get('student/assign-roll-number', [Student\RollNumberController::class, 'indexStudentRollNumber'])->name('students.index-students-roll-number');
+        Route::get('student/list-assign-roll-number/{class_section_id}', [Student\RollNumberController::class, 'listStudentRollNumber'])->name('students.list-students-roll-number');
+        Route::post('student/store-roll-number', [Student\RollNumberController::class, 'storeStudentRollNumber'])->name('students.store-roll-number');
 
-        // Route::get('students-list', [StudentController::class, 'detail'])->name('students.detail');
-        Route::get('student-report/{id}', [StudentController::class, 'showStudentReport'])->name('student.report');
-        Route::get('student-attendance/{id}', [StudentController::class, 'studentAttendanceReport'])->name('student.attendance.report');
+        // Route::get('students-list', [Student\ReportController::class, 'detail'])->name('students.detail');
+        Route::get('student-report/{id}', [Student\ReportController::class, 'showStudentReport'])->name('student.report');
+        Route::get('student-attendance/{id}', [Student\ReportController::class, 'studentAttendanceReport'])->name('student.attendance.report');
 
         Route::resource('category', CategoryController::class)->except(['create']);
         Route::get('category_list', [CategoryController::class, 'show']);
@@ -264,36 +265,36 @@ Route::group(['middleware' => ['Role', 'auth']], function () {
 
         Route::resource('sliders', SliderController::class)->except(['create', 'edit']);
 
-        Route::get('exams/exam-result', [ExamController::class, 'getExamResultIndex'])->name('exams.get-result');
-        Route::post('exams/fetch-exam-result-list', [ExamController::class, 'fetchExamResultList'])->name('exams.fetch-exam-result-list');
-        Route::get('exams/show-result', [ExamController::class, 'showExamResult'])->name('exams.show-result');
-        Route::get('exams/class-options', [ExamController::class, 'getClassOptionsForSession'])->name('exams.class-options');
+        Route::get('exams/exam-result', [Exam\ResultController::class, 'getExamResultIndex'])->name('exams.get-result');
+        Route::post('exams/fetch-exam-result-list', [Exam\ResultController::class, 'fetchExamResultList'])->name('exams.fetch-exam-result-list');
+        Route::get('exams/show-result', [Exam\ResultController::class, 'showExamResult'])->name('exams.show-result');
+        Route::get('exams/class-options', [Exam\ExamController::class, 'getClassOptionsForSession'])->name('exams.class-options');
 
-        Route::get('exams/view-result', [ExamController::class, 'viewExamResult'])->name('exams.view-result');
-        Route::post('exams/update-result-marks', [ExamController::class, 'updateExamResultMarks'])->name('exams.update-result-marks');
+        Route::get('exams/view-result', [Exam\ResultController::class, 'viewExamResult'])->name('exams.view-result');
+        Route::post('exams/update-result-marks', [Exam\MarksController::class, 'updateExamResultMarks'])->name('exams.update-result-marks');
 
-        Route::post('exams/submit-marks', [ExamController::class, 'submitMarks'])->name('exams.submit-marks');
+        Route::post('exams/submit-marks', [Exam\MarksController::class, 'submitMarks'])->name('exams.submit-marks');
 
-        Route::get('exams/upload-marks', [ExamController::class, 'uploadMarks'])->name('exams.upload-marks');
-        Route::get('exams/marks-list', [ExamController::class, 'marksList'])->name('exams.marks-list');
+        Route::get('exams/upload-marks', [Exam\MarksController::class, 'uploadMarks'])->name('exams.upload-marks');
+        Route::get('exams/marks-list', [Exam\MarksController::class, 'marksList'])->name('exams.marks-list');
 
-        Route::get('exams/get-exams/{class_id}', [ExamController::class, 'getExamByClass'])->name('exams.classes');
-        Route::delete('/delete-exam-class/{exam_id}/{class_id}', [ExamController::class, 'deleteExamClass']);
-        Route::get('exams/get-subjects/{class_id}/{exam_id}', [ExamController::class, 'getSubjectByExam'])->name('exams.subject');
-        Route::post('exams/publish/{id}', [ExamController::class, 'publishExamResult'])->name('exams.publish');
-        Route::get('exams/get-publish-exam/{class_id}', [ExamController::class, 'getPublishExam'])->name('exam.publish.list');
-        Route::resource('exams', ExamController::class)->except(['create', 'edit']);
+        Route::get('exams/get-exams/{class_id}', [Exam\ExamController::class, 'getExamByClass'])->name('exams.classes');
+        Route::delete('/delete-exam-class/{exam_id}/{class_id}', [Exam\ExamController::class, 'deleteExamClass']);
+        Route::get('exams/get-subjects/{class_id}/{exam_id}', [Exam\ExamController::class, 'getSubjectByExam'])->name('exams.subject');
+        Route::post('exams/publish/{id}', [Exam\PublishController::class, 'publishExamResult'])->name('exams.publish');
+        Route::get('exams/get-publish-exam/{class_id}', [Exam\PublishController::class, 'getPublishExam'])->name('exam.publish.list');
+        Route::resource('exams', Exam\ExamController::class)->except(['create', 'edit']);
 
         Route::post('exams/update-timetable', [ExamTimetableController::class, 'updateTimetable'])->name('exams.update-timetable');
         Route::delete('exams/delete-timetable/{id}', [ExamTimetableController::class, 'deleteTimetable'])->name('exams.delete-timetable');
-        Route::get('grades', [ExamController::class, 'indexGrades'])->name('grades');
-        Route::get('/grades/by-session-year/{sessionYear}', [ExamController::class, 'getGradesBySessionYear'])
+        Route::get('grades', [Exam\GradeController::class, 'indexGrades'])->name('grades');
+        Route::get('/grades/by-session-year/{sessionYear}', [Exam\GradeController::class, 'getGradesBySessionYear'])
             ->name('grades.bySessionYear');
 
-        Route::get('exams/get-exam-subjects/{exam_id}', [ExamController::class, 'getExamSubjects'])->name('exams.subjects');
+        Route::get('exams/get-exam-subjects/{exam_id}', [Exam\ExamController::class, 'getExamSubjects'])->name('exams.subjects');
 
-        Route::post('create-grades', [ExamController::class, 'createGrades'])->name('create-grades');
-        Route::delete('destroy-grades/{grade_id}', [ExamController::class, 'destroyGrades'])->name('destroy-grades');
+        Route::post('create-grades', [Exam\GradeController::class, 'createGrades'])->name('create-grades');
+        Route::delete('destroy-grades/{grade_id}', [Exam\GradeController::class, 'destroyGrades'])->name('destroy-grades');
 
         Route::resource('exam-timetable', ExamTimetableController::class);
         Route::get('exam/get-classes/{exam_id}', [ExamTimetableController::class, 'getClassesByExam'])->name('exam-timetable.classes');
@@ -319,8 +320,8 @@ Route::group(['middleware' => ['Role', 'auth']], function () {
 
             return view('students.reset_password');
         })->name('students.reset_password');
-        Route::get('reset-password-list', [StudentController::class, 'reset_password']);
-        Route::post('student-change-password', [StudentController::class, 'change_password']);
+        Route::get('reset-password-list', [Student\PasswordController::class, 'reset_password']);
+        Route::post('student-change-password', [Student\PasswordController::class, 'change_password']);
 
         Route::resource('promote-student', StudentSessionController::class)->except(['create', 'edit', 'update', 'destroy']);
         Route::get('getPromoteData', [StudentSessionController::class, 'getPromoteData']);
@@ -341,33 +342,33 @@ Route::group(['middleware' => ['Role', 'auth']], function () {
         Route::get('set-language/{lang}', [LanguageController::class, 'set_language']);
 
         // fees
-        Route::resource('fees-type', FeesTypeController::class)->except(['create', 'edit']);
+        Route::resource('fees-type', Fees\TypeController::class)->except(['create', 'edit']);
 
-        Route::get('fees/classes', [FeesTypeController::class, 'feesClassListIndex'])->name('fees.class.index');
-        // Route::post('fees/classes/update', [FeesTypeController::class, 'updateFeesClass'])->name('fees.class.update');
-        Route::get('fees/classes/list', [FeesTypeController::class, 'feesClassList'])->name('fees.class.list');
+        Route::get('fees/classes', [Fees\ClassController::class, 'feesClassListIndex'])->name('fees.class.index');
+        // Route::post('fees/classes/update', [Fees\ClassController::class, 'updateFeesClass'])->name('fees.class.update');
+        Route::get('fees/classes/list', [Fees\ClassController::class, 'feesClassList'])->name('fees.class.list');
 
-        Route::post('class/fees-type', [FeesTypeController::class, 'updateFeesClass'])->name('class.fees.type.update');
-        Route::delete('class/fees-type/{fees_class_id}', [FeesTypeController::class, 'removeFeesClass'])->name('class.fees.type.delete');
+        Route::post('class/fees-type', [Fees\ClassController::class, 'updateFeesClass'])->name('class.fees.type.update');
+        Route::delete('class/fees-type/{fees_class_id}', [Fees\ClassController::class, 'removeFeesClass'])->name('class.fees.type.delete');
 
-        Route::get('fees/paid', [FeesTypeController::class, 'feesPaidListIndex'])->name('fees.paid.index');
-        Route::get('fees/paid/list', [FeesTypeController::class, 'feesPaidList'])->name('fees.paid.list');
+        Route::get('fees/paid', [Fees\PaidController::class, 'feesPaidListIndex'])->name('fees.paid.index');
+        Route::get('fees/paid/list', [Fees\PaidController::class, 'feesPaidList'])->name('fees.paid.list');
 
-        Route::get('fees-config', [FeesTypeController::class, 'feesConfigIndex'])->name('fees.config.index');
-        Route::post('fees-config/update', [FeesTypeController::class, 'feesConfigUpdate'])->name('fees.config.udpate');
-        Route::delete('fees/paid/remove-choiceable-fees/{id}', [FeesTypeController::class, 'feesPaidRemoveChoiceableFees'])->name('fees.paid.remove.choiceable.fees');
-        Route::delete('fees/paid/remove-installment-fees/{id}', [FeesTypeController::class, 'feesPaidRemoveInstallmentFees'])->name('fees.paid.remove.installment.fees');
-        Route::delete('fees/paid/clear-data/{id}', [FeesTypeController::class, 'clearFeesPaidData'])->name('fees.paid.clear.data');
+        Route::get('fees-config', [Fees\ConfigController::class, 'feesConfigIndex'])->name('fees.config.index');
+        Route::post('fees-config/update', [Fees\ConfigController::class, 'feesConfigUpdate'])->name('fees.config.udpate');
+        Route::delete('fees/paid/remove-choiceable-fees/{id}', [Fees\PaymentController::class, 'feesPaidRemoveChoiceableFees'])->name('fees.paid.remove.choiceable.fees');
+        Route::delete('fees/paid/remove-installment-fees/{id}', [Fees\PaymentController::class, 'feesPaidRemoveInstallmentFees'])->name('fees.paid.remove.installment.fees');
+        Route::delete('fees/paid/clear-data/{id}', [Fees\PaidController::class, 'clearFeesPaidData'])->name('fees.paid.clear.data');
 
         // Installment Fees Management
 
-        Route::post('fees/optional-paid/store', [FeesTypeController::class, 'optionalFeesPaidStore'])->name('fees.optional-paid.store');
-        Route::post('fees/compulsory-paid/store', [FeesTypeController::class, 'compulsoryFeesPaidStore'])->name('fees.compulsory-paid.store');
+        Route::post('fees/optional-paid/store', [Fees\PaymentController::class, 'optionalFeesPaidStore'])->name('fees.optional-paid.store');
+        Route::post('fees/compulsory-paid/store', [Fees\PaymentController::class, 'compulsoryFeesPaidStore'])->name('fees.compulsory-paid.store');
 
-        Route::get('fees/transaction-logs', [FeesTypeController::class, 'feesTransactionsLogsIndex'])->name('fees.transactions.log.index');
-        Route::get('fees/transaction-logs/list', [FeesTypeController::class, 'feesTransactionsLogsList'])->name('fees.transactions.log.list');
+        Route::get('fees/transaction-logs', [Fees\TransactionLogController::class, 'feesTransactionsLogsIndex'])->name('fees.transactions.log.index');
+        Route::get('fees/transaction-logs/list', [Fees\TransactionLogController::class, 'feesTransactionsLogsList'])->name('fees.transactions.log.list');
 
-        Route::get('fees/paid/receipt-pdf/{id}', [FeesTypeController::class, 'feesPaidReceiptPDF'])->name('fees.paid.receipt.pdf');
+        Route::get('fees/paid/receipt-pdf/{id}', [Fees\PaidController::class, 'feesPaidReceiptPDF'])->name('fees.paid.receipt.pdf');
 
         // Online Exam
         Route::get('online-exam/terms-conditions', [OnlineExamController::class, 'onlineExamTermsConditionIndex'])->name('online-exam.terms-conditions');
@@ -465,33 +466,33 @@ Route::group(['middleware' => ['Role', 'auth']], function () {
         Route::post('/staff-attendance/bulk-store', [StaffController::class, 'storeAttendance'])->name('staff-attendance.bulk-store');
         Route::get('/staff-attendance/get-attendance', [StaffController::class, 'staffattendanceData'])->name('staff-attendance.list');
 
-        Route::get('generate-id', [StudentController::class, 'generateIdCardIndex'])->name('generate_id.index');
-        Route::get('id-card-settings', [StudentController::class, 'idCardSettingIndex'])->name('id_card_setting.index');
-        Route::post('id-card-settings/update', [StudentController::class, 'updateIdCardSetting'])->name('id_card_settings.update');
-        Route::post('generate-id-card', [StudentController::class, 'generateIdCard']);
-        Route::delete('remove-image/{type}', [StudentController::class, 'deleteImage']);
+        Route::get('generate-id', [Student\IdCardController::class, 'generateIdCardIndex'])->name('generate_id.index');
+        Route::get('id-card-settings', [Student\IdCardController::class, 'idCardSettingIndex'])->name('id_card_setting.index');
+        Route::post('id-card-settings/update', [Student\IdCardController::class, 'updateIdCardSetting'])->name('id_card_settings.update');
+        Route::post('generate-id-card', [Student\IdCardController::class, 'generateIdCard']);
+        Route::delete('remove-image/{type}', [Student\IdCardController::class, 'deleteImage']);
 
-        Route::get('generate-bonafide-certificate/{id}', [StudentController::class, 'bonafideCertificateIndex'])->name('bonafide.certificate.index');
-        Route::post('bonafide-certificate', [StudentController::class, 'generateBonafideCertificate'])->name('bonafide.certificate.pdf');
+        Route::get('generate-bonafide-certificate/{id}', [Student\CertificateController::class, 'bonafideCertificateIndex'])->name('bonafide.certificate.index');
+        Route::post('bonafide-certificate', [Student\CertificateController::class, 'generateBonafideCertificate'])->name('bonafide.certificate.pdf');
 
-        Route::get('generate-leaving-certificate/{id}', [StudentController::class, 'leavingCertificateIndex'])->name('leaving.certificate.index');
-        Route::post('leaving-certificate', [StudentController::class, 'generateLeavingCertificate'])->name('leaving.certificate.pdf');
+        Route::get('generate-leaving-certificate/{id}', [Student\CertificateController::class, 'leavingCertificateIndex'])->name('leaving.certificate.index');
+        Route::post('leaving-certificate', [Student\CertificateController::class, 'generateLeavingCertificate'])->name('leaving.certificate.pdf');
 
-        Route::get('student-generate-result', [StudentController::class, 'resultIndex'])->name('student.result.index');
+        Route::get('student-generate-result', [Student\ResultController::class, 'resultIndex'])->name('student.result.index');
 
-        Route::get('get-student-list', [StudentController::class, 'studentList'])->name('get.student.list');
-        Route::get('generate-result/{id}', [StudentController::class, 'generateResult'])->name('generate.result');
-        Route::get('generate-exam-result/{id}', [StudentController::class, 'generateExamResult'])->name('generate.exam.result');
+        Route::get('get-student-list', [Student\ResultController::class, 'studentList'])->name('get.student.list');
+        Route::get('generate-result/{id}', [Student\ResultController::class, 'generateResult'])->name('generate.result');
+        Route::get('generate-exam-result/{id}', [Student\ResultController::class, 'generateExamResult'])->name('generate.exam.result');
 
         Route::resource('leave-master', LeaveMasterController::class);
 
-        Route::get('leave-report', [LeaveController::class, 'leaveReportIndex'])->name('leave-report.index');
-        Route::get('leave-details', [LeaveController::class, 'leaveDetails'])->name('leave-details-list');
-        Route::get('leave-request', [LeaveController::class, 'leaveRequestIndex'])->name('leave-request.index');
-        Route::get('leave-request-show', [LeaveController::class, 'leaveRequestShow'])->name('leave-request.show');
-        Route::post('leave-request-update', [LeaveController::class, 'leaveStatusUpdate'])->name('leave-status.update');
-        Route::resource('leave', LeaveController::class)->except(['create', 'edit', 'update']);
-        Route::post('leave-add-admin', [LeaveController::class, 'adminLeaveStore'])->name('leave.store.admin');
+        Route::get('leave-report', [Leave\ReportController::class, 'leaveReportIndex'])->name('leave-report.index');
+        Route::get('leave-details', [Leave\ReportController::class, 'leaveDetails'])->name('leave-details-list');
+        Route::get('leave-request', [Leave\RequestController::class, 'leaveRequestIndex'])->name('leave-request.index');
+        Route::get('leave-request-show', [Leave\RequestController::class, 'leaveRequestShow'])->name('leave-request.show');
+        Route::post('leave-request-update', [Leave\RequestController::class, 'leaveStatusUpdate'])->name('leave-status.update');
+        Route::resource('leave', Leave\LeaveController::class)->except(['create', 'edit', 'update']);
+        Route::post('leave-add-admin', [Leave\RequestController::class, 'adminLeaveStore'])->name('leave.store.admin');
 
         Route::get('chat-settings', [SettingController::class, 'chat_setting_index'])->name('chat_setting.index');
         Route::post('chat-settings-update', [SettingController::class, 'chat_setting_update'])->name('chat_setting.update');
@@ -503,25 +504,25 @@ Route::group(['middleware' => ['Role', 'auth']], function () {
         Route::get('view-schedule/{id}', [EventController::class, 'viewScheduleIndex'])->name('view_schedule.index');
         Route::post('events-update', [EventController::class, 'updateEvents'])->name('events.update-schedules');
 
-        Route::get('online-registration', [StudentController::class, 'onlineRegistrationIndex'])->name('online-registration.index');
-        Route::get('online-registration-list', [StudentController::class, 'onlineRegistrationList'])->name('online-registration.list');
-        Route::delete('permanent-delete/{id}', [StudentController::class, 'permanentDelete'])->name('permanent-delete');
-        Route::post('update-active-status', [StudentController::class, 'updateStatus'])->name('update-active-status');
-        Route::get('get-class-section-by-class/{class_id}', [StudentController::class, 'getClassSectionByClass']);
+        Route::get('online-registration', [Student\OnlineRegistrationController::class, 'onlineRegistrationIndex'])->name('online-registration.index');
+        Route::get('online-registration-list', [Student\OnlineRegistrationController::class, 'onlineRegistrationList'])->name('online-registration.list');
+        Route::delete('permanent-delete/{id}', [Student\StudentController::class, 'permanentDelete'])->name('permanent-delete');
+        Route::post('update-active-status', [Student\OnlineRegistrationController::class, 'updateStatus'])->name('update-active-status');
+        Route::get('get-class-section-by-class/{class_id}', [Student\ClassAssignmentController::class, 'getClassSectionByClass']);
         Route::get('semester/class-config', [SemesterController::class, 'getClassConfig']);
         Route::post('semester/class-config', [SemesterController::class, 'saveClassConfig']);
         Route::get('semester/show', [SemesterController::class, 'show']);
         Route::resource('semester', SemesterController::class)->except(['create', 'edit']);
 
-        Route::get('class-subject-edit/{id}', [ClassSchoolController::class, 'classSubjectsEdit'])->name('class-subject-edit.index');
-        Route::get('student-leave-request', [LeaveController::class, 'studentLeaveRequestIndex'])->name('student-leave-request.index');
-        Route::get('student-leave-request-list', [LeaveController::class, 'studentLeaveRequestList'])->name('student-leave-request.show');
-        Route::post('student-leave-request-update', [LeaveController::class, 'studentLeaveStatusUpdate'])->name('student-leave-status.update');
-        Route::get('student-leave-class-sections', [LeaveController::class, 'getStudentLeaveClassSections'])->name('student-leave-class-sections');
+        Route::get('class-subject-edit/{id}', [Classes\SubjectController::class, 'classSubjectsEdit'])->name('class-subject-edit.index');
+        Route::get('student-leave-request', [Leave\StudentLeaveController::class, 'studentLeaveRequestIndex'])->name('student-leave-request.index');
+        Route::get('student-leave-request-list', [Leave\StudentLeaveController::class, 'studentLeaveRequestList'])->name('student-leave-request.show');
+        Route::post('student-leave-request-update', [Leave\StudentLeaveController::class, 'studentLeaveStatusUpdate'])->name('student-leave-status.update');
+        Route::get('student-leave-class-sections', [Leave\StudentLeaveController::class, 'getStudentLeaveClassSections'])->name('student-leave-class-sections');
 
         // route and method is not used
-        Route::get('staff-leave', [LeaveController::class, 'staffLeaveIndex'])->name('staff-leave.index');
-        Route::get('staff-leave-list', [LeaveController::class, 'staffLeaveList'])->name('staff-leave.show');
+        Route::get('staff-leave', [Leave\StaffLeaveController::class, 'staffLeaveIndex'])->name('staff-leave.index');
+        Route::get('staff-leave-list', [Leave\StaffLeaveController::class, 'staffLeaveList'])->name('staff-leave.show');
     });
 });
 
@@ -535,14 +536,15 @@ Route::post('webhook/flutterwave', [WebhookController::class, 'flutterwave']);
 Route::get('response/paystack/success', [WebhookController::class, 'paystackSuccessCallback'])->name('paystack.success');
 Route::get('response/flutterwave/success', [WebhookController::class, 'flutterwaveSuccessCallback'])->name('flutterwave.success');
 
+// Linked from the public website footer; the school may not have written them yet.
 Route::get('/privacy-policy', function () {
     $settings = getSettings('privacy_policy');
-    echo $settings['privacy_policy'] ?? '';
+    echo ! empty($settings['privacy_policy']) ? $settings['privacy_policy'] : e(trans('page_not_published_yet'));
 });
 
 Route::get('/terms-conditions', function () {
     $settings = getSettings('terms_condition');
-    echo $settings['terms_condition'] ?? '';
+    echo ! empty($settings['terms_condition']) ? $settings['terms_condition'] : e(trans('page_not_published_yet'));
 });
 
 // Maintenance actions: the header's Cache Clear button needs a logged-in user;

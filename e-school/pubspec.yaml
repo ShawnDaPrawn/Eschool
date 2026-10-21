@@ -17,6 +17,9 @@ dependencies:
   flutter_localizations:
     sdk: flutter
 
+  eschool_core:
+    path: ../packages/eschool_core
+
   cupertino_icons: ^1.0.9
   flutter_bloc: ^9.1.1
   flutter_svg: ^2.2.4

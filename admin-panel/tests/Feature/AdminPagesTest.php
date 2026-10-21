@@ -2,17 +2,22 @@
 
 namespace Tests\Feature;
 
+use App\Models\Staff;
+use App\Models\Teacher;
+use App\Models\User;
 use GuzzleHttp\Cookie\CookieJar;
 use Illuminate\Http\Client\PendingRequest;
 use Illuminate\Routing\Route;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Route as RouteFacade;
 use Illuminate\Support\Str;
 use Tests\Concerns\RunsAppServer;
 use Tests\TestCase;
 
 /**
- * Logs in as the Super Admin on a freshly installed app and opens every GET
- * page that takes no parameters, checking that none is forbidden or crashes.
+ * Logs in as the Super Admin, then as a teacher, on a freshly installed app and
+ * opens every GET page that takes no parameters, checking that none crashes
+ * (and that none is forbidden to the Super Admin).
  *
  * The pages are served by a separate `php -S` process (see RunsAppServer).
  */
@@ -43,7 +48,7 @@ class AdminPagesTest extends TestCase
 
     public function test_no_admin_page_is_forbidden_or_broken(): void
     {
-        $client = $this->loggedInClient();
+        $client = $this->loggedInClient('superadmin@gmail.com', 'superadmin');
 
         $forbidden = [];
         $broken = [];
@@ -60,7 +65,34 @@ class AdminPagesTest extends TestCase
         $this->assertSame([], $broken, 'Pages returned a server error');
     }
 
-    private function loggedInClient(): PendingRequest
+    public function test_no_admin_page_crashes_for_a_teacher(): void
+    {
+        $teacher = User::create([
+            'first_name' => 'Test',
+            'last_name' => 'Teacher',
+            'email' => 'teacher.test@example.com',
+            'password' => Hash::make('secret123'),
+            'gender' => 'Male',
+            'mobile' => '0000000000',
+        ]);
+        $teacher->assignRole('Teacher');
+        Staff::forceCreate(['user_id' => $teacher->id]);
+        Teacher::forceCreate(['user_id' => $teacher->id]);
+        $client = $this->loggedInClient('teacher.test@example.com', 'secret123');
+
+        // A teacher may be refused admin pages (403 or a redirect), but none may crash.
+        $broken = [];
+        foreach ($this->pageUris() as $uri) {
+            $status = $client->get('/'.$uri)->status();
+            if ($status >= 500) {
+                $broken[] = "$uri ($status)";
+            }
+        }
+
+        $this->assertSame([], $broken, 'Pages returned a server error for a teacher');
+    }
+
+    private function loggedInClient(string $email, string $password): PendingRequest
     {
         $client = $this->appClient()->withOptions(['cookies' => new CookieJar]);
 
@@ -71,10 +103,10 @@ class AdminPagesTest extends TestCase
 
         $login = $client->asForm()->post('/login', [
             '_token' => $token[1],
-            'email' => 'superadmin@gmail.com',
-            'password' => 'superadmin',
+            'email' => $email,
+            'password' => $password,
         ]);
-        $this->assertStringEndsWith('/home', (string) $login->header('Location'), 'Super Admin login failed');
+        $this->assertStringEndsWith('/home', (string) $login->header('Location'), "Login failed for $email");
 
         return $client;
     }

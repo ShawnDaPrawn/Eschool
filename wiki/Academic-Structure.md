@@ -40,7 +40,7 @@ $session_year_id = getSettings('session_year')['session_year'];
 
 `SessionYearController::update` also accepts a `default` flag. It refuses an already-ended year, clears `default` on all rows and sets it on the edited one, but it does **not** change the `session_year` setting. Use General Settings to switch the current year so the two stay in step.
 
-The admin panel also keeps a per-browser "viewing" year: `POST /set-session-year` (`SessionYearController::setSessionYearToSessionStorage`) stores `session('session_year')`. It is read by the dashboard (`HomeController`), by `ExamController::viewExamResult`, and by `ClassSchool::getIncludeSemestersAttribute()`; most list pages instead take a `session_year_id` filter from the request and fall back to the setting. The mobile apps always use the setting.
+The admin panel also keeps a per-browser "viewing" year: `POST /set-session-year` (`SessionYearController::setSessionYearToSessionStorage`) stores `session('session_year')`. It is read by the dashboard (`HomeController`), by `Exam\ResultController::viewExamResult`, and by `ClassSchool::getIncludeSemestersAttribute()`; most list pages instead take a `session_year_id` filter from the request and fall back to the setting. The mobile apps always use the setting.
 
 ### Creating a session year
 
@@ -74,7 +74,7 @@ The copies keep the source rows' `semester_id` values; the semesters themselves 
 
 A semester (`semesters`) has a name, `start_date`, `end_date` and `session_year_id`. `SemesterController` (permissions `semester-list|create|edit|delete`) creates them inside a year and rejects overlapping ranges.
 
-- **Current semester.** The `current` accessor is true when today is between the start and end dates; a semester whose start is after its end is treated as wrapping the new year. Code finds "the" current semester with `Semester::get()->first(fn ($s) => $s->current)`, in some places filtered by session year first and in others (`Students::getCurrentSemester()`, `StudentApiController::selectSubjects`) not.
+- **Current semester.** The `current` accessor is true when today is between the start and end dates; a semester whose start is after its end is treated as wrapping the new year. Code finds "the" current semester with `Semester::get()->first(fn ($s) => $s->current)`, in some places filtered by session year first and in others (`Students::getCurrentSemester()`, `Student\SubjectController::selectSubjects`) not.
 - **Per-class switch.** Semesters only affect a class whose `class_session_configs.include_semesters` is true for that session year. `ClassSessionConfig::classHasSemester($classId, $sessionYearId)` and `ClassSchool::getIncludeSemestersForSession()` read it.
 - **What becomes semester-specific** when a class has semesters: class subjects and elective groups, student elective picks, timetables, class and subject teachers, lessons, assignments, announcements, offline and online exams. Queries for the apps filter by the current semester.
 - **Deleting a semester** soft-deletes its class subjects, elective groups, timetables and student subjects (`Semester::booted()`). If it was the last semester of the year, `SemesterController::destroy` also deletes every `include_semesters = true` config row for that year and runs `wipeClassData()` (below) for those classes, including their lessons.
@@ -101,7 +101,7 @@ These are simple lookup tables managed from their own controllers (`MediumContro
 
 ## Classes and class sections
 
-`ClassSchoolController::store` (permission `class-create`):
+`Classes\ClassController::store` (permission `class-create`):
 
 - `name` must match `/^[A-Za-z0-9_]+$/`, so class names cannot contain spaces.
 - Without `stream_id`, one `classes` row is created. With an array of `stream_id`, one row is created per stream, all with the same name, medium and shift.
@@ -113,13 +113,13 @@ These are simple lookup tables managed from their own controllers (`MediumContro
 ## Subjects, class subjects and electives
 
 - **Subjects** are defined per medium (`SubjectController`). A subject can be offered by many classes.
-- **Class subjects** are assigned per class and per session year on the "Assign class subject" page (`ClassSchoolController::update_subjects`, permission `assign-class-subject`):
+- **Class subjects** are assigned per class and per session year on the "Assign class subject" page (`Classes\SubjectController::update_subjects`, permission `assign-class-subject`):
   - Core subjects are `class_subjects` rows with `type = 'Compulsory'`.
   - Each elective group is an `elective_subject_groups` row plus one `class_subjects` row per subject with `type = 'Elective'` and `elective_subject_group_id`. `total_subjects` is the number of subjects in the group; `total_selectable_subjects` is how many a student must or may choose.
   - When semesters are on, every row carries a `semester_id`. The same subject cannot appear twice in the same semester (as two cores, two electives or core and elective); it may repeat across semesters.
   - Removing a subject from an existing elective group deletes the matching `student_subjects` picks.
 - **Deleting** a class subject (`ClassSubject::booted()`) also deletes the subject-teacher rows for that subject in the class's sections and session year, and decrements the group's `total_subjects` (deleting the group at zero). Deleting a group removes its subjects and the students' picks.
-- **Elective selection.** Students pick electives in the app (`POST /api/student/select-subjects`): each group must belong to the student's class for the session (and current semester when semesters are on), every subject must belong to the group, and existing plus new picks may not exceed `total_selectable_subjects`. Admins can assign electives from the panel (`ClassSchoolController::assignElectiveSubject`, permission `assign-elective-subjects`).
+- **Elective selection.** Students pick electives in the app (`POST /api/student/select-subjects`): each group must belong to the student's class for the session (and current semester when semesters are on), every subject must belong to the group, and existing plus new picks may not exceed `total_selectable_subjects`. Admins can assign electives from the panel (`Classes\ElectiveController::assignElectiveSubject`, permission `assign-elective-subjects`).
 - **A student's subject list** comes from `Students::subjects()`: core subjects from `class_subjects` for the session year (filtered by the current semester when the class uses semesters) plus the student's `student_subjects` picks. Elective picks are returned only if the class has at least one elective group in scope. `Students::classSubjects()` returns the core subjects and the elective groups (with their subjects) on offer.
 
 ## Class teachers and subject teachers
@@ -138,7 +138,7 @@ The ownership checks behind these rules are described on [Roles and Permissions]
 
 ### Admission
 
-`StudentController::store` (permission `student-create`) creates, in one transaction:
+`Student\StudentController::store` (permission `student-create`) creates, in one transaction:
 
 - The parents. `parent_guardian_type` is `parent` (father and mother) or `guardian`. For each one the form either sends the numeric id of an existing `parents` row in the email field (the record is reused) or new details, in which case a `users` row with the `Parent` role and a `parents` row are created (initial password: date of birth as `ddmmyyyy`).
 - The student's `users` row with the `Student` role. Its `email` column holds the **admission number** (the "GR number" the student logs in with), and the initial password is the date of birth as `ddmmyyyy`.
@@ -147,7 +147,7 @@ The ownership checks behind these rules are described on [Roles and Permissions]
 
 Custom fields defined in `form_fields` (`for = 1` for students, `2` for parents, `3` for teachers) are saved as JSON in the `dynamic_fields` column.
 
-**Online registration.** The public form (`WebController::studentRegistration`, custom fields with `for = 4`) creates a `students` row with `application_type = 'online'`, a `class_id` but no section. Approval (`StudentController`, permission `online-registration-list`) sets the section, activates the student and parent users (`users.status = 1`) and upserts the current `student_sessions` row; rejection sets `users.status = 2`. See [Public Website](Public-Website).
+**Online registration.** The public form (`WebController::studentRegistration`, custom fields with `for = 4`) creates a `students` row with `application_type = 'online'`, a `class_id` but no section. Approval (`Student\OnlineRegistrationController`, permission `online-registration-list`) sets the section, activates the student and parent users (`users.status = 1`) and upserts the current `student_sessions` row; rejection sets `users.status = 2`. See [Public Website](Public-Website).
 
 ### Student sessions
 
@@ -202,7 +202,7 @@ Applied after `auth:sanctum` and `role:Student` to every authenticated student e
 | No `student_sessions` row for the current session year | HTTP 401, code `SESSION_NOT_ACTIVE`, "promotion to the next class has not been completed" |
 | The row has `status = 0` | HTTP 401, code `SESSION_NOT_ACTIVE`, "Your Account is Deactivate..." |
 
-`StudentApiController::login` performs the same checks before issuing a token.
+`Student\AuthController::login` performs the same checks before issuing a token.
 
 ### `EnsureParentChildrenSessionIsActive` (`parent.children.session.active`)
 

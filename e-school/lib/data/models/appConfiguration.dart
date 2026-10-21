@@ -1,7 +1,6 @@
-import 'package:eschool/data/models/chatSettings.dart';
+import 'package:eschool_core/eschool_core.dart';
 import 'package:eschool/data/models/paymentOptions.dart';
 import 'package:eschool/data/models/semester.dart';
-import 'package:eschool/data/models/semesterBreak.dart';
 import 'package:eschool/data/models/sessionYear.dart';
 
 class AppConfiguration {

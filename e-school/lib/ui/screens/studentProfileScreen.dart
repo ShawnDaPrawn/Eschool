@@ -13,7 +13,7 @@ import 'package:flutter_svg/svg.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:eschool/cubits/downloadIdCardCubit.dart';
 import 'package:eschool/data/repositories/systemInfoRepository.dart';
-import 'package:eschool/ui/widgets/customCircularProgressIndicator.dart';
+import 'package:eschool_core/eschool_core.dart';
 import 'package:eschool/cubits/authCubit.dart';
 import 'package:eschool/cubits/appConfigurationCubit.dart';
 

@@ -4,7 +4,7 @@ import 'package:eschool/data/models/chatMessage.dart';
 import 'package:eschool/data/models/studyMaterial.dart';
 import 'package:eschool/ui/screens/chat/widget/messageItemComponents.dart';
 import 'package:eschool/ui/styles/colors.dart';
-import 'package:eschool/ui/widgets/customCircularProgressIndicator.dart';
+import 'package:eschool_core/eschool_core.dart';
 import 'package:eschool/ui/widgets/customImageWidget.dart';
 import 'package:eschool/utils/assets.dart';
 import 'package:eschool/utils/labelKeys.dart';
