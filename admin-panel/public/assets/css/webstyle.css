@@ -1,25 +1,33 @@
-@import url("https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700;900&display=swap");
-
 * {
     margin: 0;
     padding: 0;
 }
 
 :root {
-    --primary-color: #22577a;
-    --primary-hover-color: #143449;
-    --secondary-color1: #38a3a5;
-    --secondary-color2: #57cc99;
-    --secondary-color3: #80ed99;
-    --text--primary-color: #38a3a51f;
-    --text--secondary-color: #5c788c;
-    --text-white-color: #fff;
-    --primary-background-color: #f2f5f7;
+    /*
+     * The site's palette, pointed at the Material 3 design tokens
+     * (m3-tokens.css, loaded first) so the website follows the Navigate
+     * Wealth palette: purple for actions, Dark Navy for large dark blocks,
+     * white and Light Gray for content, black text, muted grey secondary text.
+     */
+    --primary-color: var(--md-sys-color-primary);
+    --primary-hover-color: color-mix(in srgb, var(--md-sys-color-primary) 88%, var(--md-sys-color-on-surface));
+    --secondary-color1: var(--md-sys-color-primary);
+    --secondary-color2: var(--md-sys-color-tertiary-container);
+    --secondary-color3: var(--md-sys-color-tertiary-container);
+    /* Light primary tint behind small labels and icon tiles. */
+    --text--primary-color: color-mix(in srgb, var(--md-sys-color-primary) 10%, var(--md-sys-color-surface-container-lowest));
+    --text--secondary-color: var(--md-sys-color-on-surface-variant);
+    --text-white-color: var(--md-sys-color-on-primary);
+    --primary-background-color: var(--md-sys-color-surface-container-low);
+    /* Secondary text on the Dark Navy (inverse-surface) blocks. */
+    --web-on-inverse-surface-variant: color-mix(in srgb, var(--md-sys-color-on-inverse-surface) 72%, var(--md-sys-color-inverse-surface));
 }
 
 body {
-    font-family: "Roboto" !important;
-    background-color: #fff;
+    font-family: var(--md-ref-typeface-plain);
+    background-color: var(--md-sys-color-surface);
+    color: var(--md-sys-color-on-surface);
 }
 
 body.modal-open {
@@ -28,11 +36,11 @@ body.modal-open {
 
 a {
     text-decoration: none !important;
-    color: #29363f !important;
+    color: var(--md-sys-color-on-surface) !important;
 }
 
 .topHeader {
-    background-color: #38a3a514;
+    background-color: var(--md-sys-color-surface-container-low);
 }
 
 .topHeader .divWrapper {
@@ -50,12 +58,12 @@ a {
 .topHeader .leftDiv .commonSpan {
     font-size: 14px;
     font-weight: 400;
-    color: #29363f;
+    color: var(--md-sys-color-on-surface);
     cursor: pointer;
 }
 
 .topHeader .leftDiv span:first-child {
-    border-right: 1px solid #29363f;
+    border-right: 1px solid var(--md-sys-color-outline-variant);
     padding-right: 12px;
 }
 
@@ -91,13 +99,13 @@ a {
     }
 
     .topHeader .leftDiv span:first-child {
-        border-right: 0px solid #29363f;
+        border-right: 0px solid var(--md-sys-color-outline-variant);
         padding-right: 0px;
     }
 }
 
 .topHeader .rightDiv i {
-    color: #29363f;
+    color: var(--md-sys-color-on-surface);
     font-size: 18px;
     cursor: pointer;
 }
@@ -145,9 +153,20 @@ a {
 .navbar ul li a {
     font-size: 16px;
     font-weight: 500;
-    color: #29363f !important;
-    background-color: var(--text-white-color) !important;
+    color: var(--md-sys-color-on-surface) !important;
+    background-color: var(--md-sys-color-surface) !important;
     text-decoration: none;
+}
+
+/* Links and the menu toggle turn purple on hover (actions are purple). */
+.navbar ul li a:hover,
+.navbar .dropdown-toggle:hover {
+    color: var(--md-sys-color-primary) !important;
+}
+
+.navbar .dropdown-menu .dropdown-item:hover,
+.navbar .dropdown-menu .dropdown-item:focus {
+    background-color: color-mix(in srgb, var(--md-sys-color-primary) var(--md-sys-state-hover-opacity), transparent) !important;
 }
 
 .navbar .dropdown-menu.show {
@@ -158,12 +177,12 @@ a {
 .navbar .dropdown-toggle {
     background-color: transparent !important;
     border: none;
-    color: #29363f !important;
+    color: var(--md-sys-color-on-surface) !important;
     margin: 0;
     padding: 0;
     font-size: 16px;
     font-weight: 500;
-    color: #29363f;
+    color: var(--md-sys-color-on-surface);
 }
 
 .navbar .dropdown-toggle:focus {
@@ -201,7 +220,7 @@ a {
 .swiper-slide {
     text-align: center;
     font-size: 18px;
-    background: #fff;
+    background: var(--md-sys-color-surface);
     display: flex;
     justify-content: center;
     align-items: center;
@@ -266,8 +285,8 @@ a {
 }
 
 .heroSection .owl-nav button:hover {
-    background-color: var(--secondary-color1) !important;
-    color: white !important;
+    background-color: var(--md-sys-color-primary) !important;
+    color: var(--md-sys-color-on-primary) !important;
 }
 
 /* Responsive breakpoints for hero carousel */
@@ -302,7 +321,7 @@ a {
 /* heroSection ends here  */
 
 .aboutUs {
-    background-color: white;
+    background-color: var(--md-sys-color-surface);
 }
 
 .aboutUs .aboutContentWrapper {
@@ -334,11 +353,13 @@ a {
     padding: 0px 386px;
 }
 
+/* Eyebrow label above section titles: a light primary-tint pill. */
 .commonTag {
-    background-color: #38a3a51f;
-    color: var(--secondary-color1);
-    padding: 8px;
-    border-radius: 4px;
+    background-color: var(--text--primary-color);
+    color: var(--md-sys-color-primary);
+    padding: 6px 16px;
+    border-radius: var(--md-sys-shape-corner-full);
+    font-weight: 500;
     width: max-content;
 }
 
@@ -364,7 +385,7 @@ a {
 
     .commonTag {
         font-size: 14px;
-        padding: 6px;
+        padding: 4px 12px;
     }
 
     .commonTitle {
@@ -387,7 +408,7 @@ a {
     color: var(--text-white-color);
     padding: 4px 10px;
     border: none;
-    border-radius: 4px;
+    border-radius: var(--app-radius);
     text-align: center;
     font-size: 20px;
     font-weight: 400;
@@ -425,23 +446,25 @@ a {
 }
 
 .programs .programsCardWrapper .card {
-    border: none;
-    border-radius: 4px;
+    background-color: var(--md-sys-color-surface-container-lowest);
+    border: 1px solid var(--md-sys-color-outline-variant);
+    border-radius: var(--md-sys-shape-corner-medium);
+    overflow: hidden;
     position: relative;
     z-index: 1;
     margin: 12px 0px;
 }
 
 .programs .programsCardWrapper .card img {
-    border-radius: 4px 4px 0px 0px;
+    border-radius: var(--md-sys-shape-corner-medium) var(--md-sys-shape-corner-medium) 0px 0px;
     width: 100%;
     height: 230px;
     object-fit: cover;
 }
 
 .programs .programsCardWrapper .card .cardTitle {
-    background-color: white;
-    color: var(se);
+    background-color: var(--md-sys-color-surface-container-lowest);
+    color: var(--md-sys-color-on-surface);
     font-size: 16px;
     font-weight: 700;
     padding: 20px;
@@ -494,7 +517,8 @@ a {
 }
 
 .events .eventsCardWrapper .card {
-    border: none;
+    border: 1px solid var(--md-sys-color-outline-variant);
+    border-radius: var(--md-sys-shape-corner-medium);
     flex-direction: row;
     gap: 16px;
     margin: 12px 0px;
@@ -506,12 +530,12 @@ a {
     display: block;
     margin-top: 2px;
     margin-bottom: 5px;
-    border: 1px solid #BFCCD5;
+    border: 1px solid var(--md-sys-color-outline-variant);
 }
 
 .events .eventsCardWrapper .eventDateWrapper {
-    background-color: var(--primary-color);
-    color: var(--text-white-color);
+    background-color: var(--md-sys-color-inverse-surface);
+    color: var(--md-sys-color-on-inverse-surface);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -552,17 +576,18 @@ a {
     padding: 5px;
     gap: 8px;
     font-size: 14px;
-    border-radius: 2px;
-    background-color: var(--primary-color);
-    color: var(--text-white-color);
+    border-radius: var(--md-sys-shape-corner-small);
+    background-color: var(--text--primary-color);
+    color: var(--md-sys-color-primary);
 }
 
+/* Date label: a light primary-tint chip. */
 .eventDate {
     display: inline-block;
     padding: 5px 10px;
-    border-radius: 2px;
-    background-color: var(--primary-color);
-    color: var(--text-white-color);
+    border-radius: var(--md-sys-shape-corner-small);
+    background-color: var(--text--primary-color);
+    color: var(--md-sys-color-primary);
 }
 
 .eventImage {
@@ -613,7 +638,7 @@ a {
     justify-content: center;
     align-items: center;
     background-color: var(--secondary-color2);
-    color: var(--text-white-color);
+    color: var(--md-sys-color-on-tertiary-container);
 }
 
 .date {
@@ -628,14 +653,13 @@ a {
     height: auto;
     font-size: 14px;
     /* Adjust as needed */
-    color: #5c788c;
+    color: var(--md-sys-color-on-surface-variant);
     word-break: break-all;
 }
 
 .menu-icon {
     margin: 5px;
-    color: #000000;
-    ;
+    color: var(--md-sys-color-primary);
 }
 
 .time {
@@ -643,7 +667,7 @@ a {
     font-weight: 500;
     line-height: 20px;
     text-align: -webkit-center;
-    color: #ffffff;
+    color: var(--md-sys-color-on-tertiary-container);
 }
 
 @media screen and (min-width: 768px) and (max-width: 1199px) {
@@ -715,7 +739,7 @@ a {
 }
 
 .events .eventsCardWrapper .eventDescWrapper .eventDesc {
-    color: #5c788c;
+    color: var(--md-sys-color-on-surface-variant);
 }
 
 
@@ -877,11 +901,11 @@ a {
     position: absolute;
     width: 220px;
     height: 50px;
-    border-radius: 4px;
+    border-radius: var(--app-radius);
     display: flex;
     justify-content: space-evenly;
     align-items: center;
-    background-color: white;
+    background-color: var(--md-sys-color-surface-container-lowest);
     margin-top: 240px;
     visibility: hidden;
     transition: all 0.3s;
@@ -889,17 +913,17 @@ a {
 
 .commonSlider .festival span {
     font-weight: 700;
-    color: var(--primary-hover-color);
+    color: var(--md-sys-color-on-surface);
 }
 
 .commonSlider .festival span:last-child {
     width: 26px;
     height: 24px;
     text-align: center;
-    color: white;
+    color: var(--md-sys-color-on-primary);
     padding: 5px;
     background-color: var(--secondary-color1);
-    border-radius: 4px;
+    border-radius: var(--md-sys-shape-corner-extra-small);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -927,20 +951,21 @@ a {
 }
 
 .faqs .accordion-item {
-    border: 1px solid lightgray !important;
-    border-radius: 8px !important;
+    background-color: var(--md-sys-color-surface-container-lowest);
+    border: 1px solid var(--md-sys-color-outline-variant) !important;
+    border-radius: var(--md-sys-shape-corner-medium) !important;
     margin: 12px 0px;
     overflow: hidden;
 }
 
 .faqs .accordion-button {
-    background-color: #22577a08;
+    background-color: var(--md-sys-color-surface-container-lowest);
 }
 
 .faqs .accordion-button span {
     font-size: 16px;
     font-weight: 700;
-    color: #29363f !important;
+    color: var(--md-sys-color-on-surface) !important;
 }
 
 .faqs .accordion-button:focus {
@@ -956,21 +981,27 @@ a {
     font-weight: 500;
 }
 
+/* The open question is the active item: a faint primary tint. */
 .faqs .accordion-button:not(.collapsed) {
-    background-color: var(--primary-background-color) !important;
+    background-color: color-mix(in srgb, var(--md-sys-color-primary) 6%, var(--md-sys-color-surface-container-lowest)) !important;
 }
 
 .faqs .accordion-collapse {
-    background-color: var(--primary-background-color);
+    background-color: var(--md-sys-color-surface-container-lowest);
     color: var(--text--secondary-color);
 }
 
+/* The +/- icons are used as masks so they take the primary colour. */
 .faqs .accordion-button::after {
-    background-image: url("../images/bx-plus-circle.png") !important;
+    background-image: none !important;
+    background-color: var(--md-sys-color-primary);
+    -webkit-mask: url("../images/bx-plus-circle.png") center / contain no-repeat;
+    mask: url("../images/bx-plus-circle.png") center / contain no-repeat;
 }
 
 .faqs .accordion-button:not(.collapsed)::after {
-    background-image: url("../images/bx-minus-circle.png") !important;
+    -webkit-mask-image: url("../images/bx-minus-circle.png");
+    mask-image: url("../images/bx-minus-circle.png");
 }
 
 .faqs .accordion-button:not(.collapsed) {
@@ -994,8 +1025,8 @@ a {
 }
 
 .ourApp .card {
-    background-color: var(--primary-color);
-    border-radius: 16px;
+    background-color: var(--md-sys-color-inverse-surface);
+    border-radius: var(--md-sys-shape-corner-large);
     padding: 24px;
     gap: 16px;
     margin: 12px 0px;
@@ -1010,8 +1041,8 @@ a {
     bottom: 0;
     left: 0;
     height: 2px;
-    background: var(--primary-hover-color);
-    border-radius: 16px;
+    background: var(--md-sys-color-primary);
+    border-radius: var(--md-sys-shape-corner-large);
     /* opacity: 0.8; */
     transition: all 0.3s ease-out;
 }
@@ -1031,12 +1062,18 @@ a {
     z-index: 1;
 }
 
+/* The store badges are teal artwork; blending by luminosity lets them take
+   the colour of the card behind them (navy, purple on hover). */
+.ourApp .card > span:first-child {
+    mix-blend-mode: luminosity;
+}
+
 .ourApp .card img {
     width: 60px;
 }
 
 .ourApp .appName {
-    color: var(--text-white-color);
+    color: var(--md-sys-color-on-inverse-surface);
     font-size: 20px;
     font-style: normal;
     font-weight: 700;
@@ -1044,11 +1081,13 @@ a {
 
 .ourApp .demoBtn {
     font-weight: 500;
-    border: 1px solid #ffff;
-    color: var(--text-white-color);
+    border: 1px solid var(--md-sys-color-on-inverse-surface);
+    color: var(--md-sys-color-on-inverse-surface);
     padding: 6px 12px;
-    border-radius: 4px;
-    width: 160px;
+    border-radius: var(--app-radius);
+    /* Grows to fit the label in Poppins (wider than the old font). */
+    width: fit-content;
+    min-width: 160px;
     cursor: pointer;
 }
 
@@ -1059,7 +1098,7 @@ a {
 /* ourApp ends here  */
 
 footer {
-    background: rgba(56, 163, 165, 0.08);
+    background: var(--md-sys-color-surface-container-low);
     padding: 50px 0px;
     padding-bottom: 0px;
 }
@@ -1092,10 +1131,10 @@ footer .socialIcons {
 }
 
 footer .socialIcons span {
-    background-color: #38a3a51f;
+    background-color: var(--text--primary-color);
     color: var(--secondary-color1) !important;
     padding: 10px 16px;
-    border-radius: 4px;
+    border-radius: var(--app-radius);
     font-size: 24px;
     cursor: pointer;
     overflow-x: none;
@@ -1114,7 +1153,7 @@ footer .linksWrapper {
 }
 
 footer .linksWrapper .title {
-    color: #29363f;
+    color: var(--md-sys-color-on-surface);
     font-weight: 700;
     margin-top: 10px;
     margin-bottom: 34px;
@@ -1157,8 +1196,12 @@ footer .linksWrapper i {
     color: var(--secondary-color1);
 }
 
+footer .linksWrapper a:hover {
+    color: var(--md-sys-color-primary) !important;
+}
+
 footer .copyRightText {
-    border-top: 1px solid #8080804a;
+    border-top: 1px solid var(--md-sys-color-outline-variant);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -1167,7 +1210,7 @@ footer .copyRightText {
 }
 
 footer .copyRightText span {
-    color: #5C788C;
+    color: var(--md-sys-color-on-surface-variant);
     font-weight: 500;
 
 }
@@ -1181,7 +1224,8 @@ footer .copyRightText span a {
 /* home page ends here  */
 
 .breadcrumb {
-    background-color: var(--primary-background-color);
+    background-color: var(--md-sys-color-inverse-surface);
+    color: var(--md-sys-color-on-inverse-surface);
     height: 150px;
     align-items: center;
 }
@@ -1197,28 +1241,28 @@ footer .copyRightText span a {
 .breadcrumb .contentWrapper .title {
     font-size: 40px;
     font-weight: 700;
-    color: #040620;
+    color: var(--md-sys-color-on-inverse-surface);
 }
 
 .breadcrumb .contentWrapper .home {
-    color: var(--text--secondary-color);
+    color: var(--web-on-inverse-surface-variant);
     font-size: 18px;
     font-weight: 500;
 }
 
 .breadcrumb .contentWrapper .home a {
-    color: var(--text--secondary-color) !important;
+    color: var(--web-on-inverse-surface-variant) !important;
     font-size: 18px;
     font-weight: 500;
 }
 
 .breadcrumb .contentWrapper i {
-    color: var(--text--secondary-color);
+    color: var(--web-on-inverse-surface-variant);
     margin: 0px 8px;
 }
 
 .breadcrumb .contentWrapper .page {
-    color: var(--secondary-color1);
+    color: var(--md-sys-color-inverse-primary);
     font-weight: 500;
     font-size: 18px;
 }
@@ -1268,14 +1312,28 @@ footer .copyRightText span a {
 }
 
 .whoWeAre .whoWeAreCardsWrapper .card {
-    background-color: white;
-    border-radius: 4px;
-    border: none;
+    background-color: var(--md-sys-color-surface-container-lowest);
+    border-radius: var(--md-sys-shape-corner-medium);
+    border: 1px solid var(--md-sys-color-outline-variant);
     padding: 20px;
     flex-direction: row;
     align-items: center;
     justify-content: start;
     gap: 20px;
+}
+
+/* The stat icons are single-colour artwork in the old teal. Only their
+   drop shadow, in the primary colour, is shown: the image itself is moved
+   out of its clipped box. */
+.whoWeAre .whoWeAreCardsWrapper .card .imgWrapper {
+    flex-shrink: 0;
+    overflow: hidden;
+}
+
+.whoWeAre .whoWeAreCardsWrapper .card .imgWrapper img {
+    display: block;
+    transform: translateY(-200px);
+    filter: drop-shadow(0 200px 0 var(--md-sys-color-primary));
 }
 
 .whoWeAre .whoWeAreCardsWrapper .card .detailWrapper {
@@ -1319,17 +1377,17 @@ footer .copyRightText span a {
 }
 
 .ourTeacher .commonSlider .card {
-    background-color: white;
+    background-color: var(--md-sys-color-surface-container-lowest);
     padding: 6px;
     border: none;
-    border-radius: 4px;
+    border-radius: var(--md-sys-shape-corner-medium);
     gap: 20px;
-    box-shadow: 0px 7px 28px 2px #9696A124 !important;
+    box-shadow: var(--md-sys-elevation-level1) !important;
     transition: box-shadow 0.3s;
 }
 
 .ourTeacher .commonSlider .card:hover {
-    box-shadow: rgb(0 0 0 / 14%) 0px 5px 15px 0px !important;
+    box-shadow: var(--md-sys-elevation-level2) !important;
 }
 
 .ourTeacher .commonSlider .card img {
@@ -1337,6 +1395,7 @@ footer .copyRightText span a {
     max-width: 230px;
     max-height: 230px;
     height: 230px;
+    border-radius: var(--md-sys-shape-corner-small);
 }
 
 @media screen and (max-width: 767px) {
@@ -1395,7 +1454,7 @@ footer .copyRightText span a {
     position: relative;
     align-items: center;
     border: none;
-    border-radius: 4px;
+    border-radius: var(--md-sys-shape-corner-medium);
 }
 
 .photosGallery .card div:first-child {
@@ -1407,6 +1466,7 @@ footer .copyRightText span a {
     width: 100%;
     height: 230px;
     aspect-ratio: 1/1;
+    border-radius: var(--md-sys-shape-corner-medium);
 }
 
 .photosGallery .card:hover .festival {
@@ -1418,11 +1478,11 @@ footer .copyRightText span a {
     position: absolute;
     width: 220px;
     height: 50px;
-    border-radius: 4px;
+    border-radius: var(--app-radius);
     display: flex;
     justify-content: space-evenly;
     align-items: center;
-    background-color: white;
+    background-color: var(--md-sys-color-surface-container-lowest);
     margin-top: 206px;
     visibility: hidden;
     transition: all 0.3s;
@@ -1430,16 +1490,16 @@ footer .copyRightText span a {
 
 .photosGallery .festival span {
     font-weight: 700;
-    color: var(--primary-hover-color);
+    color: var(--md-sys-color-on-surface);
 }
 
 .photosGallery .festival span:last-child {
     width: 26px;
     height: 24px;
     text-align: center;
-    color: white;
+    color: var(--md-sys-color-on-primary);
     background-color: var(--secondary-color1);
-    border-radius: 4px;
+    border-radius: var(--md-sys-shape-corner-extra-small);
 }
 
 .loadmoreBtnWrapper {
@@ -1459,10 +1519,12 @@ footer .copyRightText span a {
     padding: 0px 334px;
 }
 
+/* Contact cards are large solid blocks: Dark Navy with white text. */
 .contactUs .contactCardsWrapper .card {
-    background-color: var(--primary-color);
+    background-color: var(--md-sys-color-inverse-surface);
     border: none;
-    border-radius: 4px;
+    border-radius: var(--md-sys-shape-corner-medium);
+    isolation: isolate;
     align-items: center;
     justify-content: center;
     padding: 16px;
@@ -1497,20 +1559,25 @@ footer .copyRightText span a {
     text-align: center;
 }
 
+/* The icons are teal artwork; blending by luminosity tints them navy. */
+.contactUs .contactCardsWrapper .card img {
+    mix-blend-mode: luminosity;
+}
+
 .contactUs .contactCardsWrapper .card .text {
-    color: var(--text-white-color);
+    color: var(--md-sys-color-on-inverse-surface);
     font-size: 20px;
     font-weight: 700;
 }
 
 .contactUs .contactCardsWrapper .card .contactDetailsWrapper .numb {
     font-weight: 500;
-    color: #A5B7C4;
+    color: var(--web-on-inverse-surface-variant);
 }
 
 .contactUs .contactCardsWrapper .card .contactDetailsWrapper .numb a {
     font-weight: 500;
-    color: #A5B7C4 !important;
+    color: var(--md-sys-color-inverse-primary) !important;
 }
 
 .contactUs .mainCardWrapper {
@@ -1529,10 +1596,11 @@ footer .copyRightText span a {
 }
 
 .contactUs .mainCardWrapper .mainCard {
+    background-color: var(--md-sys-color-surface-container-lowest);
     border: none;
-    border-radius: 4px;
+    border-radius: var(--md-sys-shape-corner-medium);
     padding: 30px;
-    box-shadow: rgb(0 0 0 / 8%) 0px 5px 15px 0px;
+    box-shadow: var(--md-sys-elevation-level1);
     gap: 30px;
 }
 
@@ -1566,11 +1634,11 @@ footer .copyRightText span a {
 
 .contactUs .formWrapper input,
 .contactUs .formWrapper textarea {
-    border: 1px solid lightgray;
-    border-radius: 4px;
+    border: 1px solid var(--md-sys-color-outline-variant);
+    border-radius: var(--app-radius);
     background-color: var(--primary-background-color);
     padding: 6px;
-    color: var(--text--secondary-color);
+    color: var(--md-sys-color-on-surface);
 }
 
 .contactUs .formWrapper input:focus,
@@ -1602,25 +1670,25 @@ input::-webkit-inner-spin-button {
     width: 100%;
     height: 100%;
     overflow: auto;
-    background-color: rgba(0, 0, 0, 0.4);
-    /* Black w/ opacity */
+    background-color: color-mix(in srgb, var(--md-sys-color-scrim) 40%, transparent);
+    /* Scrim */
 }
 
 /* Modal content */
 .modal-content {
-    background-color: #fefefe;
+    background-color: var(--md-sys-color-surface-container-lowest);
     position: fixed;
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
     padding: 20px;
-    border: 1px solid #888;
+    border: 1px solid var(--md-sys-color-outline-variant);
     width: 90%;
     height: 500px;
     /* 90% width */
     max-width: 600px;
     /* Maximum width */
-    border-radius: 8px;
+    border-radius: var(--md-sys-shape-corner-large);
 }
 
 /* Modal content */
@@ -1644,7 +1712,7 @@ input::-webkit-inner-spin-button {
     float: inline-end;
     font-size: 28px;
     font-weight: bold;
-    color: black;
+    color: var(--md-sys-color-on-surface);
     text-decoration: none;
     cursor: pointer;
     display: flex;
@@ -1676,9 +1744,9 @@ input::-webkit-inner-spin-button {
 
 .event-modal-body #fullEventDate {
     padding: 10px;
-    background-color: var(--primary-color);
-    color: #fff;
-
+    border-radius: var(--md-sys-shape-corner-small);
+    background-color: var(--text--primary-color);
+    color: var(--md-sys-color-primary);
 }
 
 .modal-header #fullEventTitle {
@@ -1688,7 +1756,7 @@ input::-webkit-inner-spin-button {
 
 .event-modal-body .fullEventDescription {
     margin-top: 30px;
-    color: #5c788c;
+    color: var(--md-sys-color-on-surface-variant);
     word-break: break-all;
 }
 
@@ -1701,10 +1769,10 @@ input::-webkit-inner-spin-button {
     transform: translateY(-50%);
     width: 40px;
     height: 40px;
-    background-color: var(--primary-background-color) !important;
+    background-color: var(--md-sys-color-surface-container-lowest) !important;
     color: var(--primary-color) !important;
     border: none;
-    border-radius: 50%;
+    border-radius: var(--md-sys-shape-corner-full);
     font-size: 20px;
     line-height: 40px;
     text-align: center;
@@ -1733,7 +1801,7 @@ input::-webkit-inner-spin-button {
 } */
 
 .bg-color {
-    background-color: black;
+    background-color: var(--md-sys-color-inverse-surface);
 }
 
 .iframe {
@@ -1778,16 +1846,15 @@ input::-webkit-inner-spin-button {
 
 .input-group-append,
 .input-group-prepend {
-    color: #c9c8c8;
+    color: var(--md-sys-color-on-surface-variant);
     width: auto;
     border: none;
 }
 
 .btn-theme,
 .btn-theme:hover {
-    color: #fff;
+    color: var(--md-sys-color-on-primary);
     background-color: var(--primary-color);
-    /* background-color: #b74335; */
     border-color: var(--primary-color);
 }
 
@@ -1837,11 +1904,12 @@ input::-webkit-inner-spin-button {
 }
 
 .form-group .file-upload-info {
-    background: white;
+    background: var(--md-sys-color-surface-container-low);
 }
 
 .form-check-input:checked[type=checkbox] {
     background-color: var(--primary-color) !important;
+    border-color: var(--primary-color) !important;
 }
 
 .form-check-inline {
@@ -1900,8 +1968,7 @@ input::-webkit-inner-spin-button {
     width: 18px;
     height: 18px;
     border-radius: 2px;
-    /* border: solid #b66dff; */
-    border: solid var(--theme-color) !important;
+    border: solid var(--md-sys-color-primary) !important;
     border-width: 2px;
     -webkit-transition: all;
     transition: all;
@@ -1929,8 +1996,8 @@ input::-webkit-inner-spin-button {
 }
 
 .form-check .form-check-label input[type="checkbox"]:checked+.input-helper:before {
-    background: -webkit-gradient(linear, left top, right top, from(var(--theme-color)), to(var(--theme-color)));
-    background: linear-gradient(to right, var(--theme-color), var(--theme-color));
+    background: -webkit-gradient(linear, left top, right top, from(var(--md-sys-color-primary)), to(var(--md-sys-color-primary)));
+    background: linear-gradient(to right, var(--md-sys-color-primary), var(--md-sys-color-primary));
     border-width: 0;
 }
 
@@ -1945,12 +2012,12 @@ input::-webkit-inner-spin-button {
 }
 
 .form-check .form-check-label input[type="checkbox"]:disabled+.input-helper:before {
-    border-color: #ebedf2;
+    border-color: color-mix(in srgb, var(--md-sys-color-on-surface) var(--md-sys-state-disabled-container-opacity), transparent);
 }
 
 .form-check .form-check-label input[type="checkbox"]:disabled:checked+.input-helper:after {
-    background: #ebedf2;
-    color: #ffffff;
+    background: color-mix(in srgb, var(--md-sys-color-on-surface) var(--md-sys-state-disabled-container-opacity), transparent);
+    color: var(--md-sys-color-on-primary);
 }
 
 .form-check .form-check-label input[type="radio"]+.input-helper:before {
@@ -1958,7 +2025,7 @@ input::-webkit-inner-spin-button {
     content: "";
     top: 0;
     left: 0;
-    border: solid #b66dff;
+    border: solid var(--md-sys-color-primary);
     border-width: 2px;
     width: 20px;
     height: 20px;
@@ -1974,7 +2041,7 @@ input::-webkit-inner-spin-button {
     content: "";
     width: 8px;
     height: 8px;
-    background: #ffffff;
+    background: var(--md-sys-color-on-primary);
     border-radius: 50%;
     top: 6px;
     left: 6px;
@@ -1999,7 +2066,7 @@ input::-webkit-inner-spin-button {
 }
 
 .form-check .form-check-label input[type="radio"]:disabled:checked+.input-helper:after {
-    background: #ffffff;
+    background: var(--md-sys-color-on-primary);
 }
 
 .form-check .form-check-label input[type="radio"]+.input-helper:before {
@@ -2007,7 +2074,7 @@ input::-webkit-inner-spin-button {
     content: "";
     top: 0;
     left: 0;
-    border: solid #b66dff;
+    border: solid var(--md-sys-color-primary);
     border-width: 2px;
     width: 20px;
     height: 20px;
@@ -2023,7 +2090,7 @@ input::-webkit-inner-spin-button {
     content: "";
     width: 8px;
     height: 8px;
-    background: #ffffff;
+    background: var(--md-sys-color-on-primary);
     border-radius: 50%;
     top: 6px;
     left: 6px;
@@ -2040,7 +2107,7 @@ input::-webkit-inner-spin-button {
 }
 
 .form-check-input:focus {
-    border: 1px solid lightgray !important;
+    border: 1px solid var(--md-sys-color-primary) !important;
     box-shadow: none !important;
 }
 
@@ -2083,11 +2150,11 @@ input::-webkit-inner-spin-button {
 .registration .formWrapper input,
 .registration .formWrapper textarea,
 .registration .formWrapper select {
-    border: 0.5px solid lightgray;
-    border-radius: px;
-    background-color: var(--text-white-color);
+    border: 0.5px solid var(--md-sys-color-outline-variant);
+    border-radius: var(--app-radius);
+    background-color: var(--md-sys-color-surface-container-low);
     padding: 0.5rem 1rem;
-    color: #495057;
+    color: var(--md-sys-color-on-surface);
     font-size: 0.8125rem;
 }
 
@@ -2098,7 +2165,7 @@ input::-webkit-inner-spin-button {
 }
 
 .form-control:focus {
-    border: 2px solid #86b7fe !important;
+    border: 2px solid var(--md-sys-color-primary) !important;
     box-shadow: none !important;
 }
 
@@ -2107,7 +2174,7 @@ input::-webkit-inner-spin-button {
     color: var(--text-white-color);
     padding: 5px 30px;
     border: none;
-    border-radius: 4px;
+    border-radius: var(--app-radius);
     text-align: center;
     font-size: 16px;
     font-weight: 400;
@@ -2137,17 +2204,17 @@ input::-webkit-inner-spin-button {
 
 .datepicker.datepicker-dropdown .datepicker-days table.table-condensed thead tr th.prev,
 .datepicker.datepicker-inline .datepicker-days table.table-condensed thead tr th.prev {
-    color: #434a54;
+    color: var(--md-sys-color-on-surface);
     padding-bottom: 1rem;
     padding-top: 1rem;
     text-align: left;
-    background: #ffffff;
+    background: var(--md-sys-color-surface-container-lowest);
 }
 
 .datepicker.datepicker-dropdown .datepicker-days table.table-condensed thead tr th.datepicker-switch,
 .datepicker.datepicker-inline .datepicker-days table.table-condensed thead tr th.datepicker-switch {
-    color: #434a54;
-    background: #ffffff;
+    color: var(--md-sys-color-on-surface);
+    background: var(--md-sys-color-surface-container-lowest);
     padding-bottom: 1rem;
     padding-top: 1rem;
     font-size: 1rem;
@@ -2156,17 +2223,17 @@ input::-webkit-inner-spin-button {
 
 .datepicker.datepicker-dropdown .datepicker-days table.table-condensed thead tr th.next,
 .datepicker.datepicker-inline .datepicker-days table.table-condensed thead tr th.next {
-    color: grey;
+    color: var(--md-sys-color-on-surface-variant);
     padding-bottom: 1rem;
     padding-top: 1rem;
     text-align: right;
-    background: #ffffff;
+    background: var(--md-sys-color-surface-container-lowest);
 }
 
 .datepicker.datepicker-dropdown .datepicker-days table.table-condensed thead tr th.dow,
 .datepicker.datepicker-inline .datepicker-days table.table-condensed thead tr th.dow {
-    font-family: "Roboto-Regular", sans-serif;
-    color: #434a54;
+    font-family: var(--md-ref-typeface-plain);
+    color: var(--md-sys-color-on-surface-variant);
     font-size: .875rem;
     font-weight: initial;
 }
@@ -2196,17 +2263,17 @@ input::-webkit-inner-spin-button {
 .datepicker.datepicker-inline .datepicker-days table.table-condensed tbody td.day {
     font-size: .9375rem;
     padding: .5rem 0;
-    color: #434a54;
+    color: var(--md-sys-color-on-surface);
 }
 
 .datepicker.datepicker-dropdown .datepicker-days table.table-condensed tbody td.day:hover,
 .datepicker.datepicker-inline .datepicker-days table.table-condensed tbody td.day:hover {
-    background: #ffffff;
+    background: color-mix(in srgb, var(--md-sys-color-primary) var(--md-sys-state-hover-opacity), transparent);
 }
 
 .datepicker.datepicker-dropdown .datepicker-days table.table-condensed tbody td.day.active,
 .datepicker.datepicker-inline .datepicker-days table.table-condensed tbody td.day.active {
-    color: #fff;
+    color: var(--md-sys-color-on-primary);
     background: transparent;
     position: relative;
     z-index: 1;
@@ -2217,7 +2284,7 @@ input::-webkit-inner-spin-button {
     content: "";
     width: 38px;
     height: 38px;
-    background: #1bcfb4;
+    background: var(--md-sys-color-primary);
     border-radius: 100%;
     display: block;
     margin: auto;
@@ -2231,7 +2298,7 @@ input::-webkit-inner-spin-button {
 
 .datepicker.datepicker-dropdown .datepicker-days table.table-condensed tbody td.day.today,
 .datepicker.datepicker-inline .datepicker-days table.table-condensed tbody td.day.today {
-    color: #fff;
+    color: var(--md-sys-color-primary);
     background: transparent;
     position: relative;
     z-index: 1;
@@ -2242,7 +2309,7 @@ input::-webkit-inner-spin-button {
     content: "";
     width: 38px;
     height: 38px;
-    background: #198ae3;
+    background: color-mix(in srgb, var(--md-sys-color-primary) 12%, transparent);
     border-radius: 100%;
     display: block;
     margin: auto;
@@ -2256,7 +2323,7 @@ input::-webkit-inner-spin-button {
 
 .datepicker.datepicker-dropdown .datepicker-days table.table-condensed tbody td.old.day,
 .datepicker.datepicker-inline .datepicker-days table.table-condensed tbody td.old.day {
-    color: #d9dde3;
+    color: color-mix(in srgb, var(--md-sys-color-on-surface) var(--md-sys-state-disabled-content-opacity), transparent);
 }
 
 .datepicker.datepicker-dropdown .datepicker-days table.table-condensed tbody td.range-start,
@@ -2274,7 +2341,7 @@ input::-webkit-inner-spin-button {
     content: "";
     width: 28px;
     height: 28px;
-    background: rgba(27, 207, 180, 0.2);
+    background: color-mix(in srgb, var(--md-sys-color-primary) 20%, transparent);
     border-radius: 4px;
     display: block;
     margin: auto;
@@ -2297,7 +2364,7 @@ input::-webkit-inner-spin-button {
     content: "";
     width: 28px;
     height: 28px;
-    background: #eee;
+    background: var(--md-sys-color-surface-container);
     border-radius: 4px;
     display: block;
     margin: auto;
@@ -2342,19 +2409,19 @@ input::-webkit-inner-spin-button {
 }
 
 .datepicker.datepicker-inline thead tr th.prev {
-    color: grey;
+    color: var(--md-sys-color-on-surface-variant);
     padding-bottom: 0.5rem;
     padding-top: 0.5rem;
 }
 
 .datepicker.datepicker-inline thead tr th.datepicker-switch {
-    color: #b66dff;
+    color: var(--md-sys-color-primary);
     padding-bottom: 0.5rem;
     padding-top: 0.5rem;
 }
 
 .datepicker.datepicker-inline thead tr th.next {
-    color: grey;
+    color: var(--md-sys-color-on-surface-variant);
     padding-bottom: 0.5rem;
     padding-top: 0.5rem;
 }
@@ -2365,7 +2432,7 @@ input::-webkit-inner-spin-button {
 
 .registration .formWrapper input:disabled[type=text],
 .registration .formWrapper select:disabled {
-    background-color: #e9ecef;
+    background-color: var(--md-sys-color-surface-container-high);
     opacity: 1;
 }
 
@@ -2392,7 +2459,7 @@ input::-webkit-inner-spin-button {
     position: relative;
     width: 20px;
     height: 20px;
-    border: 2px solid #ccc;
+    border: 2px solid var(--md-sys-color-outline);
     border-radius: 50%;
     display: inline-block;
     transition: border-color 0.2s;
@@ -2425,7 +2492,7 @@ input::-webkit-inner-spin-button {
 }
 
 .radio-text {
-    color: #212529;
+    color: var(--md-sys-color-on-surface);
 }
 /* Language switcher */
 .nav-language-switcher {
@@ -2457,25 +2524,33 @@ input::-webkit-inner-spin-button {
 
 .language-dropdown-menu {
     min-width: 150px;
-    border-radius: 8px;
-    box-shadow: 0 4px 20px rgba(0,0,0,0.12);
-    border: 1px solid rgba(0,0,0,0.08);
+    border-radius: var(--md-sys-shape-corner-small);
+    box-shadow: var(--md-sys-elevation-level2);
+    border: 1px solid var(--md-sys-color-outline-variant);
     padding: 6px 0;
+    overflow: hidden;
 }
 
 .language-dropdown-menu .dropdown-item {
     font-size: 14px;
     padding: 8px 16px;
-    color: #444;
+    color: var(--md-sys-color-on-surface);
     transition: background 0.15s;
 }
 
+/* !important: the navbar link rule above sets these with !important too. */
 .language-dropdown-menu .dropdown-item:hover {
-    background: rgba(0,0,0,0.05);
-    color: var(--primary-color);
+    background: color-mix(in srgb, var(--md-sys-color-primary) var(--md-sys-state-hover-opacity), transparent) !important;
+    color: var(--primary-color) !important;
 }
 
 .language-dropdown-menu .dropdown-item.active {
-    background: var(--primary-color);
-    color: #fff;
+    background: var(--primary-color) !important;
+    color: var(--md-sys-color-on-primary) !important;
+}
+
+/* Bootstrap colour utilities the site's forms use, pointed at the tokens
+   (.text-muted is in m3-base.css, for the admin panel too). */
+.text-danger {
+    color: var(--md-sys-color-error) !important;
 }

@@ -5,6 +5,8 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
     <title>{{ config('app.name') }}</title>
+    {{-- Material 3 design tokens, generated from the apps' theme (packages/eschool_core). Load first. --}}
+    <link rel="stylesheet" href="{{ asset('/assets/css/m3-tokens.css') }}?v={{ filemtime(public_path('assets/css/m3-tokens.css')) }}">
     <!-- plugins:css -->
     {{-- <link rel="stylesheet" href="../../assets/vendors/mdi/css/materialdesignicons.min.css">
     <link rel="stylesheet" href="../../assets/vendors/ti-icons/css/themify-icons.css"> --}}
@@ -12,20 +14,22 @@
     <link rel="stylesheet" href="{{ asset('/assets/fonts/font-awesome.min.css') }}" async/>
 
     <link rel="stylesheet" href="{{ asset('/assets/css/style.css') }}">
+    {{-- Typeface and legacy colour variables (--theme-color …) mapped to the tokens — after style.css. --}}
+    <link rel="stylesheet" href="{{ asset('/assets/css/m3-base.css') }}?v={{ filemtime(public_path('assets/css/m3-base.css')) }}">
     <!-- End layout styles -->
     <link rel="shortcut icon" href="{{ url(Storage::url(schoolSetting('favicon'))) }}"/>
   </head>
-    @php
-        $theme_color = getSettings('theme_color');
-        $secondary_color = getSettings('secondary_color');
-
-        // echo json_encode($theme_color);
-        $theme_color = $theme_color['theme_color'];
-        $secondary_color =   $secondary_color['secondary_color'];
-    @endphp
+{{-- Colours come from the design tokens, not the school theme-colour setting. The page is a
+     large solid block, so it is Dark Navy with white text; the link uses the purple
+     that reads on navy. --}}
 <style>
-    :root {
-        --theme-color: <?=$theme_color ?>;
+    .error-page.bg-primary {
+        background-color: var(--md-sys-color-inverse-surface) !important;
+        color: var(--md-sys-color-on-inverse-surface);
+    }
+
+    .error-page a.text-white {
+        color: var(--md-sys-color-inverse-primary) !important;
     }
 </style>
   <body>

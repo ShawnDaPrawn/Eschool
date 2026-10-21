@@ -4,6 +4,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    {{-- Material 3 design tokens, generated from the apps' theme (packages/eschool_core). Load first. --}}
+    <link rel="stylesheet" href="{{ asset('/assets/css/m3-tokens.css') }}?v={{ filemtime(public_path('assets/css/m3-tokens.css')) }}">
     <!-- bootstrap  -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet"
         integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
@@ -11,7 +13,9 @@
     <link rel="stylesheet" href="{{ asset('/assets/css/flatpickr.min.css') }}">
     <link rel="stylesheet" href="{{ asset('/assets/css/flatpickr-theme.css') }}">
     <link rel="stylesheet" href="{{ asset('/assets/jquery-toast-plugin/jquery.toast.min.css') }}">
-    <link rel="stylesheet" href="{{ asset('/assets/css/webstyle.css') }}">
+    {{-- Typeface (Poppins) and legacy colour variables mapped to the tokens — after the vendor CSS, before the site styles. --}}
+    <link rel="stylesheet" href="{{ asset('/assets/css/m3-base.css') }}?v={{ filemtime(public_path('assets/css/m3-base.css')) }}">
+    <link rel="stylesheet" href="{{ asset('/assets/css/webstyle.css') }}?v={{ filemtime(public_path('assets/css/webstyle.css')) }}">
     <link rel="stylesheet" href="{{ asset('/assets/css/responsive.css') }}">
     <link rel="stylesheet"
         href="https://cdnjs.cloudflare.com/ajax/libs/OwlCarousel2/2.3.4/assets/owl.carousel.min.css" />

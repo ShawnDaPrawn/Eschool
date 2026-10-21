@@ -473,7 +473,7 @@
                                     <span class="appName"> {{ __('student_parent_app') }}</span>
                                     <span class="demoBtn"><a
                                             href="{{ isset($settings['app_link']) ? $settings['app_link'] : '' }}"
-                                            style="color: #ffffff !important">{{ __('android_demo') }}</a>
+                                            style="color: var(--md-sys-color-on-inverse-surface) !important">{{ __('android_demo') }}</a>
                                         <i class="fa-solid fa-arrow-right"></i>
                                     </span>
                                 </div>
@@ -487,7 +487,7 @@
                                     <span class="appName">{{ __('student_parent_app') }}</span>
                                     <span class="demoBtn"><a
                                             href="{{ isset($settings['ios_app_link']) ? $settings['ios_app_link'] : '' }}"
-                                            style="color: #ffffff !important">
+                                            style="color: var(--md-sys-color-on-inverse-surface) !important">
                                             {{ __('ios_demo') }}</a>
                                         <i class="fa-solid fa-arrow-right"></i>
                                     </span>
@@ -502,7 +502,7 @@
                                     <span class="appName">{{ __('teacher_app') }}</span>
                                     <span class="demoBtn"><a
                                             href="{{ isset($settings['teacher_app_link']) ? $settings['teacher_app_link'] : '' }}"
-                                            style="color: #ffffff !important">
+                                            style="color: var(--md-sys-color-on-inverse-surface) !important">
                                             {{ __('android_demo') }}</a>
                                         <i class="fa-solid fa-arrow-right"></i>
                                     </span>
@@ -517,7 +517,7 @@
                                     <span class="appName">{{ __('teacher_app') }}</span>
                                     <span class="demoBtn"><a
                                             href="{{ isset($settings['teacher_ios_app_link']) ? $settings['teacher_ios_app_link'] : '' }}"
-                                            style="color: #ffffff !important">
+                                            style="color: var(--md-sys-color-on-inverse-surface) !important">
                                             {{ __('ios_demo') }}</a>
                                         <i class="fa-solid fa-arrow-right"></i>
                                     </span>
