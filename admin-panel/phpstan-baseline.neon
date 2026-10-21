@@ -39,20 +39,44 @@ parameters:
 		-
 			message: '#^Result of static method App\\Services\\ResponseService\:\:errorResponse\(\) \(void\) is used\.$#'
 			identifier: staticMethod.void
-			count: 8
-			path: app/Http/Controllers/Api/TeacherApiController.php
+			count: 1
+			path: app/Http/Controllers/Api/Teacher/CalendarController.php
 
 		-
 			message: '#^Result of static method App\\Services\\ResponseService\:\:successResponse\(\) \(void\) is used\.$#'
 			identifier: staticMethod.void
+			count: 1
+			path: app/Http/Controllers/Api/Teacher/CalendarController.php
+
+		-
+			message: '#^Result of static method App\\Services\\ResponseService\:\:errorResponse\(\) \(void\) is used\.$#'
+			identifier: staticMethod.void
 			count: 6
-			path: app/Http/Controllers/Api/TeacherApiController.php
+			path: app/Http/Controllers/Api/Teacher/LeaveController.php
+
+		-
+			message: '#^Result of static method App\\Services\\ResponseService\:\:successResponse\(\) \(void\) is used\.$#'
+			identifier: staticMethod.void
+			count: 4
+			path: app/Http/Controllers/Api/Teacher/LeaveController.php
 
 		-
 			message: '#^Result of static method App\\Services\\ResponseService\:\:validationError\(\) \(void\) is used\.$#'
 			identifier: staticMethod.void
 			count: 2
-			path: app/Http/Controllers/Api/TeacherApiController.php
+			path: app/Http/Controllers/Api/Teacher/LeaveController.php
+
+		-
+			message: '#^Result of static method App\\Services\\ResponseService\:\:errorResponse\(\) \(void\) is used\.$#'
+			identifier: staticMethod.void
+			count: 1
+			path: app/Http/Controllers/Api/Teacher/TimetableController.php
+
+		-
+			message: '#^Result of static method App\\Services\\ResponseService\:\:successResponse\(\) \(void\) is used\.$#'
+			identifier: staticMethod.void
+			count: 1
+			path: app/Http/Controllers/Api/Teacher/TimetableController.php
 
 		-
 			message: '#^Method App\\Http\\Controllers\\EventController\:\:create\(\) should return Illuminate\\Http\\Response but return statement is missing\.$#'

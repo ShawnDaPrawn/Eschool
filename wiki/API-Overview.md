@@ -6,7 +6,7 @@ The admin panel serves a JSON REST API under `/api` that both Flutter apps use. 
 | --- | --- |
 | Base path | `https://<admin-panel-host>/api/` |
 | Route file | `admin-panel/routes/api.php` (loaded with prefix `api` and the `api` middleware group) |
-| Controllers | `ApiController` (shared/public), `StudentApiController`, `ParentApiController`, `TeacherApiController` |
+| Controllers | `ApiController` (shared/public), `StudentApiController`, `ParentApiController`, and the `Api/Teacher/` controllers (one per area: `AuthController`, `ClassController`, `AssignmentController`, `ExamController` and so on) |
 | Framework | Laravel 12 (`laravel/framework` v12.70.0 in `composer.lock`), Sanctum v4.3.3, spatie/laravel-permission 6.25.0 |
 | Authentication | Laravel Sanctum personal access tokens, `Authorization: Bearer <token>` |
 | Token lifetime | `SANCTUM_EXPIRATION` minutes, default `43200` (30 days) from creation |
@@ -184,8 +184,8 @@ The numeric `code` values used by the API controllers and middleware:
 | `106` | 200 | Online exam not started yet; invalid subject id; invalid child id in parent announcements | student online exam, `student/announcements`, `ParentApiController::getAnnouncements` |
 | `110` | 200 | Assignment submission cannot be deleted (already reviewed) | `student/delete-assignment-submission` |
 | `113` | 200 | No `student_sessions` row for the requested session year | report and fee endpoints (student and parent) |
-| `400` | 200 | Bad request in teacher exam/marks flows (`exam_published`, `exam_not_completed_yet`, marks out of range, `grades_data_does_not_exists`, `Semester id required.`) | `TeacherApiController` |
-| `403` | 200 or 403 | No permission or not assigned to the class/subject (teacher, HTTP 200); inactive or non-student account (`student.session.active`, HTTP 403) | `TeacherApiController`, `EnsureStudentSessionIsActive` |
+| `400` | 200 | Bad request in teacher exam/marks flows (`exam_published`, `exam_not_completed_yet`, marks out of range, `grades_data_does_not_exists`, `Semester id required.`) | `Teacher\ExamController` |
+| `403` | 200 or 403 | No permission or not assigned to the class/subject (teacher, HTTP 200); inactive or non-student account (`student.session.active`, HTTP 403) | the `Teacher\` controllers, `EnsureStudentSessionIsActive` |
 | `422` | 200 | `album_id is required` | `get-gallery-images` |
 | `null` | 200 | Any `validationError()` or `errorResponse()` without a code; the message is meant to be shown as is | everywhere |
 | `"SESSION_NOT_ACTIVE"` / `"ACCOUNT_DEACTIVATED"` | 401 | Student/parent session checks | session middleware |
@@ -350,7 +350,7 @@ Every route in `routes/api.php`, in file order. All paths are relative to `/api/
 
 The table matches `php artisan route:list --path=api`, which reports 155 routes; `GET` routes also answer `HEAD`.
 
-Controller names are shortened: `Api` = `ApiController`, `Student` = `StudentApiController`, `Parent` = `ParentApiController`, `Teacher` = `TeacherApiController`.
+Controller names are shortened: `Api` = `ApiController`, `Student` = `StudentApiController`, `Parent` = `ParentApiController`, `Teacher\Area` = `Api/Teacher/AreaController`.
 
 ### Logout
 
@@ -462,57 +462,57 @@ Controller names are shortened: `Api` = `ApiController`, `Student` = `StudentApi
 
 | Method | Path | Controller@method | Middleware |
 | --- | --- | --- | --- |
-| POST | `teacher/login` | `Teacher@login` | `throttle:login` |
-| GET | `teacher/dashboard` | `Teacher@dashboard` | T |
-| GET | `teacher/classes` | `Teacher@classes` | T |
-| GET | `teacher/subjects` | `Teacher@subjects` | T |
-| GET | `teacher/get-assignment` | `Teacher@getAssignment` | T |
-| POST | `teacher/create-assignment` | `Teacher@createAssignment` | T |
-| POST | `teacher/update-assignment` | `Teacher@updateAssignment` | T |
-| POST | `teacher/delete-assignment` | `Teacher@deleteAssignment` | T |
-| GET | `teacher/get-assignment-submission` | `Teacher@getAssignmentSubmission` | T |
-| POST | `teacher/update-assignment-submission` | `Teacher@updateAssignmentSubmission` | T |
-| POST | `teacher/delete-file` | `Teacher@deleteFile` | T |
-| POST | `teacher/update-file` | `Teacher@updateFile` | T |
-| GET | `teacher/get-lesson` | `Teacher@getLesson` | T |
-| POST | `teacher/create-lesson` | `Teacher@createLesson` | T |
-| POST | `teacher/update-lesson` | `Teacher@updateLesson` | T |
-| POST | `teacher/delete-lesson` | `Teacher@deleteLesson` | T |
-| GET | `teacher/get-topic` | `Teacher@getTopic` | T |
-| POST | `teacher/create-topic` | `Teacher@createTopic` | T |
-| POST | `teacher/update-topic` | `Teacher@updateTopic` | T |
-| POST | `teacher/delete-topic` | `Teacher@deleteTopic` | T |
-| GET | `teacher/get-announcement` | `Teacher@getAnnouncement` | T |
-| POST | `teacher/send-announcement` | `Teacher@sendAnnouncement` | T |
-| POST | `teacher/update-announcement` | `Teacher@updateAnnouncement` | T |
-| POST | `teacher/delete-announcement` | `Teacher@deleteAnnouncement` | T |
-| GET | `teacher/get-attendance` | `Teacher@getAttendance` | T |
-| POST | `teacher/submit-attendance` | `Teacher@submitAttendance` | T |
-| GET | `teacher/get-exam-list` | `Teacher@getExamList` | T |
-| GET | `teacher/get-exam-details` | `Teacher@getExamDetails` | T |
-| POST | `teacher/submit-exam-marks/subject` | `Teacher@submitExamMarksBySubjects` | T |
-| POST | `teacher/submit-exam-marks/student` | `Teacher@submitExamMarksByStudent` | T |
-| GET | `teacher/get-student-result` | `Teacher@GetStudentExamResult` | T+S |
-| GET | `teacher/get-student-marks` | `Teacher@GetStudentExamMarks` | T+S |
-| GET | `teacher/student-list` | `Teacher@getStudentList` | T |
-| GET | `teacher/student-details` | `Teacher@getStudentDetails` | T |
-| GET | `teacher/academic-calendar-pdf` | `Teacher@getAcademicCalendarPdf` | T |
-| GET | `teacher/teacher_timetable` | `Teacher@getTeacherTimetable` | T |
-| GET | `teacher/get-profile-details` | `Teacher@getProfileDetails` | T |
-| GET | `teacher/get-notification` | `Teacher@getNotifications` | T |
-| GET | `teacher/get-user-list` | `Teacher@getChatUserList` | T |
-| POST | `teacher/send-message` | `Teacher@sendMessage` | T |
-| POST | `teacher/get-user-message` | `Teacher@getUserChatMessage` | T |
-| POST | `teacher/read-all-message` | `Teacher@readAllMessages` | T |
-| GET | `teacher/get-student-result-pdf` | `Teacher@getStudentResultPdf` | T |
-| POST | `teacher/apply-leave` | `Teacher@applyLeave` | T |
-| POST | `teacher/get-leave-list` | `Teacher@getMyLeave` | T |
-| POST | `teacher/delete-leave` | `Teacher@deleteLeave` | T |
-| POST | `teacher/get-student-leave-list` | `Teacher@getStudentLeaveList` | T |
-| POST | `teacher/student-leave-status-update` | `Teacher@studentLeaveStatusUpdate` | T |
-| POST | `teacher/update-timetable-link` | `Teacher@updateTimetableLink` | T |
-| GET | `teacher/id-card-pdf` | `Teacher@getIdCardPdf` | T |
-| GET | `teacher/attendance-report` | `Teacher@getAttendanceReport` | T |
+| POST | `teacher/login` | `Teacher\Auth@login` | `throttle:login` |
+| GET | `teacher/dashboard` | `Teacher\Dashboard@dashboard` | T |
+| GET | `teacher/classes` | `Teacher\Class@classes` | T |
+| GET | `teacher/subjects` | `Teacher\Class@subjects` | T |
+| GET | `teacher/get-assignment` | `Teacher\Assignment@getAssignment` | T |
+| POST | `teacher/create-assignment` | `Teacher\Assignment@createAssignment` | T |
+| POST | `teacher/update-assignment` | `Teacher\Assignment@updateAssignment` | T |
+| POST | `teacher/delete-assignment` | `Teacher\Assignment@deleteAssignment` | T |
+| GET | `teacher/get-assignment-submission` | `Teacher\Assignment@getAssignmentSubmission` | T |
+| POST | `teacher/update-assignment-submission` | `Teacher\Assignment@updateAssignmentSubmission` | T |
+| POST | `teacher/delete-file` | `Teacher\Lesson@deleteFile` | T |
+| POST | `teacher/update-file` | `Teacher\Lesson@updateFile` | T |
+| GET | `teacher/get-lesson` | `Teacher\Lesson@getLesson` | T |
+| POST | `teacher/create-lesson` | `Teacher\Lesson@createLesson` | T |
+| POST | `teacher/update-lesson` | `Teacher\Lesson@updateLesson` | T |
+| POST | `teacher/delete-lesson` | `Teacher\Lesson@deleteLesson` | T |
+| GET | `teacher/get-topic` | `Teacher\Lesson@getTopic` | T |
+| POST | `teacher/create-topic` | `Teacher\Lesson@createTopic` | T |
+| POST | `teacher/update-topic` | `Teacher\Lesson@updateTopic` | T |
+| POST | `teacher/delete-topic` | `Teacher\Lesson@deleteTopic` | T |
+| GET | `teacher/get-announcement` | `Teacher\Announcement@getAnnouncement` | T |
+| POST | `teacher/send-announcement` | `Teacher\Announcement@sendAnnouncement` | T |
+| POST | `teacher/update-announcement` | `Teacher\Announcement@updateAnnouncement` | T |
+| POST | `teacher/delete-announcement` | `Teacher\Announcement@deleteAnnouncement` | T |
+| GET | `teacher/get-attendance` | `Teacher\Attendance@getAttendance` | T |
+| POST | `teacher/submit-attendance` | `Teacher\Attendance@submitAttendance` | T |
+| GET | `teacher/get-exam-list` | `Teacher\Exam@getExamList` | T |
+| GET | `teacher/get-exam-details` | `Teacher\Exam@getExamDetails` | T |
+| POST | `teacher/submit-exam-marks/subject` | `Teacher\Exam@submitExamMarksBySubjects` | T |
+| POST | `teacher/submit-exam-marks/student` | `Teacher\Exam@submitExamMarksByStudent` | T |
+| GET | `teacher/get-student-result` | `Teacher\Exam@GetStudentExamResult` | T+S |
+| GET | `teacher/get-student-marks` | `Teacher\Exam@GetStudentExamMarks` | T+S |
+| GET | `teacher/student-list` | `Teacher\Class@getStudentList` | T |
+| GET | `teacher/student-details` | `Teacher\Class@getStudentDetails` | T |
+| GET | `teacher/academic-calendar-pdf` | `Teacher\Calendar@getAcademicCalendarPdf` | T |
+| GET | `teacher/teacher_timetable` | `Teacher\Timetable@getTeacherTimetable` | T |
+| GET | `teacher/get-profile-details` | `Teacher\Auth@getProfileDetails` | T |
+| GET | `teacher/get-notification` | `Teacher\Notification@getNotifications` | T |
+| GET | `teacher/get-user-list` | `Teacher\Chat@getChatUserList` | T |
+| POST | `teacher/send-message` | `Teacher\Chat@sendMessage` | T |
+| POST | `teacher/get-user-message` | `Teacher\Chat@getUserChatMessage` | T |
+| POST | `teacher/read-all-message` | `Teacher\Chat@readAllMessages` | T |
+| GET | `teacher/get-student-result-pdf` | `Teacher\Exam@getStudentResultPdf` | T |
+| POST | `teacher/apply-leave` | `Teacher\Leave@applyLeave` | T |
+| POST | `teacher/get-leave-list` | `Teacher\Leave@getMyLeave` | T |
+| POST | `teacher/delete-leave` | `Teacher\Leave@deleteLeave` | T |
+| POST | `teacher/get-student-leave-list` | `Teacher\Leave@getStudentLeaveList` | T |
+| POST | `teacher/student-leave-status-update` | `Teacher\Leave@studentLeaveStatusUpdate` | T |
+| POST | `teacher/update-timetable-link` | `Teacher\Timetable@updateTimetableLink` | T |
+| GET | `teacher/id-card-pdf` | `Teacher\Auth@getIdCardPdf` | T |
+| GET | `teacher/attendance-report` | `Teacher\Attendance@getAttendanceReport` | T |
 
 ### General (`/api/...`) — details in [General endpoints](#general-endpoints-apicontroller)
 

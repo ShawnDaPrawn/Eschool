@@ -3,7 +3,7 @@
 use App\Http\Controllers\Api\ApiController;
 use App\Http\Controllers\Api\ParentApiController;
 use App\Http\Controllers\Api\StudentApiController;
-use App\Http\Controllers\Api\TeacherApiController;
+use App\Http\Controllers\Api\Teacher;
 // use Illuminate\Http\Request;
 // use Illuminate\Support\Facades\Password;
 use Illuminate\Support\Facades\Route;
@@ -182,93 +182,93 @@ Route::group(['prefix' => 'parent'], function () {
  **/
 Route::group(['prefix' => 'teacher'], function () {
     // Non Authenticated APIs
-    Route::post('login', [TeacherApiController::class, 'login'])->middleware('throttle:login');
+    Route::post('login', [Teacher\AuthController::class, 'login'])->middleware('throttle:login');
     // Authenticated APIs
     Route::group(['middleware' => ['auth:sanctum', 'role:Teacher']], function () {
-        Route::get('dashboard', [TeacherApiController::class, 'dashboard']);
-        Route::get('classes', [TeacherApiController::class, 'classes']);
+        Route::get('dashboard', [Teacher\DashboardController::class, 'dashboard']);
+        Route::get('classes', [Teacher\ClassController::class, 'classes']);
 
-        Route::get('subjects', [TeacherApiController::class, 'subjects']);
+        Route::get('subjects', [Teacher\ClassController::class, 'subjects']);
 
         // Assignment
-        Route::get('get-assignment', [TeacherApiController::class, 'getAssignment']);
-        Route::post('create-assignment', [TeacherApiController::class, 'createAssignment']);
-        Route::post('update-assignment', [TeacherApiController::class, 'updateAssignment']);
-        Route::post('delete-assignment', [TeacherApiController::class, 'deleteAssignment']);
+        Route::get('get-assignment', [Teacher\AssignmentController::class, 'getAssignment']);
+        Route::post('create-assignment', [Teacher\AssignmentController::class, 'createAssignment']);
+        Route::post('update-assignment', [Teacher\AssignmentController::class, 'updateAssignment']);
+        Route::post('delete-assignment', [Teacher\AssignmentController::class, 'deleteAssignment']);
 
         // Assignment Submission
-        Route::get('get-assignment-submission', [TeacherApiController::class, 'getAssignmentSubmission']);
-        Route::post('update-assignment-submission', [TeacherApiController::class, 'updateAssignmentSubmission']);
+        Route::get('get-assignment-submission', [Teacher\AssignmentController::class, 'getAssignmentSubmission']);
+        Route::post('update-assignment-submission', [Teacher\AssignmentController::class, 'updateAssignmentSubmission']);
 
         // File
-        Route::post('delete-file', [TeacherApiController::class, 'deleteFile']);
-        Route::post('update-file', [TeacherApiController::class, 'updateFile']);
+        Route::post('delete-file', [Teacher\LessonController::class, 'deleteFile']);
+        Route::post('update-file', [Teacher\LessonController::class, 'updateFile']);
 
         // Lesson
-        Route::get('get-lesson', [TeacherApiController::class, 'getLesson']);
-        Route::post('create-lesson', [TeacherApiController::class, 'createLesson']);
-        Route::post('update-lesson', [TeacherApiController::class, 'updateLesson']);
-        Route::post('delete-lesson', [TeacherApiController::class, 'deleteLesson']);
+        Route::get('get-lesson', [Teacher\LessonController::class, 'getLesson']);
+        Route::post('create-lesson', [Teacher\LessonController::class, 'createLesson']);
+        Route::post('update-lesson', [Teacher\LessonController::class, 'updateLesson']);
+        Route::post('delete-lesson', [Teacher\LessonController::class, 'deleteLesson']);
 
         // Topic
-        Route::get('get-topic', [TeacherApiController::class, 'getTopic']);
-        Route::post('create-topic', [TeacherApiController::class, 'createTopic']);
-        Route::post('update-topic', [TeacherApiController::class, 'updateTopic']);
-        Route::post('delete-topic', [TeacherApiController::class, 'deleteTopic']);
+        Route::get('get-topic', [Teacher\LessonController::class, 'getTopic']);
+        Route::post('create-topic', [Teacher\LessonController::class, 'createTopic']);
+        Route::post('update-topic', [Teacher\LessonController::class, 'updateTopic']);
+        Route::post('delete-topic', [Teacher\LessonController::class, 'deleteTopic']);
 
         // Announcement
-        Route::get('get-announcement', [TeacherApiController::class, 'getAnnouncement']);
-        Route::post('send-announcement', [TeacherApiController::class, 'sendAnnouncement']);
-        Route::post('update-announcement', [TeacherApiController::class, 'updateAnnouncement']);
-        Route::post('delete-announcement', [TeacherApiController::class, 'deleteAnnouncement']);
+        Route::get('get-announcement', [Teacher\AnnouncementController::class, 'getAnnouncement']);
+        Route::post('send-announcement', [Teacher\AnnouncementController::class, 'sendAnnouncement']);
+        Route::post('update-announcement', [Teacher\AnnouncementController::class, 'updateAnnouncement']);
+        Route::post('delete-announcement', [Teacher\AnnouncementController::class, 'deleteAnnouncement']);
 
-        Route::get('get-attendance', [TeacherApiController::class, 'getAttendance']);
-        Route::post('submit-attendance', [TeacherApiController::class, 'submitAttendance']);
+        Route::get('get-attendance', [Teacher\AttendanceController::class, 'getAttendance']);
+        Route::post('submit-attendance', [Teacher\AttendanceController::class, 'submitAttendance']);
 
         // Exam
-        Route::get('get-exam-list', [TeacherApiController::class, 'getExamList']); // Exam list Route
-        Route::get('get-exam-details', [TeacherApiController::class, 'getExamDetails']); // Exam Details Route
-        Route::post('submit-exam-marks/subject', [TeacherApiController::class, 'submitExamMarksBySubjects']); // Submit Exam Marks By Subjects Route
-        Route::post('submit-exam-marks/student', [TeacherApiController::class, 'submitExamMarksByStudent']); // Submit Exam Marks By Students Route
+        Route::get('get-exam-list', [Teacher\ExamController::class, 'getExamList']); // Exam list Route
+        Route::get('get-exam-details', [Teacher\ExamController::class, 'getExamDetails']); // Exam Details Route
+        Route::post('submit-exam-marks/subject', [Teacher\ExamController::class, 'submitExamMarksBySubjects']); // Submit Exam Marks By Subjects Route
+        Route::post('submit-exam-marks/student', [Teacher\ExamController::class, 'submitExamMarksByStudent']); // Submit Exam Marks By Students Route
 
         Route::group(['middleware' => ['auth:sanctum', \App\Http\Middleware\CheckStudent::class]], function () {
-            Route::get('get-student-result', [TeacherApiController::class, 'GetStudentExamResult']); // Student Exam Result
-            Route::get('get-student-marks', [TeacherApiController::class, 'GetStudentExamMarks']); // Student Exam Marks
+            Route::get('get-student-result', [Teacher\ExamController::class, 'GetStudentExamResult']); // Student Exam Result
+            Route::get('get-student-marks', [Teacher\ExamController::class, 'GetStudentExamMarks']); // Student Exam Marks
         });
 
         // Student List
-        Route::get('student-list', [TeacherApiController::class, 'getStudentList']);
-        Route::get('student-details', [TeacherApiController::class, 'getStudentDetails']);
+        Route::get('student-list', [Teacher\ClassController::class, 'getStudentList']);
+        Route::get('student-details', [Teacher\ClassController::class, 'getStudentDetails']);
 
         // Academic calendar
-        Route::get('academic-calendar-pdf', [TeacherApiController::class, 'getAcademicCalendarPdf']);
+        Route::get('academic-calendar-pdf', [Teacher\CalendarController::class, 'getAcademicCalendarPdf']);
 
         // Schedule List
-        Route::get('teacher_timetable', [TeacherApiController::class, 'getTeacherTimetable']);
+        Route::get('teacher_timetable', [Teacher\TimetableController::class, 'getTeacherTimetable']);
 
         // Profile Detials
-        Route::get('get-profile-details', [TeacherApiController::class, 'getProfileDetails']);
-        Route::get('get-notification', [TeacherApiController::class, 'getNotifications']); // Get Notification Data
+        Route::get('get-profile-details', [Teacher\AuthController::class, 'getProfileDetails']);
+        Route::get('get-notification', [Teacher\NotificationController::class, 'getNotifications']); // Get Notification Data
 
-        Route::get('get-user-list', [TeacherApiController::class, 'getChatUserList']);
-        Route::post('send-message', [TeacherApiController::class, 'sendMessage']);
-        Route::post('get-user-message', [TeacherApiController::class, 'getUserChatMessage']);
-        Route::post('read-all-message', [TeacherApiController::class, 'readAllMessages']);
+        Route::get('get-user-list', [Teacher\ChatController::class, 'getChatUserList']);
+        Route::post('send-message', [Teacher\ChatController::class, 'sendMessage']);
+        Route::post('get-user-message', [Teacher\ChatController::class, 'getUserChatMessage']);
+        Route::post('read-all-message', [Teacher\ChatController::class, 'readAllMessages']);
 
-        Route::get('get-student-result-pdf', [TeacherApiController::class, 'getStudentResultPdf']);
+        Route::get('get-student-result-pdf', [Teacher\ExamController::class, 'getStudentResultPdf']);
 
-        Route::post('apply-leave', [TeacherApiController::class, 'applyLeave']);
-        Route::post('get-leave-list', [TeacherApiController::class, 'getMyLeave']);
-        Route::post('delete-leave', [TeacherApiController::class, 'deleteLeave']);
+        Route::post('apply-leave', [Teacher\LeaveController::class, 'applyLeave']);
+        Route::post('get-leave-list', [Teacher\LeaveController::class, 'getMyLeave']);
+        Route::post('delete-leave', [Teacher\LeaveController::class, 'deleteLeave']);
 
-        Route::post('get-student-leave-list', [TeacherApiController::class, 'getStudentLeaveList']);
-        Route::post('student-leave-status-update', [TeacherApiController::class, 'studentLeaveStatusUpdate']);
+        Route::post('get-student-leave-list', [Teacher\LeaveController::class, 'getStudentLeaveList']);
+        Route::post('student-leave-status-update', [Teacher\LeaveController::class, 'studentLeaveStatusUpdate']);
 
-        Route::post('update-timetable-link', [TeacherApiController::class, 'updateTimetableLink']);
+        Route::post('update-timetable-link', [Teacher\TimetableController::class, 'updateTimetableLink']);
 
-        Route::get('id-card-pdf', [TeacherApiController::class, 'getIdCardPdf']); // Teacher ID Card PDF Route
+        Route::get('id-card-pdf', [Teacher\AuthController::class, 'getIdCardPdf']); // Teacher ID Card PDF Route
 
-        Route::get('attendance-report', [TeacherApiController::class, 'getAttendanceReport']);
+        Route::get('attendance-report', [Teacher\AttendanceController::class, 'getAttendanceReport']);
     });
 });
 
