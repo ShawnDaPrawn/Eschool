@@ -196,7 +196,7 @@ Nothing reads it yet in Phase 0: the modules list is empty and the apps behave a
 | `is_demo` | Value of the server's `DEMO_MODE` env; `UiUtils.isDemoVersionEnable()` is checked on the login screens and before changing the password. | both |
 | `online_payment` | `'1'` shows the "pay" buttons. | student |
 | `compulsory_fee_payment_mode`, `is_student_can_pay_fees` | Compulsory-fee gate and whether students may pay their own fees. | student |
-| `payment_options` | Currency code/symbol, due date/charges and the public keys of each enabled gateway (`stripe`, `paystack`, `flutterwave`; a `razorpay` entry from an older server is ignored). Secret keys are never sent. | student |
+| `payment_options` | Currency code/symbol, due date/charges and the public key of each enabled gateway (since Phase 0 the server offers `stripe` only; `paystack` and `flutterwave` are still read if an older server sends them, and a `razorpay` entry is ignored). Secret keys are never sent. | student |
 | `online_exam_terms_condition` | Rules shown before an online exam. | student |
 
 These values are edited in the admin panel under App Settings (`SettingController::app_index` / `app_update`, route `app-settings`); see https://shawndaprawn.github.io/Eschool/admin-panel/app-settings/. Other `type` values of the same endpoint (`privacy_policy`, `contact_us`, `about_us`, `terms_condition`) feed the static pages through `AppSettingsCubit`.
@@ -251,7 +251,7 @@ Constraint from `pubspec.yaml`, resolved version from `pubspec.lock`.
 | `cached_network_image` | `^3.4.1` | 3.4.1 | yes | yes | Remote images. |
 | `flutter_html` | `^3.0.0` | 3.0.0 | yes | yes | HTML from the server (about/privacy/terms/contact pages, online exam rules). |
 | `url_launcher` | `^6.3.2` | 6.3.3 | yes | yes | External links (only http/https via `UiUtils.launchWebUrl`). |
-| `webview_flutter` | `^4.13.1` | 4.14.1 | yes | yes | Paystack/Flutterwave checkout (student), web content. |
+| `webview_flutter` | `^4.13.1` | 4.14.1 | yes | yes | The WebView checkout (student; unused while the server offers only Stripe), web content. |
 | `youtube_player_iframe` | `^6.0.2` | 6.0.2 | yes | yes | YouTube study material and gallery videos. |
 | `file_picker` | `12.0.0-beta.7` (pinned) | 12.0.0-beta.7 | yes | yes | Attachments. |
 | `image_picker` | `^1.2.2` | 1.2.4 | yes | yes | Camera/gallery images. |

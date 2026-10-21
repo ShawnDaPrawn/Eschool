@@ -57,7 +57,7 @@ String get appFlavor => AppConfig.flavorOr('learner');   // 'teacher' in the tea
 
 - Every endpoint in `lib/utils/api.dart` is `'${databaseUrl}...'`.
 - `storageUrl` is used for server files referenced by relative path (notification images, dynamic-field files).
-- The student app also uses `baseUrl` for the "school website" link on the login choice screen and, in `WebViewPaymentScreen`, as the host on which the Paystack/Flutterwave callback pages (`/response/paystack/success`, `/response/flutterwave/success`) are recognised. If the admin panel is served from a different host than `API_BASE_URL`, web payments never complete in the app.
+- The student app also uses `baseUrl` for the "school website" link on the login choice screen and, in `WebViewPaymentScreen`, as the host on which the WebView checkout's callback pages (`/response/paystack/success`, `/response/flutterwave/success`) are recognised. The server offers only Stripe since Phase 0, so that checkout is not reached today; if a hosted-checkout gateway returns, its callback must be on the `API_BASE_URL` host.
 - Docs: https://shawndaprawn.github.io/Eschool/mobile-app/integrate-admin-panel/
 
 ### HTTPS requirement
