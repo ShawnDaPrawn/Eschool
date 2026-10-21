@@ -101,7 +101,7 @@ These are simple lookup tables managed from their own controllers (`MediumContro
 
 ## Classes and class sections
 
-`ClassSchoolController::store` (permission `class-create`):
+`Classes\ClassController::store` (permission `class-create`):
 
 - `name` must match `/^[A-Za-z0-9_]+$/`, so class names cannot contain spaces.
 - Without `stream_id`, one `classes` row is created. With an array of `stream_id`, one row is created per stream, all with the same name, medium and shift.
@@ -113,13 +113,13 @@ These are simple lookup tables managed from their own controllers (`MediumContro
 ## Subjects, class subjects and electives
 
 - **Subjects** are defined per medium (`SubjectController`). A subject can be offered by many classes.
-- **Class subjects** are assigned per class and per session year on the "Assign class subject" page (`ClassSchoolController::update_subjects`, permission `assign-class-subject`):
+- **Class subjects** are assigned per class and per session year on the "Assign class subject" page (`Classes\SubjectController::update_subjects`, permission `assign-class-subject`):
   - Core subjects are `class_subjects` rows with `type = 'Compulsory'`.
   - Each elective group is an `elective_subject_groups` row plus one `class_subjects` row per subject with `type = 'Elective'` and `elective_subject_group_id`. `total_subjects` is the number of subjects in the group; `total_selectable_subjects` is how many a student must or may choose.
   - When semesters are on, every row carries a `semester_id`. The same subject cannot appear twice in the same semester (as two cores, two electives or core and elective); it may repeat across semesters.
   - Removing a subject from an existing elective group deletes the matching `student_subjects` picks.
 - **Deleting** a class subject (`ClassSubject::booted()`) also deletes the subject-teacher rows for that subject in the class's sections and session year, and decrements the group's `total_subjects` (deleting the group at zero). Deleting a group removes its subjects and the students' picks.
-- **Elective selection.** Students pick electives in the app (`POST /api/student/select-subjects`): each group must belong to the student's class for the session (and current semester when semesters are on), every subject must belong to the group, and existing plus new picks may not exceed `total_selectable_subjects`. Admins can assign electives from the panel (`ClassSchoolController::assignElectiveSubject`, permission `assign-elective-subjects`).
+- **Elective selection.** Students pick electives in the app (`POST /api/student/select-subjects`): each group must belong to the student's class for the session (and current semester when semesters are on), every subject must belong to the group, and existing plus new picks may not exceed `total_selectable_subjects`. Admins can assign electives from the panel (`Classes\ElectiveController::assignElectiveSubject`, permission `assign-elective-subjects`).
 - **A student's subject list** comes from `Students::subjects()`: core subjects from `class_subjects` for the session year (filtered by the current semester when the class uses semesters) plus the student's `student_subjects` picks. Elective picks are returned only if the class has at least one elective group in scope. `Students::classSubjects()` returns the core subjects and the elective groups (with their subjects) on offer.
 
 ## Class teachers and subject teachers

@@ -4,7 +4,7 @@ use App\Http\Controllers\AnnouncementController;
 use App\Http\Controllers\AssignmentController;
 use App\Http\Controllers\AttendanceController;
 use App\Http\Controllers\CategoryController;
-use App\Http\Controllers\ClassSchoolController;
+use App\Http\Controllers\Classes;
 use App\Http\Controllers\ClassTeacherController;
 use App\Http\Controllers\Controller;
 use App\Http\Controllers\EmailController;
@@ -134,29 +134,29 @@ Route::group(['middleware' => ['Role', 'auth']], function () {
         Route::resource('section', SectionController::class)->except(['create', 'edit']);
         Route::get('section_list', [SectionController::class, 'show']);
 
-        Route::get('class/select-elective-subjects', [ClassSchoolController::class, 'selectElectiveSubjects'])->name('class.select-elective-subjects');
-        Route::get('get-elective-subjects-by-class', [ClassSchoolController::class, 'getElectiveSubjects'])
+        Route::get('class/select-elective-subjects', [Classes\ElectiveController::class, 'selectElectiveSubjects'])->name('class.select-elective-subjects');
+        Route::get('get-elective-subjects-by-class', [Classes\ElectiveController::class, 'getElectiveSubjects'])
             ->name('get.elective.subjects');
-        Route::get('get-elective-groups-by-class', [ClassSchoolController::class, 'getElectiveGroups'])
+        Route::get('get-elective-groups-by-class', [Classes\ElectiveController::class, 'getElectiveGroups'])
             ->name('get.elective.groups');
-        Route::get('students-subject-data', [ClassSchoolController::class, 'fetchStudentSubjects'])
+        Route::get('students-subject-data', [Classes\ElectiveController::class, 'fetchStudentSubjects'])
             ->name('students-subject-data');
-        Route::get('/get-student-assigned-subjects', [ClassSchoolController::class, 'getStudentAssignedSubjects'])->name('student.assigned.subjects');
-        Route::post('assign-elective-subjects', [ClassSchoolController::class, 'assignElectiveSubject'])
+        Route::get('/get-student-assigned-subjects', [Classes\ElectiveController::class, 'getStudentAssignedSubjects'])->name('student.assigned.subjects');
+        Route::post('assign-elective-subjects', [Classes\ElectiveController::class, 'assignElectiveSubject'])
             ->name('assign-elective-subjects');
 
-        Route::get('get-class-sections/{class_id}', [ClassSchoolController::class, 'getClassSections']);
+        Route::get('get-class-sections/{class_id}', [Classes\ClassController::class, 'getClassSections']);
 
-        Route::get('class/subject', [ClassSchoolController::class, 'subject'])->name('class.subject');
-        Route::post('class/subject', [ClassSchoolController::class, 'update_subjects'])->name('class.subject.update');
-        Route::delete('class/subject/{class_subject_id}', [ClassSchoolController::class, 'subject_destroy'])->name('class.subject.delete');
-        Route::delete('class/subject-group/{group_id}', [ClassSchoolController::class, 'subject_group_destroy'])->name('class.subject-group.delete');
-        Route::get('class/subject/list', [ClassSchoolController::class, 'subject_list'])->name('class.subject.list');
-        Route::get('class/subject/semester-details/{class_id}', [ClassSchoolController::class, 'subjectSemesterDetails'])->name('class.subject.semester-details');
-        Route::get('class-list', [ClassSchoolController::class, 'show']);
-        Route::resource('class', ClassSchoolController::class)->except(['create', 'edit']);
+        Route::get('class/subject', [Classes\SubjectController::class, 'subject'])->name('class.subject');
+        Route::post('class/subject', [Classes\SubjectController::class, 'update_subjects'])->name('class.subject.update');
+        Route::delete('class/subject/{class_subject_id}', [Classes\SubjectController::class, 'subject_destroy'])->name('class.subject.delete');
+        Route::delete('class/subject-group/{group_id}', [Classes\SubjectController::class, 'subject_group_destroy'])->name('class.subject-group.delete');
+        Route::get('class/subject/list', [Classes\SubjectController::class, 'subject_list'])->name('class.subject.list');
+        Route::get('class/subject/semester-details/{class_id}', [Classes\SubjectController::class, 'subjectSemesterDetails'])->name('class.subject.semester-details');
+        Route::get('class-list', [Classes\ClassController::class, 'show']);
+        Route::resource('class', Classes\ClassController::class)->except(['create', 'edit']);
 
-        Route::get('class-subject-list/{medium_id}', [ClassSchoolController::class, 'getSubjectsByMediumId']);
+        Route::get('class-subject-list/{medium_id}', [Classes\SubjectController::class, 'getSubjectsByMediumId']);
 
         Route::get('assign/class/teacher', [ClassTeacherController::class, 'teacher'])->name('class.teacher');
         Route::post('class/teacher/store', [ClassTeacherController::class, 'assign_teacher'])->name('class.teacher.store');
@@ -514,7 +514,7 @@ Route::group(['middleware' => ['Role', 'auth']], function () {
         Route::get('semester/show', [SemesterController::class, 'show']);
         Route::resource('semester', SemesterController::class)->except(['create', 'edit']);
 
-        Route::get('class-subject-edit/{id}', [ClassSchoolController::class, 'classSubjectsEdit'])->name('class-subject-edit.index');
+        Route::get('class-subject-edit/{id}', [Classes\SubjectController::class, 'classSubjectsEdit'])->name('class-subject-edit.index');
         Route::get('student-leave-request', [Leave\StudentLeaveController::class, 'studentLeaveRequestIndex'])->name('student-leave-request.index');
         Route::get('student-leave-request-list', [Leave\StudentLeaveController::class, 'studentLeaveRequestList'])->name('student-leave-request.show');
         Route::post('student-leave-request-update', [Leave\StudentLeaveController::class, 'studentLeaveStatusUpdate'])->name('student-leave-status.update');
