@@ -13,6 +13,14 @@ return Application::configure(basePath: dirname(__DIR__))
     )
     ->withMiddleware(function (Middleware $middleware): void {
 
+        // Cloud Run terminates TLS, so forwarded proto headers have to be trusted.
+        // Hosts are limited to APP_URL plus local development.
+        $middleware->trustProxies(at: '*');
+        $middleware->trustHosts(at: [
+            '^localhost$',
+            '^127\.0\.0\.1$',
+        ]);
+
         $middleware->validateCsrfTokens(except: [
             'webhook/*',
         ]);

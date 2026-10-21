@@ -1,7 +1,7 @@
 //database urls
 //Please add your admin panel url here and make sure you do not add '/' at the end of the url
 
-const String baseUrl = 'https://my-server.com';
+const String baseUrl = 'https://navigateed-admin-972068206844.africa-south1.run.app';
 
 //please do not change the below 2 values it's for convince of usage in code
 const String databaseUrl = '$baseUrl/api/';

@@ -78,7 +78,7 @@ Both apps work the same way. The steps below use `e-school`. For the teacher app
 
 1. **Point the app at your server.** In `lib/utils/constants.dart`, set `baseUrl` to the panel's address. Do not add a trailing slash. Do not use `localhost` from an Android emulator: use `http://10.0.2.2:8000` there, or your machine's LAN IP for a physical device. The app builds `databaseUrl = '$baseUrl/api/'` and `storageUrl = '$baseUrl/storage/'` from it.
    ```dart
-   const String baseUrl = 'https://my-server.com';
+   const String baseUrl = 'https://navigateed-admin-972068206844.africa-south1.run.app';
    ```
 2. **Firebase config is already in the repo** for project `navigateed-d8c06`: `android/app/google-services.json` and `ios/Runner/GoogleService-Info.plist` in each app. The Android build applies the `com.google.gms.google-services` and Crashlytics Gradle plugins, and `initializeApp()` calls `Firebase.initializeApp()`. Package names are `tech.tokensoft.navigateed` and `tech.tokensoft.navigateed.teacher`. If you rename them, download new files for the new ids (see [Mobile App Configuration](Mobile-App-Configuration)). To send push notifications, the panel also needs the service-account JSON from the same Firebase project (see [Notifications](Notifications)).
 3. **Fetch packages and run:**

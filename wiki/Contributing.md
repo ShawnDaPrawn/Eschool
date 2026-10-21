@@ -105,7 +105,7 @@ flowchart LR
 
 ## Keeping the apps and the API in sync
 
-- **Base URL.** Each app's `lib/utils/constants.dart` defines `baseUrl` (shipped as `https://my-server.com`, no trailing slash), `databaseUrl = '$baseUrl/api/'` and `storageUrl = '$baseUrl/storage/'`. See [Mobile-App-Configuration](Mobile-App-Configuration).
+- **Base URL.** Each app's `lib/utils/constants.dart` defines `baseUrl` (shipped as `https://navigateed-admin-972068206844.africa-south1.run.app`, no trailing slash), `databaseUrl = '$baseUrl/api/'` and `storageUrl = '$baseUrl/storage/'`. See [Mobile-App-Configuration](Mobile-App-Configuration).
 - **Endpoints.** Every path the app calls is a static string in `lib/utils/api.dart` (for example `studentLogin = '${databaseUrl}student/login'`). Renaming or moving a route in `routes/api.php` breaks every installed app that still uses the old path; add the new route and keep the old one until old builds are gone.
 - **Response shape.** API responses are `{"error": bool, "message": string, "data": ..., "code": ...}`. The apps map `code` values to messages in `lib/utils/errorMessageKeysAndCodes.dart` (for example `103` wrong online-exam key, `105` invalid child, `112` demo mode, `401` signs the user out). A new error code needs a mapping in both apps if it should show a specific message.
 - **Backward-compatible payloads.** Add fields rather than renaming or removing them. When the server stopped sending the correct answers of online-exam questions, it kept placeholder answers for old builds and added `answers_count`, which `e-school/lib/ui/screens/exam/onlineExam/models/question.dart` reads with a fallback.

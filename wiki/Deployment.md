@@ -2,7 +2,27 @@ How to run `admin-panel/` in production: server requirements, Composer, the web 
 
 ## About the README deployment scripts
 
-`admin-panel/README.md` mentions `./complete_upload.sh`, `./backup_old_code.sh` and a `DEPLOYMENT_GUIDE.md`. None of them exist: the repository contains no shell scripts at all (`git ls-files '*.sh'` is empty) and no deployment guide. The README's "Manual Deployment" steps are also partly wrong for this code base (`--no-dev` breaks the app, see below, and `php artisan db:seed` seeds nothing). Use this page instead.
+`admin-panel/README.md` mentions `./complete_upload.sh`, `./backup_old_code.sh` and a `DEPLOYMENT_GUIDE.md`. None of them exist. The only shell script in the repo is `admin-panel/docker/entrypoint.sh`, which the Cloud Run image runs on startup. The README's "Manual Deployment" steps are also partly wrong for this code base (`php artisan db:seed` seeds nothing). Use this page instead.
+
+## NavigateEd production
+
+This project's panel runs on Cloud Run in `africa-south1` (Johannesburg), Firebase project `navigateed-d8c06`, on the billing account named Firebase Payment. The public URL is https://navigateed-admin-972068206844.africa-south1.run.app/ (`/login`, `/home`, `/up`). Both Flutter apps point `baseUrl` at that host.
+
+| Piece | Value |
+|---|---|
+| Service | `navigateed-admin` |
+| Image | `admin-panel/Dockerfile` (PHP 8.3, Apache, port 8080) |
+| Database | Cloud SQL MySQL 8.0 `navigateed-mysql`, `db-f1-micro`, 10 GB HDD, zonal, database `navigateed` |
+| Uploads | Cloud Storage bucket `navigateed-d8c06-admin`, mounted at `storage/app` |
+| Sessions | `SESSION_DRIVER=database` |
+| Logs | `LOG_CHANNEL=stderr` (Cloud Run logs) |
+| Timezone | `Africa/Johannesburg` |
+
+Cloud SQL stays on while the panel is idle, so this is the paid part (the smallest shared-core machine in Johannesburg). Cloud Run itself scales to zero. The container entrypoint migrates, seeds the installer data once, replaces the seeded `superadmin@gmail.com` / `superadmin` login with `info@tokensoft.tech`, and writes `storage/installed`. The admin password is the Secret Manager secret `navigateed-admin-password`, not a value in git. `APP_KEY` and the database password are the secrets `navigateed-app-key` and `navigateed-db-password`.
+
+Daily chat cleanup and Sanctum pruning (`routes/console.php`) do not run until something calls `php artisan schedule:run`. There is no Cloud Scheduler job yet.
+
+`bootstrap/app.php` trusts proxy headers so HTTPS behind Cloud Run stays HTTPS, and trusts the `APP_URL` host. A production `APP_URL` that does not match the browser host returns 400.
 
 ## Server requirements
 
@@ -39,7 +59,7 @@ PHP settings to review: `upload_max_filesize` and `post_max_size` must allow you
 composer install --optimize-autoloader
 ```
 
-Do not add `--no-dev` yet. [config/app.php](https://github.com/ShawnDaPrawn/Eschool/blob/main/admin-panel/config/app.php) lists `Barryvdh\Debugbar\ServiceProvider` in its `providers` array, but `barryvdh/laravel-debugbar` is a `require-dev` package. Laravel instantiates every listed provider with `new $provider(...)`, so after a `--no-dev` install every request and every Artisan command fails with `Class "Barryvdh\Debugbar\ServiceProvider" not found`. Either install with dev packages and keep `APP_DEBUG=false` (Debugbar's `DEBUGBAR_ENABLED` defaults to `null`, which means "on only when `APP_DEBUG` is true"), or remove that line from `config/app.php` before using `--no-dev`.
+The container image runs `composer install --no-dev`. `barryvdh/laravel-debugbar` is a `require-dev` package, and its provider is no longer listed in `config/app.php`, so a `--no-dev` install can boot. Package discovery still registers Debugbar when the dev package is installed locally. Keep `APP_DEBUG=false` in production.
 
 ## Web root
 
@@ -263,7 +283,7 @@ php artisan up
 ## Checklist
 
 - [ ] PHP 8.3 with the extensions above, MySQL/MariaDB database created
-- [ ] `composer install --optimize-autoloader` (not `--no-dev`, or remove the Debugbar provider first)
+- [ ] `composer install --optimize-autoloader` (the container uses `--no-dev`; local installs can include dev packages)
 - [ ] `.env` from `.env.example`, `php artisan key:generate`, `APP_URL` with `https://`, `APP_DEBUG=false`
 - [ ] Installed through `/install` or the command-line steps in [Installation-Wizard](Installation-Wizard#installing-without-the-wizard); `storage/installed` exists
 - [ ] Super Admin password changed from the seeded `superadmin`
