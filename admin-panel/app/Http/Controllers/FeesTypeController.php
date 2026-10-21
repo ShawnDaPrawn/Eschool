@@ -511,22 +511,22 @@ class FeesTypeController extends Controller
         $sort = 'id';
         $order = 'DESC';
 
-        if (isset($_GET['offset'])) {
-            $offset = $_GET['offset'];
+        if (request()->has('offset')) {
+            $offset = request()->query('offset');
         }
-        if (isset($_GET['limit'])) {
-            $limit = $_GET['limit'];
+        if (request()->has('limit')) {
+            $limit = request()->query('limit');
         }
-        if (isset($_GET['sort'])) {
-            $sort = $_GET['sort'];
+        if (request()->has('sort')) {
+            $sort = request()->query('sort');
         }
-        if (isset($_GET['order'])) {
-            $order = $_GET['order'];
+        if (request()->has('order')) {
+            $order = request()->query('order');
         }
 
         $session_year_id = null;
-        if (isset($_GET['session_year_id']) && $_GET['session_year_id'] !== '') {
-            $session_year_id = $_GET['session_year_id'];
+        if (request()->has('session_year_id') && request()->query('session_year_id') !== '') {
+            $session_year_id = request()->query('session_year_id');
         }
 
         // Base query: use StudentSessions so ALL enrolled students appear,
@@ -543,8 +543,8 @@ class FeesTypeController extends Controller
         ])->where('session_year_id', $session_year_id);
 
         // Filter by class
-        if (isset($_GET['class_id']) && ! empty($_GET['class_id'])) {
-            $class_id = $_GET['class_id'];
+        if (request()->has('class_id') && ! empty(request()->query('class_id'))) {
+            $class_id = request()->query('class_id');
             $class_section_ids = ClassSection::where('class_id', $class_id)->pluck('id');
             $sessionQuery->whereIn('class_section_id', $class_section_ids);
         }
@@ -553,8 +553,8 @@ class FeesTypeController extends Controller
         // (keyed by student/class/session); fees_paid.mode and
         // fees_paid.payment_transaction_id are left unset, so resolve the matching
         // students through their completed payment transactions instead.
-        if (isset($_GET['mode']) && in_array($_GET['mode'], ['0', '1', '2'], true)) {
-            $mode = $_GET['mode'];
+        if (request()->has('mode') && in_array(request()->query('mode'), ['0', '1', '2'], true)) {
+            $mode = request()->query('mode');
             $paidStudentIds = PaymentTransaction::where('mode', $mode)
                 ->where('payment_status', 1)
                 ->when($session_year_id, fn ($q) => $q->where('session_year_id', $session_year_id))
@@ -563,8 +563,8 @@ class FeesTypeController extends Controller
         }
 
         // Search by student name or id
-        if (isset($_GET['search']) && ! empty($_GET['search'])) {
-            $search = $_GET['search'];
+        if (request()->has('search') && ! empty(request()->query('search'))) {
+            $search = request()->query('search');
             $sessionQuery->whereHas('student', function ($q) use ($search) {
                 $q->where('id', 'LIKE', "%$search%")
                     ->orWhereHas('user', function ($q) use ($search) {
@@ -574,11 +574,10 @@ class FeesTypeController extends Controller
             });
         }
 
-        // Only show students whose class has compulsory fees configured in fees_classes.
-        // If a class has no fees set up, those students should not appear in this list.
+        // Only show students whose class has fees (compulsory or optional) set up in
+        // fees_classes; each row offers both kinds of payment.
         $sessionQuery->whereHas('class_section.class.fees_class', function ($q) use ($session_year_id) {
-            $q->where('choiceable', 0)
-                ->where('session_year_id', $session_year_id);
+            $q->where('session_year_id', $session_year_id);
         });
 
         $total = $sessionQuery->count();
@@ -811,22 +810,22 @@ class FeesTypeController extends Controller
     //     $sort = 'id';
     //     $order = 'DESC';
 
-    //     if (isset($_GET['offset'])) {
-    //         $offset = $_GET['offset'];
+    //     if (request()->has('offset')) {
+    //         $offset = request()->query('offset');
     //     }
-    //     if (isset($_GET['limit'])) {
-    //         $limit = $_GET['limit'];
+    //     if (request()->has('limit')) {
+    //         $limit = request()->query('limit');
     //     }
-    //     if (isset($_GET['sort'])) {
-    //         $sort = $_GET['sort'];
+    //     if (request()->has('sort')) {
+    //         $sort = request()->query('sort');
     //     }
-    //     if (isset($_GET['order'])) {
-    //         $order = $_GET['order'];
+    //     if (request()->has('order')) {
+    //         $order = request()->query('order');
     //     }
 
     //     $session_year_id = null;
-    //     if (isset($_GET['session_year_id']) && $_GET['session_year_id'] !== '') {
-    //         $session_year_id = $_GET['session_year_id'];
+    //     if (request()->has('session_year_id') && request()->query('session_year_id') !== '') {
+    //         $session_year_id = request()->query('session_year_id');
     //     }
 
     //     // Base query: use StudentSessions so ALL enrolled students appear,
@@ -843,8 +842,8 @@ class FeesTypeController extends Controller
     //     ])->where('session_year_id', $session_year_id);
 
     //     // Filter by class
-    //     if (isset($_GET['class_id']) && ! empty($_GET['class_id'])) {
-    //         $class_id = $_GET['class_id'];
+    //     if (request()->has('class_id') && ! empty(request()->query('class_id'))) {
+    //         $class_id = request()->query('class_id');
     //         $class_section_ids = ClassSection::where('class_id', $class_id)->pluck('id');
     //         $sessionQuery->whereIn('class_section_id', $class_section_ids);
     //     }
@@ -853,8 +852,8 @@ class FeesTypeController extends Controller
     //     // (keyed by student/class/session); fees_paid.mode and
     //     // fees_paid.payment_transaction_id are left unset, so resolve the matching
     //     // students through their completed payment transactions instead.
-    //     if (isset($_GET['mode']) && in_array($_GET['mode'], ['0', '1', '2'], true)) {
-    //         $mode = $_GET['mode'];
+    //     if (request()->has('mode') && in_array(request()->query('mode'), ['0', '1', '2'], true)) {
+    //         $mode = request()->query('mode');
     //         $paidStudentIds = PaymentTransaction::where('mode', $mode)
     //             ->where('payment_status', 1)
     //             ->when($session_year_id, fn ($q) => $q->where('session_year_id', $session_year_id))
@@ -863,8 +862,8 @@ class FeesTypeController extends Controller
     //     }
 
     //     // Search by student name or id
-    //     if (isset($_GET['search']) && ! empty($_GET['search'])) {
-    //         $search = $_GET['search'];
+    //     if (request()->has('search') && ! empty(request()->query('search'))) {
+    //         $search = request()->query('search');
     //         $sessionQuery->whereHas('student', function ($q) use ($search) {
     //             $q->where('id', 'LIKE', "%$search%")
     //                 ->orWhereHas('user', function ($q) use ($search) {

@@ -1420,13 +1420,14 @@ $(document).on("click", ".remove-exam-timetable", function (e) {
 //     ajaxRequest("GET", url, null, null, successCallback, null);
 // });
 $("#exam_id").on("change", function () {
+    // The upload-marks page picks a class (#class_id); the route expects a class id.
     let class_id =
-        $("#class_section_id_hidden").val() || $("#class_section_id").val();
-    console.log("class_id:", class_id);
+        $("#class_id").val() ||
+        $("#class_section_id_hidden").val() ||
+        $("#class_section_id").val();
     let exam_id = $(this).val();
 
     let url = baseUrl + "/exams/get-subjects/" + class_id + "/" + exam_id;
-    console.log(exam_id, class_id);
     $("#subject_id option").hide();
 
     function successCallback(response) {

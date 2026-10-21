@@ -529,7 +529,8 @@ class AttendanceController extends Controller
             } else {
                 $type = '<div class="att-toggle-group">'
                     .'<label class="att-toggle att-toggle--present">'
-                    .'<input required type="radio" class="type att-toggle__radio" name="type'.$row->id.'" value="1" '.($existingType === 1 ? 'checked' : '').'>'
+                    // A day without attendance yet starts as present, so teachers only mark who is away.
+                    .'<input required type="radio" class="type att-toggle__radio" name="type'.$row->id.'" value="1" '.(in_array($existingType, [1, null], true) ? 'checked' : '').'>'
                     .'<span>'.trans('present').'</span>'
                     .'</label>'
                     .'<label class="att-toggle att-toggle--absent">'
