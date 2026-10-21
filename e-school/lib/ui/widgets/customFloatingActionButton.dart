@@ -13,7 +13,6 @@ class FloatingActionAddButton extends StatelessWidget {
       onPressed: () {
         onTap();
       },
-      backgroundColor: Theme.of(context).colorScheme.primary,
       child: Padding(
         padding: const EdgeInsets.all(13.5),
         child: Lottie.asset(

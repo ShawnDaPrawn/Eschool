@@ -114,7 +114,7 @@ class ExamOnlineScreenState extends State<ExamOnlineScreen>
             UiUtils.getTranslatedLabel(context, quitExamDisclaimerKey),
           ),
           actions: [
-            CupertinoButton(
+            TextButton(
               child: Text(
                 UiUtils.getTranslatedLabel(context, yesKey),
                 style: TextStyle(color: Theme.of(context).colorScheme.error),
@@ -124,7 +124,7 @@ class ExamOnlineScreenState extends State<ExamOnlineScreen>
                 Navigator.of(context).pop();
               },
             ),
-            CupertinoButton(
+            TextButton(
               child: Text(UiUtils.getTranslatedLabel(context, noKey)),
               onPressed: () {
                 Navigator.of(context).pop();

@@ -12,7 +12,7 @@ import 'package:eschool_teacher/ui/widgets/bottomSheetTextFieldContainer.dart';
 import 'package:eschool_core/eschool_core.dart';
 import 'package:eschool_teacher/ui/widgets/classSubjectsDropDownMenu.dart';
 import 'package:eschool_teacher/ui/widgets/customAppbar.dart';
-import 'package:eschool_teacher/ui/widgets/customCupertinoSwitch.dart';
+import 'package:eschool_teacher/ui/widgets/customSwitch.dart';
 import 'package:eschool_teacher/ui/widgets/customDropDownMenu.dart';
 import 'package:eschool_teacher/ui/widgets/defaultDropDownLabelContainer.dart';
 import 'package:eschool_teacher/ui/widgets/myClassesDropDownMenu.dart';
@@ -628,7 +628,7 @@ class _AddAssignmentScreenState extends State<AddAssignmentScreen> {
                 Container(
                   alignment: Alignment.centerRight,
                   width: boxConstraints.maxWidth * 0.1,
-                  child: CustomCupertinoSwitch(
+                  child: CustomSwitch(
                     onChanged: changeAllowedReSubmissionOfRejectedAssignment,
                     value: _allowedReSubmissionOfRejectedAssignment,
                   ),

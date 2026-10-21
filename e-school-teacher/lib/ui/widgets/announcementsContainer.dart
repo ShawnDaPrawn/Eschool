@@ -18,7 +18,6 @@ import 'package:eschool_teacher/utils/animationConfiguration.dart';
 import 'package:eschool_teacher/utils/errorMessageKeysAndCodes.dart';
 import 'package:eschool_teacher/utils/labelKeys.dart';
 import 'package:eschool_teacher/utils/uiUtils.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -89,7 +88,7 @@ class AnnouncementsContainer extends StatelessWidget {
         }
         if (fetchMoreAnnouncementsFailure) {
           return Center(
-            child: CupertinoButton(
+            child: TextButton(
               child: Text(UiUtils.getTranslatedLabel(context, retryKey)),
               onPressed: () {
                 context.read<AnnouncementsCubit>().fetchMoreAnnouncements(

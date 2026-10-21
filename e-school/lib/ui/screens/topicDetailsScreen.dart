@@ -80,6 +80,9 @@ class _TopicDetailsScreenState extends State<TopicDetailsScreen> {
                       Navigator.of(context).pop();
                     },
                     svgIconUrl: UiUtils.getBackButtonPath(context),
+                    tooltip: MaterialLocalizations.of(
+                      context,
+                    ).backButtonTooltip,
                   ),
                 ),
               ),

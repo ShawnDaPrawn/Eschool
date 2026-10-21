@@ -1,7 +1,7 @@
 import 'package:eschool_teacher/app/routes.dart';
 import 'package:eschool_teacher/data/models/assignment.dart';
 import 'package:eschool_teacher/ui/widgets/announcementAttachmentContainer.dart';
-import 'package:eschool_teacher/ui/widgets/customCupertinoSwitch.dart';
+import 'package:eschool_teacher/ui/widgets/customSwitch.dart';
 import 'package:eschool_teacher/utils/labelKeys.dart';
 import 'package:eschool_teacher/utils/uiUtils.dart';
 import 'package:flutter/material.dart';
@@ -218,10 +218,7 @@ class _AssignmentDetailsBottomsheetContainerState
                 width: boxConstraints.maxWidth * 0.1,
                 child: SizedBox(
                   width: 30,
-                  child: CustomCupertinoSwitch(
-                    onChanged: (_) {},
-                    value: isResubmission,
-                  ),
+                  child: CustomSwitch(onChanged: (_) {}, value: isResubmission),
                 ),
               ),
             ],

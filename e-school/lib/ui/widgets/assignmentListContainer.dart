@@ -13,7 +13,6 @@ import 'package:eschool/utils/animationConfiguration.dart';
 import 'package:eschool/utils/labelKeys.dart';
 import 'package:eschool/utils/uiUtils.dart';
 import 'package:eschool_core/eschool_core.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -372,7 +371,7 @@ class AssignmentListContainer extends StatelessWidget {
             hasMoreAssignments &&
             fetchMoreAssignmentsFailure)
           Center(
-            child: CupertinoButton(
+            child: TextButton(
               child: Text(UiUtils.getTranslatedLabel(context, retryKey)),
               onPressed: () {
                 context.read<AssignmentsCubit>().fetchMoreAssignments(

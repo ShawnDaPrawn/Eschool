@@ -56,6 +56,9 @@ class ResultScreen extends StatelessWidget {
                       Navigator.of(context).pop();
                     },
                     svgIconUrl: UiUtils.getBackButtonPath(context),
+                    tooltip: MaterialLocalizations.of(
+                      context,
+                    ).backButtonTooltip,
                   ),
                 ),
               ),

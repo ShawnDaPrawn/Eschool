@@ -1,6 +1,5 @@
 import 'package:eschool_teacher/utils/labelKeys.dart';
 import 'package:eschool_teacher/utils/uiUtils.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
 class ConfirmDeleteDialog extends StatelessWidget {
@@ -10,26 +9,19 @@ class ConfirmDeleteDialog extends StatelessWidget {
   Widget build(BuildContext context) {
     return AlertDialog(
       actions: [
-        CupertinoButton(
-          child: Text(
-            UiUtils.getTranslatedLabel(context, yesKey),
-            style: TextStyle(color: Theme.of(context).colorScheme.primary),
-          ),
+        TextButton(
+          child: Text(UiUtils.getTranslatedLabel(context, yesKey)),
           onPressed: () {
             Navigator.of(context).pop(true);
           },
         ),
-        CupertinoButton(
-          child: Text(
-            UiUtils.getTranslatedLabel(context, noKey),
-            style: TextStyle(color: Theme.of(context).colorScheme.primary),
-          ),
+        TextButton(
+          child: Text(UiUtils.getTranslatedLabel(context, noKey)),
           onPressed: () {
             Navigator.of(context).pop();
           },
         ),
       ],
-      backgroundColor: Theme.of(context).colorScheme.surface,
       content: Text(
         UiUtils.getTranslatedLabel(context, deleteDialogMessageKey),
       ),

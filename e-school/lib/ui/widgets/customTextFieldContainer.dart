@@ -1,4 +1,5 @@
 import 'package:eschool/utils/uiUtils.dart';
+import 'package:eschool_core/eschool_core.dart';
 import 'package:flutter/material.dart';
 
 class CustomTextFieldContainer extends StatelessWidget {
@@ -28,14 +29,10 @@ class CustomTextFieldContainer extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      height: 50 + ((maxLines ?? 0) * 8),
-      margin: EdgeInsets.only(bottom: bottomPadding ?? 20.0),
-      padding: const EdgeInsetsDirectional.only(start: 20),
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(borderRadius ?? 10),
-        border: Border.all(color: UiUtils.getColorScheme(context).onSurface),
-      ),
+    final colorScheme = UiUtils.getColorScheme(context);
+    final radius = BorderRadius.circular(borderRadius ?? AppTheme.radius);
+    return Padding(
+      padding: EdgeInsets.only(bottom: bottomPadding ?? 20.0),
       child: TextFormField(
         controller: textEditingController,
         maxLength: maxLength,
@@ -46,15 +43,18 @@ class CustomTextFieldContainer extends StatelessWidget {
         textAlignVertical: TextAlignVertical.center,
         decoration: InputDecoration(
           counterText: '',
+          contentPadding: const EdgeInsetsDirectional.fromSTEB(20, 13, 12, 13),
           suffixIcon: suffixWidget,
           hintStyle: TextStyle(
-            color: UiUtils.getColorScheme(
-              context,
-            ).onSurface.withValues(alpha: 0.4),
+            color: colorScheme.onSurfaceVariant,
             fontWeight: FontWeight.w400,
           ),
           hintText: UiUtils.getTranslatedLabel(context, hintTextKey),
-          border: InputBorder.none,
+          border: OutlineInputBorder(borderRadius: radius),
+          enabledBorder: OutlineInputBorder(
+            borderRadius: radius,
+            borderSide: BorderSide(color: colorScheme.outline),
+          ),
         ),
       ),
     );

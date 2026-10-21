@@ -31,6 +31,7 @@ class CustomBackButton extends StatelessWidget {
             }
           },
           svgIconUrl: UiUtils.getBackButtonPath(context),
+          tooltip: MaterialLocalizations.of(context).backButtonTooltip,
         ),
       ),
     );

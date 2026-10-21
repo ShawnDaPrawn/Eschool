@@ -303,68 +303,41 @@ class _LoginScreenState extends State<LoginScreen>
                     ),
                   ),
                   const SizedBox(height: 30),
-                  Container(
-                    padding: const EdgeInsets.only(left: 20),
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(10),
-                      border: Border.all(
-                        color: UiUtils.getColorScheme(context).onSurface,
-                      ),
-                    ),
-                    child: TextFormField(
-                      controller: _emailTextEditingController,
-                      textAlignVertical: TextAlignVertical.center,
-                      keyboardType: TextInputType.emailAddress,
-                      decoration: InputDecoration(
-                        suffixIcon: Padding(
-                          padding: const EdgeInsets.all(12),
-                          child: SvgPicture.asset(
-                            Assets.mailIcon,
-                            colorFilter: ColorFilter.mode(
-                              UiUtils.getColorScheme(context).onSurface,
-                              BlendMode.srcIn,
-                            ),
-                            // color: UiUtils.getColorScheme(context).onSurface,
+                  TextFormField(
+                    controller: _emailTextEditingController,
+                    textAlignVertical: TextAlignVertical.center,
+                    keyboardType: TextInputType.emailAddress,
+                    decoration: _fieldDecoration(
+                      hintText: UiUtils.getTranslatedLabel(context, emailKey),
+                      suffixIcon: Padding(
+                        padding: const EdgeInsets.all(12),
+                        child: SvgPicture.asset(
+                          Assets.mailIcon,
+                          colorFilter: ColorFilter.mode(
+                            UiUtils.getColorScheme(context).onSurfaceVariant,
+                            BlendMode.srcIn,
                           ),
                         ),
-                        hintStyle: TextStyle(
-                          color: UiUtils.getColorScheme(context).onSurface,
-                        ),
-                        hintText: UiUtils.getTranslatedLabel(context, emailKey),
-                        border: InputBorder.none,
                       ),
                     ),
                   ),
                   const SizedBox(height: 30),
-                  Container(
-                    padding: const EdgeInsets.only(left: 20),
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(10),
-                      border: Border.all(
-                        color: UiUtils.getColorScheme(context).onSurface,
+                  TextFormField(
+                    controller: _passwordTextEditingController,
+                    obscureText: _hidePassword,
+                    textAlignVertical: TextAlignVertical.center,
+                    decoration: _fieldDecoration(
+                      hintText: UiUtils.getTranslatedLabel(
+                        context,
+                        passwordKey,
                       ),
-                    ),
-                    child: TextFormField(
-                      controller: _passwordTextEditingController,
-                      obscureText: _hidePassword,
-                      textAlignVertical: TextAlignVertical.center,
-                      decoration: InputDecoration(
-                        suffixIcon: PasswordHideShowButton(
-                          hidePassword: _hidePassword,
-                          onTap: () {
-                            setState(() {
-                              _hidePassword = !_hidePassword;
-                            });
-                          },
-                        ),
-                        hintStyle: TextStyle(
-                          color: UiUtils.getColorScheme(context).onSurface,
-                        ),
-                        hintText: UiUtils.getTranslatedLabel(
-                          context,
-                          passwordKey,
-                        ),
-                        border: InputBorder.none,
+                      suffixIcon: PasswordHideShowButton(
+                        hidePassword: _hidePassword,
+                        onTap: () {
+                          setState(() {
+                            _hidePassword = !_hidePassword;
+                          });
+                        },
                       ),
                     ),
                   ),
@@ -438,6 +411,23 @@ class _LoginScreenState extends State<LoginScreen>
             ),
           ),
         ),
+      ),
+    );
+  }
+
+  InputDecoration _fieldDecoration({
+    required String hintText,
+    required Widget suffixIcon,
+  }) {
+    final colorScheme = UiUtils.getColorScheme(context);
+    return InputDecoration(
+      contentPadding: const EdgeInsetsDirectional.fromSTEB(20, 13, 12, 13),
+      suffixIcon: suffixIcon,
+      hintText: hintText,
+      hintStyle: TextStyle(color: colorScheme.onSurfaceVariant),
+      enabledBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(AppTheme.radius),
+        borderSide: BorderSide(color: colorScheme.outline),
       ),
     );
   }

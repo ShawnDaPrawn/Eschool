@@ -189,6 +189,7 @@ class _SearchStudentScreenState extends State<SearchStudentScreen> {
                 Navigator.of(context).pop(listOfAttendance);
               },
               svgIconUrl: UiUtils.getBackButtonPath(context),
+              tooltip: MaterialLocalizations.of(context).backButtonTooltip,
             ),
           ),
           backgroundColor: Theme.of(context).colorScheme.primary,

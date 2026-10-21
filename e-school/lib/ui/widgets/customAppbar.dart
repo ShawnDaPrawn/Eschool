@@ -43,6 +43,9 @@ class CustomAppBar extends StatelessWidget {
                             }
                           },
                           svgIconUrl: UiUtils.getBackButtonPath(context),
+                          tooltip: MaterialLocalizations.of(
+                            context,
+                          ).backButtonTooltip,
                         ),
                       ),
                     )
