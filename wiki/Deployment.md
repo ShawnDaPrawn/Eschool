@@ -16,13 +16,18 @@ This project's panel runs on Cloud Run in `africa-south1` (Johannesburg), Fireba
 | Uploads | Cloud Storage bucket `navigateed-d8c06-admin`, mounted at `storage/app` |
 | Sessions | `SESSION_DRIVER=database` |
 | Logs | `LOG_CHANNEL=stderr` (Cloud Run logs) |
+| Rate limit counters | `CACHE_LIMITER` defaults to `database` when `K_SERVICE` is set, so all instances share them |
 | Timezone | `Africa/Johannesburg` |
 
-Cloud SQL stays on while the panel is idle, so this is the paid part (the smallest shared-core machine in Johannesburg). Cloud Run itself scales to zero. The container entrypoint migrates, seeds the installer data once, replaces the seeded `superadmin@gmail.com` / `superadmin` login with `info@tokensoft.tech`, and writes `storage/installed`. The admin password is the Secret Manager secret `navigateed-admin-password`, not a value in git. `APP_KEY` and the database password are the secrets `navigateed-app-key` and `navigateed-db-password`.
+Cloud SQL stays on while the panel is idle, so this is the paid part (the smallest shared-core machine in Johannesburg). Cloud Run itself scales to zero. The container entrypoint migrates, seeds the installer data once, replaces the seeded `superadmin@gmail.com` / `superadmin` login with `info@tokensoft.tech`, and writes `storage/installed`. It replaces that login again on any start where it is still in place (for example after the database was recreated while the `.admin-provisioned` marker on the bucket stayed), and refuses to start if `ADMIN_PASSWORD` is then empty. The admin password is the Secret Manager secret `navigateed-admin-password`, not a value in git. `APP_KEY` and the database password are the secrets `navigateed-app-key` and `navigateed-db-password`.
 
 Daily chat cleanup and Sanctum pruning (`routes/console.php`) do not run until something calls `php artisan schedule:run`. There is no Cloud Scheduler job yet.
 
-`bootstrap/app.php` trusts proxy headers so HTTPS behind Cloud Run stays HTTPS, and trusts the `APP_URL` host. A production `APP_URL` that does not match the browser host returns 400; see [HTTPS, proxies and hosts](#https-proxies-and-hosts).
+System Update (installing an uploaded zip) is off on Cloud Run (`config/system_update.php`, `SYSTEM_UPDATE_ENABLED`); release by deploying a new image.
+
+`config/trustedproxy.php` trusts Google's front end on Cloud Run (it detects `K_SERVICE`), so HTTPS stays HTTPS and rate limits see each visitor's real address. Once the panel is installed, `bootstrap/app.php` trusts the `APP_URL` host, `localhost`, `127.0.0.1` and `TRUSTED_HOSTS`. A production `APP_URL` that does not match the browser host returns 400; see [HTTPS, proxies and hosts](#https-proxies-and-hosts).
+
+The request limits (see [Security-Model](Security-Model#request-limits)) stop one client from overloading the service, but not a flood from many addresses. For that, put the service behind an external Application Load Balancer with a Cloud Armor policy (rate-based rules, and Adaptive Protection if available) and set the Cloud Run ingress to "internal and Cloud Load Balancing". Setting a maximum number of instances caps the bill during a flood.
 
 ## Server requirements
 
@@ -185,7 +190,7 @@ php artisan optimize:clear  # remove them again
 - Re-run `php artisan optimize` after editing `.env`, after deploying new code and after a System Update. `InstallationSeeder` (run by the installer, by System Update and by `/seeder_install`) and the installer's finish step clear the config, route, view and application caches.
 - CI checks that the caches build: `php artisan config:cache && php artisan route:cache && php artisan view:cache && php artisan optimize:clear`.
 - `bootstrap/cache/config.php` contains every secret from `.env` and, because `config:cache` boots the app, the database values `SettingsConfigService` applied at that moment (SMTP password, Paystack secret key). Keep it out of the web root and out of backups that leave the server unencrypted.
-- The admin header's "Cache Clear" button calls `GET /clear` (any signed-in user), which runs `view:clear`, `route:clear`, `config:clear` and `cache:clear`.
+- The admin header's "Cache Clear" button posts to `POST /clear` (Super Admin only), which runs `view:clear`, `route:clear`, `config:clear` and `cache:clear`.
 - Spatie caches roles and permissions for 24 hours in the default cache store. The package resets that cache when roles or permissions are changed through its models; after editing the tables by hand, run `php artisan permission:cache-reset`.
 - With OPcache enabled (`validate_timestamps=0`), reload PHP-FPM after each deployment.
 
@@ -196,15 +201,17 @@ php artisan optimize:clear  # remove them again
 - The release builds of the mobile apps require an HTTPS server URL; see [Mobile-App-Configuration](Mobile-App-Configuration).
 - Payment gateway webhooks (`POST /webhook/razorpay`, `/webhook/stripe`, `/webhook/paystack`, `/webhook/flutterwave`) must be reachable from the internet; they are exempt from CSRF. See [Payments](Payments).
 
-`bootstrap/app.php` calls `$middleware->trustProxies(at: '*')`, so `X-Forwarded-Proto` from any proxy is believed: behind a load balancer or Cloud Run that terminates TLS, `isSecure()` is true, links are `https://` and HSTS is sent. If the server is also reachable directly (not only through the proxy), narrow it to the proxy's addresses, for example `trustProxies(at: ['10.0.0.0/8'])`. The classes `app/Http/Middleware/TrustProxies.php` and `TrustHosts.php` are not registered, so editing them has no effect.
+Behind a load balancer or reverse proxy that terminates TLS, set `TRUSTED_PROXIES` in `.env` to the proxy's addresses or ranges, comma-separated (read by [config/trustedproxy.php](https://github.com/ShawnDaPrawn/Eschool/blob/main/admin-panel/config/trustedproxy.php)). Use `*` only if visitors cannot reach the server except through the proxy. Without it, `X-Forwarded-Proto` is ignored: `isSecure()` is false, `url()`, `asset()` and `route()` produce `http://` links, HSTS is not sent, and every visitor counts as the proxy's address in the rate limits. On Cloud Run (`K_SERVICE` set) the default is `*`, because only Google's front end can reach the container. From trusted proxies only `X-Forwarded-For` and `X-Forwarded-Proto` are used; `X-Forwarded-Host`, `-Port` and `-Prefix` are ignored, because Cloud Run passes a visitor's own copies through. The classes `app/Http/Middleware/TrustProxies.php` and `TrustHosts.php` are not registered, so editing them has no effect.
 
-Host names are checked too (`$middleware->trustHosts()`), so links built from the request, such as password reset links, can't be pointed at another site. With `APP_ENV=production`, a request whose `Host` is not one of these gets 400 Bad Request:
+Host names are checked too (`$middleware->trustHosts()`), so links built from the request can't be pointed at another site. With `APP_ENV=production`, a request whose `Host` is not one of these gets 400 Bad Request:
 
 - the `APP_URL` host and its subdomains;
 - `localhost` and `127.0.0.1`;
 - each name in `TRUSTED_HOSTS` (`config('app.trusted_hosts')`, comma separated), for a school reached under more than one name or by IP address.
 
-The check starts once `storage/installed` exists: before that, `APP_URL` is still `.env.example`'s `http://localhost`, so the install wizard answers on whatever address the school opens it on, and its last step writes the real `APP_URL`. `APP_ENV=local` and the test suite skip the check.
+The check starts once `storage/installed` exists: before that, `APP_URL` is still `.env.example`'s `http://localhost`, so the install wizard answers on whatever address the school opens it on, and its last step writes the real `APP_URL`. `APP_ENV=local` and the test suite skip the check. Password reset links are built from `APP_URL` whatever host a request names, so `APP_URL` must be the address people use.
+
+With more than one server, point `CACHE_LIMITER` at a cache store they share (`database` or `redis`) so rate limits and the wrong-password lockout count across all of them.
 
 ## Security headers
 
@@ -224,9 +231,10 @@ Gaps to cover at the web server if you need them:
 
 ## Logs
 
-- `LOG_CHANNEL=stack` writes to the `single` channel, one ever-growing file: `storage/logs/laravel.log`. Use `LOG_CHANNEL=daily` (14 files kept, defined in `config/logging.php`) or logrotate.
-- `.env.example` sets `LOG_LEVEL=error`. Keep it at `warning` or higher: `MailService::send()` logs the full email payload at `info` when sending fails, and for credential emails that payload includes the generated plaintext passwords.
-- `ResponseService::logErrorResponse()` and `logCurlRequest()` log request parameters and headers at `error` level with keys matching `pass`, `token`, `secret`, `key`, `signature`, `authorization`, `cookie` or `otp` replaced by `[redacted]`.
+- `LOG_CHANNEL=stack` writes to the `daily` channel: `storage/logs/laravel-YYYY-MM-DD.log`, 14 days kept, so a flood of errors can't fill the disk with one file.
+- `.env.example` sets `LOG_LEVEL=error`. Keep it at `warning` or higher. `MailService::send()` logs failed emails at `info`, without their body and password fields.
+- Until mail is set up (on the email settings page, or `MAIL_MAILER`), the default mailer is `log`, which writes every email to the log in full, including the passwords in welcome emails. Set up mail before adding staff, students or parents.
+- `ResponseService::logErrorResponse()` and `logCurlRequest()` log request parameters and headers at `error` level with keys matching `pass`, `token`, `secret`, `key`, `signature`, `authorization`, `cookie` or `otp` replaced by `[redacted]`, each value cut at 1000 bytes and the whole entry at 10 KB.
 - The installer has no log; its errors are shown on the page. Exceptions during the wizard before a key exists (`MissingAppKeyException`) appear only in `laravel.log`.
 - For live tailing during support, `php artisan pail` is available when dev packages are installed.
 
@@ -242,7 +250,7 @@ Back up at least:
 | `storage/app/public` | Uploaded photos, documents, assignments, chat files, logos |
 | `storage/app` (private part, e.g. `firebase/service_account.json`) | FCM credentials |
 | `.env` | Database credentials and `APP_KEY` (losing the key only signs everyone out of the panel; no database column is encrypted with it, and Sanctum tokens are hashed independently of it) |
-| `storage/installed` | Without it the restored site redirects to `/install` |
+| `storage/installed` | Without it a restored site with an empty database redirects to `/install`. A database that already has users counts as installed, so the installer stays closed either way |
 
 Example nightly job (not part of the repo):
 
@@ -257,7 +265,7 @@ For hosts without SSH, `routes/web.php` exposes:
 
 | URL | Middleware | Runs |
 |---|---|---|
-| `GET /clear` | `auth` | `view:clear`, `route:clear`, `config:clear`, `cache:clear` |
+| `POST /clear` (the Cache Clear button) | `auth`, `role:Super Admin` | `view:clear`, `route:clear`, `config:clear`, `cache:clear` |
 | `GET /storage-link` | `auth`, `role:Super Admin` | `storage:link` |
 | `GET /migrate` | `auth`, `role:Super Admin` | the four clears, then `migrate --force` |
 | `GET /seeder_install` | `auth`, `role:Super Admin` | the four clears, then `db:seed --class=InstallationSeeder --force` |
@@ -288,11 +296,11 @@ php artisan up
 - [ ] `composer install --optimize-autoloader` (the container uses `--no-dev`; local installs can include dev packages)
 - [ ] `.env` from `.env.example`, `php artisan key:generate`, `APP_URL` with `https://`, `APP_DEBUG=false`
 - [ ] Installed through `/install` or the command-line steps in [Installation-Wizard](Installation-Wizard#installing-without-the-wizard); `storage/installed` exists
-- [ ] Super Admin password changed from the seeded `superadmin`
+- [ ] Super Admin password changed from the seeded `superadmin` (the panel insists at the first sign-in)
 - [ ] Document root is `public/`; `public/storage` link exists
 - [ ] `storage/` and `bootstrap/cache/` writable by the web user
 - [ ] Cron entry for `schedule:run`
-- [ ] Trusted proxies and host names configured if behind a proxy
+- [ ] `TRUSTED_PROXIES` set if behind a proxy (not needed on Cloud Run), and `CACHE_LIMITER` pointing at a shared store if there is more than one server
 - [ ] `php artisan optimize`
 - [ ] Database and `storage/app` backups scheduled
 

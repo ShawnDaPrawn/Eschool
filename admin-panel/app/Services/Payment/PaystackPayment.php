@@ -9,7 +9,13 @@ use Throwable;
 use Unicodeveloper\Paystack\Paystack;
 
 class PaystackPayment extends Paystack implements PaymentInterface {
-    private Paystack $paystack;
+    /**
+     * Every call carries the secret key, so it only ever goes to Paystack's own
+     * API. The URL used to be a setting, which let anyone with an admin session
+     * point it at their own server and collect the key.
+     */
+    public const BASE_URL = 'https://api.paystack.co';
+
     private string $currencyCode;
 
     /**
@@ -17,10 +23,15 @@ class PaystackPayment extends Paystack implements PaymentInterface {
      * @param $currencyCode
      */
     public function __construct($currencyCode) {
-        // Call Paystack Class and Create Payment Intent
-        $this->paystack = new Paystack();
         $this->currencyCode = $currencyCode;
         parent::__construct();
+    }
+
+    /**
+     * The parent reads the URL from config; it builds its HTTP client with this.
+     */
+    public function setBaseUrl() {
+        $this->baseUrl = self::BASE_URL;
     }
 
     /**
@@ -46,7 +57,7 @@ class PaystackPayment extends Paystack implements PaymentInterface {
                 'callback_url' => route('paystack.success')
             ];
 
-            return $this->paystack->getAuthorizationResponse($data);
+            return $this->getAuthorizationResponse($data);
         } catch (Throwable $e) {
             throw $e;
         }

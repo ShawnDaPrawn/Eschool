@@ -29,7 +29,7 @@ class SettingsConfigService
         'mail_send_from' => 'mail.from.address',
         'paystack_public_key' => 'paystack.publicKey',
         'paystack_secret_key' => 'paystack.secretKey',
-        'paystack_payment_url' => 'paystack.paymentUrl',
+        // No paystack_payment_url: the API URL is fixed (PaystackPayment::BASE_URL).
     ];
 
     public static function apply(): void

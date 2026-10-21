@@ -177,7 +177,7 @@ Other forms in use:
 - `routes/web.php` wraps the admin routes in `['middleware' => ['Role', 'auth']]`. `CheckRole` lets a user through only if they have at least one role other than `Parent` and `Student`. A signed-in user without one is logged out and sent to the login page with `no_permission_message`; a guest gets the login view.
 - `LoginController::authenticated()` logs out Parent and Student users straight after login with `app_only_login_not_allowed_on_web`.
 - The self-registration route (`/register`) has been removed.
-- Maintenance routes `storage-link`, `migrate` and `seeder_install` are in a group with `['auth', 'role:Super Admin']`; `/clear` (the header cache button) needs only `auth`.
+- Maintenance routes `storage-link`, `migrate` and `seeder_install` are in a group with `['auth', 'role:Super Admin']`; `POST /clear` (the header cache button, shown to Super Admins only) needs `auth` and `role:Super Admin` too.
 - `SystemUpdateController` refuses anyone without the `Super Admin` role.
 - Login, password-reset and app-login endpoints use the `login` rate limiter (`RouteServiceProvider`): 5 attempts a minute per path and account plus 20 a minute per IP. Default passwords are dates of birth, which is why the per-account limit exists.
 

@@ -732,8 +732,9 @@ class TeacherController extends Controller
                 $teacher->delete();
 
                 /**
-                 * Then delete User
+                 * Then delete User, signed out of the apps even if restored later
                  */
+                $user->tokens()->delete();
                 $user->delete();
             });
 

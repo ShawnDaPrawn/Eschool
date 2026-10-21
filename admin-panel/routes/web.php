@@ -63,7 +63,7 @@ use Illuminate\Support\Facades\Storage;
 // Manual Authentication Routes
 
 Route::get('login', [App\Http\Controllers\Auth\LoginController::class, 'showLoginForm'])->middleware('guest')->name('login');
-Route::post('login', [App\Http\Controllers\Auth\LoginController::class, 'login'])->middleware('guest');
+Route::post('login', [App\Http\Controllers\Auth\LoginController::class, 'login'])->middleware(['guest', 'throttle:login']);
 Route::post('logout', [App\Http\Controllers\Auth\LoginController::class, 'logout'])->name('logout');
 
 // There is no public sign-up. Staff create accounts, and those accounts always
@@ -109,7 +109,6 @@ Route::group(['middleware' => ['Role', 'auth']], function () {
         Route::get('home/widget/teacher-exams', [HomeController::class, 'teacherExamsWidget'])->name('home.widget.teacher-exams');
         Route::get('home/widget/teacher-assignments', [HomeController::class, 'teacherAssignmentsWidget'])->name('home.widget.teacher-assignments');
 
-        Route::get('/logout', [HomeController::class, 'logout'])->name('home.logout');
         Route::get('subject-by-class-section', [HomeController::class, 'getSubjectByClassSection'])->name('class-section.by.subject');
         Route::get('teacher-by-class-subject', [HomeController::class, 'getTeacherByClassSubject'])->name('teacher.by.class.subject');
         // new reset password controller
@@ -198,7 +197,7 @@ Route::group(['middleware' => ['Role', 'auth']], function () {
         Route::get('students/new-student-list', [Student\ClassAssignmentController::class, 'newStudentList'])->name('students.new-student-list');
         Route::get('students/create_bulk', [Student\BulkImportController::class, 'createBulkData'])->name('students.create-bulk-data');
         Route::get('students/download-sample', [Student\BulkImportController::class, 'downloadSampleFile'])->name('students.download-sample');
-        Route::post('students/store_bulk', [Student\BulkImportController::class, 'storeBulkData'])->name('students.store-bulk-data');
+        Route::post('students/store_bulk', [Student\BulkImportController::class, 'storeBulkData'])->middleware('throttle:heavy')->name('students.store-bulk-data');
         Route::resource('students', Student\StudentController::class)->except(['edit']);
 
         // student generate roll number
@@ -239,8 +238,8 @@ Route::group(['middleware' => ['Role', 'auth']], function () {
         Route::get('getAttendanceData', [AttendanceController::class, 'getAttendanceData']);
         Route::get('student-list', [AttendanceController::class, 'show']);
         Route::get('add-bulk-attendance', [AttendanceController::class, 'createBulkData'])->name('attendance.add-bulk-data');
-        Route::post('attendance/store_bulk', [AttendanceController::class, 'storeBulkData'])->name('attendance.store-bulk-data');
-        Route::post('student/export', [AttendanceController::class, 'studentExport'])->name('student-export');
+        Route::post('attendance/store_bulk', [AttendanceController::class, 'storeBulkData'])->middleware('throttle:heavy')->name('attendance.store-bulk-data');
+        Route::post('student/export', [AttendanceController::class, 'studentExport'])->middleware('throttle:heavy')->name('student-export');
 
         Route::resource('lesson', LessonController::class)->except(['create', 'edit']);
         Route::get('search-lesson', [LessonController::class, 'search']);
@@ -329,8 +328,9 @@ Route::group(['middleware' => ['Role', 'auth']], function () {
         Route::get('promote-student-list', [StudentSessionController::class, 'show']);
 
         Route::get('resetpassword', [HomeController::class, 'resetpassword'])->name('resetpassword');
-        Route::get('checkPassword', [HomeController::class, 'checkPassword']);
-        Route::post('changePassword', [HomeController::class, 'changePassword']);
+        // POST so the password isn't written to access logs with the URL.
+        Route::post('checkPassword', [HomeController::class, 'checkPassword'])->middleware('throttle:password');
+        Route::post('changePassword', [HomeController::class, 'changePassword'])->middleware('throttle:password');
 
         Route::get('edit-profile', [HomeController::class, 'editProfile'])->name('edit-profile');
         Route::post('update-profile', [HomeController::class, 'updateProfile'])->name('update-profile');
@@ -369,7 +369,7 @@ Route::group(['middleware' => ['Role', 'auth']], function () {
         Route::get('fees/transaction-logs', [Fees\TransactionLogController::class, 'feesTransactionsLogsIndex'])->name('fees.transactions.log.index');
         Route::get('fees/transaction-logs/list', [Fees\TransactionLogController::class, 'feesTransactionsLogsList'])->name('fees.transactions.log.list');
 
-        Route::get('fees/paid/receipt-pdf/{id}', [Fees\PaidController::class, 'feesPaidReceiptPDF'])->name('fees.paid.receipt.pdf');
+        Route::get('fees/paid/receipt-pdf/{id}', [Fees\PaidController::class, 'feesPaidReceiptPDF'])->middleware('throttle:heavy')->name('fees.paid.receipt.pdf');
 
         // Online Exam
         Route::get('online-exam/terms-conditions', [OnlineExamController::class, 'onlineExamTermsConditionIndex'])->name('online-exam.terms-conditions');
@@ -389,7 +389,7 @@ Route::group(['middleware' => ['Role', 'auth']], function () {
 
         Route::get('online-exam-question/create-bulk', [OnlineExamQuestionController::class, 'createBulkData'])->name('online-exam-question.create-bulk');
         Route::get('online-exam-question/download-sample', [OnlineExamQuestionController::class, 'downloadSampleFile'])->name('online-exam-question.download-sample');
-        Route::post('online-exam-question/store-bulk', [OnlineExamQuestionController::class, 'storeBulkData'])->name('online-exam-question.store-bulk');
+        Route::post('online-exam-question/store-bulk', [OnlineExamQuestionController::class, 'storeBulkData'])->middleware('throttle:heavy')->name('online-exam-question.store-bulk');
         Route::resource('online-exam-question', OnlineExamQuestionController::class)->except(['create']);
         Route::delete('online-exam-question/remove-option/{id}', [OnlineExamQuestionController::class, 'removeOptions']);
         Route::delete('online-exam-question/remove-answer/{id}', [OnlineExamQuestionController::class, 'removeAnswers']);
@@ -457,7 +457,7 @@ Route::group(['middleware' => ['Role', 'auth']], function () {
         Route::get('generate_teacher_id', [StaffController::class, 'generateStaffId'])->name('generate_teacher_id.index');
         Route::get('generate_staff_id', [StaffController::class, 'generateStaffId'])->name('generate_staff_id.index');
         Route::get('generate-staff-id/list', [StaffController::class, 'staffIdCardList'])->name('generate_staff_id.list');
-        Route::post('generate-staff-id-card', [StaffController::class, 'generateStaffIdCard'])->name('generate_staff_id.card');
+        Route::post('generate-staff-id-card', [StaffController::class, 'generateStaffIdCard'])->middleware('throttle:heavy')->name('generate_staff_id.card');
 
         Route::get('staff-attendance', [StaffController::class, 'stafflist'])->name('attendance.staff_attendance');
         Route::get('/staff-attendance/list', [StaffController::class, 'staffListData'])->name('staff.attendance.list');
@@ -470,20 +470,20 @@ Route::group(['middleware' => ['Role', 'auth']], function () {
         Route::get('generate-id', [Student\IdCardController::class, 'generateIdCardIndex'])->name('generate_id.index');
         Route::get('id-card-settings', [Student\IdCardController::class, 'idCardSettingIndex'])->name('id_card_setting.index');
         Route::post('id-card-settings/update', [Student\IdCardController::class, 'updateIdCardSetting'])->name('id_card_settings.update');
-        Route::post('generate-id-card', [Student\IdCardController::class, 'generateIdCard']);
+        Route::post('generate-id-card', [Student\IdCardController::class, 'generateIdCard'])->middleware('throttle:heavy');
         Route::delete('remove-image/{type}', [Student\IdCardController::class, 'deleteImage']);
 
         Route::get('generate-bonafide-certificate/{id}', [Student\CertificateController::class, 'bonafideCertificateIndex'])->name('bonafide.certificate.index');
-        Route::post('bonafide-certificate', [Student\CertificateController::class, 'generateBonafideCertificate'])->name('bonafide.certificate.pdf');
+        Route::post('bonafide-certificate', [Student\CertificateController::class, 'generateBonafideCertificate'])->middleware('throttle:heavy')->name('bonafide.certificate.pdf');
 
         Route::get('generate-leaving-certificate/{id}', [Student\CertificateController::class, 'leavingCertificateIndex'])->name('leaving.certificate.index');
-        Route::post('leaving-certificate', [Student\CertificateController::class, 'generateLeavingCertificate'])->name('leaving.certificate.pdf');
+        Route::post('leaving-certificate', [Student\CertificateController::class, 'generateLeavingCertificate'])->middleware('throttle:heavy')->name('leaving.certificate.pdf');
 
         Route::get('student-generate-result', [Student\ResultController::class, 'resultIndex'])->name('student.result.index');
 
         Route::get('get-student-list', [Student\ResultController::class, 'studentList'])->name('get.student.list');
-        Route::get('generate-result/{id}', [Student\ResultController::class, 'generateResult'])->name('generate.result');
-        Route::get('generate-exam-result/{id}', [Student\ResultController::class, 'generateExamResult'])->name('generate.exam.result');
+        Route::get('generate-result/{id}', [Student\ResultController::class, 'generateResult'])->middleware('throttle:heavy')->name('generate.result');
+        Route::get('generate-exam-result/{id}', [Student\ResultController::class, 'generateExamResult'])->middleware('throttle:heavy')->name('generate.exam.result');
 
         Route::resource('leave-master', LeaveMasterController::class);
 
@@ -548,16 +548,18 @@ Route::get('/terms-conditions', function () {
     echo ! empty($settings['terms_condition']) ? $settings['terms_condition'] : e(trans('page_not_published_yet'));
 });
 
-// Maintenance actions: the header's Cache Clear button needs a logged-in user;
-// the rest are Super Admin only. They used to be reachable without logging in.
-Route::get('clear', function () {
+// Maintenance actions, Super Admin only. They used to be reachable without
+// logging in. Cache Clear is a form post: as a link, another site could send a
+// signed-in user to it, and clearing the cache also resets rate limits when they
+// share the default cache store.
+Route::post('clear', function () {
     Artisan::call('view:clear');
     Artisan::call('route:clear');
     Artisan::call('config:clear');
     Artisan::call('cache:clear');
 
     return redirect()->back();
-})->middleware('auth');
+})->middleware(['auth', 'role:Super Admin']);
 
 Route::group(['middleware' => ['auth', 'role:Super Admin']], static function () {
     Route::get('storage-link', function () {

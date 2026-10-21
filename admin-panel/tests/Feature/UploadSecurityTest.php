@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Http\Middleware\RejectDangerousUploads;
 use Illuminate\Http\Request;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Route;
@@ -61,6 +62,25 @@ class UploadSecurityTest extends TestCase
         $this->assertStringNotContainsString('javascript:', $content);
     }
 
+    public function test_images_with_too_many_pixels_are_refused_before_decoding(): void
+    {
+        // A few hundred bytes claiming 10000 x 10000 pixels: decoding it would need ~400 MB.
+        $this->post('api/_upload-test', ['file' => $this->realUpload('photo.png', $this->pngHeader(10000, 10000))])
+            ->assertStatus(422)
+            ->assertJson(['error' => true]);
+
+        $this->post('api/_upload-test', ['file' => $this->realUpload('photo.png', $this->pngHeader(4000, 3000))])->assertOk();
+    }
+
+    public function test_oversized_svgs_are_refused_without_parsing(): void
+    {
+        $svg = '<svg xmlns="http://www.w3.org/2000/svg">'.str_repeat('<rect width="1" height="1"/>', 80000).'</svg>';
+        $this->assertGreaterThan(RejectDangerousUploads::MAX_SVG_BYTES, strlen($svg));
+
+        $this->post('api/_upload-test', ['file' => UploadedFile::fake()->createWithContent('big.svg', $svg)])
+            ->assertStatus(422);
+    }
+
     public function test_ordinary_files_are_accepted(): void
     {
         $this->post('api/_upload-test', ['file' => UploadedFile::fake()->createWithContent('homework.txt', 'My answers')])
@@ -68,6 +88,14 @@ class UploadSecurityTest extends TestCase
             ->assertJson(['content' => 'My answers']);
 
         $this->post('api/_upload-test', ['file' => UploadedFile::fake()->image('photo.jpg')])->assertOk();
+    }
+
+    /** A PNG signature and IHDR chunk: enough for getimagesize(), nothing to decode. */
+    private function pngHeader(int $width, int $height): string
+    {
+        $ihdr = 'IHDR'.pack('NNCCCCC', $width, $height, 8, 2, 0, 0, 0);
+
+        return "\x89PNG\r\n\x1a\n".pack('N', 13).$ihdr.pack('N', crc32($ihdr));
     }
 
     /**

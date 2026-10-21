@@ -13,10 +13,12 @@ use Illuminate\Validation\ValidationException;
 use Maatwebsite\Excel\Concerns\SkipsEmptyRows;
 use Maatwebsite\Excel\Concerns\ToCollection;
 use Maatwebsite\Excel\Concerns\WithHeadingRow;
+use Maatwebsite\Excel\Concerns\WithReadFilter;
 use Maatwebsite\Excel\DefaultValueBinder;
+use PhpOffice\PhpSpreadsheet\Reader\IReadFilter;
 use Throwable;
 
-class OnlineExamQuestionsImport extends DefaultValueBinder implements SkipsEmptyRows, ToCollection, WithHeadingRow
+class OnlineExamQuestionsImport extends DefaultValueBinder implements SkipsEmptyRows, ToCollection, WithHeadingRow, WithReadFilter
 {
     // Maximum number of option columns supported in the CSV (option1..option6).
     private const MAX_OPTIONS = 6;
@@ -36,6 +38,12 @@ class OnlineExamQuestionsImport extends DefaultValueBinder implements SkipsEmpty
     {
         $this->class_subject_id = $class_subject_id;
         $this->session_year_id = $session_year_id;
+    }
+
+    /** Refuses a file over RowLimit::MAX_ROWS rows while it is read. */
+    public function readFilter(): IReadFilter
+    {
+        return new RowLimit;
     }
 
     public function collection(Collection $rows): void

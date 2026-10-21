@@ -24,11 +24,13 @@ use Illuminate\Support\Facades\Validator;
 use Maatwebsite\Excel\Concerns\SkipsEmptyRows;
 use Maatwebsite\Excel\Concerns\ToCollection;
 use Maatwebsite\Excel\Concerns\WithHeadingRow;
+use Maatwebsite\Excel\Concerns\WithReadFilter;
 use Maatwebsite\Excel\Concerns\WithValidation;
 use Maatwebsite\Excel\DefaultValueBinder;
+use PhpOffice\PhpSpreadsheet\Reader\IReadFilter;
 use PhpOffice\PhpSpreadsheet\Shared\Date;
 
-class StudentsImport extends DefaultValueBinder implements SkipsEmptyRows, ToCollection, WithHeadingRow, WithValidation {
+class StudentsImport extends DefaultValueBinder implements SkipsEmptyRows, ToCollection, WithHeadingRow, WithReadFilter, WithValidation {
     /** The file's heading row, in the order the downloadable sample file lists it. */
     public const COLUMNS = [
         'first_name', 'last_name', 'gender', 'dob', 'mobile', 'category', 'caste', 'religion',
@@ -51,6 +53,11 @@ class StudentsImport extends DefaultValueBinder implements SkipsEmptyRows, ToCol
      */
     public function  __construct($class_section_id) {
         $this->class_section_id = $class_section_id;
+    }
+
+    /** Refuses a file over RowLimit::MAX_ROWS rows while it is read. */
+    public function readFilter(): IReadFilter {
+        return new RowLimit;
     }
 
     public function prepareForValidation(array $row, int $index): array {

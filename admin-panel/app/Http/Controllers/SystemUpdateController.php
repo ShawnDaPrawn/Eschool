@@ -29,6 +29,9 @@ class SystemUpdateController extends Controller
 
             return redirect(route('home'))->withErrors($response);
         }
+        if (! config('system_update.enabled')) {
+            return redirect(route('home'))->withErrors(['message' => self::disabledMessage()]);
+        }
         $system_version = Settings::where('type', 'system_version')->first();
 
         return view('system-update.index', compact('system_version'));
@@ -43,6 +46,9 @@ class SystemUpdateController extends Controller
             ];
 
             return response()->json($response);
+        }
+        if (! config('system_update.enabled')) {
+            return response()->json(['error' => true, 'message' => self::disabledMessage()]);
         }
         $validator = Validator::make($request->all(), [
             'file' => 'required|file|mimes:zip',
@@ -172,5 +178,11 @@ class SystemUpdateController extends Controller
 
         return response()->json($response);
 
+    }
+
+    /** See config/system_update.php for why uploads can be turned off. */
+    private static function disabledMessage(): string
+    {
+        return trans('System updates are turned off on this server. Deploy the new version instead.');
     }
 }

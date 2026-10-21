@@ -27,8 +27,8 @@ class AdminPagesTest extends TestCase
 
     /** Routes with side effects, or that send mail, are not opened. */
     private const SKIP = [
-        'clear', 'storage-link', 'migrate', 'seeder_install',
-        'delete-chat-message/cron-job', 'logout',
+        'storage-link', 'migrate', 'seeder_install',
+        'delete-chat-message/cron-job',
     ];
 
     private const SKIP_PREFIXES = ['api/', 'install', '_debugbar', 'sanctum/', 'storage/'];
@@ -48,7 +48,9 @@ class AdminPagesTest extends TestCase
 
     public function test_no_admin_page_is_forbidden_or_broken(): void
     {
-        $client = $this->loggedInClient('superadmin@gmail.com', 'superadmin');
+        // With the default password every page would send us to change it.
+        $this->superAdmin()->update(['password' => Hash::make('admin-pages-test')]);
+        $client = $this->loggedInClient('superadmin@gmail.com', 'admin-pages-test');
 
         $forbidden = [];
         $broken = [];

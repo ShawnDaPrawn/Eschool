@@ -37,9 +37,9 @@ flowchart LR
 
 | Key | Default | Config fallback | Meaning |
 |---|---|---|---|
-| `LOG_CHANNEL` | `stack` | `stack` | `stack` writes to the `single` channel, `storage/logs/laravel.log`. `daily` (14 files) is also defined. |
+| `LOG_CHANNEL` | `stack` | `stack` | `stack` writes to the `daily` channel, `storage/logs/laravel-YYYY-MM-DD.log`, 14 files kept. `single` (one `laravel.log`) is also defined. |
 | `LOG_DEPRECATIONS_CHANNEL` | `null` | `null` | Where PHP deprecation notices go. |
-| `LOG_LEVEL` | `error` | `debug` | Minimum level written. `MailService` logs failed emails (including the generated passwords in the payload) at `info`, so keep this at `warning` or higher in production. |
+| `LOG_LEVEL` | `error` | `debug` | Minimum level written. `MailService` logs failed emails at `info` (passwords and the email body are left out); keep this at `warning` or higher in production. |
 
 ### Database
 
@@ -120,7 +120,11 @@ Read by `config/*.php` but missing from `.env.example`. Most are Laravel default
 | `LOG_SLACK_WEBHOOK_URL`, `LOG_PAPERTRAIL_HANDLER`, `PAPERTRAIL_URL`, `PAPERTRAIL_PORT`, `LOG_STDERR_FORMATTER` | `config/logging.php` | | |
 | `MAIL_SENDMAIL_PATH`, `MAIL_LOG_CHANNEL` | `config/mail.php` | `/usr/sbin/sendmail -t -i`, none | |
 | `MAILGUN_DOMAIN`, `MAILGUN_SECRET`, `MAILGUN_ENDPOINT`, `POSTMARK_TOKEN` | `config/services.php` | `MAILGUN_ENDPOINT=api.mailgun.net` | Needed for the Mailgun and Postmark mailers. |
-| **`PAYSTACK_PUBLIC_KEY`, `PAYSTACK_SECRET_KEY`, `PAYSTACK_PAYMENT_URL`, `PAYSTACK_MERCHANT_EMAIL`** | `config/paystack.php` (and the first two in `config/services.php`) | `''`, `''`, `https://api.paystack.co`, `''` | Fallbacks; the `paystack_*` settings replace the first three on boot. |
+| **`PAYSTACK_PUBLIC_KEY`, `PAYSTACK_SECRET_KEY`, `PAYSTACK_PAYMENT_URL`, `PAYSTACK_MERCHANT_EMAIL`** | `config/paystack.php` (and the first two in `config/services.php`) | `''`, `''`, `https://api.paystack.co`, `''` | Fallbacks; the `paystack_*` settings replace the first two on boot. `PAYSTACK_PAYMENT_URL` is not used: payments always go to `https://api.paystack.co`. |
+| **`TRUSTED_PROXIES`** | `config/trustedproxy.php` | `*` when `K_SERVICE` is set, otherwise none | Proxies whose `X-Forwarded-For` and `X-Forwarded-Proto` are believed: comma-separated addresses or ranges, or `*`. See [Deployment](Deployment#https-proxies-and-hosts). |
+| **`CACHE_LIMITER`** | `config/cache.php` (`limiter`) | `database` when `K_SERVICE` is set, otherwise the default store | Cache store for rate limit counters and the wrong-password lockout; must be shared when there is more than one server. |
+| **`SYSTEM_UPDATE_ENABLED`** | `config/system_update.php` | false when `K_SERVICE` is set, otherwise true | Whether the System Update page may install an uploaded zip. |
+| `K_SERVICE` | the three rows above | | Set by Cloud Run; not something to set by hand. |
 | **`RAZORPAY_WEBHOOK_SECRET`, `STRIPE_WEBHOOK_SECRET`, `FLW_SECRET_HASH`** | `config/services.php` | none | Fallback webhook secrets, used only when the matching settings row is empty (see [config/services.php](#configservicesphp)). |
 | `RAZORPAY_API_KEY`, `RAZORPAY_SECRET_KEY`, `STRIPE_PUBLISHABLE_KEY`, `STRIPE_SECRET_KEY`, `FLW_PUBLIC_KEY`, `FLW_SECRET_KEY` | `config/services.php` | none | Defined but not read by the payment code, which takes these keys from the settings table. |
 | `ABLY_KEY` | `config/broadcasting.php` | | |
@@ -148,7 +152,6 @@ Variables read by the framework itself rather than a config file, used by the te
 | `mail_send_from` | `mail.from.address` |
 | `paystack_public_key` | `paystack.publicKey` |
 | `paystack_secret_key` | `paystack.secretKey` |
-| `paystack_payment_url` | `paystack.paymentUrl` |
 | `time_zone` | `app.timezone`, and `date_default_timezone_set()` (only if it is a valid PHP timezone identifier) |
 
 Rules:
@@ -200,7 +203,7 @@ Read by the `unicodeveloper/laravel-paystack` package, which `PaystackPayment` e
 |---|---|---|---|
 | `publicKey` | `PAYSTACK_PUBLIC_KEY` | `''` | `paystack_public_key` |
 | `secretKey` | `PAYSTACK_SECRET_KEY` | `''` | `paystack_secret_key` |
-| `paymentUrl` | `PAYSTACK_PAYMENT_URL` | `https://api.paystack.co` | `paystack_payment_url` (the Fees configuration form submits `https://api.paystack.co` from a read-only field) |
+| `paymentUrl` | `PAYSTACK_PAYMENT_URL` | `https://api.paystack.co` | none; `PaystackPayment` ignores it and always uses `https://api.paystack.co` |
 | `merchantEmail` | `PAYSTACK_MERCHANT_EMAIL` | `''` | none |
 
 ### config/services.php
@@ -238,7 +241,7 @@ The table is created by `2022_04_01_044234_create_settings_table.php` with three
 | App Settings (`GET/POST /app-settings`) | `SettingController@app_index/app_update`, `setting-create` | `app_link`, `ios_app_link`, `app_version`, `ios_app_version`, `force_app_update`, `app_maintenance`, `teacher_app_link`, `teacher_ios_app_link`, `teacher_app_version`, `teacher_ios_app_version`, `teacher_force_app_update`, `teacher_app_maintenance` |
 | Chat Settings (`GET /chat-settings`, `POST /chat-settings-update`) | `SettingController@chat_setting_index/chat_setting_update`, `chat-settings` | `max_files_or_images_in_one_message`, `max_file_size_in_bytes` (despite the name, the value is in MB; the API multiplies it by 1,000,000), `max_characters_in_text_message`, `automatically_messages_removed_days` |
 | Page content (`POST /setting-update`) | `SettingController@setting_page_update`, `setting-create` | Any `type` sent by the form: `privacy_policy`, `terms_condition`, `about_us`, `contact_us`, and `online_exam_terms_condition` from the online exam terms page |
-| Fees configuration (`GET /fees-config`, `POST /fees-config/update`) | `Fees\ConfigController@feesConfigIndex/feesConfigUpdate`, `fees-config` | `razorpay_status`, `razorpay_api_key`, `razorpay_secret_key`, `razorpay_webhook_secret`, `razorpay_webhook_url`, `razorpay_currency_code`; `stripe_status`, `stripe_publishable_key`, `stripe_secret_key`, `stripe_webhook_secret`, `stripe_webhook_url`, `stripe_currency_code`; `paystack_status`, `paystack_public_key`, `paystack_secret_key`, `paystack_webhook_url`, `paystack_payment_url`, `paystack_currency_code`; `flutterwave_status`, `flutterwave_public_key`, `flutterwave_secret_key`, `flutterwave_hash_key`, `flutterwave_webhook_url`, `flutterwave_currency_code`; `currency_code`, `currency_symbol`, `compulsory_fee_payment_mode`, `is_student_can_pay_fees`, `enable_fees_installment`, `default_due_charges` |
+| Fees configuration (`GET /fees-config`, `POST /fees-config/update`) | `Fees\ConfigController@feesConfigIndex/feesConfigUpdate`, `fees-config` | `razorpay_status`, `razorpay_api_key`, `razorpay_secret_key`, `razorpay_webhook_secret`, `razorpay_webhook_url`, `razorpay_currency_code`; `stripe_status`, `stripe_publishable_key`, `stripe_secret_key`, `stripe_webhook_secret`, `stripe_webhook_url`, `stripe_currency_code`; `paystack_status`, `paystack_public_key`, `paystack_secret_key`, `paystack_webhook_url`, `paystack_currency_code` (the form's `paystack_payment_url` is not saved); `flutterwave_status`, `flutterwave_public_key`, `flutterwave_secret_key`, `flutterwave_hash_key`, `flutterwave_webhook_url`, `flutterwave_currency_code`; `currency_code`, `currency_symbol`, `compulsory_fee_payment_mode`, `is_student_can_pay_fees`, `enable_fees_installment`, `default_due_charges` |
 | ID card settings (`GET /id-card-settings`, `POST /id-card-settings/update`) | `Student\IdCardController@idCardSettingIndex/updateIdCardSetting` | `header_color`, `footer_color`, `header_footer_text_color`, `layout_type`, `profile_image_style`, `card_width`, `card_height`, `student_id_card_fields`, `staff_id_card_fields` (comma-separated), `background_transparency`, `background_size`; files `background_image`, `signature` (public disk, `Idcard/`) |
 | System Update (`POST /system-update`) | `SystemUpdateController@update`, Super Admin role | `system_version` |
 

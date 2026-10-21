@@ -2,6 +2,7 @@
 
 use App\Models\User;
 use App\Models\Settings;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 
@@ -172,6 +173,9 @@ function sendFCMCurl($url, $access_token, $Data) {
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
         curl_setopt($ch, CURLOPT_HTTP_VERSION, CURL_HTTP_VERSION_1_1);
         curl_setopt($ch, CURLOPT_POSTFIELDS, $Data);
+        // A slow push service must not hold the request (pushes are sent while it runs).
+        curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 5);
+        curl_setopt($ch, CURLOPT_TIMEOUT, 10);
 
         // Execute post
         $result = curl_exec($ch);
@@ -221,12 +225,16 @@ function getAccessToken() {
             return null;
         }
 
-        $client = new \Google\Client();
-        $client->setAuthConfig($file_path);
-        $client->setScopes(['https://www.googleapis.com/auth/firebase.messaging']);
-        $accessToken = $client->fetchAccessTokenWithAssertion()['access_token'];
+        // Tokens last an hour; reuse one instead of calling Google for every push.
+        // Keyed on the file, so uploading a new service account takes effect at once.
+        return Cache::remember('fcm-access-token:'.md5($file_path.'|'.filemtime($file_path)), now()->addMinutes(50), function () use ($file_path) {
+            $client = new \Google\Client();
+            $client->setHttpClient(new \GuzzleHttp\Client(['connect_timeout' => 5, 'timeout' => 10]));
+            $client->setAuthConfig($file_path);
+            $client->setScopes(['https://www.googleapis.com/auth/firebase.messaging']);
 
-        return $accessToken;
+            return $client->fetchAccessTokenWithAssertion()['access_token'];
+        });
     } catch (\Exception $e) {
         Log::error('Error getting Firebase access token: ' . $e->getMessage());
         return null;

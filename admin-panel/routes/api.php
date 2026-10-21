@@ -60,7 +60,7 @@ Route::group(['prefix' => 'student'], function () {
         Route::get('offline-exam-report', [Student\ReportController::class, 'offlineExamReport']); // Offline Exam Report Statistics
         Route::get('online-exam-report', [Student\ReportController::class, 'onlineExamReport']); // Online Exam Report Statistics
 
-        Route::get('id-card-pdf', [Student\ProfileController::class, 'getIdCardPdf']); // Student ID Card PDF Route
+        Route::get('id-card-pdf', [Student\ProfileController::class, 'getIdCardPdf'])->middleware('throttle:heavy'); // Student ID Card PDF Route
 
         // online exam routes
         Route::get('get-online-exam-list', [Student\OnlineExamController::class, 'getOnlineExamList']); // Get Online Exam List Route
@@ -83,7 +83,7 @@ Route::group(['prefix' => 'student'], function () {
         Route::post('add-fees-transaction', [Student\FeesController::class, 'storeFeesTransaction']); // Fees Details
         Route::post('store-fees', [Student\FeesController::class, 'storeFees']); // Store Fees
         Route::get('fees-paid-list', [Student\FeesController::class, 'feesPaidList']); // Fees Details
-        Route::get('fees-paid-receipt-pdf', [Student\FeesController::class, 'feesPaidReceiptPDF']); // Fees Receipt
+        Route::get('fees-paid-receipt-pdf', [Student\FeesController::class, 'feesPaidReceiptPDF'])->middleware('throttle:heavy'); // Fees Receipt
         Route::get('fees-transactions-list', [Student\FeesController::class, 'getFeesPaymentTransactions']); // Fees Payment Transaction Details
         Route::post('fail-payment-transaction', [Student\FeesController::class, 'failPaymentTransactionStatus']); // Make Payment Transaction Fail API
         Route::get('fees-report', [Student\ReportController::class, 'getFeesReport']); // Fees Report Statistics
@@ -91,7 +91,7 @@ Route::group(['prefix' => 'student'], function () {
         Route::get('assignment-report', [Student\ReportController::class, 'assignmentReport']); // Assignment Report Statistics
 
         // Academic calendar
-        Route::get('academic-calendar-pdf', [Student\CalendarController::class, 'getAcademicCalendarPdf']);
+        Route::get('academic-calendar-pdf', [Student\CalendarController::class, 'getAcademicCalendarPdf'])->middleware('throttle:heavy');
 
         // fee notification
         Route::get('send-fee-notification', [Student\FeesController::class, 'sendFeeNotification']);
@@ -120,7 +120,7 @@ Route::group(['prefix' => 'parent'], function () {
 
         // APIS Without Child ID
         Route::get('announcements', [ParentApi\AnnouncementController::class, 'getAnnouncements']); // Get Announcementes
-        Route::get('fees-paid-receipt-pdf', [ParentApi\FeesController::class, 'feesPaidReceiptPDF']); // Fees Receipt
+        Route::get('fees-paid-receipt-pdf', [ParentApi\FeesController::class, 'feesPaidReceiptPDF'])->middleware('throttle:heavy'); // Fees Receipt
         Route::get('fees-transactions-list', [ParentApi\FeesController::class, 'getFeesPaymentTransactions']); // Fees Payment Transaction Details
         Route::get('get-profile-data', [ParentApi\ProfileController::class, 'getProfileDetails']); // Get Profile Data
         Route::post('fail-payment-transaction', [ParentApi\FeesController::class, 'failPaymentTransactionStatus']); // Make Payment Transaction Fail API
@@ -164,9 +164,9 @@ Route::group(['prefix' => 'parent'], function () {
             Route::get('get-online-exam-result', [ParentApi\OnlineExamController::class, 'getOnlineExamResult']); // Online exam result  Route
 
             // Academic calendar
-            Route::get('academic-calendar-pdf', [ParentApi\CalendarController::class, 'getAcademicCalendarPdf']);
+            Route::get('academic-calendar-pdf', [ParentApi\CalendarController::class, 'getAcademicCalendarPdf'])->middleware('throttle:heavy');
 
-            Route::get('id-card-pdf', [ParentApi\ProfileController::class, 'getIdCardPdf']); // Student ID Card PDF Route
+            Route::get('id-card-pdf', [ParentApi\ProfileController::class, 'getIdCardPdf'])->middleware('throttle:heavy'); // Student ID Card PDF Route
 
             Route::post('apply-leave', [ParentApi\LeaveController::class, 'applyLeave']);
             Route::post('get-leave-list', [ParentApi\LeaveController::class, 'getMyLeave']);
@@ -241,7 +241,7 @@ Route::group(['prefix' => 'teacher'], function () {
         Route::get('student-details', [Teacher\ClassController::class, 'getStudentDetails']);
 
         // Academic calendar
-        Route::get('academic-calendar-pdf', [Teacher\CalendarController::class, 'getAcademicCalendarPdf']);
+        Route::get('academic-calendar-pdf', [Teacher\CalendarController::class, 'getAcademicCalendarPdf'])->middleware('throttle:heavy');
 
         // Schedule List
         Route::get('teacher_timetable', [Teacher\TimetableController::class, 'getTeacherTimetable']);
@@ -255,7 +255,7 @@ Route::group(['prefix' => 'teacher'], function () {
         Route::post('get-user-message', [Teacher\ChatController::class, 'getUserChatMessage']);
         Route::post('read-all-message', [Teacher\ChatController::class, 'readAllMessages']);
 
-        Route::get('get-student-result-pdf', [Teacher\ExamController::class, 'getStudentResultPdf']);
+        Route::get('get-student-result-pdf', [Teacher\ExamController::class, 'getStudentResultPdf'])->middleware('throttle:heavy');
 
         Route::post('apply-leave', [Teacher\LeaveController::class, 'applyLeave']);
         Route::post('get-leave-list', [Teacher\LeaveController::class, 'getMyLeave']);
@@ -266,7 +266,7 @@ Route::group(['prefix' => 'teacher'], function () {
 
         Route::post('update-timetable-link', [Teacher\TimetableController::class, 'updateTimetableLink']);
 
-        Route::get('id-card-pdf', [Teacher\AuthController::class, 'getIdCardPdf']); // Teacher ID Card PDF Route
+        Route::get('id-card-pdf', [Teacher\AuthController::class, 'getIdCardPdf'])->middleware('throttle:heavy'); // Teacher ID Card PDF Route
 
         Route::get('attendance-report', [Teacher\AttendanceController::class, 'getAttendanceReport']);
     });

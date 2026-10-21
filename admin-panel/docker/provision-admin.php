@@ -3,6 +3,7 @@
 use App\Models\User;
 use Illuminate\Contracts\Console\Kernel;
 use Illuminate\Support\Facades\Artisan;
+use Illuminate\Support\Facades\Hash;
 use Spatie\Permission\Models\Role;
 
 require __DIR__.'/../vendor/autoload.php';
@@ -37,7 +38,12 @@ if (! $user) {
     exit(1);
 }
 
-if (! is_file($marker)) {
+// The marker lives on the storage mount, the admin in the database. If they get
+// out of step (a new database, a restored backup) the installer's public
+// superadmin@gmail.com / superadmin login must not survive the start.
+$stillDefault = $user->email === 'superadmin@gmail.com' || Hash::check('superadmin', (string) $user->password);
+
+if (! is_file($marker) || $stillDefault) {
     if ($password === '') {
         fwrite(STDERR, "ADMIN_PASSWORD is empty\n");
         exit(1);

@@ -2,6 +2,7 @@
 namespace App\Services\Payment;
 use Illuminate\Support\Facades\URL;
 use Exception;
+use RuntimeException;
 class FlutterwavePayment implements PaymentInterface {
     private string $secretKey;
     private string $currencyCode;
@@ -50,12 +51,14 @@ class FlutterwavePayment implements PaymentInterface {
             curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
             curl_setopt($ch, CURLOPT_HTTP_VERSION, CURL_HTTP_VERSION_1_1);
             curl_setopt($ch, CURLOPT_POSTFIELDS, $Data);
+            curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 5);
+            curl_setopt($ch, CURLOPT_TIMEOUT, 20);
 
             // Execute post
             $response = curl_exec($ch);
 
             if ($response == FALSE) {
-                die('Curl failed: ' . curl_error($ch));
+                throw new RuntimeException('Flutterwave request failed: '.curl_error($ch));
             }
 
             // Close connection
@@ -100,6 +103,8 @@ class FlutterwavePayment implements PaymentInterface {
             curl_setopt_array($curl, [
                 CURLOPT_URL => "https://api.flutterwave.com/v3/transactions/{$paymentId}/verify",
                 CURLOPT_RETURNTRANSFER => true,
+                CURLOPT_CONNECTTIMEOUT => 5,
+                CURLOPT_TIMEOUT => 20,
                 CURLOPT_HTTPHEADER => [
                     'Authorization: Bearer ' . $this->secretKey,
                     'Content-Type: application/json'

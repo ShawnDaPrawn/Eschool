@@ -16,6 +16,11 @@ use Throwable;
 
 class ResponseService
 {
+    /** Longest single value, and longest set of request data, written to the log. */
+    private const LOG_VALUE_LIMIT = 1000;
+
+    private const LOG_CONTEXT_LIMIT = 10000;
+
     /**
      * @return Application|RedirectResponse|Redirector|true
      */
@@ -216,7 +221,23 @@ class ResponseService
     {
         report($e);
 
-        Log::error($e->getMessage().'---> '.$e->getFile().' At Line : '.$e->getLine()."\n\n".request()->method().' : '.request()->fullUrl()."\nParams : ", self::redact(request()->all()));
+        // The URL without its query string: the query is in the params, redacted.
+        Log::error(self::truncate($e->getMessage(), self::LOG_CONTEXT_LIMIT).'---> '.$e->getFile().' At Line : '.$e->getLine()."\n\n".request()->method().' : '.self::truncate(request()->url())."\nParams : ", self::loggable(request()->all()));
+    }
+
+    /**
+     * Data as it may go into the log: secrets redacted and long values cut
+     * short, so one large request can't write a huge log line.
+     */
+    public static function loggable(array $values): array
+    {
+        $values = self::redact($values);
+        $json = json_encode($values, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_INVALID_UTF8_SUBSTITUTE | JSON_PARTIAL_OUTPUT_ON_ERROR);
+        if ($json === false || strlen($json) > self::LOG_CONTEXT_LIMIT) {
+            return ['truncated' => self::truncate((string) $json, self::LOG_CONTEXT_LIMIT)];
+        }
+
+        return $values;
     }
 
     /**
@@ -234,10 +255,17 @@ class ResponseService
                 $values[$key] = '[redacted]';
             } elseif (is_array($value)) {
                 $values[$key] = self::redact($value);
+            } elseif (is_string($value)) {
+                $values[$key] = self::truncate($value);
             }
         }
 
         return $values;
+    }
+
+    private static function truncate(string $value, int $limit = self::LOG_VALUE_LIMIT): string
+    {
+        return strlen($value) > $limit ? mb_strcut($value, 0, $limit).'... ['.strlen($value).' bytes]' : $value;
     }
 
     public static function logCurlRequest()
@@ -245,13 +273,13 @@ class ResponseService
         $request = request();
         // Log::error("CURL Request:\n", $request->all());
         $method = strtoupper($request->method());
-        $url = $request->fullUrl();
+        $url = $request->url().($request->query() ? '?'.http_build_query(self::redact($request->query())) : '');
         $headers = [];
 
         // Never write credentials to the log.
         foreach ($request->headers->all() as $key => $values) {
             foreach ($values as $value) {
-                $headers[] = "-H '".$key.': '.(self::isSensitiveKey($key) ? '[redacted]' : $value)."'";
+                $headers[] = "-H '".$key.': '.(self::isSensitiveKey($key) ? '[redacted]' : self::truncate((string) $value))."'";
             }
         }
 
@@ -259,44 +287,31 @@ class ResponseService
 
         if (in_array($method, ['POST', 'PUT', 'PATCH', 'DELETE'])) {
             // Multipart (e.g., file upload)
-            $parts = [];
-            foreach (self::redact($request->input()) as $key => $value) {
-                if (is_array($value)) {
-                    foreach ($value as $k => $v) {
-                        if (is_array($v)) {
-                            foreach ($v as $kk => $vv) {
-                                $parts[] = "-F '{$key}[{$k}][{$kk}]={$vv}'";
-                            }
-                        } else {
-                            $parts[] = "-F '{$key}[{$k}]={$v}'";
-                        }
-                    }
-                } else {
-                    $parts[] = "-F '{$key}={$value}'";
-                }
-            }
-
-            foreach ($request->files->all() as $key => $value) {
-                if (is_array($value)) {
-                    foreach ($value as $k => $v) {
-                        if (is_array($v)) {
-                            foreach ($v as $kk => $vv) {
-                                $parts[] = "-F '{$key}[{$k}][{$kk}]={$vv}'";
-                            }
-                        } else {
-                            $parts[] = "-F '{$key}[{$k}]={$v}'";
-                        }
-                    }
-                } else {
-                    $parts[] = "-F '{$key}={$value}'";
-                }
-            }
-
+            $parts = array_merge(self::formFields(self::redact($request->input())), self::formFields($request->files->all()));
             $data = ' '.implode(" \\\n  ", $parts);
         }
 
         $curl = "curl -X {$method} '".$url."' \\\n  ".implode(" \\\n  ", $headers).$data;
 
-        Log::error("CURL Request:\n".$curl);
+        Log::error("CURL Request:\n".self::truncate($curl, self::LOG_CONTEXT_LIMIT));
+    }
+
+    /**
+     * -F options for nested form values, at any depth (a value nested deeper
+     * than the old three levels was turned into "Array" with a PHP warning).
+     */
+    private static function formFields(array $values, string $prefix = ''): array
+    {
+        $fields = [];
+        foreach ($values as $key => $value) {
+            $name = $prefix === '' ? (string) $key : $prefix.'['.$key.']';
+            if (is_array($value)) {
+                $fields = array_merge($fields, self::formFields($value, $name));
+            } else {
+                $fields[] = "-F '{$name}={$value}'";
+            }
+        }
+
+        return $fields;
     }
 }

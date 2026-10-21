@@ -31,12 +31,18 @@ class ChatController extends Controller
 {
     use TeacherAccess;
 
+    /**
+     * Page size when a request sends no limit; it used to load everything. The
+     * apps send 15, and the student chat's messages default to 100 as well.
+     */
+    private const DEFAULT_PAGE_SIZE = 100;
+
     public function getChatUserList(Request $request)
     {
         try {
 
-            $offset = $request->offset;
-            $limit = $request->limit;
+            $offset = max((int) $request->offset, 0);
+            $limit = max((int) ($request->limit ?? self::DEFAULT_PAGE_SIZE), 1);
             $user_type = $request->isParent;
             $search = $request->search;
 
@@ -457,10 +463,17 @@ class ChatController extends Controller
 
     public function sendMessage(Request $request)
     {
+        // Limits from the chat settings (the same values the app is given).
+        $chatSettings = getSettings();
+        $maxFiles = max(1, (int) ($chatSettings['max_files_or_images_in_one_message'] ?? 10));
+        $maxFileKb = max(1, (int) ceil(((float) ($chatSettings['max_file_size_in_bytes'] ?? 10)) * 1000000 / 1024));
+        $maxChars = max(1, (int) ($chatSettings['max_characters_in_text_message'] ?? 500));
+
         $validator = Validator::make($request->all(), [
             'receiver_id' => 'required|numeric',
-            'message' => 'required_without:file',
-            'file.*' => 'nullable',
+            'message' => 'required_without:file|nullable|string|max:'.$maxChars,
+            'file' => 'nullable|array|max:'.$maxFiles,
+            'file.*' => 'file|max:'.$maxFileKb,
         ]);
         if ($validator->fails()) {
             ResponseService::validationError($validator->errors()->first());
@@ -596,8 +609,8 @@ class ChatController extends Controller
     {
         try {
 
-            $offset = $request->offset;
-            $limit = $request->limit;
+            $offset = max((int) $request->offset, 0);
+            $limit = max((int) ($request->limit ?? self::DEFAULT_PAGE_SIZE), 1);
 
             $messages = ChatMessage::with(['file' => function ($query) {
                 $query->select('message_id', 'file_name');

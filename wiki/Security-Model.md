@@ -6,8 +6,8 @@ Every request passes through several independent layers. A missing check in one 
 
 ```mermaid
 flowchart TD
-    R["Request"] --> G["Global: SecurityHeaders"]
-    G --> W["web group: cookies, session, CSRF, DemoMiddleware, RejectDangerousUploads"]
+    R["Request"] --> G["Global: TrustProxies, SecurityHeaders, LimitRequestInput"]
+    G --> W["web group: cookies, session, AuthenticateSession, CSRF, RequirePasswordChange, throttle:web, DemoMiddleware, RejectDangerousUploads"]
     G --> A["api group: Sanctum, throttle:api, RejectDangerousUploads"]
     W --> WR["Route middleware: auth + Role (staff only), role:Super Admin, throttle"]
     A --> AR["Route middleware: auth:sanctum + role:Student / role:Parent / role:Teacher, session checks, CheckChild, throttle:login"]
@@ -28,16 +28,24 @@ Two middleware aliases differ only by case and do different things: `Role` is `A
 | Control | Where | Guarantee |
 |---|---|---|
 | Login form | `GET`/`POST login` → `App\Http\Controllers\Auth\LoginController` (laravel/ui `AuthenticatesUsers`), `guest` middleware | Standard session login with CSRF token |
-| Login throttling | laravel/ui `ThrottlesLogins` defaults (LoginController does not override them) | 5 failed attempts per minute per lower-cased email + IP address, then a lockout for the rest of the minute |
+| Login throttling | `throttle:login` on `POST login` (shared with the app logins, see below); laravel/ui `ThrottlesLogins` defaults | 5 attempts per minute per account across the panel and every app, 20 per minute per address, and the wrong-password lockout below |
+| Wrong-password lockout | `AppServiceProvider::limitFailedLogins()` (listens to every `Auth::attempt()`), [TooManyLoginFailures](https://github.com/ShawnDaPrawn/Eschool/blob/main/admin-panel/app/Exceptions/TooManyLoginFailures.php) | 10 wrong passwords in an hour for one account (email or GR number, any capitalisation) stop sign-ins to it, from the panel and every app, until the hour is up; a correct password resets the count. The panel shows a form error; the apps get `error: true` with a message. Each refusal is logged as one warning line |
+| Default passwords | [RequirePasswordChange](https://github.com/ShawnDaPrawn/Eschool/blob/main/admin-panel/app/Http/Middleware/RequirePasswordChange.php) in the `web` group, flagged by `LoginController::authenticated()` | Someone who signs in with `superadmin` or with their date of birth as `ddmmyyyy` (the teacher and staff default) can only open the change-password page (or sign out) until they change it, and can't change it to a default again |
 | App-only roles kept out at login | `LoginController::authenticated()` | A user with the `Parent` or `Student` role is signed out immediately, the session is invalidated, and the login page shows `app_only_login_not_allowed_on_web` |
 | Staff role required on every admin page | `CheckRole` (alias `Role`) on the main group `['Role', 'auth']` in [routes/web.php](https://github.com/ShawnDaPrawn/Eschool/blob/main/admin-panel/routes/web.php) | A signed-in user needs at least one role other than `Parent`/`Student`; anyone else is signed out, the session invalidated and the CSRF token regenerated |
 | No self-registration | the `/register` route was removed (commit [439395d](https://github.com/ShawnDaPrawn/Eschool/commit/439395d)) | Accounts are only created by staff, or through the public online registration form, which creates students awaiting approval |
-| Password reset | `password/email` has `throttle:login` | Reset-link requests are rate limited like app logins (see below) |
-| Change password | `HomeController` password change (`old_password`) | The current password must match (`Hash::check`) before the new one is saved |
+| Password reset | `password/email` has `throttle:login`; `ForgotPasswordController`; `ResetPassword::createUrlUsing()` in `AppServiceProvider` | Reset-link requests are rate limited like app logins (see below). The answer is the same whether or not the address has an account. Reset links always start with `APP_URL`, never the host the request named. A completed reset deletes the account's app tokens |
+| Change password | `HomeController::checkPassword` / `changePassword`, both `POST` with `throttle:password` (20 a minute per user) | The current password must match (`Hash::check`) before the new one is saved. The live check of the current password is a `POST`, so the password is not written to access logs with the URL. A change deletes the user's app tokens and signs out their other panel sessions |
+| Other sessions signed out | `AuthenticateSession` in the `web` group | A session (or remember-me cookie) whose password no longer matches the account's is signed out on its next request |
+| Sign-out | `POST logout` only; the profile menu submits a form | Another site can't sign people out with a link or image |
 | Session cookie | [config/session.php](https://github.com/ShawnDaPrawn/Eschool/blob/main/admin-panel/config/session.php) | `http_only` true, `same_site` `lax`, lifetime `SESSION_LIFETIME` (default 120 minutes); `secure` defaults to true when `APP_URL` starts with `https://` (`SESSION_SECURE_COOKIE` overrides) |
 | CSRF | Laravel's CSRF check in the `web` group; `validateCsrfTokens(except: ['webhook/*'])` | Every state-changing web request needs the session's token, except the payment gateway webhooks, which are authenticated by signature instead |
 
-The installer seeds a Super Admin as `superadmin@gmail.com` / `superadmin` (`config/installer.php`, `admin_area`). Change that password, and preferably the email address, immediately after installation.
+The installer seeds a Super Admin as `superadmin@gmail.com` / `superadmin` (`config/installer.php`, `admin_area`). The panel makes whoever signs in with it change the password first; change the email address too. The Cloud Run container replaces that login on every start while it is still in place (see [Deployment](Deployment#navigateed-production)).
+
+| Installer | Where | Guarantee |
+|---|---|---|
+| Closed once installed | `InstallerMiddleware`, `ToInstallMiddleware` in `packages/laravel-wizard-installer` | `/install` answers 404 when `storage/installed` exists, and also when the database already has users, so a lost marker file doesn't reopen the installer on a live school. A browser that started the installation on an empty database can finish it (the wizard creates the admin before its last steps); the finish step, which only writes `storage/installed`, is always allowed |
 
 ### Mobile app API (Sanctum tokens)
 
@@ -51,7 +59,8 @@ The installer seeds a Super Admin as `superadmin@gmail.com` / `superadmin` (`con
 | Logout | `POST api/logout` → `ApiController::logout` | Deletes the current token and clears `users.fcm_id` |
 | Change password | `POST api/change-password` (`auth:sanctum`) → `ApiController::changePassword` | Needs `current_password`; `new_password` at least 8 characters; every other token of the user is deleted (other devices are signed out) |
 | Forgot password | `POST api/forgot-password` and `api/student/forgot-password` | The response is the same whether or not the email belongs to an account; mail errors are logged, not shown |
-| Login and reset throttling | `RateLimiter::for('login')`, applied as `throttle:login` to `api/student/login`, `api/student/forgot-password`, `api/parent/login`, `api/teacher/login`, `api/forgot-password` and `password/email` | 5 attempts per minute per route + account (`email`, `gr_number` or `gr_no`, lower-cased) and 20 per minute per IP. Default app passwords are dates of birth, so guessing must be slow. |
+| Login and reset throttling | `RateLimiter::for('login')`, applied as `throttle:login` to `login`, `password/email`, `api/student/login`, `api/student/forgot-password`, `api/parent/login`, `api/teacher/login` and `api/forgot-password` | 5 attempts per minute per account (`email`, `gr_number` or `gr_no`, lower-cased; one count across the panel and all apps) and 20 per minute per address, plus the wrong-password lockout (10 an hour per account). Default app passwords are dates of birth, so guessing must be slow. |
+| Tokens revoked | `HomeController::changePassword`, `Student\PasswordController::change_password` (staff resetting a student's password), `StaffController::destroy`, `TeacherController::destroy`, the `PasswordReset` listener | Changing or resetting a password, or removing a staff member or teacher, deletes that account's app tokens |
 | General API throttling | `throttle:api` prepended to the `api` group; `RateLimiter::for('api')` | 60 requests per minute per user id, or per IP when not signed in |
 | Paging caps | e.g. `ApiController::perPage()` | `per_page` is clamped to 1–100 |
 
@@ -62,7 +71,27 @@ The `api` group also runs Sanctum's `EnsureFrontendRequestsAreStateful`, and `co
 | Route | Throttle | Why |
 |---|---|---|
 | `POST contact-us/store` | `throttle:5,1` (5 per minute per IP) | Creates contact messages shown to staff |
-| `POST student-register` | `throttle:10,1` | Creates student and parent accounts and stores uploaded photos; reCAPTCHA is optional |
+| `POST student-register` | `throttle:10,1` | Creates student and parent accounts and stores uploaded photos; reCAPTCHA is optional. A parent or guardian email that already has an account is only reported after reCAPTCHA passes, so the form can't be used to look up who has an account |
+
+## Request limits
+
+These keep one client, or one expensive request, from tying up the server. They don't stop a flood from many addresses; see the last item of the checklist below.
+
+| Control | Where | Guarantee |
+|---|---|---|
+| Real client addresses | [config/trustedproxy.php](https://github.com/ShawnDaPrawn/Eschool/blob/main/admin-panel/config/trustedproxy.php), `trustProxies(headers: ...)` in `bootstrap/app.php` | Per-address limits count the address the connection (or a trusted proxy) reports, not one the visitor wrote into `X-Forwarded-For`. `X-Forwarded-Host`, `-Port` and `-Prefix` are ignored, so a visitor can't change the links the app builds |
+| Shared counters | `limiter` in [config/cache.php](https://github.com/ShawnDaPrawn/Eschool/blob/main/admin-panel/config/cache.php) (`CACHE_LIMITER`, default `database` on Cloud Run, else the default cache store) | All Cloud Run instances count against the same limits |
+| Panel and website | `throttle:web` in the `web` group, `RateLimiter::for('web')` | 600 requests a minute per signed-in user (a whole school can share one address), 300 per address for visitors. Payment webhooks are not limited |
+| App API | `throttle:api` | 60 requests a minute per user, or per address when not signed in |
+| PDFs, exports and imports | `throttle:heavy` on the ID card, receipt, result and calendar PDFs, certificates, student export and bulk imports | 10 a minute per user from the apps and 30 in the panel |
+| Page sizes | [LimitRequestInput](https://github.com/ShawnDaPrawn/Eschool/blob/main/admin-panel/app/Http/Middleware/LimitRequestInput.php) (global) | `limit` and `per_page` are kept to 1–1000 and `offset` to 0 or more, in the request and in `$_GET`/`$_POST`; a huge or negative `limit` used to load whole tables |
+| JSON bodies | `LimitRequestInput` | Bodies over 1 MB sent as JSON get 413 before they are parsed. The apps and forms send form data, which PHP caps at `max_input_vars` (1000 fields) |
+| Image and SVG size | `RejectDangerousUploads` | Images over 30 megapixels are refused before anything decodes them (a small PNG can declare a huge size), and SVGs over 2 MB before they are parsed |
+| ID card PDFs | `IdCardService::MAX_CARDS` | At most 500 people per PDF |
+| Spreadsheet imports | [RowLimit](https://github.com/ShawnDaPrawn/Eschool/blob/main/admin-panel/app/Imports/RowLimit.php), the read filter of the student, attendance and online exam question imports | A file with more than 5000 data rows (all sheets together) is refused while it is read, before the rest is loaded or any row saved |
+| Chat lists | `getChatUserList`, `getUserChatMessage` in the parent and teacher chat APIs | Without a `limit`, 100 contacts or messages are returned instead of all of them |
+| Chat messages | `sendMessage` in the student, parent and teacher chat APIs | Text up to the configured maximum length; teacher attachments up to the configured number and size |
+| Outgoing calls | `sendFCMCurl()`, `getAccessToken()` in `notification_helper.php`, `FlutterwavePayment` | FCM and Flutterwave calls give up after 5 seconds connecting and 10–20 seconds in all, instead of holding a worker; the FCM access token is cached for 50 minutes |
 
 ## Authorization
 
@@ -73,7 +102,8 @@ The `api` group also runs Sanctum's `EnsureFrontendRequestsAreStateful`, and `co
 | Permission strings | [database/seeders/InstallationSeeder.php](https://github.com/ShawnDaPrawn/Eschool/blob/main/admin-panel/database/seeders/InstallationSeeder.php) creates about 175 permissions (`<module>-list`, `-create`, `-edit`, `-delete`, plus specials such as `fees-config`, `email-setting-create`, `attendance-staff`) and syncs the lists for the `Super Admin` and `Teacher` roles; `Parent` and `Student` get none | The seeder is re-run by the installer and by every system update, so new permissions reach existing installs |
 | Controller checks | `if (! Auth::user()->can('holiday-list')) { ... }` at the top of each action (about 375 checks across `app/Http/Controllers`); helpers in [ResponseService](https://github.com/ShawnDaPrawn/Eschool/blob/main/admin-panel/app/Services/ResponseService.php): `noPermissionThenRedirect`, `noPermissionThenSendJson`, `noAnyPermissionThenRedirect`, `noRoleThenRedirect` | Page actions redirect to `home` with `no_permission_message`; AJAX actions answer `{"error": true, "message": ...}` (some with HTTP 403) |
 | No Super Admin bypass | `Gate::before` is commented out in `AuthServiceProvider` | Super Admin can do only what its seeded permissions allow; a new permission must be added to the Super Admin list to be usable |
-| Super Admin-only areas | `['auth', 'role:Super Admin']` route group (`storage-link`, `migrate`, `seeder_install`); `hasRole('Super Admin')` in `SystemUpdateController` and others | Maintenance and system update cannot be reached by other roles; `/clear` (cache clear) needs any logged-in user |
+| Super Admin-only areas | `['auth', 'role:Super Admin']` route group (`storage-link`, `migrate`, `seeder_install`, `POST clear`); `hasRole('Super Admin')` in `SystemUpdateController` and others | Maintenance and system update cannot be reached by other roles |
+| System update switch | [config/system_update.php](https://github.com/ShawnDaPrawn/Eschool/blob/main/admin-panel/config/system_update.php) (`SYSTEM_UPDATE_ENABLED`, default off when `K_SERVICE` is set), checked in `SystemUpdateController::index()` and `update()` | On Cloud Run the update page and upload are refused and the menu item is hidden: a zip upload replaces the app's code, so a stolen Super Admin session would otherwise be enough to run any code on the server, and the container is rebuilt for every release anyway |
 | Menu visibility | `@can` / `@canany` in [resources/views/layouts/sidebar.blade.php](https://github.com/ShawnDaPrawn/Eschool/blob/main/admin-panel/resources/views/layouts/sidebar.blade.php) | Cosmetic only; the controller check is what protects the action |
 | Role editing | [RoleController](https://github.com/ShawnDaPrawn/Eschool/blob/main/admin-panel/app/Http/Controllers/RoleController.php): `permission:role-*` middleware, `BUILT_IN_ROLES = ['Super Admin', 'Teacher', 'Parent', 'Student']`, `isEditableRole()`, `assignablePermissionsFrom()` | Only custom roles (`custom_role = 1`) can be edited or deleted; a custom role can only receive permissions the Super Admin role itself has, whatever ids are posted |
 | Staff accounts | [StaffController](https://github.com/ShawnDaPrawn/Eschool/blob/main/admin-panel/app/Http/Controllers/StaffController.php) `assignableRoleRule()` | Staff can only be given custom roles (never Super Admin or a built-in role); only a Super Admin may change a Super Admin account; staff attendance pages need `attendance-staff` |
@@ -194,7 +224,7 @@ The project-root [.htaccess](https://github.com/ShawnDaPrawn/Eschool/blob/main/a
 | iOS | `ios/Runner/Info.plist` in both apps | No `NSAllowsArbitraryLoads` exception |
 | Payment WebView | `e-school/lib/ui/screens/fees/webviewPaymentScreen.dart` `_onNavigationRequest()` | Only the server's own `/response/paystack/success` and Flutterwave callback URLs end the payment flow; non-http(s) navigation is blocked |
 
-The application does not redirect HTTP to HTTPS itself; configure that in the web server. `bootstrap/app.php` trusts forwarded headers from any proxy (`trustProxies(at: '*')`), so behind a TLS-terminating proxy `isSecure()` is true and HSTS is sent, and it only answers on its own host names (`APP_URL` and subdomains, `localhost`, `127.0.0.1`, `TRUSTED_HOSTS`) once installed; see [Deployment](Deployment#https-proxies-and-hosts).
+The application does not redirect HTTP to HTTPS itself; configure that in the web server. Trusted proxies come from [config/trustedproxy.php](https://github.com/ShawnDaPrawn/Eschool/blob/main/admin-panel/config/trustedproxy.php): `TRUSTED_PROXIES` (a comma-separated list of addresses or ranges, or `*`), defaulting to `*` on Cloud Run (where `K_SERVICE` is set) and to none elsewhere. Behind any other TLS-terminating proxy or load balancer, set `TRUSTED_PROXIES`; otherwise `isSecure()` is false and HSTS is not sent. Only `X-Forwarded-For` and `X-Forwarded-Proto` are read from trusted proxies (`trustProxies(headers: ...)` in `bootstrap/app.php`). Once installed, the panel only answers on its own host names (`APP_URL` and subdomains, `localhost`, `127.0.0.1`, `TRUSTED_HOSTS`); see [Deployment](Deployment#https-proxies-and-hosts). The `app/Http/Middleware/TrustProxies.php` and `TrustHosts.php` classes are not registered.
 
 ## Errors and logging
 
@@ -202,7 +232,8 @@ The application does not redirect HTTP to HTTPS itself; configure that in the we
 |---|---|---|
 | Debug off by default | `.env.example`: `APP_ENV=production`, `APP_DEBUG=false`, `LOG_LEVEL=error`; `config/app.php` `debug` defaults to false | Visitors see generic error pages, not stack traces or the debug bar |
 | API error details | `ResponseService::errorResponse()` | The `details` field (exception message, file, line) is filled only when `app.debug` is true; the log always has it |
-| Log redaction | `ResponseService::logErrorResponse()`, `redact()`, `isSensitiveKey()`, `logCurlRequest()` | Request fields and headers whose key matches `/pass\|token\|secret\|key\|signature\|authorization\|cookie\|otp/i` are logged as `[redacted]` |
+| Log redaction | `ResponseService::logErrorResponse()`, `loggable()`, `redact()`, `isSensitiveKey()`, `logCurlRequest()`; `MailService::loggableData()` | Request fields, query values and headers whose key matches `/pass\|token\|secret\|key\|signature\|authorization\|cookie\|otp/i` are logged as `[redacted]`. Emails that fail to send are logged without their body or password fields (welcome emails carry the new login's password) |
+| Log size | `ResponseService::loggable()`, `truncate()` | Each logged value is cut at 1000 bytes and the request data, exception message and curl line at 10 KB, so one large request can't write a huge log entry |
 | Validation flashing | `App\Exceptions\Handler::$dontFlash` | `current_password`, `password` and `password_confirmation` are never flashed back to forms |
 | No exception objects in responses | controllers fixed in [ee49250](https://github.com/ShawnDaPrawn/Eschool/commit/ee49250), [201b863](https://github.com/ShawnDaPrawn/Eschool/commit/201b863), [6b9f7dd](https://github.com/ShawnDaPrawn/Eschool/commit/6b9f7dd) | Exception messages, stack traces and `dd()` output no longer reach the browser |
 | App logging | `initializeApp()` in `lib/app/app.dart` of both apps | `debugPrint` is replaced by a no-op in release builds; the auth token, request bodies and API responses are no longer printed |
@@ -248,6 +279,7 @@ The admin steps for configuring webhooks are at https://shawndaprawn.github.io/E
 |---|---|---|
 | Answers stay on the server | `Student\OnlineExamController::getOnlineExamQuestions` | Only the number of correct answers (`answers_count`) is sent, not which options are correct |
 | Exam key checked by the server | `getOnlineExamList` omits `exam_key`; `getOnlineExamQuestions` requires `exam_key` and compares it with `hash_equals()` | The key is never sent to the app; questions are only served after the student types the key the teacher gave them |
+| Exam key guessing | `getOnlineExamQuestions` | The key is only checked while the exam is open, and 5 wrong keys for one exam stop that student for 10 minutes (`exam-key:<exam>:<user>` in the rate limiter) |
 | Submission limits | `submitOnlineExamAnswers`, `findStudentOnlineExam()` | Only the student's own exam; not before `start_date`, not after `end_date` plus `ONLINE_EXAM_GRACE_MINUTES`, not after the exam `duration` (plus the same grace) from when the student started; only one submission; only options of that exam's questions |
 | Exact-set scoring | [OnlineExamScoringService::isCorrect()](https://github.com/ShawnDaPrawn/Eschool/blob/main/admin-panel/app/Services/OnlineExamScoringService.php) | A question scores only if the selected options are exactly the correct options; selecting every option scores nothing |
 
@@ -255,7 +287,7 @@ The admin steps for configuring webhooks are at https://shawndaprawn.github.io/E
 
 | Control | Where | Guarantee |
 |---|---|---|
-| Maintenance URLs | `routes/web.php` | `/clear` needs a logged-in user; `/storage-link`, `/migrate` and `/seeder_install` need Super Admin; `migrate` and `seeder_install` pass `--force`. The old unauthenticated `delete-chat-message/cron-job` URL is gone; old chat messages are deleted by the scheduled `app:cleanup-old-chat-messages` command |
+| Maintenance URLs | `routes/web.php` | `POST /clear` (the Cache Clear button, shown to Super Admins only) and `/storage-link`, `/migrate` and `/seeder_install` need Super Admin. Cache Clear is a form post because clearing the cache can also reset rate limits; `migrate` and `seeder_install` pass `--force`. The old unauthenticated `delete-chat-message/cron-job` URL is gone; old chat messages are deleted by the scheduled `app:cleanup-old-chat-messages` command |
 | Demo mode | [DemoMiddleware](https://github.com/ShawnDaPrawn/Eschool/blob/main/admin-panel/app/Http/Middleware/DemoMiddleware.php) in the `web` group, enabled by `config('app.demo_mode')` (`DEMO_MODE` in `.env`, default false) | When on, every non-GET request by a signed-in user is refused (API: `code` 112; AJAX: HTTP 403; pages: redirect back with "This is not allowed in the Demo Version.") except the login endpoints, chat send/read, leave lists and a few export/certificate URLs listed in `$exclude_uri`, and except for the user `demomodeoff@gmail.com`. The fees configuration page also masks gateway keys. `GET api/settings` reports it as `is_demo` |
 | APP_KEY | `.env.example` has `APP_KEY=` (empty); the installer runs `key:generate --force` (`config/installer.php`); CI runs `php artisan key:generate --force` | Laravel refuses to start without a key, so no two installs share one. The key encrypts cookies and sessions and signs URLs. `InstallationTest` fails if `.env.example` gets a key again |
 
@@ -268,16 +300,17 @@ Code outside `config/` reads configuration through `config()` and school setting
 3. Make sure `APP_KEY` is set and unique (the installer generates it). Never copy a key between installs or commit `.env`.
 4. Point the web server's document root at `admin-panel/public/`. If the project root must be the document root, keep the root `.htaccess` (Apache) or add equivalent rules that deny dotfiles, `.env`, `.git`, `vendor/` and project metadata.
 5. On Nginx or any non-Apache server, make sure nothing under `/storage` is executed as PHP and that `storage/app/public/` is served as static files only; the `.htaccess` there only works on Apache.
-6. Change the seeded Super Admin login (`superadmin@gmail.com` / `superadmin`) straight after installation.
-7. If the server sits behind a reverse proxy or load balancer that terminates TLS, configure Laravel's trusted proxies, otherwise HSTS is not sent and the request is treated as HTTP.
+6. Change the seeded Super Admin login (`superadmin@gmail.com` / `superadmin`) straight after installation. The panel insists on a new password at the first sign-in; change the email address too.
+7. If the server sits behind a reverse proxy or load balancer that terminates TLS, set `TRUSTED_PROXIES` to its addresses (Cloud Run needs nothing), otherwise HSTS is not sent, the request is treated as HTTP, and every visitor shares the proxy's address in the rate limits. Never trust `*` when visitors can reach the server directly: they could then choose their own address.
 8. Add the scheduler cron (`* * * * * php /path/to/admin-panel/artisan schedule:run`) so expired app tokens and old chat messages are deleted; see [Scheduled-Tasks-and-Commands](Scheduled-Tasks-and-Commands).
 9. For each enabled payment gateway, set its webhook secret (Razorpay webhook secret, Stripe signing secret, Paystack secret key, Flutterwave secret hash) on the fees settings page, and register the `webhook/<gateway>` URL in the gateway dashboard. Without the secret, webhooks are refused and payments are never confirmed.
 10. Rotate any secret that may have been exposed by an older version: the Razorpay webhook secret (an older public `api/settings` returned it) and the Firebase service account key (older versions stored it on the public disk).
 11. Upload the Firebase service account file through the notification settings page so it lands on the private disk; do not place it under `public/` or `storage/app/public/`.
 12. Keep `DEMO_MODE=false` on a real school install.
-13. Default passwords for students, parents and teachers are their dates of birth (see https://shawndaprawn.github.io/Eschool/faqs/); ask users to change them. Login throttling slows guessing but does not replace this.
+13. Default passwords for students, parents and teachers are their dates of birth (see https://shawndaprawn.github.io/Eschool/faqs/). Staff are made to change theirs at their first panel sign-in; the apps don't do this yet, so ask students and parents to change theirs. Login throttling and the wrong-password lockout slow guessing but do not replace this.
 14. Back up the database and `storage/app/` (uploads and the Firebase key) yourself; the application has no built-in backup job. Take a backup before every system update.
-15. Run `composer audit` periodically on the installed version, or watch the weekly CI audit.
+15. The request limits stop one client from overloading the server, not a flood from many addresses. Put the panel behind a CDN or a web application firewall with rate-based rules (on Google Cloud, a load balancer with Cloud Armor) if it could be a target.
+16. Run `composer audit` periodically on the installed version, or watch the weekly CI audit.
 
 ## Rules for contributors
 

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
+use App\Http\Middleware\RequirePasswordChange;
 use App\Providers\RouteServiceProvider;
 use Illuminate\Foundation\Auth\AuthenticatesUsers;
 use Illuminate\Http\RedirectResponse;
@@ -58,6 +59,10 @@ class LoginController extends Controller
 
         if ($user->roles->isEmpty()) {
             return $this->refuseLogin($request, 'no_permission_message');
+        }
+
+        if (RequirePasswordChange::isDefaultPassword($user, (string) $request->input('password'))) {
+            $request->session()->put(RequirePasswordChange::SESSION_KEY, true);
         }
 
         return null;

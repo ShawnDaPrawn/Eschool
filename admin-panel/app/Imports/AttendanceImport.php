@@ -15,18 +15,26 @@ use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 use Maatwebsite\Excel\Concerns\ToCollection;
 use Maatwebsite\Excel\Concerns\WithHeadingRow;
+use Maatwebsite\Excel\Concerns\WithReadFilter;
+use PhpOffice\PhpSpreadsheet\Reader\IReadFilter;
 
 /**
  * The bulk attendance sheet a class teacher downloads, fills in and uploads.
  * Rows are saved the way the Add Attendance form saves them.
  */
-class AttendanceImport implements ToCollection, WithHeadingRow
+class AttendanceImport implements ToCollection, WithHeadingRow, WithReadFilter
 {
     public $class_section_id;
 
     public function __construct($class_section_id)
     {
         $this->class_section_id = $class_section_id;
+    }
+
+    /** Refuses a file over RowLimit::MAX_ROWS rows while it is read. */
+    public function readFilter(): IReadFilter
+    {
+        return new RowLimit;
     }
 
     public function collection(Collection $rows)

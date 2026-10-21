@@ -3,6 +3,7 @@
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
+use Illuminate\Http\Request;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
@@ -13,11 +14,15 @@ return Application::configure(basePath: dirname(__DIR__))
     )
     ->withMiddleware(function (Middleware $middleware): void {
 
-        // Cloud Run terminates TLS, so forwarded proto headers have to be trusted.
+        // Trusted proxies come from config/trustedproxy.php (all callers on Cloud
+        // Run, which terminates TLS; none elsewhere unless TRUSTED_PROXIES is set).
+        // Only the client address and scheme are taken from them: Cloud Run passes
+        // a visitor's own X-Forwarded-Host/-Port/-Prefix through unchanged, and
+        // those would change the links the app builds.
+        $middleware->trustProxies(headers: Request::HEADER_X_FORWARDED_FOR | Request::HEADER_X_FORWARDED_PROTO);
         // Hosts are limited to APP_URL plus local development and TRUSTED_HOSTS. Until
         // the install wizard has finished, APP_URL is still .env.example's placeholder,
         // so the wizard answers on whichever address the school opens it on.
-        $middleware->trustProxies(at: '*');
         $middleware->trustHosts(at: fn () => file_exists(storage_path('installed'))
             ? [
                 '^localhost$',
@@ -34,6 +39,7 @@ return Application::configure(basePath: dirname(__DIR__))
         ]);
 
         $middleware->append(\App\Http\Middleware\SecurityHeaders::class);
+        $middleware->append(\App\Http\Middleware\LimitRequestInput::class);
 
         // Web middleware group
         $middleware->web(append: [
@@ -41,8 +47,12 @@ return Application::configure(basePath: dirname(__DIR__))
             \App\Http\Middleware\EncryptCookies::class,
             \Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse::class,
             \Illuminate\Session\Middleware\StartSession::class,
-            // \Illuminate\Session\Middleware\AuthenticateSession::class,
+            // Signs out other sessions when the password changes.
+            \Illuminate\Session\Middleware\AuthenticateSession::class,
             \Illuminate\View\Middleware\ShareErrorsFromSession::class,
+            \App\Http\Middleware\RequirePasswordChange::class,
+            // After the session starts, so signed-in users are counted per account.
+            'throttle:web',
             \Illuminate\Routing\Middleware\SubstituteBindings::class,
             \App\Http\Middleware\DemoMiddleware::class,
             \App\Http\Middleware\RejectDangerousUploads::class,

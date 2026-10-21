@@ -181,8 +181,10 @@ All routes are in the `/api/student` group (`auth:sanctum`, `role:Student`, `stu
 
 1. **`GET get-online-exam-list`** returns exams for the student's class section or class in the current session year whose `end_date` has not passed, that have at least one question, that the student has not attempted, and whose subject is one of the student's subjects (or the given `subject_id`). When the class uses semesters and a semester is current, only exams with that `semester_id` are listed. The `exam_key` is **not** included.
 2. **`GET get-online-exam-questions`** (`exam_id`, `exam_key`):
-   - The exam is looked up with `findStudentOnlineExam()`: same session year, the student's subjects, the student's class or section, and the current semester when applicable. The key is compared with `hash_equals()`; a wrong key or someone else's exam gives "Invalid Exam Key".
-   - Refused if an attempt row already exists (`student_already_attempted_exam`, code 105), before `start_date` (`exam_not_started_yet`, 106) or after `end_date`.
+   - The exam is looked up with `findStudentOnlineExam()`: same session year, the student's subjects, the student's class or section, and the current semester when applicable. Someone else's exam gives "Invalid Exam Key".
+   - Refused before `start_date` (`exam_not_started_yet`, 106) or after `end_date`. These come before the key check, so keys can't be guessed for an exam that isn't open.
+   - The key is compared with `hash_equals()`; a wrong key gives "Invalid Exam Key" (103). After 5 wrong keys for one exam, the student is refused (code 429) for 10 minutes even with the right key; the right key clears the count.
+   - Refused if an attempt row already exists (`student_already_attempted_exam`, code 105).
    - Creates the `student_online_exam_statuses` row with `status = 1`. This is the attempt's start time.
    - Returns each placed question with its options, `marks`, image and note. Correct answers are not sent: the response has `answers_count`, and `answers` is a list of that many placeholders (`id: 0, option_id: 0`) for older app builds.
 3. **`POST submit-online-exam-answers`** (`online_exam_id`, `answers_data[]` of `{question_id: choice id, option_id: [option ids]}`):

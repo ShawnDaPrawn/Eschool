@@ -139,14 +139,14 @@ Every class in [app/Http/Middleware](https://github.com/ShawnDaPrawn/Eschool/tre
 | `SecurityHeaders` | appended to the global stack | Sets `X-Frame-Options: SAMEORIGIN`, `X-Content-Type-Options: nosniff`, `Referrer-Policy: strict-origin-when-cross-origin`, and `Strict-Transport-Security: max-age=31536000` when `$request->isSecure()`. Headers already on the response are left alone. |
 | `TrimStrings` | not registered | The framework's `TrimStrings` runs globally instead. |
 | `TrustHosts` | not registered | The framework's `TrustHosts` is used instead (`$middleware->trustHosts()` in `bootstrap/app.php`): `APP_URL` and its subdomains, `localhost`, `127.0.0.1` and `TRUSTED_HOSTS`, once installed. See [Deployment](Deployment#https-proxies-and-hosts). |
-| `TrustProxies` | not registered | The framework's `TrustProxies` runs globally and trusts every proxy (`$middleware->trustProxies(at: '*')`). See [Deployment](Deployment#https-proxies-and-hosts). |
+| `TrustProxies` | not registered | The framework's `TrustProxies` runs globally. Proxies come from `config/trustedproxy.php` (`TRUSTED_PROXIES`, `*` on Cloud Run, none elsewhere), and only `X-Forwarded-For` and `X-Forwarded-Proto` are read. See [Deployment](Deployment#https-proxies-and-hosts). |
 | `ValidateSignature` | not registered | The `signed` alias points at the framework class. |
 | `VerifyCsrfToken` | only in `config/sanctum.php` (`verify_csrf_token`) | CSRF for web routes is the framework's `ValidateCsrfToken`, configured by `validateCsrfTokens(except: ['webhook/*'])`. |
 
 Route-level usage, in short (details in [Security-Model](Security-Model) and [API-Overview](API-Overview)):
 
 - Admin panel: `Route::group(['middleware' => ['Role', 'auth']])` with a nested `language` group. `Role` runs before `auth`.
-- Maintenance URLs: `/clear` needs `auth`; `/storage-link`, `/migrate` and `/seeder_install` need `auth` and `role:Super Admin`.
+- Maintenance URLs: `POST /clear` (the Cache Clear button), `/storage-link`, `/migrate` and `/seeder_install` need `auth` and `role:Super Admin`.
 - Student API: `auth:sanctum`, `role:Student`, `student.session.active`. Parent API: `auth:sanctum`, `role:Parent`, `parent.children.session.active`, with `CheckChild` on child-specific routes. Teacher API: `auth:sanctum`, `role:Teacher`, with `CheckStudent` on student-specific routes.
 
 ## The app/ folders

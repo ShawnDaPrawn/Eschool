@@ -88,7 +88,7 @@
             }
             setStatus('', status.dataset.checkingLabel || '');
             $.ajax({
-                type: 'GET',
+                type: 'POST',
                 dataType: 'json',
                 url: checkUrl,
                 data: { old_password: value },

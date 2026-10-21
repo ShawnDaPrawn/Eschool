@@ -38,6 +38,18 @@ abstract class TestCase extends BaseTestCase
     }
 
     /**
+     * AuthenticateSession signs a session out when its user's password no longer
+     * matches the one it remembered, and the session lasts the whole test. A test
+     * that switches users isn't someone else's stale session.
+     */
+    public function be($user, $guard = null)
+    {
+        $this->app['session.store']->forget('password_hash_'.($guard ?? config('auth.defaults.guard')));
+
+        return parent::be($user, $guard);
+    }
+
+    /**
      * Seed the database the same way the web installer does (config/installer.php).
      */
     protected function seedLikeInstaller(): void
