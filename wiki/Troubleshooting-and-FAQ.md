@@ -42,7 +42,7 @@ Students sign in with their **GR number** (`gr_number`), which is stored in `use
 The `session_year` setting points to a session year that doesn't exist, or isn't set. Pick a current session year in Settings.
 
 **An expired login isn't sent back to the sign-in screen.**
-When a request has no `Accept: application/json` header, Laravel answers a bad token with a 302 redirect to `/login`, not a 401 (`Authenticate::redirectTo`). The apps send only the `Authorization` header, so their log-out-on-401 handling never runs. Sign out and in again. Tokens last `SANCTUM_EXPIRATION` minutes, 30 days by default.
+On installs older than this fix, a bad token without `Accept: application/json` got a 302 redirect to `/login` instead of a 401, so the apps' log-out-on-401 handling never ran. The server now always answers API requests with JSON 401, and the apps send the header too. If it still happens, the server is out of date; sign out and in again meanwhile. Tokens last `SANCTUM_EXPIRATION` minutes, 30 days by default.
 
 **The app shows "exam already attended" for something unrelated to exams.**
 `CheckChild` rejects an unknown `child_id` with code 105. The student/parent app reads code 105 as the online-exam message (`errorMessageKeysAndCodes.dart`). The real cause is a child that doesn't belong to the parent signed in, often because the app still has a removed child selected.
@@ -110,14 +110,8 @@ These were found by reading the code while this wiki was written. None of them i
 | Area | Symptom | Where |
 |---|---|---|
 | API errors | Validation and permission errors return `code: null` because `config/constants.php` doesn't exist | `app/Services/ResponseService.php` |
-| API auth | An expired token gets a 302 redirect instead of a 401, so the apps don't sign out | `app/Http/Middleware/Authenticate.php`, `lib/utils/api.dart` in both apps |
 | API headers | `ResponseService` sends its response and calls `exit()`, so those responses skip the `SecurityHeaders`, CORS and rate-limit headers | `app/Services/ResponseService.php` |
 | Parent app | Code 105 from `CheckChild` is shown as "exam already attended" | `e-school/lib/utils/errorMessageKeysAndCodes.dart` |
-| Teacher marks | Re-submitting exam marks stops at the first existing row, because a success response exits inside the loop | `TeacherApiController::submitExamMarksBySubjects`, `submitExamMarksByStudent` |
-| Teacher attendance | Absence notifications are saved only for the last absent student's parents | `TeacherApiController::submitAttendance` |
-| Files | Physical files are not deleted with their record, because `File::deleting` checks the URL accessor rather than the disk path | `app/Models/File.php` |
-| Student profile | `get-profile-data` can fail with an undefined `$child` in compulsory-fee mode without installments after the free-use date | `StudentApiController::getProfileDetails` |
-| Receipts | The student receipt endpoint uses the student's first `fees_paids` row from any session year | `StudentApiController::feesPaidReceiptPDF` |
 | Teacher app | `Api.examResults` points to `teacher/exam-marks`, which has no route. The method that uses it is never called | `e-school-teacher/lib/utils/api.dart` |
 
 The [API Parent](API-Parent), [API Student](API-Student) and [API Teacher](API-Teacher) pages list more endpoint-level quirks in their "Known quirks" and "Gotchas" sections.

@@ -75,8 +75,7 @@ All three return `Notification` rows of the current session year (`session_year`
 | New / updated assignment | `AssignmentController::store` / `update`, `TeacherApiController::createAssignment` / `updateAssignment` | Students of the class section (for a new assignment in an elective subject, only those who chose it) | `send_to` 3, user rows | `assignment` |
 | Assignment submission accepted / rejected | `AssignmentController::updateAssignmentSubmission`, `TeacherApiController::updateAssignmentSubmission` | The student | `send_to` 3, user rows | `assignment` |
 | Assignment submitted | `StudentApiController::submitAssignment` | Subject teachers of that subject and class section | `send_to` 2, user rows | `assignment_submission` |
-| Student marked absent (admin panel) | `AttendanceController::store` | Father, mother and guardian users; only when the record changes to absent | `send_to` 4, user rows | `attendance` |
-| Student marked absent (teacher app) | `TeacherApiController::submitAttendance` | Father and mother users | `send_to` 3, user rows | `attendance` |
+| Student marked absent (admin panel or teacher app) | `AttendanceController::store`, `TeacherApiController::submitAttendance`, both through `AbsenceAlertService::notify()` | Father, mother and guardian users of each student newly marked absent (not again when the day is saved again) | `send_to` 2, user rows | `attendance` |
 | Student leave applied | `StudentApiController::applyLeave`, `ParentApiController::applyLeave` | Class teachers of the student's class section | `send_to` 3, user rows | `leave` |
 | Student leave approved / rejected | `LeaveController::studentLeaveStatusUpdate`, `TeacherApiController::studentLeaveStatusUpdate` | The student's parents | `send_to` 3, user rows | `leave` |
 | Chat message | `sendMessage` in the three API controllers | The receiver | none | `chat` (with `sender_info`) |
@@ -89,7 +88,6 @@ Exams, online exams, results, events, holidays and timetables send no notificati
 
 Notes on specific triggers, as written:
 
-- `TeacherApiController::submitAttendance` calls `sendSimpleNotification()` inside the loop over a student's parents, passing all of them each time, so each parent can get the same push more than once; and it resets `$userNotificationData` per student, so only the last absent student's `user_notifications` rows are inserted.
 - Payment pushes from the webhook are wrapped in `try`/`catch` so a failed push never undoes the payment. Other callers are inside the controller's general `try`, so an FCM exception there becomes an `error_occurred` response even though the data was saved (`compulsoryFeesPaidStore` special-cases this with "Data Stored successfully. But App push notification not send.").
 
 ## Custom notifications (admin panel)

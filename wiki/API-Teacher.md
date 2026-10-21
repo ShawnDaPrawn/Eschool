@@ -722,7 +722,7 @@ No parameters. A Laravel paginator (15 per page, newest first) of `notifications
 | `update-assignment` | yes | `assignment` | All section students |
 | `update-assignment-submission` | yes | `assignment` | The submitting student |
 | `send-announcement`, `update-announcement` | no | `class_section` | Section students |
-| `submit-attendance` | yes, one per absent student (see [gotchas](#known-gaps-and-gotchas)) | `attendance` | Father and mother users |
+| `submit-attendance` | yes, one per student newly marked absent (`AbsenceAlertService`) | `attendance` | Father, mother and guardian users |
 | `student-leave-status-update` | yes (status 1 or 2) | `leave` | Father, mother and guardian users |
 | `send-message` | no | `chat` | The receiver |
 
@@ -748,17 +748,6 @@ Pushes go through `sendSimpleNotification()` in [`notification_helper.php`](http
 
 These come straight from the current code and are worth knowing before changing it or debugging app reports.
 
-- **Marks re-submission stops early.** In both `submit-exam-marks` handlers, when a `marks_data` entry already has an `exam_marks` row, the code updates it and calls `successResponse()`, which exits. Later entries are not processed, and new rows collected before it are never inserted.
-- **Absent alerts are partly recorded.** In `submitAttendance`, `$userNotificationData` is reset inside the per-student loop and inserted once after it, so only the last absent student's parents get `user_notifications` rows. `sendSimpleNotification()` is also called inside the per-parent loop with all parent ids, so each parent can get the push more than once.
-- **Dashboard leave list when not a class teacher.** `dashboard` narrows `student_leave_request` inside a `where(function ...)` built from the teacher's `class_teachers` rows. With no such rows the group adds no conditions, Laravel drops an empty nested `where`, and the list is every pending leave in the session year with `to_date >= today`, staff leaves included. Pass `class_section_id` or fix the query.
-- **Exam list and calendar are class-teacher only.** Subject-only teachers get an empty `get-exam-list` (without `class_section_id`) and an error from `academic-calendar-pdf`.
-- **Elective lookup is not class-scoped.** `createAssignment` reads `ClassSubject::where('subject_id', ...)->first()` without a class, so the Elective or Compulsory decision can come from another class's row.
-- **`update-lesson` uniqueness rule gets the wrong arguments.** It calls `new uniqueLessonInClass($request->class_section_id, $request->lesson_id)`, passing the lesson id as the subject id, so the duplicate-name check is not the intended one.
-- **Thumbnail replacement deletes the wrong file.** In `updateFile`, `updateLesson` and `updateTopic`, uploading a new `thumbnail` deletes the file at the stored `file_url`, not the old thumbnail. For a type 3 (video upload) file with only a new thumbnail, this deletes the video while `file_url` still points to it.
-- **Physical files are not removed on delete.** The `deleting` hooks of `File`, `Lesson`, `LessonTopic` and `Assignment` call `Storage::disk('public')->exists($file->file_url)`. For types 1 and 3 the accessor returns a full URL rather than a disk path, so the check fails. `Lesson` deletes topics with a query-level `delete()`, so the topics' own `files` rows stay behind.
-- **`createTopic` type 4.** The branch compares `$data['type'] == 'other_link'` instead of `'4'`, so a type 4 entry reaches `$file->save()` without `type` or `file_url`. Both are NOT NULL columns in `files`, so the request fails (code 103) after the topic itself has been saved.
-- **Subject-teacher parents in chat.** For subject-teacher sections, `getChatUserList` collects parent ids with `groupBy(['father_id', 'mother_id', 'guardian_id'])->keys()`, which returns only the top-level `father_id` keys. Mothers and guardians of those students are not listed, although `canChatWith` lets the teacher message them.
-- **`applySemesterFilter` fallback.** When the class uses semesters and no `semester_id` is sent, it falls back to `Semester::all()->first(fn ($s) => $s->current)`. That passes a `Semester` model (from any session year) to `where('semester_id', ...)` instead of an id, so treat lesson filtering by section without `semester_id` as unreliable.
 - **Null-teacher handling is uneven.** Endpoints that go through `currentTeacher()` refuse a Teacher-role user without a `teachers` row with 403. Older handlers (`classes`, `dashboard`, `get-exam-list`, `student-list`, `get-user-list`, `send-announcement`, `get-announcement`) read `Auth::user()->teacher` directly; reading a property of `null` becomes an `ErrorException`, so they answer code 103 `error_occurred`. `subjects` calls a method on `null` first, which throws an `Error` that its `catch (\Exception)` does not catch, so that request ends in an uncaught error.
 - **App points at a missing route.** `Api.examResults` in the teacher app is `teacher/exam-marks`, which has no route. The only method that uses it, `StudentRepository.fetchExamResults`, is never called.
 - **`apply-leave` is strict about keys.** Clients must send only `reason`, `leave_details` and `files`.

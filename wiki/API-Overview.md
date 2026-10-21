@@ -536,7 +536,7 @@ Several "read" endpoints are `POST` (`get-user-message`, `get-leave-list`, `get-
 
 ## Gotchas
 
-- **Send `Accept: application/json` when testing.** Without it (or with `Accept: */*`) a missing, invalid or expired token is answered by HTTP 302 to `/login` (`App\Http\Middleware\Authenticate::redirectTo`) instead of HTTP 401 `{"message":"Unauthenticated."}`, and role failures render an HTML 403 page. The shipped apps do not send this header (`Api.headers()` returns only `Authorization`), so their "log out on 401" branch fires for the session-check middleware (which always returns JSON 401) but not for an expired token.
+- **API errors are always JSON.** `bootstrap/app.php` renders exceptions as JSON for `api/*` (`shouldRenderJsonWhen`), and `Authenticate::redirectTo` never redirects an API request, so a missing, invalid or expired token gets HTTP 401 `{"message":"Unauthenticated."}` with or without `Accept: application/json` (the apps' "log out on 401" branch depends on it). Both apps now also send `Accept: application/json`.
 - **Check `error`, not the HTTP status.** Business errors come back with HTTP 200.
 - **`code: null` is normal** for validation errors because `config/constants.php` is missing.
 - **No current session year, no API.** Most endpoints, including the public `settings`, read the `session_year` setting and the matching `session_years` row; if it is missing they fail with `error_occurred` (code `103`), and student/parent logins are refused until students are promoted into the current session (see [Academic-Structure](Academic-Structure)).
