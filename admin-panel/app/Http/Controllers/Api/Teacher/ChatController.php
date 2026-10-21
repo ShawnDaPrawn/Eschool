@@ -31,12 +31,18 @@ class ChatController extends Controller
 {
     use TeacherAccess;
 
+    /**
+     * Page size when a request sends no limit; it used to load everything. The
+     * apps send 15, and the student chat's messages default to 100 as well.
+     */
+    private const DEFAULT_PAGE_SIZE = 100;
+
     public function getChatUserList(Request $request)
     {
         try {
 
-            $offset = $request->offset;
-            $limit = $request->limit;
+            $offset = max((int) $request->offset, 0);
+            $limit = max((int) ($request->limit ?? self::DEFAULT_PAGE_SIZE), 1);
             $user_type = $request->isParent;
             $search = $request->search;
 
@@ -603,8 +609,8 @@ class ChatController extends Controller
     {
         try {
 
-            $offset = $request->offset;
-            $limit = $request->limit;
+            $offset = max((int) $request->offset, 0);
+            $limit = max((int) ($request->limit ?? self::DEFAULT_PAGE_SIZE), 1);
 
             $messages = ChatMessage::with(['file' => function ($query) {
                 $query->select('message_id', 'file_name');

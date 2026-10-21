@@ -1,13 +1,48 @@
+# The image is built from this folder (see Dockerfile). Keep secrets, local
+# data and dev-only files out of it; composer installs vendor/ in the build.
+
+# Secrets and version control
 .git
+**/.git
 .env
 .env.*
+
+# Dependencies installed in the build, or not needed at runtime
 vendor
-node_modules
+**/node_modules
+
+# Local runtime data: logs, caches, sessions, uploads, the installer's marker.
+# storage/app/public/.htaccess is kept: the Dockerfile copies it.
 storage/logs
+storage/debugbar
 storage/framework/cache/data
 storage/framework/sessions
 storage/framework/views
+storage/framework/testing
 storage/installed
-.phpunit.result.cache
-tests
+storage/app/*
+!storage/app/public
+storage/app/public/*
+!storage/app/public/.htaccess
 public/storage
+public/hot
+bootstrap/cache/*.php
+update
+
+# Database dumps and leftover update packages
+**/*.sql
+**/*.sql.gz
+**/*.zip
+version_info.php
+
+# Tests and dev tooling
+tests
+phpunit.xml
+.phpunit.cache
+.phpunit.result.cache
+phpstan.neon
+phpstan-baseline.neon
+**/*.log
+.idea
+.vscode
+**/.DS_Store

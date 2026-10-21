@@ -24,7 +24,7 @@ class MailService
             // Log the email content for debugging
             Log::info('Failed email details', [
                 'view' => $view,
-                'data' => $data,
+                'data' => self::loggableData($data),
                 'error' => $e->getMessage()
             ]);
             
@@ -43,12 +43,28 @@ class MailService
             // Log the email content instead of sending
             Log::info('Email logged instead of sent', [
                 'view' => $view,
-                'data' => $data,
+                'data' => self::loggableData($data),
                 'timestamp' => now()
             ]);
         }
         
         return $sent;
+    }
+
+    /**
+     * Welcome emails carry the new login's password, both in its own fields and
+     * inside the rendered body, so neither is written to the log.
+     */
+    private static function loggableData($data): array
+    {
+        if (! is_array($data)) {
+            return [];
+        }
+        if (array_key_exists('body', $data)) {
+            $data['body'] = '[redacted]';
+        }
+
+        return ResponseService::loggable($data);
     }
 
     /**

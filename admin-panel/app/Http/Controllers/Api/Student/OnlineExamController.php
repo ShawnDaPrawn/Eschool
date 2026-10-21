@@ -23,6 +23,7 @@ use App\Services\ResponseService;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\ValidationException;
 use Throwable;
@@ -36,6 +37,11 @@ class OnlineExamController extends Controller
 
     /** Minutes allowed after an online exam's end (or the student's time) for the answers to arrive. */
     private const ONLINE_EXAM_GRACE_MINUTES = 5;
+
+    /** Wrong exam keys a student may enter for one exam within the decay time. */
+    private const EXAM_KEY_ATTEMPTS = 5;
+
+    private const EXAM_KEY_DECAY_SECONDS = 600;
 
     public function getOnlineExamList(Request $request)
     {
@@ -236,25 +242,39 @@ class OnlineExamController extends Controller
         try {
             $student = $request->user()->student;
 
-            // Only an exam of the student's own class/section, subjects and session, with the right key
+            // Only an exam of the student's own class/section, subjects and session
             $exam = is_numeric($request->exam_id) ? $this->findStudentOnlineExam($student, (int) $request->exam_id) : null;
-            if (! $exam || ! is_scalar($request->exam_key) || ! hash_equals((string) $exam->exam_key, (string) $request->exam_key)) {
+            if (! $exam) {
                 ResponseService::errorResponse('Invalid Exam Key', null, 103);
             }
 
-            // checks student exam status
-            $check_student_status = StudentOnlineExamStatus::where(['online_exam_id' => $exam->id, 'student_id' => $student->id])->count();
-            if ($check_student_status != 0) {
-                ResponseService::errorResponse('student_already_attempted_exam', null, 105);
-            }
-
-            // checks the exam started or not, and has not ended
+            // The time window comes before the key, so keys can't be guessed for an
+            // exam that isn't open (the app shows the dates anyway).
             $now = Carbon::now();
             if ($now->lt(Carbon::parse($exam->start_date))) {
                 ResponseService::errorResponse('exam_not_started_yet', null, 106);
             }
             if ($now->gt(Carbon::parse($exam->end_date))) {
                 ResponseService::errorResponse('This exam has ended.', null, null);
+            }
+
+            // Keys are short, so wrong guesses are limited per student and exam.
+            $attempts = 'exam-key:'.$exam->id.':'.$request->user()->id;
+            if (RateLimiter::tooManyAttempts($attempts, self::EXAM_KEY_ATTEMPTS)) {
+                ResponseService::errorResponse(trans('Too many wrong exam keys. Try again in :minutes minutes.', [
+                    'minutes' => (int) ceil(RateLimiter::availableIn($attempts) / 60),
+                ]), null, 429);
+            }
+            if (! is_scalar($request->exam_key) || ! hash_equals((string) $exam->exam_key, (string) $request->exam_key)) {
+                RateLimiter::hit($attempts, self::EXAM_KEY_DECAY_SECONDS);
+                ResponseService::errorResponse('Invalid Exam Key', null, 103);
+            }
+            RateLimiter::clear($attempts);
+
+            // checks student exam status
+            $check_student_status = StudentOnlineExamStatus::where(['online_exam_id' => $exam->id, 'student_id' => $student->id])->count();
+            if ($check_student_status != 0) {
+                ResponseService::errorResponse('student_already_attempted_exam', null, 105);
             }
 
             // add the exam status

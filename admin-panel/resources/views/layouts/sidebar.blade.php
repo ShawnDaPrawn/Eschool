@@ -1097,7 +1097,7 @@ $current_session_id_sidebar = getSettings('session_year')['session_year'];
             </li>
             @endif
 
-            @if (Auth::user()->hasRole('Super Admin'))
+            @if (Auth::user()->hasRole('Super Admin') && config('system_update.enabled'))
                 <li class="nav-item">
                     <a class="nav-link {{ request()->routeIs('system-update.*') ? 'active' : '' }}"
                         href="{{ route('system-update.index') }}">

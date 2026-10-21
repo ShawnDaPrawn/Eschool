@@ -350,7 +350,9 @@ class ApiController extends Controller
             //     ->get();
 
             // new code | 
+            // has_day_schedule comes from one subquery, not a query per event.
             $events = Event::where('session_year_id', $session_year->id)
+                ->withExists('multipleEvent')
                 ->orderBy('start_date', 'asc')
                 ->get();
 
@@ -365,7 +367,7 @@ class ApiController extends Controller
 
             // Add regular events with has_day_schedule flag
             foreach ($events as $event) {
-                $hasSchedule = MultipleEvent::where('event_id', $event->id)->exists();
+                $hasSchedule = $event->multiple_event_exists;
 
                 $allEvents->push([
                     'id' => $event->id,

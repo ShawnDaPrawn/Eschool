@@ -307,18 +307,8 @@ class ConfigController extends Controller
                     $setting->save();
                 }
 
-                // paystack_webhook_url
-                if (Settings::where('type', 'paystack_payment_url')->exists()) {
-                    $data = [
-                        'message' => trim($request->paystack_payment_url),
-                    ];
-                    Settings::where('type', 'paystack_payment_url')->update($data);
-                } else {
-                    $setting = new Settings;
-                    $setting->type = 'paystack_payment_url';
-                    $setting->message = trim($request->paystack_payment_url);
-                    $setting->save();
-                }
+                // paystack_payment_url is not saved: the secret key only ever goes
+                // to Paystack's own API (PaystackPayment::BASE_URL).
 
                 // paystack_currency_code
                 if (Settings::where('type', 'paystack_currency_code')->exists()) {
