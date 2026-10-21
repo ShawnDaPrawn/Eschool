@@ -72,14 +72,14 @@ Both apps list `change_app_package_name` (1.5.0) as a dev dependency. The docs p
 
 ## Firebase
 
-The apps call `Firebase.initializeApp()` with no options, so configuration comes from the native files. There is no `firebase_options.dart` in either app, and no Firebase file is committed:
+The apps call `Firebase.initializeApp()` with no options, so configuration comes from the native files. There is no `firebase_options.dart` in either app. Both apps are registered in Firebase project `navigateed-d8c06`, and the client config files are committed:
 
 | File | Expected at | Status in the repo |
 |---|---|---|
-| `google-services.json` | `e-school/android/app/`, `e-school-teacher/android/app/` | Not present. Required by the `com.google.gms.google-services` Gradle plugin (applied in `android/app/build.gradle.kts`), so Android builds fail until it is added. Not listed in any `.gitignore`. |
-| `GoogleService-Info.plist` | `e-school/ios/Runner/`, `e-school-teacher/ios/Runner/` | Not present, but already referenced as a resource of the `Runner` target in `ios/Runner.xcodeproj/project.pbxproj`. Not listed in any `.gitignore`. |
+| `google-services.json` | `e-school/android/app/`, `e-school-teacher/android/app/` | Present. Each file lists both Android clients; the Google services plugin selects the one matching `applicationId`. Required by the `com.google.gms.google-services` Gradle plugin (applied in `android/app/build.gradle.kts`). Not listed in any `.gitignore`. |
+| `GoogleService-Info.plist` | `e-school/ios/Runner/`, `e-school-teacher/ios/Runner/` | Present, and referenced as a resource of the `Runner` target in `ios/Runner.xcodeproj/project.pbxproj`. The student plist bundle id is `tech.tokensoft.navigateed`; the teacher plist bundle id is `tech.tokensoft.navigateed.teacher`. Not listed in any `.gitignore`. |
 
-Because neither file is git-ignored, take care not to commit a project's real files to a public fork.
+These are client configs (an API key restricted to the app id), not the admin panel's service-account private key. Do not commit that private key.
 
 Firebase products used: Cloud Messaging (`firebase_messaging`), Crashlytics (`firebase_crashlytics`, Gradle plugin `com.google.firebase.crashlytics` 3.0.2) and the Analytics SDK (declared, not called from Dart). Android uses Firebase BoM `31.0.2`. iOS `AppDelegate.swift` calls `FirebaseApp.configure()` if no app exists yet; `Info.plist` sets `FirebaseAppDelegateProxyEnabled` to `false` and enables the `fetch` and `remote-notification` background modes; `Runner.entitlements` contains `aps-environment` = `development`. APNs must be configured in Firebase for iOS push: https://firebase.flutter.dev/docs/messaging/apple-integration (linked from the docs page).
 

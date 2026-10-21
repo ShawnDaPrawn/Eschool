@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "972068206844",
+    "project_id": "navigateed-d8c06",
+    "storage_bucket": "navigateed-d8c06.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:972068206844:android:9ffc5dea59a4005c703f79",
+        "android_client_info": {
+          "package_name": "tech.tokensoft.navigateed"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyD71gi2HCsMV1c8NwqZNR49AMxn2GsqAeE"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:972068206844:android:1ea3e7efdc235ca6703f79",
+        "android_client_info": {
+          "package_name": "tech.tokensoft.navigateed.teacher"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyD71gi2HCsMV1c8NwqZNR49AMxn2GsqAeE"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

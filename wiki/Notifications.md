@@ -24,7 +24,7 @@ All three live only in the `settings` table; nothing is written to `.env` (the o
 | Setting (`settings.type`) | Notes |
 |---|---|
 | `sender_id` | Required by the form; not used by the HTTP v1 sender (the line that read it is commented out). |
-| `project_id` | Used in the send URL. |
+| `project_id` | Used in the send URL. For the apps in this repo, set it to `navigateed-d8c06`. The form also requires `sender_id`; the HTTP v1 sender ignores it, and the matching sender id is `972068206844`. |
 | `service_account_file` | Path of the uploaded service-account JSON on the local disk, normally `firebase/service_account.json` |
 
 The page is **System Settings > Notification Setting**: `GET fcm-settings` (`SettingController::fcm_index`, view `settings/fcm_key.blade.php`, permission `fcm-setting-create`) and `POST notification-setting` (`SettingController::notification_setting`, permission `setting-create`). The upload must be a JSON file of at most 64 KB containing `private_key` and `client_email`. It is stored with `storeAs('firebase', 'service_account.json', 'local')`, that is `storage/app/firebase/service_account.json`, which the web server does not serve. If an older install still has the file on the public disk, saving the form again moves it to the local disk and deletes the public copy. Never commit this file.

@@ -29,7 +29,7 @@ flutter run
 Before the first run:
 
 1. Set `baseUrl` in `lib/utils/constants.dart` to a running admin panel ([Mobile-App-Configuration](Mobile-App-Configuration#server-url)). Without a reachable server the app stays on the splash screen error.
-2. Add `android/app/google-services.json` and/or `ios/Runner/GoogleService-Info.plist`; Android builds fail without the JSON because the Google services Gradle plugin is applied, and the Xcode project already lists the plist as a resource.
+2. `android/app/google-services.json` and `ios/Runner/GoogleService-Info.plist` are already committed for Firebase project `navigateed-d8c06`. Android builds fail if the JSON is removed, because the Google services Gradle plugin is applied, and the Xcode project lists the plist as a resource.
 3. For iOS, `flutter pub get` must run before `pod install`: the `Podfile` reads `ios/Flutter/Generated.xcconfig` and raises an error if it is missing.
 4. For a local `http://` server: the student app's debug build allows cleartext (debug manifest and `src/debug/res/xml/network_security_config.xml`); the teacher app has no such override, so use HTTPS or add one locally. iOS requires HTTPS in both apps.
 
@@ -65,7 +65,7 @@ Since 3.5.0 both apps use the Gradle Kotlin DSL (`build.gradle.kts`, `settings.g
 | Setting | Student app | Teacher app |
 |---|---|---|
 | Plugins | `com.android.application`, `dev.flutter.flutter-gradle-plugin`, `com.google.gms.google-services`, `com.google.firebase.crashlytics` | same |
-| `namespace` / `applicationId` | `za.co.example.eschool` | `za.co.example.eschool.teacher` |
+| `namespace` / `applicationId` | `tech.tokensoft.navigateed` | `tech.tokensoft.navigateed.teacher` |
 | `compileSdk` | `flutter.compileSdkVersion` | `flutter.compileSdkVersion` |
 | `minSdk` / `targetSdk` | `flutter.minSdkVersion` / `flutter.targetSdkVersion` | same |
 | `versionCode` / `versionName` | `flutter.versionCode` / `flutter.versionName` (from `pubspec.yaml`) | same |
@@ -121,10 +121,10 @@ Manifest facts relevant to Play review: `READ_EXTERNAL_STORAGE` and `WRITE_EXTER
 | `ios/Podfile` | `platform :ios, '15.0'`, `use_frameworks!`, Flutter's `flutter_install_all_ios_pods` / `flutter_additional_ios_build_settings` | same |
 | `IPHONEOS_DEPLOYMENT_TARGET` (project level) | 13.0 | 13.0 |
 | `IPHONEOS_DEPLOYMENT_TARGET` (Runner target) | 15.0 | not set, so 13.0 is inherited |
-| `PRODUCT_BUNDLE_IDENTIFIER` | `za.co.example.eschool` | `za.co.example.eschool.teacher` |
+| `PRODUCT_BUNDLE_IDENTIFIER` | `tech.tokensoft.navigateed` | `tech.tokensoft.navigateed.teacher` |
 | `SWIFT_VERSION` | 5.0 | 5.0 |
 | `CODE_SIGN_ENTITLEMENTS` | `Runner/Runner.entitlements` (`aps-environment` = `development`) | same |
-| Resources | `Runner/GoogleService-Info.plist` referenced (file not committed) | same |
+| Resources | `Runner/GoogleService-Info.plist` committed for `navigateed-d8c06` | same, teacher bundle id |
 | `Info.plist` usage strings | camera, microphone, photo library | camera, photo library |
 | Background modes | `fetch`, `remote-notification` | same |
 

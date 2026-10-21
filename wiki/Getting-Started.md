@@ -80,11 +80,7 @@ Both apps work the same way. The steps below use `e-school`. For the teacher app
    ```dart
    const String baseUrl = 'https://my-server.com';
    ```
-2. **Add Firebase config.** Neither app ships with Firebase files. The Android build applies the `com.google.gms.google-services` and Crashlytics Gradle plugins, and `initializeApp()` calls `Firebase.initializeApp()`, so add these before the first build:
-   - `android/app/google-services.json`
-   - `ios/Runner/GoogleService-Info.plist`
-
-   Register the Android package names `tech.tokensoft.navigateed` and `tech.tokensoft.navigateed.teacher`, or your own names after renaming (see [Mobile App Configuration](Mobile-App-Configuration)). To send push notifications, the panel also needs the service-account JSON from the same Firebase project (see [Notifications](Notifications)).
+2. **Firebase config is already in the repo** for project `navigateed-d8c06`: `android/app/google-services.json` and `ios/Runner/GoogleService-Info.plist` in each app. The Android build applies the `com.google.gms.google-services` and Crashlytics Gradle plugins, and `initializeApp()` calls `Firebase.initializeApp()`. Package names are `tech.tokensoft.navigateed` and `tech.tokensoft.navigateed.teacher`. If you rename them, download new files for the new ids (see [Mobile App Configuration](Mobile-App-Configuration)). To send push notifications, the panel also needs the service-account JSON from the same Firebase project (see [Notifications](Notifications)).
 3. **Fetch packages and run:**
    ```bash
    cd e-school
