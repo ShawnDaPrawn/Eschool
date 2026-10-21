@@ -125,13 +125,13 @@ Columns: **SA** = granted to Super Admin, **T** = granted to Teacher. "Checked i
 |---|---|---|---|
 | `notification-list`, `notification-create`, `notification-delete` | Yes | | `NotificationController` (there is no edit action) |
 | `leave-setting-create` | Yes | | `LeaveMasterController` (allowed leaves and weekly holidays) |
-| `leave-create` | | Yes | Applying for leave (`LeaveController::index`, `store`) |
+| `leave-create` | | Yes | Applying for leave (`Leave\LeaveController::index`, `store`) |
 | `leave-edit` | | Yes | Menu only |
-| `leave-delete` | Yes | Yes | `LeaveController::destroy` |
+| `leave-delete` | Yes | Yes | `Leave\LeaveController::destroy` |
 | `leave-list` | Yes | Yes | Own leave list, leave report, dashboard widget |
-| `leave-approve` | Yes | | Approving staff and teacher leave requests (`LeaveController::leaveRequestIndex`, `leaveStatusUpdate`) |
-| `student-leave-approve` | Yes | Yes | Student leave requests (`LeaveController`, teacher API); also granted directly to class teachers |
-| `staff-leave-list` | | Yes | `LeaveController::staffLeaveIndex`, `staffLeaveList` |
+| `leave-approve` | Yes | | Approving staff and teacher leave requests (`Leave\RequestController::leaveRequestIndex`, `leaveStatusUpdate`) |
+| `student-leave-approve` | Yes | Yes | Student leave requests (`Leave\StudentLeaveController`, teacher API); also granted directly to class teachers |
+| `staff-leave-list` | | Yes | `Leave\StaffLeaveController::staffLeaveIndex`, `staffLeaveList` |
 | `slider-*`, `event-*`, `program-*`, `media-*`, `faq-*` (list/create/edit/delete) | Yes | | `SliderController`, `EventController`, `WebSettingController`, `MediaController` |
 | `content-create`, `content-edit` | Yes | | Website section content (`WebSettingController`) |
 | `content-list` | Yes | | Not checked |

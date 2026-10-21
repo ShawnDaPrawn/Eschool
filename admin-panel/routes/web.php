@@ -16,7 +16,7 @@ use App\Http\Controllers\FormFieldController;
 use App\Http\Controllers\HolidayController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\LanguageController;
-use App\Http\Controllers\LeaveController;
+use App\Http\Controllers\Leave;
 use App\Http\Controllers\LeaveMasterController;
 use App\Http\Controllers\LessonController;
 use App\Http\Controllers\LessonTopicController;
@@ -486,13 +486,13 @@ Route::group(['middleware' => ['Role', 'auth']], function () {
 
         Route::resource('leave-master', LeaveMasterController::class);
 
-        Route::get('leave-report', [LeaveController::class, 'leaveReportIndex'])->name('leave-report.index');
-        Route::get('leave-details', [LeaveController::class, 'leaveDetails'])->name('leave-details-list');
-        Route::get('leave-request', [LeaveController::class, 'leaveRequestIndex'])->name('leave-request.index');
-        Route::get('leave-request-show', [LeaveController::class, 'leaveRequestShow'])->name('leave-request.show');
-        Route::post('leave-request-update', [LeaveController::class, 'leaveStatusUpdate'])->name('leave-status.update');
-        Route::resource('leave', LeaveController::class)->except(['create', 'edit', 'update']);
-        Route::post('leave-add-admin', [LeaveController::class, 'adminLeaveStore'])->name('leave.store.admin');
+        Route::get('leave-report', [Leave\ReportController::class, 'leaveReportIndex'])->name('leave-report.index');
+        Route::get('leave-details', [Leave\ReportController::class, 'leaveDetails'])->name('leave-details-list');
+        Route::get('leave-request', [Leave\RequestController::class, 'leaveRequestIndex'])->name('leave-request.index');
+        Route::get('leave-request-show', [Leave\RequestController::class, 'leaveRequestShow'])->name('leave-request.show');
+        Route::post('leave-request-update', [Leave\RequestController::class, 'leaveStatusUpdate'])->name('leave-status.update');
+        Route::resource('leave', Leave\LeaveController::class)->except(['create', 'edit', 'update']);
+        Route::post('leave-add-admin', [Leave\RequestController::class, 'adminLeaveStore'])->name('leave.store.admin');
 
         Route::get('chat-settings', [SettingController::class, 'chat_setting_index'])->name('chat_setting.index');
         Route::post('chat-settings-update', [SettingController::class, 'chat_setting_update'])->name('chat_setting.update');
@@ -515,14 +515,14 @@ Route::group(['middleware' => ['Role', 'auth']], function () {
         Route::resource('semester', SemesterController::class)->except(['create', 'edit']);
 
         Route::get('class-subject-edit/{id}', [ClassSchoolController::class, 'classSubjectsEdit'])->name('class-subject-edit.index');
-        Route::get('student-leave-request', [LeaveController::class, 'studentLeaveRequestIndex'])->name('student-leave-request.index');
-        Route::get('student-leave-request-list', [LeaveController::class, 'studentLeaveRequestList'])->name('student-leave-request.show');
-        Route::post('student-leave-request-update', [LeaveController::class, 'studentLeaveStatusUpdate'])->name('student-leave-status.update');
-        Route::get('student-leave-class-sections', [LeaveController::class, 'getStudentLeaveClassSections'])->name('student-leave-class-sections');
+        Route::get('student-leave-request', [Leave\StudentLeaveController::class, 'studentLeaveRequestIndex'])->name('student-leave-request.index');
+        Route::get('student-leave-request-list', [Leave\StudentLeaveController::class, 'studentLeaveRequestList'])->name('student-leave-request.show');
+        Route::post('student-leave-request-update', [Leave\StudentLeaveController::class, 'studentLeaveStatusUpdate'])->name('student-leave-status.update');
+        Route::get('student-leave-class-sections', [Leave\StudentLeaveController::class, 'getStudentLeaveClassSections'])->name('student-leave-class-sections');
 
         // route and method is not used
-        Route::get('staff-leave', [LeaveController::class, 'staffLeaveIndex'])->name('staff-leave.index');
-        Route::get('staff-leave-list', [LeaveController::class, 'staffLeaveList'])->name('staff-leave.show');
+        Route::get('staff-leave', [Leave\StaffLeaveController::class, 'staffLeaveIndex'])->name('staff-leave.index');
+        Route::get('staff-leave-list', [Leave\StaffLeaveController::class, 'staffLeaveList'])->name('staff-leave.show');
     });
 });
 
