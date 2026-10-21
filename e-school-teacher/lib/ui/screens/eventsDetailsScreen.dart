@@ -71,7 +71,7 @@ class _EventDetailsScreenState extends State<EventDetailsScreen> {
                 maxLines: 2,
                 overflow: TextOverflow.ellipsis,
                 style: TextStyle(
-                  color: Theme.of(context).colorScheme.onPrimary,
+                  color: Theme.of(context).colorScheme.onInverseSurface,
                   fontSize: UiUtils.screenTitleFontSize,
                 ),
               ),

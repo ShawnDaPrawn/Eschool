@@ -225,7 +225,7 @@ class _AcademicCalendarScreenState extends State<AcademicCalendarScreen>
                 child: Text(
                   UiUtils.getTranslatedLabel(context, academicCalendarKey),
                   style: TextStyle(
-                    color: Theme.of(context).colorScheme.onPrimary,
+                    color: Theme.of(context).colorScheme.onInverseSurface,
                     fontSize: UiUtils.screenTitleFontSize,
                   ),
                 ),

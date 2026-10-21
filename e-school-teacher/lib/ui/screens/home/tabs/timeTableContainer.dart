@@ -48,7 +48,7 @@ class _TimeTableContainerState extends State<TimeTableContainer> {
             child: Text(
               UiUtils.getTranslatedLabel(context, scheduleKey),
               style: TextStyle(
-                color: Theme.of(context).colorScheme.onPrimary,
+                color: Theme.of(context).colorScheme.onInverseSurface,
                 fontSize: UiUtils.screenTitleFontSize,
               ),
             ),

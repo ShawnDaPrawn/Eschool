@@ -32,7 +32,7 @@ class HomeContainerAppBarContainer extends StatelessWidget {
                       width: 25,
                       height: 25,
                       colorFilter: ColorFilter.mode(
-                        Theme.of(context).colorScheme.onPrimary,
+                        Theme.of(context).colorScheme.onInverseSurface,
                         BlendMode.srcIn,
                       ),
                     ),
@@ -95,7 +95,7 @@ class HomeContainerAppBarContainer extends StatelessWidget {
                     border: Border.all(
                       color: Theme.of(
                         context,
-                      ).colorScheme.onPrimary.withValues(alpha: 0.1),
+                      ).colorScheme.onInverseSurface.withValues(alpha: 0.1),
                     ),
                     shape: BoxShape.circle,
                   ),
@@ -106,7 +106,7 @@ class HomeContainerAppBarContainer extends StatelessWidget {
                       border: Border.all(
                         color: Theme.of(
                           context,
-                        ).colorScheme.onPrimary.withValues(alpha: 0.1),
+                        ).colorScheme.onInverseSurface.withValues(alpha: 0.1),
                       ),
                       shape: BoxShape.circle,
                     ),
@@ -122,7 +122,7 @@ class HomeContainerAppBarContainer extends StatelessWidget {
                   decoration: BoxDecoration(
                     color: Theme.of(
                       context,
-                    ).colorScheme.onPrimary.withValues(alpha: 0.1),
+                    ).colorScheme.onInverseSurface.withValues(alpha: 0.1),
                     shape: BoxShape.circle,
                   ),
                   width: MediaQuery.sizeOf(context).width * 0.4,
@@ -145,7 +145,9 @@ class HomeContainerAppBarContainer extends StatelessWidget {
                           shape: BoxShape.circle,
                           border: Border.all(
                             width: 2,
-                            color: Theme.of(context).colorScheme.onPrimary,
+                            color: Theme.of(
+                              context,
+                            ).colorScheme.onInverseSurface,
                           ),
                         ),
                         width: boxConstraints.maxWidth * 0.175,
@@ -173,7 +175,9 @@ class HomeContainerAppBarContainer extends StatelessWidget {
                               style: TextStyle(
                                 fontSize: 18,
                                 fontWeight: FontWeight.w500,
-                                color: Theme.of(context).colorScheme.onPrimary,
+                                color: Theme.of(
+                                  context,
+                                ).colorScheme.onInverseSurface,
                               ),
                             ),
                           ],

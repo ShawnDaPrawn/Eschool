@@ -97,10 +97,12 @@ class _SearchStudentScreenState extends State<SearchStudentScreen> {
     return TextField(
       controller: searchQueryTextEditingController,
       autofocus: true,
-      cursorColor: Theme.of(context).colorScheme.onPrimary,
-      style: TextStyle(color: Theme.of(context).colorScheme.onPrimary),
+      cursorColor: Theme.of(context).colorScheme.onInverseSurface,
+      style: TextStyle(color: Theme.of(context).colorScheme.onInverseSurface),
       decoration: InputDecoration(
-        hintStyle: TextStyle(color: Theme.of(context).colorScheme.onPrimary),
+        hintStyle: TextStyle(
+          color: Theme.of(context).colorScheme.onInverseSurface,
+        ),
         border: InputBorder.none,
         hintText: UiUtils.getTranslatedLabel(context, searchStudentKey),
       ),
@@ -172,7 +174,7 @@ class _SearchStudentScreenState extends State<SearchStudentScreen> {
           actions: [
             IconButton(
               iconSize: 26,
-              color: Theme.of(context).colorScheme.onPrimary,
+              color: Theme.of(context).colorScheme.onInverseSurface,
               onPressed: () {
                 searchQueryTextEditingController.clear();
                 searchedStudents.clear();
@@ -192,7 +194,7 @@ class _SearchStudentScreenState extends State<SearchStudentScreen> {
               tooltip: MaterialLocalizations.of(context).backButtonTooltip,
             ),
           ),
-          backgroundColor: Theme.of(context).colorScheme.primary,
+          backgroundColor: Theme.of(context).colorScheme.inverseSurface,
         ),
         body: _buildStudents(),
       ),
