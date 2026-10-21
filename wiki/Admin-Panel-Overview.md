@@ -154,7 +154,7 @@ Route-level usage, in short (details in [Security-Model](Security-Model) and [AP
 | Folder | Contents |
 |---|---|
 | `app/Http/Controllers` | 46 controllers for the admin panel and public site, one per module (`StudentController`, `FeesTypeController`, `ExamController`, `SettingController`, `SystemUpdateController`, `WebController` for the public website, `WebhookController` for payment gateways, and so on). The base `Controller` also serves `GET /common/js/lang`, which returns `window.languageLabels = {...}` from `resources/lang/<code>.json` (falling back to `en.json`). See [Admin-Modules](Admin-Modules). |
-| `app/Http/Controllers/Api` | `ApiController` (shared endpoints: settings, holidays, sliders, session years, events, gallery, forgot/change password, logout), `StudentApiController`, `ParentApiController`, the `Teacher/` controllers (one per area, sharing the `TeacherAccess` trait). See [API-Overview](API-Overview). |
+| `app/Http/Controllers/Api` | `ApiController` (shared endpoints: settings, holidays, sliders, session years, events, gallery, forgot/change password, logout), the `Student/` controllers (one per area), `ParentApiController`, the `Teacher/` controllers (one per area, sharing the `TeacherAccess` trait). See [API-Overview](API-Overview). |
 | `app/Http/Controllers/Auth` | laravel/ui controllers using the framework's `AuthenticatesUsers` and related traits. `LoginController::authenticated()` signs out users with the `Parent` or `Student` role, because those roles may only use the apps. There is no register route. |
 | `app/Http/Middleware` | See the table above. |
 | `app/Http/Requests` | Form requests: `StoreLessonRequest`, `UpdateLessonRequest`, `StoreLessonTopicRequest`, `UpdateLessonTopicRequest`, `StoreSessionYearRequest`. Most other validation is inline with `$request->validate()` or `Validator::make()`. |
@@ -312,7 +312,7 @@ Things to keep in mind:
 | `enshrined/svg-sanitize` | 1.1.1 | SVG cleaning in `RejectDangerousUploads`. |
 | `google/apiclient` | v2.20.1 | OAuth access token for FCM (only the `FirebaseCloudMessaging` service is kept, via `extra.google/apiclient-services` and the `Google\Task\Composer::cleanup` pre-autoload script). |
 | `razorpay/razorpay`, `stripe/stripe-php`, `unicodeveloper/laravel-paystack` | 2.9.3, v18.2.0, `dev-l12-compatibility` | Payment gateway SDKs. The Paystack package comes from the `laravel-shift/laravel-paystack` fork (a `vcs` repository in `composer.json`) and reads its keys from `config/paystack.php`, which `SettingsConfigService` fills from the `paystack_*` settings. Flutterwave has no SDK; `FlutterwavePayment` calls its API directly. |
-| `guzzlehttp/guzzle` | 7.16.0 | HTTP client behind `Http::` (reCAPTCHA verification in `WebController`, Stripe payment intent status lookup in `StudentApiController`). |
+| `guzzlehttp/guzzle` | 7.16.0 | HTTP client behind `Http::` (reCAPTCHA verification in `WebController`, Stripe payment intent status lookup in `ParentApiController`). |
 | `awobaz/compoships` | 2.5.5 | Multi-column relationships; used by the `ExamClass` model. |
 | `doctrine/dbal` | 3.10.6 | Schema tooling; several old migrations alter columns with `->change()`. |
 | `dacoto/laravel-wizard-installer` | `dev-main` | The installer, loaded from the local path `packages/laravel-wizard-installer` (see [Installation-Wizard](Installation-Wizard)). It pulls in `dacoto/laravel-env-set` 2.2.0 for editing `.env`. |

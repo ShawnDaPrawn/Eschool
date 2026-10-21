@@ -2,7 +2,7 @@
 
 use App\Http\Controllers\Api\ApiController;
 use App\Http\Controllers\Api\ParentApiController;
-use App\Http\Controllers\Api\StudentApiController;
+use App\Http\Controllers\Api\Student;
 use App\Http\Controllers\Api\Teacher;
 // use Illuminate\Http\Request;
 // use Illuminate\Support\Facades\Password;
@@ -29,8 +29,8 @@ Route::group(['middleware' => 'auth:sanctum'], function () {
 Route::group(['prefix' => 'student'], function () {
 
     // Non Authenticated APIs
-    Route::post('login', [StudentApiController::class, 'login'])->middleware('throttle:login');
-    Route::post('forgot-password', [StudentApiController::class, 'forgotPassword'])->middleware('throttle:login');
+    Route::post('login', [Student\AuthController::class, 'login'])->middleware('throttle:login');
+    Route::post('forgot-password', [Student\AuthController::class, 'forgotPassword'])->middleware('throttle:login');
 
     // Authenticated APIs
     Route::group([
@@ -40,65 +40,65 @@ Route::group(['prefix' => 'student'], function () {
             'student.session.active',
         ],
     ], function () {
-        Route::get('dashboard', [StudentApiController::class, 'dashboard']);
-        Route::get('subjects', [StudentApiController::class, 'subjects']);
-        Route::get('class-subjects', [StudentApiController::class, 'classSubjects']);
-        Route::post('select-subjects', [StudentApiController::class, 'selectSubjects']);
-        Route::get('parent-details', [StudentApiController::class, 'getParentDetails']);
-        Route::get('timetable', [StudentApiController::class, 'getTimetable']);
-        Route::get('lessons', [StudentApiController::class, 'getLessons']);
-        Route::get('lesson-topics', [StudentApiController::class, 'getLessonTopics']);
-        Route::get('assignments', [StudentApiController::class, 'getAssignments']);
-        Route::post('submit-assignment', [StudentApiController::class, 'submitAssignment']);
-        Route::post('delete-assignment-submission', [StudentApiController::class, 'deleteAssignmentSubmission']);
-        Route::get('attendance', [StudentApiController::class, 'getAttendance']);
-        Route::get('attendance-report', [StudentApiController::class, 'attendanceReport']);
-        Route::get('announcements', [StudentApiController::class, 'getAnnouncements']);
-        Route::get('get-exam-list', [StudentApiController::class, 'getExamList']); // Exam list Route
-        Route::get('get-exam-details', [StudentApiController::class, 'getExamDetails']); // Exam Details Route
-        Route::get('exam-marks', [StudentApiController::class, 'getExamMarks']); // Exam Details Route
-        Route::get('offline-exam-report', [StudentApiController::class, 'offlineExamReport']); // Offline Exam Report Statistics
-        Route::get('online-exam-report', [StudentApiController::class, 'onlineExamReport']); // Online Exam Report Statistics
+        Route::get('dashboard', [Student\DashboardController::class, 'dashboard']);
+        Route::get('subjects', [Student\SubjectController::class, 'subjects']);
+        Route::get('class-subjects', [Student\SubjectController::class, 'classSubjects']);
+        Route::post('select-subjects', [Student\SubjectController::class, 'selectSubjects']);
+        Route::get('parent-details', [Student\ProfileController::class, 'getParentDetails']);
+        Route::get('timetable', [Student\TimetableController::class, 'getTimetable']);
+        Route::get('lessons', [Student\LessonController::class, 'getLessons']);
+        Route::get('lesson-topics', [Student\LessonController::class, 'getLessonTopics']);
+        Route::get('assignments', [Student\AssignmentController::class, 'getAssignments']);
+        Route::post('submit-assignment', [Student\AssignmentController::class, 'submitAssignment']);
+        Route::post('delete-assignment-submission', [Student\AssignmentController::class, 'deleteAssignmentSubmission']);
+        Route::get('attendance', [Student\AttendanceController::class, 'getAttendance']);
+        Route::get('attendance-report', [Student\AttendanceController::class, 'attendanceReport']);
+        Route::get('announcements', [Student\AnnouncementController::class, 'getAnnouncements']);
+        Route::get('get-exam-list', [Student\ExamController::class, 'getExamList']); // Exam list Route
+        Route::get('get-exam-details', [Student\ExamController::class, 'getExamDetails']); // Exam Details Route
+        Route::get('exam-marks', [Student\ExamController::class, 'getExamMarks']); // Exam Details Route
+        Route::get('offline-exam-report', [Student\ReportController::class, 'offlineExamReport']); // Offline Exam Report Statistics
+        Route::get('online-exam-report', [Student\ReportController::class, 'onlineExamReport']); // Online Exam Report Statistics
 
-        Route::get('id-card-pdf', [StudentApiController::class, 'getIdCardPdf']); // Student ID Card PDF Route
+        Route::get('id-card-pdf', [Student\ProfileController::class, 'getIdCardPdf']); // Student ID Card PDF Route
 
         // online exam routes
-        Route::get('get-online-exam-list', [StudentApiController::class, 'getOnlineExamList']); // Get Online Exam List Route
-        Route::get('get-online-exam-questions', [StudentApiController::class, 'getOnlineExamQuestions']); // Get Online Exam Questions Route
-        Route::post('submit-online-exam-answers', [StudentApiController::class, 'submitOnlineExamAnswers']); // Submit Online Exam Answers Details Route
-        Route::get('get-online-exam-result-list', [StudentApiController::class, 'getOnlineExamResultList']); // Online exam result list Route
-        Route::get('get-online-exam-result', [StudentApiController::class, 'getOnlineExamResult']); // Online exam result  Route
+        Route::get('get-online-exam-list', [Student\OnlineExamController::class, 'getOnlineExamList']); // Get Online Exam List Route
+        Route::get('get-online-exam-questions', [Student\OnlineExamController::class, 'getOnlineExamQuestions']); // Get Online Exam Questions Route
+        Route::post('submit-online-exam-answers', [Student\OnlineExamController::class, 'submitOnlineExamAnswers']); // Submit Online Exam Answers Details Route
+        Route::get('get-online-exam-result-list', [Student\OnlineExamController::class, 'getOnlineExamResultList']); // Online exam result list Route
+        Route::get('get-online-exam-result', [Student\OnlineExamController::class, 'getOnlineExamResult']); // Online exam result  Route
 
         // profile data
-        Route::get('get-profile-data', [StudentApiController::class, 'getProfileDetails']); // Get Profile Data
-        Route::get('get-notification', [StudentApiController::class, 'getNotifications']); // Get Notification Data
+        Route::get('get-profile-data', [Student\ProfileController::class, 'getProfileDetails']); // Get Profile Data
+        Route::get('get-notification', [Student\NotificationController::class, 'getNotifications']); // Get Notification Data
 
-        Route::get('get-user-list', [StudentApiController::class, 'getChatUserList']);
-        Route::post('send-message', [StudentApiController::class, 'sendMessage']);
-        Route::post('get-user-message', [StudentApiController::class, 'getUserChatMessage']);
-        Route::post('read-all-message', [StudentApiController::class, 'readAllMessages']);
+        Route::get('get-user-list', [Student\ChatController::class, 'getChatUserList']);
+        Route::post('send-message', [Student\ChatController::class, 'sendMessage']);
+        Route::post('get-user-message', [Student\ChatController::class, 'getUserChatMessage']);
+        Route::post('read-all-message', [Student\ChatController::class, 'readAllMessages']);
 
         // fees
-        Route::get('fees-details', [StudentApiController::class, 'getFeesDetails']); // Fees Details
-        Route::post('add-fees-transaction', [StudentApiController::class, 'storeFeesTransaction']); // Fees Details
-        Route::post('store-fees', [StudentApiController::class, 'storeFees']); // Store Fees
-        Route::get('fees-paid-list', [StudentApiController::class, 'feesPaidList']); // Fees Details
-        Route::get('fees-paid-receipt-pdf', [StudentApiController::class, 'feesPaidReceiptPDF']); // Fees Receipt
-        Route::get('fees-transactions-list', [StudentApiController::class, 'getFeesPaymentTransactions']); // Fees Payment Transaction Details
-        Route::post('fail-payment-transaction', [StudentApiController::class, 'failPaymentTransactionStatus']); // Make Payment Transaction Fail API
-        Route::get('fees-report', [StudentApiController::class, 'getFeesReport']); // Fees Report Statistics
-        Route::get('leave-report', [StudentApiController::class, 'leaveReport']); // Leave Report Statistics
-        Route::get('assignment-report', [StudentApiController::class, 'assignmentReport']); // Assignment Report Statistics
+        Route::get('fees-details', [Student\FeesController::class, 'getFeesDetails']); // Fees Details
+        Route::post('add-fees-transaction', [Student\FeesController::class, 'storeFeesTransaction']); // Fees Details
+        Route::post('store-fees', [Student\FeesController::class, 'storeFees']); // Store Fees
+        Route::get('fees-paid-list', [Student\FeesController::class, 'feesPaidList']); // Fees Details
+        Route::get('fees-paid-receipt-pdf', [Student\FeesController::class, 'feesPaidReceiptPDF']); // Fees Receipt
+        Route::get('fees-transactions-list', [Student\FeesController::class, 'getFeesPaymentTransactions']); // Fees Payment Transaction Details
+        Route::post('fail-payment-transaction', [Student\FeesController::class, 'failPaymentTransactionStatus']); // Make Payment Transaction Fail API
+        Route::get('fees-report', [Student\ReportController::class, 'getFeesReport']); // Fees Report Statistics
+        Route::get('leave-report', [Student\ReportController::class, 'leaveReport']); // Leave Report Statistics
+        Route::get('assignment-report', [Student\ReportController::class, 'assignmentReport']); // Assignment Report Statistics
 
         // Academic calendar
-        Route::get('academic-calendar-pdf', [StudentApiController::class, 'getAcademicCalendarPdf']);
+        Route::get('academic-calendar-pdf', [Student\CalendarController::class, 'getAcademicCalendarPdf']);
 
         // fee notification
-        Route::get('send-fee-notification', [StudentApiController::class, 'sendFeeNotification']);
+        Route::get('send-fee-notification', [Student\FeesController::class, 'sendFeeNotification']);
 
-        Route::post('apply-leave', [StudentApiController::class, 'applyLeave']);
-        Route::post('get-leave-list', [StudentApiController::class, 'getMyLeave']);
-        Route::post('delete-leave', [StudentApiController::class, 'deleteLeave']);
+        Route::post('apply-leave', [Student\LeaveController::class, 'applyLeave']);
+        Route::post('get-leave-list', [Student\LeaveController::class, 'getMyLeave']);
+        Route::post('delete-leave', [Student\LeaveController::class, 'deleteLeave']);
         Route::post('get-payment-status', [ParentApiController::class, 'getPaymentStatus']); // Get Payment Status
     });
 });

@@ -32,7 +32,7 @@ admin-panel/
 │   ├── Helpers/                Global helper functions (settings, notifications)
 │   ├── Http/
 │   │   ├── Controllers/        Admin panel and public website controllers
-│   │   ├── Controllers/Api/    REST API: ApiController, StudentApiController, ParentApiController, Teacher/ (one controller per area)
+│   │   ├── Controllers/Api/    REST API: ApiController, Student/ and Teacher/ (one controller per area), ParentApiController
 │   │   ├── Controllers/Auth/   Web login and password reset
 │   │   ├── Middleware/         Role checks, session-year guards, upload filter, security headers
 │   │   ├── Requests/  Resources/
