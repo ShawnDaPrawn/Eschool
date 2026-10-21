@@ -2,7 +2,8 @@ import 'package:flutter/material.dart';
 
 class CustomRadioContainer extends StatelessWidget {
   const CustomRadioContainer({
-    required this.isSelected, super.key,
+    required this.isSelected,
+    super.key,
     this.size = 25,
   });
   final double size;
@@ -22,10 +23,9 @@ class CustomRadioContainer extends StatelessWidget {
               border: Border.all(
                 color: isSelected
                     ? Theme.of(context).colorScheme.primary
-                    : Theme.of(context)
-                        .colorScheme
-                        .secondary
-                        .withValues(alpha: 0.5),
+                    : Theme.of(
+                        context,
+                      ).colorScheme.secondary.withValues(alpha: 0.5),
               ),
             ),
           ),

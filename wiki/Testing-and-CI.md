@@ -13,7 +13,7 @@ All checks live in one workflow, [.github/workflows/ci.yml](https://github.com/S
 ```mermaid
 flowchart LR
     T["push to main / pull request / weekly / manual"] --> A["admin-panel: PHP 8.3 + MariaDB 10.11"]
-    T --> B["apps: Flutter 3.44.9 matrix (e-school, e-school-teacher)"]
+    T --> B["apps: Flutter 3.44.9 matrix (e-school, e-school-teacher, packages/eschool_core)"]
     T --> C["docs: Node 22, npm run build"]
     T --> D["security-audit: composer audit + npm audit"]
 ```
@@ -42,10 +42,10 @@ Steps, in order:
 
 ### `apps`: Flutter app (matrix)
 
-A matrix over `app: [e-school, e-school-teacher]` with `fail-fast: false`, so a failure in one app does not cancel the other. Each leg runs in the app's folder:
+A matrix over `app: [e-school, e-school-teacher, packages/eschool_core]` with `fail-fast: false`, so a failure in one app does not cancel the others. The third leg is the shared package both apps depend on (see [Repository-Layout](Repository-Layout#packageseschool_core)). Each leg runs in its own folder:
 
 1. `subosito/flutter-action@v2` with `flutter-version: '3.44.9'`, `channel: stable`, `cache: true`.
-2. `flutter pub get --enforce-lockfile` – fails if `pubspec.lock` does not match `pubspec.yaml`. Both apps commit their `pubspec.lock` (commit [dd3df94](https://github.com/ShawnDaPrawn/Eschool/commit/dd3df94)), pinned to what was resolved and analysed with Flutter 3.44.9.
+2. `flutter pub get --enforce-lockfile` – fails if `pubspec.lock` does not match `pubspec.yaml`. The apps and the shared package commit their `pubspec.lock` (commit [dd3df94](https://github.com/ShawnDaPrawn/Eschool/commit/dd3df94)), pinned to what was resolved and analysed with Flutter 3.44.9.
 3. `flutter analyze --no-fatal-infos` – errors and warnings fail the job; style-only "info" lints are reported but do not.
 4. `flutter test` – the tests in each app's `test/` folder.
 
@@ -243,13 +243,13 @@ The tests that use `RunsAppServer` start `php -S` on a random free port on 127.0
 With Flutter 3.44.9 (stable) installed:
 
 ```bash
-cd e-school            # or e-school-teacher
+cd e-school            # or e-school-teacher, or packages/eschool_core
 flutter pub get --enforce-lockfile
 flutter analyze --no-fatal-infos
 flutter test
 ```
 
-`flutter test` must run from the app folder, because the translation test reads `assets/languages/` by relative path.
+`flutter test` must run from the app folder, because the translation test reads `assets/languages/` by relative path. The shared package has its own tests in `packages/eschool_core/test/` (models and helpers; no assets needed).
 
 ### Documentation build and audits
 

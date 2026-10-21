@@ -1,7 +1,7 @@
 import 'dart:io';
 
 import 'package:eschool_teacher/data/models/appConfiguration.dart';
-import 'package:eschool_teacher/data/models/chatSettings.dart';
+import 'package:eschool_core/eschool_core.dart';
 import 'package:eschool_teacher/data/repositories/systemInfoRepository.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 

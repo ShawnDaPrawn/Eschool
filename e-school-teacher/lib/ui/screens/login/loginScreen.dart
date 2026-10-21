@@ -8,7 +8,7 @@ import 'package:eschool_teacher/data/repositories/authRepository.dart';
 import 'package:eschool_teacher/data/repositories/settingsRepository.dart';
 import 'package:eschool_teacher/ui/screens/login/widgets/forgotPasswordRequestBottomsheet.dart';
 import 'package:eschool_teacher/ui/screens/login/widgets/termsAndConditionAndPrivacyPolicyContainer.dart';
-import 'package:eschool_teacher/ui/widgets/customCircularProgressIndicator.dart';
+import 'package:eschool_core/eschool_core.dart';
 import 'package:eschool_teacher/ui/widgets/customRoundedButton.dart';
 import 'package:eschool_teacher/ui/widgets/passwordHideShowButton.dart';
 import 'package:eschool_teacher/utils/assets.dart';

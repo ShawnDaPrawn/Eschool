@@ -1,5 +1,5 @@
 import 'package:eschool/app/routes.dart';
-import 'package:eschool/data/models/galleryAlbum.dart';
+import 'package:eschool_core/eschool_core.dart';
 import 'package:eschool/ui/widgets/galleryAlbumContainer.dart';
 import 'package:eschool/ui/widgets/galleryVideoContainer.dart';
 import 'package:eschool/utils/labelKeys.dart';

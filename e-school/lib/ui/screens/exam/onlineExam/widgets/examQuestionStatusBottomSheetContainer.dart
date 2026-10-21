@@ -1,6 +1,6 @@
 import 'package:eschool/ui/screens/exam/onlineExam/cubits/examOnlineCubit.dart';
 import 'package:eschool/ui/screens/exam/onlineExam/models/question.dart';
-import 'package:eschool/ui/widgets/customCircularProgressIndicator.dart';
+import 'package:eschool_core/eschool_core.dart';
 import 'package:eschool/ui/widgets/customRoundedButton.dart';
 import 'package:eschool/utils/labelKeys.dart';
 import 'package:eschool/utils/uiUtils.dart';

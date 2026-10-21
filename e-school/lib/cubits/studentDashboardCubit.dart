@@ -4,7 +4,7 @@ import 'package:eschool/data/models/coreSubject.dart';
 import 'package:eschool/data/models/electiveSubject.dart';
 import 'package:eschool/data/models/event.dart';
 import 'package:eschool/data/models/exam.dart';
-import 'package:eschool/data/models/gallery.dart';
+import 'package:eschool_core/eschool_core.dart';
 import 'package:eschool/data/models/sliderDetails.dart';
 import 'package:eschool/data/models/subject.dart';
 import 'package:eschool/data/models/timeTableSlot.dart';

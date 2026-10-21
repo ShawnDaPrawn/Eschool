@@ -4,7 +4,7 @@ import 'package:eschool_teacher/cubits/downloadIdCardCubit.dart';
 import 'package:eschool_teacher/data/models/studyMaterial.dart';
 import 'package:eschool_teacher/data/models/teacher.dart';
 import 'package:eschool_teacher/data/repositories/systemInfoRepository.dart';
-import 'package:eschool_teacher/ui/widgets/customCircularProgressIndicator.dart';
+import 'package:eschool_core/eschool_core.dart';
 import 'package:eschool_teacher/ui/widgets/customUserProfileImageWidget.dart';
 import 'package:eschool_teacher/ui/widgets/dynamicFieldListContainer.dart';
 import 'package:eschool_teacher/ui/widgets/screenTopBackgroundContainer.dart';

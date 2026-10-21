@@ -1,5 +1,4 @@
 class EventSchedule {
-
   EventSchedule({
     required this.id,
     required this.eventId,

@@ -1,8 +1,7 @@
 import 'dart:io';
 import 'package:eschool_teacher/cubits/appConfigurationCubit.dart';
-import 'package:eschool_teacher/data/models/chatSettings.dart';
+import 'package:eschool_core/eschool_core.dart';
 import 'package:eschool_teacher/ui/styles/colors.dart';
-import 'package:eschool_teacher/ui/widgets/customCircularProgressIndicator.dart';
 import 'package:eschool_teacher/ui/widgets/customRoundedButton.dart';
 import 'package:eschool_teacher/utils/assets.dart';
 import 'package:eschool_teacher/utils/errorMessageKeysAndCodes.dart';

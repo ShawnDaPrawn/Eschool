@@ -1,6 +1,6 @@
 import 'package:eschool/cubits/academicCalendarPdfDownloadCubit.dart';
 import 'package:eschool/cubits/appConfigurationCubit.dart';
-import 'package:eschool/ui/widgets/customCircularProgressIndicator.dart';
+import 'package:eschool_core/eschool_core.dart';
 import 'package:eschool/utils/assets.dart';
 import 'package:eschool/utils/uiUtils.dart';
 import 'package:flutter/material.dart';
