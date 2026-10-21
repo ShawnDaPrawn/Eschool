@@ -174,7 +174,7 @@ ALLOWED_DOCUMENT_TYPES=pdf,doc,docx,xls,xlsx,ppt,pptx
 
 ### Timezone Configuration
 ```env
-TIMEZONE=Asia/Kolkata
+TIMEZONE=Africa/Johannesburg
 ```
 
 ### Email Configuration

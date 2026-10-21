@@ -46,7 +46,7 @@ See [Roles and Permissions](Roles-and-Permissions) for the role and permission c
 |---|---|---|---|
 | `session_years` | Academic years. `name`, `start_date`, `end_date`, `default` (1 = current), `free_app_use_date`, `include_fee_installments`, `fee_due_date`, `fee_due_charges` (percent) | Parent of nearly every scoped table | SD. The `fee_due_date` column default is the date the migration ran |
 | `semesters` | Terms inside a session year. `name`, `start_date`, `end_date`, `session_year_id` | FK `session_year_id` → `session_years` (restrict) | SD. `start_month`/`end_month` were replaced by dates in `2025_10_27_095126` (converted using the current calendar year) |
-| `mediums` | Language of instruction (for example English, Hindi). `name` | Referenced by `classes.medium_id`, `subjects.medium_id` | SD |
+| `mediums` | Language of instruction (for example English, Afrikaans). `name` | Referenced by `classes.medium_id`, `subjects.medium_id` | SD |
 | `streams` | Optional class streams (for example Science, Commerce). `name` | Referenced by `classes.stream_id` | SD |
 | `shifts` | School shifts. `title`, `start_time`, `end_time`, `status` | Referenced by `classes.shift_id` | SD |
 | `classes` | A grade/class (model `ClassSchool`). `name`, `medium_id`, `stream_id`, `shift_id`, `educational_program_id` | FK `stream_id` → `streams` (cascade), `shift_id` → `shifts` (cascade), `educational_program_id` → `educational_programs` (restrict) | SD. `include_semesters` existed from 3.3.0 until `2026_03_20_154121` moved it to `class_session_configs` |
@@ -58,14 +58,14 @@ See [Roles and Permissions](Roles-and-Permissions) for the role and permission c
 | `elective_subject_groups` | A pick-N group of elective subjects for a class. `class_id`, `total_subjects`, `total_selectable_subjects`, `semester_id`, `session_year_id` | FK `semester_id` (restrict), `session_year_id` (restrict) | SD |
 | `class_teachers` | Class teacher assignment. `class_section_id`, `class_teacher_id` (a `teachers.id`), `session_year_id`, `semester_id` | FK `class_section_id` → `class_sections` (cascade), `class_teacher_id` → `teachers` (cascade), `semester_id` (cascade), `session_year_id` (restrict) | SD (dropped in 2023-07, re-added by `2026_02_05_110138`) |
 | `subject_teachers` | Who teaches a subject in a class section. `class_section_id`, `subject_id`, `teacher_id`, `session_year_id`, `semester_id` | FK `semester_id` (cascade), `session_year_id` (restrict) | SD |
-| `categories` | Student categories (for example the caste categories in the dummy data). `name`, `status` | Referenced by `students.category_id` | SD |
+| `categories` | Student categories (the sample data uses General, Boarding, Day scholar and Bursary). `name`, `status` | Referenced by `students.category_id` | SD |
 | `educational_programs` | Programmes shown on the public website and optionally linked to a class. `title`, `image` | Referenced by `classes.educational_program_id` | |
 
 ### Students, parents, teachers and staff
 
 | Table | Purpose and key columns | Relations | Notes |
 |---|---|---|---|
-| `students` | Student record. `user_id`, `class_section_id` (nullable since 3.3.0), `class_id` (set for online applications), `application_type` (`offline` default, `online` from the public registration form), `category_id`, `admission_no`, `roll_number`, `caste`, `religion`, `admission_date`, `blood_group`, `height`, `weight`, `is_new_admission`, `father_id`, `mother_id`, `guardian_id`, `dynamic_fields` (JSON text of custom form fields) | FK `class_id` → `classes` (restrict). `father_id`/`mother_id`/`guardian_id` → `parents.id` (no FK) | SD. `class_section_id` is the student's *latest* section; the per-year placement is in `student_sessions` |
+| `students` | Student record. `user_id`, `class_section_id` (nullable since 3.3.0), `class_id` (set for online applications), `application_type` (`offline` default, `online` from the public registration form), `category_id`, `admission_no`, `roll_number`, `caste` (shown in English as Community), `religion`, `admission_date`, `blood_group`, `height`, `weight`, `is_new_admission`, `father_id`, `mother_id`, `guardian_id`, `dynamic_fields` (JSON text of custom form fields) | FK `class_id` → `classes` (restrict). `father_id`/`mother_id`/`guardian_id` → `parents.id` (no FK) | SD. `class_section_id` is the student's *latest* section; the per-year placement is in `student_sessions` |
 | `parents` | Father, mother or guardian contact. `user_id` (nullable), `first_name`, `last_name`, `gender`, `email`, `mobile`, `occupation`, `image`, `dob`, `dynamic_fields` | `user_id` → `users` (no FK) | SD. One `parents` row can be father/mother/guardian of several students |
 | `teachers` | Teacher profile. `user_id`, `qualification`, `dynamic_fields` | `user_id` → `users` (no FK) | SD |
 | `staffs` | Marks a user as non-teaching staff. `user_id` | FK `user_id` → `users` (restrict) | Table has `deleted_at`, but the `Staff` model does not use `SoftDeletes` |

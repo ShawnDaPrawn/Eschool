@@ -12,7 +12,7 @@ sidebar_position: 3
 
 ## Add Student
 
-Admin can add new student in this system. Admin has to fill the student details which includes First name, Last name, Gender, Select a Profile image, assign a Class, Student's Category (General, OBC, ST, SC), Caste, Religion, Blood group, Height, Weight etc. In address section, you can add current and permanent addresses of the student which will be useful when we generate any certificates that requires student's address information.
+Admin can add new student in this system. Admin has to fill the student details which includes First name, Last name, Gender, Select a Profile image, assign a Class, Student's Category (General, Boarding, Day scholar, Bursary), Community, Religion, Blood group, Height, Weight etc. In address section, you can add current and permanent addresses of the student which will be useful when we generate any certificates that requires student's address information.
 
 ## Add Parent
 
@@ -40,7 +40,7 @@ The Student Details section shows detailed information of all students with all 
 
 ## Student Categories
 
-Admin can customize the categories of students in this section. The default categories are General, OBC, ST and SC. The admin can add more categories if needed.
+Admin can customize the categories of students in this section. The sample categories are General, Boarding, Day scholar and Bursary. The admin can add more categories if needed.
 
 ## Reset Password
 

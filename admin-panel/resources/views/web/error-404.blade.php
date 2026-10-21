@@ -50,7 +50,7 @@
               </div>
               <div class="row mt-5">
                 <div class="col-12 mt-xl-2">
-                  <p class="text-white font-weight-medium text-center">Copyright &copy; 2021 All rights reserved.</p>
+                  <p class="text-white font-weight-medium text-center">Copyright &copy; <?= date('Y') ?> Tokensoft, Pretoria. All rights reserved.</p>
                 </div>
               </div>
             </div>

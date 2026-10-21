@@ -67,7 +67,7 @@ class DemoSchool
             'fee_due_charges' => 5,
         ]);
         foreach ([
-            'currency_code' => 'INR', 'currency_symbol' => '₹', 'compulsory_fee_payment_mode' => '1',
+            'currency_code' => 'ZAR', 'currency_symbol' => 'R', 'compulsory_fee_payment_mode' => '1',
             'is_student_can_pay_fees' => '1', 'online_payment' => '1', 'school_address' => '1 Main Road',
             'mail_send_from' => 'office@example.com', 'about_us' => '<p>A friendly neighbourhood school.</p>',
         ] as $type => $message) {
@@ -119,7 +119,7 @@ class DemoSchool
             $user = $this->user($name, 'Parent', ['gender' => $gender]);
             $this->ids[$name] = $this->insert('parents', [
                 'user_id' => $user, 'first_name' => ucfirst($name), 'last_name' => 'Parent', 'gender' => $gender,
-                'email' => "$name@example.com", 'mobile' => '9876543210', 'occupation' => 'Engineer',
+                'email' => "$name@example.com", 'mobile' => '0123456789', 'occupation' => 'Engineer',
             ]);
         }
 
@@ -334,7 +334,7 @@ class DemoSchool
     {
         $user = User::forceCreate($extra + [
             'first_name' => ucfirst($name), 'last_name' => 'Demo', 'email' => "$name@example.com",
-            'password' => Hash::make('secret123'), 'gender' => 'Female', 'mobile' => '9876543210',
+            'password' => Hash::make('secret123'), 'gender' => 'Female', 'mobile' => '0123456789',
         ]);
         $user->assignRole($role);
 

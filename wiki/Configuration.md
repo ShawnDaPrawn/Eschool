@@ -105,7 +105,7 @@ Read by `config/*.php` but missing from `.env.example`. Most are Laravel default
 
 | Key | Read in | Default | Notes |
 |---|---|---|---|
-| **`TIMEZONE`** | `config/app.php` (`timezone`) | `UTC` | Fallback only: a valid `time_zone` setting replaces it on boot. The settings migration seeds `time_zone = Asia/Kolkata`, so a fresh install runs in that zone until General Settings is changed. |
+| **`TIMEZONE`** | `config/app.php` (`timezone`) | `UTC` | Fallback only: a valid `time_zone` setting replaces it on boot. The settings migration seeds `time_zone = Africa/Johannesburg` (Pretoria, South Africa Standard Time), so a fresh install runs in that zone until General Settings is changed. `.env.example` sets the same value. |
 | `ASSET_URL` | `config/app.php` | `null` | |
 | `BCRYPT_ROUNDS` | `config/hashing.php` | `10` | phpunit.xml sets 4. |
 | **`DB_PERSISTENT`** | `config/database.php` (`PDO::ATTR_PERSISTENT`) | `true` | Persistent MySQL connections are on unless set to `false`. The tests set it to `false` because shared persistent connections broke test transactions. |
@@ -225,7 +225,7 @@ The table is created by `2022_04_01_044234_create_settings_table.php` with three
 
 - Read: `getSettings()` returns `[type => message]` for all rows, `getSettings('x')` for one type, and `schoolSetting('x')` the single value. Nothing is cached, so each call is a query.
 - Written: each settings controller loops over its list of keys, updating the row if one with that `type` exists or inserting it otherwise. `Settings::updateOrCreate`, `updateOrInsert` and `firstOrCreate` are used in a few places.
-- Seeded: the migrations insert `school_name`, `school_email`, `school_phone`, `school_address`, `time_zone` (`Asia/Kolkata`), `date_formate` (`d-m-Y`), `time_formate` (`h:i A`), `theme_color` (`#4C5EA6`), `update_warning_modal` (`1`) and `secondary_color` (`#38A3A5`). `InstallationSeeder` adds `system_version` and the ID card defaults; `AddSuperAdminSeeder` inserts `session_year = 1`.
+- Seeded: the migrations insert `school_name`, `school_email` (`info@tokensoft.tech`), `school_phone` (`+27 12 345 6789`), `school_address` (`Pretoria, South Africa`), `time_zone` (`Africa/Johannesburg`), `currency_code` (`ZAR`), `currency_symbol` (`R`), `date_formate` (`d-m-Y`), `time_formate` (`h:i A`), `theme_color` (`#4C5EA6`), `update_warning_modal` (`1`) and `secondary_color` (`#38A3A5`). `InstallationSeeder` adds `system_version` and the ID card defaults; `AddSuperAdminSeeder` inserts `session_year = 1`. A later migration replaces those contact, address and timezone values only when a database still has the original India defaults.
 
 ### Keys by screen
 

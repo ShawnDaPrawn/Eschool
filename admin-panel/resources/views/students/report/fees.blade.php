@@ -1,3 +1,7 @@
+@php
+    $currencySettings = getSettings('currency_symbol');
+    $currencySymbol = ($currencySettings['currency_symbol'] ?? '') !== '' ? $currencySettings['currency_symbol'] : 'R';
+@endphp
 <div class="row">
     <div class="col-md-12">
 
@@ -31,7 +35,7 @@
                     @forelse($feesDetail as $fee)
                     <tr>
                         <td>{{ $loop->iteration }}</td>
-                        <td><strong>₹ {{ number_format($fee->total_amount, 2) }}</strong></td>
+                        <td><strong>{{ $currencySymbol }} {{ number_format($fee->total_amount, 2) }}</strong></td>
                         <td class="text-center">{{ $fee->date ? date('d-m-Y', strtotime($fee->date)) : '-' }}</td>
                         <td class="text-center">
                            
@@ -108,7 +112,7 @@
                             </div>
                             <div>
                                 <div class="fee-stat-label">{{ __('course_fees') }}</div>
-                                <div class="fee-stat-value">₹ {{ number_format($courseFees ?? 0, 2) }}</div>
+                                <div class="fee-stat-value">{{ $currencySymbol }} {{ number_format($courseFees ?? 0, 2) }}</div>
                             </div>
                         </div>
                     </div>
@@ -119,7 +123,7 @@
                             </div>
                             <div>
                                 <div class="fee-stat-label">{{ __('paid_amount') }}</div>
-                                <div class="fee-stat-value text-success">₹{{ number_format($paidAmount ?? 0, 2) }}</div>
+                                <div class="fee-stat-value text-success">{{ $currencySymbol }} {{ number_format($paidAmount ?? 0, 2) }}</div>
                             </div>
                         </div>
                     </div>
@@ -130,7 +134,7 @@
                             </div>
                             <div>
                                 <div class="fee-stat-label">{{ __('outstanding') }}</div>
-                                <div class="fee-stat-value text-danger">₹ {{ number_format($outstandingAmount ?? 0, 2) }}</div>
+                                <div class="fee-stat-value text-danger">{{ $currencySymbol }} {{ number_format($outstandingAmount ?? 0, 2) }}</div>
                             </div>
                         </div>
                     </div>
@@ -177,7 +181,7 @@
                     </div>
 
                     <div class="installment-meta text-right">
-                        <strong>₹ {{ number_format($ledgerRow->amount ?? 0, 2) }}</strong>
+                        <strong>{{ $currencySymbol }} {{ number_format($ledgerRow->amount ?? 0, 2) }}</strong>
                         @if($ledgerRow->is_paid && isset($ledgerRow->mode))
                         <div class="small mt-1" style="color: var(--theme-color);">
                             @if($ledgerRow->mode == 0)
@@ -212,7 +216,7 @@
                     </div>
                     <div class="installment-details">
                         <div class="d-flex align-items-center flex-wrap">
-                            <strong class="mr-2">₹ {{ number_format($payment->total_amount ?? 0, 2) }}</strong>
+                            <strong class="mr-2">{{ $currencySymbol }} {{ number_format($payment->total_amount ?? 0, 2) }}</strong>
                             @if($payment->is_fully_paid)
                             <span class="badge badge-success p-2">{{ __('paid') }}</span>
                             @else

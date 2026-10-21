@@ -15,7 +15,7 @@ class StripeService {
 
   static Future<void> payWithPaymentSheet({
     String amount = '0',
-    String currency = 'INR',
+    String currency = 'ZAR',
     String clientSecret = '',
     String paymentIntentId = '',
     String merchantDisplayName = '',
