@@ -30,6 +30,7 @@ class SubjectController extends Controller
         try {
             $children = $this->resolveChild($request);
             $subjects = $children->subjects();
+
             return ResponseService::successResponse('Student Subject Fetched Successfully.', $subjects, [], 200);
         } catch (Throwable $e) {
             return ResponseService::errorResponse('error_occurred', null, 103, $e);
@@ -48,6 +49,7 @@ class SubjectController extends Controller
         try {
             $children = $this->resolveChild($request);
             $subjects = $children->classSubjects();
+
             return ResponseService::successResponse('Class Subject Fetched Successfully.', $subjects, [], 200);
         } catch (Throwable $e) {
             return ResponseService::errorResponse('error_occurred', null, 103, $e);

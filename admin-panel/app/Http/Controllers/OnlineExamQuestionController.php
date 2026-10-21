@@ -12,11 +12,13 @@ use App\Models\OnlineExamQuestion;
 use App\Models\OnlineExamQuestionAnswer;
 use App\Models\OnlineExamQuestionChoice;
 use App\Models\OnlineExamQuestionOption;
+use App\Models\OnlineExamStudentAnswer;
 use App\Models\SessionYear;
 use App\Models\Subject;
 use App\Models\SubjectTeacher;
 use App\Services\ResponseService;
 use Illuminate\Http\Request;
+use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
@@ -29,7 +31,7 @@ class OnlineExamQuestionController extends Controller
     /**
      * Display a listing of the resource.
      *
-     * @return \Illuminate\Http\Response
+     * @return Response
      */
     public function index()
     {
@@ -42,9 +44,7 @@ class OnlineExamQuestionController extends Controller
         }
         $teacher_id = Auth::user()->teacher->id;
 
-        
-          $session_years = SessionYear::orderBy('id', 'ASC')->get();
-       
+        $session_years = SessionYear::orderBy('id', 'ASC')->get();
 
         // pre-select the default session year so the initial data matches the selected dropdown option
         $session_year_id = optional($session_years->firstWhere('default', 1) ?? $session_years->first())->id;
@@ -72,9 +72,8 @@ class OnlineExamQuestionController extends Controller
         }
         $teacher_id = Auth::user()->teacher->id;
 
-         $session_years = SessionYear::orderBy('id', 'ASC')->get();
-        
-        
+        $session_years = SessionYear::orderBy('id', 'ASC')->get();
+
         // pre-select the default session year so the initial data matches the selected dropdown option
         $session_year_id = optional($session_years->firstWhere('default', 1) ?? $session_years->first())->id;
 
@@ -157,6 +156,7 @@ class OnlineExamQuestionController extends Controller
             return ResponseService::successResponse(trans('data_store_successfully'));
         } catch (ValidationException $e) {
             $firstError = collect($e->errors())->flatten()->first();
+
             return ResponseService::errorResponse($firstError, null, 422);
         } catch (Throwable $e) {
             $message = trans('error_occurred');
@@ -164,6 +164,7 @@ class OnlineExamQuestionController extends Controller
             if (str_contains($exceptionMessage, 'file') && (str_contains($exceptionMessage, 'xlsx') || str_contains($exceptionMessage, 'csv') || str_contains($exceptionMessage, 'xls'))) {
                 $message = trans('please_select_valid_file');
             }
+
             return ResponseService::errorResponse($message, null, 103, $e);
         }
     }
@@ -409,7 +410,7 @@ class OnlineExamQuestionController extends Controller
         // Student answers link to choices via question_id column (references online_exam_question_choices.id)
         $choiceIds = OnlineExamQuestionChoice::whereIn('question_id', $questionIds)->pluck('id')->toArray();
         $choicesWithStudentAnswers = ! empty($choiceIds)
-            ? \App\Models\OnlineExamStudentAnswer::whereIn('question_id', $choiceIds)->pluck('question_id')->unique()->toArray()
+            ? OnlineExamStudentAnswer::whereIn('question_id', $choiceIds)->pluck('question_id')->unique()->toArray()
             : [];
         // Map back from choice IDs to question IDs
         $questionsWithStudentAnswers = ! empty($choicesWithStudentAnswers)
@@ -538,7 +539,7 @@ class OnlineExamQuestionController extends Controller
      * Show the form for editing the specified resource.
      *
      * @param  int  $id
-     * @return \Illuminate\Http\Response
+     * @return Response
      */
     public function edit($id)
     {
@@ -550,7 +551,7 @@ class OnlineExamQuestionController extends Controller
      * Update the specified resource in storage.
      *
      * @param  int  $id
-     * @return \Illuminate\Http\Response
+     * @return Response
      */
     public function update(Request $request, $id)
     {
@@ -762,7 +763,7 @@ class OnlineExamQuestionController extends Controller
      * Remove the specified resource from storage.
      *
      * @param  int  $id
-     * @return \Illuminate\Http\Response
+     * @return Response
      */
     public function destroy($id)
     {
@@ -783,7 +784,7 @@ class OnlineExamQuestionController extends Controller
                 'error' => false,
                 'message' => trans('data_delete_successfully'),
             ]);
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             report($e);
 
             return response()->json([

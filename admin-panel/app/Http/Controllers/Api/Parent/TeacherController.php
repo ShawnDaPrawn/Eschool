@@ -104,6 +104,7 @@ class TeacherController extends Controller
                     'subjects' => $subjects,
                 ];
             }
+
             return ResponseService::successResponse('Teacher Details Fetched Successfully', $data ?? [], [], 200);
         } catch (Throwable $e) {
             return ResponseService::errorResponse('error_occurred', null, 103, $e);

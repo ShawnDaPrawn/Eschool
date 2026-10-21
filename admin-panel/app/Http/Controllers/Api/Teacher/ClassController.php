@@ -21,6 +21,7 @@ use App\Models\SubjectTeacher;
 use App\Models\Teacher;
 use App\Services\ResponseService;
 use Carbon\Carbon;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
@@ -180,6 +181,7 @@ class ClassController extends Controller
                     }
                 }
             }
+
             return ResponseService::successResponse('Student Details Fetched Successfully', $data);
         } catch (\Exception $e) {
             return ResponseService::errorResponse('error_occurred', null, 103, $e);
@@ -259,7 +261,7 @@ class ClassController extends Controller
      * Returns [$classTeacherSections, $otherClassSections] for the given teacher
      * and session year, filtered to the current semester where applicable.
      *
-     * @return array{0: \Illuminate\Database\Eloquent\Collection, 1: \Illuminate\Database\Eloquent\Collection}
+     * @return array{0: Collection, 1: Collection}
      */
     private function getTeacherClassSections($teacher, $sessionYearId): array
     {

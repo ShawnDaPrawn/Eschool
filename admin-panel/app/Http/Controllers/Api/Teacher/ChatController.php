@@ -455,6 +455,7 @@ class ChatController extends Controller
                     ->splice($offset, $limit)
                     ->values();
             }
+
             return ResponseService::successResponse('Data Fetched Successfully', ['items' => $data, 'total_items' => $total_items, 'total_unread_users' => $totalunreadusers], [], 100);
         } catch (\Exception $e) {
             return ResponseService::errorResponse('error_occurred', null, 103, $e);
@@ -599,6 +600,7 @@ class ChatController extends Controller
 
             $userinfo = (object) $userinfo;
             sendSimpleNotification($user, $title, $body, $type, $image, $userinfo);
+
             return ResponseService::successResponse('message_sent_successfully', $data);
         } catch (\Exception $e) {
             return ResponseService::errorResponse('error_occurred', null, 103, $e);
@@ -637,6 +639,7 @@ class ChatController extends Controller
 
                 unset($message['file']);
             }
+
             return ResponseService::successResponse('Data Fetched Successfully', ['items' => $messages ?? [], 'total_items' => $total_items], [], 100);
         } catch (\Exception $e) {
             return ResponseService::errorResponse('error_occurred', null, 103, $e);
@@ -661,6 +664,7 @@ class ChatController extends Controller
                 $readMessage->last_read_message_id = $message_id;
                 $readMessage->save();
             }
+
             return ResponseService::successResponse('Message Read');
         } catch (\Exception $e) {
             return ResponseService::errorResponse('error_occurred', null, 103, $e);

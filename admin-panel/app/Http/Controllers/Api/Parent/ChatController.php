@@ -23,6 +23,7 @@ use App\Models\Teacher;
 use App\Services\ResponseService;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
@@ -385,6 +386,7 @@ class ChatController extends Controller
 
             $userinfo = (object) $userinfo;
             sendSimpleNotification($user, $title, $body, $type, $image, $userinfo);
+
             return ResponseService::successResponse('Message Sent Successfully', $data, [], 200);
         } catch (Throwable $e) {
             return ResponseService::errorResponse('error_occurred', null, 103, $e);
@@ -427,6 +429,7 @@ class ChatController extends Controller
                     $message['files'] = []; // or handle the case where 'file' is not set
                 }
             }
+
             return ResponseService::successResponse('Data Fetched Successfully', [
                 'items' => $messages ?? [],
                 'total_items' => $total_items,
@@ -454,6 +457,7 @@ class ChatController extends Controller
                 $readMessage->last_read_message_id = $message_id;
                 $readMessage->save();
             }
+
             return ResponseService::successResponse('Message Read');
         } catch (Throwable $e) {
             return ResponseService::errorResponse('error_occurred', null, 103, $e);
@@ -465,7 +469,7 @@ class ChatController extends Controller
      * of their children's current class sections (semester aware). Also returns the
      * intermediate data getChatUserList shows alongside each teacher.
      *
-     * @return array{teacher_ids: list<int>, childrens: \Illuminate\Support\Collection, semester_class_section_ids: array<int, int>, non_semester_class_section_ids: list<int>}
+     * @return array{teacher_ids: list<int>, childrens: Collection, semester_class_section_ids: array<int, int>, non_semester_class_section_ids: list<int>}
      */
     private function chatTeacherScope(Parents $parent, $session_year_id, ?Semester $currentSemester): array
     {

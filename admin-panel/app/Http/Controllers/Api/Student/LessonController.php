@@ -107,7 +107,7 @@ class LessonController extends Controller
 
             $currentSemester = Semester::where('session_year_id', $session_year_id)
                 ->get()
-                ->first(fn($s) => $s->current);
+                ->first(fn ($s) => $s->current);
 
             $isClassHaveSemester = ClassSessionConfig::classHasSemester(
                 $studentSession->class_section->class_id,

@@ -327,6 +327,7 @@ class LessonController extends Controller
                     }
                 }
             }
+
             return ResponseService::successResponse('data_store_successfully');
         } catch (Throwable $e) {
             return ResponseService::errorResponse('error_occurred', null, 103, $e);
@@ -350,6 +351,7 @@ class LessonController extends Controller
                 return ResponseService::errorResponse('no_permission_message', null, 403);
             }
             $lesson->delete();
+
             return ResponseService::successResponse('data_delete_successfully');
         } catch (Throwable $e) {
             return ResponseService::errorResponse('error_occurred', null, 103, $e);
@@ -453,6 +455,7 @@ class LessonController extends Controller
                     }
                 }
             }
+
             return ResponseService::successResponse('data_store_successfully');
         } catch (\Exception $e) {
             return ResponseService::errorResponse('error_occurred', null, 103, $e);
@@ -595,6 +598,7 @@ class LessonController extends Controller
                     $topic_file->save();
                 }
             }
+
             return ResponseService::successResponse('data_store_successfully');
         } catch (\Exception $e) {
             return ResponseService::errorResponse('error_occurred', null, 103, $e);
@@ -611,6 +615,7 @@ class LessonController extends Controller
                 return ResponseService::errorResponse('no_permission_message', null, 403);
             }
             $topic->delete();
+
             return ResponseService::successResponse('data_delete_successfully');
         } catch (\Exception $e) {
             return ResponseService::errorResponse('error_occurred', null, 103, $e);
@@ -709,8 +714,9 @@ class LessonController extends Controller
                 }
             }
             $file->save();
+
             return ResponseService::successResponse('data_store_successfully', $file);
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             return ResponseService::errorResponse('error_occurred', null, 103, $e);
         }
     }
@@ -730,6 +736,7 @@ class LessonController extends Controller
                 return ResponseService::errorResponse('no_permission_message', null, 403);
             }
             $file->delete();
+
             return ResponseService::successResponse('data_delete_successfully');
         } catch (\Exception $e) {
             return ResponseService::errorResponse('error_occurred', null, 103, $e);

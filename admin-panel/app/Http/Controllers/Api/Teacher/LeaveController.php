@@ -111,6 +111,7 @@ class LeaveController extends Controller
                     $file->save();
                 }
             }
+
             return ResponseService::successResponse('data_store_successfully', $leave ?? '');
         } catch (\Throwable $e) {
             return ResponseService::errorResponse('error_occurred', null, 103, $e);
@@ -156,6 +157,7 @@ class LeaveController extends Controller
                 'taken_leaves' => $sql->where('status', 1)->sum('days'),
                 'leave_details' => $sql,
             ];
+
             return ResponseService::successResponse('Data Fetched Successfully', $data);
         } catch (\Throwable $e) {
             return ResponseService::errorResponse('error_occurred', null, 103, $e);

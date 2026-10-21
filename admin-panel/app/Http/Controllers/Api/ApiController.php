@@ -4,19 +4,19 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Api;
 
-use Carbon\Carbon;
-use App\Models\Event;
-use App\Models\Slider;
-use App\Models\Holiday;
-use App\Models\Semester;
-use App\Models\LeaveMaster;
-use App\Models\SessionYear;
-use Illuminate\Http\Request;
-use App\Models\MultipleEvent;
-use App\Services\GalleryService;
 use App\Http\Controllers\Controller;
+use App\Models\Event;
+use App\Models\Holiday;
+use App\Models\LeaveMaster;
+use App\Models\MultipleEvent;
+use App\Models\Semester;
+use App\Models\SessionYear;
+use App\Models\Slider;
 use App\Models\User;
+use App\Services\GalleryService;
 use App\Services\ResponseService;
+use Carbon\Carbon;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Password;
@@ -49,6 +49,7 @@ class ApiController extends Controller
     {
         try {
             $data = Holiday::where('session_year_id', getSettings('session_year')['session_year'])->orderBy('date')->get();
+
             return ResponseService::successResponse('Holidays Fetched Successfully.', $data);
         } catch (Throwable $e) {
             return ResponseService::errorResponse('error_occurred', null, 103, $e);
@@ -62,6 +63,7 @@ class ApiController extends Controller
     {
         try {
             $data = Slider::whereIn('type', [1, 3])->get();
+
             return ResponseService::successResponse('Sliders Fetched Successfully.', $data);
         } catch (Throwable $e) {
             return ResponseService::errorResponse('error_occurred', null, 103, $e);
@@ -77,7 +79,6 @@ class ApiController extends Controller
             $session_year = getSettings('session_year');
             $session_year_id = $session_year['session_year'];
             $data = SessionYear::find($session_year_id);
-           
 
             return ResponseService::successResponse('Session Year Fetched Successfully.', $data);
         } catch (Throwable $e) {
@@ -94,7 +95,6 @@ class ApiController extends Controller
             $data = SessionYear::where('id', '!=', 0)
                 ->orderBy('id', 'DESC')
                 ->get();
-           
 
             return ResponseService::successResponse('Session Years Fetched Successfully.', $data);
         } catch (Throwable $e) {
@@ -113,8 +113,7 @@ class ApiController extends Controller
         }
         try {
             $settings = getSettings();
-             $sessionYearData = SessionYear::find($settings['session_year'] ?? "");
-            
+            $sessionYearData = SessionYear::find($settings['session_year'] ?? '');
 
             $currentSemester = Semester::get()->first(function ($semester) {
                 return $semester->current;
@@ -144,7 +143,7 @@ class ApiController extends Controller
                     Carbon::parse($next->start_date)->gt(Carbon::parse($current->end_date))
                 ) {
                     $breakStart = Carbon::parse($current->end_date)->addDay();
-                    $breakEnd   = Carbon::parse($next->start_date)->subDay();
+                    $breakEnd = Carbon::parse($next->start_date)->subDay();
 
                     // Only include breaks that are within the session year
                     if (
@@ -153,57 +152,57 @@ class ApiController extends Controller
                     ) {
                         $semester_breaks[] = [
                             'start' => $breakStart->toDateString(),
-                            'end'   => $breakEnd->toDateString(),
+                            'end' => $breakEnd->toDateString(),
                         ];
                     }
                 }
             }
 
-            if ($request->type == "app_settings") {
-                $session_year = $settings['session_year'] ?? "";
+            if ($request->type == 'app_settings') {
+                $session_year = $settings['session_year'] ?? '';
                 $holiday_days = LeaveMaster::where('session_year_id', $session_year)->pluck('holiday_days')->first();
-                $calender = !empty($session_year) ? $sessionYearData : null;
+                $calender = ! empty($session_year) ? $sessionYearData : null;
 
-                $data['app_link'] = $settings['app_link'] ?? "";
-                $data['ios_app_link'] = $settings['ios_app_link'] ?? "";
-                $data['app_version'] = $settings['app_version'] ?? "";
-                $data['ios_app_version'] = $settings['ios_app_version'] ?? "";
-                $data['force_app_update'] = $settings['force_app_update'] ?? "";
-                $data['app_maintenance'] = $settings['app_maintenance'] ?? "";
+                $data['app_link'] = $settings['app_link'] ?? '';
+                $data['ios_app_link'] = $settings['ios_app_link'] ?? '';
+                $data['app_version'] = $settings['app_version'] ?? '';
+                $data['ios_app_version'] = $settings['ios_app_version'] ?? '';
+                $data['force_app_update'] = $settings['force_app_update'] ?? '';
+                $data['app_maintenance'] = $settings['app_maintenance'] ?? '';
                 $data['session_year'] = $calender;
-                $data['school_name'] = $settings['school_name'] ?? "";
-                $data['school_tagline'] = $settings['school_tagline'] ?? "";
-                $data['teacher_app_link'] = $settings['teacher_app_link'] ?? "";
-                $data['teacher_ios_app_link'] = $settings['teacher_ios_app_link'] ?? "";
-                $data['teacher_app_version'] = $settings['teacher_app_version'] ?? "";
-                $data['teacher_ios_app_version'] = $settings['teacher_ios_app_version'] ?? "";
-                $data['teacher_force_app_update'] = $settings['teacher_force_app_update'] ?? "";
-                $data['teacher_app_maintenance'] = $settings['teacher_app_maintenance'] ?? "";
-                $data['online_payment'] = $settings['online_payment'] ?? "1";
+                $data['school_name'] = $settings['school_name'] ?? '';
+                $data['school_tagline'] = $settings['school_tagline'] ?? '';
+                $data['teacher_app_link'] = $settings['teacher_app_link'] ?? '';
+                $data['teacher_ios_app_link'] = $settings['teacher_ios_app_link'] ?? '';
+                $data['teacher_app_version'] = $settings['teacher_app_version'] ?? '';
+                $data['teacher_ios_app_version'] = $settings['teacher_ios_app_version'] ?? '';
+                $data['teacher_force_app_update'] = $settings['teacher_force_app_update'] ?? '';
+                $data['teacher_app_maintenance'] = $settings['teacher_app_maintenance'] ?? '';
+                $data['online_payment'] = $settings['online_payment'] ?? '1';
                 $data['is_demo'] = config('app.demo_mode');
 
-                $data['compulsory_fee_payment_mode'] =  $settings['compulsory_fee_payment_mode'] ?? "";
-                $data['is_student_can_pay_fees'] = $settings['is_student_can_pay_fees'] ?? "";
+                $data['compulsory_fee_payment_mode'] = $settings['compulsory_fee_payment_mode'] ?? '';
+                $data['is_student_can_pay_fees'] = $settings['is_student_can_pay_fees'] ?? '';
 
                 if (isset($settings['max_file_size_in_bytes'])) {
                     $max_file_size_in_bytes = $settings['max_file_size_in_bytes'] * 1000000;
                 }
 
-                $data['chat_settings'] = array(
+                $data['chat_settings'] = [
                     'max_files_or_images_in_one_message' => $settings['max_files_or_images_in_one_message'] ?? 10,
                     'max_file_size_in_bytes' => $max_file_size_in_bytes ?? 10000000,
                     'max_characters_in_text_message' => $settings['max_characters_in_text_message'] ?? 500,
-                    'automatically_messages_removed_days' =>  $settings['automatically_messages_removed_days'] ?? 30,
-                );
+                    'automatically_messages_removed_days' => $settings['automatically_messages_removed_days'] ?? 30,
+                ];
 
-                $data['holiday_days'] = $holiday_days ?? "";
+                $data['holiday_days'] = $holiday_days ?? '';
 
-                $data['payment_options']['currency_code'] = $settings['currency_code'] ?? "";
-                $data['payment_options']['currency_symbol'] = $settings['currency_symbol'] ?? "";
+                $data['payment_options']['currency_code'] = $settings['currency_code'] ?? '';
+                $data['payment_options']['currency_symbol'] = $settings['currency_symbol'] ?? '';
                 if (isset($settings['fees_due_date'])) {
                     $date = date('Y-m-d', strtotime($settings['fees_due_date']));
                     $data['payment_options']['fees_due_date'] = $date ?? '';
-                    $data['payment_options']['fees_due_charges'] = $settings['fees_due_charges'] ?? "";
+                    $data['payment_options']['fees_due_charges'] = $settings['fees_due_charges'] ?? '';
                 }
 
                 // Stripe is the only gateway. Razorpay, Paystack and Flutterwave were
@@ -211,26 +210,26 @@ class ApiController extends Controller
                 // out, so installed apps stop offering them. Public keys only: secret
                 // keys and webhook secrets never leave the server.
                 if (isset($settings['stripe_status']) && $settings['stripe_status']) {
-                    $data['payment_options']['stripe'] = array(
-                        'stripe_status' => $settings['stripe_status'] ?? "",
-                        'stripe_publishable_key' => $settings['stripe_publishable_key'] ?? "",
-                        'stripe_currency_code' => $settings['stripe_currency_code'] ?? $settings['currency_code']
-                    );
+                    $data['payment_options']['stripe'] = [
+                        'stripe_status' => $settings['stripe_status'] ?? '',
+                        'stripe_publishable_key' => $settings['stripe_publishable_key'] ?? '',
+                        'stripe_currency_code' => $settings['stripe_currency_code'] ?? $settings['currency_code'],
+                    ];
                 }
 
-                if (isset($settings['online_exam_terms_condition']) && !empty($settings['online_exam_terms_condition'])) {
+                if (isset($settings['online_exam_terms_condition']) && ! empty($settings['online_exam_terms_condition'])) {
                     $data['online_exam_terms_condition'] = htmlspecialchars_decode($settings['online_exam_terms_condition']);
                 } else {
-                    $data['online_exam_terms_condition'] = "";
+                    $data['online_exam_terms_condition'] = '';
                 }
 
                 $data['current_semester'] = $currentSemester ?? null;
                 $data['semester_breaks'] = $semester_breaks;
             } else {
-                $data = $settings[$request->type] ?? "";
+                $data = $settings[$request->type] ?? '';
             }
 
-            return ResponseService::successResponse("Data Fetched Successfully", $data);
+            return ResponseService::successResponse('Data Fetched Successfully', $data);
         } catch (\Exception $e) {
             return ResponseService::errorResponse('error_occurred', null, 103, $e);
         }
@@ -284,12 +283,12 @@ class ApiController extends Controller
         try {
             $user = $request->user();
 
-            if (!Hash::check($request->input('current_password'), $user->password)) {
+            if (! Hash::check($request->input('current_password'), $user->password)) {
                 return ResponseService::errorResponse('Current password is incorrect.');
             }
 
             $user->update([
-                'password' => Hash::make($request->input('new_password'))
+                'password' => Hash::make($request->input('new_password')),
             ]);
 
             // Sign out every other device: their tokens stop working.
@@ -316,7 +315,7 @@ class ApiController extends Controller
                 ->where('id', $session_year_id)
                 ->first();
 
-            if (!$session_year) {
+            if (! $session_year) {
                 throw new \Exception('Session year not found.');
             }
 
@@ -328,7 +327,7 @@ class ApiController extends Controller
             //     ->orderBy('date', 'asc')
             //     ->get();
 
-            // new code | 
+            // new code |
             // has_day_schedule comes from one subquery, not a query per event.
             $events = Event::where('session_year_id', $session_year->id)
                 ->withExists('multipleEvent')
@@ -385,37 +384,38 @@ class ApiController extends Controller
         }
     }
 
-
     public function getEventsDetails(Request $request)
     {
         $validator = Validator::make($request->all(), [
             'event_id' => 'required|integer',
         ]);
         if ($validator->fails()) {
-            $response = array(
+            $response = [
                 'error' => true,
                 'message' => $validator->errors()->first(),
                 'code' => 102,
-            );
+            ];
+
             return response()->json($response);
         }
         try {
 
             $data = MultipleEvent::where('event_id', $request->event_id)->get();
 
-            $response = array(
+            $response = [
                 'error' => false,
-                'message' => "Events Details Fetched Successfully",
+                'message' => 'Events Details Fetched Successfully',
                 'data' => $data,
                 'code' => 200,
-            );
-        } catch (\Throwable $e) {
-            $response = array(
+            ];
+        } catch (Throwable $e) {
+            $response = [
                 'error' => true,
                 'message' => trans('error_occurred'),
                 'code' => 103,
-            );
+            ];
         }
+
         return response()->json($response);
     }
 
@@ -435,7 +435,7 @@ class ApiController extends Controller
                     'last_page' => $albums->lastPage(),
                 ],
             ]);
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             return response()->json([
                 'error' => true,
                 'message' => trans('error_occurred'),
@@ -446,7 +446,7 @@ class ApiController extends Controller
 
     public function getGalleryImages(Request $request, GalleryService $galleryService)
     {
-        if (!$request->album_id) {
+        if (! $request->album_id) {
             return response()->json([
                 'error' => true,
                 'message' => 'album_id is required',
@@ -459,7 +459,7 @@ class ApiController extends Controller
                 'error' => false,
                 'data' => $galleryService->getAlbumImages((int) $request->album_id),
             ]);
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             return response()->json([
                 'error' => true,
                 'message' => trans('error_occurred'),
@@ -484,7 +484,7 @@ class ApiController extends Controller
                     'last_page' => $videos->lastPage(),
                 ],
             ]);
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             return response()->json([
                 'error' => true,
                 'message' => trans('error_occurred'),

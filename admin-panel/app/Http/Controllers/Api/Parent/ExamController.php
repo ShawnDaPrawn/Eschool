@@ -246,6 +246,7 @@ class ExamController extends Controller
                     }
                 }
             }
+
             return ResponseService::successResponse('Exam List Fetched Successfully', $exam_data ?? [], [], 200);
         } catch (Throwable $e) {
             return ResponseService::errorResponse('error_occurred', null, 103, $e);
@@ -302,6 +303,7 @@ class ExamController extends Controller
                 ->first();
 
             $data = isset($exam_data) ? $exam_data->timetable : [];
+
             return ResponseService::successResponse('Exam Details Fetched Successfully', $data, [], 200);
         } catch (Throwable $e) {
             return ResponseService::errorResponse('error_occurred', null, 103, $e);
@@ -421,6 +423,7 @@ class ExamController extends Controller
                         'exam_marks' => $exam_marks,
                     ];
                 }
+
                 return ResponseService::successResponse('Exam Result Fetched Successfully', $data, [], 200);
             } else {
                 return ResponseService::successResponse('Exam Result Fetched Successfully', [], [], 200);

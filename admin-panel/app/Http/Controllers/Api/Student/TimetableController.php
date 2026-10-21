@@ -47,7 +47,7 @@ class TimetableController extends Controller
 
             $currentSemester = Semester::where('session_year_id', $session_year_id)
                 ->get()
-                ->first(fn($s) => $s->current);
+                ->first(fn ($s) => $s->current);
 
             $isClassHaveSemester = ClassSessionConfig::classHasSemester($class_id, $session_year_id);
 
@@ -55,13 +55,14 @@ class TimetableController extends Controller
                 ->where('session_year_id', $session_year_id)
                 ->when(
                     $isClassHaveSemester && $currentSemester,
-                    fn($q) => $q->where('semester_id', $currentSemester->id)
+                    fn ($q) => $q->where('semester_id', $currentSemester->id)
                 )
-                ->with(['subject_teacher' => fn($q) => $q->whereIn('subject_id', $subject_ids)])
+                ->with(['subject_teacher' => fn ($q) => $q->whereIn('subject_id', $subject_ids)])
                 ->orderBy('day', 'asc')
                 ->orderBy('start_time', 'asc')
                 ->get()
-                ->filter(fn($timetable) => $timetable->subject_teacher !== null);
+                ->filter(fn ($timetable) => $timetable->subject_teacher !== null);
+
             return ResponseService::successResponse('Timetable Fetched Successfully', new TimetableCollection($timetables));
         } catch (Throwable $e) {
             return ResponseService::errorResponse('error_occurred', null, 103, $e);

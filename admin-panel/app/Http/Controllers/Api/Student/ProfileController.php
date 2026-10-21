@@ -35,8 +35,8 @@ class ProfileController extends Controller
             $compulsory_fees_mode = getSettings('compulsory_fee_payment_mode');
             $compulsory_fees_mode = $compulsory_fees_mode['compulsory_fee_payment_mode'] ?? 0;
 
-             $session_year = SessionYear::where('id', $session_year_id)->first();
-            
+            $session_year = SessionYear::where('id', $session_year_id)->first();
+
             $isInstallment = $session_year->include_fee_installments;
 
             $due_date = $session_year->fee_due_date;
@@ -63,12 +63,12 @@ class ProfileController extends Controller
             }
 
             // Set Class Section name
-            $classSectionName = $studentSession->class_section->class->name . ' ' . $studentSession->class_section->section->name;
+            $classSectionName = $studentSession->class_section->class->name.' '.$studentSession->class_section->section->name;
 
             // Set Class Section name
             $streamName = $studentSession->class_section->class->streams->name ?? null;
             if ($streamName !== null) {
-                $user->class_section_name = $classSectionName . ' ' . $streamName;
+                $user->class_section_name = $classSectionName.' '.$streamName;
             } else {
                 $user->class_section_name = $classSectionName;
             }

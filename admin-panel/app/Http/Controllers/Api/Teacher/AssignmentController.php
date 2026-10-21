@@ -302,6 +302,7 @@ class AssignmentController extends Controller
                     $file->save();
                 }
             }
+
             return ResponseService::successResponse('data_store_successfully');
         } catch (Throwable $e) {
             return ResponseService::errorResponse('error_occurred', null, 103, $e);
@@ -315,8 +316,9 @@ class AssignmentController extends Controller
         try {
             $assignment = Assignment::assignmentTeachers()->findOrFail($request->assignment_id);
             $assignment->delete();
+
             return ResponseService::successResponse('data_delete_successfully');
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             return ResponseService::errorResponse('error_occurred', null, 103, $e);
         }
     }
@@ -339,6 +341,7 @@ class AssignmentController extends Controller
                 'file'
             );
             $data = $sql->where('assignment_id', $request->assignment_id)->get();
+
             return ResponseService::successResponse('Assignment Fetched Successfully.', $data);
         } catch (Throwable $e) {
             return ResponseService::errorResponse('error_occurred', null, 103, $e);
@@ -416,8 +419,9 @@ class AssignmentController extends Controller
             }
 
             sendSimpleNotification($user, $title, $body, $type, $image, $userinfo);
+
             return ResponseService::successResponse('data_update_successfully');
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             return ResponseService::errorResponse('error_occurred', null, 103, $e);
         }
     }

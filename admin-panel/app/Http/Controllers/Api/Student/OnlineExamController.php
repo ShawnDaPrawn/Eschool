@@ -86,7 +86,7 @@ class OnlineExamController extends Controller
             if ($isClassHaveSemester) {
                 $currentSemester = Semester::where('session_year_id', $session_year_id)
                     ->get()
-                    ->first(fn($s) => $s->current);
+                    ->first(fn ($s) => $s->current);
             }
 
             // Reusable closure to apply semester filter on any query scope
@@ -178,12 +178,12 @@ class OnlineExamController extends Controller
                         $class_section_data = ClassSection::where('id', $data['model_id'])
                             ->with('class.medium', 'section')
                             ->first();
-                        $class_name = $class_section_data->class->name . ' - ' . $class_section_data->section->name . ' ' . $class_section_data->class->medium->name;
+                        $class_name = $class_section_data->class->name.' - '.$class_section_data->section->name.' '.$class_section_data->class->medium->name;
                     } else {
                         $class_data = ClassSchool::where('id', $data['model_id'])
                             ->with('medium')
                             ->first();
-                        $class_name = $class_data->name . ' ' . $class_data->medium->name;
+                        $class_name = $class_data->name.' '.$class_data->medium->name;
                     }
 
                     if ($total_marks == null) {
@@ -197,7 +197,7 @@ class OnlineExamController extends Controller
                             ],
                             'subject' => [
                                 'id' => $data['subject_id'],
-                                'name' => $data['subject']['name'] . ' - ' . $data['subject']['type'],
+                                'name' => $data['subject']['name'].' - '.$data['subject']['type'],
                             ],
                             'title' => $data['title'],
                             // exam_key is not sent: the student must get it from the teacher.
@@ -267,6 +267,7 @@ class OnlineExamController extends Controller
             }
             if (! is_scalar($request->exam_key) || ! hash_equals((string) $exam->exam_key, (string) $request->exam_key)) {
                 RateLimiter::hit($attempts, self::EXAM_KEY_DECAY_SECONDS);
+
                 return ResponseService::errorResponse('Invalid Exam Key', null, 103);
             }
             RateLimiter::clear($attempts);
@@ -321,6 +322,7 @@ class OnlineExamController extends Controller
                     'note' => $exam_questions->questions->note,
                 ];
             }
+
             return ResponseService::successResponse('Exam Questions Fetched Successfully', $questions_data ?? null, ['total_questions' => $total_questions, 'total_marks' => $total_marks]);
         } catch (Throwable $e) {
             return ResponseService::errorResponse('error_occurred', null, 103, $e);
@@ -401,6 +403,7 @@ class OnlineExamController extends Controller
             if ($error) {
                 return ResponseService::errorResponse($error, null, null);
             }
+
             return ResponseService::successResponse('data_store_successfully');
         } catch (Throwable $e) {
             return ResponseService::errorResponse('error_occurred', null, 103, $e);
@@ -472,7 +475,7 @@ class OnlineExamController extends Controller
                     'online_exam_id' => $data['id'],
                     'subject' => [
                         'id' => $data['subject_id'],
-                        'name' => $data['subject']['name'] . ' - ' . $data['subject']['type'],
+                        'name' => $data['subject']['name'].' - '.$data['subject']['type'],
                     ],
                     'title' => $data['title'],
                     'obtained_marks' => $total_obtained_marks_exam ?? '0',
@@ -489,6 +492,7 @@ class OnlineExamController extends Controller
                 'to' => $online_exam_db['to'],
                 'total' => $online_exam_db['total'],
             ];
+
             return ResponseService::successResponse('Exam List Fetched Successfully', $exam_list ?? '');
         } catch (Throwable $e) {
             return ResponseService::errorResponse('error_occurred', null, 103, $e);
@@ -558,6 +562,7 @@ class OnlineExamController extends Controller
                 'total_obtained_marks' => $total_obtained_marks ?? '0',
                 'total_marks' => $total_marks,
             ];
+
             return ResponseService::successResponse('Exam Result Fetched Successfully', $exam_result ?? '');
         } catch (Throwable $e) {
             return ResponseService::errorResponse('error_occurred', null, 103, $e);
@@ -586,7 +591,7 @@ class OnlineExamController extends Controller
         if (ClassSessionConfig::classHasSemester($class_id, $session_year_id)) {
             $currentSemester = Semester::where('session_year_id', $session_year_id)
                 ->get()
-                ->first(fn($s) => $s->current);
+                ->first(fn ($s) => $s->current);
         }
 
         return OnlineExam::where('id', $online_exam_id)

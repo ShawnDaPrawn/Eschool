@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers;
 
-use App\Services\ResponseService;
 use App\Models\EmailTemplate;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;

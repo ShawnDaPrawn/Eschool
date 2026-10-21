@@ -45,6 +45,7 @@ class AttendanceController extends Controller
             $year = $request->filled('year') ? (int) $request->year : null;
 
             $data = Attendance::monthlyReport($children->id, (int) $session_year_id, $month, $year);
+
             return ResponseService::successResponse('Data fetched successfully.', $data, [], 200);
         } catch (Throwable $e) {
             return ResponseService::errorResponse('error_occurred', null, 103, $e);
@@ -64,19 +65,19 @@ class AttendanceController extends Controller
         }
         try {
             $child = $this->resolveChild($request);
-        $studentSession = StudentSessions::where('student_id', $child->id)
-            ->where('session_year_id', (int) $request->session_year_id)
-            ->first();
+            $studentSession = StudentSessions::where('student_id', $child->id)
+                ->where('session_year_id', (int) $request->session_year_id)
+                ->first();
 
-        if (!$studentSession) {
-            return ResponseService::errorResponse(
-                'No session found for this student in the current session year',
-                null,
-                113
-            );
-        }
+            if (! $studentSession) {
+                return ResponseService::errorResponse(
+                    'No session found for this student in the current session year',
+                    null,
+                    113
+                );
+            }
             $data = Attendance::monthlyReport($child->id, (int) $request->session_year_id, (int) $request->month);
-            
+
             return ResponseService::successResponse('Data fetched successfully.', $data);
         } catch (Throwable $e) {
             return ResponseService::errorResponse('error_occurred', null, 103, $e);

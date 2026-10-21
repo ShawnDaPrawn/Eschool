@@ -4,23 +4,21 @@ declare(strict_types=1);
 
 namespace App\Imports;
 
-use Throwable;
-use App\Models\User;
-use App\Models\Parents;
 use App\Models\Category;
-use App\Models\Students;
-use App\Models\SessionYear;
 use App\Models\ClassSection;
 use App\Models\EmailTemplate;
+use App\Models\Parents;
+use App\Models\SessionYear;
+use App\Models\Students;
 use App\Models\StudentSessions;
+use App\Models\User;
 use App\Services\EmailTemplateService;
 use App\Services\MailService;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
-use Spatie\Permission\Models\Role;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Validator;
 use Maatwebsite\Excel\Concerns\SkipsEmptyRows;
 use Maatwebsite\Excel\Concerns\ToCollection;
 use Maatwebsite\Excel\Concerns\WithHeadingRow;
@@ -29,8 +27,10 @@ use Maatwebsite\Excel\Concerns\WithValidation;
 use Maatwebsite\Excel\DefaultValueBinder;
 use PhpOffice\PhpSpreadsheet\Reader\IReadFilter;
 use PhpOffice\PhpSpreadsheet\Shared\Date;
+use Spatie\Permission\Models\Role;
 
-class StudentsImport extends DefaultValueBinder implements SkipsEmptyRows, ToCollection, WithHeadingRow, WithReadFilter, WithValidation {
+class StudentsImport extends DefaultValueBinder implements SkipsEmptyRows, ToCollection, WithHeadingRow, WithReadFilter, WithValidation
+{
     /** The file's heading row, in the order the downloadable sample file lists it. */
     public const COLUMNS = [
         'first_name', 'last_name', 'gender', 'dob', 'mobile', 'category', 'caste', 'religion',
@@ -46,26 +46,31 @@ class StudentsImport extends DefaultValueBinder implements SkipsEmptyRows, ToCol
     public $class_section_id;
 
     private ?string $registrationTemplate = null;
+
     /**
-     * @param array $row
-     *
-     * @return \Illuminate\Database\Eloquent\Model|null
+     * @param  array  $row
+     * @return Model|null
      */
-    public function  __construct($class_section_id) {
+    public function __construct($class_section_id)
+    {
         $this->class_section_id = $class_section_id;
     }
 
     /** Refuses a file over RowLimit::MAX_ROWS rows while it is read. */
-    public function readFilter(): IReadFilter {
+    public function readFilter(): IReadFilter
+    {
         return new RowLimit;
     }
 
-    public function prepareForValidation(array $row, int $index): array {
+    public function prepareForValidation(array $row, int $index): array
+    {
         foreach ($row as $k => $v) {
             if (is_string($v)) {
                 $row[$k] = trim($v, "'");
             }
-            if ($v === '') $row[$k] = null;
+            if ($v === '') {
+                $row[$k] = null;
+            }
         }
 
         if ($row['parents'] == 'no') {
@@ -75,7 +80,8 @@ class StudentsImport extends DefaultValueBinder implements SkipsEmptyRows, ToCol
         return $row;
     }
 
-    public function rules(): array {
+    public function rules(): array
+    {
         return [
             '*.first_name' => 'required',
             '*.last_name' => 'required',
@@ -115,8 +121,8 @@ class StudentsImport extends DefaultValueBinder implements SkipsEmptyRows, ToCol
         ];
     }
 
-
-    public function collection(Collection $rows) {
+    public function collection(Collection $rows)
+    {
         $rows = $rows->map(function ($row) {
             $date_columns = ['dob', 'father_dob', 'mother_dob', 'guardian_dob', 'admission_date'];
 
@@ -134,13 +140,13 @@ class StudentsImport extends DefaultValueBinder implements SkipsEmptyRows, ToCol
         });
 
         try {
-            $father_user = new User();
-            $mother_user = new User();
+            $father_user = new User;
+            $mother_user = new User;
             $parentRole = Role::where('name', 'Parent')->first();
             $studentRole = Role::where('name', 'Student')->first();
             DB::beginTransaction();
             foreach ($rows as $row) {
-                
+
                 $father_parent_id = null;
                 $mother_parent_id = null;
                 $guardian_parent_id = null;
@@ -154,12 +160,12 @@ class StudentsImport extends DefaultValueBinder implements SkipsEmptyRows, ToCol
                 $mother_plaintext_password = null;
                 $guardian_plaintext_password = null;
 
-                if ($row['parents'] == "yes") {
+                if ($row['parents'] == 'yes') {
                     if (isset($row['father_email']) && isset($row['mother_email'])) {
                         $father_email_check = Parents::select('email')->where('email', $row['father_email'])->count();
                         $father_plaintext_password = str_replace('-', '', date('d-m-Y', strtotime($row['father_dob'])));
                         if ($father_email_check == 0) {
-                            $father_user = new User();
+                            $father_user = new User;
                             $father_user->first_name = $row['father_first_name'];
                             $father_user->last_name = $row['father_last_name'];
                             $father_user->email = $row['father_email'];
@@ -171,7 +177,7 @@ class StudentsImport extends DefaultValueBinder implements SkipsEmptyRows, ToCol
                             $father_user->save();
                             $father_user->assignRole($parentRole);
 
-                            $father_parent = new Parents();
+                            $father_parent = new Parents;
                             $father_parent->user_id = $father_user->id;
                             $father_parent->first_name = $row['father_first_name'];
                             $father_parent->last_name = $row['father_last_name'];
@@ -181,7 +187,7 @@ class StudentsImport extends DefaultValueBinder implements SkipsEmptyRows, ToCol
                             $father_parent->email = $row['father_email'];
                             $father_parent->dob = date('Y-m-d', strtotime($row['father_dob']));
                             $father_parent->gender = 'Male';
-                            $father_parent->dynamic_fields = "";
+                            $father_parent->dynamic_fields = '';
                             $father_parent->save();
                             $father_parent_id = $father_parent->id;
                             $father_email = $row['father_email'];
@@ -195,7 +201,7 @@ class StudentsImport extends DefaultValueBinder implements SkipsEmptyRows, ToCol
                         $mother_email_check = Parents::select('email')->where('email', $row['mother_email'])->count();
                         $mother_plaintext_password = str_replace('-', '', date('d-m-Y', strtotime($row['mother_dob'])));
                         if ($mother_email_check == 0) {
-                            $mother_user = new User();
+                            $mother_user = new User;
                             $mother_user->image = 'dummy_logo.jpg';
                             $mother_user->password = Hash::make($mother_plaintext_password);
                             $mother_user->first_name = $row['mother_first_name'];
@@ -207,7 +213,7 @@ class StudentsImport extends DefaultValueBinder implements SkipsEmptyRows, ToCol
                             $mother_user->save();
                             $mother_user->assignRole($parentRole);
 
-                            $mother_parent = new Parents();
+                            $mother_parent = new Parents;
                             $mother_parent->user_id = $mother_user->id;
                             $mother_parent->first_name = $row['mother_first_name'];
                             $mother_parent->last_name = $row['mother_last_name'];
@@ -217,7 +223,7 @@ class StudentsImport extends DefaultValueBinder implements SkipsEmptyRows, ToCol
                             $mother_parent->email = $row['mother_email'];
                             $mother_parent->dob = date('Y-m-d', strtotime($row['mother_dob']));
                             $mother_parent->gender = 'Female';
-                            $mother_parent->dynamic_fields = "";
+                            $mother_parent->dynamic_fields = '';
                             $mother_parent->save();
                             $mother_parent_id = $mother_parent->id;
                             $mother_email = $row['mother_email'];
@@ -231,12 +237,12 @@ class StudentsImport extends DefaultValueBinder implements SkipsEmptyRows, ToCol
                     }
                 }
 
-                if ($row['guardian'] == "yes") {
+                if ($row['guardian'] == 'yes') {
                     if (isset($row['guardian_email'])) {
                         $guardian_email_check = Parents::select('email')->where('email', $row['guardian_email'])->count();
                         $guardian_plaintext_password = str_replace('-', '', date('d-m-Y', strtotime($row['guardian_dob'])));
                         if ($guardian_email_check == 0) {
-                            $guardian_user = new User();
+                            $guardian_user = new User;
                             $guardian_user->image = 'dummy_logo.jpg';
                             $guardian_user->password = Hash::make($guardian_plaintext_password);
                             $guardian_user->first_name = $row['guardian_first_name'];
@@ -248,7 +254,7 @@ class StudentsImport extends DefaultValueBinder implements SkipsEmptyRows, ToCol
                             $guardian_user->save();
                             $guardian_user->assignRole($parentRole);
 
-                            $guardian_parent = new Parents();
+                            $guardian_parent = new Parents;
                             $guardian_parent->user_id = $guardian_user->id;
                             $guardian_parent->first_name = $row['guardian_first_name'];
                             $guardian_parent->last_name = $row['guardian_last_name'];
@@ -258,7 +264,7 @@ class StudentsImport extends DefaultValueBinder implements SkipsEmptyRows, ToCol
                             $guardian_parent->email = $row['guardian_email'];
                             $guardian_parent->dob = date('Y-m-d', strtotime($row['guardian_dob']));
                             $guardian_parent->gender = $row['guardian_gender'];
-                            $guardian_parent->dynamic_fields = "";
+                            $guardian_parent->dynamic_fields = '';
                             $guardian_parent->save();
                             $guardian_parent_id = $guardian_parent->id;
                             $guardian_email = $row['guardian_email'];
@@ -283,12 +289,12 @@ class StudentsImport extends DefaultValueBinder implements SkipsEmptyRows, ToCol
                 if ($category_id) {
                     $category_id = $category_id;
                 } else {
-                    $category = new Category();
+                    $category = new Category;
                     $category->name = $row['category'];
                     $category->save();
                     $category_id = $category->id;
                 }
-                $user = new User();
+                $user = new User;
                 $child_plaintext_password = str_replace('-', '', date('d-m-Y', strtotime($row['dob'])));
                 $user->password = Hash::make($child_plaintext_password);
                 $user->first_name = $row['first_name'];
@@ -303,15 +309,15 @@ class StudentsImport extends DefaultValueBinder implements SkipsEmptyRows, ToCol
                 $user->save();
                 $user->assignRole($studentRole);
 
-                $student = new Students();
+                $student = new Students;
                 $student->user_id = $user->id;
                 $student->class_section_id = $this->class_section_id;
                 $student->category_id = $category_id;
                 $student->admission_no = $admission_no;
-                if (isset($row['caste']) && !empty($row['caste'])) {
+                if (isset($row['caste']) && ! empty($row['caste'])) {
                     $student->caste = $row['caste'];
                 }
-                if (isset($row['religion']) && !empty($row['religion'])) {
+                if (isset($row['religion']) && ! empty($row['religion'])) {
                     $student->religion = $row['religion'];
                 }
                 $student->admission_date = date('Y-m-d', strtotime($row['admission_date']));
@@ -321,7 +327,7 @@ class StudentsImport extends DefaultValueBinder implements SkipsEmptyRows, ToCol
                 $student->father_id = $father_parent_id;
                 $student->mother_id = $mother_parent_id;
                 $student->guardian_id = $guardian_parent_id;
-                $student->dynamic_fields = "";
+                $student->dynamic_fields = '';
                 $student->save();
 
                 // This year's enrolment, as Add Student creates. Without it the student can't
@@ -332,87 +338,86 @@ class StudentsImport extends DefaultValueBinder implements SkipsEmptyRows, ToCol
                     'class_section_id' => $this->class_section_id,
                 ]);
 
-                //Send User Credentials via Email
+                // Send User Credentials via Email
                 $settings = getSettings();
                 $school_name = $settings['school_name'];
                 $school_email = $settings['school_email'];
                 $school_contact = $settings['school_phone'];
 
-
                 if ($this->class_section_id) {
                     $classSection = ClassSection::where('id', $this->class_section_id)->with('class.medium', 'class.streams', 'section')->first();
-                    $class_section_name = $classSection->class->name . ' - ' . $classSection->section->name . ' ' . $classSection->class->medium->name . '  ' . ($classSection->class->streams->name ?? '');
+                    $class_section_name = $classSection->class->name.' - '.$classSection->section->name.' '.$classSection->class->medium->name.'  '.($classSection->class->streams->name ?? '');
                 }
 
-                if (!empty($father_email)) {
+                if (! empty($father_email)) {
                     $father_data = [
-                        'subject' => 'Welcome to ' . $school_name,
+                        'subject' => 'Welcome to '.$school_name,
                         'email' => $father_email,
-                        'name' => ' ' . $father_name,
-                        'username' => ' ' . $father_email,
-                        'password' => ' ' . $father_plaintext_password,
-                        'child_name' => ' ' . $row['first_name'] . ' ' . $row['last_name'],
-                        'child_grnumber' => ' ' . $admission_no,
-                        'child_password' => ' ' . $child_plaintext_password,
+                        'name' => ' '.$father_name,
+                        'username' => ' '.$father_email,
+                        'password' => ' '.$father_plaintext_password,
+                        'child_name' => ' '.$row['first_name'].' '.$row['last_name'],
+                        'child_grnumber' => ' '.$admission_no,
+                        'child_password' => ' '.$child_plaintext_password,
                         'type' => 'application_accept',
                         'class_name' => $class_section_name,
                         'school_name' => $school_name,
                         'school_email' => $school_email,
-                        'school_contact' => $school_contact
+                        'school_contact' => $school_contact,
                     ];
                     $this->sendWelcomeEmail($father_data);
-                } elseif ($row['parents'] == "yes") {
+                } elseif ($row['parents'] == 'yes') {
                     Log::warning('Skipped father email - no address available', [
                         'admission_no' => $admission_no,
-                        'child_name' => $row['first_name'] . ' ' . $row['last_name'],
+                        'child_name' => $row['first_name'].' '.$row['last_name'],
                     ]);
                 }
 
-                if (!empty($mother_email)) {
+                if (! empty($mother_email)) {
                     $mother_data = [
-                        'subject' => 'Welcome to ' . $school_name,
+                        'subject' => 'Welcome to '.$school_name,
                         'email' => $mother_email,
-                        'name' => ' ' . $mother_name,
-                        'username' => ' ' . $mother_email,
-                        'password' => ' ' . $mother_plaintext_password,
-                        'child_name' => ' ' . $row['first_name'] . ' ' . $row['last_name'],
-                        'child_grnumber' => ' ' . $admission_no,
-                        'child_password' => ' ' . $child_plaintext_password,
+                        'name' => ' '.$mother_name,
+                        'username' => ' '.$mother_email,
+                        'password' => ' '.$mother_plaintext_password,
+                        'child_name' => ' '.$row['first_name'].' '.$row['last_name'],
+                        'child_grnumber' => ' '.$admission_no,
+                        'child_password' => ' '.$child_plaintext_password,
                         'type' => 'application_accept',
                         'class_name' => $class_section_name,
                         'school_name' => $school_name,
                         'school_email' => $school_email,
-                        'school_contact' => $school_contact
+                        'school_contact' => $school_contact,
                     ];
                     $this->sendWelcomeEmail($mother_data);
-                } elseif ($row['parents'] == "yes") {
+                } elseif ($row['parents'] == 'yes') {
                     Log::warning('Skipped mother email - no address available', [
                         'admission_no' => $admission_no,
-                        'child_name' => $row['first_name'] . ' ' . $row['last_name'],
+                        'child_name' => $row['first_name'].' '.$row['last_name'],
                     ]);
                 }
 
-                if (!empty($guardian_email)) {
+                if (! empty($guardian_email)) {
                     $guardian_data = [
-                        'subject' => 'Welcome to ' . $school_name,
+                        'subject' => 'Welcome to '.$school_name,
                         'email' => $guardian_email,
-                        'name' => ' ' . $guardian_name,
-                        'username' => ' ' . $guardian_email,
-                        'password' => ' ' . $guardian_plaintext_password,
-                        'child_name' => ' ' . $row['first_name'] . ' ' . $row['last_name'],
-                        'child_grnumber' => ' ' . $admission_no,
-                        'child_password' => ' ' . $child_plaintext_password,
+                        'name' => ' '.$guardian_name,
+                        'username' => ' '.$guardian_email,
+                        'password' => ' '.$guardian_plaintext_password,
+                        'child_name' => ' '.$row['first_name'].' '.$row['last_name'],
+                        'child_grnumber' => ' '.$admission_no,
+                        'child_password' => ' '.$child_plaintext_password,
                         'type' => 'application_accept',
                         'class_name' => $class_section_name,
                         'school_name' => $school_name,
                         'school_email' => $school_email,
-                        'school_contact' => $school_contact
+                        'school_contact' => $school_contact,
                     ];
                     $this->sendWelcomeEmail($guardian_data);
-                } elseif ($row['guardian'] == "yes") {
+                } elseif ($row['guardian'] == 'yes') {
                     Log::warning('Skipped guardian email - no address available', [
                         'admission_no' => $admission_no,
-                        'child_name' => $row['first_name'] . ' ' . $row['last_name'],
+                        'child_name' => $row['first_name'].' '.$row['last_name'],
                     ]);
                 }
             }
@@ -441,12 +446,13 @@ class StudentsImport extends DefaultValueBinder implements SkipsEmptyRows, ToCol
     /**
      * Generate a unique admission number recursively
      *
-     * @param string $sessionYear
-     * @param int $counter
+     * @param  string  $sessionYear
+     * @param  int  $counter
      * @return string
      */
-    private function generateUniqueAdmissionNumber($sessionYear, $counter = 1) {
-        $admissionNumber = $sessionYear . $counter;
+    private function generateUniqueAdmissionNumber($sessionYear, $counter = 1)
+    {
+        $admissionNumber = $sessionYear.$counter;
 
         $exists = Students::withTrashed()
             ->where('admission_no', $admissionNumber)

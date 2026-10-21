@@ -35,7 +35,7 @@ class LeaveController extends Controller
         $unknown = array_diff(array_keys($request->all()), $allowed);
 
         if (! empty($unknown)) {
-            return ResponseService::validationError('Unknown fields: ' . implode(', ', $unknown));
+            return ResponseService::validationError('Unknown fields: '.implode(', ', $unknown));
         }
 
         $validator = Validator::make($request->all(), [
@@ -108,7 +108,7 @@ class LeaveController extends Controller
             $image = null;
             $userinfo = null;
 
-            $body = $request->user()->first_name . ' ' . $request->user()->last_name . ' ' . 'has added a new leave request';
+            $body = $request->user()->first_name.' '.$request->user()->last_name.' '.'has added a new leave request';
 
             $notification = new Notification;
             $notification->send_to = 3;

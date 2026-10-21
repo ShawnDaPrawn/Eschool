@@ -9,8 +9,8 @@ use App\Http\Controllers\Controller;
 use App\Models\Announcement;
 use App\Models\ClassSessionConfig;
 use App\Models\Semester;
-use App\Models\StudentSessions;
 use App\Models\Students;
+use App\Models\StudentSessions;
 use App\Models\SubjectTeacher;
 use App\Services\ResponseService;
 use Illuminate\Http\Request;
@@ -110,6 +110,7 @@ class AnnouncementController extends Controller
             }
 
             $data = $data->orderBy('id', 'desc')->paginate();
+
             return ResponseService::successResponse('Announcement Details Fetched Successfully', $data, [], 200);
         } catch (Throwable $e) {
             return ResponseService::errorResponse('error_occurred', null, 103, $e);

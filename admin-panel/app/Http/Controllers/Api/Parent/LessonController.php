@@ -72,6 +72,7 @@ class LessonController extends Controller
             }
 
             $data = $data->get();
+
             return ResponseService::successResponse('Lessons Fetched Successfully', $data, [], 200);
         } catch (Throwable $e) {
             return ResponseService::errorResponse('error_occurred', null, 103, $e);
@@ -136,6 +137,7 @@ class LessonController extends Controller
             }
 
             $data = $data->get();
+
             return ResponseService::successResponse('Topics Fetched Successfully', $data, [], 200);
         } catch (Throwable $e) {
             return ResponseService::errorResponse('error_occurred', null, 103, $e);

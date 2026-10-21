@@ -43,8 +43,8 @@ class AuthController extends Controller
         $compulsory_fees_mode = getSettings('compulsory_fee_payment_mode');
         $compulsory_fees_mode = $compulsory_fees_mode['compulsory_fee_payment_mode'] ?? 0;
 
-         $session_year = SessionYear::where('id', $session_year_id)->first();
-        
+        $session_year = SessionYear::where('id', $session_year_id)->first();
+
         $isInstallment = $session_year->include_fee_installments;
 
         $due_date = $session_year->fee_due_date;
@@ -317,6 +317,7 @@ class AuthController extends Controller
             }
 
             $data = array_merge($user, ['dynamic_fields' => $parentDynamicFields ?? null, 'children' => $children->toArray()]);
+
             return ResponseService::successResponse('User logged-in!', $data, ['token' => $token], 100);
         } else {
             return ResponseService::errorResponse('Invalid Login Credentials', null, 101);

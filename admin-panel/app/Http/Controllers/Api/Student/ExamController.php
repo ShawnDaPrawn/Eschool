@@ -68,7 +68,7 @@ class ExamController extends Controller
             } else {
                 $semester_id = Semester::where('session_year_id', $session_year_id)
                     ->get()
-                    ->first(fn($s) => $s->current);
+                    ->first(fn ($s) => $s->current);
             }
 
             $isClassHaveSemester = ClassSessionConfig::classHasSemester($class_id, $session_year_id);
@@ -288,6 +288,7 @@ class ExamController extends Controller
                     ],
                 ];
             }
+
             return ResponseService::successResponse('Exam Details Fetched Successfully', $exam_data ?? []);
         } catch (Throwable $e) {
             return ResponseService::errorResponse('error_occurred', null, 103, $e);
@@ -335,7 +336,7 @@ class ExamController extends Controller
                 } elseif (! $request->filled('session_year_id')) {
                     $currentSemester = Semester::where('session_year_id', $session_year_id)
                         ->get()
-                        ->first(fn($semester) => $semester->current);
+                        ->first(fn ($semester) => $semester->current);
 
                     if (! $currentSemester) {
                         return ResponseService::validationError('Current semester not found for current session year.');
@@ -347,11 +348,11 @@ class ExamController extends Controller
 
             // Build exam result query
             $exam_result_query = ExamResult::with([
-                'student' => fn($q) => $q->select('id', 'user_id', 'roll_number')
+                'student' => fn ($q) => $q->select('id', 'user_id', 'roll_number')
                     ->with('user:id,first_name,last_name'),
                 'exam',
                 'session_year',
-                'exam.marks' => fn($q) => $q->where('student_id', $student->id),
+                'exam.marks' => fn ($q) => $q->where('student_id', $student->id),
             ])
                 ->where('student_id', $student->id)
                 ->where('session_year_id', $session_year_id);
@@ -382,11 +383,11 @@ class ExamController extends Controller
                         'result_id' => $exam_result_data->id,
                         'exam_id' => $exam_result_data->exam_id,
                         'exam_name' => $exam_result_data->exam->name,
-                        'class_name' => $class_data->class_section->class->name . '-'
-                            . $class_data->class_section->section->name . ' '
-                            . $class_data->class_section->class->medium->name,
-                        'student_name' => $exam_result_data->student->user->first_name . ' '
-                            . $exam_result_data->student->user->last_name,
+                        'class_name' => $class_data->class_section->class->name.'-'
+                            .$class_data->class_section->section->name.' '
+                            .$class_data->class_section->class->medium->name,
+                        'student_name' => $exam_result_data->student->user->first_name.' '
+                            .$exam_result_data->student->user->last_name,
                         'exam_date' => $starting_date,
                         'total_marks' => $exam_result_data->total_marks,
                         'obtained_marks' => $exam_result_data->obtained_marks,

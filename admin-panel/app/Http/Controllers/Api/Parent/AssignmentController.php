@@ -11,6 +11,7 @@ use App\Models\ClassSessionConfig;
 use App\Models\Semester;
 use App\Models\StudentSessions;
 use App\Services\ResponseService;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use Throwable;
@@ -107,7 +108,7 @@ class AssignmentController extends Controller
             $data->getCollection()->transform(function ($assignment) {
                 $submission = $assignment->submission;
 
-                if ($submission instanceof \Illuminate\Database\Eloquent\Collection) {
+                if ($submission instanceof Collection) {
                     $assignment->setRelation(
                         'submission',
                         $submission->isNotEmpty() ? $submission->first() : null

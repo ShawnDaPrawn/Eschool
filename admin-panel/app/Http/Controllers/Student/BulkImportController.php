@@ -13,6 +13,7 @@ use App\Services\ResponseService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Validation\ValidationException;
 use Maatwebsite\Excel\Facades\Excel;
 use Throwable;
 
@@ -109,11 +110,13 @@ class BulkImportController extends Controller
         try {
             $class_section_id = $request->class_section_id;
             Excel::import(new StudentsImport($class_section_id), $request->file);
+
             return ResponseService::successResponse(trans('data_store_successfully'));
-        } catch (\Illuminate\Validation\ValidationException $e) {
+        } catch (ValidationException $e) {
             // Handle validation errors from the import
             $errors = $e->errors();
             $firstError = collect($errors)->flatten()->first();
+
             return ResponseService::errorResponse($firstError, null, 422);
         } catch (Throwable $e) {
             $message = 'Oops! Something went wrong.';
@@ -121,6 +124,7 @@ class BulkImportController extends Controller
             if (str_contains($exceptionMessage, 'file') && (str_contains($exceptionMessage, 'xlsx') || str_contains($exceptionMessage, 'csv') || str_contains($exceptionMessage, 'xls'))) {
                 $message = trans('please_select_valid_file');
             }
+
             return ResponseService::errorResponse($message, null, 103, $e);
         }
     }

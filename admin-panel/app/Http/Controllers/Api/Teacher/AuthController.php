@@ -70,6 +70,7 @@ class AuthController extends Controller
                 $auth->device_type = $request->device_type;
                 $auth->save();
             }
+
             return ResponseService::successResponse('User logged-in!', $user, ['token' => $token], 100);
         } else {
             return ResponseService::errorResponse('Invalid Login Credentials', null, 101);
@@ -99,6 +100,7 @@ class AuthController extends Controller
             }
 
             $user = array_merge($user, ['dynamic_fields' => $dynamicFields ?? null]);
+
             return ResponseService::successResponse('Data Fetched Successfully', $user);
         } catch (\Exception $e) {
             return ResponseService::errorResponse('error_occurred', null, 103, $e);

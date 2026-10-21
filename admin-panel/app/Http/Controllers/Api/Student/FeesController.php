@@ -139,8 +139,8 @@ class FeesController extends Controller
                 }
             }
             // Due Date And Due Charges From Session Year For Fully pay Compulsory Amount (Without Installments)
-             $session_year_data = SessionYear::where('id', $session_year_id)->first();
-            
+            $session_year_data = SessionYear::where('id', $session_year_id)->first();
+
             $due_date = date('Y-m-d', strtotime($session_year_data->fee_due_date));
             $due_charges = $session_year_data->fee_due_charges;
 
@@ -228,11 +228,13 @@ class FeesController extends Controller
                 'payment_transaction_id' => $payment_transaction_db->id,
             ];
             DB::commit();
+
             return ResponseService::successResponse('data_store_successfully', null, [
                 'payment_gateway_details' => $payment_gateway_details,
             ]);
         } catch (Throwable $e) {
             DB::rollBack();
+
             return ResponseService::errorResponse('error_occurred', null, 103, $e);
         }
     }
@@ -265,6 +267,7 @@ class FeesController extends Controller
                 $transaction_db->payment_signature = $request->payment_signature;
             }
             $transaction_db->save();
+
             return ResponseService::successResponse('data_update_successfully');
         } catch (Throwable $e) {
             return ResponseService::errorResponse('error_occurred', null, 103, $e);
@@ -280,6 +283,7 @@ class FeesController extends Controller
             $session_year_id = getSettings('session_year')['session_year'];
 
             $fees_paid = FeesPaid::where(['student_id' => $student->id, 'session_year_id' => $session_year_id])->with('session_year:id,name', 'class.medium')->get();
+
             return ResponseService::successResponse('Fees Paid List Fetched Successfully', $fees_paid);
         } catch (Throwable $e) {
             return ResponseService::errorResponse('error_occurred', null, 103, $e);
@@ -293,7 +297,7 @@ class FeesController extends Controller
             $student = $request->user()->student;
 
             $logo = schoolSetting('logo2');
-            $logo = public_path('/storage/' . $logo);
+            $logo = public_path('/storage/'.$logo);
             $school_name = config('app.name');
             $school_address = getSettings('school_address');
             $school_address = $school_address['school_address'];
@@ -337,8 +341,7 @@ class FeesController extends Controller
             $fees_class = FeesClass::where(['class_id' => $class_id, 'choiceable' => 0])->with('fees_type')->get();
 
             // Session Year Data
-             $session_year = SessionYear::where('id', $session_year_id)->first();
-            
+            $session_year = SessionYear::where('id', $session_year_id)->first();
 
             // Load the HTML
             $pdf = Pdf::loadView('fees.fees_receipt', compact('logo', 'school_name', 'fees_paid', 'paid_installment', 'fees_choiceable', 'currency_symbol', 'school_address', 'fees_class', 'session_year'));
@@ -360,7 +363,7 @@ class FeesController extends Controller
             // $parent_id = Auth::user()->parent->id;
             // $child_id = Students::where('father_id',$parent_id)->orWhere('mother_id',$parent_id)->orWhere('guardian_id',$parent_id)->pluck('id');
             $fees_payment_transactions = PaymentTransaction::where('student_id', $student->id)
-                ->when($request->session_year_id, fn($q) => $q->where('session_year_id', $request->session_year_id))
+                ->when($request->session_year_id, fn ($q) => $q->where('session_year_id', $request->session_year_id))
                 ->with('session_year')->with(['student' => function ($q) {
                     $q->select('id', 'user_id')->with('user:id,first_name,last_name');
                 }])->orderBy('id', 'desc')->paginate(15);
@@ -412,7 +415,7 @@ class FeesController extends Controller
             $total_amount = $update_status->total_amount;
 
             $user[] = $student->user_id;
-            $body = 'Amount :- ' . $total_amount;
+            $body = 'Amount :- '.$total_amount;
             $type = 'online';
             $image = null;
             $userinfo = null;
@@ -437,6 +440,7 @@ class FeesController extends Controller
             }
 
             sendSimpleNotification($user, 'Payment Failed', $body, $type, $image, $userinfo);
+
             return ResponseService::successResponse('Data Updated Successfully');
         } catch (Throwable $e) {
             return ResponseService::errorResponse('error_occurred', null, 103, $e);
@@ -457,7 +461,7 @@ class FeesController extends Controller
             $user = Parents::whereIn('id', $parent)->pluck('user_id');
 
             $title = 'Fees are dues';
-            $body = $student->user->first_name . ' ' . $student->user->last_name . ' ' . 'wants to keep learning! Please pay the overdue fees as soon as possible.';
+            $body = $student->user->first_name.' '.$student->user->last_name.' '.'wants to keep learning! Please pay the overdue fees as soon as possible.';
             $type = 'fees-due';
             $image = null;
             $userinfo = (string) $student->id;
@@ -476,8 +480,9 @@ class FeesController extends Controller
             $notification->save();
 
             sendSimpleNotification($user, $title, $body, $type, $image, $userinfo);
+
             return ResponseService::successResponse('Notification Send Successfully', null);
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             return ResponseService::errorResponse('error_occurred', null, 103, $e);
         }
     }

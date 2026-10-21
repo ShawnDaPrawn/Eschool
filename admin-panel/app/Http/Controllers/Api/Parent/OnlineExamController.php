@@ -16,6 +16,7 @@ use App\Models\OnlineExamStudentAnswer;
 use App\Models\Semester;
 use App\Models\StudentSessions;
 use App\Models\Subject;
+use App\Services\OnlineExamScoringService;
 use App\Services\ResponseService;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
@@ -168,6 +169,7 @@ class OnlineExamController extends Controller
                 // if no data found
                 $exam_data = null;
             }
+
             return ResponseService::successResponse('Exam List Fetched Successfully', $exam_data, [], 200);
         } catch (Throwable $e) {
             return ResponseService::errorResponse('error_occurred', null, 103, $e);
@@ -248,7 +250,7 @@ class OnlineExamController extends Controller
                 $exam_submitted_date = OnlineExamStudentAnswer::where(['student_id' => $student->id, 'online_exam_id' => $data['id']])->pluck('submitted_date')->first();
 
                 // a question counts only when exactly its correct options were picked
-                $score = app(\App\Services\OnlineExamScoringService::class)->score((int) $student->id, (int) $data['id']);
+                $score = app(OnlineExamScoringService::class)->score((int) $student->id, (int) $data['id']);
 
                 // get the data of only attempted data
                 $total_obtained_marks_exam = OnlineExamQuestionChoice::select(DB::raw('sum(marks)'))->where('online_exam_id', $data['id'])->whereIn('id', $score['correct_choice_ids'])->first();
@@ -277,6 +279,7 @@ class OnlineExamController extends Controller
                 'to' => $online_exam_db['to'],
                 'total' => $online_exam_db['total'],
             ];
+
             return ResponseService::successResponse('Exam List Fetched Successfully', $exam_list, [], 200);
         } catch (Throwable $e) {
             return ResponseService::errorResponse('error_occurred', null, 103, $e);
@@ -316,7 +319,7 @@ class OnlineExamController extends Controller
             $total_questions = OnlineExamQuestionChoice::where('online_exam_id', $request->online_exam_id)->count();
 
             // a question counts only when exactly its correct options were picked
-            $score = app(\App\Services\OnlineExamScoringService::class)->score((int) $student->id, (int) $request->online_exam_id);
+            $score = app(OnlineExamScoringService::class)->score((int) $student->id, (int) $request->online_exam_id);
             $choice_marks = OnlineExamQuestionChoice::where('online_exam_id', $request->online_exam_id)->pluck('marks', 'id');
 
             // get the correct answers counter
@@ -363,6 +366,7 @@ class OnlineExamController extends Controller
                 'total_obtained_marks' => $total_obtained_marks ?? '0',
                 'total_marks' => $total_marks,
             ];
+
             return ResponseService::successResponse('Exam Result Fetched Successfully', $exam_result ?? '', [], 200);
         } catch (Throwable $e) {
             return ResponseService::errorResponse('error_occurred', null, 103, $e);

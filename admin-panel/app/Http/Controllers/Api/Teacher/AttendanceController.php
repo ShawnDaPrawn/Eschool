@@ -14,7 +14,6 @@ use App\Models\Notification;
 use App\Models\Parents;
 use App\Models\StaffAttendance;
 use App\Models\Students;
-use App\Models\UserNotification;
 use App\Services\AbsenceAlertService;
 use App\Services\ResponseService;
 use Carbon\Carbon;
@@ -314,6 +313,7 @@ class AttendanceController extends Controller
             // One alert per absent student, to each of their parents and guardian
             // (it used to save only the last student's and skip guardians).
             app(AbsenceAlertService::class)->notify($absent_student_ids ?? [], $date, (int) $session_year_id);
+
             return ResponseService::successResponse('data_store_successfully');
         } catch (Exception $e) {
             return ResponseService::errorResponse('error_occurred', null, 103, $e);

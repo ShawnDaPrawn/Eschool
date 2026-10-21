@@ -37,8 +37,8 @@ class ProfileController extends Controller
             $compulsory_fees_mode = getSettings('compulsory_fee_payment_mode');
             $compulsory_fees_mode = $compulsory_fees_mode['compulsory_fee_payment_mode'] ?? 0;
 
-             $session_year = SessionYear::where('id', $session_year_id)->first();
-            
+            $session_year = SessionYear::where('id', $session_year_id)->first();
+
             $isInstallment = $session_year->include_fee_installments;
 
             $due_date = $session_year->fee_due_date;
@@ -272,6 +272,7 @@ class ProfileController extends Controller
             }
 
             $data = array_merge($user, ['dynamic_fields' => $parentDynamicFields ?? null, 'children' => $childrenArray]);
+
             return ResponseService::successResponse('Data Fetched Successfully', $data, [], 200);
         } catch (Throwable $e) {
             return ResponseService::errorResponse('error_occurred', null, 103, $e);

@@ -70,7 +70,7 @@ class AssignmentController extends Controller
             if ($isClassHaveSemester) {
                 $currentSemester = Semester::where('session_year_id', $session_year_id)
                     ->get()
-                    ->first(fn($s) => $s->current);
+                    ->first(fn ($s) => $s->current);
             }
 
             $data = Assignment::where('class_section_id', $student_class_section_id)->where('session_year_id', $session_year_id)
@@ -101,6 +101,7 @@ class AssignmentController extends Controller
             $data->getCollection()->each(function ($assignment) {
                 $assignment->setRelation('submission', $assignment->submission->first());
             });
+
             return ResponseService::successResponse('Assignments Fetched Successfully', $data);
         } catch (Throwable $e) {
             return ResponseService::errorResponse('error_occurred', null, 103, $e);
@@ -175,7 +176,7 @@ class AssignmentController extends Controller
             )->where('subject_id', $assignment->subject_id)->pluck('teacher_id');
             $user = Teacher::whereIn('id', $subject_teacher_id)->pluck('user_id');
             $title = 'New submission';
-            $body = $student->user->first_name . ' ' . $student->user->last_name . ' submitted their assignment.';
+            $body = $student->user->first_name.' '.$student->user->last_name.' submitted their assignment.';
             $type = 'assignment_submission';
             $image = null;
             $userinfo = null;
@@ -210,6 +211,7 @@ class AssignmentController extends Controller
             }
 
             $submitted_assignment = AssignmentSubmission::where('id', $assignment_submission->id)->with('file')->get();
+
             return ResponseService::successResponse('Assignments Submitted Successfully', $submitted_assignment);
         } catch (Throwable $e) {
             return ResponseService::errorResponse('error_occurred', null, 103, $e);

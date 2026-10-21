@@ -72,6 +72,7 @@ class TimetableController extends Controller
             $timetable->live_class_url = $request->live_class_link;
             $timetable->link_name = $request->link_name;
             $timetable->save();
+
             return ResponseService::successResponse('data_update_successfully');
         } catch (\Throwable $e) {
             return ResponseService::errorResponse('error_occurred', null, 103, $e);

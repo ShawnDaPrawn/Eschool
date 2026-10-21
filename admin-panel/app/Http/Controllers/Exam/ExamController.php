@@ -117,9 +117,11 @@ class ExamController extends Controller
             }
 
             DB::commit();
+
             return ResponseService::successResponse('data_store_successfully');
         } catch (Throwable $e) {
             DB::rollBack();
+
             return ResponseService::errorResponse('error_occurred', null, 103, $e);
         }
     }
@@ -389,7 +391,7 @@ class ExamController extends Controller
                 'error' => false,
                 'message' => trans('data_delete_successfully'),
             ]);
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             return response()->json([
                 'error' => true,
                 'message' => trans('error_occurred'),

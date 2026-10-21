@@ -44,6 +44,7 @@ class SubjectController extends Controller
         try {
             $user = $request->user();
             $subjects = $user->student->classSubjects();
+
             return ResponseService::successResponse('Class Subject Fetched Successfully.', $subjects);
         } catch (Throwable $e) {
             return ResponseService::errorResponse('error_occurred', null, 103, $e);

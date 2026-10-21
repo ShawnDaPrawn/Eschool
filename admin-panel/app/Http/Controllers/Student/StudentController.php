@@ -30,11 +30,13 @@ use App\Services\ResponseService;
 use Carbon\Carbon;
 use Exception;
 use Illuminate\Http\Request;
+use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
+use Illuminate\Validation\ValidationException;
 use Spatie\Permission\Models\Role;
 use Throwable;
 
@@ -64,8 +66,7 @@ class StudentController extends Controller
 
         $category = Category::where('status', 1)->get();
         $formFields = FormField::where('for', 1)->orderBy('rank', 'ASC')->get();
-          $session_years = SessionYear::orderBy('id', 'ASC')->get();
-        
+        $session_years = SessionYear::orderBy('id', 'ASC')->get();
 
         return view('students.details', compact('class_section', 'category', 'formFields', 'session_years', 'is_restricted_teacher'));
     }
@@ -731,43 +732,43 @@ class StudentController extends Controller
                 $ios_app = $applink['teacher_ios_app_link'] ?? '';
 
                 $guardian_data = [
-                    'subject'         => 'Welcome to ' . (string)$school_name,
-                    'email'           => (string)$guardian_email,
-                    'name'            => (string)$guardian_name,
-                    'username'        => (string)$guardian_email,
-                    'password'        => (string)$guardian_plaintext_password,
-                    'child_name'      => (string)($request->first_name . ' ' . $request->last_name),
-                    'child_grnumber'  => (string)$admission_no,
-                    'child_password'  => (string)$child_plaintext_password,
-                    'type'            => 'application_accept',
-                    'class_name'      => (string)$class_section_name,
-                    'school_name'     => (string)$school_name,
-                    'school_email'    => (string)$school_email,
-                    'school_contact'  => (string)$school_contact,
-                    'android_app'     => (string)$android_app,
-                    'ios_app'         => (string)$ios_app,
-                    'url'             => (string)url('/'),
+                    'subject' => 'Welcome to '.(string) $school_name,
+                    'email' => (string) $guardian_email,
+                    'name' => (string) $guardian_name,
+                    'username' => (string) $guardian_email,
+                    'password' => (string) $guardian_plaintext_password,
+                    'child_name' => (string) ($request->first_name.' '.$request->last_name),
+                    'child_grnumber' => (string) $admission_no,
+                    'child_password' => (string) $child_plaintext_password,
+                    'type' => 'application_accept',
+                    'class_name' => (string) $class_section_name,
+                    'school_name' => (string) $school_name,
+                    'school_email' => (string) $school_email,
+                    'school_contact' => (string) $school_contact,
+                    'android_app' => (string) $android_app,
+                    'ios_app' => (string) $ios_app,
+                    'url' => (string) url('/'),
                 ];
 
                 $htmlcontent = EmailTemplateService::render($template, $guardian_data);
 
                 $emailPayload = [
-                    'body'            => $htmlcontent,
-                    'email'           => $guardian_data['username'],
-                    'subject'         => $guardian_data['subject'],
-                    'type'            => $guardian_data['type'],
+                    'body' => $htmlcontent,
+                    'email' => $guardian_data['username'],
+                    'subject' => $guardian_data['subject'],
+                    'type' => $guardian_data['type'],
 
-                    'name'            => $guardian_data['name'],
-                    'child_name'      => $guardian_data['child_name'],
-                    'class_name'      => $guardian_data['class_name'],
-                    'school_name'     => $guardian_data['school_name'],
-                    'school_contact'  => $guardian_data['school_contact'],
-                    'school_email'    => $guardian_data['school_email'],
-                    'url'             => $guardian_data['url'],
-                    'username'        => $guardian_data['username'],
-                    'password'        => $guardian_data['password'],
-                    'child_grnumber'  => $guardian_data['child_grnumber'],
-                    'child_password'  => $guardian_data['child_password']
+                    'name' => $guardian_data['name'],
+                    'child_name' => $guardian_data['child_name'],
+                    'class_name' => $guardian_data['class_name'],
+                    'school_name' => $guardian_data['school_name'],
+                    'school_contact' => $guardian_data['school_contact'],
+                    'school_email' => $guardian_data['school_email'],
+                    'url' => $guardian_data['url'],
+                    'username' => $guardian_data['username'],
+                    'password' => $guardian_data['password'],
+                    'child_grnumber' => $guardian_data['child_grnumber'],
+                    'child_password' => $guardian_data['child_password'],
                 ];
 
                 // 3. Dispatch the mail message cleanly
@@ -777,9 +778,11 @@ class StudentController extends Controller
             }
 
             DB::commit();
+
             return ResponseService::successResponse(trans('data_store_successfully'));
-        } catch (\Illuminate\Validation\ValidationException $e) {
+        } catch (ValidationException $e) {
             DB::rollback();
+
             return ResponseService::errorResponse($e->validator->errors()->first(), $e->validator->errors(), 422);
         } catch (Throwable $e) {
             if (Str::contains($e->getMessage(), ['Failed', 'Mail', 'Mailer', 'MailManager'])) {
@@ -787,6 +790,7 @@ class StudentController extends Controller
             } else {
                 DB::rollback();
                 report($e);
+
                 return ResponseService::errorResponse(trans('error_occurred'), $e);
             }
         }
@@ -796,7 +800,7 @@ class StudentController extends Controller
      * Display the specified resource.
      *
      * @param  int  $id
-     * @return \Illuminate\Http\Response
+     * @return Response
      */
     public function show()
     {
@@ -896,10 +900,10 @@ class StudentController extends Controller
             if (! $student) {
                 continue;
             }
-                         $operate = '';
+            $operate = '';
             if (! $hideActions) {
                 if (Auth::user()->can('student-edit')) {
-                     $operate .= '<a class="btn btn-xs btn-gradient-primary btn-rounded btn-icon editdata"
+                    $operate .= '<a class="btn btn-xs btn-gradient-primary btn-rounded btn-icon editdata"
             data-id='.$student->id.'
             data-url='.url('students').'
             title="Edit"
@@ -977,8 +981,6 @@ class StudentController extends Controller
              <i class="fa fa-file-pdf-o"></i>
         </a>&nbsp;&nbsp;';
             }
-
-        
 
             $tempRow = [];
 
@@ -1366,7 +1368,7 @@ class StudentController extends Controller
      * Remove the specified resource from storage.
      *
      * @param  int  $id
-     * @return \Illuminate\Http\Response
+     * @return Response
      */
     public function destroy($id)
     {
@@ -1454,7 +1456,7 @@ class StudentController extends Controller
                 'error' => false,
                 'message' => trans('data_delete_successfully'),
             ]);
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             return response()->json([
                 'error' => true,
                 'message' => trans('error_occurred'),
@@ -1482,7 +1484,7 @@ class StudentController extends Controller
                 'error' => false,
                 'message' => trans('user_delete_successfully'),
             ];
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             report($e);
             $response = [
                 'error' => true,

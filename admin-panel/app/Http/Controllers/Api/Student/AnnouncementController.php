@@ -86,13 +86,14 @@ class AnnouncementController extends Controller
                 if ($isClassHaveSemester) {
                     $currentSemester = Semester::where('session_year_id', $session_year_id)
                         ->get()
-                        ->first(fn($s) => $s->current);
+                        ->first(fn ($s) => $s->current);
 
                     $data->where('semester_id', $currentSemester->id);
                 }
             }
 
             $data = $data->orderBy('id', 'desc')->paginate();
+
             return ResponseService::successResponse('Announcement Details Fetched Successfully', $data);
         } catch (Throwable $e) {
             return ResponseService::errorResponse('error_occurred', null, 103, $e);

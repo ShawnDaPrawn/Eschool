@@ -78,6 +78,7 @@ class TimetableController extends Controller
                     $new_timetable[] = $timetable;
                 }
             }
+
             return ResponseService::successResponse('Timetable Fetched Successfully', new TimetableCollection($new_timetable), [], 200);
         } catch (Throwable $e) {
             return ResponseService::errorResponse('error_occurred', null, 103, $e);

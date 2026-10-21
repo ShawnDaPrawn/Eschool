@@ -36,6 +36,7 @@ class ReportController extends Controller
             if (empty($data)) {
                 return ResponseService::errorResponse('No session found for this student in the current session year', null, 113);
             }
+
             return ResponseService::successResponse('Data fetched successfully', $data);
         } catch (Throwable $e) {
             return ResponseService::errorResponse('error_occurred', null, 103, $e);

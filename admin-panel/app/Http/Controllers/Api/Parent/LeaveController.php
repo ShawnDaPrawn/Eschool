@@ -86,8 +86,7 @@ class LeaveController extends Controller
             $teacher_ids = ClassTeacher::where('class_section_id', $student_class_section_id)->pluck('class_teacher_id');
             $user = Teacher::whereIn('id', $teacher_ids)->pluck('user_id')->toArray();
 
-             $sessionYear = SessionYear::where('id', $session_year_id)->first();
-            
+            $sessionYear = SessionYear::where('id', $session_year_id)->first();
 
             $public_holiday = Holiday::whereDate('date', '>=', $sessionYear->start_date)->whereDate('date', '<=', $sessionYear->end_date)->get()->pluck('date')->toArray();
 
@@ -155,6 +154,7 @@ class LeaveController extends Controller
                 $user_notification->save();
             }
             sendSimpleNotification($user, $title, $body, $type, $image, $userinfo);
+
             return ResponseService::successResponse('Data Stored Successfully', $leave ?? '', [], 200);
         } catch (\Throwable $e) {
             return ResponseService::errorResponse('error_occurred', null, 103, $e);
@@ -208,6 +208,7 @@ class LeaveController extends Controller
                 'taken_leaves' => $sql->where('status', 1)->sum('days'),
                 'leave_details' => $sql,
             ];
+
             return ResponseService::successResponse('Data Fetched Successfully', $data, [], 200);
         } catch (\Throwable $e) {
             return ResponseService::errorResponse('error_occurred', null, 103, $e);

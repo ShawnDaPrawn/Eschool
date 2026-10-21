@@ -34,6 +34,7 @@ class NotificationController extends Controller
                 })
                 ->latest()
                 ->paginate();
+
             return ResponseService::successResponse('Data Fetched Successfully', $notification ?? '');
         } catch (\Exception $e) {
             return ResponseService::errorResponse('error_occurred', null, 103, $e);

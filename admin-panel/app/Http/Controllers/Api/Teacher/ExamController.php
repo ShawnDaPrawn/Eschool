@@ -390,6 +390,7 @@ class ExamController extends Controller
                 if (isset($exam_result_marks)) {
                     ExamMarks::insert($exam_result_marks);
                 }
+
                 // Respond once every row is saved: replying (which exits) on the first
                 // existing row used to drop the marks of every student after it.
                 return ResponseService::successResponse(isset($updated) ? 'data_update_successfully' : 'data_store_successfully');
@@ -509,6 +510,7 @@ class ExamController extends Controller
                 if (isset($exam_result_marks)) {
                     ExamMarks::insert($exam_result_marks);
                 }
+
                 // Respond once every row is saved: replying (which exits) on the first
                 // existing row used to drop the marks of every student after it.
                 return ResponseService::successResponse(isset($updated) ? 'data_update_successfully' : 'data_store_successfully');
@@ -626,6 +628,7 @@ class ExamController extends Controller
                         }
                     }
                 }
+
                 return ResponseService::successResponse('Exam Marks Fetched Successfully', $data ?? []);
             } else {
                 return ResponseService::successResponse('Exam Marks Fetched Successfully', []);
@@ -688,6 +691,7 @@ class ExamController extends Controller
                         'marks_data' => $marks_array,
                     ];
                 }
+
                 return ResponseService::successResponse('Exam Marks Fetched Successfully', $data);
             } else {
                 return ResponseService::successResponse('Exam Marks Fetched Successfully', []);
@@ -874,10 +878,11 @@ class ExamController extends Controller
                 'result' => $result,
             ];
             // Load the HTML
-            $pdf = PDF::loadView('students.result_template', compact('data', 'settings', 'exams', 'subjects'));
+            $pdf = Pdf::loadView('students.result_template', compact('data', 'settings', 'exams', 'subjects'));
 
             // Get The Output Of PDF
             $output = $pdf->output();
+
             return ResponseService::successResponse('Data Fetched Successfully', null, ['pdf' => base64_encode($output)]);
         } catch (Throwable $e) {
             return ResponseService::errorResponse('error_occurred', null, 103, $e);
