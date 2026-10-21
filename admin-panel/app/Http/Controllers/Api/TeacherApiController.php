@@ -1236,7 +1236,9 @@ class TeacherApiController extends Controller
         }
 
         try {
+            // The teacher app lists and edits each topic's files.
             $data = LessonTopic::lessontopicteachers()
+                ->with('file')
                 ->where('lesson_id', $request->lesson_id)
                 ->orderByDesc('id')
                 ->get();

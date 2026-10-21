@@ -20,6 +20,7 @@
                         "educational_program_id": "null",
                         "full_name": "string",
                         "id": "number",
+                        "include_semesters": "bool",
                         "medium": {
                             "id": "number",
                             "name": "string"

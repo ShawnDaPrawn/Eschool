@@ -19,7 +19,8 @@ class ClassSchool extends Model
     protected $table = 'classes';
     protected $hidden = ["deleted_at", "created_at", "updated_at"];
 
-    protected $appends = ['full_name'];
+    // include_semesters is per session year now; the teacher app still reads it from each class.
+    protected $appends = ['full_name', 'include_semesters'];
 
     protected $casts = [
         'include_semesters' => 'boolean',
@@ -167,7 +168,8 @@ class ClassSchool extends Model
             return false;
         }
 
-        return $this->getIncludeSemestersForSession($sessionYearId);
+        // No config for this year means the class has no semesters.
+        return (bool) $this->getIncludeSemestersForSession($sessionYearId);
     }
 
 

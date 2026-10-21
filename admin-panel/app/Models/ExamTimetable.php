@@ -14,6 +14,22 @@ class ExamTimetable extends Model
 
     protected $hidden = ["deleted_at", "created_at", "updated_at"];
 
+    /**
+     * Both apps read the times as starting_time / ending_time (the student
+     * exam-details endpoint renamed them by hand; the others didn't).
+     */
+    protected $appends = ['starting_time', 'ending_time'];
+
+    public function getStartingTimeAttribute()
+    {
+        return $this->attributes['start_time'] ?? null;
+    }
+
+    public function getEndingTimeAttribute()
+    {
+        return $this->attributes['end_time'] ?? null;
+    }
+
     public function subject()
     {
         return $this->belongsTo(Subject::class, 'subject_id')->withTrashed();

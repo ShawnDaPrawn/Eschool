@@ -17,6 +17,7 @@
                         "body": "string",
                         "date": "string",
                         "file": [],
+                        "files": [],
                         "id": "number"
                     },
                     "last_name": "string",
