@@ -21,6 +21,13 @@ class OnlineExamQuestionsImport extends DefaultValueBinder implements SkipsEmpty
     // Maximum number of option columns supported in the CSV (option1..option6).
     private const MAX_OPTIONS = 6;
 
+    /** The CSV's heading row, in the order the downloadable sample file lists it. */
+    public const COLUMNS = [
+        'question_type', 'question',
+        'option1', 'option2', 'option3', 'option4', 'option5', 'option6',
+        'correct_options', 'note',
+    ];
+
     public $class_subject_id;
 
     public $session_year_id;

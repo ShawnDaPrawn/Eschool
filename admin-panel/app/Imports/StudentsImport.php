@@ -26,6 +26,18 @@ use Maatwebsite\Excel\DefaultValueBinder;
 use PhpOffice\PhpSpreadsheet\Shared\Date;
 
 class StudentsImport extends DefaultValueBinder implements SkipsEmptyRows, ToCollection, WithHeadingRow, WithValidation {
+    /** The file's heading row, in the order the downloadable sample file lists it. */
+    public const COLUMNS = [
+        'first_name', 'last_name', 'gender', 'dob', 'mobile', 'category', 'caste', 'religion',
+        'admission_date', 'blood_group', 'height', 'wieght', 'current_address', 'permanent_address',
+        'parents',
+        'father_first_name', 'father_last_name', 'father_email', 'father_mobile', 'father_dob', 'father_occupation',
+        'mother_first_name', 'mother_last_name', 'mother_email', 'mother_mobile', 'mother_dob', 'mother_occupation',
+        'guardian',
+        'guardian_first_name', 'guardian_last_name', 'guardian_email', 'guardian_mobile', 'guardian_dob',
+        'guardian_gender', 'guardian_occupation',
+    ];
+
     public $class_section_id;
     /**
      * @param array $row
