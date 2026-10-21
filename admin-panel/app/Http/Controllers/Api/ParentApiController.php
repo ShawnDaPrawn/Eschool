@@ -2657,7 +2657,7 @@ class ParentApiController extends Controller
                     ];
                 }
 
-                $lastMessage = ChatMessage::where(function ($query) use ($user, $teacher) {
+                $lastMessage = ChatMessage::with('file')->where(function ($query) use ($user, $teacher) {
                     $query->where('modal_id', $teacher->user->id)
                         ->where('sender_id', $user->id);
                 })

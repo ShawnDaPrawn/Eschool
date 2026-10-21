@@ -114,6 +114,15 @@ class ApiRegressionTest extends TestCase
         $this->assertSame(['Practice'], collect($response->json('data.0.file'))->pluck('file_name')->all(), $response->body());
     }
 
+    public function test_classes_say_whether_they_use_semesters_the_way_the_teacher_app_reads_it(): void
+    {
+        // The teacher app compares include_semesters with '1'; the column had been dropped.
+        $classes = $this->apiClient(self::$school->tokens['tara'])->get('/api/teacher/classes')->json('data.class_teacher');
+
+        $this->assertNotEmpty($classes);
+        $this->assertSame(0, $classes[0]['class']['include_semesters'] ?? null, json_encode($classes[0]));
+    }
+
     public function test_the_parent_assigned_tab_lists_only_work_the_child_has_not_handed_in(): void
     {
         $id = self::$school->ids;

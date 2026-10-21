@@ -13,7 +13,7 @@
                         "educational_program_id": "null",
                         "full_name": "string",
                         "id": "number",
-                        "include_semesters": "bool",
+                        "include_semesters": "number",
                         "medium": {
                             "id": "number",
                             "name": "string"
@@ -125,7 +125,7 @@
                                     "educational_program_id": "null",
                                     "full_name": "string",
                                     "id": "number",
-                                    "include_semesters": "bool",
+                                    "include_semesters": "number",
                                     "medium": {
                                         "id": "number",
                                         "name": "string"
@@ -169,7 +169,7 @@
                             "educational_program_id": "null",
                             "full_name": "string",
                             "id": "number",
-                            "include_semesters": "bool",
+                            "include_semesters": "number",
                             "medium": {
                                 "id": "number",
                                 "name": "string"
