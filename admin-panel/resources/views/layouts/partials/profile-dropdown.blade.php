@@ -6,7 +6,9 @@
     <button type="button" class="nav-link dropdown-toggle" id="{{ $id }}" data-toggle="dropdown" aria-haspopup="true"
         aria-expanded="false" aria-label="{{ __('nav_account_menu', ['name' => Auth::user()->first_name]) }}">
         <span class="nav-profile-img">
-            <img src="{{ Auth::user()->image }}" alt="" onerror="onErrorAvatar(event)">
+            {{-- No photo yet: the generic avatar, rather than a request for an empty storage path. --}}
+            <img src="{{ Auth::user()->getRawOriginal('image') ? Auth::user()->image : asset('assets/avatar.png') }}" alt=""
+                onerror="onErrorAvatar(event)">
         </span>
         <span class="nav-profile-text d-none d-xl-inline">
             <span class="mb-0 text-black">{{ Auth::user()->first_name }}</span>

@@ -115,6 +115,9 @@ Route::group(['middleware' => ['Role', 'auth', \App\Http\Middleware\EnforceReadO
         // new reset password controller
         Route::get('home/reset_password', [HomeController::class, 'resetPasswordView']);
 
+        // Global search: JSON for the header box, a results page otherwise.
+        Route::get('search', \App\Http\Controllers\Panel\SearchController::class)->name('search');
+
         Route::get('roles-list/{id}', [RoleController::class, 'showList'])->name('roles-list');
         Route::get('roles-data', [RoleController::class, 'show'])->name('roles.data');
         Route::resource('roles', RoleController::class);

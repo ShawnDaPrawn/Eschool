@@ -47,6 +47,180 @@
         window.panelSwitchYear($(this).val());
     });
 
+    /* ---- Global search box --------------------------------------
+       A combobox over GET /search (JSON). Results are rendered with
+       textContent and safeUrl(), never as HTML. "/" (outside a field)
+       and Ctrl/Cmd+K focus it; arrows move, Enter opens, Escape
+       closes. Enter with nothing highlighted opens the results page. */
+    (function globalSearch() {
+        var form = document.querySelector("[data-panel-search]");
+        if (!form) {
+            return;
+        }
+        var input = form.querySelector("input[name=q]");
+        var list = form.querySelector('[role="listbox"]');
+        var status = form.querySelector("[data-search-status]");
+        var timer = null;
+        var request = 0;
+        var active = -1;
+
+        function options() {
+            return Array.prototype.slice.call(list.querySelectorAll('[role="option"]'));
+        }
+
+        function open(show) {
+            list.hidden = !show;
+            input.setAttribute("aria-expanded", show ? "true" : "false");
+            if (!show) {
+                setActive(-1);
+            }
+        }
+
+        function setActive(index) {
+            var all = options();
+            all.forEach(function (option, i) {
+                var on = i === index;
+                option.classList.toggle("is-active", on);
+                option.setAttribute("aria-selected", on ? "true" : "false");
+            });
+            active = index;
+            if (index >= 0 && all[index]) {
+                input.setAttribute("aria-activedescendant", all[index].id);
+                all[index].scrollIntoView({ block: "nearest" });
+            } else {
+                input.removeAttribute("aria-activedescendant");
+            }
+        }
+
+        function option(id, href, title, subtitle) {
+            var a = document.createElement("a");
+            a.id = id;
+            a.className = "panel-search-option";
+            a.setAttribute("role", "option");
+            a.setAttribute("aria-selected", "false");
+            a.tabIndex = -1;
+            a.href = typeof safeUrl === "function" ? safeUrl(href) : href;
+            var t = document.createElement("span");
+            t.className = "panel-search-option-title";
+            t.textContent = title;
+            a.appendChild(t);
+            if (subtitle) {
+                var s = document.createElement("span");
+                s.className = "panel-search-option-subtitle";
+                s.textContent = subtitle;
+                a.appendChild(s);
+            }
+            return a;
+        }
+
+        function render(data) {
+            list.textContent = "";
+            var count = 0;
+            (data.groups || []).forEach(function (group, g) {
+                var wrap = document.createElement("div");
+                wrap.setAttribute("role", "group");
+                wrap.setAttribute("aria-labelledby", "panel-search-group-" + g);
+                var heading = document.createElement("div");
+                heading.className = "panel-search-group-label";
+                heading.id = "panel-search-group-" + g;
+                heading.textContent = group.label;
+                wrap.appendChild(heading);
+                group.items.forEach(function (item) {
+                    wrap.appendChild(option("panel-search-option-" + count++, item.url, item.title, item.subtitle));
+                });
+                list.appendChild(wrap);
+            });
+            if (!count) {
+                var none = document.createElement("div");
+                none.className = "panel-search-empty";
+                none.textContent = trans("search_box_nothing");
+                list.appendChild(none);
+            }
+            list.appendChild(option("panel-search-option-all", data.search_url, trans("search_box_see_all")));
+            status.textContent = count ? trans("search_box_found").replace(":count", String(count)) : trans("search_box_nothing");
+            open(true);
+            setActive(-1);
+        }
+
+        function run() {
+            var q = input.value.trim();
+            if (q.length < 2) {
+                open(false);
+                return;
+            }
+            var mine = ++request;
+            fetch(form.action + "?q=" + encodeURIComponent(q), {
+                credentials: "same-origin",
+                headers: { Accept: "application/json", "X-Requested-With": "XMLHttpRequest" },
+            })
+                .then(function (response) {
+                    return response.ok ? response.json() : null;
+                })
+                .then(function (data) {
+                    if (data && mine === request && document.activeElement === input) {
+                        render(data);
+                    }
+                })
+                .catch(function () {
+                    /* The results page still works with Enter. */
+                });
+        }
+
+        input.addEventListener("input", function () {
+            clearTimeout(timer);
+            timer = setTimeout(run, 200);
+        });
+
+        input.addEventListener("keydown", function (event) {
+            var all = options();
+            if (event.key === "ArrowDown" && all.length) {
+                event.preventDefault();
+                if (list.hidden) {
+                    open(true);
+                }
+                setActive(active + 1 >= all.length ? 0 : active + 1);
+            } else if (event.key === "ArrowUp" && all.length) {
+                event.preventDefault();
+                setActive(active - 1 < 0 ? all.length - 1 : active - 1);
+            } else if (event.key === "Enter" && !list.hidden && active >= 0 && all[active]) {
+                event.preventDefault();
+                window.location.assign(all[active].href);
+            } else if (event.key === "Escape") {
+                if (!list.hidden) {
+                    event.preventDefault();
+                    open(false);
+                } else {
+                    input.value = "";
+                }
+            }
+        });
+
+        input.addEventListener("focus", function () {
+            if (list.childNodes.length && input.value.trim().length >= 2) {
+                open(true);
+            }
+        });
+
+        document.addEventListener("click", function (event) {
+            if (!form.contains(event.target)) {
+                open(false);
+            }
+        });
+
+        // Shortcuts: "/" outside a field, Ctrl+K or Cmd+K anywhere.
+        document.addEventListener("keydown", function (event) {
+            var target = event.target;
+            var typing = target.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(target.tagName);
+            var slash = event.key === "/" && !typing && !event.ctrlKey && !event.metaKey && !event.altKey;
+            var commandK = (event.key === "k" || event.key === "K") && (event.ctrlKey || event.metaKey);
+            if (slash || commandK) {
+                event.preventDefault();
+                input.focus();
+                input.select();
+            }
+        });
+    })();
+
     /* ---- Read-only years -------------------------------------- */
     if (!shell.readOnly) {
         return;
