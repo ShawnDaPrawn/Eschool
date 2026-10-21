@@ -7659,10 +7659,10 @@ document.addEventListener("DOMContentLoaded", function () {
     const GLOBAL_KEY = "session_year_id_global";
     const TABLE_KEY = "session_year_id_table";
 
-    // Sync stored value with the dropdown's current value on load.
-    const initialValue =
-        sessionStorage.getItem(GLOBAL_KEY) ?? globalDropdown.value;
-    globalDropdown.value = initialValue;
+    // The server's selected year (the session) is the truth: the header renders
+    // it, the read-only banner and the server-side guard follow it. A value left
+    // in sessionStorage by an earlier session must not override it.
+    const initialValue = globalDropdown.value;
     sessionStorage.setItem(GLOBAL_KEY, initialValue);
     sessionStorage.setItem(TABLE_KEY, initialValue);
 });
@@ -7673,6 +7673,7 @@ function syncSessionYear(value) {
         credentials: "same-origin",
         headers: {
             "Content-Type": "application/json",
+            Accept: "application/json",
             "X-CSRF-TOKEN": getCsrfToken(),
         },
         body: JSON.stringify({
@@ -7697,17 +7698,9 @@ $("#filter_session_year_global").on("change", function () {
             new CustomEvent("session-year-synced", { detail: { value } }),
         );
 
-        // On the dashboard (/home) the session-year-synced listener in
-        // dashboard.js reloads the page and re-fetches every widget, so we
-        // only refresh the bootstrap-table listings on other pages here.
-        if (window.location.href.split(/[?#]/)[0] !== baseUrl + "/home") {
-            if ($("#table_list").length) {
-                $("#table_list").bootstrapTable("refresh");
-            }
-            if ($("#table_list_questions").length) {
-                $("#table_list_questions").bootstrapTable("refresh");
-            }
-        }
+        // Reload, so the read-only banner, the disabled writes and every list
+        // follow the chosen year (dashboard.js also reloads on the event above).
+        window.location.reload();
     });
 });
 
