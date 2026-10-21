@@ -848,3 +848,139 @@ a.page-stat:focus {
 .setup-step-action {
     flex-shrink: 0;
 }
+
+/* ---- New-year wizard ------------------------------------------- */
+.wizard-steps {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin: 0 0 24px;
+    padding: 0;
+    list-style: none;
+    counter-reset: none;
+}
+
+.wizard-step-button {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    min-height: 40px;
+    padding: 4px 14px 4px 6px;
+    border: 1px solid var(--md-sys-color-outline-variant);
+    border-radius: var(--md-sys-shape-corner-full);
+    background: var(--md-sys-color-surface-container-lowest);
+    color: var(--md-sys-color-on-surface);
+    font: inherit;
+    font-size: var(--md-sys-typescale-label-large-size);
+    cursor: pointer;
+}
+
+.wizard-step-button:disabled {
+    cursor: not-allowed;
+    opacity: var(--md-sys-state-disabled-content-opacity);
+}
+
+.wizard-step-button:focus-visible {
+    outline: 3px solid var(--md-sys-color-secondary);
+    outline-offset: 2px;
+}
+
+.wizard-step-number {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    border-radius: var(--md-sys-shape-corner-full);
+    background: var(--md-sys-color-surface-container-high);
+    color: var(--md-sys-color-on-surface-variant);
+    font-weight: 600;
+}
+
+.wizard-step-button.is-done .wizard-step-number {
+    background: var(--md-sys-color-secondary-container);
+    color: var(--md-sys-color-on-secondary-container);
+}
+
+.wizard-step-button.is-current {
+    border-color: var(--md-sys-color-primary);
+    color: var(--md-sys-color-primary);
+    font-weight: 600;
+}
+
+.wizard-step-button.is-current .wizard-step-number {
+    background: var(--md-sys-color-primary);
+    color: var(--md-sys-color-on-primary);
+}
+
+.wizard-panel h2:focus {
+    outline: none;
+}
+
+.new-year-fieldset {
+    margin: 8px 0 16px;
+}
+
+.new-year-legend {
+    margin-bottom: 4px;
+    color: var(--md-sys-color-on-surface);
+    font-size: var(--md-sys-typescale-title-small-size);
+    font-weight: 600;
+}
+
+.new-year-terms {
+    margin: 0 0 12px;
+    padding-inline-start: 20px;
+    color: var(--md-sys-color-on-surface);
+}
+
+.new-year-note {
+    margin: 12px 0 0;
+    color: var(--md-sys-color-on-surface-variant);
+    font-size: var(--md-sys-typescale-body-medium-size);
+}
+
+.new-year-note a {
+    color: var(--md-sys-color-primary);
+    text-decoration: underline;
+}
+
+.new-year-carry {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.new-year-carry-option {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 4px 12px;
+    padding: 10px 0 10px 28px;
+    border-top: 1px solid var(--md-sys-color-outline-variant);
+}
+
+.new-year-carry-option:first-child {
+    border-top: 0;
+}
+
+.new-year-carry-option .form-check-label {
+    color: var(--md-sys-color-on-surface);
+    font-weight: 500;
+}
+
+.new-year-carry-note {
+    flex-basis: 100%;
+    color: var(--md-sys-color-on-surface-variant);
+    font-size: var(--md-sys-typescale-body-small-size);
+}
+
+.new-year-preview {
+    margin: 8px 0 0;
+    padding-inline-start: 20px;
+    color: var(--md-sys-color-on-surface);
+}
+
+.new-year-preview li + li {
+    margin-top: 6px;
+}

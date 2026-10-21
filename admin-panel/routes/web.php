@@ -118,6 +118,12 @@ Route::group(['middleware' => ['Role', 'auth', \App\Http\Middleware\EnforceReadO
         // Global search: JSON for the header box, a results page otherwise.
         Route::get('search', \App\Http\Controllers\Panel\SearchController::class)->name('search');
 
+        // New-year wizard: create next year, carry forward, year-end checks, preview, make it current.
+        Route::get('new-year', [\App\Http\Controllers\Panel\Academics\NewYearController::class, 'index'])->name('new-year.index');
+        Route::post('new-year/year', [\App\Http\Controllers\Panel\Academics\NewYearController::class, 'store'])->name('new-year.store');
+        Route::get('new-year/preview', [\App\Http\Controllers\Panel\Academics\NewYearController::class, 'preview'])->name('new-year.preview');
+        Route::post('new-year/make-current', [\App\Http\Controllers\Panel\Academics\NewYearController::class, 'makeCurrent'])->name('new-year.make-current');
+
         Route::get('roles-list/{id}', [RoleController::class, 'showList'])->name('roles-list');
         Route::get('roles-data', [RoleController::class, 'show'])->name('roles.data');
         Route::resource('roles', RoleController::class);
