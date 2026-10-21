@@ -128,7 +128,7 @@
                     </div>
                 </div>
 
-                <ul class="nav fees-gateway-tabs" id="paymentGatewayTabs" role="tablist">
+                <ul class="nav nav-tabs fees-gateway-tabs" id="paymentGatewayTabs" role="tablist">
                     <li class="nav-item">
                         <a class="nav-link active" id="tab-razorpay" data-toggle="tab" href="#pane-razorpay" role="tab" aria-controls="pane-razorpay" aria-selected="true">
                             <x-icon name="credit-card" :size="16" /> {{ __('razorpay') }}

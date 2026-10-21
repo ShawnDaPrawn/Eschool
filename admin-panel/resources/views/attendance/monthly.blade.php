@@ -139,7 +139,7 @@
                         <thead><tr>${headRow}</tr></thead>
                         <tbody id="attendance_tbody">
                             <tr>
-                                <td colspan="${daysInMonth + 1}" style="text-align:center;padding:2rem;color:#8c8c8c;">
+                                <td colspan="${daysInMonth + 1}" style="text-align:center;padding:2rem;color:var(--md-sys-color-on-surface-variant);">
                                     <span class="spinner-border spinner-border-sm"></span> ${Lang.loading}
                                 </td>
                             </tr>
@@ -160,7 +160,7 @@
                     if (!response.students || response.students.length === 0) {
                         $('#attendance_tbody').html(`
                             <tr>
-                                <td colspan="${daysInMonth + 1}" style="text-align:center;padding:2rem;color:#8c8c8c;">
+                                <td colspan="${daysInMonth + 1}" style="text-align:center;padding:2rem;color:var(--md-sys-color-on-surface-variant);">
                                     ${Lang.noStudents}
                                 </td>
                             </tr>
@@ -201,7 +201,7 @@
                 error: function() {
                     $('#attendance_tbody').html(`
                         <tr>
-                            <td colspan="${daysInMonth + 1}" style="text-align:center;padding:2rem;color:#dc3545;">
+                            <td colspan="${daysInMonth + 1}" style="text-align:center;padding:2rem;color:var(--md-sys-color-error);">
                                 ${Lang.failedToLoad}
                             </td>
                         </tr>

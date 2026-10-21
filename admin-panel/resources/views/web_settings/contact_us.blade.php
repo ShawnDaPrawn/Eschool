@@ -51,8 +51,8 @@
 
             <!-- Modal -->
             <div class="modal fade " id="replyModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
-                <div class="modal-dialog" role="document">
-                    <div class="modal-content" style="width: 800px; padding: 25px;">
+                <div class="modal-dialog modal-lg" role="document">
+                    <div class="modal-content">
                         <div class="modal-header">
                             <h4 class="modal-title" id="exampleModalLabel">{{ __('compose') }}</h4>
                             <button type="button" class="close" data-dismiss="modal" aria-label="Close">
@@ -98,8 +98,8 @@
 
              <!-- Modal -->
              <div class="modal fade " id="editModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
-                <div class="modal-dialog" role="document">
-                    <div class="modal-content" style="width: 800px; padding: 25px;">
+                <div class="modal-dialog modal-lg" role="document">
+                    <div class="modal-content">
                         <div class="modal-header">
                             <h4 class="modal-title" id="exampleModalLabel">{{ __('view_contact_details') }}</h4>
                             <button type="button" class="close" data-dismiss="modal" aria-label="Close">

@@ -166,7 +166,7 @@
                                 {{-- Dynamic New Core Subject will be added in this DIV --}}
                                 <div class="edit-extra-core-subjects"></div>
 
-                                <button type="button" class="cs-add-section add-new-core-subject">
+                                <button type="button" class="btn btn-outline-primary btn-block cs-add-section add-new-core-subject">
                                     <x-icon name="plus" :size="16" /> {{ __('add_new_core_subject') }}
                                 </button>
                             </div>
@@ -346,7 +346,7 @@
                                 {{-- Dynamic New Elective Subject Group will be added in this DIV --}}
                                 <div id="edit-extra-elective-subject-group"></div>
 
-                                <button type="button" class="cs-add-section add-elective-subject-group">
+                                <button type="button" class="btn btn-outline-primary btn-block cs-add-section add-elective-subject-group">
                                     <x-icon name="plus" :size="16" /> {{ __('add_new_elective_subject') }}
                                 </button>
                             </div>

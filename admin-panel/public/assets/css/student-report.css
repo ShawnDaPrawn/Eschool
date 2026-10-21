@@ -14,31 +14,15 @@
     }
 }
 
-/* Modal shell */
-#feeLedgerModal .modal-content {
-    border: none;
-    border-radius: 14px;
-    box-shadow: var(--md-sys-elevation-level5);
-    overflow: hidden;
-}
-#feeLedgerModal .modal-header {
-    border-bottom: 1px solid var(--md-sys-color-outline-variant);
-    padding: 20px 24px;
-}
-
-#feeLedgerModal .modal-title {
-    font-weight: 700;
-    font-size: 18px;
-    color: var(--md-sys-color-primary);
-}
+/* Modal shell: the global M3 dialog (surface-container-high, 28px corners,
+   headline-small title, no header/footer rules). Only the scrolling body is
+   set here; M3 shows dividers above and below a body that scrolls. */
 #feeLedgerModal .modal-body {
-    padding: 24px;
     max-height: 70vh;
     overflow-y: auto;
-}
-#feeLedgerModal .modal-footer {
-    border-top: 1px solid var(--md-sys-color-outline-variant);
-    padding: 16px 24px;
+    border-block: 1px solid var(--md-sys-color-outline-variant);
+    padding-top: 16px;
+    padding-bottom: 16px;
 }
 
 /* Stat boxes */
@@ -47,9 +31,9 @@
     align-items: center;
     gap: 12px;
     border: 1px solid var(--md-sys-color-outline-variant);
-    border-radius: 12px;
+    border-radius: var(--app-radius);
     padding: 16px;
-    background: var(--md-sys-color-surface-container-low);
+    background: var(--md-sys-color-surface-container-lowest);
     height: 100%;
 }
 .fee-stat-icon {
@@ -104,15 +88,10 @@
     align-items: center;
     gap: 16px;
     border: 1px solid var(--md-sys-color-outline-variant);
-    border-radius: 16px;
+    border-radius: var(--app-radius);
     padding: 18px 20px;
     margin-bottom: 12px;
     background: var(--md-sys-color-surface-container-lowest);
-    transition: box-shadow 0.15s ease;
-    box-shadow: var(--md-sys-elevation-level1);
-}
-.installment-row:hover {
-    box-shadow: var(--md-sys-elevation-level2);
 }
 
 /* ---- PAID row: white background with green border accent ---- */
@@ -181,34 +160,34 @@
     margin-top: 2px;
 }
 
-/* ---- Status badge (Paid / Pending / Overdue) ---- */
+/* ---- Status label (Paid / Pending / Overdue) ----
+   The M3 status label: 24px, 8px corners, label-medium, a tonal fill of the
+   status colour with its text colour, no border. */
 .installment-status-badge {
     display: inline-flex;
     align-items: center;
-    gap: 5px;
-    font-size: 11px;
-    font-weight: 600;
-    border-radius: 20px;
-    padding: 4px 10px;
-    line-height: 1;
+    gap: 4px;
+    height: 24px;
+    padding: 0 8px;
+    border-radius: var(--md-sys-shape-corner-small);
+    font-size: var(--md-sys-typescale-label-medium-size);
+    line-height: var(--md-sys-typescale-label-medium-line-height);
+    font-weight: var(--md-sys-typescale-label-medium-weight);
 }
 
 .installment-status-badge.paid {
-    background: color-mix(in srgb, var(--app-status-success) 15%, var(--md-sys-color-surface-container-lowest));
+    background: color-mix(in srgb, var(--app-status-success) 16%, var(--md-sys-color-surface-container-lowest));
     color: var(--app-status-success-text);
-    border: 1px solid color-mix(in srgb, var(--app-status-success) 30%, transparent);
 }
 
 .installment-status-badge.pending {
-    background: color-mix(in srgb, var(--app-status-warning) 15%, var(--md-sys-color-surface-container-lowest));
+    background: color-mix(in srgb, var(--app-status-warning) 18%, var(--md-sys-color-surface-container-lowest));
     color: var(--app-status-warning-text);
-    border: 1px solid color-mix(in srgb, var(--app-status-warning) 30%, transparent);
 }
 
 .installment-status-badge.overdue {
-    background: color-mix(in srgb, var(--app-status-danger) 15%, var(--md-sys-color-surface-container-lowest));
+    background: color-mix(in srgb, var(--app-status-danger) 14%, var(--md-sys-color-surface-container-lowest));
     color: var(--app-status-danger-text);
-    border: 1px solid color-mix(in srgb, var(--app-status-danger) 30%, transparent);
 }
 
 /* Checkmark icon inside paid badge */
@@ -376,24 +355,34 @@
     }
 }
 
-/* ---- Profile header card ---- */
+/* ---- Row action (view the fee ledger): an M3 standard icon button ----
+   40px circle in on-surface-variant with its state layer. */
 button.btn-icon-square {
-    display: inline-flex !important;
-    align-items: center !important;
-    justify-content: center !important;
-    width: 34px !important;
-    height: 34px !important;
-    border: 1px solid var(--md-sys-color-outline-variant) !important;
-    border-radius: 8px !important;
-    background: var(--md-sys-color-surface-container-low) !important;
-    color: var(--md-sys-color-on-surface-variant) !important;
-    transition: all 0.15s ease;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    padding: 0;
+    border: 0;
+    border-radius: var(--md-sys-shape-corner-full);
+    background: transparent;
+    color: var(--md-sys-color-on-surface-variant);
+    transition: background-color 0.15s ease;
 }
 button.btn-icon-square:hover {
-    background: color-mix(in srgb, var(--md-sys-color-primary) 12%, var(--md-sys-color-surface-container-lowest)) !important;
-    border-color: color-mix(in srgb, var(--md-sys-color-primary) 30%, transparent) !important;
-    color: var(--md-sys-color-primary) !important;
+    background: color-mix(in srgb, var(--md-sys-color-on-surface-variant) var(--md-sys-state-hover-opacity), transparent);
+    color: var(--md-sys-color-on-surface-variant);
 }
+button.btn-icon-square:focus {
+    outline: 0;
+}
+button.btn-icon-square:focus-visible {
+    outline: 3px solid var(--md-sys-color-secondary);
+    outline-offset: 2px;
+}
+
+/* ---- Profile header card ---- */
 .sr-profile-avatar {
     width: 80px;
     height: 80px;
@@ -403,36 +392,15 @@ button.btn-icon-square:hover {
     background: var(--md-sys-color-surface-container);
 }
 
-/* ---- Tabs ---- */
+/* ---- Tabs ----
+   M3 primary tabs from the global .nav-tabs rules. They sit in the card's
+   header, whose bottom edge is the tab divider, on the card surface. */
+.card-header:has(> #student-tabs) {
+    background: transparent;
+}
+
 #student-tabs {
-    border-bottom: 1px solid var(--md-sys-color-outline-variant);
-    padding: 0;
-}
-
-#student-tabs .nav-link {
-    border: none;
-    border-bottom: 2px solid transparent;
-    border-radius: 0;
-    margin-bottom: -1px;
-    color: var(--md-sys-color-on-surface-variant);
-    font-family: var(--md-ref-typeface-plain);
-    font-weight: 500;
-    padding: 0.875rem 1.125rem;
-    transition:
-        color 0.15s ease,
-        border-color 0.15s ease;
-}
-
-#student-tabs .nav-link:hover {
-    color: var(--md-sys-color-primary);
-    border-color: transparent;
-    background: transparent;
-}
-
-#student-tabs .nav-link.active {
-    background: transparent;
-    color: var(--md-sys-color-primary);
-    border-bottom-color: var(--md-sys-color-primary);
+    border-bottom: 0;
 }
 
 /* ---- Flat info sections (replaces nested "card in card" panels) ---- */
@@ -475,7 +443,7 @@ button.btn-icon-square:hover {
     display: flex;
     flex-wrap: wrap;
     border: 1px solid var(--md-sys-color-outline-variant);
-    border-radius: 14px;
+    border-radius: var(--app-radius);
     overflow: hidden;
     margin-bottom: 1.5rem;
 }
@@ -549,7 +517,7 @@ button.btn-icon-square:hover {
 /* ---- Flat progress tracker (replaces the boxed "card p-3 shadow-sm") ---- */
 .report-tracker {
     border: 1px solid var(--md-sys-color-outline-variant);
-    border-radius: 14px;
+    border-radius: var(--app-radius);
     padding: 1.125rem 1.25rem;
     margin-bottom: 1.5rem;
 }
@@ -572,7 +540,7 @@ button.btn-icon-square:hover {
    a shadowed card sitting inside the already-carded tab body) ---- */
 .report-subject-group {
     border: 1px solid var(--md-sys-color-outline-variant);
-    border-radius: 14px;
+    border-radius: var(--app-radius);
     overflow: hidden;
     margin-bottom: 1.25rem;
 }
@@ -640,30 +608,8 @@ button.btn-icon-square:hover {
     border-bottom: 1px solid var(--md-sys-color-outline-variant);
 }
 
-/* Soft theme-tinted button for inline row actions (e.g. "Teacher Review") —
-   same recipe as the badge-soft/attendance-btn tint, sized for a table cell. */
-.report-action-btn {
-    display: inline-flex;
-    align-items: center;
-    padding: 0.3125rem 0.75rem;
-    font-size: 0.75rem;
-    font-family: var(--md-ref-typeface-plain);
-    font-weight: 500;
-    color: var(--md-sys-color-primary);
-    background-color: color-mix(in srgb, var(--md-sys-color-primary) 6%, var(--md-sys-color-surface-container-lowest));
-    border: 1px solid color-mix(in srgb, var(--md-sys-color-primary) 30%, transparent);
-    border-radius: 8px;
-    cursor: pointer;
-    transition:
-        background-color 0.15s ease,
-        border-color 0.15s ease;
-}
-
-.report-action-btn:hover {
-    color: var(--md-sys-color-primary);
-    background-color: color-mix(in srgb, var(--md-sys-color-primary) 14%, var(--md-sys-color-surface-container-lowest));
-    border-color: color-mix(in srgb, var(--md-sys-color-primary) 45%, transparent);
-}
+/* Inline row action (e.g. "Teacher Review"): an M3 small outlined button
+   (.btn .btn-sm .btn-outline-primary in the markup). */
 
 /* Modal avatar initial — same theme-tinted circle as .avatar-circle
    (staff attendance modal), so every "person avatar in a modal" matches. */
@@ -701,8 +647,7 @@ button.btn-icon-square:hover {
     width: 100%;
     height: 100%;
     z-index: 1040;
-    background: color-mix(in srgb, var(--md-sys-color-scrim) 40%, transparent);
-    backdrop-filter: blur(2px);
+    background: color-mix(in srgb, var(--md-sys-color-scrim) 32%, transparent);
     align-items: center;
     justify-content: center;
 }
