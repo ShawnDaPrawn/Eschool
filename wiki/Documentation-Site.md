@@ -114,6 +114,10 @@ USE_SSH=true npm run deploy
 
 `docusaurus deploy` builds the site, then commits the contents of `build/` to the `gh-pages` branch of `ShawnDaPrawn/Eschool` and pushes it. In the repository settings, GitHub Pages must be set to serve from the `gh-pages` branch (root folder).
 
+## Deployment to Firebase Hosting
+
+[firebase.json](https://github.com/ShawnDaPrawn/Eschool/blob/main/firebase.json) publishes the same site to Firebase Hosting on project `navigateed-d8c06` (see [.firebaserc](https://github.com/ShawnDaPrawn/Eschool/blob/main/.firebaserc)). The `predeploy` hook installs `documentation/` and runs `npm run build:firebase`, which sets `DOCS_BASE_URL=/` and `DOCS_URL=https://$GCLOUD_PROJECT.web.app`. The Firebase copy is served from `/` while GitHub Pages stays at `/Eschool/`. The public URL is https://navigateed-d8c06.web.app/. Hosting is the free Spark tier; this does not put the admin panel on Cloud Run. The env assignment lives in the npm script because the Firebase CLI drops a `predeploy` command that contains `=`.
+
 ## Adding or changing a page
 
 1. Create `documentation/<section>/<page-name>.md`, where `<section>` is one of `mobile-app`, `admin-panel`, `web-page` or `features`. Use lower-case, hyphenated file names; the file name becomes the URL slug.

@@ -6,6 +6,7 @@
     "docusaurus": "docusaurus",
     "start": "docusaurus start",
     "build": "docusaurus build",
+    "build:firebase": "DOCS_URL=https://${GCLOUD_PROJECT:?Set GCLOUD_PROJECT to the Firebase project id}.web.app DOCS_BASE_URL=/ docusaurus build",
     "swizzle": "docusaurus swizzle",
     "deploy": "docusaurus deploy",
     "clear": "docusaurus clear",

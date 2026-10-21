@@ -80,7 +80,7 @@ The app's webview waits for a redirect to `/response/{paystack|flutterwave}/succ
 ## Building the apps
 
 **The Android build fails with a google-services error.**
-`build.gradle.kts` applies the `com.google.gms.google-services` and Crashlytics plugins, and the repo does not include `android/app/google-services.json`. Add your own file from Firebase. On iOS, `project.pbxproj` expects `ios/Runner/GoogleService-Info.plist`.
+`build.gradle.kts` applies the `com.google.gms.google-services` and Crashlytics plugins. Each app already includes `android/app/google-services.json` for Firebase project `navigateed-d8c06`. The build fails if that file is missing, or if `applicationId` is no longer `tech.tokensoft.navigateed` / `tech.tokensoft.navigateed.teacher`. On iOS, `project.pbxproj` expects `ios/Runner/GoogleService-Info.plist`, which is committed for the same project.
 
 **The release build fails on signing.**
 The release build type always uses the signing config read from `android/key.properties`, which is gitignored. Create it from your keystore. See [Mobile App Configuration](Mobile-App-Configuration#android-release-signing).
