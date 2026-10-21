@@ -290,7 +290,7 @@ class _ExamTimeTableState extends State<ExamTimeTableScreen> {
                 child: Text(
                   UiUtils.getTranslatedLabel(context, examTimeTableKey),
                   style: TextStyle(
-                    color: Theme.of(context).colorScheme.onPrimary,
+                    color: Theme.of(context).colorScheme.onInverseSurface,
                     fontSize: UiUtils.screenTitleFontSize,
                   ),
                 ),
@@ -308,7 +308,7 @@ class _ExamTimeTableState extends State<ExamTimeTableScreen> {
                     maxLines: 1,
                     style: TextStyle(
                       fontSize: UiUtils.screenSubTitleFontSize,
-                      color: Theme.of(context).colorScheme.onPrimary,
+                      color: Theme.of(context).colorScheme.onInverseSurface,
                     ),
                   ),
                 ),

@@ -174,7 +174,7 @@ class _PdfFileScreenState extends State<PdfFileScreen> {
                       icon: Icon(
                         Icons.open_in_new_outlined,
                         size: 20,
-                        color: Theme.of(context).colorScheme.onPrimary,
+                        color: Theme.of(context).colorScheme.onInverseSurface,
                       ),
                       onPressed: () {
                         OpenFilex.open(widget.pdfFileMaterial.fileUrl);

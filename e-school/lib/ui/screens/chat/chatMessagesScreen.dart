@@ -141,7 +141,7 @@ class _ChatMessagesScreenState extends State<ChatMessagesScreen> {
                     overflow: TextOverflow.ellipsis,
                     textAlign: TextAlign.center,
                     style: TextStyle(
-                      color: Theme.of(context).colorScheme.onPrimary,
+                      color: Theme.of(context).colorScheme.onInverseSurface,
                       fontSize: UiUtils.screenTitleFontSize,
                     ),
                   ),
@@ -154,7 +154,7 @@ class _ChatMessagesScreenState extends State<ChatMessagesScreen> {
                     overflow: TextOverflow.ellipsis,
                     textAlign: TextAlign.center,
                     style: TextStyle(
-                      color: Theme.of(context).colorScheme.onPrimary,
+                      color: Theme.of(context).colorScheme.onInverseSurface,
                       fontSize: 12,
                     ),
                   ),
@@ -175,12 +175,12 @@ class _ChatMessagesScreenState extends State<ChatMessagesScreen> {
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
                 border: Border.all(
-                  color: Theme.of(context).colorScheme.onPrimary,
+                  color: Theme.of(context).colorScheme.onInverseSurface,
                 ),
               ),
               child: CustomUserProfileImageWidget(
                 profileUrl: widget.chatUser.profileUrl,
-                color: Theme.of(context).colorScheme.onPrimary,
+                color: Theme.of(context).colorScheme.onInverseSurface,
               ),
             ),
           ),

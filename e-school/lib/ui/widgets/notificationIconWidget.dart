@@ -3,8 +3,12 @@ import 'package:eschool/ui/screens/home/homeScreen.dart';
 import 'package:flutter/material.dart';
 
 class NotificationIconWidget extends StatelessWidget {
-  const NotificationIconWidget({super.key, this.size});
+  const NotificationIconWidget({super.key, this.size, this.color});
   final Size? size;
+
+  /// Defaults to the colour for content on a screen header, where this icon
+  /// is usually drawn.
+  final Color? color;
 
   @override
   Widget build(BuildContext context) {
@@ -23,7 +27,7 @@ class NotificationIconWidget extends StatelessWidget {
               },
               child: Icon(
                 Icons.notifications,
-                color: Theme.of(context).colorScheme.onPrimary,
+                color: color ?? Theme.of(context).colorScheme.onInverseSurface,
               ),
             ),
             if (value > 0)

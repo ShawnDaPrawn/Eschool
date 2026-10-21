@@ -121,7 +121,7 @@ class _ParentProfileContainerState extends State<ParentProfileContainer> {
             child: Text(
               UiUtils.getTranslatedLabel(context, parentProfileKey),
               style: TextStyle(
-                color: Theme.of(context).colorScheme.onPrimary,
+                color: Theme.of(context).colorScheme.onInverseSurface,
                 fontSize: UiUtils.screenTitleFontSize,
               ),
             ),
