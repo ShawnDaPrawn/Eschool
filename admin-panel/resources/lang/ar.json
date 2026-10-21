@@ -1376,5 +1376,6 @@
     "payment_history": "سجل المدفوعات",
     "installments_paid": "أقساط مدفوعة",
     "secure_billing_ledger": "سجل فواتير آمن",
-    "student_not_in_this_class_section": "هذا الطالب ليس في الشعبة المختارة لهذا العام."
+    "student_not_in_this_class_section": "هذا الطالب ليس في الشعبة المختارة لهذا العام.",
+    "currency_not_supported_by_razorpay": "لا يقبل Razorpay هذه العملة."
 }

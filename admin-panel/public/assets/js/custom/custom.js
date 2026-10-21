@@ -4750,7 +4750,8 @@ $(document).on("click", ".remove-optional-fees-paid", function (e) {
                 let id = $this.data("id");
                 let url = baseUrl + "/fees/paid/remove-choiceable-fees/" + id;
 
-                function successCallback() {
+                function successCallback(response) {
+                    showSuccessToast(response.message);
                     $("#table_list").bootstrapTable("refresh");
                     setTimeout(() => {
                         $("#optionalModal").modal("hide");

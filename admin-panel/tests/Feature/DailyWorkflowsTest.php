@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use App\Imports\AttendanceImport;
 use App\Imports\StudentsImport;
+use App\Models\FeesPaid;
 use App\Models\File;
 use App\Models\Lesson;
 use App\Models\Notification;
@@ -13,6 +14,7 @@ use App\Models\User;
 use App\Models\UserNotification;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Storage;
@@ -259,6 +261,37 @@ class DailyWorkflowsTest extends TestCase
 
         // The search was OR-ed with every other condition, so it listed other exams (and years).
         $this->assertSame(['Unit test'], collect($response->assertOk()->json('rows'))->pluck('exam_name')->unique()->values()->all());
+    }
+
+    public function test_a_fee_payment_that_fails_part_way_is_not_half_saved(): void
+    {
+        $id = $this->school->ids;
+        $transactions = DB::table('payment_transactions')->count();
+        Event::listen('eloquent.creating: '.FeesPaid::class, fn () => throw new \RuntimeException('Disk full'));
+
+        $this->actingAs($this->superAdmin())->postJson('/fees/compulsory-paid/store', [
+            'student_id' => $id['ben'], 'class_id' => $id['class_a'], 'session_year_id' => 1, 'date' => now()->format('d-m-Y'),
+            'mode' => 1, 'total_amount' => 1000, 'installment_mode' => 0,
+        ])->assertJson(['error' => true]);
+
+        // It rolled back a transaction it had never begun, leaving a payment with no paid row behind it.
+        $this->assertSame($transactions, DB::table('payment_transactions')->count());
+    }
+
+    public function test_an_enabled_payment_gateway_needs_a_currency_it_accepts(): void
+    {
+        $save = fn (array $razorpay) => $this->actingAs($this->superAdmin())->postJson('/fees-config/update', $razorpay + [
+            'stripe_status' => 0, 'paystack_status' => 0, 'flutterwave_status' => 0, 'currency_code' => 'ZAR', 'currency_symbol' => 'R',
+            'compulsory_fee_payment_mode' => 1, 'is_student_can_pay_fees' => 1,
+        ]);
+        $keys = ['razorpay_status' => 1, 'razorpay_secret_key' => 's', 'razorpay_api_key' => 'k', 'razorpay_webhook_secret' => 'w', 'razorpay_webhook_url' => 'https://example.com/hook'];
+
+        // Any text was accepted, and the parent app's payment then failed with "Oops! Error occurred".
+        $save($keys + ['razorpay_currency_code' => 'Rand'])->assertJson(['error' => true]);
+        $save($keys + ['razorpay_currency_code' => 'XYZ'])->assertJson(['error' => true, 'message' => trans('currency_not_supported_by_razorpay')]);
+        $save($keys + ['razorpay_currency_code' => 'zar'])->assertJson(['error' => false]);
+        // A gateway that is off doesn't hold up the rest of the page.
+        $save(['razorpay_status' => 0, 'razorpay_currency_code' => 'Test value'])->assertJson(['error' => false]);
     }
 
     public function test_deleting_a_lesson_removes_its_and_its_topics_stored_files(): void
