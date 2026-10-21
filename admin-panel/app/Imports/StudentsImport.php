@@ -11,12 +11,15 @@ use App\Models\Category;
 use App\Models\Students;
 use App\Models\SessionYear;
 use App\Models\ClassSection;
+use App\Models\EmailTempalate;
+use App\Models\StudentSessions;
+use App\Services\EmailTemplateService;
+use App\Services\MailService;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Spatie\Permission\Models\Role;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Validator;
 use Maatwebsite\Excel\Concerns\SkipsEmptyRows;
 use Maatwebsite\Excel\Concerns\ToCollection;
@@ -39,6 +42,8 @@ class StudentsImport extends DefaultValueBinder implements SkipsEmptyRows, ToCol
     ];
 
     public $class_section_id;
+
+    private ?string $registrationTemplate = null;
     /**
      * @param array $row
      *
@@ -312,6 +317,14 @@ class StudentsImport extends DefaultValueBinder implements SkipsEmptyRows, ToCol
                 $student->dynamic_fields = "";
                 $student->save();
 
+                // This year's enrolment, as Add Student creates. Without it the student can't
+                // use the app and is left out of marks, fees and promotion.
+                StudentSessions::create([
+                    'student_id' => $student->id,
+                    'session_year_id' => $data['session_year'],
+                    'class_section_id' => $this->class_section_id,
+                ]);
+
                 //Send User Credentials via Email
                 $settings = getSettings();
                 $school_name = $settings['school_name'];
@@ -340,9 +353,7 @@ class StudentsImport extends DefaultValueBinder implements SkipsEmptyRows, ToCol
                         'school_email' => $school_email,
                         'school_contact' => $school_contact
                     ];
-                    Mail::send('students.email', $father_data, function ($message) use ($father_data) {
-                        $message->to($father_data['email'])->subject($father_data['subject']);
-                    });
+                    $this->sendWelcomeEmail($father_data);
                 } elseif ($row['parents'] == "yes") {
                     Log::warning('Skipped father email - no address available', [
                         'admission_no' => $admission_no,
@@ -366,9 +377,7 @@ class StudentsImport extends DefaultValueBinder implements SkipsEmptyRows, ToCol
                         'school_email' => $school_email,
                         'school_contact' => $school_contact
                     ];
-                    Mail::send('students.email', $mother_data, function ($message) use ($mother_data) {
-                        $message->to($mother_data['email'])->subject($mother_data['subject']);
-                    });
+                    $this->sendWelcomeEmail($mother_data);
                 } elseif ($row['parents'] == "yes") {
                     Log::warning('Skipped mother email - no address available', [
                         'admission_no' => $admission_no,
@@ -392,9 +401,7 @@ class StudentsImport extends DefaultValueBinder implements SkipsEmptyRows, ToCol
                         'school_email' => $school_email,
                         'school_contact' => $school_contact
                     ];
-                    Mail::send('students.email', $guardian_data, function ($message) use ($guardian_data) {
-                        $message->to($guardian_data['email'])->subject($guardian_data['subject']);
-                    });
+                    $this->sendWelcomeEmail($guardian_data);
                 } elseif ($row['guardian'] == "yes") {
                     Log::warning('Skipped guardian email - no address available', [
                         'admission_no' => $admission_no,
@@ -407,6 +414,21 @@ class StudentsImport extends DefaultValueBinder implements SkipsEmptyRows, ToCol
             DB::rollBack();
             throw $e;
         }
+    }
+
+    /**
+     * Sends a parent their login and their child's through the school's
+     * student_registration template: students.email only prints $body.
+     * A failed send is logged and doesn't undo the import.
+     */
+    private function sendWelcomeEmail(array $data): void
+    {
+        $this->registrationTemplate ??= (string) EmailTempalate::where('type', 'student_registration')->value('content');
+        $data['body'] = EmailTemplateService::render($this->registrationTemplate, $data);
+
+        MailService::sendWithFallback('students.email', $data, function ($message) use ($data) {
+            $message->to($data['email'])->subject($data['subject']);
+        });
     }
 
     /**

@@ -2,19 +2,25 @@
 
 namespace Tests\Feature;
 
+use App\Imports\StudentsImport;
 use App\Models\File;
 use App\Models\Lesson;
 use App\Models\Notification;
+use App\Models\Students;
+use App\Models\StudentSessions;
 use App\Models\User;
 use App\Models\UserNotification;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Storage;
+use Maatwebsite\Excel\Facades\Excel;
 use Tests\Concerns\RunsAppServer;
 use Tests\Support\DemoSchool;
 use Tests\TestCase;
 
 /**
- * Day-to-day admin panel work (attendance, fees), as found by driving the
+ * Day-to-day admin panel work (attendance, fees, imports), as found by driving the
  * panel in a browser. Requested in-process (these pages don't exit()), on a
  * DemoSchool built once per class: its ids assume a freshly migrated database.
  */
@@ -95,6 +101,28 @@ class DailyWorkflowsTest extends TestCase
         $this->assertCount(1, $alerts, 'Ben once, not again when the day is saved again');
         $this->assertSame(2, (int) $alerts[0]->send_to, 'Only his guardian, not every parent');
         $this->assertSame([$id['gina_user']], UserNotification::where('notification_id', $alerts[0]->id)->pluck('user_id')->all());
+    }
+
+    public function test_the_downloaded_student_sample_imports_students_who_can_use_the_app(): void
+    {
+        $csv = $this->actingAs($this->superAdmin())->get('/students/download-sample')->assertOk()->streamedContent();
+        $path = tempnam(sys_get_temp_dir(), 'students');
+        file_put_contents($path, $csv);
+
+        // The welcome email rendered a template that only prints $body, so every import rolled back.
+        Excel::import(new StudentsImport($this->school->ids['section_a']), new UploadedFile($path, 'students.csv', 'text/csv', null, true));
+        unlink($path);
+
+        $imported = Students::whereHas('user', fn ($q) => $q->whereIn('last_name', ['Naidoo', 'Mokoena']))->pluck('id');
+        $this->assertCount(2, $imported);
+        // Imported students had no enrolment for the year, so the app turned them away.
+        $this->assertSame(2, StudentSessions::whereIn('student_id', $imported)
+            ->where(['session_year_id' => 1, 'class_section_id' => $this->school->ids['section_a'], 'status' => 1])->count());
+
+        $sent = collect(Mail::mailer()->getSymfonyTransport()->messages())->map(fn ($m) => $m->getOriginalMessage());
+        $this->assertSame(['ravi.naidoo@example.com', 'priya.naidoo@example.com', 'lerato.mokoena@example.com'],
+            $sent->map(fn ($m) => $m->getTo()[0]->getAddress())->all());
+        $this->assertStringContainsString('Thabo Mokoena', $sent->last()->getHtmlBody());
     }
 
     public function test_deleting_a_lesson_removes_its_and_its_topics_stored_files(): void
