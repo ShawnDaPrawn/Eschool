@@ -153,7 +153,7 @@ Route-level usage, in short (details in [Security-Model](Security-Model) and [AP
 
 | Folder | Contents |
 |---|---|
-| `app/Http/Controllers` | Controllers for the admin panel and public site, one per module (the larger modules are split into one controller per area in a sub-folder, like `Student/` and `Fees/`; others are `ExamController`, `SettingController`, `SystemUpdateController`, `WebController` for the public website, `WebhookController` for payment gateways, and so on). The base `Controller` also serves `GET /common/js/lang`, which returns `window.languageLabels = {...}` from `resources/lang/<code>.json` (falling back to `en.json`). See [Admin-Modules](Admin-Modules). |
+| `app/Http/Controllers` | Controllers for the admin panel and public site, one per module (the larger modules are split into one controller per area in a sub-folder, like `Student/`, `Fees/` and `Exam/`; others are `SettingController`, `SystemUpdateController`, `WebController` for the public website, `WebhookController` for payment gateways, and so on). The base `Controller` also serves `GET /common/js/lang`, which returns `window.languageLabels = {...}` from `resources/lang/<code>.json` (falling back to `en.json`). See [Admin-Modules](Admin-Modules). |
 | `app/Http/Controllers/Api` | `ApiController` (shared endpoints: settings, holidays, sliders, session years, events, gallery, forgot/change password, logout), the `Student/`, `Parent/` and `Teacher/` controllers (one per area, each role sharing an access trait). See [API-Overview](API-Overview). |
 | `app/Http/Controllers/Auth` | laravel/ui controllers using the framework's `AuthenticatesUsers` and related traits. `LoginController::authenticated()` signs out users with the `Parent` or `Student` role, because those roles may only use the apps. There is no register route. |
 | `app/Http/Middleware` | See the table above. |
@@ -279,7 +279,7 @@ The project id comes from the `project_id` setting. Pushes are sent synchronousl
 
 ## ResponseService conventions
 
-[app/Services/ResponseService.php](https://github.com/ShawnDaPrawn/Eschool/blob/main/admin-panel/app/Services/ResponseService.php) is used by the API controllers and by `ClassSchoolController`, `ExamController`, the `Student\` controllers, `SubjectController`, `StaffController`, `HomeController` and `OnlineExamQuestionController`.
+[app/Services/ResponseService.php](https://github.com/ShawnDaPrawn/Eschool/blob/main/admin-panel/app/Services/ResponseService.php) is used by the API controllers and by `ClassSchoolController`, the `Exam\` and `Student\` controllers, `SubjectController`, `StaffController`, `HomeController` and `OnlineExamQuestionController`.
 
 | Method | Output |
 |---|---|

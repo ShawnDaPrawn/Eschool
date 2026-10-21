@@ -9,7 +9,7 @@ use App\Http\Controllers\ClassTeacherController;
 use App\Http\Controllers\Controller;
 use App\Http\Controllers\EmailController;
 use App\Http\Controllers\EventController;
-use App\Http\Controllers\ExamController;
+use App\Http\Controllers\Exam;
 use App\Http\Controllers\ExamTimetableController;
 use App\Http\Controllers\Fees;
 use App\Http\Controllers\FormFieldController;
@@ -265,36 +265,36 @@ Route::group(['middleware' => ['Role', 'auth']], function () {
 
         Route::resource('sliders', SliderController::class)->except(['create', 'edit']);
 
-        Route::get('exams/exam-result', [ExamController::class, 'getExamResultIndex'])->name('exams.get-result');
-        Route::post('exams/fetch-exam-result-list', [ExamController::class, 'fetchExamResultList'])->name('exams.fetch-exam-result-list');
-        Route::get('exams/show-result', [ExamController::class, 'showExamResult'])->name('exams.show-result');
-        Route::get('exams/class-options', [ExamController::class, 'getClassOptionsForSession'])->name('exams.class-options');
+        Route::get('exams/exam-result', [Exam\ResultController::class, 'getExamResultIndex'])->name('exams.get-result');
+        Route::post('exams/fetch-exam-result-list', [Exam\ResultController::class, 'fetchExamResultList'])->name('exams.fetch-exam-result-list');
+        Route::get('exams/show-result', [Exam\ResultController::class, 'showExamResult'])->name('exams.show-result');
+        Route::get('exams/class-options', [Exam\ExamController::class, 'getClassOptionsForSession'])->name('exams.class-options');
 
-        Route::get('exams/view-result', [ExamController::class, 'viewExamResult'])->name('exams.view-result');
-        Route::post('exams/update-result-marks', [ExamController::class, 'updateExamResultMarks'])->name('exams.update-result-marks');
+        Route::get('exams/view-result', [Exam\ResultController::class, 'viewExamResult'])->name('exams.view-result');
+        Route::post('exams/update-result-marks', [Exam\MarksController::class, 'updateExamResultMarks'])->name('exams.update-result-marks');
 
-        Route::post('exams/submit-marks', [ExamController::class, 'submitMarks'])->name('exams.submit-marks');
+        Route::post('exams/submit-marks', [Exam\MarksController::class, 'submitMarks'])->name('exams.submit-marks');
 
-        Route::get('exams/upload-marks', [ExamController::class, 'uploadMarks'])->name('exams.upload-marks');
-        Route::get('exams/marks-list', [ExamController::class, 'marksList'])->name('exams.marks-list');
+        Route::get('exams/upload-marks', [Exam\MarksController::class, 'uploadMarks'])->name('exams.upload-marks');
+        Route::get('exams/marks-list', [Exam\MarksController::class, 'marksList'])->name('exams.marks-list');
 
-        Route::get('exams/get-exams/{class_id}', [ExamController::class, 'getExamByClass'])->name('exams.classes');
-        Route::delete('/delete-exam-class/{exam_id}/{class_id}', [ExamController::class, 'deleteExamClass']);
-        Route::get('exams/get-subjects/{class_id}/{exam_id}', [ExamController::class, 'getSubjectByExam'])->name('exams.subject');
-        Route::post('exams/publish/{id}', [ExamController::class, 'publishExamResult'])->name('exams.publish');
-        Route::get('exams/get-publish-exam/{class_id}', [ExamController::class, 'getPublishExam'])->name('exam.publish.list');
-        Route::resource('exams', ExamController::class)->except(['create', 'edit']);
+        Route::get('exams/get-exams/{class_id}', [Exam\ExamController::class, 'getExamByClass'])->name('exams.classes');
+        Route::delete('/delete-exam-class/{exam_id}/{class_id}', [Exam\ExamController::class, 'deleteExamClass']);
+        Route::get('exams/get-subjects/{class_id}/{exam_id}', [Exam\ExamController::class, 'getSubjectByExam'])->name('exams.subject');
+        Route::post('exams/publish/{id}', [Exam\PublishController::class, 'publishExamResult'])->name('exams.publish');
+        Route::get('exams/get-publish-exam/{class_id}', [Exam\PublishController::class, 'getPublishExam'])->name('exam.publish.list');
+        Route::resource('exams', Exam\ExamController::class)->except(['create', 'edit']);
 
         Route::post('exams/update-timetable', [ExamTimetableController::class, 'updateTimetable'])->name('exams.update-timetable');
         Route::delete('exams/delete-timetable/{id}', [ExamTimetableController::class, 'deleteTimetable'])->name('exams.delete-timetable');
-        Route::get('grades', [ExamController::class, 'indexGrades'])->name('grades');
-        Route::get('/grades/by-session-year/{sessionYear}', [ExamController::class, 'getGradesBySessionYear'])
+        Route::get('grades', [Exam\GradeController::class, 'indexGrades'])->name('grades');
+        Route::get('/grades/by-session-year/{sessionYear}', [Exam\GradeController::class, 'getGradesBySessionYear'])
             ->name('grades.bySessionYear');
 
-        Route::get('exams/get-exam-subjects/{exam_id}', [ExamController::class, 'getExamSubjects'])->name('exams.subjects');
+        Route::get('exams/get-exam-subjects/{exam_id}', [Exam\ExamController::class, 'getExamSubjects'])->name('exams.subjects');
 
-        Route::post('create-grades', [ExamController::class, 'createGrades'])->name('create-grades');
-        Route::delete('destroy-grades/{grade_id}', [ExamController::class, 'destroyGrades'])->name('destroy-grades');
+        Route::post('create-grades', [Exam\GradeController::class, 'createGrades'])->name('create-grades');
+        Route::delete('destroy-grades/{grade_id}', [Exam\GradeController::class, 'destroyGrades'])->name('destroy-grades');
 
         Route::resource('exam-timetable', ExamTimetableController::class);
         Route::get('exam/get-classes/{exam_id}', [ExamTimetableController::class, 'getClassesByExam'])->name('exam-timetable.classes');

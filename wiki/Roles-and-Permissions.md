@@ -100,13 +100,13 @@ Columns: **SA** = granted to Super Admin, **T** = granted to Teacher. "Checked i
 
 | Permission | SA | T | Checked in |
 |---|---|---|---|
-| `exam-create` | Yes | | Every offline-exam admin action in `ExamController`: create, list, update, delete, publish/unpublish results, remove an exam class |
+| `exam-create` | Yes | | Every offline-exam admin action in `Exam\ExamController` and `Exam\PublishController`: create, list, update, delete, publish/unpublish results, remove an exam class |
 | `exam-list`, `exam-edit`, `exam-delete` | Yes | | Not checked (all gated by `exam-create`) |
 | `exam-timetable-create` | Yes | | `ExamTimetableController` |
-| `grade-create` | Yes | | Grade bands (`ExamController::indexGrades`, `createGrades`, `destroyGrades`) |
-| `exam-upload-marks` | | Yes | Marks entry and correction (`ExamController`) |
-| `exam-result` | | Yes | Class-teacher result view (`ExamController::getExamResultIndex`, `showExamResult`) |
-| `view-exam-result` | Yes | Yes | Exam result list and per-exam result PDF (`ExamController::viewExamResult`, `fetchExamResultList`, `Student\ResultController::generateExamResult`) |
+| `grade-create` | Yes | | Grade bands (`Exam\GradeController::indexGrades`, `createGrades`, `destroyGrades`) |
+| `exam-upload-marks` | | Yes | Marks entry and correction (`Exam\MarksController`) |
+| `exam-result` | | Yes | Class-teacher result view (`Exam\ResultController::getExamResultIndex`, `showExamResult`) |
+| `view-exam-result` | Yes | Yes | Exam result list and per-exam result PDF (`Exam\ResultController::viewExamResult`, `fetchExamResultList`, `Student\ResultController::generateExamResult`) |
 | `generate-result` | Yes | Yes | Whole-year result PDF (`Student\ResultController::generateResult`) |
 | `manage-online-exam` | | Yes | Everything in `OnlineExamController` and `OnlineExamQuestionController` |
 
@@ -209,7 +209,7 @@ The API group also has the default `throttle:api` limiter: 60 requests a minute 
 Permissions say what kind of action a teacher may take; ownership rules say on which records.
 
 - **Teacher API** (`Teacher\Concerns\TeacherAccess` trait, used by the `Teacher\` controllers): `currentTeacher()` refuses a Teacher-role user with no `teachers` row (JSON error with `code` 403). `isClassTeacherOf($classSectionId)` and `teachesSubject($classSectionId, $subjectId, $semesterId)` check the current session year. `teacherClassSectionIds()` is the union of class-teacher and subject-teacher sections; `teachesStudent($studentId)` intersects it with the student's sections. Rules applied with them: student details, guardian contacts and result PDFs only for students the teacher teaches; attendance only as class teacher of that section; marks only as class teacher or subject teacher, for students in the section, within 0 and the paper's total, and not after the exam is published; student leave approval only as the student's class teacher and with `student-leave-approve`; lessons, topics, assignments, submissions and announcements through the model ownership scopes; files only when attached to the teacher's own lessons, topics, assignments, announcements or leaves (`canManageFile()`); live-class links only on the teacher's own periods; chat only with the teacher's students, their parents or people who already wrote to them (`canChatWith()`).
-- **Admin panel**: model scopes such as `Lesson::lessonTeachers`, `Assignment::assignmentTeachers`, `ClassSection::subjectTeacher` and `SubjectTeacher::subjectTeacher` (listed on [Database Schema](Database-Schema#scoping-summary)) narrow lists for Teacher-role users. `ExamController::teacherMarksClassSectionIds()` limits marks entry and correction to sections the teacher class-teaches or teaches the subject in, and existing marks rows can only be overwritten for the same timetable and student.
+- **Admin panel**: model scopes such as `Lesson::lessonTeachers`, `Assignment::assignmentTeachers`, `ClassSection::subjectTeacher` and `SubjectTeacher::subjectTeacher` (listed on [Database Schema](Database-Schema#scoping-summary)) narrow lists for Teacher-role users. `Exam\MarksController::teacherMarksClassSectionIds()` limits marks entry and correction to sections the teacher class-teaches or teaches the subject in, and existing marks rows can only be overwritten for the same timetable and student.
 - **Parent API**: every endpoint resolves the child through the parent's own children; fee receipts, payment status, failing a transaction and paying fees only work on the parent's own children's transactions; chat only with the child's teachers; online exam results and lesson topics are limited to the child's classes.
 
 ## Custom roles (RoleController)

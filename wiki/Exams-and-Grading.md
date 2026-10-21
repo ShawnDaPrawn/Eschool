@@ -11,7 +11,7 @@ This page explains the two exam systems in the admin panel: **offline exams** (p
 | Grades | `grades` bands per session year | None |
 | Pass/fail | Per paper (`passing_status`); per exam in reports | None |
 | Managed by | Super Admin (`exam-create`, `exam-timetable-create`, `grade-create`), teachers enter marks (`exam-upload-marks`) | Teachers (`manage-online-exam`) |
-| Controllers | `ExamController`, `ExamTimetableController`, teacher API | `OnlineExamController`, `OnlineExamQuestionController`, student API |
+| Controllers | `Exam\` controllers, `ExamTimetableController`, teacher API | `OnlineExamController`, `OnlineExamQuestionController`, student API |
 
 ## Offline exams
 
@@ -31,7 +31,7 @@ flowchart LR
 
 ### 1. Grade bands
 
-Grades are rows in `grades` (`starting_range`, `ending_range`, `grade`, `session_year_id`), managed by `ExamController::indexGrades`, `createGrades` and `destroyGrades` (permission `grade-create`). Validation: both ends numeric between 0 and 100, `ending_range` greater than `starting_range`, `session_year_id` required. Bands can be copied into a new session year with the `transfer_exam_grades` option when the year is created.
+Grades are rows in `grades` (`starting_range`, `ending_range`, `grade`, `session_year_id`), managed by `Exam\GradeController::indexGrades`, `createGrades` and `destroyGrades` (permission `grade-create`). Validation: both ends numeric between 0 and 100, `ending_range` greater than `starting_range`, `session_year_id` required. Bands can be copied into a new session year with the `transfer_exam_grades` option when the year is created.
 
 Lookups go through the `findExamGrade($session_year_id, $percentage)` helper in [`app/Helpers/settings_helper.php`](https://github.com/ShawnDaPrawn/Eschool/blob/main/admin-panel/app/Helpers/settings_helper.php):
 
@@ -47,7 +47,7 @@ It returns an empty string when the year has no bands and `null` when no band co
 
 ### 2. Creating the exam
 
-`ExamController::store` (permission `exam-create`) takes `name`, `description`, `session_year_id`, optional `semester_id` and `class_id[]`, creates the `exams` row (`publish = 0`) and one `exam_classes` row per class. `update` changes the name, description and semester and adds or removes exam classes; `destroy` soft-deletes the exam, and `Exam::booted()` cascades to its marks, timetables, results and exam classes. `deleteExamClass($exam_id, $class_id)` removes a single class.
+`Exam\ExamController::store` (permission `exam-create`) takes `name`, `description`, `session_year_id`, optional `semester_id` and `class_id[]`, creates the `exams` row (`publish = 0`) and one `exam_classes` row per class. `update` changes the name, description and semester and adds or removes exam classes; `destroy` soft-deletes the exam, and `Exam::booted()` cascades to its marks, timetables, results and exam classes. `deleteExamClass($exam_id, $class_id)` removes a single class.
 
 All offline-exam admin actions, including publishing, check `exam-create`; the seeded `exam-list`, `exam-edit` and `exam-delete` permissions are not used.
 
@@ -65,7 +65,7 @@ An exam's status for a class is derived from its timetable dates and is computed
 
 ### 4. Entering marks
 
-**Admin panel** (`ExamController`, permission `exam-upload-marks`; in practice the Teacher role):
+**Admin panel** (`Exam\MarksController`, permission `exam-upload-marks`; in practice the Teacher role):
 
 - `uploadMarks()` lists the class sections the logged-in teacher is class teacher of in the current session year.
 - `marksList()` refuses until the exam is **Completed** for that class. Students come from `student_sessions` for the section and the exam's session year. For an elective subject only students with a matching `student_subjects` row are listed.
@@ -84,7 +84,7 @@ The admin `submitMarks()` does not check whether the exam is already published; 
 
 ### 5. Publishing results
 
-`ExamController::publishExamResult($id)` (permission `exam-create`) toggles publication.
+`Exam\PublishController::publishExamResult($id)` (permission `exam-create`) toggles publication.
 
 To publish, all of these must hold:
 
@@ -113,8 +113,8 @@ All rows are bulk-inserted into `exam_results` and `exams.publish` becomes 1. Ca
 ### 6. Where results are shown
 
 - The student and parent apps read only `exam_results` (with the marks), so nothing is visible before publishing. `GET /api/student/get-exam-list` lists exams of the student's class that include the student's subjects, with the 0/1/2 status and an optional status filter.
-- `ExamController::viewExamResult` / `fetchExamResultList` (permission `view-exam-result`) list results for Super Admin (all sections) and for teachers (their class-teacher sections).
-- `ExamController::getExamResultIndex` / `showExamResult` (permission `exam-result`) are the class-teacher result screens; the requested section must be one of the teacher's class-teacher sections.
+- `Exam\ResultController::viewExamResult` / `fetchExamResultList` (permission `view-exam-result`) list results for Super Admin (all sections) and for teachers (their class-teacher sections).
+- `Exam\ResultController::getExamResultIndex` / `showExamResult` (permission `exam-result`) are the class-teacher result screens; the requested section must be one of the teacher's class-teacher sections.
 
 ### Pass and fail
 

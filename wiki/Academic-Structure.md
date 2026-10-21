@@ -40,7 +40,7 @@ $session_year_id = getSettings('session_year')['session_year'];
 
 `SessionYearController::update` also accepts a `default` flag. It refuses an already-ended year, clears `default` on all rows and sets it on the edited one, but it does **not** change the `session_year` setting. Use General Settings to switch the current year so the two stay in step.
 
-The admin panel also keeps a per-browser "viewing" year: `POST /set-session-year` (`SessionYearController::setSessionYearToSessionStorage`) stores `session('session_year')`. It is read by the dashboard (`HomeController`), by `ExamController::viewExamResult`, and by `ClassSchool::getIncludeSemestersAttribute()`; most list pages instead take a `session_year_id` filter from the request and fall back to the setting. The mobile apps always use the setting.
+The admin panel also keeps a per-browser "viewing" year: `POST /set-session-year` (`SessionYearController::setSessionYearToSessionStorage`) stores `session('session_year')`. It is read by the dashboard (`HomeController`), by `Exam\ResultController::viewExamResult`, and by `ClassSchool::getIncludeSemestersAttribute()`; most list pages instead take a `session_year_id` filter from the request and fall back to the setting. The mobile apps always use the setting.
 
 ### Creating a session year
 
