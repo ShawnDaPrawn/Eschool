@@ -1088,7 +1088,7 @@ input[type="radio"] {
     border-radius: var(--md-sys-shape-corner-extra-large);
     background: var(--md-sys-color-surface-container-high);
     box-shadow: var(--md-sys-elevation-level3);
-    color: var(--md-sys-color-on-surface-variant);
+    color: var(--md-sys-color-on-surface);
     font-family: var(--md-ref-typeface-plain);
 }
 
@@ -1130,7 +1130,8 @@ input[type="radio"] {
 .swal2-popup .swal2-html-container {
     margin: 0;
     padding: 0;
-    color: var(--md-sys-color-on-surface-variant);
+    /* on-surface: the muted grey is only 3.9:1 on surface-container-high. */
+    color: var(--md-sys-color-on-surface);
     font-size: var(--md-sys-typescale-body-medium-size);
     line-height: var(--md-sys-typescale-body-medium-line-height);
 }

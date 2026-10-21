@@ -22,12 +22,336 @@
     --primary-background-color: var(--md-sys-color-surface-container-low);
     /* Secondary text on the Dark Navy (inverse-surface) blocks. */
     --web-on-inverse-surface-variant: color-mix(in srgb, var(--md-sys-color-on-inverse-surface) 72%, var(--md-sys-color-inverse-surface));
+    /* Label colour for a filled inverse-primary button on navy: the dark
+       primary tone a dark-theme filled button uses (7.8:1 on inverse-primary). */
+    --web-on-inverse-primary: color-mix(in srgb, var(--md-sys-color-primary) 55%, var(--md-sys-color-on-surface));
+    /* Secondary text on surface-container-high (dialogs, the date picker):
+       on-surface-variant is only 3.9:1 there, so it is taken a little
+       darker to pass AA (4.8:1). */
+    --web-on-surface-variant-high: color-mix(in srgb, var(--md-sys-color-on-surface-variant) 88%, var(--md-sys-color-on-surface));
+
+    /* Material Symbols used as masks, so they paint in a token colour. */
+    --web-icon-expand-more: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M16.59 8.59 12 13.17 7.41 8.59 6 10l6 6 6-6z'/%3E%3C/svg%3E");
+    --web-icon-check: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 18 18'%3E%3Cpath d='M6.75 12.13 3.62 9l-1.06 1.06 4.19 4.19 9-9-1.06-1.06z'/%3E%3C/svg%3E");
+    --web-icon-calendar: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M20 3h-1V1h-2v2H7V1H5v2H4c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 18H4V10h16v11zm0-13H4V5h16v3z'/%3E%3C/svg%3E");
+    --web-icon-close: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z'/%3E%3C/svg%3E");
+    --web-icon-chevron-left: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M15.41 7.41 14 6l-6 6 6 6 1.41-1.41L10.83 12z'/%3E%3C/svg%3E");
+    --web-icon-chevron-right: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M10 6 8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z'/%3E%3C/svg%3E");
+    --web-icon-check-circle: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z'/%3E%3C/svg%3E");
+    --web-icon-error: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z'/%3E%3C/svg%3E");
+    --web-icon-warning: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M1 21h22L12 2 1 21zm12-3h-2v-2h2v2zm0-4h-2v-4h2v4z'/%3E%3C/svg%3E");
+    --web-icon-info: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z'/%3E%3C/svg%3E");
 }
 
 body {
     font-family: var(--md-ref-typeface-plain);
     background-color: var(--md-sys-color-surface);
     color: var(--md-sys-color-on-surface);
+}
+
+/*
+ * ===================================================================
+ * Material 3 components
+ * -------------------------------------------------------------------
+ * The site's components follow the apps' Flutter theme
+ * (packages/eschool_core/lib/src/theme/app_theme.dart): Material 3
+ * defaults, with a 10px corner (var(--app-radius)) on buttons, text
+ * fields and cards. State layers are the content colour at 8% (hover)
+ * or 10% (focus, pressed) over the container. Keyboard focus is a
+ * 3px secondary outline; Bootstrap's glow rings are switched off.
+ * ===================================================================
+ */
+
+/* Keyboard focus. Text fields show focus with their own border instead. */
+a:focus-visible,
+button:focus-visible,
+input[type="submit"]:focus-visible,
+input[type="button"]:focus-visible,
+[role="button"]:focus-visible,
+[tabindex]:focus-visible,
+.accordion-button:focus-visible {
+    outline: 3px solid var(--md-sys-color-secondary);
+    outline-offset: 2px;
+}
+
+/* No Bootstrap glow rings. */
+.btn:focus,
+.btn-check:focus + .btn,
+.btn-close:focus,
+.form-control:focus,
+.form-select:focus,
+.form-check-input:focus,
+.accordion-button:focus,
+.dropdown-item:focus {
+    box-shadow: none;
+}
+
+/* Native checkboxes and radios without custom markup. */
+input[type="checkbox"],
+input[type="radio"] {
+    accent-color: var(--md-sys-color-primary);
+}
+
+/* ── Buttons ──────────────────────────────────────────────────────────
+   Filled (main action): .commonBtn and the Login button.
+   40px high, 0 24px (16px on the side of an icon), 10px corners,
+   label-large, no uppercase, no shadow until hover. */
+.commonBtn {
+    box-sizing: border-box;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    height: 40px;
+    padding: 0 24px;
+    border: none;
+    border-radius: var(--app-radius);
+    background-color: var(--md-sys-color-primary);
+    color: var(--md-sys-color-on-primary);
+    font-family: var(--md-ref-typeface-plain);
+    font-size: var(--md-sys-typescale-label-large-size);
+    line-height: var(--md-sys-typescale-label-large-line-height);
+    font-weight: var(--md-sys-typescale-label-large-weight);
+    letter-spacing: var(--md-sys-typescale-label-large-tracking);
+    text-align: center;
+    text-transform: none;
+    white-space: nowrap;
+    vertical-align: middle;
+    box-shadow: none;
+    cursor: pointer;
+    margin-top: 12px;
+    transition: background-color 0.2s, box-shadow 0.2s;
+}
+
+/* The site's global `a` rule sets on-surface with !important. */
+a.commonBtn,
+a.commonBtn:hover,
+a.commonBtn:focus {
+    color: var(--md-sys-color-on-primary) !important;
+}
+
+.commonBtn:has(> i:last-child),
+.commonBtn:has(> span:last-child > i) {
+    padding-inline-end: 16px;
+}
+
+.commonBtn i {
+    font-size: 18px;
+    line-height: 1;
+    margin: 0;
+}
+
+.commonBtn > span {
+    display: inline-flex;
+}
+
+[dir="rtl"] .commonBtn:not(.prev):not(.next) .fa-arrow-right,
+[dir="rtl"] .commonBtn .fa-circle-chevron-right {
+    transform: scaleX(-1);
+}
+
+.commonBtn:hover {
+    background-color: color-mix(in srgb, var(--md-sys-color-on-primary) var(--md-sys-state-hover-opacity), var(--md-sys-color-primary));
+    box-shadow: var(--md-sys-elevation-level1);
+}
+
+.commonBtn:focus-visible {
+    background-color: color-mix(in srgb, var(--md-sys-color-on-primary) var(--md-sys-state-focus-opacity), var(--md-sys-color-primary));
+}
+
+.commonBtn:active {
+    background-color: color-mix(in srgb, var(--md-sys-color-on-primary) var(--md-sys-state-pressed-opacity), var(--md-sys-color-primary));
+    box-shadow: none;
+}
+
+.commonBtn:disabled,
+.commonBtn[disabled] {
+    background-color: color-mix(in srgb, var(--md-sys-color-on-surface) var(--md-sys-state-disabled-container-opacity), transparent);
+    color: color-mix(in srgb, var(--md-sys-color-on-surface) var(--md-sys-state-disabled-content-opacity), transparent);
+    box-shadow: none;
+    cursor: default;
+}
+
+/* Tonal (secondary emphasis): the Upload button beside a file field. */
+.btn-theme {
+    box-sizing: border-box;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    height: 40px;
+    padding: 0 24px;
+    border: none;
+    border-radius: var(--app-radius);
+    background-color: var(--md-sys-color-secondary-container);
+    color: var(--md-sys-color-on-secondary-container);
+    font-family: var(--md-ref-typeface-plain);
+    font-size: var(--md-sys-typescale-label-large-size);
+    line-height: var(--md-sys-typescale-label-large-line-height);
+    font-weight: var(--md-sys-typescale-label-large-weight);
+    letter-spacing: var(--md-sys-typescale-label-large-tracking);
+    box-shadow: none;
+    transition: background-color 0.2s, box-shadow 0.2s;
+}
+
+.btn-theme:hover {
+    color: var(--md-sys-color-on-secondary-container);
+    background-color: color-mix(in srgb, var(--md-sys-color-on-secondary-container) var(--md-sys-state-hover-opacity), var(--md-sys-color-secondary-container));
+    box-shadow: var(--md-sys-elevation-level1);
+}
+
+.btn-theme:focus,
+.btn-theme:focus-visible,
+.btn-theme:active {
+    color: var(--md-sys-color-on-secondary-container);
+    background-color: color-mix(in srgb, var(--md-sys-color-on-secondary-container) var(--md-sys-state-focus-opacity), var(--md-sys-color-secondary-container));
+    box-shadow: none;
+}
+
+.btn-theme:disabled {
+    background-color: color-mix(in srgb, var(--md-sys-color-on-surface) var(--md-sys-state-disabled-container-opacity), transparent);
+    color: color-mix(in srgb, var(--md-sys-color-on-surface) var(--md-sys-state-disabled-content-opacity), transparent);
+    opacity: 1;
+}
+
+/* Text button (low emphasis): "View details" on the event cards. */
+.eventReadMoreBtn {
+    box-sizing: border-box;
+    display: inline-flex;
+    align-items: center;
+    min-height: 40px;
+    padding: 10px 12px;
+    margin-inline-start: -12px;
+    border: none;
+    border-radius: var(--app-radius);
+    background-color: transparent;
+    color: var(--md-sys-color-primary);
+    font-family: var(--md-ref-typeface-plain);
+    font-size: var(--md-sys-typescale-label-large-size);
+    line-height: var(--md-sys-typescale-label-large-line-height);
+    font-weight: var(--md-sys-typescale-label-large-weight);
+    letter-spacing: var(--md-sys-typescale-label-large-tracking);
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.eventReadMoreBtn:hover {
+    background-color: color-mix(in srgb, var(--md-sys-color-primary) var(--md-sys-state-hover-opacity), transparent);
+}
+
+.eventReadMoreBtn:focus-visible,
+.eventReadMoreBtn:active {
+    background-color: color-mix(in srgb, var(--md-sys-color-primary) var(--md-sys-state-focus-opacity), transparent);
+}
+
+/* ── Icon buttons ─────────────────────────────────────────────────────
+   40px circle, 20px icon, on-surface-variant, with a state layer of the
+   icon colour. */
+.modal .close,
+.offcanvas .btn-close {
+    box-sizing: border-box;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    width: 40px;
+    height: 40px;
+    padding: 0;
+    margin: 0;
+    border: none;
+    border-radius: var(--md-sys-shape-corner-full);
+    background: transparent;
+    color: var(--md-sys-color-on-surface-variant);
+    font-size: 20px;
+    line-height: 1;
+    opacity: 1;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.modal .close:hover,
+.offcanvas .btn-close:hover {
+    background-color: color-mix(in srgb, var(--md-sys-color-on-surface-variant) var(--md-sys-state-hover-opacity), transparent);
+    color: var(--md-sys-color-on-surface-variant);
+    opacity: 1;
+}
+
+.modal .close:focus-visible,
+.modal .close:active,
+.offcanvas .btn-close:focus-visible,
+.offcanvas .btn-close:active {
+    background-color: color-mix(in srgb, var(--md-sys-color-on-surface-variant) var(--md-sys-state-focus-opacity), transparent);
+    opacity: 1;
+}
+
+/* Bootstrap draws the drawer's close (×) as a dark SVG; draw it as a
+   masked icon in the token colour instead. !important: the button also
+   carries Bootstrap's .text-reset. */
+.offcanvas .btn-close {
+    color: var(--md-sys-color-on-surface-variant) !important;
+}
+
+.offcanvas .btn-close::before {
+    content: "";
+    width: 20px;
+    height: 20px;
+    background-color: currentColor;
+    -webkit-mask: var(--web-icon-close) center / contain no-repeat;
+    mask: var(--web-icon-close) center / contain no-repeat;
+}
+
+/* ── Chips ────────────────────────────────────────────────────────────
+   32px, 8px corners, label-large. The eyebrow tags above section titles
+   and the date chips keep the light primary tint (a selected chip). */
+.commonTag {
+    box-sizing: border-box;
+    display: inline-flex;
+    align-items: center;
+    width: max-content;
+    max-width: 100%;
+    min-height: 32px;
+    padding: 6px 16px;
+    border-radius: var(--md-sys-shape-corner-small);
+    background-color: var(--text--primary-color);
+    color: var(--md-sys-color-primary);
+    font-size: var(--md-sys-typescale-label-large-size);
+    line-height: var(--md-sys-typescale-label-large-line-height);
+    font-weight: var(--md-sys-typescale-label-large-weight);
+    letter-spacing: var(--md-sys-typescale-label-large-tracking);
+}
+
+/* Date chip, with a leading calendar icon. */
+.eventDate {
+    box-sizing: border-box;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    width: max-content;
+    max-width: 100%;
+    min-height: 32px;
+    padding-block: 6px;
+    padding-inline: 8px 16px;
+    border-radius: var(--md-sys-shape-corner-small);
+    background-color: var(--text--primary-color);
+    color: var(--md-sys-color-primary);
+    font-size: var(--md-sys-typescale-label-large-size);
+    line-height: var(--md-sys-typescale-label-large-line-height);
+    font-weight: var(--md-sys-typescale-label-large-weight);
+    letter-spacing: var(--md-sys-typescale-label-large-tracking);
+}
+
+.eventDate::before {
+    content: "";
+    flex-shrink: 0;
+    width: 18px;
+    height: 18px;
+    background-color: currentColor;
+    -webkit-mask: var(--web-icon-calendar) center / contain no-repeat;
+    mask: var(--web-icon-calendar) center / contain no-repeat;
+}
+
+.eventDate:empty {
+    display: none;
 }
 
 body.modal-open {
@@ -63,8 +387,8 @@ a {
 }
 
 .topHeader .leftDiv span:first-child {
-    border-right: 1px solid var(--md-sys-color-outline-variant);
-    padding-right: 12px;
+    border-inline-end: 1px solid var(--md-sys-color-outline-variant);
+    padding-inline-end: 12px;
 }
 
 .topHeader .leftDiv span i {
@@ -99,8 +423,8 @@ a {
     }
 
     .topHeader .leftDiv span:first-child {
-        border-right: 0px solid var(--md-sys-color-outline-variant);
-        padding-right: 0px;
+        border-inline-end: 0px solid var(--md-sys-color-outline-variant);
+        padding-inline-end: 0px;
     }
 }
 
@@ -141,7 +465,7 @@ a {
     align-items: center;
     justify-content: end;
     padding: 0px;
-    gap: 20px;
+    gap: 4px;
     margin: 0px;
 }
 
@@ -150,50 +474,132 @@ a {
     cursor: pointer;
 }
 
-.navbar ul li a {
-    font-size: 16px;
-    font-weight: 500;
+/*
+ * Navigation items are text-button targets: 40px high, 0 12px, 10px
+ * corners, label-large. They turn purple on hover (actions are purple)
+ * with a primary state layer. The colours need !important to beat the
+ * site's global `a` rule.
+ */
+.navbar .listItems > li > a,
+.navbar .dropdown-toggle,
+.navbar .language-toggle {
+    box-sizing: border-box;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    height: 40px;
+    margin: 0;
+    padding: 0 12px;
+    border: none;
+    border-radius: var(--app-radius);
+    background-color: transparent !important;
     color: var(--md-sys-color-on-surface) !important;
-    background-color: var(--md-sys-color-surface) !important;
+    font-family: var(--md-ref-typeface-plain);
+    font-size: var(--md-sys-typescale-label-large-size);
+    line-height: var(--md-sys-typescale-label-large-line-height);
+    font-weight: var(--md-sys-typescale-label-large-weight);
+    letter-spacing: var(--md-sys-typescale-label-large-tracking);
     text-decoration: none;
+    box-shadow: none;
+    transition: background-color 0.2s, color 0.2s;
 }
 
-/* Links and the menu toggle turn purple on hover (actions are purple). */
-.navbar ul li a:hover,
-.navbar .dropdown-toggle:hover {
+.navbar .listItems > li > a:hover,
+.navbar .dropdown-toggle:hover,
+.navbar .language-toggle:hover {
     color: var(--md-sys-color-primary) !important;
-}
-
-.navbar .dropdown-menu .dropdown-item:hover,
-.navbar .dropdown-menu .dropdown-item:focus {
     background-color: color-mix(in srgb, var(--md-sys-color-primary) var(--md-sys-state-hover-opacity), transparent) !important;
 }
 
-.navbar .dropdown-menu.show {
-    padding: 0px;
-    margin-top: 12px;
-}
-
-.navbar .dropdown-toggle {
-    background-color: transparent !important;
-    border: none;
-    color: var(--md-sys-color-on-surface) !important;
-    margin: 0;
-    padding: 0;
-    font-size: 16px;
-    font-weight: 500;
-    color: var(--md-sys-color-on-surface);
-}
-
-.navbar .dropdown-toggle:focus {
-    background-color: transparent !important;
-    border: none;
+/* A menu's button stays in its pressed state while the menu is open. */
+.navbar .listItems > li > a:focus-visible,
+.navbar .dropdown-toggle:focus-visible,
+.navbar .dropdown-toggle.show,
+.navbar .language-toggle:focus-visible,
+.navbar .language-toggle.show {
+    color: var(--md-sys-color-primary) !important;
+    background-color: color-mix(in srgb, var(--md-sys-color-primary) var(--md-sys-state-focus-opacity), transparent) !important;
     box-shadow: none;
 }
 
-.navbar hr {
-    margin: 0px !important;
+/* Bootstrap's caret, as M3's arrow_drop_down. */
+.navbar .dropdown-toggle::after {
+    margin: 0;
+    transition: transform 0.2s;
+}
+
+.navbar .dropdown-toggle.show::after {
+    transform: rotate(180deg);
+}
+
+/* The Login button: a filled button, not pushed off-centre by its mb-3. */
+.navbar .listItems .commonBtn {
+    margin: 0 !important;
+    margin-inline-start: 8px !important;
+}
+
+/* ── Menus ────────────────────────────────────────────────────────────
+   The Gallery and language menus: surface-container, 4px corners,
+   elevation 2, 8px vertical padding; 48px items in label-large with an
+   on-surface state layer; the selected item is secondary-container. */
+.navbar .dropdown-menu {
+    min-width: 112px;
+    max-width: 280px;
+    margin-top: 4px;
+    padding: 8px 0;
+    border: none;
+    border-radius: var(--md-sys-shape-corner-extra-small);
+    background-color: var(--md-sys-color-surface-container);
+    box-shadow: var(--md-sys-elevation-level2);
+}
+
+.navbar .dropdown-menu .dropdown-item {
+    box-sizing: border-box;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    min-height: 48px;
+    padding: 0 12px;
+    background-color: transparent !important;
+    color: var(--md-sys-color-on-surface) !important;
+    font-family: var(--md-ref-typeface-plain);
+    font-size: var(--md-sys-typescale-label-large-size);
+    line-height: var(--md-sys-typescale-label-large-line-height);
+    font-weight: var(--md-sys-typescale-label-large-weight);
+    letter-spacing: var(--md-sys-typescale-label-large-tracking);
+    white-space: nowrap;
+    transition: background-color 0.15s;
+}
+
+.navbar .dropdown-menu .dropdown-item:hover {
+    background-color: color-mix(in srgb, var(--md-sys-color-on-surface) var(--md-sys-state-hover-opacity), transparent) !important;
+    color: var(--md-sys-color-on-surface) !important;
+}
+
+.navbar .dropdown-menu .dropdown-item:focus,
+.navbar .dropdown-menu .dropdown-item:active {
+    background-color: color-mix(in srgb, var(--md-sys-color-on-surface) var(--md-sys-state-focus-opacity), transparent) !important;
+    color: var(--md-sys-color-on-surface) !important;
+}
+
+.navbar .dropdown-menu .dropdown-item:focus-visible {
+    outline-offset: -3px;
+}
+
+.navbar .dropdown-menu .dropdown-item.active,
+.navbar .dropdown-menu .dropdown-item.active:hover {
+    background-color: var(--md-sys-color-secondary-container) !important;
+    color: var(--md-sys-color-on-secondary-container) !important;
+}
+
+/* Menu divider. */
+.navbar .dropdown-menu hr {
+    height: 1px;
+    margin: 8px 0 !important;
     padding: 0;
+    border: 0;
+    background-color: var(--md-sys-color-outline-variant);
+    opacity: 1;
 }
 
 .navbar .hamburg {
@@ -201,12 +607,134 @@ a {
     font-size: 30px;
 }
 
+/* The menu (hamburger) button: a standard icon button. */
+.navbar .hamburg button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    padding: 0;
+    border: none;
+    border-radius: var(--md-sys-shape-corner-full);
+    background-color: transparent;
+    color: var(--md-sys-color-on-surface-variant);
+    transition: background-color 0.2s;
+}
+
+.navbar .hamburg button:hover {
+    background-color: color-mix(in srgb, var(--md-sys-color-on-surface-variant) var(--md-sys-state-hover-opacity), transparent);
+}
+
+.navbar .hamburg button:focus-visible,
+.navbar .hamburg button:active {
+    background-color: color-mix(in srgb, var(--md-sys-color-on-surface-variant) var(--md-sys-state-focus-opacity), transparent);
+}
+
 .navbar .hamburg i {
     font-size: 22px;
 }
 
+/* ── Navigation drawer (the phone menu) ───────────────────────────────
+   surface-container-low, 16px corners on the open edge, elevation 1;
+   56px pill-shaped items in label-large. */
 .offcanvas {
     width: 70% !important;
+    max-width: 360px;
+    border: none !important;
+    border-top-left-radius: var(--md-sys-shape-corner-large);
+    border-bottom-left-radius: var(--md-sys-shape-corner-large);
+    background-color: var(--md-sys-color-surface-container-low);
+    box-shadow: var(--md-sys-elevation-level1);
+}
+
+.offcanvas-backdrop.show {
+    background-color: var(--md-sys-color-scrim);
+    opacity: 0.32;
+}
+
+.offcanvas .offcanvas-header {
+    padding-block: 16px 8px;
+    padding-inline: 28px 12px;
+}
+
+.offcanvas .offcanvas-body {
+    padding: 0 12px 16px;
+}
+
+.navbar .offcanvas .listItems {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0;
+    margin: 0;
+}
+
+.navbar .offcanvas .listItems li {
+    margin: 0;
+}
+
+.navbar .offcanvas .listItems > li > a,
+.navbar .offcanvas .dropdown-toggle,
+.navbar .offcanvas .language-toggle {
+    width: 100%;
+    height: 56px;
+    padding: 0 16px;
+    border-radius: var(--md-sys-shape-corner-full);
+    color: var(--md-sys-color-on-surface-variant) !important;
+}
+
+.navbar .offcanvas .listItems > li > a:hover,
+.navbar .offcanvas .dropdown-toggle:hover,
+.navbar .offcanvas .dropdown-toggle.show,
+.navbar .offcanvas .language-toggle:hover,
+.navbar .offcanvas .language-toggle.show {
+    color: var(--md-sys-color-primary) !important;
+}
+
+.navbar .offcanvas .dropdown-toggle::after {
+    margin-inline-start: auto;
+}
+
+/* In the drawer a menu opens in place, as indented drawer items. */
+.navbar .offcanvas .dropdown-menu {
+    position: static;
+    float: none;
+    min-width: 0;
+    max-width: none;
+    margin: 0;
+    padding: 0;
+    border-radius: 0;
+    background-color: transparent;
+    box-shadow: none;
+}
+
+.navbar .offcanvas .dropdown-menu .dropdown-item {
+    min-height: 48px;
+    padding-block: 0;
+    padding-inline: 40px 16px;
+    border-radius: var(--md-sys-shape-corner-full);
+    color: var(--md-sys-color-on-surface-variant) !important;
+}
+
+.navbar .offcanvas .dropdown-menu .dropdown-item.active {
+    color: var(--md-sys-color-on-secondary-container) !important;
+}
+
+.navbar .offcanvas .dropdown-menu hr {
+    display: none;
+}
+
+.navbar .offcanvas .nav-language-switcher > .dropdown {
+    flex: 1 1 auto;
+}
+
+.navbar .offcanvas .language-toggle .fa-chevron-down {
+    margin-inline-start: auto;
+}
+
+.navbar .offcanvas .listItems .commonBtn {
+    margin: 16px 16px 0 !important;
 }
 
 /* navbar end here  */
@@ -284,11 +812,6 @@ a {
     margin-top: 96px;
 }
 
-.heroSection .owl-nav button:hover {
-    background-color: var(--md-sys-color-primary) !important;
-    color: var(--md-sys-color-on-primary) !important;
-}
-
 /* Responsive breakpoints for hero carousel */
 @media screen and (max-width: 1200px) {
     .heroSection {
@@ -353,16 +876,6 @@ a {
     padding: 0px 386px;
 }
 
-/* Eyebrow label above section titles: a light primary-tint pill. */
-.commonTag {
-    background-color: var(--text--primary-color);
-    color: var(--md-sys-color-primary);
-    padding: 6px 16px;
-    border-radius: var(--md-sys-shape-corner-full);
-    font-weight: 500;
-    width: max-content;
-}
-
 .commonTitle {
     font-size: 40px;
     font-weight: 700;
@@ -383,11 +896,6 @@ a {
         margin-top: 30px;
     } */
 
-    .commonTag {
-        font-size: 14px;
-        padding: 4px 12px;
-    }
-
     .commonTitle {
         font-size: 24px;
     }
@@ -401,36 +909,6 @@ a {
     font-size: 16px;
     font-weight: 500;
     color: var(--text--secondary-color);
-}
-
-.commonBtn {
-    background-color: var(--primary-color);
-    color: var(--text-white-color);
-    padding: 4px 10px;
-    border: none;
-    border-radius: var(--app-radius);
-    text-align: center;
-    font-size: 20px;
-    font-weight: 400;
-    margin-top: 12px;
-    transition: background-color 0.3s;
-}
-
-.commonBtn:hover {
-    background-color: var(--primary-hover-color);
-}
-
-.commonBtn i {
-    margin-left: 6px;
-}
-
-.commonBtn a {
-    text-decoration: none;
-    color: var(--text-white-color) !important;
-}
-
-.commonBtn a:hover {
-    color: var(--text-white-color);
 }
 
 /* aboutUS ends here  */
@@ -448,15 +926,17 @@ a {
 .programs .programsCardWrapper .card {
     background-color: var(--md-sys-color-surface-container-lowest);
     border: 1px solid var(--md-sys-color-outline-variant);
-    border-radius: var(--md-sys-shape-corner-medium);
+    border-radius: var(--app-radius);
+    box-shadow: none;
     overflow: hidden;
     position: relative;
     z-index: 1;
     margin: 12px 0px;
 }
 
+/* The image runs to the card's edges. */
 .programs .programsCardWrapper .card img {
-    border-radius: var(--md-sys-shape-corner-medium) var(--md-sys-shape-corner-medium) 0px 0px;
+    border-radius: 0;
     width: 100%;
     height: 230px;
     object-fit: cover;
@@ -465,23 +945,11 @@ a {
 .programs .programsCardWrapper .card .cardTitle {
     background-color: var(--md-sys-color-surface-container-lowest);
     color: var(--md-sys-color-on-surface);
-    font-size: 16px;
-    font-weight: 700;
-    padding: 20px;
-}
-
-@media screen and (min-width: 992px) and (max-width: 1199px) {
-    .programs .programsCardWrapper .card .cardTitle {
-        font-size: 15px;
-        padding: 9px;
-    }
-}
-
-@media screen and (min-width: 576px) and (max-width: 767px) {
-    .programs .programsCardWrapper .card .cardTitle {
-        font-size: 15px;
-        padding: 9px;
-    }
+    font-size: var(--md-sys-typescale-title-medium-size);
+    line-height: var(--md-sys-typescale-title-medium-line-height);
+    font-weight: var(--md-sys-typescale-title-medium-weight);
+    letter-spacing: var(--md-sys-typescale-title-medium-tracking);
+    padding: 16px;
 }
 
 .programs .bulbImg {
@@ -516,21 +984,27 @@ a {
     margin-top: 80px;
 }
 
+/* Event cards: outlined cards; the cards in a row share their height. */
 .events .eventsCardWrapper .card {
     border: 1px solid var(--md-sys-color-outline-variant);
-    border-radius: var(--md-sys-shape-corner-medium);
+    border-radius: var(--app-radius);
+    box-shadow: none;
     flex-direction: row;
     gap: 16px;
     margin: 12px 0px;
-    background-color: var(--primary-background-color);
+    height: calc(100% - 24px);
+    background-color: var(--md-sys-color-surface-container-lowest);
 }
 
+/* Divider under the title. */
 .events .eventsCardWrapper .card hr {
     width: 100%;
     display: block;
-    margin-top: 2px;
-    margin-bottom: 5px;
-    border: 1px solid var(--md-sys-color-outline-variant);
+    height: 1px;
+    margin: 0;
+    border: 0;
+    background-color: var(--md-sys-color-outline-variant);
+    opacity: 1;
 }
 
 .events .eventsCardWrapper .eventDateWrapper {
@@ -566,73 +1040,71 @@ a {
     justify-content: flex-start;
     flex-direction: column;
     gap: 12px;
-    padding: 25px;
-    height: 228px;
+    padding: 24px;
+    min-height: 228px;
     width: 100%;
-}
-
-.events .eventsCardWrapper .eventDescWrapper .eventDate {
-    display: flex;
-    padding: 5px;
-    gap: 8px;
-    font-size: 14px;
-    border-radius: var(--md-sys-shape-corner-small);
-    background-color: var(--text--primary-color);
-    color: var(--md-sys-color-primary);
-}
-
-/* Date label: a light primary-tint chip. */
-.eventDate {
-    display: inline-block;
-    padding: 5px 10px;
-    border-radius: var(--md-sys-shape-corner-small);
-    background-color: var(--text--primary-color);
-    color: var(--md-sys-color-primary);
 }
 
 .eventImage {
     width: 100%;
-    height: 250px;
+    max-height: 250px;
     object-fit: contain;
-    padding: 16px;
+    margin-top: 16px;
+    border-radius: var(--md-sys-shape-corner-medium);
 }
 
+/* The multi-day programme inside the event dialog: a list of outlined
+   rows, each with the time on a navy block. */
 .eventDetails {
     width: 100%;
     height: auto;
     gap: 12px;
-    margin: 25px 0;
+    margin: 24px 0 0;
 }
 
 .eventDetails .eventDay {
-    font-size: 20px;
-    font-weight: 700;
-    line-height: 24px;
-    color: var(--primary-color);
+    display: block;
+    font-size: var(--md-sys-typescale-title-medium-size);
+    line-height: var(--md-sys-typescale-title-medium-line-height);
+    font-weight: var(--md-sys-typescale-title-medium-weight);
+    letter-spacing: var(--md-sys-typescale-title-medium-tracking);
+    color: var(--md-sys-color-primary);
 }
 
 .eventDescription {
     width: 100%;
     height: auto;
-    background-color: var(--primary-background-color);
-    margin: 20px 0;
+    margin: 8px 0 0;
+    border: 1px solid var(--md-sys-color-outline-variant);
+    border-radius: var(--app-radius);
+    background-color: var(--md-sys-color-surface-container-lowest);
+    overflow: hidden;
 }
 
 .multiEvent {
     width: 100%;
     height: auto;
-    padding: 12px 10px;
+    padding: 12px 16px;
+}
+
+.multiEvent .eventTitle {
+    margin: 0;
 }
 
 .subtitle {
-    font-size: 700;
-
+    margin: 0 0 4px;
+    font-size: var(--md-sys-typescale-title-small-size);
+    line-height: var(--md-sys-typescale-title-small-line-height);
+    font-weight: var(--md-sys-typescale-title-small-weight);
+    letter-spacing: var(--md-sys-typescale-title-small-tracking);
+    color: var(--md-sys-color-on-surface);
 }
 
 .eventTime {
-    width: 160px;
+    flex-shrink: 0;
+    width: 140px;
     height: auto;
-    padding: 4px;
+    padding: 12px;
     display: flex;
     gap: 4px;
     justify-content: center;
@@ -642,31 +1114,37 @@ a {
 }
 
 .date {
-    font-size: 14px;
-    font-weight: 400;
-    line-height: 17px;
-    text-align: left;
-    margin: 10px 0 0 0;
+    font-size: var(--md-sys-typescale-body-small-size);
+    font-weight: var(--md-sys-typescale-body-small-weight);
+    line-height: var(--md-sys-typescale-body-small-line-height);
+    letter-spacing: var(--md-sys-typescale-body-small-tracking);
+    text-align: start;
+    margin: 8px 0 0 0;
+    color: var(--md-sys-color-on-surface-variant);
 }
 
 .subdescription {
     height: auto;
-    font-size: 14px;
-    /* Adjust as needed */
+    font-size: var(--md-sys-typescale-body-medium-size);
+    line-height: var(--md-sys-typescale-body-medium-line-height);
+    letter-spacing: var(--md-sys-typescale-body-medium-tracking);
     color: var(--md-sys-color-on-surface-variant);
-    word-break: break-all;
+    overflow-wrap: anywhere;
 }
 
 .menu-icon {
-    margin: 5px;
-    color: var(--md-sys-color-primary);
+    margin: 0;
+    margin-inline-end: 4px;
+    font-size: 14px;
+    color: var(--md-sys-color-on-surface-variant);
 }
 
 .time {
-    font-size: 16px;
-    font-weight: 500;
-    line-height: 20px;
-    text-align: -webkit-center;
+    font-size: var(--md-sys-typescale-label-large-size);
+    font-weight: var(--md-sys-typescale-label-large-weight);
+    line-height: var(--md-sys-typescale-label-large-line-height);
+    letter-spacing: var(--md-sys-typescale-label-large-tracking);
+    text-align: center;
     color: var(--md-sys-color-on-tertiary-container);
 }
 
@@ -676,35 +1154,14 @@ a {
     }
 }
 
-@media screen and (min-width: 992px) and (max-width: 1199px) {
-    .events .eventsCardWrapper .eventDescWrapper {
-        height: 228px;
-    }
-
-    .events .eventsCardWrapper .eventDescWrapper .eventDate {
-        font-size: 14px;
-    }
-}
-
-@media screen and (min-width: 768px) and (max-width: 991px) {
-    .events .eventsCardWrapper .eventDescWrapper {
-        height: 228px;
-    }
-
-    .events .eventsCardWrapper .eventDescWrapper .eventDate {
-        padding: 5px;
-        font-size: 12px;
-    }
-}
-
 @media screen and (max-width: 767px) {
     .events .eventsCardWrapper .eventDescWrapper {
-        height: 220px;
+        min-height: 0;
+        padding: 16px;
     }
 
-    .events .eventsCardWrapper .eventDescWrapper .eventDate {
-        padding: 5px;
-        font-size: 14px;
+    .events .eventsCardWrapper .card {
+        height: auto;
     }
 }
 
@@ -726,34 +1183,27 @@ a {
     }
 }
 
-@media screen and (max-width: 399px) {
-    .events .eventsCardWrapper .eventDescWrapper {
-        height: auto;
-    }
-}
-
 .events .eventsCardWrapper .eventDescWrapper .eventTitle {
-    font-weight: 700;
-    font-size: 16px;
-    word-break: break-all;
+    font-size: var(--md-sys-typescale-title-medium-size);
+    line-height: var(--md-sys-typescale-title-medium-line-height);
+    font-weight: var(--md-sys-typescale-title-medium-weight);
+    letter-spacing: var(--md-sys-typescale-title-medium-tracking);
+    color: var(--md-sys-color-on-surface);
+    overflow-wrap: anywhere;
 }
 
 .events .eventsCardWrapper .eventDescWrapper .eventDesc {
+    font-size: var(--md-sys-typescale-body-medium-size);
+    line-height: var(--md-sys-typescale-body-medium-line-height);
+    font-weight: var(--md-sys-typescale-body-medium-weight);
+    letter-spacing: var(--md-sys-typescale-body-medium-tracking);
     color: var(--md-sys-color-on-surface-variant);
+    overflow-wrap: anywhere;
 }
 
-
-.events .eventsCardWrapper .eventDescWrapper .eventDesc {
-    font-size: 14px;
-    font-weight: 500;
-    padding-right: 2px;
-    word-break: break-all;
-}
-
-.events .eventsCardWrapper .eventDescWrapper .readMore {
-    font-size: 12px;
-    font-weight: 500;
-    padding-right: 2px;
+/* The text button sits at the bottom of the card. */
+.events .eventsCardWrapper .eventDescWrapper .eventReadMoreBtn {
+    margin-top: auto;
 }
 
 
@@ -801,6 +1251,7 @@ a {
     display: flex;
     align-items: center;
     justify-content: center;
+    border-radius: var(--app-radius);
     transition: all 0.3s;
 }
 
@@ -816,6 +1267,18 @@ a {
     height: 200px;
 }
 
+/* Photo and video thumbnails: image cards with the app's 10px corners. */
+.commonSlider .swiperDataWrapper .img_div img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: var(--app-radius);
+}
+
+.openVideo {
+    cursor: pointer;
+}
+
 @media only screen and (max-width:575px) {
     .commonSlider .swiperDataWrapper .img_div {
         display: block;
@@ -824,20 +1287,41 @@ a {
         height: 250px;
         aspect-ratio: 1/1;
     }
-
-    .commonSlider .swiperDataWrapper:hover .festival {
-        width: auto !important;
-        padding: 8px;
-        gap: 24px;
-    }
 }
 
 .commonSlider .navigationBtns {
     display: flex;
     justify-content: center;
     align-items: center;
-    gap: 24px;
+    gap: 8px;
     margin-top: 30px;
+}
+
+/* Slider arrows: outlined icon buttons (40px circle, 20px icon). */
+.commonSlider .navigationBtns .commonBtn {
+    width: 40px;
+    height: 40px;
+    margin: 0;
+    padding: 0;
+    border: 1px solid var(--md-sys-color-outline);
+    border-radius: var(--md-sys-shape-corner-full);
+    background-color: transparent;
+    color: var(--md-sys-color-on-surface-variant);
+    box-shadow: none;
+}
+
+.commonSlider .navigationBtns .commonBtn i {
+    font-size: 20px;
+}
+
+.commonSlider .navigationBtns .commonBtn:hover {
+    background-color: color-mix(in srgb, var(--md-sys-color-on-surface-variant) var(--md-sys-state-hover-opacity), transparent);
+    box-shadow: none;
+}
+
+.commonSlider .navigationBtns .commonBtn:focus-visible,
+.commonSlider .navigationBtns .commonBtn:active {
+    background-color: color-mix(in srgb, var(--md-sys-color-on-surface-variant) var(--md-sys-state-focus-opacity), transparent);
 }
 
 /* Keep prev/next navigation in LTR order even on RTL pages */
@@ -857,7 +1341,7 @@ a {
     margin-bottom: 20px;
 }
 
-.ourPhotos .viewAllBtn .commonBtn {
+.commonSlider .viewAllBtn .commonBtn {
     margin-top: 0;
 }
 
@@ -870,10 +1354,6 @@ a {
 }
 
 @media screen and (max-width: 575px) {
-    .ourPhotos .viewAllBtn .commonBtn {
-        font-size: 16px;
-    }
-
     .commonSlider .slider-container,
     .commonSlider .navigationBtns {
         margin-top: 12px;
@@ -885,48 +1365,79 @@ a {
     padding: 0px;
 }
 
-.commonSlider .swiperDataWrapper:hover .festival {
-    visibility: visible;
-    margin-top: 134px;
+/*
+ * Album label on a photo card: a raised surface along the bottom of the
+ * image with the album name (title-small) and a trailing arrow. It slides
+ * in on hover or keyboard focus, and is always shown on touch screens.
+ */
+.commonSlider .festival,
+.photosGallery .festival {
+    box-sizing: border-box;
+    position: absolute;
+    inset-inline: 12px;
+    bottom: 12px;
+    width: auto;
+    height: 48px;
+    margin: 0;
+    padding-inline: 16px 12px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 8px;
+    border-radius: var(--app-radius);
+    background-color: var(--md-sys-color-surface-container-lowest);
+    box-shadow: var(--md-sys-elevation-level2);
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(8px);
+    transition: opacity 0.2s, transform 0.2s, visibility 0.2s;
 }
 
-@media only screen and (max-width:1199px) {
-    .commonSlider .swiperDataWrapper:hover .festival {
-        width: 140px;
-        padding: 8px;
+.commonSlider .swiperDataWrapper:hover .festival,
+.commonSlider a:focus-visible .festival,
+.photosGallery .card:hover .festival,
+.photosGallery a:focus-visible .festival {
+    opacity: 1;
+    visibility: visible;
+    transform: none;
+}
+
+@media (hover: none) {
+    .commonSlider .festival,
+    .photosGallery .festival {
+        opacity: 1;
+        visibility: visible;
+        transform: none;
     }
 }
 
-.commonSlider .festival {
-    position: absolute;
-    width: 220px;
-    height: 50px;
-    border-radius: var(--app-radius);
-    display: flex;
-    justify-content: space-evenly;
-    align-items: center;
-    background-color: var(--md-sys-color-surface-container-lowest);
-    margin-top: 240px;
-    visibility: hidden;
-    transition: all 0.3s;
-}
-
-.commonSlider .festival span {
-    font-weight: 700;
+.commonSlider .festival span,
+.photosGallery .festival span {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-size: var(--md-sys-typescale-title-small-size);
+    line-height: var(--md-sys-typescale-title-small-line-height);
+    font-weight: var(--md-sys-typescale-title-small-weight);
+    letter-spacing: var(--md-sys-typescale-title-small-tracking);
     color: var(--md-sys-color-on-surface);
 }
 
-.commonSlider .festival span:last-child {
-    width: 26px;
-    height: 24px;
-    text-align: center;
-    color: var(--md-sys-color-on-primary);
-    padding: 5px;
-    background-color: var(--secondary-color1);
-    border-radius: var(--md-sys-shape-corner-extra-small);
+.commonSlider .festival span:last-child,
+.photosGallery .festival span:last-child {
+    flex-shrink: 0;
     display: flex;
     align-items: center;
     justify-content: center;
+    width: 24px;
+    height: 24px;
+    font-size: 18px;
+    color: var(--md-sys-color-primary);
+}
+
+[dir="rtl"] .festival .fa-arrow-right {
+    transform: scaleX(-1);
 }
 
 /* ourPhotos & ourVideos ends here  */
@@ -950,62 +1461,95 @@ a {
     }
 }
 
+/*
+ * FAQ: each question is an outlined card holding an expansion tile
+ * (Flutter's ExpansionTile): a 56px header in title-medium with an
+ * expand_more icon that turns to primary and flips when open, and the
+ * answer in body-medium on-surface-variant.
+ */
 .faqs .accordion-item {
     background-color: var(--md-sys-color-surface-container-lowest);
     border: 1px solid var(--md-sys-color-outline-variant) !important;
-    border-radius: var(--md-sys-shape-corner-medium) !important;
-    margin: 12px 0px;
-    overflow: hidden;
+    border-radius: var(--app-radius) !important;
+    margin: 8px 0px;
 }
 
 .faqs .accordion-button {
-    background-color: var(--md-sys-color-surface-container-lowest);
+    gap: 16px;
+    min-height: 56px;
+    padding: 16px;
+    border: none;
+    border-radius: calc(var(--app-radius) - 1px) !important;
+    background-color: transparent;
+    color: var(--md-sys-color-on-surface);
+    box-shadow: none !important;
+    text-align: start;
+    transition: background-color 0.2s;
 }
 
 .faqs .accordion-button span {
-    font-size: 16px;
-    font-weight: 700;
+    font-size: var(--md-sys-typescale-title-medium-size);
+    line-height: var(--md-sys-typescale-title-medium-line-height);
+    font-weight: var(--md-sys-typescale-title-medium-weight);
+    letter-spacing: var(--md-sys-typescale-title-medium-tracking);
     color: var(--md-sys-color-on-surface) !important;
 }
 
-.faqs .accordion-button:focus {
-    box-shadow: none !important;
-    border: none !important;
-    border-color: transparent !important;
+.faqs .accordion-button:hover {
+    background-color: color-mix(in srgb, var(--md-sys-color-on-surface) var(--md-sys-state-hover-opacity), transparent);
 }
 
-.faqs .accordion-collapse span {
-    margin-top: -12px;
-    display: block;
-    color: var(--text--secondary-color) !important;
-    font-weight: 500;
+.faqs .accordion-button:focus-visible,
+.faqs .accordion-button:active {
+    background-color: color-mix(in srgb, var(--md-sys-color-on-surface) var(--md-sys-state-focus-opacity), transparent);
 }
 
-/* The open question is the active item: a faint primary tint. */
 .faqs .accordion-button:not(.collapsed) {
-    background-color: color-mix(in srgb, var(--md-sys-color-primary) 6%, var(--md-sys-color-surface-container-lowest)) !important;
+    color: var(--md-sys-color-on-surface);
+    background-color: transparent;
+    border-bottom-left-radius: 0 !important;
+    border-bottom-right-radius: 0 !important;
+}
+
+.faqs .accordion-button:not(.collapsed):hover {
+    background-color: color-mix(in srgb, var(--md-sys-color-on-surface) var(--md-sys-state-hover-opacity), transparent);
 }
 
 .faqs .accordion-collapse {
-    background-color: var(--md-sys-color-surface-container-lowest);
-    color: var(--text--secondary-color);
+    background-color: transparent;
+    color: var(--md-sys-color-on-surface-variant);
 }
 
-/* The +/- icons are used as masks so they take the primary colour. */
+.faqs .accordion-body {
+    padding: 0 16px 16px;
+}
+
+.faqs .accordion-collapse span {
+    display: block;
+    margin: 0;
+    font-size: var(--md-sys-typescale-body-medium-size);
+    line-height: var(--md-sys-typescale-body-medium-line-height);
+    font-weight: var(--md-sys-typescale-body-medium-weight);
+    letter-spacing: var(--md-sys-typescale-body-medium-tracking);
+    color: var(--md-sys-color-on-surface-variant) !important;
+}
+
+/* expand_more, as a mask so it takes the token colour. */
 .faqs .accordion-button::after {
+    flex-shrink: 0;
+    width: 24px;
+    height: 24px;
+    margin-left: 0;
+    margin-right: 0;
+    margin-inline-start: auto;
     background-image: none !important;
-    background-color: var(--md-sys-color-primary);
-    -webkit-mask: url("../images/bx-plus-circle.png") center / contain no-repeat;
-    mask: url("../images/bx-plus-circle.png") center / contain no-repeat;
+    background-color: var(--md-sys-color-on-surface-variant);
+    -webkit-mask: var(--web-icon-expand-more) center / contain no-repeat;
+    mask: var(--web-icon-expand-more) center / contain no-repeat;
 }
 
 .faqs .accordion-button:not(.collapsed)::after {
-    -webkit-mask-image: url("../images/bx-minus-circle.png");
-    mask-image: url("../images/bx-minus-circle.png");
-}
-
-.faqs .accordion-button:not(.collapsed) {
-    box-shadow: none !important;
+    background-color: var(--md-sys-color-primary);
 }
 
 /* faqs ends here  */
@@ -1024,46 +1568,29 @@ a {
     }
 }
 
+/* App cards: filled cards in Dark Navy (inverse-surface), 10px corners,
+   no hover effect (the card itself isn't a link; its button is). */
 .ourApp .card {
     background-color: var(--md-sys-color-inverse-surface);
-    border-radius: var(--md-sys-shape-corner-large);
+    border: none;
+    border-radius: var(--app-radius);
+    box-shadow: none;
     padding: 24px;
     gap: 16px;
     margin: 12px 0px;
+    height: calc(100% - 24px);
     position: relative;
     overflow: hidden;
 }
 
-.ourApp .card:before {
-    content: "";
-    position: absolute;
-    width: 100%;
-    bottom: 0;
-    left: 0;
-    height: 2px;
-    background: var(--md-sys-color-primary);
-    border-radius: var(--md-sys-shape-corner-large);
-    /* opacity: 0.8; */
-    transition: all 0.3s ease-out;
-}
-
-.ourApp .card:hover:before {
-    height: 100%;
-}
-
 @media screen and (min-width: 992px) and (max-width: 1199px) {
     .ourApp .card {
-        padding: 12px 8px;
+        padding: 16px;
     }
 }
 
-.ourApp span {
-    position: relative;
-    z-index: 1;
-}
-
 /* The store badges are teal artwork; blending by luminosity lets them take
-   the colour of the card behind them (navy, purple on hover). */
+   the navy of the card behind them. */
 .ourApp .card > span:first-child {
     mix-blend-mode: luminosity;
 }
@@ -1074,25 +1601,55 @@ a {
 
 .ourApp .appName {
     color: var(--md-sys-color-on-inverse-surface);
-    font-size: 20px;
-    font-style: normal;
-    font-weight: 700;
+    font-size: var(--md-sys-typescale-title-medium-size);
+    line-height: var(--md-sys-typescale-title-medium-line-height);
+    font-weight: var(--md-sys-typescale-title-medium-weight);
+    letter-spacing: var(--md-sys-typescale-title-medium-tracking);
 }
 
+/* Outlined button on navy: the inverse roles, still 40px / 10px corners. */
 .ourApp .demoBtn {
-    font-weight: 500;
-    border: 1px solid var(--md-sys-color-on-inverse-surface);
-    color: var(--md-sys-color-on-inverse-surface);
-    padding: 6px 12px;
+    box-sizing: border-box;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    align-self: flex-start;
+    height: 40px;
+    margin-top: auto;
+    padding-block: 0;
+    padding-inline: 24px 16px;
+    border: 1px solid var(--web-on-inverse-surface-variant);
     border-radius: var(--app-radius);
-    /* Grows to fit the label in Poppins (wider than the old font). */
-    width: fit-content;
-    min-width: 160px;
+    background-color: transparent;
+    color: var(--md-sys-color-on-inverse-surface) !important;
+    font-size: var(--md-sys-typescale-label-large-size);
+    line-height: var(--md-sys-typescale-label-large-line-height);
+    font-weight: var(--md-sys-typescale-label-large-weight);
+    letter-spacing: var(--md-sys-typescale-label-large-tracking);
+    white-space: nowrap;
     cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.ourApp .demoBtn:hover {
+    background-color: color-mix(in srgb, var(--md-sys-color-on-inverse-surface) var(--md-sys-state-hover-opacity), transparent);
+    color: var(--md-sys-color-on-inverse-surface) !important;
+}
+
+.ourApp .demoBtn:focus-visible,
+.ourApp .demoBtn:active {
+    background-color: color-mix(in srgb, var(--md-sys-color-on-inverse-surface) var(--md-sys-state-focus-opacity), transparent);
+    outline-color: var(--md-sys-color-inverse-primary);
 }
 
 .ourApp .demoBtn i {
-    margin-left: 4px;
+    font-size: 18px;
+    margin: 0;
+}
+
+[dir="rtl"] .ourApp .demoBtn .fa-arrow-right {
+    transform: scaleX(-1);
 }
 
 /* ourApp ends here  */
@@ -1127,21 +1684,39 @@ footer .socialIcons {
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 20px;
+    gap: 8px;
 }
 
+/* Social links: filled icon buttons (40px circles, 20px icons) in the
+   light primary tint, with a primary state layer. */
 footer .socialIcons span {
+    display: inline-flex;
+}
+
+footer .socialIcons a {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    border-radius: var(--md-sys-shape-corner-full);
     background-color: var(--text--primary-color);
-    color: var(--secondary-color1) !important;
-    padding: 10px 16px;
-    border-radius: var(--app-radius);
-    font-size: 24px;
-    cursor: pointer;
-    overflow-x: none;
+    color: var(--md-sys-color-primary) !important;
+    font-size: 20px;
+    transition: background-color 0.2s;
+}
+
+footer .socialIcons a:hover {
+    background-color: color-mix(in srgb, var(--md-sys-color-primary) var(--md-sys-state-hover-opacity), var(--text--primary-color));
+}
+
+footer .socialIcons a:focus-visible,
+footer .socialIcons a:active {
+    background-color: color-mix(in srgb, var(--md-sys-color-primary) var(--md-sys-state-focus-opacity), var(--text--primary-color));
 }
 
 footer .socialIcons span i {
-    color: var(--secondary-color1) !important;
+    color: var(--md-sys-color-primary) !important;
 }
 
 footer .linksWrapper {
@@ -1166,12 +1741,12 @@ footer .linksWrapper .title {
 }
 
 footer .usefulLinksDiv {
-    margin-left: 70px;
+    margin-inline-start: 70px;
 }
 
 @media screen and (max-width: 991px) {
     footer .usefulLinksDiv {
-        margin-left: 0px;
+        margin-inline-start: 0px;
     }
 
     footer .linksWrapper .title {
@@ -1313,8 +1888,9 @@ footer .copyRightText span a {
 
 .whoWeAre .whoWeAreCardsWrapper .card {
     background-color: var(--md-sys-color-surface-container-lowest);
-    border-radius: var(--md-sys-shape-corner-medium);
+    border-radius: var(--app-radius);
     border: 1px solid var(--md-sys-color-outline-variant);
+    box-shadow: none;
     padding: 20px;
     flex-direction: row;
     align-items: center;
@@ -1344,12 +1920,16 @@ footer .copyRightText span a {
 }
 
 .whoWeAre .whoWeAreCardsWrapper .card .detailWrapper span:first-child {
-    font-size: 24px;
-    font-weight: 700;
+    font-size: var(--md-sys-typescale-headline-small-size);
+    line-height: var(--md-sys-typescale-headline-small-line-height);
+    font-weight: 500;
+    color: var(--md-sys-color-on-surface);
 }
 
 .whoWeAre .whoWeAreCardsWrapper .card .detailWrapper span:last-child {
-    font-weight: 500;
+    font-size: var(--md-sys-typescale-body-medium-size);
+    line-height: var(--md-sys-typescale-body-medium-line-height);
+    letter-spacing: var(--md-sys-typescale-body-medium-tracking);
     color: var(--text--secondary-color);
 }
 
@@ -1376,32 +1956,28 @@ footer .copyRightText span a {
     overflow: visible;
 }
 
+/* Teacher cards: outlined cards with the photo running to the edges. */
 .ourTeacher .commonSlider .card {
     background-color: var(--md-sys-color-surface-container-lowest);
-    padding: 6px;
-    border: none;
-    border-radius: var(--md-sys-shape-corner-medium);
-    gap: 20px;
-    box-shadow: var(--md-sys-elevation-level1) !important;
-    transition: box-shadow 0.3s;
-}
-
-.ourTeacher .commonSlider .card:hover {
-    box-shadow: var(--md-sys-elevation-level2) !important;
+    padding: 0;
+    border: 1px solid var(--md-sys-color-outline-variant);
+    border-radius: var(--app-radius);
+    gap: 0;
+    box-shadow: none;
+    overflow: hidden;
 }
 
 .ourTeacher .commonSlider .card img {
     width: 100%;
-    max-width: 230px;
     max-height: 230px;
     height: 230px;
-    border-radius: var(--md-sys-shape-corner-small);
+    object-fit: cover;
+    border-radius: 0;
 }
 
 @media screen and (max-width: 767px) {
     .ourTeacher .commonSlider .card img {
         width: 100%;
-        max-width: 230px;
         height: 150px;
     }
 }
@@ -1416,8 +1992,13 @@ footer .copyRightText span a {
     .ourTeacher .commonSlider .card img {
         width: 100%;
         max-width: 100%;
-        height: 300px;
-        object-fit: contain;
+        height: 240px;
+        max-height: 240px;
+    }
+
+    .ourTeacher .commonSlider .swiperDataWrapper div:first-child {
+        height: auto;
+        max-width: none;
     }
 }
 
@@ -1426,17 +2007,20 @@ footer .copyRightText span a {
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    padding-bottom: 12px;
+    padding: 16px;
 }
 
 .ourTeacher .commonSlider .card .teacherDetails .name {
-    font-size: 16px;
-    font-weight: 500;
+    font-size: var(--md-sys-typescale-title-medium-size);
+    line-height: var(--md-sys-typescale-title-medium-line-height);
+    font-weight: var(--md-sys-typescale-title-medium-weight);
+    letter-spacing: var(--md-sys-typescale-title-medium-tracking);
 }
 
 .ourTeacher .commonSlider .card .teacherDetails .subject {
-    font-size: 14px;
-    font-weight: 400;
+    font-size: var(--md-sys-typescale-body-medium-size);
+    line-height: var(--md-sys-typescale-body-medium-line-height);
+    letter-spacing: var(--md-sys-typescale-body-medium-tracking);
     color: var(--text--secondary-color);
 }
 
@@ -1450,11 +2034,14 @@ footer .copyRightText span a {
     margin-top: 20px;
 }
 
+/* Photo and video cards: image cards with the app's 10px corners. */
 .photosGallery .card {
     position: relative;
     align-items: center;
     border: none;
-    border-radius: var(--md-sys-shape-corner-medium);
+    border-radius: var(--app-radius);
+    background-color: transparent;
+    box-shadow: none;
 }
 
 .photosGallery .card div:first-child {
@@ -1462,44 +2049,18 @@ footer .copyRightText span a {
     height: 100%;
 }
 
-.photosGallery .card img {
+.photosGallery .card img,
+.photosGallery .card iframe {
     width: 100%;
     height: 230px;
     aspect-ratio: 1/1;
-    border-radius: var(--md-sys-shape-corner-medium);
-}
-
-.photosGallery .card:hover .festival {
-    visibility: visible;
-    margin-top: 160px;
-}
-
-.photosGallery .festival {
-    position: absolute;
-    width: 220px;
-    height: 50px;
+    object-fit: cover;
+    border: 0;
     border-radius: var(--app-radius);
-    display: flex;
-    justify-content: space-evenly;
-    align-items: center;
-    background-color: var(--md-sys-color-surface-container-lowest);
-    margin-top: 206px;
-    visibility: hidden;
-    transition: all 0.3s;
 }
 
-.photosGallery .festival span {
-    font-weight: 700;
-    color: var(--md-sys-color-on-surface);
-}
-
-.photosGallery .festival span:last-child {
-    width: 26px;
-    height: 24px;
-    text-align: center;
-    color: var(--md-sys-color-on-primary);
-    background-color: var(--secondary-color1);
-    border-radius: var(--md-sys-shape-corner-extra-small);
+.photosGallery .card img[onclick] {
+    cursor: pointer;
 }
 
 .loadmoreBtnWrapper {
@@ -1523,7 +2084,8 @@ footer .copyRightText span a {
 .contactUs .contactCardsWrapper .card {
     background-color: var(--md-sys-color-inverse-surface);
     border: none;
-    border-radius: var(--md-sys-shape-corner-medium);
+    border-radius: var(--app-radius);
+    box-shadow: none;
     isolation: isolate;
     align-items: center;
     justify-content: center;
@@ -1566,18 +2128,25 @@ footer .copyRightText span a {
 
 .contactUs .contactCardsWrapper .card .text {
     color: var(--md-sys-color-on-inverse-surface);
-    font-size: 20px;
-    font-weight: 700;
+    font-size: var(--md-sys-typescale-title-medium-size);
+    line-height: var(--md-sys-typescale-title-medium-line-height);
+    font-weight: var(--md-sys-typescale-title-medium-weight);
+    letter-spacing: var(--md-sys-typescale-title-medium-tracking);
 }
 
 .contactUs .contactCardsWrapper .card .contactDetailsWrapper .numb {
-    font-weight: 500;
+    font-size: var(--md-sys-typescale-body-medium-size);
+    line-height: var(--md-sys-typescale-body-medium-line-height);
+    letter-spacing: var(--md-sys-typescale-body-medium-tracking);
     color: var(--web-on-inverse-surface-variant);
 }
 
 .contactUs .contactCardsWrapper .card .contactDetailsWrapper .numb a {
-    font-weight: 500;
     color: var(--md-sys-color-inverse-primary) !important;
+}
+
+.contactUs .contactCardsWrapper .card .contactDetailsWrapper .numb a:focus-visible {
+    outline-color: var(--md-sys-color-inverse-primary);
 }
 
 .contactUs .mainCardWrapper {
@@ -1595,13 +2164,14 @@ footer .copyRightText span a {
     }
 }
 
+/* The contact form sits on an outlined card. */
 .contactUs .mainCardWrapper .mainCard {
     background-color: var(--md-sys-color-surface-container-lowest);
-    border: none;
-    border-radius: var(--md-sys-shape-corner-medium);
-    padding: 30px;
-    box-shadow: var(--md-sys-elevation-level1);
-    gap: 30px;
+    border: 1px solid var(--md-sys-color-outline-variant);
+    border-radius: var(--app-radius);
+    padding: 24px;
+    box-shadow: none;
+    gap: 24px;
 }
 
 .contactUs .getInTouchWrapper {
@@ -1623,27 +2193,195 @@ footer .copyRightText span a {
 }
 
 .contactUs .getInTouchWrapper .commonSpan {
-    font-size: 28px;
-    font-weight: 700;
-}
-
-.contactUs .formWrapper label {
-    font-size: 14px;
-    font-weight: 500;
-}
-
-.contactUs .formWrapper input,
-.contactUs .formWrapper textarea {
-    border: 1px solid var(--md-sys-color-outline-variant);
-    border-radius: var(--app-radius);
-    background-color: var(--primary-background-color);
-    padding: 6px;
+    font-size: var(--md-sys-typescale-headline-small-size);
+    line-height: var(--md-sys-typescale-headline-small-line-height);
+    font-weight: var(--md-sys-typescale-headline-small-weight);
+    letter-spacing: var(--md-sys-typescale-headline-small-tracking);
     color: var(--md-sys-color-on-surface);
 }
 
-.contactUs .formWrapper input:focus,
-.contactUs .formWrapper textarea:focus {
+.contactUs .getInTouchWrapper .commonDesc {
+    font-size: var(--md-sys-typescale-body-medium-size);
+    line-height: var(--md-sys-typescale-body-medium-line-height);
+    font-weight: var(--md-sys-typescale-body-medium-weight);
+    letter-spacing: var(--md-sys-typescale-body-medium-tracking);
+}
+
+/* ── Text fields ──────────────────────────────────────────────────────
+   Flutter's TextField with OutlineInputBorder(radius: 10): 48px, 0 16px,
+   body-large, a 1px outline border on a transparent field. Hover darkens
+   the border; focus is a 2px primary border (an inset shadow adds the
+   second pixel so nothing moves). The label sits above the field in
+   body-medium 500; helper text is body-small. */
+.formWrapper label {
+    color: var(--md-sys-color-on-surface);
+    font-size: var(--md-sys-typescale-body-medium-size);
+    line-height: var(--md-sys-typescale-body-medium-line-height);
+    font-weight: 500;
+    letter-spacing: var(--md-sys-typescale-body-medium-tracking);
+}
+
+.formWrapper .form-group > label:first-child {
+    margin-bottom: 4px;
+}
+
+.formWrapper .text-danger {
+    color: var(--md-sys-color-error) !important;
+}
+
+.form-control {
+    box-sizing: border-box;
+    height: 48px;
+    padding: 0 16px;
+    border: 1px solid var(--md-sys-color-outline);
+    border-radius: var(--app-radius);
+    background-color: transparent;
+    color: var(--md-sys-color-on-surface);
+    font-family: var(--md-ref-typeface-plain);
+    font-size: var(--md-sys-typescale-body-large-size);
+    line-height: var(--md-sys-typescale-body-large-line-height);
+    font-weight: var(--md-sys-typescale-body-large-weight);
+    letter-spacing: var(--md-sys-typescale-body-large-tracking);
+    box-shadow: none;
+    transition: border-color 0.15s, box-shadow 0.15s;
+}
+
+.form-control::placeholder {
+    color: var(--md-sys-color-on-surface-variant);
+    opacity: 1;
+}
+
+.form-control:hover {
+    border-color: var(--md-sys-color-on-surface);
+}
+
+.form-control:focus {
+    border-color: var(--md-sys-color-primary);
+    box-shadow: inset 0 0 0 1px var(--md-sys-color-primary);
+    background-color: transparent;
+    color: var(--md-sys-color-on-surface);
     outline: none;
+}
+
+textarea.form-control {
+    height: auto;
+    min-height: 48px;
+    padding: 12px 16px;
+    resize: vertical;
+}
+
+/* Native selects: the same box, with M3's arrow_drop_down drawn by a
+   gradient in on-surface-variant (a <select> can't carry a masked icon). */
+select.form-control {
+    padding-inline-end: 48px;
+    background-image: conic-gradient(from -45deg at 50% 100%, var(--web-field-icon, var(--md-sys-color-on-surface-variant)) 90deg, transparent 0);
+    background-repeat: no-repeat;
+    background-position: right 19px center;
+    background-size: 10px 5px;
+    cursor: pointer;
+    -webkit-appearance: none;
+    appearance: none;
+}
+
+[dir="rtl"] select.form-control {
+    background-position: left 19px center;
+}
+
+/* Error: jquery-validate marks the field (form-control-danger / error)
+   and its group (has-danger). */
+.form-control.is-invalid,
+.form-control.error,
+.form-control.form-control-danger,
+.has-danger .form-control {
+    border-color: var(--md-sys-color-error);
+    background-image: none;
+}
+
+select.form-control.is-invalid,
+select.form-control.error,
+select.form-control.form-control-danger,
+.has-danger select.form-control {
+    --web-field-icon: var(--md-sys-color-error);
+    background-image: conic-gradient(from -45deg at 50% 100%, var(--web-field-icon) 90deg, transparent 0);
+}
+
+.form-control.is-invalid:hover,
+.form-control.error:hover,
+.form-control.form-control-danger:hover,
+.has-danger .form-control:hover {
+    border-color: var(--md-sys-color-error);
+}
+
+.form-control.is-invalid:focus,
+.form-control.error:focus,
+.form-control.form-control-danger:focus,
+.has-danger .form-control:focus {
+    border-color: var(--md-sys-color-error);
+    box-shadow: inset 0 0 0 1px var(--md-sys-color-error);
+}
+
+/* The browser's own validation (the contact form) marks a field the user
+   has left invalid; give it the same error border. Kept apart from the
+   list above so browsers without :user-invalid still read that rule. */
+.form-control:user-invalid {
+    border-color: var(--md-sys-color-error);
+}
+
+.form-control:user-invalid:focus {
+    border-color: var(--md-sys-color-error);
+    box-shadow: inset 0 0 0 1px var(--md-sys-color-error);
+}
+
+/* Error text under a field: body-small in error. */
+.formWrapper label.error,
+.formWrapper .invalid-feedback {
+    display: block;
+    margin-top: 4px !important;
+    color: var(--md-sys-color-error) !important;
+    font-size: var(--md-sys-typescale-body-small-size);
+    line-height: var(--md-sys-typescale-body-small-line-height);
+    font-weight: var(--md-sys-typescale-body-small-weight);
+    letter-spacing: var(--md-sys-typescale-body-small-tracking);
+}
+
+/* Helper text. */
+.formWrapper .form-text {
+    display: block;
+    margin-top: 4px;
+    color: var(--md-sys-color-on-surface-variant) !important;
+    font-size: var(--md-sys-typescale-body-small-size);
+    line-height: var(--md-sys-typescale-body-small-line-height);
+    letter-spacing: var(--md-sys-typescale-body-small-tracking);
+}
+
+/* Disabled and read-only fields. The file-name field beside Upload is
+   disabled only so it can't be typed in, and the read-only date fields
+   still open their date picker, so those keep the enabled look. */
+.form-control:disabled:not(.file-upload-info),
+.form-control[readonly]:not([class*="datepicker-popup"]) {
+    border-color: color-mix(in srgb, var(--md-sys-color-on-surface) var(--md-sys-state-disabled-container-opacity), transparent);
+    background-color: transparent;
+    color: color-mix(in srgb, var(--md-sys-color-on-surface) var(--md-sys-state-disabled-content-opacity), transparent);
+    box-shadow: none;
+    opacity: 1;
+}
+
+/* A read-only field can still take keyboard focus, so it shows it. */
+.form-control[readonly]:not([class*="datepicker-popup"]):focus {
+    border-color: var(--md-sys-color-primary);
+    box-shadow: inset 0 0 0 1px var(--md-sys-color-primary);
+}
+
+select.form-control:disabled {
+    --web-field-icon: color-mix(in srgb, var(--md-sys-color-on-surface) var(--md-sys-state-disabled-content-opacity), transparent);
+    cursor: default;
+}
+
+.form-control.file-upload-info:disabled,
+.form-control[readonly][class*="datepicker-popup"] {
+    background-color: transparent;
+    color: var(--md-sys-color-on-surface);
+    opacity: 1;
 }
 
 input::-webkit-outer-spin-button,
@@ -1660,7 +2398,11 @@ input::-webkit-inner-spin-button {
     width: 100%;
 }
 
-/* Style the modal */
+/* ── Dialogs ──────────────────────────────────────────────────────────
+   Flutter's AlertDialog / Dialog: surface-container-high, 28px corners,
+   elevation 3, 24px padding, the title in headline-small and supporting
+   text in body-medium on-surface-variant, no header or footer rules, a
+   40px icon button to close, over a scrim at 32%. */
 .modal {
     display: none;
     position: fixed;
@@ -1670,35 +2412,70 @@ input::-webkit-inner-spin-button {
     width: 100%;
     height: 100%;
     overflow: auto;
-    background-color: color-mix(in srgb, var(--md-sys-color-scrim) 40%, transparent);
-    /* Scrim */
+    background-color: color-mix(in srgb, var(--md-sys-color-scrim) 32%, transparent);
 }
 
-/* Modal content */
+/* Bootstrap's own modals (the photo viewer) get their scrim from the
+   backdrop element instead. */
+.modal.fade {
+    background-color: transparent;
+}
+
+.modal-backdrop {
+    background-color: var(--md-sys-color-scrim);
+}
+
+.modal-backdrop.show {
+    opacity: 0.32;
+}
+
 .modal-content {
-    background-color: var(--md-sys-color-surface-container-lowest);
+    padding: 24px;
+    border: none;
+    border-radius: var(--md-sys-shape-corner-extra-large);
+    background-color: var(--md-sys-color-surface-container-high);
+    box-shadow: var(--md-sys-elevation-level3);
+    color: var(--md-sys-color-on-surface);
+}
+
+/* The site's own dialogs (events, videos) are centred here; they size to
+   their content up to the viewport, and the body scrolls. */
+.modal:not(.fade) > .modal-content {
     position: fixed;
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
-    padding: 20px;
-    border: 1px solid var(--md-sys-color-outline-variant);
-    width: 90%;
-    height: 500px;
-    /* 90% width */
-    max-width: 600px;
-    /* Maximum width */
-    border-radius: var(--md-sys-shape-corner-large);
-}
-
-/* Modal content */
-.modal-header {
-    /* 5% from the top and centered */
-    padding: 20px;
+    width: calc(100% - 48px);
+    max-width: 560px;
+    height: auto;
+    max-height: calc(100% - 48px);
+    overflow: hidden;
 }
 
 .modal-header {
-    padding: 20px 0 !important;
+    align-items: flex-start;
+    gap: 16px;
+    padding: 0 0 16px !important;
+    border-bottom: none;
+}
+
+.modal-header #fullEventTitle {
+    flex: 1 1 auto;
+    min-width: 0;
+    margin: 0;
+    padding-top: 4px;
+    font-size: var(--md-sys-typescale-headline-small-size);
+    line-height: var(--md-sys-typescale-headline-small-line-height);
+    font-weight: var(--md-sys-typescale-headline-small-weight);
+    letter-spacing: var(--md-sys-typescale-headline-small-tracking);
+    color: var(--md-sys-color-on-surface);
+    overflow-wrap: anywhere;
+}
+
+/* Close (X): a standard icon button at the end of the title row. */
+.modal-header .close {
+    margin-top: 0;
+    margin-inline-end: -8px;
 }
 
 /* Disable scrolling on the body when modal is open */
@@ -1707,31 +2484,8 @@ input::-webkit-inner-spin-button {
     overflow-y: auto;
 }
 
-/* Close button */
-.close {
-    float: inline-end;
-    font-size: 28px;
-    font-weight: bold;
-    color: var(--md-sys-color-on-surface);
-    text-decoration: none;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 35px;
-    height: 35px;
-    background-color: var(--primary-background-color);
-    border-radius: 50%;
-}
-
-.eventReadMoreBtn {
-    cursor: pointer;
-    font-weight: 700;
-    font-size: 14px;
-}
-
 .event-modal-body {
-    margin-top: 20px;
+    min-height: 0;
     overflow-y: auto;
     -ms-overflow-style: none;
     scrollbar-width: none;
@@ -1742,41 +2496,126 @@ input::-webkit-inner-spin-button {
     /* Hide scrollbar on Chrome, Safari, and Opera */
 }
 
-.event-modal-body #fullEventDate {
-    padding: 10px;
-    border-radius: var(--md-sys-shape-corner-small);
-    background-color: var(--text--primary-color);
-    color: var(--md-sys-color-primary);
-}
-
-.modal-header #fullEventTitle {
-    word-break: break-all;
-    width: 90%;
+/* The body's line breaks only added space; the parts have their own. */
+.event-modal-body > br {
+    display: none;
 }
 
 .event-modal-body .fullEventDescription {
-    margin-top: 30px;
-    color: var(--md-sys-color-on-surface-variant);
-    word-break: break-all;
+    display: block;
+    margin-top: 16px;
+    font-size: var(--md-sys-typescale-body-medium-size);
+    line-height: var(--md-sys-typescale-body-medium-line-height);
+    letter-spacing: var(--md-sys-typescale-body-medium-tracking);
+    color: var(--web-on-surface-variant-high);
+    overflow-wrap: anywhere;
 }
 
+/* The photo viewer (a Bootstrap modal with a carousel). */
+.modal.fade .modal-body {
+    padding: 0;
+}
 
-/* Navigation buttons */
+.modal.fade .carousel-item img {
+    border-radius: var(--md-sys-shape-corner-large);
+}
+
+.carousel-control-prev,
+.carousel-control-next {
+    width: 72px;
+    opacity: 1;
+}
+
+.carousel-control-prev:hover,
+.carousel-control-prev:focus,
+.carousel-control-next:hover,
+.carousel-control-next:focus {
+    opacity: 1;
+}
+
+/* Its arrows: filled icon buttons in Dark Navy (40px, 24px chevrons). */
+.carousel-control-prev-icon,
+.carousel-control-next-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    border-radius: var(--md-sys-shape-corner-full);
+    background-color: var(--md-sys-color-inverse-surface);
+    background-image: none;
+    box-shadow: var(--md-sys-elevation-level1);
+    transition: background-color 0.2s;
+}
+
+.carousel-control-prev-icon::after,
+.carousel-control-next-icon::after {
+    content: "";
+    width: 24px;
+    height: 24px;
+    background-color: var(--md-sys-color-on-inverse-surface);
+    -webkit-mask: var(--web-icon-chevron-left) center / contain no-repeat;
+    mask: var(--web-icon-chevron-left) center / contain no-repeat;
+}
+
+.carousel-control-next-icon::after {
+    -webkit-mask-image: var(--web-icon-chevron-right);
+    mask-image: var(--web-icon-chevron-right);
+}
+
+.carousel-control-prev:hover .carousel-control-prev-icon,
+.carousel-control-next:hover .carousel-control-next-icon {
+    background-color: color-mix(in srgb, var(--md-sys-color-on-inverse-surface) var(--md-sys-state-hover-opacity), var(--md-sys-color-inverse-surface));
+}
+
+/* Bootstrap 4's screen-reader class, used by the photo viewer's arrows. */
+.sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+}
+
+/* Hero carousel arrows: icon buttons on a white container (raised so they
+   read over the photo), with a primary icon and state layer. */
 .owl-prev,
 .owl-next {
     position: absolute;
     top: 50%;
     transform: translateY(-50%);
+    display: inline-flex !important;
+    align-items: center;
+    justify-content: center;
     width: 40px;
     height: 40px;
     background-color: var(--md-sys-color-surface-container-lowest) !important;
-    color: var(--primary-color) !important;
+    color: var(--md-sys-color-primary) !important;
     border: none;
     border-radius: var(--md-sys-shape-corner-full);
-    font-size: 20px;
-    line-height: 40px;
+    box-shadow: var(--md-sys-elevation-level1);
+    font-size: 20px !important;
+    line-height: 1;
     text-align: center;
     cursor: pointer;
+    transition: background-color 0.2s, box-shadow 0.2s;
+}
+
+.owl-prev:hover,
+.owl-next:hover {
+    background-color: color-mix(in srgb, var(--md-sys-color-primary) var(--md-sys-state-hover-opacity), var(--md-sys-color-surface-container-lowest)) !important;
+    box-shadow: var(--md-sys-elevation-level2);
+}
+
+.owl-prev:focus-visible,
+.owl-next:focus-visible,
+.owl-prev:active,
+.owl-next:active {
+    background-color: color-mix(in srgb, var(--md-sys-color-primary) var(--md-sys-state-focus-opacity), var(--md-sys-color-surface-container-lowest)) !important;
 }
 
 .owl-prev {
@@ -1787,10 +2626,14 @@ input::-webkit-inner-spin-button {
     right: 30px !important;
 }
 
-/* Disable default browser outline on focus */
-.owl-prev:focus,
-.owl-next:focus {
-    outline: none;
+@media screen and (max-width: 575px) {
+    .owl-prev {
+        left: 12px !important;
+    }
+
+    .owl-next {
+        right: 12px !important;
+    }
 }
 
 /* .swiperDataWrapper iframe {
@@ -1815,8 +2658,11 @@ input::-webkit-inner-spin-button {
 }
 
 .modal-content .iframe_div iframe {
+    display: block;
     width: 100%;
     height: 400px;
+    border: 0;
+    border-radius: var(--md-sys-shape-corner-medium);
 }
 
 @media only screen and (max-width:575px) {
@@ -1833,282 +2679,191 @@ input::-webkit-inner-spin-button {
 
 .input-group {
     position: relative;
-    display: -webkit-box;
-    display: -ms-flexbox;
     display: flex;
-    -ms-flex-wrap: wrap;
-    flex-wrap: wrap;
-    -webkit-box-align: stretch;
-    -ms-flex-align: stretch;
+    flex-wrap: nowrap;
     align-items: stretch;
     width: 100%;
 }
 
 .input-group-append,
 .input-group-prepend {
+    display: flex;
     color: var(--md-sys-color-on-surface-variant);
     width: auto;
     border: none;
 }
 
-.btn-theme,
-.btn-theme:hover {
-    color: var(--md-sys-color-on-primary);
-    background-color: var(--primary-color);
-    border-color: var(--primary-color);
+/* Field + button: the joined corners are square, the outer ones 10px.
+   Logical corners, so the join follows the reading direction. */
+.input-group > .form-control {
+    flex: 1 1 auto;
+    min-width: 0;
+    border-radius: var(--app-radius);
+    border-start-end-radius: 0;
+    border-end-end-radius: 0;
 }
 
-.input-group>.input-group-append>.btn,
-.asColorPicker-wrap>.input-group-append>.btn,
-.fc .input-group>.input-group-append>button,
-.fc .asColorPicker-wrap>.input-group-append>button,
-.ajax-upload-dragdrop .input-group>.input-group-append>.ajax-file-upload,
-.ajax-upload-dragdrop .asColorPicker-wrap>.input-group-append>.ajax-file-upload,
-.swal2-modal .swal2-buttonswrapper .input-group>.input-group-append>.swal2-styled,
-.swal2-modal .swal2-buttonswrapper .asColorPicker-wrap>.input-group-append>.swal2-styled,
-.wizard>.actions .input-group>.input-group-append>a,
-.wizard>.actions .asColorPicker-wrap>.input-group-append>a,
-.input-group>.input-group-append>.input-group-text,
-.asColorPicker-wrap>.input-group-append>.input-group-text,
-.input-group>.input-group-prepend:not(:first-child)>.btn,
-.asColorPicker-wrap>.input-group-prepend:not(:first-child)>.btn,
-.fc .input-group>.input-group-prepend:not(:first-child)>button,
-.fc .asColorPicker-wrap>.input-group-prepend:not(:first-child)>button,
-.ajax-upload-dragdrop .input-group>.input-group-prepend:not(:first-child)>.ajax-file-upload,
-.ajax-upload-dragdrop .asColorPicker-wrap>.input-group-prepend:not(:first-child)>.ajax-file-upload,
-.swal2-modal .swal2-buttonswrapper .input-group>.input-group-prepend:not(:first-child)>.swal2-styled,
-.swal2-modal .swal2-buttonswrapper .asColorPicker-wrap>.input-group-prepend:not(:first-child)>.swal2-styled,
-.wizard>.actions .input-group>.input-group-prepend:not(:first-child)>a,
-.wizard>.actions .asColorPicker-wrap>.input-group-prepend:not(:first-child)>a,
-.input-group>.input-group-prepend:not(:first-child)>.input-group-text,
-.asColorPicker-wrap>.input-group-prepend:not(:first-child)>.input-group-text,
-.input-group>.input-group-prepend:first-child>.btn:not(:first-child),
-.asColorPicker-wrap>.input-group-prepend:first-child>.btn:not(:first-child),
-.fc .input-group>.input-group-prepend:first-child>button:not(:first-child),
-.fc .asColorPicker-wrap>.input-group-prepend:first-child>button:not(:first-child),
-.ajax-upload-dragdrop .input-group>.input-group-prepend:first-child>.ajax-file-upload:not(:first-child),
-.ajax-upload-dragdrop .asColorPicker-wrap>.input-group-prepend:first-child>.ajax-file-upload:not(:first-child),
-.swal2-modal .swal2-buttonswrapper .input-group>.input-group-prepend:first-child>.swal2-styled:not(:first-child),
-.swal2-modal .swal2-buttonswrapper .asColorPicker-wrap>.input-group-prepend:first-child>.swal2-styled:not(:first-child),
-.wizard>.actions .input-group>.input-group-prepend:first-child>a:not(:first-child),
-.wizard>.actions .asColorPicker-wrap>.input-group-prepend:first-child>a:not(:first-child),
-.input-group>.input-group-prepend:first-child>.input-group-text:not(:first-child),
-.asColorPicker-wrap>.input-group-prepend:first-child>.input-group-text:not(:first-child) {
-    border-top-left-radius: 0;
-    border-bottom-left-radius: 0;
+.input-group > .input-group-append > .btn {
+    height: 48px;
+    margin: 0;
+    border-radius: var(--app-radius);
+    border-start-start-radius: 0;
+    border-end-start-radius: 0;
+}
+
+/* The real file input stays in the layout (hidden, so the Upload button
+   opens it) but inside its field group, so it can't widen the page. */
+.formWrapper .form-group {
+    position: relative;
 }
 
 .form-group .file-upload-default {
     visibility: hidden;
     position: absolute;
+    top: 0;
+    inset-inline-start: 0;
+    width: 100%;
+    max-width: 100%;
 }
 
 .form-group .file-upload-info {
-    background: var(--md-sys-color-surface-container-low);
+    cursor: default;
 }
 
-.form-check-input:checked[type=checkbox] {
-    background-color: var(--primary-color) !important;
-    border-color: var(--primary-color) !important;
-}
-
-.form-check-inline {
-    display: -webkit-inline-box;
-    display: -ms-inline-flexbox;
-    display: inline-flex;
-    -webkit-box-align: center;
-    -ms-flex-align: center;
-    align-items: center;
-    padding-left: 0;
-    margin-right: 0.75rem;
-}
-
-.form-check-inline .form-check-input {
-    position: static;
-    margin-top: 0;
-    margin-right: 0.3125rem;
-    margin-left: 0;
-}
-
-/* Checkboxes and Radios */
-
+/* ── Checkboxes ───────────────────────────────────────────────────────
+   The custom-field checkboxes (input + i.input-helper): an 18px box with
+   2px corners and a 2px on-surface-variant border; checked is a primary
+   fill with an on-primary tick. A 40px circular state layer sits behind
+   it on hover (on-surface, or primary when checked). */
 .form-check {
     position: relative;
     display: block;
-    margin-top: 15px;
-    margin-bottom: 10px;
-    padding-left: 0;
+    min-height: 40px;
+    margin: 0;
+    padding: 0;
+}
+
+.form-check-inline {
+    display: inline-flex;
+    align-items: center;
+    padding: 0;
+    margin: 0;
+    margin-inline-end: 16px;
 }
 
 .form-check .form-check-label {
-    display: block;
-    margin-left: 1.75rem;
-    font-size: 0.875rem;
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    min-height: 40px;
+    margin: 0;
+    padding-inline-start: 30px;
+    color: var(--md-sys-color-on-surface);
+    font-size: var(--md-sys-typescale-body-medium-size);
+    line-height: var(--md-sys-typescale-body-medium-line-height);
+    font-weight: var(--md-sys-typescale-body-medium-weight);
+    letter-spacing: var(--md-sys-typescale-body-medium-tracking);
+    cursor: pointer;
 }
 
-.form-check .form-check-label input {
+/* The real checkbox stays on top of the drawn one, invisible, so it keeps
+   the clicks, keyboard focus and validation. */
+.form-check .form-check-label input[type="checkbox"] {
     position: absolute;
-    top: 0;
-    left: 0;
-    margin-left: 0;
-    margin-top: 0;
+    top: 50%;
+    inset-inline-start: 0;
+    width: 18px;
+    height: 18px;
+    margin: -9px 0 0;
+    opacity: 0;
     z-index: 1;
     cursor: pointer;
 }
 
-.form-check .form-check-label input[type="checkbox"]+.input-helper:before,
-.form-check .form-check-label input[type="checkbox"]+.input-helper:after {
+.form-check .form-check-label input[type="checkbox"] + .input-helper {
     position: absolute;
-    top: 0;
-    left: 0;
+    top: 50%;
+    inset-inline-start: -11px;
+    width: 40px;
+    height: 40px;
+    margin-top: -20px;
+    border-radius: var(--md-sys-shape-corner-full);
+    transition: background-color 0.15s;
 }
 
-.form-check .form-check-label input[type="checkbox"]+.input-helper:before {
+.form-check .form-check-label input[type="checkbox"] + .input-helper::before,
+.form-check .form-check-label input[type="checkbox"] + .input-helper::after {
     content: "";
+    position: absolute;
+    top: 11px;
+    inset-inline-start: 11px;
+    box-sizing: border-box;
     width: 18px;
     height: 18px;
+}
+
+.form-check .form-check-label input[type="checkbox"] + .input-helper::before {
+    border: 2px solid var(--md-sys-color-on-surface-variant);
     border-radius: 2px;
-    border: solid var(--md-sys-color-primary) !important;
-    border-width: 2px;
-    -webkit-transition: all;
-    transition: all;
-    transition-duration: 0s;
-    -webkit-transition-duration: 250ms;
-    transition-duration: 250ms;
+    transition: background-color 0.15s, border-color 0.15s;
 }
 
-.form-check .form-check-label input[type="checkbox"]+.input-helper:after {
-    -webkit-transition: all;
-    transition: all;
-    transition-duration: 0s;
-    -webkit-transition-duration: 250ms;
-    transition-duration: 250ms;
-    opacity: 0;
-    filter: alpha(opacity=0);
-    -webkit-transform: scale(0);
+.form-check .form-check-label input[type="checkbox"] + .input-helper::after {
+    background-color: var(--md-sys-color-on-primary);
+    -webkit-mask: var(--web-icon-check) center / 18px 18px no-repeat;
+    mask: var(--web-icon-check) center / 18px 18px no-repeat;
     transform: scale(0);
-    content: '';
-    width: 18px;
-    height: 18px;
-    background-repeat: no-repeat;
-    background-position: center;
-    background-size: 14px 14px;
+    transition: transform 0.15s;
 }
 
-.form-check .form-check-label input[type="checkbox"]:checked+.input-helper:before {
-    background: -webkit-gradient(linear, left top, right top, from(var(--md-sys-color-primary)), to(var(--md-sys-color-primary)));
-    background: linear-gradient(to right, var(--md-sys-color-primary), var(--md-sys-color-primary));
-    border-width: 0;
+.form-check .form-check-label:hover input[type="checkbox"] + .input-helper {
+    background-color: color-mix(in srgb, var(--md-sys-color-on-surface) var(--md-sys-state-hover-opacity), transparent);
 }
 
-.form-check .form-check-label input[type="checkbox"]:checked+.input-helper:after {
-    width: 18px;
-    opacity: 1;
-    line-height: 18px;
-    filter: alpha(opacity=100);
-    -webkit-transform: scale(1);
-    transform: scale(1);
-    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'%3e%3cpath fill='none' stroke='%23fff' stroke-linecap='round' stroke-linejoin='round' stroke-width='3' d='M6 10l3 3l6-6'/%3e%3c/svg%3e");
+.form-check .form-check-label input[type="checkbox"]:focus-visible + .input-helper,
+.form-check .form-check-label input[type="checkbox"]:active + .input-helper {
+    background-color: color-mix(in srgb, var(--md-sys-color-on-surface) var(--md-sys-state-focus-opacity), transparent);
 }
 
-.form-check .form-check-label input[type="checkbox"]:disabled+.input-helper:before {
-    border-color: color-mix(in srgb, var(--md-sys-color-on-surface) var(--md-sys-state-disabled-container-opacity), transparent);
+.form-check .form-check-label input[type="checkbox"]:focus-visible + .input-helper::before {
+    outline: 3px solid var(--md-sys-color-secondary);
+    outline-offset: 2px;
 }
 
-.form-check .form-check-label input[type="checkbox"]:disabled:checked+.input-helper:after {
-    background: color-mix(in srgb, var(--md-sys-color-on-surface) var(--md-sys-state-disabled-container-opacity), transparent);
-    color: var(--md-sys-color-on-primary);
+.form-check .form-check-label input[type="checkbox"]:checked + .input-helper::before {
+    border-color: var(--md-sys-color-primary);
+    background-color: var(--md-sys-color-primary);
 }
 
-.form-check .form-check-label input[type="radio"]+.input-helper:before {
-    position: absolute;
-    content: "";
-    top: 0;
-    left: 0;
-    border: solid var(--md-sys-color-primary);
-    border-width: 2px;
-    width: 20px;
-    height: 20px;
-    border-radius: 50%;
-    -webkit-transition: all;
-    transition: all;
-    transition-duration: 0s;
-    -webkit-transition-duration: 250ms;
-    transition-duration: 250ms;
-}
-
-.form-check .form-check-label input[type="radio"]+.input-helper:after {
-    content: "";
-    width: 8px;
-    height: 8px;
-    background: var(--md-sys-color-on-primary);
-    border-radius: 50%;
-    top: 6px;
-    left: 6px;
-    -webkit-transition: all;
-    transition: all;
-    transition-duration: 0s;
-    -webkit-transition-duration: 250ms;
-    transition-duration: 250ms;
-    opacity: 0;
-    filter: alpha(opacity=0);
-    -webkit-transform: scale(0);
-    transform: scale(0);
-    position: absolute;
-}
-
-.form-check .form-check-label input[type="radio"]:checked+.input-helper:after {
-    opacity: 1;
-    line-height: 1.5;
-    filter: alpha(opacity=100);
-    -webkit-transform: scale(1);
+.form-check .form-check-label input[type="checkbox"]:checked + .input-helper::after {
     transform: scale(1);
 }
 
-.form-check .form-check-label input[type="radio"]:disabled:checked+.input-helper:after {
-    background: var(--md-sys-color-on-primary);
+.form-check .form-check-label:hover input[type="checkbox"]:checked + .input-helper {
+    background-color: color-mix(in srgb, var(--md-sys-color-primary) var(--md-sys-state-hover-opacity), transparent);
 }
 
-.form-check .form-check-label input[type="radio"]+.input-helper:before {
-    position: absolute;
-    content: "";
-    top: 0;
-    left: 0;
-    border: solid var(--md-sys-color-primary);
-    border-width: 2px;
-    width: 20px;
-    height: 20px;
-    border-radius: 50%;
-    -webkit-transition: all;
-    transition: all;
-    transition-duration: 0s;
-    -webkit-transition-duration: 250ms;
-    transition-duration: 250ms;
+.form-check .form-check-label input[type="checkbox"]:checked:focus-visible + .input-helper {
+    background-color: color-mix(in srgb, var(--md-sys-color-primary) var(--md-sys-state-focus-opacity), transparent);
 }
 
-.form-check .form-check-label input[type="radio"]+.input-helper:after {
-    content: "";
-    width: 8px;
-    height: 8px;
-    background: var(--md-sys-color-on-primary);
-    border-radius: 50%;
-    top: 6px;
-    left: 6px;
-    -webkit-transition: all;
-    transition: all;
-    transition-duration: 0s;
-    -webkit-transition-duration: 250ms;
-    transition-duration: 250ms;
-    opacity: 0;
-    filter: alpha(opacity=0);
-    -webkit-transform: scale(0);
-    transform: scale(0);
-    position: absolute;
+/* Error: the box takes the error colour. */
+.form-check .form-check-label input[type="checkbox"].error:not(:checked) + .input-helper::before,
+.form-check .form-check-label input[type="checkbox"].form-control-danger:not(:checked) + .input-helper::before {
+    border-color: var(--md-sys-color-error);
 }
 
-.form-check-input:focus {
-    border: 1px solid var(--md-sys-color-primary) !important;
-    box-shadow: none !important;
+.form-check .form-check-label input[type="checkbox"]:disabled + .input-helper::before {
+    border-color: color-mix(in srgb, var(--md-sys-color-on-surface) var(--md-sys-state-disabled-content-opacity), transparent);
+}
+
+.form-check .form-check-label input[type="checkbox"]:disabled:checked + .input-helper::before {
+    border-color: transparent;
+    background-color: color-mix(in srgb, var(--md-sys-color-on-surface) var(--md-sys-state-disabled-content-opacity), transparent);
+}
+
+.form-check .form-check-label input[type="checkbox"]:disabled ~ * {
+    cursor: default;
 }
 
 /* Student Registration Form */
@@ -2121,65 +2876,51 @@ input::-webkit-inner-spin-button {
     padding: 20px 100px;
 }
 
+/* The form sits on an outlined card with a divider under its title. */
+.registration > .row > .col-12 > .card {
+    border: 1px solid var(--md-sys-color-outline-variant);
+    border-radius: var(--app-radius);
+    background-color: var(--md-sys-color-surface-container-lowest);
+    box-shadow: none;
+}
+
+.registration > .row > .col-12 > .card > hr {
+    height: 1px;
+    margin: 0;
+    border: 0;
+    background-color: var(--md-sys-color-outline-variant);
+    opacity: 1;
+}
+
 .registration .getInTouchWrapper {
     display: flex;
     align-items: start;
     justify-content: center;
-    margin: 15px 21px 0 21px;
+    margin: 24px 24px 16px;
 }
 
 .registration .getInTouchWrapper .card {
     border: none;
+    background-color: transparent;
 }
 
 .registration .getInTouchWrapper .commonSpan {
-    font-size: 28px;
-    font-weight: 700;
+    font-size: var(--md-sys-typescale-headline-small-size);
+    line-height: var(--md-sys-typescale-headline-small-line-height);
+    font-weight: var(--md-sys-typescale-headline-small-weight);
+    letter-spacing: var(--md-sys-typescale-headline-small-tracking);
+    color: var(--md-sys-color-on-surface);
     text-align: center;
 }
 
 .registration .formWrapper {
-    padding: 20px;
+    padding: 14px;
 }
 
-.registration .formWrapper label {
-    font-size: 0.875rem;
-    font-weight: 500;
-}
-
-.registration .formWrapper input,
-.registration .formWrapper textarea,
-.registration .formWrapper select {
-    border: 0.5px solid var(--md-sys-color-outline-variant);
-    border-radius: var(--app-radius);
-    background-color: var(--md-sys-color-surface-container-low);
-    padding: 0.5rem 1rem;
-    color: var(--md-sys-color-on-surface);
-    font-size: 0.8125rem;
-}
-
-.registration .formWrapper [type=checkbox] {
-    padding: 8px !important;
-    font-size: 0.8125rem;
-    color: var(--primary-color);
-}
-
-.form-control:focus {
-    border: 2px solid var(--md-sys-color-primary) !important;
-    box-shadow: none !important;
-}
-
-.registration .formWrapper .commonBtn {
-    background-color: var(--primary-color);
-    color: var(--text-white-color);
-    padding: 5px 30px;
-    border: none;
-    border-radius: var(--app-radius);
-    text-align: center;
-    font-size: 16px;
-    font-weight: 400;
-    margin-top: 12px;
-    transition: background-color 0.3s;
+/* Fields on the registration form are full width in their column. */
+.registration .formWrapper .form-group > .form-control,
+.registration .formWrapper .form-group > select {
+    width: 100%;
 }
 
 /* Ends Student Registration Form */
@@ -2430,43 +3171,48 @@ input::-webkit-inner-spin-button {
     display: initial;
 }
 
-.registration .formWrapper input:disabled[type=text],
-.registration .formWrapper select:disabled {
-    background-color: var(--md-sys-color-surface-container-high);
-    opacity: 1;
-}
-
+/* ── Radio buttons ────────────────────────────────────────────────────
+   A 20px circle with a 2px on-surface-variant border; selected is a 2px
+   primary border around a 10px primary dot. A 40px circular state layer
+   sits behind it on hover (on-surface, or primary when selected). */
 .radio-group {
     display: flex;
-    gap: 20px;
+    flex-wrap: wrap;
+    gap: 0 24px;
     align-items: center;
 }
 
 .radio-label {
+    position: relative;
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: 12px;
+    min-height: 40px;
+    margin: 0;
     cursor: pointer;
 }
 
+/* The real radio stays in place, invisible, for keyboard and validation. */
 .radio-input {
     position: absolute;
+    inset-inline-start: 0;
+    width: 20px;
+    height: 20px;
+    margin: 0;
     opacity: 0;
     cursor: pointer;
 }
 
 .radio-custom {
     position: relative;
+    box-sizing: border-box;
+    flex-shrink: 0;
     width: 20px;
     height: 20px;
-    border: 2px solid var(--md-sys-color-outline);
+    border: 2px solid var(--md-sys-color-on-surface-variant);
     border-radius: 50%;
     display: inline-block;
-    transition: border-color 0.2s;
-}
-
-.radio-input:checked+.radio-custom {
-    border-color: var(--primary-color);
+    transition: border-color 0.15s, box-shadow 0.15s;
 }
 
 .radio-custom::after {
@@ -2474,83 +3220,302 @@ input::-webkit-inner-spin-button {
     position: absolute;
     top: 50%;
     left: 50%;
-    transform: translate(-50%, -50%);
     width: 10px;
     height: 10px;
     border-radius: 50%;
-    background: var(--primary-color);
-    opacity: 0;
-    transition: opacity 0.2s;
+    background: var(--md-sys-color-primary);
+    transform: translate(-50%, -50%) scale(0);
+    transition: transform 0.15s;
 }
 
-.radio-input:checked+.radio-custom::after {
-    opacity: 1;
+.radio-input:checked + .radio-custom {
+    border-color: var(--md-sys-color-primary);
 }
 
+.radio-input:checked + .radio-custom::after {
+    transform: translate(-50%, -50%) scale(1);
+}
+
+/* State layer: a 10px ring of the content colour around the 20px circle. */
 .radio-label:hover .radio-custom {
-    border-color: var(--primary-color);
+    box-shadow: 0 0 0 10px color-mix(in srgb, var(--md-sys-color-on-surface) var(--md-sys-state-hover-opacity), transparent);
+}
+
+.radio-label:hover .radio-input:checked + .radio-custom {
+    box-shadow: 0 0 0 10px color-mix(in srgb, var(--md-sys-color-primary) var(--md-sys-state-hover-opacity), transparent);
+}
+
+.radio-input:focus-visible + .radio-custom {
+    box-shadow: 0 0 0 10px color-mix(in srgb, var(--md-sys-color-on-surface) var(--md-sys-state-focus-opacity), transparent);
+    outline: 3px solid var(--md-sys-color-secondary);
+    outline-offset: 2px;
+}
+
+.radio-input:checked:focus-visible + .radio-custom {
+    box-shadow: 0 0 0 10px color-mix(in srgb, var(--md-sys-color-primary) var(--md-sys-state-focus-opacity), transparent);
+}
+
+.radio-input.error:not(:checked) + .radio-custom,
+.radio-input.form-control-danger:not(:checked) + .radio-custom {
+    border-color: var(--md-sys-color-error);
+}
+
+.radio-input:disabled + .radio-custom {
+    border-color: color-mix(in srgb, var(--md-sys-color-on-surface) var(--md-sys-state-disabled-content-opacity), transparent);
+    box-shadow: none;
 }
 
 .radio-text {
     color: var(--md-sys-color-on-surface);
+    font-size: var(--md-sys-typescale-body-medium-size);
+    line-height: var(--md-sys-typescale-body-medium-line-height);
+    font-weight: var(--md-sys-typescale-body-medium-weight);
+    letter-spacing: var(--md-sys-typescale-body-medium-tracking);
 }
-/* Language switcher */
+
+/* Language switcher (styled with the other navigation items above). */
 .nav-language-switcher {
     display: flex;
     align-items: center;
 }
 
-.language-toggle {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    color: inherit;
-    text-decoration: none;
-    font-size: 14px;
-    font-weight: 500;
-    padding: 6px 10px;
-    border-radius: 6px;
-    transition: background 0.2s;
-}
-
-.language-toggle:hover {
-    color: var(--primary-color);
-    text-decoration: none;
+.language-toggle .fa-globe {
+    font-size: 18px;
 }
 
 .language-toggle .fa-chevron-down {
-    font-size: 10px;
+    font-size: 12px;
+    transition: transform 0.2s;
 }
 
-.language-dropdown-menu {
-    min-width: 150px;
-    border-radius: var(--md-sys-shape-corner-small);
-    box-shadow: var(--md-sys-elevation-level2);
-    border: 1px solid var(--md-sys-color-outline-variant);
-    padding: 6px 0;
-    overflow: hidden;
-}
-
-.language-dropdown-menu .dropdown-item {
-    font-size: 14px;
-    padding: 8px 16px;
-    color: var(--md-sys-color-on-surface);
-    transition: background 0.15s;
-}
-
-/* !important: the navbar link rule above sets these with !important too. */
-.language-dropdown-menu .dropdown-item:hover {
-    background: color-mix(in srgb, var(--md-sys-color-primary) var(--md-sys-state-hover-opacity), transparent) !important;
-    color: var(--primary-color) !important;
-}
-
-.language-dropdown-menu .dropdown-item.active {
-    background: var(--primary-color) !important;
-    color: var(--md-sys-color-on-primary) !important;
+.language-toggle.show .fa-chevron-down {
+    transform: rotate(180deg);
 }
 
 /* Bootstrap colour utilities the site's forms use, pointed at the tokens
    (.text-muted is in m3-base.css, for the admin panel too). */
 .text-danger {
     color: var(--md-sys-color-error) !important;
+}
+
+/* ── Snackbars (jquery-toast) ─────────────────────────────────────────
+   inverse-surface with on-inverse-surface text, 4px corners, elevation 3,
+   14px 16px padding, body-medium, at most 560px wide, at the bottom of
+   the screen. A small status icon leads; the close button is a 40px
+   icon button. The plugin's progress bar isn't part of a snackbar. */
+.jq-toast-wrap,
+.jq-toast-wrap.top-right,
+.jq-toast-wrap.top-left,
+.jq-toast-wrap.bottom-right,
+.jq-toast-wrap.bottom-left {
+    top: auto;
+    bottom: 24px;
+    left: auto;
+    right: auto;
+    inset-inline-start: 24px;
+    width: max-content;
+    min-width: min(288px, calc(100vw - 32px));
+    max-width: min(560px, calc(100vw - 32px));
+    z-index: 9100 !important;
+}
+
+.jq-toast-wrap .jq-toast-single {
+    position: relative;
+    box-sizing: border-box;
+    width: 100%;
+    min-height: 48px;
+    margin: 8px 0 0;
+    padding: 14px 16px;
+    padding-inline-end: 52px;
+    border: none;
+    border-radius: var(--md-sys-shape-corner-extra-small);
+    background-color: var(--md-sys-color-inverse-surface);
+    background-image: none;
+    color: var(--md-sys-color-on-inverse-surface) !important;
+    font-family: var(--md-ref-typeface-plain);
+    font-size: var(--md-sys-typescale-body-medium-size);
+    line-height: var(--md-sys-typescale-body-medium-line-height);
+    font-weight: var(--md-sys-typescale-body-medium-weight);
+    letter-spacing: var(--md-sys-typescale-body-medium-tracking);
+    text-align: start;
+    box-shadow: var(--md-sys-elevation-level3);
+}
+
+.jq-toast-wrap .jq-toast-single h2 {
+    margin: 0 0 4px;
+    color: inherit;
+    font-family: var(--md-ref-typeface-plain);
+    font-size: var(--md-sys-typescale-title-small-size);
+    line-height: var(--md-sys-typescale-title-small-line-height);
+    font-weight: var(--md-sys-typescale-title-small-weight);
+}
+
+.jq-toast-wrap .jq-toast-single ul {
+    margin: 0;
+    padding-inline-start: 16px;
+}
+
+.jq-toast-wrap .jq-toast-single ul li {
+    line-height: var(--md-sys-typescale-body-medium-line-height);
+}
+
+/* Links in a snackbar read as its action. */
+.jq-toast-wrap .jq-toast-single a {
+    border: 0;
+    color: var(--md-sys-color-inverse-primary) !important;
+    font-size: var(--md-sys-typescale-label-large-size);
+    font-weight: var(--md-sys-typescale-label-large-weight);
+}
+
+.jq-toast-wrap .jq-toast-single.jq-has-icon {
+    padding-inline-start: 48px;
+    background-color: var(--md-sys-color-inverse-surface);
+    background-image: none;
+}
+
+.jq-toast-wrap .jq-toast-single.jq-has-icon::before {
+    content: "";
+    position: absolute;
+    top: 14px;
+    inset-inline-start: 16px;
+    width: 20px;
+    height: 20px;
+    background-color: var(--web-toast-icon-color, var(--md-sys-color-inverse-primary));
+    -webkit-mask: var(--web-toast-icon, var(--web-icon-info)) center / contain no-repeat;
+    mask: var(--web-toast-icon, var(--web-icon-info)) center / contain no-repeat;
+}
+
+.jq-toast-wrap .jq-toast-single.jq-icon-success {
+    --web-toast-icon: var(--web-icon-check-circle);
+    --web-toast-icon-color: var(--app-status-success);
+}
+
+.jq-toast-wrap .jq-toast-single.jq-icon-error {
+    --web-toast-icon: var(--web-icon-error);
+    --web-toast-icon-color: var(--app-status-danger);
+}
+
+.jq-toast-wrap .jq-toast-single.jq-icon-warning {
+    --web-toast-icon: var(--web-icon-warning);
+    --web-toast-icon-color: var(--app-status-warning);
+}
+
+.jq-toast-wrap .jq-toast-single.jq-icon-info {
+    --web-toast-icon: var(--web-icon-info);
+    --web-toast-icon-color: var(--md-sys-color-inverse-primary);
+}
+
+.jq-toast-wrap .jq-toast-single .close-jq-toast-single {
+    position: absolute;
+    top: 4px;
+    left: auto;
+    right: auto;
+    inset-inline-end: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    border-radius: var(--md-sys-shape-corner-full);
+    color: var(--md-sys-color-on-inverse-surface);
+    font-size: 0;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.jq-toast-wrap .jq-toast-single .close-jq-toast-single::before {
+    content: "";
+    width: 20px;
+    height: 20px;
+    background-color: currentColor;
+    -webkit-mask: var(--web-icon-close) center / contain no-repeat;
+    mask: var(--web-icon-close) center / contain no-repeat;
+}
+
+.jq-toast-wrap .jq-toast-single .close-jq-toast-single:hover {
+    background-color: color-mix(in srgb, var(--md-sys-color-on-inverse-surface) var(--md-sys-state-hover-opacity), transparent);
+}
+
+.jq-toast-wrap .jq-toast-single .jq-toast-loader {
+    display: none !important;
+}
+
+@media screen and (max-width: 575px) {
+    .jq-toast-wrap,
+    .jq-toast-wrap.top-right,
+    .jq-toast-wrap.top-left,
+    .jq-toast-wrap.bottom-right,
+    .jq-toast-wrap.bottom-left {
+        left: 16px;
+        right: 16px;
+        bottom: 16px;
+        width: auto;
+        min-width: 0;
+        max-width: none;
+    }
+}
+
+/* ── Date picker (flatpickr) ──────────────────────────────────────────
+   The calendar is an M3 docked date picker surface: surface-container-
+   high, 16px corners, elevation 3, circular day cells with an on-surface
+   state layer. flatpickr-theme.css colours the selected day. */
+.flatpickr-calendar {
+    border: none;
+    border-radius: var(--md-sys-shape-corner-large);
+    background-color: var(--md-sys-color-surface-container-high);
+    box-shadow: var(--md-sys-elevation-level3);
+    font-family: var(--md-ref-typeface-plain);
+}
+
+.flatpickr-calendar.arrowTop::before,
+.flatpickr-calendar.arrowTop::after,
+.flatpickr-calendar.arrowBottom::before,
+.flatpickr-calendar.arrowBottom::after {
+    display: none;
+}
+
+.flatpickr-months .flatpickr-month,
+.flatpickr-current-month .flatpickr-monthDropdown-months,
+.flatpickr-current-month input.cur-year {
+    color: var(--md-sys-color-on-surface);
+    fill: var(--md-sys-color-on-surface);
+}
+
+.flatpickr-current-month {
+    font-size: var(--md-sys-typescale-title-small-size);
+    font-weight: var(--md-sys-typescale-title-small-weight);
+}
+
+.flatpickr-months .flatpickr-prev-month,
+.flatpickr-months .flatpickr-next-month {
+    color: var(--web-on-surface-variant-high);
+    fill: var(--web-on-surface-variant-high);
+}
+
+.flatpickr-months .flatpickr-prev-month:hover svg,
+.flatpickr-months .flatpickr-next-month:hover svg {
+    fill: var(--md-sys-color-primary);
+}
+
+span.flatpickr-weekday {
+    color: var(--md-sys-color-on-surface);
+    font-weight: var(--md-sys-typescale-body-small-weight);
+}
+
+.flatpickr-day {
+    border-radius: var(--md-sys-shape-corner-full);
+    color: var(--md-sys-color-on-surface);
+}
+
+.flatpickr-day:hover,
+.flatpickr-day:focus {
+    border-color: transparent;
+    background-color: color-mix(in srgb, var(--md-sys-color-on-surface) var(--md-sys-state-hover-opacity), transparent);
+}
+
+.flatpickr-day.flatpickr-disabled,
+.flatpickr-day.flatpickr-disabled:hover,
+.flatpickr-day.prevMonthDay,
+.flatpickr-day.nextMonthDay {
+    color: color-mix(in srgb, var(--md-sys-color-on-surface) var(--md-sys-state-disabled-content-opacity), transparent);
 }

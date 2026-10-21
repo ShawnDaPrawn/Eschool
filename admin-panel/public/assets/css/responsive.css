@@ -7,13 +7,9 @@
         display: block;
     }
 
+    /* The drawer's list (its items are styled in webstyle.css). */
     .navbar .offcanvas .listItems {
-        display: block;
-        margin-top: -16px;
-    }
-
-    .navbar .offcanvas .listItems li {
-        margin: 20px 0px;
+        display: flex;
     }
 
     .navbar .dropdownListItem {

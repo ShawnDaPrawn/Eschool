@@ -147,8 +147,9 @@
                         </li>
                     </ul>
                     <div class="hamburg">
-                        <span data-bs-toggle="offcanvas" data-bs-target="#offcanvasRight"
-                            aria-controls="offcanvasRight"><i class="fa-solid fa-bars"></i></span>
+                        <button type="button" data-bs-toggle="offcanvas" data-bs-target="#offcanvasRight"
+                            aria-controls="offcanvasRight" aria-label="{{ __('menu') }}"><i class="fa-solid fa-bars"
+                                aria-hidden="true"></i></button>
                     </div>
                 </div>
             </div>

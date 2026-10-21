@@ -28,8 +28,34 @@
         color: var(--md-sys-color-on-inverse-surface);
     }
 
+    /* "Back to home": a Material 3 filled button on navy, in the inverse
+       roles (inverse-primary with a dark primary label, 7.8:1), 40px high
+       with the app's 10px corners. */
     .error-page a.text-white {
-        color: var(--md-sys-color-inverse-primary) !important;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        height: 40px;
+        padding: 0 24px;
+        border-radius: var(--app-radius);
+        background-color: var(--md-sys-color-inverse-primary);
+        color: color-mix(in srgb, var(--md-sys-color-primary) 55%, var(--md-sys-color-on-surface)) !important;
+        font-size: var(--md-sys-typescale-label-large-size);
+        line-height: var(--md-sys-typescale-label-large-line-height);
+        font-weight: var(--md-sys-typescale-label-large-weight);
+        letter-spacing: var(--md-sys-typescale-label-large-tracking);
+        text-decoration: none;
+        transition: background-color 0.2s, box-shadow 0.2s;
+    }
+
+    .error-page a.text-white:hover {
+        background-color: color-mix(in srgb, var(--md-sys-color-primary) var(--md-sys-state-hover-opacity), var(--md-sys-color-inverse-primary));
+        box-shadow: var(--md-sys-elevation-level1);
+    }
+
+    .error-page a.text-white:focus-visible {
+        outline: 3px solid var(--md-sys-color-inverse-primary);
+        outline-offset: 2px;
     }
 </style>
   <body>

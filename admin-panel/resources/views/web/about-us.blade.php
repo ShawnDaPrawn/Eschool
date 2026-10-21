@@ -161,10 +161,10 @@
                     </div>
                     <!-- Navigation buttons -->
                     <div class="navigationBtns">
-                    <button class="prev commonBtn">
+                    <button type="button" class="prev commonBtn" aria-label="{{ __('Previous') }}">
                         <i class="fa-solid fa-arrow-left"></i>
                     </button>
-                    <button class="next commonBtn">
+                    <button type="button" class="next commonBtn" aria-label="{{ __('Next') }}">
                         <i class="fa-solid fa-arrow-right"></i>
                     </button>
                     </div>
