@@ -47,6 +47,9 @@ import 'package:path_provider/path_provider.dart';
 Future<void> initializeApp() async {
   WidgetsFlutterBinding.ensureInitialized();
 
+  //a debug build with a mistyped --dart-define stops here and says why
+  AppConfig.assertValid();
+
   //debugPrint is not stripped from release builds, so silence it there
   if (kReleaseMode) {
     debugPrint = (String? message, {int? wrapWidth}) {};

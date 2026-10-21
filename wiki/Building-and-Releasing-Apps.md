@@ -28,7 +28,7 @@ flutter run
 
 Before the first run:
 
-1. Set `baseUrl` in `lib/utils/constants.dart` to a running admin panel ([Mobile-App-Configuration](Mobile-App-Configuration#server-url)). Without a reachable server the app stays on the splash screen error.
+1. Choose the server. A plain `flutter run` talks to the production server; for another one pass `--dart-define=API_BASE_URL=...` (add `--dart-define=ENV=local` for an `http://` address) or `--dart-define-from-file=config/staging.json` ([Mobile-App-Configuration](Mobile-App-Configuration#build-settings)). Without a reachable server the app stays on the splash screen error.
 2. `android/app/google-services.json` and `ios/Runner/GoogleService-Info.plist` are already committed for Firebase project `navigateed-d8c06`. Android builds fail if the JSON is removed, because the Google services Gradle plugin is applied, and the Xcode project lists the plist as a resource.
 3. For iOS, `flutter pub get` must run before `pod install`: the `Podfile` reads `ios/Flutter/Generated.xcconfig` and raises an error if it is missing.
 4. For a local `http://` server: the student app's debug build allows cleartext (debug manifest and `src/debug/res/xml/network_security_config.xml`); the teacher app has no such override, so use HTTPS or add one locally. iOS requires HTTPS in both apps.
@@ -109,6 +109,8 @@ flutter build apk                 # universal APK
 flutter build apk --split-per-abi # per-ABI APKs (README)
 flutter build appbundle           # AAB for Google Play
 ```
+
+Every build command takes the environment's define file, so staging and production builds differ only by it: `flutter build appbundle --dart-define-from-file=config/staging.json` (or `config/production.json`). Without one, the build uses the production server ([Mobile-App-Configuration](Mobile-App-Configuration#build-settings)).
 
 Outputs go to `build/app/outputs/` inside the app folder. Docs: https://shawndaprawn.github.io/Eschool/mobile-app/generate-release/
 

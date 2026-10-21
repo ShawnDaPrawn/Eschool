@@ -1,11 +1,15 @@
-//database urls
-//Please add your admin panel url here and make sure you do not add '/' at the end of the url
+import 'package:eschool_core/eschool_core.dart';
 
-const String baseUrl = 'https://navigateed-admin-972068206844.africa-south1.run.app';
+//The server address comes from the build: --dart-define=API_BASE_URL=...
+//(see AppConfig in eschool_core). Without it, builds use the production server.
+const String baseUrl = AppConfig.apiBaseUrl;
 
 //please do not change the below 2 values it's for convince of usage in code
-const String databaseUrl = '$baseUrl/api/';
-const String storageUrl = '$baseUrl/storage/';
+const String databaseUrl = AppConfig.apiUrl;
+const String storageUrl = AppConfig.storageUrl;
+
+//which shell this build is (--dart-define=FLAVOR=...), 'learner' when not given
+String get appFlavor => AppConfig.flavorOr('learner');
 //error message display duration
 const Duration errorMessageDisplayDuration = Duration(milliseconds: 3000);
 

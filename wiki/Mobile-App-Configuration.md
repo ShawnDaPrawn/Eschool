@@ -4,7 +4,7 @@ This page lists every value a deployer has to set before shipping the two Flutte
 
 | # | Setting | Student/parent app | Teacher app |
 |---|---|---|---|
-| 1 | Admin panel URL | `lib/utils/constants.dart` → `baseUrl` | `lib/utils/constants.dart` → `baseUrl` |
+| 1 | Admin panel URL, environment, flavour | `--dart-define` at build time (`config/production.json`, `config/staging.json`); see [Build settings](#build-settings) | same |
 | 2 | Android app name | `android/app/src/main/AndroidManifest.xml` → `android:label="eSchool"` | same file → `android:label="eschool Teacher"` |
 | 3 | iOS app name | `ios/Runner/Info.plist` → `CFBundleDisplayName` `eSchool`, `CFBundleName` `eSchool`; also `INFOPLIST_KEY_CFBundleDisplayName` in `ios/Runner.xcodeproj/project.pbxproj` | `CFBundleDisplayName` `eSchool Teacher`, `CFBundleName` `eSchool_teacher`; also `INFOPLIST_KEY_CFBundleDisplayName` in `project.pbxproj` |
 | 4 | Android package | `android/app/build.gradle.kts` → `namespace` and `applicationId` = `za.co.example.eschool`; manifest `package`; `android/app/src/main/kotlin/za/co/example/eschool/MainActivity.kt` | `za.co.example.eschool.teacher`; `android/app/src/main/kotlin/za/co/example/eschool/teacher/MainActivity.kt` |
@@ -20,20 +20,44 @@ This page lists every value a deployer has to set before shipping the two Flutte
 | 14 | Version | `version:` in `pubspec.yaml` (and the iOS project values, see [Building-and-Releasing-Apps](Building-and-Releasing-Apps#versioning)) | same |
 | 15 | Server-side | Admin panel App Settings (`app_*` keys), notification settings (Firebase project id and service account) | `teacher_*` keys |
 
-## Server URL
+## Build settings
 
-```dart
-// e-school/lib/utils/constants.dart (identical in e-school-teacher)
-const String baseUrl = 'https://navigateed-admin-972068206844.africa-south1.run.app';
+Both apps read their server address, environment and flavour from `--dart-define` values given when the app is compiled, through `AppConfig` in the shared package ([`packages/eschool_core/lib/src/config/app_config.dart`](https://github.com/ShawnDaPrawn/Eschool/blob/main/packages/eschool_core/lib/src/config/app_config.dart)). Staging and production builds of an app are the same code with different defines.
 
-//please do not change the below 2 values it's for convince of usage in code
-const String databaseUrl = '$baseUrl/api/';
-const String storageUrl = '$baseUrl/storage/';
+| Define | Meaning | Default when not given |
+|---|---|---|
+| `API_BASE_URL` | The admin panel's public URL, with no trailing `/`. Must be `https://` unless `ENV=local`. | `https://navigateed-admin-972068206844.africa-south1.run.app` (the production server every earlier build used) |
+| `ENV` | `production`, `staging` or `local` | `production` |
+| `FLAVOR` | Which shell the build is: `learner` (student and parent app) or `teacher`. `facilitator` and `vendor` are reserved for the teacher app's later flavours. | `learner` in `e-school`, `teacher` in `e-school-teacher` |
+
+Each app has a define file per environment:
+
+| File | `API_BASE_URL` | `ENV` |
+|---|---|---|
+| `config/production.json` | `https://navigateed-admin-972068206844.africa-south1.run.app` | `production` |
+| `config/staging.json` | `https://staging-admin.navigateed.co.za` | `staging` |
+
+```bash
+flutter run                                             # production server, as before
+flutter run --dart-define=API_BASE_URL=http://10.0.2.2:8000 --dart-define=ENV=local   # a local panel from the Android emulator
+flutter build appbundle --release --dart-define-from-file=config/staging.json
+flutter build web --release --dart-define-from-file=config/production.json
 ```
 
-- Set `baseUrl` to the admin panel's public URL, with no trailing `/`. `databaseUrl` and `storageUrl` are derived from it; every endpoint in `lib/utils/api.dart` is `'${databaseUrl}...'`.
+A plain `flutter run` or `flutter build` with no define still talks to the production server, so existing release scripts keep working. A debug build with an unusable value (a trailing `/`, `http://` outside `ENV=local`, an unknown `ENV`) stops at start-up with the reason (`AppConfig.assertValid()` in `initializeApp()`); a release build is never stopped.
+
+`lib/utils/constants.dart` keeps the names the code already uses, now read from `AppConfig`:
+
+```dart
+const String baseUrl = AppConfig.apiBaseUrl;
+const String databaseUrl = AppConfig.apiUrl;      // '$baseUrl/api/'
+const String storageUrl = AppConfig.storageUrl;   // '$baseUrl/storage/'
+String get appFlavor => AppConfig.flavorOr('learner');   // 'teacher' in the teacher app
+```
+
+- Every endpoint in `lib/utils/api.dart` is `'${databaseUrl}...'`.
 - `storageUrl` is used for server files referenced by relative path (notification images, dynamic-field files).
-- The student app also uses `baseUrl` for the "school website" link on the login choice screen and, in `WebViewPaymentScreen`, as the host on which the Paystack/Flutterwave callback pages (`/response/paystack/success`, `/response/flutterwave/success`) are recognised. If the admin panel is served from a different host than `baseUrl`, web payments never complete in the app.
+- The student app also uses `baseUrl` for the "school website" link on the login choice screen and, in `WebViewPaymentScreen`, as the host on which the Paystack/Flutterwave callback pages (`/response/paystack/success`, `/response/flutterwave/success`) are recognised. If the admin panel is served from a different host than `API_BASE_URL`, web payments never complete in the app.
 - Docs: https://shawndaprawn.github.io/Eschool/mobile-app/integrate-admin-panel/
 
 ### HTTPS requirement
@@ -44,7 +68,7 @@ const String storageUrl = '$baseUrl/storage/';
 | Teacher app (Android) | no network security config; Android's default for the target SDK applies (cleartext blocked) | no debug override, so plain `http://` is blocked in debug too |
 | Both (iOS) | no `NSAppTransportSecurity` entry in `Info.plist`, so App Transport Security requires HTTPS | same |
 
-Use an `https://` `baseUrl` with a certificate from a public CA for any build you hand out.
+Use an `https://` `API_BASE_URL` with a certificate from a public CA for any build you hand out.
 
 ## App name
 

@@ -4,6 +4,7 @@ library;
 export 'src/api/api_client.dart';
 export 'src/api/api_error_codes.dart';
 export 'src/api/api_exception.dart';
+export 'src/config/app_config.dart';
 export 'src/models/academic_calendar.dart';
 export 'src/models/app_language.dart';
 export 'src/models/chat_settings.dart';
