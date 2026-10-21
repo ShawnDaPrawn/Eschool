@@ -6,7 +6,7 @@ How to run `admin-panel/` in production: server requirements, Composer, the web 
 
 ## NavigateEd production
 
-This project's panel runs on Cloud Run in `africa-south1` (Johannesburg), Firebase project `navigateed-d8c06`, on the billing account named Firebase Payment.
+This project's panel runs on Cloud Run in `africa-south1` (Johannesburg), Firebase project `navigateed-d8c06`, on the billing account named Firebase Payment. The public URL is https://navigateed-admin-972068206844.africa-south1.run.app/ (`/login`, `/home`, `/up`). Both Flutter apps point `baseUrl` at that host.
 
 | Piece | Value |
 |---|---|

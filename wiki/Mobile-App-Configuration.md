@@ -24,7 +24,7 @@ This page lists every value a deployer has to set before shipping the two Flutte
 
 ```dart
 // e-school/lib/utils/constants.dart (identical in e-school-teacher)
-const String baseUrl = 'https://my-server.com';
+const String baseUrl = 'https://navigateed-admin-972068206844.africa-south1.run.app';
 
 //please do not change the below 2 values it's for convince of usage in code
 const String databaseUrl = '$baseUrl/api/';

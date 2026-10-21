@@ -78,7 +78,7 @@ Both apps work the same way. The steps below use `e-school`. For the teacher app
 
 1. **Point the app at your server.** In `lib/utils/constants.dart`, set `baseUrl` to the panel's address. Do not add a trailing slash. Do not use `localhost` from an Android emulator: use `http://10.0.2.2:8000` there, or your machine's LAN IP for a physical device. The app builds `databaseUrl = '$baseUrl/api/'` and `storageUrl = '$baseUrl/storage/'` from it.
    ```dart
-   const String baseUrl = 'https://my-server.com';
+   const String baseUrl = 'https://navigateed-admin-972068206844.africa-south1.run.app';
    ```
 2. **Add Firebase config.** Neither app ships with Firebase files. The Android build applies the `com.google.gms.google-services` and Crashlytics Gradle plugins, and `initializeApp()` calls `Firebase.initializeApp()`, so add these before the first build:
    - `android/app/google-services.json`

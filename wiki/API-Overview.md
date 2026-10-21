@@ -23,7 +23,7 @@ The Flutter apps hard-code the server address in one constant each:
 
 | App | File | Constants |
 | --- | --- | --- |
-| Student/parent (`e-school`) | [`lib/utils/constants.dart`](https://github.com/ShawnDaPrawn/Eschool/blob/main/e-school/lib/utils/constants.dart) | `baseUrl = 'https://my-server.com'`, `databaseUrl = '$baseUrl/api/'`, `storageUrl = '$baseUrl/storage/'` |
+| Student/parent (`e-school`) | [`lib/utils/constants.dart`](https://github.com/ShawnDaPrawn/Eschool/blob/main/e-school/lib/utils/constants.dart) | `baseUrl = 'https://navigateed-admin-972068206844.africa-south1.run.app'`, `databaseUrl = '$baseUrl/api/'`, `storageUrl = '$baseUrl/storage/'` |
 | Teacher (`e-school-teacher`) | [`lib/utils/constants.dart`](https://github.com/ShawnDaPrawn/Eschool/blob/main/e-school-teacher/lib/utils/constants.dart) | same three constants |
 
 `baseUrl` must not end with `/`. Every endpoint is then a static string in the `Api` class of `lib/utils/api.dart`, for example `static String studentLogin = '${databaseUrl}student/login';`. Uploaded files are served from `/storage/...` (the public disk); the apps prefix relative paths with `storageUrl`, while some endpoints (chat attachments, gallery) already return absolute URLs built with `asset()`. Click-by-click setup of `baseUrl` is in the end-user docs: https://shawndaprawn.github.io/Eschool/mobile-app/integrate-admin-panel/ . See also [Mobile-App-Configuration](Mobile-App-Configuration).
