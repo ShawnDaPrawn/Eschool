@@ -1,0 +1,13 @@
+# Phase 0: open questions and defaults taken
+
+The Bible asks these to be settled in Phase 0. Until the product owner answers, engineering carries on with the default below. Each default is recorded as a decision record where it shapes code.
+
+| # | Question | Default taken | Where it lands | Status |
+| --- | --- | --- | --- | --- |
+| Q0.1 | Transactional email provider and sending domain | Amazon SES in `af-south-1` (Cape Town), so mail data stays in South Africa; Laravel's `ses` mailer; bounces and complaints arrive through SNS to `POST /webhook/mail/ses`. Sending domain `mail.navigateed.co.za` with SPF, DKIM and DMARC (`p=quarantine`). The mailer stays switchable through `MAIL_MAILER`, so SMTP keeps working for schools that self-host. | [ADR 0004](../adr/0004-transactional-email.md) | Defaulted |
+| Q0.2 | Portal hostnames | `app.navigateed.co.za` (learner and parent web portal), `teach.navigateed.co.za` (teacher portal), `admin.navigateed.co.za` (panel and API). Staging prefixes each with `staging-`. | [ADR 0003](../adr/0003-app-packages-and-web.md), CORS, Sanctum stateful domains | Defaulted |
+| Q0.3 | First South African gateway to sandbox (built in Phase 5) | Peach Payments: cards, instant EFT, PayShap and hosted checkout behind one integration. | Recorded only; no code in Phase 0 | Defaulted |
+| Q0.4 | Cloud SQL tier | Production `db-custom-2-7680` (2 vCPU, 7.5 GB) with high availability, automated backups, 7-day point-in-time recovery; staging `db-g1-small` without HA. | [runbooks/environments.md](../runbooks/environments.md) | Defaulted |
+| Q0.5 | Student number format (needed in Phase 1) | Ten digits: two-digit year of first enrolment at any NavigateEd school, a seven-digit platform sequence, and a Luhn check digit (for example `2600012347`). No school code, name or birth date inside it, so it never changes when a learner moves school. | Phase 1, [ADR 0005](../adr/0005-student-number-and-handles.md) | Defaulted |
+| Q0.6 | Age rule for handles (needed in Phase 1) | POPIA treats everyone under 18 as a child: a learner under 18 can propose a handle but it takes effect only after an approving guardian accepts it; 18 and over sets it directly. Handles are 3 to 20 characters, lower-case letters, digits, dot and underscore, and may not contain the learner's surname. | Phase 1, [ADR 0005](../adr/0005-student-number-and-handles.md) | Defaulted |
+| Q0.7 | Branch naming | The Bible asks for `feat/p<N>-<slug>`; this run's tooling assigns one branch per session, so Phase 0 and Phase 1 each ship as one pull request from that branch, built from internal work-stream branches. | This file | Noted |
