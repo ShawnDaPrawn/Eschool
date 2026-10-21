@@ -1,4 +1,4 @@
-This page documents every endpoint under `/api/student/`, served by the controllers in [`Api/Student/`](https://github.com/ShawnDaPrawn/Eschool/tree/main/admin-panel/app/Http/Controllers/Api/Student), one per area (plus one route handled by `ParentApiController`). For each endpoint it lists the method and path, the request parameters from the validators, the main response fields, what data the student is allowed to see, and side effects. Shared conventions (envelope, error codes, headers, rate limits) are on [API-Overview](API-Overview); the student/parent app that calls these endpoints is described on [Student-Parent-App](Student-Parent-App).
+This page documents every endpoint under `/api/student/`, served by the controllers in [`Api/Student/`](https://github.com/ShawnDaPrawn/Eschool/tree/main/admin-panel/app/Http/Controllers/Api/Student), one per area (plus one route handled by `Parent\FeesController`). For each endpoint it lists the method and path, the request parameters from the validators, the main response fields, what data the student is allowed to see, and side effects. Shared conventions (envelope, error codes, headers, rate limits) are on [API-Overview](API-Overview); the student/parent app that calls these endpoints is described on [Student-Parent-App](Student-Parent-App).
 
 ## Common behaviour
 
@@ -49,7 +49,7 @@ Tests for the scoping rules are in [`tests/Feature/StudentApiSecurityTest.php`](
 | [Fees and payments](#fees-and-payments) | GET | `student/fees-details` | `getFeesDetails` |
 | | POST | `student/add-fees-transaction` | `storeFeesTransaction` |
 | | POST | `student/store-fees` | `storeFees` |
-| | POST | `student/get-payment-status` | `ParentApiController@getPaymentStatus` |
+| | POST | `student/get-payment-status` | `Parent\Fees@getPaymentStatus` |
 | | POST | `student/fail-payment-transaction` | `failPaymentTransactionStatus` |
 | | GET | `student/fees-transactions-list` | `getFeesPaymentTransactions` |
 | | GET | `student/fees-paid-list` | `feesPaidList` |
@@ -494,7 +494,7 @@ Only the student's own transaction while it is pending (else `Invalid transactio
 
 ### `POST /api/student/get-payment-status`
 
-Routed to `ParentApiController::getPaymentStatus` (an unrouted copy of it in the student controller was removed).
+Routed to `Parent\FeesController::getPaymentStatus` (an unrouted copy of it in the student controller was removed).
 
 | Field | Type | Required |
 | --- | --- | --- |

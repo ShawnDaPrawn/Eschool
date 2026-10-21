@@ -1,7 +1,7 @@
 <?php
 
 use App\Http\Controllers\Api\ApiController;
-use App\Http\Controllers\Api\ParentApiController;
+use App\Http\Controllers\Api\Parent as ParentApi;
 use App\Http\Controllers\Api\Student;
 use App\Http\Controllers\Api\Teacher;
 // use Illuminate\Http\Request;
@@ -99,7 +99,7 @@ Route::group(['prefix' => 'student'], function () {
         Route::post('apply-leave', [Student\LeaveController::class, 'applyLeave']);
         Route::post('get-leave-list', [Student\LeaveController::class, 'getMyLeave']);
         Route::post('delete-leave', [Student\LeaveController::class, 'deleteLeave']);
-        Route::post('get-payment-status', [ParentApiController::class, 'getPaymentStatus']); // Get Payment Status
+        Route::post('get-payment-status', [ParentApi\FeesController::class, 'getPaymentStatus']); // Get Payment Status
     });
 });
 
@@ -108,7 +108,7 @@ Route::group(['prefix' => 'student'], function () {
  **/
 Route::group(['prefix' => 'parent'], function () {
     // Non Authenticated APIs
-    Route::post('login', [ParentApiController::class, 'login'])->middleware('throttle:login');
+    Route::post('login', [ParentApi\AuthController::class, 'login'])->middleware('throttle:login');
     // Authenticated APIs
     Route::group([
         'middleware' => [
@@ -119,61 +119,61 @@ Route::group(['prefix' => 'parent'], function () {
     ], function () {
 
         // APIS Without Child ID
-        Route::get('announcements', [ParentApiController::class, 'getAnnouncements']); // Get Announcementes
-        Route::get('fees-paid-receipt-pdf', [ParentApiController::class, 'feesPaidReceiptPDF']); // Fees Receipt
-        Route::get('fees-transactions-list', [ParentApiController::class, 'getFeesPaymentTransactions']); // Fees Payment Transaction Details
-        Route::get('get-profile-data', [ParentApiController::class, 'getProfileDetails']); // Get Profile Data
-        Route::post('fail-payment-transaction', [ParentApiController::class, 'failPaymentTransactionStatus']); // Make Payment Transaction Fail API
-        Route::get('get-notification', [ParentApiController::class, 'getNotifications']); // Get Notification Data
-        Route::post('get-payment-status', [ParentApiController::class, 'getPaymentStatus']); // Get Payment Status
-        Route::get('get-user-list', [ParentApiController::class, 'getChatUserList']);
-        Route::post('send-message', [ParentApiController::class, 'sendMessage']);
-        Route::post('get-user-message', [ParentApiController::class, 'getUserChatMessage']);
-        Route::post('read-all-message', [ParentApiController::class, 'readAllMessages']);
+        Route::get('announcements', [ParentApi\AnnouncementController::class, 'getAnnouncements']); // Get Announcementes
+        Route::get('fees-paid-receipt-pdf', [ParentApi\FeesController::class, 'feesPaidReceiptPDF']); // Fees Receipt
+        Route::get('fees-transactions-list', [ParentApi\FeesController::class, 'getFeesPaymentTransactions']); // Fees Payment Transaction Details
+        Route::get('get-profile-data', [ParentApi\ProfileController::class, 'getProfileDetails']); // Get Profile Data
+        Route::post('fail-payment-transaction', [ParentApi\FeesController::class, 'failPaymentTransactionStatus']); // Make Payment Transaction Fail API
+        Route::get('get-notification', [ParentApi\NotificationController::class, 'getNotifications']); // Get Notification Data
+        Route::post('get-payment-status', [ParentApi\FeesController::class, 'getPaymentStatus']); // Get Payment Status
+        Route::get('get-user-list', [ParentApi\ChatController::class, 'getChatUserList']);
+        Route::post('send-message', [ParentApi\ChatController::class, 'sendMessage']);
+        Route::post('get-user-message', [ParentApi\ChatController::class, 'getUserChatMessage']);
+        Route::post('read-all-message', [ParentApi\ChatController::class, 'readAllMessages']);
 
         Route::group(['middleware' => ['auth:sanctum', \App\Http\Middleware\CheckChild::class]], function () {
 
-            Route::get('subjects', [ParentApiController::class, 'subjects']);
-            Route::get('class-subjects', [ParentApiController::class, 'classSubjects']);
-            Route::get('timetable', [ParentApiController::class, 'getTimetable']);
-            Route::get('lessons', [ParentApiController::class, 'getLessons']);
-            Route::get('lesson-topics', [ParentApiController::class, 'getLessonTopics']);
-            Route::get('assignments', [ParentApiController::class, 'getAssignments']);
-            Route::get('attendance', [ParentApiController::class, 'getAttendance']);
-            Route::get('attendance-report', [ParentApiController::class, 'attendanceReport']);
-            // Route::get('announcements', [ParentApiController::class, 'getAnnouncements']);
-            Route::get('teachers', [ParentApiController::class, 'getTeachers']);
-            Route::get('get-exam-list', [ParentApiController::class, 'getExamList']); // Exam list Route
-            Route::get('get-exam-details', [ParentApiController::class, 'getExamDetails']); // Exam Details Route
-            Route::get('exam-marks', [ParentApiController::class, 'getExamMarks']); // Exam Marks
-            Route::get('offline-exam-report', [ParentApiController::class, 'offlineExamReport']); // Offline Exam Report Statistics
-            Route::get('online-exam-report', [ParentApiController::class, 'onlineExamReport']); // Online Exam Report Statistics
+            Route::get('subjects', [ParentApi\SubjectController::class, 'subjects']);
+            Route::get('class-subjects', [ParentApi\SubjectController::class, 'classSubjects']);
+            Route::get('timetable', [ParentApi\TimetableController::class, 'getTimetable']);
+            Route::get('lessons', [ParentApi\LessonController::class, 'getLessons']);
+            Route::get('lesson-topics', [ParentApi\LessonController::class, 'getLessonTopics']);
+            Route::get('assignments', [ParentApi\AssignmentController::class, 'getAssignments']);
+            Route::get('attendance', [ParentApi\AttendanceController::class, 'getAttendance']);
+            Route::get('attendance-report', [ParentApi\AttendanceController::class, 'attendanceReport']);
+            // Route::get('announcements', [ParentApi\AnnouncementController::class, 'getAnnouncements']);
+            Route::get('teachers', [ParentApi\TeacherController::class, 'getTeachers']);
+            Route::get('get-exam-list', [ParentApi\ExamController::class, 'getExamList']); // Exam list Route
+            Route::get('get-exam-details', [ParentApi\ExamController::class, 'getExamDetails']); // Exam Details Route
+            Route::get('exam-marks', [ParentApi\ExamController::class, 'getExamMarks']); // Exam Marks
+            Route::get('offline-exam-report', [ParentApi\ReportController::class, 'offlineExamReport']); // Offline Exam Report Statistics
+            Route::get('online-exam-report', [ParentApi\ReportController::class, 'onlineExamReport']); // Online Exam Report Statistics
 
             // fees
-            Route::get('fees-details', [ParentApiController::class, 'getFeesDetails']); // Fees Details
-            Route::post('add-fees-transaction', [ParentApiController::class, 'storeFeesTransaction']); // Fees Details
-            Route::post('store-fees', [ParentApiController::class, 'storeFees']); // Store Fees
-            Route::get('fees-paid-list', [ParentApiController::class, 'feesPaidList']); // Fees Details
-            Route::get('fees-report', [ParentApiController::class, 'getFeesReport']); // Fees Report Statistics
-            Route::get('leave-report', [ParentApiController::class, 'leaveReport']); // Leave Report Statistics
-            Route::get('assignment-report', [ParentApiController::class, 'assignmentReport']); // Assignment Report Statistics
+            Route::get('fees-details', [ParentApi\FeesController::class, 'getFeesDetails']); // Fees Details
+            Route::post('add-fees-transaction', [ParentApi\FeesController::class, 'storeFeesTransaction']); // Fees Details
+            Route::post('store-fees', [ParentApi\FeesController::class, 'storeFees']); // Store Fees
+            Route::get('fees-paid-list', [ParentApi\FeesController::class, 'feesPaidList']); // Fees Details
+            Route::get('fees-report', [ParentApi\ReportController::class, 'getFeesReport']); // Fees Report Statistics
+            Route::get('leave-report', [ParentApi\ReportController::class, 'leaveReport']); // Leave Report Statistics
+            Route::get('assignment-report', [ParentApi\ReportController::class, 'assignmentReport']); // Assignment Report Statistics
 
             // online exam routes
-            Route::get('get-online-exam-list', [ParentApiController::class, 'getOnlineExamList']); // Get Online Exam List Route
-            Route::get('get-online-exam-result-list', [ParentApiController::class, 'getOnlineExamResultList']); // Online exam result list Route
-            Route::get('get-online-exam-result', [ParentApiController::class, 'getOnlineExamResult']); // Online exam result  Route
+            Route::get('get-online-exam-list', [ParentApi\OnlineExamController::class, 'getOnlineExamList']); // Get Online Exam List Route
+            Route::get('get-online-exam-result-list', [ParentApi\OnlineExamController::class, 'getOnlineExamResultList']); // Online exam result list Route
+            Route::get('get-online-exam-result', [ParentApi\OnlineExamController::class, 'getOnlineExamResult']); // Online exam result  Route
 
             // Academic calendar
-            Route::get('academic-calendar-pdf', [ParentApiController::class, 'getAcademicCalendarPdf']);
+            Route::get('academic-calendar-pdf', [ParentApi\CalendarController::class, 'getAcademicCalendarPdf']);
 
-            Route::get('id-card-pdf', [ParentApiController::class, 'getIdCardPdf']); // Student ID Card PDF Route
+            Route::get('id-card-pdf', [ParentApi\ProfileController::class, 'getIdCardPdf']); // Student ID Card PDF Route
 
-            Route::post('apply-leave', [ParentApiController::class, 'applyLeave']);
-            Route::post('get-leave-list', [ParentApiController::class, 'getMyLeave']);
+            Route::post('apply-leave', [ParentApi\LeaveController::class, 'applyLeave']);
+            Route::post('get-leave-list', [ParentApi\LeaveController::class, 'getMyLeave']);
         });
 
         // Checks that the leave belongs to one of the parent's children itself; the app sends no child_id.
-        Route::post('delete-leave', [ParentApiController::class, 'deleteLeave']);
+        Route::post('delete-leave', [ParentApi\LeaveController::class, 'deleteLeave']);
     });
 });
 

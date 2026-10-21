@@ -190,7 +190,7 @@ All authenticated API groups use Sanctum tokens (`auth:sanctum`) plus spatie's `
 | `POST /api/student/login`, `forgot-password` | `throttle:login` | Login refuses non-students, `users.status != 1`, and students with no active `student_sessions` row for the current year before issuing a token |
 | `/api/student/*` | `auth:sanctum`, `role:Student`, `student.session.active` | Queries are built from the caller's own student record; online exam, elective, topic, announcement and submission endpoints are limited to the student's class and subjects |
 | `POST /api/parent/login` | `throttle:login` | Refuses non-parents |
-| `/api/parent/*` | `auth:sanctum`, `role:Parent`, `parent.children.session.active` | Child-specific routes add `CheckChild`; others resolve children through `ParentApiController::resolveChild()` / `parentChildIds()` |
+| `/api/parent/*` | `auth:sanctum`, `role:Parent`, `parent.children.session.active` | Child-specific routes add `CheckChild`; others resolve children through `Parent\Concerns\ParentAccess::resolveChild()` / `parentChildIds()` |
 | `POST /api/teacher/login` | `throttle:login` | Refuses non-teachers |
 | `/api/teacher/*` | `auth:sanctum`, `role:Teacher` | Permission checks (`noPermissionThenSendJson`) plus ownership helpers; `get-student-result` and `get-student-marks` add `CheckStudent` |
 | `POST /api/logout`, `POST /api/change-password` | `auth:sanctum` | |
