@@ -194,7 +194,7 @@ The project-root [.htaccess](https://github.com/ShawnDaPrawn/Eschool/blob/main/a
 | iOS | `ios/Runner/Info.plist` in both apps | No `NSAllowsArbitraryLoads` exception |
 | Payment WebView | `e-school/lib/ui/screens/fees/webviewPaymentScreen.dart` `_onNavigationRequest()` | Only the server's own `/response/paystack/success` and Flutterwave callback URLs end the payment flow; non-http(s) navigation is blocked |
 
-The application does not redirect HTTP to HTTPS itself; configure that in the web server. `App\Http\Middleware\TrustProxies` exists but is not registered in `bootstrap/app.php`, so Laravel's default (no trusted proxies) applies; behind a TLS-terminating proxy or load balancer `isSecure()` is false unless trusted proxies are configured (for example with `$middleware->trustProxies(...)` in `bootstrap/app.php`), and HSTS is then not sent.
+The application does not redirect HTTP to HTTPS itself; configure that in the web server. `bootstrap/app.php` trusts forwarded headers from any proxy (`trustProxies(at: '*')`), so behind a TLS-terminating proxy `isSecure()` is true and HSTS is sent, and it only answers on its own host names (`APP_URL` and subdomains, `localhost`, `127.0.0.1`, `TRUSTED_HOSTS`) once installed; see [Deployment](Deployment#https-proxies-and-hosts).
 
 ## Errors and logging
 

@@ -1,8 +1,8 @@
 "use strict";
 
 function trans(label) {
-    // return window.languageLabels.hasOwnProperty(label) ? window.languageLabels[label] : label;
-    return window?.languageLabels[label] || label;
+    // The public website doesn't load /common/js/lang, so the labels may be missing.
+    return (window.languageLabels && window.languageLabels[label]) || label;
 }
 
 /**
