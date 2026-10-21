@@ -238,7 +238,7 @@ Details are on the [Payments](Payments) page; the security-relevant rules are:
 | Server-side pricing | `FeesPaymentService::prepare()` | The server computes the total from the fee setup (compulsory fees, installments, optional fees, due charges) and checks every item belongs to the child and is unpaid; the app's amount is only compared against it |
 | Own transactions only | `store-fees`, `fail-payment-transaction`, `get-payment-status`, receipts | Students and parents can only act on their own (children's) pending transactions; payment ids are written once |
 | Callback pages change nothing | `paystackSuccessCallback()`, `flutterwaveSuccessCallback()` | They only return a JSON message; payments are recorded only from signed webhooks |
-| Required secrets | `FeesTypeController::feesConfigUpdate()` (`fees-config` permission) | Each gateway's webhook secret is required when that gateway is enabled (`required_if:<gateway>_status,1`), including the Flutterwave secret hash |
+| Required secrets | `Fees\ConfigController::feesConfigUpdate()` (`fees-config` permission) | Each gateway's webhook secret is required when that gateway is enabled (`required_if:<gateway>_status,1`), including the Flutterwave secret hash |
 
 The admin steps for configuring webhooks are at https://shawndaprawn.github.io/Eschool/admin-panel/webhook-config/ and https://shawndaprawn.github.io/Eschool/admin-panel/fee-payment/.
 

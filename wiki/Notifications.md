@@ -82,7 +82,7 @@ All three return `Notification` rows of the current session year (`session_year`
 | Chat message | `sendMessage` in the three API controllers | The receiver | none | `chat` (with `sender_info`) |
 | Online payment recorded / failed (webhook) | `WebhookController::notifyParents` | The transaction's parent | `send_to` 2, user row | `online` |
 | App reports a failed payment | `Student\FeesController::failPaymentTransactionStatus` (student user), `Parent\FeesController::failPaymentTransactionStatus` (parent user) | as listed | `send_to` 2, user row | `online` |
-| Cash / cheque payment recorded by staff | `FeesTypeController::compulsoryFeesPaidStore`, `optionalFeesPaidStore` | Father's (else guardian's) user | `send_to` 2, user row | `Online` |
+| Cash / cheque payment recorded by staff | `Fees\PaymentController::compulsoryFeesPaidStore`, `optionalFeesPaidStore` | Father's (else guardian's) user | `send_to` 2, user row | `Online` |
 | Fee reminder from the student app | `GET /api/student/send-fee-notification` (`Student\FeesController::sendFeeNotification`) | The student's parents | `send_to` 2, no user rows (so not listed anywhere) | `fees-due` (with `child_id`) |
 
 Exams, online exams, results, events, holidays and timetables send no notifications in the current code.

@@ -114,7 +114,7 @@ Columns: **SA** = granted to Super Admin, **T** = granted to Teacher. "Checked i
 
 | Permission | SA | T | Checked in |
 |---|---|---|---|
-| `fees-type` | Yes | | Fee types (`FeesTypeController`) |
+| `fees-type` | Yes | | Fee types (`Fees\TypeController`) |
 | `fees-classes` | Yes | | Fee amounts per class |
 | `fees-paid` | Yes | | Collecting fees, receipts, transaction logs, clearing paid data, dashboard fee widget |
 | `fees-config` | Yes | | Payment gateway and fee configuration |

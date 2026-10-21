@@ -11,7 +11,7 @@ use App\Http\Controllers\EmailController;
 use App\Http\Controllers\EventController;
 use App\Http\Controllers\ExamController;
 use App\Http\Controllers\ExamTimetableController;
-use App\Http\Controllers\FeesTypeController;
+use App\Http\Controllers\Fees;
 use App\Http\Controllers\FormFieldController;
 use App\Http\Controllers\HolidayController;
 use App\Http\Controllers\HomeController;
@@ -342,33 +342,33 @@ Route::group(['middleware' => ['Role', 'auth']], function () {
         Route::get('set-language/{lang}', [LanguageController::class, 'set_language']);
 
         // fees
-        Route::resource('fees-type', FeesTypeController::class)->except(['create', 'edit']);
+        Route::resource('fees-type', Fees\TypeController::class)->except(['create', 'edit']);
 
-        Route::get('fees/classes', [FeesTypeController::class, 'feesClassListIndex'])->name('fees.class.index');
-        // Route::post('fees/classes/update', [FeesTypeController::class, 'updateFeesClass'])->name('fees.class.update');
-        Route::get('fees/classes/list', [FeesTypeController::class, 'feesClassList'])->name('fees.class.list');
+        Route::get('fees/classes', [Fees\ClassController::class, 'feesClassListIndex'])->name('fees.class.index');
+        // Route::post('fees/classes/update', [Fees\ClassController::class, 'updateFeesClass'])->name('fees.class.update');
+        Route::get('fees/classes/list', [Fees\ClassController::class, 'feesClassList'])->name('fees.class.list');
 
-        Route::post('class/fees-type', [FeesTypeController::class, 'updateFeesClass'])->name('class.fees.type.update');
-        Route::delete('class/fees-type/{fees_class_id}', [FeesTypeController::class, 'removeFeesClass'])->name('class.fees.type.delete');
+        Route::post('class/fees-type', [Fees\ClassController::class, 'updateFeesClass'])->name('class.fees.type.update');
+        Route::delete('class/fees-type/{fees_class_id}', [Fees\ClassController::class, 'removeFeesClass'])->name('class.fees.type.delete');
 
-        Route::get('fees/paid', [FeesTypeController::class, 'feesPaidListIndex'])->name('fees.paid.index');
-        Route::get('fees/paid/list', [FeesTypeController::class, 'feesPaidList'])->name('fees.paid.list');
+        Route::get('fees/paid', [Fees\PaidController::class, 'feesPaidListIndex'])->name('fees.paid.index');
+        Route::get('fees/paid/list', [Fees\PaidController::class, 'feesPaidList'])->name('fees.paid.list');
 
-        Route::get('fees-config', [FeesTypeController::class, 'feesConfigIndex'])->name('fees.config.index');
-        Route::post('fees-config/update', [FeesTypeController::class, 'feesConfigUpdate'])->name('fees.config.udpate');
-        Route::delete('fees/paid/remove-choiceable-fees/{id}', [FeesTypeController::class, 'feesPaidRemoveChoiceableFees'])->name('fees.paid.remove.choiceable.fees');
-        Route::delete('fees/paid/remove-installment-fees/{id}', [FeesTypeController::class, 'feesPaidRemoveInstallmentFees'])->name('fees.paid.remove.installment.fees');
-        Route::delete('fees/paid/clear-data/{id}', [FeesTypeController::class, 'clearFeesPaidData'])->name('fees.paid.clear.data');
+        Route::get('fees-config', [Fees\ConfigController::class, 'feesConfigIndex'])->name('fees.config.index');
+        Route::post('fees-config/update', [Fees\ConfigController::class, 'feesConfigUpdate'])->name('fees.config.udpate');
+        Route::delete('fees/paid/remove-choiceable-fees/{id}', [Fees\PaymentController::class, 'feesPaidRemoveChoiceableFees'])->name('fees.paid.remove.choiceable.fees');
+        Route::delete('fees/paid/remove-installment-fees/{id}', [Fees\PaymentController::class, 'feesPaidRemoveInstallmentFees'])->name('fees.paid.remove.installment.fees');
+        Route::delete('fees/paid/clear-data/{id}', [Fees\PaidController::class, 'clearFeesPaidData'])->name('fees.paid.clear.data');
 
         // Installment Fees Management
 
-        Route::post('fees/optional-paid/store', [FeesTypeController::class, 'optionalFeesPaidStore'])->name('fees.optional-paid.store');
-        Route::post('fees/compulsory-paid/store', [FeesTypeController::class, 'compulsoryFeesPaidStore'])->name('fees.compulsory-paid.store');
+        Route::post('fees/optional-paid/store', [Fees\PaymentController::class, 'optionalFeesPaidStore'])->name('fees.optional-paid.store');
+        Route::post('fees/compulsory-paid/store', [Fees\PaymentController::class, 'compulsoryFeesPaidStore'])->name('fees.compulsory-paid.store');
 
-        Route::get('fees/transaction-logs', [FeesTypeController::class, 'feesTransactionsLogsIndex'])->name('fees.transactions.log.index');
-        Route::get('fees/transaction-logs/list', [FeesTypeController::class, 'feesTransactionsLogsList'])->name('fees.transactions.log.list');
+        Route::get('fees/transaction-logs', [Fees\TransactionLogController::class, 'feesTransactionsLogsIndex'])->name('fees.transactions.log.index');
+        Route::get('fees/transaction-logs/list', [Fees\TransactionLogController::class, 'feesTransactionsLogsList'])->name('fees.transactions.log.list');
 
-        Route::get('fees/paid/receipt-pdf/{id}', [FeesTypeController::class, 'feesPaidReceiptPDF'])->name('fees.paid.receipt.pdf');
+        Route::get('fees/paid/receipt-pdf/{id}', [Fees\PaidController::class, 'feesPaidReceiptPDF'])->name('fees.paid.receipt.pdf');
 
         // Online Exam
         Route::get('online-exam/terms-conditions', [OnlineExamController::class, 'onlineExamTermsConditionIndex'])->name('online-exam.terms-conditions');

@@ -6,13 +6,13 @@ For the click-by-click admin steps see the Docusaurus pages [Fee Payment (admin 
 
 | Piece | Where |
 |---|---|
-| Fee setup (types, class fees, installments) | `FeesTypeController`, `SessionYearController` / `SessionYearService` |
+| Fee setup (types, class fees, installments) | `Fees\TypeController`, `Fees\ClassController`, `SessionYearController` / `SessionYearService` |
 | Server-side pricing and recording of online payments | [`FeesPaymentService`](https://github.com/ShawnDaPrawn/Eschool/blob/main/admin-panel/app/Services/Payment/FeesPaymentService.php) |
 | Gateway factory, currency, webhook secrets, amount checks | [`PaymentService`](https://github.com/ShawnDaPrawn/Eschool/blob/main/admin-panel/app/Services/Payment/PaymentService.php) |
 | Gateway adapters | `StripePayment`, `RazorpayPayment`, `PaystackPayment`, `FlutterwavePayment` (all implement `PaymentInterface`) in [`app/Services/Payment`](https://github.com/ShawnDaPrawn/Eschool/tree/main/admin-panel/app/Services/Payment) |
 | App endpoints | `Api/Student/FeesController`, `Api/Parent/FeesController` (`/api/student/*`, `/api/parent/*`) |
 | Payment confirmation | [`WebhookController`](https://github.com/ShawnDaPrawn/Eschool/blob/main/admin-panel/app/Http/Controllers/WebhookController.php) (`/webhook/*`) |
-| Offline (cash/cheque) payments, receipts, logs | `FeesTypeController` (admin panel) |
+| Offline (cash/cheque) payments, receipts, logs | `Fees\PaymentController`, `Fees\PaidController`, `Fees\TransactionLogController` (admin panel) |
 | Dashboard and app statistics | [`FeesCollectionService`](https://github.com/ShawnDaPrawn/Eschool/blob/main/admin-panel/app/Services/FeesCollectionService.php), [`FeesReportService`](https://github.com/ShawnDaPrawn/Eschool/blob/main/admin-panel/app/Services/FeesReportService.php) |
 | Tests | [`tests/Feature/PaymentWebhookTest.php`](https://github.com/ShawnDaPrawn/Eschool/blob/main/admin-panel/tests/Feature/PaymentWebhookTest.php), fee cases in `StudentApiSecurityTest` and `ParentApiSecurityTest` |
 
@@ -168,7 +168,7 @@ The admin panel's **Fees > Fees Paid** page (`fees.paid.index`, view `fees/fees_
 
 Unlike the app endpoints, staff-entered amounts are taken from the request (staff are trusted). Both store methods require the student to have a father or guardian (`no_parent_or_guardian_assigned` otherwise), because `payment_transactions.parent_id` and `paid_installment_fees.parent_id` reference `parents`. Both send a "Payment Success" push with type `Online` to that parent, even for cash.
 
-Other fee pages (all in `FeesTypeController`, views in `resources/views/fees/`):
+Other fee pages (all in the `Fees\` controllers, views in `resources/views/fees/`):
 
 | Page | Routes | Permission |
 |---|---|---|
@@ -179,7 +179,7 @@ Other fee pages (all in `FeesTypeController`, views in `resources/views/fees/`):
 
 ## Settings reference
 
-Everything below is stored only in the `settings` table (`type`/`message` pairs, read with `getSettings()`). The fees configuration page (`FeesTypeController::feesConfigUpdate`, view `fees/fees_config.blade.php`) writes the gateway keys there. It no longer copies anything into `.env`: commit `e13ac7d` removed the `changeEnv()` helper, so the checkout and the webhooks read the same settings rows. A gateway's keys are only saved while its status is 1, and `required_if:<gateway>_status,1` makes its keys, webhook secret, webhook URL and currency mandatory when enabling it. With `DEMO_MODE=true` (`config('app.demo_mode')`) the form shows `x` placeholders instead of the stored keys.
+Everything below is stored only in the `settings` table (`type`/`message` pairs, read with `getSettings()`). The fees configuration page (`Fees\ConfigController::feesConfigUpdate`, view `fees/fees_config.blade.php`) writes the gateway keys there. It no longer copies anything into `.env`: commit `e13ac7d` removed the `changeEnv()` helper, so the checkout and the webhooks read the same settings rows. A gateway's keys are only saved while its status is 1, and `required_if:<gateway>_status,1` makes its keys, webhook secret, webhook URL and currency mandatory when enabling it. With `DEMO_MODE=true` (`config('app.demo_mode')`) the form shows `x` placeholders instead of the stored keys.
 
 | Setting key | Written by | `.env` fallback (only when the setting is empty) | Used by |
 |---|---|---|---|
