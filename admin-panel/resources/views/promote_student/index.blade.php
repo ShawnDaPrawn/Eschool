@@ -190,7 +190,7 @@
                                 </select>
                             </div>
 
-                            <div id="session_warning" style="display:none; margin-top:12px; border-radius:8px;"
+                            <div id="session_warning" style="display:none; margin-top:12px;"
                                 class="alert alert-warning promote-warning-box">
                             </div>
                         </div>
@@ -254,10 +254,10 @@
                     </div>
 
                     <div class="modal-footer promote-modal-footer">
-                        <button type="button" class="btn promote-btn-cancel" data-dismiss="modal">
+                        <button type="button" class="btn btn-secondary promote-btn-cancel" data-dismiss="modal">
                             {{ __('cancel') }}
                         </button>
-                        <button type="submit" class="btn promote-btn-update" id="updatePromoteBtn">
+                        <button type="submit" class="btn btn-theme promote-btn-update" id="updatePromoteBtn">
                             {{ __('update') }}
                         </button>
                     </div>

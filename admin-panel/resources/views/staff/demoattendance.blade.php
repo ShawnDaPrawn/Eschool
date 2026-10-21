@@ -44,22 +44,22 @@
                             {{-- Bulk action bar — lives in the table toolbar; shown only when rows are selected --}}
                             <div id="toolbar">
                                 <div class="attendance-actions" id="bulkActionBar">
-                                    <button type="button" class="attendance-btn attendance-btn-success"
+                                    <button type="button" class="btn btn-inverse-success attendance-btn"
                                         onclick="bulkAttendance('present')">
-                                        <x-icon name="check" :size="15" />
+                                        <x-icon name="check" :size="18" />
                                         <span>{{ __('present') }}</span>
                                     </button>
 
-                                    <button type="button" class="attendance-btn attendance-btn-danger"
+                                    <button type="button" class="btn btn-inverse-danger attendance-btn"
                                         onclick="bulkAttendance('absent')">
-                                        <x-icon name="close" :size="15" />
+                                        <x-icon name="close" :size="18" />
                                         <span>{{ __('absent') }}</span>
                                     </button>
 
                                     <div class="attendance-dropdown">
-                                        <button class="attendance-btn attendance-btn-primary"
+                                        <button class="btn btn-inverse-primary attendance-btn" type="button" aria-haspopup="true"
                                             onclick="toggleHalfDayOptions(event)">
-                                            <x-icon name="clock" :size="15" />
+                                            <x-icon name="clock" :size="18" />
                                             <span>{{ __('half_day') }}</span>
                                         </button>
                                         <div id="halfDayBtn" class="halfday-options">
@@ -70,9 +70,9 @@
                                         </div>
                                     </div>
 
-                                    <button type="button" class="attendance-btn attendance-btn-secondary"
+                                    <button type="button" class="btn btn-outline-secondary attendance-btn"
                                         onclick="bulkAttendance('holiday')">
-                                        <x-icon name="timetable" :size="15" />
+                                        <x-icon name="timetable" :size="18" />
                                         <span>{{ __('holiday') }}</span>
                                     </button>
                                 </div>

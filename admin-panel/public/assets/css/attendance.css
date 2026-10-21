@@ -2,14 +2,14 @@
    Shared monthly-attendance calendar table — token-driven,
    DESIGN.md-compliant. Used by staff & student monthly views.
    Mirrors the bootstrap-table look from tables.css (hairlines,
-   tinted header, 14px radius) for these hand-built grids.
+   tinted header, 10px radius) for these hand-built grids.
    ============================================================ */
 
 /* ---- Calendar table shell ---- */
 .monthly-table-wrap {
     overflow-x: auto;
     border: 1px solid var(--md-sys-color-outline-variant);
-    border-radius: 14px;
+    border-radius: var(--app-radius);
 }
 
 .monthly-table {

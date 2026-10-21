@@ -42,12 +42,6 @@
         ];
     });
 @endphp
-<style>
-    #review-submission-modal .text-secondary,
-    #review-submission-modal .text-muted {
-        color: #374151 !important;
-    }
-</style>
 <div id="assignments-tab-content-wrapper">
     <div id="assignments-tab-content" class="d-block">
 
@@ -111,21 +105,21 @@
                 <div class="report-stat-value" id="stat-accepted-count">
                     0 <span class="small text-muted font-weight-normal">{{ __('graded') }}</span>
                 </div>
-                <div class="report-stat-sub" style="color:#166534;">{{ __('approved_submissions') }}</div>
+                <div class="report-stat-sub text-success">{{ __('approved_submissions') }}</div>
             </div>
             <div class="report-stat-item accent-info">
                 <div class="report-stat-label">{{ __('pending_review') }}</div>
                 <div class="report-stat-value" id="stat-pending-count">
                     0 <span class="small text-muted font-weight-normal">{{ __('awaiting') }}</span>
                 </div>
-                <div class="report-stat-sub" style="color:#155e75;">{{ __('awaiting_score_input') }}</div>
+                <div class="report-stat-sub text-info">{{ __('awaiting_score_input') }}</div>
             </div>
             <div class="report-stat-item accent-danger">
                 <div class="report-stat-label">{{ __('overdue_and_rejected') }}</div>
                 <div class="report-stat-value" id="stat-overdue-count">
                     0 <span class="small text-muted font-weight-normal">{{ __('items') }}</span>
                 </div>
-                <div class="report-stat-sub" id="stat-overdue-subtitle" style="color:#b42318;">
+                <div class="report-stat-sub text-danger" id="stat-overdue-subtitle">
                     {{ __('requires_submission_attention') }}
                 </div>
             </div>
@@ -516,7 +510,7 @@
                         <td class="px-3 py-3 align-middle">${marksDisplay}</td>
                         <td class="px-3 py-3 align-middle text-center">
                             <button onclick="openReviewModal(${parseInt(item.id, 10)})"
-                                    class="report-action-btn">{{ __('teacher_review') }}</button>
+                                    class="btn btn-sm btn-outline-primary report-action-btn">{{ __('teacher_review') }}</button>
                         </td>
                     </tr>`;
                 });

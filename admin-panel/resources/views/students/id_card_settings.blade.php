@@ -323,8 +323,8 @@
 
                         {{-- Actions --}}
                         <div class="idc-actions">
-                            <button type="reset" class="btn" id="idc-reset">{{ __('reset') }}</button>
-                            <input class="btn" id="create-btn" type="submit"
+                            <button type="reset" class="btn btn-secondary" id="idc-reset">{{ __('reset') }}</button>
+                            <input class="btn btn-theme" id="create-btn" type="submit"
                                 value="{{ __('save') . ' ' . __('configuration') }}">
                         </div>
 

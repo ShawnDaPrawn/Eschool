@@ -3,15 +3,15 @@
    Brand accent themes the SETTINGS chrome only — never the card.
    ============================================================ */
 .idc-wrapper {
-    --idc-r-card: 16px;
-    --idc-r-control: 10px;
-    --idc-r-stage: 16px;
+    --idc-r-card: var(--app-radius);
+    --idc-r-control: var(--app-radius);
+    --idc-r-stage: var(--md-sys-shape-corner-large);
     --idc-r-chip: 999px;
     --idc-r-photo-sq: 12px;
     --idc-r-cardface: 10px;
-    --idc-sh-card: var(--md-sys-elevation-level1);
-    --idc-sh-card-hover: var(--md-sys-elevation-level2);
-    --idc-sh-focus: 0 0 0 3px color-mix(in srgb, var(--md-sys-color-primary) 24%, transparent);
+    /* M3 outlined cards: no resting shadow, no hover lift. */
+    --idc-sh-card: none;
+    --idc-sh-card-hover: none;
     /* --idc-sh-face and --idc-text are consumed by the rendered ID card (the document
        below), so they keep their original values; the settings UI uses M3 tokens. */
     /* design-tokens: off (the printed card's own colours) */
@@ -55,12 +55,6 @@
     border: 1px solid var(--idc-border);
     border-radius: var(--idc-r-card);
     padding: 20px;
-    box-shadow: var(--idc-sh-card);
-    transition: box-shadow .2s ease;
-}
-
-.idc-section:hover {
-    box-shadow: var(--idc-sh-card-hover);
 }
 
 .idc-section-title {
@@ -109,7 +103,8 @@
 
 .idc-field-label {
     display: block;
-    font-size: 13px;
+    font-size: var(--md-sys-typescale-body-medium-size);
+    line-height: var(--md-sys-typescale-body-medium-line-height);
     font-weight: 500;
     color: var(--idc-text-2);
     margin: 0 0 8px;
@@ -134,25 +129,11 @@
     vertical-align: middle;
 }
 
-.idc-section .form-control,
-.idc-section input[type=number] {
-    height: 42px;
-    border: 1px solid var(--md-sys-color-outline);
-    border-radius: var(--idc-r-control);
-    font-size: 14px;
-    color: var(--md-sys-color-on-surface);
-    background: var(--md-sys-color-surface-container-lowest);
-    transition: border-color .15s, box-shadow .15s;
-}
+/* Fields are the global M3 field (.form-control, 48px, 10px corners). */
 
-.idc-section .form-control:focus,
-.idc-section input[type=number]:focus {
-    border-color: var(--md-sys-color-primary);
-    box-shadow: var(--idc-sh-focus);
-    outline: none;
-}
-
-/* ---- Segmented pill toggles ---- */
+/* ---- Segmented toggles ----
+   M3 segmented buttons: 40px, full-round, 1px outline border, label-large;
+   the selected one fills with secondary-container and leads with a check. */
 .idc-pills {
     display: flex;
     gap: 8px;
@@ -163,22 +144,24 @@
     position: relative;
     flex: 1 1 0;
     min-width: 120px;
+    min-height: 40px;
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 7px;
-    padding: 11px 12px;
-    border: 1px solid var(--idc-border);
-    border-radius: var(--idc-r-control);
-    background: var(--idc-pill-rest);
-    color: var(--md-sys-color-on-surface-variant);
-    font-size: 14px;
-    font-weight: 500;
+    gap: 8px;
+    padding: 0 12px;
+    border: 1px solid var(--md-sys-color-outline);
+    border-radius: var(--md-sys-shape-corner-full);
+    background: transparent;
+    color: var(--md-sys-color-on-surface);
+    font-size: var(--md-sys-typescale-label-large-size);
+    font-weight: var(--md-sys-typescale-label-large-weight);
+    letter-spacing: var(--md-sys-typescale-label-large-tracking);
     line-height: 1;
     cursor: pointer;
     margin: 0;
     text-align: center;
-    transition: border-color .15s, background .15s, color .15s, box-shadow .15s;
+    transition: background-color .15s, color .15s;
 }
 
 .idc-pill input {
@@ -189,46 +172,41 @@
 }
 
 .idc-pill .lc-icon {
-    color: var(--idc-hint);
-    transition: color .15s, transform .15s;
+    color: var(--md-sys-color-on-surface);
 }
 
 .idc-pill:hover {
-    border-color: var(--md-sys-color-outline);
-    background: var(--md-sys-color-surface-container-lowest);
-    color: var(--md-sys-color-on-surface);
+    background: color-mix(in srgb, var(--md-sys-color-on-surface) var(--md-sys-state-hover-opacity), transparent);
 }
 
-.idc-pill:hover .lc-icon {
-    color: var(--idc-muted);
-    transform: scale(1.06);
-}
-
-.idc-pill:focus-within {
-    border-color: var(--md-sys-color-primary);
-    box-shadow: var(--idc-sh-focus);
+.idc-pill:has(input:focus-visible) {
+    outline: 3px solid var(--md-sys-color-secondary);
+    outline-offset: 2px;
 }
 
 .idc-pill.is-active {
-    border-color: var(--md-sys-color-primary);
-    background: var(--idc-tint-14);
-    color: var(--md-sys-color-on-surface);
-    font-weight: 600;
-    box-shadow: 0 0 0 1px var(--md-sys-color-primary) inset;
+    background: var(--md-sys-color-secondary-container);
+    color: var(--md-sys-color-on-secondary-container);
 }
 
+.idc-pill.is-active:hover {
+    background: color-mix(in srgb, var(--md-sys-color-on-secondary-container) var(--md-sys-state-hover-opacity), var(--md-sys-color-secondary-container));
+}
+
+/* As in M3 segmented buttons, the check replaces the selected segment's
+   icon. */
 .idc-pill.is-active .lc-icon {
-    color: var(--idc-accent-ink);
+    display: none;
 }
 
+/* The selected segment's leading check (18px), before its icon. */
 .idc-pill.is-active::after {
     content: '';
-    position: absolute;
-    top: 5px;
-    right: 7px;
-    width: 11px;
-    height: 11px;
-    background-color: var(--idc-accent-ink);
+    order: -1;
+    flex: 0 0 auto;
+    width: 18px;
+    height: 18px;
+    background-color: var(--md-sys-color-on-secondary-container);
     -webkit-mask: url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%2024%2024'%20fill='none'%20stroke='%23000'%20stroke-width='3'%20stroke-linecap='round'%20stroke-linejoin='round'%3E%3Cpath%20d='M20%206%209%2017l-5-5'/%3E%3C/svg%3E") center / contain no-repeat;
     mask: url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%2024%2024'%20fill='none'%20stroke='%23000'%20stroke-width='3'%20stroke-linecap='round'%20stroke-linejoin='round'%3E%3Cpath%20d='M20%206%209%2017l-5-5'/%3E%3C/svg%3E") center / contain no-repeat;
 }
@@ -263,7 +241,7 @@
 
 .idc-swatch-well:focus-within {
     border-color: var(--md-sys-color-primary);
-    box-shadow: var(--idc-sh-focus);
+    box-shadow: inset 0 0 0 1px var(--md-sys-color-primary);
 }
 
 /* ---- Background image controls (thumb + remove + transparency slider) ---- */
@@ -287,12 +265,12 @@
     height: 44px;
     object-fit: cover;
     border: 1px solid var(--idc-border);
-    border-radius: 8px;
+    border-radius: var(--md-sys-shape-corner-small);
     background: var(--md-sys-color-surface-container-lowest);
 }
 
 .idc-bg-row .btn {
-    margin-left: auto;
+    margin-inline-start: auto;
 }
 
 .idc-range-label {
@@ -309,41 +287,53 @@
     font-variant-numeric: tabular-nums;
 }
 
+/* M3 slider: a 4px secondary-container track and a 20px primary handle,
+   with the handle's state layer on hover and the focus outline. */
 .idc-range {
     -webkit-appearance: none;
     appearance: none;
     width: 100%;
-    height: 6px;
-    border-radius: 999px;
-    background: var(--md-sys-color-surface-container);
+    height: 4px;
+    border-radius: var(--md-sys-shape-corner-full);
+    background: var(--md-sys-color-secondary-container);
     outline: none;
-    margin: 4px 0 0;
+    margin: 12px 0 8px;
 }
 
 .idc-range::-webkit-slider-thumb {
     -webkit-appearance: none;
     appearance: none;
-    width: 16px;
-    height: 16px;
+    width: 20px;
+    height: 20px;
     border-radius: 50%;
     background: var(--md-sys-color-primary);
-    border: 2px solid var(--md-sys-color-surface-container-lowest);
-    box-shadow: var(--md-sys-elevation-level1);
+    border: 0;
+    box-shadow: none;
     cursor: pointer;
+    transition: box-shadow .15s ease;
 }
 
 .idc-range::-moz-range-thumb {
-    width: 16px;
-    height: 16px;
+    width: 20px;
+    height: 20px;
     border-radius: 50%;
     background: var(--md-sys-color-primary);
-    border: 2px solid var(--md-sys-color-surface-container-lowest);
-    box-shadow: var(--md-sys-elevation-level1);
+    border: 0;
+    box-shadow: none;
     cursor: pointer;
 }
 
+.idc-range:hover::-webkit-slider-thumb {
+    box-shadow: 0 0 0 10px color-mix(in srgb, var(--md-sys-color-primary) var(--md-sys-state-hover-opacity), transparent);
+}
+
+.idc-range:hover::-moz-range-thumb {
+    box-shadow: 0 0 0 10px color-mix(in srgb, var(--md-sys-color-primary) var(--md-sys-state-hover-opacity), transparent);
+}
+
 .idc-range:focus-visible {
-    box-shadow: var(--idc-sh-focus);
+    outline: 3px solid var(--md-sys-color-secondary);
+    outline-offset: 8px;
 }
 
 /* ---- Dimensions ---- */
@@ -397,13 +387,15 @@
     height: 0;
 }
 
+/* The box is an M3 checkbox: 18px, 2px corners, 2px on-surface-variant
+   outline; checked fills with primary and shows the on-primary tick. */
 .idc-check .idc-box {
     flex: 0 0 18px;
     width: 18px;
     height: 18px;
-    border: 1.5px solid var(--md-sys-color-outline);
-    border-radius: 6px;
-    background: var(--md-sys-color-surface-container-lowest);
+    border: 2px solid var(--md-sys-color-on-surface-variant);
+    border-radius: 2px;
+    background: transparent;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -428,7 +420,8 @@
 }
 
 .idc-check input:focus-visible+.idc-box {
-    box-shadow: var(--idc-sh-focus);
+    outline: 3px solid var(--md-sys-color-secondary);
+    outline-offset: 2px;
 }
 
 .idc-check.is-checked {
@@ -460,32 +453,10 @@
     /* background: linear-gradient(to top, var(--idc-page) 72%, transparent); */
 }
 
+/* Reset (outlined) and Save (filled) are global M3 buttons; here they only
+   share the bar's width. */
 .idc-actions .btn {
     flex: 1;
-    height: 44px;
-    border-radius: var(--idc-r-control);
-    font-weight: 600;
-}
-
-.idc-actions #idc-reset {
-    background: var(--md-sys-color-surface-container-lowest);
-    border: 1px solid var(--idc-border);
-    color: var(--md-sys-color-on-surface-variant);
-}
-
-.idc-actions #idc-reset:hover {
-    background: var(--md-sys-color-surface-container-low);
-    border-color: var(--md-sys-color-outline);
-}
-
-.idc-actions #create-btn {
-    background: var(--md-sys-color-primary);
-    border: 1px solid var(--md-sys-color-primary);
-    color: var(--md-sys-color-on-primary);
-}
-
-.idc-actions #create-btn:hover {
-    filter: brightness(.95);
 }
 
 /* ============================================================
@@ -494,7 +465,6 @@
 .idc-preview-col .card {
     border: 1px solid var(--idc-border);
     border-radius: var(--idc-r-card);
-    box-shadow: var(--idc-sh-card);
 }
 
 /* Desktop (two-column): the preview is PINNED with position:fixed — immune to the
@@ -531,7 +501,6 @@
     font-size: 12px;
     font-weight: 600;
     color: var(--idc-text-2);
-    box-shadow: var(--idc-sh-card);
 }
 
 .idc-live-dot {
@@ -900,8 +869,6 @@
     .idc-pill {
         min-width: 0;
         flex: 1 1 calc(50% - 4px);
-        font-size: 13px;
-        padding: 10px;
     }
 
     .idc-field-grid {
