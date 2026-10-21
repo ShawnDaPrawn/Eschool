@@ -777,17 +777,17 @@ class StudentController extends Controller
             }
 
             DB::commit();
-            ResponseService::successResponse(trans('data_store_successfully'));
+            return ResponseService::successResponse(trans('data_store_successfully'));
         } catch (\Illuminate\Validation\ValidationException $e) {
             DB::rollback();
-            ResponseService::errorResponse($e->validator->errors()->first(), $e->validator->errors(), 422);
+            return ResponseService::errorResponse($e->validator->errors()->first(), $e->validator->errors(), 422);
         } catch (Throwable $e) {
             if (Str::contains($e->getMessage(), ['Failed', 'Mail', 'Mailer', 'MailManager'])) {
-                ResponseService::successResponse(trans('email_not_send'));
+                return ResponseService::successResponse(trans('email_not_send'));
             } else {
                 DB::rollback();
                 report($e);
-                ResponseService::errorResponse(trans('error_occurred'), $e);
+                return ResponseService::errorResponse(trans('error_occurred'), $e);
             }
         }
     }

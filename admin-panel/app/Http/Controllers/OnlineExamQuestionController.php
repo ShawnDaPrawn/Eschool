@@ -133,7 +133,7 @@ class OnlineExamQuestionController extends Controller
     public function storeBulkData(Request $request)
     {
         if (! Auth::user()->can('manage-online-exam')) {
-            ResponseService::errorResponse(trans('no_permission_message'));
+            return ResponseService::errorResponse(trans('no_permission_message'));
         }
 
         $validator = Validator::make($request->all(), [
@@ -143,28 +143,28 @@ class OnlineExamQuestionController extends Controller
             'file' => 'required|extensions:csv|mimes:csv,txt',
         ]);
         if ($validator->fails()) {
-            ResponseService::validationError($validator->errors()->first());
+            return ResponseService::validationError($validator->errors()->first());
         }
 
         try {
             $class_subject_id = ClassSubject::where(['class_id' => $request->class_id, 'subject_id' => $request->subject_id])->pluck('id')->first();
             if (! $class_subject_id) {
-                ResponseService::errorResponse(trans('please_select_valid_file'));
+                return ResponseService::errorResponse(trans('please_select_valid_file'));
             }
 
             Excel::import(new OnlineExamQuestionsImport($class_subject_id, $request->session_year_id), $request->file);
 
-            ResponseService::successResponse(trans('data_store_successfully'));
+            return ResponseService::successResponse(trans('data_store_successfully'));
         } catch (ValidationException $e) {
             $firstError = collect($e->errors())->flatten()->first();
-            ResponseService::errorResponse($firstError, null, 422);
+            return ResponseService::errorResponse($firstError, null, 422);
         } catch (Throwable $e) {
             $message = trans('error_occurred');
             $exceptionMessage = strtolower((string) $e->getMessage());
             if (str_contains($exceptionMessage, 'file') && (str_contains($exceptionMessage, 'xlsx') || str_contains($exceptionMessage, 'csv') || str_contains($exceptionMessage, 'xls'))) {
                 $message = trans('please_select_valid_file');
             }
-            ResponseService::errorResponse($message, null, 103, $e);
+            return ResponseService::errorResponse($message, null, 103, $e);
         }
     }
 

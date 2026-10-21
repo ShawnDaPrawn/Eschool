@@ -58,7 +58,7 @@ class TimetableController extends Controller
         ]);
 
         if ($validator->fails()) {
-            ResponseService::validationError($validator->errors()->first());
+            return ResponseService::validationError($validator->errors()->first());
         }
         try {
 
@@ -67,14 +67,14 @@ class TimetableController extends Controller
                 ->where('id', $request->timetable_id)
                 ->first();
             if (! $timetable) {
-                ResponseService::errorResponse('no_permission_message', null, 403);
+                return ResponseService::errorResponse('no_permission_message', null, 403);
             }
             $timetable->live_class_url = $request->live_class_link;
             $timetable->link_name = $request->link_name;
             $timetable->save();
-            ResponseService::successResponse('data_update_successfully');
+            return ResponseService::successResponse('data_update_successfully');
         } catch (\Throwable $e) {
-            ResponseService::errorResponse('error_occurred', null, 103, $e);
+            return ResponseService::errorResponse('error_occurred', null, 103, $e);
         }
     }
 

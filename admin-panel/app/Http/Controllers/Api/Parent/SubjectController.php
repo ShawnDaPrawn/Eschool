@@ -25,14 +25,14 @@ class SubjectController extends Controller
         ]);
 
         if ($validator->fails()) {
-            ResponseService::validationError($validator->errors()->first());
+            return ResponseService::validationError($validator->errors()->first());
         }
         try {
             $children = $this->resolveChild($request);
             $subjects = $children->subjects();
-            ResponseService::successResponse('Student Subject Fetched Successfully.', $subjects, [], 200);
+            return ResponseService::successResponse('Student Subject Fetched Successfully.', $subjects, [], 200);
         } catch (Throwable $e) {
-            ResponseService::errorResponse('error_occurred', null, 103, $e);
+            return ResponseService::errorResponse('error_occurred', null, 103, $e);
         }
     }
 
@@ -43,14 +43,14 @@ class SubjectController extends Controller
         ]);
 
         if ($validator->fails()) {
-            ResponseService::validationError($validator->errors()->first());
+            return ResponseService::validationError($validator->errors()->first());
         }
         try {
             $children = $this->resolveChild($request);
             $subjects = $children->classSubjects();
-            ResponseService::successResponse('Class Subject Fetched Successfully.', $subjects, [], 200);
+            return ResponseService::successResponse('Class Subject Fetched Successfully.', $subjects, [], 200);
         } catch (Throwable $e) {
-            ResponseService::errorResponse('error_occurred', null, 103, $e);
+            return ResponseService::errorResponse('error_occurred', null, 103, $e);
         }
     }
 }

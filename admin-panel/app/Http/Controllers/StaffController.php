@@ -511,7 +511,7 @@ class StaffController extends Controller
         ]);
 
         if ($validator->fails()) {
-            ResponseService::validationError($validator->errors()->first());
+            return ResponseService::validationError($validator->errors()->first());
         }
         try {
             $role = Role::findOrFail($request->role_id);
@@ -725,9 +725,9 @@ class StaffController extends Controller
                     $message->to($emailPayload['email'])->subject($emailPayload['subject']);
                 });
             }
-            ResponseService::successResponse(trans('data_store_successfully'));
+            return ResponseService::successResponse(trans('data_store_successfully'));
         } catch (\Throwable $e) {
-            ResponseService::errorResponse(trans('error_occurred'), null, null, $e);
+            return ResponseService::errorResponse(trans('error_occurred'), null, null, $e);
         }
     }
 
@@ -911,9 +911,9 @@ class StaffController extends Controller
             $user->save();
 
             $user->syncRoles($role);
-            ResponseService::successResponse(trans('data_store_successfully'));
+            return ResponseService::successResponse(trans('data_store_successfully'));
         } catch (\Throwable $e) {
-            ResponseService::errorResponse(trans('error_occurred'), null, null, $e);
+            return ResponseService::errorResponse(trans('error_occurred'), null, null, $e);
         }
     }
 
@@ -950,9 +950,9 @@ class StaffController extends Controller
 
             $staff = Staff::where('user_id', $id);
             $staff->delete();
-            -ResponseService::successResponse(trans('data_delete_successfully'));
+            return ResponseService::successResponse(trans('data_delete_successfully'));
         } catch (\Throwable $e) {
-            ResponseService::errorResponse(trans('error_occurred'), null, null, $e);
+            return ResponseService::errorResponse(trans('error_occurred'), null, null, $e);
         }
     }
 

@@ -28,14 +28,14 @@ class AuthController extends Controller
         ]);
 
         if ($validator->fails()) {
-            ResponseService::validationError($validator->errors()->first());
+            return ResponseService::validationError($validator->errors()->first());
         }
 
         if (Auth::attempt(['email' => $request->email, 'password' => $request->password])) {
             $auth = Auth::user();
 
             if (! $auth->hasRole('Teacher')) {
-                ResponseService::errorResponse('Invalid Login Credentials', null, 101);
+                return ResponseService::errorResponse('Invalid Login Credentials', null, 101);
             }
             $token = $auth->createToken($auth->first_name)->plainTextToken;
             $user = $auth->load(['teacher']);
@@ -70,9 +70,9 @@ class AuthController extends Controller
                 $auth->device_type = $request->device_type;
                 $auth->save();
             }
-            ResponseService::successResponse('User logged-in!', $user, ['token' => $token], 100);
+            return ResponseService::successResponse('User logged-in!', $user, ['token' => $token], 100);
         } else {
-            ResponseService::errorResponse('Invalid Login Credentials', null, 101);
+            return ResponseService::errorResponse('Invalid Login Credentials', null, 101);
         }
     }
 
@@ -99,9 +99,9 @@ class AuthController extends Controller
             }
 
             $user = array_merge($user, ['dynamic_fields' => $dynamicFields ?? null]);
-            ResponseService::successResponse('Data Fetched Successfully', $user);
+            return ResponseService::successResponse('Data Fetched Successfully', $user);
         } catch (\Exception $e) {
-            ResponseService::errorResponse('error_occurred', null, 103, $e);
+            return ResponseService::errorResponse('error_occurred', null, 103, $e);
         }
     }
 
@@ -110,9 +110,9 @@ class AuthController extends Controller
         try {
             $output = $idCardService->buildStaffPdf([$request->user()->id])->output();
 
-            ResponseService::successResponse('Teacher ID Card PDF Fetched Successfully', null, ['pdf' => base64_encode($output)]);
+            return ResponseService::successResponse('Teacher ID Card PDF Fetched Successfully', null, ['pdf' => base64_encode($output)]);
         } catch (\Throwable $e) {
-            ResponseService::errorResponse('error_occurred', null, 103, $e);
+            return ResponseService::errorResponse('error_occurred', null, 103, $e);
         }
     }
 }

@@ -227,9 +227,9 @@ class ProfileController extends Controller
                 }
             }
 
-            ResponseService::successResponse('Data Fetched Successfully', $data);
+            return ResponseService::successResponse('Data Fetched Successfully', $data);
         } catch (Throwable $e) {
-            ResponseService::errorResponse('error_occurred', null, 103, $e);
+            return ResponseService::errorResponse('error_occurred', null, 103, $e);
         }
     }
 
@@ -316,9 +316,9 @@ class ProfileController extends Controller
                 ];
             }
 
-            ResponseService::successResponse('Parent Details Fetched Successfully', $data);
+            return ResponseService::successResponse('Parent Details Fetched Successfully', $data);
         } catch (Throwable $e) {
-            ResponseService::errorResponse('error_occurred', null, 103, $e);
+            return ResponseService::errorResponse('error_occurred', null, 103, $e);
         }
     }
 
@@ -329,9 +329,9 @@ class ProfileController extends Controller
 
             $output = $idCardService->buildPdf([$student->id])->output();
 
-            ResponseService::successResponse('Student ID Card PDF Fetched Successfully', null, ['pdf' => base64_encode($output)]);
+            return ResponseService::successResponse('Student ID Card PDF Fetched Successfully', null, ['pdf' => base64_encode($output)]);
         } catch (Throwable $e) {
-            ResponseService::errorResponse('error_occurred', null, 103, $e);
+            return ResponseService::errorResponse('error_occurred', null, 103, $e);
         }
     }
 }

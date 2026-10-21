@@ -455,9 +455,9 @@ class ChatController extends Controller
                     ->splice($offset, $limit)
                     ->values();
             }
-            ResponseService::successResponse('Data Fetched Successfully', ['items' => $data, 'total_items' => $total_items, 'total_unread_users' => $totalunreadusers], [], 100);
+            return ResponseService::successResponse('Data Fetched Successfully', ['items' => $data, 'total_items' => $total_items, 'total_unread_users' => $totalunreadusers], [], 100);
         } catch (\Exception $e) {
-            ResponseService::errorResponse('error_occurred', null, 103, $e);
+            return ResponseService::errorResponse('error_occurred', null, 103, $e);
         }
     }
 
@@ -476,7 +476,7 @@ class ChatController extends Controller
             'file.*' => 'file|max:'.$maxFileKb,
         ]);
         if ($validator->fails()) {
-            ResponseService::validationError($validator->errors()->first());
+            return ResponseService::validationError($validator->errors()->first());
         }
         try {
             $sender_id = $request->user()->id;
@@ -486,7 +486,7 @@ class ChatController extends Controller
             // notification below needs the teacher), and anyone they don't teach.
             $this->currentTeacher();
             if (! $this->canChatWith($receiver_id)) {
-                ResponseService::errorResponse('no_permission_message', null, 403);
+                return ResponseService::errorResponse('no_permission_message', null, 403);
             }
 
             $message = new ChatMessage;
@@ -599,9 +599,9 @@ class ChatController extends Controller
 
             $userinfo = (object) $userinfo;
             sendSimpleNotification($user, $title, $body, $type, $image, $userinfo);
-            ResponseService::successResponse('message_sent_successfully', $data);
+            return ResponseService::successResponse('message_sent_successfully', $data);
         } catch (\Exception $e) {
-            ResponseService::errorResponse('error_occurred', null, 103, $e);
+            return ResponseService::errorResponse('error_occurred', null, 103, $e);
         }
     }
 
@@ -637,9 +637,9 @@ class ChatController extends Controller
 
                 unset($message['file']);
             }
-            ResponseService::successResponse('Data Fetched Successfully', ['items' => $messages ?? [], 'total_items' => $total_items], [], 100);
+            return ResponseService::successResponse('Data Fetched Successfully', ['items' => $messages ?? [], 'total_items' => $total_items], [], 100);
         } catch (\Exception $e) {
-            ResponseService::errorResponse('error_occurred', null, 103, $e);
+            return ResponseService::errorResponse('error_occurred', null, 103, $e);
         }
     }
 
@@ -661,9 +661,9 @@ class ChatController extends Controller
                 $readMessage->last_read_message_id = $message_id;
                 $readMessage->save();
             }
-            ResponseService::successResponse('Message Read');
+            return ResponseService::successResponse('Message Read');
         } catch (\Exception $e) {
-            ResponseService::errorResponse('error_occurred', null, 103, $e);
+            return ResponseService::errorResponse('error_occurred', null, 103, $e);
         }
     }
 

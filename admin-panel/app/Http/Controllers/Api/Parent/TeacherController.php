@@ -30,7 +30,7 @@ class TeacherController extends Controller
             'child_id' => 'required|numeric',
         ]);
         if ($validator->fails()) {
-            ResponseService::validationError($validator->errors()->first());
+            return ResponseService::validationError($validator->errors()->first());
         }
         try {
             $session_year = getSettings('session_year');
@@ -104,9 +104,9 @@ class TeacherController extends Controller
                     'subjects' => $subjects,
                 ];
             }
-            ResponseService::successResponse('Teacher Details Fetched Successfully', $data ?? [], [], 200);
+            return ResponseService::successResponse('Teacher Details Fetched Successfully', $data ?? [], [], 200);
         } catch (Throwable $e) {
-            ResponseService::errorResponse('error_occurred', null, 103, $e);
+            return ResponseService::errorResponse('error_occurred', null, 103, $e);
         }
     }
 }

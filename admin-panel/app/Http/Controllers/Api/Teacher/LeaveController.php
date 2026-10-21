@@ -41,7 +41,7 @@ class LeaveController extends Controller
         $unknown = array_diff(array_keys($request->all()), $allowed);
 
         if (! empty($unknown)) {
-            ResponseService::validationError('Unknown fields: '.implode(', ', $unknown));
+            return ResponseService::validationError('Unknown fields: '.implode(', ', $unknown));
         }
 
         $validator = Validator::make($request->all(), [
@@ -56,7 +56,7 @@ class LeaveController extends Controller
         ]);
 
         if ($validator->fails()) {
-            ResponseService::validationError($validator->errors()->first());
+            return ResponseService::validationError($validator->errors()->first());
         }
         try {
 
@@ -70,7 +70,7 @@ class LeaveController extends Controller
             // $public_holiday = Holiday::whereDate('date', '>=', $sessionYear->start_date)->whereDate('date', '<=', $sessionYear->end_date)->get()->pluck('date')->toArray();
 
             if (! $leave_master) {
-                ResponseService::errorResponse('Kindly contact the school admin to update settings for continued access.');
+                return ResponseService::errorResponse('Kindly contact the school admin to update settings for continued access.');
             }
 
             $dates = array_column($request->leave_details, 'date');
@@ -111,9 +111,9 @@ class LeaveController extends Controller
                     $file->save();
                 }
             }
-            ResponseService::successResponse('data_store_successfully', $leave ?? '');
+            return ResponseService::successResponse('data_store_successfully', $leave ?? '');
         } catch (\Throwable $e) {
-            ResponseService::errorResponse('error_occurred', null, 103, $e);
+            return ResponseService::errorResponse('error_occurred', null, 103, $e);
         }
     }
 
@@ -124,7 +124,7 @@ class LeaveController extends Controller
             'status' => 'in:0,1,2',
         ]);
         if ($validator->fails()) {
-            ResponseService::validationError($validator->errors()->first());
+            return ResponseService::validationError($validator->errors()->first());
         }
         try {
             $setting = getSettings();
@@ -156,9 +156,9 @@ class LeaveController extends Controller
                 'taken_leaves' => $sql->where('status', 1)->sum('days'),
                 'leave_details' => $sql,
             ];
-            ResponseService::successResponse('Data Fetched Successfully', $data);
+            return ResponseService::successResponse('Data Fetched Successfully', $data);
         } catch (\Throwable $e) {
-            ResponseService::errorResponse('error_occurred', null, 103, $e);
+            return ResponseService::errorResponse('error_occurred', null, 103, $e);
         }
     }
 

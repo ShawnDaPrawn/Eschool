@@ -34,7 +34,7 @@ class AuthController extends Controller
         ]);
 
         if ($validator->fails()) {
-            ResponseService::validationError($validator->errors()->first());
+            return ResponseService::validationError($validator->errors()->first());
         }
 
         $session_year = getSettings('session_year');
@@ -55,7 +55,7 @@ class AuthController extends Controller
         if (Auth::attempt(['email' => $request->email, 'password' => $request->password])) {
             $auth = Auth::user();
             if (! $auth->hasRole('Parent')) {
-                ResponseService::errorResponse('Invalid Login Credentials', null, 101);
+                return ResponseService::errorResponse('Invalid Login Credentials', null, 101);
             }
 
             if ($request->fcm_id) {
@@ -300,7 +300,7 @@ class AuthController extends Controller
 
             // If no child has a valid session
             if (! $hasAnyValidSession) {
-                ResponseService::errorResponse(
+                return ResponseService::errorResponse(
                     'Your account is not active for the current academic year because promotion to the next class has not been completed. Please contact the administration.',
                     null,
                     null
@@ -309,7 +309,7 @@ class AuthController extends Controller
 
             // If all children are inactive
             if (! $hasAnyActiveStudent) {
-                ResponseService::errorResponse(
+                return ResponseService::errorResponse(
                     'Your account is deactivated. Please contact admin for further help.',
                     null,
                     null
@@ -317,9 +317,9 @@ class AuthController extends Controller
             }
 
             $data = array_merge($user, ['dynamic_fields' => $parentDynamicFields ?? null, 'children' => $children->toArray()]);
-            ResponseService::successResponse('User logged-in!', $data, ['token' => $token], 100);
+            return ResponseService::successResponse('User logged-in!', $data, ['token' => $token], 100);
         } else {
-            ResponseService::errorResponse('Invalid Login Credentials', null, 101);
+            return ResponseService::errorResponse('Invalid Login Credentials', null, 101);
         }
     }
 }

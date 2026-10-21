@@ -239,9 +239,9 @@ class DashboardController extends Controller
                 'gallery' => $gallery,
             ];
 
-            ResponseService::successResponse('Data Fetched Successfully.', (object) $data);
+            return ResponseService::successResponse('Data Fetched Successfully.', (object) $data);
         } catch (Throwable $e) {
-            ResponseService::errorResponse('error_occurred', null, 103, $e);
+            return ResponseService::errorResponse('error_occurred', null, 103, $e);
         }
     }
 }

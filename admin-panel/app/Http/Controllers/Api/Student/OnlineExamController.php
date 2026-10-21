@@ -50,7 +50,7 @@ class OnlineExamController extends Controller
         ]);
 
         if ($validator->fails()) {
-            ResponseService::validationError($validator->errors()->first());
+            return ResponseService::validationError($validator->errors()->first());
         }
 
         try {
@@ -223,9 +223,9 @@ class OnlineExamController extends Controller
                 $exam_data = null;
             }
 
-            ResponseService::successResponse('Exam List Fetched Successfully', $exam_data);
+            return ResponseService::successResponse('Exam List Fetched Successfully', $exam_data);
         } catch (Throwable $e) {
-            ResponseService::errorResponse('error_occurred', null, 103, $e);
+            return ResponseService::errorResponse('error_occurred', null, 103, $e);
         }
     }
 
@@ -237,7 +237,7 @@ class OnlineExamController extends Controller
         ]);
 
         if ($validator->fails()) {
-            ResponseService::validationError($validator->errors()->first());
+            return ResponseService::validationError($validator->errors()->first());
         }
         try {
             $student = $request->user()->student;
@@ -245,36 +245,36 @@ class OnlineExamController extends Controller
             // Only an exam of the student's own class/section, subjects and session
             $exam = is_numeric($request->exam_id) ? $this->findStudentOnlineExam($student, (int) $request->exam_id) : null;
             if (! $exam) {
-                ResponseService::errorResponse('Invalid Exam Key', null, 103);
+                return ResponseService::errorResponse('Invalid Exam Key', null, 103);
             }
 
             // The time window comes before the key, so keys can't be guessed for an
             // exam that isn't open (the app shows the dates anyway).
             $now = Carbon::now();
             if ($now->lt(Carbon::parse($exam->start_date))) {
-                ResponseService::errorResponse('exam_not_started_yet', null, 106);
+                return ResponseService::errorResponse('exam_not_started_yet', null, 106);
             }
             if ($now->gt(Carbon::parse($exam->end_date))) {
-                ResponseService::errorResponse('This exam has ended.', null, null);
+                return ResponseService::errorResponse('This exam has ended.', null, null);
             }
 
             // Keys are short, so wrong guesses are limited per student and exam.
             $attempts = 'exam-key:'.$exam->id.':'.$request->user()->id;
             if (RateLimiter::tooManyAttempts($attempts, self::EXAM_KEY_ATTEMPTS)) {
-                ResponseService::errorResponse(trans('Too many wrong exam keys. Try again in :minutes minutes.', [
+                return ResponseService::errorResponse(trans('Too many wrong exam keys. Try again in :minutes minutes.', [
                     'minutes' => (int) ceil(RateLimiter::availableIn($attempts) / 60),
                 ]), null, 429);
             }
             if (! is_scalar($request->exam_key) || ! hash_equals((string) $exam->exam_key, (string) $request->exam_key)) {
                 RateLimiter::hit($attempts, self::EXAM_KEY_DECAY_SECONDS);
-                ResponseService::errorResponse('Invalid Exam Key', null, 103);
+                return ResponseService::errorResponse('Invalid Exam Key', null, 103);
             }
             RateLimiter::clear($attempts);
 
             // checks student exam status
             $check_student_status = StudentOnlineExamStatus::where(['online_exam_id' => $exam->id, 'student_id' => $student->id])->count();
             if ($check_student_status != 0) {
-                ResponseService::errorResponse('student_already_attempted_exam', null, 105);
+                return ResponseService::errorResponse('student_already_attempted_exam', null, 105);
             }
 
             // add the exam status
@@ -321,9 +321,9 @@ class OnlineExamController extends Controller
                     'note' => $exam_questions->questions->note,
                 ];
             }
-            ResponseService::successResponse('Exam Questions Fetched Successfully', $questions_data ?? null, ['total_questions' => $total_questions, 'total_marks' => $total_marks]);
+            return ResponseService::successResponse('Exam Questions Fetched Successfully', $questions_data ?? null, ['total_questions' => $total_questions, 'total_marks' => $total_marks]);
         } catch (Throwable $e) {
-            ResponseService::errorResponse('error_occurred', null, 103, $e);
+            return ResponseService::errorResponse('error_occurred', null, 103, $e);
         }
     }
 
@@ -336,7 +336,7 @@ class OnlineExamController extends Controller
         ]);
 
         if ($validator->fails()) {
-            ResponseService::validationError($validator->errors()->first());
+            return ResponseService::validationError($validator->errors()->first());
         }
         try {
             $student = $request->user()->student;
@@ -344,23 +344,23 @@ class OnlineExamController extends Controller
             // checks the online exam exists for this student
             $exam = $this->findStudentOnlineExam($student, (int) $request->online_exam_id);
             if (! $exam) {
-                ResponseService::errorResponse('invalid_online_exam_id', null, 103);
+                return ResponseService::errorResponse('invalid_online_exam_id', null, 103);
             }
 
             // Only while the exam is open (with a little slack for the upload)
             $now = Carbon::now();
             if ($now->lt(Carbon::parse($exam->start_date))) {
-                ResponseService::errorResponse('exam_not_started_yet', null, 106);
+                return ResponseService::errorResponse('exam_not_started_yet', null, 106);
             }
             if ($now->gt(Carbon::parse($exam->end_date)->addMinutes(self::ONLINE_EXAM_GRACE_MINUTES))) {
-                ResponseService::errorResponse('This exam has ended.', null, null);
+                return ResponseService::errorResponse('This exam has ended.', null, null);
             }
 
             // Every question must be one of the exam's, every option one of that question's
             try {
                 $answers = $scoring->validateSubmission($exam->id, $request->answers_data);
             } catch (ValidationException $e) {
-                ResponseService::errorResponse($e->validator->errors()->first(), null, null);
+                return ResponseService::errorResponse($e->validator->errors()->first(), null, null);
             }
 
             $error = DB::transaction(function () use ($student, $exam, $answers, $now) {
@@ -399,11 +399,11 @@ class OnlineExamController extends Controller
             });
 
             if ($error) {
-                ResponseService::errorResponse($error, null, null);
+                return ResponseService::errorResponse($error, null, null);
             }
-            ResponseService::successResponse('data_store_successfully');
+            return ResponseService::successResponse('data_store_successfully');
         } catch (Throwable $e) {
-            ResponseService::errorResponse('error_occurred', null, 103, $e);
+            return ResponseService::errorResponse('error_occurred', null, 103, $e);
         }
     }
 
@@ -489,9 +489,9 @@ class OnlineExamController extends Controller
                 'to' => $online_exam_db['to'],
                 'total' => $online_exam_db['total'],
             ];
-            ResponseService::successResponse('Exam List Fetched Successfully', $exam_list ?? '');
+            return ResponseService::successResponse('Exam List Fetched Successfully', $exam_list ?? '');
         } catch (Throwable $e) {
-            ResponseService::errorResponse('error_occurred', null, 103, $e);
+            return ResponseService::errorResponse('error_occurred', null, 103, $e);
         }
     }
 
@@ -502,7 +502,7 @@ class OnlineExamController extends Controller
         ]);
 
         if ($validator->fails()) {
-            ResponseService::validationError($validator->errors()->first());
+            return ResponseService::validationError($validator->errors()->first());
         }
         try {
             $student = $request->user()->student;
@@ -558,9 +558,9 @@ class OnlineExamController extends Controller
                 'total_obtained_marks' => $total_obtained_marks ?? '0',
                 'total_marks' => $total_marks,
             ];
-            ResponseService::successResponse('Exam Result Fetched Successfully', $exam_result ?? '');
+            return ResponseService::successResponse('Exam Result Fetched Successfully', $exam_result ?? '');
         } catch (Throwable $e) {
-            ResponseService::errorResponse('error_occurred', null, 103, $e);
+            return ResponseService::errorResponse('error_occurred', null, 103, $e);
         }
     }
 

@@ -317,9 +317,9 @@ class DashboardController extends Controller
                 'events' => $eventsList ?? [],
                 'gallery' => $gallery,
             ];
-            ResponseService::successResponse('Data Fetched Successfully', $data ?? []);
+            return ResponseService::successResponse('Data Fetched Successfully', $data ?? []);
         } catch (\Exception $e) {
-            ResponseService::errorResponse('error_occurred', null, 103, $e);
+            return ResponseService::errorResponse('error_occurred', null, 103, $e);
         }
     }
 }

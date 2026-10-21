@@ -31,7 +31,7 @@ class AnnouncementController extends Controller
         ]);
 
         if ($validator->fails()) {
-            ResponseService::validationError($validator->errors()->first());
+            return ResponseService::validationError($validator->errors()->first());
         }
         try {
             $student = $request->user()->student;
@@ -46,7 +46,7 @@ class AnnouncementController extends Controller
                 $table = SubjectTeacher::where('class_section_id', $student_class_section_id)
                     ->where('subject_id', $request->subject_id)->get()->pluck('id');
                 if (empty($table)) {
-                    ResponseService::errorResponse('Invalid Subject ID', null, 106);
+                    return ResponseService::errorResponse('Invalid Subject ID', null, 106);
                 }
             }
 
@@ -93,9 +93,9 @@ class AnnouncementController extends Controller
             }
 
             $data = $data->orderBy('id', 'desc')->paginate();
-            ResponseService::successResponse('Announcement Details Fetched Successfully', $data);
+            return ResponseService::successResponse('Announcement Details Fetched Successfully', $data);
         } catch (Throwable $e) {
-            ResponseService::errorResponse('error_occurred', null, 103, $e);
+            return ResponseService::errorResponse('error_occurred', null, 103, $e);
         }
     }
 }

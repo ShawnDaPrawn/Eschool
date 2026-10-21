@@ -45,7 +45,7 @@ class AssignmentController extends Controller
         ]);
 
         if ($validator->fails()) {
-            ResponseService::validationError($validator->errors()->first());
+            return ResponseService::validationError($validator->errors()->first());
         }
 
         try {
@@ -101,9 +101,9 @@ class AssignmentController extends Controller
             $data->getCollection()->each(function ($assignment) {
                 $assignment->setRelation('submission', $assignment->submission->first());
             });
-            ResponseService::successResponse('Assignments Fetched Successfully', $data);
+            return ResponseService::successResponse('Assignments Fetched Successfully', $data);
         } catch (Throwable $e) {
-            ResponseService::errorResponse('error_occurred', null, 103, $e);
+            return ResponseService::errorResponse('error_occurred', null, 103, $e);
         }
     }
 
@@ -123,7 +123,7 @@ class AssignmentController extends Controller
         ]);
 
         if ($validator->fails()) {
-            ResponseService::validationError($validator->errors()->first());
+            return ResponseService::validationError($validator->errors()->first());
         }
 
         try {
@@ -141,7 +141,7 @@ class AssignmentController extends Controller
                 ->whereIn('subject_id', $this->studentSubjectIds($student))
                 ->first();
             if (! $assignment) {
-                ResponseService::errorResponse('Invalid assignment', null, 103);
+                return ResponseService::errorResponse('Invalid assignment', null, 103);
             }
 
             $assignment_submission = AssignmentSubmission::where('assignment_id', $request->assignment_id)->where('student_id', $student->id)->first();
@@ -165,7 +165,7 @@ class AssignmentController extends Controller
                 }
                 $assignment_submission->file()->delete();
             } else {
-                ResponseService::errorResponse('You already have submitted your assignment.', null, 104);
+                return ResponseService::errorResponse('You already have submitted your assignment.', null, 104);
             }
 
             $student_class_section_id = StudentSessions::where('student_id', $student->id)->where('session_year_id', $session_year_id)->first()->class_section_id;
@@ -210,9 +210,9 @@ class AssignmentController extends Controller
             }
 
             $submitted_assignment = AssignmentSubmission::where('id', $assignment_submission->id)->with('file')->get();
-            ResponseService::successResponse('Assignments Submitted Successfully', $submitted_assignment);
+            return ResponseService::successResponse('Assignments Submitted Successfully', $submitted_assignment);
         } catch (Throwable $e) {
-            ResponseService::errorResponse('error_occurred', null, 103, $e);
+            return ResponseService::errorResponse('error_occurred', null, 103, $e);
         }
     }
 
@@ -228,7 +228,7 @@ class AssignmentController extends Controller
         ]);
 
         if ($validator->fails()) {
-            ResponseService::validationError($validator->errors()->first());
+            return ResponseService::validationError($validator->errors()->first());
         }
 
         try {
@@ -244,12 +244,12 @@ class AssignmentController extends Controller
                 $assignment_submission->file()->delete();
                 $assignment_submission->delete();
 
-                ResponseService::successResponse('Assignments Deleted Successfully');
+                return ResponseService::successResponse('Assignments Deleted Successfully');
             } else {
-                ResponseService::errorResponse('You can not delete assignment', null, 110);
+                return ResponseService::errorResponse('You can not delete assignment', null, 110);
             }
         } catch (Throwable $e) {
-            ResponseService::errorResponse('error_occurred', null, 103, $e);
+            return ResponseService::errorResponse('error_occurred', null, 103, $e);
         }
     }
 }

@@ -33,7 +33,7 @@ class AttendanceController extends Controller
         ]);
 
         if ($validator->fails()) {
-            ResponseService::validationError($validator->errors()->first());
+            return ResponseService::validationError($validator->errors()->first());
         }
         try {
             $student = $request->user()->student;
@@ -44,9 +44,9 @@ class AttendanceController extends Controller
             $year = $request->filled('year') ? (int) $request->year : null;
 
             $data = Attendance::monthlyReport($student->id, (int) $session_year_id, $month, $year);
-            ResponseService::successResponse('Data fetched successfully.', $data);
+            return ResponseService::successResponse('Data fetched successfully.', $data);
         } catch (Throwable $e) {
-            ResponseService::errorResponse('error_occurred', null, 103, $e);
+            return ResponseService::errorResponse('error_occurred', null, 103, $e);
         }
     }
 
@@ -58,7 +58,7 @@ class AttendanceController extends Controller
         ]);
 
         if ($validator->fails()) {
-            ResponseService::validationError($validator->errors()->first());
+            return ResponseService::validationError($validator->errors()->first());
         }
         try {
             $student = $request->user()->student;
@@ -75,9 +75,9 @@ class AttendanceController extends Controller
             }
             $data = Attendance::monthlyReport($student->id, (int) $request->session_year_id, (int) $request->month);
 
-            ResponseService::successResponse('Data fetched successfully.', $data);
+            return ResponseService::successResponse('Data fetched successfully.', $data);
         } catch (Throwable $e) {
-            ResponseService::errorResponse('error_occurred', null, 103, $e);
+            return ResponseService::errorResponse('error_occurred', null, 103, $e);
         }
     }
 }

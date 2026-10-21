@@ -62,9 +62,9 @@ class TimetableController extends Controller
                 ->orderBy('start_time', 'asc')
                 ->get()
                 ->filter(fn($timetable) => $timetable->subject_teacher !== null);
-            ResponseService::successResponse('Timetable Fetched Successfully', new TimetableCollection($timetables));
+            return ResponseService::successResponse('Timetable Fetched Successfully', new TimetableCollection($timetables));
         } catch (Throwable $e) {
-            ResponseService::errorResponse('error_occurred', null, 103, $e);
+            return ResponseService::errorResponse('error_occurred', null, 103, $e);
         }
     }
 }

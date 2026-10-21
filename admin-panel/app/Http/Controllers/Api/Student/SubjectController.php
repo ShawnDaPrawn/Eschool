@@ -33,9 +33,9 @@ class SubjectController extends Controller
                 $subjects['elective_subject'] = null;
             }
 
-            ResponseService::successResponse('Student Subject Fetched Successfully.', $subjects);
+            return ResponseService::successResponse('Student Subject Fetched Successfully.', $subjects);
         } catch (Throwable $e) {
-            ResponseService::errorResponse('error_occurred', null, 103, $e);
+            return ResponseService::errorResponse('error_occurred', null, 103, $e);
         }
     }
 
@@ -44,9 +44,9 @@ class SubjectController extends Controller
         try {
             $user = $request->user();
             $subjects = $user->student->classSubjects();
-            ResponseService::successResponse('Class Subject Fetched Successfully.', $subjects);
+            return ResponseService::successResponse('Class Subject Fetched Successfully.', $subjects);
         } catch (Throwable $e) {
-            ResponseService::errorResponse('error_occurred', null, 103, $e);
+            return ResponseService::errorResponse('error_occurred', null, 103, $e);
         }
     }
 
@@ -60,7 +60,7 @@ class SubjectController extends Controller
         ]);
 
         if ($validator->fails()) {
-            ResponseService::validationError($validator->errors()->first());
+            return ResponseService::validationError($validator->errors()->first());
         }
         try {
 
@@ -92,14 +92,14 @@ class SubjectController extends Controller
             foreach ($request->subject_group as $subject_group) {
                 $group = $elective_groups->get((int) $subject_group['id']);
                 if (! $group || in_array($group->id, $seen_groups)) {
-                    ResponseService::validationError('Invalid subject group.');
+                    return ResponseService::validationError('Invalid subject group.');
                 }
                 $seen_groups[] = $group->id;
 
                 $group_subject_ids = $group->electiveSubjects->pluck('subject_id')->map(fn ($id) => (int) $id)->all();
                 $selected_ids = array_map('intval', $subject_group['subject_id']);
                 if (count($selected_ids) !== count(array_unique($selected_ids)) || array_diff($selected_ids, $group_subject_ids)) {
-                    ResponseService::validationError('Invalid subject selected.');
+                    return ResponseService::validationError('Invalid subject selected.');
                 }
 
                 // Together with what the student already picked in this group,
@@ -111,7 +111,7 @@ class SubjectController extends Controller
                     'session_year_id' => intval($session_year_id),
                 ])->whereIn('subject_id', $group_subject_ids)->pluck('subject_id')->map(fn ($id) => (int) $id)->all();
                 if (count(array_unique(array_merge($already_selected, $selected_ids))) > (int) $group->total_selectable_subjects) {
-                    ResponseService::validationError('You can select only '.$group->total_selectable_subjects.' subjects in this group.');
+                    return ResponseService::validationError('You can select only '.$group->total_selectable_subjects.' subjects in this group.');
                 }
             }
 
@@ -141,9 +141,9 @@ class SubjectController extends Controller
             }
             StudentSubject::insert($student_subject);
 
-            ResponseService::successResponse('Subject Selected Successfully', $student_subject);
+            return ResponseService::successResponse('Subject Selected Successfully', $student_subject);
         } catch (Throwable $e) {
-            ResponseService::errorResponse('error_occurred', null, 103, $e);
+            return ResponseService::errorResponse('error_occurred', null, 103, $e);
         }
     }
 }

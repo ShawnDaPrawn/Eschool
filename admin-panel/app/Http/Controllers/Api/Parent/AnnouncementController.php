@@ -33,7 +33,7 @@ class AnnouncementController extends Controller
         ]);
 
         if ($validator->fails()) {
-            ResponseService::validationError($validator->errors()->first());
+            return ResponseService::validationError($validator->errors()->first());
         }
         try {
             $children = null;
@@ -52,7 +52,7 @@ class AnnouncementController extends Controller
                     ->where('session_year_id', $session_year_id)
                     ->first();
                 if (empty($studentSession)) {
-                    ResponseService::errorResponse('Invalid Child ID', null, 106);
+                    return ResponseService::errorResponse('Invalid Child ID', null, 106);
                 }
                 $class_section_id = $studentSession->class_section_id;
             }
@@ -60,7 +60,7 @@ class AnnouncementController extends Controller
             if (isset($request->type) && $request->type == 'subject') {
                 $table = SubjectTeacher::where('class_section_id', $class_section_id)->where('subject_id', $request->subject_id)->get()->pluck('id');
                 if (empty($table)) {
-                    ResponseService::errorResponse('Invalid Subject ID', null, 106);
+                    return ResponseService::errorResponse('Invalid Subject ID', null, 106);
                 }
             }
             $data = Announcement::with('file')->where('session_year_id', $session_year_id);
@@ -110,9 +110,9 @@ class AnnouncementController extends Controller
             }
 
             $data = $data->orderBy('id', 'desc')->paginate();
-            ResponseService::successResponse('Announcement Details Fetched Successfully', $data, [], 200);
+            return ResponseService::successResponse('Announcement Details Fetched Successfully', $data, [], 200);
         } catch (Throwable $e) {
-            ResponseService::errorResponse('error_occurred', null, 103, $e);
+            return ResponseService::errorResponse('error_occurred', null, 103, $e);
         }
     }
 

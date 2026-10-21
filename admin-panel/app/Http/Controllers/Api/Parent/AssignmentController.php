@@ -38,7 +38,7 @@ class AssignmentController extends Controller
         ]);
 
         if ($validator->fails()) {
-            ResponseService::validationError($validator->errors()->first());
+            return ResponseService::validationError($validator->errors()->first());
         }
 
         try {
@@ -117,9 +117,9 @@ class AssignmentController extends Controller
                 return $assignment;
             });
 
-            ResponseService::successResponse('Assignments Fetched Successfully', $data, [], 200);
+            return ResponseService::successResponse('Assignments Fetched Successfully', $data, [], 200);
         } catch (Throwable $e) {
-            ResponseService::errorResponse('error_occurred', null, 103, $e);
+            return ResponseService::errorResponse('error_occurred', null, 103, $e);
         }
     }
 }

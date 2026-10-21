@@ -36,9 +36,9 @@ class ApiController extends Controller
             $user->update(['fcm_id' => '']);
             $user->currentAccessToken()->delete();
 
-            ResponseService::successResponse('Logout Successfully done.');
+            return ResponseService::successResponse('Logout Successfully done.');
         } catch (Throwable $e) {
-            ResponseService::errorResponse('error_occurred', null, 103, $e);
+            return ResponseService::errorResponse('error_occurred', null, 103, $e);
         }
     }
 
@@ -49,9 +49,9 @@ class ApiController extends Controller
     {
         try {
             $data = Holiday::where('session_year_id', getSettings('session_year')['session_year'])->orderBy('date')->get();
-            ResponseService::successResponse('Holidays Fetched Successfully.', $data);
+            return ResponseService::successResponse('Holidays Fetched Successfully.', $data);
         } catch (Throwable $e) {
-            ResponseService::errorResponse('error_occurred', null, 103, $e);
+            return ResponseService::errorResponse('error_occurred', null, 103, $e);
         }
     }
 
@@ -62,9 +62,9 @@ class ApiController extends Controller
     {
         try {
             $data = Slider::whereIn('type', [1, 3])->get();
-            ResponseService::successResponse('Sliders Fetched Successfully.', $data);
+            return ResponseService::successResponse('Sliders Fetched Successfully.', $data);
         } catch (Throwable $e) {
-            ResponseService::errorResponse('error_occurred', null, 103, $e);
+            return ResponseService::errorResponse('error_occurred', null, 103, $e);
         }
     }
 
@@ -79,9 +79,9 @@ class ApiController extends Controller
             $data = SessionYear::find($session_year_id);
            
 
-            ResponseService::successResponse('Session Year Fetched Successfully.', $data);
+            return ResponseService::successResponse('Session Year Fetched Successfully.', $data);
         } catch (Throwable $e) {
-            ResponseService::errorResponse('error_occurred', null, 103, $e);
+            return ResponseService::errorResponse('error_occurred', null, 103, $e);
         }
     }
 
@@ -96,9 +96,9 @@ class ApiController extends Controller
                 ->get();
            
 
-            ResponseService::successResponse('Session Years Fetched Successfully.', $data);
+            return ResponseService::successResponse('Session Years Fetched Successfully.', $data);
         } catch (Throwable $e) {
-            ResponseService::errorResponse('error_occurred', null, 103, $e);
+            return ResponseService::errorResponse('error_occurred', null, 103, $e);
         }
     }
 
@@ -109,7 +109,7 @@ class ApiController extends Controller
         ]);
 
         if ($validator->fails()) {
-            ResponseService::validationError($validator->errors()->first());
+            return ResponseService::validationError($validator->errors()->first());
         }
         try {
             $settings = getSettings();
@@ -230,9 +230,9 @@ class ApiController extends Controller
                 $data = $settings[$request->type] ?? "";
             }
 
-            ResponseService::successResponse("Data Fetched Successfully", $data);
+            return ResponseService::successResponse("Data Fetched Successfully", $data);
         } catch (\Exception $e) {
-            ResponseService::errorResponse('error_occurred', null, 103, $e);
+            return ResponseService::errorResponse('error_occurred', null, 103, $e);
         }
     }
 
@@ -246,7 +246,7 @@ class ApiController extends Controller
         ]);
 
         if ($validator->fails()) {
-            ResponseService::validationError($validator->errors()->first());
+            return ResponseService::validationError($validator->errors()->first());
         }
 
         try {
@@ -260,9 +260,9 @@ class ApiController extends Controller
 
             // Same answer whether or not the email belongs to an account (or was
             // throttled), so the endpoint can't be used to find registered emails.
-            ResponseService::successResponse('If an account exists for this email, a password reset link has been sent.');
+            return ResponseService::successResponse('If an account exists for this email, a password reset link has been sent.');
         } catch (Throwable $e) {
-            ResponseService::errorResponse('error_occurred', null, 103, $e);
+            return ResponseService::errorResponse('error_occurred', null, 103, $e);
         }
     }
 
@@ -278,14 +278,14 @@ class ApiController extends Controller
         ]);
 
         if ($validator->fails()) {
-            ResponseService::validationError($validator->errors()->first());
+            return ResponseService::validationError($validator->errors()->first());
         }
 
         try {
             $user = $request->user();
 
             if (!Hash::check($request->input('current_password'), $user->password)) {
-                ResponseService::errorResponse('Current password is incorrect.');
+                return ResponseService::errorResponse('Current password is incorrect.');
             }
 
             $user->update([
@@ -298,9 +298,9 @@ class ApiController extends Controller
                 ->when($currentToken instanceof PersonalAccessToken, fn ($query) => $query->whereKeyNot($currentToken->getKey()))
                 ->delete();
 
-            ResponseService::successResponse('Password changed successfully.');
+            return ResponseService::successResponse('Password changed successfully.');
         } catch (Throwable $e) {
-            ResponseService::errorResponse('error_occurred', null, 103, $e);
+            return ResponseService::errorResponse('error_occurred', null, 103, $e);
         }
     }
 
@@ -376,12 +376,12 @@ class ApiController extends Controller
                 ]);
             }
 
-            ResponseService::successResponse(
+            return ResponseService::successResponse(
                 'Events Fetched Successfully.',
                 $allEvents->values()->toArray()
             );
         } catch (Throwable $e) {
-            ResponseService::errorResponse('error_occurred', null, 103, $e);
+            return ResponseService::errorResponse('error_occurred', null, 103, $e);
         }
     }
 
@@ -501,9 +501,9 @@ class ApiController extends Controller
                 ->orderBy('start_date', 'asc')
                 ->get();
 
-            ResponseService::successResponse('Semesters Fetched Successfully.', $semesters);
+            return ResponseService::successResponse('Semesters Fetched Successfully.', $semesters);
         } catch (Throwable $e) {
-            ResponseService::errorResponse('error_occurred', null, 103, $e);
+            return ResponseService::errorResponse('error_occurred', null, 103, $e);
         }
     }
 

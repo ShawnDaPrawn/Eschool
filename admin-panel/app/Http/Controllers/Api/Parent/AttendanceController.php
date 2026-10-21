@@ -34,7 +34,7 @@ class AttendanceController extends Controller
         ]);
 
         if ($validator->fails()) {
-            ResponseService::validationError($validator->errors()->first());
+            return ResponseService::validationError($validator->errors()->first());
         }
         try {
             $children = $this->resolveChild($request);
@@ -45,9 +45,9 @@ class AttendanceController extends Controller
             $year = $request->filled('year') ? (int) $request->year : null;
 
             $data = Attendance::monthlyReport($children->id, (int) $session_year_id, $month, $year);
-            ResponseService::successResponse('Data fetched successfully.', $data, [], 200);
+            return ResponseService::successResponse('Data fetched successfully.', $data, [], 200);
         } catch (Throwable $e) {
-            ResponseService::errorResponse('error_occurred', null, 103, $e);
+            return ResponseService::errorResponse('error_occurred', null, 103, $e);
         }
     }
 
@@ -60,7 +60,7 @@ class AttendanceController extends Controller
         ]);
 
         if ($validator->fails()) {
-            ResponseService::validationError($validator->errors()->first());
+            return ResponseService::validationError($validator->errors()->first());
         }
         try {
             $child = $this->resolveChild($request);
@@ -69,7 +69,7 @@ class AttendanceController extends Controller
             ->first();
 
         if (!$studentSession) {
-            ResponseService::errorResponse(
+            return ResponseService::errorResponse(
                 'No session found for this student in the current session year',
                 null,
                 113
@@ -77,9 +77,9 @@ class AttendanceController extends Controller
         }
             $data = Attendance::monthlyReport($child->id, (int) $request->session_year_id, (int) $request->month);
             
-            ResponseService::successResponse('Data fetched successfully.', $data);
+            return ResponseService::successResponse('Data fetched successfully.', $data);
         } catch (Throwable $e) {
-            ResponseService::errorResponse('error_occurred', null, 103, $e);
+            return ResponseService::errorResponse('error_occurred', null, 103, $e);
         }
     }
 }

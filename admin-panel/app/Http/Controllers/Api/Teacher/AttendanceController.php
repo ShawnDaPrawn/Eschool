@@ -38,7 +38,7 @@ class AttendanceController extends Controller
             'year' => 'required|integer|min:2000|max:2100',
         ]);
         if ($validator->fails()) {
-            ResponseService::validationError($validator->errors()->first());
+            return ResponseService::validationError($validator->errors()->first());
         }
 
         try {
@@ -136,9 +136,9 @@ class AttendanceController extends Controller
                 'attendance' => $attendance,
             ];
 
-            ResponseService::successResponse('Data fetched successfully.', $data);
+            return ResponseService::successResponse('Data fetched successfully.', $data);
         } catch (Throwable $e) {
-            ResponseService::errorResponse('error_occurred', null, 103, $e);
+            return ResponseService::errorResponse('error_occurred', null, 103, $e);
         }
     }
 
@@ -155,14 +155,14 @@ class AttendanceController extends Controller
             'type' => 'in:0,1,3,4,5',
         ]);
         if ($validator->fails()) {
-            ResponseService::validationError($validator->errors()->first());
+            return ResponseService::validationError($validator->errors()->first());
         }
 
         $date = date('Y-m-d', strtotime($request->date));
 
         try {
             if (! $this->isClassTeacherOf($class_section_id)) {
-                ResponseService::errorResponse('You are not assigned to this class section', null, 403);
+                return ResponseService::errorResponse('You are not assigned to this class section', null, 403);
             }
 
             $studentsInClass = Students::where('class_section_id', $class_section_id)->get(['id', 'user_id']);
@@ -207,7 +207,7 @@ class AttendanceController extends Controller
 
             $holiday = Holiday::where('date', $date)->get();
             if ($holiday->count()) {
-                ResponseService::successResponse('data_update_successfully', [
+                return ResponseService::successResponse('data_update_successfully', [
                     'is_holiday' => true,
                     'holiday' => $holiday,
                     'leave_details' => $leave_details,
@@ -215,13 +215,13 @@ class AttendanceController extends Controller
                 ]);
             } else {
                 if ($data->count()) {
-                    ResponseService::successResponse('Data Fetched Successfully', [
+                    return ResponseService::successResponse('Data Fetched Successfully', [
                         'is_holiday' => false,
                         'leave_details' => $leave_details,
                         'attendance_reports' => $data,
                     ]);
                 } else {
-                    ResponseService::successResponse('Attendance not recorded', [
+                    return ResponseService::successResponse('Attendance not recorded', [
                         'is_holiday' => false,
                         'holiday' => ($holiday->count() == 0) ? null : $holiday,
                         'leave_details' => $leave_details,
@@ -230,7 +230,7 @@ class AttendanceController extends Controller
                 }
             }
         } catch (Throwable $e) {
-            ResponseService::errorResponse('error_occurred', null, 103, $e);
+            return ResponseService::errorResponse('error_occurred', null, 103, $e);
         }
     }
 
@@ -246,7 +246,7 @@ class AttendanceController extends Controller
             'date' => 'required|date',
         ]);
         if ($validator->fails()) {
-            ResponseService::validationError($validator->errors()->first());
+            return ResponseService::validationError($validator->errors()->first());
         }
         try {
             $session_year = getSettings('session_year');
@@ -254,12 +254,12 @@ class AttendanceController extends Controller
             $class_section_id = $request->class_section_id;
 
             if (! $this->isClassTeacherOf($class_section_id, $session_year_id)) {
-                ResponseService::errorResponse('You are not assigned to this class section', null, 403);
+                return ResponseService::errorResponse('You are not assigned to this class section', null, 403);
             }
 
             // Attendance can only be recorded for students of this class section.
             if (! $this->allStudentsInClassSection(collect($request->attendance)->pluck('student_id'), $class_section_id)) {
-                ResponseService::errorResponse('no_permission_message', null, 403);
+                return ResponseService::errorResponse('no_permission_message', null, 403);
             }
 
             $date = date('Y-m-d', strtotime($request->date));
@@ -314,9 +314,9 @@ class AttendanceController extends Controller
             // One alert per absent student, to each of their parents and guardian
             // (it used to save only the last student's and skip guardians).
             app(AbsenceAlertService::class)->notify($absent_student_ids ?? [], $date, (int) $session_year_id);
-            ResponseService::successResponse('data_store_successfully');
+            return ResponseService::successResponse('data_store_successfully');
         } catch (Exception $e) {
-            ResponseService::errorResponse('error_occurred', null, 103, $e);
+            return ResponseService::errorResponse('error_occurred', null, 103, $e);
         }
     }
 }
