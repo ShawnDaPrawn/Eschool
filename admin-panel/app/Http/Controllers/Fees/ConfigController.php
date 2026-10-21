@@ -6,7 +6,6 @@ namespace App\Http\Controllers\Fees;
 
 use App\Http\Controllers\Controller;
 use App\Models\Settings;
-use App\Models\Students;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;

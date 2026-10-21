@@ -52,8 +52,8 @@ Columns: **SA** = granted to Super Admin, **T** = granted to Teacher. "Checked i
 | `medium-*`, `section-*`, `class-*`, `subject-*`, `stream-*`, `shift-*` (each `-list`, `-create`, `-edit`, `-delete`) | Yes | | The matching controllers |
 | `semester-list`, `semester-create`, `semester-edit`, `semester-delete` | Yes | | `SemesterController` (`semester-edit` also saves the per-class semester switch) |
 | `session-year-list`, `session-year-create`, `session-year-edit`, `session-year-delete` | Yes | | `SessionYearController`, `StoreSessionYearRequest::authorize()`; `-delete` also clears data and installments |
-| `assign-class-subject` | Yes | | Class subject pages in `ClassSchoolController` |
-| `assign-elective-subjects` | Yes | | Elective assignment in `ClassSchoolController` |
+| `assign-class-subject` | Yes | | Class subject pages in `Classes\SubjectController` |
+| `assign-elective-subjects` | Yes | | Elective assignment in `Classes\ElectiveController` |
 | `class-teacher-list`, `class-teacher-edit`, `class-teacher-delete` | Yes | | `ClassTeacherController` (`-edit` assigns, `-delete` removes) |
 | `class-teacher-create` | Yes | | Menu only |
 | `subject-teacher-list` | Yes | Yes | `SubjectTeacherController` |
@@ -163,7 +163,7 @@ Other forms in use:
 |---|---|
 | `$this->middleware('permission:role-list\|role-create\|...', ['only' => [...]])` | `RoleController` constructor |
 | `Auth::user()->canAny([...])` | `MediumController`, `SliderController`, `FormFieldController`, `EventController`, `StaffController` (ID cards), `SemesterController::getClassConfig` |
-| `ResponseService::noPermissionThenSendJson('perm')` | Teacher API (assignments, lessons, topics, announcements, attendance), `ClassSchoolController`, `HomeController` widgets. Sends the JSON error and calls `exit()` |
+| `ResponseService::noPermissionThenSendJson('perm')` | Teacher API (assignments, lessons, topics, announcements, attendance), the `Classes\` controllers, `HomeController` widgets. Sends the JSON error and calls `exit()` |
 | `ResponseService::noPermissionThenRedirect('perm')` | Redirects to `home` with `no_permission_message` and `send()`s immediately |
 | `ResponseService::noAnyPermissionThenSendJson([...])` | Teacher API `submitAttendance` (`attendance-create` or `attendance-edit`) |
 | `$user->hasRole('Super Admin')` | `SystemUpdateController`, dashboard branches, a few list pages |

@@ -18,7 +18,6 @@ use App\Models\StudentOnlineExamStatus;
 use App\Models\Students;
 use App\Models\StudentSessions;
 use App\Models\Subject;
-use App\Models\Teacher;
 use App\Services\OnlineExamScoringService;
 use App\Services\ResponseService;
 use Carbon\Carbon;

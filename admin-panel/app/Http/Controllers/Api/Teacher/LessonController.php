@@ -14,8 +14,6 @@ use App\Models\File;
 use App\Models\Leave;
 use App\Models\Lesson;
 use App\Models\LessonTopic;
-use App\Models\Semester;
-use App\Models\Teacher;
 use App\Rules\uniqueLessonInClass;
 use App\Rules\uniqueTopicInLesson;
 use App\Services\ResponseService;

@@ -7,7 +7,6 @@ namespace App\Http\Controllers\Api\Parent;
 use App\Http\Controllers\Api\Parent\Concerns\ParentAccess;
 use App\Http\Controllers\Controller;
 use App\Models\Notification;
-use App\Models\Parents;
 use App\Models\UserNotification;
 use App\Services\ResponseService;
 use Illuminate\Support\Facades\Auth;

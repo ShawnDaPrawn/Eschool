@@ -7,7 +7,6 @@ namespace App\Http\Controllers\Api\Student;
 use App\Http\Controllers\Api\Student\Concerns\StudentAccess;
 use App\Http\Controllers\Controller;
 use App\Models\Notification;
-use App\Models\Students;
 use App\Models\User;
 use App\Models\UserNotification;
 use App\Services\ResponseService;
