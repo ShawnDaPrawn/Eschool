@@ -182,6 +182,23 @@ class ApiRegressionTest extends TestCase
         $this->assertSame(0, $classes[0]['class']['include_semesters'] ?? null, json_encode($classes[0]));
     }
 
+    public function test_a_parent_chat_preview_shows_an_attachment_only_message(): void
+    {
+        $id = self::$school->ids;
+        $messageId = DB::table('chat_messages')->insertGetId([
+            'modal_type' => 'App/Models/User', 'modal_id' => $id['farid_user'], 'sender_id' => $id['tara_user'],
+            'body' => null, 'date' => now()->addMinute(), 'created_at' => now()->addMinute(), 'updated_at' => now()->addMinute(),
+        ]);
+        DB::table('chat_files')->insert(['message_id' => $messageId, 'file_type' => 1, 'file_name' => 'chat/photo.png', 'created_at' => now(), 'updated_at' => now()]);
+
+        // The parent list didn't load the message's files, so the preview was blank.
+        $teachers = $this->apiClient(self::$school->tokens['farid'])->get('/api/parent/get-user-list', ['offset' => 0, 'limit' => 10])->json('data.items');
+        $tara = collect($teachers)->firstWhere('user_id', $id['tara_user']);
+
+        $this->assertSame($messageId, $tara['last_message']['id'] ?? null, json_encode($tara));
+        $this->assertStringEndsWith('storage/chat/photo.png', $tara['last_message']['files'][0] ?? '');
+    }
+
     public function test_the_parent_assigned_tab_lists_only_work_the_child_has_not_handed_in(): void
     {
         $id = self::$school->ids;
