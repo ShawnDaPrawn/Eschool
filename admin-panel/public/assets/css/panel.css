@@ -1,0 +1,52 @@
+/* ============================================================
+   PANEL SHELL AND PAGE PATTERN
+   ------------------------------------------------------------
+   The admin panel's shell (skip link, read-only year banner,
+   global search, year switcher) and the shared page components
+   in resources/views/components/page/ (header, filters, table,
+   empty state, form card, confirm dialog). Loaded last in
+   layouts/include.blade.php. Colours are Material 3 tokens only
+   (tests/Unit/DesignTokensTest.php). See wiki/UI-Standards.md,
+   "Admin panel page pattern".
+   ============================================================ */
+
+/* ---- Read-only year banner --------------------------------- */
+.year-banner {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin: 16px 2.5rem 0;
+    padding: 12px 16px;
+    border-radius: var(--md-sys-shape-corner-medium);
+    background: color-mix(in srgb, var(--app-status-warning) 16%, var(--md-sys-color-surface-container-lowest));
+    color: var(--md-sys-color-on-surface);
+}
+
+.year-banner-icon {
+    flex-shrink: 0;
+    color: var(--app-status-warning-text);
+}
+
+.year-banner-text {
+    flex: 1 1 auto;
+    margin: 0;
+    font-size: var(--md-sys-typescale-body-medium-size);
+    line-height: var(--md-sys-typescale-body-medium-line-height);
+}
+
+.year-banner-text strong {
+    display: block;
+    font-weight: 600;
+}
+
+.year-banner-action {
+    flex-shrink: 0;
+    margin: 0;
+}
+
+@media (max-width: 767px) {
+    .year-banner {
+        flex-wrap: wrap;
+        margin: 12px 1rem 0;
+    }
+}

@@ -549,6 +549,11 @@ class SessionYearController extends Controller
 
         session(['session_year' => $request->session_year_id]);
 
+        // The read-only banner's "back to the current year" button is a plain form.
+        if (! $request->expectsJson() && ! $request->ajax()) {
+            return redirect()->back();
+        }
+
         return response()->json(['success' => true]);
     }
 }

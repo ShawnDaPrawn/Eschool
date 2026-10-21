@@ -1,4 +1,9 @@
 {
+    "read_only_year_refused": "You are looking at :year, which is read-only. Switch to :current in the header to make changes.",
+    "read_only_year_title": ":year is a past year, so it is read-only.",
+    "read_only_year_upcoming_title": ":year has not started yet, so it is read-only until it becomes the current year.",
+    "read_only_year_explained": "You can look at everything, but changes are made in :current.",
+    "back_to_current_year": "Back to :year",
     "welcome": "Welcome",
     "dashboard_subtitle": "Here's an overview of your institution's performance, staff activity, and academic operations.",
     "session_students": "Session Students",

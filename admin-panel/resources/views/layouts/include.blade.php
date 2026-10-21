@@ -42,6 +42,8 @@
 <link rel="stylesheet" href="{{ asset('/assets/bootstrap-table/reorder-rows.css') }}">
 {{-- Bootstrap-table redesign (toolbar, header, rows, row actions, pagination, dropdowns) — loaded AFTER the plugin sheets so it outranks both them and the legacy rules in style/rtl; RTL flips scoped via [dir="rtl"]. --}}
 <link rel="stylesheet" href="{{ asset('/assets/css/tables.css') }}?v={{ filemtime(public_path('assets/css/tables.css')) }}">
+{{-- Panel shell (search, year switcher, read-only banner) and the shared page components (resources/views/components/page). Last, so a page pattern rule wins. --}}
+<link rel="stylesheet" href="{{ asset('/assets/css/panel.css') }}?v={{ filemtime(public_path('assets/css/panel.css')) }}">
 
 <script src="{{ route('common.language.read') }}"></script>
 

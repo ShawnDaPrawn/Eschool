@@ -36,6 +36,8 @@ $lang = Session::get('language');
 
             <div class="main-panel d-flex flex-column min-vh-100">
 
+                @include('layouts.partials.read-only-banner')
+
                 @yield('content')
                 <!-- 
                 {{-- footer --}}

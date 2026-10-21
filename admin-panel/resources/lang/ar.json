@@ -1,4 +1,9 @@
 {
+    "read_only_year_refused": "أنت تعرض :year وهو للقراءة فقط. انتقل إلى :current من الشريط العلوي لإجراء التغييرات.",
+    "read_only_year_title": ":year عام سابق، لذا فهو للقراءة فقط.",
+    "read_only_year_upcoming_title": "لم يبدأ :year بعد، لذا فهو للقراءة فقط حتى يصبح العام الحالي.",
+    "read_only_year_explained": "يمكنك الاطلاع على كل شيء، لكن التغييرات تتم في :current.",
+    "back_to_current_year": "العودة إلى :year",
     "welcome": "مرحبًا",
     "dashboard_subtitle": "فيما يلي نظرة عامة على أداء مؤسستك ونشاط طاقم العمل والعمليات الأكاديمية.",
     "session_students": "طلاب الجلسة",

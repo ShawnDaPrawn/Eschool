@@ -90,7 +90,8 @@ Route::group(['middleware' => 'language'], function () {
     Route::get('error-page', [WebController::class, 'errorPage'])->name('error-page');
 });
 
-Route::group(['middleware' => ['Role', 'auth']], function () {
+// EnforceReadOnlyYears: a year other than the current one is read-only in the panel.
+Route::group(['middleware' => ['Role', 'auth', \App\Http\Middleware\EnforceReadOnlyYears::class]], function () {
     Route::post('/set-session-year', [SessionYearController::class, 'setSessionYearToSessionStorage'])->name('set.session.year');
     Route::group(['middleware' => 'language'], function () {
         // Route::get('/home', [HomeController::class, 'index']);
