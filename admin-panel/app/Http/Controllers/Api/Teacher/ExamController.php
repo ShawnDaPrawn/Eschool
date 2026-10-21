@@ -369,19 +369,25 @@ class ExamController extends Controller
                         ResponseService::errorResponse('Obtained marks must be between 0 and the total marks.', null, 400);
                     }
                 }
-                foreach ($request->marks_data as $marks) {
+                // Every row needs a grade, found before anything is written so that one row
+                // without a grade band can't leave the rows before it saved.
+                $exam_grades = [];
+                foreach ($request->marks_data as $index => $marks) {
+                    $marks_percentage = ($marks['obtained_marks'] / $exam_timetable['total_marks']) * 100;
+
+                    $exam_grades[$index] = findExamGrade($exam_timetable->session_year_id, $marks_percentage);
+                    if ($exam_grades[$index] == null) {
+                        ResponseService::errorResponse('grades_data_does_not_exists', null, 400);
+                    }
+                }
+                foreach ($request->marks_data as $index => $marks) {
                     $passing_marks = $exam_timetable->passing_marks;
                     if ($marks['obtained_marks'] >= $passing_marks) {
                         $status = 1;
                     } else {
                         $status = 0;
                     }
-                    $marks_percentage = ($marks['obtained_marks'] / $exam_timetable['total_marks']) * 100;
-
-                    $exam_grade = findExamGrade($exam_timetable->session_year_id, $marks_percentage);
-                    if ($exam_grade == null) {
-                        ResponseService::errorResponse('grades_data_does_not_exists', null, 400);
-                    }
+                    $exam_grade = $exam_grades[$index];
 
                     $exam_marks = ExamMarks::where(['exam_timetable_id' => $exam_timetable->id, 'subject_id' => $request->subject_id, 'student_id' => $marks['student_id']])->first();
                     if ($exam_marks) {
@@ -479,7 +485,20 @@ class ExamController extends Controller
                     }
                 }
 
-                foreach ($request->marks_data as $marks) {
+                // Every row needs a grade, found before anything is written so that one row
+                // without a grade band can't leave the rows before it saved.
+                $exam_grades = [];
+                foreach ($request->marks_data as $index => $marks) {
+                    $exam_timetable = $exam_timetables[$marks['subject_id']];
+                    $marks_percentage = ($marks['obtained_marks'] / $exam_timetable->total_marks) * 100;
+
+                    $exam_grades[$index] = findExamGrade($exam_timetable->session_year_id, $marks_percentage);
+                    if ($exam_grades[$index] == null) {
+                        ResponseService::errorResponse('grades_data_does_not_exists', null, 400);
+                    }
+                }
+
+                foreach ($request->marks_data as $index => $marks) {
                     $exam_timetable = $exam_timetables[$marks['subject_id']];
                     $passing_marks = $exam_timetable->passing_marks;
                     if ($marks['obtained_marks'] >= $passing_marks) {
@@ -487,12 +506,7 @@ class ExamController extends Controller
                     } else {
                         $status = 0;
                     }
-                    $marks_percentage = ($marks['obtained_marks'] / $exam_timetable->total_marks) * 100;
-
-                    $exam_grade = findExamGrade($exam_timetable->session_year_id, $marks_percentage);
-                    if ($exam_grade == null) {
-                        ResponseService::errorResponse('grades_data_does_not_exists', null, 400);
-                    }
+                    $exam_grade = $exam_grades[$index];
 
                     $exam_marks = ExamMarks::where(['exam_timetable_id' => $exam_timetable->id, 'student_id' => $request->student_id, 'subject_id' => $marks['subject_id']])->first();
                     if ($exam_marks) {
