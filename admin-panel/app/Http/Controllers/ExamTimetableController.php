@@ -177,8 +177,8 @@ class ExamTimetableController extends Controller
                     ->orWhere('start_time', 'LIKE', "%$search%")
                     ->orWhere('end_time', 'LIKE', "%$search%")
                     ->orWhere('date', 'LIKE', "%$search%")
-                    ->orWhere('created_at', 'LIKE', "%" . date('Y-m-d H:i:s', strtotime($search)) . "%")
-                    ->orWhere('updated_at', 'LIKE', "%" . date('Y-m-d H:i:s', strtotime($search)) . "%");
+                    ->orWhere('created_at', 'LIKE', "%" . convertDateFormat($search) . "%")
+                    ->orWhere('updated_at', 'LIKE', "%" . convertDateFormat($search) . "%");
             })->orWhereHas('exam', function ($q) use ($search) {
                 $q->where('name', 'LIKE', "%$search%");
             })->orWhereHas('class', function ($q) use ($search) {

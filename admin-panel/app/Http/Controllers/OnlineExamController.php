@@ -204,10 +204,10 @@ class OnlineExamController extends Controller
                         ->orWhere('title', 'LIKE', "%$search%")
                         ->orWhere('exam_key', 'LIKE', "%$search%")
                         ->orWhere('duration', 'LIKE', "%$search%")
-                        ->orWhere('start_date', 'LIKE', '%'.date('Y-m-d H:i:s', strtotime($search)).'%')
-                        ->orWhere('end_date', 'LIKE', '%'.date('Y-m-d H:i:s', strtotime($search)).'%')
-                        ->orWhere('created_at', 'LIKE', '%'.date('Y-m-d H:i:s', strtotime($search)).'%')
-                        ->orWhere('updated_at', 'LIKE', '%'.date('Y-m-d H:i:s', strtotime($search)).'%')
+                        ->orWhere('start_date', 'LIKE', '%'.convertDateFormat($search).'%')
+                        ->orWhere('end_date', 'LIKE', '%'.convertDateFormat($search).'%')
+                        ->orWhere('created_at', 'LIKE', '%'.convertDateFormat($search).'%')
+                        ->orWhere('updated_at', 'LIKE', '%'.convertDateFormat($search).'%')
                         ->orWhereHas('subject', function ($query) use ($search) {
                             $query->where('name', 'LIKE', "%$search%")
                                 ->orWhere('type', 'LIKE', "%$search%");
@@ -864,8 +864,8 @@ class OnlineExamController extends Controller
             $search = $_GET['search'];
             $sql = $sql->where('id', 'LIKE', "%$search%")
                 ->orWhere('question', 'LIKE', "%$search%")
-                ->orWhere('created_at', 'LIKE', '%'.date('Y-m-d H:i:s', strtotime($search)).'%')
-                ->orWhere('updated_at', 'LIKE', '%'.date('Y-m-d H:i:s', strtotime($search)).'%')
+                ->orWhere('created_at', 'LIKE', '%'.convertDateFormat($search).'%')
+                ->orWhere('updated_at', 'LIKE', '%'.convertDateFormat($search).'%')
                 ->orWhereHas('class_subject', function ($q) use ($search) {
                     $q->whereHas('class', function ($c) use ($search) {
                         $c->where('name', 'LIKE', "%$search%")

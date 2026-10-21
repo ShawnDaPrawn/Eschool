@@ -13,6 +13,7 @@ use App\Models\User;
 use App\Models\UserNotification;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\ValidationException;
@@ -159,6 +160,40 @@ class DailyWorkflowsTest extends TestCase
             }
         }
         $this->assertSame(0, DB::table('attendances')->where('student_id', $id['cara'])->where('class_section_id', $id['section_a'])->count());
+    }
+
+    public function test_lists_can_be_searched_for_text(): void
+    {
+        $tara = User::findOrFail($this->school->ids['tara_user']);
+
+        // Any search that wasn't a date crashed these lists: date() was given strtotime()'s false.
+        foreach ([
+            [$this->superAdmin(), '/teacher_list'], [$this->superAdmin(), '/fees-type/1'], [$this->superAdmin(), '/exam-timetable/1'],
+            [$tara, '/lesson/1'], [$tara, '/online-exam/1'],
+        ] as [$user, $url]) {
+            // These lists read $_GET, which in-process requests don't fill.
+            $_GET = ['search' => 'Tara', 'limit' => 10, 'offset' => 0];
+            $response = $this->actingAs($user)->getJson($url.'?'.http_build_query($_GET));
+            $_GET = [];
+            $response->assertOk();
+            if ($url === '/teacher_list') {
+                $this->assertStringContainsString('Tara', $response->getContent());
+            }
+        }
+    }
+
+    public function test_a_notification_to_chosen_users_is_pushed_to_their_devices(): void
+    {
+        User::whereKey($this->school->ids['farid_user'])->update(['fcm_id' => 'farid-device', 'device_type' => 'android']);
+        Log::spy();
+
+        $this->actingAs($this->superAdmin())->postJson('/notifications', [
+            'send_to' => [3], 'user_id' => [$this->school->ids['farid_user']], 'title' => 'Trip forms', 'message' => 'Hand them in by Friday.',
+        ])->assertJson(['error' => false]);
+
+        // The push to selected users was commented out; only the list entry was saved. Without
+        // FCM credentials here the attempt shows up as a send refused for want of a token.
+        Log::shouldHaveReceived('error')->with('Cannot send FCM notification: Access token is null');
     }
 
     public function test_deleting_a_lesson_removes_its_and_its_topics_stored_files(): void

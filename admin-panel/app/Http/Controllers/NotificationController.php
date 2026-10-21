@@ -186,9 +186,11 @@ class NotificationController extends Controller
                 }
             }
 
-            // sendSimpleNotification($userIds, $title, $body, $type, $image, $userinfo);
+            // Selected users got the list entry but never a push.
             if ($isBroadcast) {
                 sendNotificationToTopic($title, $body, $type, $image, $userinfo);
+            } else {
+                sendSimpleNotification($userIds, $title, $body, $type, $image, $userinfo);
             }
 
             $response = array(

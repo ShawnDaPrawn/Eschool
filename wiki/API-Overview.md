@@ -325,7 +325,7 @@ Secret keys and webhook secrets are never included. Until commit `839c9eb` this 
 
 | Method and path | Params | Returns |
 | --- | --- | --- |
-| `GET /api/holidays` | none | every `holidays` row (all session years) |
+| `GET /api/holidays` | none | the current session year's `holidays` rows, by date |
 | `GET /api/sliders` | none | `sliders` rows with `type` 1 (app) or 3 (both) |
 | `GET /api/current-session-year` | none | the `session_years` row named by the `session_year` setting |
 | `GET /api/get-session-year` | none | all session years except id 0, newest first |

@@ -124,8 +124,8 @@ class TypeController extends Controller
             $sql->where('id', 'LIKE', "%$search%")
                 ->orwhere('name', 'LIKE', "%$search%")
                 ->orwhere('description', 'LIKE', "%$search%")
-                ->orwhere('created_at', 'LIKE', '%'.date('Y-m-d H:i:s', strtotime($search)).'%')
-                ->orwhere('updated_at', 'LIKE', '%'.date('Y-m-d H:i:s', strtotime($search)).'%');
+                ->orwhere('created_at', 'LIKE', '%'.convertDateFormat($search).'%')
+                ->orwhere('updated_at', 'LIKE', '%'.convertDateFormat($search).'%');
         }
         $total = $sql->count();
 

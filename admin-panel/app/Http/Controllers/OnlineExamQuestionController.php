@@ -369,8 +369,8 @@ class OnlineExamQuestionController extends Controller
                 $query->where(function ($query) use ($search) {
                     $query->where('id', 'LIKE', "%$search%")
                         ->orWhere('question', 'LIKE', "%$search%")
-                        ->orWhere('created_at', 'LIKE', '%'.date('Y-m-d H:i:s', strtotime($search)).'%')
-                        ->orWhere('updated_at', 'LIKE', '%'.date('Y-m-d H:i:s', strtotime($search)).'%')
+                        ->orWhere('created_at', 'LIKE', '%'.convertDateFormat($search).'%')
+                        ->orWhere('updated_at', 'LIKE', '%'.convertDateFormat($search).'%')
                         ->orWhereHas('class_subject', function ($q) use ($search) {
                             $q->WhereHas('class', function ($c) use ($search) {
                                 $c->where('name', 'LIKE', "%$search%")

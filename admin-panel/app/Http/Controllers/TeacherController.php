@@ -447,7 +447,7 @@ class TeacherController extends Controller
                         ->orwhere('last_name', 'LIKE', "%$search%")
                         ->orwhere('gender', 'LIKE', "%$search%")
                         ->orwhere('email', 'LIKE', "%$search%")
-                        ->orwhere('dob', 'LIKE', '%'.date('Y-m-d', strtotime($search)).'%')
+                        ->orwhere('dob', 'LIKE', '%'.convertDateFormat($search, 'Y-m-d').'%')
                         ->orwhere('qualification', 'LIKE', "%$search%")
                         ->orwhere('current_address', 'LIKE', "%$search%")
                         ->orwhere('permanent_address', 'LIKE', "%$search%");

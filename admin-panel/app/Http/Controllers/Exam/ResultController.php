@@ -358,8 +358,8 @@ class ResultController extends Controller
                         ->orwhere('grade', 'LIKE', "%$search%")
                         ->orwhere('obtained_marks', 'LIKE', "%$search%")
                         ->orwhere('percentage', 'LIKE', "%$search%")
-                        ->orwhere('created_at', 'LIKE', '%'.date('Y-m-d H:i:s', strtotime($search)).'%')
-                        ->orwhere('updated_at', 'LIKE', '%'.date('Y-m-d H:i:s', strtotime($search)).'%')
+                        ->orwhere('created_at', 'LIKE', '%'.convertDateFormat($search).'%')
+                        ->orwhere('updated_at', 'LIKE', '%'.convertDateFormat($search).'%')
                         ->orWhereHas('student.user', function ($q) use ($search) {
                             $q->where('first_name', 'LIKE', "%$search%")->orWhere('last_name', 'LIKE', "%$search%");
                         })->where('exam_id', $request->exam_id)

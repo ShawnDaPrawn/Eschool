@@ -68,7 +68,7 @@ All three return `Notification` rows of the current session year (`session_year`
 | Event | Where | Recipients | Stored | Push `type` |
 |---|---|---|---|---|
 | Custom notification, "All Users" chosen | `NotificationController::store` | Topics `allAndroid`, `allIOS` | `send_to` 1, `is_custom` 1, no user rows | `custom` |
-| Custom notification, specific users | `NotificationController::store` | The selected users | `send_to` 2, `is_custom` 1, user rows | none: the `sendSimpleNotification()` call is commented out, so they only see it in the in-app list |
+| Custom notification, specific users | `NotificationController::store` | The selected users | `send_to` 2, `is_custom` 1, user rows | `custom` |
 | Announcement (admin panel, "noticeboard") | `AnnouncementController::store` / `update` | Every student user (`Students::select('user_id')`) | none | the `set_data` value (`noticeboard`) |
 | Announcement (admin panel, teacher, class section) | `AnnouncementController::store` / `update` | Students of the class section | none | `class_section` |
 | Announcement (teacher app) | `Teacher\AnnouncementController::sendAnnouncement` / `updateAnnouncement` | Students of the class section | none | `class_section` |

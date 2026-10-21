@@ -208,8 +208,8 @@ class LessonController extends Controller
                 $query->where('id', 'LIKE', "%$search%")
                     ->orwhere('name', 'LIKE', "%$search%")
                     ->orwhere('description', 'LIKE', "%$search%")
-                    ->orwhere('created_at', 'LIKE', '%'.date('Y-m-d H:i:s', strtotime($search)).'%')
-                    ->orwhere('updated_at', 'LIKE', '%'.date('Y-m-d H:i:s', strtotime($search)).'%')
+                    ->orwhere('created_at', 'LIKE', '%'.convertDateFormat($search).'%')
+                    ->orwhere('updated_at', 'LIKE', '%'.convertDateFormat($search).'%')
                     ->orWhereHas('class_section.section', function ($q) use ($search) {
                         $q->where('name', 'LIKE', "%$search%");
                     })

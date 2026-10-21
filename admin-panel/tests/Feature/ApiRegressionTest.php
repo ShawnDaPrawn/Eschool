@@ -199,6 +199,37 @@ class ApiRegressionTest extends TestCase
         $this->assertStringEndsWith('storage/chat/photo.png', $tara['last_message']['files'][0] ?? '');
     }
 
+    public function test_a_teacher_chat_preview_shows_a_parents_attachment_only_message(): void
+    {
+        $id = self::$school->ids;
+        $messageId = DB::table('chat_messages')->insertGetId([
+            'modal_type' => 'App/Models/User', 'modal_id' => $id['tara_user'], 'sender_id' => $id['gina_user'],
+            'body' => null, 'date' => now()->addMinutes(2), 'created_at' => now()->addMinutes(2), 'updated_at' => now()->addMinutes(2),
+        ]);
+        DB::table('chat_files')->insert(['message_id' => $messageId, 'file_type' => 1, 'file_name' => 'chat/report.png', 'created_at' => now(), 'updated_at' => now()]);
+
+        // The parent branch selected only body and date, so the message's files never loaded.
+        $parents = $this->apiClient(self::$school->tokens['tara'])->get('/api/teacher/get-user-list', ['isParent' => 1, 'limit' => 50, 'offset' => 0])->json('data.items');
+        $gina = collect($parents)->firstWhere('user_id', $id['gina_user']);
+
+        $this->assertStringEndsWith('storage/chat/report.png', $gina['last_message']['files'][0] ?? '', json_encode($gina));
+    }
+
+    public function test_the_holiday_list_holds_only_the_current_years_holidays(): void
+    {
+        $lastYear = DB::table('session_years')->insertGetId([
+            'name' => 'Last year', 'start_date' => now()->subYears(2), 'end_date' => now()->subYear(), 'fee_due_date' => now()->subYears(2),
+            'fee_due_charges' => 0, 'include_fee_installments' => 0, 'default' => 0, 'created_at' => now(), 'updated_at' => now(),
+        ]);
+        DB::table('holidays')->insert(['session_year_id' => $lastYear, 'date' => now()->subYear()->subMonth(), 'title' => 'Old holiday', 'description' => '-']);
+
+        // Every year's holidays were listed, unlike events, so the app calendar showed old ones.
+        $titles = collect($this->apiClient(self::$school->tokens['asha'])->get('/api/holidays')->json('data'))->pluck('title')->all();
+
+        $this->assertContains('Founders day', $titles);
+        $this->assertNotContains('Old holiday', $titles);
+    }
+
     public function test_the_parent_assigned_tab_lists_only_work_the_child_has_not_handed_in(): void
     {
         $id = self::$school->ids;

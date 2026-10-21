@@ -179,7 +179,7 @@ class ChatController extends Controller
                                     $query->where('modal_id', $teacher->user->id)
                                         ->where('sender_id', $parent->user_id);
                                 })
-                                ->select('body', 'date')
+                                ->select('id', 'body', 'date')
                                 ->latest()
                                 ->first();
 
@@ -339,7 +339,7 @@ class ChatController extends Controller
                                         $query->where('modal_id', $teacher->user->id)
                                             ->where('sender_id', $parent->user_id);
                                     })
-                                    ->select('body', 'date')
+                                    ->select('id', 'body', 'date')
                                     ->latest()
                                     ->first();
 

@@ -753,7 +753,7 @@ These live in `ApiController` without the `parent/` prefix and are documented on
 | POST | `/api/change-password` | `current_password`, `new_password` (min 8), `new_confirm_password`; other tokens are revoked |
 | POST | `/api/forgot-password` | `email`; always answers with the same message |
 | GET | `/api/settings` | `type` = `privacy_policy`, `contact_us`, `about_us`, `terms_condition`, `app_settings` or `fees_settings` |
-| GET | `/api/holidays` | All holidays |
+| GET | `/api/holidays` | The current session year's holidays |
 | GET | `/api/get-events-list` | Events of the current session year |
 | GET | `/api/get-events-details` | An event's day schedule (`event_id`); POST is also accepted |
 | GET | `/api/sliders` | App sliders |
