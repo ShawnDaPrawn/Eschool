@@ -3,20 +3,32 @@ parameters:
 		-
 			message: '#^Result of static method App\\Services\\ResponseService\:\:errorResponse\(\) \(void\) is used\.$#'
 			identifier: staticMethod.void
-			count: 2
-			path: app/Http/Controllers/Api/ParentApiController.php
+			count: 1
+			path: app/Http/Controllers/Api/Parent/CalendarController.php
 
 		-
 			message: '#^Result of static method App\\Services\\ResponseService\:\:successResponse\(\) \(void\) is used\.$#'
 			identifier: staticMethod.void
-			count: 2
-			path: app/Http/Controllers/Api/ParentApiController.php
+			count: 1
+			path: app/Http/Controllers/Api/Parent/CalendarController.php
+
+		-
+			message: '#^Result of static method App\\Services\\ResponseService\:\:errorResponse\(\) \(void\) is used\.$#'
+			identifier: staticMethod.void
+			count: 1
+			path: app/Http/Controllers/Api/Parent/LeaveController.php
+
+		-
+			message: '#^Result of static method App\\Services\\ResponseService\:\:successResponse\(\) \(void\) is used\.$#'
+			identifier: staticMethod.void
+			count: 1
+			path: app/Http/Controllers/Api/Parent/LeaveController.php
 
 		-
 			message: '#^Result of static method App\\Services\\ResponseService\:\:validationError\(\) \(void\) is used\.$#'
 			identifier: staticMethod.void
 			count: 2
-			path: app/Http/Controllers/Api/ParentApiController.php
+			path: app/Http/Controllers/Api/Parent/LeaveController.php
 
 		-
 			message: '#^Result of static method App\\Services\\ResponseService\:\:errorResponse\(\) \(void\) is used\.$#'

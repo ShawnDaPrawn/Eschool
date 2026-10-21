@@ -1,4 +1,4 @@
-This page documents every endpoint under `/api/parent/`, all served by [`ParentApiController.php`](https://github.com/ShawnDaPrawn/Eschool/blob/main/admin-panel/app/Http/Controllers/Api/ParentApiController.php) and registered in [`routes/api.php`](https://github.com/ShawnDaPrawn/Eschool/blob/main/admin-panel/routes/api.php). It covers how a parent signs in, how a child is chosen with `child_id`, how each call is limited to the parent's own children, and what each endpoint takes, returns and changes. The route index for all roles and the shared (non-prefixed) endpoints is on [API Overview](API-Overview); gateway and webhook internals are on [Payments](Payments).
+This page documents every endpoint under `/api/parent/`, all served by the controllers in [`Api/Parent/`](https://github.com/ShawnDaPrawn/Eschool/tree/main/admin-panel/app/Http/Controllers/Api/Parent), one per area and registered in [`routes/api.php`](https://github.com/ShawnDaPrawn/Eschool/blob/main/admin-panel/routes/api.php). It covers how a parent signs in, how a child is chosen with `child_id`, how each call is limited to the parent's own children, and what each endpoint takes, returns and changes. The route index for all roles and the shared (non-prefixed) endpoints is on [API Overview](API-Overview); gateway and webhook internals are on [Payments](Payments).
 
 ## Base URL, middleware and response format
 
@@ -82,7 +82,7 @@ The app gets the children list from `login` or `get-profile-data` (there is no s
 
 **Inside the `CheckChild` group** (28 routes), `CheckChild` reads `child_id` with `filter_var(..., FILTER_VALIDATE_INT)` and looks it up through `$parent->children()`. If nothing is found it returns `{"error": true, "message": "Invalid Child ID Passed.", "code": 105}`. Otherwise it stores the `Students` model on the request as the `child` attribute.
 
-**In the controller**, every child-specific action calls the private `resolveChild(Request $request, int $errorCode = 105)`. If the `child` attribute is present and the parent is that student's father, mother or guardian, it is used. Otherwise `child_id` is looked up through `$parent->children()`, and only a scalar made of digits is accepted, because an array would let `whereKey()` match several ids. This second path is what protects the routes outside the `CheckChild` group.
+**In the controller**, every child-specific action calls the private `resolveChild(Request $request, int $errorCode = 105)` (in the `Parent\Concerns\ParentAccess` trait). If the `child` attribute is present and the parent is that student's father, mother or guardian, it is used. Otherwise `child_id` is looked up through `$parent->children()`, and only a scalar made of digits is accepted, because an array would let `whereKey()` match several ids. This second path is what protects the routes outside the `CheckChild` group.
 
 **Outside the group**, endpoints scope themselves:
 

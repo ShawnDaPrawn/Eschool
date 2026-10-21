@@ -19,7 +19,7 @@ A conversation between users A and B is every `chat_messages` row with (`sender_
 
 Each app role has the same four endpoints under its prefix, all behind `auth:sanctum` and the role middleware (`role:Student` + `student.session.active`, `role:Parent` + `parent.children.session.active`, `role:Teacher`). The parent chat routes are outside the `CheckChild` group, so no `child_id` is needed. See [API-Overview](API-Overview) for the shared response format.
 
-| Endpoint | Student (`Student\ChatController`) | Parent (`ParentApiController`) | Teacher (`Teacher\ChatController`) |
+| Endpoint | Student (`Student\ChatController`) | Parent (`Parent\ChatController`) | Teacher (`Teacher\ChatController`) |
 |---|---|---|---|
 | `GET get-user-list` | Teachers the student may chat with. Params `offset`, `limit` (no limit means all), `search` (first/last name). | Teachers of the parent's children. Params `offset`, `limit`, `search`. Items also carry `class_teacher` and `student_name` (which children they teach). | `isParent` = 0 lists students, 1 lists parents, of the teacher's class sections. Params `offset`, `limit`, `search` (filtered and paged after the list is built). |
 | `POST send-message` | `receiver_id`, `message`, `file[]` | same | same |
@@ -41,7 +41,7 @@ The receiver check runs on every `send-message`; the lists use the same rules (c
 | Sender | Allowed receivers | Code |
 |---|---|---|
 | Student | Class teachers of the student's class section and subject teachers of the student's subjects (core subjects plus chosen electives) in that class section, for the current session year. If the class uses semesters this session year (`ClassSessionConfig::classHasSemester`) and a semester is current, only that semester's assignments count. | `Student\ChatController::chatTeacherIds()` |
-| Parent | The same set, for every child with a session in the current session year | `ParentApiController::chatTeacherScope()`, `chatAllowedUserIds()` |
+| Parent | The same set, for every child with a session in the current session year | `Parent\ChatController::chatTeacherScope()`, `chatAllowedUserIds()` |
 | Teacher | Anyone who has already messaged the teacher; students with a session this year in a class section where the teacher is class teacher or subject teacher this session year; parents (father, mother or guardian) of those students | `Teacher\ChatController::canChatWith()`, `teacherClassSectionIds()` |
 
 A refused student or parent send returns `You can not send a message to this user` (code 103); a refused teacher send returns `no_permission_message` with code 403. Nothing is saved in either case.

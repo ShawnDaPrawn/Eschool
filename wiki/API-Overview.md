@@ -6,7 +6,7 @@ The admin panel serves a JSON REST API under `/api` that both Flutter apps use. 
 | --- | --- |
 | Base path | `https://<admin-panel-host>/api/` |
 | Route file | `admin-panel/routes/api.php` (loaded with prefix `api` and the `api` middleware group) |
-| Controllers | `ApiController` (shared/public), `ParentApiController`, and the `Api/Student/` and `Api/Teacher/` controllers (one per area: `AuthController`, `AssignmentController`, `ExamController` and so on) |
+| Controllers | `ApiController` (shared/public), and the `Api/Student/`, `Api/Parent/` and `Api/Teacher/` controllers (one per area: `AuthController`, `AssignmentController`, `ExamController` and so on) |
 | Framework | Laravel 12 (`laravel/framework` v12.70.0 in `composer.lock`), Sanctum v4.3.3, spatie/laravel-permission 6.25.0 |
 | Authentication | Laravel Sanctum personal access tokens, `Authorization: Bearer <token>` |
 | Token lifetime | `SANCTUM_EXPIRATION` minutes, default `43200` (30 days) from creation |
@@ -181,7 +181,7 @@ The numeric `code` values used by the API controllers and middleware:
 | `103` | 200 | Generic error: caught exception (`error_occurred`), record not found or not owned, invalid online exam key, invalid transaction | most endpoints |
 | `104` | 200 | Assignment already submitted | `student/submit-assignment` |
 | `105` | 200 | Online exam already attempted; invalid `child_id` (`CheckChild`); invalid `student_id` (`CheckStudent`) | student online exam, parent, teacher |
-| `106` | 200 | Online exam not started yet; invalid subject id; invalid child id in parent announcements | student online exam, `student/announcements`, `ParentApiController::getAnnouncements` |
+| `106` | 200 | Online exam not started yet; invalid subject id; invalid child id in parent announcements | student online exam, `student/announcements`, `Parent\AnnouncementController::getAnnouncements` |
 | `110` | 200 | Assignment submission cannot be deleted (already reviewed) | `student/delete-assignment-submission` |
 | `113` | 200 | No `student_sessions` row for the requested session year | report and fee endpoints (student and parent) |
 | `400` | 200 | Bad request in teacher exam/marks flows (`exam_published`, `exam_not_completed_yet`, marks out of range, `grades_data_does_not_exists`, `Semester id required.`) | `Teacher\ExamController` |
@@ -250,7 +250,7 @@ One parent account can have several children. Child-specific parent endpoints ta
 
 1. `CheckChild` reads `$request->child_id`, validates it with `FILTER_VALIDATE_INT`, and looks it up with `$parent->children()->whereKey($childId)`.
 2. `Parents::children()` matches students where `father_id`, `mother_id` or `guardian_id` is the parent's id. It was a `UNION` before `439395d`, and a chained `where('id', ...)` only filtered the father branch, so mothers and guardians could pass any `child_id`.
-3. The resolved student is stored as request attribute `child`; `ParentApiController::resolveChild()` reuses it (or repeats the lookup for routes outside the group).
+3. The resolved student is stored as request attribute `child`; `Parent\Concerns\ParentAccess::resolveChild()` reuses it (or repeats the lookup for routes outside the group).
 4. A missing or foreign `child_id` returns `{"error": true, "message": "Invalid Child ID Passed.", "code": 105}`.
 
 Parent routes without a child (`announcements`, `get-profile-data`, chat, notifications, fee receipt and transactions, `fail-payment-transaction`, `get-payment-status`, `delete-leave`) check ownership inside the controller. See [API-Parent](API-Parent).
@@ -350,7 +350,7 @@ Every route in `routes/api.php`, in file order. All paths are relative to `/api/
 
 The table matches `php artisan route:list --path=api`, which reports 155 routes; `GET` routes also answer `HEAD`.
 
-Controller names are shortened: `Api` = `ApiController`, `Parent` = `ParentApiController`, `Student\Area` = `Api/Student/AreaController`, `Teacher\Area` = `Api/Teacher/AreaController`.
+Controller names are shortened: `Api` = `ApiController`, `Student\Area`, `Parent\Area` and `Teacher\Area` = `Api/<Role>/AreaController`.
 
 ### Logout
 
@@ -410,53 +410,53 @@ Controller names are shortened: `Api` = `ApiController`, `Parent` = `ParentApiCo
 | POST | `student/apply-leave` | `Student\Leave@applyLeave` | S |
 | POST | `student/get-leave-list` | `Student\Leave@getMyLeave` | S |
 | POST | `student/delete-leave` | `Student\Leave@deleteLeave` | S |
-| POST | `student/get-payment-status` | `Parent@getPaymentStatus` | S |
+| POST | `student/get-payment-status` | `Parent\Fees@getPaymentStatus` | S |
 
 ### Parent (`/api/parent/...`) — details on [API-Parent](API-Parent)
 
 | Method | Path | Controller@method | Middleware |
 | --- | --- | --- | --- |
-| POST | `parent/login` | `Parent@login` | `throttle:login` |
-| GET | `parent/announcements` | `Parent@getAnnouncements` | P |
-| GET | `parent/fees-paid-receipt-pdf` | `Parent@feesPaidReceiptPDF` | P |
-| GET | `parent/fees-transactions-list` | `Parent@getFeesPaymentTransactions` | P |
-| GET | `parent/get-profile-data` | `Parent@getProfileDetails` | P |
-| POST | `parent/fail-payment-transaction` | `Parent@failPaymentTransactionStatus` | P |
-| GET | `parent/get-notification` | `Parent@getNotifications` | P |
-| POST | `parent/get-payment-status` | `Parent@getPaymentStatus` | P |
-| GET | `parent/get-user-list` | `Parent@getChatUserList` | P |
-| POST | `parent/send-message` | `Parent@sendMessage` | P |
-| POST | `parent/get-user-message` | `Parent@getUserChatMessage` | P |
-| POST | `parent/read-all-message` | `Parent@readAllMessages` | P |
-| GET | `parent/subjects` | `Parent@subjects` | P+C |
-| GET | `parent/class-subjects` | `Parent@classSubjects` | P+C |
-| GET | `parent/timetable` | `Parent@getTimetable` | P+C |
-| GET | `parent/lessons` | `Parent@getLessons` | P+C |
-| GET | `parent/lesson-topics` | `Parent@getLessonTopics` | P+C |
-| GET | `parent/assignments` | `Parent@getAssignments` | P+C |
-| GET | `parent/attendance` | `Parent@getAttendance` | P+C |
-| GET | `parent/attendance-report` | `Parent@attendanceReport` | P+C |
-| GET | `parent/teachers` | `Parent@getTeachers` | P+C |
-| GET | `parent/get-exam-list` | `Parent@getExamList` | P+C |
-| GET | `parent/get-exam-details` | `Parent@getExamDetails` | P+C |
-| GET | `parent/exam-marks` | `Parent@getExamMarks` | P+C |
-| GET | `parent/offline-exam-report` | `Parent@offlineExamReport` | P+C |
-| GET | `parent/online-exam-report` | `Parent@onlineExamReport` | P+C |
-| GET | `parent/fees-details` | `Parent@getFeesDetails` | P+C |
-| POST | `parent/add-fees-transaction` | `Parent@storeFeesTransaction` | P+C |
-| POST | `parent/store-fees` | `Parent@storeFees` | P+C |
-| GET | `parent/fees-paid-list` | `Parent@feesPaidList` | P+C |
-| GET | `parent/fees-report` | `Parent@getFeesReport` | P+C |
-| GET | `parent/leave-report` | `Parent@leaveReport` | P+C |
-| GET | `parent/assignment-report` | `Parent@assignmentReport` | P+C |
-| GET | `parent/get-online-exam-list` | `Parent@getOnlineExamList` | P+C |
-| GET | `parent/get-online-exam-result-list` | `Parent@getOnlineExamResultList` | P+C |
-| GET | `parent/get-online-exam-result` | `Parent@getOnlineExamResult` | P+C |
-| GET | `parent/academic-calendar-pdf` | `Parent@getAcademicCalendarPdf` | P+C |
-| GET | `parent/id-card-pdf` | `Parent@getIdCardPdf` | P+C |
-| POST | `parent/apply-leave` | `Parent@applyLeave` | P+C |
-| POST | `parent/get-leave-list` | `Parent@getMyLeave` | P+C |
-| POST | `parent/delete-leave` | `Parent@deleteLeave` | P (checks the leave belongs to one of the parent's children; the app sends no `child_id`) |
+| POST | `parent/login` | `Parent\Auth@login` | `throttle:login` |
+| GET | `parent/announcements` | `Parent\Announcement@getAnnouncements` | P |
+| GET | `parent/fees-paid-receipt-pdf` | `Parent\Fees@feesPaidReceiptPDF` | P |
+| GET | `parent/fees-transactions-list` | `Parent\Fees@getFeesPaymentTransactions` | P |
+| GET | `parent/get-profile-data` | `Parent\Profile@getProfileDetails` | P |
+| POST | `parent/fail-payment-transaction` | `Parent\Fees@failPaymentTransactionStatus` | P |
+| GET | `parent/get-notification` | `Parent\Notification@getNotifications` | P |
+| POST | `parent/get-payment-status` | `Parent\Fees@getPaymentStatus` | P |
+| GET | `parent/get-user-list` | `Parent\Chat@getChatUserList` | P |
+| POST | `parent/send-message` | `Parent\Chat@sendMessage` | P |
+| POST | `parent/get-user-message` | `Parent\Chat@getUserChatMessage` | P |
+| POST | `parent/read-all-message` | `Parent\Chat@readAllMessages` | P |
+| GET | `parent/subjects` | `Parent\Subject@subjects` | P+C |
+| GET | `parent/class-subjects` | `Parent\Subject@classSubjects` | P+C |
+| GET | `parent/timetable` | `Parent\Timetable@getTimetable` | P+C |
+| GET | `parent/lessons` | `Parent\Lesson@getLessons` | P+C |
+| GET | `parent/lesson-topics` | `Parent\Lesson@getLessonTopics` | P+C |
+| GET | `parent/assignments` | `Parent\Assignment@getAssignments` | P+C |
+| GET | `parent/attendance` | `Parent\Attendance@getAttendance` | P+C |
+| GET | `parent/attendance-report` | `Parent\Attendance@attendanceReport` | P+C |
+| GET | `parent/teachers` | `Parent\Teacher@getTeachers` | P+C |
+| GET | `parent/get-exam-list` | `Parent\Exam@getExamList` | P+C |
+| GET | `parent/get-exam-details` | `Parent\Exam@getExamDetails` | P+C |
+| GET | `parent/exam-marks` | `Parent\Exam@getExamMarks` | P+C |
+| GET | `parent/offline-exam-report` | `Parent\Report@offlineExamReport` | P+C |
+| GET | `parent/online-exam-report` | `Parent\Report@onlineExamReport` | P+C |
+| GET | `parent/fees-details` | `Parent\Fees@getFeesDetails` | P+C |
+| POST | `parent/add-fees-transaction` | `Parent\Fees@storeFeesTransaction` | P+C |
+| POST | `parent/store-fees` | `Parent\Fees@storeFees` | P+C |
+| GET | `parent/fees-paid-list` | `Parent\Fees@feesPaidList` | P+C |
+| GET | `parent/fees-report` | `Parent\Report@getFeesReport` | P+C |
+| GET | `parent/leave-report` | `Parent\Report@leaveReport` | P+C |
+| GET | `parent/assignment-report` | `Parent\Report@assignmentReport` | P+C |
+| GET | `parent/get-online-exam-list` | `Parent\OnlineExam@getOnlineExamList` | P+C |
+| GET | `parent/get-online-exam-result-list` | `Parent\OnlineExam@getOnlineExamResultList` | P+C |
+| GET | `parent/get-online-exam-result` | `Parent\OnlineExam@getOnlineExamResult` | P+C |
+| GET | `parent/academic-calendar-pdf` | `Parent\Calendar@getAcademicCalendarPdf` | P+C |
+| GET | `parent/id-card-pdf` | `Parent\Profile@getIdCardPdf` | P+C |
+| POST | `parent/apply-leave` | `Parent\Leave@applyLeave` | P+C |
+| POST | `parent/get-leave-list` | `Parent\Leave@getMyLeave` | P+C |
+| POST | `parent/delete-leave` | `Parent\Leave@deleteLeave` | P (checks the leave belongs to one of the parent's children; the app sends no `child_id`) |
 
 ### Teacher (`/api/teacher/...`) — details on [API-Teacher](API-Teacher)
 
