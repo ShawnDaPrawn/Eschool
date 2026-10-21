@@ -19,31 +19,22 @@ class SecurityTest extends TestCase
 {
     use RefreshDatabase;
 
-    private const MAINTENANCE_URLS = ['storage-link', 'migrate', 'seeder_install'];
-
     protected function setUp(): void
     {
         parent::setUp();
         $this->seedLikeInstaller();
     }
 
-    public function test_maintenance_urls_redirect_guests_to_login(): void
+    // The storage-link, migrate and seeder_install URLs are gone; RemovedFeaturesTest covers them.
+    public function test_cache_clear_redirects_guests_to_login(): void
     {
-        foreach (self::MAINTENANCE_URLS as $url) {
-            $this->get('/'.$url)->assertRedirect(route('login'));
-        }
         $this->post('/clear')->assertRedirect(route('login'));
     }
 
-    public function test_maintenance_urls_are_forbidden_for_other_roles(): void
+    public function test_cache_clear_is_forbidden_for_other_roles(): void
     {
-        $teacher = $this->teacher();
-
-        foreach (self::MAINTENANCE_URLS as $url) {
-            $this->actingAs($teacher)->get('/'.$url)->assertForbidden();
-        }
         // Clearing the cache can reset rate limits.
-        $this->actingAs($teacher)->post('/clear')->assertForbidden();
+        $this->actingAs($this->teacher())->post('/clear')->assertForbidden();
     }
 
     public function test_there_is_no_public_sign_up(): void

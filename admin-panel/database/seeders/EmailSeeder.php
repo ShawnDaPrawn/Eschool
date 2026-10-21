@@ -10,9 +10,9 @@ class EmailSeeder extends Seeder
     /**
      * Run the database seeds.
      *
-     * Uses firstOrCreate, not updateOrCreate: this seeder re-runs on every system
-     * update, and admins can edit these templates from the email template settings
-     * screen. Overwriting would silently discard their customisations.
+     * Uses firstOrCreate, not updateOrCreate: this seeder re-runs on every deploy
+     * (docker/entrypoint.sh), and admins can edit these templates from the email
+     * template settings screen. Overwriting would silently discard their customisations.
      */
     public function run(): void
     {

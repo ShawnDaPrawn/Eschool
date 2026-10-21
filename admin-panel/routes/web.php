@@ -39,16 +39,13 @@ use App\Http\Controllers\Student;
 use App\Http\Controllers\StudentSessionController;
 use App\Http\Controllers\SubjectController;
 use App\Http\Controllers\SubjectTeacherController;
-use App\Http\Controllers\SystemUpdateController;
 use App\Http\Controllers\TeacherController;
 use App\Http\Controllers\TimetableController;
 use App\Http\Controllers\WebController;
 use App\Http\Controllers\WebhookController;
 use App\Http\Controllers\WebSettingController;
 use Illuminate\Support\Facades\Artisan;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
-use Illuminate\Support\Facades\Storage;
 
 /*
 |--------------------------------------------------------------------------
@@ -397,8 +394,6 @@ Route::group(['middleware' => ['Role', 'auth']], function () {
 
         Route::get('app-settings', [SettingController::class, 'app_index']);
         Route::post('app-settings', [SettingController::class, 'app_update']);
-        Route::get('system-update', [SystemUpdateController::class, 'index'])->name('system-update.index');
-        Route::post('system-update', [SystemUpdateController::class, 'update'])->name('system-update.update');
 
         Route::resource('stream', StreamController::class);
 
@@ -548,10 +543,10 @@ Route::get('/terms-conditions', function () {
     echo ! empty($settings['terms_condition']) ? $settings['terms_condition'] : e(trans('page_not_published_yet'));
 });
 
-// Maintenance actions, Super Admin only. They used to be reachable without
-// logging in. Cache Clear is a form post: as a link, another site could send a
-// signed-in user to it, and clearing the cache also resets rate limits when they
-// share the default cache store.
+// Cache Clear, Super Admin only. It is a form post: as a link, another site could
+// send a signed-in user to it, and clearing the cache also resets rate limits when
+// they share the default cache store. The storage link, migrations and the
+// installer seeder run at deploy time (docker/entrypoint.sh), not from a URL.
 Route::post('clear', function () {
     Artisan::call('view:clear');
     Artisan::call('route:clear');
@@ -561,74 +556,6 @@ Route::post('clear', function () {
     return redirect()->back();
 })->middleware(['auth', 'role:Super Admin']);
 
-Route::group(['middleware' => ['auth', 'role:Super Admin']], static function () {
-    Route::get('storage-link', function () {
-        try {
-            Artisan::call('storage:link');
-            echo 'storage link created';
-        } catch (Exception $e) {
-            echo 'Storage Link already exists';
-        }
-    });
-
-    Route::get('migrate', function () {
-        Artisan::call('view:clear');
-        Artisan::call('route:clear');
-        Artisan::call('config:clear');
-        Artisan::call('cache:clear');
-        Artisan::call('migrate --force');
-        echo 'Migration Done';
-    });
-
-    Route::get('seeder_install', function () {
-        Artisan::call('view:clear');
-        Artisan::call('route:clear');
-        Artisan::call('config:clear');
-        Artisan::call('cache:clear');
-        Artisan::call('db:seed --class=InstallationSeeder --force');
-        echo 'Seeders Insatlled Successfully';
-    });
-});
-
-// Route::get('rollback', function () {
-//     Artisan::call('view:clear');
-//     Artisan::call('route:clear');
-//     Artisan::call('config:clear');
-//     Artisan::call('cache:clear');
-//     Artisan::call('migrate:rollback');
-//     echo "Rollback Done";
-// });
-
-// Route::get('test', function () {
-//     //            return "working";
-//     \Artisan::call('db:seed --class=ProductTableSeeder');
-//     \Artisan::call('config:clear');
-//     \Artisan::call('view:clear');
-//     //            echo "Done";
-//     //    if (Storage::disk('public')->exists("http://127.0.0.1:8000/storage/lessons/lQNZSKVwsZS5XkC3Jjag4DS4s7ykymH07GzFFa3K.txt")) {
-//     //        echo "file exists";
-//     //        Storage::disk('public')->delete("http://127.0.0.1:8000/storage/lessons/lQNZSKVwsZS5XkC3Jjag4DS4s7ykymH07GzFFa3K.txt");
-//     //    }else{
-//     //        echo "file does not exists";
-//     //    }
-// });
-
-// Route::get('/storage-link', function(){
-//     $target = storage_path('app/public');
-//     $link = public_path('/storage');
-//     symlink($target, $link);
-//     echo "symbolic link created successfully";
-// });
-
-// Route::get('/command', function()
-// {
-//     $exitCode = Artisan::call('db:seed', ['--class' => 'DummyDataSeeder']);
-//     echo "Command executed successfully.";
-// });
-
-// Route::get('/', function () {
-//     return view('auth.login');
-// });
 Route::group(['prefix' => 'common'], static function () {
     Route::get('/js/lang', [Controller::class, 'readLanguageFile'])->name('common.language.read');
 });

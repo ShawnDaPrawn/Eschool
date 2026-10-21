@@ -2342,29 +2342,6 @@ $(document).on("change", ".timetable_start_time", function () {
     });
 });
 
-$("#system-update").on("submit", function (e) {
-    e.preventDefault();
-    let formElement = $(this);
-    let submitButtonElement = $(this).find(":submit");
-    let url = $(this).attr("action");
-    let data = new FormData(this);
-
-    function successCallback() {
-        setTimeout(function () {
-            window.location.reload();
-        }, 1000);
-    }
-
-    formAjaxRequest(
-        "POST",
-        url,
-        data,
-        formElement,
-        submitButtonElement,
-        successCallback,
-    );
-});
-
 $("#create-form-bulk-data").submit(function (e) {
     e.preventDefault();
     let formElement = $(this);
