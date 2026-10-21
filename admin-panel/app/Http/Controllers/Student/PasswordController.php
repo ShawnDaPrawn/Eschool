@@ -92,10 +92,15 @@ class PasswordController extends Controller
             return response()->json($response);
         }
         try {
-            $dob = date('dmY', strtotime($request->dob));
-            $user = User::find($request->id);
+            // Students only, back to their date of birth as stored: this used to take any
+            // user id and a date from the request, so it could reset a staff or Super Admin
+            // password to a value the caller knew.
+            $user = User::role('Student')->whereNotNull('dob')->find($request->id);
+            if (! $user) {
+                return response()->json(['error' => true, 'message' => trans('no_permission_message')]);
+            }
             $user->reset_request = 0;
-            $user->password = Hash::make($dob);
+            $user->password = Hash::make(date('dmY', strtotime((string) $user->dob)));
             $user->save();
 
             $response = [

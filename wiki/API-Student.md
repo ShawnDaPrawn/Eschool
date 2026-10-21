@@ -110,7 +110,7 @@ The token is the top-level `token` key; `code` is 200.
 | `gr_no` | string | yes (matched against `students.admission_no`) |
 | `dob` | date | yes (matched against `users.dob`) |
 
-When both match, the user gets `users.reset_request = 1`. Nothing is emailed: staff see the request in the admin panel's student reset-password list (permission `student-reset-password`), and resetting sets the password to the date of birth in `dmY` format (`Student\PasswordController::change_password`). The response is always `Request Send Successfully`, matched or not (since `839c9eb`), so the endpoint cannot be used to test GR numbers and birth dates.
+When both match, the user gets `users.reset_request = 1`. Nothing is emailed: staff see the request in the admin panel's student reset-password list (permission `student-reset-password`), and resetting sets the password to the stored date of birth in `dmY` format (`Student\PasswordController::change_password`, which only resets student accounts). The response is always `Request Send Successfully`, matched or not (since `839c9eb`), so the endpoint cannot be used to test GR numbers and birth dates.
 
 ### Profile
 

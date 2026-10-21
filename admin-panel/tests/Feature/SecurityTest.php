@@ -12,6 +12,7 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
+use Spatie\Permission\Models\Role;
 use Tests\TestCase;
 
 class SecurityTest extends TestCase
@@ -225,6 +226,23 @@ class SecurityTest extends TestCase
         $this->get('/api/teacher/classes', ['Authorization' => 'Bearer 1|expired-or-unknown'])
             ->assertUnauthorized()
             ->assertJson(['message' => 'Unauthenticated.']);
+    }
+
+    public function test_the_student_password_reset_only_resets_students_to_their_own_date_of_birth(): void
+    {
+        $clerk = $this->user('clerk@example.com');
+        $clerk->assignRole(Role::create(['name' => 'Clerk'])->givePermissionTo('student-reset-password'));
+        $student = $this->user('GR-1');
+        $student->forceFill(['dob' => '2015-06-01', 'reset_request' => 1])->save();
+        $student->assignRole('Student');
+
+        // Any user id and a date from the request were accepted: a clerk could set the Super Admin's password.
+        $this->actingAs($clerk)->postJson('/student-change-password', ['id' => $this->superAdmin()->id, 'dob' => '01-01-1970'])->assertJson(['error' => true]);
+        $this->assertFalse(Hash::check('01011970', $this->superAdmin()->password));
+
+        $this->postJson('/student-change-password', ['id' => $student->id, 'dob' => '01-01-1970'])->assertJson(['error' => false]);
+        $this->assertTrue(Hash::check('01062015', $student->fresh()->password));
+        $this->assertSame(0, (int) $student->fresh()->reset_request);
     }
 
     private function sanctumUser(string $token): ?User
