@@ -80,4 +80,68 @@ class ApiRegressionTest extends TestCase
 
         $this->assertFalse($response->json('error'), $response->body());
     }
+
+    /*
+     * Found by comparing what the apps parse with what the API sends.
+     */
+
+    public function test_the_apps_can_fetch_an_event_schedule_with_get(): void
+    {
+        // Both apps ask with GET; the route only took POST, so schedules never loaded.
+        $response = $this->apiClient(self::$school->tokens['asha'])->get('/api/get-events-details', ['event_id' => self::$school->ids['event']]);
+
+        $this->assertSame(200, $response->status(), $response->body());
+        $this->assertFalse($response->json('error'), $response->body());
+    }
+
+    public function test_exam_timetables_carry_the_time_names_the_apps_read(): void
+    {
+        $id = self::$school->ids;
+        $timetable = ExamTimetable::where('exam_id', $id['exam'])->orderBy('id')->firstOrFail();
+
+        // Only the student endpoint renamed start_time/end_time; parents and teachers saw no times.
+        $parent = $this->apiClient(self::$school->tokens['farid'])->get('/api/parent/get-exam-details', ['child_id' => $id['asha'], 'exam_id' => $id['exam']]);
+        $teacher = $this->apiClient(self::$school->tokens['tara'])->get('/api/teacher/get-exam-details', ['exam_id' => $id['exam'], 'class_id' => $id['class_a']]);
+
+        $this->assertSame($timetable->start_time, collect($parent->json('data'))->firstWhere('id', $timetable->id)['starting_time'] ?? null, $parent->body());
+        $this->assertSame($timetable->end_time, collect($teacher->json('data.0.timetable'))->firstWhere('id', $timetable->id)['ending_time'] ?? null, $teacher->body());
+    }
+
+    public function test_teacher_topics_include_their_files(): void
+    {
+        $response = $this->apiClient(self::$school->tokens['tara'])->get('/api/teacher/get-topic', ['lesson_id' => self::$school->ids['lesson']]);
+
+        $this->assertSame(['Practice'], collect($response->json('data.0.file'))->pluck('file_name')->all(), $response->body());
+    }
+
+    public function test_the_parent_assigned_tab_lists_only_work_the_child_has_not_handed_in(): void
+    {
+        $id = self::$school->ids;
+        $assigned = fn (string $parent, string $child) => collect(
+            $this->apiClient(self::$school->tokens[$parent])->get('/api/parent/assignments', ['child_id' => $id[$child], 'is_submitted' => 0])->json('data.data')
+        )->pluck('id')->all();
+
+        // Asha handed the worksheet in; Ben didn't. "0" used to mean "no filter".
+        $this->assertNotContains($id['assignment'], $assigned('farid', 'asha'));
+        $this->assertContains($id['assignment'], $assigned('gina', 'ben'));
+    }
+
+    public function test_class_announcements_reach_the_notice_board_of_that_class_only(): void
+    {
+        $id = self::$school->ids;
+        $board = fn (string $who, string $uri, array $query = []) => collect(
+            $this->apiClient(self::$school->tokens[$who])->get("/api/$uri", $query)->json('data.data')
+        )->pluck('id')->all();
+
+        // The apps' notice board asks for type=noticeboard, which left out class announcements.
+        $this->assertContains($id['class_announcement'], $board('asha', 'student/announcements', ['type' => 'noticeboard']));
+        $this->assertContains($id['class_announcement'], $board('farid', 'parent/announcements', ['type' => 'noticeboard']));
+        $this->assertNotContains($id['class_announcement'], $board('cara', 'student/announcements', ['type' => 'noticeboard']));
+
+        // Without a type, a parent got every announcement in the school.
+        $forCara = $board('farid', 'parent/announcements', ['child_id' => $id['cara']]);
+        $this->assertContains($id['notice'], $forCara);
+        $this->assertNotContains($id['class_announcement'], $forCara);
+        $this->assertNotContains($id['subject_announcement'], $forCara);
+    }
 }

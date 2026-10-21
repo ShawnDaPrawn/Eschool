@@ -749,7 +749,7 @@ class ClassSchoolController extends Controller
         $limit = $_GET['limit'] ?? 10;
         $sort = $_GET['sort'] ?? 'id';
         $order = $_GET['order'] ?? 'DESC';
-        $session_year_id = $_GET['session_year_id'] ?? null;
+        $session_year_id = request()->query('session_year_id');
 
         $sql = ClassSchool::withSessionConfigFor($session_year_id)->with([
             'sections',

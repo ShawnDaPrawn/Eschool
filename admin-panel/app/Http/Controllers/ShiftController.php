@@ -74,17 +74,17 @@ class ShiftController extends Controller
             $shift->title=$request->name;
             $shift->start_time=$request->start_time;
             $shift->end_time=$request->end_time;
-            $shift->status=$request->status;
+            $shift->status=$request->input('status', 1);
             $shift->save();
             $response = array(
                 'error' => false,
                 'message' => trans('data_store_successfully'),
             );
         } catch (\Throwable $e) {
+            report($e);
             $response = array(
                 'error' => true,
                 'message' => trans('error_occurred'),
-                'data' => $e
             );
         }
 
