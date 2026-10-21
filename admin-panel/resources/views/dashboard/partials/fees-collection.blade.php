@@ -9,28 +9,23 @@
         <div class="fees-grid" data-content hidden>
             <div class="fees-chart">
                 <div id="fees-donut"></div>
+                <div class="dash-empty" data-empty hidden>{{ __('no_fees_found') }}</div>
             </div>
             <div class="fees-legend">
                 <div class="fees-legend-row">
                     <span class="dash-dot dot-collected"></span>
-                    <div class="fees-legend-text">
-                        <b class="fees-legend-label">{{ __('collected') }}</b>
-                        <span class="fees-legend-value" id="fees-collected">&mdash;</span>
-                    </div>
+                    <span class="fees-legend-label">{{ __('collected') }}</span>
+                    <span class="fees-legend-value" id="fees-collected">&mdash;</span>
                 </div>
                 <div class="fees-legend-row">
                     <span class="dash-dot dot-dues"></span>
-                    <div class="fees-legend-text">
-                        <b class="fees-legend-label">{{ __('upcoming_dues') }}</b>
-                        <span class="fees-legend-value" id="fees-dues">&mdash;</span>
-                    </div>
+                    <span class="fees-legend-label">{{ __('upcoming_dues') }}</span>
+                    <span class="fees-legend-value" id="fees-dues">&mdash;</span>
                 </div>
                 <div class="fees-legend-row">
                     <span class="dash-dot dot-overdue"></span>
-                    <div class="fees-legend-text">
-                        <b class="fees-legend-label">{{ __('overdue_amount') }}</b>
-                        <span class="fees-legend-value" id="fees-overdue">&mdash;</span>
-                    </div>
+                    <span class="fees-legend-label">{{ __('overdue_amount') }}</span>
+                    <span class="fees-legend-value" id="fees-overdue">&mdash;</span>
                 </div>
             </div>
         </div>
