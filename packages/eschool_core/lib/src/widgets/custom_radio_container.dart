@@ -18,14 +18,12 @@ class CustomRadioContainer extends StatelessWidget {
         children: [
           Container(
             decoration: BoxDecoration(
-              color: Theme.of(context).scaffoldBackgroundColor,
+              color: Theme.of(context).colorScheme.surface,
               shape: BoxShape.circle,
               border: Border.all(
                 color: isSelected
                     ? Theme.of(context).colorScheme.primary
-                    : Theme.of(
-                        context,
-                      ).colorScheme.secondary.withValues(alpha: 0.5),
+                    : Theme.of(context).colorScheme.outline,
               ),
             ),
           ),
