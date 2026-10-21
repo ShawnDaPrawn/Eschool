@@ -1,6 +1,8 @@
 @php
     $lang = Session::get('language');
 @endphp
+{{-- Material 3 design tokens, generated from the apps' theme (packages/eschool_core). Load first. --}}
+<link rel="stylesheet" href="{{ asset('/assets/css/m3-tokens.css') }}?v={{ filemtime(public_path('assets/css/m3-tokens.css')) }}">
 <link rel="stylesheet" href="{{ asset('/assets/css/vendor.bundle.base.css') }}" async>
 
 <link rel="stylesheet" href="{{ asset('/assets/fonts/font-awesome.min.css') }}" />
@@ -18,6 +20,8 @@
 @else
     <link rel="stylesheet" href="{{ asset('/assets/css/style.css') }}">
 @endif
+{{-- Typeface and legacy colour variables mapped to the tokens — after style/rtl, before the redesign sheets. --}}
+<link rel="stylesheet" href="{{ asset('/assets/css/m3-base.css') }}?v={{ filemtime(public_path('assets/css/m3-base.css')) }}">
 {{-- Admin chrome redesign (sidebar + topbar) — loaded after style/rtl so they override the legacy rules in both. --}}
 <link rel="stylesheet" href="{{ asset('/assets/css/sidebar.css') }}?v={{ filemtime(public_path('assets/css/sidebar.css')) }}">
 <link rel="stylesheet" href="{{ asset('/assets/css/header.css') }}?v={{ filemtime(public_path('assets/css/header.css')) }}">
@@ -42,14 +46,6 @@
 {{-- <link rel="shortcut icon" href="{{asset(config('global.LOGO_SM')) }}" /> --}}
 <link rel="shortcut icon" href="{{ schoolSetting('favicon') ? url(Storage::url(schoolSetting('favicon'))) : asset('assets/logo.svg') }}" />
 @php
-    $theme_color = getSettings('theme_color');
-    $secondary_color = getSettings('secondary_color');
-
-    // echo json_encode($theme_color);
-    $theme_color = $theme_color['theme_color'];
-    $secondary_color = $secondary_color['secondary_color'];
-@endphp
-@php
     $login_image = getSettings('login_image');
     if ($login_image != null) {
         $path = $login_image['login_image'];
@@ -59,10 +55,9 @@
     }
 
 @endphp
+{{-- Colours come from the design tokens (m3-tokens.css), not the theme_color / secondary_color settings. --}}
 <style>
     :root {
-        --theme-color: <?=$theme_color ?>;
-        --secondary-color: <?=$secondary_color ?>;
         --image-url: url(<?= $login_image ?>);
     }
 </style>

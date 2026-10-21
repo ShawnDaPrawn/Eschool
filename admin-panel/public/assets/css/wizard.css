@@ -1,6 +1,6 @@
 /* =========================================================
    Side-nav wizard component
-   Uses --theme-color / --secondary-color set in layouts/include.blade.php
+   Uses the Material 3 tokens from m3-tokens.css
    ========================================================= */
 
 .wizard-container {
@@ -14,7 +14,7 @@
 .wizard-sidebar {
     flex: 0 0 260px;
     max-width: 260px;
-    border-right: 1px solid #e9ecef;
+    border-right: 1px solid var(--md-sys-color-outline-variant);
     padding-right: 16px;
 }
 
@@ -32,7 +32,7 @@
     gap: 12px;
     padding: 11px 14px;
     border-radius: 12px;
-    color: #495057;
+    color: var(--md-sys-color-on-surface-variant);
     text-decoration: none;
     font-weight: 500;
     font-size: 14px;
@@ -43,23 +43,23 @@
 }
 
 .wizard-sidebar .step-item:hover {
-    background: rgba(0, 0, 0, .03);
-    color: var(--theme-color);
+    background: var(--md-sys-color-surface-container-low);
+    color: var(--md-sys-color-primary);
     text-decoration: none;
 }
 
 .wizard-sidebar .step-item.active {
-    background: var(--theme-color);
-    color: #fff;
-    box-shadow: 0 6px 16px rgba(0, 0, 0, .08);
+    background: var(--md-sys-color-primary);
+    color: var(--md-sys-color-on-primary);
+    box-shadow: var(--md-sys-elevation-level2);
 }
 
 .wizard-sidebar .step-item.active:hover {
-    color: #fff;
+    color: var(--md-sys-color-on-primary);
 }
 
 .wizard-sidebar .step-item.completed {
-    color: var(--theme-color);
+    color: var(--md-sys-color-primary);
 }
 
 .wizard-sidebar .step-item .step-number {
@@ -69,7 +69,7 @@
     width: 28px;
     height: 28px;
     border-radius: 4px;
-    background: rgba(0, 0, 0, .06);
+    background: var(--md-sys-color-surface-container);
     color: inherit;
     font-size: 12px;
     font-weight: 600;
@@ -77,14 +77,13 @@
 }
 
 .wizard-sidebar .step-item.active .step-number {
-    background: rgba(255, 255, 255, .25);
-    color: #fff;
+    background: color-mix(in srgb, var(--md-sys-color-on-primary) 25%, transparent);
+    color: var(--md-sys-color-on-primary);
 }
 
 .wizard-sidebar .step-item.completed .step-number {
-    /* background: var(--secondary-color); */
-    background: #c9c9c9;
-    color: #1b1b1b;
+    background: var(--md-sys-color-surface-container-highest);
+    color: var(--md-sys-color-on-surface);
 }
 
 /* ---------- Content ---------- */
@@ -119,8 +118,8 @@
     font-weight: 600;
     margin: 0 0 1.5rem;
     padding-bottom: .75rem;
-    border-bottom: 1px solid #e9ecef;
-    color: #212529;
+    border-bottom: 1px solid var(--md-sys-color-outline-variant);
+    color: var(--md-sys-color-on-surface);
 }
 
 /* ---------- Nav bar (Prev / Submit / Next) ---------- */
@@ -130,10 +129,10 @@
     align-items: center;
     margin-top: 24px;
     padding: 16px 0;
-    border-top: 1px solid #e9ecef;
+    border-top: 1px solid var(--md-sys-color-outline-variant);
     gap: 10px;
     flex-wrap: wrap;
-    box-shadow: 0 -6px 12px -8px rgba(0, 0, 0, .08);
+    box-shadow: 0 -6px 12px -8px color-mix(in srgb, var(--md-sys-color-shadow) 8%, transparent);
 }
 
 .wizard-nav .wizard-nav-right {
@@ -151,7 +150,7 @@
 /* ---------- RTL ---------- */
 [dir="rtl"] .wizard-sidebar {
     border-right: 0;
-    border-left: 1px solid #e9ecef;
+    border-left: 1px solid var(--md-sys-color-outline-variant);
     padding-right: 0;
     padding-left: 16px;
 }
@@ -168,7 +167,7 @@
         max-width: 100%;
         width: 100%;
         border-right: 0;
-        border-bottom: 1px solid #e9ecef;
+        border-bottom: 1px solid var(--md-sys-color-outline-variant);
         padding-right: 0;
         padding-bottom: 16px;
     }
@@ -176,7 +175,7 @@
     [dir="rtl"] .wizard-sidebar {
         border-left: 0;
         padding-left: 0;
-        border-bottom: 1px solid #e9ecef;
+        border-bottom: 1px solid var(--md-sys-color-outline-variant);
         padding-bottom: 16px;
     }
 

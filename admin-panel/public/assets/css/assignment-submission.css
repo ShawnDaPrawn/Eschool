@@ -6,18 +6,18 @@
 /* ---- Header subtitle (assignment name under the modal title) ---- */
 .modal-subtitle {
     font-size: 0.8125rem;
-    color: #8c8c8c;
+    color: var(--md-sys-color-on-surface-variant);
     margin-top: 2px;
 }
 
 /* ---- Two-panel body split ---- */
 .right-panel {
-    border-left: 1px solid rgba(27, 27, 27, 0.06);
+    border-left: 1px solid var(--md-sys-color-outline-variant);
 }
 
 [dir="rtl"] .right-panel {
     border-left: none;
-    border-right: 1px solid rgba(27, 27, 27, 0.06);
+    border-right: 1px solid var(--md-sys-color-outline-variant);
 }
 
 @media (max-width: 991px) {
@@ -25,15 +25,16 @@
     [dir="rtl"] .right-panel {
         border-left: none;
         border-right: none;
-        border-top: 1px solid rgba(27, 27, 27, 0.06);
+        border-top: 1px solid var(--md-sys-color-outline-variant);
     }
 }
 
 /* ---- Student header row ---- */
 .student-name-text {
-    font-family: "Roboto-Medium", "ubuntu-medium", sans-serif;
+    font-family: var(--md-ref-typeface-plain);
+    font-weight: 500;
     font-size: 0.9375rem;
-    color: #343a40;
+    color: var(--md-sys-color-on-surface);
 }
 
 .student-avatar-img {
@@ -42,8 +43,8 @@
     height: 44px;
     border-radius: 50%;
     object-fit: cover;
-    border: 1px solid rgba(27, 27, 27, 0.08);
-    background: #f1f5f9;
+    border: 1px solid var(--md-sys-color-outline-variant);
+    background: var(--md-sys-color-surface-container);
 }
 
 .student-avatar-initials {
@@ -53,9 +54,9 @@
     width: 44px;
     height: 44px;
     border-radius: 50%;
-    background: color-mix(in srgb, var(--theme-color) 14%, #fff);
-    color: var(--theme-color);
-    font-family: "Roboto-Medium", "ubuntu-medium", sans-serif;
+    background: color-mix(in srgb, var(--md-sys-color-primary) 14%, var(--md-sys-color-surface-container-lowest));
+    color: var(--md-sys-color-primary);
+    font-family: var(--md-ref-typeface-plain);
     font-size: 0.9375rem;
     font-weight: 600;
 }
@@ -73,8 +74,8 @@
     align-items: center;
     gap: 5px;
     padding: 3px 10px;
-    background: color-mix(in srgb, var(--theme-color) 10%, #fff);
-    color: var(--theme-color);
+    background: color-mix(in srgb, var(--md-sys-color-primary) 10%, var(--md-sys-color-surface-container-lowest));
+    color: var(--md-sys-color-primary);
     border-radius: 8px;
     font-size: 0.75rem;
     font-weight: 500;
@@ -84,7 +85,7 @@
     display: inline-flex;
     align-items: center;
     gap: 5px;
-    color: #8c9aab;
+    color: var(--md-sys-color-on-surface-variant);
     font-size: 0.75rem;
 }
 
@@ -93,12 +94,12 @@
     display: flex;
     align-items: center;
     gap: 6px;
-    font-family: "Roboto-Medium", "ubuntu-medium", sans-serif;
+    font-family: var(--md-ref-typeface-plain);
     font-size: 0.75rem;
     font-weight: 500;
     text-transform: uppercase;
     letter-spacing: 0.05em;
-    color: #475569;
+    color: var(--md-sys-color-on-surface-variant);
     margin-bottom: 0.5rem;
 }
 
@@ -117,9 +118,9 @@
     padding: 14px;
     text-align: center;
     font-size: 0.8125rem;
-    color: #8c9aab;
-    background: #f8f9fb;
-    border: 1px dashed rgba(27, 27, 27, 0.14);
+    color: var(--md-sys-color-on-surface-variant);
+    background: var(--md-sys-color-surface-container-low);
+    border: 1px dashed var(--md-sys-color-outline-variant);
     border-radius: 10px;
 }
 
@@ -128,10 +129,10 @@
     align-items: center;
     gap: 8px;
     padding: 9px 12px;
-    background: #f8f9fb;
-    border: 1px solid rgba(27, 27, 27, 0.06);
+    background: var(--md-sys-color-surface-container-low);
+    border: 1px solid var(--md-sys-color-outline-variant);
     border-radius: 10px;
-    color: #343a40;
+    color: var(--md-sys-color-on-surface);
     font-size: 0.8125rem;
     font-weight: 500;
     text-decoration: none;
@@ -141,32 +142,32 @@
 
 .submission-file-link:hover,
 .submission-file-link:focus {
-    background: color-mix(in srgb, var(--theme-color) 6%, #fff);
-    border-color: color-mix(in srgb, var(--theme-color) 30%, transparent);
-    color: var(--theme-color);
+    background: color-mix(in srgb, var(--md-sys-color-primary) 6%, var(--md-sys-color-surface-container-lowest));
+    border-color: color-mix(in srgb, var(--md-sys-color-primary) 30%, transparent);
+    color: var(--md-sys-color-primary);
     text-decoration: none;
 }
 
 .submission-file-link svg.lc-icon {
     flex-shrink: 0;
-    color: #8c9aab;
+    color: var(--md-sys-color-on-surface-variant);
     transition: color 0.15s ease;
 }
 
 .submission-file-link:hover svg.lc-icon,
 .submission-file-link:focus svg.lc-icon {
-    color: var(--theme-color);
+    color: var(--md-sys-color-primary);
 }
 
 /* ---- Submission text box ---- */
 .submission-text-box {
     padding: 14px 16px;
-    background: #f8f9fb;
-    border: 1px solid rgba(27, 27, 27, 0.06);
+    background: var(--md-sys-color-surface-container-low);
+    border: 1px solid var(--md-sys-color-outline-variant);
     border-radius: 10px;
     font-size: 0.875rem;
     line-height: 1.6;
-    color: #343a40;
+    color: var(--md-sys-color-on-surface);
     white-space: pre-wrap;
     word-break: break-word;
     max-height: 220px;
@@ -175,7 +176,7 @@
 
 .submission-text-box:empty::before {
     content: attr(data-empty-text);
-    color: #8c9aab;
+    color: var(--md-sys-color-on-surface-variant);
     font-style: italic;
 }
 
@@ -187,13 +188,13 @@
 
 #files::-webkit-scrollbar-thumb,
 .submission-text-box::-webkit-scrollbar-thumb {
-    background: rgba(27, 27, 27, 0.18);
+    background: color-mix(in srgb, var(--md-sys-color-on-surface) 18%, transparent);
     border-radius: 10px;
 }
 
 #files::-webkit-scrollbar-thumb:hover,
 .submission-text-box::-webkit-scrollbar-thumb:hover {
-    background: rgba(27, 27, 27, 0.3);
+    background: color-mix(in srgb, var(--md-sys-color-on-surface) 30%, transparent);
 }
 
 #files::-webkit-scrollbar-track,
@@ -209,17 +210,17 @@
     justify-content: center;
     gap: 8px;
     padding: 16px 12px;
-    border: 1.5px solid rgba(27, 27, 27, 0.1);
+    border: 1.5px solid var(--md-sys-color-outline-variant);
     border-radius: 12px;
-    background: #fff;
+    background: var(--md-sys-color-surface-container-lowest);
     text-align: center;
     cursor: pointer;
     transition: border-color 0.15s ease, background-color 0.15s ease, box-shadow 0.15s ease;
 }
 
 .status-card:hover {
-    border-color: rgba(27, 27, 27, 0.2);
-    background: #fbfbfd;
+    border-color: var(--md-sys-color-outline);
+    background: var(--md-sys-color-surface-container-low);
 }
 
 .status-icon {
@@ -233,61 +234,62 @@
 }
 
 .status-icon.accept-icon {
-    background: color-mix(in srgb, #198754 12%, #fff);
-    color: #198754;
+    background: color-mix(in srgb, var(--app-status-success) 12%, var(--md-sys-color-surface-container-lowest));
+    color: var(--app-status-success-text);
 }
 
 .status-icon.reject-icon {
-    background: color-mix(in srgb, #dc3545 12%, #fff);
-    color: #dc3545;
+    background: color-mix(in srgb, var(--app-status-danger) 12%, var(--md-sys-color-surface-container-lowest));
+    color: var(--app-status-danger-text);
 }
 
 .status-label {
-    font-family: "Roboto-Medium", "ubuntu-medium", sans-serif;
+    font-family: var(--md-ref-typeface-plain);
+    font-weight: 500;
     font-size: 0.8125rem;
-    color: #475569;
+    color: var(--md-sys-color-on-surface-variant);
 }
 
 .status-card.active-accept {
-    border-color: #198754;
-    background: color-mix(in srgb, #198754 6%, #fff);
-    box-shadow: 0 0 0 3px color-mix(in srgb, #198754 12%, transparent);
+    border-color: var(--app-status-success);
+    background: color-mix(in srgb, var(--app-status-success) 6%, var(--md-sys-color-surface-container-lowest));
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--app-status-success) 12%, transparent);
 }
 
 .status-card.active-accept .status-icon.accept-icon {
-    background: #198754;
-    color: #fff;
+    background: var(--app-status-success);
+    color: var(--app-status-on-success);
 }
 
 .status-card.active-accept .status-label {
-    color: #166534;
+    color: var(--app-status-success-text);
 }
 
 .status-card.active-reject {
-    border-color: #dc3545;
-    background: color-mix(in srgb, #dc3545 6%, #fff);
-    box-shadow: 0 0 0 3px color-mix(in srgb, #dc3545 12%, transparent);
+    border-color: var(--app-status-danger);
+    background: color-mix(in srgb, var(--app-status-danger) 6%, var(--md-sys-color-surface-container-lowest));
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--app-status-danger) 12%, transparent);
 }
 
 .status-card.active-reject .status-icon.reject-icon {
-    background: #dc3545;
-    color: #fff;
+    background: var(--app-status-danger);
+    color: var(--app-status-on-danger);
 }
 
 .status-card.active-reject .status-label {
-    color: #b42318;
+    color: var(--app-status-danger-text);
 }
 
 /* ---- Grade points ---- */
 .grade-max-label {
     font-size: 0.75rem;
     font-weight: 500;
-    color: #8c9aab;
+    color: var(--md-sys-color-on-surface-variant);
 }
 
 .points-input {
-    font-family: "Roboto-Medium", "ubuntu-medium", sans-serif;
+    font-family: var(--md-ref-typeface-plain);
     font-size: 1.0625rem;
     font-weight: 600;
-    color: #343a40;
+    color: var(--md-sys-color-on-surface);
 }

@@ -469,6 +469,7 @@
     "send": "Send",
     "compose": "Compose",
     "theme": "Theme",
+    "certificate_colours_hint": "The theme and secondary colours are used only on printed certificates and result sheets. The admin panel, website and apps share one colour scheme.",
     "secondary": "Secondary",
     "home": "Home",
     "about-us": "About Us",

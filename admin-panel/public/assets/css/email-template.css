@@ -1,7 +1,7 @@
 .custom-tag-btn {
-    background-color: #f8f9fa;
-    color: #495057;
-    border: 1px solid #dee2e6;
+    background-color: var(--md-sys-color-surface-container-low);
+    color: var(--md-sys-color-on-surface-variant);
+    border: 1px solid var(--md-sys-color-outline-variant);
     border-radius: 8px;
     padding: 8px 16px;
     font-size: 14px;
@@ -12,8 +12,8 @@
 }
 
 .custom-tag-btn:hover {
-    background-color: #e9ecef;
-    border-color: #ced4da;
+    background-color: var(--md-sys-color-surface-container);
+    border-color: var(--md-sys-color-outline);
     transform: translateY(-1px);
 }
 
@@ -33,17 +33,17 @@
     padding: 14px 20px;
     font-size: 14px;
     font-weight: 500;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    box-shadow: var(--md-sys-elevation-level3);
 }
 
 #toast-msg.success {
-    background-color: #d4edda;
-    color: #155724;
-    border: 1px solid #c3e6cb;
+    background-color: color-mix(in srgb, var(--app-status-success) 20%, var(--md-sys-color-surface-container-lowest));
+    color: var(--app-status-success-text);
+    border: 1px solid color-mix(in srgb, var(--app-status-success) 30%, var(--md-sys-color-surface-container-lowest));
 }
 
 #toast-msg.error {
-    background-color: #f8d7da;
-    color: #721c24;
-    border: 1px solid #f5c6cb;
+    background-color: color-mix(in srgb, var(--md-sys-color-error) 15%, var(--md-sys-color-surface-container-lowest));
+    color: var(--md-sys-color-error);
+    border: 1px solid color-mix(in srgb, var(--md-sys-color-error) 30%, var(--md-sys-color-surface-container-lowest));
 }

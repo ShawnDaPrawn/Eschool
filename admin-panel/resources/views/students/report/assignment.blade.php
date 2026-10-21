@@ -102,7 +102,7 @@
                     <span class="text-muted small">/</span>
                     <span class="text-muted small" id="stat-total-max">0</span>
                 </div>
-                <div class="report-stat-sub" id="stat-percentage" style="color: var(--theme-color);">
+                <div class="report-stat-sub" id="stat-percentage" style="color: var(--md-sys-color-primary);">
                     0% {{ __('grade_average') }}
                 </div>
             </div>
@@ -257,7 +257,7 @@
                                 <label class="d-block font-weight-bold text-muted text-uppercase mb-2"
                                     style="font-size:10px;letter-spacing:0.5px;">{{ __('teachers_feedback') }}</label>
                                 <div class="report-modal-box bg-soft p-3 text-secondary small"
-                                    style="min-height:90px;border-left:3px solid var(--theme-color);">
+                                    style="min-height:90px;border-left:3px solid var(--md-sys-color-primary);">
                                     <p id="modal-feedback-text" class="font-italic mb-0">
                                         {{ __('no_feedback_provided') }}
                                     </p>
@@ -480,12 +480,12 @@
                         attachmentHTML = `
                         <div class="d-inline-block mt-2 small font-weight-bold text-secondary bg-white border py-1 px-2 rounded"
                              style="cursor:pointer;" data-open-url="${esc(httpUrl(item.attachedFile))}" onclick="window.open(this.getAttribute('data-open-url'),'_blank')">
-                            {{ __('attachment') }}: <span style="color:var(--theme-color);">${esc(fname)}</span>
+                            {{ __('attachment') }}: <span style="color:var(--md-sys-color-primary);">${esc(fname)}</span>
                         </div>`;
                     } else if (item.submissionLink) {
                         attachmentHTML = `
                         <div class="d-inline-block mt-2 small font-weight-bold bg-light py-1 px-2 rounded"
-                             style="cursor:pointer; color:var(--theme-color);" data-open-url="${esc(httpUrl(item.submissionLink))}" onclick="window.open(this.getAttribute('data-open-url'),'_blank')">
+                             style="cursor:pointer; color:var(--md-sys-color-primary);" data-open-url="${esc(httpUrl(item.submissionLink))}" onclick="window.open(this.getAttribute('data-open-url'),'_blank')">
                             {{ __('link') }}: <span class="text-secondary">${esc(item.submissionLink)}</span>
                         </div>`;
                     } else if (item.submissionText) {
@@ -499,7 +499,7 @@
                     <tr>
                         <td class="px-3 py-3">
                             <p class="font-weight-bold mb-1"
-                               style="font-size:13px;cursor:pointer;color:var(--theme-color);"
+                               style="font-size:13px;cursor:pointer;color:var(--md-sys-color-primary);"
                                onclick="openReviewModal(${parseInt(item.id, 10)})">${esc(item.assignmentName)}</p>
                             <div class="small text-muted">
                                {{ __('semester') }}: <span class="font-weight-bold">${esc(item.semesterLabel)}</span>
@@ -525,7 +525,7 @@
                 <div class="report-subject-group">
                     <div class="report-subject-group-header d-flex flex-column flex-sm-row align-items-sm-center justify-content-between">
                         <div class="d-flex align-items-center">
-                            <span class="d-inline-block rounded mr-2" style="width:6px;height:32px;background:var(--theme-color);"></span>
+                            <span class="d-inline-block rounded mr-2" style="width:6px;height:32px;background:var(--md-sys-color-primary);"></span>
                             <div>
                                 <h5 class="report-subject-title mb-0">${esc(subject)}</h5>
                                 <p class="small text-muted mb-0" style="font-size:11px;">
@@ -535,7 +535,7 @@
                         </div>
                         <div class="report-subject-pill mt-2 mt-sm-0">
                             <span class="small font-weight-bold text-muted text-uppercase mr-2" style="font-size:10px;">{{ __('subject_gpa_ratio') }}</span>
-                            <span class="small font-weight-bold mr-2" style="color:var(--theme-color);">${subObtained} / ${subMax} pts</span>
+                            <span class="small font-weight-bold mr-2" style="color:var(--md-sys-color-primary);">${subObtained} / ${subMax} pts</span>
                             <span class="badge badge-primary font-weight-bold px-2 py-1">${pct}%</span>
                         </div>
                     </div>
@@ -589,7 +589,7 @@
             const linkBox = document.getElementById('modal-link-box');
             if (item.submissionLink) {
                 linkBox.innerHTML =
-                    `<a href="${esc(httpUrl(item.submissionLink))}" target="_blank" style="color:var(--theme-color);">${esc(item.submissionLink)}</a>`;
+                    `<a href="${esc(httpUrl(item.submissionLink))}" target="_blank" style="color:var(--md-sys-color-primary);">${esc(item.submissionLink)}</a>`;
             } else {
                 linkBox.innerText = 'No link provided';
             }
