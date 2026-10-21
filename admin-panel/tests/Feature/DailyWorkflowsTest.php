@@ -118,6 +118,8 @@ class DailyWorkflowsTest extends TestCase
 
         $imported = Students::whereHas('user', fn ($q) => $q->whereIn('last_name', ['Naidoo', 'Mokoena']))->pluck('id');
         $this->assertCount(2, $imported);
+        // Editing a student requires height and weight, which the sample left blank.
+        $this->assertSame(0, Students::whereIn('id', $imported)->where(fn ($q) => $q->whereNull('height')->orWhereNull('weight'))->count());
         // Imported students had no enrolment for the year, so the app turned them away.
         $this->assertSame(2, StudentSessions::whereIn('student_id', $imported)
             ->where(['session_year_id' => 1, 'class_section_id' => $this->school->ids['section_a'], 'status' => 1])->count());
@@ -194,6 +196,26 @@ class DailyWorkflowsTest extends TestCase
         // The push to selected users was commented out; only the list entry was saved. Without
         // FCM credentials here the attempt shows up as a send refused for want of a token.
         Log::shouldHaveReceived('error')->with('Cannot send FCM notification: Access token is null');
+    }
+
+    public function test_moving_a_student_to_another_class_moves_this_years_enrolment(): void
+    {
+        $id = $this->school->ids;
+
+        $this->actingAs($this->superAdmin())->putJson("/students/{$id['asha_user']}", [
+            'edit_id' => $id['asha_user'], 'first_name' => 'Asha', 'last_name' => 'Demo', 'dob' => '01-06-2015',
+            'class_section_id' => $id['section_c'], 'category_id' => $id['category'], 'admission_no' => 'GR-ASHA', 'roll_number' => 1,
+            'admission_date' => '01-01-2026', 'current_address' => '1 Road', 'permanent_address' => '1 Road', 'height' => 140, 'weight' => 35,
+            'edit_parent_guardian_type' => 'parent', 'father_email' => $id['farid'], 'mother_email' => $id['mona'],
+        ])->assertJson(['error' => false]);
+
+        // Only the student row moved; the apps, attendance, marks and fees kept the old class.
+        $enrolment = StudentSessions::where(['student_id' => $id['asha'], 'session_year_id' => 1]);
+        $this->assertSame($id['section_c'], $enrolment->value('class_section_id'));
+
+        // Put her back for the other tests on this school.
+        Students::whereKey($id['asha'])->update(['class_section_id' => $id['section_a']]);
+        $enrolment->update(['class_section_id' => $id['section_a']]);
     }
 
     public function test_deleting_a_lesson_removes_its_and_its_topics_stored_files(): void

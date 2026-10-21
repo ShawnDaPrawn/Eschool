@@ -1340,6 +1340,13 @@ class StudentController extends Controller
             $student->dynamic_fields = json_encode($data);
             $student->update();
 
+            // The apps, attendance, marks and fees read the class from this year's session
+            // row, which a class change here used to leave on the old class.
+            StudentSessions::where('student_id', $student->id)
+                ->where('session_year_id', getSettings('session_year')['session_year'])
+                ->whereNotNull('class_section_id')
+                ->update(['class_section_id' => $student->class_section_id]);
+
             $response = [
                 'error' => false,
                 'message' => trans('data_store_successfully'),

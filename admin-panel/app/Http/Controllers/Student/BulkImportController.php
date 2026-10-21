@@ -58,7 +58,7 @@ class BulkImportController extends Controller
             [
                 'first_name' => 'Asha', 'last_name' => 'Naidoo', 'gender' => 'Female', 'dob' => '2015-03-14',
                 'mobile' => "'0821234567", 'category' => 'General', 'admission_date' => date('Y-m-d'),
-                'blood_group' => 'O+', 'current_address' => '12 Main Road', 'permanent_address' => '12 Main Road',
+                'blood_group' => 'O+', 'height' => '140', 'wieght' => '35', 'current_address' => '12 Main Road', 'permanent_address' => '12 Main Road',
                 'parents' => 'yes',
                 'father_first_name' => 'Ravi', 'father_last_name' => 'Naidoo', 'father_email' => 'ravi.naidoo@example.com',
                 'father_mobile' => "'0831234567", 'father_dob' => '1985-06-01', 'father_occupation' => 'Engineer',
@@ -69,7 +69,7 @@ class BulkImportController extends Controller
             [
                 'first_name' => 'Thabo', 'last_name' => 'Mokoena', 'gender' => 'Male', 'dob' => '2014-11-02',
                 'mobile' => "'0721234567", 'category' => 'General', 'admission_date' => date('Y-m-d'),
-                'blood_group' => 'A+', 'current_address' => '8 Oak Street', 'permanent_address' => '8 Oak Street',
+                'blood_group' => 'A+', 'height' => '145', 'wieght' => '38', 'current_address' => '8 Oak Street', 'permanent_address' => '8 Oak Street',
                 'parents' => 'no',
                 'guardian' => 'yes',
                 'guardian_first_name' => 'Lerato', 'guardian_last_name' => 'Mokoena', 'guardian_email' => 'lerato.mokoena@example.com',
