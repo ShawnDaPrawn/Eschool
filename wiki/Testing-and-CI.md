@@ -139,7 +139,8 @@ In [admin-panel/tests/Unit](https://github.com/ShawnDaPrawn/Eschool/tree/main/ad
 | Class | What it covers |
 |---|---|
 | `ControllerMethodCallsTest` | Every `$this->`, `self::` or `static::` call in a controller names a method the class has (Illuminate's base controller accepts any name through `__call`, so Larastan can't see these). |
-| `DesignTokensTest` | No stylesheet in `public/assets/css` writes a colour (hex, `rgb()`, `hsl()` or a named colour) outside the generated `m3-tokens.css`, the legacy template bundles and third-party CSS, so the panel and website keep the apps' colours. Skips comments, `data:` URIs and blocks between `/* design-tokens: off */` and `/* design-tokens: on */`. See [UI-Standards](UI-Standards#admin-panel-and-website). |
+| `BootstrapFreeTest` | The move off Bootstrap only goes forward: files using Bootstrap classes, `data-toggle` / `data-bs-*` attributes, Bootstrap's jQuery plugins or its CSS and JS must be listed in `tests/bootstrap-baseline.txt`, and a listed file that no longer uses Bootstrap must be removed from it. `UPDATE_BOOTSTRAP_BASELINE=1` removes finished files. See [UI-Standards](UI-Standards#the-material-3-web-library-replacing-bootstrap). |
+| `DesignTokensTest` | No stylesheet in `public/assets/css` or the Material 3 library in `public/assets/m3` writes a colour (hex, `rgb()`, `hsl()` or a named colour) outside the generated `m3-tokens.css`, the legacy template bundles and third-party CSS, so the panel and website keep the apps' colours. Skips comments, `data:` URIs and blocks between `/* design-tokens: off */` and `/* design-tokens: on */`. See [UI-Standards](UI-Standards#admin-panel-and-website). |
 
 ## Admin panel feature tests
 

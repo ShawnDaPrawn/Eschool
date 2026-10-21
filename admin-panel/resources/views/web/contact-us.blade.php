@@ -1,158 +1,104 @@
 @extends('web.master')
 
-    <!-- navbar ends here  -->
 @section('title')
     {{ __('contact_us') }}
 @endsection
 @section('content')
-    <div class="main">
-        <div class="breadcrumb">
-            <div class="container">
-                <div class="contentWrapper">
-                    <span class="title">
-                        {{ __('contact_us') }}
-                    </span>
-                    <span>
-                        <span class="home"><a href="{{url('/')}}">{{ __('home') }}</a></span>
-                        <span><i class="fa-solid fa-angles-right"></i></span>
-                        <span class="page">{{ __('contact_us') }}</span>
-                    </span>
+    @include('web.partials.banner', [
+        'title' => __('contact_us'),
+        'crumbs' => [[__('home'), url('/')], [__('contact_us'), null]],
+    ])
+
+    @if ($question)
+        <section class="m3-section site-contact">
+            <div class="m3-page m3-stack m3-gap-12">
+                @include('web.partials.section-head', [
+                    'tag' => isset($question->tag) ? $question->tag : 'Got a Question?',
+                    'heading' => isset($question->heading) ? $question->heading : 'Admissions, Academics, Support:Find Your Answer Here!',
+                ])
+
+                <ul class="m3-grid site-contact__cards">
+                    <li class="m3-col-12 m3-col-medium-6 m3-col-expanded-4">
+                        <div class="m3-card site-contact-card">
+                            <img src="{{ url('assets/images/contactIcon.png') }}" alt="" width="70" height="70">
+                            <h3 class="site-contact-card__title">{{ __('phone_number') }}</h3>
+                            <p class="site-contact-card__value">
+                                <a href="tel:{{ $settings['school_phone'] }}">{{ __('phone') }}: <bdi dir="ltr">{{ isset($settings['school_phone']) ? $settings['school_phone'] : '+27 12 345 6789' }}</bdi></a>
+                            </p>
+                        </div>
+                    </li>
+                    <li class="m3-col-12 m3-col-medium-6 m3-col-expanded-4">
+                        <div class="m3-card site-contact-card">
+                            <img src="{{ url('assets/images/mailIcon.png') }}" alt="" width="70" height="70">
+                            <h3 class="site-contact-card__title">{{ __('email') }}</h3>
+                            <p class="site-contact-card__value">
+                                <a href="mailto:{{ $settings['school_email'] }}">{{ __('mail_us') }}: {{ isset($settings['school_email']) ? $settings['school_email'] : 'info@tokensoft.tech' }}</a>
+                            </p>
+                        </div>
+                    </li>
+                    <li class="m3-col-12 m3-col-medium-6 m3-col-expanded-4">
+                        <div class="m3-card site-contact-card">
+                            <img src="{{ url('assets/images/locationIcon.png') }}" alt="" width="70" height="70">
+                            <h3 class="site-contact-card__title">{{ __('address') }}</h3>
+                            <p class="site-contact-card__value">{{ __('address') }}: {{ isset($settings['school_address']) ? $settings['school_address'] : 'Pretoria, South Africa' }}</p>
+                        </div>
+                    </li>
+                </ul>
+
+                <div class="m3-card m3-card--outlined site-form-card site-contact__form">
+                    <div class="m3-card__content site-form-card__body">
+                        <div class="site-form-card__intro">
+                            <h3 class="site-form-card__title">{{ __('get_in_touch') }}</h3>
+                            <p class="m3-card__supporting">{{ __('contact_form_subtitle') }}</p>
+                        </div>
+                        {{-- script.js sends it with AJAX (#create-form) after jQuery Validate passes. --}}
+                        <form id="create-form" name="create-form" method="POST" action="{{ route('contact_us.store') }}" class="m3-grid site-form-grid">
+                            @include('web.partials.text-field', [
+                                'name' => 'first_name', 'id' => 'first_name', 'label' => __('first_name'), 'required' => true,
+                                'class' => 'm3-col-12 m3-col-medium-6', 'attrs' => ['autocomplete' => 'given-name'],
+                            ])
+                            @include('web.partials.text-field', [
+                                'name' => 'last_name', 'id' => 'last_name', 'label' => __('last_name'), 'required' => true,
+                                'class' => 'm3-col-12 m3-col-medium-6', 'attrs' => ['autocomplete' => 'family-name'],
+                            ])
+                            @include('web.partials.text-field', [
+                                'name' => 'email', 'id' => 'email', 'type' => 'email', 'label' => __('email'), 'required' => true,
+                                'class' => 'm3-col-12 m3-col-medium-6', 'attrs' => ['autocomplete' => 'email'],
+                            ])
+                            @include('web.partials.text-field', [
+                                'name' => 'phone', 'id' => 'phone', 'type' => 'tel', 'label' => __('phone'), 'required' => true,
+                                'class' => 'm3-col-12 m3-col-medium-6', 'attrs' => ['autocomplete' => 'tel'],
+                            ])
+                            @include('web.partials.text-field', [
+                                'name' => 'message', 'id' => 'message', 'type' => 'textarea', 'rows' => 5,
+                                'label' => __('message'), 'required' => true, 'class' => 'm3-col-12',
+                            ])
+                            @php
+                                $site_key = DB::table('settings')->where('type', 'recaptcha_site_key')->pluck('message')->first();
+                                $status = DB::table('settings')->where('type', 'recaptcha_status')->pluck('message')->first();
+                            @endphp
+                            @if ($status == 1)
+                                <div class="m3-col-12">
+                                    <div class="g-recaptcha" data-sitekey="{{ $site_key }}"></div>
+                                </div>
+                            @endif
+                            <div class="m3-col-12">
+                                <button type="submit" class="m3-button m3-button--filled m3-button--icon-trailing" name="contactbtn">
+                                    {{ __('submit') }}
+                                    <x-icon name="arrow-right" class="m3-icon site-flip-rtl" />
+                                </button>
+                            </div>
+                        </form>
+                    </div>
                 </div>
+
+                @if (! empty($settings['maplink']))
+                    <div class="site-contact__map">
+                        <iframe src="{{ $settings['maplink'] }}" title="{{ __('address') }}" width="600" height="450"
+                            allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
+                    </div>
+                @endif
             </div>
-        </div>
-        @if ($question)
-            <section class="contactUs container commonMT">
-                <div class="row">
-                    <div class="col-12">
-                        <div class="flex_column_center">
-                            <span class="commonTag">
-                                {{isset($question->tag) ? $question->tag : "Got a Question?"}}
-                            </span>
-                            <span class="commonTitle">
-                                {{isset($question->heading) ? $question->heading : "Admissions, Academics, Support:Find Your Answer Here!"}}
-                            </span>
-                        </div>
-                    </div>
-
-                    <div class="col-12">
-                        <div class="row contactCardsWrapper">
-                            <div class="col-sm-6 col-md-4 col-lg-4">
-                                <div class="card">
-                                    <div>
-                                        <img src="{{url('assets/images/contactIcon.png')}}" alt="">
-                                    </div>
-                                    <div>
-                                        <span class="text">{{ __('phone_number') }}</span>
-                                    </div>
-                                    <div class="contactDetailsWrapper">
-                                        <span class="numb"><a href="tel:{{$settings['school_phone']}}">{{ __('phone') }}: {{isset($settings['school_phone']) ? $settings['school_phone'] : '+27 12 345 6789'}}</a></span>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="col-sm-6 col-md-4 col-lg-4">
-                                <div class="card">
-                                    <div>
-                                        <img src="{{url('assets/images/mailIcon.png')}}" alt="">
-                                    </div>
-                                    <div>
-                                        <span class="text">{{ __('email') }}</span>
-                                    </div>
-                                    <div class="contactDetailsWrapper">
-                                        <span class="numb"><a href="mailto:{{$settings['school_email']}}">{{ __('mail_us') }}: {{isset($settings['school_email'])? $settings['school_email'] :  'info@tokensoft.tech'}}</a></span>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="col-sm-6 col-md-4 col-lg-4">
-                                <div class="card">
-                                    <div>
-                                        <img src="{{url('assets/images/locationIcon.png')}}" alt="">
-                                    </div>
-                                    <div>
-                                        <span class="text">{{ __('address') }}</span>
-                                    </div>
-                                    <div class="contactDetailsWrapper">
-                                        <span class="numb">{{ __('address') }}:  {{isset($settings['school_address']) ? $settings['school_address'] : 'Pretoria, South Africa'}}</span>
-                                    </div>
-                                </div>
-                            </div>
-
-                        </div>
-                    </div>
-
-                    <div class="col-12 mainCardWrapper">
-                        <div class="mainCard card">
-
-                            <div class="getInTouchWrapper">
-                                <div class="card">
-                                    <div class="content">
-                                        <span class="commonSpan">{{ __('get_in_touch') }}</span>
-                                        <span class="commonDesc">{{ __('contact_form_subtitle') }}</span>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="formWrapper">
-                                <form  id="create-form" name="create-form" method="POST" action="{{route('contact_us.store')}}">
-                                    <div class="row">
-                                        <div class="col-sm-12 col-md-6 col-lg-6">
-                                            <div class="d-flex flex-column gap-1 form-group">
-                                                <label for="First Name">{{ __('first_name') }}</label>
-                                                {!! Form::text('first_name', null, ['required', 'placeholder' => __('first_name'), 'class' => 'form-control']) !!}
-                                            </div>
-                                        </div>
-                                        <div class="col-sm-12 col-md-6 col-lg-6 ">
-                                            <div class="d-flex flex-column gap-1 form-group">
-                                                <label for="Last Name">{{ __('last_name') }}</label>
-                                                {!! Form::text('last_name', null, ['required', 'placeholder' => __('last_name'), 'class' => 'form-control']) !!}
-                                            </div>
-                                        </div>
-                                        <div class="col-sm-12 col-md-6 col-lg-6">
-                                            <div class="d-flex flex-column gap-1 form-group">
-                                                <label for="email">{{ __('email') }}</label>
-                                                {!! Form::text('email', null, ['required', 'placeholder' => __('email'), 'class' => 'form-control']) !!}
-                                            </div>
-                                        </div>
-                                        <div class="col-sm-12 col-md-6 col-lg-6">
-                                            <div class="d-flex flex-column gap-1 form-group">
-                                                <label for="phone">{{ __('phone') }}</label>
-                                                {!! Form::number('phone', null, ['required', 'placeholder' => __('phone'), 'class' => 'form-control']) !!}
-                                            </div>
-                                        </div>
-
-                                        <div class="col-12">
-                                            <div class="d-flex flex-column gap-1 form-group">
-                                                <label for="message">{{ __('message') }}</label>
-                                                {!! Form::textarea('message', null, ['required', 'placeholder' => __('message'), 'class' => 'form-control','rows' => 5]) !!}
-                                            </div>
-                                        </div>
-                                        @php
-                                            $site_key = DB::table('settings')->where('type', 'recaptcha_site_key')->pluck('message')->first();
-                                            $status = DB::table('settings')->where('type', 'recaptcha_status')->pluck('message')->first();
-                                        @endphp
-                                        @if($status == 1)     
-                                            <div class="g-recaptcha" data-sitekey="{{ $site_key }}"></div>
-                                            </div>
-                                        @endif 
-                                        <div class="col-4">
-                                            <button type="submit" class="commonBtn" name="contactbtn">
-                                                {{ __('submit') }} <span><i class="fa-solid fa-arrow-right"></i></span>
-                                            </button>
-                                        </div>
-                                    </div>
-                                </form>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="col-12">
-                        <div class="mapWrapper commonMT">
-                            <div>
-                                <iframe src="{{isset($settings['maplink']) ? $settings['maplink'] : ''}}" width="600" height="450" style="border:0;" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </section>
-        @endif
-
-    </div>
+        </section>
+    @endif
 @endsection
