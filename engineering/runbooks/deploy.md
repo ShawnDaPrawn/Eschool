@@ -4,6 +4,26 @@ How code reaches staging and production, what the pipeline does, and how to chec
 
 **Status.** The workflows are written and pass actionlint, and the smoke script was run against a local panel. No deploy to Google Cloud has run yet: staging deploys start once [environments.md](environments.md) steps 1 to 5 are done.
 
+## PHP2Shell security update (21 October 2026)
+
+CVE-2026-109618 and CVE-2026-109619 require a PHP runtime update; application
+validation and INI changes cannot fully remediate them. The shared image now
+pins `php:8.3.36-apache-bookworm`, the first fixed 8.3 release. See the
+[PHP security advisory](https://www.php.net/archive/2026.php#2026-10-21-5).
+
+Rebuild with `--pull` and deploy the new image digest to **all three roles**:
+`navigateed-admin`, `navigateed-worker` and `navigateed-scheduler`. Existing
+containers retain the old PHP binary until replaced. Confirm that no traffic
+or scheduled executions use the old image; do not roll back to a vulnerable
+runtime. Follow the normal staging and production approval process below.
+
+Before deploying, CI builds the image, checks `PHP_VERSION_ID >= 80336` on
+PHP 8.3, checks Composer platform requirements and validates Apache config.
+Run the existing application tests and deployment smoke checks as well. For
+an independently managed Apache/FPM host, upgrade PHP through its vendor and
+restart every PHP/Apache worker; updating this repository does not update
+that host. Confirm the web runtime version, not only the CLI version.
+
 ## Who deploys what
 
 | Target | Trigger | Approval | Backup first |
