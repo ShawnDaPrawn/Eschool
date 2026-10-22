@@ -24,7 +24,7 @@ class StudentsExport implements FromCollection, WithHeadings
         $this->date = $date;
     }
 
-    public function collection()
+    public function collection(): \Illuminate\Support\Enumerable
     {
         $dateRange = explode(' - ', $this->date);
         $start = new DateTime($dateRange[0]);
