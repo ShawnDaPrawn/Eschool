@@ -12,6 +12,7 @@ use App\Models\PaymentTransaction;
 use App\Services\Platform\Ledger\LegacyAmount;
 use App\Services\Platform\Ledger\Money;
 use App\Services\Platform\Ledger\MoneyCast;
+use App\Services\Platform\Tenancy\SchoolTable;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
@@ -125,7 +126,7 @@ class MoneyTest extends TestCase
         $this->assertRow('paid_installment_fees', $installment->id, ['amount' => 333.33, 'amount_cents' => 33333, 'due_charges_cents' => null]);
 
         // A row written by a raw insert gets its cents on the next save.
-        $id = DB::table('payment_transactions')->insertGetId(['student_id' => 1, 'class_id' => 1, 'parent_id' => 1, 'payment_status' => 1, 'total_amount' => 525.25, 'session_year_id' => 1]);
+        $id = SchoolTable::query('payment_transactions')->insertGetId(['student_id' => 1, 'class_id' => 1, 'parent_id' => 1, 'payment_status' => 1, 'total_amount' => 525.25, 'session_year_id' => 1]);
         $transaction = PaymentTransaction::find($id);
         $this->assertSame(525.25, $transaction->total_amount);
         $transaction->payment_status = 0;

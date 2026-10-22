@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Tests\Feature\Platform;
 
 use App\Services\Platform\Tenancy\CurrentSchool;
+use App\Services\Platform\Tenancy\SchoolTable;
 use App\Services\UploadService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\Request;
@@ -113,7 +114,7 @@ class UploadsTest extends TestCase
     {
         $this->seedLikeInstaller();
         $this->buildSignInSchool();
-        DB::table('leave_masters')->insert(['total_leave' => '2', 'holiday_days' => '0', 'session_year_id' => 1, 'created_at' => now(), 'updated_at' => now()]);
+        SchoolTable::query('leave_masters')->insert(['total_leave' => '2', 'holiday_days' => '0', 'session_year_id' => 1, 'created_at' => now(), 'updated_at' => now()]);
         $token = $this->person('teacher')->createToken('teacher-app')->plainTextToken;
 
         $this->withToken($token)->post('/api/teacher/apply-leave', [

@@ -174,7 +174,11 @@ class ElectiveController extends Controller
                 return response()->json(['error' => 'Student ID is required'], 400);
             }
 
-            $student = Students::findOrFail($studentId);
+            $student = Students::find($studentId);
+            if ($student === null) {
+                // Not a learner of this school.
+                return response()->json(['error' => true, 'message' => trans('no_data_found')], 404);
+            }
 
             $student_class_section_id = StudentSessions::where('student_id', $student->id)->where('session_year_id', $session_year_id)
                 ->first()->class_section_id;

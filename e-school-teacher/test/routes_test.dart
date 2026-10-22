@@ -88,6 +88,35 @@ void main() {
     );
   });
 
+  test('the shared screens have addresses and open as routes', () {
+    final parser = DeepLinkParser(routes: deepLinkRoutes);
+    expect(
+      parser.parse(Uri.parse('https://teach.navigateed.co.za/my-school')),
+      const DeepLinkTarget(Routes.mySchool),
+    );
+    expect(
+      parser.parsePath('/notifications/settings'),
+      const DeepLinkTarget(Routes.notificationSettings),
+    );
+    expect(
+      parser.parsePath('/profile-picture'),
+      const DeepLinkTarget(Routes.profilePicture),
+    );
+    // A guardian's screens are not the teacher app's.
+    expect(parser.parsePath('/approvals'), isNull);
+    expect(parser.parsePath('/invite/t0k3n'), isNull);
+    for (final String name in [
+      Routes.notificationSettings,
+      Routes.mySchool,
+      Routes.profilePicture,
+    ]) {
+      expect(
+        Routes.onGenerateRouted(RouteSettings(name: name)),
+        isA<PageRoute<dynamic>>(),
+      );
+    }
+  });
+
   test('every link opens a route the app has', () {
     final parser = DeepLinkParser(routes: deepLinkRoutes);
     for (final route in deepLinkRoutes) {

@@ -156,6 +156,52 @@ Map<String, Object> learnerRoutes() => {
   'student/dashboard': ok(dashboard()),
 };
 
+/// A parent of Thandi and Sipho (the switcher shows from two children).
+Map<String, Object?> parentOfTwo() => {
+  ...parent(),
+  'children': [student(), student(id: 12, firstName: 'Sipho')],
+};
+
+/// What GET /api/v2/me/notification-preferences answers (Phase 1 contract).
+const List<Map<String, Object?>> notificationPreferences = [
+  {
+    'type': 'comms.notice',
+    'label': 'New notice',
+    'module': null,
+    'channels': {
+      'push': {'enabled': true, 'locked': false, 'reason': null},
+      'email': {'enabled': true, 'locked': false, 'reason': null},
+    },
+  },
+  {
+    'type': 'attendance.absent',
+    'label': 'Absence alert',
+    'module': null,
+    'channels': {
+      'push': {
+        'enabled': true,
+        'locked': true,
+        'reason': 'The school always tells you when your child is absent.',
+      },
+    },
+  },
+];
+
+/// A parent of two, on a server with notification settings (Phase 1).
+Map<String, Object> parentOfTwoRoutes() => {
+  ...parentRoutes(),
+  'POST parent/login': {
+    ...ok(parentOfTwo(), message: 'User logged-in!'),
+    'token': 'smoke-parent-token',
+  },
+  'parent/get-profile-data': ok(parentOfTwo()),
+  'GET v2/me/notification-preferences': ok(notificationPreferences),
+  'PUT v2/me/notification-preferences': ok(null),
+  // Not deployed on this server: their entry points stay hidden.
+  'v2/guardian/approvals': const FakeResponse.notFound(),
+  'v2/me/avatar': const FakeResponse.notFound(),
+};
+
 Map<String, Object> parentRoutes() => {
   'settings': settings,
   'v2/me/context': const FakeResponse.notFound(),

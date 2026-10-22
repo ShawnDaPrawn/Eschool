@@ -1,8 +1,8 @@
 <?php
 
+use App\Models\Platform\Permission;
+use App\Models\Platform\Role;
 use Spatie\Permission\DefaultTeamResolver;
-use Spatie\Permission\Models\Permission;
-use Spatie\Permission\Models\Role;
 
 return [
 
@@ -97,7 +97,7 @@ return [
          * foreign key is other than `team_id`.
          */
 
-        'team_foreign_key' => 'team_id',
+        'team_foreign_key' => 'school_id',
     ],
 
     /*
@@ -122,8 +122,11 @@ return [
      * \Spatie\Permission\Events\PermissionDetached
      *
      * To enable, set to true, and then create listeners to watch these events.
+     *
+     * NavigateEd: on. School memberships follow role grants and removals
+     * (App\Providers\PlatformServiceProvider).
      */
-    'events_enabled' => false,
+    'events_enabled' => true,
 
     /*
      * Teams Feature.
@@ -135,7 +138,10 @@ return [
      * (view the latest version of this package's migration file)
      */
 
-    'teams' => false,
+    // NavigateEd: on, keyed on school_id. Roles belong to a school and are
+    // granted at a school; CurrentSchool sets the team for every request,
+    // command and job (engineering/specs/platform/tenancy.md).
+    'teams' => true,
 
     /*
      * The class to use to resolve the permissions team id

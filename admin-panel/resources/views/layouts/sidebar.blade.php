@@ -14,7 +14,7 @@
 @endphp
 <nav class="sidebar sidebar-offcanvas m3 m3-navigation-drawer m3-navigation-drawer--inverse panel-nav" id="sidebar"
     aria-label="{{ __('nav_main') }}" data-native-scroll>
-    {{-- Small screens: the year switcher and close button live at the top of the drawer. --}}
+    {{-- Small screens: the year and school switchers and the close button live at the top of the drawer. --}}
     <div class="panel-nav__mobile">
         <label class="m3-text-field m3-text-field--select panel-field--compact panel-nav__year">
             <select id="filter_session_year_global_mobile" data-scope="global" data-selected="{{ $panelYear->selectedId() }}"
@@ -27,6 +27,7 @@
             </select>
             <span class="m3-text-field__label" id="panel-nav-year-label">{{ __('nav_school_year') }}</span>
         </label>
+        @include('layouts.partials.school-switcher', ['suffix' => '-mobile', 'class' => 'panel-nav__school'])
         <button type="button" id="sidebar-close" class="m3-icon-button panel-nav__close" aria-label="{{ __('close') }}">
             <x-icon name="close" :size="24" />
         </button>

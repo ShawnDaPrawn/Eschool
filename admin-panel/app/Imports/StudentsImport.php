@@ -8,6 +8,7 @@ use App\Mail\Platform\TemplateMail;
 use App\Models\Category;
 use App\Models\ClassSection;
 use App\Models\Parents;
+use App\Models\Platform\Role;
 use App\Models\SessionYear;
 use App\Models\Students;
 use App\Models\StudentSessions;
@@ -27,7 +28,6 @@ use Maatwebsite\Excel\Concerns\WithValidation;
 use Maatwebsite\Excel\DefaultValueBinder;
 use PhpOffice\PhpSpreadsheet\Reader\IReadFilter;
 use PhpOffice\PhpSpreadsheet\Shared\Date;
-use Spatie\Permission\Models\Role;
 
 class StudentsImport extends DefaultValueBinder implements SkipsEmptyRows, ToCollection, WithHeadingRow, WithReadFilter, WithValidation
 {

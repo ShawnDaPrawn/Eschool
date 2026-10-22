@@ -28,7 +28,28 @@ const List<DeepLinkRoute> deepLinkRoutes = [
   DeepLinkRoute(Routes.termsAndCondition, Routes.termsAndCondition),
   DeepLinkRoute('/contact', Routes.contactUs),
   DeepLinkRoute(Routes.contactUs, Routes.contactUs),
+  // The shared screens (Phase 1). A push's `link` names these paths too.
+  DeepLinkRoute(Routes.notificationSettings, Routes.notificationSettings),
+  DeepLinkRoute(Routes.mySchool, Routes.mySchool),
+  DeepLinkRoute(Routes.approvals, Routes.approvals),
+  DeepLinkRoute('/invite/:token', Routes.invitation, arguments: _invitationToken),
+  DeepLinkRoute(Routes.profilePicture, Routes.profilePicture),
 ];
+
+Object? _invitationToken(
+  Map<String, String> values,
+  Map<String, String> query,
+) {
+  final String token = values['token'] ?? '';
+  if (token.isEmpty) {
+    throw const FormatException('An invitation link carries its token.');
+  }
+  return token;
+}
+
+/// Links that open before sign-in: an invitation is how a new parent gets
+/// an account.
+const Set<String> _publicRoutes = {Routes.invitation};
 
 Object? _academicCalendarArguments(
   Map<String, String> values,
@@ -60,6 +81,12 @@ const Set<String> _entryRoutes = {
 /// splash and sign-in screens; otherwise keeps it for [openPendingDeepLink].
 void openDeepLink(DeepLinkTarget target, {required bool signedIn}) {
   final navigator = UiUtils.rootNavigatorKey.currentState;
+  if (_publicRoutes.contains(target.routeName) &&
+      navigator != null &&
+      Routes.currentRoute != Routes.splash) {
+    navigator.pushNamed(target.routeName, arguments: target.arguments);
+    return;
+  }
   if (!signedIn ||
       navigator == null ||
       _entryRoutes.contains(Routes.currentRoute)) {
@@ -67,6 +94,23 @@ void openDeepLink(DeepLinkTarget target, {required bool signedIn}) {
     return;
   }
   navigator.pushNamed(target.routeName, arguments: target.arguments);
+}
+
+/// Called when the sign-in choice shows: opens an invitation link that
+/// opened the app, if there was one. Other links wait for home.
+void openPendingPublicDeepLink() {
+  final DeepLinkTarget? target = deepLinks.takePendingWhere(
+    (target) => _publicRoutes.contains(target.routeName),
+  );
+  if (target == null) {
+    return;
+  }
+  Future.microtask(
+    () => UiUtils.rootNavigatorKey.currentState?.pushNamed(
+      target.routeName,
+      arguments: target.arguments,
+    ),
+  );
 }
 
 /// Called once the user lands on home: opens the screen of the link that

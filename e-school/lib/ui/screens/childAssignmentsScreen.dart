@@ -1,4 +1,4 @@
-import 'package:eschool/app/routeArguments.dart';
+import 'package:eschool/app/selectedChild.dart';
 import 'package:eschool/cubits/assignmentsCubit.dart';
 import 'package:eschool/cubits/authCubit.dart';
 import 'package:eschool/data/models/subject.dart';
@@ -28,14 +28,18 @@ class ChildAssignmentsScreen extends StatefulWidget {
   @override
   State<ChildAssignmentsScreen> createState() => _ChildAssignmentsScreenState();
 
+  /// The assignments of the child picked in the child switcher.
   static Route route(RouteSettings routeSettings) {
-    final arguments = routeSettings.arguments! as ChildSubjectsArguments;
-    return AdaptivePageRoute(
-      builder: (_) => BlocProvider<AssignmentsCubit>(
-        create: (context) => AssignmentsCubit(AssignmentRepository()),
-        child: ChildAssignmentsScreen(
-          childId: arguments.childId,
-          subjects: arguments.subjects,
+    return childRoute(
+      (context, child) => withChild(
+        child,
+        (child) => BlocProvider<AssignmentsCubit>(
+          create: (context) => AssignmentsCubit(AssignmentRepository()),
+          child: ChildSubjectsBuilder(
+            childId: child.id,
+            builder: (subjects) =>
+                ChildAssignmentsScreen(childId: child.id, subjects: subjects),
+          ),
         ),
       ),
     );

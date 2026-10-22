@@ -6,13 +6,14 @@ namespace App\Models;
 
 use App\Services\Platform\Audit\Auditable;
 use App\Services\Platform\Ledger\HasMoneyColumns;
+use App\Services\Platform\Tenancy\BelongsToSchool;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 class FeesPaid extends Model
 {
-    use Auditable, HasFactory, HasMoneyColumns, SoftDeletes;
+    use Auditable, BelongsToSchool, HasFactory, HasMoneyColumns, SoftDeletes;
 
     /** Float money columns and their cents (HasMoneyColumns); the cents are the truth. */
     public function moneyColumns(): array

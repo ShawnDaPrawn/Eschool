@@ -13,6 +13,9 @@ dependencies:
   bloc: ^9.0.0
   dio: ^5.9.2
   equatable: ^2.0.8
+  # /me/context is decoded with the models generated from openapi.yaml.
+  eschool_api:
+    path: ../eschool_api
   eschool_core:
     path: ../eschool_core
   flutter_bloc: ^9.1.1

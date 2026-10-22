@@ -21,11 +21,11 @@ The demo credentials in `lib/utils/constants.dart` (`defaultStudentGRNumber`, `d
 
 ### Parent and child switching
 
-There is no global "selected child". The parent profile returned by `parent/login` and `parent/get-profile-data` contains `children` (a list of `Student`), stored in `Parent.children`.
+Since Phase 1 there is one selected child: `ChildSelectionCubit` (`eschool_session`, provided in `MyApp`), kept in `authBox` (`selectedChildId`) across restarts and cleared on sign-out. It lists the children `/me/context` sends (`children`, with each child's school), or, from a server before API v2, the `children` of the parent profile returned by `parent/login` and `parent/get-profile-data` (`Parent.children`). See [Mobile-Apps-Overview](Mobile-Apps-Overview#choosing-a-child-and-a-school).
 
-- `ParentHomeScreen` (`lib/ui/screens/parentHomeScreen.dart`) shows a card per child. Tapping a card pushes `Routes.studentDetails` (`'parent/studentDetails'`, `ChildDetailsScreen`) with that `Student` as the argument. If compulsory fee payment mode is on and that child has `isFeePaymentDue`, the tap opens `Routes.feesDetails` for the child instead.
-- `ChildDetailsScreen` lists the child's subjects (`ChildSubjectsCubit` → `ParentRepository`, GET `parent/subjects`) and a menu built in `lib/ui/widgets/childInformationItemsContainer.dart`: assignments, teachers, attendance, timetable, academic calendar, exams, results, reports, fees and manage leaves.
-- Every screen opened from that menu receives the child's id and sends it as `child_id`. On the server, the routes inside the `CheckChild` middleware group reject a `child_id` that is not one of the parent's children with `error: true`, `code: 105`, message `Invalid Child ID Passed.` (see [API-Parent](API-Parent)). Because the app maps code `105` to the `examOnlineAttended` label, that rejection is displayed as "Student already attempted exam" (English text).
+- `ParentHomeScreen` (`lib/ui/screens/parentHomeScreen.dart`) shows a card per child, with the child's school. Tapping a card selects that child and pushes `Routes.studentDetails` (`'parent/studentDetails'`, `ChildDetailsScreen`) without arguments. If compulsory fee payment mode is on and that child has `isFeePaymentDue`, the tap opens `Routes.feesDetails` for the child instead.
+- `ChildDetailsScreen` lists the child's subjects (the app-wide `ChildSubjectsCubit` → `ParentRepository`, GET `parent/subjects`, fetched again when the child changes) and a menu built in `lib/ui/widgets/childInformationItemsContainer.dart`: assignments, teachers, attendance, timetable, academic calendar, exams, results, reports, fees and manage leaves.
+- Each of these screens is opened with `childRoute()` (`lib/app/selectedChild.dart`): the child switcher (a bar above the screen on a phone or tablet, a list beside it on a desktop; none with one child) around a `SelectedChildScope` that builds the screen afresh, with new cubits, when another child is picked. The screens send the selected child's id as `child_id`, and every request carries the child's school as `X-School-Id`. On the server, the routes inside the `CheckChild` middleware group reject a `child_id` that is not one of the parent's children with `error: true`, `code: 105`, message `Invalid Child ID Passed.` (see [API-Parent](API-Parent)). Because the app maps code `105` to the `examOnlineAttended` label, that rejection is displayed as "Student already attempted exam" (English text).
 
 Parents reach chat through a floating action button on `ParentHomeScreen` (opens `ChatUsersScreen`), and their own profile through `Routes.parentProfile`.
 
@@ -90,6 +90,11 @@ All route names from `Routes` in [e-school/lib/app/routes.dart](https://github.c
 | `privacyPolicy` | `/privacyPolicy` | `PrivacyPolicyScreen` | `privacyPolicyScreen.dart` |
 | `termsAndCondition` | `/termsAndCondition` | `TermsAndConditionScreen` | `termsAndConditionScreen.dart` |
 | `contactUs` | `/contactUs` | `ContactUsScreen` | `contactUsScreen.dart` |
+| `notificationSettings` | `/notifications/settings` | `NotificationSettingsScreen` (`eschool_notifications`) | `lib/app/sharedScreens.dart` |
+| `approvals` | `/approvals` | `ApprovalsScreen` (`eschool_people`) | `lib/app/sharedScreens.dart` |
+| `invitation` | `/invite` (link `/invite/<token>`) | `InvitationScreen` (`eschool_people`) | `lib/app/sharedScreens.dart` |
+| `mySchool` | `/my-school` | `MySchoolScreen` (`eschool_people`) | `lib/app/sharedScreens.dart` |
+| `profilePicture` | `/profile-picture` | `AvatarScreen` (`eschool_people`) | `lib/app/sharedScreens.dart` |
 
 `Routes.currentRoute` holds the last generated route name; the chat notification handler uses it to avoid stacking two chat screens.
 
@@ -105,10 +110,10 @@ All route names from `Routes` in [e-school/lib/app/routes.dart](https://github.c
 | `AuthScreen`, `StudentLoginScreen`, `ParentLoginScreen` | `SignInCubit`, `AuthCubit`, `RequestResetPasswordCubit` / `ForgotPasswordRequestCubit`, `AppConfigurationCubit` | `AuthRepository`, `SettingsRepository` | See [login](#login-and-the-two-user-types). |
 | `ParentPolicyScreen` | `AuthCubit` | `PolicyRepository`, `AuthRepository` | GET and POST `parent/policy-acceptance`. NavigateEd, then the school's pages. Profile fetch and `ParentHomeScreen` only after both are accepted. |
 | `HomeScreen` (student) | `AppConfigurationCubit`, `AssignmentsCubit`, `AssignmentsTabSelectionCubit`, `AttendanceCubit`, `ChatUsersCubit`, `EventsCubit`, `ResultsCubit`, `SemestersCubit`, `StudentParentDetailsCubit`, `TimeTableCubit`, `AcademicCalendarCubit` | `StudentRepository`, `AssignmentRepository`, `SystemRepository`, `SettingsRepository` | `HomeContainer` reads `StudentDashboardCubit` (GET `student/dashboard`). |
-| `ParentHomeScreen` | `AppConfigurationCubit`, `AuthCubit`, `ChatUsersCubit`, `NoticeBoardCubit`, `SlidersCubit`, `UserProfileCubit`, gallery Cubits | `AuthRepository`, `SystemRepository`, `SettingsRepository` | Sliders from GET `sliders`. |
+| `ParentHomeScreen` | `AppConfigurationCubit`, `AuthCubit`, `ChatUsersCubit`, `NoticeBoardCubit`, `SlidersCubit`, `UserProfileCubit`, `ChildSelectionCubit`, `SchoolSelectionCubit`, gallery Cubits | `AuthRepository`, `SystemRepository`, `SettingsRepository` | Sliders from GET `sliders`. The school switcher in the header for a parent at more than one school. |
 | `StudentProfileScreen` | `AuthCubit`, `AppConfigurationCubit`, `DownloadIdCardCubit` | `SystemRepository` | ID card download. |
 | `ParentProfileScreen`, `ParentProfileContainer` | `AuthCubit`, `StudentParentDetailsCubit` | `StudentRepository` | Student's view of their guardians uses GET `student/parent-details`. |
-| `SettingsContainer` / `SettingsScreen` | `AppConfigurationCubit`, `AppLocalizationCubit`, `ChangePasswordCubit` | `AuthRepository` | Notifications (parents), fees (students allowed to pay) or fee transactions (parents), manage leaves, language, change password (POST `change-password`), privacy/terms/about/contact, rate/share (open the store link), app version (the server value). |
+| `SettingsContainer` / `SettingsScreen` | `AppConfigurationCubit`, `AppLocalizationCubit`, `ChangePasswordCubit` | `AuthRepository` | Notifications (parents), Notifications settings, Approvals (parents), My school and Profile picture (each shown once the server answers its endpoint; see [Mobile-Apps-Overview](Mobile-Apps-Overview#shared-screens)), fees (students allowed to pay) or fee transactions (parents), manage leaves, language, change password (POST `change-password`), privacy/terms/about/contact, rate/share (open the store link), app version (the server value). |
 | `AboutUsScreen`, `PrivacyPolicyScreen`, `TermsAndConditionScreen`, `ContactUsScreen` | `AppSettingsCubit` | `SystemRepository` | GET `settings?type=about_us|privacy_policy|terms_condition|contact_us`, rendered with `flutter_html`. |
 | `SelectSubjectsScreen` | `ClassElectiveSubjectsCubit`, `SelectElectiveSubjectsCubit`, `StudentDashboardCubit`, `AuthCubit` | `ClassRepository`, `StudentRepository` | Elective subjects: GET `student/class-subjects`, POST `student/select-subjects`. |
 
@@ -158,7 +163,7 @@ Leave status values in the app: `0` pending, `1` accepted, `2` rejected.
 
 `NotificationScreen` uses `NotificationsCubit` with `StudentRepository` (GET `student/get-notification`) or `ParentRepository` (GET `parent/get-notification`), paged with `page`. Notification images are loaded from `storageUrl + image`. The unread count shown on the bell (`notificationCountValueNotifier`) comes from SharedPreferences and is reset to 0 on login.
 
-Push notification tap targets (`NotificationUtility._onTapNotificationScreenNavigateCallback`):
+Push notification tap targets (`onNotificationTap` in `lib/utils/notificationConfig.dart`). A payload with `link` opens that path instead, after switching to its `school_id` ([Mobile-Apps-Overview](Mobile-Apps-Overview#links-into-the-app)):
 
 | `type` in payload | Opens |
 |---|---|
@@ -166,7 +171,7 @@ Push notification tap targets (`NotificationUtility._onTapNotificationScreenNavi
 | `assignment` | Assignments tab of `HomeScreen` |
 | `custom` | `Routes.notifications` |
 | `Online` | `Routes.feesTransaction` |
-| `fees-due` | `Routes.feesDetails` with `childId` from the payload's `child_id` |
+| `fees-due` | Selects the child in the payload's `child_id`, then `Routes.feesDetails` for that child |
 | `chat` | `Routes.chatMessages` for the sender in `sender_info` |
 
 On Android, local notifications are only created by the app (data messages); on iOS the system displays the `notification` block. See [Notifications](Notifications) for the server side.

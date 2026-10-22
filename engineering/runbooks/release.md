@@ -12,6 +12,7 @@ How a phase (or a hot fix) gets to production. The ten steps below run in order:
 - [ ] `CHANGELOG.md`: the Unreleased section becomes `## vX.Y.Z (YYYY-MM-DD)`, with a fresh empty Unreleased above it.
 - [ ] Appendices A, B and E, the wiki and the user docs updated.
 - [ ] `main` is green and staging runs the commit you will tag.
+- [ ] App links (once per signing key, then whenever it changes): in `e-school/web/well-known/assetlinks.json` and `e-school-teacher/web/well-known/assetlinks.json` (Hosting serves them at `/.well-known/`), `RELEASE_SIGNING_SHA256_FINGERPRINT` is replaced by the SHA-256 of the key that signs the store build (Play Console > App integrity > App signing key certificate; add the upload key's too if internal builds are side-loaded); in both `apple-app-site-association` files `APPLE_TEAM_ID` is replaced by the team id, and Associated Domains is on for both App IDs in the Apple developer account. Check after the deploy: `curl -s https://app.navigateed.co.za/.well-known/assetlinks.json` answers the file, and `apple-app-site-association` answers `Content-Type: application/json`. See [Mobile-App-Configuration](../../wiki/Mobile-App-Configuration.md#deep-links).
 
 ## Steps
 

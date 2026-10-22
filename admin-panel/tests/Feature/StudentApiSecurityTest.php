@@ -11,6 +11,7 @@ use App\Models\StudentSubject;
 use App\Models\User;
 use App\Services\OnlineExamScoringService;
 use App\Services\ParentPolicyService;
+use App\Services\Platform\Tenancy\SchoolTable;
 use Illuminate\Http\Client\PendingRequest;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -335,7 +336,7 @@ class StudentApiSecurityTest extends TestCase
     private function seedSchool(): void
     {
         $now = now();
-        $sessionYear = $this->ids['session_year'] = DB::table('session_years')->insertGetId([
+        $sessionYear = $this->ids['session_year'] = SchoolTable::query('session_years')->insertGetId([
             'name' => 'Current', 'start_date' => $now->copy()->subMonths(2)->toDateString(), 'end_date' => $now->copy()->addMonths(8)->toDateString(),
             'fee_due_date' => $now->copy()->addDays(30)->toDateString(), 'fee_due_charges' => 0, 'created_at' => $now, 'updated_at' => $now,
         ]);
@@ -351,19 +352,19 @@ class StudentApiSecurityTest extends TestCase
             Settings::updateOrCreate(['type' => $type], ['message' => $message]);
         }
 
-        $medium = DB::table('mediums')->insertGetId(['name' => 'English']);
-        $class = $this->ids['class'] = DB::table('classes')->insertGetId(['name' => 'Grade 5', 'medium_id' => $medium]);
-        $otherClass = DB::table('classes')->insertGetId(['name' => 'Grade 6', 'medium_id' => $medium]);
-        $sectionA = DB::table('sections')->insertGetId(['name' => 'A']);
-        $sectionB = DB::table('sections')->insertGetId(['name' => 'B']);
-        $mySection = DB::table('class_sections')->insertGetId(['class_id' => $class, 'section_id' => $sectionA]);
-        $otherSection = DB::table('class_sections')->insertGetId(['class_id' => $class, 'section_id' => $sectionB]);
-        $category = DB::table('categories')->insertGetId(['name' => 'General']);
+        $medium = SchoolTable::query('mediums')->insertGetId(['name' => 'English']);
+        $class = $this->ids['class'] = SchoolTable::query('classes')->insertGetId(['name' => 'Grade 5', 'medium_id' => $medium]);
+        $otherClass = SchoolTable::query('classes')->insertGetId(['name' => 'Grade 6', 'medium_id' => $medium]);
+        $sectionA = SchoolTable::query('sections')->insertGetId(['name' => 'A']);
+        $sectionB = SchoolTable::query('sections')->insertGetId(['name' => 'B']);
+        $mySection = SchoolTable::query('class_sections')->insertGetId(['class_id' => $class, 'section_id' => $sectionA]);
+        $otherSection = SchoolTable::query('class_sections')->insertGetId(['class_id' => $class, 'section_id' => $sectionB]);
+        $category = SchoolTable::query('categories')->insertGetId(['name' => 'General']);
 
         $parentUser = $this->user('parent@example.com', 'Parent');
         ParentPolicyService::acceptCurrent($parentUser);
         $this->ids['parent_user'] = $parentUser->id;
-        $this->ids['parent'] = DB::table('parents')->insertGetId([
+        $this->ids['parent'] = SchoolTable::query('parents')->insertGetId([
             'user_id' => $parentUser->id, 'first_name' => 'Pat', 'last_name' => 'Parent', 'gender' => 'Male',
             'email' => 'parent@example.com', 'mobile' => '0000000000', 'occupation' => 'None',
         ]);
@@ -373,49 +374,49 @@ class StudentApiSecurityTest extends TestCase
 
         // Subjects: Maths (core), Art/Music (pick one), Science (another class's core).
         foreach (['maths' => 'Theory', 'art' => 'Practical', 'music' => 'Practical', 'other_class' => 'Theory'] as $name => $type) {
-            $this->ids['subject_'.$name] = DB::table('subjects')->insertGetId(['name' => ucfirst($name), 'bg_color' => '#fff', 'image' => 'x.png', 'medium_id' => $medium, 'type' => $type]);
+            $this->ids['subject_'.$name] = SchoolTable::query('subjects')->insertGetId(['name' => ucfirst($name), 'bg_color' => '#fff', 'image' => 'x.png', 'medium_id' => $medium, 'type' => $type]);
         }
-        DB::table('class_subjects')->insert(['session_year_id' => $sessionYear, 'class_id' => $class, 'type' => 'Compulsory', 'subject_id' => $this->ids['subject_maths']]);
-        DB::table('class_subjects')->insert(['session_year_id' => $sessionYear, 'class_id' => $otherClass, 'type' => 'Compulsory', 'subject_id' => $this->ids['subject_other_class']]);
-        $group = $this->ids['elective_group'] = DB::table('elective_subject_groups')->insertGetId(['session_year_id' => $sessionYear, 'total_subjects' => 2, 'total_selectable_subjects' => 1, 'class_id' => $class]);
+        SchoolTable::query('class_subjects')->insert(['session_year_id' => $sessionYear, 'class_id' => $class, 'type' => 'Compulsory', 'subject_id' => $this->ids['subject_maths']]);
+        SchoolTable::query('class_subjects')->insert(['session_year_id' => $sessionYear, 'class_id' => $otherClass, 'type' => 'Compulsory', 'subject_id' => $this->ids['subject_other_class']]);
+        $group = $this->ids['elective_group'] = SchoolTable::query('elective_subject_groups')->insertGetId(['session_year_id' => $sessionYear, 'total_subjects' => 2, 'total_selectable_subjects' => 1, 'class_id' => $class]);
         foreach (['art', 'music'] as $name) {
-            DB::table('class_subjects')->insert(['session_year_id' => $sessionYear, 'class_id' => $class, 'type' => 'Elective', 'subject_id' => $this->ids['subject_'.$name], 'elective_subject_group_id' => $group]);
+            SchoolTable::query('class_subjects')->insert(['session_year_id' => $sessionYear, 'class_id' => $class, 'type' => 'Elective', 'subject_id' => $this->ids['subject_'.$name], 'elective_subject_group_id' => $group]);
         }
 
         // Teachers: one teaches the student Maths, one only the other section.
         foreach (['teacher' => $mySection, 'other_teacher' => $otherSection] as $who => $section) {
             $user = $this->user($who.'@example.com', 'Teacher');
             $this->ids[$who.'_user'] = $user->id;
-            $teacher = DB::table('teachers')->insertGetId(['user_id' => $user->id, 'qualification' => 'BEd']);
-            DB::table('subject_teachers')->insert(['session_year_id' => $sessionYear, 'class_section_id' => $section, 'subject_id' => $this->ids['subject_maths'], 'teacher_id' => $teacher]);
+            $teacher = SchoolTable::query('teachers')->insertGetId(['user_id' => $user->id, 'qualification' => 'BEd']);
+            SchoolTable::query('subject_teachers')->insert(['session_year_id' => $sessionYear, 'class_section_id' => $section, 'subject_id' => $this->ids['subject_maths'], 'teacher_id' => $teacher]);
         }
 
         // Online exams: one for the student's section, one for the other section.
         $this->ids['exam'] = $this->exam($mySection, '4321', $sessionYear);
         $question = $this->question($class, 'Pick the even numbers', ['multi_a' => true, 'multi_b' => true, 'multi_wrong' => false]);
-        $this->ids['choice_multi'] = DB::table('online_exam_question_choices')->insertGetId(['online_exam_id' => $this->ids['exam'], 'question_id' => $question, 'marks' => 2]);
+        $this->ids['choice_multi'] = SchoolTable::query('online_exam_question_choices')->insertGetId(['online_exam_id' => $this->ids['exam'], 'question_id' => $question, 'marks' => 2]);
         $question = $this->question($class, 'Pick the prime', ['single_right' => true, 'single_wrong' => false]);
-        $this->ids['choice_single'] = DB::table('online_exam_question_choices')->insertGetId(['online_exam_id' => $this->ids['exam'], 'question_id' => $question, 'marks' => 3]);
+        $this->ids['choice_single'] = SchoolTable::query('online_exam_question_choices')->insertGetId(['online_exam_id' => $this->ids['exam'], 'question_id' => $question, 'marks' => 3]);
 
         $this->ids['other_exam'] = $this->exam($otherSection, '1111', $sessionYear);
         $question = $this->question($class, 'Other exam', ['other_option' => true]);
-        $this->ids['other_choice'] = DB::table('online_exam_question_choices')->insertGetId(['online_exam_id' => $this->ids['other_exam'], 'question_id' => $question, 'marks' => 1]);
+        $this->ids['other_choice'] = SchoolTable::query('online_exam_question_choices')->insertGetId(['online_exam_id' => $this->ids['other_exam'], 'question_id' => $question, 'marks' => 1]);
 
         // Fees: an optional fee for the class.
-        $this->ids['fee_sports'] = DB::table('fees_types')->insertGetId(['name' => 'Sports']);
-        DB::table('fees_classes')->insert(['session_year_id' => $sessionYear, 'class_id' => $class, 'fees_type_id' => $this->ids['fee_sports'], 'choiceable' => 1, 'amount' => 200]);
+        $this->ids['fee_sports'] = SchoolTable::query('fees_types')->insertGetId(['name' => 'Sports']);
+        SchoolTable::query('fees_classes')->insert(['session_year_id' => $sessionYear, 'class_id' => $class, 'fees_type_id' => $this->ids['fee_sports'], 'choiceable' => 1, 'amount' => 200]);
 
         // Lessons, assignments and announcements of each section.
         foreach (['lesson' => $mySection, 'other_lesson' => $otherSection] as $key => $section) {
-            $this->ids[$key] = DB::table('lessons')->insertGetId(['name' => $key, 'class_section_id' => $section, 'subject_id' => $this->ids['subject_maths']]);
-            DB::table('lesson_topics')->insert(['lesson_id' => $this->ids[$key], 'name' => $key.' topic']);
+            $this->ids[$key] = SchoolTable::query('lessons')->insertGetId(['name' => $key, 'class_section_id' => $section, 'subject_id' => $this->ids['subject_maths']]);
+            SchoolTable::query('lesson_topics')->insert(['lesson_id' => $this->ids[$key], 'name' => $key.' topic']);
         }
-        $this->ids['other_assignment'] = DB::table('assignments')->insertGetId([
+        $this->ids['other_assignment'] = SchoolTable::query('assignments')->insertGetId([
             'class_section_id' => $otherSection, 'subject_id' => $this->ids['subject_maths'], 'name' => 'Homework',
             'due_date' => $now->copy()->addDays(3), 'session_year_id' => $sessionYear,
         ]);
         foreach ([['Notice', '', null], ['For my class', 'App\Models\ClassSchool', $class], ['For another class', 'App\Models\ClassSchool', $otherClass], ['Other section', 'App\Models\ClassSection', $otherSection]] as [$title, $type, $id]) {
-            DB::table('announcements')->insert(['title' => $title, 'description' => $title, 'table_type' => $type, 'table_id' => $id, 'session_year_id' => $sessionYear, 'created_at' => $now]);
+            SchoolTable::query('announcements')->insert(['title' => $title, 'description' => $title, 'table_type' => $type, 'table_id' => $id, 'session_year_id' => $sessionYear, 'created_at' => $now]);
         }
     }
 
@@ -424,11 +425,11 @@ class StudentApiSecurityTest extends TestCase
     {
         $user = $this->user($grNumber, 'Student');
         $user->forceFill(['dob' => '2012-05-01'])->save();
-        $studentId = DB::table('students')->insertGetId([
+        $studentId = SchoolTable::query('students')->insertGetId([
             'user_id' => $user->id, 'class_section_id' => $classSectionId, 'category_id' => $categoryId, 'admission_no' => $grNumber,
             'admission_date' => now()->toDateString(), 'father_id' => $this->ids['parent'],
         ]);
-        DB::table('student_sessions')->insert(['student_id' => $studentId, 'class_section_id' => $classSectionId, 'session_year_id' => $this->ids['session_year'], 'status' => 1]);
+        SchoolTable::query('student_sessions')->insert(['student_id' => $studentId, 'class_section_id' => $classSectionId, 'session_year_id' => $this->ids['session_year'], 'status' => 1]);
 
         return [$user->id, $studentId];
     }
@@ -446,7 +447,7 @@ class StudentApiSecurityTest extends TestCase
 
     private function exam(int $classSectionId, string $key, int $sessionYear): int
     {
-        return DB::table('online_exams')->insertGetId([
+        return SchoolTable::query('online_exams')->insertGetId([
             'model_type' => 'App\Models\ClassSection', 'model_id' => $classSectionId, 'subject_id' => $this->ids['subject_maths'],
             'title' => 'Quiz', 'exam_key' => $key, 'duration' => 30, 'session_year_id' => $sessionYear,
             'start_date' => now()->subHour(), 'end_date' => now()->addHour(),
@@ -457,11 +458,11 @@ class StudentApiSecurityTest extends TestCase
     private function question(int $classId, string $text, array $options): int
     {
         $classSubject = DB::table('class_subjects')->where('class_id', $classId)->value('id');
-        $question = DB::table('online_exam_questions')->insertGetId(['class_subject_id' => $classSubject, 'question_type' => 0, 'question' => $text]);
+        $question = SchoolTable::query('online_exam_questions')->insertGetId(['class_subject_id' => $classSubject, 'question_type' => 0, 'question' => $text]);
         foreach ($options as $name => $correct) {
-            $this->ids[$name] = DB::table('online_exam_question_options')->insertGetId(['question_id' => $question, 'option' => $name]);
+            $this->ids[$name] = SchoolTable::query('online_exam_question_options')->insertGetId(['question_id' => $question, 'option' => $name]);
             if ($correct) {
-                DB::table('online_exam_question_answers')->insert(['question_id' => $question, 'answer' => $this->ids[$name]]);
+                SchoolTable::query('online_exam_question_answers')->insert(['question_id' => $question, 'answer' => $this->ids[$name]]);
             }
         }
 

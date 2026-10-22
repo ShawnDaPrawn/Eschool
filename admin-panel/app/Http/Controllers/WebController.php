@@ -15,6 +15,7 @@ use App\Models\Holiday;
 use App\Models\Media;
 use App\Models\MediaFile;
 use App\Models\Parents;
+use App\Models\Platform\Role;
 use App\Models\SessionYear;
 use App\Models\Slider;
 use App\Models\Students;
@@ -31,7 +32,6 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
-use Spatie\Permission\Models\Role;
 use Throwable;
 
 class WebController extends Controller

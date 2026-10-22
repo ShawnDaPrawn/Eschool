@@ -1,3 +1,4 @@
+import 'package:eschool/app/selectedChild.dart';
 import 'package:eschool/cubits/childTeachersCubit.dart';
 import 'package:eschool/data/models/teacher.dart';
 import 'package:eschool/data/repositories/parentRepository.dart';
@@ -17,11 +18,15 @@ class ChildTeachersScreen extends StatefulWidget {
   @override
   State<ChildTeachersScreen> createState() => _ChildTeachersScreenState();
 
+  /// The teachers of the child picked in the child switcher.
   static Route route(RouteSettings routeSettings) {
-    return AdaptivePageRoute(
-      builder: (_) => BlocProvider<ChildTeachersCubit>(
-        create: (context) => ChildTeachersCubit(ParentRepository()),
-        child: ChildTeachersScreen(childId: routeSettings.arguments! as int),
+    return childRoute(
+      (context, child) => withChild(
+        child,
+        (child) => BlocProvider<ChildTeachersCubit>(
+          create: (context) => ChildTeachersCubit(ParentRepository()),
+          child: ChildTeachersScreen(childId: child.id),
+        ),
       ),
     );
   }
