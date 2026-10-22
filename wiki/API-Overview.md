@@ -22,12 +22,12 @@ The API is part of the same Laravel application as the admin panel and the publi
 
 The Flutter apps hard-code the server address in one constant each:
 
-| App | File | Constants |
+| App | Where the address comes from | Names in the code |
 | --- | --- | --- |
-| Student/parent (`e-school`) | [`lib/utils/constants.dart`](https://github.com/ShawnDaPrawn/Eschool/blob/main/e-school/lib/utils/constants.dart) | `baseUrl = 'https://navigateed-admin-972068206844.africa-south1.run.app'`, `databaseUrl = '$baseUrl/api/'`, `storageUrl = '$baseUrl/storage/'` |
-| Teacher (`e-school-teacher`) | [`lib/utils/constants.dart`](https://github.com/ShawnDaPrawn/Eschool/blob/main/e-school-teacher/lib/utils/constants.dart) | same three constants |
+| Student/parent (`e-school`) | the `API_BASE_URL` build setting (`--dart-define`, or `config/staging.json` / `config/production.json`), read by `AppConfig` in `eschool_core`; no define means `https://navigateed-admin-972068206844.africa-south1.run.app` | `baseUrl`, `databaseUrl = '$baseUrl/api/'`, `storageUrl = '$baseUrl/storage/'` in `lib/utils/constants.dart`, mapped from `AppConfig` |
+| Teacher (`e-school-teacher`) | the same | the same three names |
 
-`baseUrl` must not end with `/`. Every endpoint is then a static string in the `Api` class of `lib/utils/api.dart`, for example `static String studentLogin = '${databaseUrl}student/login';`. Uploaded files are served from `/storage/...` (the public disk); the apps prefix relative paths with `storageUrl`, while some endpoints (chat attachments, gallery) already return absolute URLs built with `asset()`. Click-by-click setup of `baseUrl` is in the end-user docs: https://shawndaprawn.github.io/Eschool/mobile-app/integrate-admin-panel/ . See also [Mobile-App-Configuration](Mobile-App-Configuration).
+`API_BASE_URL` must not end with `/` ([Mobile-App-Configuration](Mobile-App-Configuration#build-settings)). Every endpoint is then a static string in the `Api` class of `lib/utils/api.dart`, for example `static String studentLogin = '${databaseUrl}student/login';`. Uploaded files are served from `/storage/...` (the public disk); the apps prefix relative paths with `storageUrl`, while some endpoints (chat attachments, gallery) already return absolute URLs built with `asset()`. Click-by-click setup of `baseUrl` is in the end-user docs: https://shawndaprawn.github.io/Eschool/mobile-app/integrate-admin-panel/ . See also [Mobile-App-Configuration](Mobile-App-Configuration).
 
 ## Route groups
 

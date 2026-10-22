@@ -261,7 +261,7 @@ A payment left pending on a removed gateway can no longer be confirmed by its we
 
 - [Notifications](Notifications)
 - [API-Student](API-Student), [API-Parent](API-Parent)
-- [Admin-Modules](Admin-Modules#fees)
+- [Admin-Panel-Overview](Admin-Panel-Overview)
 - [Configuration](Configuration)
 - [Security-Model](Security-Model)
 - [Database-Schema](Database-Schema)

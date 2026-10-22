@@ -279,5 +279,5 @@ In order:
 - [Exams and Grading](Exams-and-Grading)
 - [API Student](API-Student)
 - [API Parent](API-Parent)
-- [Admin Modules](Admin-Modules)
+- [Admin-Panel-Overview](Admin-Panel-Overview)
 - [Glossary](Glossary)

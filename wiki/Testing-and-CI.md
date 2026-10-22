@@ -2,7 +2,7 @@ This page covers the automated checks in the repository: the GitHub Actions work
 
 ## GitHub Actions workflow
 
-All checks live in one workflow, [.github/workflows/ci.yml](https://github.com/ShawnDaPrawn/Eschool/blob/main/.github/workflows/ci.yml) (name `CI`).
+The checks every change must pass live in one workflow, [.github/workflows/ci.yml](https://github.com/ShawnDaPrawn/Eschool/blob/main/.github/workflows/ci.yml) (name `CI`). The secret scan, the wiki sync, the deploys and the k6 smoke test have workflows of their own ([Other workflows](#other-workflows)).
 
 | Setting | Value |
 |---|---|
@@ -12,14 +12,18 @@ All checks live in one workflow, [.github/workflows/ci.yml](https://github.com/S
 
 ```mermaid
 flowchart LR
-    T["push to main / pull request / weekly / manual"] --> A["admin-panel: PHP 8.3 + MariaDB 10.11"]
+    T["push to main / pull request / weekly / manual"] --> A["admin-panel: PHP 8.3 + MariaDB 10.11<br/>Larastan, caches, PHPUnit"]
+    T --> P["playwright: panel in Chromium<br/>demo school, every page, axe"]
     T --> O["openapi: Redocly lint of openapi.yaml"]
-    T --> B["apps: Flutter 3.44.9 matrix (e-school, e-school-teacher, packages/eschool_core, packages/eschool_api)"]
+    T --> B["apps: Flutter 3.44.9 analyze + test<br/>both apps and the four packages"]
+    T --> W["apps-web: flutter build web<br/>both apps, staging settings"]
+    T --> SA["apps-smoke-android: integration_test<br/>on an Android 14 emulator"]
+    T --> SC["apps-smoke-chrome: learner, parent and<br/>teacher flows in headless Chrome"]
     T --> C["docs: Node 22, npm run build"]
-    T --> D["security-audit: composer audit + npm audit"]
+    T --> D["security-audit: composer audit,<br/>npm audit, dart pub outdated"]
 ```
 
-The five jobs run in parallel and do not depend on each other. A separate workflow, [wiki.yml](https://github.com/ShawnDaPrawn/Eschool/blob/main/.github/workflows/wiki.yml), publishes this wiki (see [Contributing](Contributing#editing-this-wiki)).
+The nine jobs run in parallel and do not depend on each other; a red job blocks the merge. A separate workflow, [wiki.yml](https://github.com/ShawnDaPrawn/Eschool/blob/main/.github/workflows/wiki.yml), publishes this wiki (see [Contributing](Contributing#editing-this-wiki)).
 
 ### `admin-panel`: Admin panel (PHP tests)
 
@@ -47,13 +51,25 @@ Runs in `admin-panel/` with Node 22: `npx --yes @redocly/cli@2.57.0 lint openapi
 
 ### `apps`: Flutter app (matrix)
 
-A matrix over `app: [e-school, e-school-teacher, packages/eschool_core, packages/eschool_api]` with `fail-fast: false`, so a failure in one app does not cancel the others. The third leg is the shared package both apps depend on (see [Repository-Layout](Repository-Layout#packageseschool_core)); the fourth is the Dart client generated from `admin-panel/openapi.yaml`. Each leg runs in its own folder:
+A matrix over `app: [e-school, e-school-teacher, packages/eschool_core, packages/eschool_api, packages/eschool_session, packages/eschool_notifications]` with `fail-fast: false`, so a failure in one leg does not cancel the others. `eschool_core` is the shared code both apps depend on (see [Repository-Layout](Repository-Layout#packageseschool_core)); `eschool_api` is the Dart client generated from `admin-panel/openapi.yaml`; `eschool_session` holds sign-in, `/me/context`, force update and deep links; `eschool_notifications` holds push and local notifications. Each leg runs in its own folder:
 
 1. `subosito/flutter-action@v2` with `flutter-version: '3.44.9'`, `channel: stable`, `cache: true`.
 2. `flutter pub get --enforce-lockfile` – fails if `pubspec.lock` does not match `pubspec.yaml`. The apps and the shared package commit their `pubspec.lock` (commit [dd3df94](https://github.com/ShawnDaPrawn/Eschool/commit/dd3df94)), pinned to what was resolved and analysed with Flutter 3.44.9.
 3. `packages/eschool_api` only: `actions/setup-java@v4` (Temurin 21), then **Generated client matches openapi.yaml**: `tool/generate.sh` regenerates the package and the step fails if `git status --porcelain` shows any change, so a spec change without the regenerated client (or a hand edit to `lib/`) fails.
 4. `flutter analyze --no-fatal-infos` – errors and warnings fail the job; style-only "info" lints are reported but do not.
 5. `flutter test` – the tests in each app's `test/` folder.
+
+### `apps-web`: Flutter web build (matrix)
+
+A matrix over `app: [e-school, e-school-teacher]`: `flutter pub get --enforce-lockfile`, then `flutter build web --release --dart-define-from-file=config/staging.json`, the same build the deploy workflow makes for the portals.
+
+### `apps-smoke-android`: Flutter smoke flows on Android (matrix)
+
+A matrix over `app: [e-school, e-school-teacher]`, 45-minute limit. With KVM switched on and Java 17, `reactivecircus/android-emulator-runner` starts an API 34 `google_apis` emulator (Pixel 6 profile, x86_64) and runs `flutter test integration_test`: each profile's smoke flow (sign in, land on Home, open one screen) against the fake API in `integration_test/support/` (no server).
+
+### `apps-smoke-chrome`: Flutter smoke flow in Chrome (matrix)
+
+One leg per flow: `learner_smoke_test.dart` and `parent_smoke_test.dart` in `e-school`, `teacher_smoke_test.dart` in `e-school-teacher`, 30-minute limit. It starts the runner's chromedriver on port 4444 and runs `flutter drive --driver=test_driver/integration_test.dart --target=integration_test/<flow> -d web-server --browser-name=chrome --headless --no-web-resources-cdn`.
 
 ### `docs`: Documentation build
 
@@ -84,6 +100,17 @@ Runs from `admin-panel/` with its own MariaDB 10.11 service (database `eschool_e
 5. `npx playwright test`. On failure the HTML report, traces and `storage/logs` are uploaded as the `playwright-report` artifact (kept 14 days).
 
 See [Playwright (admin panel)](#playwright-admin-panel) for what it checks.
+
+### Other workflows
+
+| Workflow | Triggers | What it does |
+|---|---|---|
+| [security.yml](https://github.com/ShawnDaPrawn/Eschool/blob/main/.github/workflows/security.yml) (`gitleaks`) | push to `main`, every pull request, Mondays 04:41 UTC, manual | Secret scan of the whole history with gitleaks and `.gitleaks.toml`; a finding fails the check (`engineering/security/phase-0.md`) |
+| [wiki.yml](https://github.com/ShawnDaPrawn/Eschool/blob/main/.github/workflows/wiki.yml) (`publish`) | push to `main` that changes `wiki/`, manual | Copies `wiki/` to the repository's Wiki tab |
+| [deploy-staging.yml](https://github.com/ShawnDaPrawn/Eschool/blob/main/.github/workflows/deploy-staging.yml) | push to `main` (when the repository variable `STAGING_DEPLOY_ENABLED` is `true`), manual | Calls `deploy-environment.yml` for `staging` |
+| [deploy-production.yml](https://github.com/ShawnDaPrawn/Eschool/blob/main/.github/workflows/deploy-production.yml) (`check`, `deploy`) | a `v*` tag, manual | Checks the ref is a `v*` tag, then calls `deploy-environment.yml` for `production` with a backup first, after a reviewer approves the `production` environment |
+| [deploy-environment.yml](https://github.com/ShawnDaPrawn/Eschool/blob/main/.github/workflows/deploy-environment.yml) (`deploy`, `smoke`) | called by the two above | Builds and pushes the image, deploys the panel, the worker and the scheduler job, builds the web portals, deploys Firebase Hosting (docs and portals), then smoke-tests the panel, API, worker and portals ([Deployment](Deployment)) |
+| [k6-smoke.yml](https://github.com/ShawnDaPrawn/Eschool/blob/main/.github/workflows/k6-smoke.yml) (`k6`) | manual | Runs `engineering/perf/k6-smoke.js` against an environment with the Bible's p95 budgets |
 
 ## Admin panel test setup
 

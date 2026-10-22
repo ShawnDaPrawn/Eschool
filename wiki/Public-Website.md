@@ -55,7 +55,7 @@ The layout is `web/master.blade.php` with `web/header.blade.php` and `web/footer
 | `ContactUs` (`contact_us`) | `first_name`, `last_name`, `email`, `phone`, `message` (1024), `date` | Filled by the public form; read in Web Settings > Contact Us |
 | `Media` (`medias`) | `name`, `type` (1 image album, 2 video), `thumbnail`, `youtube_url`, `session_year_id`; appends `embeded_url` (`embedUrl` and `thumbnailUrl` built from the YouTube id) | Gallery > Photos / Videos |
 | `MediaFile` (`media_files`) | `media_id` (FK, cascade), `file_url` | Images inside an album |
-| `Event`, `MultipleEvent`, `Holiday` | see [Admin-Modules](Admin-Modules#events) | Events, Holiday List |
+| `Event`, `MultipleEvent`, `Holiday` | see [Admin-Panel-Overview](Admin-Panel-Overview) | Events, Holiday List |
 
 The `web_settings` rows are seeded by migrations, not created in the UI: `about_us`, `who_we_are`, `teacher`, `events`, `programs`, `photos`, `videos`, `faqs`, `app`, `question` (in `2024_02_02_111843_create_all_tables.php`, with placeholder text and image paths `websettings/content/aboutus.png` and `whoweare.png`) and `registration` (in `2024_09_05_121951_create_3.3.0_version.php`). The `status` column was added by `2024_03_12_135926_add_column_type_in_events_table.php` with default 1. The seeded image files are not in the repository, so a fresh install shows broken About/Who-we-are images until new ones are uploaded.
 
@@ -129,11 +129,10 @@ Staff then review applications in **Students > Online Registrations** (`Student\
 | Web Settings > FAQs | `faq`, `faq/store`, `faq-list`, `faq/update/{id}`, `faq/delete/{id}` | `WebSettingController` | `web_settings/faq.blade.php` | `faq-list` / `faq-create` / `faq-edit` / `faq-delete` |
 | Web Settings > Contact Us | see [Contact form](#contact-form) | `WebSettingController` | `web_settings/contact_us.blade.php` | `contact-us` |
 
-The sidebar shows Web Settings for users with any of `content-create`, `program-create`, `faq-create`, `contact-us`, and Gallery for `media-create`. Note that `contact-us` also opens the unrelated **System Settings > Contact Us** page (the app's contact text, `SettingController::contact_us_index`). The educational program delete URL really is `educational-program/delete{id}` (no slash). Full module reference: [Admin-Modules](Admin-Modules).
+The sidebar shows Web Settings for users with any of `content-create`, `program-create`, `faq-create`, `contact-us`, and Gallery for `media-create`. Note that `contact-us` also opens the unrelated **System Settings > Contact Us** page (the app's contact text, `SettingController::contact_us_index`). The educational program delete URL really is `educational-program/delete{id}` (no slash). Where these pages sit in the navigation: [Admin-Panel-Overview](Admin-Panel-Overview).
 
 ## See also
 
-- [Admin-Modules](Admin-Modules)
 - [Configuration](Configuration)
 - [Notifications](Notifications)
 - [Localization](Localization)

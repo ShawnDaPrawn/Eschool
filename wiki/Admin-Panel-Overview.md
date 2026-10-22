@@ -154,7 +154,7 @@ Route-level usage, in short (details in [Security-Model](Security-Model) and [AP
 
 | Folder | Contents |
 |---|---|
-| `app/Http/Controllers` | Controllers for the admin panel and public site, one per module (the larger modules are split into one controller per area in a sub-folder, like `Student/`, `Fees/`, `Exam/`, `Leave/` and `Classes/`; others are `SettingController`, `WebController` for the public website, `WebhookController` for the Stripe webhook, and so on; `Panel/` holds the global search and the new-year wizard). The base `Controller` also serves `GET /common/js/lang`, which returns `window.languageLabels = {...}` from `resources/lang/<code>.json` (falling back to `en.json`). See [Admin-Modules](Admin-Modules). |
+| `app/Http/Controllers` | Controllers for the admin panel and public site, one per module (the larger modules are split into one controller per area in a sub-folder, like `Student/`, `Fees/`, `Exam/`, `Leave/` and `Classes/`; others are `SettingController`, `WebController` for the public website, `WebhookController` for the Stripe webhook, and so on; `Panel/` holds the global search and the new-year wizard). The base `Controller` also serves `GET /common/js/lang`, which returns `window.languageLabels = {...}` from `resources/lang/<code>.json` (falling back to `en.json`). |
 | `app/Http/Controllers/Api` | `ApiController` (shared endpoints: settings, holidays, sliders, session years, events, gallery, forgot/change password, logout), the `Student/`, `Parent/` and `Teacher/` controllers (one per area, each role sharing an access trait). See [API-Overview](API-Overview). |
 | `app/Http/Controllers/Auth` | laravel/ui controllers using the framework's `AuthenticatesUsers` and related traits. `LoginController::authenticated()` signs out users with the `Parent` or `Student` role, because those roles may only use the apps. There is no register route. |
 | `app/Http/Middleware` | See the table above. |
@@ -388,6 +388,5 @@ Development packages (`require-dev`): `barryvdh/laravel-debugbar`, `fakerphp/fak
 - [Repository-Layout](Repository-Layout)
 - [Configuration](Configuration)
 - [Security-Model](Security-Model)
-- [Admin-Modules](Admin-Modules)
 - [API-Overview](API-Overview)
 - [Scheduled-Tasks-and-Commands](Scheduled-Tasks-and-Commands)
