@@ -177,6 +177,9 @@ class ApiNotificationSettingsRepository
   }
 }
 
+/// The key of the Notifications settings screen in `EndpointAvailability`.
+const String notificationSettingsFeature = 'notification-settings';
+
 /// Whether the server has notification settings yet: the screen's entry
 /// points are hidden until it does (for `AvailableOnly`).
 Future<bool> notificationSettingsDeployed(

@@ -114,6 +114,9 @@ class ApiApprovalsRepository implements ApprovalsRepository {
   }
 }
 
+/// The key of the Approvals screen in `EndpointAvailability`.
+const String approvalsFeature = 'approvals';
+
 /// Whether the server has guardian approvals yet (for `AvailableOnly`).
 Future<bool> approvalsDeployed(ApprovalsRepository repository) async =>
     await repository.fetch() != null;

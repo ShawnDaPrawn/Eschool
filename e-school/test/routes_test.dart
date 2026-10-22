@@ -114,6 +114,46 @@ void main() {
       );
     });
 
+    test('the shared screens have addresses, and push links name them', () {
+      expect(
+        parser.parse(Uri.parse('https://app.navigateed.co.za/my-school')),
+        const DeepLinkTarget(Routes.mySchool),
+      );
+      expect(
+        parser.parsePath('/notifications/settings'),
+        const DeepLinkTarget(Routes.notificationSettings),
+      );
+      expect(
+        parser.parsePath('/approvals'),
+        const DeepLinkTarget(Routes.approvals),
+      );
+      expect(
+        parser.parse(Uri.parse('https://app.navigateed.co.za/invite/t0k3n')),
+        const DeepLinkTarget(Routes.invitation, arguments: 't0k3n'),
+      );
+      expect(
+        parser.parsePath('/profile-picture'),
+        const DeepLinkTarget(Routes.profilePicture),
+      );
+      // The notifications list keeps its address.
+      expect(
+        parser.parsePath('/notifications'),
+        const DeepLinkTarget(Routes.notifications),
+      );
+    });
+
+    test('the shared screens open as routes', () {
+      for (final String name in [
+        Routes.notificationSettings,
+        Routes.mySchool,
+        Routes.approvals,
+        Routes.profilePicture,
+      ]) {
+        expect(open(name), isA<PageRoute<dynamic>>(), reason: name);
+      }
+      expect(open(Routes.invitation, 't0k3n'), isA<PageRoute<dynamic>>());
+    });
+
     test('every link opens a route the app has', () {
       for (final route in deepLinkRoutes) {
         final target = parser.parse(

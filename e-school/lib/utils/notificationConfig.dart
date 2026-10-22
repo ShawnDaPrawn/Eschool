@@ -1,7 +1,9 @@
 import 'package:eschool/app/routeArguments.dart';
 import 'dart:convert';
 
+import 'package:eschool/app/deepLinks.dart';
 import 'package:eschool/app/routes.dart';
+import 'package:eschool/cubits/authCubit.dart';
 import 'package:eschool/data/models/chatUser.dart';
 import 'package:eschool/ui/screens/home/homeScreen.dart';
 import 'package:eschool/utils/uiUtils.dart';
@@ -38,8 +40,24 @@ Future<void> onBackgroundMessage(RemoteMessage remoteMessage) =>
       notificationConfig,
     );
 
-/// Opens the screen a tapped notification is about, by its `data['type']`.
+/// Opens the screen a tapped notification is about: its `link` (after
+/// switching to its `school_id`) when it has one, otherwise by its
+/// `data['type']`.
 void onNotificationTap(String notificationType, Map<String, dynamic> data) {
+  final PushLink? link = PushLink.fromData(data, parser: deepLinks.parser);
+  final BuildContext? linkContext = UiUtils.rootNavigatorKey.currentContext;
+  if (link != null && linkContext != null) {
+    openPushLink(
+      link,
+      schools: linkContext.read<SchoolSelectionCubit>(),
+      meContext: linkContext.read<MeContextCubit>(),
+      open: (target) => openDeepLink(
+        target,
+        signedIn: linkContext.read<AuthCubit>().state is Authenticated,
+      ),
+    );
+    return;
+  }
   if (notificationType == NotificationUtility.noticeboardNotificationType) {
     UiUtils.rootNavigatorKey.currentState?.pushNamed(Routes.noticeBoard);
   } else if (notificationType ==

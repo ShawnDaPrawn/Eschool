@@ -109,6 +109,9 @@ class ApiAvatarRepository implements AvatarRepository {
   }
 }
 
+/// The key of the profile picture screen in `EndpointAvailability`.
+const String avatarFeature = 'avatar';
+
 /// Whether the server has avatars yet (for `AvailableOnly`).
 Future<bool> avatarsDeployed(AvatarRepository repository) async =>
     await repository.current() != null;

@@ -278,6 +278,13 @@ packages:
       relative: true
     source: path
     version: "0.1.0"
+  eschool_people:
+    dependency: "direct main"
+    description:
+      path: "../packages/eschool_people"
+      relative: true
+    source: path
+    version: "0.1.0"
   eschool_session:
     dependency: "direct main"
     description:

@@ -64,10 +64,17 @@ class _SessionWatcherState extends State<SessionWatcher> {
             if (state is Authenticated) {
               context.read<MeContextCubit>().load();
             } else if (state is Unauthenticated) {
+              EndpointAvailability.forget();
               context.read<MeContextCubit>().clear();
               context.read<SchoolSelectionCubit>().clear();
             }
           },
+        ),
+        // Another school may have other screens deployed: ask again.
+        BlocListener<SchoolSelectionCubit, SchoolSelectionState>(
+          listenWhen: (previous, current) =>
+              previous.selectedId != current.selectedId,
+          listener: (context, _) => EndpointAvailability.forget(),
         ),
         // The school switcher lists the schools /me/context names.
         BlocListener<MeContextCubit, MeContextState>(

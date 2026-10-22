@@ -119,6 +119,9 @@ class ApiMySchoolRepository implements MySchoolRepository {
   }
 }
 
+/// The key of My school in `EndpointAvailability`.
+const String mySchoolFeature = 'my-school';
+
 /// Whether the server has My school yet (for `AvailableOnly`).
 Future<bool> mySchoolDeployed(
   MySchoolRepository repository,
