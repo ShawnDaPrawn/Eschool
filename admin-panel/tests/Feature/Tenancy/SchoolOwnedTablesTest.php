@@ -57,6 +57,16 @@ class SchoolOwnedTablesTest extends TestCase
             $this->assertSame('YES', $columns[$table] ?? null, "{$table}.school_id is missing or required");
             $this->assertContains($table, $indexed, "{$table}.school_id has no index");
         }
+        $this->assertSame('YES', $columns['roles'] ?? null, 'roles.school_id');
+        $this->assertSame('NO', $columns['model_has_roles'] ?? null, 'model_has_roles.school_id');
+        $this->assertSame('NO', $columns['model_has_permissions'] ?? null, 'model_has_permissions.school_id');
+        foreach (SchoolOwnedTables::TEAMS as $table) {
+            $this->assertContains($table, $indexed, "{$table}.school_id has no index");
+            $this->assertContains($table, $foreign, "{$table}.school_id has no foreign key to schools");
+        }
+        $this->assertSame('school_id', config('permission.column_names.team_foreign_key'));
+        $this->assertTrue(config('permission.teams'));
+
         foreach (array_keys(SchoolOwnedTables::GLOBAL) as $table) {
             if ($table !== 'school_memberships') {
                 $this->assertArrayNotHasKey($table, $columns, "{$table} is global but has a school_id");

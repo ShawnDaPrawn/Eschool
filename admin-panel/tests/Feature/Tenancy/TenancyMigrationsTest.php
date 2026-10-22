@@ -29,6 +29,7 @@ class TenancyMigrationsTest extends TestCase
         '2026_10_23_100200_backfill_school_id',
         '2026_10_23_100300_create_school_memberships_table',
         '2026_10_23_100400_require_school_id',
+        '2026_10_23_100500_add_school_id_to_permission_tables',
     ];
 
     protected function setUp(): void
@@ -87,9 +88,7 @@ class TenancyMigrationsTest extends TestCase
         }
 
         foreach (SchoolOwnedTables::withSchoolId() as $table) {
-            if (! in_array($table, SchoolOwnedTables::TEAMS, true)) {
-                $this->assertTrue(Schema::hasColumn($table, 'school_id'), "{$table}.school_id");
-            }
+            $this->assertTrue(Schema::hasColumn($table, 'school_id'), "{$table}.school_id");
         }
     }
 

@@ -2,13 +2,13 @@
 
 namespace Database\Seeders;
 
+use App\Models\Platform\Role;
 use App\Models\SessionYear;
 use App\Models\Settings;
 use App\Models\User;
 use App\Services\Platform\Tenancy\CurrentSchool;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
-use Spatie\Permission\Models\Role;
 
 class AddSuperAdminSeeder extends Seeder
 {

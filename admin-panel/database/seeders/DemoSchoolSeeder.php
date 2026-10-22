@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Database\Seeders;
 
+use App\Models\Platform\Role;
 use App\Models\SessionYear;
 use App\Models\Settings;
 use App\Models\User;
@@ -18,7 +19,6 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Storage;
-use Spatie\Permission\Models\Role;
 
 /**
  * A demo school with one user per profile the install has, for demos, the

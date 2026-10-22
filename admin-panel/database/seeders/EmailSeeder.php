@@ -3,16 +3,25 @@
 namespace Database\Seeders;
 
 use App\Models\EmailTemplate;
+use App\Models\Platform\School;
 use App\Services\Platform\Identity\LearnerInvitations;
 use App\Services\Platform\Tenancy\CurrentSchool;
 use Illuminate\Database\Seeder;
 
 class EmailSeeder extends Seeder
 {
-    /** In the school already chosen, or else the default school (a single-school install). */
+    /** Every school's templates (in the school already chosen, when one is). */
     public function run(): void
     {
-        app(CurrentSchool::class)->runInSchoolOrDefault(fn () => $this->seedSchool());
+        $currentSchool = app(CurrentSchool::class);
+        if ($currentSchool->isSet()) {
+            $this->seedSchool();
+
+            return;
+        }
+        foreach (School::query()->orderBy('id')->pluck('id') as $schoolId) {
+            $currentSchool->run((int) $schoolId, fn () => $this->seedSchool());
+        }
     }
 
     /**

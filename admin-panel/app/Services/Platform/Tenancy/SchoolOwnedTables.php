@@ -90,10 +90,13 @@ final class SchoolOwnedTables
         return [...self::REQUIRED, ...self::NULLABLE, ...self::TEAMS];
     }
 
-    /** Whether rows of this table belong to a school (validation rules scope them). */
+    /**
+     * Whether rows of this table belong to a school: validation rules and
+     * SchoolTable limit them to the current school.
+     */
     public static function isSchoolOwned(string $table): bool
     {
-        return in_array($table, self::REQUIRED, true) || in_array($table, self::NULLABLE, true);
+        return in_array($table, self::REQUIRED, true) || in_array($table, self::NULLABLE, true) || $table === 'roles';
     }
 
     private function __construct() {}

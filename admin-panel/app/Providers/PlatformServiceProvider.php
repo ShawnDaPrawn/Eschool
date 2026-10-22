@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Providers;
 
+use App\Models\Platform\Role;
 use App\Models\User;
 use App\Services\Platform\Identity\MembershipService;
 use App\Services\Platform\Tenancy\CurrentSchool;
@@ -19,7 +20,6 @@ use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\ServiceProvider;
 use Spatie\Permission\Events\RoleAttached;
 use Spatie\Permission\Events\RoleDetached;
-use Spatie\Permission\Models\Role;
 
 /**
  * Wiring for the platform kernel (app/Services/Platform): tenancy, queued

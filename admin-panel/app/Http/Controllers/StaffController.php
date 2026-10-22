@@ -9,6 +9,7 @@ use App\Models\EmailTemplate;
 use App\Models\Leave;
 use App\Models\LeaveDetail;
 use App\Models\LeaveMaster;
+use App\Models\Platform\Role;
 use App\Models\SessionYear;
 use App\Models\Settings;
 use App\Models\Staff;
@@ -31,7 +32,6 @@ use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\Rules\Exists;
 use RuntimeException;
-use Spatie\Permission\Models\Role;
 
 class StaffController extends Controller
 {
