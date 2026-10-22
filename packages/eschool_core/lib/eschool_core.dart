@@ -5,6 +5,8 @@ export 'label_keys.dart';
 export 'src/api/api_client.dart';
 export 'src/api/api_error_codes.dart';
 export 'src/api/api_exception.dart';
+export 'src/avatars/avatar_set.dart';
+export 'src/avatars/person_avatar.dart';
 export 'src/config/app_config.dart';
 export 'src/cubits/app_settings_cubit.dart';
 export 'src/cubits/event_details_cubit.dart';
