@@ -128,14 +128,16 @@ See [Roles and Permissions](Roles-and-Permissions) for the role and permission c
 | Table | Purpose and key columns | Relations | Notes |
 |---|---|---|---|
 | `fees_types` | Fee heads. `name`, `description` | | SD. `choiceable` moved to `fees_classes` in 2023-06 |
-| `fees_classes` | Fee amount per class per session year. `class_id`, `fees_type_id`, `choiceable` (0 compulsory, 1 optional), `amount` (float), `session_year_id` | FK `session_year_id` (restrict) | SD |
-| `fees_choiceables` | Optional fees (and due-charge lines) paid by a student. `student_id`, `class_id`, `fees_type_id`, `is_due_charges`, `total_amount`, `date`, `payment_transaction_id`, `status` (0 not paid, 1 paid), `session_year_id` | FK `payment_transaction_id` → `payment_transactions` (cascade) | SD |
+| `fees_classes` | Fee amount per class per session year. `class_id`, `fees_type_id`, `choiceable` (0 compulsory, 1 optional), `amount` (float) and `amount_cents`, `session_year_id` | FK `session_year_id` (restrict) | SD |
+| `fees_choiceables` | Optional fees (and due-charge lines) paid by a student. `student_id`, `class_id`, `fees_type_id`, `is_due_charges`, `total_amount` and `total_amount_cents`, `date`, `payment_transaction_id`, `status` (0 not paid, 1 paid), `session_year_id` | FK `payment_transaction_id` → `payment_transactions` (cascade) | SD |
 | `installment_fees` | Installment plan for a session year. `name`, `due_date`, `due_charges` (percent), `session_year_id` | FK `session_year_id` (cascade) | SD |
-| `paid_installment_fees` | Installments paid. `class_id`, `student_id`, `parent_id`, `installment_fee_id`, `session_year_id`, `amount`, `due_charges`, `date`, `payment_transaction_id`, `status` (0 failed, 1 succeeded) | FK on all six id columns (cascade) | SD |
-| `fees_paids` | Per-student compulsory-fee summary for a year. `parent_id`, `student_id`, `class_id`, `mode` (0 cash, 1 cheque, 2 online), `payment_transaction_id` (string), `cheque_no`, `total_amount`, `due_charges`, `is_fully_paid`, `date`, `session_year_id` | | SD |
-| `payment_transactions` | Every payment attempt. `student_id`, `class_id`, `parent_id`, `mode`, `cheque_no`, `type_of_fee` (0 compulsory full, 1 installments, 2 optional), `payment_gateway` (`PaymentService` constants: 1 Razorpay, 2 Stripe, 3 Paystack, 4 Flutterwave), `order_id`, `payment_id`, `payment_signature`, `payment_status` (0 failed, 1 succeeded, 2 pending), `total_amount`, `date`, `session_year_id` | | SD. See [Payments](Payments) |
+| `paid_installment_fees` | Installments paid. `class_id`, `student_id`, `parent_id`, `installment_fee_id`, `session_year_id`, `amount` and `amount_cents`, `due_charges` and `due_charges_cents`, `date`, `payment_transaction_id`, `status` (0 failed, 1 succeeded) | FK on all six id columns (cascade) | SD |
+| `fees_paids` | Per-student compulsory-fee summary for a year. `parent_id`, `student_id`, `class_id`, `mode` (0 cash, 1 cheque, 2 online), `payment_transaction_id` (string), `cheque_no`, `total_amount` and `total_amount_cents`, `due_charges` and `due_charges_cents`, `is_fully_paid`, `date`, `session_year_id` | | SD. Audited |
+| `payment_transactions` | Every payment attempt. `student_id`, `class_id`, `parent_id`, `mode`, `cheque_no`, `type_of_fee` (0 compulsory full, 1 installments, 2 optional), `payment_gateway` (`PaymentService` constants: 1 Razorpay, 2 Stripe, 3 Paystack, 4 Flutterwave), `order_id`, `payment_id`, `payment_signature`, `payment_status` (0 failed, 1 succeeded, 2 pending), `total_amount` and `total_amount_cents`, `date`, `session_year_id` | | SD. See [Payments](Payments) |
 
 The original `fees`, `fees_sub_types` and `fees_paid` tables were dropped by `2022_11_11_065720_fees_module.php`.
+
+**Money in cents.** Since Phase 0 every float money column has a nullable BIGINT `*_cents` twin beside it (`2026_10_22_100400`). The cents are the truth: the models (`HasMoneyColumns`) keep both columns equal on every write, read the cents (the float attribute and the v1 API value are the cents as currency units), cast the cents to `App\Services\Platform\Ledger\Money` and hide them from serialisation. The migration back-filled them with `ROUND(CAST(float AS DECIMAL(20,6)) * 100)` (half up) in id ranges of 1000; `php artisan money:backfill-cents` (daily at 02:10) fills rows a raw insert left empty and logs any disagreement. The float columns are dropped in Phase 5. `installment_fees.due_charges` and `session_years.fee_due_charges` are percentages, not money, and have no cents column.
 
 ### Communication
 
@@ -176,13 +178,24 @@ See [Public Website](Public-Website).
 
 | Table | Purpose and key columns | Notes |
 |---|---|---|
-| `settings` | Key/value store: `type`, `message` (both `text`), no timestamps | Holds `session_year`, `system_version`, school details, payment and app settings, ID-card design keys, terms and conditions, and more. Read with `getSettings()` in `app/Helpers/settings_helper.php` (no caching) |
+| `settings` | Key/value store: `school_id` (nullable: null for platform keys; school keys from Phase 1), `type`, `message` (both `text`), no timestamps; index (`school_id`, `type(191)`) | Audited (secret values redacted). Holds `session_year`, `system_version`, school details, payment and app settings, ID-card design keys, terms and conditions, and more. Read with `getSettings()` in `app/Helpers/settings_helper.php` (no caching) |
 | `languages` | `name`, `code`, `file` (JSON file in `resources/lang`), `is_rtl`, `status` | `2026_05_26_173526` inserts English (`en`, `en.json`) if missing |
 | `email_tempalates` | Editable email templates. `type` (unique), `subject`, `content` | The table name keeps the original misspelling; the model is `EmailTemplate` (it was `EmailTempalate` until Phase 0) |
 
+### Platform kernel
+
+Added in Phase 0 (Build Bible 3.1). Specs: [queue-and-delivery](https://github.com/ShawnDaPrawn/Eschool/blob/main/engineering/specs/platform/queue-and-delivery.md), [kernel](https://github.com/ShawnDaPrawn/Eschool/blob/main/engineering/specs/platform/kernel.md).
+
+| Table | Purpose and key columns | Notes |
+|---|---|---|
+| `notification_deliveries` | One row per attempt to deliver a mail or push. `school_id`, `delivery_key` (uuid shared by the attempts), `type` (`mail.*`, `push.*`), `channel`, `recipient_user_id`, `recipient_hash` (SHA-256 of the address or token), `status` (queued, sent, failed, delivered, bounced, complained), `provider`, `provider_message_id`, `attempt`, `error_summary`, `queued_at`, `sent_at`, `failed_at`, `feedback_at`, timestamps | Never holds a raw address or token. See [Notifications](Notifications#queued-delivery-and-notification_deliveries) |
+| `webhook_receipts` | Provider events already processed. `provider`, `event_id` (unique together), `event_type`, `received_at` | SNS message ids of SES feedback |
+| `domain_events` | The outbox. `school_id`, `type`, `payload` (JSON), `occurred_at`, `available_at`, `dispatched_at`, `attempts`, `last_error` | Written by `Outbox::record()` inside the change's transaction; dispatched once by `DispatchOutbox` |
+| `audit_log` | Who changed what. `school_id`, `actor_id`, `actor_type` (user, guest, system), `action`, `subject_type`, `subject_id`, `before`, `after` (JSON), `ip`, `request_id`, `created_at` | Append-only. Written by the `Auditable` trait (`User`, `Students`, `ExamMarks`, `FeesPaid`, `Settings`) and `Audit::record()`; never holds hidden attributes or secret values |
+
 ### Framework tables
 
-`cache`, `cache_locks`, `jobs` (index on `queue`), `job_batches`, `failed_jobs` (unique `uuid`), `migrations`. `2026_10_20_000000_drop_service_health_logs_table.php` drops `service_health_logs`, which was only used by a removed license check.
+`cache`, `cache_locks`, `jobs` (index on `queue`; the database queue is the default since Phase 0), `job_batches`, `failed_jobs` (unique `uuid`), `migrations`. `2026_10_20_000000_drop_service_health_logs_table.php` drops `service_health_logs`, which was only used by a removed license check.
 
 ## Core entity diagram
 
@@ -281,6 +294,9 @@ Columns listed in the tables above already reflect these changes. Migrations tha
 | `2026_06_27_173418` | `attendances.type` comment adds 3, 4, 5 |
 | `2026_07_03_120000` | Rewrites emails of already soft-deleted `users` and `parents` to the `::deleted-` placeholder |
 | `2026_10_21_000000` | Sets `session_years.include_fee_installments = 1` for years that have `installment_fees` rows (the flag was not saved when such years were created) |
+| `2026_10_22_100000` to `_100200` | Create `notification_deliveries`, `webhook_receipts`, `domain_events` and `audit_log` |
+| `2026_10_22_100300` | `settings.school_id` (nullable) and the (`school_id`, `type(191)`) index |
+| `2026_10_22_100400` | `*_cents` beside `fees_classes.amount`, `fees_paids.total_amount` and `.due_charges`, `fees_choiceables.total_amount`, `paid_installment_fees.amount` and `.due_charges`, `payment_transactions.total_amount`, back-filled half up |
 | `2026_03_24_152838`, `2026_06_17_*`, `2026_06_18_120000` | Permission data changes; see [Roles and Permissions](Roles-and-Permissions#permission-migrations) |
 
 ## Eloquent models
@@ -356,6 +372,7 @@ Because the database rarely cascades, deleting a parent record relies on these l
 - [Roles and Permissions](Roles-and-Permissions)
 - [Exams and Grading](Exams-and-Grading)
 - [Payments](Payments)
+- [Notifications](Notifications)
 - [Installation Wizard](Installation-Wizard)
 - [System Update](System-Update)
 - [Glossary](Glossary)

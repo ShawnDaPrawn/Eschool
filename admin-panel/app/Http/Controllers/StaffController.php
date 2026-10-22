@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers;
 
+use App\Mail\Platform\TemplateMail;
 use App\Models\EmailTemplate;
 use App\Models\Leave;
 use App\Models\LeaveDetail;
@@ -14,7 +15,6 @@ use App\Models\Staff;
 use App\Models\StaffAttendance;
 use App\Models\Teacher;
 use App\Models\User;
-use App\Services\EmailTemplateService;
 use App\Services\IdCardService;
 use App\Services\MailService;
 use App\Services\ResponseService;
@@ -582,7 +582,6 @@ class StaffController extends Controller
                 // MailService::sendWithFallback('staff.email', $data, function ($message) use ($data) {
                 //     $message->to($data['email'])->subject($data['subject']);
                 // });
-                $AcceptTemplate = EmailTemplate::where('type', 'staff_registration')->value('content');
 
                 $applink = Settings::whereIn('type', ['teacher_app_link', 'teacher_ios_app_link'])
                     ->pluck('message', 'type')
@@ -615,15 +614,7 @@ class StaffController extends Controller
                     'url' => (string) $url,
                 ];
 
-                $htmlcontent = EmailTemplateService::render((string) $AcceptTemplate, $data);
-
-                $emailPayload = array_merge($data, [
-                    'body' => $htmlcontent,
-                ]);
-
-                MailService::sendWithFallback('staff.email', $emailPayload, function ($message) use ($emailPayload) {
-                    $message->to($emailPayload['email'])->subject($emailPayload['subject']);
-                });
+                MailService::queue(TemplateMail::staffWelcome($data), (int) $user->id);
             } else {
                 $user = new User;
 
@@ -684,7 +675,6 @@ class StaffController extends Controller
                 // MailService::sendWithFallback('staff.email', $data, function ($message) use ($data) {
                 //     $message->to($data['email'])->subject($data['subject']);
                 // });
-                $AcceptTemplate = EmailTemplate::where('type', 'staff_registration')->value('content');
 
                 $applink = Settings::whereIn('type', ['teacher_app_link', 'teacher_ios_app_link'])
                     ->pluck('message', 'type')
@@ -717,15 +707,7 @@ class StaffController extends Controller
                     'url' => (string) $url,
                 ];
 
-                $htmlcontent = EmailTemplateService::render((string) $AcceptTemplate, $data);
-
-                $emailPayload = array_merge($data, [
-                    'body' => $htmlcontent,
-                ]);
-
-                MailService::sendWithFallback('staff.email', $emailPayload, function ($message) use ($emailPayload) {
-                    $message->to($emailPayload['email'])->subject($emailPayload['subject']);
-                });
+                MailService::queue(TemplateMail::staffWelcome($data), (int) $user->id);
             }
 
             return ResponseService::successResponse(trans('data_store_successfully'));

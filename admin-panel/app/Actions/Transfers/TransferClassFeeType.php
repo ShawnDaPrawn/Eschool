@@ -18,13 +18,14 @@ class TransferClassFeeType
                             ->except(['id', 'created_at', 'updated_at'])
                             ->toArray(),
                         [
+                            'amount_cents' => $row->money('amount')?->cents,
                             'session_year_id' => $toSessionId,
                             'created_at' => now(),
                             'updated_at' => now(),
                         ]
                     );
                 })->toArray();
-                if (!empty($data)) {
+                if (! empty($data)) {
                     DB::table('fees_classes')->insert($data);
                 }
             });

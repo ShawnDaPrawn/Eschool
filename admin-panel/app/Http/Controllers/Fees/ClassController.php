@@ -10,6 +10,7 @@ use App\Models\FeesClass;
 use App\Models\FeesType;
 use App\Models\Mediums;
 use App\Models\SessionYear;
+use App\Services\Platform\Ledger\LegacyAmount;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
@@ -32,9 +33,7 @@ class ClassController extends Controller
         $fees_type = FeesType::orderBy('id', 'ASC')->pluck('name', 'id');
         $fees_type_data = FeesType::get();
         $mediums = Mediums::orderBy('id', 'ASC')->get();
-      $session_years = SessionYear::orderBy('id', 'ASC')->get();
-        
-        
+        $session_years = SessionYear::orderBy('id', 'ASC')->get();
 
         return response(view('fees.fees_class', compact('classes', 'fees_type', 'fees_type_data', 'mediums', 'session_years')));
     }
@@ -100,8 +99,9 @@ class ClassController extends Controller
             $tempRow['class_name'] = $row->name.' '.$row->medium->name;
             $tempRow['stream_name'] = $row->streams->name ?? '-';
             if (count($row->fees_class)) {
-                $total_amount = 0;
-                $base_amount = 0;
+                // Summed in cents; the list shows currency units.
+                $total_cents = 0;
+                $base_cents = 0;
                 $fees_type_table = [];
                 foreach ($row->fees_class as $fees_details) {
                     $fees_type_table[] = [
@@ -111,14 +111,15 @@ class ClassController extends Controller
                         'choiceable' => $fees_details->choiceable,
                         'fees_type_id' => $fees_details->fees_type->id,
                     ];
+                    $cents = (int) $fees_details->money('amount')?->cents;
                     if ($fees_details->choiceable == 0) {
-                        $base_amount += $fees_details->amount;
+                        $base_cents += $cents;
                     }
-                    $total_amount += $fees_details->amount;
+                    $total_cents += $cents;
                 }
                 $tempRow['fees_type'] = isset($fees_type_table) ? $fees_type_table : ' ';
-                $tempRow['base_amount'] = round($base_amount, 2);
-                $tempRow['total_amount'] = round($total_amount, 2);
+                $tempRow['base_amount'] = LegacyAmount::fromCents($base_cents);
+                $tempRow['total_amount'] = LegacyAmount::fromCents($total_cents);
             } else {
                 $tempRow['fees_type'] = [];
                 $tempRow['base_amount'] = '-';
@@ -183,6 +184,7 @@ class ClassController extends Controller
                         'fees_type_id' => $row['fees_type_id'],
                         'choiceable' => $row['choiceable'],
                         'amount' => $row['amount'],
+                        'amount_cents' => LegacyAmount::toCents($row['amount']),
                     ];
                 }
                 FeesClass::insert($fees_type);

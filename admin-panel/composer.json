@@ -12,6 +12,8 @@
         "php": "^8.3.0",
         "ext-curl": "*",
         "awobaz/compoships": "^2.4",
+        "aws/aws-php-sns-message-validator": "^1.10",
+        "aws/aws-sdk-php": "^3.356",
         "barryvdh/laravel-dompdf": "^3.1",
         "dacoto/laravel-wizard-installer": "dev-main",
         "doctrine/dbal": "^3.8",
@@ -85,7 +87,10 @@
             "Composer\\Config::disableProcessTimeout",
             "npx concurrently -c \"#93c5fd,#c4b5fd,#fb7185,#fdba74\" \"php artisan serve\" \"php artisan queue:listen --tries=1\" \"php artisan pail --timeout=0\" \"npm run dev\" --names=server,queue,logs,vite"
         ],
-        "pre-autoload-dump": "Google\\Task\\Composer::cleanup",
+        "pre-autoload-dump": [
+            "Google\\Task\\Composer::cleanup",
+            "Aws\\Script\\Composer\\Composer::removeUnusedServices"
+        ],
         "test": [
             "@php artisan config:clear --ansi",
             "@php artisan test"
@@ -100,6 +105,11 @@
         },
         "google/apiclient-services": [
             "FirebaseCloudMessaging"
+        ],
+        "aws/aws-sdk-php": [
+            "Ses",
+            "SesV2",
+            "Sts"
         ]
     },
     "config": {

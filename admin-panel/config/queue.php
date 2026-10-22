@@ -13,7 +13,9 @@ return [
     |
     */
 
-    'default' => env('QUEUE_CONNECTION', 'sync'),
+    // Jobs (mail, push, the outbox) run on the navigateed-worker service, not
+    // inside the web request. Tests use sync (phpunit.xml).
+    'default' => env('QUEUE_CONNECTION', 'database'),
 
     /*
     |--------------------------------------------------------------------------
@@ -41,7 +43,8 @@ return [
             // Longer than the worker's --timeout=120 (docker/entrypoint.sh), or a
             // job still running would be handed to a second worker.
             'retry_after' => 180,
-            'after_commit' => false,
+            // A job dispatched inside a transaction is queued only if it commits.
+            'after_commit' => true,
         ],
 
         'beanstalkd' => [

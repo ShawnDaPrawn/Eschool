@@ -2,13 +2,24 @@
 
 namespace App\Models;
 
+use App\Services\Platform\Ledger\HasMoneyColumns;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 class PaidInstallmentFee extends Model
 {
-    use HasFactory, SoftDeletes;
+    use HasFactory, HasMoneyColumns, SoftDeletes;
+
+    /** Float money columns and their cents (HasMoneyColumns); the cents are the truth. */
+    public function moneyColumns(): array
+    {
+        return [
+            'amount' => 'amount_cents',
+            'due_charges' => 'due_charges_cents',
+        ];
+    }
+
     protected $fillable = [
         'id',
         'student_id',
@@ -18,11 +29,14 @@ class PaidInstallmentFee extends Model
         'session_year_id',
         'amount',
         'due_charges',
+        'amount_cents',
+        'due_charges_cents',
         'date',
         'payment_transaction_id',
-        'status'
+        'status',
     ];
-    protected $hidden = ["created_at", "updated_at"];
+
+    protected $hidden = ['created_at', 'updated_at'];
 
     public function class()
     {

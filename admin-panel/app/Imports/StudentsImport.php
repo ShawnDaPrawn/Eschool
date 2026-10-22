@@ -4,15 +4,14 @@ declare(strict_types=1);
 
 namespace App\Imports;
 
+use App\Mail\Platform\TemplateMail;
 use App\Models\Category;
 use App\Models\ClassSection;
-use App\Models\EmailTemplate;
 use App\Models\Parents;
 use App\Models\SessionYear;
 use App\Models\Students;
 use App\Models\StudentSessions;
 use App\Models\User;
-use App\Services\EmailTemplateService;
 use App\Services\MailService;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Collection;
@@ -44,8 +43,6 @@ class StudentsImport extends DefaultValueBinder implements SkipsEmptyRows, ToCol
     ];
 
     public $class_section_id;
-
-    private ?string $registrationTemplate = null;
 
     /**
      * @param  array  $row
@@ -435,12 +432,7 @@ class StudentsImport extends DefaultValueBinder implements SkipsEmptyRows, ToCol
      */
     private function sendWelcomeEmail(array $data): void
     {
-        $this->registrationTemplate ??= (string) EmailTemplate::where('type', 'student_registration')->value('content');
-        $data['body'] = EmailTemplateService::render($this->registrationTemplate, $data);
-
-        MailService::sendWithFallback('students.email', $data, function ($message) use ($data) {
-            $message->to($data['email'])->subject($data['subject']);
-        });
+        MailService::queue(TemplateMail::parentWelcome($data));
     }
 
     /**
