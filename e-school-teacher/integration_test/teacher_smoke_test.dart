@@ -19,7 +19,10 @@ void main() {
     await pumpUntilFound(tester, find.text('Email'));
     await enterField(tester, 0, teacherEmail);
     await enterField(tester, 1, password);
-    await tester.tap(find.widgetWithText(CustomRoundedButton, 'Sign in'));
+    await tapWhenReady(
+      tester,
+      find.widgetWithText(CustomRoundedButton, 'Sign in'),
+    );
 
     await pumpUntilFound(tester, find.byType(HomeScreen));
     expect(api.requested('POST teacher/login'), isTrue);
@@ -27,11 +30,7 @@ void main() {
     expect(api.requested('GET teacher/dashboard'), isTrue);
 
     // The bottom bar on a phone, the rail on wider screens: both say it.
-    // Wait until it can take a tap: on a slow emulator the bar is still
-    // coming in when HomeScreen first appears.
-    final schedule = find.text('Schedule').hitTestable();
-    await pumpUntilFound(tester, schedule);
-    await tester.tap(schedule.first);
+    await tapWhenReady(tester, find.text('Schedule'));
     await pumpUntilFound(tester, find.byType(TimeTableContainer));
     final IndexedStack tabs = tester.widget(
       find

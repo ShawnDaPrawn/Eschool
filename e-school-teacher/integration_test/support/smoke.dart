@@ -54,3 +54,19 @@ Future<void> enterField(WidgetTester tester, int index, String text) async {
   await tester.enterText(find.byType(EditableText).at(index), text);
   await tester.pump();
 }
+
+/// Taps [finder] once it can take a tap: hides the keyboard (which can cover
+/// a button on a phone), scrolls the target into view if it is in a list,
+/// and waits for it to be hit-testable, so a slow emulator does not tap a
+/// screen that is still moving.
+Future<void> tapWhenReady(WidgetTester tester, Finder finder) async {
+  FocusManager.instance.primaryFocus?.unfocus();
+  await tester.pump(const Duration(milliseconds: 300));
+  await pumpUntilFound(tester, finder);
+  if (finder.hitTestable().evaluate().isEmpty) {
+    await tester.ensureVisible(finder.first);
+    await tester.pump(const Duration(milliseconds: 300));
+  }
+  await pumpUntilFound(tester, finder.hitTestable());
+  await tester.tap(finder.hitTestable().first);
+}

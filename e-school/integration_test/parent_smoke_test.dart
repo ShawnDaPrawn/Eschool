@@ -16,22 +16,21 @@ void main() {
     final api = await startSmokeApp(tester, parentRoutes());
 
     final Finder asParent = find.text('Login as Parent');
-    await pumpUntilFound(tester, asParent);
-    await tester.tap(asParent);
+    await tapWhenReady(tester, asParent);
     await pumpUntilFound(tester, find.text('Email'));
 
     await enterField(tester, 0, parentEmail);
     await enterField(tester, 1, password);
-    await tester.tap(find.widgetWithText(CustomRoundedButton, 'Sign in'));
+    await tapWhenReady(
+      tester,
+      find.widgetWithText(CustomRoundedButton, 'Sign in'),
+    );
 
     await pumpUntilFound(tester, find.byType(ParentHomeScreen));
     expect(api.requested('POST parent/login'), isTrue);
     expect(api.requested('GET parent/policy-acceptance'), isTrue);
 
-    // Wait until the child card can take a tap (see the learner flow).
-    final childCard = find.textContaining('Thandi').hitTestable();
-    await pumpUntilFound(tester, childCard);
-    await tester.tap(childCard.first);
+    await tapWhenReady(tester, find.textContaining('Thandi'));
     await pumpUntilFound(tester, find.byType(ChildDetailsScreen));
   });
 }

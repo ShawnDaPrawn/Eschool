@@ -17,25 +17,21 @@ void main() {
     final api = await startSmokeApp(tester, learnerRoutes());
 
     final Finder asStudent = find.text('Login as Student');
-    await pumpUntilFound(tester, asStudent);
-    await tester.tap(asStudent);
+    await tapWhenReady(tester, asStudent);
     await pumpUntilFound(tester, find.text('GR Number'));
 
     await enterField(tester, 0, grNumber);
     await enterField(tester, 1, password);
-    await tester.tap(find.widgetWithText(CustomRoundedButton, 'Sign in'));
+    await tapWhenReady(
+      tester,
+      find.widgetWithText(CustomRoundedButton, 'Sign in'),
+    );
 
     await pumpUntilFound(tester, find.byType(HomeScreen));
     expect(api.requested('POST student/login'), isTrue);
     expect(api.requested('GET student/dashboard'), isTrue);
 
-    // Wait until it can take a tap: on a slow emulator home is still
-    // settling when HomeScreen first appears.
-    final profilePicture = find
-        .byType(BorderedProfilePictureContainer)
-        .hitTestable();
-    await pumpUntilFound(tester, profilePicture);
-    await tester.tap(profilePicture.first);
+    await tapWhenReady(tester, find.byType(BorderedProfilePictureContainer));
     await pumpUntilFound(tester, find.byType(StudentProfileScreen));
     expect(find.textContaining('Thandi'), findsWidgets);
   });
