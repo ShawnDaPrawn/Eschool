@@ -11,6 +11,7 @@ use App\Models\Teacher;
 use App\Services\IdCardService;
 use App\Services\Platform\Identity\AppTokens;
 use App\Services\Platform\Identity\DateOfBirthPasswords;
+use App\Services\Platform\Identity\PortalSession;
 use App\Services\ResponseService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -45,7 +46,7 @@ class AuthController extends Controller
             if (! EnsureTeacherActive::isActive($auth)) {
                 return ResponseService::errorResponse(EnsureTeacherActive::message(), null, null);
             }
-            $token = AppTokens::issue($auth, AppTokens::TEACHER);
+            $token = PortalSession::signIn($request, $auth, AppTokens::TEACHER);
             $user = $auth->load(['teacher']);
 
             $dynamicFields = null;

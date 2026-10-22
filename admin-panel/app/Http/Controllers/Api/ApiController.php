@@ -15,6 +15,7 @@ use App\Models\Slider;
 use App\Models\User;
 use App\Services\GalleryService;
 use App\Services\Platform\Identity\AppTokens;
+use App\Services\Platform\Identity\PortalSession;
 use App\Services\ResponseService;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
@@ -34,11 +35,9 @@ class ApiController extends Controller
     public function logout(Request $request)
     {
         try {
-            $user = $request->user();
-            $user->update(['fcm_id' => '']);
             // Signs out of this app only; the account's other apps stay signed in.
-            $token = $user->currentAccessToken();
-            AppTokens::signOut($user, $token instanceof PersonalAccessToken ? $token : null);
+            // A web portal's session ends; the phone apps stay signed in.
+            PortalSession::signOut($request, $request->user());
 
             return ResponseService::successResponse('Logout Successfully done.');
         } catch (Throwable $e) {

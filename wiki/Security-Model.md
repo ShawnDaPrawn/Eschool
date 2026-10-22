@@ -40,10 +40,10 @@ Two middleware aliases differ only by case and do different things: `Role` is `A
 | Change password | `HomeController::checkPassword` / `changePassword`, both `POST` with `throttle:password` (20 a minute per user) | The current password must match (`Hash::check`) before the new one is saved, and the new one follows the password rule. The live check of the current password is a `POST`, so the password is not written to access logs with the URL. A change deletes all the user's app tokens and signs out their other panel sessions |
 | Other sessions signed out | `AuthenticateSession` in the `web` group | A session (or remember-me cookie) whose password no longer matches the account's is signed out on its next request |
 | Sign-out | `POST logout` only; the profile menu submits a form | Another site can't sign people out with a link or image |
-| Session cookie | [config/session.php](https://github.com/ShawnDaPrawn/Eschool/blob/main/admin-panel/config/session.php) | `http_only` true, `same_site` `SESSION_SAME_SITE` (default `lax`), lifetime `SESSION_LIFETIME` (default 120 minutes); `secure` defaults to true when `APP_URL` starts with `https://` (`SESSION_SECURE_COOKIE` overrides). `SESSION_DOMAIN` is empty (the panel's host only) unless the web portals on sibling hosts must share the cookie |
+| Session cookie | [config/session.php](https://github.com/ShawnDaPrawn/Eschool/blob/main/admin-panel/config/session.php) | `http_only` true, `same_site` `SESSION_SAME_SITE` (default `lax`), lifetime `SESSION_LIFETIME` (default 120 minutes); `secure` defaults to true when `APP_URL` starts with `https://` (`SESSION_SECURE_COOKIE` overrides). `SESSION_DOMAIN` is empty (the panel's host only) unless the web portals on sibling hosts share the cookie: `.navigateed.co.za` on staging and production (see "Web portals" below) |
 | CSRF | Laravel's CSRF check in the `web` group; `validateCsrfTokens(except: ['webhook/*', 'csp-report'])` | Every state-changing web request needs the session's token, except the payment webhook, which is authenticated by signature instead, and browsers' content security policy reports, which change nothing |
 
-The installer seeds a Super Admin as `superadmin@gmail.com` / `superadmin` (`config/installer.php`, `admin_area`). The panel makes whoever signs in with it change the password first; change the email address too. The Cloud Run container replaces that login on every start while it is still in place (see [Deployment](Deployment#navigateed-production)).
+The installer seeds a Super Admin as `superadmin@gmail.com` / `superadmin` (`config/installer.php`, `admin_area`). The panel makes whoever signs in with it change the password first; change the email address too. The Cloud Run container replaces that login on every start while it is still in place (see [Deployment](Deployment#navigateed-on-google-cloud)).
 
 | Installer | Where | Guarantee |
 |---|---|---|
@@ -68,9 +68,26 @@ The installer seeds a Super Admin as `superadmin@gmail.com` / `superadmin` (`con
 | General API throttling | `throttle:api` prepended to the `api` group; `RateLimiter::for('api')` | 60 requests per minute per user id, or per IP when not signed in |
 | Paging caps | e.g. `ApiController::perPage()` | `per_page` is clamped to 1–100 |
 
-The `api` group also runs Sanctum's `EnsureFrontendRequestsAreStateful`, and `config/sanctum.php` lists the `web` guard, so a browser request from a stateful domain (`SANCTUM_STATEFUL_DOMAINS`, default the localhost variants plus the hosts of the CORS origins below) can authenticate with the session cookie. The apps always use bearer tokens.
+### Web portals (Sanctum cookie mode)
+
+The web builds of the apps (the learner and parent portal at `app.navigateed.co.za`, the teacher portal at `teach.navigateed.co.za`) sign in with a session cookie, not a token, so no bearer token is ever readable by the portal's JavaScript. The phone apps send no `Origin` header and keep using tokens.
+
+| Control | Where | Guarantee |
+|---|---|---|
+| Which requests are portal requests | Sanctum's `EnsureFrontendRequestsAreStateful` at the front of the `api` group; `SANCTUM_STATEFUL_DOMAINS` (default the localhost variants plus the hosts of the CORS origins below) | Only a request whose `Origin` or `Referer` is a stateful domain runs with the session cookie and the CSRF check; any other origin is treated like an app (no session, no CORS headers) |
+| CSRF | The portal first calls `GET /sanctum/csrf-cookie`; every write sends the `XSRF-TOKEN` cookie back as `X-XSRF-TOKEN` (`eschool_session`'s `XsrfInterceptor`, which fetches a fresh token and retries once on 419) | A portal write without the token gets 419 |
+| Sign-in | [PortalSession](https://github.com/ShawnDaPrawn/Eschool/blob/main/admin-panel/app/Services/Platform/Identity/PortalSession.php)`::signIn()` from the three login endpoints | After the same checks as the apps (role, account and session-year state, deactivated teachers, the throttles and lockout), a portal sign-in logs the `web` guard in on a regenerated session (new id and CSRF token) and answers with `token: ""`; `password_change_required` is answered as for the apps |
+| Refused sign-in | `portal.sign-in` ([EndRefusedPortalSignIn](https://github.com/ShawnDaPrawn/Eschool/blob/main/admin-panel/app/Http/Middleware/EndRefusedPortalSignIn.php)) on the three login routes | A portal sign-in the endpoint refuses (wrong profile, deactivated account, no active year) leaves no signed-in session |
+| Routes | `auth:sanctum` (Sanctum's guard tries the `web` session first) | The role groups, `teacher.active`, `password.change`, `checkChild` and the v2 routes work the same for a session as for a token |
+| Sign-out | `POST api/logout` → `PortalSession::signOut()` | Ends the session (invalidated, new CSRF token). A portal sign-in or sign-out leaves the phone apps' tokens and `fcm_id` alone; a request with an app token revokes that app's tokens as before |
+| Password changed elsewhere | Sanctum's `AuthenticateSession` (`config/sanctum.php` `middleware.authenticate_session`) | A portal session whose password no longer matches the account's is signed out on its next request (401) |
+| Session and XSRF cookies | `SESSION_DOMAIN`, `SESSION_SAME_SITE`, `SESSION_SECURE_COOKIE` (see [Configuration](Configuration)) | On the NavigateEd domain both cookies are set on `.navigateed.co.za` (`SameSite=Lax`, `Secure`, the session cookie `HttpOnly`), so `app.` and `teach.` (same site as `admin.`) send the session and can read the XSRF token. Staging uses its own session cookie name. Without a shared parent domain the portals are built with `WEB_AUTH_MODE=bearer` and their origins are left out of the stateful list |
+
+`PortalSignInTest` covers each portal's sign-in, v1 and v2 reads, the role groups and `checkChild`, sign-out, refused sign-ins, a password change, the CSRF check, the phone apps and unknown origins.
 
 **CORS.** [config/cors.php](https://github.com/ShawnDaPrawn/Eschool/blob/main/admin-panel/config/cors.php) answers only the panel (`APP_URL`) and the web portals: `CORS_ALLOWED_ORIGINS` (comma-separated), defaulting to `https://app.navigateed.co.za` and `https://teach.navigateed.co.za` (with a `staging-` prefix when `APP_URL` is a `staging-` host); `localhost` on any port only when `APP_ENV` is `local` or `testing`. `supports_credentials` is on, so a portal may use Sanctum's cookie mode. Any other origin, including look-alike hosts, `http://` and `null`, gets no CORS headers, so a browser on another site can't read the API's answers. The native apps send no `Origin` and are unaffected. `Platform/CorsTest` checks it.
+
+**Uploaded files.** Pictures and PDFs under `/storage` are served by Apache, outside Laravel's CORS middleware. [docker/storage-cors.conf](https://github.com/ShawnDaPrawn/Eschool/blob/main/admin-panel/docker/storage-cors.conf) answers a `GET` or `HEAD` from the same origins with `Access-Control-Allow-Origin` (that origin, no credentials) and sends `Vary: Origin` for everything under `/storage`; the entrypoint passes the origins in `STORAGE_CORS_ORIGINS` and the image default allows none. `server.php` does the same for `php artisan serve`. `StorageCorsTest` and `docker/tests/storage-cors.sh` (a real Apache, in CI) check it.
 
 ### Public forms
 
@@ -340,7 +357,7 @@ Code outside `config/` reads configuration through `config()`, secrets through `
 14. Back up the database and `storage/app/` (uploads) yourself unless the platform does it (on Google Cloud, Cloud SQL backups and the bucket); take a backup before every release.
 15. The request limits stop one client from overloading the server, not a flood from many addresses. Put the panel behind a CDN or a web application firewall with rate-based rules (on Google Cloud, a load balancer with Cloud Armor) if it could be a target.
 16. Run `composer audit` periodically on the installed version, or watch the weekly CI audit.
-17. Set `CORS_ALLOWED_ORIGINS` when the web portals are not on the default hosts, and leave `SESSION_DOMAIN` empty unless a portal on a sibling host must share the panel's session cookie (then `.navigateed.co.za`).
+17. Set `CORS_ALLOWED_ORIGINS` when the web portals are not on the default hosts. For portals that sign in with the session cookie, the panel and the portals must share a parent domain: set `SESSION_DOMAIN` to it (`.navigateed.co.za`) and list the portal hosts in `SANCTUM_STATEFUL_DOMAINS`; otherwise leave `SESSION_DOMAIN` empty, keep the portal hosts out of `SANCTUM_STATEFUL_DOMAINS` and build the portals with `WEB_AUTH_MODE=bearer`.
 
 ## Rules for contributors
 

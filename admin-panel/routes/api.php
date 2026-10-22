@@ -31,7 +31,7 @@ Route::group(['middleware' => 'auth:sanctum'], function () {
 Route::group(['prefix' => 'student'], function () {
 
     // Non Authenticated APIs
-    Route::post('login', [Student\AuthController::class, 'login'])->middleware('throttle:login');
+    Route::post('login', [Student\AuthController::class, 'login'])->middleware(['throttle:login', 'portal.sign-in']);
     Route::post('forgot-password', [Student\AuthController::class, 'forgotPassword'])->middleware('throttle:login');
 
     // Authenticated APIs
@@ -111,7 +111,7 @@ Route::group(['prefix' => 'student'], function () {
  **/
 Route::group(['prefix' => 'parent'], function () {
     // Non Authenticated APIs
-    Route::post('login', [ParentApi\AuthController::class, 'login'])->middleware('throttle:login');
+    Route::post('login', [ParentApi\AuthController::class, 'login'])->middleware(['throttle:login', 'portal.sign-in']);
 
     // After sign-in, before the rest of the parent API. No child session is
     // required: accepting the terms is what unlocks the rest.
@@ -195,7 +195,7 @@ Route::group(['prefix' => 'parent'], function () {
  **/
 Route::group(['prefix' => 'teacher'], function () {
     // Non Authenticated APIs
-    Route::post('login', [Teacher\AuthController::class, 'login'])->middleware('throttle:login');
+    Route::post('login', [Teacher\AuthController::class, 'login'])->middleware(['throttle:login', 'portal.sign-in']);
 
     // First sign-in only. Same controller as the parent app.
     Route::group(['middleware' => ['auth:sanctum', 'role:Teacher', 'teacher.active']], function () {

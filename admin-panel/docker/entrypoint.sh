@@ -91,6 +91,10 @@ case "$ROLE" in
         php artisan db:seed --class=InstallationSeeder --force
         php artisan db:seed --class=EmailSeeder --force
         php artisan config:cache
+        # The origins allowed to fetch uploaded files (docker/storage-cors.conf);
+        # none when they cannot be worked out, rather than no panel at all.
+        STORAGE_CORS_ORIGINS="$(php docker/storage-cors-origins.php || echo '(?!)')"
+        export STORAGE_CORS_ORIGINS
         exec apache2-foreground
         ;;
     worker)

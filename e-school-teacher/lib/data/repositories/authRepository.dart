@@ -70,7 +70,7 @@ class AuthRepository {
     );
 
     return {
-      'jwtToken': result['token'],
+      'jwtToken': result['token'] ?? '',
       'teacher': Teacher.fromJson(Map.from(result['data'])),
     };
   }

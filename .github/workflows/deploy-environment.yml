@@ -137,12 +137,28 @@ jobs:
           API_BASE_URL: ${{ vars.API_BASE_URL }}
           APP_PORTAL_URL: ${{ vars.APP_PORTAL_URL }}
           TEACH_PORTAL_URL: ${{ vars.TEACH_PORTAL_URL }}
+          WEB_AUTH_MODE: ${{ vars.WEB_AUTH_MODE }}
         run: |
           panel="${PANEL_URL:-$(gcloud run services describe "$SERVICE_ADMIN" --region="$REGION" --project="$PROJECT_ID" --format='value(status.url)')}"
+          api="${API_BASE_URL:-${panel%/}}"
+          # The portals sign in with the session cookie when the API is under
+          # navigateed.co.za with them (provision.sh then sets SESSION_DOMAIN);
+          # on the run.app address they use bearer tokens. WEB_AUTH_MODE
+          # (cookie or bearer) overrides.
+          api_host="${api#https://}"
+          api_host="${api_host%%/*}"
+          mode="$WEB_AUTH_MODE"
+          if [ -z "$mode" ]; then
+            case "$api_host" in
+              *.navigateed.co.za) mode=cookie ;;
+              *) mode=bearer ;;
+            esac
+          fi
           {
             echo "panel=${panel%/}"
-            echo "api=${API_BASE_URL:-${panel%/}}"
+            echo "api=$api"
             echo "portals=$APP_PORTAL_URL $TEACH_PORTAL_URL"
+            echo "web_auth_mode=$mode"
           } >> "$GITHUB_OUTPUT"
 
       - uses: subosito/flutter-action@1a449444c387b1966244ae4d4f8c696479add0b2 # v2.23.0
@@ -157,6 +173,7 @@ jobs:
         if: hashFiles('e-school/web/index.html', 'e-school-teacher/web/index.html') != ''
         env:
           API_BASE_URL: ${{ steps.urls.outputs.api }}
+          WEB_AUTH_MODE: ${{ steps.urls.outputs.web_auth_mode }}
         run: |
           for app in e-school e-school-teacher; do
             [ -f "$app/web/index.html" ] || continue
@@ -168,7 +185,8 @@ jobs:
               flutter build web --release \
                 --dart-define=API_BASE_URL="$API_BASE_URL" \
                 --dart-define=ENV="$ENVIRONMENT" \
-                --dart-define=FLAVOR="$flavor"
+                --dart-define=FLAVOR="$flavor" \
+                --dart-define=WEB_AUTH_MODE="$WEB_AUTH_MODE"
             )
           done
 

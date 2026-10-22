@@ -29,6 +29,7 @@ Both apps read their server address, environment and flavour from `--dart-define
 | `API_BASE_URL` | The admin panel's public URL, with no trailing `/`. Must be `https://` unless `ENV=local`. | `https://navigateed-admin-972068206844.africa-south1.run.app` (the production server every earlier build used) |
 | `ENV` | `production`, `staging` or `local` | `production` |
 | `FLAVOR` | Which shell the build is: `learner` (student and parent app) or `teacher`. `facilitator` and `vendor` are reserved for the teacher app's later flavours. | `learner` in `e-school`, `teacher` in `e-school-teacher` |
+| `WEB_AUTH_MODE` | Web builds only: how the portal signs in. `cookie` uses the panel's session cookie (no token in the browser; needs the panel and the portal under one parent domain, see below); `bearer` keeps a token like the phone apps. Phone builds always use tokens. | `cookie` |
 
 Each app has a define file per environment:
 
@@ -43,6 +44,8 @@ flutter run --dart-define=API_BASE_URL=http://10.0.2.2:8000 --dart-define=ENV=lo
 flutter build appbundle --release --dart-define-from-file=config/staging.json
 flutter build web --release --dart-define-from-file=config/production.json
 ```
+
+**Web portals and `WEB_AUTH_MODE`.** In `cookie` mode the portal fetches `<API_BASE_URL>/sanctum/csrf-cookie`, sends every request with the browser's cookies and every write with the `X-XSRF-TOKEN` header, and the sign-in starts a session instead of returning a token. That works only when the panel and the portal share a parent domain (`admin.navigateed.co.za` with `app.` and `teach.`, the panel's `SESSION_DOMAIN=.navigateed.co.za`) and the portal's host is in the panel's `SANCTUM_STATEFUL_DOMAINS`. The deploy workflow picks the mode from `API_BASE_URL`: `cookie` for a `*.navigateed.co.za` address, `bearer` otherwise (the run.app address); the `WEB_AUTH_MODE` variable of the GitHub environment overrides it. A `bearer` portal needs its host left out of `SANCTUM_STATEFUL_DOMAINS`, or its sign-in fails the CSRF check (419). For a local portal, `--dart-define=WEB_AUTH_MODE=cookie --dart-define=API_BASE_URL=http://127.0.0.1:8000 --dart-define=ENV=local` works with `php artisan serve` (any `127.0.0.1` port is stateful in `local`). See [Security Model](Security-Model) "Web portals".
 
 A plain `flutter run` or `flutter build` with no define still talks to the production server, so existing release scripts keep working. A debug build with an unusable value (a trailing `/`, `http://` outside `ENV=local`, an unknown `ENV`) stops at start-up with the reason (`AppConfig.assertValid()` in `initializeApp()`); a release build is never stopped.
 

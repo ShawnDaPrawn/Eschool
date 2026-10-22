@@ -16,6 +16,7 @@ use App\Models\StudentSessions;
 use App\Models\User;
 use App\Services\Platform\Identity\AppTokens;
 use App\Services\Platform\Identity\DateOfBirthPasswords;
+use App\Services\Platform\Identity\PortalSession;
 use App\Services\ResponseService;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
@@ -79,7 +80,7 @@ class AuthController extends Controller
                 return ResponseService::errorResponse('Your Account is Deactivate Please contact Admin for Further Help.', null, null);
             } else {
                 // Only now that the account and its session are active.
-                $token = AppTokens::issue($auth, AppTokens::STUDENT);
+                $token = PortalSession::signIn($request, $auth, AppTokens::STUDENT);
 
                 if ($request->fcm_id) {
                     $auth->fcm_id = $request->fcm_id;
