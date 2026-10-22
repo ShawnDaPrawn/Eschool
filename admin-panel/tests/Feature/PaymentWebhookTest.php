@@ -6,10 +6,12 @@ use App\Models\FeesChoiceable;
 use App\Models\FeesPaid;
 use App\Models\PaidInstallmentFee;
 use App\Models\PaymentTransaction;
+use App\Models\Platform\School;
 use App\Models\Settings;
 use App\Models\User;
 use App\Services\Payment\FeesPaymentService;
 use App\Services\Payment\PaymentService;
+use App\Services\Platform\Tenancy\CurrentSchool;
 use App\Services\Platform\Tenancy\SchoolTable;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
@@ -238,6 +240,21 @@ class PaymentWebhookTest extends TestCase
         Settings::where('type', 'stripe_webhook_secret')->delete();
         config(['services.stripe.webhook_secret' => null]);
         $this->stripe($payload, '')->assertStatus(401);
+    }
+
+    public function test_the_signature_is_checked_with_the_secret_of_the_payments_school(): void
+    {
+        $transaction = $this->pending(FeesPaymentService::COMPULSORY, gateway: PaymentService::STRIPE, orderId: 'pi_school_two');
+        School::query()->forceCreate(['id' => 2, 'name' => 'Second School', 'slug' => 'second-school', 'timezone' => 'Africa/Johannesburg']);
+        app(CurrentSchool::class)->run(2, fn () => Settings::query()->updateOrCreate(['type' => 'stripe_webhook_secret'], ['message' => 'whsec_school_two']));
+        DB::table('payment_transactions')->where('id', $transaction->id)->update(['school_id' => 2]);
+        $payload = $this->stripeEvent('pi_school_two', 100000, 'payment_intent.payment_failed');
+
+        // The first school's secret does not sign the second school's payments.
+        $this->stripe($payload, self::SECRETS['stripe_webhook_secret'])->assertStatus(401);
+        $this->assertSame(2, (int) $transaction->fresh()->payment_status);
+
+        $this->stripe($payload, 'whsec_school_two')->assertOk();
     }
 
     public function test_compulsory_payment_with_due_charges_records_them_from_the_stored_total(): void

@@ -22,8 +22,9 @@ use UnexpectedValueException;
  * Payment gateway webhooks. Stripe is the only gateway; Razorpay, Paystack and
  * Flutterwave were removed in Phase 0 and their webhook URLs answer 404.
  *
- * Each one checks the gateway's signature against the configured secret (and
- * refuses the call when no secret is configured), finds the transaction this
+ * Each one checks the gateway's signature against the configured secret of
+ * the school the payment belongs to (and refuses the call when no secret is
+ * configured), finds the transaction this
  * app created for that gateway order, checks the amount and currency paid
  * against it, and only then records the payment. What a payment covers comes
  * from the stored transaction and its rows, never from the webhook metadata.
@@ -33,13 +34,14 @@ class WebhookController extends Controller
 {
     public function stripe(Request $request, FeesPaymentService $fees)
     {
-        $secret = PaymentService::webhookSecret('stripe');
+        $payload = $request->getContent();
+        $secret = $this->stripeSecretFor($payload);
         if ($secret === '') {
             return $this->reject('Stripe', 'Webhook secret not configured', 401);
         }
 
         try {
-            $event = Webhook::constructEvent($request->getContent(), (string) $request->header('Stripe-Signature', ''), $secret);
+            $event = Webhook::constructEvent($payload, (string) $request->header('Stripe-Signature', ''), $secret);
         } catch (UnexpectedValueException) {
             return $this->reject('Stripe', 'Invalid payload', 400);
         } catch (SignatureVerificationException) {
@@ -60,6 +62,25 @@ class WebhookController extends Controller
         return app(CurrentSchool::class)->run((int) $transaction->school_id, fn () => $event->type === 'payment_intent.succeeded'
             ? $this->paid($fees, $transaction, $intent->amount_received ?? null, $intent->currency ?? null, [], 'Stripe')
             : $this->failed($fees, $transaction, []));
+    }
+
+    /**
+     * The webhook secret of the school whose payment the payload names, or
+     * the default school's when it names none we know. The payload is not
+     * verified yet: it only picks which school's secret the signature is
+     * checked against, and a payload not signed with that school's secret
+     * fails the check.
+     */
+    private function stripeSecretFor(string $payload): string
+    {
+        $data = json_decode($payload, true);
+        $intentId = is_array($data) ? ($data['data']['object']['id'] ?? null) : null;
+        $transaction = $this->findTransaction(PaymentService::STRIPE, $intentId);
+        if ($transaction === null) {
+            return PaymentService::webhookSecret('stripe');
+        }
+
+        return app(CurrentSchool::class)->run((int) $transaction->school_id, fn () => PaymentService::webhookSecret('stripe'));
     }
 
     private function findTransaction(int $gateway, $order_id): ?PaymentTransaction
