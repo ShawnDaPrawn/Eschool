@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Models;
 
+use App\Services\Platform\Audit\Auditable;
 use App\Models\Staff;
 use App\Models\Notification;
 use App\Models\UserNotification;
@@ -23,7 +24,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
 class User extends Authenticatable
 {
-    use HasApiTokens, HasFactory, Notifiable, HasRoles, SoftDeletes;
+    use Auditable, HasApiTokens, HasFactory, Notifiable, HasRoles, SoftDeletes;
     protected string $guard_name = 'web';
     protected function getDefaultGuardName(): string
     {
