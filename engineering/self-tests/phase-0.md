@@ -14,6 +14,7 @@ The Phase 0 self-test matrix (Build Bible section 6, "Tests and self-testing"): 
   1. The portals could not sign in from their own origin (defect D1). For the run, the panel was started with `SANCTUM_STATEFUL_DOMAINS=127.0.0.1:8000`, so only the panel itself is a stateful origin, as it was before S6. Without it every row below for teacher, learner and parent fails at sign-in.
   2. Headless Chromium in this container has no language set (`LANG` is empty), which makes Flutter's text layout throw "Incorrect locale information provided" and leaves a white page. The browser was given `en-ZA`, as every real browser has a language.
   3. Flutter loads CanvasKit from `www.gstatic.com`, which this machine cannot reach; the same files were served from `build/web/canvaskit`.
+- The learner and parent rows were run again on a fresh build after the phase branch's last app change (the learner app's Menu sheet now scrolls, `ff86640`), with the same results. The panel suite passed on the same tree (611 tests).
 - Screenshots are viewport-only PNGs in [`evidence/`](evidence/), named `p0-<profile>-<step>-<width>.png`.
 
 ## Matrix
