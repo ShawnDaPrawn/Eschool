@@ -187,9 +187,10 @@ class SecurityTest extends TestCase
 
             return true;
         });
-        $this->assertStringContainsString('visible', $logged);
-        foreach (['old-secret', 'new-secret', 'token-secret'] as $secret) {
-            $this->assertStringNotContainsString($secret, $logged);
+        // Field names only: no values at all, secret or not.
+        $this->assertStringContainsString('"name"', $logged);
+        foreach (['old-secret', 'new-secret', 'token-secret', 'visible'] as $value) {
+            $this->assertStringNotContainsString($value, $logged);
         }
     }
 

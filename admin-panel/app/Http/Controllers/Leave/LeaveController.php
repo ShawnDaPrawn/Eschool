@@ -19,7 +19,6 @@ use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
 
@@ -197,7 +196,7 @@ class LeaveController extends Controller
                 ];
             }
         } catch (\Throwable $e) {
-            Log::error($e);
+            report($e);
             DB::rollback();
             $response = [
                 'error' => true,
