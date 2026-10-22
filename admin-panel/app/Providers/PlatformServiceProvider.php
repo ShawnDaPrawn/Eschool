@@ -18,8 +18,8 @@ use Illuminate\Support\Facades\Context;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\ServiceProvider;
-use Spatie\Permission\Events\RoleAttached;
-use Spatie\Permission\Events\RoleDetached;
+use Spatie\Permission\Events\RoleAttachedEvent;
+use Spatie\Permission\Events\RoleDetachedEvent;
 
 /**
  * Wiring for the platform kernel (app/Services/Platform): tenancy, queued
@@ -77,7 +77,7 @@ class PlatformServiceProvider extends ServiceProvider
         });
 
         // Memberships follow role grants at the current school.
-        Event::listen(RoleAttached::class, function (RoleAttached $event) {
+        Event::listen(RoleAttachedEvent::class, function (RoleAttachedEvent $event) {
             $user = $event->model;
             if (! $user instanceof User) {
                 return;
@@ -99,7 +99,7 @@ class PlatformServiceProvider extends ServiceProvider
                 }
             });
         });
-        Event::listen(RoleDetached::class, function (RoleDetached $event) {
+        Event::listen(RoleDetachedEvent::class, function (RoleDetachedEvent $event) {
             if ($event->model instanceof User) {
                 $this->withRoleNames($event->rolesOrIds, fn (string $role) => $this->app->make(MembershipService::class)->end($event->model, $this->app->make(CurrentSchool::class)->id(), $role));
             }
