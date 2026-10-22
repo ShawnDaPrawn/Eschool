@@ -71,20 +71,23 @@ void main() {
     expect(server.requests, <String>['POST /api/student/login fresh=1']);
   });
 
-  test('writes echo the cookie the browser has; reads send no header', () async {
-    cookies['XSRF-TOKEN'] = 'abc%2B1';
-    final _FakeServer server = _FakeServer((_, _) => 200);
-    final Dio dio = portal(server);
+  test(
+    'writes echo the cookie the browser has; reads send no header',
+    () async {
+      cookies['XSRF-TOKEN'] = 'abc%2B1';
+      final _FakeServer server = _FakeServer((_, _) => 200);
+      final Dio dio = portal(server);
 
-    await dio.get<dynamic>('/api/v2/me/context');
-    await dio.post<dynamic>('/api/logout');
+      await dio.get<dynamic>('/api/v2/me/context');
+      await dio.post<dynamic>('/api/logout');
 
-    expect(csrfFetches, isEmpty);
-    expect(server.requests, <String>[
-      'GET /api/v2/me/context -',
-      'POST /api/logout abc+1',
-    ]);
-  });
+      expect(csrfFetches, isEmpty);
+      expect(server.requests, <String>[
+        'GET /api/v2/me/context -',
+        'POST /api/logout abc+1',
+      ]);
+    },
+  );
 
   test('a 419 fetches a fresh token and sends the write once more', () async {
     cookies['XSRF-TOKEN'] = 'stale';

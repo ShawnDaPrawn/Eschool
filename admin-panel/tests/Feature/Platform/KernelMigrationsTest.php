@@ -6,6 +6,7 @@ namespace Tests\Feature\Platform;
 
 use App\Services\Platform\Ledger\CentsColumns;
 use App\Services\Platform\Ledger\Money;
+use App\Services\Platform\Tenancy\SchoolTable;
 use Illuminate\Foundation\Testing\RefreshDatabaseState;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\DB;
@@ -106,11 +107,11 @@ class KernelMigrationsTest extends TestCase
             // Fee rows only; the classes, students and years they point at don't matter here.
             Schema::disableForeignKeyConstraints();
             foreach ($amounts as $i => $amount) {
-                $ids['fees_classes'][] = DB::table('fees_classes')->insertGetId(['class_id' => 900, 'fees_type_id' => 900, 'choiceable' => 0, 'amount' => $amount, 'session_year_id' => 900]);
-                $ids['fees_paids'][] = DB::table('fees_paids')->insertGetId(['student_id' => 900, 'class_id' => 900, 'total_amount' => $amount, 'due_charges' => $i % 2 ? $amount : null, 'is_fully_paid' => 0, 'date' => '2026-01-01', 'session_year_id' => 900]);
-                $ids['fees_choiceables'][] = DB::table('fees_choiceables')->insertGetId(['student_id' => 900, 'class_id' => 900, 'is_due_charges' => 0, 'total_amount' => $amount, 'session_year_id' => 900]);
-                $ids['paid_installment_fees'][] = DB::table('paid_installment_fees')->insertGetId(['class_id' => 900, 'student_id' => 900, 'parent_id' => 900, 'installment_fee_id' => 900, 'session_year_id' => 900, 'amount' => $amount, 'due_charges' => $i % 2 ? null : $amount, 'date' => '2026-01-01', 'payment_transaction_id' => 900, 'status' => 1]);
-                $ids['payment_transactions'][] = DB::table('payment_transactions')->insertGetId(['student_id' => 900, 'class_id' => 900, 'parent_id' => 900, 'payment_status' => 1, 'total_amount' => $amount, 'session_year_id' => 900]);
+                $ids['fees_classes'][] = SchoolTable::query('fees_classes')->insertGetId(['class_id' => 900, 'fees_type_id' => 900, 'choiceable' => 0, 'amount' => $amount, 'session_year_id' => 900]);
+                $ids['fees_paids'][] = SchoolTable::query('fees_paids')->insertGetId(['student_id' => 900, 'class_id' => 900, 'total_amount' => $amount, 'due_charges' => $i % 2 ? $amount : null, 'is_fully_paid' => 0, 'date' => '2026-01-01', 'session_year_id' => 900]);
+                $ids['fees_choiceables'][] = SchoolTable::query('fees_choiceables')->insertGetId(['student_id' => 900, 'class_id' => 900, 'is_due_charges' => 0, 'total_amount' => $amount, 'session_year_id' => 900]);
+                $ids['paid_installment_fees'][] = SchoolTable::query('paid_installment_fees')->insertGetId(['class_id' => 900, 'student_id' => 900, 'parent_id' => 900, 'installment_fee_id' => 900, 'session_year_id' => 900, 'amount' => $amount, 'due_charges' => $i % 2 ? null : $amount, 'date' => '2026-01-01', 'payment_transaction_id' => 900, 'status' => 1]);
+                $ids['payment_transactions'][] = SchoolTable::query('payment_transactions')->insertGetId(['student_id' => 900, 'class_id' => 900, 'parent_id' => 900, 'payment_status' => 1, 'total_amount' => $amount, 'session_year_id' => 900]);
             }
             $migration->up();
 

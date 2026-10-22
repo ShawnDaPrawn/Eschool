@@ -8,6 +8,7 @@ use App\Imports\StudentsImport;
 use App\Models\Platform\LearnerInvitation;
 use App\Models\User;
 use App\Services\Platform\Identity\LearnerInvitations;
+use App\Services\Platform\Tenancy\SchoolTable;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
@@ -251,7 +252,7 @@ class LearnerInvitationTest extends TestCase
         ]);
         $user->assignRole('Parent');
 
-        return DB::table('parents')->insertGetId([
+        return SchoolTable::query('parents')->insertGetId([
             'user_id' => $user->id, 'first_name' => 'Max', 'last_name' => 'Parent', 'gender' => 'Male',
             'email' => 'max@example.com', 'mobile' => '0123456789', 'occupation' => 'Chef', 'created_at' => now(), 'updated_at' => now(),
         ]);

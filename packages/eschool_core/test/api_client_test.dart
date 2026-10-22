@@ -266,6 +266,74 @@ void main() {
     });
   });
 
+  group('send', () {
+    const String url = 'https://school.test/api/v2/me/notification-preferences';
+
+    test('sends the method and a JSON body with the token', () async {
+      final result = await client.send(
+        method: 'PUT',
+        url: url,
+        data: {'type': 'comms.notice', 'channel': 'email', 'enabled': false},
+      );
+
+      final RequestOptions request = adapter.requests.single;
+      expect(result!['data'], 'ok');
+      expect(request.method, 'PUT');
+      expect(request.headers['Authorization'], 'Bearer secret-token');
+      expect(request.contentType, Headers.jsonContentType);
+      expect(request.data, containsPair('enabled', false));
+    });
+
+    test('a file goes as multipart', () async {
+      await client.send(
+        method: 'POST',
+        url: url,
+        data: FormData.fromMap({'_method': 'PUT'}),
+      );
+
+      expect(adapter.requests.single.data, isA<FormData>());
+    });
+
+    test('a refusal the server explains is shown as it says', () async {
+      useServer(
+        (_) async => _json({
+          'error': true,
+          'message': 'Your school sends this to everyone.',
+          'code': 422,
+        }, status: 422),
+      );
+
+      final e = await failure(
+        client.send(method: 'PUT', url: url, data: const {}),
+      );
+
+      expect(e.isApiMessage, isTrue);
+      expect(e.errorMessage, 'Your school sends this to everyone.');
+    });
+
+    test('a route not deployed yet answers null when asked to', () async {
+      useServer((_) async => _json({'message': 'Not Found'}, status: 404));
+
+      expect(
+        await client.send(method: 'GET', url: url, notFoundAsNull: true),
+        isNull,
+      );
+      final e = await failure(client.send(method: 'GET', url: url));
+      expect(e.errorMessage, ApiErrorCodes.defaultError);
+    });
+
+    test('401 still tells the app', () async {
+      useServer(
+        (_) async => _json({'message': 'Unauthenticated.'}, status: 401),
+      );
+
+      final e = await failure(client.send(method: 'GET', url: url));
+
+      expect(e.errorMessage, ApiErrorCodes.unauthorizedAccess);
+      expect(unauthorizedCalls, 1);
+    });
+  });
+
   test('a cookie-signed-in client sends no Authorization header', () {
     final cookieClient = ApiClient(
       authToken: () => '',

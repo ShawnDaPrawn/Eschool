@@ -132,6 +132,63 @@ class ApiClient {
     }
   }
 
+  /// A call to API v2 with any [method]: [data] is sent as JSON, or as it
+  /// is when it is [FormData] (a file). Answers the response body, or `null`
+  /// when [notFoundAsNull] and the server has no such route (HTTP 404: an
+  /// endpoint not deployed yet). A refusal the server explains (a 4xx with a
+  /// `message`, such as 422 for a locked setting) becomes an [ApiException]
+  /// carrying that message to show as it is; the rest fail like [get].
+  Future<Map<String, dynamic>?> send({
+    required String method,
+    required String url,
+    Object? data,
+    Map<String, dynamic>? queryParameters,
+    bool useAuthToken = true,
+    bool notFoundAsNull = false,
+  }) async {
+    try {
+      final Dio dio = _createDio();
+
+      debugPrint('API Called $method: $url');
+
+      final response = await dio.request<dynamic>(
+        url,
+        data: data,
+        queryParameters: queryParameters,
+        options: Options(
+          method: method,
+          headers: useAuthToken
+              ? headers()
+              : const {'Accept': 'application/json'},
+          contentType: data is FormData ? null : Headers.jsonContentType,
+        ),
+      );
+
+      return _checked(response);
+    } on DioException catch (e) {
+      final int? status = e.response?.statusCode;
+      if (status == 404 && notFoundAsNull) {
+        return null;
+      }
+      final Object? body = e.response?.data;
+      if (status != null &&
+          status >= 400 &&
+          status < 500 &&
+          status != 401 &&
+          status != 404 &&
+          body is Map &&
+          body['message'] is String &&
+          (body['message'] as String).isNotEmpty) {
+        throw ApiException(body['message'] as String, isApiMessage: true);
+      }
+      throw _fromDioException(e);
+    } on ApiException {
+      rethrow;
+    } catch (e) {
+      throw ApiException(ApiErrorCodes.defaultErrorMessageKey);
+    }
+  }
+
   Future<void> download({
     required String url,
     required CancelToken cancelToken,

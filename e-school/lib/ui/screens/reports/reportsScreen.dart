@@ -1,4 +1,4 @@
-import 'package:eschool/app/routeArguments.dart';
+import 'package:eschool/app/selectedChild.dart';
 import 'package:eschool/cubits/authCubit.dart';
 import 'package:eschool/data/models/subject.dart';
 import 'package:eschool/cubits/appConfigurationCubit.dart';
@@ -85,14 +85,20 @@ class ReportsScreen extends StatefulWidget {
     );
   }
 
+  /// A parent sees the reports of the child picked in the child switcher; a
+  /// learner sees their own.
   static Route route(RouteSettings routeSettings) {
-    final arguments = routeSettings.arguments as ChildSubjectsArguments?;
-    return AdaptivePageRoute(
-      builder: (context) => ReportsScreen.builder(
-        context,
-        childId: arguments?.childId,
-        subjects: arguments?.subjects,
-      ),
+    return childRoute(
+      (context, child) => child == null
+          ? ReportsScreen.builder(context)
+          : ChildSubjectsBuilder(
+              childId: child.id,
+              builder: (subjects) => ReportsScreen.builder(
+                context,
+                childId: child.id,
+                subjects: subjects,
+              ),
+            ),
     );
   }
 }

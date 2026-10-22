@@ -4,7 +4,7 @@ namespace App\Actions\Transfers;
 
 use App\Models\ClassTeacher;
 use App\Models\SubjectTeacher;
-use Illuminate\Support\Facades\DB;
+use App\Services\Platform\Tenancy\SchoolTable;
 
 class TransferClassTeacherAndSubjectTeacher
 {
@@ -30,7 +30,7 @@ class TransferClassTeacherAndSubjectTeacher
                     );
                 })->toArray();
                 if (! empty($insertClassTeacherData)) {
-                    DB::table('class_teachers')->insert($insertClassTeacherData);
+                    SchoolTable::query('class_teachers')->insert($insertClassTeacherData);
                 }
             });
 
@@ -52,7 +52,7 @@ class TransferClassTeacherAndSubjectTeacher
                 })->toArray();
 
                 if (! empty($insertSubjectTeacherData)) {
-                    DB::table('subject_teachers')->insert($insertSubjectTeacherData);
+                    SchoolTable::query('subject_teachers')->insert($insertSubjectTeacherData);
                 }
             });
     }

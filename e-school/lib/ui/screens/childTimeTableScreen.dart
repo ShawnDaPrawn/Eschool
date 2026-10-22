@@ -1,4 +1,4 @@
-import 'package:eschool_core/eschool_core.dart';
+import 'package:eschool/app/selectedChild.dart';
 import 'package:eschool/cubits/timeTableCubit.dart';
 import 'package:eschool/data/repositories/studentRepository.dart';
 import 'package:eschool/ui/widgets/timetableContainer.dart';
@@ -9,11 +9,15 @@ class ChildTimeTableScreen extends StatelessWidget {
   const ChildTimeTableScreen({required this.childId, super.key});
   final int childId;
 
+  /// The timetable of the child picked in the child switcher.
   static Route route(RouteSettings routeSettings) {
-    return AdaptivePageRoute(
-      builder: (_) => BlocProvider<TimeTableCubit>(
-        create: (context) => TimeTableCubit(StudentRepository()),
-        child: ChildTimeTableScreen(childId: routeSettings.arguments! as int),
+    return childRoute(
+      (context, child) => withChild(
+        child,
+        (child) => BlocProvider<TimeTableCubit>(
+          create: (context) => TimeTableCubit(StudentRepository()),
+          child: ChildTimeTableScreen(childId: child.id),
+        ),
       ),
     );
   }

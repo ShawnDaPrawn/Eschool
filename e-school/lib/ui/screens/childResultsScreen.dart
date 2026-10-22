@@ -1,5 +1,4 @@
-import 'package:eschool_core/eschool_core.dart';
-import 'package:eschool/app/routeArguments.dart';
+import 'package:eschool/app/selectedChild.dart';
 import 'package:eschool/cubits/resultsCubit.dart';
 import 'package:eschool/cubits/semestersCubit.dart';
 import 'package:eschool/data/models/subject.dart';
@@ -17,19 +16,23 @@ class ChildResultsScreen extends StatelessWidget {
   final int childId;
   final List<Subject>? subjects;
 
+  /// The results of the child picked in the child switcher.
   static Route route(RouteSettings routeSettings) {
-    final arguments = routeSettings.arguments! as ChildSubjectsArguments;
-    return AdaptivePageRoute(
-      builder: (_) => MultiBlocProvider(
-        providers: [
-          BlocProvider<ResultsCubit>(
-            create: (context) => ResultsCubit(StudentRepository()),
+    return childRoute(
+      (context, child) => withChild(
+        child,
+        (child) => MultiBlocProvider(
+          providers: [
+            BlocProvider<ResultsCubit>(
+              create: (context) => ResultsCubit(StudentRepository()),
+            ),
+            BlocProvider<SemestersCubit>(create: (context) => SemestersCubit()),
+          ],
+          child: ChildSubjectsBuilder(
+            childId: child.id,
+            builder: (subjects) =>
+                ChildResultsScreen(childId: child.id, subjects: subjects),
           ),
-          BlocProvider<SemestersCubit>(create: (context) => SemestersCubit()),
-        ],
-        child: ChildResultsScreen(
-          childId: arguments.childId,
-          subjects: arguments.subjects,
         ),
       ),
     );

@@ -23,7 +23,8 @@ API client, and the widgets and cubits both apps had copies of.
 
 | Folder in `lib/src/` | Holds |
 |---|---|
-| `api/` | `ApiClient`, `ApiException`, the app-side error codes |
+| `api/` | `ApiClient` (`get`, `post`, `download`, and `send` for the v2 endpoints: JSON or multipart, any method, a 404 as `null` when asked), `ApiException`, the app-side error codes |
+| `avatars/` | `AvatarSet`: the 16 avatars in `assets/avatars/` (`boy_1` to `woman_4`, drawn in the theme's colours only) and the default for a person; `PersonAvatar` draws an avatar key, a photo URL or initials |
 | `config/` | `AppConfig`: `API_BASE_URL`, `ENV`, `FLAVOR` from `--dart-define` |
 | `cubits/` | Cubits both apps use; each takes a repository interface |
 | `l10n/` | `AppLocalization`, `AppLocalizationDelegate`, the shared label keys |
@@ -34,7 +35,7 @@ API client, and the widgets and cubits both apps had copies of.
 | `theme/` | The Material 3 theme. The only place allowed to name colours |
 | `ui/` | `SharedUiUtils` (sizes and helpers), `SharedAssets` (image paths), `SharedRoutes` (route names) |
 | `utils/` | Extensions, file-name sanitiser, list animations |
-| `widgets/` | Shared widgets |
+| `widgets/` | Shared widgets, among them `ScreenScaffold` (the dark header the packages' screens use) and `EmptyStateMessage` |
 
 A shared widget reads labels with `SharedUiUtils.getTranslatedLabel`, which
 uses the running app's `assets/languages/` files, and the label keys it needs

@@ -4,13 +4,14 @@ declare(strict_types=1);
 
 namespace App\Models;
 
+use App\Services\Platform\Tenancy\BelongsToSchool;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Storage;
 
 class File extends Model
 {
-    use HasFactory;
+    use BelongsToSchool, HasFactory;
 
     protected $fillable = ['id', 'modal_type', 'modal_id', 'file_name', 'file_thumbnail', 'type', 'file_url'];
 

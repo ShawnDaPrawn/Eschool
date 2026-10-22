@@ -3,7 +3,7 @@
 namespace App\Actions\Transfers;
 
 use App\Models\Timetable;
-use Illuminate\Support\Facades\DB;
+use App\Services\Platform\Tenancy\SchoolTable;
 
 class TransferClassTimetable
 {
@@ -38,7 +38,7 @@ class TransferClassTimetable
                     })->values()->toArray();
 
                 if (! empty($data)) {
-                    DB::table('timetables')->insert($data);
+                    SchoolTable::query('timetables')->insert($data);
                 }
             });
     }

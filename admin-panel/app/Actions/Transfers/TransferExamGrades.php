@@ -3,7 +3,7 @@
 namespace App\Actions\Transfers;
 
 use App\Models\Grade;
-use Illuminate\Support\Facades\DB;
+use App\Services\Platform\Tenancy\SchoolTable;
 
 class TransferExamGrades
 {
@@ -25,7 +25,7 @@ class TransferExamGrades
                     );
                 })->toArray();
                 if (! empty($data)) {
-                    DB::table('grades')->insert($data);
+                    SchoolTable::query('grades')->insert($data);
                 }
             });
     }

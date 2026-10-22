@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Services\Platform\Notifications;
 
 use App\Models\Platform\NotificationDelivery;
+use App\Services\Platform\Tenancy\CurrentSchool;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 use Throwable;
@@ -33,6 +34,8 @@ class DeliveryLog
 
         try {
             $row = NotificationDelivery::create([
+                // The school it was sent for (none for platform messages).
+                'school_id' => app(CurrentSchool::class)->idOrNull(),
                 'delivery_key' => $key,
                 'type' => Str::limit($type, 100, ''),
                 'channel' => $channel,
