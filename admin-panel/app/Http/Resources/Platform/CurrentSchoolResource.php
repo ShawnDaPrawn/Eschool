@@ -12,8 +12,8 @@ use Illuminate\Http\Resources\Json\JsonResource;
 /**
  * The school the user is working in, with its branding, timezone and current
  * year (openapi.yaml, CurrentSchool). Colours are passed on as the school
- * stored them; the apps show them only on the crest and "My school", never in
- * place of the NavigateEd theme.
+ * stored them; the apps use them for the crest and the "My school" screen,
+ * never in place of the NavigateEd theme.
  */
 class CurrentSchoolResource extends JsonResource
 {

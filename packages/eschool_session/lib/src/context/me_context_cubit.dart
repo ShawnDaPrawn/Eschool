@@ -54,9 +54,9 @@ class MeContextFailure extends MeContextState {
   List<Object?> get props => [errorCode, context];
 }
 
-/// Holds the signed-in user's [MeContext]. The apps call [load] on launch
-/// when someone is signed in, after sign-in and after a school switch, and
-/// [clear] on sign-out.
+/// Holds the signed-in user's [MeContext]. The apps call [load] at start-up
+/// when someone is already signed in, after signing in and on changing
+/// school, and [clear] on sign-out.
 class MeContextCubit extends Cubit<MeContextState> {
   MeContextCubit({
     required MeContextRepository repository,

@@ -2,8 +2,8 @@ import { expect, test } from '@playwright/test';
 import { accounts, csrfToken, signIn } from '../support/accounts';
 
 /**
- * The year switcher (the Bible's UX acceptance test): switching to last year
- * shows the read-only banner on every page, lists follow the year, write
+ * The year switcher (a Phase 0 UX acceptance path): with last year selected,
+ * every page shows the read-only banner and lists last year's data, write
  * buttons are disabled and the server refuses writes. Runs as the second demo
  * teacher, in a session of its own, so the switch affects no other test.
  */

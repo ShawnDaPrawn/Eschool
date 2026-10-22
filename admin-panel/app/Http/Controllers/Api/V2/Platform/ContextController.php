@@ -12,8 +12,8 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
 /**
- * The apps call this on launch, after sign-in and after a school switch, and
- * cache the answer.
+ * Apps fetch this at start-up, after signing in and when the user changes
+ * school, and keep a cached copy.
  */
 class ContextController extends Controller
 {

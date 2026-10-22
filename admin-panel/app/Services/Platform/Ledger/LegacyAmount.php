@@ -7,7 +7,8 @@ namespace App\Services\Platform\Ledger;
 /**
  * The boundary between the seed's float money columns (and the v1 API that
  * returns them) and integer cents. Phase 0 keeps both columns; the floats go
- * in Phase 5. Nothing new should call this: new code uses Money.
+ * with the ledger work in a later phase. Nothing new should call this: new code
+ * uses Money.
  */
 final class LegacyAmount
 {

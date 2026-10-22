@@ -1,8 +1,7 @@
-// k6 smoke test for one NavigateEd environment (Build Bible 5.2: "A k6 smoke
-// test runs against staging at each gate"). It checks that the panel, the
-// public API and a few v1 reads answer correctly, and holds them to the
-// Bible's p95 budgets: 300 ms for list endpoints and, once API v2 serves it,
-// 150 ms for GET /api/v2/me/context.
+// k6 smoke test for one NavigateEd environment, run on staging before a phase
+// gate (Build Bible 5.2). It checks that the panel, the public API and a few
+// v1 reads answer correctly, within our p95 budgets: 300 ms for list
+// endpoints and, once API v2 serves it, 150 ms for GET /api/v2/me/context.
 //
 // Run by hand:
 //   k6 run -e BASE_URL=https://staging-admin.navigateed.co.za engineering/perf/k6-smoke.js
@@ -34,7 +33,7 @@ const thresholds = {
     // Correctness: almost nothing may fail.
     http_req_failed: ['rate<0.01'],
     checks: ['rate>0.99'],
-    // Bible 5.2 budgets.
+    // p95 budgets (Build Bible 5.2).
     'http_req_duration{type:list}': ['p(95)<300'],
 };
 if (CONTEXT_TOKEN) {

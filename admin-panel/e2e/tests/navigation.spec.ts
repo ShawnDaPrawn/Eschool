@@ -1,9 +1,9 @@
 import { expect, test, type Page } from '@playwright/test';
 
 /**
- * Navigation by job (the Bible's UX acceptance test): from Home, a new admin
- * finds "add a learner", "set up terms" and "send a notice" in under 30 seconds
- * each, by mouse and by keyboard.
+ * Navigation by job (a Phase 0 UX acceptance path): starting on Home, an admin
+ * reaches the pages for adding a learner, setting up terms and sending a notice
+ * within 30 seconds each, by mouse and by keyboard.
  */
 test.use({ storageState: '.auth/admin-flows.json' });
 

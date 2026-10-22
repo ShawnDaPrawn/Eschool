@@ -1,6 +1,6 @@
 {{--
-    A designed empty state that says what to do first: an icon, a short title,
-    one sentence, and the action that fills the page.
+    What a page shows before it has anything in it: an icon, a short title, one
+    sentence on how to start, and the action that fills the page.
 
     <x-page.empty-state icon="announcement" :title="__('no_notices_yet')"
         :message="__('no_notices_yet_hint')" :action-label="__('send_a_notice')" action-href="#notice-form" />
