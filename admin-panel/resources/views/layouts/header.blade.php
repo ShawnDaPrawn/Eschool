@@ -8,7 +8,7 @@
         <a class="navbar-brand header-logo brand-logo" href="{{ URL::to('/home') }}"> <img
                 src="{{ schoolLogoUrl('logo1') }}" alt="logo"> </a>
         <a class="navbar-brand brand-logo-mini" href="{{ URL::to('/') }}"> <img
-                src="{{ schoolSetting('favicon') ? asset('storage/' . schoolSetting('favicon')) : asset('assets/logo.svg') }}" alt="logo"> </a>
+                src="{{ schoolSetting('favicon') ? asset('storage/' . schoolSetting('favicon')) : asset('assets/logo2.svg') }}" alt="logo"> </a>
     </div>
     <div class="navbar-menu-wrapper d-flex align-items-stretch">
         <button class="navbar-toggler navbar-toggler align-self-center" type="button" data-toggle="minimize"

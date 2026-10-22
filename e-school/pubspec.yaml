@@ -84,7 +84,7 @@ flutter_launcher_icons:
   remove_alpha_ios: true
   image_path: "assets/images/branding/ic_launcher.png"
   adaptive_icon_foreground: "assets/images/branding/ic_launcher_transparent.png"
-  adaptive_icon_background: "#FFFFFF"
+  adaptive_icon_background: "#241449"
 
 flutter:
   uses-material-design: true
