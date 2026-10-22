@@ -4,6 +4,7 @@ class Assets {
 
   // Branding Images
   static const appLogo = '$_brandingImagePath/appLogo.svg';
+  static const appLogoReversed = '$_brandingImagePath/appLogoReversed.svg';
   static const fileNotFoundImage = '$_brandingImagePath/fileNotFound.svg';
   static const noInternetImage = '$_brandingImagePath/noInternet.svg';
   static const somethingWentWrongImage =
