@@ -1,9 +1,6 @@
 import 'package:eschool/cubits/studentParentDetailsCubit.dart';
-import 'package:eschool/ui/widgets/customShimmerContainer.dart';
-import 'package:eschool/ui/widgets/errorContainer.dart';
+import 'package:eschool_core/eschool_core.dart';
 import 'package:eschool/ui/widgets/parentProfileDetailsContainer.dart';
-import 'package:eschool/ui/widgets/screenTopBackgroundContainer.dart';
-import 'package:eschool/ui/widgets/shimmerLoadingContainer.dart';
 import 'package:eschool/utils/labelKeys.dart';
 import 'package:eschool/utils/uiUtils.dart';
 import 'package:flutter/material.dart';

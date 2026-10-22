@@ -1,5 +1,5 @@
 import 'package:equatable/equatable.dart';
-import 'package:eschool/data/models/studyMaterial.dart';
+import 'package:eschool_core/eschool_core.dart';
 import 'package:eschool/data/repositories/subjectRepository.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 

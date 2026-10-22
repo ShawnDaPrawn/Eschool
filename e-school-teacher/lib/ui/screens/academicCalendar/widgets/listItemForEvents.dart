@@ -1,6 +1,5 @@
 import 'package:eschool_teacher/app/routes.dart';
 import 'package:eschool_teacher/data/models/event.dart';
-import 'package:eschool_teacher/ui/widgets/customImageWidget.dart';
 import 'package:eschool_core/eschool_core.dart';
 import 'package:eschool_teacher/utils/labelKeys.dart';
 import 'package:eschool_teacher/utils/uiUtils.dart';
@@ -103,11 +102,7 @@ class EventItemContainer extends StatelessWidget {
         !isDetailsScreen && !event.isSingleDayEvent && event.hasDaySchedule;
     final onTap = hasDetails
         ? () {
-            Navigator.pushNamed(
-              context,
-              Routes.eventDetails,
-              arguments: {'event': event},
-            );
+            Navigator.pushNamed(context, Routes.eventDetails, arguments: event);
           }
         : null;
     return GestureDetector(

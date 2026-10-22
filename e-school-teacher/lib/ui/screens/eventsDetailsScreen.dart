@@ -1,20 +1,11 @@
 // ignore_for_file: public_member_api_docs, sort_constructors_first
-import 'package:eschool_teacher/cubits/eventDetailsCubit.dart';
-import 'package:eschool_teacher/data/models/event.dart';
 import 'package:eschool_core/eschool_core.dart';
+import 'package:eschool_teacher/data/models/event.dart';
 import 'package:eschool_teacher/data/repositories/systemInfoRepository.dart';
 import 'package:eschool_teacher/ui/screens/academicCalendar/widgets/listItemForEvents.dart';
-import 'package:eschool_teacher/ui/widgets/customBackButton.dart';
-import 'package:eschool_teacher/ui/widgets/customShimmerContainer.dart';
-import 'package:eschool_teacher/ui/widgets/errorContainer.dart';
 import 'package:eschool_teacher/ui/widgets/noDataContainer.dart';
-import 'package:eschool_teacher/ui/widgets/screenTopBackgroundContainer.dart';
-import 'package:eschool_teacher/ui/widgets/shimmerLoadingContainer.dart';
-import 'package:eschool_teacher/utils/animationConfiguration.dart';
-import 'package:eschool_teacher/utils/constants.dart';
 import 'package:eschool_teacher/utils/labelKeys.dart';
 import 'package:eschool_teacher/utils/uiUtils.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 
@@ -26,11 +17,10 @@ class EventDetailsScreen extends StatefulWidget {
   const EventDetailsScreen({required this.event, super.key});
 
   static Route route(RouteSettings routeSettings) {
-    final arguments = routeSettings.arguments! as Map<String, dynamic>;
-    return CupertinoPageRoute(
+    return AdaptivePageRoute(
       builder: (_) => BlocProvider<EventDetailsCubit>(
         create: (context) => EventDetailsCubit(SystemRepository()),
-        child: EventDetailsScreen(event: arguments['event']),
+        child: EventDetailsScreen(event: routeSettings.arguments! as Event),
       ),
     );
   }

@@ -1,8 +1,5 @@
-import 'package:eschool/data/models/dynamicField.dart';
-import 'package:eschool/data/models/studyMaterial.dart';
+import 'package:eschool_core/eschool_core.dart';
 import 'package:eschool/utils/constants.dart';
-import 'package:eschool/utils/extensions.dart';
-import 'package:eschool/utils/labelKeys.dart';
 import 'package:eschool/utils/uiUtils.dart';
 import 'package:flutter/material.dart';
 

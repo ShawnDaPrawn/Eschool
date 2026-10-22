@@ -1,10 +1,7 @@
 import 'package:any_link_preview/any_link_preview.dart';
 import 'package:eschool_teacher/app/routes.dart';
-import 'package:eschool_teacher/data/models/chatMessage.dart';
-import 'package:eschool_teacher/data/models/studyMaterial.dart';
-import 'package:eschool_teacher/ui/screens/chat/widget/messageItemComponents.dart';
 import 'package:eschool_core/eschool_core.dart';
-import 'package:eschool_teacher/ui/widgets/customImageWidget.dart';
+import 'package:eschool_teacher/ui/screens/chat/widget/messageItemComponents.dart';
 import 'package:eschool_teacher/utils/assets.dart';
 import 'package:eschool_teacher/utils/labelKeys.dart';
 import 'package:eschool_teacher/utils/uiUtils.dart';
@@ -223,16 +220,16 @@ class _SingleChatMessageItemState extends State<SingleChatMessageItem> {
             onTap: () {
               Navigator.of(context).pushNamed(
                 Routes.imageFileView,
-                arguments: {
-                  'studyMaterial': StudyMaterial.fromURL(imagePath),
-                  'isFile': imageMessage.isLocallyStored,
-                  'multiStudyMaterial': imageMessage.files.length > 1
+                arguments: ImageFileViewArguments(
+                  studyMaterial: StudyMaterial.fromURL(imagePath),
+                  isFile: imageMessage.isLocallyStored,
+                  multiStudyMaterial: imageMessage.files.length > 1
                       ? imageMessage.files
                             .map<StudyMaterial>((e) => StudyMaterial.fromURL(e))
                             .toList()
                       : <StudyMaterial>[],
-                  'initialPage': index == 0 ? null : index,
-                },
+                  initialPage: index == 0 ? null : index,
+                ),
               );
             },
             child: Container(
@@ -284,10 +281,10 @@ class _SingleChatMessageItemState extends State<SingleChatMessageItem> {
                   if (isPdf) {
                     Navigator.of(context).pushNamed(
                       Routes.pdfFileView,
-                      arguments: {
-                        'studyMaterial': StudyMaterial.fromURL(filePath),
-                        'isFile': true,
-                      },
+                      arguments: PdfFileViewArguments(
+                        studyMaterial: StudyMaterial.fromURL(filePath),
+                        isFile: true,
+                      ),
                     );
                   } else {
                     UiUtils.openDownloadBottomsheet(
@@ -299,9 +296,9 @@ class _SingleChatMessageItemState extends State<SingleChatMessageItem> {
                   if (isPdf) {
                     Navigator.of(context).pushNamed(
                       Routes.pdfFileView,
-                      arguments: {
-                        'studyMaterial': StudyMaterial.fromURL(filePath),
-                      },
+                      arguments: PdfFileViewArguments(
+                        studyMaterial: StudyMaterial.fromURL(filePath),
+                      ),
                     );
                   } else {
                     UiUtils.openDownloadBottomsheet(

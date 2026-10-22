@@ -1,7 +1,7 @@
-import 'dart:io';
 
 import 'package:eschool_teacher/data/models/appConfiguration.dart';
 import 'package:eschool_core/eschool_core.dart';
+import 'package:eschool_session/eschool_session.dart';
 import 'package:eschool_teacher/data/repositories/systemInfoRepository.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -50,18 +50,20 @@ class AppConfigurationCubit extends Cubit<AppConfigurationState> {
 
   String getAppLink() {
     if (state is AppConfigurationFetchSuccess) {
-      return Platform.isIOS
-          ? getAppConfiguration().iosAppLink
-          : getAppConfiguration().appLink;
+      return ForceUpdate.forPlatform(
+        android: getAppConfiguration().appLink,
+        ios: getAppConfiguration().iosAppLink,
+      );
     }
     return '';
   }
 
   String getAppVersion() {
     if (state is AppConfigurationFetchSuccess) {
-      return Platform.isIOS
-          ? getAppConfiguration().iosAppVersion
-          : getAppConfiguration().appVersion;
+      return ForceUpdate.forPlatform(
+        android: getAppConfiguration().appVersion,
+        ios: getAppConfiguration().iosAppVersion,
+      );
     }
     return '';
   }

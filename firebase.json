@@ -1,11 +1,48 @@
 {
-  "hosting": {
-    "public": "documentation/build",
-    "ignore": ["**/.*"],
-    "trailingSlash": true,
-    "predeploy": [
-      "npm --prefix \"$PROJECT_DIR/documentation\" ci --no-audit --no-fund",
-      "npm --prefix \"$PROJECT_DIR/documentation\" run build:firebase"
-    ]
-  }
+  "hosting": [
+    {
+      "target": "docs",
+      "public": "documentation/build",
+      "ignore": ["**/.*"],
+      "trailingSlash": true,
+      "predeploy": [
+        "npm --prefix \"$PROJECT_DIR/documentation\" ci --no-audit --no-fund",
+        "npm --prefix \"$PROJECT_DIR/documentation\" run build:firebase"
+      ]
+    },
+    {
+      "target": "app",
+      "public": "e-school/build/web",
+      "ignore": ["**/.*"],
+      "rewrites": [{ "source": "**", "destination": "/index.html" }],
+      "headers": [
+        {
+          "source": "**",
+          "headers": [
+            { "key": "Cache-Control", "value": "no-cache" },
+            { "key": "X-Content-Type-Options", "value": "nosniff" },
+            { "key": "X-Frame-Options", "value": "DENY" },
+            { "key": "Referrer-Policy", "value": "strict-origin-when-cross-origin" }
+          ]
+        }
+      ]
+    },
+    {
+      "target": "teach",
+      "public": "e-school-teacher/build/web",
+      "ignore": ["**/.*"],
+      "rewrites": [{ "source": "**", "destination": "/index.html" }],
+      "headers": [
+        {
+          "source": "**",
+          "headers": [
+            { "key": "Cache-Control", "value": "no-cache" },
+            { "key": "X-Content-Type-Options", "value": "nosniff" },
+            { "key": "X-Frame-Options", "value": "DENY" },
+            { "key": "Referrer-Policy", "value": "strict-origin-when-cross-origin" }
+          ]
+        }
+      ]
+    }
+  ]
 }

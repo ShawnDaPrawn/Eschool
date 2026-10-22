@@ -1,23 +1,16 @@
+import 'package:eschool/app/routeArguments.dart';
 import 'package:eschool/cubits/authCubit.dart';
 import 'package:eschool/cubits/topicStudyMaterialCubit.dart';
-import 'package:eschool/data/models/studyMaterial.dart';
-import 'package:eschool/data/models/topic.dart';
+import 'package:eschool_core/eschool_core.dart';
 import 'package:eschool/data/repositories/subjectRepository.dart';
-import 'package:eschool/ui/widgets/customRefreshIndicator.dart';
-import 'package:eschool/ui/widgets/customShimmerContainer.dart';
 import 'package:eschool/ui/widgets/customTabBarContainer.dart';
-import 'package:eschool/ui/widgets/errorContainer.dart';
 import 'package:eschool/ui/widgets/filesContainer.dart';
 
-import 'package:eschool/ui/widgets/screenTopBackgroundContainer.dart';
-import 'package:eschool/ui/widgets/shimmerLoadingContainer.dart';
-import 'package:eschool/ui/widgets/svgButton.dart';
 import 'package:eschool/ui/widgets/tabBarBackgroundContainer.dart';
 import 'package:eschool/ui/widgets/videosContainer.dart';
 
 import 'package:eschool/utils/labelKeys.dart';
 import 'package:eschool/utils/uiUtils.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -30,13 +23,13 @@ class TopicDetailsScreen extends StatefulWidget {
   State<TopicDetailsScreen> createState() => _TopicDetailsScreenState();
 
   static Route route(RouteSettings routeSettings) {
-    final arguments = routeSettings.arguments! as Map<String, dynamic>;
-    return CupertinoPageRoute(
+    final arguments = routeSettings.arguments! as TopicDetailsArguments;
+    return AdaptivePageRoute(
       builder: (_) => BlocProvider<TopicStudyMaterialCubit>(
         create: (context) => TopicStudyMaterialCubit(SubjectRepository()),
         child: TopicDetailsScreen(
-          topic: arguments['topic'],
-          childId: arguments['childId'],
+          topic: arguments.topic,
+          childId: arguments.childId,
         ),
       ),
     );

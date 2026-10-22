@@ -1,4 +1,4 @@
-import 'package:eschool/data/models/dynamicField.dart';
+import 'package:eschool_core/eschool_core.dart';
 import 'package:eschool/data/models/student.dart';
 
 class Parent {

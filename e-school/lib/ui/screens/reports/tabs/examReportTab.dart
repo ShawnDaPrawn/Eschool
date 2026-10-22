@@ -1,3 +1,4 @@
+import 'package:eschool/app/routeArguments.dart';
 import 'package:eschool/app/routes.dart';
 import 'package:eschool/cubits/appConfigurationCubit.dart';
 import 'package:eschool/cubits/resultsCubit.dart';
@@ -5,22 +6,16 @@ import 'package:eschool/cubits/resultsOnlineCubit.dart';
 import 'package:eschool/cubits/studentDashboardCubit.dart';
 import 'package:eschool/cubits/authCubit.dart';
 import 'package:eschool/cubits/sessionYearCubit.dart';
-import 'package:eschool/data/models/result.dart';
+import 'package:eschool_core/eschool_core.dart';
 import 'package:eschool/data/models/resultOnline.dart';
 import 'package:eschool/data/models/sessionYear.dart';
 import 'package:eschool/data/models/subject.dart';
-import 'package:eschool_core/eschool_core.dart';
-import 'package:eschool/ui/screens/leave/widgets/dropdownButtonContainer.dart';
 import 'package:eschool/ui/screens/reports/cubits/examReportCubit.dart';
 
 import 'package:eschool/ui/screens/reports/widgets/sessionYearPickerBottomsheetContainer.dart';
 import 'package:eschool/ui/screens/reports/widgets/subjectPickerBottomsheetContainer.dart';
-import 'package:eschool/ui/widgets/bottomSheetTopBarMenu.dart';
-import 'package:eschool/ui/widgets/customShimmerContainer.dart';
-import 'package:eschool/ui/widgets/errorContainer.dart';
 import 'package:eschool/ui/widgets/listItemForExamAndResult.dart';
 import 'package:eschool/ui/widgets/listItemForOnlineExamAndOnlineResult.dart';
-import 'package:eschool/ui/widgets/shimmerLoadingContainer.dart';
 import 'package:eschool/utils/labelKeys.dart';
 import 'package:eschool/utils/uiUtils.dart';
 import 'package:fl_chart/fl_chart.dart';
@@ -885,7 +880,7 @@ class _ExamReportTabState extends State<ExamReportTab>
       onItemTap: () {
         Navigator.of(context).pushNamed(
           Routes.result,
-          arguments: {'childId': widget.childId, 'result': result},
+          arguments: ResultArguments(childId: widget.childId, result: result),
         );
       },
     );
@@ -905,16 +900,16 @@ class _ExamReportTabState extends State<ExamReportTab>
       onItemTap: () {
         Navigator.of(context).pushNamed(
           Routes.resultOnline,
-          arguments: {
-            'examId': result.examId,
-            'examName': result.examName,
-            'subjectName': result.subject.showType
+          arguments: ResultOnlineArguments(
+            examId: result.examId,
+            examName: result.examName,
+            subjectName: result.subject.showType
                 ? result.subject.subjectNameWithType
                 : result.subject.name,
-            'childId': widget.childId,
-            'totalMarks': result.totalMarks,
-            'obtainedMarks': result.obtainedMarks,
-          },
+            childId: widget.childId,
+            totalMarks: result.totalMarks,
+            obtainedMarks: result.obtainedMarks,
+          ),
         );
       },
     );

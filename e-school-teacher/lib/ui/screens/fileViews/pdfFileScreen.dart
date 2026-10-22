@@ -1,17 +1,13 @@
 import 'package:eschool_teacher/cubits/pdfFileCubit.dart';
-import 'package:eschool_teacher/data/models/studyMaterial.dart';
+import 'package:eschool_core/eschool_core.dart';
 import 'package:eschool_teacher/data/repositories/studyMaterialRepositoy.dart';
 import 'package:eschool_teacher/ui/widgets/customAppbar.dart';
-import 'package:eschool_teacher/ui/widgets/errorContainer.dart';
 import 'package:eschool_teacher/utils/assets.dart';
 import 'package:eschool_teacher/utils/labelKeys.dart';
 import 'package:eschool_teacher/utils/uiUtils.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_pdfview/flutter_pdfview.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:open_filex/open_filex.dart';
 
 class PdfFileScreen extends StatefulWidget {
   const PdfFileScreen({
@@ -23,11 +19,12 @@ class PdfFileScreen extends StatefulWidget {
   final bool isFile;
 
   static Route route(RouteSettings routeSettings) {
-    final StudyMaterial studyMaterial =
-        (routeSettings.arguments as Map?)?['studyMaterial'] ??
-        StudyMaterial.fromJson({});
-    final bool isItFile = (routeSettings.arguments as Map?)?['isFile'] ?? false;
-    return CupertinoPageRoute(
+    final arguments =
+        routeSettings.arguments as PdfFileViewArguments? ??
+        PdfFileViewArguments(studyMaterial: StudyMaterial.fromJson({}));
+    final StudyMaterial studyMaterial = arguments.studyMaterial;
+    final bool isItFile = arguments.isFile;
+    return AdaptivePageRoute(
       builder: (_) => BlocProvider(
         create: (context) => PdfFileSaveCubit(StudyMaterialRepository()),
         child: PdfFileScreen(pdfFileMaterial: studyMaterial, isFile: isItFile),
@@ -151,7 +148,10 @@ class _PdfFileScreenState extends State<PdfFileScreen> {
                     ),
                   );
                 } else if (state is PdfFileSaveSuccess) {
-                  return PDFView(filePath: state.pdfFilePath, pageFling: false);
+                  return PdfDocumentView(
+                    filePath: state.pdfFilePath,
+                    bytes: state.bytes,
+                  );
                 } else {
                   return Center(
                     child: ErrorContainer(
@@ -179,7 +179,7 @@ class _PdfFileScreenState extends State<PdfFileScreen> {
                         color: Theme.of(context).colorScheme.onInverseSurface,
                       ),
                       onPressed: () {
-                        OpenFilex.open(widget.pdfFileMaterial.fileUrl);
+                        DeviceFiles.open(widget.pdfFileMaterial.fileUrl);
                       },
                     )
                   : IconButton(

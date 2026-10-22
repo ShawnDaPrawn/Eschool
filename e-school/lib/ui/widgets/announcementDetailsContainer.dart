@@ -1,5 +1,4 @@
-import 'package:eschool/data/models/announcement.dart';
-import 'package:eschool/ui/widgets/studyMaterialWithDownloadButtonContainer.dart';
+import 'package:eschool_core/eschool_core.dart';
 import 'package:eschool/utils/uiUtils.dart';
 import 'package:flutter/material.dart';
 

@@ -2,7 +2,7 @@ import 'dart:convert';
 import 'dart:typed_data';
 import 'package:eschool_teacher/data/models/exam.dart';
 import 'package:eschool_teacher/data/models/guardianDetails.dart';
-import 'package:eschool_teacher/data/models/result.dart';
+import 'package:eschool_core/eschool_core.dart';
 import 'package:eschool_teacher/data/models/student.dart';
 import 'package:eschool_teacher/data/models/studentResult.dart';
 import 'package:eschool_teacher/utils/api.dart';

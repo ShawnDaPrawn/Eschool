@@ -1,10 +1,8 @@
-import 'package:eschool_teacher/cubits/appSettingsCubit.dart';
+import 'package:eschool_core/eschool_core.dart';
 import 'package:eschool_teacher/data/repositories/systemInfoRepository.dart';
-import 'package:eschool_teacher/ui/widgets/appSettingsBlocBuilder.dart';
 import 'package:eschool_teacher/ui/widgets/customAppbar.dart';
 import 'package:eschool_teacher/utils/labelKeys.dart';
 import 'package:eschool_teacher/utils/uiUtils.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -16,7 +14,7 @@ class TermsAndConditionScreen extends StatefulWidget {
       _TermsAndConditionScreenState();
 
   static Route route(RouteSettings routeSettings) {
-    return CupertinoPageRoute(
+    return AdaptivePageRoute(
       builder: (_) => BlocProvider<AppSettingsCubit>(
         create: (context) => AppSettingsCubit(SystemRepository()),
         child: const TermsAndConditionScreen(),

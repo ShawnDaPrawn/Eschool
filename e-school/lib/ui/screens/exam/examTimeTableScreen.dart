@@ -1,19 +1,14 @@
+import 'package:eschool/app/routeArguments.dart';
 import 'package:eschool/cubits/authCubit.dart';
 import 'package:eschool/cubits/examTimeTableCubit.dart';
 import 'package:eschool/data/models/exam.dart';
 import 'package:eschool/data/models/student.dart';
 import 'package:eschool/data/repositories/studentRepository.dart';
-import 'package:eschool/ui/widgets/customShimmerContainer.dart';
-import 'package:eschool/ui/widgets/errorContainer.dart';
+import 'package:eschool_core/eschool_core.dart';
 import 'package:eschool/ui/widgets/noDataContainer.dart';
-import 'package:eschool/ui/widgets/screenTopBackgroundContainer.dart';
-import 'package:eschool/ui/widgets/shimmerLoadingContainer.dart';
 import 'package:eschool/ui/widgets/subjectImageContainer.dart';
-import 'package:eschool/ui/widgets/svgButton.dart';
-import 'package:eschool/utils/animationConfiguration.dart';
 import 'package:eschool/utils/labelKeys.dart';
 import 'package:eschool/utils/uiUtils.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -33,15 +28,15 @@ class ExamTimeTableScreen extends StatefulWidget {
   State<ExamTimeTableScreen> createState() => _ExamTimeTableState();
 
   static Route route(RouteSettings routeSettings) {
-    final examDetails = routeSettings.arguments! as Map<String, dynamic>;
+    final examDetails = routeSettings.arguments! as ExamTimeTableArguments;
 
-    return CupertinoPageRoute(
+    return AdaptivePageRoute(
       builder: (_) => BlocProvider(
         create: (context) => ExamTimeTableCubit(StudentRepository()),
         child: ExamTimeTableScreen(
-          childID: examDetails['childID'],
-          examID: examDetails['examID'],
-          examName: examDetails['examName'],
+          childID: examDetails.childId,
+          examID: examDetails.examId,
+          examName: examDetails.examName,
         ),
       ),
     );

@@ -13,6 +13,7 @@ class ApiClient {
     required this.authToken,
     required this.onUnauthorized,
     Dio Function()? createDio,
+    this.sendsBearerToken = true,
   }) : _createDio = createDio ?? Dio.new;
 
   /// The signed-in user's token, or an empty string when nobody is signed in.
@@ -23,9 +24,13 @@ class ApiClient {
 
   final Dio Function() _createDio;
 
+  /// False when the signed-in user is known by a session cookie instead (the
+  /// web portals), so no Authorization header is sent.
+  final bool sendsBearerToken;
+
   Map<String, dynamic> headers() {
     return {
-      'Authorization': 'Bearer ${authToken()}',
+      if (sendsBearerToken) 'Authorization': 'Bearer ${authToken()}',
       // Without it an older server answers an expired token with a redirect
       // instead of the 401 that signs the user out.
       'Accept': 'application/json',
@@ -96,6 +101,37 @@ class ApiClient {
     }
   }
 
+  /// Like [get], but answers `null` instead of failing when the server has
+  /// no such route (HTTP 404), for endpoints newer than some servers.
+  Future<Map<String, dynamic>?> getIfSupported({
+    required String url,
+    required bool useAuthToken,
+    Map<String, dynamic>? queryParameters,
+  }) async {
+    try {
+      final Dio dio = _createDio();
+
+      debugPrint('API Called GET: $url');
+
+      final response = await dio.get(
+        url,
+        queryParameters: queryParameters,
+        options: useAuthToken ? Options(headers: headers()) : null,
+      );
+
+      return _checked(response);
+    } on DioException catch (e) {
+      if (e.response?.statusCode == 404) {
+        return null;
+      }
+      throw _fromDioException(e);
+    } on ApiException {
+      rethrow;
+    } catch (e) {
+      throw ApiException(ApiErrorCodes.defaultErrorMessageKey);
+    }
+  }
+
   Future<void> download({
     required String url,
     required CancelToken cancelToken,
@@ -108,28 +144,60 @@ class ApiClient {
         url,
         savePath,
         cancelToken: cancelToken,
-        onReceiveProgress: (count, total) {
-          final double percentage = (count / total) * 100;
-          updateDownloadedPercentage(percentage < 0.0 ? 99.0 : percentage);
-        },
+        onReceiveProgress: (count, total) =>
+            _reportProgress(count, total, updateDownloadedPercentage),
       );
     } on DioException catch (e) {
-      if (e.response?.statusCode == 503 || e.response?.statusCode == 500) {
-        throw ApiException(ApiErrorCodes.internetServerError);
-      }
-      if (e.response?.statusCode == 404) {
-        throw ApiException(ApiErrorCodes.fileNotFound);
-      }
-      throw ApiException(
-        e.error is SocketException
-            ? ApiErrorCodes.noInternet
-            : ApiErrorCodes.defaultError,
-      );
+      throw _fromDownloadException(e);
     } on ApiException catch (e) {
       throw ApiException(e.errorMessage);
     } catch (e) {
       throw ApiException(ApiErrorCodes.defaultErrorMessageKey);
     }
+  }
+
+  /// Like [download], but keeps the file in memory: what a web build does,
+  /// as it cannot write files. The files are public, so no cookie or token
+  /// goes with the request (a storage bucket on another origin would refuse
+  /// a request with credentials).
+  Future<Uint8List> downloadBytes({
+    required String url,
+    required CancelToken cancelToken,
+    required Function updateDownloadedPercentage,
+  }) async {
+    try {
+      final Response<List<int>> response = await Dio().get<List<int>>(
+        url,
+        cancelToken: cancelToken,
+        options: Options(responseType: ResponseType.bytes),
+        onReceiveProgress: (count, total) =>
+            _reportProgress(count, total, updateDownloadedPercentage),
+      );
+      return Uint8List.fromList(response.data ?? const <int>[]);
+    } on DioException catch (e) {
+      throw _fromDownloadException(e);
+    } catch (e) {
+      throw ApiException(ApiErrorCodes.defaultErrorMessageKey);
+    }
+  }
+
+  void _reportProgress(int count, int total, Function report) {
+    final double percentage = (count / total) * 100;
+    report(percentage < 0.0 ? 99.0 : percentage);
+  }
+
+  ApiException _fromDownloadException(DioException e) {
+    if (e.response?.statusCode == 503 || e.response?.statusCode == 500) {
+      return ApiException(ApiErrorCodes.internetServerError);
+    }
+    if (e.response?.statusCode == 404) {
+      return ApiException(ApiErrorCodes.fileNotFound);
+    }
+    return ApiException(
+      e.error is SocketException
+          ? ApiErrorCodes.noInternet
+          : ApiErrorCodes.defaultError,
+    );
   }
 
   /// The API answers 200 with `error: true` for failures it wants the app to

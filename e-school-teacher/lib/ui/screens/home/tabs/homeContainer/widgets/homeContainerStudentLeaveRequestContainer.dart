@@ -2,7 +2,7 @@ import 'package:eschool_teacher/cubits/dashboardCubit.dart';
 import 'package:eschool_teacher/cubits/updateStudentLeaveStatusCubit.dart';
 import 'package:eschool_teacher/data/models/studentLeave.dart';
 import 'package:eschool_teacher/ui/screens/studentLeaves/widgets/studentLeaveDetailsBottomsheetContainer.dart';
-import 'package:eschool_teacher/ui/widgets/customImageWidget.dart';
+import 'package:eschool_core/eschool_core.dart';
 import 'package:eschool_teacher/utils/labelKeys.dart';
 import 'package:eschool_teacher/utils/uiUtils.dart';
 import 'package:flutter/material.dart';

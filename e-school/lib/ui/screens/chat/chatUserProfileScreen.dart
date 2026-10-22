@@ -1,7 +1,5 @@
 import 'package:eschool/data/models/chatUser.dart';
-import 'package:eschool/ui/widgets/customBackButton.dart';
-import 'package:eschool/ui/widgets/customUserProfileImageWidget.dart';
-import 'package:eschool/ui/widgets/screenTopBackgroundContainer.dart';
+import 'package:eschool_core/eschool_core.dart';
 import 'package:eschool/utils/assets.dart';
 import 'package:eschool/utils/labelKeys.dart';
 import 'package:eschool/utils/uiUtils.dart';
@@ -15,9 +13,8 @@ class ChatUserProfileScreen extends StatefulWidget {
 
   static CupertinoPageRoute route(RouteSettings routeSettings) {
     final ChatUser user =
-        (routeSettings.arguments as Map<String, dynamic>?)?['chatUser'] ??
-        ChatUser.fromJsonAPI({});
-    return CupertinoPageRoute(
+        routeSettings.arguments as ChatUser? ?? ChatUser.fromJsonAPI({});
+    return AdaptivePageRoute(
       builder: (_) => ChatUserProfileScreen(chatUser: user),
     );
   }

@@ -1,4 +1,4 @@
-import 'package:eschool_teacher/data/models/topic.dart';
+import 'package:eschool_core/eschool_core.dart';
 import 'package:eschool_teacher/utils/api.dart';
 
 class TopicRepository {

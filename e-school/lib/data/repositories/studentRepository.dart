@@ -7,7 +7,7 @@ import 'package:eschool/data/models/fees.dart';
 import 'package:eschool/data/models/feesTransaction.dart';
 import 'package:eschool/data/models/paidFees.dart';
 import 'package:eschool/data/models/parent.dart';
-import 'package:eschool/data/models/result.dart';
+import 'package:eschool_core/eschool_core.dart';
 import 'package:eschool/data/models/timeTableSlot.dart';
 import 'package:eschool/utils/api.dart';
 import 'package:eschool/utils/errorMessageKeysAndCodes.dart';
@@ -362,8 +362,6 @@ class StudentRepository {
   Future<void> storeFees({
     required String transactionId,
     int? childId,
-    String? paymentId,
-    String? paymentSignature,
   }) async {
     try {
       //if child id is not provided, it assumes that the student/child himself is paying the fees
@@ -373,8 +371,6 @@ class StudentRepository {
         body: {
           'transaction_id': transactionId,
           if (childId != null) 'child_id': childId,
-          if (paymentId != null) 'payment_id': paymentId,
-          if (paymentSignature != null) 'payment_signature': paymentSignature,
         },
       );
     } catch (e) {

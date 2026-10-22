@@ -1,3 +1,4 @@
+import 'package:eschool_teacher/app/routeArguments.dart';
 import 'package:eschool_teacher/app/routes.dart';
 import 'package:eschool_teacher/cubits/studentsByClassSectionCubit.dart';
 import 'package:eschool_teacher/cubits/subjectsOfClassSectionCubit.dart';
@@ -9,15 +10,13 @@ import 'package:eschool_teacher/ui/screens/class/widgets/studentsContainer.dart'
 import 'package:eschool_teacher/ui/screens/class/widgets/subjectsContainer.dart';
 import 'package:eschool_teacher/ui/widgets/appBarTitleContainer.dart';
 import 'package:eschool_teacher/ui/widgets/customAppbar.dart';
-import 'package:eschool_teacher/ui/widgets/customBackButton.dart';
+import 'package:eschool_core/eschool_core.dart';
 import 'package:eschool_teacher/ui/widgets/customTabBarContainer.dart';
-import 'package:eschool_teacher/ui/widgets/screenTopBackgroundContainer.dart';
 import 'package:eschool_teacher/ui/widgets/searchButton.dart';
 import 'package:eschool_teacher/ui/widgets/tabBarBackgroundContainer.dart';
 import 'package:eschool_teacher/utils/assets.dart';
 import 'package:eschool_teacher/utils/labelKeys.dart';
 import 'package:eschool_teacher/utils/uiUtils.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/svg.dart';
@@ -35,8 +34,8 @@ class ClassScreen extends StatefulWidget {
   State<ClassScreen> createState() => _ClassScreenState();
 
   static Route route(RouteSettings routeSettings) {
-    final arguments = routeSettings.arguments! as Map<String, dynamic>;
-    return CupertinoPageRoute(
+    final arguments = routeSettings.arguments! as ClassScreenArguments;
+    return AdaptivePageRoute(
       builder: (_) => MultiBlocProvider(
         providers: [
           BlocProvider(
@@ -49,8 +48,8 @@ class ClassScreen extends StatefulWidget {
           ),
         ],
         child: ClassScreen(
-          classSection: arguments['classSection'],
-          isClassTeacher: arguments['isClassTeacher'],
+          classSection: arguments.classSection,
+          isClassTeacher: arguments.isClassTeacher,
         ),
       ),
     );
@@ -111,14 +110,14 @@ class _ClassScreenState extends State<ClassScreen> {
                                       onTap: () {
                                         Navigator.of(context).pushNamed(
                                           Routes.searchStudent,
-                                          arguments: {
-                                            'students': context
+                                          arguments: SearchStudentArguments(
+                                            students: context
                                                 .read<
                                                   StudentsByClassSectionCubit
                                                 >()
                                                 .getStudents(),
-                                            'fromAttendanceScreen': false,
-                                          },
+                                            fromAttendanceScreen: false,
+                                          ),
                                         );
                                       },
                                     );

@@ -39,6 +39,9 @@ class _AttachmentDialogWidgetState extends State<AttachmentDialogWidget> {
       .chatSettings;
 
   Future<void> onFilesPicked() async {
+    if (UiUtils.showMobileOnlyNotice(context)) {
+      return;
+    }
     setState(() {
       loading = true;
     });

@@ -1,3 +1,4 @@
+import 'package:eschool/app/routeArguments.dart';
 import 'package:eschool/app/routes.dart';
 import 'package:eschool/cubits/appConfigurationCubit.dart';
 import 'package:eschool/cubits/askParentsToPayFeesCubit.dart';
@@ -9,7 +10,6 @@ import 'package:eschool/ui/widgets/logoutButton.dart';
 import 'package:eschool/utils/assets.dart';
 import 'package:eschool/utils/labelKeys.dart';
 import 'package:eschool/utils/uiUtils.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/svg.dart';
@@ -22,7 +22,7 @@ class StudentFeePaymentDueScreen extends StatefulWidget {
       _StudentFeePaymentDueScreenState();
 
   static Route route(RouteSettings routeSettings) {
-    return CupertinoPageRoute(
+    return AdaptivePageRoute(
       builder: (_) => MultiBlocProvider(
         providers: [
           BlocProvider<UserProfileCubit>(
@@ -176,17 +176,17 @@ class _StudentFeePaymentDueScreenState
                       onTap: () {
                         Navigator.of(context).pushNamed(
                           Routes.feesDetails,
-                          arguments: {
-                            'studentDetails': context
+                          arguments: FeesDetailsArguments(
+                            studentDetails: context
                                 .read<AuthCubit>()
                                 .getStudentDetails(),
-                            'sessionYearId': context
+                            sessionYearId: context
                                 .read<AppConfigurationCubit>()
                                 .getAppConfiguration()
                                 .sessionYear
                                 .id,
-                            'isStudentPaying': true,
-                          },
+                            isStudentPaying: true,
+                          ),
                         );
                       },
                       titleColor: Theme.of(context).colorScheme.primary,

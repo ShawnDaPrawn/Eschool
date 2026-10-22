@@ -1,9 +1,10 @@
+import 'package:eschool_core/eschool_core.dart';
+import 'package:eschool/app/routeArguments.dart';
 import 'package:eschool/cubits/resultsCubit.dart';
 import 'package:eschool/cubits/semestersCubit.dart';
 import 'package:eschool/data/models/subject.dart';
 import 'package:eschool/data/repositories/studentRepository.dart';
 import 'package:eschool/ui/widgets/resultsContainer.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -17,8 +18,8 @@ class ChildResultsScreen extends StatelessWidget {
   final List<Subject>? subjects;
 
   static Route route(RouteSettings routeSettings) {
-    final arguments = routeSettings.arguments! as Map<String, dynamic>;
-    return CupertinoPageRoute(
+    final arguments = routeSettings.arguments! as ChildSubjectsArguments;
+    return AdaptivePageRoute(
       builder: (_) => MultiBlocProvider(
         providers: [
           BlocProvider<ResultsCubit>(
@@ -27,8 +28,8 @@ class ChildResultsScreen extends StatelessWidget {
           BlocProvider<SemestersCubit>(create: (context) => SemestersCubit()),
         ],
         child: ChildResultsScreen(
-          childId: arguments['childId'],
-          subjects: arguments['subjects'],
+          childId: arguments.childId,
+          subjects: arguments.subjects,
         ),
       ),
     );

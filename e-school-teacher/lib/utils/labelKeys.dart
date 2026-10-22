@@ -1,4 +1,6 @@
 //Need to have label keys to support multi language support
+
+export 'package:eschool_core/label_keys.dart';
 const String fileDownloadKey = 'fileDownload';
 const String emailKey = 'email';
 const String passwordKey = 'password';
@@ -131,12 +133,9 @@ const String grNumberKey = 'grNumber';
 const String subKey = 'sub';
 const String marksKey = 'marks';
 const String totalKey = 'total';
-const String gradeKey = 'grade';
-const String dateKey = 'date';
 const String obtainedKey = 'obtained';
 
 const String obtainedMarksKey = 'obtainedMarks';
-const String percentageKey = 'percentage';
 const String resultKey = 'result';
 const String addResultKey = 'addResult';
 const String submitResultKey = 'submitResult';
@@ -164,7 +163,6 @@ const String passwordUpdateLinkSentKey = 'passwordUpdateLinkSent';
 const String featureDisableInDemoVersionKey = 'featureDisableInDemoVersion';
 
 const String emailProfileKey = 'email';
-const String retryKey = 'retry';
 const String fetchingSubjectsKey = 'fetchingSubjects';
 const String fetchingLessonsKey = 'fetchingLessons';
 
@@ -249,16 +247,12 @@ const String pleaseEnterAllFieldKey = 'pleaseEnterAllField';
 const String newPasswordAndConfirmSameKey = 'newPasswordAndConfirmSame';
 
 const String appLanguageKey = 'appLanguage';
-const String yesKey = 'yes';
-const String noKey = 'no';
 
 const String permissionsNotGivenKey = 'permissionsNotGiven';
 const String fileDownloadedSuccessfullyKey = 'fileDownloadedSuccessfully';
 
 const String unableToOpenKey = 'unableToOpen';
-const String fileDownloadingKey = 'downloadingFile';
 const String failedToDownloadKey = 'failedToDownload';
-const String cancelKey = 'cancel';
 
 const String addAnnouncementKey = 'addAnnouncement';
 const String editAnnouncementKey = 'editAnnouncement';
@@ -302,7 +296,6 @@ const String upComingKey = 'upComing';
 const String onGoingKey = 'onGoing';
 const String completedKey = 'completed';
 
-const String examNameKey = 'examName';
 const String noExamsFoundKey = 'noExamsFound';
 const String noExamTimeTableFoundKey = 'noExamTimeTableFound';
 const String examTimeTableKey = 'examTimeTable';
@@ -341,13 +334,11 @@ const String chatSendHintKey = 'chatSendHint';
 
 const String documentKey = 'document';
 const String cameraKey = 'camera';
-const String galleryKey = 'gallery';
 
 const String yesterdayKey = 'yesterday';
 const String loadingMoreChatsKey = 'loadingMoreChats';
 const String errorLoadingMoreChatsRertyKey = 'errorLoadingMoreChatsRetry';
 const String errorSendingMessageRetrykey = 'errorSendingMessageRetry';
-const String errorLoadingMoreTapToRetryKey = 'errorLoadingMoreTapToRetry';
 
 const String selectedFilesKey = 'selectedFiles';
 const String camaraImagesKey = 'cameraImages';
@@ -369,22 +360,15 @@ const String filesReceivedKey = 'filesReceived';
 
 const String noUsersFoundKey = 'noUsersFound';
 const String searchByUsernameAboveKey = 'searchByUsernameAbove';
-const String addMoreCharactorsToSearchKey = 'addMoreCharactersToSearch';
-const String searchHintKey = 'searchHint';
 
 const String logoutDialogMessageKey = 'logoutDialogMessage';
-const String deleteDialogTitleKey = 'deleteDialogTitle';
-const String deleteDialogMessageKey = 'deleteDialogMessage';
 
 const String eventsKey = 'events';
 const String viewDetailsKey = 'viewDetails';
 const String dayKey = 'day';
 const String academicCalendarKey = 'academicCalendar';
 const String noEventsKey = 'noEvents';
-const String toKey = 'to';
 
-const String otherDetailsKey = 'otherDetails';
-const String viewFileKey = 'viewFile';
 
 const String textSubmissionKey = 'textSubmission';
 
@@ -411,14 +395,6 @@ const String octoberKey = 'october';
 const String novemberKey = 'november';
 const String decemberKey = 'december';
 
-const String sundayKey = 'sunday';
-const String mondayKey = 'monday';
-const String tuesdayKey = 'tuesday';
-const String wednesdayKey = 'wednesday';
-const String thursdayKey = 'thursday';
-const String fridayKey = 'friday';
-const String saturdayKey = 'saturday';
-const String unknownKey = 'unknown';
 
 const String addLeaveKey = 'addLeave';
 const String reasonKey = 'reason';
@@ -431,9 +407,6 @@ const String pickValidDateRangeWithoutHolidaysKey =
 const String leaveRequestAddedSuccessfullyKey = 'leaveRequestAddedSuccessfully';
 const String submitLeaveKey = 'submitLeave';
 
-const String fullKey = 'full';
-const String firstHalfKey = 'firstHalf';
-const String secondHalfKey = 'secondHalf';
 
 const String fullDayPresentKey = 'fullDayPresent';
 const String fullDayAbsentKey = 'fullDayAbsent';
@@ -477,7 +450,6 @@ const String allMonthsKey = 'allMonths';
 
 const String exploreAcademicsKey = 'exploreAcademics';
 const String upcomingEventsKey = 'upcomingEvents';
-const String viewAllKey = 'viewAll';
 const String todaysTimetableKey = 'todaysTimetable';
 const String viewLessKey = 'viewLess';
 const String subjectKey = 'subject';
@@ -499,7 +471,6 @@ const String studentPendingLeaveRequestsKey = 'studentPendingLeaveRequests';
 const String leaveRequestStatusUpdatedSuccessfullyKey =
     'leaveRequestStatusUpdatedSuccessfully';
 
-const String semesterBreakKey = 'semesterBreak';
 
 const String rejectionReasonKey = 'rejectionReason';
 

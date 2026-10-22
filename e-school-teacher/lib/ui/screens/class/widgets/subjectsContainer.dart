@@ -1,13 +1,11 @@
+import 'package:eschool_teacher/app/routeArguments.dart';
 import 'package:eschool_teacher/app/routes.dart';
 import 'package:eschool_teacher/cubits/subjectsOfClassSectionCubit.dart';
 import 'package:eschool_teacher/data/models/classSectionDetails.dart';
 import 'package:eschool_teacher/data/models/subject.dart';
 import 'package:eschool_teacher/ui/screens/class/widgets/subjectImageContainer.dart';
-import 'package:eschool_teacher/ui/widgets/customShimmerContainer.dart';
-import 'package:eschool_teacher/ui/widgets/errorContainer.dart';
+import 'package:eschool_core/eschool_core.dart';
 import 'package:eschool_teacher/ui/widgets/noDataContainer.dart';
-import 'package:eschool_teacher/ui/widgets/shimmerLoadingContainer.dart';
-import 'package:eschool_teacher/utils/animationConfiguration.dart';
 import 'package:eschool_teacher/utils/labelKeys.dart';
 import 'package:eschool_teacher/utils/uiUtils.dart';
 import 'package:flutter/material.dart';
@@ -29,10 +27,10 @@ class SubjectsContainer extends StatelessWidget {
         onTap: () {
           Navigator.of(context).pushNamed(
             Routes.subject,
-            arguments: {
-              'subject': subject,
-              'classSectionDetails': classSectionDetails,
-            },
+            arguments: SubjectScreenArguments(
+              subject: subject,
+              classSectionDetails: classSectionDetails,
+            ),
           );
         },
         child: Container(
