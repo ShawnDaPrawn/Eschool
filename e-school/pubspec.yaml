@@ -49,7 +49,7 @@ dependencies:
   timeago: ^3.7.1
   firebase_messaging: ^16.2.0
   firebase_core: ^4.7.0
-  awesome_notifications: ^0.11.0
+  awesome_notifications: ^0.12.1
   carousel_slider: ^5.1.2
   flutter_html: ^3.0.0
   package_info_plus: ^10.1.0
