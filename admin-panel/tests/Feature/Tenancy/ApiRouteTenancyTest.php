@@ -156,16 +156,19 @@ class ApiRouteTenancyTest extends TestCase
     }
 
     /**
-     * The installed (v1) apps send no school: School B's people sign in to
-     * their own school, from the account the sign-in names.
+     * The apps sign in on v1 without a school: School B's people sign in to
+     * their own school, from the account the sign-in names. (Only app
+     * versions that join each school's push topics may sign them in; see
+     * LegacyPushTopicsSignInTest.)
      */
     public function test_school_bs_people_sign_in_to_their_own_school_on_v1(): void
     {
         $this->flushHeaders();
-        $this->postJson('/api/student/login', ['gr_number' => 'GR-BAOBAB-ASHA', 'password' => 'secret123'])
+        $schoolTopics = ['X-Push-Topics' => 'school'];
+        $this->postJson('/api/student/login', ['gr_number' => 'GR-BAOBAB-ASHA', 'password' => 'secret123'], $schoolTopics)
             ->assertOk()->assertJsonPath('error', false)->assertSee(self::SCHOOL_B_MARKER);
         $this->app['auth']->forgetGuards();
-        $this->postJson('/api/teacher/login', ['email' => 'tara.baobab@example.com', 'password' => 'secret123'])
+        $this->postJson('/api/teacher/login', ['email' => 'tara.baobab@example.com', 'password' => 'secret123'], $schoolTopics)
             ->assertOk()->assertJsonPath('error', false)->assertSee(self::SCHOOL_B_MARKER);
         $this->app['auth']->forgetGuards();
         $this->postJson('/api/student/login', ['gr_number' => 'GR-ASHA', 'password' => 'secret123'])

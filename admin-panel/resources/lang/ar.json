@@ -1677,5 +1677,6 @@
     "platform_setting_home_school_only": "لا يمكن تغيير إعدادات المنصة إلا من المدرسة الرئيسية.",
     "school_switcher": "المدرسة",
     "switch_school": "تبديل المدرسة",
-    "school_switched": "أنت تعمل الآن في :school."
+    "school_switched": "أنت تعمل الآن في :school.",
+    "update_app_to_sign_in": "يرجى تحديث التطبيق لتسجيل الدخول. هذا الإصدار لا يستطيع عرض إشعارات مدرستك."
 }

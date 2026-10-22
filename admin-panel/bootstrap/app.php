@@ -23,6 +23,7 @@ use App\Http\Middleware\RedirectIfAuthenticated;
 use App\Http\Middleware\RejectDangerousUploads;
 use App\Http\Middleware\RequireParentPolicyAcceptance;
 use App\Http\Middleware\RequirePasswordChange;
+use App\Http\Middleware\RequireSchoolPushTopics;
 use App\Http\Middleware\ResetSchoolContext;
 use App\Http\Middleware\SecurityHeaders;
 use App\Http\Middleware\SetSchoolContext;
@@ -156,6 +157,8 @@ return Application::configure(basePath: dirname(__DIR__))
             'password.change' => EnforcePasswordChange::class,
             // The app sign-in endpoints: a refused web portal sign-in keeps no session.
             'portal.sign-in' => EndRefusedPortalSignIn::class,
+            // v1 app sign-in: older app versions only for the first school's people.
+            'push.topics' => RequireSchoolPushTopics::class,
             // API v2 role groups and writes (routes/api_v2.php).
             'staff' => EnsureUserIsStaff::class,
             'role.any' => EnsureUserHasAnyRole::class,

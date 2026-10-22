@@ -13,10 +13,13 @@ use InvalidArgumentException;
  *
  * School 1 also sends to the topics apps subscribed to before Phase 1
  * (allAndroid, parentsIOS and so on), so installed apps keep receiving its
- * notices. Those legacy names can be dropped once every app version still
- * in use subscribes to the per-school topics: when the apps that do (stream
- * T5) are the minimum version the API forces (force_app_update), and the
- * request logs show no older version for a full term.
+ * notices. The current apps join only the per-school topics and leave the
+ * old names (SchoolTopics in eschool_notifications), and an older app
+ * version may sign in only school 1's people (RequireSchoolPushTopics), so
+ * no other school's device is on the old names. Those names can be dropped
+ * once every app version still in use joins the per-school topics: when
+ * those apps are the minimum version the API forces (force_app_update), and
+ * the request logs show no older version for a full term.
  */
 final class PushTopics
 {
