@@ -1720,5 +1720,6 @@
     "learner_setup_sheet_step_enter": "Enter the GR number and the set-up code, then choose a password.",
     "learner_setup_sheet_step_sign_in": "Sign in to the app with the GR number and that password.",
     "learner_setup_sheet_once": "The code works once. Printing a new sheet stops this code.",
-    "password_change_required": "Please choose a new password before you continue."
+    "password_change_required": "Please choose a new password before you continue.",
+    "set_in_environment": "Set in the environment (Secret Manager)"
 }

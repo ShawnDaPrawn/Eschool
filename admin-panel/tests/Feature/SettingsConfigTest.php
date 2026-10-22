@@ -45,6 +45,8 @@ class SettingsConfigTest extends TestCase
     {
         $this->seedLikeInstaller();
         config(['mail.from.name' => config('app.name')]); // MAIL_FROM_NAME="${APP_NAME}", as in .env.example
+        // The rows are the fallback for installs without MAIL_PASSWORD (SecretSettingsTest has the other case).
+        config(['secrets.mail_password' => null]);
         foreach ([
             'school_name' => 'Greenfield High',
             'time_zone' => 'Africa/Johannesburg',

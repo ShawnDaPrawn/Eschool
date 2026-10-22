@@ -23,6 +23,7 @@ use App\Models\User;
 use App\Models\WebSetting;
 use App\Services\Platform\Files\FileNames;
 use App\Services\Platform\Identity\LearnerInvitations;
+use App\Services\Platform\Secrets\SecretSettings;
 use Illuminate\Database\QueryException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
@@ -217,7 +218,8 @@ class WebController extends Controller
             return true;
         }
 
-        $secretKey = getSettings('recaptcha_secret_key')['recaptcha_secret_key'] ?? '';
+        // RECAPTCHA_SECRET_KEY, else the General Settings row.
+        $secretKey = SecretSettings::get('recaptcha_secret_key');
 
         // Enabled but no secret configured — skip rather than lock everyone out.
         if (empty($secretKey)) {

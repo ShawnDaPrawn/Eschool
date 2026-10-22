@@ -127,9 +127,13 @@ class DailyWorkflowsTest extends TestCase
             ->where(['session_year_id' => 1, 'class_section_id' => $this->school->ids['section_a'], 'status' => 1])->count());
 
         $sent = collect(Mail::mailer()->getSymfonyTransport()->messages())->map(fn ($m) => $m->getOriginalMessage());
-        $this->assertSame(['ravi.naidoo@example.com', 'priya.naidoo@example.com', 'lerato.mokoena@example.com'],
-            $sent->map(fn ($m) => $m->getTo()[0]->getAddress())->all());
-        $this->assertStringContainsString('Thabo Mokoena', $sent->last()->getHtmlBody());
+        $guardians = ['ravi.naidoo@example.com', 'priya.naidoo@example.com', 'lerato.mokoena@example.com'];
+        // The welcome emails, then (once the whole file is in) each guardian's link to set the learner's password.
+        $welcome = $sent->filter(fn ($m) => str_starts_with((string) $m->getSubject(), 'Welcome to'))->values();
+        $this->assertSame($guardians, $welcome->map(fn ($m) => $m->getTo()[0]->getAddress())->all());
+        $this->assertStringContainsString('Thabo Mokoena', $welcome->last()->getHtmlBody());
+        $invitations = $sent->filter(fn ($m) => str_contains((string) $m->getHtmlBody(), '/learner-setup/'))->values();
+        $this->assertSame($guardians, $invitations->map(fn ($m) => $m->getTo()[0]->getAddress())->all());
     }
 
     public function test_an_uploaded_attendance_sheet_is_saved_like_the_attendance_form(): void

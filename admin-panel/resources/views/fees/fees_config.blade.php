@@ -171,11 +171,19 @@
                             </div>
                             <div class="form-group col-md-6">
                                 <label>{{ __('stripe_secret_key') }}</label>
-                                <input name="stripe_secret_key" value="{{ !config('app.demo_mode') ? ($settings['stripe_secret_key'] ?? '') : 'xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx' }}" type="text" placeholder="{{ __('stripe_secret_key') }}" class="form-control" />
+                                @if ($fromEnvironment['stripe_secret_key'])
+                                    <input type="text" value="" placeholder="{{ __('set_in_environment') }}" class="form-control" disabled />
+                                @else
+                                    <input name="stripe_secret_key" value="{{ !config('app.demo_mode') ? ($settings['stripe_secret_key'] ?? '') : 'xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx' }}" type="text" placeholder="{{ __('stripe_secret_key') }}" class="form-control" />
+                                @endif
                             </div>
                             <div class="form-group col-md-6">
                                 <label>{{ __('stripe_webhook_secret') }}</label>
-                                <input name="stripe_webhook_secret" value="{{ !config('app.demo_mode') ? ($settings['stripe_webhook_secret'] ?? '') : 'xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx' }}" type="text" placeholder="{{ __('stripe_webhook_secret') }}" class="form-control" />
+                                @if ($fromEnvironment['stripe_webhook_secret'])
+                                    <input type="text" value="" placeholder="{{ __('set_in_environment') }}" class="form-control" disabled />
+                                @else
+                                    <input name="stripe_webhook_secret" value="{{ !config('app.demo_mode') ? ($settings['stripe_webhook_secret'] ?? '') : 'xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx' }}" type="text" placeholder="{{ __('stripe_webhook_secret') }}" class="form-control" />
+                                @endif
                             </div>
                             <div class="form-group col-md-6">
                                 <label>{{ __('stripe') }} {{ __('webhook_url') }}</label>

@@ -51,7 +51,12 @@
                             <div class="form-group col-md-4 col-sm-12">
                                 <label>{{__('mail_password')}}</label>
                                 <div class="input-group">
-                                    <input id="password" name="mail_password" value="{{!config('app.demo_mode') ? (config('mail.mailers.smtp.password') ? config('mail.mailers.smtp.password') : "" ) : 'xxxxxxxxxxxxxxxxxxxx' }}" type="password" required placeholder="{{__('mail_password')}}" class="form-control" />
+                                    {{-- Set in the environment (MAIL_PASSWORD): never shown or saved here. --}}
+                                    @if (\App\Services\Platform\Secrets\SecretSettings::fromEnvironment('mail_password'))
+                                        <input id="password" type="password" value="" placeholder="{{ __('set_in_environment') }}" class="form-control" disabled />
+                                    @else
+                                        <input id="password" name="mail_password" value="{{!config('app.demo_mode') ? (config('mail.mailers.smtp.password') ? config('mail.mailers.smtp.password') : "" ) : 'xxxxxxxxxxxxxxxxxxxx' }}" type="password" required placeholder="{{__('mail_password')}}" class="form-control" />
+                                    @endif
                                     <div class="input-group-append">
                                         <span class="input-group-text">
                                             <i class="fa fa-eye-slash" id="togglePassword"></i>

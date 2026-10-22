@@ -2,6 +2,7 @@
 
 use App\Models\User;
 use App\Models\Settings;
+use App\Services\Platform\Secrets\SecretSettings;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
@@ -13,7 +14,7 @@ function sendSimpleNotification($user, $title, $body, $type, $image, $userinfo)
     $FcmToken2 = User::where('fcm_id', '!=', '')->whereIn('id', $user)->where('device_type', '=' ,'ios')->get()->pluck('fcm_id');
     $device_type = User::whereIn('id', $user)->pluck('device_type');
 
-    $project_id = Settings::select('message')->where('type', 'project_id')->pluck('message')->first();
+    $project_id = SecretSettings::fcmProjectId();
     // $sender_id = Settings::select('message')->where('type', 'sender_id')->pluck('message')->first();
     $url = 'https://fcm.googleapis.com/v1/projects/' . $project_id . '/messages:send';
 
@@ -94,7 +95,7 @@ function sendSimpleNotification($user, $title, $body, $type, $image, $userinfo)
 }
 
 function sendNotificationToTopic($title, $body, $type, $image, $userinfo) {
-    $project_id = Settings::select('message')->where('type', 'project_id')->pluck('message')->first();
+    $project_id = SecretSettings::fcmProjectId();
     // $sender_id = Settings::select('message')->where('type', 'sender_id')->pluck('message')->first();
     $url = 'https://fcm.googleapis.com/v1/projects/' . $project_id . '/messages:send';
 
@@ -199,6 +200,19 @@ function sendFCMCurl($url, $access_token, $Data) {
 
 function getAccessToken() {
     try {
+        // FCM_SERVICE_ACCOUNT_JSON (Secret Manager) wins over the uploaded file.
+        $credentials = SecretSettings::fcmCredentials();
+        if ($credentials !== null) {
+            return Cache::remember('fcm-access-token:'.md5((string) json_encode($credentials)), now()->addMinutes(50), function () use ($credentials) {
+                $client = new \Google\Client();
+                $client->setHttpClient(new \GuzzleHttp\Client(['connect_timeout' => 5, 'timeout' => 10]));
+                $client->setAuthConfig($credentials);
+                $client->setScopes(['https://www.googleapis.com/auth/firebase.messaging']);
+
+                return $client->fetchAccessTokenWithAssertion()['access_token'];
+            });
+        }
+
         $file_name = Settings::select('message')->where('type', 'service_account_file')->pluck('message')->first();
 
         if (!$file_name) {
