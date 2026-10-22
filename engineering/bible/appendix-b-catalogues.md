@@ -36,7 +36,7 @@ Always on: school set-up and branding, people and approval, years and terms, aca
 | `ask_school` | Ask-the-school assistant | | off | 4 | Planned |
 | `peer_tutoring` | Peer tutoring | `mastery` | off | 4 | Planned |
 | `pathway` | Pathway planner | | off | 4 | Planned |
-| `web_<portal>` | Web access per portal | | on | 0 | Planned |
+| `web_<portal>` | Web access per portal | | on | 0 | Planned for Phase 1's registry (the web builds shipped in Phase 0; the switch arrives with `config/modules.php`) |
 | `reading_coach` | Reading coach | | off | 6 | Planned |
 | `portfolio` | Verifiable portfolio | | off | 6 | Planned |
 | `ask_navigateed` | Ask NavigateEd (admin) | | off | 6 | Planned |
@@ -48,3 +48,7 @@ Each type has a key, a module, portals, a default per channel (email, in-app) an
 Locked everywhere: `account.verify_email`, `account.password_reset`, `account.new_device`, `approval.requested`, `consent.requested`, `safeguarding.alert` (to safeguarding staff).
 
 Families, growing per phase: `academics.*` (marks released, report published, register amended, content published), `attendance.*` (absence alert), `comms.*` (message, notice, consultation open, consultation closing), `fees.*` (invoice, reminder, receipt, mandate), `wallet.*` (top-up, low balance, withdrawal status, order, ticket), `groups.*`, `discipline.*`, `awards.*`, `house_points.*`, `growth.*` (digest, band change, practice reminder), `intake.*` (application received, offer, enrolled), `cards.*` (issued, frozen, scanned at gate).
+
+## Phase 0
+
+Phase 0 added no module and no notification type: `config/modules.php` and `config/notification_types.php` arrive in Phase 1. The web builds of both apps shipped without a switch; `web_<portal>` (one switch per portal, default on) is the first entry of Phase 1's module registry. The queued mail and push jobs of Phase 0 (`SendMail`, `SendPush`) carry the existing notifications unchanged and record each attempt in `notification_deliveries`; the notification types and their rules attach to them in Phase 1.
