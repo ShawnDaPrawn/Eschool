@@ -22,7 +22,7 @@ dependencies:
   # Not used directly: flutter_html 3.0.0 calls matches() from html's
   # src/query_selector.dart, which html 0.15.7 removed, so neither app
   # compiled with 0.15.7. Lift this when flutter_html no longer needs it.
-  html: ">=0.15.4 <0.15.7"
+  html: ^0.15.7
   intl: any
   lottie: ^3.3.3
   open_filex: ^4.7.0

@@ -55,7 +55,7 @@ dependencies:
   flutter_keyboard_visibility_temp_fork: ^0.1.5
   intl: any
   bloc: any
-  meta: any
+  meta: 1.19.0
   path_provider: any
   firebase_crashlytics: ^5.2.0
   firebase_analytics: ^12.3.0

@@ -9,7 +9,7 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-  awesome_notifications: ^0.11.0
+  awesome_notifications: ^0.12.1
   eschool_core:
     path: ../eschool_core
   eschool_session:
