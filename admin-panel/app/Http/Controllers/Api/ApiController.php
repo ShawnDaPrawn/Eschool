@@ -21,6 +21,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Password;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Validation\Rules\Password as PasswordRule;
 use Laravel\Sanctum\PersonalAccessToken;
 use Throwable;
 
@@ -272,7 +273,7 @@ class ApiController extends Controller
     {
         $validator = Validator::make($request->all(), [
             'current_password' => 'required',
-            'new_password' => 'required|min:8',
+            'new_password' => ['required', PasswordRule::defaults()],
             'new_confirm_password' => 'required|same:new_password',
         ]);
 

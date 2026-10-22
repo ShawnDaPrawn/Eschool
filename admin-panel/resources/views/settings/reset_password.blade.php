@@ -22,7 +22,8 @@
                     <div class="card-body">
                         <form id="reset-password-form" class="reset-password-form" action="{{ url('changePassword') }}"
                             method="POST" novalidate="novalidate" data-check-url="{{ url('checkPassword') }}"
-                            data-msg-min-length="{{ __('password_min_8_characters') }}"
+                            data-min-length="{{ \App\Services\Platform\Identity\PasswordPolicy::MIN_LENGTH }}"
+                            data-msg-min-length="{{ __('password_rules_hint') }}"
                             data-msg-mismatch="{{ __('passwords_do_not_match') }}">
                             @csrf
 
@@ -49,7 +50,7 @@
                             <div class="form-group">
                                 <label for="new_password">{{ __('new_password') }}</label>
                                 <div class="password-field">
-                                    <input type="password" name="new_password" id="new_password" required minlength="8"
+                                    <input type="password" name="new_password" id="new_password" required minlength="{{ \App\Services\Platform\Identity\PasswordPolicy::MIN_LENGTH }}"
                                         autocomplete="new-password" placeholder="{{ __('new_password') }}"
                                         class="form-control" />
                                     <button type="button" class="password-toggle" aria-label="{{ __('show_password') }}" aria-pressed="false"
@@ -59,7 +60,7 @@
                                         <x-icon name="eye-off" class="pw-eye-off" :size="18" />
                                     </button>
                                 </div>
-                                <small class="password-hint">{{ __('password_min_8_characters') }}</small>
+                                <small class="password-hint">{{ __('password_rules_hint') }}</small>
                             </div>
 
                             <div class="form-group">

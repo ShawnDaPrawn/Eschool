@@ -41,6 +41,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Validation\Rules\Password;
 use Throwable;
 
 class HomeController extends Controller
@@ -84,7 +85,7 @@ class HomeController extends Controller
     {
         $request->validate([
             'old_password' => 'required',
-            'new_password' => 'required|min:8',
+            'new_password' => ['required', Password::defaults()],
             'confirm_password' => 'required|same:new_password',
         ]);
 
@@ -343,9 +344,7 @@ class HomeController extends Controller
      */
     private function getSessionMonths(int $session_year_id): array
     {
-         $sessionYear = SessionYear::find($session_year_id);
-        
-        
+        $sessionYear = SessionYear::find($session_year_id);
 
         $months = [];
 

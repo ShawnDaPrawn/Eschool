@@ -207,17 +207,17 @@ class AdminAuthorizationTest extends TestCase
 
         $this->actingAs($teacher)->postJson('/changePassword', [
             'old_password' => 'not-my-password',
-            'new_password' => 'brand-new-pass',
-            'confirm_password' => 'brand-new-pass',
+            'new_password' => 'Brand-new-pass-26',
+            'confirm_password' => 'Brand-new-pass-26',
         ])->assertOk()->assertJson(['error' => true]);
         $this->assertTrue(Hash::check('secret123', $teacher->fresh()->password));
 
         $this->actingAs($teacher)->postJson('/changePassword', [
             'old_password' => 'secret123',
-            'new_password' => 'brand-new-pass',
-            'confirm_password' => 'brand-new-pass',
+            'new_password' => 'Brand-new-pass-26',
+            'confirm_password' => 'Brand-new-pass-26',
         ])->assertOk()->assertJson(['error' => false]);
-        $this->assertTrue(Hash::check('brand-new-pass', $teacher->fresh()->password));
+        $this->assertTrue(Hash::check('Brand-new-pass-26', $teacher->fresh()->password));
     }
 
     // ---- SliderController -----------------------------------------------

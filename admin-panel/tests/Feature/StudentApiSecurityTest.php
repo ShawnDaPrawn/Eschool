@@ -224,7 +224,7 @@ class StudentApiSecurityTest extends TestCase
         $other = $student->createToken('other device')->plainTextToken;
 
         $response = $this->api($current)->asForm()->post('/api/change-password', [
-            'current_password' => 'secret123', 'new_password' => 'new-secret-123', 'new_confirm_password' => 'new-secret-123',
+            'current_password' => 'secret123', 'new_password' => 'Quokka-lantern-58', 'new_confirm_password' => 'Quokka-lantern-58',
         ]);
         $this->assertFalse($response->json('error'), $response->body());
 
