@@ -48,6 +48,10 @@ class ApiRegressionTest extends TestCase
         $login = $this->apiClient()->post('/api/parent/login', ['email' => 'farid@example.com', 'password' => 'secret123']);
         $this->assertSame(200, $login->status(), $login->body());
         $this->assertFalse($login->json('error'), $login->body());
+        // Signing in revokes the account's earlier parent-app tokens (one device per
+        // app), so the shared fixture goes on with the new one.
+        $this->assertSame(401, $this->apiClient(self::$school->tokens['farid'])->get('/api/parent/get-profile-data')->status());
+        self::$school->tokens['farid'] = (string) $login->json('token');
     }
 
     public function test_the_student_profile_says_whether_fees_are_due(): void

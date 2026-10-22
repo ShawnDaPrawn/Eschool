@@ -11,7 +11,7 @@
     <div class="dash-card-body">
         <div class="widget-skeleton" data-skeleton></div>
         <div class="events-grid" data-content hidden>
-            <div class="events-list" id="events-list"></div>
+            <div class="events-list" id="events-list" tabindex="0" role="region" aria-label="{{ __('upcoming_events') }}"></div>
             <div class="events-calendar" id="events-calendar"></div>
         </div>
     </div>

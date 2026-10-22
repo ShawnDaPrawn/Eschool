@@ -2,10 +2,10 @@
 
 use App\Models\ClassSection;
 use App\Models\ClassSubject;
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
-use Illuminate\Database\Schema\Blueprint;
-use Illuminate\Database\Migrations\Migration;
 
 return new class extends Migration
 {
@@ -26,7 +26,7 @@ return new class extends Migration
             $table->bigIncrements('id');
             $table->morphs('model');
 
-            //add foreign key of subject
+            // add foreign key of subject
             $table->bigInteger('subject_id')->unsigned()->index();
             $table->foreign('subject_id')->references('id')->on('subjects')->onDelete('cascade');
 
@@ -41,8 +41,8 @@ return new class extends Migration
             $table->softDeletes();
         });
         foreach ($data as $item) {
-            $class_id = ClassSubject::where('id',$item->class_subject_id)->pluck('class_id')->first();
-            $subject_id = ClassSubject::where('id',$item->class_subject_id)->pluck('subject_id')->first();
+            $class_id = ClassSubject::where('id', $item->class_subject_id)->pluck('class_id')->first();
+            $subject_id = ClassSubject::where('id', $item->class_subject_id)->pluck('subject_id')->first();
             DB::table('online_exams')->insert([
                 'id' => $item->id,
                 'model_type' => 'App\Models\ClassSchool',
@@ -92,10 +92,10 @@ return new class extends Migration
             $table->softDeletes();
         });
         foreach ($data as $item) {
-            if($item->model_type == 'App\Models\ClassSchool'){
+            if ($item->model_type == 'App\Models\ClassSchool') {
                 $class_subject_id = ClassSubject::where(['class_id' => $item->model_id, 'subject_id' => $item->subject_id])->pluck('id')->first();
-            }else{
-                $class_id = ClassSection::where('id',$item->model_id)->pluck('class_id')->first();
+            } else {
+                $class_id = ClassSection::where('id', $item->model_id)->pluck('class_id')->first();
                 $class_subject_id = ClassSubject::where(['class_id' => $class_id, 'subject_id' => $item->subject_id])->pluck('id')->first();
             }
             DB::table('online_exams')->insert([

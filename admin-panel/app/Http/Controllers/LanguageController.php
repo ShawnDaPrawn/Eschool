@@ -8,8 +8,8 @@ use App\Models\Language;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\File;
-use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Session;
 use Throwable;
 
 class LanguageController extends Controller
@@ -115,8 +115,6 @@ class LanguageController extends Controller
                 $language->file = $filename;
             }
             $language->save();
-            
-
 
             $response = [
                 'error' => false,
@@ -240,7 +238,7 @@ class LanguageController extends Controller
 
             $request->has('rtl') ? $language->is_rtl = 1 : $language->is_rtl = 0;
             $language->save();
-           
+
             $response = [
                 'error' => false,
                 'message' => trans('data_update_successfully'),
@@ -275,7 +273,6 @@ class LanguageController extends Controller
                 ]);
             }
             $language->delete();
-           
 
             $response = [
                 'error' => false,

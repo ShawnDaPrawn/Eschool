@@ -4,45 +4,46 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers;
 
-use App\Services\ResponseService;
-use Throwable;
 use App\Models\Category;
-use App\Models\Students;
+use App\Services\ResponseService;
 use Illuminate\Http\Request;
+use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Auth;
+use Throwable;
 
 class CategoryController extends Controller
 {
     /**
      * Display a listing of the resource.
      *
-     * @return \Illuminate\Http\Response
+     * @return Response
      */
     public function index()
     {
-        if (!Auth::user()->can('category-list')) {
-            $response = array(
-                'message' => trans('no_permission_message')
-            );
+        if (! Auth::user()->can('category-list')) {
+            $response = [
+                'message' => trans('no_permission_message'),
+            ];
+
             return redirect(route('home'))->withErrors($response);
         }
+
         return view('category.index');
     }
-
 
     /**
      * Store a newly created resource in storage.
      *
-     * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\Http\Response
+     * @return Response
      */
     public function store(Request $request)
     {
-        if (!Auth::user()->can('category-create')) {
-            $response = array(
+        if (! Auth::user()->can('category-create')) {
+            $response = [
                 'error' => true,
-                'message' => trans('no_permission_message')
-            );
+                'message' => trans('no_permission_message'),
+            ];
+
             return response()->json($response);
         }
         $request->validate([
@@ -50,20 +51,21 @@ class CategoryController extends Controller
         ]);
 
         try {
-            $category = new Category();
+            $category = new Category;
             $category->name = $request->name;
             $category->save();
             $response = [
                 'error' => false,
-                'message' => trans('data_store_successfully')
+                'message' => trans('data_store_successfully'),
             ];
         } catch (Throwable $e) {
-            $response = array(
+            $response = [
                 'error' => true,
                 'message' => trans('error_occurred'),
-                'data' => $e
-            );
+                'data' => $e,
+            ];
         }
+
         return response()->json($response);
     }
 
@@ -71,14 +73,15 @@ class CategoryController extends Controller
      * Display the specified resource.
      *
      * @param  int  $id
-     * @return \Illuminate\Http\Response
+     * @return Response
      */
     public function show()
     {
-        if (!Auth::user()->can('category-list')) {
-            $response = array(
-                'message' => trans('no_permission_message')
-            );
+        if (! Auth::user()->can('category-list')) {
+            $response = [
+                'message' => trans('no_permission_message'),
+            ];
+
             return response()->json($response);
         }
         $offset = 0;
@@ -86,18 +89,22 @@ class CategoryController extends Controller
         $sort = 'id';
         $order = 'DESC';
 
-        if (isset($_GET['offset']))
+        if (isset($_GET['offset'])) {
             $offset = $_GET['offset'];
-        if (isset($_GET['limit']))
+        }
+        if (isset($_GET['limit'])) {
             $limit = $_GET['limit'];
+        }
 
-        if (isset($_GET['sort']))
+        if (isset($_GET['sort'])) {
             $sort = $_GET['sort'];
-        if (isset($_GET['order']))
+        }
+        if (isset($_GET['order'])) {
             $order = $_GET['order'];
+        }
 
         $sql = Category::where('id', '!=', 0);
-        if (isset($_GET['search']) && !empty($_GET['search'])) {
+        if (isset($_GET['search']) && ! empty($_GET['search'])) {
             $search = $_GET['search'];
             $sql->where(fn ($query) => $query->where('id', 'LIKE', "%$search%")->orwhere('name', 'LIKE', "%$search%")->orwhere('status', 'LIKE', "%$search%"));
         }
@@ -106,18 +113,18 @@ class CategoryController extends Controller
         $sql->orderBy($sort, $order)->skip($offset)->take($limit);
         $res = $sql->get();
 
-        $bulkData = array();
+        $bulkData = [];
         $bulkData['total'] = $total;
-        $rows = array();
-        $tempRow = array();
+        $rows = [];
+        $tempRow = [];
         $no = 1;
         foreach ($res as $row) {
-            $operate = '<a class="btn btn-xs btn-gradient-primary btn-rounded btn-icon editdata" data-id=' . $row->id . ' data-url=' . url('category') . ' title="Edit" data-toggle="modal" data-target="#editModal"><i class="fa fa-edit"></i></a>&nbsp;&nbsp;';
+            $operate = '<a class="btn btn-xs btn-gradient-primary btn-rounded btn-icon editdata" data-id='.$row->id.' data-url='.url('category').' title="Edit" data-toggle="modal" data-target="#editModal"><i class="fa fa-edit"></i></a>&nbsp;&nbsp;';
             $operate .= '
                 <a
                     class="btn btn-xs btn-gradient-danger btn-rounded btn-icon deletedata"
-                    data-id="' . $row->id . '"
-                    data-url="' . url('category', $row->id) . '"
+                    data-id="'.$row->id.'"
+                    data-url="'.url('category', $row->id).'"
                     data-related=\'["students"]\'
                     title="Delete"
                 >
@@ -133,6 +140,7 @@ class CategoryController extends Controller
         }
 
         $bulkData['rows'] = $rows;
+
         return response()->json($bulkData);
     }
 
@@ -140,22 +148,24 @@ class CategoryController extends Controller
      * Show the form for editing the specified resource.
      *
      * @param  int  $id
-     * @return \Illuminate\Http\Response
+     * @return Response
      */
     public function edit($id)
     {
         ResponseService::noPermissionThenSendJson('category-edit');
         $category = Category::find($id);
+
         return response($category);
     }
 
     public function update(Request $request)
     {
-        if (!Auth::user()->can('category-edit')) {
-            $response = array(
+        if (! Auth::user()->can('category-edit')) {
+            $response = [
                 'error' => true,
-                'message' => trans('no_permission_message')
-            );
+                'message' => trans('no_permission_message'),
+            ];
+
             return response()->json($response);
         }
         $request->validate([
@@ -172,27 +182,27 @@ class CategoryController extends Controller
                 'message' => trans('data_update_successfully'),
             ];
         } catch (Throwable $e) {
-            $response = array(
+            $response = [
                 'error' => true,
                 'message' => trans('error_occurred'),
-                'data' => $e
-            );
+                'data' => $e,
+            ];
         }
+
         return response()->json($response);
     }
-
 
     /**
      * Remove the specified resource from storage.
      *
      * @param  int  $id
-     * @return \Illuminate\Http\Response
+     * @return Response
      */
     public function destroy($id)
     {
-        if (!Auth::user()->can('category-delete')) {
+        if (! Auth::user()->can('category-delete')) {
             return response()->json([
-                'error'   => true,
+                'error' => true,
                 'message' => trans('no_permission_message'),
             ]);
         }
@@ -203,12 +213,12 @@ class CategoryController extends Controller
             $category->delete();
 
             return response()->json([
-                'error'   => false,
+                'error' => false,
                 'message' => trans('data_delete_successfully'),
             ]);
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             return response()->json([
-                'error'   => true,
+                'error' => true,
                 'message' => trans('error_occurred'),
             ]);
         }

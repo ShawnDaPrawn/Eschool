@@ -26,10 +26,9 @@ class GradeController extends Controller
 
             return redirect(route('home'))->withErrors($response);
         }
-          $session_years = SessionYear::orderBy('id', 'ASC')->get();
-        
-         
-          $grades = collect();
+        $session_years = SessionYear::orderBy('id', 'ASC')->get();
+
+        $grades = collect();
 
         return response(view('exams.exam-grade', compact('grades', 'session_years')));
     }
@@ -111,7 +110,6 @@ class GradeController extends Controller
                 );
             }
 
-            
             $response = [
                 'error' => false,
                 'message' => trans('data_store_successfully'),
@@ -142,7 +140,7 @@ class GradeController extends Controller
                 'error' => false,
                 'message' => trans('data_delete_successfully'),
             ];
-            
+
         } catch (Throwable $e) {
             $response = [
                 'error' => true,

@@ -1,17 +1,11 @@
+import 'package:eschool/app/routeArguments.dart';
 import 'package:eschool/cubits/authCubit.dart';
 import 'package:eschool/cubits/resultOnlineCubit.dart';
 import 'package:eschool/data/models/resultOnlineDetails.dart';
 import 'package:eschool/data/repositories/resultRepository.dart';
-import 'package:eschool/ui/widgets/customBackButton.dart';
-import 'package:eschool/ui/widgets/customShimmerContainer.dart';
-import 'package:eschool/ui/widgets/errorContainer.dart';
-import 'package:eschool/ui/widgets/screenTopBackgroundContainer.dart';
-import 'package:eschool/ui/widgets/shimmerLoadingContainer.dart';
-import 'package:eschool/utils/extensions.dart';
+import 'package:eschool_core/eschool_core.dart';
 import 'package:eschool/utils/labelKeys.dart';
 import 'package:eschool/utils/uiUtils.dart';
-import 'package:eschool_core/eschool_core.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -35,17 +29,17 @@ class ResultOnlineScreen extends StatefulWidget {
   @override
   ResultOnlineScreenState createState() => ResultOnlineScreenState();
   static Route route(RouteSettings routeSettings) {
-    final arguments = routeSettings.arguments! as Map<String, dynamic>;
-    return CupertinoPageRoute(
+    final arguments = routeSettings.arguments! as ResultOnlineArguments;
+    return AdaptivePageRoute(
       builder: (_) => BlocProvider(
         create: (context) => ResultOnlineCubit(ResultOnlineRepository()),
         child: ResultOnlineScreen(
-          examId: arguments['examId'],
-          examName: arguments['examName'],
-          subjectName: arguments['subjectName'],
-          childId: arguments['childId'] ?? 0,
-          totalMarks: arguments['totalMarks'],
-          obtainedMarks: arguments['obtainedMarks'],
+          examId: arguments.examId,
+          examName: arguments.examName,
+          subjectName: arguments.subjectName,
+          childId: arguments.childId ?? 0,
+          totalMarks: arguments.totalMarks,
+          obtainedMarks: arguments.obtainedMarks,
         ),
       ),
     );

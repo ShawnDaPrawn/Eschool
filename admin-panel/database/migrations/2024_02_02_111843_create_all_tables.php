@@ -26,77 +26,77 @@ return new class extends Migration
             $table->string('name');
             $table->string('tag');
             $table->string('heading');
-            $table->string('content',500)->nullable();
+            $table->string('content', 500)->nullable();
             $table->string('image')->nullable();
             $table->timestamps();
         });
 
         DB::table('web_settings')->insert([
             [
-                'name'=> 'about_us',
+                'name' => 'about_us',
                 'tag' => 'About Us',
                 'heading' => 'Cutting-Edge Education That Empowers',
                 'content' => 'Lorem ipsum dolor sit amet consectetur. Faucibus non mauris risus enim sed. Lectus fusce elit duis dignissim aliquet nisl vitae. Eget sit nisi vulputate enim sem. Facilisi tincidunt donec interdum in in eros quisque consectetur sit. Sagittis purus velit amet risus egestas sed arcu nam. Pellentesque pharetra blandit fringilla volutpat tristique sit. Sit euismod praesent volutpat eu et. Id egestas dictum cursus purus morbi semper praesent quam. Facilisis mattis amet consectetur enim aliquam. Id sed nibh ullamcorper netus ut urna eros magna. Magna orci augue volutpat turpis eget. Sed diam morbi massa at molestie. Velit tincidunt eros sit euismod. Nunc viverra porttitor mi gravida pharetra augue gravida imperdiet tempus. Fermentum faucibus scelerisque quisque lorem.',
                 'image' => 'websettings/content/aboutus.png',
             ],
             [
-                'name'=> 'who_we_are',
+                'name' => 'who_we_are',
                 'tag' => 'Who we are',
                 'heading' => 'Empowering Minds, Shaping Futures',
                 'content' => 'Lorem ipsum dolor sit amet consectetur. Nunc vel vehicula turpis ac tristique sit condimentum in. Amet ac egestas in commodo sed at. Amet dis sit porttitor sed suspendisse viverra dolor.Gravida non neque ac vitae semper nisi. Sapien quis tempor facilisis sed tincidunt sapien. Lobortis sollicitudin mi dolor aliquam ultricies.',
                 'image' => 'websettings/content/whoweare.png',
             ],
             [
-                'name'=> 'teacher',
+                'name' => 'teacher',
                 'tag' => 'Our Expert Teacher',
                 'heading' => 'More Than Just Teachers, They are Mentors',
                 'content' => 'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.',
                 'image' => null,
             ],
             [
-                'name'=> 'events',
+                'name' => 'events',
                 'tag' => 'Our Events and News',
                 'heading' => 'Don`t Miss the Biggest Events and News of the Year!',
                 'content' => 'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.',
                 'image' => null,
             ],
             [
-                'name'=> 'programs',
+                'name' => 'programs',
                 'tag' => 'Educational Programs',
                 'heading' => 'Educational Programs for every Stage',
                 'content' => 'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.',
                 'image' => null,
             ],
             [
-                'name'=> 'photos',
+                'name' => 'photos',
                 'tag' => 'Our Photos',
                 'heading' => 'Capturing Memories,Building Dreams',
                 'content' => 'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.',
                 'image' => null,
             ],
             [
-                'name'=> 'videos',
+                'name' => 'videos',
                 'tag' => 'Our Videos',
                 'heading' => 'Rewind, Replay, Rejoice! Dive into Our Video Vault',
                 'content' => 'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.',
                 'image' => null,
             ],
             [
-                'name'=> 'faqs',
+                'name' => 'faqs',
                 'tag' => 'FAQs',
                 'heading' => 'Got Questions? We have Got Answers! Dive into Our FAQs',
                 'content' => 'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.',
                 'image' => null,
             ],
             [
-                'name'=> 'app',
+                'name' => 'app',
                 'tag' => 'Download Our School Apps!',
                 'heading' => 'Empower Everyone: Teachers, Students, Parents - Get the App Now!',
                 'content' => 'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.',
                 'image' => null,
             ],
             [
-                'name'=> 'question',
+                'name' => 'question',
                 'tag' => 'Got a Question?',
                 'heading' => 'Admissions, Academics, Support:Find Your Answer Here!',
                 'content' => null,
@@ -131,8 +131,8 @@ return new class extends Migration
 
         Schema::create('faqs', function (Blueprint $table) {
             $table->id();
-            $table->string('question',1024);
-            $table->string('answer',1024);
+            $table->string('question', 1024);
+            $table->string('answer', 1024);
             $table->bigInteger('status');
             $table->timestamps();
         });
@@ -144,7 +144,7 @@ return new class extends Migration
             $table->string('email');
             $table->string('phone');
             $table->date('date')->nullable();
-            $table->string('message',1024);
+            $table->string('message', 1024);
             $table->timestamps();
         });
 
@@ -152,7 +152,7 @@ return new class extends Migration
             [
                 'type' => 'secondary_color',
                 'message' => '#38A3A5',
-             ],
+            ],
         ]);
     }
 

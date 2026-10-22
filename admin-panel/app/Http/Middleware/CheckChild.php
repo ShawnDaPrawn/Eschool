@@ -5,7 +5,9 @@ declare(strict_types=1);
 namespace App\Http\Middleware;
 
 use Closure;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Http\Response;
 
 class CheckChild
 {
@@ -13,9 +15,8 @@ class CheckChild
      * Only lets a parent through for one of their own children. The child is
      * stored on the request as the 'child' attribute for the controller.
      *
-     * @param  \Illuminate\Http\Request  $request
-     * @param  \Closure(\Illuminate\Http\Request): (\Illuminate\Http\Response|\Illuminate\Http\RedirectResponse)  $next
-     * @return \Illuminate\Http\Response|\Illuminate\Http\RedirectResponse
+     * @param  Closure(Request): (Response|RedirectResponse)  $next
+     * @return Response|RedirectResponse
      */
     public function handle(Request $request, Closure $next)
     {
@@ -24,11 +25,11 @@ class CheckChild
 
         $child = ($parent && $childId) ? $parent->children()->whereKey($childId)->first() : null;
         if (empty($child)) {
-            return response()->json(array(
+            return response()->json([
                 'error' => true,
-                'message' => "Invalid Child ID Passed.",
-                'code'=> 105,
-            ));
+                'message' => 'Invalid Child ID Passed.',
+                'code' => 105,
+            ]);
         }
         $request->attributes->set('child', $child);
 

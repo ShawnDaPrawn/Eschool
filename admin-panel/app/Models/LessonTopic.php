@@ -6,13 +6,13 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Support\Facades\Auth;
 
 class LessonTopic extends Model
 {
     use HasFactory;
 
-    protected static function boot() {
+    protected static function boot()
+    {
         parent::boot();
         static::deleting(function ($topic) { // before delete() method call this
             // One by one, so File removes the stored files too.
@@ -20,18 +20,21 @@ class LessonTopic extends Model
         });
     }
 
-    protected $hidden = ["deleted_at", "created_at", "updated_at"];
+    protected $hidden = ['deleted_at', 'created_at', 'updated_at'];
 
-    public function file() {
+    public function file()
+    {
         return $this->morphMany(File::class, 'modal');
     }
 
-    public function lesson() {
+    public function lesson()
+    {
         return $this->belongsTo(Lesson::class);
     }
 
     /** For a teacher, only topics of their own lessons (see Lesson::scopeLessonTeachers). */
-    public function scopeLessonTopicTeachers($query) {
+    public function scopeLessonTopicTeachers($query)
+    {
         return $query->whereHas('lesson', fn ($lesson) => $lesson->lessonTeachers());
     }
 }

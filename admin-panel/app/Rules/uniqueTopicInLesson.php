@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Rules;
 
-use App\Models\Lesson;
 use App\Models\LessonTopic;
 use Illuminate\Contracts\Validation\Rule;
 
@@ -15,12 +14,12 @@ class uniqueTopicInLesson implements Rule
      *
      * @return void
      */
-
-    public function __construct($lesson_id, $topic_id = NULL)
+    public function __construct($lesson_id, $topic_id = null)
     {
         $this->lesson_id = $lesson_id;
         $this->topic_id = $topic_id;
     }
+
     /**
      * Determine if the validation rule passes.
      *
@@ -30,7 +29,7 @@ class uniqueTopicInLesson implements Rule
      */
     public function passes($attribute, $value)
     {
-        if ($this->topic_id == NULL) {
+        if ($this->topic_id == null) {
             $count = LessonTopic::where('name', $value)->where('lesson_id', $this->lesson_id)->count();
             if ($count == 0) {
                 return true;
@@ -38,7 +37,7 @@ class uniqueTopicInLesson implements Rule
                 return false;
             }
         } else {
-            $count = LessonTopic::where('name', $value)->where('lesson_id', $this->lesson_id)->whereNot('id',$this->topic_id)->count();
+            $count = LessonTopic::where('name', $value)->where('lesson_id', $this->lesson_id)->whereNot('id', $this->topic_id)->count();
             if ($count == 0) {
                 return true;
             } else {

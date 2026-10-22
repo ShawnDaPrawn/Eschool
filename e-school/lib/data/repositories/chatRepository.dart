@@ -1,5 +1,5 @@
 import 'package:dio/dio.dart';
-import 'package:eschool/data/models/chatMessage.dart';
+import 'package:eschool_core/eschool_core.dart';
 import 'package:eschool/data/models/chatUser.dart';
 import 'package:eschool/utils/api.dart';
 import 'package:eschool/utils/constants.dart';

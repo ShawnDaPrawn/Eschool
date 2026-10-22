@@ -21,6 +21,9 @@ use App\Models\Students;
 use App\Models\Teacher;
 use App\Models\User;
 use App\Models\WebSetting;
+use App\Services\Platform\Files\FileNames;
+use App\Services\Platform\Identity\LearnerInvitations;
+use App\Services\Platform\Secrets\SecretSettings;
 use Illuminate\Database\QueryException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
@@ -215,7 +218,8 @@ class WebController extends Controller
             return true;
         }
 
-        $secretKey = getSettings('recaptcha_secret_key')['recaptcha_secret_key'] ?? '';
+        // RECAPTCHA_SECRET_KEY, else the General Settings row.
+        $secretKey = SecretSettings::get('recaptcha_secret_key');
 
         // Enabled but no secret configured — skip rather than lock everyone out.
         if (empty($secretKey)) {
@@ -418,7 +422,7 @@ class WebController extends Controller
                     $father_email = $request->father_email;
                     $father_image = $request->file('father_image');
                     // made file name with combination of current time
-                    $file_name = time().'-'.$father_image->getClientOriginalName();
+                    $file_name = time().'-'.FileNames::forUpload($father_image);
                     // made file path to store in database
                     $file_path = 'parents/'.$file_name;
                     // resized image
@@ -467,7 +471,7 @@ class WebController extends Controller
 
                     $mother_image = $request->file('mother_image');
                     // made file name with combination of current time
-                    $file_name = time().'-'.$mother_image->getClientOriginalName();
+                    $file_name = time().'-'.FileNames::forUpload($mother_image);
                     // made file path to store in database
                     $file_path = 'parents/'.$file_name;
                     // resized image
@@ -520,7 +524,7 @@ class WebController extends Controller
                     $guardian_plaintext_password = str_replace('-', '', date('d-m-Y', strtotime($request->guardian_dob)));
 
                     $guardian_image = $request->file('guardian_image');
-                    $file_name = time().'-'.$guardian_image->getClientOriginalName();
+                    $file_name = time().'-'.FileNames::forUpload($guardian_image);
                     $file_path = 'parents/'.$file_name;
 
                     resizeImage($guardian_image);
@@ -562,11 +566,12 @@ class WebController extends Controller
             }
             // Create Student User First
 
-            $child_plaintext_password = str_replace('-', '', date('d-m-Y', strtotime($request->dob)));
+            // A random password nobody sees; accepting the application sends the guardians links.
+            $child_password = LearnerInvitations::unguessablePassword();
 
             $student_image = $request->file('image');
             // made file name with combination of current time
-            $file_name = time().'-'.$student_image->getClientOriginalName();
+            $file_name = time().'-'.FileNames::forUpload($student_image);
             // made file path to store in database
             $file_path = 'students/'.$file_name;
             // resized image
@@ -577,7 +582,7 @@ class WebController extends Controller
 
             $user_data = [
                 'image' => $file_path,
-                'password' => Hash::make($child_plaintext_password),
+                'password' => Hash::make($child_password),
                 'first_name' => $request->first_name,
                 'last_name' => $request->last_name,
                 'email' => $admission_no, // Server-generated GR Number used as email
@@ -669,7 +674,7 @@ class WebController extends Controller
                     'message' => trans('error_occurred'),
                 ];
             }
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             $response = [
                 'error' => true,
                 'message' => trans('error_occurred'),

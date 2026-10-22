@@ -1,0 +1,14 @@
+# lib/ is generated (tool/generate.sh) and keeps the generator's style; the
+# rules below quiet what that style trips. CI fails on errors and warnings.
+include: package:lints/recommended.yaml
+
+analyzer:
+  exclude:
+    - lib/src/model/*.g.dart
+  errors:
+    deprecated_member_use_from_same_package: ignore
+    # The generator imports the error models on every API class, used or not.
+    unused_import: info
+    unnecessary_this: ignore
+    no_leading_underscores_for_local_identifiers: ignore
+    unnecessary_brace_in_string_interps: ignore

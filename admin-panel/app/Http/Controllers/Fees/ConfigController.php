@@ -6,14 +6,14 @@ namespace App\Http\Controllers\Fees;
 
 use App\Http\Controllers\Controller;
 use App\Models\Settings;
-use App\Services\Payment\RazorpayPayment;
+use App\Services\Platform\Secrets\SecretSettings;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
 
 /**
  * Admin panel: fee settings: currency, how compulsory fees are paid, whether students can pay
- * online, and the payment gateways (Razorpay, Stripe, Paystack, Flutterwave).
+ * online, and the payment gateway (Stripe; Razorpay, Paystack and Flutterwave were removed).
  */
 class ConfigController extends Controller
 {
@@ -28,8 +28,13 @@ class ConfigController extends Controller
         }
         $settings = getSettings();
         $domain = request()->getSchemeAndHttpHost();
+        // Secrets set in the environment (Secret Manager) are neither shown nor saved here.
+        $fromEnvironment = [
+            'stripe_secret_key' => SecretSettings::fromEnvironment('stripe_secret_key'),
+            'stripe_webhook_secret' => SecretSettings::fromEnvironment('stripe_webhook_secret'),
+        ];
 
-        return view('fees.fees_config', compact('settings', 'domain'));
+        return view('fees.fees_config', compact('settings', 'domain', 'fromEnvironment'));
     }
 
     public function feesConfigUpdate(Request $request)
@@ -41,47 +46,21 @@ class ConfigController extends Controller
 
             return redirect(route('home'))->withErrors($response);
         }
-        // An enabled gateway's currency is sent to it as an ISO 4217 code; Razorpay's amount
-        // conversion only knows the codes it lists, and failed on anything else when a parent paid.
+        // An enabled gateway's currency is sent to it as an ISO 4217 code.
         $currency = 'regex:/^[A-Za-z]{3}$/';
-        $razorpayCurrency = function (string $attribute, $value, \Closure $fail) {
-            try {
-                RazorpayPayment::amountInSubunits((string) $value, 1);
-            } catch (\UnhandledMatchError) {
-                $fail(trans('currency_not_supported_by_razorpay'));
-            }
-        };
-        $validator = Validator::make($request->all(), [
-            'razorpay_status' => 'required',
-            'razorpay_secret_key' => 'required_if:razorpay_status,1|nullable',
-            'razorpay_api_key' => 'required_if:razorpay_status,1|nullable',
-            'razorpay_webhook_secret' => 'required_if:razorpay_status,1|nullable',
-            'razorpay_webhook_url' => 'required_if:razorpay_status,1|nullable',
-            'razorpay_currency_code' => ['exclude_unless:razorpay_status,1', 'required', $currency, $razorpayCurrency],
+        $validator = Validator::make($request->all(), SecretSettings::rulesFor([
             'stripe_status' => 'required',
             'stripe_publishable_key' => 'required_if:stripe_status,1|nullable',
             'stripe_secret_key' => 'required_if:stripe_status,1|nullable',
             'stripe_webhook_secret' => 'required_if:stripe_status,1|nullable',
             'stripe_webhook_url' => 'required_if:stripe_status,1|nullable',
             'stripe_currency_code' => ['exclude_unless:stripe_status,1', 'required', $currency],
-            'paystack_status' => 'required',
-            'paystack_public_key' => 'required_if:paystack_status,1|nullable',
-            'paystack_secret_key' => 'required_if:paystack_status,1|nullable',
-            'paystack_webhook_url' => 'required_if:paystack_status,1|nullable',
-            'paystack_currency_code' => ['exclude_unless:paystack_status,1', 'required', $currency],
-            'flutterwave_status' => 'required',
-            'flutterwave_public_key' => 'required_if:flutterwave_status,1|nullable',
-            'flutterwave_secret_key' => 'required_if:flutterwave_status,1|nullable',
-            // Webhooks are refused without it, so payments would never be confirmed.
-            'flutterwave_hash_key' => 'required_if:flutterwave_status,1|nullable',
-            'flutterwave_webhook_url' => 'required_if:flutterwave_status,1|nullable',
-            'flutterwave_currency_code' => ['exclude_unless:flutterwave_status,1', 'required', $currency],
             'currency_code' => 'required',
             'currency_symbol' => 'required',
             'compulsory_fee_payment_mode' => 'required',
             'is_student_can_pay_fees' => 'required',
 
-        ]);
+        ]));
         if ($validator->fails()) {
             $response = [
                 'error' => true,
@@ -91,86 +70,6 @@ class ConfigController extends Controller
             return response()->json($response);
         }
         try {
-
-            // razorpay_status
-            if (Settings::where('type', 'razorpay_status')->exists()) {
-                $data = [
-                    'message' => $request->razorpay_status,
-                ];
-                Settings::where('type', 'razorpay_status')->update($data);
-            } else {
-                $setting = new Settings;
-                $setting->type = 'razorpay_status';
-                $setting->message = $request->razorpay_status;
-                $setting->save();
-            }
-
-            if ($request->razorpay_status) {
-                // razorpay_secret_key
-                if (Settings::where('type', 'razorpay_secret_key')->exists()) {
-                    $data = [
-                        'message' => trim($request->razorpay_secret_key),
-                    ];
-                    Settings::where('type', 'razorpay_secret_key')->update($data);
-                } else {
-                    $setting = new Settings;
-                    $setting->type = 'razorpay_secret_key';
-                    $setting->message = trim($request->razorpay_secret_key);
-                    $setting->save();
-                }
-
-                // razorpay_api_key
-                if (Settings::where('type', 'razorpay_api_key')->exists()) {
-                    $data = [
-                        'message' => trim($request->razorpay_api_key),
-                    ];
-                    Settings::where('type', 'razorpay_api_key')->update($data);
-                } else {
-                    $setting = new Settings;
-                    $setting->type = 'razorpay_api_key';
-                    $setting->message = trim($request->razorpay_api_key);
-                    $setting->save();
-                }
-
-                // razorpay_webhook_secret
-                if (Settings::where('type', 'razorpay_webhook_secret')->exists()) {
-                    $data = [
-                        'message' => trim($request->razorpay_webhook_secret),
-                    ];
-                    Settings::where('type', 'razorpay_webhook_secret')->update($data);
-                } else {
-                    $setting = new Settings;
-                    $setting->type = 'razorpay_webhook_secret';
-                    $setting->message = trim($request->razorpay_webhook_secret);
-                    $setting->save();
-                }
-
-                // razorpay_webhook_url
-                if (Settings::where('type', 'razorpay_webhook_url')->exists()) {
-                    $data = [
-                        'message' => trim($request->razorpay_webhook_url),
-                    ];
-                    Settings::where('type', 'razorpay_webhook_url')->update($data);
-                } else {
-                    $setting = new Settings;
-                    $setting->type = 'razorpay_webhook_url';
-                    $setting->message = trim($request->razorpay_webhook_url);
-                    $setting->save();
-                }
-
-                // razorpay_webhook_url
-                if (Settings::where('type', 'razorpay_currency_code')->exists()) {
-                    $data = [
-                        'message' => trim($request->razorpay_currency_code),
-                    ];
-                    Settings::where('type', 'razorpay_currency_code')->update($data);
-                } else {
-                    $setting = new Settings;
-                    $setting->type = 'razorpay_currency_code';
-                    $setting->message = trim($request->razorpay_currency_code);
-                    $setting->save();
-                }
-            }
 
             // stripe_status
             if (Settings::where('type', 'stripe_status')->exists()) {
@@ -200,8 +99,10 @@ class ConfigController extends Controller
                     $setting->save();
                 }
 
-                // stripe_secret_key
-                if (Settings::where('type', 'stripe_secret_key')->exists()) {
+                // stripe_secret_key (not when STRIPE_SECRET_KEY provides it)
+                if (SecretSettings::fromEnvironment('stripe_secret_key')) {
+                    // Kept in the environment; nothing to save.
+                } elseif (Settings::where('type', 'stripe_secret_key')->exists()) {
                     $data = [
                         'message' => trim($request->stripe_secret_key),
                     ];
@@ -213,8 +114,10 @@ class ConfigController extends Controller
                     $setting->save();
                 }
 
-                // stripe_webhook_secret
-                if (Settings::where('type', 'stripe_webhook_secret')->exists()) {
+                // stripe_webhook_secret (not when STRIPE_WEBHOOK_SECRET provides it)
+                if (SecretSettings::fromEnvironment('stripe_webhook_secret')) {
+                    // Kept in the environment; nothing to save.
+                } elseif (Settings::where('type', 'stripe_webhook_secret')->exists()) {
                     $data = [
                         'message' => trim($request->stripe_webhook_secret),
                     ];
@@ -239,7 +142,7 @@ class ConfigController extends Controller
                     $setting->save();
                 }
 
-                // razorpay_webhook_url
+                // stripe_currency_code
                 if (Settings::where('type', 'stripe_currency_code')->exists()) {
                     $data = [
                         'message' => trim($request->stripe_currency_code),
@@ -249,158 +152,6 @@ class ConfigController extends Controller
                     $setting = new Settings;
                     $setting->type = 'stripe_currency_code';
                     $setting->message = trim($request->stripe_currency_code);
-                    $setting->save();
-                }
-            }
-
-            // paystack_status
-            if (Settings::where('type', 'paystack_status')->exists()) {
-                $data = [
-                    'message' => $request->paystack_status,
-                ];
-                Settings::where('type', 'paystack_status')->update($data);
-            } else {
-                $setting = new Settings;
-                $setting->type = 'paystack_status';
-                $setting->message = $request->paystack_status;
-                $setting->save();
-            }
-
-            if ($request->paystack_status) {
-
-                // paystack_public_key
-                if (Settings::where('type', 'paystack_public_key')->exists()) {
-                    $data = [
-                        'message' => trim($request->paystack_public_key),
-                    ];
-                    Settings::where('type', 'paystack_public_key')->update($data);
-                } else {
-                    $setting = new Settings;
-                    $setting->type = 'paystack_public_key';
-                    $setting->message = trim($request->paystack_public_key);
-                    $setting->save();
-                }
-
-                // paystack_secret_key
-                if (Settings::where('type', 'paystack_secret_key')->exists()) {
-                    $data = [
-                        'message' => trim($request->paystack_secret_key),
-                    ];
-                    Settings::where('type', 'paystack_secret_key')->update($data);
-                } else {
-                    $setting = new Settings;
-                    $setting->type = 'paystack_secret_key';
-                    $setting->message = trim($request->paystack_secret_key);
-                    $setting->save();
-                }
-
-                // paystack_webhook_url
-                if (Settings::where('type', 'paystack_webhook_url')->exists()) {
-                    $data = [
-                        'message' => trim($request->paystack_webhook_url),
-                    ];
-                    Settings::where('type', 'paystack_webhook_url')->update($data);
-                } else {
-                    $setting = new Settings;
-                    $setting->type = 'paystack_webhook_url';
-                    $setting->message = trim($request->paystack_webhook_url);
-                    $setting->save();
-                }
-
-                // paystack_payment_url is not saved: the secret key only ever goes
-                // to Paystack's own API (PaystackPayment::BASE_URL).
-
-                // paystack_currency_code
-                if (Settings::where('type', 'paystack_currency_code')->exists()) {
-                    $data = [
-                        'message' => trim($request->paystack_currency_code),
-                    ];
-                    Settings::where('type', 'paystack_currency_code')->update($data);
-                } else {
-                    $setting = new Settings;
-                    $setting->type = 'paystack_currency_code';
-                    $setting->message = trim($request->paystack_currency_code);
-                    $setting->save();
-                }
-            }
-
-            // flutterwave_status
-            if (Settings::where('type', 'flutterwave_status')->exists()) {
-                $data = [
-                    'message' => $request->flutterwave_status,
-                ];
-                Settings::where('type', 'flutterwave_status')->update($data);
-            } else {
-                $setting = new Settings;
-                $setting->type = 'flutterwave_status';
-                $setting->message = $request->flutterwave_status;
-                $setting->save();
-            }
-
-            if ($request->flutterwave_status) {
-
-                // flutterwave_public_key
-                if (Settings::where('type', 'flutterwave_public_key')->exists()) {
-                    $data = [
-                        'message' => trim($request->flutterwave_public_key),
-                    ];
-                    Settings::where('type', 'flutterwave_public_key')->update($data);
-                } else {
-                    $setting = new Settings;
-                    $setting->type = 'flutterwave_public_key';
-                    $setting->message = trim($request->flutterwave_public_key);
-                    $setting->save();
-                }
-
-                // flutterwave_secret_key
-                if (Settings::where('type', 'flutterwave_secret_key')->exists()) {
-                    $data = [
-                        'message' => trim($request->flutterwave_secret_key),
-                    ];
-                    Settings::where('type', 'flutterwave_secret_key')->update($data);
-                } else {
-                    $setting = new Settings;
-                    $setting->type = 'flutterwave_secret_key';
-                    $setting->message = trim($request->flutterwave_secret_key);
-                    $setting->save();
-                }
-
-                // flutterwave_hash_key (the webhook secret hash)
-                if (Settings::where('type', 'flutterwave_hash_key')->exists()) {
-                    $data = [
-                        'message' => trim($request->flutterwave_hash_key),
-                    ];
-                    Settings::where('type', 'flutterwave_hash_key')->update($data);
-                } else {
-                    $setting = new Settings;
-                    $setting->type = 'flutterwave_hash_key';
-                    $setting->message = trim($request->flutterwave_hash_key);
-                    $setting->save();
-                }
-
-                // flutterwave_webhook_url
-                if (Settings::where('type', 'flutterwave_webhook_url')->exists()) {
-                    $data = [
-                        'message' => trim($request->flutterwave_webhook_url),
-                    ];
-                    Settings::where('type', 'flutterwave_webhook_url')->update($data);
-                } else {
-                    $setting = new Settings;
-                    $setting->type = 'flutterwave_webhook_url';
-                    $setting->message = trim($request->flutterwave_webhook_url);
-                    $setting->save();
-                }
-
-                // flutterwave_currency_code
-                if (Settings::where('type', 'flutterwave_currency_code')->exists()) {
-                    $data = [
-                        'message' => trim($request->flutterwave_currency_code),
-                    ];
-                    Settings::where('type', 'flutterwave_currency_code')->update($data);
-                } else {
-                    $setting = new Settings;
-                    $setting->type = 'flutterwave_currency_code';
-                    $setting->message = trim($request->flutterwave_currency_code);
                     $setting->save();
                 }
             }

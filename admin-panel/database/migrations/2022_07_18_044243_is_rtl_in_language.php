@@ -14,7 +14,7 @@ return new class extends Migration
     public function up()
     {
         Schema::table('languages', function (Blueprint $table) {
-            $table->tinyInteger('is_rtl')->default(0)->after('file');;
+            $table->tinyInteger('is_rtl')->default(0)->after('file');
         });
     }
 

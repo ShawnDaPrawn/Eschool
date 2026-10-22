@@ -1,5 +1,5 @@
 import 'package:eschool_teacher/data/models/staffLeave.dart';
-import 'package:eschool_teacher/ui/widgets/customImageWidget.dart';
+import 'package:eschool_core/eschool_core.dart';
 import 'package:eschool_teacher/ui/widgets/noDataContainer.dart';
 import 'package:eschool_teacher/utils/labelKeys.dart';
 import 'package:eschool_teacher/utils/uiUtils.dart';

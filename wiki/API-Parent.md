@@ -27,7 +27,7 @@ Controllers answer through [`ResponseService`](https://github.com/ShawnDaPrawn/E
 }
 ```
 
-Some endpoints add extra top-level keys next to `data` (for example `token`, `pdf`, `payment_gateway_details`, or the fee arrays of `fees-details`). Errors set `"error": true` and add `details`, which holds the exception text only when `APP_DEBUG` is on. `successResponse()` and `errorResponse()` call `->send()` and then `exit()`, so nothing after them in a controller runs. That is how `resolveChild()` "ends the request" when a child id is wrong.
+Some endpoints add extra top-level keys next to `data` (for example `token`, `pdf`, `payment_gateway_details`, or the fee arrays of `fees-details`). Errors set `"error": true` and add `details`, which holds the exception text only when `APP_DEBUG` is on. Controllers `return` what `successResponse()` and `errorResponse()` build, so nothing after them runs. `resolveChild()` ends the request when a child id is wrong by throwing its error response (an `HttpResponseException`); the catch blocks pass it to `errorResponse()`, which returns it unchanged.
 
 | `code` | Meaning on the parent API |
 |---|---|
@@ -187,7 +187,7 @@ Login does not record that the parent accepted anything. On the first sign-in th
 
 ### Terms a parent must accept
 
-`auth:sanctum` and `role:Parent` only. No child-session check and no `parent.policy`. [`PolicyController`](https://github.com/ShawnDaPrawn/Eschool/blob/main/admin-panel/app/Http/Controllers/Api/Parent/PolicyController.php) returns `response()->json()` and does not `exit()`, unlike the other parent controllers.
+`auth:sanctum` and `role:Parent` only. No child-session check and no `parent.policy`. [`PolicyController`](https://github.com/ShawnDaPrawn/Eschool/blob/main/admin-panel/app/Http/Controllers/Api/Parent/PolicyController.php) returns `response()->json()` directly instead of going through `ResponseService` like the other parent controllers.
 
 GET returns `code` 200 and `data` from `ParentPolicyService::status()`:
 
@@ -479,7 +479,7 @@ Fees are set per class and session year in `fees_classes`:
 - Installments are `installment_fees` rows for the session year.
 - Due charges are percentages: `session_years.fee_due_charges` for full payment, `installment_fees.due_charges` per installment.
 
-`payment_transactions.payment_status` is 0 for failed, 1 for succeeded, 2 for pending. Payments are only marked paid by the gateway webhooks (`/webhook/razorpay`, `/webhook/stripe`, `/webhook/paystack`, `/webhook/flutterwave`) through `FeesPaymentService::markPaid()`. No parent endpoint can mark a payment paid. See [Payments](Payments) for gateways, webhooks and settings, and https://shawndaprawn.github.io/Eschool/admin-panel/fee-payment/ for the admin configuration screens.
+`payment_transactions.payment_status` is 0 for failed, 1 for succeeded, 2 for pending. Payments are only marked paid by the gateway webhook (`/webhook/stripe`; the Razorpay, Paystack and Flutterwave webhooks were removed in Phase 0) through `FeesPaymentService::markPaid()`. No parent endpoint can mark a payment paid. See [Payments](Payments) for gateways, webhooks and settings, and https://shawndaprawn.github.io/Eschool/admin-panel/fee-payment/ for the admin configuration screens.
 
 ```mermaid
 sequenceDiagram
@@ -524,7 +524,7 @@ Starts an online payment: prices it on the server, stores a pending transaction 
 | Parameter | Type | Required | Notes |
 |---|---|---|---|
 | `child_id` | — | yes | |
-| `payment_method` | `1`–`4` | yes | 1 Razorpay, 2 Stripe, 3 Paystack, 4 Flutterwave. Refused with "The selected payment method is not available." unless the matching `razorpay_status`, `stripe_status`, `paystack_status` or `flutterwave_status` setting is on. |
+| `payment_method` | `1`–`4` | yes | 2 Stripe. Refused with "The selected payment method is not available." unless it is 2 and `stripe_status` is on; 1 (Razorpay), 3 (Paystack) and 4 (Flutterwave) were removed and are always refused that way. |
 | `type_of_fee` | `0`, `1`, `2` | yes | 0 compulsory in full, 1 installments, 2 optional fees (`FeesPaymentService::COMPULSORY`, `INSTALLMENTS`, `OPTIONAL`) |
 | `amount` | numeric | yes | The total the app showed. It must match the server's total within 0.02, or the request fails with "The fee amount has changed. Please refresh and try again." |
 | `installment_data` | array | for type 1 | Items with `id` = `installment_fees.id`. Other keys the app sends (`name`, `amount`, `due_charges`) are ignored. |
@@ -546,7 +546,7 @@ Side effects, in one database transaction:
 - One `fees_choiceables` row with `status` 0 per optional fee, or one `paid_installment_fees` row with `status` 0 per installment, each linked by `payment_transaction_id`.
 - A gateway order or intent, created by `PaymentService::create($payment_method)->createAndFormatPaymentIntent()`, whose id is saved to `payment_transactions.order_id`.
 
-Response: `data` = `[]` and top-level `payment_gateway_details` = `{id, amount, currency, metadata, status, payment_gateway_response, payment_transaction_id}`. `id` is the Stripe intent id, the Razorpay order id, the Paystack reference, or the Flutterwave hosted payment link, depending on the gateway.
+Response: `data` = `[]` and top-level `payment_gateway_details` = `{id, amount, currency, metadata, status, payment_gateway_response, payment_transaction_id}`. `id` is the Stripe PaymentIntent id.
 
 ### POST `store-fees`
 
@@ -800,7 +800,6 @@ These live in `ApiController` without the `parent/` prefix and are documented on
 - The child loop in `login` and `get-profile-data` carries installment data and `$due_date` over from one child to the next.
 - `get-exam-list` does not validate `status`, and its `exam_timetable` is not filtered to the child's class.
 - `fail-payment-transaction` and the one-hour pending timeout set `payment_status` 0 without removing the pending `fees_choiceables` and `paid_installment_fees` rows. The webhook's `markFailed()` does remove them.
-- Responses are sent from inside `ResponseService` and end with `exit()`, so response middleware such as `SecurityHeaders` does not add its headers to them.
 
 ## See also
 

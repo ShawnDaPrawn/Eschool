@@ -16,7 +16,7 @@ class GalleryService
             ->orderByDesc('id')
             ->limit($limit)
             ->get()
-            ->map(fn($album) => $this->formatAlbum($album));
+            ->map(fn ($album) => $this->formatAlbum($album));
     }
 
     public function paginateAlbums(int $perPage, int $page): LengthAwarePaginator
@@ -26,7 +26,7 @@ class GalleryService
             ->where('type', 1)
             ->orderByDesc('id')
             ->paginate($perPage, ['*'], 'page', $page)
-            ->through(fn($album) => $this->formatAlbum($album));
+            ->through(fn ($album) => $this->formatAlbum($album));
     }
 
     public function getAlbumImages(int $albumId)
@@ -34,7 +34,7 @@ class GalleryService
         return MediaFile::where('media_id', $albumId)
             ->orderBy('id')
             ->pluck('file_url')
-            ->map(fn($url) => $url ? asset($url) : null)
+            ->map(fn ($url) => $url ? asset($url) : null)
             ->filter()
             ->values();
     }
@@ -47,7 +47,7 @@ class GalleryService
             ->orderByDesc('id')
             ->limit($limit)
             ->get()
-            ->map(fn($video) => $this->formatVideo($video->youtube_url));
+            ->map(fn ($video) => $this->formatVideo($video->youtube_url));
     }
 
     public function paginateVideos(int $perPage, int $page): LengthAwarePaginator
@@ -57,7 +57,7 @@ class GalleryService
             ->where('type', 2)
             ->orderByDesc('id')
             ->paginate($perPage, ['*'], 'page', $page)
-            ->through(fn($video) => $this->formatVideo($video->youtube_url));
+            ->through(fn ($video) => $this->formatVideo($video->youtube_url));
     }
 
     public function getGallery(?int $limit = 5): ?array

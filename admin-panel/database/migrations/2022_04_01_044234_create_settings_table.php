@@ -63,8 +63,8 @@ return new class extends Migration
             ],
             [
                 'type' => 'update_warning_modal',
-                'message' => 1
-            ]
+                'message' => 1,
+            ],
         ]);
     }
 

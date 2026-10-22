@@ -1,0 +1,49 @@
+# Secret scanning for this repository: gitleaks over the whole git history, in
+# .github/workflows/security.yml. gitleaks' default rules all apply.
+#
+# The allowlist below holds only findings proven to be false positives, each
+# with the reason and where it was found. A new finding fails CI: if it is a
+# real secret, rotate it first, then remove it from the code and record it in
+# engineering/security/phase-N.md; never allowlist a real secret.
+
+title = "NavigateEd gitleaks configuration"
+
+[extend]
+useDefault = true
+
+[[allowlists]]
+description = "Firebase Android client configuration (google-services.json)"
+# api_key.current_key in these files is the Firebase Android API key of project
+# navigateed-d8c06: a public identifier compiled into every APK, not a
+# credential (https://firebase.google.com/docs/projects/api-keys). Access is
+# governed by Firebase security rules and the key's application and API
+# restrictions in the Cloud Console. Added in commit 1103e37e99 ("Connect the
+# apps to Firebase project navigateed-d8c06"): the two current_key lines in
+# each file, reported by both rules below. Only values in the Firebase API key
+# format, and only in these two files, are allowed (condition AND).
+targetRules = ["gcp-api-key", "generic-api-key"]
+condition = "AND"
+paths = [
+  '''^e-school/android/app/google-services\.json$''',
+  '''^e-school-teacher/android/app/google-services\.json$''',
+]
+regexTarget = "secret"
+regexes = ['''^AIza[0-9A-Za-z_\-]{35}$''']
+
+[[allowlists]]
+description = "Password fixtures in the panel's feature tests"
+# Feature tests sign seeded users in and change their passwords against the
+# throwaway *_test database (TestCase refuses any other), so they carry
+# literal passwords such as 'new_confirm_password' => '...'. generic-api-key
+# reports the strong-looking ones. Found in commit da3b831 ("Apply one
+# password rule to every password a person chooses"): ApiContractTest.php and
+# StudentApiSecurityTest.php; then in 96478d7 ("Invite guardians to set
+# learner passwords") a 'password_confirmation' key in
+# Platform/LearnerInvitationTest.php. Only array literals whose key starts with
+# "password" (password, password_confirmation, new_password...) in
+# admin-panel/tests/Feature/*Test.php are allowed (condition AND).
+targetRules = ["generic-api-key"]
+condition = "AND"
+paths = ['''^admin-panel/tests/Feature/.*Test\.php$''']
+regexTarget = "match"
+regexes = ['''(?i)password[a-z_]*'\s*=>''']

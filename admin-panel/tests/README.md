@@ -6,10 +6,31 @@ database name ends in `_test` (see `phpunit.xml`), since tests drop every table.
 
 ## Calling the mobile API in tests
 
-The API controllers answer through `App\Services\ResponseService`, which calls
-`exit()` after sending the response, and that would end the test run. So tests
-that call the API serve the app from a separate `php -S` process with
-`Tests\Concerns\RunsAppServer`:
+The API controllers answer through `App\Services\ResponseService`, which returns
+the response (`return ResponseService::successResponse(...)`). Call the API
+in-process, inside a `RefreshDatabase` transaction, with a Sanctum token:
+
+```php
+use RefreshDatabase;
+
+$token = $user->createToken('test')->plainTextToken;
+
+// The guard keeps the user of the previous request: forget it before a request
+// made as someone else.
+$this->app['auth']->forgetGuards();
+$this->withToken($token)->getJson('/api/teacher/get-assignment')->assertOk();
+```
+
+`Sanctum::actingAs($user)` also works when the token itself isn't under test.
+`TeacherApiSecurityTest` is the example to copy.
+
+### Tests that still run a server
+
+`ResponseService` used to call `exit()` after sending the response, which ended
+the test run, so the older API suites serve the app from a separate `php -S`
+process with `Tests\Concerns\RunsAppServer`. Keep using it for those suites
+until they are moved, and for checks that need a real server (production error
+pages, the panel's login form and cookies):
 
 ```php
 use RunsAppServer;
@@ -60,4 +81,7 @@ delete its entry.
 Larastan can't see a call to a missing method on a controller, because Laravel's
 base `Controller` has a `__call` that accepts any name. `ControllerMethodCallsTest`
 checks that every `$this->method()` in a controller exists, which is what goes
-wrong when methods move between controllers.
+wrong when methods move between controllers. It also parses `app/` and fails on
+any `ResponseService::successResponse()` (or another method that builds a
+response) whose value is not returned, or thrown as
+`new HttpResponseException(...)` from a helper that has to stop the request.

@@ -1,148 +1,508 @@
 parameters:
 	ignoreErrors:
 		-
-			message: '#^Result of static method App\\Services\\ResponseService\:\:errorResponse\(\) \(void\) is used\.$#'
-			identifier: staticMethod.void
+			message: '#^Variable \$assign might not be defined\.$#'
+			identifier: variable.undefined
 			count: 1
-			path: app/Http/Controllers/Api/Parent/CalendarController.php
+			path: app/Http/Controllers/AnnouncementController.php
 
 		-
-			message: '#^Result of static method App\\Services\\ResponseService\:\:successResponse\(\) \(void\) is used\.$#'
-			identifier: staticMethod.void
+			message: '#^Variable \$body might not be defined\.$#'
+			identifier: variable.undefined
 			count: 1
-			path: app/Http/Controllers/Api/Parent/CalendarController.php
+			path: app/Http/Controllers/AnnouncementController.php
 
 		-
-			message: '#^Result of static method App\\Services\\ResponseService\:\:errorResponse\(\) \(void\) is used\.$#'
-			identifier: staticMethod.void
+			message: '#^Variable \$class might not be defined\.$#'
+			identifier: variable.undefined
 			count: 1
-			path: app/Http/Controllers/Api/Parent/LeaveController.php
+			path: app/Http/Controllers/AnnouncementController.php
 
 		-
-			message: '#^Result of static method App\\Services\\ResponseService\:\:successResponse\(\) \(void\) is used\.$#'
-			identifier: staticMethod.void
+			message: '#^Variable \$class1 might not be defined\.$#'
+			identifier: variable.undefined
 			count: 1
-			path: app/Http/Controllers/Api/Parent/LeaveController.php
+			path: app/Http/Controllers/AnnouncementController.php
 
 		-
-			message: '#^Result of static method App\\Services\\ResponseService\:\:validationError\(\) \(void\) is used\.$#'
-			identifier: staticMethod.void
+			message: '#^Variable \$teacher_id might not be defined\.$#'
+			identifier: variable.undefined
 			count: 2
+			path: app/Http/Controllers/AnnouncementController.php
+
+		-
+			message: '#^Variable \$title might not be defined\.$#'
+			identifier: variable.undefined
+			count: 1
+			path: app/Http/Controllers/AnnouncementController.php
+
+		-
+			message: '#^Variable \$date on left side of \?\? always exists and is not nullable\.$#'
+			identifier: nullCoalesce.variable
+			count: 1
+			path: app/Http/Controllers/Api/ApiController.php
+
+		-
+			message: '#^Variable \$class_id might not be defined\.$#'
+			identifier: variable.undefined
+			count: 3
+			path: app/Http/Controllers/Api/Parent/AnnouncementController.php
+
+		-
+			message: '#^Variable \$table in empty\(\) always exists and is not falsy\.$#'
+			identifier: empty.variable
+			count: 1
+			path: app/Http/Controllers/Api/Parent/AnnouncementController.php
+
+		-
+			message: '#^Variable \$table might not be defined\.$#'
+			identifier: variable.undefined
+			count: 1
+			path: app/Http/Controllers/Api/Parent/AnnouncementController.php
+
+		-
+			message: '#^Variable \$fees_paid in isset\(\) always exists and is not nullable\.$#'
+			identifier: isset.variable
+			count: 1
+			path: app/Http/Controllers/Api/Parent/AuthController.php
+
+		-
+			message: '#^Variable \$installment_data might not be defined\.$#'
+			identifier: variable.undefined
+			count: 2
+			path: app/Http/Controllers/Api/Parent/AuthController.php
+
+		-
+			message: '#^Variable \$data might not be defined\.$#'
+			identifier: variable.undefined
+			count: 1
+			path: app/Http/Controllers/Api/Parent/ChatController.php
+
+		-
+			message: '#^Variable \$message_id might not be defined\.$#'
+			identifier: variable.undefined
+			count: 1
+			path: app/Http/Controllers/Api/Parent/ChatController.php
+
+		-
+			message: '#^Variable \$messages on left side of \?\? always exists and is not nullable\.$#'
+			identifier: nullCoalesce.variable
+			count: 1
+			path: app/Http/Controllers/Api/Parent/ChatController.php
+
+		-
+			message: '#^Variable \$studentsArray on left side of \?\? always exists and is not nullable\.$#'
+			identifier: nullCoalesce.variable
+			count: 1
+			path: app/Http/Controllers/Api/Parent/ChatController.php
+
+		-
+			message: '#^Variable \$subjectArray on left side of \?\? always exists and is not nullable\.$#'
+			identifier: nullCoalesce.variable
+			count: 1
+			path: app/Http/Controllers/Api/Parent/ChatController.php
+
+		-
+			message: '#^Variable \$unreadCount on left side of \?\? always exists and is not nullable\.$#'
+			identifier: nullCoalesce.variable
+			count: 1
+			path: app/Http/Controllers/Api/Parent/ChatController.php
+
+		-
+			message: '#^Variable \$data might not be defined\.$#'
+			identifier: variable.undefined
+			count: 1
+			path: app/Http/Controllers/Api/Parent/ExamController.php
+
+		-
+			message: '#^Variable \$compulsory_fees_data in isset\(\) always exists and is not nullable\.$#'
+			identifier: isset.variable
+			count: 1
+			path: app/Http/Controllers/Api/Parent/FeesController.php
+
+		-
+			message: '#^Variable \$compulsory_fees_data on left side of \?\? always exists and is not nullable\.$#'
+			identifier: nullCoalesce.variable
+			count: 1
+			path: app/Http/Controllers/Api/Parent/FeesController.php
+
+		-
+			message: '#^Variable \$installment_data on left side of \?\? always exists and is not nullable\.$#'
+			identifier: nullCoalesce.variable
+			count: 1
+			path: app/Http/Controllers/Api/Parent/FeesController.php
+
+		-
+			message: '#^Variable \$optional_fees_data on left side of \?\? always exists and is not nullable\.$#'
+			identifier: nullCoalesce.variable
+			count: 1
+			path: app/Http/Controllers/Api/Parent/FeesController.php
+
+		-
+			message: '#^Variable \$leave on left side of \?\? always exists and is not nullable\.$#'
+			identifier: nullCoalesce.variable
+			count: 1
 			path: app/Http/Controllers/Api/Parent/LeaveController.php
 
 		-
-			message: '#^Result of static method App\\Services\\ResponseService\:\:errorResponse\(\) \(void\) is used\.$#'
-			identifier: staticMethod.void
+			message: '#^Variable \$notification on left side of \?\? always exists and is not nullable\.$#'
+			identifier: nullCoalesce.variable
 			count: 1
-			path: app/Http/Controllers/Api/Student/AttendanceController.php
+			path: app/Http/Controllers/Api/Parent/NotificationController.php
 
 		-
-			message: '#^Result of static method App\\Services\\ResponseService\:\:errorResponse\(\) \(void\) is used\.$#'
-			identifier: staticMethod.void
+			message: '#^Variable \$correct_answers_data on left side of \?\? always exists and is not nullable\.$#'
+			identifier: nullCoalesce.variable
 			count: 1
-			path: app/Http/Controllers/Api/Student/CalendarController.php
+			path: app/Http/Controllers/Api/Parent/OnlineExamController.php
 
 		-
-			message: '#^Result of static method App\\Services\\ResponseService\:\:successResponse\(\) \(void\) is used\.$#'
-			identifier: staticMethod.void
+			message: '#^Variable \$exam_data_db in isset\(\) always exists and is not nullable\.$#'
+			identifier: isset.variable
 			count: 1
-			path: app/Http/Controllers/Api/Student/CalendarController.php
+			path: app/Http/Controllers/Api/Parent/OnlineExamController.php
 
 		-
-			message: '#^Result of static method App\\Services\\ResponseService\:\:errorResponse\(\) \(void\) is used\.$#'
-			identifier: staticMethod.void
+			message: '#^Variable \$exam_list_data on left side of \?\? always exists and is not nullable\.$#'
+			identifier: nullCoalesce.variable
+			count: 1
+			path: app/Http/Controllers/Api/Parent/OnlineExamController.php
+
+		-
+			message: '#^Variable \$exam_result on left side of \?\? always exists and is not nullable\.$#'
+			identifier: nullCoalesce.variable
+			count: 1
+			path: app/Http/Controllers/Api/Parent/OnlineExamController.php
+
+		-
+			message: '#^Variable \$in_correct_answers_data on left side of \?\? always exists and is not nullable\.$#'
+			identifier: nullCoalesce.variable
+			count: 1
+			path: app/Http/Controllers/Api/Parent/OnlineExamController.php
+
+		-
+			message: '#^Variable \$fees_paid in isset\(\) always exists and is not nullable\.$#'
+			identifier: isset.variable
+			count: 1
+			path: app/Http/Controllers/Api/Parent/ProfileController.php
+
+		-
+			message: '#^Variable \$installment_data might not be defined\.$#'
+			identifier: variable.undefined
+			count: 2
+			path: app/Http/Controllers/Api/Parent/ProfileController.php
+
+		-
+			message: '#^Variable \$data in empty\(\) always exists and is not falsy\.$#'
+			identifier: empty.variable
+			count: 5
+			path: app/Http/Controllers/Api/Parent/ReportController.php
+
+		-
+			message: '#^Variable \$table in empty\(\) always exists and is not falsy\.$#'
+			identifier: empty.variable
+			count: 1
+			path: app/Http/Controllers/Api/Student/AnnouncementController.php
+
+		-
+			message: '#^Variable \$fees_paid in isset\(\) always exists and is not nullable\.$#'
+			identifier: isset.variable
+			count: 1
+			path: app/Http/Controllers/Api/Student/AuthController.php
+
+		-
+			message: '#^Variable \$installment_data might not be defined\.$#'
+			identifier: variable.undefined
+			count: 2
+			path: app/Http/Controllers/Api/Student/AuthController.php
+
+		-
+			message: '#^Variable \$data might not be defined\.$#'
+			identifier: variable.undefined
+			count: 1
+			path: app/Http/Controllers/Api/Student/ChatController.php
+
+		-
+			message: '#^Variable \$message_id might not be defined\.$#'
+			identifier: variable.undefined
+			count: 1
+			path: app/Http/Controllers/Api/Student/ChatController.php
+
+		-
+			message: '#^Variable \$messages on left side of \?\? always exists and is not nullable\.$#'
+			identifier: nullCoalesce.variable
+			count: 1
+			path: app/Http/Controllers/Api/Student/ChatController.php
+
+		-
+			message: '#^Variable \$unreadCount on left side of \?\? always exists and is not nullable\.$#'
+			identifier: nullCoalesce.variable
 			count: 2
 			path: app/Http/Controllers/Api/Student/ChatController.php
 
 		-
-			message: '#^Result of static method App\\Services\\ResponseService\:\:successResponse\(\) \(void\) is used\.$#'
-			identifier: staticMethod.void
+			message: '#^Variable \$compulsory_fees_data in isset\(\) always exists and is not nullable\.$#'
+			identifier: isset.variable
 			count: 1
-			path: app/Http/Controllers/Api/Student/ChatController.php
+			path: app/Http/Controllers/Api/Student/FeesController.php
 
 		-
-			message: '#^Result of static method App\\Services\\ResponseService\:\:errorResponse\(\) \(void\) is used\.$#'
-			identifier: staticMethod.void
+			message: '#^Variable \$compulsory_fees_data on left side of \?\? always exists and is not nullable\.$#'
+			identifier: nullCoalesce.variable
+			count: 1
+			path: app/Http/Controllers/Api/Student/FeesController.php
+
+		-
+			message: '#^Variable \$installment_data on left side of \?\? always exists and is not nullable\.$#'
+			identifier: nullCoalesce.variable
+			count: 1
+			path: app/Http/Controllers/Api/Student/FeesController.php
+
+		-
+			message: '#^Variable \$optional_fees_data on left side of \?\? always exists and is not nullable\.$#'
+			identifier: nullCoalesce.variable
+			count: 1
+			path: app/Http/Controllers/Api/Student/FeesController.php
+
+		-
+			message: '#^Variable \$leave on left side of \?\? always exists and is not nullable\.$#'
+			identifier: nullCoalesce.variable
 			count: 1
 			path: app/Http/Controllers/Api/Student/LeaveController.php
 
 		-
-			message: '#^Result of static method App\\Services\\ResponseService\:\:successResponse\(\) \(void\) is used\.$#'
-			identifier: staticMethod.void
+			message: '#^Variable \$notification on left side of \?\? always exists and is not nullable\.$#'
+			identifier: nullCoalesce.variable
 			count: 1
-			path: app/Http/Controllers/Api/Student/LeaveController.php
+			path: app/Http/Controllers/Api/Student/NotificationController.php
 
 		-
-			message: '#^Result of static method App\\Services\\ResponseService\:\:validationError\(\) \(void\) is used\.$#'
-			identifier: staticMethod.void
+			message: '#^Variable \$correct_answers_data on left side of \?\? always exists and is not nullable\.$#'
+			identifier: nullCoalesce.variable
 			count: 1
-			path: app/Http/Controllers/Api/Student/LeaveController.php
+			path: app/Http/Controllers/Api/Student/OnlineExamController.php
 
 		-
-			message: '#^Result of static method App\\Services\\ResponseService\:\:errorResponse\(\) \(void\) is used\.$#'
-			identifier: staticMethod.void
-			count: 3
-			path: app/Http/Controllers/Api/Student/LessonController.php
-
-		-
-			message: '#^Result of static method App\\Services\\ResponseService\:\:successResponse\(\) \(void\) is used\.$#'
-			identifier: staticMethod.void
+			message: '#^Variable \$exam_data_db in isset\(\) always exists and is not nullable\.$#'
+			identifier: isset.variable
 			count: 1
-			path: app/Http/Controllers/Api/Student/LessonController.php
+			path: app/Http/Controllers/Api/Student/OnlineExamController.php
 
 		-
-			message: '#^Result of static method App\\Services\\ResponseService\:\:validationError\(\) \(void\) is used\.$#'
-			identifier: staticMethod.void
+			message: '#^Variable \$exam_list on left side of \?\? always exists and is not nullable\.$#'
+			identifier: nullCoalesce.variable
 			count: 1
-			path: app/Http/Controllers/Api/Student/LessonController.php
+			path: app/Http/Controllers/Api/Student/OnlineExamController.php
 
 		-
-			message: '#^Result of static method App\\Services\\ResponseService\:\:successResponse\(\) \(void\) is used\.$#'
-			identifier: staticMethod.void
-			count: 3
+			message: '#^Variable \$exam_list_data on left side of \?\? always exists and is not nullable\.$#'
+			identifier: nullCoalesce.variable
+			count: 1
+			path: app/Http/Controllers/Api/Student/OnlineExamController.php
+
+		-
+			message: '#^Variable \$exam_result on left side of \?\? always exists and is not nullable\.$#'
+			identifier: nullCoalesce.variable
+			count: 1
+			path: app/Http/Controllers/Api/Student/OnlineExamController.php
+
+		-
+			message: '#^Variable \$in_correct_answers_data on left side of \?\? always exists and is not nullable\.$#'
+			identifier: nullCoalesce.variable
+			count: 1
+			path: app/Http/Controllers/Api/Student/OnlineExamController.php
+
+		-
+			message: '#^Variable \$questions_data on left side of \?\? always exists and is not nullable\.$#'
+			identifier: nullCoalesce.variable
+			count: 1
+			path: app/Http/Controllers/Api/Student/OnlineExamController.php
+
+		-
+			message: '#^Variable \$father might not be defined\.$#'
+			identifier: variable.undefined
+			count: 2
 			path: app/Http/Controllers/Api/Student/ProfileController.php
 
 		-
-			message: '#^Result of static method App\\Services\\ResponseService\:\:errorResponse\(\) \(void\) is used\.$#'
-			identifier: staticMethod.void
+			message: '#^Variable \$fees_paid in isset\(\) always exists and is not nullable\.$#'
+			identifier: isset.variable
 			count: 1
-			path: app/Http/Controllers/Api/Teacher/CalendarController.php
+			path: app/Http/Controllers/Api/Student/ProfileController.php
 
 		-
-			message: '#^Result of static method App\\Services\\ResponseService\:\:successResponse\(\) \(void\) is used\.$#'
-			identifier: staticMethod.void
-			count: 1
-			path: app/Http/Controllers/Api/Teacher/CalendarController.php
-
-		-
-			message: '#^Result of static method App\\Services\\ResponseService\:\:errorResponse\(\) \(void\) is used\.$#'
-			identifier: staticMethod.void
-			count: 6
-			path: app/Http/Controllers/Api/Teacher/LeaveController.php
-
-		-
-			message: '#^Result of static method App\\Services\\ResponseService\:\:successResponse\(\) \(void\) is used\.$#'
-			identifier: staticMethod.void
-			count: 4
-			path: app/Http/Controllers/Api/Teacher/LeaveController.php
-
-		-
-			message: '#^Result of static method App\\Services\\ResponseService\:\:validationError\(\) \(void\) is used\.$#'
-			identifier: staticMethod.void
+			message: '#^Variable \$guardian might not be defined\.$#'
+			identifier: variable.undefined
 			count: 2
+			path: app/Http/Controllers/Api/Student/ProfileController.php
+
+		-
+			message: '#^Variable \$installment_data might not be defined\.$#'
+			identifier: variable.undefined
+			count: 2
+			path: app/Http/Controllers/Api/Student/ProfileController.php
+
+		-
+			message: '#^Variable \$mother might not be defined\.$#'
+			identifier: variable.undefined
+			count: 2
+			path: app/Http/Controllers/Api/Student/ProfileController.php
+
+		-
+			message: '#^Variable \$data in empty\(\) always exists and is not falsy\.$#'
+			identifier: empty.variable
+			count: 5
+			path: app/Http/Controllers/Api/Student/ReportController.php
+
+		-
+			message: '#^Variable \$attendanceData might not be defined\.$#'
+			identifier: variable.undefined
+			count: 1
+			path: app/Http/Controllers/Api/Teacher/AttendanceController.php
+
+		-
+			message: '#^Variable \$child might not be defined\.$#'
+			identifier: variable.undefined
+			count: 1
+			path: app/Http/Controllers/Api/Teacher/ChatController.php
+
+		-
+			message: '#^Variable \$childArray on left side of \?\? always exists and is not nullable\.$#'
+			identifier: nullCoalesce.variable
+			count: 3
+			path: app/Http/Controllers/Api/Teacher/ChatController.php
+
+		-
+			message: '#^Variable \$data might not be defined\.$#'
+			identifier: variable.undefined
+			count: 1
+			path: app/Http/Controllers/Api/Teacher/ChatController.php
+
+		-
+			message: '#^Variable \$message_id might not be defined\.$#'
+			identifier: variable.undefined
+			count: 1
+			path: app/Http/Controllers/Api/Teacher/ChatController.php
+
+		-
+			message: '#^Variable \$messages on left side of \?\? always exists and is not nullable\.$#'
+			identifier: nullCoalesce.variable
+			count: 1
+			path: app/Http/Controllers/Api/Teacher/ChatController.php
+
+		-
+			message: '#^Variable \$subjects on left side of \?\? always exists and is not nullable\.$#'
+			identifier: nullCoalesce.variable
+			count: 2
+			path: app/Http/Controllers/Api/Teacher/ChatController.php
+
+		-
+			message: '#^Variable \$unreadCount on left side of \?\? always exists and is not nullable\.$#'
+			identifier: nullCoalesce.variable
+			count: 7
+			path: app/Http/Controllers/Api/Teacher/ChatController.php
+
+		-
+			message: '#^Variable \$student_id might not be defined\.$#'
+			identifier: variable.undefined
+			count: 1
+			path: app/Http/Controllers/Api/Teacher/ClassController.php
+
+		-
+			message: '#^Variable \$today_attendance might not be defined\.$#'
+			identifier: variable.undefined
+			count: 2
+			path: app/Http/Controllers/Api/Teacher/ClassController.php
+
+		-
+			message: '#^Variable \$class_section on left side of \?\? always exists and is not nullable\.$#'
+			identifier: nullCoalesce.variable
+			count: 1
+			path: app/Http/Controllers/Api/Teacher/DashboardController.php
+
+		-
+			message: '#^Variable \$class_teacher on left side of \?\? always exists and is not nullable\.$#'
+			identifier: nullCoalesce.variable
+			count: 1
+			path: app/Http/Controllers/Api/Teacher/DashboardController.php
+
+		-
+			message: '#^Variable \$data on left side of \?\? always exists and is not nullable\.$#'
+			identifier: nullCoalesce.variable
+			count: 1
+			path: app/Http/Controllers/Api/Teacher/DashboardController.php
+
+		-
+			message: '#^Variable \$staff_leave_data on left side of \?\? always exists and is not nullable\.$#'
+			identifier: nullCoalesce.variable
+			count: 1
+			path: app/Http/Controllers/Api/Teacher/DashboardController.php
+
+		-
+			message: '#^Variable \$student_leave_request on left side of \?\? always exists and is not nullable\.$#'
+			identifier: nullCoalesce.variable
+			count: 1
+			path: app/Http/Controllers/Api/Teacher/DashboardController.php
+
+		-
+			message: '#^Variable \$timetable on left side of \?\? always exists and is not nullable\.$#'
+			identifier: nullCoalesce.variable
+			count: 1
+			path: app/Http/Controllers/Api/Teacher/DashboardController.php
+
+		-
+			message: '#^Variable \$data might not be defined\.$#'
+			identifier: variable.undefined
+			count: 1
+			path: app/Http/Controllers/Api/Teacher/ExamController.php
+
+		-
+			message: '#^Variable \$marks_db might not be defined\.$#'
+			identifier: variable.undefined
+			count: 1
+			path: app/Http/Controllers/Api/Teacher/ExamController.php
+
+		-
+			message: '#^Variable \$leave on left side of \?\? always exists and is not nullable\.$#'
+			identifier: nullCoalesce.variable
+			count: 1
 			path: app/Http/Controllers/Api/Teacher/LeaveController.php
 
 		-
-			message: '#^Result of static method App\\Services\\ResponseService\:\:errorResponse\(\) \(void\) is used\.$#'
-			identifier: staticMethod.void
+			message: '#^Variable \$notification on left side of \?\? always exists and is not nullable\.$#'
+			identifier: nullCoalesce.variable
 			count: 1
-			path: app/Http/Controllers/Api/Teacher/TimetableController.php
+			path: app/Http/Controllers/Api/Teacher/NotificationController.php
 
 		-
-			message: '#^Result of static method App\\Services\\ResponseService\:\:successResponse\(\) \(void\) is used\.$#'
-			identifier: staticMethod.void
+			message: '#^Variable \$body might not be defined\.$#'
+			identifier: variable.undefined
+			count: 2
+			path: app/Http/Controllers/AssignmentController.php
+
+		-
+			message: '#^Variable \$title might not be defined\.$#'
+			identifier: variable.undefined
+			count: 2
+			path: app/Http/Controllers/AssignmentController.php
+
+		-
+			message: '#^Variable \$total_days on left side of \?\? always exists and is not nullable\.$#'
+			identifier: nullCoalesce.variable
 			count: 1
-			path: app/Http/Controllers/Api/Teacher/TimetableController.php
+			path: app/Http/Controllers/AttendanceController.php
+
+		-
+			message: '#^Variable \$class_teacher_ids on left side of \?\? always exists and is not nullable\.$#'
+			identifier: nullCoalesce.variable
+			count: 2
+			path: app/Http/Controllers/ClassTeacherController.php
+
+		-
+			message: '#^Variable \$class_teacher_name on left side of \?\? always exists and is not nullable\.$#'
+			identifier: nullCoalesce.variable
+			count: 2
+			path: app/Http/Controllers/ClassTeacherController.php
 
 		-
 			message: '#^Method App\\Http\\Controllers\\EventController\:\:create\(\) should return Illuminate\\Http\\Response but return statement is missing\.$#'
@@ -157,10 +517,34 @@ parameters:
 			path: app/Http/Controllers/EventController.php
 
 		-
-			message: '#^Method App\\Http\\Controllers\\Exam\\ExamController\:\:store\(\) should return Illuminate\\Http\\JsonResponse but return statement is missing\.$#'
-			identifier: return.missing
+			message: '#^Variable \$endTime might not be defined\.$#'
+			identifier: variable.undefined
+			count: 4
+			path: app/Http/Controllers/EventController.php
+
+		-
+			message: '#^Variable \$startTime might not be defined\.$#'
+			identifier: variable.undefined
+			count: 4
+			path: app/Http/Controllers/EventController.php
+
+		-
+			message: '#^Variable \$exam_classes in empty\(\) always exists and is not falsy\.$#'
+			identifier: empty.variable
 			count: 1
 			path: app/Http/Controllers/Exam/ExamController.php
+
+		-
+			message: '#^Variable \$response might not be defined\.$#'
+			identifier: variable.undefined
+			count: 1
+			path: app/Http/Controllers/Exam/MarksController.php
+
+		-
+			message: '#^Variable \$exam_status might not be defined\.$#'
+			identifier: variable.undefined
+			count: 1
+			path: app/Http/Controllers/Exam/PublishController.php
 
 		-
 			message: '#^Method App\\Http\\Controllers\\ExamTimetableController\:\:create\(\) should return Illuminate\\Http\\Response but return statement is missing\.$#'
@@ -181,6 +565,60 @@ parameters:
 			path: app/Http/Controllers/ExamTimetableController.php
 
 		-
+			message: '#^Variable \$exam_timetable might not be defined\.$#'
+			identifier: variable.undefined
+			count: 1
+			path: app/Http/Controllers/ExamTimetableController.php
+
+		-
+			message: '#^Variable \$response might not be defined\.$#'
+			identifier: variable.undefined
+			count: 1
+			path: app/Http/Controllers/ExamTimetableController.php
+
+		-
+			message: '#^Variable \$fees_type_table in isset\(\) always exists and is not nullable\.$#'
+			identifier: isset.variable
+			count: 1
+			path: app/Http/Controllers/Fees/ClassController.php
+
+		-
+			message: '#^Variable \$charges on left side of \?\? is never defined\.$#'
+			identifier: nullCoalesce.variable
+			count: 1
+			path: app/Http/Controllers/Fees/PaidController.php
+
+		-
+			message: '#^Variable \$choiceable_fees in empty\(\) always exists and is not falsy\.$#'
+			identifier: empty.variable
+			count: 1
+			path: app/Http/Controllers/Fees/PaidController.php
+
+		-
+			message: '#^Variable \$choiceable_fees in isset\(\) always exists and is not nullable\.$#'
+			identifier: isset.variable
+			count: 1
+			path: app/Http/Controllers/Fees/PaidController.php
+
+		-
+			message: '#^Variable \$installment_data in empty\(\) always exists and is not falsy\.$#'
+			identifier: empty.variable
+			count: 1
+			path: app/Http/Controllers/Fees/PaidController.php
+
+		-
+			message: '#^Variable \$installment_data in isset\(\) always exists and is not nullable\.$#'
+			identifier: isset.variable
+			count: 1
+			path: app/Http/Controllers/Fees/PaidController.php
+
+		-
+			message: '#^Variable \$fees_payment_transaction_id in isset\(\) always exists and is not nullable\.$#'
+			identifier: isset.variable
+			count: 1
+			path: app/Http/Controllers/Fees/PaymentController.php
+
+		-
 			message: '#^Method App\\Http\\Controllers\\FormFieldController\:\:create\(\) should return Illuminate\\Http\\Response but return statement is missing\.$#'
 			identifier: return.missing
 			count: 1
@@ -191,6 +629,18 @@ parameters:
 			identifier: return.missing
 			count: 1
 			path: app/Http/Controllers/FormFieldController.php
+
+		-
+			message: '#^Call to an undefined method App\\Http\\Controllers\\HomeController\:\:getSuperAdminData\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: app/Http/Controllers/HomeController.php
+
+		-
+			message: '#^Variable \$leave might not be defined\.$#'
+			identifier: variable.undefined
+			count: 3
+			path: app/Http/Controllers/Leave/RequestController.php
 
 		-
 			message: '#^Method App\\Http\\Controllers\\LeaveMasterController\:\:create\(\) should return Illuminate\\Http\\Response but return statement is missing\.$#'
@@ -205,10 +655,28 @@ parameters:
 			path: app/Http/Controllers/LeaveMasterController.php
 
 		-
+			message: '#^Variable \$data_store in isset\(\) always exists and is not nullable\.$#'
+			identifier: isset.variable
+			count: 1
+			path: app/Http/Controllers/OnlineExamController.php
+
+		-
 			message: '#^Method App\\Http\\Controllers\\OnlineExamQuestionController\:\:edit\(\) should return Illuminate\\Http\\Response but return statement is missing\.$#'
 			identifier: return.missing
 			count: 1
 			path: app/Http/Controllers/OnlineExamQuestionController.php
+
+		-
+			message: '#^Variable \$parent in empty\(\) always exists and is not falsy\.$#'
+			identifier: empty.variable
+			count: 1
+			path: app/Http/Controllers/ParentsController.php
+
+		-
+			message: '#^Variable \$row might not be defined\.$#'
+			identifier: variable.undefined
+			count: 1
+			path: app/Http/Controllers/SettingController.php
 
 		-
 			message: '#^Method App\\Http\\Controllers\\ShiftController\:\:create\(\) should return Illuminate\\Http\\Response but return statement is missing\.$#'
@@ -229,32 +697,8 @@ parameters:
 			path: app/Http/Controllers/StaffController.php
 
 		-
-			message: '#^Method App\\Http\\Controllers\\StaffController\:\:destroy\(\) should return Illuminate\\Http\\Response but return statement is missing\.$#'
-			identifier: return.missing
-			count: 1
-			path: app/Http/Controllers/StaffController.php
-
-		-
 			message: '#^Method App\\Http\\Controllers\\StaffController\:\:edit\(\) should return Illuminate\\Http\\Response but return statement is missing\.$#'
 			identifier: return.missing
-			count: 1
-			path: app/Http/Controllers/StaffController.php
-
-		-
-			message: '#^Method App\\Http\\Controllers\\StaffController\:\:store\(\) should return Illuminate\\Http\\Response but return statement is missing\.$#'
-			identifier: return.missing
-			count: 1
-			path: app/Http/Controllers/StaffController.php
-
-		-
-			message: '#^Method App\\Http\\Controllers\\StaffController\:\:update\(\) should return Illuminate\\Http\\Response but return statement is missing\.$#'
-			identifier: return.missing
-			count: 1
-			path: app/Http/Controllers/StaffController.php
-
-		-
-			message: '#^Result of static method App\\Services\\ResponseService\:\:successResponse\(\) \(void\) is used\.$#'
-			identifier: staticMethod.void
 			count: 1
 			path: app/Http/Controllers/StaffController.php
 
@@ -271,10 +715,148 @@ parameters:
 			path: app/Http/Controllers/StreamController.php
 
 		-
-			message: '#^Result of static method App\\Services\\ResponseService\:\:validationError\(\) \(void\) is used\.$#'
-			identifier: staticMethod.void
+			message: '#^Variable \$class_section_name might not be defined\.$#'
+			identifier: variable.undefined
+			count: 3
+			path: app/Http/Controllers/Student/StudentController.php
+
+		-
+			message: '#^Variable \$father_email might not be defined\.$#'
+			identifier: variable.undefined
+			count: 2
+			path: app/Http/Controllers/Student/StudentController.php
+
+		-
+			message: '#^Variable \$father_name might not be defined\.$#'
+			identifier: variable.undefined
 			count: 1
-			path: app/Http/Controllers/Student/ResultController.php
+			path: app/Http/Controllers/Student/StudentController.php
+
+		-
+			message: '#^Variable \$father_plaintext_password might not be defined\.$#'
+			identifier: variable.undefined
+			count: 1
+			path: app/Http/Controllers/Student/StudentController.php
+
+		-
+			message: '#^Variable \$guardian_email might not be defined\.$#'
+			identifier: variable.undefined
+			count: 2
+			path: app/Http/Controllers/Student/StudentController.php
+
+		-
+			message: '#^Variable \$guardian_name might not be defined\.$#'
+			identifier: variable.undefined
+			count: 1
+			path: app/Http/Controllers/Student/StudentController.php
+
+		-
+			message: '#^Variable \$guardian_plaintext_password might not be defined\.$#'
+			identifier: variable.undefined
+			count: 1
+			path: app/Http/Controllers/Student/StudentController.php
+
+		-
+			message: '#^Variable \$mother_email might not be defined\.$#'
+			identifier: variable.undefined
+			count: 2
+			path: app/Http/Controllers/Student/StudentController.php
+
+		-
+			message: '#^Variable \$mother_name might not be defined\.$#'
+			identifier: variable.undefined
+			count: 1
+			path: app/Http/Controllers/Student/StudentController.php
+
+		-
+			message: '#^Variable \$mother_plaintext_password might not be defined\.$#'
+			identifier: variable.undefined
+			count: 1
+			path: app/Http/Controllers/Student/StudentController.php
+
+		-
+			message: '#^Variable \$applink in isset\(\) always exists and is not nullable\.$#'
+			identifier: isset.variable
+			count: 1
+			path: app/Http/Controllers/TeacherController.php
+
+		-
+			message: '#^Variable \$day might not be defined\.$#'
+			identifier: variable.undefined
+			count: 1
+			path: app/Http/Controllers/TimetableController.php
+
+		-
+			message: '#^Access to an undefined property App\\Http\\Resources\\UserResource\:\:\$coreSubject\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Resources/UserResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Http\\Resources\\UserResource\:\:\$email\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Resources/UserResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Http\\Resources\\UserResource\:\:\$id\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Resources/UserResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Http\\Resources\\UserResource\:\:\$name\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Resources/UserResource.php
+
+		-
+			message: '#^Variable \$class_section_name might not be defined\.$#'
+			identifier: variable.undefined
+			count: 3
+			path: app/Imports/StudentsImport.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\Assignment\:\:\$subject_teachers\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Models/Assignment.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\ChatMessage\:\:\$file\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Models/ChatMessage.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\ClassSchool\:\:\$medium\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Models/ClassSchool.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\ClassSchool\:\:\$sessionConfigs\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Models/ClassSchool.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\ClassSection\:\:\$class\.$#'
+			identifier: property.notFound
+			count: 5
+			path: app/Models/ClassSection.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\ClassSection\:\:\$section\.$#'
+			identifier: property.notFound
+			count: 2
+			path: app/Models/ClassSection.php
+
+		-
+			message: '#^Call to an undefined static method App\\Models\\Settings\:\:restored\(\)\.$#'
+			identifier: staticMethod.notFound
+			count: 1
+			path: app/Models/Settings.php
 
 		-
 			message: '#^Trait Illuminate\\Database\\Eloquent\\SoftDeletes referenced with incorrect case\: Illuminate\\Database\\Eloquent\\softDeletes\.$#'
@@ -319,7 +901,13 @@ parameters:
 			path: app/Rules/uniqueTopicInLesson.php
 
 		-
-			message: '#^Attribute class JetBrains\\PhpStorm\\NoReturn does not exist\.$#'
-			identifier: attribute.notFound
-			count: 4
+			message: '#^Variable \$code on left side of \?\? always exists and is always null\.$#'
+			identifier: nullCoalesce.variable
+			count: 1
+			path: app/Services/ResponseService.php
+
+		-
+			message: '#^Variable \$e in empty\(\) always exists and is always falsy\.$#'
+			identifier: empty.variable
+			count: 1
 			path: app/Services/ResponseService.php

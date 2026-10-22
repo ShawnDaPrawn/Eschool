@@ -1,8 +1,8 @@
-This page shows how the parts of eSchool fit together: what runs where, how requests move through the server, and how the apps, Firebase and the payment gateways connect to it. Each topic has its own detailed page, linked from the sections below.
+This page shows how the parts of eSchool fit together: what runs where, how requests move through the server, and how the apps, Firebase and the payment gateway connect to it. It then outlines how NavigateEd grows the current code (the Build Bible, section 3, has the target). Each topic has its own detailed page, linked from the sections below.
 
 ## Deployment model
 
-Each install serves **one school**. There is no multi-school tenancy: all data belongs to the single school configured in Settings. One Laravel application in `admin-panel/` does three jobs on the same domain and database:
+Each install serves **one school**. There is no multi-school tenancy yet: all data belongs to the single school configured in Settings (Phase 1 adds schools and `school_id`; see [Where it is going](#where-it-is-going)). One Laravel application in `admin-panel/` does three jobs on the same domain and database:
 
 1. **Admin panel.** Server-rendered Blade pages for staff, behind session login at `/login`.
 2. **Public website.** The school's marketing site and online admission form at `/`.
@@ -30,8 +30,8 @@ flowchart TB
     DB[("MySQL / MariaDB")]
     ST[("storage/app/public<br/>served at /storage")]
     FCM["Firebase Cloud Messaging<br/>HTTP v1"]
-    PGW["Stripe / Razorpay /<br/>Paystack / Flutterwave"]
-    SMTP["SMTP server"]
+    PGW["Stripe"]
+    SMTP["Mail server or provider"]
 
     AP --> MW
     PW --> MW
@@ -64,13 +64,14 @@ Routes are registered in [`bootstrap/app.php`](https://github.com/ShawnDaPrawn/E
 | [`routes/api.php`](https://github.com/ShawnDaPrawn/Eschool/blob/main/admin-panel/routes/api.php) | `/api` | `/api/student/*`, `/api/parent/*`, `/api/teacher/*`, plus shared endpoints such as `/api/forgot-password` and `/api/logout` |
 | [`routes/console.php`](https://github.com/ShawnDaPrawn/Eschool/blob/main/admin-panel/routes/console.php) | — | Scheduled tasks (see [Scheduled Tasks and Commands](Scheduled-Tasks-and-Commands)) |
 | `packages/laravel-wizard-installer/routes/routes.php` | `/install` | The web installer (see [Installation Wizard](Installation-Wizard)) |
+| [`routes/health.php`](https://github.com/ShawnDaPrawn/Eschool/blob/main/admin-panel/routes/health.php) | `/up/worker` | Worker health for the uptime checks (loaded by `ObservabilityServiceProvider`, outside the web and api groups) |
 | (framework) | `/up` | Laravel health check |
 
 ### Middleware
 
 `bootstrap/app.php` sets up the middleware:
 
-- **Every response:** `SecurityHeaders`.
+- **Every response:** `AssignRequestId` (outermost: gives the request an id, puts it in the log context, returns `X-Request-Id`) and `SecurityHeaders`.
 - **`web` group:** `LanguageManager` (UI language from the session), cookies and session, `ShareErrorsFromSession`, `SubstituteBindings`, `DemoMiddleware` (blocks writes when `DEMO_MODE=true`) and `RejectDangerousUploads`. The installer service provider prepends `ToInstallMiddleware`, which sends every request to `/install` until `storage/installed` exists. CSRF protection applies to everything except `webhook/*`.
 - **`api` group:** Sanctum's stateful-frontend middleware, `throttle:api` (60 requests a minute per user, or per IP when not signed in), `SubstituteBindings` and `RejectDangerousUploads`.
 - **Route aliases:**
@@ -86,7 +87,7 @@ Routes are registered in [`bootstrap/app.php`](https://github.com/ShawnDaPrawn/E
 | `parent.children.session.active` | `EnsureParentChildrenSessionIsActive` |
 | `throttle:login` | 5 attempts a minute per account and path on login and password reset endpoints |
 
-The full list is on [Admin Panel Overview](Admin-Panel-Overview#middleware). The security reasons behind each layer are on [Security Model](Security-Model).
+The full list is on [Admin Panel Overview](Admin-Panel-Overview#middleware-reference). The security reasons behind each layer are on [Security Model](Security-Model).
 
 ### Code organisation
 
@@ -95,13 +96,27 @@ Controllers stay thin where they can and hand work to `app/Services`: fees colle
 ### Data
 
 - **Relational data:** MySQL/MariaDB, in 91 migrations. Most academic records carry a `session_year_id`, so each school year is its own slice of data. Starting a new session year copies class subjects, teacher assignments, timetables, fee types, exam grades and leave settings forward (`app/Actions/Transfers/*`, called from `SessionYearService`). See [Database Schema](Database-Schema) and [Academic Structure](Academic-Structure).
-- **Settings:** most runtime configuration is rows in the `settings` table, edited in the admin UI. That covers school details and logos, the FCM project, payment keys, chat settings and the app version numbers. The table is the only place these are stored: the admin forms never write to `.env`. On every boot, `SettingsConfigService` (called from `AppServiceProvider::boot()`) copies the school name, time zone, mail server and Paystack keys from the table into Laravel config, falling back to `.env` where a setting is empty. That keeps `php artisan optimize` and `config:cache` safe. `.env` holds the infrastructure settings: database, app URL, debug and demo flags, and default mail. See [Configuration](Configuration).
+- **Settings:** most runtime configuration is rows in the `settings` table, edited in the admin UI. That covers school details and logos, the FCM project, payment keys, chat settings and the app version numbers. The table is the only place these are stored: the admin forms never write to `.env`. On every boot, `SettingsConfigService` (called from `AppServiceProvider::boot()`) copies the school name, time zone and mail server settings from the table into Laravel config, falling back to `.env` where a setting is empty. That keeps `php artisan optimize` and `config:cache` safe. `.env` holds the infrastructure settings: database, app URL, debug and demo flags, and default mail. See [Configuration](Configuration).
 - **Files:** uploads go to the `public` disk (`storage/app/public`). They are served at `/storage/...` through the `public/storage` symlink. The apps build file URLs from `storageUrl = '$baseUrl/storage/'`.
 - **Roles and permissions:** spatie/laravel-permission tables, seeded by `InstallationSeeder`. See [Roles and Permissions](Roles-and-Permissions).
 
 ### Background work
 
-`.env.example` sets `QUEUE_CONNECTION=sync`, so nothing is queued. Emails and push notifications are sent during the request that triggers them. Scheduled cleanups run from `routes/console.php`, and the server needs the usual Laravel cron entry (`php artisan schedule:run` every minute). See [Scheduled Tasks and Commands](Scheduled-Tasks-and-Commands).
+One Docker image runs in three roles, chosen by `CONTAINER_ROLE` ([Deployment](Deployment#container-roles)):
+
+```mermaid
+flowchart LR
+    CS["Cloud Scheduler<br/>every minute"] --> J["navigateed-scheduler<br/>(Cloud Run Job)<br/>schedule:run"]
+    W["navigateed-admin<br/>web role"] -- "queue jobs" --> DB[("Cloud SQL<br/>jobs table")]
+    J -- "queue jobs" --> DB
+    DB --> Q["navigateed-worker<br/>queue:work"]
+    Q --> OUT["Mail, FCM push"]
+    W -. "migrations, seeders<br/>(web role only)" .-> DB
+```
+
+- **Queue.** Production uses the database queue (`QUEUE_CONNECTION=database`), emptied by `navigateed-worker` (`queue:work --tries=3 --timeout=120`). Phase 0 moves mail and pushes onto it; until those jobs land, mail and pushes are still sent during the request. Locally `sync` runs jobs inside the request. A job that fails three times is logged as "Queued job failed", and `GET /up/worker` fails when jobs stop being picked up.
+- **Schedule.** `routes/console.php` holds the whole schedule. On Cloud Run, Cloud Scheduler starts the `navigateed-scheduler` job every minute, which runs one `schedule:run`; on your own server, the usual cron entry. See [Scheduled Tasks and Commands](Scheduled-Tasks-and-Commands).
+- **Deploy-time work** (migrations, the installer seeders) runs only in the web role when a new revision starts.
 
 ## Client side
 
@@ -122,10 +137,10 @@ flowchart LR
     R --> H[("Hive boxes<br/>auth, settings")]
 ```
 
-- The base URL is a compile-time constant in `lib/utils/constants.dart`.
+- The server address, environment and flavour are build settings (`--dart-define` `API_BASE_URL`, `ENV`, `FLAVOR`) read by `AppConfig` in `eschool_core`; the same code builds staging and production.
 - On login the API returns a Sanctum token. The app keeps it in the Hive `authBoxKey` box and sends it as `Authorization: Bearer <token>` on every call. Tokens expire after `SANCTUM_EXPIRATION` minutes, 43200 (30 days) by default.
 - Push notifications come in through `firebase_messaging` and are shown with `awesome_notifications`. Crashes go to Firebase Crashlytics.
-- The student/parent app takes payments through the native SDKs (`flutter_stripe`, `razorpay_flutter`) or webviews (`webview_flutter`). The server never trusts the app's word that a payment succeeded. It confirms through the gateway API or the gateway's signed webhook.
+- The student/parent app takes payments through Stripe (`flutter_stripe`) or a webview (`webview_flutter`). The server never trusts the app's word that a payment succeeded. It confirms through the gateway API or the gateway's signed webhook.
 
 See [Mobile Apps Overview](Mobile-Apps-Overview).
 
@@ -164,8 +179,25 @@ The app asks the API to start a payment. The server works out the amount from th
 | Authorization | spatie permissions on admin routes and controllers, role middleware and per-query scoping in the API. See [Roles and Permissions](Roles-and-Permissions) |
 | Localization | `LanguageManager` and `languages` table on the server, JSON language files in each app. See [Localization](Localization) |
 | Security headers, upload filtering | `SecurityHeaders`, `RejectDangerousUploads`, `UploadService`. See [Security Model](Security-Model) |
-| Updates | In-panel ZIP updater. See [System Update](System-Update) |
-| Observability | Laravel logs in `storage/logs`, Firebase Crashlytics and Analytics in the apps |
+| Releases | Container images deployed by GitHub Actions: staging on every merge to `main`, production from a `v*` tag after approval (the in-panel ZIP updater was removed in Phase 0). See [Deployment](Deployment#deploys) |
+| Observability | JSON logs with a request id, user id, school id and route on every line (`LOG_CHANNEL=json`), Cloud Error Reporting, uptime checks on the panel, API and worker; Firebase Crashlytics and Analytics in the apps. See [Configuration](Configuration#logging) |
+
+## Where it is going
+
+NavigateEd grows this code into a multi-school platform without re-platforming (Build Bible section 3; decision record [ADR 0001](https://github.com/ShawnDaPrawn/Eschool/blob/main/engineering/adr/0001-seed-kernel-and-domains.md)). It stays one Laravel app and one database. Shared services that every feature needs go into a **platform kernel** under `app/Services/Platform/`, and new features are written in **domain** folders beside the existing code (`app/Models/<Domain>/`, `app/Services/<Domain>/`, `app/Policies/<Domain>/`, `app/Http/Requests/<Domain>/`, thin controllers and Resources), so the legacy controllers keep serving while new work follows one pattern.
+
+What exists after Phase 0:
+
+| Part | What is in the code |
+|---|---|
+| Kernel | Queued mail and push (`SendMail`, `SendPush`, `notification_deliveries`), the outbox (`domain_events`, `DispatchOutbox`), the audit log (`Auditable`, `audit_log`), money in integer cents (`Money`, the `*_cents` columns), the password rule, per-app tokens and learner invitations, upload names, `settings.school_id`, and `CurrentSchool`, which answers the single school until Phase 1 |
+| API | v1 exactly as the installed apps use it (fields may be added, never renamed or removed); v2 under `/api/v2` for everything new, with `admin-panel/openapi.yaml` as the contract and `GET /api/v2/me/context` telling an app who the user is |
+| Clients | Two Flutter shells over shared packages (`packages/eschool_core`, `eschool_api`, `eschool_session`, `eschool_notifications`), each also built for the web; the panel with its navigation by job; the public pages |
+| Services | `navigateed-admin` (web), `navigateed-worker` (queue) and `navigateed-scheduler` (every minute), all from one image in `africa-south1`, with Cloud SQL, a bucket per environment and Secret Manager |
+
+Phase 1 adds schools, `school_id` on every school-owned table (back-filled to one school) and Spatie's teams mode. Later phases add their domains beside the existing code, move the rules of any legacy controller they change into a domain service that v1 and v2 share, and replace a screen only with a better one. A v1 endpoint is retired only once the request logs (the `route` field on every JSON log line) show no callers for a full term.
+
+Everything above this section describes the code as it runs today. The phase plans are in [`engineering/phases/`](https://github.com/ShawnDaPrawn/Eschool/tree/main/engineering/phases) and the decisions in [`engineering/adr/`](https://github.com/ShawnDaPrawn/Eschool/tree/main/engineering/adr).
 
 ## See also
 

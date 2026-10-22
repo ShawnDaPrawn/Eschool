@@ -20,9 +20,11 @@ use App\Models\StudentSessions;
 use App\Models\Subject;
 use App\Models\SubjectTeacher;
 use App\Models\Teacher;
+use App\Services\Platform\Files\FileNames;
 use App\Services\ResponseService;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
@@ -218,13 +220,13 @@ class ChatController extends Controller
                 return optional($user['last_message'])->id ?? 0;
             })->values();
 
-            ResponseService::successResponse('Data Fetched Successfully', [
+            return ResponseService::successResponse('Data Fetched Successfully', [
                 'items' => $data,
                 'total_items' => $total_items,
                 'total_unread_users' => $totalunreadusers,
             ], [], 200);
         } catch (Throwable $e) {
-            ResponseService::errorResponse('error_occurred', null, 103, $e);
+            return ResponseService::errorResponse('error_occurred', null, 103, $e);
         }
     }
 
@@ -243,7 +245,7 @@ class ChatController extends Controller
             'file.*' => 'file|max:'.$maxFileKb,
         ]);
         if ($validator->fails()) {
-            ResponseService::validationError($validator->errors()->first());
+            return ResponseService::validationError($validator->errors()->first());
         }
         try {
             $sender_id = $request->user()->id;
@@ -251,7 +253,7 @@ class ChatController extends Controller
 
             // Only the teachers getChatUserList offers this parent.
             if (! in_array($receiver_id, $this->chatAllowedUserIds($request), true)) {
-                ResponseService::errorResponse('You can not send a message to this user', null, 103);
+                return ResponseService::errorResponse('You can not send a message to this user', null, 103);
             }
 
             $message = new ChatMessage;
@@ -267,7 +269,7 @@ class ChatController extends Controller
                     // Each file gets its own generated folder, so a client-chosen name can't
                     // overwrite another file or leave chatfile/. The app shows the last URL
                     // segment, so a cleaned-up original name is kept as the file name.
-                    $originalName = preg_replace('/[^A-Za-z0-9._-]+/', '_', basename(str_replace('\\', '/', $uploadedFile->getClientOriginalName())));
+                    $originalName = preg_replace('/[^A-Za-z0-9._-]+/', '_', FileNames::forUpload($uploadedFile));
                     $originalName = ltrim(mb_substr((string) $originalName, -120), '._');
                     $filePath = $originalName !== ''
                         ? $uploadedFile->storeAs('chatfile/'.Str::random(32), $originalName, 'public')
@@ -385,9 +387,10 @@ class ChatController extends Controller
 
             $userinfo = (object) $userinfo;
             sendSimpleNotification($user, $title, $body, $type, $image, $userinfo);
-            ResponseService::successResponse('Message Sent Successfully', $data, [], 200);
+
+            return ResponseService::successResponse('Message Sent Successfully', $data, [], 200);
         } catch (Throwable $e) {
-            ResponseService::errorResponse('error_occurred', null, 103, $e);
+            return ResponseService::errorResponse('error_occurred', null, 103, $e);
         }
     }
 
@@ -427,12 +430,13 @@ class ChatController extends Controller
                     $message['files'] = []; // or handle the case where 'file' is not set
                 }
             }
-            ResponseService::successResponse('Data Fetched Successfully', [
+
+            return ResponseService::successResponse('Data Fetched Successfully', [
                 'items' => $messages ?? [],
                 'total_items' => $total_items,
             ], [], 200);
         } catch (Throwable $e) {
-            ResponseService::errorResponse('error_occurred', null, 103, $e);
+            return ResponseService::errorResponse('error_occurred', null, 103, $e);
         }
     }
 
@@ -454,9 +458,10 @@ class ChatController extends Controller
                 $readMessage->last_read_message_id = $message_id;
                 $readMessage->save();
             }
-            ResponseService::successResponse('Message Read');
+
+            return ResponseService::successResponse('Message Read');
         } catch (Throwable $e) {
-            ResponseService::errorResponse('error_occurred', null, 103, $e);
+            return ResponseService::errorResponse('error_occurred', null, 103, $e);
         }
     }
 
@@ -465,7 +470,7 @@ class ChatController extends Controller
      * of their children's current class sections (semester aware). Also returns the
      * intermediate data getChatUserList shows alongside each teacher.
      *
-     * @return array{teacher_ids: list<int>, childrens: \Illuminate\Support\Collection, semester_class_section_ids: array<int, int>, non_semester_class_section_ids: list<int>}
+     * @return array{teacher_ids: list<int>, childrens: Collection, semester_class_section_ids: array<int, int>, non_semester_class_section_ids: list<int>}
      */
     private function chatTeacherScope(Parents $parent, $session_year_id, ?Semester $currentSemester): array
     {

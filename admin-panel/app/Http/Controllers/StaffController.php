@@ -4,7 +4,8 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers;
 
-use App\Models\EmailTempalate;
+use App\Mail\Platform\TemplateMail;
+use App\Models\EmailTemplate;
 use App\Models\Leave;
 use App\Models\LeaveDetail;
 use App\Models\LeaveMaster;
@@ -14,17 +15,20 @@ use App\Models\Staff;
 use App\Models\StaffAttendance;
 use App\Models\Teacher;
 use App\Models\User;
-use App\Services\EmailTemplateService;
 use App\Services\IdCardService;
 use App\Services\MailService;
+use App\Services\Platform\Files\FileNames;
 use App\Services\ResponseService;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
+use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\Rules\Exists;
 use RuntimeException;
 use Spatie\Permission\Models\Role;
 
@@ -33,7 +37,7 @@ class StaffController extends Controller
     /**
      * Display a listing of the resource.
      *
-     * @return \Illuminate\Http\Response
+     * @return Response
      */
     public function staffattendanceData(Request $request)
     {
@@ -43,7 +47,7 @@ class StaffController extends Controller
 
         $selectedDate = $request->get('date') ?? $request->get('month') ?? now()->format('Y-m-d');
 
-        $carbonDate = \Carbon\Carbon::parse($selectedDate);
+        $carbonDate = Carbon::parse($selectedDate);
         $sessionYearId = $request->get('session_year_id');
 
         if (empty($sessionYearId)) {
@@ -52,8 +56,8 @@ class StaffController extends Controller
 
         $sessionYear = null;
         if ($sessionYearId) {
-             $sessionYear = SessionYear::find($sessionYearId);
-           
+            $sessionYear = SessionYear::find($sessionYearId);
+
         }
 
         // Clamp the requested date into the session year's range so an
@@ -61,8 +65,8 @@ class StaffController extends Controller
         // selection) can't pull in a month outside it.
         $syStart = $syEnd = null;
         if ($sessionYear) {
-            $syStart = \Carbon\Carbon::parse($sessionYear->start_date)->startOfDay();
-            $syEnd = \Carbon\Carbon::parse($sessionYear->end_date)->endOfDay();
+            $syStart = Carbon::parse($sessionYear->start_date)->startOfDay();
+            $syEnd = Carbon::parse($sessionYear->end_date)->endOfDay();
 
             if ($carbonDate->lt($syStart)) {
                 $carbonDate = $syStart->copy();
@@ -126,7 +130,7 @@ class StaffController extends Controller
             $records = $records->get();
 
             foreach ($records as $record) {
-                $dayNum = \Carbon\Carbon::parse($record->date)->day;
+                $dayNum = Carbon::parse($record->date)->day;
                 $row['day_'.$dayNum] = $record->type;
             }
 
@@ -166,7 +170,7 @@ class StaffController extends Controller
         }
 
         $selectedDate = $request->get('date', now()->format('Y-m-d'));
-        $carbonDate = \Carbon\Carbon::parse($selectedDate);
+        $carbonDate = Carbon::parse($selectedDate);
 
         $sessionYearId = $request->get('session_year_id');
 
@@ -176,15 +180,14 @@ class StaffController extends Controller
 
         $sessionYear = null;
         if ($sessionYearId) {
-             $sessionYear = SessionYear::find($sessionYearId);
-            
+            $sessionYear = SessionYear::find($sessionYearId);
 
         }
 
         // Clamp the requested date into the session year's range.
         if ($sessionYear) {
-            $syStart = \Carbon\Carbon::parse($sessionYear->start_date)->startOfDay();
-            $syEnd = \Carbon\Carbon::parse($sessionYear->end_date)->endOfDay();
+            $syStart = Carbon::parse($sessionYear->start_date)->startOfDay();
+            $syEnd = Carbon::parse($sessionYear->end_date)->endOfDay();
 
             if ($carbonDate->lt($syStart)) {
                 $carbonDate = $syStart->copy();
@@ -228,7 +231,7 @@ class StaffController extends Controller
         foreach ($members as $member) {
 
             $attendanceByDay = $member->attendance->keyBy(function ($attendance) {
-                return \Carbon\Carbon::parse($attendance->date)->day;
+                return Carbon::parse($attendance->date)->day;
             });
 
             $attendanceRecord = $attendanceByDay->get($day);
@@ -473,7 +476,7 @@ class StaffController extends Controller
     /**
      * Show the form for creating a new resource.
      *
-     * @return \Illuminate\Http\Response
+     * @return Response
      */
     public function create()
     {
@@ -483,7 +486,7 @@ class StaffController extends Controller
     /**
      * Store a newly created resource in storage.
      *
-     * @return \Illuminate\Http\Response
+     * @return Response
      */
     public function store(Request $request)
     {
@@ -511,7 +514,7 @@ class StaffController extends Controller
         ]);
 
         if ($validator->fails()) {
-            ResponseService::validationError($validator->errors()->first());
+            return ResponseService::validationError($validator->errors()->first());
         }
         try {
             $role = Role::findOrFail($request->role_id);
@@ -526,7 +529,7 @@ class StaffController extends Controller
                 if ($request->hasFile('image')) {
                     $image = $request->file('image');
                     // made file name with combination of current time
-                    $file_name = time().'-'.$image->getClientOriginalName();
+                    $file_name = time().'-'.FileNames::forUpload($image);
                     // made file path to store in database
                     $file_path = 'staff/'.$file_name;
                     // resized image
@@ -580,7 +583,6 @@ class StaffController extends Controller
                 // MailService::sendWithFallback('staff.email', $data, function ($message) use ($data) {
                 //     $message->to($data['email'])->subject($data['subject']);
                 // });
-                $AcceptTemplate = EmailTempalate::where('type', 'staff_registration')->value('content');
 
                 $applink = Settings::whereIn('type', ['teacher_app_link', 'teacher_ios_app_link'])
                     ->pluck('message', 'type')
@@ -613,22 +615,14 @@ class StaffController extends Controller
                     'url' => (string) $url,
                 ];
 
-                $htmlcontent = EmailTemplateService::render((string) $AcceptTemplate, $data);
-
-                $emailPayload = array_merge($data, [
-                    'body' => $htmlcontent,
-                ]);
-
-                MailService::sendWithFallback('staff.email', $emailPayload, function ($message) use ($emailPayload) {
-                    $message->to($emailPayload['email'])->subject($emailPayload['subject']);
-                });
+                MailService::queue(TemplateMail::staffWelcome($data), (int) $user->id);
             } else {
                 $user = new User;
 
                 if ($request->hasFile('image')) {
                     $image = $request->file('image');
                     // made file name with combination of current time
-                    $file_name = time().'-'.$image->getClientOriginalName();
+                    $file_name = time().'-'.FileNames::forUpload($image);
                     // made file path to store in database
                     $file_path = 'staff/'.$file_name;
                     // resized image
@@ -665,8 +659,8 @@ class StaffController extends Controller
                 $school_email = getSettings('school_email');
                 $school_contact = getSettings('school_contact');
 
-                // $stafftemplate = EmailTempalate::where('type', 'staff_registration')->first();
-                $stafftemplate = EmailTempalate::where('type', 'staff_registration')->value('content');
+                // $stafftemplate = EmailTemplate::where('type', 'staff_registration')->first();
+                $stafftemplate = EmailTemplate::where('type', 'staff_registration')->value('content');
 
                 // $data = [
                 //     'subject' => 'Welcome to ' . $school_name['school_name'],
@@ -682,7 +676,6 @@ class StaffController extends Controller
                 // MailService::sendWithFallback('staff.email', $data, function ($message) use ($data) {
                 //     $message->to($data['email'])->subject($data['subject']);
                 // });
-                $AcceptTemplate = EmailTempalate::where('type', 'staff_registration')->value('content');
 
                 $applink = Settings::whereIn('type', ['teacher_app_link', 'teacher_ios_app_link'])
                     ->pluck('message', 'type')
@@ -715,19 +708,12 @@ class StaffController extends Controller
                     'url' => (string) $url,
                 ];
 
-                $htmlcontent = EmailTemplateService::render((string) $AcceptTemplate, $data);
-
-                $emailPayload = array_merge($data, [
-                    'body' => $htmlcontent,
-                ]);
-
-                MailService::sendWithFallback('staff.email', $emailPayload, function ($message) use ($emailPayload) {
-                    $message->to($emailPayload['email'])->subject($emailPayload['subject']);
-                });
+                MailService::queue(TemplateMail::staffWelcome($data), (int) $user->id);
             }
-            ResponseService::successResponse(trans('data_store_successfully'));
+
+            return ResponseService::successResponse(trans('data_store_successfully'));
         } catch (\Throwable $e) {
-            ResponseService::errorResponse(trans('error_occurred'), null, null, $e);
+            return ResponseService::errorResponse(trans('error_occurred'), null, null, $e);
         }
     }
 
@@ -735,7 +721,7 @@ class StaffController extends Controller
      * Display the specified resource.
      *
      * @param  int  $id
-     * @return \Illuminate\Http\Response
+     * @return Response
      */
     public function show()
     {
@@ -806,7 +792,8 @@ class StaffController extends Controller
             $tempRow['gender'] = $row->user->gender;
             $tempRow['address'] = $row->user->current_address;
             $tempRow['email'] = $row->user->email;
-            $tempRow['dob'] = date($data['date_formate'], strtotime($row->user->dob));
+            // The date of birth is nullable, so a staff member may have none.
+            $tempRow['dob'] = $row->user->dob ? date($data['date_formate'], strtotime($row->user->dob)) : '';
             $tempRow['mobile'] = $row->user->mobile;
             $tempRow['image'] = $row->user->image;
             $tempRow['operate'] = $operate;
@@ -822,7 +809,7 @@ class StaffController extends Controller
      * Show the form for editing the specified resource.
      *
      * @param  int  $id
-     * @return \Illuminate\Http\Response
+     * @return Response
      */
     public function edit($id)
     {
@@ -833,7 +820,7 @@ class StaffController extends Controller
      * Update the specified resource in storage.
      *
      * @param  int  $id
-     * @return \Illuminate\Http\Response
+     * @return Response
      */
     public function update(Request $request)
     {
@@ -888,7 +875,7 @@ class StaffController extends Controller
 
                 $image = $request->file('image');
                 // made file name with combination of current time
-                $file_name = time().'-'.$image->getClientOriginalName();
+                $file_name = time().'-'.FileNames::forUpload($image);
                 // made file path to store in database
                 $file_path = 'staff/'.$file_name;
                 // resized image
@@ -911,9 +898,10 @@ class StaffController extends Controller
             $user->save();
 
             $user->syncRoles($role);
-            ResponseService::successResponse(trans('data_store_successfully'));
+
+            return ResponseService::successResponse(trans('data_store_successfully'));
         } catch (\Throwable $e) {
-            ResponseService::errorResponse(trans('error_occurred'), null, null, $e);
+            return ResponseService::errorResponse(trans('error_occurred'), null, null, $e);
         }
     }
 
@@ -921,7 +909,7 @@ class StaffController extends Controller
      * Remove the specified resource from storage.
      *
      * @param  int  $id
-     * @return \Illuminate\Http\Response
+     * @return Response
      */
     public function destroy($id)
     {
@@ -950,9 +938,10 @@ class StaffController extends Controller
 
             $staff = Staff::where('user_id', $id);
             $staff->delete();
-            -ResponseService::successResponse(trans('data_delete_successfully'));
+
+            return ResponseService::successResponse(trans('data_delete_successfully'));
         } catch (\Throwable $e) {
-            ResponseService::errorResponse(trans('error_occurred'), null, null, $e);
+            return ResponseService::errorResponse(trans('error_occurred'), null, null, $e);
         }
     }
 
@@ -1105,7 +1094,7 @@ class StaffController extends Controller
      * Staff can only be given the custom roles the staff form offers, never
      * Super Admin or a built-in role (Teacher, Parent, Student).
      */
-    private function assignableRoleRule(): \Illuminate\Validation\Rules\Exists
+    private function assignableRoleRule(): Exists
     {
         return Rule::exists('roles', 'id')
             ->where('custom_role', 1)

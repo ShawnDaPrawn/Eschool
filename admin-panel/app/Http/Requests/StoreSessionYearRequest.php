@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests;
 
+use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -18,7 +19,7 @@ class StoreSessionYearRequest extends FormRequest
     /**
      * Get the validation rules that apply to the request.
      *
-     * @return array<string, \Illuminate\Contracts\Validation\ValidationRule|array<mixed>|string>
+     * @return array<string, ValidationRule|array<mixed>|string>
      */
     public function rules(): array
     {
@@ -40,25 +41,25 @@ class StoreSessionYearRequest extends FormRequest
             'set_as_current' => 'nullable|in:0,1',
 
             // Transfer flags
-            'transfer_class_subject'         => 'nullable|in:0,1',
+            'transfer_class_subject' => 'nullable|in:0,1',
             'transfer_class_teacher_subject' => 'nullable|in:0,1',
-            'transfer_class_timetable'       => 'nullable|in:0,1',
-            'transfer_exam_grades'           => 'nullable|in:0,1',
-            'transfer_class_fee_type'        => 'nullable|in:0,1',
-            'transfer_leave_settings'        => 'nullable|in:0,1',
-            'transfer_semester'              => 'nullable|in:0,1',
+            'transfer_class_timetable' => 'nullable|in:0,1',
+            'transfer_exam_grades' => 'nullable|in:0,1',
+            'transfer_class_fee_type' => 'nullable|in:0,1',
+            'transfer_leave_settings' => 'nullable|in:0,1',
+            'transfer_semester' => 'nullable|in:0,1',
 
             // Source session year: required only when any transfer option is checked
             'source_session_year_id' => [
                 function (string $attr, $value, $fail) {
                     $anyTransfer = in_array('1', [
-                        $this->transfer_class_subject         ?? '0',
+                        $this->transfer_class_subject ?? '0',
                         $this->transfer_class_teacher_subject ?? '0',
-                        $this->transfer_class_timetable       ?? '0',
-                        $this->transfer_exam_grades           ?? '0',
-                        $this->transfer_class_fee_type        ?? '0',
-                        $this->transfer_leave_settings        ?? '0',
-                        $this->transfer_semester              ?? '0',
+                        $this->transfer_class_timetable ?? '0',
+                        $this->transfer_exam_grades ?? '0',
+                        $this->transfer_class_fee_type ?? '0',
+                        $this->transfer_leave_settings ?? '0',
+                        $this->transfer_semester ?? '0',
                     ]);
 
                     if ($anyTransfer && empty($value)) {
@@ -70,10 +71,10 @@ class StoreSessionYearRequest extends FormRequest
             ],
 
             // Semester data
-            'semester_data'              => 'nullable|array',
-            'semester_data.*.name'       => 'required_with:semester_data|string|max:255',
+            'semester_data' => 'nullable|array',
+            'semester_data.*.name' => 'required_with:semester_data|string|max:255',
             'semester_data.*.start_date' => 'required_with:semester_data|date_format:d-m-Y',
-            'semester_data.*.end_date'   => 'required_with:semester_data|date_format:d-m-Y',
+            'semester_data.*.end_date' => 'required_with:semester_data|date_format:d-m-Y',
         ];
 
         if ($this->fees_installment == '1') {

@@ -1,3 +1,4 @@
+import 'package:eschool_core/eschool_core.dart';
 import 'package:eschool_teacher/cubits/studentMoreDetailsCubit.dart';
 import 'package:eschool_teacher/data/models/student.dart';
 import 'package:eschool_teacher/data/repositories/studentRepository.dart';
@@ -6,7 +7,6 @@ import 'package:eschool_teacher/ui/screens/studentDetails/widgets/studentDetails
 import 'package:eschool_teacher/ui/widgets/customAppbar.dart';
 import 'package:eschool_teacher/utils/labelKeys.dart';
 import 'package:eschool_teacher/utils/uiUtils.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -18,7 +18,7 @@ class StudentDetailsScreen extends StatefulWidget {
   State<StudentDetailsScreen> createState() => _StudentDetailsScreenState();
 
   static Route<StudentDetailsScreen> route(RouteSettings routeSettings) {
-    return CupertinoPageRoute(
+    return AdaptivePageRoute(
       builder: (_) => BlocProvider(
         create: (context) => StudentMoreDetailsCubit(StudentRepository()),
         child: StudentDetailsScreen(

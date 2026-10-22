@@ -1,3 +1,4 @@
+import 'package:eschool_teacher/app/routeArguments.dart';
 import 'package:eschool_teacher/cubits/dashboardCubit.dart';
 import 'package:eschool_teacher/cubits/submitSubjectMarksByStudentIdCubit.dart';
 import 'package:eschool_teacher/data/models/studentResult.dart';
@@ -7,7 +8,6 @@ import 'package:eschool_teacher/ui/widgets/customAppbar.dart';
 import 'package:eschool_core/eschool_core.dart';
 import 'package:eschool_teacher/utils/labelKeys.dart';
 import 'package:eschool_teacher/utils/uiUtils.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -25,17 +25,17 @@ class AddResultScreen extends StatefulWidget {
   final int classSectionId;
 
   static Route route(RouteSettings routeSettings) {
-    final studentData = routeSettings.arguments! as Map<String, dynamic>;
-    return CupertinoPageRoute(
+    final studentData = routeSettings.arguments! as AddResultArguments;
+    return AdaptivePageRoute(
       builder: (_) => BlocProvider(
         create: (context) => SubjectMarksByStudentIdCubit(
           studentRepository: StudentRepository(),
         ),
         child: AddResultScreen(
-          studentResultData: studentData['studentResultData'],
-          studentName: studentData['studentName'],
-          studentId: studentData['studentId'],
-          classSectionId: studentData['classSectionId'],
+          studentResultData: studentData.studentResultData,
+          studentName: studentData.studentName,
+          studentId: studentData.studentId,
+          classSectionId: studentData.classSectionId,
         ),
       ),
     );

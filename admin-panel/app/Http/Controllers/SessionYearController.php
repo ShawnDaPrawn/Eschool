@@ -4,58 +4,61 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers;
 
-use App\Services\ResponseService;
 use App\Http\Requests\StoreSessionYearRequest;
-use Throwable;
-use App\Models\Exam;
-use App\Models\FeesPaid;
+use App\Models\Announcement;
 use App\Models\Assignment;
 use App\Models\Attendance;
-use App\Models\ExamResult;
-use App\Models\OnlineExam;
-use App\Models\SessionYear;
-use App\Models\Announcement;
-use Illuminate\Http\Request;
-use App\Models\FeesChoiceable;
-use App\Models\StudentSubject;
-use App\Models\StudentSessions;
-use App\Models\PaymentTransaction;
-use App\Models\InstallmentFee;
 use App\Models\ClassTeacher;
-use App\Models\SubjectTeacher;
 use App\Models\ElectiveSubjectGroup;
+use App\Models\Event;
+use App\Models\Exam;
+use App\Models\ExamResult;
+use App\Models\FeesChoiceable;
+use App\Models\FeesPaid;
 use App\Models\Grade;
+use App\Models\Holiday;
+use App\Models\InstallmentFee;
 use App\Models\Leave;
 use App\Models\LeaveMaster;
-use App\Models\OnlineExamQuestion;
-use App\Models\Event;
-use App\Models\Holiday;
 use App\Models\Notification;
+use App\Models\OnlineExam;
+use App\Models\OnlineExamQuestion;
+use App\Models\PaymentTransaction;
 use App\Models\Semester;
+use App\Models\SessionYear;
+use App\Models\StudentSessions;
+use App\Models\StudentSubject;
+use App\Models\SubjectTeacher;
+use App\Services\ResponseService;
 use App\Services\SessionYearService;
-
+use Illuminate\Http\Request;
+use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\ValidationException;
+use Throwable;
 
 class SessionYearController extends Controller
 {
     /**
      * Display a listing of the resource.
      *
-     * @return \Illuminate\Http\Response
+     * @return Response
      */
     public function index()
     {
-        if (!Auth::user()->can('session-year-list')) {
-            $response = array(
-                'message' => trans('no_permission_message')
-            );
+        if (! Auth::user()->can('session-year-list')) {
+            $response = [
+                'message' => trans('no_permission_message'),
+            ];
+
             return redirect(route('home'))->withErrors($response);
         }
         $sessionYears = SessionYear::select('id', 'name')->orderBy('id', 'desc')->get();
         // Offer to make a new year current straight away when the current one is over.
         $current = SessionYear::find(getSettings('session_year')['session_year'] ?? null);
         $currentYearEnded = ! $current || $current->end_date < date('Y-m-d');
+
         return view('session_years.index', compact('sessionYears', 'currentYearEnded'));
     }
 
@@ -64,7 +67,7 @@ class SessionYearController extends Controller
      */
     public function makeCurrent(int $id, SessionYearService $service)
     {
-        if (!Auth::user()->can('session-year-edit')) {
+        if (! Auth::user()->can('session-year-edit')) {
             return response()->json(['error' => true, 'message' => trans('no_permission_message')]);
         }
         $sessionYear = SessionYear::findOrFail($id);
@@ -83,14 +86,13 @@ class SessionYearController extends Controller
     /**
      * Store a newly created resource in storage.
      *
-     * @param \Illuminate\Http\Request $request
-     * @return \Illuminate\Http\Response
+     * @param  Request  $request
+     * @return Response
      */
     public function store(StoreSessionYearRequest $request, SessionYearService $service)
     {
         try {
             $sessionYear = $service->store($request->validated());
-             
 
             return response()->json([
                 'error' => false,
@@ -105,7 +107,7 @@ class SessionYearController extends Controller
                 'error' => true,
                 'message' => $e->getMessage(),
             ], 422);
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             return response()->json([
                 'error' => true,
                 'message' => trans('error_occurred'),
@@ -116,11 +118,12 @@ class SessionYearController extends Controller
 
     public function update(Request $request)
     {
-        if (!Auth::user()->can('session-year-edit')) {
-            $response = array(
+        if (! Auth::user()->can('session-year-edit')) {
+            $response = [
                 'error' => true,
-                'message' => trans('no_permission_message')
-            );
+                'message' => trans('no_permission_message'),
+            ];
+
             return response()->json($response);
         }
         $current = SessionYear::find($request->id);
@@ -138,22 +141,22 @@ class SessionYearController extends Controller
             'fees_due_charges' => 'required|numeric|min:0|max:100',
             'installment_data.*.name' => 'required_if:edit_include_fee_installments,1',
             'installment_data.*.due_date' => 'required_if:edit_include_fee_installments,1|date|after_or_equal:start_date|before_or_equal:end_date',
-            'installment_data.*.due_charges' => 'required_if:edit_include_fee_installments,1|numeric|gt:0'
+            'installment_data.*.due_charges' => 'required_if:edit_include_fee_installments,1|numeric|gt:0',
         ], [
             'name.unique' => trans('session_year_name_already_exists'),
-            'installment_data.*.name.required_if' => trans('name_is_required_at_row') . ' :index',
-            'installment_data.*.due_date.required_if' => trans('name_is_required_at_row') . ' :index',
-            'installment_data.*.due_date.date' => trans('due_date_should_be_date_at_row') . ' :index',
-            'installment_data.*.due_date.after_or_equal' => trans('due_date_should_be_after_or_equal_session_year_start_date_at_row') . ' :index',
-            'installment_data.*.due_date.before_or_equal' => trans('due_date_should_be_before_or_equal_session_year_end_date_at_row') . ' :index',
-            'installment_data.*.due_charges.required_if' => trans('due_charges_required_at_row') . ' :index',
-            'installment_data.*.due_charges.numeric' => trans('due_charges_should_be_number_at_row') . ' :index',
+            'installment_data.*.name.required_if' => trans('name_is_required_at_row').' :index',
+            'installment_data.*.due_date.required_if' => trans('name_is_required_at_row').' :index',
+            'installment_data.*.due_date.date' => trans('due_date_should_be_date_at_row').' :index',
+            'installment_data.*.due_date.after_or_equal' => trans('due_date_should_be_after_or_equal_session_year_start_date_at_row').' :index',
+            'installment_data.*.due_date.before_or_equal' => trans('due_date_should_be_before_or_equal_session_year_end_date_at_row').' :index',
+            'installment_data.*.due_charges.required_if' => trans('due_charges_required_at_row').' :index',
+            'installment_data.*.due_charges.numeric' => trans('due_charges_should_be_number_at_row').' :index',
         ]);
 
         try {
             $session_year = SessionYear::find($request->id);
             $session_year->name = $request->name;
-            $session_year->free_app_use_date = isset($request->free_app_use_date) ?  date('Y-m-d', strtotime($request->free_app_use_date)) : null;
+            $session_year->free_app_use_date = isset($request->free_app_use_date) ? date('Y-m-d', strtotime($request->free_app_use_date)) : null;
             $session_year->start_date = date('Y-m-d', strtotime($request->start_date));
             $session_year->end_date = date('Y-m-d', strtotime($request->end_date));
             $session_year->fee_due_date = date('Y-m-d', strtotime($request->fees_due_date));
@@ -166,7 +169,7 @@ class SessionYearController extends Controller
                 if (strtotime($session_year->end_date) < strtotime($today)) {
                     return response()->json([
                         'error' => true,
-                        'message' => trans('error_occurred')
+                        'message' => trans('error_occurred'),
                     ]);
                 }
                 // Unset previous default and set this one
@@ -175,9 +178,8 @@ class SessionYearController extends Controller
             }
 
             $session_year->save();
-             
 
-            if (isset($request->installment_data) && !empty($request->installment_data)) {
+            if (isset($request->installment_data) && ! empty($request->installment_data)) {
                 foreach ($request->installment_data as $data) {
                     if ($data['id']) {
                         $installment_update = InstallmentFee::findOrFail($data['id']);
@@ -186,7 +188,7 @@ class SessionYearController extends Controller
                         $installment_update->due_charges = $data['due_charges'];
                         $installment_update->save();
                     } else {
-                        $installment_store = new InstallmentFee();
+                        $installment_store = new InstallmentFee;
                         $installment_store->name = $data['name'];
                         $installment_store->due_date = date('Y-m-d', strtotime($data['due_date']));
                         $installment_store->due_charges = $data['due_charges'];
@@ -199,29 +201,32 @@ class SessionYearController extends Controller
             $session_year->save();
             $response = [
                 'error' => false,
-                'message' => trans('data_update_successfully')
+                'message' => trans('data_update_successfully'),
             ];
         } catch (Throwable $e) {
             report($e);
-            $response = array(
+            $response = [
                 'error' => true,
-                'message' => trans('error_occurred')
-            );
+                'message' => trans('error_occurred'),
+            ];
         }
+
         return response()->json($response);
     }
+
     /**
      * Display the specified resource.
      *
-     * @param int $id
-     * @return \Illuminate\Http\Response
+     * @param  int  $id
+     * @return Response
      */
     public function show()
     {
-        if (!Auth::user()->can('session-year-list')) {
-            $response = array(
-                'message' => trans('no_permission_message')
-            );
+        if (! Auth::user()->can('session-year-list')) {
+            $response = [
+                'message' => trans('no_permission_message'),
+            ];
+
             return response()->json($response);
         }
         $offset = 0;
@@ -229,20 +234,24 @@ class SessionYearController extends Controller
         $sort = 'id';
         $order = 'DESC';
 
-        if (isset($_GET['offset']))
+        if (isset($_GET['offset'])) {
             $offset = $_GET['offset'];
-        if (isset($_GET['limit']))
+        }
+        if (isset($_GET['limit'])) {
             $limit = $_GET['limit'];
+        }
 
-        if (isset($_GET['sort']))
+        if (isset($_GET['sort'])) {
             $sort = $_GET['sort'];
-        if (isset($_GET['order']))
+        }
+        if (isset($_GET['order'])) {
             $order = $_GET['order'];
+        }
 
         $default_session_year = getSettings('session_year')['session_year'];
 
         $sql = SessionYear::with('fee_installments')->where('id', '!=', 0);
-        if (isset($_GET['search']) && !empty($_GET['search'])) {
+        if (isset($_GET['search']) && ! empty($_GET['search'])) {
             $search = $_GET['search'];
             $sql->where(fn ($query) => $query->where('id', 'LIKE', "%$search%")
                 ->orwhere('name', 'LIKE', "%$search%")
@@ -255,10 +264,10 @@ class SessionYearController extends Controller
         $sql->orderBy($sort, $order)->skip($offset)->take($limit);
         $res = $sql->get();
 
-        $bulkData = array();
+        $bulkData = [];
         $bulkData['total'] = $total;
-        $rows = array();
-        $tempRow = array();
+        $rows = [];
+        $tempRow = [];
         $no = 1;
 
         // Batch load related data existence to avoid N+1 queries
@@ -292,9 +301,9 @@ class SessionYearController extends Controller
         foreach ($res as $row) {
             $operate = '';
             if ($canEdit) {
-                $operate .= '<a class="btn btn-xs btn-gradient-primary btn-rounded btn-icon editdata" data-id=' . $row->id . ' data-url=' . url('session-years') . ' title="Edit" data-toggle="modal" data-target="#editModal"><i class="fa fa-edit"></i></a>&nbsp;&nbsp;';
+                $operate .= '<a class="btn btn-xs btn-gradient-primary btn-rounded btn-icon editdata" data-id='.$row->id.' data-url='.url('session-years').' title="Edit" data-toggle="modal" data-target="#editModal"><i class="fa fa-edit"></i></a>&nbsp;&nbsp;';
                 if ($row->id != $default_session_year && $row->end_date >= date('Y-m-d')) {
-                    $operate .= '<a class="btn btn-xs btn-gradient-success btn-rounded btn-icon make-current-session-year" data-url="' . url('session-years/' . $row->id . '/make-current') . '" data-name="' . e($row->name) . '" title="' . e(trans('make_current_session_year')) . '"><i class="fa fa-check"></i></a>&nbsp;&nbsp;';
+                    $operate .= '<a class="btn btn-xs btn-gradient-success btn-rounded btn-icon make-current-session-year" data-url="'.url('session-years/'.$row->id.'/make-current').'" data-name="'.e($row->name).'" title="'.e(trans('make_current_session_year')).'"><i class="fa fa-check"></i></a>&nbsp;&nbsp;';
                 }
             }
             if ($canDelete && $row->id != $default_session_year) {
@@ -345,10 +354,10 @@ class SessionYearController extends Controller
                 $operate .= '
                     <a
                         class="btn btn-xs btn-gradient-danger btn-rounded btn-icon delete-clear-btn Mdeletedata"
-                        data-id="' . $row->id . '"
-                        data-url="' . url('session-years', $row->id) . '"
+                        data-id="'.$row->id.'"
+                        data-url="'.url('session-years', $row->id).'"
                         title="Delete"'
-                    . (!empty($relatedData) ? " data-related-old='" . json_encode($relatedData) . "'" : '') .
+                    .(! empty($relatedData) ? " data-related-old='".json_encode($relatedData)."'" : '').
                     '>
                         <i class="fa fa-trash"></i>
                     </a>';
@@ -375,34 +384,35 @@ class SessionYearController extends Controller
         }
 
         $bulkData['rows'] = $rows;
+
         return response()->json($bulkData);
     }
 
     /**
      * Show the form for editing the specified resource.
      *
-     * @param int $id
-     * @return \Illuminate\Http\Response
+     * @param  int  $id
+     * @return Response
      */
     public function edit($id)
     {
         ResponseService::noPermissionThenSendJson('session-year-edit');
         $session_year = SessionYear::find($id);
+
         return response($session_year);
     }
-
 
     /**
      * Remove the specified resource from storage.
      *
-     * @param int $id
-     * @return \Illuminate\Http\Response
+     * @param  int  $id
+     * @return Response
      */
     public function destroy($id)
     {
-        if (!Auth::user()->can('session-year-delete')) {
+        if (! Auth::user()->can('session-year-delete')) {
             return response()->json([
-                'message' => trans('no_permission_message')
+                'message' => trans('no_permission_message'),
             ]);
         }
 
@@ -411,24 +421,22 @@ class SessionYearController extends Controller
             // The model refuses this too; answer with the readable message instead of the exception's.
             if ((int) $year->default === 1) {
                 return response()->json([
-                    'error'   => true,
-                    'message' => trans('default_session_year_cannot_delete')
+                    'error' => true,
+                    'message' => trans('default_session_year_cannot_delete'),
                 ]);
             }
             $year->delete();
 
-
-
             return response()->json([
-                'error'   => false,
-                'message' => trans('data_delete_successfully')
+                'error' => false,
+                'message' => trans('data_delete_successfully'),
             ]);
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             report($e);
 
             return response()->json([
-                'error'   => true,
-                'message' => trans('error_occurred')
+                'error' => true,
+                'message' => trans('error_occurred'),
             ]);
         }
     }
@@ -440,18 +448,18 @@ class SessionYearController extends Controller
     ) {
         try {
 
-            if (!Auth::user()->can('session-year-delete')) {
+            if (! Auth::user()->can('session-year-delete')) {
                 return response()->json([
-                    'message' => trans('no_permission_message')
+                    'message' => trans('no_permission_message'),
                 ], 403);
             }
 
             $validated = $request->validate([
-                'clear_data'   => ['required', 'array'],
+                'clear_data' => ['required', 'array'],
                 'clear_data.*' => [
                     'required',
                     'string',
-                    'in:class_subject,class_teachers,fees_transactions,notifications,timetable,attendance,assignments,exams,grades,announcements,holidays,events,leaves,allowed_leave_days'
+                    'in:class_subject,class_teachers,fees_transactions,notifications,timetable,attendance,assignments,exams,grades,announcements,holidays,events,leaves,allowed_leave_days',
                 ],
             ]);
 
@@ -462,28 +470,28 @@ class SessionYearController extends Controller
 
             return response()->json([
                 'success' => true,
-                'message' => trans('data_delete_successfully')
+                'message' => trans('data_delete_successfully'),
             ]);
-        } catch (\Illuminate\Validation\ValidationException $e) {
+        } catch (ValidationException $e) {
             return response()->json([
-                'error'   => true,
-                'message' => $e->validator->errors()->first()
+                'error' => true,
+                'message' => $e->validator->errors()->first(),
             ], 422);
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             report($e);
 
             return response()->json([
-                'error'   => true,
-                'message' => trans('error_occurred')
+                'error' => true,
+                'message' => trans('error_occurred'),
             ], 500);
         }
     }
 
     public function deleteInstallmentData($id)
     {
-        if (!Auth::user()->can('session-year-delete')) {
+        if (! Auth::user()->can('session-year-delete')) {
             return response()->json([
-                'message' => trans('no_permission_message')
+                'message' => trans('no_permission_message'),
             ]);
         }
 
@@ -499,13 +507,13 @@ class SessionYearController extends Controller
             }
 
             return response()->json([
-                'error'   => false,
-                'message' => trans('data_delete_successfully')
+                'error' => false,
+                'message' => trans('data_delete_successfully'),
             ]);
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             return response()->json([
-                'error'   => true,
-                'message' => trans('error_occurred')
+                'error' => true,
+                'message' => trans('error_occurred'),
             ]);
         }
     }
@@ -528,16 +536,16 @@ class SessionYearController extends Controller
         $session = SessionYear::select('id', 'name', 'start_date')
             ->find($id);
 
-        if (!$session) {
+        if (! $session) {
             return response()->json([
                 'status' => false,
-                'message' => 'Session not found.'
+                'message' => 'Session not found.',
             ], 404);
         }
 
         return response()->json([
             'status' => true,
-            'data' => $session
+            'data' => $session,
         ]);
     }
 
@@ -548,6 +556,11 @@ class SessionYearController extends Controller
         ]);
 
         session(['session_year' => $request->session_year_id]);
+
+        // The read-only banner's "back to the current year" button is a plain form.
+        if (! $request->expectsJson() && ! $request->ajax()) {
+            return redirect()->back();
+        }
 
         return response()->json(['success' => true]);
     }

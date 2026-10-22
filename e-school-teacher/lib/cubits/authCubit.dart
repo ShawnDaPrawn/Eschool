@@ -1,6 +1,6 @@
 import 'package:eschool_teacher/data/models/teacher.dart';
 import 'package:eschool_teacher/data/repositories/authRepository.dart';
-import 'package:eschool_teacher/utils/notificationUtils/generalNotificationUtility.dart';
+import 'package:eschool_notifications/eschool_notifications.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 abstract class AuthState {}
@@ -10,14 +10,12 @@ class AuthInitial extends AuthState {}
 class Unauthenticated extends AuthState {}
 
 class Authenticated extends AuthState {
-
   Authenticated({required this.jwtToken, required this.teacher});
   final String jwtToken;
   final Teacher teacher;
 }
 
 class AuthCubit extends Cubit<AuthState> {
-
   AuthCubit(this.authRepository) : super(AuthInitial()) {
     _checkIsAuthenticated();
   }
@@ -43,12 +41,7 @@ class AuthCubit extends Cubit<AuthState> {
     authRepository.setTeacherDetails(teacher);
 
     //emit new state
-    emit(
-      Authenticated(
-        teacher: teacher,
-        jwtToken: jwtToken,
-      ),
-    );
+    emit(Authenticated(teacher: teacher, jwtToken: jwtToken));
   }
 
   Teacher getTeacherDetails() {
@@ -60,6 +53,7 @@ class AuthCubit extends Cubit<AuthState> {
 
   void signOut() {
     NotificationUtility.subscribeOrUnsubscribeToNotificationTopics(
+      audience: NotificationAudience.teachers,
       isUnsubscribe: true,
     );
     authRepository.signOutUser();

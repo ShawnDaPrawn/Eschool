@@ -18,8 +18,10 @@ use App\Models\Students;
 use App\Models\StudentSubject;
 use App\Models\Subject;
 use App\Models\UserNotification;
+use App\Services\Platform\Files\FileNames;
 use App\Services\ResponseService;
 use Carbon\Carbon;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use Throwable;
@@ -31,7 +33,7 @@ class AssignmentController extends Controller
 {
     use TeacherAccess;
 
-    public function getAssignment(Request $request): void
+    public function getAssignment(Request $request): JsonResponse
     {
         ResponseService::noPermissionThenSendJson('assignment-list');
 
@@ -42,7 +44,7 @@ class AssignmentController extends Controller
         ]);
 
         if ($validator->fails()) {
-            ResponseService::validationError($validator->errors()->first());
+            return ResponseService::validationError($validator->errors()->first());
         }
 
         try {
@@ -72,9 +74,9 @@ class AssignmentController extends Controller
                 return $item;
             });
 
-            ResponseService::successResponse('Assignment Fetched Successfully.', $data);
+            return ResponseService::successResponse('Assignment Fetched Successfully.', $data);
         } catch (\Exception $e) {
-            ResponseService::errorResponse('error_occurred', null, 103, $e);
+            return ResponseService::errorResponse('error_occurred', null, 103, $e);
         }
     }
 
@@ -99,7 +101,7 @@ class AssignmentController extends Controller
         ]);
 
         if ($validator->fails()) {
-            ResponseService::validationError($validator->errors()->first());
+            return ResponseService::validationError($validator->errors()->first());
         }
 
         try {
@@ -111,11 +113,11 @@ class AssignmentController extends Controller
             $semesterId = $isClassHaveSemester ? $request->semester_id : null;
 
             if ($isClassHaveSemester && ! $semesterId) {
-                ResponseService::errorResponse('Semester id required.', null, 400);
+                return ResponseService::errorResponse('Semester id required.', null, 400);
             }
 
             if (! $this->teachesSubject($request->class_section_id, $request->subject_id, $semesterId)) {
-                ResponseService::errorResponse('You are not assigned to this class section and subject combination.', null, 403);
+                return ResponseService::errorResponse('You are not assigned to this class section and subject combination.', null, 403);
             }
 
             $due_date = Carbon::createFromFormat('d-m-Y H:i', $request->due_date);
@@ -139,7 +141,7 @@ class AssignmentController extends Controller
                 ->first();
 
             if (! $class_subject) {
-                ResponseService::errorResponse('Subject is not assigned to any class.', null, 400);
+                return ResponseService::errorResponse('Subject is not assigned to any class.', null, 400);
             }
 
             // Get students based on subject type
@@ -204,7 +206,7 @@ class AssignmentController extends Controller
             if ($request->hasFile('file')) {
                 foreach ($request->file as $file_upload) {
                     $file = new File;
-                    $file->file_name = $file_upload->getClientOriginalName();
+                    $file->file_name = FileNames::forUpload($file_upload);
                     $file->type = 1;
                     $file->file_url = $file_upload->store('assignment', 'public');
                     $file->modal()->associate($assignment);
@@ -212,9 +214,9 @@ class AssignmentController extends Controller
                 }
             }
 
-            ResponseService::successResponse('Assignment Created Successfully.');
+            return ResponseService::successResponse('Assignment Created Successfully.');
         } catch (Throwable $e) {
-            ResponseService::errorResponse('error_occurred', null, 103, $e);
+            return ResponseService::errorResponse('error_occurred', null, 103, $e);
         }
     }
 
@@ -235,7 +237,7 @@ class AssignmentController extends Controller
         ]);
 
         if ($validator->fails()) {
-            ResponseService::validationError($validator->errors()->first());
+            return ResponseService::validationError($validator->errors()->first());
         }
         try {
             $session_year = getSettings('session_year');
@@ -244,7 +246,7 @@ class AssignmentController extends Controller
             $assignment = Assignment::assignmentTeachers()->findOrFail($request->assignment_id);
 
             if (! $this->teachesSubject($request->class_section_id, $request->subject_id)) {
-                ResponseService::errorResponse('You are not assigned to this class section and subject combination.', null, 403);
+                return ResponseService::errorResponse('You are not assigned to this class section and subject combination.', null, 403);
             }
 
             $assignment->class_section_id = $request->class_section_id;
@@ -294,16 +296,17 @@ class AssignmentController extends Controller
             if ($request->hasFile('file')) {
                 foreach ($request->file as $file_upload) {
                     $file = new File;
-                    $file->file_name = $file_upload->getClientOriginalName();
+                    $file->file_name = FileNames::forUpload($file_upload);
                     $file->type = 1;
                     $file->file_url = $file_upload->store('assignment', 'public');
                     $file->modal()->associate($assignment);
                     $file->save();
                 }
             }
-            ResponseService::successResponse('data_store_successfully');
+
+            return ResponseService::successResponse('data_store_successfully');
         } catch (Throwable $e) {
-            ResponseService::errorResponse('error_occurred', null, 103, $e);
+            return ResponseService::errorResponse('error_occurred', null, 103, $e);
         }
     }
 
@@ -314,9 +317,10 @@ class AssignmentController extends Controller
         try {
             $assignment = Assignment::assignmentTeachers()->findOrFail($request->assignment_id);
             $assignment->delete();
-            ResponseService::successResponse('data_delete_successfully');
-        } catch (\Throwable $e) {
-            ResponseService::errorResponse('error_occurred', null, 103, $e);
+
+            return ResponseService::successResponse('data_delete_successfully');
+        } catch (Throwable $e) {
+            return ResponseService::errorResponse('error_occurred', null, 103, $e);
         }
     }
 
@@ -328,7 +332,7 @@ class AssignmentController extends Controller
         ]);
 
         if ($validator->fails()) {
-            ResponseService::validationError($validator->errors()->first());
+            return ResponseService::validationError($validator->errors()->first());
         }
         try {
             $sql = AssignmentSubmission::assignmentsubmissionteachers()->with(
@@ -338,9 +342,10 @@ class AssignmentController extends Controller
                 'file'
             );
             $data = $sql->where('assignment_id', $request->assignment_id)->get();
-            ResponseService::successResponse('Assignment Fetched Successfully.', $data);
+
+            return ResponseService::successResponse('Assignment Fetched Successfully.', $data);
         } catch (Throwable $e) {
-            ResponseService::errorResponse('error_occurred', null, 103, $e);
+            return ResponseService::errorResponse('error_occurred', null, 103, $e);
         }
     }
 
@@ -356,7 +361,7 @@ class AssignmentController extends Controller
         ]);
 
         if ($validator->fails()) {
-            ResponseService::validationError($validator->errors()->first());
+            return ResponseService::validationError($validator->errors()->first());
         }
 
         try {
@@ -365,7 +370,7 @@ class AssignmentController extends Controller
             // The submission scope matches class sections and subjects separately; also
             // require the assignment itself to be one of this teacher's.
             if (! Assignment::assignmentTeachers()->whereKey($assignment_submission->assignment_id)->exists()) {
-                ResponseService::errorResponse('no_permission_message', null, 403);
+                return ResponseService::errorResponse('no_permission_message', null, 403);
             }
 
             $assignment_submission->feedback = $request->feedback;
@@ -415,9 +420,10 @@ class AssignmentController extends Controller
             }
 
             sendSimpleNotification($user, $title, $body, $type, $image, $userinfo);
-            ResponseService::successResponse('data_update_successfully');
-        } catch (\Throwable $e) {
-            ResponseService::errorResponse('error_occurred', null, 103, $e);
+
+            return ResponseService::successResponse('data_update_successfully');
+        } catch (Throwable $e) {
+            return ResponseService::errorResponse('error_occurred', null, 103, $e);
         }
     }
 }

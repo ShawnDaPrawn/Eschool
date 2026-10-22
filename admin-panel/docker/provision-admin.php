@@ -15,7 +15,7 @@ if (! Role::query()->where('name', 'Super Admin')->exists()) {
     foreach ([
         'Database\\Seeders\\InstallationSeeder',
         'Database\\Seeders\\AddSuperAdminSeeder',
-        'Database\\Seeders\\emailseeder',
+        'Database\\Seeders\\EmailSeeder',
     ] as $seeder) {
         $exit = Artisan::call('db:seed', ['--class' => $seeder, '--force' => true]);
         echo Artisan::output();

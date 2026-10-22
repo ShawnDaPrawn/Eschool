@@ -14,8 +14,8 @@ return new class extends Migration
     public function up()
     {
         Schema::table('timetables', function (Blueprint $table) {
-           $table->string('live_class_url')->nullable()->after('end_time');
-           $table->string('link_name')->nullable()->after('end_time');
+            $table->string('live_class_url')->nullable()->after('end_time');
+            $table->string('link_name')->nullable()->after('end_time');
         });
     }
 

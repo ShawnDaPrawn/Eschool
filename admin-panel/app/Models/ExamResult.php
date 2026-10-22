@@ -11,12 +11,14 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 class ExamResult extends Model
 {
     use HasFactory, SoftDeletes;
-    protected $hidden = ["deleted_at", "created_at", "updated_at"];
+
+    protected $hidden = ['deleted_at', 'created_at', 'updated_at'];
 
     public function student()
     {
         return $this->belongsTo(Students::class, 'student_id')->with('user')->withTrashed();
     }
+
     public function session_year()
     {
         return $this->belongsTo(SessionYear::class, 'session_year_id');

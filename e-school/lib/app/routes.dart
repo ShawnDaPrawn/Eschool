@@ -1,3 +1,5 @@
+import 'package:eschool_core/eschool_core.dart';
+import 'package:eschool/app/deepLinks.dart';
 import 'package:eschool/ui/screens/aboutUsScreen.dart';
 import 'package:eschool/ui/screens/academicCalendar/academicCalendarScreen.dart';
 import 'package:eschool/ui/screens/assignment/assignmentScreen.dart';
@@ -49,7 +51,6 @@ import 'package:eschool/ui/screens/studentProfileScreen.dart';
 import 'package:eschool/ui/screens/subjectDetails/subjectDetailsScreen.dart';
 import 'package:eschool/ui/screens/termsAndConditionScreen.dart';
 import 'package:eschool/ui/screens/topicDetailsScreen.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
 // ignore: avoid_classes_with_only_static_members
@@ -138,13 +139,18 @@ class Routes {
   static const String manageLeaves = '/manageLeaves';
   static const String addLeave = '/addLeave';
 
-  static const String gallery = '/gallery';
-  static const String galleryAlbumPhotos = '/galleryAlbumPhotos';
+  static const String gallery = SharedRoutes.gallery;
+  static const String galleryAlbumPhotos = SharedRoutes.galleryAlbumPhotos;
 
   static String currentRoute = splash;
 
   static Route<dynamic> onGenerateRouted(RouteSettings routeSettings) {
     currentRoute = routeSettings.name ?? '';
+
+    //a link that opened the app, or came before sign-in, opens over home
+    if (currentRoute == home || currentRoute == parentHome) {
+      openPendingDeepLink();
+    }
 
     debugPrint('Route: $currentRoute');
 
@@ -153,7 +159,7 @@ class Routes {
         return SplashScreen.route(routeSettings);
 
       case auth:
-        return CupertinoPageRoute(builder: (_) => const AuthScreen());
+        return AdaptivePageRoute(builder: (_) => const AuthScreen());
 
       case studentLogin:
         return StudentLoginScreen.route(routeSettings);
@@ -225,10 +231,10 @@ class Routes {
         return ChildTeachersScreen.route(routeSettings);
 
       case settings:
-        return CupertinoPageRoute(builder: (_) => const SettingsScreen());
+        return AdaptivePageRoute(builder: (_) => const SettingsScreen());
 
       case parentProfile:
-        return CupertinoPageRoute(builder: (_) => const ParentProfileScreen());
+        return AdaptivePageRoute(builder: (_) => const ParentProfileScreen());
 
       case noticeBoard:
         return NoticeBoardScreen.route(routeSettings);
@@ -299,7 +305,7 @@ class Routes {
         return GalleryAlbumPhotosScreen.route(routeSettings);
 
       default:
-        return CupertinoPageRoute(builder: (context) => const Scaffold());
+        return AdaptivePageRoute(builder: (context) => const Scaffold());
     }
   }
 }

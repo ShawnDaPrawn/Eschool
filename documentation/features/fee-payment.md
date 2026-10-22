@@ -10,15 +10,14 @@ sidebar_position: 13
   </iframe>
 </div>
 
-## Supported Payment Gateways for Online Fee Payment:
-- Razorpay
+## Supported Payment Gateway for Online Fee Payment
 - Stripe
-- PayStack
-- FlutterWave
+
+Razorpay, Paystack and Flutterwave are no longer supported. Payments made through them earlier still show in the fees transaction logs.
 
 ## Fees Configuration
 
-To utilize the fees feature with online payment, administrators must complete this form by providing their payment gateway details such as Razorpay or Stripe. Additionally, they need to specify the currency code and symbol for the payments.
+To utilize the fees feature with online payment, administrators must complete this form by providing their Stripe details. Additionally, they need to specify the currency code and symbol for the payments.
 
 ## Session Year
 

@@ -2,8 +2,8 @@
 
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
-use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
@@ -37,7 +37,7 @@ return new class extends Migration
         foreach ($this->tables as $tableName) {
             if (
                 Schema::hasTable($tableName) &&
-                !Schema::hasColumn($tableName, 'session_year_id')
+                ! Schema::hasColumn($tableName, 'session_year_id')
             ) {
                 Schema::table($tableName, function (Blueprint $table) {
                     $table->unsignedBigInteger('session_year_id')
@@ -55,7 +55,7 @@ return new class extends Migration
 
         /**
          * Backfill existing data ONLY if current session year exists
-         *    Fresh install → no data touched   
+         *    Fresh install → no data touched
          */
         // get the settings helper
         $settings = getSettings('session_year');

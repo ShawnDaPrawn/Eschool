@@ -116,7 +116,7 @@ USE_SSH=true npm run deploy
 
 ## Deployment to Firebase Hosting
 
-[firebase.json](https://github.com/ShawnDaPrawn/Eschool/blob/main/firebase.json) publishes the same site to Firebase Hosting on project `navigateed-d8c06` (see [.firebaserc](https://github.com/ShawnDaPrawn/Eschool/blob/main/.firebaserc)). The `predeploy` hook installs `documentation/` and runs `npm run build:firebase`, which sets `DOCS_BASE_URL=/` and `DOCS_URL=https://$GCLOUD_PROJECT.web.app`. The Firebase copy is served from `/` while GitHub Pages stays at `/Eschool/`. The public URL is https://navigateed-d8c06.web.app/. Hosting is the free Spark tier; this does not put the admin panel on Cloud Run. The env assignment lives in the npm script because the Firebase CLI drops a `predeploy` command that contains `=`.
+[firebase.json](https://github.com/ShawnDaPrawn/Eschool/blob/main/firebase.json) publishes the same site to Firebase Hosting on project `navigateed-d8c06` (see [.firebaserc](https://github.com/ShawnDaPrawn/Eschool/blob/main/.firebaserc)). The `predeploy` hook installs `documentation/` and runs `npm run build:firebase`, which sets `DOCS_BASE_URL=/` and `DOCS_URL=https://$GCLOUD_PROJECT.web.app`. The Firebase copy is served from `/` while GitHub Pages stays at `/Eschool/`. The public URL is https://navigateed-d8c06.web.app/. Hosting is the free Spark tier; this does not put the admin panel on Cloud Run. The env assignment lives in the npm script because the Firebase CLI drops a `predeploy` command that contains `=`. The site is the `docs` Hosting target, beside the `app` and `teach` targets of the web apps ([Building-and-Releasing-Apps](Building-and-Releasing-Apps#hosting)); `firebase deploy --only hosting:docs` deploys it alone.
 
 ## Adding or changing a page
 

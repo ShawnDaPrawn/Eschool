@@ -14,7 +14,9 @@ use App\Models\Students;
 use App\Models\Subject;
 use App\Models\SubjectTeacher;
 use App\Models\Teacher;
+use App\Services\Platform\Files\FileNames;
 use App\Services\ResponseService;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Auth;
@@ -28,7 +30,7 @@ class AnnouncementController extends Controller
 {
     use TeacherAccess;
 
-    public function getAnnouncement(Request $request): void
+    public function getAnnouncement(Request $request): JsonResponse
     {
         ResponseService::noPermissionThenSendJson('announcement-list');
 
@@ -39,7 +41,7 @@ class AnnouncementController extends Controller
         ]);
 
         if ($validator->fails()) {
-            ResponseService::validationError($validator->errors()->first());
+            return ResponseService::validationError($validator->errors()->first());
         }
 
         try {
@@ -65,9 +67,9 @@ class AnnouncementController extends Controller
                 ->orderByDesc('id')
                 ->paginate();
 
-            ResponseService::successResponse('Announcement Fetched Successfully.', $data);
+            return ResponseService::successResponse('Announcement Fetched Successfully.', $data);
         } catch (\Exception $e) {
-            ResponseService::errorResponse('error_occurred', null, 103, $e);
+            return ResponseService::errorResponse('error_occurred', null, 103, $e);
         }
     }
 
@@ -89,7 +91,7 @@ class AnnouncementController extends Controller
         ]);
 
         if ($validator->fails()) {
-            ResponseService::validationError($validator->errors()->first());
+            return ResponseService::validationError($validator->errors()->first());
         }
 
         try {
@@ -112,7 +114,7 @@ class AnnouncementController extends Controller
                 ->first();
 
             if (! $subject_teacher) {
-                ResponseService::errorResponse('You are not assigned to this class section and subject combination.', null, 403);
+                return ResponseService::errorResponse('You are not assigned to this class section and subject combination.', null, 403);
             }
 
             $announcement = new Announcement;
@@ -141,7 +143,7 @@ class AnnouncementController extends Controller
             if ($request->hasFile('file')) {
                 foreach (Arr::wrap($request->file('file')) as $file_upload) {
                     $file = new File;
-                    $file->file_name = $file_upload->getClientOriginalName();
+                    $file->file_name = FileNames::forUpload($file_upload);
                     $file->type = 1;
                     $file->file_url = $file_upload->store('announcement', 'public');
                     $file->modal()->associate($announcement);
@@ -149,9 +151,9 @@ class AnnouncementController extends Controller
                 }
             }
 
-            ResponseService::successResponse('data_store_successfully');
-        } catch (\Throwable $e) {
-            ResponseService::errorResponse('error_occurred', null, 103, $e);
+            return ResponseService::successResponse('data_store_successfully');
+        } catch (Throwable $e) {
+            return ResponseService::errorResponse('error_occurred', null, 103, $e);
         }
     }
 
@@ -168,13 +170,13 @@ class AnnouncementController extends Controller
             'file.*' => 'nullable|mimes:pdf,doc,docx,xls,xlsx,ppt,pptx,jpg,jpeg,png,gif',
         ]);
         if ($validator->fails()) {
-            ResponseService::validationError($validator->errors()->first());
+            return ResponseService::validationError($validator->errors()->first());
         }
         try {
             $teacher_id = $this->currentTeacher()->id;
             $announcement = Announcement::findOrFail($request->announcement_id);
             if (! $this->ownsAnnouncement($announcement)) {
-                ResponseService::errorResponse('no_permission_message', null, 403);
+                return ResponseService::errorResponse('no_permission_message', null, 403);
             }
             $announcement->title = $request->title;
             $announcement->description = $request->description;
@@ -193,16 +195,17 @@ class AnnouncementController extends Controller
             if ($request->hasFile('file')) {
                 foreach (Arr::wrap($request->file('file')) as $file_upload) {
                     $file = new File;
-                    $file->file_name = $file_upload->getClientOriginalName();
+                    $file->file_name = FileNames::forUpload($file_upload);
                     $file->type = 1;
                     $file->file_url = $file_upload->store('announcement', 'public');
                     $file->modal()->associate($announcement);
                     $file->save();
                 }
             }
-            ResponseService::successResponse('data_update_successfully');
+
+            return ResponseService::successResponse('data_update_successfully');
         } catch (Throwable $e) {
-            ResponseService::errorResponse('error_occurred', null, 103, $e);
+            return ResponseService::errorResponse('error_occurred', null, 103, $e);
         }
     }
 
@@ -214,17 +217,18 @@ class AnnouncementController extends Controller
             'announcement_id' => 'required|numeric',
         ]);
         if ($validator->fails()) {
-            ResponseService::validationError($validator->errors()->first());
+            return ResponseService::validationError($validator->errors()->first());
         }
         try {
             $announcement = Announcement::findorFail($request->announcement_id);
             if (! $this->ownsAnnouncement($announcement)) {
-                ResponseService::errorResponse('no_permission_message', null, 403);
+                return ResponseService::errorResponse('no_permission_message', null, 403);
             }
             $announcement->delete();
-            ResponseService::successResponse('data_delete_successfully');
+
+            return ResponseService::successResponse('data_delete_successfully');
         } catch (Throwable $e) {
-            ResponseService::errorResponse('error_occurred', null, 103, $e);
+            return ResponseService::errorResponse('error_occurred', null, 103, $e);
         }
     }
 }

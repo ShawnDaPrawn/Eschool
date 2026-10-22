@@ -31,8 +31,8 @@ class ResultController extends Controller
 
         $systemDefaultSessionYearId = getSettings('session_year')['session_year'] ?? null;
         $currentSessionYearId = session('session_year', $systemDefaultSessionYearId);
-         $session_years = SessionYear::orderBy('id', 'ASC')->get();
-        
+        $session_years = SessionYear::orderBy('id', 'ASC')->get();
+
         $allowedSemesterMap = [];
 
         if (Auth::user()->hasRole('Super Admin')) {
@@ -116,8 +116,7 @@ class ResultController extends Controller
         $class_ids = ClassSection::whereIn('id', $class_section_id)->pluck('class_id');
         $classes = ClassSection::with('class', 'section', 'class.medium', 'streams')->whereIn('id', $class_section_id)
             ->whereIn('class_id', $class_ids)->get();
-         $session_years = SessionYear::orderBy('id', 'ASC')->get();
-       
+        $session_years = SessionYear::orderBy('id', 'ASC')->get();
 
         // $exams = Exam::where('publish', 1)->get();
 
@@ -249,7 +248,7 @@ class ResultController extends Controller
                 'total' => $total,
                 'rows' => $rows,
             ]);
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             report($e);
 
             return response()->json([

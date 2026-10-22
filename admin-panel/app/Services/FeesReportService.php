@@ -10,6 +10,9 @@ use App\Models\PaidInstallmentFee;
 use App\Models\PaymentTransaction;
 use App\Models\SessionYear;
 use App\Models\StudentSessions;
+use App\Services\Platform\Ledger\CentsColumns;
+use App\Services\Platform\Ledger\LegacyAmount;
+use Illuminate\Support\Facades\DB;
 
 class FeesReportService
 {
@@ -36,22 +39,25 @@ class FeesReportService
 
         $class_id = $studentSession->class_section->class_id;
 
-        $total_fee_payable = (float) FeesClass::where([
+        // Worked out in cents; the report shows currency units.
+        $payable_cents = (int) FeesClass::where([
             'class_id' => $class_id,
             'choiceable' => 0,
             'session_year_id' => $session_year_id,
-        ])->sum('amount');
+        ])->sum(DB::raw(CentsColumns::sql('amount', 'amount_cents')));
 
         // Compulsory (type_of_fee=0) and installment (type_of_fee=1) successful payments only.
         // Summing fees_paids would double-count since the webhook accumulates all payment types
         // (including optional) into a single fees_paids row.
-        $total_paid = (float) PaymentTransaction::where([
+        $paid_cents = (int) PaymentTransaction::where([
             'student_id' => $student_id,
             'session_year_id' => $session_year_id,
             'payment_status' => 1,
-        ])->whereIn('type_of_fee', [0, 1])->sum('total_amount');
+        ])->whereIn('type_of_fee', [0, 1])->sum(DB::raw(CentsColumns::sql('total_amount', 'total_amount_cents')));
 
-        $total_pending = max(0.0, $total_fee_payable - $total_paid);
+        $total_fee_payable = LegacyAmount::fromCentsOrZero($payable_cents);
+        $total_paid = LegacyAmount::fromCentsOrZero($paid_cents);
+        $total_pending = LegacyAmount::fromCentsOrZero(max(0, $payable_cents - $paid_cents));
 
         $last = PaymentTransaction::where([
             'student_id' => $student_id,

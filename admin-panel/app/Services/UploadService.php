@@ -4,45 +4,71 @@ declare(strict_types=1);
 
 namespace App\Services;
 
-use Auth;
+use App\Services\Platform\Files\FileNames;
+use App\Services\Platform\Tenancy\CurrentSchool;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
-use Intervention\Image\ImageManager;
+use Illuminate\Support\Str;
 use Intervention\Image\Drivers\Gd\Driver;
+use Intervention\Image\ImageManager;
 
-class UploadService {
-    public static function upload($requestFile, $folder) {
-        if (Auth::user() && Auth::user()->school_id) {
-            $folder = Auth::user()->school_id.'/'.$folder;
+/**
+ * Stores an upload on the public disk under the school's own folder:
+ * schools/{id}/{folder}/{random name}. It used to read a users.school_id that
+ * does not exist and so put everything under super-admin/.
+ *
+ * Paths saved before (super-admin/... or a module folder) stay readable and
+ * deletable: callers keep whatever path they stored, and delete() takes any
+ * path on the disk.
+ */
+class UploadService
+{
+    /** Pictures re-encoded as JPEG (quality 60) to save space. */
+    private const COMPRESSED = ['jpg', 'jpeg', 'png'];
+
+    public static function upload(UploadedFile $requestFile, string $folder): string
+    {
+        $folder = app(CurrentSchool::class)->storagePath($folder);
+        $extension = self::extension($requestFile);
+
+        if (in_array($extension, self::COMPRESSED, true)) {
+            $file_name = self::randomName('jpg');
+            $image = (new ImageManager(new Driver))->read($requestFile);
+            Storage::disk('public')->put($folder.'/'.$file_name, (string) $image->toJpeg(60));
         } else {
-            $folder = 'super-admin/'.$folder;
+            $file_name = self::randomName($extension);
+            $requestFile->storeAs($folder, $file_name, 'public');
         }
-        $file_name = uniqid('', true) . time() . '.' . $requestFile->getClientOriginalExtension();
-        if (in_array($requestFile->getClientOriginalExtension(), ['jpg', 'jpeg', 'png'])) {
-            // Check the Extension should be jpg or png and do compression
-            $manager = new ImageManager(new Driver());
-            $image = $manager->read($requestFile);
-            $encodedImage = $image->toJpeg(60);
-            Storage::disk('public')->put($folder . '/' . $file_name, $encodedImage);
-        } else {
-            // Else assign file as it is
-            $file = $requestFile;
-            $file->storeAs($folder, $file_name, 'public');
-        }
-        return $folder . '/' . $file_name;
+
+        return $folder.'/'.$file_name;
     }
 
     /**
-     * @param $image = rawOriginalPath
-     * @return bool
+     * @param  string|null  $image  the stored path (rawOriginal)
      */
-    public static function delete($image) {
+    public static function delete($image): bool
+    {
         if ($image && Storage::disk('public')->exists($image)) {
             return Storage::disk('public')->delete($image);
         }
 
-
-        //Image does not exist in server so feel free to upload new image
+        // Image does not exist in server so feel free to upload new image
         return true;
     }
 
+    /** The extension of the sanitised client name, or of the content when that one is odd. */
+    private static function extension(UploadedFile $file): string
+    {
+        $extension = strtolower(pathinfo(FileNames::forUpload($file), PATHINFO_EXTENSION));
+        if (preg_match('/^[a-z0-9]{1,10}$/', $extension) !== 1) {
+            $extension = strtolower((string) $file->guessExtension());
+        }
+
+        return $extension;
+    }
+
+    private static function randomName(string $extension): string
+    {
+        return Str::random(40).($extension === '' ? '' : '.'.$extension);
+    }
 }

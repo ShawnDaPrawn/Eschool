@@ -19,8 +19,10 @@ use App\Models\StudentSubject;
 use App\Models\Subject;
 use App\Models\UserNotification;
 use App\Rules\AfterNow;
+use App\Services\Platform\Files\FileNames;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
+use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
 use Throwable;
@@ -30,7 +32,7 @@ class AssignmentController extends Controller
     /**
      * Display a listing of the resource.
      *
-     * @return \Illuminate\Http\Response
+     * @return Response
      */
     public function index()
     {
@@ -42,8 +44,7 @@ class AssignmentController extends Controller
             return redirect(route('home'))->withErrors($response);
         }
         $current_session_year_id = getSettings('session_year')['session_year'];
-         $session_years = SessionYear::orderBy('id', 'ASC')->get();
-       
+        $session_years = SessionYear::orderBy('id', 'ASC')->get();
 
         return response(view('assignment.index', compact('session_years', 'current_session_year_id')));
     }
@@ -52,7 +53,7 @@ class AssignmentController extends Controller
      * Display the specified resource.
      *
      * @param  int  $id
-     * @return \Illuminate\Http\Response
+     * @return Response
      */
     public function show()
     {
@@ -187,7 +188,7 @@ class AssignmentController extends Controller
      * Update the specified resource in storage.
      *
      * @param  int  $id
-     * @return \Illuminate\Http\Response
+     * @return Response
      */
     public function update(Request $request, $id)
     {
@@ -267,7 +268,7 @@ class AssignmentController extends Controller
             if ($request->hasFile('file')) {
                 foreach ($request->file as $file_upload) {
                     $file = new File;
-                    $file->file_name = $file_upload->getClientOriginalName();
+                    $file->file_name = FileNames::forUpload($file_upload);
                     $file->type = 1;
                     $file->file_url = $file_upload->store('assignment', 'public');
                     $file->modal()->associate($assignment);
@@ -293,7 +294,7 @@ class AssignmentController extends Controller
     /**
      * Store a newly created resource in storage.
      *
-     * @return \Illuminate\Http\Response
+     * @return Response
      */
     public function store(Request $request)
     {
@@ -397,7 +398,7 @@ class AssignmentController extends Controller
             if ($request->hasFile('file')) {
                 foreach ($request->file as $file_upload) {
                     $file = new File;
-                    $file->file_name = $file_upload->getClientOriginalName();
+                    $file->file_name = FileNames::forUpload($file_upload);
                     $file->type = 1;
                     $file->file_url = $file_upload->store('assignment', 'public');
                     $file->modal()->associate($assignment);
@@ -424,7 +425,7 @@ class AssignmentController extends Controller
      * Remove the specified resource from storage.
      *
      * @param  int  $id
-     * @return \Illuminate\Http\Response
+     * @return Response
      */
     public function destroy($id)
     {
@@ -467,7 +468,7 @@ class AssignmentController extends Controller
                 'error' => false,
                 'message' => trans('data_delete_successfully'),
             ];
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             $response = [
                 'error' => true,
                 'message' => trans('error_occurred'),
@@ -555,9 +556,7 @@ class AssignmentController extends Controller
         }
         $class_section = ClassSection::with('class', 'section')->get();
         $subjects = Subject::orderBy('id', 'ASC')->get();
-          $session_years = SessionYear::orderBy('id', 'ASC')->get();
-        
-        
+        $session_years = SessionYear::orderBy('id', 'ASC')->get();
 
         return response(view('assignment.submission', compact('class_section', 'subjects', 'session_years')));
     }
@@ -735,7 +734,7 @@ class AssignmentController extends Controller
                 'error' => false,
                 'message' => trans('data_update_successfully'),
             ];
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             report($e);
             $response = [
                 'error' => true,

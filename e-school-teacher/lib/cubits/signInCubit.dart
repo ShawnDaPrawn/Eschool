@@ -1,7 +1,7 @@
 import 'package:eschool_teacher/data/models/teacher.dart';
 import 'package:eschool_teacher/data/repositories/authRepository.dart';
 import 'package:eschool_teacher/utils/api.dart';
-import 'package:eschool_teacher/utils/notificationUtils/generalNotificationUtility.dart';
+import 'package:eschool_notifications/eschool_notifications.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 abstract class SignInState {}
@@ -37,6 +37,7 @@ class SignInCubit extends Cubit<SignInState> {
         password: password,
       );
       NotificationUtility.subscribeOrUnsubscribeToNotificationTopics(
+        audience: NotificationAudience.teachers,
         isUnsubscribe: false,
       );
       emit(

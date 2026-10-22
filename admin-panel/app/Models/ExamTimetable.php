@@ -12,7 +12,7 @@ class ExamTimetable extends Model
 {
     use HasFactory, SoftDeletes;
 
-    protected $hidden = ["deleted_at", "created_at", "updated_at"];
+    protected $hidden = ['deleted_at', 'created_at', 'updated_at'];
 
     /**
      * Both apps read the times as starting_time / ending_time (the student

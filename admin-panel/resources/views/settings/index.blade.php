@@ -285,7 +285,12 @@
                         </div>
                         <div class="form-group col-md-4 col-sm-12">
                             <label>{{ __('secret_key') }}</label>
-                            <input name="recaptcha_secret_key" value="{{ $settings['recaptcha_secret_key'] ?? '' }}" type="text" placeholder="{{ __('secret_key') }}" class="form-control" />
+                            {{-- Set in the environment (RECAPTCHA_SECRET_KEY): never shown or saved here. --}}
+                            @if (\App\Services\Platform\Secrets\SecretSettings::fromEnvironment('recaptcha_secret_key'))
+                                <input type="text" value="" placeholder="{{ __('set_in_environment') }}" class="form-control" disabled />
+                            @else
+                                <input name="recaptcha_secret_key" value="{{ $settings['recaptcha_secret_key'] ?? '' }}" type="text" placeholder="{{ __('secret_key') }}" class="form-control" />
+                            @endif
                         </div>
                         <div class="form-group col-md-4 col-sm-12">
                             <label>{{ __('status') }}</label>

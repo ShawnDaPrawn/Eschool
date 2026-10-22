@@ -1,6 +1,7 @@
 import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart';
 import 'package:eschool/data/models/lesson.dart';
-import 'package:eschool/data/models/studyMaterial.dart';
+import 'package:eschool_core/eschool_core.dart';
 import 'package:eschool/utils/api.dart';
 
 class SubjectRepository {
@@ -76,6 +77,23 @@ class SubjectRepository {
         cancelToken: cancelToken,
         url: url,
         savePath: savePath,
+        updateDownloadedPercentage: updateDownloadedPercentage,
+      );
+    } catch (e) {
+      throw ApiException(e.toString());
+    }
+  }
+
+  /// The file at [url] in memory, for a web build.
+  Future<Uint8List> downloadStudyMaterialBytes({
+    required String url,
+    required CancelToken cancelToken,
+    required Function updateDownloadedPercentage,
+  }) async {
+    try {
+      return await Api.downloadBytes(
+        cancelToken: cancelToken,
+        url: url,
         updateDownloadedPercentage: updateDownloadedPercentage,
       );
     } catch (e) {

@@ -1,0 +1,83 @@
+{
+  "error": false,
+  "message": "Data Fetch Successfully",
+  "data": {
+    "user": {
+      "id": 34,
+      "first_name": "Farid",
+      "last_name": "Parent",
+      "name": "Farid Parent",
+      "email": "farid@example.com",
+      "image": null,
+      "roles": ["Parent"]
+    },
+    "schools": [
+      {
+        "school": {
+          "id": 1,
+          "name": "Northcliff High",
+          "short_name": "NHS",
+          "crest_url": "https://admin.navigateed.co.za/storage/logos/crest.png"
+        },
+        "roles": ["Parent"]
+      }
+    ],
+    "current_school": {
+      "id": 1,
+      "name": "Northcliff High",
+      "short_name": "NHS",
+      "crest_url": "https://admin.navigateed.co.za/storage/logos/crest.png",
+      "tagline": "Learn and grow",
+      "branding": {
+        "theme_color": "#22577A",
+        "secondary_color": null
+      },
+      "timezone": "Africa/Johannesburg",
+      "session_year": {
+        "id": 3,
+        "name": "2026",
+        "start_date": "2026-01-14",
+        "end_date": "2026-12-09",
+        "terms": [
+          {"id": 9, "name": "Term 1", "start_date": "2026-01-14", "end_date": "2026-03-27", "current": false},
+          {"id": 10, "name": "Term 4", "start_date": "2026-10-06", "end_date": "2026-12-09", "current": true}
+        ]
+      }
+    },
+    "modules": [],
+    "notification_rules": [],
+    "feature_flags": {},
+    "sign_in_methods": ["password"],
+    "children": [
+      {
+        "id": 21,
+        "user_id": 40,
+        "first_name": "Asha",
+        "last_name": "Demo",
+        "name": "Asha Demo",
+        "image": "https://admin.navigateed.co.za/storage/users/asha.jpg",
+        "school": {
+          "id": 1,
+          "name": "Northcliff High",
+          "short_name": "NHS",
+          "crest_url": "https://admin.navigateed.co.za/storage/logos/crest.png"
+        }
+      },
+      {
+        "id": 23,
+        "user_id": 42,
+        "first_name": "Cara",
+        "last_name": "Demo",
+        "name": "Cara Demo",
+        "image": null,
+        "school": {
+          "id": 1,
+          "name": "Northcliff High",
+          "short_name": "NHS",
+          "crest_url": "https://admin.navigateed.co.za/storage/logos/crest.png"
+        }
+      }
+    ]
+  },
+  "code": 200
+}

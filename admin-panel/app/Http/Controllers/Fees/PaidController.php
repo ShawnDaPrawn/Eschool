@@ -16,6 +16,9 @@ use App\Models\PaidInstallmentFee;
 use App\Models\PaymentTransaction;
 use App\Models\SessionYear;
 use App\Models\StudentSessions;
+use App\Services\Platform\Ledger\CentsColumns;
+use App\Services\Platform\Ledger\LegacyAmount;
+use App\Services\Platform\Ledger\Money;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
@@ -161,8 +164,8 @@ class PaidController extends Controller
             // Resolve session year context (use a local var to avoid corrupting the outer $session_year_id)
             if (! empty($session_year_id)) {
                 $effective_session_year_id = $session_year_id;
-                 $session_year = SessionYear::where('id', $session_year_id)->first();
-               
+                $session_year = SessionYear::where('id', $session_year_id)->first();
+
             } else {
                 // No filter selected: derive session year from fees_paid record if available
                 $session_year = $row->fees_paid->session_year ?? null;
@@ -183,15 +186,16 @@ class PaidController extends Controller
             }
 
             // Base Amount
-            $base_amount = FeesClass::where(['class_id' => $row->class_section->class_id, 'choiceable' => 0, 'session_year_id' => $session_year_id])
-                ->selectRaw('SUM(amount) as base_amount')->first();
-            $base_amount = $base_amount['base_amount'];
+            $base_cents = FeesClass::where(['class_id' => $row->class_section->class_id, 'choiceable' => 0, 'session_year_id' => $session_year_id])
+                ->selectRaw('SUM('.CentsColumns::sql('amount', 'amount_cents').') as base_amount')->first();
+            $base_cents = $base_cents['base_amount'];
+            $base_amount = LegacyAmount::fromCents($base_cents);
 
             // if due charges is applicable
             if ($due_date && strtotime($current_date) > strtotime($due_date)) {
                 $due_charges = $session_year->fee_due_charges;
-                $charges = (($due_charges) * ($base_amount) / 100);
-                $base_amount_with_due_charges = $base_amount + $charges;
+                $base = Money::ofCents((int) $base_cents);
+                $base_amount_with_due_charges = LegacyAmount::fromCents($base->plus($base->percent((int) $due_charges))->cents);
             }
 
             // Get the fees data
@@ -340,7 +344,6 @@ class PaidController extends Controller
         return response()->json($bulkData);
     }
 
-
     // public function feesPaidList()
     // {
     //     if (! Auth::user()->can('fees-paid')) {
@@ -456,7 +459,7 @@ class PaidController extends Controller
     //     $rows = [];
     //     $tempRow = [];
     //     $no = 1;
-       
+
     //     if (! empty($cachedsessionyear)) {
 
     //         $cachedsessionyear = sessionYear::getCachedById($session_year_id);
@@ -466,7 +469,6 @@ class PaidController extends Controller
     //     ->selectRaw('class_id,sum(amount) as base_amount')
     //     ->groupby('class_id')
     //     ->pluck('base_amount','class_id');
-       
 
     //     $compulsoryFees= FeesClass ::with('fees_type')
     //     ->where('session_year_id',$session_year_id)
@@ -698,7 +700,7 @@ class PaidController extends Controller
                 'error' => false,
                 'message' => trans('data_delete_successfully'),
             ];
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             $response = [
                 'error' => true,
                 'message' => trans('error_occurred'),
@@ -754,8 +756,7 @@ class PaidController extends Controller
                 'choiceable' => 0])->with('fees_type')->get();
 
             // Session Year Data
-             $session_year = SessionYear::where('id', $session_year_id)->first();
-            
+            $session_year = SessionYear::where('id', $session_year_id)->first();
 
             $pdf = Pdf::loadView('fees.fees_receipt', compact('logo', 'school_name', 'fees_paid', 'paid_installment',
                 'fees_choiceable', 'currency_symbol', 'school_address', 'fees_class', 'session_year'));

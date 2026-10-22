@@ -4,54 +4,57 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers;
 
-use App\Services\ResponseService;
 use App\Models\ClassSchool;
 use App\Models\Mediums;
 use App\Models\Subject;
+use App\Services\ResponseService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\DB;
 use Throwable;
 
 class MediumController extends Controller
 {
     public function index()
     {
-        if (!Auth::user()->canAny(['medium-list', 'medium-create', 'medium-edit', 'medium-delete'])) {
-            $response = array(
-                'message' => trans('no_permission_message')
-            );
+        if (! Auth::user()->canAny(['medium-list', 'medium-create', 'medium-edit', 'medium-delete'])) {
+            $response = [
+                'message' => trans('no_permission_message'),
+            ];
+
             return redirect(route('home'))->withErrors($response);
         }
+
         return view('medium.index');
     }
 
     public function store(Request $request)
     {
-        if (!Auth::user()->can('medium-create')) {
-            $response = array(
+        if (! Auth::user()->can('medium-create')) {
+            $response = [
                 'error' => true,
-                'message' => trans('no_permission_message')
-            );
+                'message' => trans('no_permission_message'),
+            ];
+
             return response()->json($response);
         }
         $request->validate([
-            'name' => 'required'
+            'name' => 'required',
         ]);
         try {
-            $medium = new Mediums();
+            $medium = new Mediums;
             $medium->name = $request->name;
             $medium->save();
             $response = [
                 'error' => false,
-                'message' => trans('data_store_successfully')
+                'message' => trans('data_store_successfully'),
             ];
-        } catch (\Throwable $e) {
-            $response = array(
+        } catch (Throwable $e) {
+            $response = [
                 'error' => true,
-                'message' => trans('error_occurred')
-            );
+                'message' => trans('error_occurred'),
+            ];
         }
+
         return response()->json($response);
     }
 
@@ -59,20 +62,22 @@ class MediumController extends Controller
     {
         ResponseService::noPermissionThenSendJson('medium-edit');
         $medium = Mediums::find($id);
+
         return response($medium);
     }
 
     public function update(Request $request)
     {
-        if (!Auth::user()->can('medium-edit')) {
-            $response = array(
+        if (! Auth::user()->can('medium-edit')) {
+            $response = [
                 'error' => true,
-                'message' => trans('no_permission_message')
-            );
+                'message' => trans('no_permission_message'),
+            ];
+
             return response()->json($response);
         }
         $request->validate([
-            'name' => 'required'
+            'name' => 'required',
         ]);
         try {
             $medium = Mediums::find($request->id);
@@ -88,12 +93,13 @@ class MediumController extends Controller
                 'message' => trans('error_occurred'),
             ];
         }
+
         return response()->json($response);
     }
 
     public function destroy($id)
     {
-        if (!Auth::user()->can('medium-delete')) {
+        if (! Auth::user()->can('medium-delete')) {
             return response()->json([
                 'error' => true,
                 'message' => trans('no_permission_message'),
@@ -110,7 +116,7 @@ class MediumController extends Controller
                 'error' => false,
                 'message' => trans('data_delete_successfully'),
             ]);
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             return response()->json([
                 'error' => true,
                 'message' => trans('error_occurred'),
@@ -120,11 +126,12 @@ class MediumController extends Controller
 
     public function show()
     {
-        if (!Auth::user()->can('medium-list')) {
-            $response = array(
+        if (! Auth::user()->can('medium-list')) {
+            $response = [
                 'error' => true,
-                'message' => trans('no_permission_message')
-            );
+                'message' => trans('no_permission_message'),
+            ];
+
             return response()->json($response);
         }
         $offset = 0;
@@ -132,18 +139,22 @@ class MediumController extends Controller
         $sort = 'id';
         $order = 'DESC';
 
-        if (isset($_GET['offset']))
+        if (isset($_GET['offset'])) {
             $offset = $_GET['offset'];
-        if (isset($_GET['limit']))
+        }
+        if (isset($_GET['limit'])) {
             $limit = $_GET['limit'];
+        }
 
-        if (isset($_GET['sort']))
+        if (isset($_GET['sort'])) {
             $sort = $_GET['sort'];
-        if (isset($_GET['order']))
+        }
+        if (isset($_GET['order'])) {
             $order = $_GET['order'];
+        }
 
         $sql = Mediums::where('id', '!=', 0);
-        if (isset($_GET['search']) && !empty($_GET['search'])) {
+        if (isset($_GET['search']) && ! empty($_GET['search'])) {
             $search = $_GET['search'];
             $sql->where(fn ($query) => $query->where('id', 'LIKE', "%$search%")->orwhere('name', 'LIKE', "%$search%"));
         }
@@ -152,10 +163,10 @@ class MediumController extends Controller
         $sql->orderBy($sort, $order)->skip($offset)->take($limit);
         $res = $sql->get();
 
-        $bulkData = array();
+        $bulkData = [];
         $bulkData['total'] = $total;
-        $rows = array();
-        $tempRow = array();
+        $rows = [];
+        $tempRow = [];
         $no = 1;
 
         // Batch load related data existence to avoid N+1 queries
@@ -172,13 +183,13 @@ class MediumController extends Controller
                 $relatedData[] = 'subjects';
             }
 
-            $operate = '<a href=' . route('medium.edit', $row->id) . ' class="btn btn-xs btn-gradient-primary btn-rounded btn-icon edit-data" data-id=' . $row->id . ' title="Edit" data-toggle="modal" data-target="#editModal"><i class="fa fa-edit"></i></a>&nbsp;&nbsp;';
+            $operate = '<a href='.route('medium.edit', $row->id).' class="btn btn-xs btn-gradient-primary btn-rounded btn-icon edit-data" data-id='.$row->id.' title="Edit" data-toggle="modal" data-target="#editModal"><i class="fa fa-edit"></i></a>&nbsp;&nbsp;';
             $operate .= '
                 <a
-                    href="' . route('medium.destroy', $row->id) . '"
+                    href="'.route('medium.destroy', $row->id).'"
                     class="btn btn-xs btn-gradient-danger btn-rounded btn-icon delete-form"
-                    data-id="' . $row->id . '"'
-                . (!empty($relatedData) ? " data-related='" . json_encode($relatedData) . "'" : '') .
+                    data-id="'.$row->id.'"'
+                .(! empty($relatedData) ? " data-related='".json_encode($relatedData)."'" : '').
                 '>
                     <i class="fa fa-trash"></i>
                 </a>';
@@ -193,6 +204,7 @@ class MediumController extends Controller
         }
 
         $bulkData['rows'] = $rows;
+
         return response()->json($bulkData);
     }
 }

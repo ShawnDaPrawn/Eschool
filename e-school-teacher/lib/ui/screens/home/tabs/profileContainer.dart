@@ -1,13 +1,10 @@
 import 'package:eschool_teacher/app/routes.dart';
 import 'package:eschool_teacher/cubits/authCubit.dart';
 import 'package:eschool_teacher/cubits/downloadIdCardCubit.dart';
-import 'package:eschool_teacher/data/models/studyMaterial.dart';
+import 'package:eschool_core/eschool_core.dart';
 import 'package:eschool_teacher/data/models/teacher.dart';
 import 'package:eschool_teacher/data/repositories/systemInfoRepository.dart';
-import 'package:eschool_core/eschool_core.dart';
-import 'package:eschool_teacher/ui/widgets/customUserProfileImageWidget.dart';
 import 'package:eschool_teacher/ui/widgets/dynamicFieldListContainer.dart';
-import 'package:eschool_teacher/ui/widgets/screenTopBackgroundContainer.dart';
 import 'package:eschool_teacher/utils/assets.dart';
 import 'package:eschool_teacher/utils/labelKeys.dart';
 import 'package:eschool_teacher/utils/uiUtils.dart';
@@ -178,10 +175,10 @@ class _ProfileContainerState extends State<ProfileContainer> {
           if (state is DownloadIdCardSuccess) {
             Navigator.of(context).pushNamed(
               Routes.pdfFileView,
-              arguments: {
-                'studyMaterial': StudyMaterial.fromURL(state.filePath),
-                'isFile': true,
-              },
+              arguments: PdfFileViewArguments(
+                studyMaterial: StudyMaterial.fromURL(state.filePath),
+                isFile: true,
+              ),
             );
           } else if (state is DownloadIdCardFailure) {
             UiUtils.showBottomToastOverlay(

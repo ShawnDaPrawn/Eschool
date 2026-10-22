@@ -30,6 +30,10 @@ use App\Models\Teacher;
 use App\Models\Timetable;
 use App\Models\User;
 use App\Services\FeesCollectionService;
+use App\Services\Panel\SetupChecklist;
+use App\Services\Panel\TodayNumbers;
+use App\Services\Platform\Files\FileNames;
+use App\Services\Platform\Identity\AppTokens;
 use App\Services\ResponseService;
 use Carbon\Carbon;
 use Illuminate\Contracts\View\View;
@@ -41,6 +45,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Validation\Rules\Password;
 use Throwable;
 
 class HomeController extends Controller
@@ -84,7 +89,7 @@ class HomeController extends Controller
     {
         $request->validate([
             'old_password' => 'required',
-            'new_password' => 'required|min:8',
+            'new_password' => ['required', Password::defaults()],
             'confirm_password' => 'required|same:new_password',
         ]);
 
@@ -107,7 +112,7 @@ class HomeController extends Controller
             // sessions and the apps are signed out (AuthenticateSession, tokens).
             $user->password = Hash::make($request->input('new_password'));
             $user->save();
-            $user->tokens()->delete();
+            AppTokens::revokeAll($user);
             $request->session()->forget(RequirePasswordChange::SESSION_KEY);
 
             return response()->json([
@@ -147,7 +152,9 @@ class HomeController extends Controller
             $data = array_merge($data, $this->getStaffDashboardInitialData($session_year, $user));
         }
 
-        // return response()->json($data);
+        // Setup checklist (people who can complete a step) and today's numbers.
+        $data['checklist'] = app(SetupChecklist::class)->forUser($user);
+        $data['today'] = $user->hasRole('Teacher') ? [] : app(TodayNumbers::class)->forUser($user, $session_year);
 
         return view('home', $data);
     }
@@ -343,9 +350,7 @@ class HomeController extends Controller
      */
     private function getSessionMonths(int $session_year_id): array
     {
-         $sessionYear = SessionYear::find($session_year_id);
-        
-        
+        $sessionYear = SessionYear::find($session_year_id);
 
         $months = [];
 
@@ -476,9 +481,9 @@ class HomeController extends Controller
         $class = ClassSchool::find($class_id);
         $sections = ClassSection::with('section')->where('class_id', $class_id)->get();
 
-        // A teacher (not Admin/Super Admin) only sees the sections of which they are Class Teacher.
+        // A teacher (not Super Admin) only sees the sections of which they are Class Teacher.
         $user = Auth::user();
-        if ($user->hasRole('Teacher') && ! $user->hasRole('Admin') && ! $user->hasRole('Super Admin') && $user->teacher) {
+        if ($user->hasRole('Teacher') && ! $user->hasRole('Super Admin') && $user->teacher) {
             $allowedSectionIds = ClassTeacher::where('class_teacher_id', $user->teacher->id)
                 ->where('session_year_id', $session_year_id)
                 ->pluck('class_section_id');
@@ -1175,7 +1180,7 @@ class HomeController extends Controller
                 }
 
                 $file = $request->file('image');
-                $fileName = time().'-'.$file->getClientOriginalName();
+                $fileName = time().'-'.FileNames::forUpload($file);
                 $filePath = 'profile/'.$fileName;
 
                 resizeImage($file);

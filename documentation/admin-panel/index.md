@@ -15,6 +15,8 @@ import DocBanner from '@site/src/components/DocBanner/DocBanner';
 This documentation provides comprehensive instructions for setting up and configuring the e-School admin panel. You'll find detailed guides for:
 
 - Setting up the admin panel
+- Finding your way around: the menu, Home and its setup checklist, and search
+- School years, and starting the new school year
 - Configuring system settings
 - Managing notifications
 - Setting up payment gateways

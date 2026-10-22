@@ -1,50 +1,51 @@
 <!DOCTYPE html>
 @php
-$lang = Session::get('language');
+    $lang = Session::get('language');
+    $panelYear = $panelYear ?? app(\App\Services\Panel\SessionYearContext::class);
 @endphp
-@if ($lang)
-@if ($lang->is_rtl)
-<html lang="en" dir="rtl">
-@else
-<html lang="en">
-@endif
-@else
-<html lang="en">
-@endif
+<html lang="{{ $lang->code ?? app()->getLocale() }}" @if ($lang && $lang->is_rtl) dir="rtl" @endif>
 
 <head>
-    <!-- Required meta tags -->
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
     <title>@yield('title') || {{ config('app.name') }}</title>
     <meta name="csrf-token" content="{{ csrf_token() }}">
+    <link rel="icon" href="{{ schoolSetting('favicon') ? url(Storage::url(schoolSetting('favicon'))) : asset('assets/navigateed/favicon.svg') }}">
     @include('layouts.include')
     @yield('css')
-
 </head>
 
-<body class="sidebar-fixed">
+{{--
+    The admin panel shell: header (search, year switcher, account), the
+    navigation by job (config/navigation.php) and the main area. Every panel
+    page extends this layout. The shell is built with the Material 3 library
+    (public/assets/m3); the pages inside it keep their own markup until they
+    move. data-panel-layout marks panel pages for the Playwright checks;
+    data-read-only-year switches panel.js's read-only mode.
+--}}
+<body class="sidebar-fixed" data-panel-layout
+    @if ($panelYear->isReadOnly()) data-read-only-year="{{ $panelYear->selectedId() }}" @endif>
+    <a class="m3-skip-link" href="#main-content">{{ __('skip_to_content') }}</a>
     <div class="container-scroller">
 
-        {{-- header --}}
         @include('layouts.header')
 
-        <div class="container-fluid page-body-wrapper">
+        <div class="page-body-wrapper panel-body">
 
-            {{-- siderbar --}}
             @include('layouts.sidebar')
 
-            <div class="main-panel d-flex flex-column min-vh-100">
+            <main class="main-panel panel-main" id="main-content" tabindex="-1">
+
+                @include('layouts.partials.read-only-banner')
+                @include('layouts.partials.notices')
 
                 @yield('content')
-                <!-- 
-                {{-- footer --}}
-                @include('layouts.footer') -->
-                <div class="mt-auto">
+
+                <div class="panel-main__footer">
                     @include('layouts.footer')
                 </div>
 
-            </div>
+            </main>
 
         </div>
 
@@ -55,48 +56,29 @@ $lang = Session::get('language');
     {{-- After Update Notes Modal --}}
     @include('after-update-note-modal')
 
+    @include('components.page.confirm-dialog')
+
+    @php
+        $panelShell = [
+            'readOnly' => $panelYear->isReadOnly(),
+            'readOnlyMessage' => $panelYear->isReadOnly()
+                ? __('read_only_year_refused', ['year' => $panelYear->selected()?->name, 'current' => $panelYear->current()?->name])
+                : null,
+            'readOnlyAllow' => config('panel.read_only_years.allow', []),
+            'setYearUrl' => route('set.session.year'),
+            'baseUrl' => url('/'),
+        ];
+    @endphp
+    <script>
+        window.panelShell = @json($panelShell);
+    </script>
+    <script src="{{ asset('/assets/m3/m3.js') }}?v={{ filemtime(public_path('assets/m3/m3.js')) }}"></script>
+    <script src="{{ asset('/assets/js/custom/panel.js') }}?v={{ filemtime(public_path('assets/js/custom/panel.js')) }}"></script>
+    <script src="{{ asset('/assets/js/custom/page.js') }}?v={{ filemtime(public_path('assets/js/custom/page.js')) }}"></script>
 
     @yield('js')
 
     @yield('script')
-
-    {{-- This js code is to sync session year dropdown with sessionStorage (UI Component is present in header.blade.php) --}}
-    {{-- <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            const dropdown = document.getElementById('filter_session_year');
-            if (!dropdown) return;
-
-            const stored = sessionStorage.getItem('session_year_id');
-
-            if (!stored) {
-                const value = dropdown.value;
-                sessionStorage.setItem('session_year_id', value);
-                syncSessionYear(value);
-            } else if (dropdown.value !== stored) {
-                dropdown.value = stored;
-            }
-
-            dropdown.addEventListener('change', function() {
-                const value = this.value;
-                sessionStorage.setItem('session_year_id', value);
-                syncSessionYear(value);
-            });
-
-            function syncSessionYear(value) {
-                fetch("{{ route('set.session.year') }}", {
-    method: 'POST',
-    credentials: 'same-origin',
-    headers: {
-    'Content-Type': 'application/json',
-    'X-CSRF-TOKEN': '{{ csrf_token() }}'
-    },
-    body: JSON.stringify({
-    session_year_id: value
-    })
-    });
-    }
-    });
-    </script> --}}
 </body>
 
 </html>

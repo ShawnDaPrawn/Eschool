@@ -4,8 +4,6 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers;
 
-use App\Services\AbsenceAlertService;
-use App\Services\ResponseService;
 use App\Exports\StudentsExport;
 use App\Imports\AttendanceImport;
 use App\Models\Attendance;
@@ -15,14 +13,12 @@ use App\Models\ClassTeacher;
 use App\Models\Holiday;
 use App\Models\Leave;
 use App\Models\LeaveMaster;
-use App\Models\Notification;
-use App\Models\Parents;
 use App\Models\Semester;
 use App\Models\SessionYear;
 use App\Models\Staff;
 use App\Models\Students;
 use App\Models\StudentSessions;
-use App\Models\UserNotification;
+use App\Services\AbsenceAlertService;
 use Carbon\Carbon;
 use Exception;
 use Illuminate\Http\Request;
@@ -53,7 +49,7 @@ class AttendanceController extends Controller
         $session_year = getSettings('session_year');
         $session_year_id = $session_year['session_year'];
 
-         $currentSessionYear = SessionYear::find($session_year_id);
+        $currentSessionYear = SessionYear::find($session_year_id);
 
         $class_sections = ClassSection::with(
             'class',
@@ -200,10 +196,10 @@ class AttendanceController extends Controller
             return redirect(route('home'))->withErrors($response);
         }
         $teacher_id = Auth::user()->teacher->id;
-         $session_year_setting = getSettings('session_year');
+        $session_year_setting = getSettings('session_year');
 
-         $currentSessionYear = SessionYear::find($session_year_setting['session_year']);
-      
+        $currentSessionYear = SessionYear::find($session_year_setting['session_year']);
+
         $class_section_ids = ClassTeacher::where('class_teacher_id', $teacher_id)->where('session_year_id', $currentSessionYear->id)->pluck('class_section_id');
         $class_sections = ClassSection::with('class', 'section', 'classTeachers', 'class.streams')->whereIn('id', $class_section_ids)->get();
 
@@ -262,9 +258,8 @@ class AttendanceController extends Controller
         $teacher_id = Auth::user()->teacher->id;
         $class_section_ids = ClassTeacher::where('class_teacher_id', $teacher_id)->pluck('class_section_id');
         $class_sections = ClassSection::with('class', 'section', 'classTeachers', 'class.streams')->whereIn('id', $class_section_ids)->get();
-          $session_years = SessionYear::orderBy('id', 'ASC')->get();
-      
-        
+        $session_years = SessionYear::orderBy('id', 'ASC')->get();
+
         $session_year_setting = getSettings('session_year');
         $currentSessionYearId = $session_year_setting['session_year'];
 
@@ -369,7 +364,7 @@ class AttendanceController extends Controller
                 'error' => false,
                 'message' => trans('data_store_successfully'),
             ];
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             report($e);
             $response = [
                 'error' => true,
@@ -735,14 +730,12 @@ class AttendanceController extends Controller
 
             return redirect(route('home'))->withErrors($response);
         }
-     $sessionYears = SessionYear::all();
-        
-        
-        
-        $settings = getSettings();
-         $currentSessionYearId = $settings['session_year'];
+        $sessionYears = SessionYear::all();
 
-         $currentSessionYear = SessionYear::where('id', $currentSessionYearId)->first();
+        $settings = getSettings();
+        $currentSessionYearId = $settings['session_year'];
+
+        $currentSessionYear = SessionYear::where('id', $currentSessionYearId)->first();
 
         $user = Auth::user();
 
@@ -809,8 +802,7 @@ class AttendanceController extends Controller
             ]);
         }
 
-         $currentSessionYear = SessionYear::where('id', $session_year_id)->first();
-        
+        $currentSessionYear = SessionYear::where('id', $session_year_id)->first();
 
         if (! $currentSessionYear) {
             return response()->json([

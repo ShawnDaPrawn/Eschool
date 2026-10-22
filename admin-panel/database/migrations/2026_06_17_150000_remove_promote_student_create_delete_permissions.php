@@ -37,7 +37,7 @@ return new class extends Migration
 
             if (! $exists) {
                 $permissionId = DB::table('permissions')->insertGetId([
-                    'name'       => $permName,
+                    'name' => $permName,
                     'guard_name' => 'web',
                     'created_at' => $now,
                     'updated_at' => $now,
@@ -45,7 +45,7 @@ return new class extends Migration
 
                 if (DB::table('roles')->where('id', 1)->exists()) {
                     DB::table('role_has_permissions')->insert([
-                        'role_id'       => 1,
+                        'role_id' => 1,
                         'permission_id' => $permissionId,
                     ]);
                 }

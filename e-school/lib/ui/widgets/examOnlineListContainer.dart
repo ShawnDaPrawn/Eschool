@@ -6,13 +6,10 @@ import 'package:eschool/cubits/studentDashboardCubit.dart';
 import 'package:eschool/data/models/examsOnline.dart';
 import 'package:eschool/data/models/subject.dart';
 import 'package:eschool/ui/widgets/assignmentsSubjectsContainer.dart';
-import 'package:eschool/ui/widgets/customRefreshIndicator.dart';
-import 'package:eschool/ui/widgets/customShimmerContainer.dart';
-import 'package:eschool/ui/widgets/errorContainer.dart';
+import 'package:eschool_core/eschool_core.dart';
 import 'package:eschool/ui/widgets/examOnlineKeyBottomsheetContainer.dart';
 import 'package:eschool/ui/widgets/listItemForOnlineExamAndOnlineResult.dart';
 import 'package:eschool/ui/widgets/noDataContainer.dart';
-import 'package:eschool/ui/widgets/shimmerLoadingContainer.dart';
 import 'package:eschool/utils/labelKeys.dart';
 import 'package:eschool/utils/uiUtils.dart';
 import 'package:flutter/material.dart';
@@ -74,9 +71,7 @@ class _ExamOnlineListContainerState extends State<ExamOnlineListContainer> {
   Future<void> navigateToExamScreen() async {
     Navigator.of(context).pop();
 
-    Navigator.of(
-      context,
-    ).pushNamed(Routes.examOnline, arguments: {'exam': examSelected});
+    Navigator.of(context).pushNamed(Routes.examOnline, arguments: examSelected);
   }
 
   void onTapOnlineExam(ExamsOnline exam) {

@@ -12,7 +12,7 @@
     data-url-leaves="{{ route('home.widget.leaves') }}"
     data-url-events="{{ route('home.widget.events') }}">
 
-    @include('dashboard.partials.header')
+    @include('home.top')
 
     {{-- Summary stat strip — visible to every staff member --}}
     @include('dashboard.partials.stat-cards')

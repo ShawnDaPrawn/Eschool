@@ -2,7 +2,9 @@
 
 namespace Tests\Feature;
 
+use App\Http\Middleware\EnsureRequestIntegrity;
 use App\Models\Settings;
+use App\Services\SystemIntegrityService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Schema;
@@ -44,8 +46,8 @@ class InstallationTest extends TestCase
             ['install', 'install/database', 'install/finish', 'install/folders', 'install/keys', 'install/migrations', 'install/server'],
             $installRoutes,
         );
-        $this->assertFalse(class_exists(\App\Services\SystemIntegrityService::class));
-        $this->assertFalse(class_exists(\App\Http\Middleware\EnsureRequestIntegrity::class));
+        $this->assertFalse(class_exists(SystemIntegrityService::class));
+        $this->assertFalse(class_exists(EnsureRequestIntegrity::class));
         $this->assertFalse(Schema::hasTable('service_health_logs'));
     }
 

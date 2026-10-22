@@ -16,10 +16,10 @@ return new class extends Migration
         Schema::create('files', function (Blueprint $table) {
             $table->id();
             $table->morphs('modal');
-            $table->string('file_name',1024)->nullable();
-            $table->string('file_thumbnail',1024)->nullable();
-            $table->tinyText('type',64)->comment('1 = File Upload, 2 = Youtube Link, 3 = Video Upload, 4 = Other Link');
-            $table->string('file_url',1024);
+            $table->string('file_name', 1024)->nullable();
+            $table->string('file_thumbnail', 1024)->nullable();
+            $table->tinyText('type', 64)->comment('1 = File Upload, 2 = Youtube Link, 3 = Video Upload, 4 = Other Link');
+            $table->string('file_url', 1024);
             $table->timestamps();
             $table->softDeletes();
         });
@@ -37,7 +37,7 @@ return new class extends Migration
     {
         Schema::dropIfExists('files');
         Schema::table('lesson_topics', function (Blueprint $table) {
-            $table->string('file',512);
+            $table->string('file', 512);
         });
     }
 };

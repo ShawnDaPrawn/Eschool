@@ -16,8 +16,8 @@ return new class extends Migration
         Schema::create('shifts', function (Blueprint $table) {
             $table->id();
             $table->string('title');
-            $table->time('start_time',0);
-            $table->time('end_time',0);
+            $table->time('start_time', 0);
+            $table->time('end_time', 0);
             $table->integer('status')->default(0);
             $table->timestamps();
             $table->softDeletes();

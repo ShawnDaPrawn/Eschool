@@ -1,9 +1,9 @@
+import 'package:eschool/app/routeArguments.dart';
 import 'package:eschool/app/routes.dart';
 import 'package:eschool/cubits/appConfigurationCubit.dart';
 import 'package:eschool/cubits/authCubit.dart';
 import 'package:eschool/cubits/chat/chatUsersCubit.dart';
-import 'package:eschool/cubits/gallery/galleryAlbumsCubit.dart';
-import 'package:eschool/cubits/gallery/galleryVideosCubit.dart';
+import 'package:eschool_core/eschool_core.dart';
 import 'package:eschool/cubits/noticeBoardCubit.dart';
 import 'package:eschool/cubits/slidersCubit.dart';
 import 'package:eschool/cubits/userProfileCubit.dart';
@@ -15,23 +15,15 @@ import 'package:eschool/ui/screens/chat/chatUsersScreen.dart';
 import 'package:eschool/ui/screens/home/homeScreen.dart';
 import 'package:eschool/ui/widgets/appUnderMaintenanceContainer.dart';
 import 'package:eschool/ui/widgets/borderedProfilePictureContainer.dart';
-import 'package:eschool/ui/widgets/customShimmerContainer.dart';
-import 'package:eschool/ui/widgets/errorContainer.dart';
 import 'package:eschool/ui/widgets/forceUpdateDialogContainer.dart';
-import 'package:eschool/ui/widgets/homeGalleryContainer.dart';
 import 'package:eschool/ui/widgets/latestNoticesContainer.dart';
-import 'package:eschool/ui/widgets/screenTopBackgroundContainer.dart';
 import 'package:eschool/ui/widgets/shimmerLoaders/albumGridItemLoadingContainer.dart';
 import 'package:eschool/ui/widgets/shimmerLoaders/announcementShimmerLoadingContainer.dart';
-import 'package:eschool/ui/widgets/shimmerLoadingContainer.dart';
 import 'package:eschool/ui/widgets/slidersContainer.dart';
-import 'package:eschool/utils/animationConfiguration.dart';
 import 'package:eschool/utils/assets.dart';
 import 'package:eschool/utils/labelKeys.dart';
-import 'package:eschool/utils/notificationUtils/chatNotificationsUtils.dart';
-import 'package:eschool/utils/notificationUtils/generalNotificationUtility.dart';
+import 'package:eschool_notifications/eschool_notifications.dart';
 import 'package:eschool/utils/uiUtils.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -44,7 +36,7 @@ class ParentHomeScreen extends StatefulWidget {
   State<ParentHomeScreen> createState() => _ParentHomeScreenState();
 
   static Route route(RouteSettings routeSettings) {
-    return CupertinoPageRoute(
+    return AdaptivePageRoute(
       builder: (_) => MultiBlocProvider(
         providers: [
           BlocProvider<SlidersCubit>(
@@ -73,7 +65,7 @@ class _ParentHomeScreenState extends State<ParentHomeScreen>
       context.read<SlidersCubit>().fetchSliders();
       NotificationUtility.setUpNotificationService(context);
       NotificationUtility.subscribeOrUnsubscribeToNotificationTopics(
-        isParent: true,
+        audience: NotificationAudience.parents,
         isUnsubscribe: false,
       );
       context.read<NoticeBoardCubit>().fetchNoticeBoardDetails(
@@ -270,14 +262,14 @@ class _ParentHomeScreenState extends State<ParentHomeScreen>
           if (isCompulsoryFeePaymentAndDuePayment) {
             Navigator.of(context).pushNamed(
               Routes.feesDetails,
-              arguments: {
-                'studentDetails': student,
-                'sessionYearId': context
+              arguments: FeesDetailsArguments(
+                studentDetails: student,
+                sessionYearId: context
                     .read<AppConfigurationCubit>()
                     .getAppConfiguration()
                     .sessionYear
                     .id,
-              },
+              ),
             );
           } else {
             Navigator.of(
@@ -522,7 +514,7 @@ class _ParentHomeScreenState extends State<ParentHomeScreen>
       onPressed: () {
         Navigator.of(
           context,
-        ).push(CupertinoPageRoute(builder: (_) => const ChatUsersScreen()));
+        ).push(AdaptivePageRoute(builder: (_) => const ChatUsersScreen()));
       },
       child: BlocBuilder<ChatUsersCubit, ChatUsersState>(
         builder: (context, state) {

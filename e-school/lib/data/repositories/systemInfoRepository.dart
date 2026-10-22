@@ -9,7 +9,11 @@ import 'package:eschool/data/models/sliderDetails.dart';
 import 'package:eschool/utils/api.dart';
 import 'package:flutter/foundation.dart';
 
-class SystemRepository {
+class SystemRepository
+    implements
+        AppSettingsRepository,
+        EventScheduleRepository,
+        GalleryRepository {
   Future<List<SliderDetails>> fetchSliders() async {
     try {
       final result = await Api.get(url: Api.getSliders, useAuthToken: false);
@@ -21,6 +25,7 @@ class SystemRepository {
     }
   }
 
+  @override
   Future<dynamic> fetchSettings({required String type}) async {
     try {
       final result = await Api.get(
@@ -56,6 +61,7 @@ class SystemRepository {
     }
   }
 
+  @override
   Future<List<EventSchedule>> fetchEventDetails({
     required String eventId,
   }) async {
@@ -93,6 +99,7 @@ class SystemRepository {
     return base64Decode(result['pdf']);
   }
 
+  @override
   Future<({List<GalleryAlbum> albums, int currentPage, int totalPages})>
   fetchGalleryAlbums({required int page}) async {
     try {
@@ -117,6 +124,7 @@ class SystemRepository {
     }
   }
 
+  @override
   Future<List<String>> fetchGalleryAlbumPhotos({
     required String albumId,
   }) async {
@@ -134,6 +142,7 @@ class SystemRepository {
     }
   }
 
+  @override
   Future<({List<String> videos, int currentPage, int totalPages})>
   fetchGalleryVideos({required int page}) async {
     try {

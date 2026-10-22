@@ -1,12 +1,8 @@
 // ignore: depend_on_referenced_packages
-import 'dart:io';
-
-// ignore: depend_on_referenced_packages
 import 'package:bloc/bloc.dart';
 import 'package:eschool/data/repositories/systemInfoRepository.dart';
 import 'package:eschool_core/eschool_core.dart';
 import 'package:eschool/utils/labelKeys.dart';
-import 'package:path_provider/path_provider.dart';
 
 abstract class AcademicCalendarPdfDownloadState {}
 
@@ -51,19 +47,14 @@ class AcademicCalendarPdfDownloadCubit
     _systemRepository
         .downloadAcademicCalendarPDF(childId: childId)
         .then((value) async {
-          String filePath = '';
-          final path = (await getApplicationDocumentsDirectory()).path;
           final String fileName = sanitizeFileName(
             currentSessionYearName,
             fallback: 'Academic Calendar',
           );
-          filePath = '$path/Academic Calendar/$fileName.pdf';
-
-          final File file = File(filePath);
-          if (!file.existsSync()) {
-            await file.create(recursive: true);
-          }
-          await file.writeAsBytes(value);
+          final String filePath = await DeviceFiles.saveDocument(
+            value,
+            'Academic Calendar/$fileName.pdf',
+          );
           emit(
             AcademicCalendarPdfDownloadSuccess(
               successMessageKey: fileDownloadedSuccessfullyKey,

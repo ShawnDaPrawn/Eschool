@@ -10,6 +10,9 @@ use App\Models\FeesPaid;
 use App\Models\PaidInstallmentFee;
 use App\Models\SessionYear;
 use App\Models\StudentSessions;
+use App\Services\Platform\Ledger\CentsColumns;
+use App\Services\Platform\Ledger\LegacyAmount;
+use App\Services\Platform\Ledger\Money;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 
@@ -22,10 +25,9 @@ class FeesCollectionService
     {
         $sessionYear = SessionYear::find($sessionYearId);
 
-        $collected = round($this->collected($sessionYearId), 2);
-        [$upcoming, $overdue] = $this->outstandingByDueDate($sessionYearId, $sessionYear);
-        $upcoming = round($upcoming, 2);
-        $overdue = round($overdue, 2);
+        // Worked out in cents; the chart takes currency units.
+        $collected = LegacyAmount::fromCentsOrZero($this->collected($sessionYearId));
+        [$upcoming, $overdue] = array_map(LegacyAmount::fromCentsOrZero(...), $this->outstandingByDueDate($sessionYearId, $sessionYear));
 
         return [
             'currency' => getSettings('currency_symbol')['currency_symbol'] ?? '',
@@ -40,26 +42,28 @@ class FeesCollectionService
     /**
      * Compulsory fees actually collected this session (principal + due charges),
      * isolated from the shared fees_paids ledger by removing the optional slice.
+     * In cents.
      */
-    private function collected(int $sessionYearId): float
+    private function collected(int $sessionYearId): int
     {
-        $allPaid = (float) FeesPaid::where('session_year_id', $sessionYearId)->sum('total_amount');
+        $allPaid = (int) FeesPaid::where('session_year_id', $sessionYearId)->sum(DB::raw(CentsColumns::sql('total_amount', 'total_amount_cents')));
 
-        $optionalPaid = (float) FeesChoiceable::where('session_year_id', $sessionYearId)
+        $optionalPaid = (int) FeesChoiceable::where('session_year_id', $sessionYearId)
             ->where('status', 1)
             ->where('is_due_charges', 0)
-            ->sum('total_amount');
+            ->sum(DB::raw(CentsColumns::sql('total_amount', 'total_amount_cents')));
 
-        return max(0.0, $allPaid);
+        return max(0, $allPaid);
 
-        return max(0.0, $allPaid - $optionalPaid);
+        return max(0, $allPaid - $optionalPaid);
     }
 
     /**
      * Walk every enrolled student, derive their outstanding compulsory balance and
      * bucket it into [upcoming, overdue] by installment (or session) due date.
+     * In cents; each student's shares and due charges are rounded once, half up.
      *
-     * @return array{0:float,1:float}
+     * @return array{0:int,1:int}
      */
     private function outstandingByDueDate(int $sessionYearId, ?SessionYear $sessionYear): array
     {
@@ -67,24 +71,24 @@ class FeesCollectionService
         $baseByClass = FeesClass::where('session_year_id', $sessionYearId)
             ->where('choiceable', 0)
             ->groupBy('class_id')
-            ->selectRaw('class_id, SUM(amount) as total')
+            ->selectRaw('class_id, SUM('.CentsColumns::sql('amount', 'amount_cents').') as total')
             ->pluck('total', 'class_id');
 
         if ($baseByClass->isEmpty()) {
-            return [0.0, 0.0];
+            return [0, 0];
         }
 
         // Compulsory paid per student = (all paid) - (optional paid). Mirrors collected().
         $allPaidByStudent = FeesPaid::where('session_year_id', $sessionYearId)
             ->groupBy('student_id')
-            ->selectRaw('student_id, SUM(total_amount) as total')
+            ->selectRaw('student_id, SUM('.CentsColumns::sql('total_amount', 'total_amount_cents').') as total')
             ->pluck('total', 'student_id');
 
         $optionalPaidByStudent = FeesChoiceable::where('session_year_id', $sessionYearId)
             ->where('status', 1)
             ->where('is_due_charges', 0)
             ->groupBy('student_id')
-            ->selectRaw('student_id, SUM(total_amount) as total')
+            ->selectRaw('student_id, SUM('.CentsColumns::sql('total_amount', 'total_amount_cents').') as total')
             ->pluck('total', 'student_id');
 
         // Enrolled (active) students and the class they sit in this session.
@@ -121,22 +125,22 @@ class FeesCollectionService
         $sessionDueDate = $sessionYear && $sessionYear->fee_due_date
             ? Carbon::parse($sessionYear->fee_due_date)->endOfDay()
             : null;
-        $sessionDueChargesPct = (float) ($sessionYear->fee_due_charges ?? 0);
+        $sessionDueChargesPct = (int) ($sessionYear->fee_due_charges ?? 0);
         $now = Carbon::now();
 
-        $upcoming = 0.0;
-        $overdue = 0.0;
+        $upcoming = 0;
+        $overdue = 0;
 
         foreach ($students as $student) {
-            $base = (float) ($baseByClass[$student->class_id] ?? 0);
+            $base = (int) ($baseByClass[$student->class_id] ?? 0);
             if ($base <= 0) {
                 continue;
             }
 
-            $paid = (float) ($allPaidByStudent[$student->student_id] ?? 0)
-                - (float) ($optionalPaidByStudent[$student->student_id] ?? 0);
+            $paid = (int) ($allPaidByStudent[$student->student_id] ?? 0)
+                - (int) ($optionalPaidByStudent[$student->student_id] ?? 0);
 
-            $outstanding = max(0.0, $base - $paid);
+            $outstanding = max(0, $base - $paid);
             if ($outstanding <= 0) {
                 continue;
             }
@@ -153,19 +157,25 @@ class FeesCollectionService
             }
 
             if (! empty($unpaidInstallments)) {
-                // Even split of the remaining balance across unpaid installments (see class doc).
-                $share = $outstanding / count($unpaidInstallments);
+                // Even split of the remaining balance across unpaid installments (see
+                // class doc): each share is outstanding / n, kept as a fraction over
+                // n * 100 so its due charges (a percentage) stay exact until rounded.
+                $denominator = count($unpaidInstallments) * 100;
+                $upcomingShare = 0;
+                $overdueShare = 0;
                 foreach ($unpaidInstallments as $installment) {
                     $dueDate = Carbon::parse($installment->due_date)->endOfDay();
                     if ($now->gt($dueDate)) {
-                        $overdue += $share + $share * ((float) $installment->due_charges / 100);
+                        $overdueShare += $outstanding * (100 + (int) $installment->due_charges);
                     } else {
-                        $upcoming += $share;
+                        $upcomingShare += $outstanding * 100;
                     }
                 }
+                $overdue += Money::ofFraction($overdueShare, $denominator)->cents;
+                $upcoming += Money::ofFraction($upcomingShare, $denominator)->cents;
             } elseif ($sessionDueDate && $now->gt($sessionDueDate)) {
                 // No installment schedule (or all settled): one due date governs the lot.
-                $overdue += $outstanding + $outstanding * ($sessionDueChargesPct / 100);
+                $overdue += Money::ofFraction($outstanding * (100 + $sessionDueChargesPct), 100)->cents;
             } else {
                 $upcoming += $outstanding;
             }

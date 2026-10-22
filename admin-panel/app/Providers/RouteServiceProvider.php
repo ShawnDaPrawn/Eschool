@@ -8,7 +8,7 @@ use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Foundation\Support\Providers\RouteServiceProvider as ServiceProvider;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\RateLimiter;
-use Illuminate\Support\Facades\Route;
+use Laravel\Sanctum\PersonalAccessToken;
 
 class RouteServiceProvider extends ServiceProvider
 {
@@ -33,22 +33,14 @@ class RouteServiceProvider extends ServiceProvider
     /**
      * Define your route model bindings, pattern filters, etc.
      *
+     * The route files are registered once, by withRouting() in bootstrap/app.php.
+     * Registering them here as well loaded every route twice.
+     *
      * @return void
      */
     public function boot()
     {
         $this->configureRateLimiting();
-
-        $this->routes(function () {
-            Route::prefix('api')
-                ->middleware('api')
-                ->namespace($this->namespace)
-                ->group(base_path('routes/api.php'));
-
-            Route::middleware('web')
-                ->namespace($this->namespace)
-                ->group(base_path('routes/web.php'));
-        });
     }
 
     /**
@@ -99,5 +91,52 @@ class RouteServiceProvider extends ServiceProvider
 
         // Checking or changing the signed-in user's own password.
         RateLimiter::for('password', fn (Request $request) => Limit::perMinute(20)->by('password:'.($request->user()?->id ?: $request->ip())));
+
+        // Content security policy reports: one page load can send a few, a flood can't fill the log.
+        RateLimiter::for('csp', fn (Request $request) => Limit::perMinute(30)->by('csp:'.$request->ip()));
+
+        $this->configureApiV2RateLimiting();
+    }
+
+    /**
+     * The API v2 limiters (Bible 3.3). Every v2 route already has throttle:api
+     * from the api middleware group (60 a minute per user, which also holds
+     * every token of that user to 60). These are added on top:
+     *
+     * - auth: sign-in, one-time codes and resets, 5 a minute per account and
+     *   20 a minute per address;
+     * - money: money writes, 30 a minute per token (per session for the web
+     *   portals, per address when signed out).
+     */
+    protected function configureApiV2RateLimiting(): void
+    {
+        RateLimiter::for('auth', function (Request $request) {
+            $account = strtolower(trim((string) ($request->input('email') ?? $request->input('handle') ?? $request->input('gr_number') ?? '')));
+
+            return [
+                // Without an account name, guesses are still counted per address.
+                Limit::perMinute(5)->by('auth:'.($account !== '' ? $account : 'ip:'.$request->ip())),
+                Limit::perMinute(20)->by('auth-ip:'.$request->ip()),
+            ];
+        });
+
+        RateLimiter::for('money', fn (Request $request) => Limit::perMinute(30)->by('money:'.self::tokenKey($request)));
+    }
+
+    /**
+     * The caller's token: its id for an app's bearer token, the user for a web
+     * portal's session (Sanctum's cookie mode has no token row), the address
+     * for a guest.
+     */
+    public static function tokenKey(Request $request): string
+    {
+        $user = $request->user();
+        if ($user === null) {
+            return 'ip:'.$request->ip();
+        }
+
+        $token = method_exists($user, 'currentAccessToken') ? $user->currentAccessToken() : null;
+
+        return $token instanceof PersonalAccessToken ? 'token:'.$token->getKey() : 'user:'.$user->getAuthIdentifier();
     }
 }

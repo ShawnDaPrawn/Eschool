@@ -6,6 +6,7 @@ namespace App\Providers;
 
 use App\Exceptions\TooManyLoginFailures;
 use App\Services\FormService;
+use App\Services\Platform\Identity\PasswordPolicy;
 use App\Services\SettingsConfigService;
 use Illuminate\Auth\Events\Attempting;
 use Illuminate\Auth\Events\Failed;
@@ -25,7 +26,7 @@ class AppServiceProvider extends ServiceProvider
     public function register(): void
     {
         $this->app->singleton('form', function ($app) {
-            return new FormService();
+            return new FormService;
         });
     }
 
@@ -38,6 +39,9 @@ class AppServiceProvider extends ServiceProvider
         Schema::defaultStringLength(191);
 
         SettingsConfigService::apply();
+
+        // One password rule for every password a person chooses.
+        PasswordPolicy::register($this->app);
 
         // Reset links always point at APP_URL, never at the host a request named.
         ResetPassword::createUrlUsing(fn ($user, string $token) => rtrim((string) config('app.url'), '/')

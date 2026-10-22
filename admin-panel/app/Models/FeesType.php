@@ -12,7 +12,8 @@ class FeesType extends Model
 {
     use HasFactory;
     use SoftDeletes;
-    protected $hidden = ["deleted_at", "created_at", "updated_at"];
+
+    protected $hidden = ['deleted_at', 'created_at', 'updated_at'];
 
     public function fees_class()
     {

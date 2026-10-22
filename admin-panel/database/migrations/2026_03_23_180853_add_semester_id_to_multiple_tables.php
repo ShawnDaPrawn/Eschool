@@ -13,7 +13,7 @@ return new class extends Migration
         'class_teachers',
         'subject_teachers',
         'exams',
-        'online_exams'
+        'online_exams',
     ];
 
     public function up(): void

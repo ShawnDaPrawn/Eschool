@@ -12,8 +12,8 @@ use Illuminate\Support\Facades\Storage;
 
 class Parents extends Model
 {
-    use SoftDeletes;
     use HasFactory;
+    use SoftDeletes;
 
     protected static function booted()
     {
@@ -42,9 +42,11 @@ class Parents extends Model
         'dynamic_fields',
 
     ];
-    protected $hidden = ["deleted_at", "created_at", "updated_at"];
+
+    protected $hidden = ['deleted_at', 'created_at', 'updated_at'];
 
     protected $appends = ['full_name'];
+
     public function announcement()
     {
         return $this->morphMany(Announcement::class, 'table');
@@ -99,13 +101,14 @@ class Parents extends Model
             ->exists();
     }
 
-    //Getter Attributes
+    // Getter Attributes
     public function getImageAttribute($value)
     {
         return url(Storage::url($value));
     }
 
-    public function getFullNameAttribute() {
-        return $this->first_name . ' ' . $this->last_name;
+    public function getFullNameAttribute()
+    {
+        return $this->first_name.' '.$this->last_name;
     }
 }

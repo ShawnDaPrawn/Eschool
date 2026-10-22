@@ -1,10 +1,11 @@
 import 'dart:io';
 
 import 'package:dio/dio.dart';
-import 'package:eschool_teacher/data/models/studyMaterial.dart';
+import 'package:eschool_core/eschool_core.dart';
 import 'package:eschool_teacher/data/repositories/studyMaterialRepositoy.dart';
 import 'package:eschool_teacher/utils/errorMessageKeysAndCodes.dart';
 import 'package:external_path/external_path.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 // ignore: depend_on_referenced_packages
@@ -66,6 +67,11 @@ class DownloadFileCubit extends Cubit<DownloadFileState> {
     required StudyMaterial studyMaterial,
   }) async {
     emit(DownloadFileInProgress(0));
+    //a browser downloads or shows the file itself, from its address
+    if (kIsWeb) {
+      emit(DownloadFileSuccess(studyMaterial.fileUrl));
+      return;
+    }
     try {
       //if wants to download the file then
       Future<void> thingsToDoAfterPermissionIsGiven(

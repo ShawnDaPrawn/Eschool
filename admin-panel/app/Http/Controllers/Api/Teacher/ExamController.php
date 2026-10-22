@@ -24,6 +24,7 @@ use App\Models\Timetable;
 use App\Services\ResponseService;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Carbon\Carbon;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -47,7 +48,7 @@ class ExamController extends Controller
         ]);
 
         if ($validator->fails()) {
-            ResponseService::validationError($validator->errors()->first());
+            return ResponseService::validationError($validator->errors()->first());
         }
 
         try {
@@ -70,7 +71,7 @@ class ExamController extends Controller
                     ->get(['class_section_id', 'semester_id']));
 
             if (isset($request->class_section_id) && $assignments->isEmpty()) {
-                ResponseService::errorResponse('no_permission_message');
+                return ResponseService::errorResponse('no_permission_message');
             }
 
             $class_section_ids = $assignments->pluck('class_section_id')->unique()->values();
@@ -202,14 +203,14 @@ class ExamController extends Controller
                 }
             }
 
-            ResponseService::successResponse(
+            return ResponseService::successResponse(
                 'Exam Marks Fetched Successfully',
                 $exam_data ?? []
             );
 
         } catch (\Exception $e) {
 
-            ResponseService::errorResponse(
+            return ResponseService::errorResponse(
                 'error_occurred',
                 null,
                 103,
@@ -218,7 +219,7 @@ class ExamController extends Controller
         }
     }
 
-    public function getExamDetails(Request $request): void
+    public function getExamDetails(Request $request): JsonResponse
     {
         $validator = Validator::make($request->all(), [
             'exam_id' => 'required|integer',
@@ -226,7 +227,7 @@ class ExamController extends Controller
         ]);
 
         if ($validator->fails()) {
-            ResponseService::validationError($validator->errors()->first());
+            return ResponseService::validationError($validator->errors()->first());
         }
 
         try {
@@ -236,7 +237,7 @@ class ExamController extends Controller
 
             // Only for a class the teacher teaches in (as class teacher or subject teacher).
             if (! ClassSection::where('class_id', $classId)->whereIn('id', $this->teacherClassSectionIds())->exists()) {
-                ResponseService::errorResponse('no_permission_message', null, 403);
+                return ResponseService::errorResponse('no_permission_message', null, 403);
             }
 
             $classSection = ClassSection::with('class', 'section', 'class.medium', 'class.streams')
@@ -276,7 +277,7 @@ class ExamController extends Controller
                 return $exam;
             });
 
-            ResponseService::successResponse('Data Fetched Successfully', $examData, [
+            return ResponseService::successResponse('Data Fetched Successfully', $examData, [
                 'class_id' => $classId,
                 'class_section_id' => $classSection->id,
                 'class_name' => $classSection->class->name.'-'.$classSection->section->name.' '.$classSection->class->medium->name,
@@ -284,7 +285,7 @@ class ExamController extends Controller
                 'code' => 200,
             ]);
         } catch (\Exception $e) {
-            ResponseService::errorResponse('error_occurred', null, 103, $e);
+            return ResponseService::errorResponse('error_occurred', null, 103, $e);
         }
     }
 
@@ -298,23 +299,23 @@ class ExamController extends Controller
             'marks_data.*.student_id' => 'required|numeric',
         ]);
         if ($validator->fails()) {
-            ResponseService::validationError($validator->errors()->first());
+            return ResponseService::validationError($validator->errors()->first());
         }
 
         try {
             $exam_published = Exam::where(['id' => $request->exam_id, 'publish' => 1])->first();
             if (isset($exam_published)) {
-                ResponseService::errorResponse('exam_published', null, 400);
+                return ResponseService::errorResponse('exam_published', null, 400);
             }
 
             // Marks are entered by the class teacher (as the app's result screens do) or by
             // the teacher of the subject in this class section, for its own students only.
             if (! $this->isClassTeacherOf($request->class_section_id)
                 && ! $this->teachesSubject($request->class_section_id, $request->subject_id)) {
-                ResponseService::errorResponse('You are not assigned to this class section and subject combination.', null, 403);
+                return ResponseService::errorResponse('You are not assigned to this class section and subject combination.', null, 403);
             }
             if (! $this->allStudentsInClassSection(collect($request->marks_data)->pluck('student_id'), $request->class_section_id)) {
-                ResponseService::errorResponse('no_permission_message', null, 403);
+                return ResponseService::errorResponse('no_permission_message', null, 403);
             }
 
             $class_id = ClassSection::where('id', $request->class_section_id)->pluck('class_id');
@@ -334,7 +335,7 @@ class ExamController extends Controller
                 $exam_status = '2'; // Upcoming = 0 , On Going = 1 , Completed = 2
             }
             if ($exam_status != 2) {
-                ResponseService::errorResponse('exam_not_completed_yet', null, 400);
+                return ResponseService::errorResponse('exam_not_completed_yet', null, 400);
             } else {
                 $grades = Grade::orderBy('ending_range', 'desc')->get();
                 $exam_timetable = ExamTimetable::where('exam_id', $request->exam_id)
@@ -343,7 +344,7 @@ class ExamController extends Controller
                     ->firstOrFail();
                 foreach ($request->marks_data as $marks) {
                     if ($this->obtainedMarksOutOfRange($marks['obtained_marks'] ?? null, $exam_timetable->total_marks)) {
-                        ResponseService::errorResponse('Obtained marks must be between 0 and the total marks.', null, 400);
+                        return ResponseService::errorResponse('Obtained marks must be between 0 and the total marks.', null, 400);
                     }
                 }
                 // Every row needs a grade, found before anything is written so that one row
@@ -354,7 +355,7 @@ class ExamController extends Controller
 
                     $exam_grades[$index] = findExamGrade($exam_timetable->session_year_id, $marks_percentage);
                     if ($exam_grades[$index] == null) {
-                        ResponseService::errorResponse('grades_data_does_not_exists', null, 400);
+                        return ResponseService::errorResponse('grades_data_does_not_exists', null, 400);
                     }
                 }
                 foreach ($request->marks_data as $index => $marks) {
@@ -389,12 +390,13 @@ class ExamController extends Controller
                 if (isset($exam_result_marks)) {
                     ExamMarks::insert($exam_result_marks);
                 }
+
                 // Respond once every row is saved: replying (which exits) on the first
                 // existing row used to drop the marks of every student after it.
-                ResponseService::successResponse(isset($updated) ? 'data_update_successfully' : 'data_store_successfully');
+                return ResponseService::successResponse(isset($updated) ? 'data_update_successfully' : 'data_store_successfully');
             }
         } catch (\Exception $e) {
-            ResponseService::errorResponse('error_occurred', null, 103, $e);
+            return ResponseService::errorResponse('error_occurred', null, 103, $e);
         }
     }
 
@@ -408,23 +410,23 @@ class ExamController extends Controller
             'marks_data.*.subject_id' => 'required|numeric',
         ]);
         if ($validator->fails()) {
-            ResponseService::validationError($validator->errors()->first());
+            return ResponseService::validationError($validator->errors()->first());
         }
         try {
             $exam_published = Exam::where(['id' => $request->exam_id, 'publish' => 1])->first();
             if (isset($exam_published)) {
-                ResponseService::errorResponse('exam_published', null, 400);
+                return ResponseService::errorResponse('exam_published', null, 400);
             }
 
             // The student must be in this class section, and every subject written must be one
             // the teacher may mark here: all of them as class teacher, otherwise their own.
             if (! $this->allStudentsInClassSection([$request->student_id], $request->class_section_id)) {
-                ResponseService::errorResponse('no_permission_message', null, 403);
+                return ResponseService::errorResponse('no_permission_message', null, 403);
             }
             $isClassTeacher = $this->isClassTeacherOf($request->class_section_id);
             foreach ($request->marks_data as $marks) {
                 if (! $isClassTeacher && ! $this->teachesSubject($request->class_section_id, $marks['subject_id'] ?? null)) {
-                    ResponseService::errorResponse('You are not assigned to this class section and subject combination.', null, 403);
+                    return ResponseService::errorResponse('You are not assigned to this class section and subject combination.', null, 403);
                 }
             }
 
@@ -447,7 +449,7 @@ class ExamController extends Controller
             }
 
             if ($exam_status != 2) {
-                ResponseService::errorResponse('exam_not_completed_yet', null, 400);
+                return ResponseService::errorResponse('exam_not_completed_yet', null, 400);
             } else {
                 $grades = Grade::orderBy('ending_range', 'desc')->get();
 
@@ -458,7 +460,7 @@ class ExamController extends Controller
                 foreach ($request->marks_data as $marks) {
                     $exam_timetables[$marks['subject_id']] = ExamTimetable::where(['exam_id' => $request->exam_id, 'class_id' => $classId, 'subject_id' => $marks['subject_id']])->firstOrFail();
                     if ($this->obtainedMarksOutOfRange($marks['obtained_marks'] ?? null, $exam_timetables[$marks['subject_id']]->total_marks)) {
-                        ResponseService::errorResponse('Obtained marks must be between 0 and the total marks.', null, 400);
+                        return ResponseService::errorResponse('Obtained marks must be between 0 and the total marks.', null, 400);
                     }
                 }
 
@@ -471,7 +473,7 @@ class ExamController extends Controller
 
                     $exam_grades[$index] = findExamGrade($exam_timetable->session_year_id, $marks_percentage);
                     if ($exam_grades[$index] == null) {
-                        ResponseService::errorResponse('grades_data_does_not_exists', null, 400);
+                        return ResponseService::errorResponse('grades_data_does_not_exists', null, 400);
                     }
                 }
 
@@ -508,12 +510,13 @@ class ExamController extends Controller
                 if (isset($exam_result_marks)) {
                     ExamMarks::insert($exam_result_marks);
                 }
+
                 // Respond once every row is saved: replying (which exits) on the first
                 // existing row used to drop the marks of every student after it.
-                ResponseService::successResponse(isset($updated) ? 'data_update_successfully' : 'data_store_successfully');
+                return ResponseService::successResponse(isset($updated) ? 'data_update_successfully' : 'data_store_successfully');
             }
         } catch (\Exception $e) {
-            ResponseService::errorResponse('error_occurred', null, 103, $e);
+            return ResponseService::errorResponse('error_occurred', null, 103, $e);
         }
     }
 
@@ -523,7 +526,7 @@ class ExamController extends Controller
             'student_id' => 'required|nullable',
         ]);
         if ($validator->fails()) {
-            ResponseService::validationError($validator->errors()->first());
+            return ResponseService::validationError($validator->errors()->first());
         }
         try {
 
@@ -625,12 +628,13 @@ class ExamController extends Controller
                         }
                     }
                 }
-                ResponseService::successResponse('Exam Marks Fetched Successfully', $data ?? []);
+
+                return ResponseService::successResponse('Exam Marks Fetched Successfully', $data ?? []);
             } else {
-                ResponseService::successResponse('Exam Marks Fetched Successfully', []);
+                return ResponseService::successResponse('Exam Marks Fetched Successfully', []);
             }
         } catch (\Exception $e) {
-            ResponseService::errorResponse('error_occurred', null, 103, $e);
+            return ResponseService::errorResponse('error_occurred', null, 103, $e);
         }
     }
 
@@ -640,7 +644,7 @@ class ExamController extends Controller
             'student_id' => 'required|nullable',
         ]);
         if ($validator->fails()) {
-            ResponseService::validationError($validator->errors()->first());
+            return ResponseService::validationError($validator->errors()->first());
         }
         try {
             // $teacher_id = Auth::user()->teacher->id;
@@ -687,12 +691,13 @@ class ExamController extends Controller
                         'marks_data' => $marks_array,
                     ];
                 }
-                ResponseService::successResponse('Exam Marks Fetched Successfully', $data);
+
+                return ResponseService::successResponse('Exam Marks Fetched Successfully', $data);
             } else {
-                ResponseService::successResponse('Exam Marks Fetched Successfully', []);
+                return ResponseService::successResponse('Exam Marks Fetched Successfully', []);
             }
         } catch (\Exception $e) {
-            ResponseService::errorResponse('error_occurred', null, 103, $e);
+            return ResponseService::errorResponse('error_occurred', null, 103, $e);
         }
     }
 
@@ -700,7 +705,7 @@ class ExamController extends Controller
     {
         try {
             if (! $this->teachesStudent($request->student_id)) {
-                ResponseService::errorResponse('no_permission_message', null, 403);
+                return ResponseService::errorResponse('no_permission_message', null, 403);
             }
 
             $father_name = null;
@@ -873,13 +878,14 @@ class ExamController extends Controller
                 'result' => $result,
             ];
             // Load the HTML
-            $pdf = PDF::loadView('students.result_template', compact('data', 'settings', 'exams', 'subjects'));
+            $pdf = Pdf::loadView('students.result_template', compact('data', 'settings', 'exams', 'subjects'));
 
             // Get The Output Of PDF
             $output = $pdf->output();
-            ResponseService::successResponse('Data Fetched Successfully', null, ['pdf' => base64_encode($output)]);
+
+            return ResponseService::successResponse('Data Fetched Successfully', null, ['pdf' => base64_encode($output)]);
         } catch (Throwable $e) {
-            ResponseService::errorResponse('error_occurred', null, 103, $e);
+            return ResponseService::errorResponse('error_occurred', null, 103, $e);
         }
     }
 

@@ -36,13 +36,13 @@ return new class extends Migration
         Schema::create('online_exam_questions', function (Blueprint $table) {
             $table->id();
 
-           // foreign key of class subejcts
-           $table->bigInteger('class_subject_id')->unsigned()->index();
-           $table->foreign('class_subject_id')->references('id')->on('class_subjects')->onDelete('cascade');
+            // foreign key of class subejcts
+            $table->bigInteger('class_subject_id')->unsigned()->index();
+            $table->foreign('class_subject_id')->references('id')->on('class_subjects')->onDelete('cascade');
 
             $table->tinyInteger('question_type')->comment('0 - simple 1 - equation based');
             $table->string('question', 1024);
-            $table->string('image_url',1024)->nullable(true);
+            $table->string('image_url', 1024)->nullable(true);
             $table->string('note', 1024)->nullable(true);
             $table->timestamps();
             $table->softDeletes();
@@ -52,7 +52,7 @@ return new class extends Migration
         Schema::create('online_exam_question_options', function (Blueprint $table) {
             $table->id();
 
-            //foreign key of online_exam_questions
+            // foreign key of online_exam_questions
             $table->bigInteger('question_id')->unsigned()->index();
             $table->foreign('question_id')->references('id')->on('online_exam_questions')->onDelete('cascade');
 
@@ -65,7 +65,7 @@ return new class extends Migration
         Schema::create('online_exam_question_answers', function (Blueprint $table) {
             $table->id();
 
-            //foreign key of online_exam_questions
+            // foreign key of online_exam_questions
             $table->bigInteger('question_id')->unsigned()->index();
             $table->foreign('question_id')->references('id')->on('online_exam_questions')->onDelete('cascade');
 
@@ -80,7 +80,7 @@ return new class extends Migration
         Schema::create('online_exam_question_choices', function (Blueprint $table) {
             $table->id();
 
-            //foreign key of online_exams
+            // foreign key of online_exams
             $table->bigInteger('online_exam_id')->unsigned()->index();
             $table->foreign('online_exam_id')->references('id')->on('online_exams')->onDelete('cascade');
 
@@ -100,7 +100,7 @@ return new class extends Migration
             $table->bigInteger('student_id')->unsigned()->index();
             $table->foreign('student_id')->references('id')->on('students')->onDelete('cascade');
 
-            //foreign key of online_exams
+            // foreign key of online_exams
             $table->bigInteger('online_exam_id')->unsigned()->index();
             $table->foreign('online_exam_id')->references('id')->on('online_exams')->onDelete('cascade');
 
@@ -117,11 +117,11 @@ return new class extends Migration
             $table->bigInteger('student_id')->unsigned()->index();
             $table->foreign('student_id')->references('id')->on('students')->onDelete('cascade');
 
-            //foreign key of online_exams
+            // foreign key of online_exams
             $table->bigInteger('online_exam_id')->unsigned()->index();
             $table->foreign('online_exam_id')->references('id')->on('online_exams')->onDelete('cascade');
 
-            //foreign key of online_exam_questions
+            // foreign key of online_exam_questions
             $table->bigInteger('question_id')->unsigned()->index()->comment('online exam question choice id');
             $table->foreign('question_id')->references('id')->on('online_exam_question_choices')->onDelete('cascade');
 

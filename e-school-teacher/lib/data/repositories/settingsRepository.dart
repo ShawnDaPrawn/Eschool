@@ -1,8 +1,8 @@
-import 'package:eschool_teacher/data/models/chatNotificationData.dart';
+import 'package:eschool_notifications/eschool_notifications.dart';
+import 'package:eschool_teacher/utils/notificationConfig.dart';
 import 'package:eschool_teacher/utils/appLanguages.dart';
 import 'package:eschool_teacher/utils/hiveBoxKeys.dart';
 import 'package:hive_flutter/hive_flutter.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
 class SettingsRepository {
   Future<void> setCurrentLanguageCode(String value) async {
@@ -14,36 +14,20 @@ class SettingsRepository {
         defaultLanguageCode;
   }
 
-  Future<void> setNotificationCount(int value) async {
-    final SharedPreferences prefs = await SharedPreferences.getInstance();
-    await prefs.reload();
-    await prefs.setInt(notificationCountKey, value);
-  }
+  Future<void> setNotificationCount(int value) =>
+      const NotificationPreferences().setNotificationCount(value);
 
-  Future<int> getNotificationCount() async {
-    final SharedPreferences prefs = await SharedPreferences.getInstance();
-    await prefs.reload();
-    return prefs.getInt(notificationCountKey) ?? 0;
-  }
+  Future<int> getNotificationCount() =>
+      const NotificationPreferences().getNotificationCount();
 
   Future<void> setBackgroundChatNotificationData({
     required List<ChatNotificationData> data,
-  }) async {
-    final SharedPreferences prefs = await SharedPreferences.getInstance();
-    await prefs.reload();
-    prefs.setStringList(
-      chatNotificationsBackgroundItemKey,
-      data.map((e) => e.toJson()).toList(),
-    );
-  }
+  }) => const NotificationPreferences().setBackgroundChatNotificationData(
+    data: data,
+  );
 
-  Future<List<ChatNotificationData>> getBackgroundChatNotificationData() async {
-    final SharedPreferences prefs = await SharedPreferences.getInstance();
-    await prefs.reload();
-    return prefs
-            .getStringList(chatNotificationsBackgroundItemKey)
-            ?.map((e) => ChatNotificationData.fromJson(e))
-            .toList() ??
-        [];
-  }
+  Future<List<ChatNotificationData>> getBackgroundChatNotificationData() =>
+      const NotificationPreferences().getBackgroundChatNotificationData(
+        config: notificationConfig,
+      );
 }

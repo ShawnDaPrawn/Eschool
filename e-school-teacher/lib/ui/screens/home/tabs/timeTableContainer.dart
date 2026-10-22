@@ -4,13 +4,8 @@ import 'package:eschool_teacher/data/models/timeTableSlot.dart';
 import 'package:eschool_teacher/data/repositories/teacherRepository.dart';
 import 'package:eschool_teacher/ui/screens/class/widgets/subjectImageContainer.dart';
 import 'package:eschool_teacher/ui/screens/home/widgets/addUpdateTimetableLinkBottomsheetContainer.dart';
-import 'package:eschool_teacher/ui/widgets/customShimmerContainer.dart';
-import 'package:eschool_teacher/ui/widgets/errorContainer.dart';
+import 'package:eschool_core/eschool_core.dart';
 import 'package:eschool_teacher/ui/widgets/noDataContainer.dart';
-import 'package:eschool_teacher/ui/widgets/screenTopBackgroundContainer.dart';
-import 'package:eschool_teacher/ui/widgets/shimmerLoadingContainer.dart';
-import 'package:eschool_teacher/utils/animationConfiguration.dart';
-import 'package:eschool_teacher/utils/constants.dart';
 import 'package:eschool_teacher/utils/labelKeys.dart';
 import 'package:eschool_teacher/utils/uiUtils.dart';
 import 'package:flutter/material.dart';
@@ -126,139 +121,181 @@ class _TimeTableContainerState extends State<TimeTableContainer> {
   }
 
   Widget _buildTimeTableSlotDetainsContainer(TimeTableSlot timeTableSlot) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 20),
-      decoration: BoxDecoration(
-        boxShadow: [
-          BoxShadow(
-            color: Theme.of(context).colorScheme.shadow.withValues(alpha: 0.05),
-            offset: const Offset(2.5, 2.5),
-            blurRadius: 10,
-          ),
-        ],
-        color: Theme.of(context).colorScheme.surface,
-        borderRadius: BorderRadius.circular(10),
-      ),
-      width: MediaQuery.sizeOf(context).width * 0.85,
-      padding: const EdgeInsets.symmetric(horizontal: 12.5, vertical: 10),
-      child: LayoutBuilder(
-        builder: (context, boxConstraints) {
-          return Row(
-            children: [
-              SubjectImageContainer(
-                showShadow: false,
-                height: 60,
-                width: boxConstraints.maxWidth * 0.2,
-                radius: 7.5,
-                subject: timeTableSlot.subject,
-              ),
-              SizedBox(width: boxConstraints.maxWidth * 0.05),
-              SizedBox(
-                width: boxConstraints.maxWidth * 0.75,
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      children: [
-                        Text(
-                          '${UiUtils.formatTime(timeTableSlot.startTime)} - ${UiUtils.formatTime(timeTableSlot.endTime)}',
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: TextStyle(
-                            color: Theme.of(context).colorScheme.onSurface,
-                            fontWeight: FontWeight.w600,
-                            fontSize: 14,
-                          ),
-                        ),
-                        const SizedBox(width: 5),
-                        Expanded(
-                          child: Text(
-                            timeTableSlot.classSectionDetails
-                                .getClassSectionNameWithMedium(),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: TextStyle(
-                              color: Theme.of(
-                                context,
-                              ).colorScheme.onSurfaceVariant,
-                              fontWeight: FontWeight.w400,
-                              fontSize: 12,
+    final String time =
+        '${UiUtils.formatTime(timeTableSlot.startTime)} - ${UiUtils.formatTime(timeTableSlot.endTime)}';
+    final String classSection = timeTableSlot.classSectionDetails
+        .getClassSectionNameWithMedium();
+    final String subject = timeTableSlot.subject.subjectNameWithTypeAndSemester;
+    // One node per lesson for screen readers: time, class and subject read
+    // together; the link actions stay separate, labelled buttons.
+    return Semantics(
+      container: true,
+      label: '$time, $classSection, $subject',
+      child: Container(
+        margin: const EdgeInsets.only(bottom: 20),
+        decoration: BoxDecoration(
+          boxShadow: [
+            BoxShadow(
+              color: Theme.of(
+                context,
+              ).colorScheme.shadow.withValues(alpha: 0.05),
+              offset: const Offset(2.5, 2.5),
+              blurRadius: 10,
+            ),
+          ],
+          color: Theme.of(context).colorScheme.surface,
+          borderRadius: BorderRadius.circular(10),
+        ),
+        width: MediaQuery.sizeOf(context).width * 0.85,
+        padding: const EdgeInsets.symmetric(horizontal: 12.5, vertical: 10),
+        child: LayoutBuilder(
+          builder: (context, boxConstraints) {
+            return Row(
+              children: [
+                ExcludeSemantics(
+                  child: SubjectImageContainer(
+                    showShadow: false,
+                    height: 60,
+                    width: boxConstraints.maxWidth * 0.2,
+                    radius: 7.5,
+                    subject: timeTableSlot.subject,
+                  ),
+                ),
+                SizedBox(width: boxConstraints.maxWidth * 0.05),
+                SizedBox(
+                  width: boxConstraints.maxWidth * 0.75,
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      ExcludeSemantics(
+                        child: Row(
+                          children: [
+                            Text(
+                              time,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: TextStyle(
+                                color: Theme.of(context).colorScheme.onSurface,
+                                fontWeight: FontWeight.w600,
+                                fontSize: 14,
+                              ),
                             ),
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 2.5),
-                    Text(
-                      timeTableSlot.subject.subjectNameWithTypeAndSemester,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: TextStyle(
-                        color: Theme.of(context).colorScheme.onSurfaceVariant,
-                        fontWeight: FontWeight.w400,
-                        fontSize: 12,
-                      ),
-                    ),
-                    if (timeTableSlot.hasCustomLink) ...[
-                      const SizedBox(height: 2.5),
-                      Row(
-                        children: [
-                          Flexible(
-                            child: GestureDetector(
-                              onTap: () {
-                                UiUtils.launchWebUrl(
-                                  timeTableSlot.linkCustomUrl ?? '',
-                                );
-                              },
+                            const SizedBox(width: 5),
+                            Expanded(
                               child: Text(
-                                timeTableSlot.linkName!,
+                                classSection,
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
                                 style: TextStyle(
-                                  color: Theme.of(context).colorScheme.primary,
-                                  fontWeight: FontWeight.w600,
+                                  color: Theme.of(
+                                    context,
+                                  ).colorScheme.onSurfaceVariant,
+                                  fontWeight: FontWeight.w400,
                                   fontSize: 12,
                                 ),
                               ),
                             ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: 2.5),
+                      ExcludeSemantics(
+                        child: Text(
+                          subject,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(
+                            color: Theme.of(
+                              context,
+                            ).colorScheme.onSurfaceVariant,
+                            fontWeight: FontWeight.w400,
+                            fontSize: 12,
                           ),
-                          const SizedBox(width: 4),
-                          GestureDetector(
+                        ),
+                      ),
+                      if (timeTableSlot.hasCustomLink) ...[
+                        const SizedBox(height: 2.5),
+                        Row(
+                          children: [
+                            Flexible(
+                              child: Semantics(
+                                container: true,
+                                link: true,
+                                child: GestureDetector(
+                                  onTap: () {
+                                    UiUtils.launchWebUrl(
+                                      timeTableSlot.linkCustomUrl ?? '',
+                                    );
+                                  },
+                                  child: Text(
+                                    timeTableSlot.linkName!,
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: TextStyle(
+                                      color: Theme.of(
+                                        context,
+                                      ).colorScheme.primary,
+                                      fontWeight: FontWeight.w600,
+                                      fontSize: 12,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ),
+                            const SizedBox(width: 4),
+                            Semantics(
+                              container: true,
+                              button: true,
+                              label: UiUtils.getTranslatedLabel(
+                                context,
+                                editTimetableLinkKey,
+                              ),
+                              child: GestureDetector(
+                                onTap: () {
+                                  _openAddUpdateTimetableBottomsheetContainer(
+                                    timeTableSlot,
+                                  );
+                                },
+                                child: Icon(
+                                  Icons.edit_outlined,
+                                  color: Theme.of(context).colorScheme.primary,
+                                  size: 18,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ] else ...[
+                        Semantics(
+                          container: true,
+                          button: true,
+                          label: UiUtils.getTranslatedLabel(
+                            context,
+                            addTimetableLinkKey,
+                          ),
+                          child: GestureDetector(
                             onTap: () {
                               _openAddUpdateTimetableBottomsheetContainer(
                                 timeTableSlot,
                               );
                             },
                             child: Icon(
-                              Icons.edit_outlined,
+                              Icons.add_link,
                               color: Theme.of(context).colorScheme.primary,
                               size: 18,
                             ),
                           ),
-                        ],
-                      ),
-                    ] else ...[
-                      GestureDetector(
-                        onTap: () {
-                          _openAddUpdateTimetableBottomsheetContainer(
-                            timeTableSlot,
-                          );
-                        },
-                        child: Icon(
-                          Icons.add_link,
-                          color: Theme.of(context).colorScheme.primary,
-                          size: 18,
                         ),
-                      ),
+                      ],
                     ],
-                  ],
+                  ),
                 ),
-              ),
-            ],
-          );
-        },
+              ],
+            );
+          },
+        ),
       ),
     );
   }

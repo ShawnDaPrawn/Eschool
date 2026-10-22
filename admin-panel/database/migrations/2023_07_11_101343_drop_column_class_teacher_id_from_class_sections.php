@@ -14,7 +14,7 @@ return new class extends Migration
     public function up()
     {
         Schema::table('class_sections', function (Blueprint $table) {
-          $table->dropColumn('class_teacher_id');
+            $table->dropColumn('class_teacher_id');
         });
     }
 

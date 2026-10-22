@@ -1,3 +1,4 @@
+import 'package:eschool_teacher/app/routeArguments.dart';
 import 'package:eschool_teacher/cubits/downloadResultPdfCubit.dart';
 import 'package:eschool_teacher/cubits/examCubit.dart';
 import 'package:eschool_teacher/cubits/studentCompletedExamWithResultCubit.dart';
@@ -8,11 +9,9 @@ import 'package:eschool_core/eschool_core.dart';
 import 'package:eschool_teacher/utils/assets.dart';
 import 'package:eschool_teacher/utils/labelKeys.dart';
 import 'package:eschool_teacher/utils/uiUtils.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:open_filex/open_filex.dart';
 
 class ResultListScreen extends StatelessWidget {
   const ResultListScreen({
@@ -28,8 +27,8 @@ class ResultListScreen extends StatelessWidget {
   final int classSectionId;
 
   static Route route(RouteSettings routeSettings) {
-    final studentData = routeSettings.arguments! as Map<String, dynamic>;
-    return CupertinoPageRoute(
+    final studentData = routeSettings.arguments! as ResultListArguments;
+    return AdaptivePageRoute(
       builder: (_) => MultiBlocProvider(
         providers: [
           BlocProvider<ExamDetailsCubit>(
@@ -44,10 +43,10 @@ class ResultListScreen extends StatelessWidget {
           ),
         ],
         child: ResultListScreen(
-          studentId: studentData['studentId'],
-          studentName: studentData['studentName'],
-          className: studentData['className'],
-          classSectionId: studentData['classSectionId'],
+          studentId: studentData.studentId,
+          studentName: studentData.studentName,
+          className: studentData.className,
+          classSectionId: studentData.classSectionId,
         ),
       ),
     );
@@ -102,10 +101,10 @@ class ResultListScreen extends StatelessWidget {
                                 );
                               } else if (state
                                   is DownloadResultPdfDownloadSuccess) {
-                                final fileOpenResult = await OpenFilex.open(
+                                final bool opened = await DeviceFiles.open(
                                   state.filePath,
                                 );
-                                if (fileOpenResult.type != ResultType.done) {
+                                if (!opened) {
                                   if (context.mounted) {
                                     UiUtils.showBottomToastOverlay(
                                       context: context,

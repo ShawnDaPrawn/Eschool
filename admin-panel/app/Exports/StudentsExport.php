@@ -4,16 +4,18 @@ declare(strict_types=1);
 
 namespace App\Exports;
 
-use DateTime;
 use App\Models\StudentSessions;
+use DateTime;
 use Maatwebsite\Excel\Concerns\Exportable;
-use Maatwebsite\Excel\Concerns\WithHeadings;
 use Maatwebsite\Excel\Concerns\FromCollection;
+use Maatwebsite\Excel\Concerns\WithHeadings;
 
 class StudentsExport implements FromCollection, WithHeadings
 {
     use Exportable;
+
     private $class_section_id;
+
     private $date;
 
     public function __construct($class_section_id, $date)
@@ -40,7 +42,7 @@ class StudentsExport implements FromCollection, WithHeadings
             ->get()
             ->pluck('student');
 
-        $data = array();
+        $data = [];
         $date = clone $start; // Create a clone of the start date
 
         for ($i = 0; $i < $numberOfDays; $i++) {
@@ -49,7 +51,7 @@ class StudentsExport implements FromCollection, WithHeadings
                     'student_id' => $student->id,
                     'admission_no' => $student->admission_no,
                     'roll_number' => $student->roll_number,
-                    'name' => $student->user->first_name . ' ' . $student->user->last_name,
+                    'name' => $student->user->first_name.' '.$student->user->last_name,
                     'date' => $date->format('d-m-Y'), // Use the current date
                 ];
             }

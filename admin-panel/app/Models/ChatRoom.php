@@ -4,10 +4,8 @@ declare(strict_types=1);
 
 namespace App\Models;
 
-use App\Models\ChatMember;
-use App\Models\ChatMessage;
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
 
 class ChatRoom extends Model
 {
@@ -22,5 +20,4 @@ class ChatRoom extends Model
     {
         return $this->morphMany(ChatMessage::class, 'modal');
     }
-    
 }

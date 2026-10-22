@@ -1,5 +1,7 @@
 <?php
 
+use App\Logging\AddRequestContext;
+use App\Logging\JsonFormatter;
 use Monolog\Handler\NullHandler;
 use Monolog\Handler\StreamHandler;
 use Monolog\Handler\SyslogUdpHandler;
@@ -95,6 +97,25 @@ return [
             'with' => [
                 'stream' => 'php://stderr',
             ],
+        ],
+
+        // One JSON object per line on stderr, as Cloud Run's logging expects
+        // (LOG_CHANNEL=json). Each line carries the request id, user id, school
+        // id and route; context is reduced to ids (App\Logging\JsonFormatter).
+        'json' => [
+            'driver' => 'monolog',
+            'level' => env('LOG_LEVEL', 'debug'),
+            'handler' => StreamHandler::class,
+            'with' => [
+                'stream' => 'php://stderr',
+            ],
+            'formatter' => JsonFormatter::class,
+            'formatter_with' => [
+                'project' => env('GOOGLE_CLOUD_PROJECT'),
+                'service' => env('K_SERVICE', env('CLOUD_RUN_JOB', 'navigateed-admin')),
+                'version' => env('APP_RELEASE', env('K_REVISION')),
+            ],
+            'processors' => [AddRequestContext::class],
         ],
 
         'syslog' => [

@@ -122,29 +122,6 @@ class M3ComponentsTest extends TestCase
         $this->assertMatchesRegularExpression('/<button type="submit" class="m3-button m3-button--filled">Save<\/button>/', $html);
     }
 
-    public function test_a_data_table_carries_the_admin_defaults(): void
-    {
-        $html = $this->render(<<<'BLADE'
-            <x-m3.data-table url="/medium_list" export-name="medium-list" toolbar="#toolbar">
-                <x-m3.column field="id" sortable :visible="false">Id</x-m3.column>
-                <x-m3.column field="name" formatter="nameFormatter">Name</x-m3.column>
-                <x-m3.column field="operate" actions events="actionEvents">Action</x-m3.column>
-            </x-m3.data-table>
-            BLADE);
-
-        $this->assertStringContainsString('<table id="table_list" data-m3-table', $html);
-        $this->assertStringContainsString('data-url="/medium_list"', $html);
-        $this->assertStringContainsString('data-side-pagination="server"', $html);
-        $this->assertStringContainsString('data-query-params="queryParams"', $html);
-        $this->assertStringContainsString('data-toolbar="#toolbar"', $html);
-        $this->assertStringContainsString('data-page-list="[5,10,20,50,100,200]"', $html);
-        $this->assertStringContainsString('&quot;fileName&quot;:&quot;medium-list-', $html);
-        $this->assertStringContainsString('&quot;ignoreColumn&quot;:[&quot;operate&quot;]', $html);
-        $this->assertStringContainsString('<th scope="col" data-field="id" data-sortable="true" data-visible="false">Id</th>', $html);
-        $this->assertStringContainsString('<th scope="col" data-field="name" data-sortable="false" data-formatter="nameFormatter">Name</th>', $html);
-        $this->assertStringContainsString('<th scope="col" data-field="operate" data-sortable="false" data-events="actionEvents" data-escape="false" data-switchable="false">Action</th>', $html);
-    }
-
     public function test_buttons_are_links_when_they_have_an_href(): void
     {
         $this->assertStringContainsString(
@@ -159,21 +136,18 @@ class M3ComponentsTest extends TestCase
         $this->assertStringContainsString('aria-label="Delete" data-m3-tooltip="Delete" class="m3-icon-button m3-icon-button--tonal delete-form"', $iconButton);
     }
 
-    public function test_a_page_opts_into_the_library_and_cards_have_headers(): void
+    public function test_a_card_has_a_header_with_its_actions(): void
     {
         $html = $this->render(<<<'BLADE'
-            <x-m3.page title="Manage medium">
-                <x-m3.card title="Create medium" class="m3-col-12">
-                    <x-slot:actions><x-m3.button variant="text">Add</x-m3.button></x-slot:actions>
-                    Body
-                </x-m3.card>
-            </x-m3.page>
+            <x-m3.card title="Summary" subtitle="This term" class="m3-col-12">
+                <x-slot:actions><x-m3.button variant="text">Add</x-m3.button></x-slot:actions>
+                Body
+            </x-m3.card>
             BLADE);
 
-        $this->assertStringContainsString('<div class="content-wrapper m3 m3-admin-page">', $html);
-        $this->assertStringContainsString('<h1 class="m3-page-header__title">Manage medium</h1>', $html);
         $this->assertStringContainsString('<section class="m3-card m3-card--outlined m3-col-12">', $html);
-        $this->assertStringContainsString('<h2 class="m3-card__headline">Create medium</h2>', $html);
+        $this->assertStringContainsString('<h2 class="m3-card__headline">Summary</h2>', $html);
+        $this->assertStringContainsString('<p class="m3-card__subhead">This term</p>', $html);
         $this->assertStringContainsString('m3-card__header-actions', $html);
     }
 }

@@ -13,7 +13,7 @@ class SubjectTeacher extends Model
 {
     use SoftDeletes;
 
-    protected $hidden = ["deleted_at", "created_at", "updated_at"];
+    protected $hidden = ['deleted_at', 'created_at', 'updated_at'];
 
     public function class_section()
     {
@@ -50,8 +50,10 @@ class SubjectTeacher extends Model
         $user = Auth::user();
         if ($user->hasRole('Teacher')) {
             $teacher_id = $user->teacher()->pluck('id');
+
             return $query->whereIn('teacher_id', $teacher_id);
         }
+
         return $query;
     }
 

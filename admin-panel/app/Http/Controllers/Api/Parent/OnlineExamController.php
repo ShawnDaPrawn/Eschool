@@ -16,6 +16,7 @@ use App\Models\OnlineExamStudentAnswer;
 use App\Models\Semester;
 use App\Models\StudentSessions;
 use App\Models\Subject;
+use App\Services\OnlineExamScoringService;
 use App\Services\ResponseService;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
@@ -37,7 +38,7 @@ class OnlineExamController extends Controller
             'subject_id' => 'nullable|numeric',
         ]);
         if ($validator->fails()) {
-            ResponseService::validationError($validator->errors()->first());
+            return ResponseService::validationError($validator->errors()->first());
         }
         try {
             $student = $this->resolveChild($request);
@@ -168,9 +169,10 @@ class OnlineExamController extends Controller
                 // if no data found
                 $exam_data = null;
             }
-            ResponseService::successResponse('Exam List Fetched Successfully', $exam_data, [], 200);
+
+            return ResponseService::successResponse('Exam List Fetched Successfully', $exam_data, [], 200);
         } catch (Throwable $e) {
-            ResponseService::errorResponse('error_occurred', null, 103, $e);
+            return ResponseService::errorResponse('error_occurred', null, 103, $e);
         }
     }
 
@@ -182,7 +184,7 @@ class OnlineExamController extends Controller
             'session_year_id' => 'nullable|integer',
         ]);
         if ($validator->fails()) {
-            ResponseService::validationError($validator->errors()->first());
+            return ResponseService::validationError($validator->errors()->first());
         }
         try {
             $student = $this->resolveChild($request);
@@ -195,7 +197,7 @@ class OnlineExamController extends Controller
             $studentSession = StudentSessions::where('student_id', $student->id)
                 ->where('session_year_id', $session_year_id)->with('class_section')->first();
             if (! $studentSession) {
-                ResponseService::errorResponse('No session found for this student in the current session year', null, 113);
+                return ResponseService::errorResponse('No session found for this student in the current session year', null, 113);
 
                 return;
             }
@@ -248,7 +250,7 @@ class OnlineExamController extends Controller
                 $exam_submitted_date = OnlineExamStudentAnswer::where(['student_id' => $student->id, 'online_exam_id' => $data['id']])->pluck('submitted_date')->first();
 
                 // a question counts only when exactly its correct options were picked
-                $score = app(\App\Services\OnlineExamScoringService::class)->score((int) $student->id, (int) $data['id']);
+                $score = app(OnlineExamScoringService::class)->score((int) $student->id, (int) $data['id']);
 
                 // get the data of only attempted data
                 $total_obtained_marks_exam = OnlineExamQuestionChoice::select(DB::raw('sum(marks)'))->where('online_exam_id', $data['id'])->whereIn('id', $score['correct_choice_ids'])->first();
@@ -277,9 +279,10 @@ class OnlineExamController extends Controller
                 'to' => $online_exam_db['to'],
                 'total' => $online_exam_db['total'],
             ];
-            ResponseService::successResponse('Exam List Fetched Successfully', $exam_list, [], 200);
+
+            return ResponseService::successResponse('Exam List Fetched Successfully', $exam_list, [], 200);
         } catch (Throwable $e) {
-            ResponseService::errorResponse('error_occurred', null, 103, $e);
+            return ResponseService::errorResponse('error_occurred', null, 103, $e);
         }
     }
 
@@ -291,7 +294,7 @@ class OnlineExamController extends Controller
         ]);
 
         if ($validator->fails()) {
-            ResponseService::validationError($validator->errors()->first());
+            return ResponseService::validationError($validator->errors()->first());
         }
         try {
             $student = $this->resolveChild($request);
@@ -309,14 +312,14 @@ class OnlineExamController extends Controller
                     });
                 })->exists();
             if (! $examIsForChild) {
-                ResponseService::errorResponse('No Online Exam Found', null, 103);
+                return ResponseService::errorResponse('No Online Exam Found', null, 103);
             }
 
             // get the total questions count
             $total_questions = OnlineExamQuestionChoice::where('online_exam_id', $request->online_exam_id)->count();
 
             // a question counts only when exactly its correct options were picked
-            $score = app(\App\Services\OnlineExamScoringService::class)->score((int) $student->id, (int) $request->online_exam_id);
+            $score = app(OnlineExamScoringService::class)->score((int) $student->id, (int) $request->online_exam_id);
             $choice_marks = OnlineExamQuestionChoice::where('online_exam_id', $request->online_exam_id)->pluck('marks', 'id');
 
             // get the correct answers counter
@@ -363,9 +366,10 @@ class OnlineExamController extends Controller
                 'total_obtained_marks' => $total_obtained_marks ?? '0',
                 'total_marks' => $total_marks,
             ];
-            ResponseService::successResponse('Exam Result Fetched Successfully', $exam_result ?? '', [], 200);
+
+            return ResponseService::successResponse('Exam Result Fetched Successfully', $exam_result ?? '', [], 200);
         } catch (Throwable $e) {
-            ResponseService::errorResponse('error_occurred', null, 103, $e);
+            return ResponseService::errorResponse('error_occurred', null, 103, $e);
         }
     }
 }

@@ -1,0 +1,10 @@
+# Lint rules for openapi.yaml (CI: npx @redocly/cli@<version> lint, see
+# .github/workflows/ci.yml). Every warning of the recommended set fails.
+extends:
+  - recommended-strict
+rules:
+  # The list parameters, error responses and headers are shared building
+  # blocks the next endpoints use; some are not referenced yet.
+  no-unused-components: off
+  # Proprietary API: there is no licence to name.
+  info-license: off

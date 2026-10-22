@@ -58,6 +58,8 @@
                                                 data-visible="false">{{ __('current_address') }}</th>
                                             <th scope="col" data-field="permanent_address" data-sortable="false"
                                                 data-visible="false">{{ __('permanent_address') }}</th>
+                                            <th scope="col" data-field="status" data-sortable="false" data-escape="false"
+                                                data-formatter="shiftStatusFormatter">{{ __('status') }}</th>
                                             <th data-escape="false" data-events="teacherActionEvents" scope="col"
                                                 data-field="operate" data-sortable="false">{{ __('action') }}</th>
                                         </tr>

@@ -1,11 +1,9 @@
 import 'package:eschool/cubits/authCubit.dart';
 import 'package:eschool/cubits/subjectAnnouncementsCubit.dart';
-import 'package:eschool/data/models/announcement.dart';
+import 'package:eschool_core/eschool_core.dart';
 import 'package:eschool/ui/widgets/announcementDetailsContainer.dart';
-import 'package:eschool/ui/widgets/errorContainer.dart';
 import 'package:eschool/ui/widgets/noDataContainer.dart';
 import 'package:eschool/ui/widgets/shimmerLoaders/announcementShimmerLoadingContainer.dart';
-import 'package:eschool/utils/animationConfiguration.dart';
 
 import 'package:eschool/utils/labelKeys.dart';
 import 'package:eschool/utils/uiUtils.dart';

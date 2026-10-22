@@ -4,11 +4,8 @@ import 'package:eschool_teacher/cubits/authCubit.dart';
 import 'package:eschool_teacher/cubits/userProfileCubit.dart';
 import 'package:eschool_teacher/data/repositories/authRepository.dart';
 import 'package:eschool_teacher/data/repositories/policyRepository.dart';
-import 'package:eschool_teacher/ui/widgets/errorContainer.dart';
-import 'package:eschool_teacher/utils/animationConfiguration.dart';
-import 'package:eschool_teacher/utils/assets.dart';
 import 'package:eschool_core/eschool_core.dart';
-import 'package:flutter/cupertino.dart';
+import 'package:eschool_teacher/utils/assets.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -21,7 +18,7 @@ class SplashScreen extends StatefulWidget {
   State<SplashScreen> createState() => _SplashScreenState();
 
   static Route route(RouteSettings routeSettings) {
-    return CupertinoPageRoute(
+    return AdaptivePageRoute(
       builder: (_) => MultiBlocProvider(
         providers: [
           BlocProvider<UserProfileCubit>(
@@ -165,7 +162,11 @@ class _SplashScreenState extends State<SplashScreen> {
                     delay: const Duration(milliseconds: 10),
                     duration: const Duration(seconds: 1),
                   ),
-                  child: SvgPicture.asset(Assets.appLogo),
+                  child: SvgPicture.asset(
+                    Theme.of(context).brightness == Brightness.dark
+                        ? Assets.appLogoReversed
+                        : Assets.appLogo,
+                  ),
                 ),
               );
             },

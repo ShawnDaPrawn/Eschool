@@ -12,5 +12,6 @@ class Shift extends Model
 {
     use HasFactory;
     use softDeletes;
-    protected $hidden = ["deleted_at", "created_at", "updated_at"];
+
+    protected $hidden = ['deleted_at', 'created_at', 'updated_at'];
 }

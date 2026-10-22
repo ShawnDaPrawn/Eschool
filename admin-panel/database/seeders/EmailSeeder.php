@@ -2,7 +2,8 @@
 
 namespace Database\Seeders;
 
-use App\Models\EmailTempalate;
+use App\Models\EmailTemplate;
+use App\Services\Platform\Identity\LearnerInvitations;
 use Illuminate\Database\Seeder;
 
 class EmailSeeder extends Seeder
@@ -10,9 +11,9 @@ class EmailSeeder extends Seeder
     /**
      * Run the database seeds.
      *
-     * Uses firstOrCreate, not updateOrCreate: this seeder re-runs on every system
-     * update, and admins can edit these templates from the email template settings
-     * screen. Overwriting would silently discard their customisations.
+     * Uses firstOrCreate, not updateOrCreate: this seeder re-runs on every deploy
+     * (docker/entrypoint.sh), and admins can edit these templates from the email
+     * template settings screen. Overwriting would silently discard their customisations.
      */
     public function run(): void
     {
@@ -64,7 +65,7 @@ Regards,<br>
 </html>
 HTML;
 
-        EmailTempalate::firstOrCreate(
+        EmailTemplate::firstOrCreate(
             ['type' => 'student_registration'],
             [
                 'subject' => 'Student Admission Confirmation',
@@ -108,7 +109,7 @@ Regards,<br>
 </html>
 HTML;
 
-        EmailTempalate::firstOrCreate(
+        EmailTemplate::firstOrCreate(
             ['type' => 'staff_registration'],
             [
                 'subject' => 'Staff Registration Confirmation',
@@ -141,11 +142,22 @@ Sincerely,
 {$school_email}
 HTML;
 
-        EmailTempalate::firstOrCreate(
+        EmailTemplate::firstOrCreate(
             ['type' => 'student_application_regect'],
             [
                 'subject' => 'student application rejection',
                 'content' => $reject_application,
+            ]
+        );
+
+        // Sent to each guardian of a new learner, with a link to choose the
+        // learner's password (LearnerInvitations). Placeholders: name,
+        // child_name, child_grnumber, setup_link, expires_on, school_*.
+        EmailTemplate::firstOrCreate(
+            ['type' => LearnerInvitations::EMAIL_TEMPLATE],
+            [
+                'subject' => 'Set up {$child_name}\'s sign-in',
+                'content' => LearnerInvitations::defaultTemplate(),
             ]
         );
     }

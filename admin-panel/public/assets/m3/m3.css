@@ -398,45 +398,6 @@ body.m3 {
     }
 }
 
-/* Page header (<x-m3.page>): the page's headline and supporting text, with its
-   actions at the inline end; the actions wrap under the text on narrow windows. */
-.m3-page-header {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    justify-content: space-between;
-    gap: var(--m3-space-4);
-    margin-block-end: var(--m3-space-6);
-}
-
-.m3-page-header__text {
-    display: flex;
-    flex-direction: column;
-    gap: var(--m3-space-1);
-    min-width: 0;
-}
-
-.m3-page-header__title {
-    color: var(--md-sys-color-on-surface);
-    font-size: var(--md-sys-typescale-headline-small-size);
-    line-height: var(--md-sys-typescale-headline-small-line-height);
-    font-weight: var(--md-sys-typescale-headline-small-weight);
-    letter-spacing: var(--md-sys-typescale-headline-small-tracking);
-}
-
-.m3-page-header__subtitle {
-    color: var(--md-sys-color-on-surface-variant);
-    font-size: var(--md-sys-typescale-body-medium-size);
-    line-height: var(--md-sys-typescale-body-medium-line-height);
-}
-
-.m3-page-header__actions {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    gap: var(--m3-space-2);
-}
-
 .m3-grid {
     display: grid;
     grid-template-columns: repeat(12, minmax(0, 1fr));

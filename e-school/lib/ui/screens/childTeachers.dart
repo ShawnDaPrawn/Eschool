@@ -2,15 +2,10 @@ import 'package:eschool/cubits/childTeachersCubit.dart';
 import 'package:eschool/data/models/teacher.dart';
 import 'package:eschool/data/repositories/parentRepository.dart';
 import 'package:eschool/ui/widgets/customAppbar.dart';
-import 'package:eschool/ui/widgets/customShimmerContainer.dart';
-import 'package:eschool/ui/widgets/customUserProfileImageWidget.dart';
-import 'package:eschool/ui/widgets/errorContainer.dart';
+import 'package:eschool_core/eschool_core.dart';
 import 'package:eschool/ui/widgets/noDataContainer.dart';
-import 'package:eschool/ui/widgets/shimmerLoadingContainer.dart';
-import 'package:eschool/utils/animationConfiguration.dart';
 import 'package:eschool/utils/labelKeys.dart';
 import 'package:eschool/utils/uiUtils.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -23,7 +18,7 @@ class ChildTeachersScreen extends StatefulWidget {
   State<ChildTeachersScreen> createState() => _ChildTeachersScreenState();
 
   static Route route(RouteSettings routeSettings) {
-    return CupertinoPageRoute(
+    return AdaptivePageRoute(
       builder: (_) => BlocProvider<ChildTeachersCubit>(
         create: (context) => ChildTeachersCubit(ParentRepository()),
         child: ChildTeachersScreen(childId: routeSettings.arguments! as int),

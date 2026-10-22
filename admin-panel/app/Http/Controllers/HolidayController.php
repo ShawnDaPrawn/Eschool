@@ -7,6 +7,7 @@ namespace App\Http\Controllers;
 use App\Models\Holiday;
 use App\Models\SessionYear;
 use Illuminate\Http\Request;
+use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
 use Throwable;
@@ -16,18 +17,18 @@ class HolidayController extends Controller
     /**
      * Display a listing of the resource.
      *
-     * @return \Illuminate\Http\Response
+     * @return Response
      */
     public function index()
     {
-        if (!Auth::user()->can('holiday-list')) {
-            $response = array(
-                'message' => trans('no_permission_message')
-            );
+        if (! Auth::user()->can('holiday-list')) {
+            $response = [
+                'message' => trans('no_permission_message'),
+            ];
+
             return redirect(route('home'))->withErrors($response);
         }
-         $session_years = SessionYear::orderBy('id', 'ASC')->get();
-        
+        $session_years = SessionYear::orderBy('id', 'ASC')->get();
 
         return response(view('holiday.index', compact('session_years')));
     }
@@ -35,72 +36,76 @@ class HolidayController extends Controller
     /**
      * Store a newly created resource in storage.
      *
-     * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\Http\Response
+     * @return Response
      */
     public function store(Request $request)
     {
-        if (!Auth::user()->can('holiday-create')) {
-            $response = array(
+        if (! Auth::user()->can('holiday-create')) {
+            $response = [
                 'error' => true,
-                'message' => trans('no_permission_message')
-            );
+                'message' => trans('no_permission_message'),
+            ];
+
             return response()->json($response);
         }
-         $sessionYear = SessionYear::findOrFail($request->session_year_id);
-        
+        $sessionYear = SessionYear::findOrFail($request->session_year_id);
+
         $validator = Validator::make($request->all(), [
             'date' => 'required|date',
             'title' => 'required',
-            'session_year_id' => 'required|integer'
+            'session_year_id' => 'required|integer',
         ]);
 
         // Validate that the date falls within the session year range
-        if (!$validator->fails()) {
+        if (! $validator->fails()) {
             $date = date('Y-m-d', strtotime($request->date));
             if ($date < $sessionYear->start_date || $date > $sessionYear->end_date) {
-                $validator->errors()->add('date', 'The selected date must be within the session year range (' . date('d-m-Y', strtotime($sessionYear->start_date)) . ' to ' . date('d-m-Y', strtotime($sessionYear->end_date)) . ').');
+                $validator->errors()->add('date', 'The selected date must be within the session year range ('.date('d-m-Y', strtotime($sessionYear->start_date)).' to '.date('d-m-Y', strtotime($sessionYear->end_date)).').');
+
                 return response()->json([
                     'error' => true,
-                    'message' => $validator->errors()->first()
+                    'message' => $validator->errors()->first(),
                 ]);
             }
         }
 
         if ($validator->fails()) {
-            $response = array(
+            $response = [
                 'error' => true,
-                'message' => $validator->errors()->first()
-            );
+                'message' => $validator->errors()->first(),
+            ];
+
             return response()->json($response);
         }
         try {
-            $holiday = new Holiday();
+            $holiday = new Holiday;
             $holiday->date = date('Y-m-d', strtotime($request->date));
             $holiday->title = $request->title;
             $holiday->description = $request->description;
             $holiday->session_year_id = $request->session_year_id;
             $holiday->save();
-            $response = array(
+            $response = [
                 'error' => false,
-                'message' => trans('data_store_successfully')
-            );
-        } catch (\Throwable $e) {
-            $response = array(
+                'message' => trans('data_store_successfully'),
+            ];
+        } catch (Throwable $e) {
+            $response = [
                 'error' => true,
-                'message' => trans('error_occurred')
-            );
+                'message' => trans('error_occurred'),
+            ];
         }
+
         return response()->json($response);
     }
 
     public function update(Request $request)
     {
-        if (!Auth::user()->can('holiday-edit')) {
-            $response = array(
+        if (! Auth::user()->can('holiday-edit')) {
+            $response = [
                 'error' => true,
-                'message' => trans('no_permission_message')
-            );
+                'message' => trans('no_permission_message'),
+            ];
+
             return response()->json($response);
         }
         $validator = Validator::make($request->all(), [
@@ -109,10 +114,11 @@ class HolidayController extends Controller
         ]);
 
         if ($validator->fails()) {
-            $response = array(
+            $response = [
                 'error' => true,
-                'message' => $validator->errors()->first()
-            );
+                'message' => $validator->errors()->first(),
+            ];
+
             return response()->json($response);
         }
         try {
@@ -121,16 +127,17 @@ class HolidayController extends Controller
             $holiday->title = $request->title;
             $holiday->description = $request->description;
             $holiday->save();
-            $response = array(
+            $response = [
                 'error' => false,
-                'message' => trans('data_update_successfully')
-            );
-        } catch (\Throwable $e) {
-            $response = array(
+                'message' => trans('data_update_successfully'),
+            ];
+        } catch (Throwable $e) {
+            $response = [
                 'error' => true,
-                'message' => trans('error_occurred')
-            );
+                'message' => trans('error_occurred'),
+            ];
         }
+
         return response()->json($response);
     }
 
@@ -138,18 +145,20 @@ class HolidayController extends Controller
     {
         return view('holiday.list');
     }
+
     /**
      * Display the specified resource.
      *
      * @param  int  $id
-     * @return \Illuminate\Http\Response
+     * @return Response
      */
     public function show()
     {
-        if (!Auth::user()->can('holiday-list')) {
-            $response = array(
-                'message' => trans('no_permission_message')
-            );
+        if (! Auth::user()->can('holiday-list')) {
+            $response = [
+                'message' => trans('no_permission_message'),
+            ];
+
             return response()->json($response);
         }
         $offset = 0;
@@ -157,20 +166,24 @@ class HolidayController extends Controller
         $sort = 'id';
         $order = 'DESC';
 
-        if (isset($_GET['offset']))
+        if (isset($_GET['offset'])) {
             $offset = $_GET['offset'];
-        if (isset($_GET['limit']))
+        }
+        if (isset($_GET['limit'])) {
             $limit = $_GET['limit'];
+        }
 
-        if (isset($_GET['sort']))
+        if (isset($_GET['sort'])) {
             $sort = $_GET['sort'];
-        if (isset($_GET['order']))
+        }
+        if (isset($_GET['order'])) {
             $order = $_GET['order'];
+        }
 
         $session_year_id = $_GET['session_year_id'] ?? getSettings('session_year')['session_year'];
 
         $sql = Holiday::where('id', '!=', 0)->where('session_year_id', $session_year_id);
-        if (isset($_GET['search']) && !empty($_GET['search'])) {
+        if (isset($_GET['search']) && ! empty($_GET['search'])) {
             $search = $_GET['search'];
             $sql->where(fn ($query) => $query->where('id', 'LIKE', "%$search%")
                 ->orwhere('title', 'LIKE', "%$search%")
@@ -182,17 +195,16 @@ class HolidayController extends Controller
         $sql->orderBy($sort, $order)->skip($offset)->take($limit);
         $res = $sql->get();
 
-        $bulkData = array();
+        $bulkData = [];
         $bulkData['total'] = $total;
-        $rows = array();
-        $tempRow = array();
+        $rows = [];
+        $tempRow = [];
         $no = 1;
         foreach ($res as $row) {
             $operate = '';
-            $operate .= '<a class="btn btn-xs btn-gradient-primary btn-rounded btn-icon editdata" data-id=' . $row->id . ' title="Edit" data-toggle="modal" data-target="#editModal"><i class="fa fa-edit"></i></a>&nbsp;&nbsp;';
+            $operate .= '<a class="btn btn-xs btn-gradient-primary btn-rounded btn-icon editdata" data-id='.$row->id.' title="Edit" data-toggle="modal" data-target="#editModal"><i class="fa fa-edit"></i></a>&nbsp;&nbsp;';
 
-            $operate .= '<a class="btn btn-xs btn-gradient-danger btn-rounded btn-icon deletedata" data-id=' . $row->id . ' data-url=' . url('holiday', $row->id) . ' title="Delete"><i class="fa fa-trash"></i></a>';
-
+            $operate .= '<a class="btn btn-xs btn-gradient-danger btn-rounded btn-icon deletedata" data-id='.$row->id.' data-url='.url('holiday', $row->id).' title="Delete"><i class="fa fa-trash"></i></a>';
 
             $data = getSettings('date_formate');
 
@@ -208,6 +220,7 @@ class HolidayController extends Controller
         }
 
         $bulkData['rows'] = $rows;
+
         return response()->json($bulkData);
     }
 
@@ -215,29 +228,31 @@ class HolidayController extends Controller
      * Remove the specified resource from storage.
      *
      * @param  int  $id
-     * @return \Illuminate\Http\Response
+     * @return Response
      */
     public function destroy($id)
     {
-        if (!Auth::user()->can('holiday-delete')) {
-            $response = array(
+        if (! Auth::user()->can('holiday-delete')) {
+            $response = [
                 'error' => true,
-                'message' => trans('no_permission_message')
-            );
+                'message' => trans('no_permission_message'),
+            ];
+
             return response()->json($response);
         }
         try {
             Holiday::find($id)->delete();
-            $response = array(
+            $response = [
                 'error' => false,
-                'message' => trans('data_delete_successfully')
-            );
+                'message' => trans('data_delete_successfully'),
+            ];
         } catch (Throwable $e) {
-            $response = array(
+            $response = [
                 'error' => true,
-                'message' => trans('error_occurred')
-            );
+                'message' => trans('error_occurred'),
+            ];
         }
+
         return response()->json($response);
     }
 }

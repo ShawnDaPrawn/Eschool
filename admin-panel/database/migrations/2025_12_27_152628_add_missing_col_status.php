@@ -13,7 +13,7 @@ return new class extends Migration
     {
         // attendances table
         Schema::table('attendances', function (Blueprint $table) {
-            if (!Schema::hasColumn('attendances', 'status')) {
+            if (! Schema::hasColumn('attendances', 'status')) {
                 $table->tinyInteger('status')
                     ->default(0)
                     ->comment('0 - not send, 1 - send')
@@ -23,7 +23,7 @@ return new class extends Migration
 
         // paid_installment_fees table
         Schema::table('paid_installment_fees', function (Blueprint $table) {
-            if (!Schema::hasColumn('paid_installment_fees', 'status')) {
+            if (! Schema::hasColumn('paid_installment_fees', 'status')) {
                 $table->tinyInteger('status')
                     ->default(0)
                     ->comment('0 - failed, 1 - succeed')

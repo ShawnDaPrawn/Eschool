@@ -1,3 +1,4 @@
+import 'package:eschool/app/routeArguments.dart';
 import 'package:eschool/cubits/assignmentsCubit.dart';
 import 'package:eschool/cubits/authCubit.dart';
 import 'package:eschool/data/models/subject.dart';
@@ -6,16 +7,12 @@ import 'package:eschool/ui/widgets/assignmentFilterBottomsheetContainer.dart';
 import 'package:eschool/ui/widgets/assignmentListContainer.dart';
 import 'package:eschool/ui/widgets/assignmentsContainer.dart';
 import 'package:eschool/ui/widgets/assignmentsSubjectsContainer.dart';
-import 'package:eschool/ui/widgets/customBackButton.dart';
-import 'package:eschool/ui/widgets/customRefreshIndicator.dart';
+import 'package:eschool_core/eschool_core.dart';
 import 'package:eschool/ui/widgets/customTabBarContainer.dart';
-import 'package:eschool/ui/widgets/screenTopBackgroundContainer.dart';
-import 'package:eschool/ui/widgets/svgButton.dart';
 import 'package:eschool/ui/widgets/tabBarBackgroundContainer.dart';
 import 'package:eschool/utils/assets.dart';
 import 'package:eschool/utils/labelKeys.dart';
 import 'package:eschool/utils/uiUtils.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -32,13 +29,13 @@ class ChildAssignmentsScreen extends StatefulWidget {
   State<ChildAssignmentsScreen> createState() => _ChildAssignmentsScreenState();
 
   static Route route(RouteSettings routeSettings) {
-    final arguments = routeSettings.arguments! as Map<String, dynamic>;
-    return CupertinoPageRoute(
+    final arguments = routeSettings.arguments! as ChildSubjectsArguments;
+    return AdaptivePageRoute(
       builder: (_) => BlocProvider<AssignmentsCubit>(
         create: (context) => AssignmentsCubit(AssignmentRepository()),
         child: ChildAssignmentsScreen(
-          childId: arguments['childId'],
-          subjects: arguments['subjects'],
+          childId: arguments.childId,
+          subjects: arguments.subjects,
         ),
       ),
     );

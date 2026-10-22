@@ -1,7 +1,6 @@
 // ignore_for_file: public_member_api_docs, sort_constructors_first
 import 'package:eschool_core/eschool_core.dart';
 import 'package:eschool_teacher/data/models/student.dart';
-import 'package:eschool_teacher/data/models/studyMaterial.dart';
 import 'package:eschool_teacher/utils/labelKeys.dart';
 import 'package:eschool_teacher/utils/uiUtils.dart';
 import 'package:flutter/cupertino.dart';
@@ -146,35 +145,3 @@ class LeaveDetail {
   }
 }
 
-//Helper models and methods related to add & view leaves
-enum LeaveType { full, firstHalf, secondHalf }
-
-extension LeaveTypeHelper on LeaveType {
-  String getAPIType() {
-    switch (this) {
-      case LeaveType.firstHalf:
-        return 'First Half';
-      case LeaveType.secondHalf:
-        return 'Second Half';
-      default:
-        return 'Full';
-    }
-  }
-
-  String getTypeKey() {
-    switch (this) {
-      case LeaveType.firstHalf:
-        return firstHalfKey;
-      case LeaveType.secondHalf:
-        return secondHalfKey;
-      default:
-        return fullKey;
-    }
-  }
-}
-
-class LeaveDateWithType {
-  DateTime date;
-  LeaveType type;
-  LeaveDateWithType({required this.date, required this.type});
-}

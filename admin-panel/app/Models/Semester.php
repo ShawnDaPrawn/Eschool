@@ -4,14 +4,10 @@ declare(strict_types=1);
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\SoftDeletes;
 use Carbon\Carbon;
-use App\Models\ClassSubject;
-use App\Models\ElectiveSubjectGroup;
-use App\Models\StudentSubject;
-use App\Models\Timetable;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Semester extends Model
 {
@@ -22,12 +18,12 @@ class Semester extends Model
         'name',
         'session_year_id',
         'start_date',
-        'end_date'
+        'end_date',
     ];
 
     protected $casts = [
         'start_date' => 'date',
-        'end_date' => 'date'
+        'end_date' => 'date',
     ];
 
     protected $appends = ['current', 'start_month_name', 'end_month_name'];
@@ -87,7 +83,7 @@ class Semester extends Model
         $start = $this->start_date;
         $end = $this->end_date;
 
-        if (!$start || !$end) {
+        if (! $start || ! $end) {
             return false;
         }
 

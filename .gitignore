@@ -11,3 +11,6 @@ node_modules/
 # Firebase CLI deploy cache and logs.
 .firebase/
 firebase-debug*.log
+
+# Variables for docker-compose.yml (APP_KEY, ADMIN_PASSWORD); never commit them.
+/.env

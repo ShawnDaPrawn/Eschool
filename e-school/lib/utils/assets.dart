@@ -1,19 +1,21 @@
+import 'package:eschool_core/eschool_core.dart';
+
 class Assets {
   static const _imagePath = 'assets/images';
   static const _brandingImagePath = 'assets/images/branding';
 
   // Branding Images
   static const appLogo = '$_brandingImagePath/appLogo.svg';
-  static const fileNotFoundImage = '$_brandingImagePath/fileNotFound.svg';
-  static const noInternetImage = '$_brandingImagePath/noInternet.svg';
-  static const somethingWentWrongImage =
-      '$_brandingImagePath/somethingWentWrong.svg';
+  static const appLogoReversed = '$_brandingImagePath/appLogoReversed.svg';
+  static const fileNotFoundImage = SharedAssets.fileNotFoundImage;
+  static const noInternetImage = SharedAssets.noInternetImage;
+  static const somethingWentWrongImage = SharedAssets.somethingWentWrongImage;
   static const maintenanceImage = '$_brandingImagePath/maintenance.svg';
   static const feePaymentDueImage = '$_brandingImagePath/fee_payment_due.svg';
 
   // Images
-  static const rtlBackIcon = '$_imagePath/rtl_back_icon.svg';
-  static const backIcon = '$_imagePath/back_icon.svg';
+  static const rtlBackIcon = SharedAssets.rtlBackIcon;
+  static const backIcon = SharedAssets.backIcon;
 
   static const chequePaymentIcon = '$_imagePath/cheque_payment_icon.svg';
   static const onlinePaymentIcon = '$_imagePath/online_payment_icon.svg';
@@ -30,13 +32,13 @@ class Assets {
   static const holidayIcon = '$_imagePath/holiday_icon.svg';
   static const settingsIcon = '$_imagePath/setting_icon.svg';
 
-  static const hidePasswordIcon = '$_imagePath/hide_password.svg';
-  static const showPasswordIcon = '$_imagePath/show_password.svg';
+  static const hidePasswordIcon = SharedAssets.hidePasswordIcon;
+  static const showPasswordIcon = SharedAssets.showPasswordIcon;
 
   static const logoutIcon = '$_imagePath/logout_icon.svg';
-  static const downloadIcon = '$_imagePath/download_icon.svg';
+  static const downloadIcon = SharedAssets.downloadIcon;
 
-  static const defaultProfile = '$_imagePath/default_profile.svg';
+  static const defaultProfile = SharedAssets.defaultProfile;
   static const filterIcon = '$_imagePath/filter_icon.svg';
 
   // child information menu icons
@@ -58,7 +60,7 @@ class Assets {
   static const weightIcon = '$_imagePath/weight_icon.svg';
   static const heightIcon = '$_imagePath/height_icon.svg';
 
-  static const arrowDownIcon = '$_imagePath/arrow_down_icon.svg';
+  static const arrowDownIcon = SharedAssets.arrowDownIcon;
   static const mailIcon = '$_imagePath/mail_icon.svg';
   static const userIcon = '$_imagePath/user_icon.svg';
   static const phoneCall = '$_imagePath/phone-call.svg';
@@ -95,5 +97,5 @@ class Assets {
   static const _animationsPath = 'assets/animations';
 
   static const onboardingAnimation = '$_animationsPath/onboarding.json';
-  static const addFloatingAnimation = '$_animationsPath/add_floating.json';
+  static const addFloatingAnimation = SharedAssets.addFloatingAnimation;
 }
