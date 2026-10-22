@@ -81,6 +81,7 @@ The `mysql` connection uses `utf8mb4`/`utf8mb4_unicode_ci`, `strict => false`, `
 | `SESSION_DRIVER` | `file` | `file` | Admin panel sessions (`storage/framework/sessions`). |
 | `SESSION_LIFETIME` | `120` | `120` | Minutes. |
 | `SANCTUM_EXPIRATION` | `43200` | `60 * 24 * 30` | Minutes before a mobile-app token expires (30 days). Expired tokens are pruned daily; see [Scheduled-Tasks-and-Commands](Scheduled-Tasks-and-Commands). |
+| `CORS_ALLOWED_ORIGINS` | empty | see meaning | `config('cors.allowed_origins')`, besides the `APP_URL` origin: the web portal origins that may call the API from a browser, comma separated (for example `https://app.navigateed.co.za,https://teach.navigateed.co.za`). Empty: `https://app.navigateed.co.za` and `https://teach.navigateed.co.za`, with a `staging-` prefix on each when the `APP_URL` host starts with `staging-`; with `APP_ENV` `local` or `testing`, also `localhost` and `127.0.0.1` on any port. Their hosts are also Sanctum's stateful domains. See [Security-Model](Security-Model#mobile-app-api-sanctum-tokens). |
 | `MEMCACHED_HOST` | `127.0.0.1` | `127.0.0.1` | Only if `CACHE_DRIVER=memcached`. |
 | `REDIS_HOST` | `127.0.0.1` | `127.0.0.1` | Only if a Redis driver is chosen. |
 | `REDIS_PASSWORD` | `null` | none | |
@@ -96,7 +97,7 @@ These are fallbacks. Once the Email Settings page has been saved, the `mail_*` s
 | `MAIL_HOST` | empty | `smtp.gmail.com` | `mail_host` |
 | `MAIL_PORT` | empty | `587` | `mail_port` (cast to int) |
 | `MAIL_USERNAME` | empty | empty | `mail_username` |
-| `MAIL_PASSWORD` | empty | empty | `mail_password` |
+| `MAIL_PASSWORD` | empty | empty | A secret: when set it wins, and the Email Settings page neither shows nor saves it; the `mail_password` row is used only while this is empty (see [Secrets](#secrets)) |
 | `MAIL_ENCRYPTION` | `tls` | `tls` | `mail_encryption` |
 | `MAIL_FROM_ADDRESS` | empty | `hello@example.com` | `mail_send_from` (config `mail.from.address`, also used as the sender by several controllers) |
 | `MAIL_FROM_NAME` | `"${APP_NAME}"` | `Example` | If it equals `APP_NAME` (as in `.env.example`), it follows the `school_name` setting; a different value of its own is kept. |
@@ -128,7 +129,10 @@ Read by `config/*.php` but missing from `.env.example`. Most are Laravel default
 | **`DB_PERSISTENT`** | `config/database.php` (`PDO::ATTR_PERSISTENT`) | `true` | Persistent MySQL connections are on unless set to `false`. The tests set it to `false` because shared persistent connections broke test transactions. |
 | `DATABASE_URL`, `DB_SOCKET`, `MYSQL_ATTR_SSL_CA`, `DB_FOREIGN_KEYS` | `config/database.php` | | On Cloud Run, `DB_SOCKET=/cloudsql/<project>:africa-south1:navigateed-mysql` connects through the Cloud SQL connector. `DB_FOREIGN_KEYS` applies to SQLite only. |
 | `REDIS_CLIENT`, `REDIS_CLUSTER`, `REDIS_PREFIX`, `REDIS_URL`, `REDIS_DB`, `REDIS_CACHE_DB` | `config/database.php` | `phpredis`, `redis`, slug of `APP_NAME`, none, `0`, `1` | |
-| `SESSION_CONNECTION`, `SESSION_STORE`, `SESSION_COOKIE`, `SESSION_DOMAIN` | `config/session.php` | | `SESSION_COOKIE` defaults to `<slug of APP_NAME>_session`. |
+| `SESSION_CONNECTION`, `SESSION_STORE`, `SESSION_COOKIE`, `SESSION_DOMAIN` | `config/session.php` | | `SESSION_COOKIE` defaults to `<slug of APP_NAME>_session`. Leave `SESSION_DOMAIN` empty (the panel's own host) unless a web portal on a sibling host must share the session cookie; then `.navigateed.co.za`. |
+| **`SESSION_SAME_SITE`** | `config/session.php` | `lax` | The session cookie's `SameSite`; `none` (with HTTPS) only if a portal on another site must send it. |
+| **`LEARNER_INVITATION_LINK_DAYS`** | `config/auth.php` (`learner_invitations.link_days`) | `7` | Days a guardian's learner set-up link works. |
+| **`LEARNER_SETUP_CODE_DAYS`** | `config/auth.php` (`learner_invitations.code_days`) | `30` | Days a printed learner set-up code works. |
 | `SESSION_SECURE_COOKIE` | `config/session.php` | true when `APP_URL` starts with `https://` | |
 | `CACHE_PREFIX`, `MEMCACHED_PERSISTENT_ID`, `MEMCACHED_USERNAME`, `MEMCACHED_PASSWORD`, `MEMCACHED_PORT`, `DYNAMODB_CACHE_TABLE`, `DYNAMODB_ENDPOINT` | `config/cache.php` | | |
 | `SQS_PREFIX`, `SQS_QUEUE`, `SQS_SUFFIX`, `REDIS_QUEUE`, `QUEUE_FAILED_DRIVER` | `config/queue.php` | | |
@@ -142,10 +146,9 @@ Read by `config/*.php` but missing from `.env.example`. Most are Laravel default
 | **`GOOGLE_CLOUD_PROJECT`** | `config/logging.php` (json channel) | none | The project id; lets the json channel link log lines to Cloud Run traces. Set by the provisioning script. |
 | **`APP_RELEASE`** | `config/logging.php` (json channel) | `K_REVISION` | The release (tag or commit) the image was built from: baked in by the Dockerfile's `APP_RELEASE` build argument; shown as the version in Error Reporting. |
 | **`QUEUE_HEALTH_MAX_WAIT`** | `config/queue.php` (`worker_health.max_wait_seconds`) | `600` | Seconds a due job may wait before `GET /up/worker` answers 503. |
-| **`STRIPE_WEBHOOK_SECRET`** | `config/services.php` | none | Fallback Stripe webhook secret, used only when the `stripe_webhook_secret` settings row is empty (see [config/services.php](#configservicesphp)). |
-| `STRIPE_PUBLISHABLE_KEY`, `STRIPE_SECRET_KEY` | `config/services.php` | none | Defined but not read by the payment code, which takes these keys from the settings table. |
+| `STRIPE_PUBLISHABLE_KEY` | `config/services.php` | none | Defined but not read: the publishable key comes from the fees settings page. The Stripe secrets are under [Secrets](#secrets). |
 | `ABLY_KEY` | `config/broadcasting.php` | | |
-| `SANCTUM_STATEFUL_DOMAINS` | `config/sanctum.php` | `localhost,localhost:3000,127.0.0.1,127.0.0.1:8000,::1` plus the `APP_URL` host | |
+| `SANCTUM_STATEFUL_DOMAINS` | `config/sanctum.php` | `localhost,localhost:3000,127.0.0.1,127.0.0.1:8000,::1` (any port on `local` and `testing`) plus the hosts of the CORS origins (`APP_URL` and the portals) | |
 | `VIEW_COMPILED_PATH` | `config/view.php` | `storage/framework/views` | |
 | `DEBUGBAR_ENABLED`, `DEBUGBAR_EDITOR`, `DEBUGBAR_REMOTE_SITES_PATH`, `DEBUGBAR_LOCAL_SITES_PATH`, `DEBUGBAR_THEME` | `config/debugbar.php` | `DEBUGBAR_ENABLED=null` (follows `APP_DEBUG`) | |
 
@@ -178,7 +181,7 @@ On Cloud Run, [infra/gcp/provision.sh](https://github.com/ShawnDaPrawn/Eschool/b
 | `mail_host` | `mail.mailers.smtp.host` |
 | `mail_port` | `mail.mailers.smtp.port` (as an integer) |
 | `mail_username` | `mail.mailers.smtp.username` |
-| `mail_password` | `mail.mailers.smtp.password` |
+| `mail_password` | `mail.mailers.smtp.password`, only while `MAIL_PASSWORD` is empty |
 | `mail_encryption` | `mail.mailers.smtp.encryption` |
 | `mail_send_from` | `mail.from.address` |
 | `time_zone` | `app.timezone`, and `date_default_timezone_set()` (only if it is a valid PHP timezone identifier) |
@@ -226,7 +229,7 @@ See [Installation-Wizard](Installation-Wizard) for how these are used.
 
 ### config/services.php
 
-Besides the stock `mailgun`, `postmark` and `ses` entries, it defines `services.stripe` (`key`, `secret`, `webhook_secret`); Stripe is the only payment gateway since Phase 0 removed Razorpay, Paystack and Flutterwave. Its only use is as a fallback in `PaymentService::webhookSecret()`: the `stripe_webhook_secret` settings row, or `services.stripe.webhook_secret` (`STRIPE_WEBHOOK_SECRET`) when the row is empty. When both are empty the webhook is refused. See [Payments](Payments).
+Besides the stock `mailgun`, `postmark` and `ses` entries, it defines `services.stripe` (`key`, `secret`, `webhook_secret`); Stripe is the only payment gateway since Phase 0 removed Razorpay, Paystack and Flutterwave. Nothing reads `services.stripe` any more: the Stripe secret key and webhook secret come from `config/secrets.php` (see [Secrets](#secrets)), and `PaymentService::webhookSecret()` refuses the webhook when neither the environment nor the settings row has one. See [Payments](Payments).
 
 ### Other config files
 
@@ -277,12 +280,34 @@ A parent or teacher accepts those two pages in the app, after NavigateEd's own t
 | School name, contact details, logos, favicon, login image, colours, timezone, date and time formats, session year | `APP_KEY`, `APP_ENV`, `APP_DEBUG`, `APP_URL`, `DEMO_MODE` |
 | Mail server, port, credentials, encryption and sender address | Database credentials (`DB_*`), `DB_PERSISTENT` |
 | Firebase sender id, project id and service account file | Cache, session, queue and filesystem drivers |
-| Payment gateway keys, webhook secrets, currencies, installment options | `LOG_CHANNEL`, `LOG_LEVEL` |
+| Payment gateway status, publishable key, currencies, installment options | `LOG_CHANNEL`, `LOG_LEVEL` |
 | App store links, minimum app versions, maintenance switches | `SANCTUM_EXPIRATION`, `SESSION_SECURE_COOKIE` |
 | Chat limits and retention days | Mailgun or Postmark credentials, `MAIL_FROM_NAME` |
+| | Secrets: `MAIL_PASSWORD`, `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`, `RECAPTCHA_SECRET_KEY`, `FCM_SERVICE_ACCOUNT_JSON` (the settings pages are only a fallback) |
 | Privacy policy, terms, about and contact pages; email templates (table `email_tempalates`); public website sections (table `web_settings`) | |
 
-Where a value exists in both places, the setting wins whenever it is non-empty: school name over `APP_NAME`, `time_zone` over `TIMEZONE`, `mail_*` over `MAIL_*`, and the Stripe webhook secret row over the `services.*` fallbacks. `.env` values matter only before the corresponding screen has been saved.
+Where a value exists in both places, the setting wins whenever it is non-empty: school name over `APP_NAME`, `time_zone` over `TIMEZONE`, `mail_*` over `MAIL_*` (except the password). Secrets are the other way round: the environment wins and the settings row is only a fallback (see [Secrets](#secrets)).
+
+## Secrets
+
+Secrets come from the environment. On Cloud Run each one is a Secret Manager secret mounted as the variable; locally they go in `.env`. [config/secrets.php](https://github.com/ShawnDaPrawn/Eschool/blob/main/admin-panel/config/secrets.php) reads them, and [SecretSettings](https://github.com/ShawnDaPrawn/Eschool/blob/main/admin-panel/app/Services/Platform/Secrets/SecretSettings.php) gives the rest of the code one way to get them.
+
+| Variable | Config key | Replaces the settings row | Proposed Secret Manager name | Needed by |
+|---|---|---|---|---|
+| `MAIL_PASSWORD` | `secrets.mail_password` (also `mail.mailers.smtp.password`) | `mail_password` (Email Settings) | `navigateed-mail-password` | web, worker |
+| `STRIPE_SECRET_KEY` | `secrets.stripe_secret_key` | `stripe_secret_key` (Fees configuration) | `navigateed-stripe-secret-key` | web |
+| `STRIPE_WEBHOOK_SECRET` | `secrets.stripe_webhook_secret` | `stripe_webhook_secret` (Fees configuration) | `navigateed-stripe-webhook-secret` | web |
+| `RECAPTCHA_SECRET_KEY` | `secrets.recaptcha_secret_key` | `recaptcha_secret_key` (General Settings) | `navigateed-recaptcha-secret-key` | web |
+| `FCM_SERVICE_ACCOUNT_JSON` | `secrets.fcm_service_account` | `service_account_file` (the uploaded JSON on the Firebase settings page) | `navigateed-fcm-service-account` | web, worker |
+
+The value of `FCM_SERVICE_ACCOUNT_JSON` is the whole service account JSON; the project id is read from it unless the Firebase settings page has one.
+
+Rules:
+
+- A secret set in the environment is used; the settings row is read only when the variable is empty, so an install without Secret Manager works as before.
+- When the variable is set, its settings page shows "Set in the environment", does not ask for the value and ignores a posted one. The Firebase page offers no upload.
+- `php artisan secrets:audit-settings` lists, for each secret, whether the environment provides it and whether a row still holds a value; values are never printed. `--purge` deletes the rows the environment replaces (and the uploaded Firebase file), and every `razorpay_*`, `paystack_*` and `flutterwave_*` row left by the removed gateways. A row whose variable is not set yet is kept, so nothing stops working. Run it once the secrets are mounted.
+- A new secret is added to `config/secrets.php` and `SecretSettings::SECRETS`, never to the `settings` table.
 
 ## See also
 
