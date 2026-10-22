@@ -1,9 +1,6 @@
-import 'dart:io';
-
 import 'package:bloc/bloc.dart';
 import 'package:eschool_teacher/data/repositories/studentRepository.dart';
 import 'package:eschool_core/eschool_core.dart';
-import 'package:path_provider/path_provider.dart';
 
 abstract class DownloadResultPdfState {}
 
@@ -42,16 +39,11 @@ class DownloadResultPdfCubit extends Cubit<DownloadResultPdfState> {
       studentId: studentId,
     )
         .then((value) async {
-      String filePath = '';
-      final path = (await getApplicationDocumentsDirectory()).path;
       final String prefix = sanitizeFileName(fileNamePrefix, fallback: '');
-      filePath = '$path/Exam Results/${prefix}_on_${DateTime.now()}.pdf';
-
-      final File file = File(filePath);
-      if (!file.existsSync()) {
-        await file.create(recursive: true);
-      }
-      await file.writeAsBytes(value);
+      final String filePath = await DeviceFiles.saveDocument(
+        value,
+        'Exam Results/${prefix}_on_${DateTime.now()}.pdf',
+      );
       emit(DownloadResultPdfDownloadSuccess(filePath));
     }).catchError((e) {
       emit(DownloadResultPdfDownloadFailure(e.toString()));

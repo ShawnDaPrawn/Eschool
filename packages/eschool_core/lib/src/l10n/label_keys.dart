@@ -4,6 +4,7 @@
 // apps' shared_label_keys_test checks.
 
 const String addMoreCharactorsToSearchKey = 'addMoreCharactersToSearch';
+const String availableInMobileAppKey = 'availableInMobileApp';
 const String cancelKey = 'cancel';
 const String dateKey = 'date';
 const String deleteDialogMessageKey = 'deleteDialogMessage';
@@ -38,6 +39,7 @@ const String yesKey = 'yes';
 /// Every key above, for the apps' tests.
 const List<String> sharedLabelKeys = [
   addMoreCharactorsToSearchKey,
+  availableInMobileAppKey,
   cancelKey,
   dateKey,
   deleteDialogMessageKey,

@@ -7,6 +7,7 @@ import 'package:eschool/utils/constants.dart';
 import 'package:eschool_notifications/eschool_notifications.dart';
 import 'package:eschool/utils/uiUtils.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 export 'package:eschool_core/eschool_core.dart' show ApiException;
@@ -258,6 +259,17 @@ class Api {
     url: url,
     cancelToken: cancelToken,
     savePath: savePath,
+    updateDownloadedPercentage: updateDownloadedPercentage,
+  );
+
+  /// [download] into memory, for a web build (which cannot write files).
+  static Future<Uint8List> downloadBytes({
+    required String url,
+    required CancelToken cancelToken,
+    required Function updateDownloadedPercentage,
+  }) => _client.downloadBytes(
+    url: url,
+    cancelToken: cancelToken,
     updateDownloadedPercentage: updateDownloadedPercentage,
   );
 

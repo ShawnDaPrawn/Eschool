@@ -31,6 +31,8 @@ export 'src/models/semester_break.dart';
 export 'src/models/study_material.dart';
 export 'src/models/subject_mark.dart';
 export 'src/models/topic.dart';
+export 'src/platform/device_files.dart';
+export 'src/platform/pdf_document_view.dart';
 export 'src/repositories/school_info_repositories.dart';
 export 'src/shell/app_shell.dart';
 export 'src/theme/app_theme.dart';

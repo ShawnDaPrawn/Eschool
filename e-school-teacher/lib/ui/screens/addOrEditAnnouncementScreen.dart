@@ -120,6 +120,9 @@ class _AddOrEditAnnouncementScreenState
   }
 
   Future<void> addAttachment() async {
+    if (UiUtils.showMobileOnlyNotice(context)) {
+      return;
+    }
     final permission = await Permission.storage.request();
     if (permission.isGranted) {
       final pickedFile = await FilePicker.pickFiles();

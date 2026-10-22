@@ -543,6 +543,9 @@ class FeesDetailsScreenState extends State<FeesDetailsScreen> {
   }
 
   void payNowProcess(ChildFees childFees) {
+    if (UiUtils.showMobileOnlyNotice(context)) {
+      return;
+    }
     //assigning needed variables for payment process
     selectedFeesToBePaid = _getPaybleFees(childFees);
     if (_selectedTabTitle == compulsoryTitleKey) {

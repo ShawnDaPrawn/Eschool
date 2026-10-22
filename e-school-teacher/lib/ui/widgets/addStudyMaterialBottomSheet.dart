@@ -252,6 +252,9 @@ class _AddStudyMaterialBottomsheetState
                           )
                         : BottomsheetAddFilesDottedBorderContainer(
                             onTap: () async {
+                              if (UiUtils.showMobileOnlyNotice(context)) {
+                                return;
+                              }
                               try {
                                 final pickedFile = await FilePicker.pickFiles(
                                   type:
@@ -332,6 +335,9 @@ class _AddStudyMaterialBottomsheetState
                                 )
                               : BottomsheetAddFilesDottedBorderContainer(
                                   onTap: () async {
+                                    if (UiUtils.showMobileOnlyNotice(context)) {
+                                      return;
+                                    }
                                     try {
                                       final pickedFile =
                                           await FilePicker.pickFiles(

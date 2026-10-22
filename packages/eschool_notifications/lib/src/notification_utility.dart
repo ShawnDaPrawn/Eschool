@@ -37,6 +37,13 @@ class NotificationUtility {
   static NotificationConfig? _config;
   static SessionRepository? _session;
 
+  /// False makes every call here do nothing, as on the web: the integration
+  /// smoke flows run without a Firebase project.
+  static bool enabled = true;
+
+  /// Whether push and local notifications run: [enabled], on Android or iOS.
+  static bool get isActive => enabled && NotificationPlatform.isSupported;
+
   /// The unread badge on the notification icons.
   static final ValueNotifier<int> unreadCount = ValueNotifier(0);
 
@@ -56,13 +63,34 @@ class NotificationUtility {
     _session = session;
   }
 
+  /// What a sign-in request tells the server about this device so it can
+  /// push to it: the FCM token (empty when there is none, as on a simulator)
+  /// and `android` or `ios`. Nothing in a browser, which gets no push yet:
+  /// the server then keeps what it knows about the user's phone.
+  static Future<Map<String, dynamic>> signInDeviceFields() async {
+    if (!isActive) {
+      return const {};
+    }
+    final String? fcmToken = await () async {
+      try {
+        return await FirebaseMessaging.instance.getToken();
+      } catch (_) {
+        return '';
+      }
+    }();
+    return {
+      'fcm_id': fcmToken,
+      'device_type': NotificationPlatform.isAndroid ? 'android' : 'ios',
+    };
+  }
+
   //to receive topic-based notifications
   static Future<void> subscribeOrUnsubscribeToNotificationTopics({
     required NotificationAudience audience,
     required bool isUnsubscribe,
   }) async {
     final SessionRepository? session = _session;
-    if (!NotificationPlatform.isSupported || session == null) {
+    if (!isActive || session == null) {
       return;
     }
     if (session.hasSubscribedToNotificationTopics && !isUnsubscribe) {
@@ -89,7 +117,7 @@ class NotificationUtility {
   static Future<void> setUpNotificationService(
     BuildContext buildContext,
   ) async {
-    if (!NotificationPlatform.isSupported) {
+    if (!isActive) {
       return;
     }
     ChatNotificationsUtils.initialize();
@@ -166,7 +194,7 @@ class NotificationUtility {
 
   static Future<void> initializeAwesomeNotification() async {
     final NotificationConfig? appConfig = _config;
-    if (!NotificationPlatform.isSupported || appConfig == null) {
+    if (!isActive || appConfig == null) {
       return;
     }
     await AwesomeNotifications()
@@ -189,7 +217,7 @@ class NotificationUtility {
   }
 
   static Future<bool> isLocalNotificationAllowed() async {
-    if (!NotificationPlatform.isSupported) {
+    if (!isActive) {
       return false;
     }
     const notificationPermission = Permission.notification;

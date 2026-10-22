@@ -273,6 +273,9 @@ class _AddLeaveScreenState extends State<AddLeaveScreen> {
           BottomsheetAddFilesDottedBorderContainer(
             onTap: () async {
               FocusScope.of(context).unfocus();
+              if (UiUtils.showMobileOnlyNotice(context)) {
+                return;
+              }
               final permission = await Permission.storage.request();
               if (permission.isGranted) {
                 final pickedFile = await FilePicker.pickFiles(

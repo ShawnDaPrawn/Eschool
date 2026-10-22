@@ -7,9 +7,7 @@ import 'package:eschool/utils/labelKeys.dart';
 import 'package:eschool/utils/uiUtils.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_pdfview/flutter_pdfview.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:open_filex/open_filex.dart';
 
 class PdfFileScreen extends StatefulWidget {
   const PdfFileScreen({
@@ -148,7 +146,10 @@ class _PdfFileScreenState extends State<PdfFileScreen> {
                     ),
                   );
                 } else if (state is PdfFileSaveSuccess) {
-                  return PDFView(filePath: state.pdfFilePath, pageFling: false);
+                  return PdfDocumentView(
+                    filePath: state.pdfFilePath,
+                    bytes: state.bytes,
+                  );
                 } else {
                   return Center(
                     child: ErrorContainer(
@@ -176,7 +177,7 @@ class _PdfFileScreenState extends State<PdfFileScreen> {
                         color: Theme.of(context).colorScheme.onInverseSurface,
                       ),
                       onPressed: () {
-                        OpenFilex.open(widget.pdfFileMaterial.fileUrl);
+                        DeviceFiles.open(widget.pdfFileMaterial.fileUrl);
                       },
                     )
                   : IconButton(

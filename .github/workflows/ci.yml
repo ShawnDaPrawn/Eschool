@@ -82,6 +82,104 @@ jobs:
       - run: flutter analyze --no-fatal-infos
       - run: flutter test
 
+  apps-web:
+    name: Flutter web build (${{ matrix.app }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        app: [e-school, e-school-teacher]
+    defaults:
+      run:
+        working-directory: ${{ matrix.app }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.44.9'
+          channel: stable
+          cache: true
+      - run: flutter pub get --enforce-lockfile
+      # The same build the deploy workflow makes, with the staging settings.
+      - run: flutter build web --release --dart-define-from-file=config/staging.json
+
+  # The integration_test/ smoke flows (sign in, land on home, open one screen)
+  # against the fake API in integration_test/support/fixtures.dart: no server.
+  apps-smoke-android:
+    name: Flutter smoke flows on Android (${{ matrix.app }})
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    strategy:
+      fail-fast: false
+      matrix:
+        app: [e-school, e-school-teacher]
+    steps:
+      - uses: actions/checkout@v4
+      # Hardware acceleration for the emulator on GitHub's Linux runners.
+      - name: Enable KVM
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.44.9'
+          channel: stable
+          cache: true
+      - run: flutter pub get --enforce-lockfile
+        working-directory: ${{ matrix.app }}
+      - uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 34
+          arch: x86_64
+          target: google_apis
+          profile: pixel_6
+          disable-animations: true
+          emulator-options: -no-snapshot-save -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim
+          working-directory: ${{ matrix.app }}
+          script: flutter test integration_test
+
+  apps-smoke-chrome:
+    name: Flutter smoke flow in Chrome (${{ matrix.flow }})
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - app: e-school
+            flow: learner_smoke_test.dart
+          - app: e-school
+            flow: parent_smoke_test.dart
+          - app: e-school-teacher
+            flow: teacher_smoke_test.dart
+    defaults:
+      run:
+        working-directory: ${{ matrix.app }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.44.9'
+          channel: stable
+          cache: true
+      - run: flutter pub get --enforce-lockfile
+      # The runner image ships Chrome with a matching chromedriver.
+      - name: Start chromedriver
+        run: |
+          "$CHROMEWEBDRIVER/chromedriver" --port=4444 &
+          sleep 2
+      - run: >-
+          flutter drive
+          --driver=test_driver/integration_test.dart
+          --target=integration_test/${{ matrix.flow }}
+          -d web-server --browser-name=chrome --headless
+          --no-web-resources-cdn
+
   docs:
     name: Documentation build
     runs-on: ubuntu-latest

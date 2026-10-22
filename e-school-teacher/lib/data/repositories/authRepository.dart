@@ -1,9 +1,7 @@
-import 'dart:io';
-
 import 'package:eschool_teacher/data/models/teacher.dart';
 import 'package:eschool_teacher/utils/api.dart';
 import 'package:eschool_teacher/utils/hiveBoxKeys.dart';
-import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:eschool_notifications/eschool_notifications.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 
 class AuthRepository {
@@ -58,20 +56,11 @@ class AuthRepository {
     required String email,
     required String password,
   }) async {
-    //to avoid errors when token is not retrieved in simulators
-    final fcmToken = await () async {
-      try {
-        return await FirebaseMessaging.instance.getToken();
-      } catch (_) {
-        return '';
-      }
-    }();
-
     final body = {
       'password': password,
       'email': email,
-      'fcm_id': fcmToken,
-      'device_type': Platform.isAndroid ? 'android' : 'ios',
+      //the FCM token and device type; none in a browser
+      ...await NotificationUtility.signInDeviceFields(),
     };
 
     final result = await Api.post(

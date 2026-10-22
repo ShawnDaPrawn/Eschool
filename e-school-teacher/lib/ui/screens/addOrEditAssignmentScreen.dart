@@ -158,6 +158,9 @@ class _AddAssignmentScreenState extends State<AddAssignmentScreen> {
   }
 
   Future<void> _addFiles() async {
+    if (UiUtils.showMobileOnlyNotice(context)) {
+      return;
+    }
     //upload files
     final permission = await Permission.storage.request();
     if (permission.isGranted) {

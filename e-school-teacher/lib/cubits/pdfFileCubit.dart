@@ -5,6 +5,7 @@ import 'package:eschool_core/eschool_core.dart';
 import 'package:eschool_teacher/data/repositories/studyMaterialRepositoy.dart';
 import 'package:eschool_teacher/utils/errorMessageKeysAndCodes.dart';
 import 'package:external_path/external_path.dart';
+import 'package:flutter/foundation.dart';
 
 import 'package:flutter_bloc/flutter_bloc.dart';
 // ignore: depend_on_referenced_packages
@@ -23,8 +24,11 @@ class PdfFileSaveInProgress extends PdfFileSaveState {
 
 class PdfFileSaveSuccess extends PdfFileSaveState {
 
-  PdfFileSaveSuccess(this.pdfFilePath);
+  PdfFileSaveSuccess(this.pdfFilePath, {this.bytes});
   final String pdfFilePath;
+
+  /// The PDF itself in a web build, which has no files.
+  final Uint8List? bytes;
 }
 
 class PdfFileSaveFailure extends PdfFileSaveState {
@@ -69,6 +73,17 @@ class PdfFileSaveCubit extends Cubit<PdfFileSaveState> {
     }
     emit(PdfFileSaveInProgress(0));
     try {
+      //a browser cannot write files: it shows the PDF from memory
+      if (kIsWeb) {
+        final Uint8List bytes = await _subjectRepository
+            .downloadStudyMaterialBytes(
+              cancelToken: _cancelToken,
+              updateDownloadedPercentage: _downloadedFilePercentage,
+              url: studyMaterial.fileUrl,
+            );
+        emit(PdfFileSaveSuccess('', bytes: bytes));
+        return;
+      }
       //if wants to download the file then
       if (storeInExternalStorage) {
         Future<void> thingsToDoAfterPermissionIsGiven(

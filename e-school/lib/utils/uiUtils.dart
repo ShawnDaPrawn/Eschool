@@ -12,10 +12,10 @@ import 'package:eschool/ui/widgets/errorMessageOverlayContainer.dart';
 import 'package:eschool/utils/constants.dart';
 import 'package:eschool/utils/errorMessageKeysAndCodes.dart';
 import 'package:eschool/utils/labelKeys.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart' as intl;
-import 'package:open_filex/open_filex.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import 'package:timeago/timeago.dart' as timeago;
@@ -217,6 +217,20 @@ class UiUtils {
     return "${UiUtils.getTranslatedLabel(context, dueKey)}, ${dateTime.day} $monthName ${dateTime.year}, ${hour.toString().padLeft(2, '0')}:${dateTime.minute.toString().padLeft(2, '0')} $amOrPm";
   }
 
+  /// True in a web build, where attaching files and paying are not built
+  /// yet: it tells the user to do it in the app on their phone instead.
+  static bool showMobileOnlyNotice(BuildContext context) {
+    if (!kIsWeb) {
+      return false;
+    }
+    showCustomSnackBar(
+      context: context,
+      errorMessage: getTranslatedLabel(context, availableInMobileAppKey),
+      backgroundColor: Theme.of(context).colorScheme.primary,
+    );
+    return true;
+  }
+
   static Future<void> showCustomSnackBar({
     required BuildContext context,
     required String errorMessage,
@@ -371,10 +385,10 @@ class UiUtils {
           );
         } else {
           try {
-            final fileOpenResult = await OpenFilex.open(
+            final bool opened = await DeviceFiles.open(
               result['filePath'].toString(),
             );
-            if (fileOpenResult.type != ResultType.done) {
+            if (!opened) {
               showCustomSnackBar(
                 context: context,
                 errorMessage: getTranslatedLabel(context, unableToOpenKey),

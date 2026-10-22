@@ -432,5 +432,6 @@
   "schoolPoliciesIntro": "Okulunuz, uygulamayı kullanmadan önce bunu kabul etmenizi istiyor.",
   "iHaveReadAndAccept": "Bunu okudum ve kabul ediyorum",
   "acceptAndContinue": "Kabul et ve devam et",
-  "notNow": "Şimdi değil"
+  "notNow": "Şimdi değil",
+  "availableInMobileApp": "Bu, şimdilik telefonunuzdaki NavigateEd uygulamasında çalışır."
 }

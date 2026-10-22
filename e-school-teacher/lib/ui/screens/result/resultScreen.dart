@@ -12,7 +12,6 @@ import 'package:eschool_teacher/utils/uiUtils.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:open_filex/open_filex.dart';
 
 class ResultListScreen extends StatelessWidget {
   const ResultListScreen({
@@ -102,10 +101,10 @@ class ResultListScreen extends StatelessWidget {
                                 );
                               } else if (state
                                   is DownloadResultPdfDownloadSuccess) {
-                                final fileOpenResult = await OpenFilex.open(
+                                final bool opened = await DeviceFiles.open(
                                   state.filePath,
                                 );
-                                if (fileOpenResult.type != ResultType.done) {
+                                if (!opened) {
                                   if (context.mounted) {
                                     UiUtils.showBottomToastOverlay(
                                       context: context,

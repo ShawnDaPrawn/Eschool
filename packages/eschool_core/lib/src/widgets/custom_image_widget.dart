@@ -1,5 +1,5 @@
 import 'package:eschool_core/eschool_core.dart';
-import 'dart:io';
+import 'package:eschool_core/src/platform/local_image.dart';
 
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
@@ -61,8 +61,6 @@ class CustomImageWidget extends StatelessWidget {
         ? imagePath.toLowerCase().endsWith('svg')
               ? SvgPicture.asset(imagePath, fit: boxFit)
               : Image.asset(imagePath, fit: boxFit)
-        : imagePath.toLowerCase().endsWith('svg')
-        ? SvgPicture.file(File(imagePath), fit: boxFit)
-        : Image.file(File(imagePath), fit: boxFit);
+        : localImage(imagePath, fit: boxFit);
   }
 }

@@ -12,11 +12,11 @@ import 'package:eschool_teacher/ui/widgets/downloadFileBottomsheetContainer.dart
 import 'package:eschool_teacher/utils/constants.dart';
 import 'package:eschool_teacher/utils/errorMessageKeysAndCodes.dart';
 import 'package:eschool_teacher/utils/labelKeys.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 // ignore: depend_on_referenced_packages
 import 'package:intl/intl.dart' as intl;
-import 'package:open_filex/open_filex.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import 'package:timeago/timeago.dart' as timeago;
@@ -94,6 +94,20 @@ class UiUtils {
     context: context,
     enableDrag: enableDrag,
   );
+
+  /// True in a web build, where attaching files and paying are not built
+  /// yet: it tells the user to do it in the app on their phone instead.
+  static bool showMobileOnlyNotice(BuildContext context) {
+    if (!kIsWeb) {
+      return false;
+    }
+    showBottomToastOverlay(
+      context: context,
+      errorMessage: getTranslatedLabel(context, availableInMobileAppKey),
+      backgroundColor: Theme.of(context).colorScheme.primary,
+    );
+    return true;
+  }
 
   static Future<void> showBottomToastOverlay({
     required BuildContext context,
@@ -359,10 +373,10 @@ class UiUtils {
           }
         } else {
           try {
-            final fileOpenResult = await OpenFilex.open(
+            final bool opened = await DeviceFiles.open(
               result['filePath'].toString(),
             );
-            if (fileOpenResult.type != ResultType.done) {
+            if (!opened) {
               if (context.mounted) {
                 showBottomToastOverlay(
                   context: context,

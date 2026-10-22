@@ -1,10 +1,8 @@
-import 'dart:io';
-
 import 'package:eschool/data/models/parent.dart';
 import 'package:eschool/data/models/student.dart';
 import 'package:eschool/utils/api.dart';
 import 'package:eschool/utils/hiveBoxKeys.dart';
-import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:eschool_notifications/eschool_notifications.dart';
 import 'package:hive/hive.dart';
 import 'package:intl/intl.dart';
 
@@ -79,19 +77,11 @@ class AuthRepository {
     required String grNumber,
     required String password,
   }) async {
-    //to avoid errors when token is not retrieved in simulators
-    final fcmToken = await () async {
-      try {
-        return await FirebaseMessaging.instance.getToken();
-      } catch (_) {
-        return '';
-      }
-    }();
     final body = {
       'password': password,
       'gr_number': grNumber,
-      'fcm_id': fcmToken,
-      'device_type': Platform.isAndroid ? 'android' : 'ios',
+      //the FCM token and device type; none in a browser
+      ...await NotificationUtility.signInDeviceFields(),
     };
 
     final result = await Api.post(
@@ -110,19 +100,11 @@ class AuthRepository {
     required String email,
     required String password,
   }) async {
-    //to avoid errors when token is not retrieved in simulators
-    final fcmToken = await () async {
-      try {
-        return await FirebaseMessaging.instance.getToken();
-      } catch (_) {
-        return '';
-      }
-    }();
     final body = {
       'password': password,
       'email': email,
-      'fcm_id': fcmToken,
-      'device_type': Platform.isAndroid ? 'android' : 'ios',
+      //the FCM token and device type; none in a browser
+      ...await NotificationUtility.signInDeviceFields(),
     };
 
     final result = await Api.post(

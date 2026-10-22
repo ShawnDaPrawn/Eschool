@@ -13,7 +13,6 @@ import 'package:eschool/utils/uiUtils.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:open_filex/open_filex.dart';
 
 class FeesStatusScreen extends StatefulWidget {
   const FeesStatusScreen({required this.studentDetails, super.key});
@@ -151,8 +150,8 @@ class _FeesStatusScreenState extends State<FeesStatusScreen> {
                     backgroundColor: Theme.of(context).colorScheme.primary,
                   );
                   try {
-                    final fileOpenResult = await OpenFilex.open(state.filePath);
-                    if (fileOpenResult.type != ResultType.done) {
+                    final bool opened = await DeviceFiles.open(state.filePath);
+                    if (!opened) {
                       UiUtils.showCustomSnackBar(
                         context: context,
                         errorMessage: UiUtils.getTranslatedLabel(

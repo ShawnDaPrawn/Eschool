@@ -432,5 +432,6 @@
     "iHaveReadAndAccept": "J'ai lu ceci et je l'accepte",
     "acceptAndContinue": "Accepter et continuer",
     "notNow": "Pas maintenant",
-    "pleaseAcceptTermsAndCondition": "Veuillez accepter les termes et conditions"
+    "pleaseAcceptTermsAndCondition": "Veuillez accepter les termes et conditions",
+    "availableInMobileApp": "Pour l'instant, cela fonctionne dans l'application NavigateEd Teacher sur votre téléphone."
 }
