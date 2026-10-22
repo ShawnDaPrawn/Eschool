@@ -232,9 +232,31 @@ class ResponseService
     {
         report($e);
 
-        // The path without its query string, and only the names of the fields:
-        // logs carry no personal data beyond ids.
-        Log::error(self::truncate($e->getMessage(), self::LOG_CONTEXT_LIMIT).'---> '.$e->getFile().' At Line : '.$e->getLine()."\n\n".request()->method().' : /'.ltrim(self::truncate(request()->path()), '/')."\nParams : ", self::requestShape());
+        // The path without its query string, and the fields with their values
+        // left out except ids: logs carry no personal data beyond ids.
+        Log::error(self::truncate($e->getMessage(), self::LOG_CONTEXT_LIMIT).'---> '.$e->getFile().' At Line : '.$e->getLine()."\n\n".request()->method().' : /'.ltrim(self::truncate(request()->path()), '/')."\nParams : ", self::withoutValues(request()->all()));
+    }
+
+    /**
+     * The request's fields as they may go into the log: every value replaced by
+     * [omitted] except a whole-number id (a key that is id or ends in _id), at
+     * most 100 fields a level and 5 levels deep.
+     *
+     * @param  array<array-key, mixed>  $values
+     * @return array<array-key, mixed>
+     */
+    private static function withoutValues(array $values, int $depth = 0): array
+    {
+        $kept = [];
+        foreach (array_slice($values, 0, 100, true) as $key => $value) {
+            $kept[$key] = match (true) {
+                is_array($value) && $depth < 4 => self::withoutValues($value, $depth + 1),
+                preg_match('/(^|_)id$/i', (string) $key) === 1 && (is_int($value) || (is_string($value) && ctype_digit($value) && strlen($value) < 19)) => (int) $value,
+                default => '[omitted]',
+            };
+        }
+
+        return $kept;
     }
 
     /**

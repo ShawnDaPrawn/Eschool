@@ -67,11 +67,15 @@ class LogRedactionTest extends TestCase
 
         $this->assertCount(2, $entries);
         $this->assertStringStartsWith('Request: POST /api/student/apply-leave', $entries[0]);
+        // The request line names the fields; the parameters line keeps their shape.
+        foreach (['a.b.c.d.e', 'password', 'reason', 'items.*', 'token'] as $name) {
+            $this->assertStringContainsString('"'.$name.'"', $entries[0]);
+        }
+        foreach (['"a":{"b":{"c":{"d":{"e":"[omitted]"}}}}', '"password":"[omitted]"', '"reason":"[omitted]"', '"token":"[omitted]"'] as $shape) {
+            $this->assertStringContainsString($shape, $entries[1]);
+        }
         foreach ($entries as $entry) {
             $this->assertLessThan(25000, strlen($entry));
-            foreach (['a.b.c.d.e', 'password', 'reason', 'items.*', 'token'] as $name) {
-                $this->assertStringContainsString('"'.$name.'"', $entry);
-            }
             foreach (['deep-value', 'Body#Secret3', 'query-secret', 'rrrrrrrr', 'iiiiiiii'] as $value) {
                 $this->assertStringNotContainsString($value, $entry);
             }
