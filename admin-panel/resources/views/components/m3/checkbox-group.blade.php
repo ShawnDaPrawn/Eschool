@@ -4,6 +4,8 @@
         <x-m3.checkbox-group name="days" :legend="__('days')" :options="$days" :value="$row->days ?? []" />
 
     options  value => label.   value  the checked values.
+    required  at least one must be ticked: jQuery Validate's group rule (data-rule-required).
+              A native `required` would make every box mandatory, so it isn't used.
     class goes on the <fieldset>; input-class goes on every checkbox.
 --}}
 @props([
@@ -30,7 +32,7 @@
         @foreach ($options as $optionValue => $optionLabel)
             <x-m3.checkbox :name="$inputName" :value="$optionValue" :label="$optionLabel" :input-class="$inputClass"
                 :checked="in_array((string) $optionValue, $checkedValues, true)"
-                :required="$required" :disabled="$disabled" />
+                :disabled="$disabled" :data-rule-required="$required ? 'true' : null" />
         @endforeach
         {{ $slot }}
     </div>

@@ -19,8 +19,12 @@
     'infoId' => null,
     'inputClass' => null,
 ])
+@php
+    $hintId = $hint ? ($id ?? 'm3-file-' . \Illuminate\Support\Str::random(8)) . '-supporting' : null;
+@endphp
 <div {{ $attributes->only('class')->class(['m3-file-field']) }}>
     <input type="file" name="{{ $name }}" @if ($id) id="{{ $id }}" @endif tabindex="-1" aria-label="{{ $label }}"
+        @if ($hintId) aria-describedby="{{ $hintId }}" @endif
         @if ($accept) accept="{{ $accept }}" @endif @if ($multiple) multiple @endif @required($required)
         {{ $attributes->except('class')->class(['file-upload-default', 'm3-visually-hidden', $inputClass]) }}>
     <div class="m3-file-field__row">
@@ -28,9 +32,10 @@
             <input type="text" class="m3-text-field__input file-upload-info" @if ($infoId) id="{{ $infoId }}" @endif disabled placeholder=" ">
             <span class="m3-text-field__label">{{ $label }}@if ($required) <span class="m3-text-field__required" aria-hidden="true">*</span>@endif</span>
         </label>
-        <button type="button" class="m3-button m3-button--tonal file-upload-browse" aria-label="{{ __('upload') }}: {{ $label }}">{{ __('upload') }}</button>
+        <button type="button" class="m3-button m3-button--tonal file-upload-browse" aria-label="{{ __('upload') }}: {{ $label }}"
+            @if ($hintId) aria-describedby="{{ $hintId }}" @endif>{{ __('upload') }}</button>
     </div>
     @if ($hint)
-        <p class="m3-text-field__supporting">{{ $hint }}</p>
+        <p class="m3-text-field__supporting" id="{{ $hintId }}">{{ $hint }}</p>
     @endif
 </div>

@@ -94,6 +94,19 @@ class M3ComponentsTest extends TestCase
         $this->assertStringContainsString('name="days[]"', $checkboxes);
         $this->assertMatchesRegularExpression('/value="tue"\s+checked/', $checkboxes);
         $this->assertDoesNotMatchRegularExpression('/value="mon"\s+checked/', $checkboxes);
+        $this->assertStringNotContainsString('data-rule-required', $checkboxes);
+    }
+
+    public function test_a_required_checkbox_group_asks_for_one_box_not_every_box(): void
+    {
+        $html = $this->render(
+            '<x-m3.checkbox-group name="days" legend="Days" :options="[\'mon\' => \'Monday\', \'tue\' => \'Tuesday\']" required />'
+        );
+
+        // A native `required` on each box would make every box mandatory.
+        $this->assertDoesNotMatchRegularExpression('/<input[^>]*\srequired[\s>]/', $html);
+        $this->assertSame(2, substr_count($html, 'data-rule-required="true"'));
+        $this->assertStringContainsString('<span class="m3-text-field__required" aria-hidden="true">*</span>', $html);
     }
 
     public function test_a_file_field_keeps_the_hooks_the_upload_scripts_use(): void
@@ -104,6 +117,14 @@ class M3ComponentsTest extends TestCase
         $this->assertMatchesRegularExpression('/<input type="file" name="image"[^>]*accept="image\/\*"[^>]*required[^>]*class="file-upload-default m3-visually-hidden student_image"/', $html);
         $this->assertStringContainsString('class="m3-text-field__input file-upload-info" id="image" disabled', $html);
         $this->assertStringContainsString('file-upload-browse', $html);
+    }
+
+    public function test_a_file_fields_hint_describes_the_file_input(): void
+    {
+        $html = $this->render('<x-m3.file-field name="image" id="image" label="Image" hint="120x120px, square." />');
+
+        $this->assertMatchesRegularExpression('/<input type="file" name="image" id="image"[^>]*aria-describedby="image-supporting"/', $html);
+        $this->assertStringContainsString('<p class="m3-text-field__supporting" id="image-supporting">120x120px, square.</p>', $html);
     }
 
     public function test_a_dialog_with_a_form_has_its_ids_a_token_and_its_actions(): void
