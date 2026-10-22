@@ -433,5 +433,8 @@
   "iHaveReadAndAccept": "Bunu okudum ve kabul ediyorum",
   "acceptAndContinue": "Kabul et ve devam et",
   "notNow": "Şimdi değil",
-  "availableInMobileApp": "Bu, şimdilik telefonunuzdaki NavigateEd uygulamasında çalışır."
+  "availableInMobileApp": "Bu, şimdilik telefonunuzdaki NavigateEd uygulamasında çalışır.",
+  "chooseChild": "Bir çocuk seçin",
+  "switchChild": "Çocuğu değiştir",
+  "yourChildren": "Çocuklarınız"
 }

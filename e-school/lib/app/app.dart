@@ -20,10 +20,12 @@ import 'package:eschool/cubits/resultTabSelectionCubit.dart';
 import 'package:eschool/cubits/resultsOnlineCubit.dart';
 import 'package:eschool/cubits/studentDashboardCubit.dart';
 import 'package:eschool/cubits/studentFeesCubit.dart';
+import 'package:eschool/cubits/studentSubjectsCubit.dart';
 import 'package:eschool/data/repositories/announcementRepository.dart';
 import 'package:eschool/data/repositories/authRepository.dart';
 import 'package:eschool/data/repositories/chatRepository.dart';
 import 'package:eschool/data/repositories/examRepository.dart';
+import 'package:eschool/data/repositories/parentRepository.dart';
 import 'package:eschool/data/repositories/resultRepository.dart';
 import 'package:eschool/data/repositories/settingsRepository.dart';
 import 'package:eschool/data/repositories/studentRepository.dart';
@@ -123,6 +125,14 @@ class _MyAppState extends State<MyApp> {
             repository: ApiMeContextRepository(Api.client),
             cache: HiveMeContextCache(),
           ),
+        ),
+        BlocProvider<ChildSelectionCubit>(
+          create: (_) => ChildSelectionCubit(store: HiveSelectionStore()),
+        ),
+        //the subjects of the child picked in the child switcher, for the
+        //child screens' filters
+        BlocProvider<ChildSubjectsCubit>(
+          create: (_) => ChildSubjectsCubit(ParentRepository()),
         ),
         BlocProvider<AppLocalizationCubit>(
           create: (_) => AppLocalizationCubit(SettingsRepository()),

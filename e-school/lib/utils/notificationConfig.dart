@@ -6,7 +6,10 @@ import 'package:eschool/data/models/chatUser.dart';
 import 'package:eschool/ui/screens/home/homeScreen.dart';
 import 'package:eschool/utils/uiUtils.dart';
 import 'package:eschool_notifications/eschool_notifications.dart';
+import 'package:eschool_session/eschool_session.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:flutter/widgets.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
 /// How notifications behave in the learner and parent app. The FCM and
 /// local notification code itself is in eschool_notifications.
@@ -48,11 +51,15 @@ void onNotificationTap(String notificationType, Map<String, dynamic> data) {
       NotificationUtility.onlineFeePaymentNotificationType) {
     UiUtils.rootNavigatorKey.currentState?.pushNamed(Routes.feesTransaction);
   } else if (notificationType == NotificationUtility.feePaymentDueType) {
+    final int? childId = int.tryParse('${data['child_id']}');
+    //the reminder is about one child: show that child from now on
+    final BuildContext? context = UiUtils.rootNavigatorKey.currentContext;
+    if (childId != null && context != null) {
+      context.read<ChildSelectionCubit>().select(childId);
+    }
     UiUtils.rootNavigatorKey.currentState?.pushNamed(
       Routes.feesDetails,
-      arguments: FeesDetailsArguments.forChildId(
-        int.tryParse('${data['child_id']}'),
-      ),
+      arguments: FeesDetailsArguments.forChildId(childId),
     );
   } else if (notificationType == NotificationUtility.chatNotificaitonType) {
     //get off the route if already on it

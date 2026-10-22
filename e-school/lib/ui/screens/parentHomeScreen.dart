@@ -23,6 +23,7 @@ import 'package:eschool/ui/widgets/slidersContainer.dart';
 import 'package:eschool/utils/assets.dart';
 import 'package:eschool/utils/labelKeys.dart';
 import 'package:eschool_notifications/eschool_notifications.dart';
+import 'package:eschool_session/eschool_session.dart';
 import 'package:eschool/utils/uiUtils.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
@@ -254,11 +255,25 @@ class _ParentHomeScreenState extends State<ParentHomeScreen>
     final bool isCompulsoryFeePaymentAndDuePayment =
         context.read<AppConfigurationCubit>().isCompulsoryFeePaymentMode() &&
         student.isFeePaymentDue;
+    //each child's school, when the server says (children at two schools)
+    final String schoolName = context
+        .watch<ChildSelectionCubit>()
+        .state
+        .children
+        .where((child) => child.id == student.id)
+        .map((child) => child.schoolName)
+        .firstWhere((name) => name.isNotEmpty, orElse: () => '');
     return Animate(
       effects: customItemZoomAppearanceEffects(),
       child: InkWell(
         borderRadius: BorderRadius.circular(20),
-        onTap: () {
+        onTap: () async {
+          //every child screen shows the child picked here, until another is
+          //picked here or in the child switcher
+          await context.read<ChildSelectionCubit>().select(student.id);
+          if (!mounted) {
+            return;
+          }
           if (isCompulsoryFeePaymentAndDuePayment) {
             Navigator.of(context).pushNamed(
               Routes.feesDetails,
@@ -272,9 +287,7 @@ class _ParentHomeScreenState extends State<ParentHomeScreen>
               ),
             );
           } else {
-            Navigator.of(
-              context,
-            ).pushNamed(Routes.studentDetails, arguments: student);
+            Navigator.of(context).pushNamed(Routes.studentDetails);
           }
         },
         child: Container(
@@ -330,6 +343,19 @@ class _ParentHomeScreenState extends State<ParentHomeScreen>
                               fontSize: 10,
                             ),
                           ),
+                          if (schoolName.isNotEmpty) ...[
+                            const SizedBox(height: 2.5),
+                            Text(
+                              schoolName,
+                              textAlign: TextAlign.center,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: TextStyle(
+                                color: Theme.of(context).colorScheme.onPrimary,
+                                fontSize: 10,
+                              ),
+                            ),
+                          ],
                           if (isCompulsoryFeePaymentAndDuePayment) ...[
                             const SizedBox(height: 5),
                             Text(

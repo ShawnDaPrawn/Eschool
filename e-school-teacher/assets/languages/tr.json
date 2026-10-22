@@ -433,5 +433,8 @@
   "acceptAndContinue": "Kabul et ve devam et",
   "notNow": "Şimdi değil",
   "pleaseAcceptTermsAndCondition": "Lütfen şartlar ve koşulları kabul edin",
-  "availableInMobileApp": "Bu, şimdilik telefonunuzdaki NavigateEd Teacher uygulamasında çalışır."
+  "availableInMobileApp": "Bu, şimdilik telefonunuzdaki NavigateEd Teacher uygulamasında çalışır.",
+  "chooseChild": "Bir çocuk seçin",
+  "switchChild": "Çocuğu değiştir",
+  "yourChildren": "Çocuklarınız"
 }

@@ -36,6 +36,11 @@ const String viewFileKey = 'viewFile';
 const String wednesdayKey = 'wednesday';
 const String yesKey = 'yes';
 
+// The child switcher (eschool_session).
+const String chooseChildKey = 'chooseChild';
+const String switchChildKey = 'switchChild';
+const String yourChildrenKey = 'yourChildren';
+
 /// Every key above, for the apps' tests.
 const List<String> sharedLabelKeys = [
   addMoreCharactorsToSearchKey,
@@ -70,4 +75,7 @@ const List<String> sharedLabelKeys = [
   viewFileKey,
   wednesdayKey,
   yesKey,
+  chooseChildKey,
+  switchChildKey,
+  yourChildrenKey,
 ];

@@ -12,5 +12,8 @@ export 'src/context/me_context_cubit.dart';
 export 'src/context/me_context_repository.dart';
 export 'src/deep_links/deep_link_coordinator.dart';
 export 'src/deep_links/deep_link_parser.dart';
+export 'src/selection/child_selection_cubit.dart';
+export 'src/selection/child_switcher.dart';
+export 'src/selection/selection_store.dart';
 export 'src/storage/app_storage.dart';
 export 'src/update/force_update.dart';

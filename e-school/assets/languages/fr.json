@@ -433,5 +433,8 @@
   "iHaveReadAndAccept": "J'ai lu ceci et je l'accepte",
   "acceptAndContinue": "Accepter et continuer",
   "notNow": "Pas maintenant",
-  "availableInMobileApp": "Pour l'instant, cela fonctionne dans l'application NavigateEd sur votre téléphone."
+  "availableInMobileApp": "Pour l'instant, cela fonctionne dans l'application NavigateEd sur votre téléphone.",
+  "chooseChild": "Choisir un enfant",
+  "switchChild": "Changer d'enfant",
+  "yourChildren": "Vos enfants"
 }

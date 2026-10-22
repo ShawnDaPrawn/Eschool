@@ -433,5 +433,8 @@
   "iHaveReadAndAccept": "Saya telah membaca ini dan saya menerima",
   "acceptAndContinue": "Terima dan lanjutkan",
   "notNow": "Tidak sekarang",
-  "availableInMobileApp": "Untuk saat ini, fitur ini berfungsi di aplikasi NavigateEd di ponsel Anda."
+  "availableInMobileApp": "Untuk saat ini, fitur ini berfungsi di aplikasi NavigateEd di ponsel Anda.",
+  "chooseChild": "Pilih anak",
+  "switchChild": "Ganti anak",
+  "yourChildren": "Anak Anda"
 }

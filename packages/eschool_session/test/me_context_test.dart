@@ -87,6 +87,65 @@ void main() {
       final context = MeContext.fromJson(contextJson);
 
       expect(MeContext.fromJson(context.toJson()), context);
+      final phase1 = MeContext.fromJson(phase1GuardianJson);
+      expect(MeContext.fromJson(phase1.toJson()), phase1);
+    });
+
+    test('reads a server from the first API v2 release', () {
+      final context = MeContext.fromJson(phase0ParentJson);
+
+      expect(context.roles, ['Parent']);
+      expect(context.schools.single.id, 1);
+      expect(context.schools.single.shortName, 'NHS');
+      expect(context.schools.single.roles, ['Parent']);
+      expect(context.school!.crestUrl, endsWith('crest.png'));
+      expect(context.currentSchoolId, 1);
+      final MeChild asha = context.children!.single;
+      expect(asha.id, 21);
+      expect(asha.name, 'Asha Demo');
+      expect(asha.schoolId, 1);
+      expect(asha.schoolName, 'Northcliff High');
+      expect(asha.avatarUrl, endsWith('asha.jpg'));
+      expect(asha.approved, isNull);
+      // Sent, but empty: the server has the key.
+      expect(context.notificationRules, isEmpty);
+      // Not sent at all: not available yet.
+      expect(context.approval, isNull);
+      expect(context.branding, isNull);
+      expect(context.has('branding'), isFalse);
+    });
+
+    test('reads the Phase 1 contract', () {
+      final context = MeContext.fromJson(phase1GuardianJson);
+
+      expect(context.schools.map((school) => school.id), [1, 2]);
+      expect(context.school!.name, 'Riverside Primary');
+      expect(context.currentSchoolId, 2);
+      expect(context.children, hasLength(2));
+      expect(context.children!.last.schoolId, 2);
+      expect(context.children!.last.studentNumber, 'NE-2026-00023');
+      expect(context.children!.last.homeroom, 'Grade 3 B');
+      expect(context.children!.first.approved, isTrue);
+      expect(context.children!.last.approved, isFalse);
+      expect(context.modules, ['chat', 'online_exams']);
+      expect(context.branding!.displayName, 'Riverside Primary School');
+      expect(context.notificationRules!.last.mode, 'mandatory');
+      expect(context.has('a_key_from_a_later_phase'), isTrue);
+    });
+
+    test('a learner\'s approval and the feature flags', () {
+      final context = MeContext.fromJson({
+        'user': {'id': 40, 'name': 'Asha Demo'},
+        'roles': ['Student'],
+        'approval': {'status': 'approved', 'approved_by_count': 2},
+        'feature_flags': {'passkeys': true, 'wallet': 0},
+      });
+
+      expect(context.approval!.isApproved, isTrue);
+      expect(context.approval!.approvedByCount, 2);
+      expect(context.isFeatureOn('passkeys'), isTrue);
+      expect(context.isFeatureOn('wallet'), isFalse);
+      expect(context.children, isNull);
     });
   });
 

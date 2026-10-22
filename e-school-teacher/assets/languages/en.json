@@ -433,5 +433,8 @@
     "acceptAndContinue": "Accept and continue",
     "notNow": "Not now",
     "pleaseAcceptTermsAndCondition": "Please accept terms and condition",
-    "availableInMobileApp": "This works in the NavigateEd Teacher app on your phone for now."
+    "availableInMobileApp": "This works in the NavigateEd Teacher app on your phone for now.",
+    "chooseChild": "Choose a child",
+    "switchChild": "Switch child",
+    "yourChildren": "Your children"
 }

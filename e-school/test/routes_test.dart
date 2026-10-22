@@ -21,16 +21,6 @@ void main() {
   // Each route reads its typed arguments when it is built; a wrong type
   // fails here instead of on a learner's phone.
   final Map<String, Object?> typedArguments = {
-    Routes.childAssignments: ChildSubjectsArguments(
-      childId: 4,
-      subjects: subjects,
-    ),
-    Routes.exam: ChildSubjectsArguments(childId: 4, subjects: subjects),
-    Routes.childResults: ChildSubjectsArguments(childId: 4, subjects: subjects),
-    Routes.subjectWiseReport: ChildSubjectsArguments(
-      childId: 4,
-      subjects: subjects,
-    ),
     Routes.examTimeTable: const ExamTimeTableArguments(
       examId: 2,
       examName: 'June exams',
@@ -46,7 +36,6 @@ void main() {
       status: 1,
     ),
     Routes.webViewPaymentScreen: 'https://checkout.test/pay',
-    Routes.childFees: student,
     Routes.manageLeaves: student,
     Routes.addLeave: student,
     Routes.academicCalendar: const AcademicCalendarArguments(hasBack: true),
@@ -69,6 +58,25 @@ void main() {
       expect(open(name, arguments), isA<PageRoute<dynamic>>());
     });
   });
+
+  // A parent's child screens show the child picked in the child switcher:
+  // they are opened with no child at all.
+  for (final String name in [
+    Routes.studentDetails,
+    Routes.childAssignments,
+    Routes.childTeachers,
+    Routes.childAttendance,
+    Routes.childTimeTable,
+    Routes.childResults,
+    Routes.childFees,
+    Routes.exam,
+    Routes.subjectWiseReport,
+    Routes.manageLeaves,
+  ]) {
+    test('$name opens for the child on show, without a child id', () {
+      expect(open(name), isA<PageRoute<dynamic>>());
+    });
+  }
 
   test('a fee reminder opens the fees of the child it names', () {
     expect(
