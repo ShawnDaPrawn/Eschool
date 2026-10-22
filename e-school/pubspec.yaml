@@ -54,7 +54,7 @@ dependencies:
   flutter_stripe: ^12.6.0
   flutter_tex: 4.0.9
   wakelock_plus: ^1.5.2
-  external_path: ^2.2.0
+  external_path: ^3.0.0
   flutter_animate: ^4.5.2
   shared_preferences: ^2.5.5
   readmore: ^3.0.0
