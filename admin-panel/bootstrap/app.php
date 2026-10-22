@@ -1,16 +1,58 @@
 <?php
 
+use App\Exceptions\ApiV2ExceptionRenderer;
+use App\Http\Middleware\Authenticate;
+use App\Http\Middleware\CheckChild;
+use App\Http\Middleware\CheckRole;
+use App\Http\Middleware\CheckStudent;
+use App\Http\Middleware\DemoMiddleware;
+use App\Http\Middleware\EncryptCookies;
+use App\Http\Middleware\EnsureParentChildrenSessionIsActive;
+use App\Http\Middleware\EnsureStudentSessionIsActive;
+use App\Http\Middleware\EnsureUserHasAnyRole;
+use App\Http\Middleware\EnsureUserIsStaff;
+use App\Http\Middleware\LanguageManager;
+use App\Http\Middleware\LimitRequestInput;
+use App\Http\Middleware\RedirectIfAuthenticated;
+use App\Http\Middleware\RejectDangerousUploads;
+use App\Http\Middleware\RequireParentPolicyAcceptance;
+use App\Http\Middleware\RequirePasswordChange;
+use App\Http\Middleware\SecurityHeaders;
+use dacoto\LaravelWizardInstaller\LaravelWizardInstallerServiceProvider;
+use dacoto\LaravelWizardInstaller\Middleware\InstallerMiddleware;
+use dacoto\LaravelWizardInstaller\Middleware\ToInstallMiddleware;
+use Illuminate\Auth\Middleware\AuthenticateWithBasicAuth;
+use Illuminate\Auth\Middleware\Authorize;
+use Illuminate\Auth\Middleware\EnsureEmailIsVerified;
+use Illuminate\Auth\Middleware\RequirePassword;
+use Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
+use Illuminate\Http\Middleware\SetCacheHeaders;
 use Illuminate\Http\Request;
+use Illuminate\Routing\Middleware\SubstituteBindings;
+use Illuminate\Routing\Middleware\ThrottleRequests;
+use Illuminate\Routing\Middleware\ValidateSignature;
+use Illuminate\Session\Middleware\AuthenticateSession;
+use Illuminate\Session\Middleware\StartSession;
+use Illuminate\Support\Facades\Route;
+use Illuminate\View\Middleware\ShareErrorsFromSession;
+use Laravel\Sanctum\Http\Middleware\EnsureFrontendRequestsAreStateful;
+use Laravel\Sanctum\SanctumServiceProvider;
+use Spatie\Permission\Middleware\PermissionMiddleware;
+use Spatie\Permission\Middleware\RoleMiddleware;
+use Spatie\Permission\Middleware\RoleOrPermissionMiddleware;
+use Spatie\Permission\PermissionServiceProvider;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
-        web: __DIR__ . '/../routes/web.php',
-        api: __DIR__ . '/../routes/api.php',
-        commands: __DIR__ . '/../routes/console.php',
+        web: __DIR__.'/../routes/web.php',
+        api: __DIR__.'/../routes/api.php',
+        commands: __DIR__.'/../routes/console.php',
         health: '/up',
+        // API v2: same "api" middleware group as v1, under /api/v2.
+        then: fn () => Route::middleware('api')->prefix('api/v2')->group(__DIR__.'/../routes/api_v2.php'),
     )
     ->withMiddleware(function (Middleware $middleware): void {
 
@@ -38,80 +80,86 @@ return Application::configure(basePath: dirname(__DIR__))
             'webhook/*',
         ]);
 
-        $middleware->append(\App\Http\Middleware\SecurityHeaders::class);
-        $middleware->append(\App\Http\Middleware\LimitRequestInput::class);
+        $middleware->append(SecurityHeaders::class);
+        $middleware->append(LimitRequestInput::class);
 
         // Web middleware group
         $middleware->web(append: [
-            \App\Http\Middleware\LanguageManager::class,
-            \App\Http\Middleware\EncryptCookies::class,
-            \Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse::class,
-            \Illuminate\Session\Middleware\StartSession::class,
+            LanguageManager::class,
+            EncryptCookies::class,
+            AddQueuedCookiesToResponse::class,
+            StartSession::class,
             // Signs out other sessions when the password changes.
-            \Illuminate\Session\Middleware\AuthenticateSession::class,
-            \Illuminate\View\Middleware\ShareErrorsFromSession::class,
-            \App\Http\Middleware\RequirePasswordChange::class,
+            AuthenticateSession::class,
+            ShareErrorsFromSession::class,
+            RequirePasswordChange::class,
             // After the session starts, so signed-in users are counted per account.
             'throttle:web',
-            \Illuminate\Routing\Middleware\SubstituteBindings::class,
-            \App\Http\Middleware\DemoMiddleware::class,
-            \App\Http\Middleware\RejectDangerousUploads::class,
+            SubstituteBindings::class,
+            DemoMiddleware::class,
+            RejectDangerousUploads::class,
         ]);
 
         // API middleware group
         $middleware->api(prepend: [
-            \Laravel\Sanctum\Http\Middleware\EnsureFrontendRequestsAreStateful::class,
+            EnsureFrontendRequestsAreStateful::class,
             'throttle:api',
-            \Illuminate\Routing\Middleware\SubstituteBindings::class,
+            SubstituteBindings::class,
         ]);
         $middleware->api(append: [
-            \App\Http\Middleware\RejectDangerousUploads::class,
+            RejectDangerousUploads::class,
         ]);
 
         // Alias middleware
         $middleware->alias([
-            'auth' => \App\Http\Middleware\Authenticate::class,
-            'Role' => \App\Http\Middleware\CheckRole::class,
-            'checkChild' => \App\Http\Middleware\CheckChild::class,
-            'checkStudent' => \App\Http\Middleware\CheckStudent::class,
-            'language' => \App\Http\Middleware\LanguageManager::class,
-            'demo' => \App\Http\Middleware\DemoMiddleware::class,
+            'auth' => Authenticate::class,
+            'Role' => CheckRole::class,
+            'checkChild' => CheckChild::class,
+            'checkStudent' => CheckStudent::class,
+            'language' => LanguageManager::class,
+            'demo' => DemoMiddleware::class,
             // Spatie Permission aliases
-            'permission' => \Spatie\Permission\Middleware\PermissionMiddleware::class,
-            'role' => \Spatie\Permission\Middleware\RoleMiddleware::class,
-            'role_or_permission' => \Spatie\Permission\Middleware\RoleOrPermissionMiddleware::class,
+            'permission' => PermissionMiddleware::class,
+            'role' => RoleMiddleware::class,
+            'role_or_permission' => RoleOrPermissionMiddleware::class,
 
             // 'auth' => \App\Http\Middleware\Authenticate::class,
-            'auth.basic' => \Illuminate\Auth\Middleware\AuthenticateWithBasicAuth::class,
-            'student.session.active' => \App\Http\Middleware\EnsureStudentSessionIsActive::class,
-            'parent.children.session.active' => \App\Http\Middleware\EnsureParentChildrenSessionIsActive::class,
-            'parent.policy' => \App\Http\Middleware\RequireParentPolicyAcceptance::class,
-            'teacher.policy' => \App\Http\Middleware\RequireParentPolicyAcceptance::class,
-            'cache.headers' => \Illuminate\Http\Middleware\SetCacheHeaders::class,
-            'can' => \Illuminate\Auth\Middleware\Authorize::class,
-            'guest' => \App\Http\Middleware\RedirectIfAuthenticated::class,
-            'password.confirm' => \Illuminate\Auth\Middleware\RequirePassword::class,
-            'signed' => \Illuminate\Routing\Middleware\ValidateSignature::class,
-            'throttle' => \Illuminate\Routing\Middleware\ThrottleRequests::class,
-            'verified' => \Illuminate\Auth\Middleware\EnsureEmailIsVerified::class,
+            'auth.basic' => AuthenticateWithBasicAuth::class,
+            'student.session.active' => EnsureStudentSessionIsActive::class,
+            'parent.children.session.active' => EnsureParentChildrenSessionIsActive::class,
+            'parent.policy' => RequireParentPolicyAcceptance::class,
+            'teacher.policy' => RequireParentPolicyAcceptance::class,
+            // API v2 role groups (routes/api_v2.php).
+            'staff' => EnsureUserIsStaff::class,
+            'role.any' => EnsureUserHasAnyRole::class,
+            'cache.headers' => SetCacheHeaders::class,
+            'can' => Authorize::class,
+            'guest' => RedirectIfAuthenticated::class,
+            'password.confirm' => RequirePassword::class,
+            'signed' => ValidateSignature::class,
+            'throttle' => ThrottleRequests::class,
+            'verified' => EnsureEmailIsVerified::class,
             // 'role' => \Spatie\Permission\Middlewares\RoleMiddleware::class,
             // 'permission' => \Spatie\Permission\Middlewares\PermissionMiddleware::class,
             // 'role_or_permission' => \Spatie\Permission\Middlewares\RoleOrPermissionMiddleware::class,
-            'Role' => \App\Http\Middleware\CheckRole::class,
-            'checkChild' => \App\Http\Middleware\CheckChild::class,
+            'Role' => CheckRole::class,
+            'checkChild' => CheckChild::class,
             // Installer middleware aliases
-            'installer' => \dacoto\LaravelWizardInstaller\Middleware\InstallerMiddleware::class,
-            'to.install' => \dacoto\LaravelWizardInstaller\Middleware\ToInstallMiddleware::class,
+            'installer' => InstallerMiddleware::class,
+            'to.install' => ToInstallMiddleware::class,
         ]);
     })
     ->withProviders([
         // Third-party providers
-        \Spatie\Permission\PermissionServiceProvider::class,
-        \Laravel\Sanctum\SanctumServiceProvider::class,
-        \dacoto\LaravelWizardInstaller\LaravelWizardInstallerServiceProvider::class,
+        PermissionServiceProvider::class,
+        SanctumServiceProvider::class,
+        LaravelWizardInstallerServiceProvider::class,
     ])
     ->withExceptions(function (Exceptions $exceptions): void {
         // The apps don't send Accept: application/json. Without this an expired token
         // got a redirect to the login page instead of the 401 that signs the app out.
         $exceptions->shouldRenderJsonWhen(fn ($request) => $request->is('api/*') || $request->expectsJson());
+        // API v2 answers every error in the {error, message, data, code} envelope
+        // with its real HTTP status (v1 keeps Laravel's own error bodies).
+        $exceptions->render(fn (Throwable $e, Request $request) => ApiV2ExceptionRenderer::render($e, $request));
     })->create();

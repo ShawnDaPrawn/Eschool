@@ -1377,5 +1377,17 @@
     "please_pick_leave_type_for_selected_dates": "Please pick your leave type for the selected dates",
     "page_not_published_yet": "This page has not been published yet.",
     "student_not_in_this_class_section": "This student is not in the chosen class section this year.",
-    "currency_not_supported_by_razorpay": "Razorpay does not accept this currency."
+    "currency_not_supported_by_razorpay": "Razorpay does not accept this currency.",
+    "api_bad_request": "The request is not valid.",
+    "api_unauthenticated": "Sign in again to continue.",
+    "api_forbidden": "You do not have access to this.",
+    "api_not_found": "We could not find what you asked for.",
+    "api_method_not_allowed": "This request method is not supported here.",
+    "api_conflict": "This conflicts with a change made at the same time. Try again.",
+    "api_payload_too_large": "The request is too large.",
+    "api_session_expired": "Your session expired. Reload and try again.",
+    "api_validation_failed": "Check the details you entered.",
+    "api_too_many_requests": "Too many requests. Wait a minute and try again.",
+    "api_server_error": "Something went wrong on our side. Try again later.",
+    "api_unavailable": "The service is not available right now. Try again later."
 }
