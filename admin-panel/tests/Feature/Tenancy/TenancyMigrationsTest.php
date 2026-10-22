@@ -27,6 +27,8 @@ class TenancyMigrationsTest extends TestCase
         '2026_10_23_100000_create_schools_table',
         '2026_10_23_100100_add_school_id_to_school_owned_tables',
         '2026_10_23_100200_backfill_school_id',
+        '2026_10_23_100300_create_school_memberships_table',
+        '2026_10_23_100400_require_school_id',
     ];
 
     protected function setUp(): void

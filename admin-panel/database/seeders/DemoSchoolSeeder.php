@@ -5,8 +5,12 @@ declare(strict_types=1);
 namespace Database\Seeders;
 
 use App\Models\SessionYear;
+use App\Models\Settings;
 use App\Models\User;
 use App\Services\ParentPolicyService;
+use App\Services\Platform\Tenancy\CurrentSchool;
+use App\Services\Platform\Tenancy\SchoolOwnedTables;
+use App\Services\Platform\Tenancy\SchoolTable;
 use App\Services\SessionYearService;
 use Carbon\Carbon;
 use Illuminate\Database\Seeder;
@@ -85,7 +89,13 @@ class DemoSchoolSeeder extends Seeder
         ];
     }
 
+    /** In the school already chosen, or else the default school (a single-school install). */
     public function run(): void
+    {
+        app(CurrentSchool::class)->runInSchoolOrDefault(fn () => $this->seedSchool());
+    }
+
+    private function seedSchool(): void
     {
         if (! Role::where('name', 'Super Admin')->exists()) {
             $this->call(InstallationSeeder::class);
@@ -115,7 +125,7 @@ class DemoSchoolSeeder extends Seeder
         $past = $this->year((string) ($year - 1), $year - 1);
         $current = $this->year((string) $year, $year);
 
-        $currentId = DB::table('settings')->where('type', 'session_year')->value('message');
+        $currentId = getSettings('session_year')['session_year'] ?? null;
         $installed = $currentId ? SessionYear::find((int) $currentId) : null;
         if (! $installed || $installed->end_date < now()->toDateString()) {
             app(SessionYearService::class)->makeCurrent($current);
@@ -176,7 +186,7 @@ class DemoSchoolSeeder extends Seeder
             'currency_code' => 'ZAR',
             'currency_symbol' => 'R',
         ] as $type => $message) {
-            DB::table('settings')->updateOrInsert(['type' => $type], ['message' => $message]);
+            Settings::query()->updateOrCreate(['type' => $type], ['message' => $message]);
         }
     }
 
@@ -312,7 +322,7 @@ class DemoSchoolSeeder extends Seeder
             $user = $this->user($admission, $first, $last, 'Student', ['gender' => $gender, 'dob' => '2015-05-20', 'email' => $admission]);
             $student = $this->row('students', ['admission_no' => $admission], [
                 'user_id' => $user->id,
-                'class_id' => DB::table('class_sections')->where('id', $homeroom)->value('class_id'),
+                'class_id' => SchoolTable::query('class_sections')->where('id', $homeroom)->value('class_id'),
                 'class_section_id' => $homeroom,
                 'category_id' => $this->ids["$k.category"],
                 'roll_number' => (int) $number,
@@ -334,7 +344,7 @@ class DemoSchoolSeeder extends Seeder
 
         // Today's staff register.
         foreach (["$k.teacher", "$k.teacher2"] as $teacher) {
-            $userId = (int) DB::table('teachers')->where('id', $this->ids[$teacher])->value('user_id');
+            $userId = (int) SchoolTable::query('teachers')->where('id', $this->ids[$teacher])->value('user_id');
             $this->row('staff_attendances', ['user_id' => $userId, 'date' => $today], ['session_year_id' => $current->id, 'type' => 'present']);
         }
 
@@ -355,7 +365,7 @@ class DemoSchoolSeeder extends Seeder
         $transport = $this->row('fees_types', ['name' => 'Transport'], ['description' => 'School bus, optional']);
 
         foreach (self::TUITION_CENTS as $grade => $cents) {
-            $class = (int) DB::table('classes')->where('name', $grade)->value('id');
+            $class = (int) SchoolTable::query('classes')->where('name', $grade)->value('id');
             $this->row('fees_classes', ['session_year_id' => $current->id, 'class_id' => $class, 'fees_type_id' => $tuition], $this->amount($cents) + ['choiceable' => 0]);
             $this->row('fees_classes', ['session_year_id' => $current->id, 'class_id' => $class, 'fees_type_id' => $transport], $this->amount(self::TRANSPORT_CENTS) + ['choiceable' => 1]);
         }
@@ -423,16 +433,17 @@ class DemoSchoolSeeder extends Seeder
         if ($this->hasColumn($table, 'deleted_at')) {
             $values['deleted_at'] = null;
         }
-        $existing = DB::table($table)->where($match)->value('id');
+        $query = fn () => SchoolOwnedTables::isSchoolOwned($table) ? SchoolTable::query($table) : DB::table($table);
+        $existing = $query()->where($match)->value('id');
         if ($existing) {
             if ($values !== []) {
-                DB::table($table)->where('id', $existing)->update($values + $now);
+                $query()->where('id', $existing)->update($values + $now);
             }
 
             return (int) $existing;
         }
 
-        return (int) DB::table($table)->insertGetId($match + $values + ($now ? $now + ['created_at' => now()] : []));
+        return (int) $query()->insertGetId($match + $values + ($now ? $now + ['created_at' => now()] : []));
     }
 
     /**
@@ -446,7 +457,7 @@ class DemoSchoolSeeder extends Seeder
         $disk->put('demo/avatar.png', (string) file_get_contents(public_path('assets/avatar.png')));
         $disk->put('demo/subject.svg', (string) file_get_contents(public_path('assets/no-image.svg')));
         if (Schema::hasTable('web_settings')) {
-            foreach (DB::table('web_settings')->whereNotNull('image')->pluck('image') as $path) {
+            foreach (SchoolTable::query('web_settings')->whereNotNull('image')->pluck('image') as $path) {
                 if ($path !== '' && ! $disk->exists($path)) {
                     $disk->put($path, (string) file_get_contents(public_path('assets/eschool.jpg')));
                 }

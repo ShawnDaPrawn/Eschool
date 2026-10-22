@@ -69,48 +69,52 @@ use Illuminate\Support\Facades\Route;
 */
 // Manual Authentication Routes
 
-Route::get('login', [LoginController::class, 'showLoginForm'])->middleware('guest')->name('login');
-Route::post('login', [LoginController::class, 'login'])->middleware(['guest', 'throttle:login']);
-Route::post('logout', [LoginController::class, 'logout'])->name('logout');
+// Pages anyone may open work in the default school (or the signed-in
+// user's): school.context:public.
+Route::middleware('school.context:public')->group(function () {
+    Route::get('login', [LoginController::class, 'showLoginForm'])->middleware('guest')->name('login');
+    Route::post('login', [LoginController::class, 'login'])->middleware(['guest', 'throttle:login', 'school.context:sign-in']);
+    Route::post('logout', [LoginController::class, 'logout'])->name('logout');
 
-// There is no public sign-up. Staff create accounts, and those accounts always
-// have a role. Students apply through the public online registration form.
+    // There is no public sign-up. Staff create accounts, and those accounts always
+    // have a role. Students apply through the public online registration form.
 
-// Password Reset Routes (if needed)
-Route::get('password/reset', [ForgotPasswordController::class, 'showLinkRequestForm'])->name('password.request');
-Route::post('password/email', [ForgotPasswordController::class, 'sendResetLinkEmail'])->middleware('throttle:login')->name('password.email');
-Route::get('password/reset/{token}', [ResetPasswordController::class, 'showResetForm'])->name('password.reset');
-Route::post('password/reset', [ResetPasswordController::class, 'reset'])->middleware('throttle:login')->name('password.update');
+    // Password Reset Routes (if needed)
+    Route::get('password/reset', [ForgotPasswordController::class, 'showLinkRequestForm'])->name('password.request');
+    Route::post('password/email', [ForgotPasswordController::class, 'sendResetLinkEmail'])->middleware(['throttle:login', 'school.context:sign-in'])->name('password.email');
+    Route::get('password/reset/{token}', [ResetPasswordController::class, 'showResetForm'])->name('password.reset');
+    Route::post('password/reset', [ResetPasswordController::class, 'reset'])->middleware(['throttle:login', 'school.context:sign-in'])->name('password.update');
 
-// What the report-only content security policy would have blocked (logged, ids only).
-Route::post('csp-report', CspReportController::class)->middleware('throttle:csp')->name('csp.report');
+    // What the report-only content security policy would have blocked (logged, ids only).
+    Route::post('csp-report', CspReportController::class)->middleware('throttle:csp')->name('csp.report');
 
-// A learner's password is chosen here: from a guardian's emailed link (signed,
-// expiring, single use) or with a set-up code the school printed.
-Route::get('learner-setup', [LearnerSetupController::class, 'showCode'])->name('learner-setup.code');
-Route::post('learner-setup', [LearnerSetupController::class, 'storeCode'])->middleware('throttle:login')->name('learner-setup.code.store');
-Route::get('learner-setup/{invitation}/{token}', [LearnerSetupController::class, 'showLink'])
-    ->whereNumber('invitation')->name('learner-setup.link');
-Route::post('learner-setup/{invitation}/{token}', [LearnerSetupController::class, 'storeLink'])
-    ->whereNumber('invitation')->middleware('throttle:password')->name('learner-setup.link.store');
-Route::get('web-set-language/{lang}', [LanguageController::class, 'set_language'])->name('web.set.language');
+    // A learner's password is chosen here: from a guardian's emailed link (signed,
+    // expiring, single use) or with a set-up code the school printed.
+    Route::get('learner-setup', [LearnerSetupController::class, 'showCode'])->name('learner-setup.code');
+    Route::post('learner-setup', [LearnerSetupController::class, 'storeCode'])->middleware('throttle:login')->name('learner-setup.code.store');
+    Route::get('learner-setup/{invitation}/{token}', [LearnerSetupController::class, 'showLink'])
+        ->whereNumber('invitation')->name('learner-setup.link');
+    Route::post('learner-setup/{invitation}/{token}', [LearnerSetupController::class, 'storeLink'])
+        ->whereNumber('invitation')->middleware('throttle:password')->name('learner-setup.link.store');
+    Route::get('web-set-language/{lang}', [LanguageController::class, 'set_language'])->name('web.set.language');
 
-Route::group(['middleware' => 'language'], function () {
-    Route::get('/', [WebController::class, 'index']);
-    Route::get('about', [WebController::class, 'about'])->name('about.us');
-    Route::get('contact', [WebController::class, 'contact_us'])->name('contact.us');
-    Route::get('photo', [WebController::class, 'photo'])->name('photo');
-    Route::get('photo-gallery/{id}', [WebController::class, 'photo_details'])->name('photo.gallery');
-    Route::get('video', [WebController::class, 'video'])->name('video');
-    // Public forms: limited per address so they can't be used to flood the school with messages or accounts.
-    Route::post('contact-us/store', [WebController::class, 'contact_us_store'])->middleware('throttle:5,1')->name('contact_us.store');
-    Route::get('registration', [WebController::class, 'registrationIndex'])->name('student-registration.index');
-    Route::post('student-register', [WebController::class, 'studentRegistration'])->middleware('throttle:10,1')->name('student-registration-store');
-    Route::get('error-page', [WebController::class, 'errorPage'])->name('error-page');
+    Route::group(['middleware' => 'language'], function () {
+        Route::get('/', [WebController::class, 'index']);
+        Route::get('about', [WebController::class, 'about'])->name('about.us');
+        Route::get('contact', [WebController::class, 'contact_us'])->name('contact.us');
+        Route::get('photo', [WebController::class, 'photo'])->name('photo');
+        Route::get('photo-gallery/{id}', [WebController::class, 'photo_details'])->name('photo.gallery');
+        Route::get('video', [WebController::class, 'video'])->name('video');
+        // Public forms: limited per address so they can't be used to flood the school with messages or accounts.
+        Route::post('contact-us/store', [WebController::class, 'contact_us_store'])->middleware('throttle:5,1')->name('contact_us.store');
+        Route::get('registration', [WebController::class, 'registrationIndex'])->name('student-registration.index');
+        Route::post('student-register', [WebController::class, 'studentRegistration'])->middleware('throttle:10,1')->name('student-registration-store');
+        Route::get('error-page', [WebController::class, 'errorPage'])->name('error-page');
+    });
 });
 
 // EnforceReadOnlyYears: a year other than the current one is read-only in the panel.
-Route::group(['middleware' => ['Role', 'auth', EnforceReadOnlyYears::class]], function () {
+Route::group(['middleware' => ['Role', 'auth', 'school.context', EnforceReadOnlyYears::class]], function () {
     Route::post('/set-session-year', [SessionYearController::class, 'setSessionYearToSessionStorage'])->name('set.session.year');
     Route::group(['middleware' => 'language'], function () {
         // Route::get('/home', [HomeController::class, 'index']);
@@ -562,7 +566,8 @@ Route::group(['middleware' => ['Role', 'auth', EnforceReadOnlyYears::class]], fu
 
 // Payment gateway webhooks. Stripe is the only gateway (Razorpay, Paystack and
 // Flutterwave were removed in Phase 0).
-Route::post('webhook/stripe', [WebhookController::class, 'stripe']);
+// The webhook works in the school of the payment it settles (WebhookController).
+Route::post('webhook/stripe', [WebhookController::class, 'stripe'])->middleware('school.context:public');
 
 // Amazon SES bounce, complaint and delivery notices, posted by SNS (signed;
 // only the topics in services.ses_notifications.topic_arns are accepted).
@@ -572,12 +577,12 @@ Route::post('webhook/mail/ses', [MailWebhookController::class, 'ses'])->middlewa
 Route::get('/privacy-policy', function () {
     $settings = getSettings('privacy_policy');
     echo ! empty($settings['privacy_policy']) ? $settings['privacy_policy'] : e(trans('page_not_published_yet'));
-});
+})->middleware('school.context:public');
 
 Route::get('/terms-conditions', function () {
     $settings = getSettings('terms_condition');
     echo ! empty($settings['terms_condition']) ? $settings['terms_condition'] : e(trans('page_not_published_yet'));
-});
+})->middleware('school.context:public');
 
 // Cache Clear, Super Admin only. It is a form post: as a link, another site could
 // send a signed-in user to it, and clearing the cache also resets rate limits when
@@ -590,7 +595,7 @@ Route::post('clear', function () {
     Artisan::call('cache:clear');
 
     return redirect()->back();
-})->middleware(['auth', 'role:Super Admin']);
+})->middleware(['auth', 'school.context', 'role:Super Admin']);
 
 Route::group(['prefix' => 'common'], static function () {
     Route::get('/js/lang', [Controller::class, 'readLanguageFile'])->name('common.language.read');

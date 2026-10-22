@@ -122,8 +122,11 @@ return [
      * \Spatie\Permission\Events\PermissionDetached
      *
      * To enable, set to true, and then create listeners to watch these events.
+     *
+     * NavigateEd: on. School memberships follow role grants and removals
+     * (App\Providers\PlatformServiceProvider).
      */
-    'events_enabled' => false,
+    'events_enabled' => true,
 
     /*
      * Teams Feature.

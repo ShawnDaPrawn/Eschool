@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Services\Platform\Tenancy\BelongsToSchool;
 use Illuminate\Database\Eloquent\Model;
 
 /**
@@ -10,6 +11,8 @@ use Illuminate\Database\Eloquent\Model;
  */
 class EmailTemplate extends Model
 {
+    use BelongsToSchool;
+
     protected $table = 'email_tempalates';
 
     protected $fillable = [

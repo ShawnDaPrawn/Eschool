@@ -4,6 +4,7 @@ namespace Database\Seeders;
 
 use App\Models\Language;
 use App\Models\Settings;
+use App\Services\Platform\Tenancy\CurrentSchool;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Artisan;
 use Spatie\Permission\Models\Permission;
@@ -11,12 +12,16 @@ use Spatie\Permission\Models\Role;
 
 class InstallationSeeder extends Seeder
 {
+    /** In the school already chosen, or else the default school (a single-school install). */
+    public function run(): void
+    {
+        app(CurrentSchool::class)->runInSchoolOrDefault(fn () => $this->seedSchool());
+    }
+
     /**
      * Run the database seeds.
-     *
-     * @return void
      */
-    public function run()
+    private function seedSchool(): void
     {
 
         // Add Permissions

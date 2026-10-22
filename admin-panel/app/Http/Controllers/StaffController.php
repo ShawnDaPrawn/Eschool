@@ -18,6 +18,7 @@ use App\Models\User;
 use App\Services\IdCardService;
 use App\Services\MailService;
 use App\Services\Platform\Files\FileNames;
+use App\Services\Platform\Tenancy\SchoolTable;
 use App\Services\ResponseService;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
@@ -556,10 +557,10 @@ class StaffController extends Controller
                 $user->current_address = $request->address;
                 $user->save();
 
-                $check_staff = DB::table('staffs')->where('user_id', $user->id)->whereNotNull('deleted_at');
+                $check_staff = SchoolTable::query('staffs')->where('user_id', $user->id)->whereNotNull('deleted_at');
                 if ($check_staff->count()) {
                     $staff_exists = $check_staff->first();
-                    DB::table('staffs')->where('id', $staff_exists->id)->update(['deleted_at' => null]);
+                    SchoolTable::query('staffs')->where('id', $staff_exists->id)->update(['deleted_at' => null]);
                     $staff = Staff::findOrFail($staff_exists->id);
                     $staff->user_id = $user->id;
                     $staff->update();

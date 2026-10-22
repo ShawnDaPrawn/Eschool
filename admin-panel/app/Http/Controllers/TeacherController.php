@@ -15,6 +15,7 @@ use App\Models\User;
 use App\Services\MailService;
 use App\Services\Platform\Files\FileNames;
 use App\Services\Platform\Identity\AppTokens;
+use App\Services\Platform\Tenancy\SchoolTable;
 use App\Services\ResponseService;
 use Exception;
 use Illuminate\Http\Request;
@@ -138,10 +139,10 @@ class TeacherController extends Controller
                 $user->dob = date('Y-m-d', strtotime($request->dob));
                 $user->update();
 
-                $check_teacher = DB::table('teachers')->where('user_id', $user->id)->whereNotNull('deleted_at');
+                $check_teacher = SchoolTable::query('teachers')->where('user_id', $user->id)->whereNotNull('deleted_at');
                 if ($check_teacher->count()) {
                     $teacher_exists = $check_teacher->first();
-                    DB::table('teachers')->where('id', $teacher_exists->id)->update(['deleted_at' => null]);
+                    SchoolTable::query('teachers')->where('id', $teacher_exists->id)->update(['deleted_at' => null]);
 
                     $teacher = Teacher::findOrFail($teacher_exists->id);
 

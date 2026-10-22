@@ -140,7 +140,7 @@ class AuditLogTest extends TestCase
             Audit::record('settings.mail_verified', $setting, ['verified' => false], ['verified' => true]);
 
             return response()->noContent();
-        })->middleware('web');
+        })->middleware(['web', 'auth', 'school.context']);
         AuditLog::query()->toBase()->delete();
         $admin = $this->superAdmin();
         // A new request starts without the request id the seeding above made.

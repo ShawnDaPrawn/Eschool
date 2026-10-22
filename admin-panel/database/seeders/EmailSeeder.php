@@ -4,10 +4,17 @@ namespace Database\Seeders;
 
 use App\Models\EmailTemplate;
 use App\Services\Platform\Identity\LearnerInvitations;
+use App\Services\Platform\Tenancy\CurrentSchool;
 use Illuminate\Database\Seeder;
 
 class EmailSeeder extends Seeder
 {
+    /** In the school already chosen, or else the default school (a single-school install). */
+    public function run(): void
+    {
+        app(CurrentSchool::class)->runInSchoolOrDefault(fn () => $this->seedSchool());
+    }
+
     /**
      * Run the database seeds.
      *
@@ -15,7 +22,7 @@ class EmailSeeder extends Seeder
      * (docker/entrypoint.sh), and admins can edit these templates from the email
      * template settings screen. Overwriting would silently discard their customisations.
      */
-    public function run(): void
+    private function seedSchool(): void
     {
         $studentTemplate = <<<'HTML'
 <!DOCTYPE html>

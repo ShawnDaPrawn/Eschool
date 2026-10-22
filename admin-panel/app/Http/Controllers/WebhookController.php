@@ -8,6 +8,7 @@ use App\Models\PaymentTransaction;
 use App\Models\UserNotification;
 use App\Services\Payment\FeesPaymentService;
 use App\Services\Payment\PaymentService;
+use App\Services\Platform\Tenancy\CurrentSchool;
 use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -55,11 +56,10 @@ class WebhookController extends Controller
             return $this->unknownTransaction('Stripe', $intent->id ?? null);
         }
 
-        if ($event->type === 'payment_intent.succeeded') {
-            return $this->paid($fees, $transaction, $intent->amount_received ?? null, $intent->currency ?? null, [], 'Stripe');
-        }
-
-        return $this->failed($fees, $transaction, []);
+        // The rest happens in the school the payment belongs to.
+        return app(CurrentSchool::class)->run((int) $transaction->school_id, fn () => $event->type === 'payment_intent.succeeded'
+            ? $this->paid($fees, $transaction, $intent->amount_received ?? null, $intent->currency ?? null, [], 'Stripe')
+            : $this->failed($fees, $transaction, []));
     }
 
     private function findTransaction(int $gateway, $order_id): ?PaymentTransaction
@@ -68,7 +68,9 @@ class WebhookController extends Controller
             return null;
         }
 
-        return PaymentTransaction::where('payment_gateway', $gateway)->where('order_id', $order_id)->first();
+        // Provider order ids are unique across schools; the webhook arrives
+        // before anyone knows which school it is for.
+        return PaymentTransaction::acrossSchools()->where('payment_gateway', $gateway)->where('order_id', $order_id)->first();
     }
 
     /**

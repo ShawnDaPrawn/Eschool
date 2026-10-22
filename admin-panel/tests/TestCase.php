@@ -3,6 +3,7 @@
 namespace Tests;
 
 use App\Models\User;
+use App\Services\Platform\Tenancy\CurrentSchool;
 use dacoto\LaravelWizardInstaller\Middleware\ToInstallMiddleware;
 use Database\Seeders\AddSuperAdminSeeder;
 use Database\Seeders\EmailSeeder;
@@ -30,6 +31,11 @@ abstract class TestCase extends BaseTestCase
         $this->withoutMiddleware(ToInstallMiddleware::class);
 
         $this->fakePasswordBreachCheck();
+
+        // Test code outside a request works in school 1, as a single-school
+        // install's console does; each request chooses its own school
+        // (school.context) and this comes back once it has finished.
+        $this->app->make(CurrentSchool::class)->set(CurrentSchool::DEFAULT_ID);
     }
 
     /**

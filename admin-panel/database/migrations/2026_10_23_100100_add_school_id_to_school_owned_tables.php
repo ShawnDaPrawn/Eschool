@@ -3,7 +3,7 @@
 declare(strict_types=1);
 
 use Illuminate\Database\Migrations\Migration;
-use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
 /**
@@ -12,11 +12,11 @@ use Illuminate\Support\Facades\Schema;
  * engineering/specs/platform/tenancy.md). The next migration back-fills
  * every row to school 1 and a later one makes the column required.
  *
- * Safe on large tables: the column is added last (an instant change on
- * MySQL 8 and MariaDB 10.3 and later), the index is built online, and the
- * foreign key is added with foreign key checks off so MySQL adds it in
- * place instead of copying the table (every value is still null, so there
- * is nothing to check).
+ * Safe on large tables: one ALTER TABLE per table adds the column last, its
+ * index and its foreign key in a single online pass (concurrent reads and
+ * writes go on), with foreign key checks off so the key is added in place
+ * instead of by copying the table (every value is still null, so there is
+ * nothing to check).
  *
  * Frozen lists: App\Services\Platform\Tenancy\SchoolOwnedTables is today's
  * classification; this migration keeps the one it was written with.
@@ -54,23 +54,14 @@ return new class extends Migration
 
     public function up(): void
     {
-        foreach ([...self::REQUIRED, ...self::NULLABLE] as $table) {
-            if (in_array($table, self::HAD_COLUMN, true) || Schema::hasColumn($table, 'school_id')) {
-                continue;
-            }
-            Schema::table($table, function (Blueprint $blueprint) {
-                $blueprint->unsignedBigInteger('school_id')->nullable();
-            });
-            Schema::table($table, function (Blueprint $blueprint) {
-                $blueprint->index('school_id');
-            });
-        }
-
         Schema::withoutForeignKeyConstraints(function () {
             foreach (self::REQUIRED as $table) {
-                Schema::table($table, function (Blueprint $blueprint) {
-                    $blueprint->foreign('school_id')->references('id')->on('schools');
-                });
+                $this->alter($table, in_array($table, self::HAD_COLUMN, true)
+                    ? [$this->foreignKey($table)]
+                    : ['ADD COLUMN `school_id` BIGINT UNSIGNED NULL', "ADD INDEX `{$table}_school_id_index` (`school_id`)", $this->foreignKey($table)]);
+            }
+            foreach (self::NULLABLE as $table) {
+                $this->alter($table, ['ADD COLUMN `school_id` BIGINT UNSIGNED NULL', "ADD INDEX `{$table}_school_id_index` (`school_id`)"]);
             }
         });
     }
@@ -78,19 +69,28 @@ return new class extends Migration
     public function down(): void
     {
         foreach (self::REQUIRED as $table) {
-            Schema::table($table, function (Blueprint $blueprint) {
-                $blueprint->dropForeign(['school_id']);
-            });
+            $this->alter($table, in_array($table, self::HAD_COLUMN, true)
+                ? ["DROP FOREIGN KEY `{$table}_school_id_foreign`"]
+                : ["DROP FOREIGN KEY `{$table}_school_id_foreign`", "DROP INDEX `{$table}_school_id_index`", 'DROP COLUMN `school_id`']);
         }
+        foreach (self::NULLABLE as $table) {
+            $this->alter($table, ["DROP INDEX `{$table}_school_id_index`", 'DROP COLUMN `school_id`']);
+        }
+    }
 
-        foreach ([...self::REQUIRED, ...self::NULLABLE] as $table) {
-            if (in_array($table, self::HAD_COLUMN, true)) {
-                continue;
-            }
-            Schema::table($table, function (Blueprint $blueprint) {
-                $blueprint->dropIndex(['school_id']);
-                $blueprint->dropColumn('school_id');
-            });
-        }
+    private function foreignKey(string $table): string
+    {
+        return "ADD CONSTRAINT `{$table}_school_id_foreign` FOREIGN KEY (`school_id`) REFERENCES `schools` (`id`)";
+    }
+
+    /**
+     * One ALTER TABLE per table: the column, its index and its foreign key
+     * in a single pass over the table.
+     *
+     * @param  list<string>  $changes
+     */
+    private function alter(string $table, array $changes): void
+    {
+        DB::statement("ALTER TABLE `{$table}` ".implode(', ', $changes));
     }
 };

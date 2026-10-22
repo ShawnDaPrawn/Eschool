@@ -6,6 +6,7 @@ namespace Tests\Feature\Panel;
 
 use App\Models\SessionYear;
 use App\Models\User;
+use App\Services\Platform\Tenancy\SchoolTable;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
@@ -153,24 +154,24 @@ class SearchTest extends TestCase
     private function school(): void
     {
         $now = ['created_at' => now(), 'updated_at' => now()];
-        $medium = DB::table('mediums')->insertGetId(['name' => 'English'] + $now);
-        $section = DB::table('sections')->insertGetId(['name' => 'A'] + $now);
+        $medium = SchoolTable::query('mediums')->insertGetId(['name' => 'English'] + $now);
+        $section = SchoolTable::query('sections')->insertGetId(['name' => 'A'] + $now);
         foreach (['a' => 'Grade 5', 'b' => 'Grade 6'] as $key => $name) {
-            $class = DB::table('classes')->insertGetId(['name' => $name, 'medium_id' => $medium] + $now);
-            $this->ids["homeroom_$key"] = DB::table('class_sections')->insertGetId(['class_id' => $class, 'section_id' => $section] + $now);
+            $class = SchoolTable::query('classes')->insertGetId(['name' => $name, 'medium_id' => $medium] + $now);
+            $this->ids["homeroom_$key"] = SchoolTable::query('class_sections')->insertGetId(['class_id' => $class, 'section_id' => $section] + $now);
             $this->ids["class_$key"] = $class;
         }
-        DB::table('subjects')->insert(['name' => 'Mathematics', 'code' => 'MATH', 'bg_color' => '#5c6bc0', 'image' => 'm.png', 'medium_id' => $medium, 'type' => 'Theory'] + $now);
-        $this->ids['category'] = DB::table('categories')->insertGetId(['name' => 'General', 'status' => 1] + $now);
+        SchoolTable::query('subjects')->insert(['name' => 'Mathematics', 'code' => 'MATH', 'bg_color' => '#5c6bc0', 'image' => 'm.png', 'medium_id' => $medium, 'type' => 'Theory'] + $now);
+        $this->ids['category'] = SchoolTable::query('categories')->insertGetId(['name' => 'General', 'status' => 1] + $now);
 
         $thandi = $this->user('Thandi', 'Mokoena', 'thandi@example.com', 'Teacher');
         $this->ids['thandi_user'] = $thandi->id;
-        $teacher = DB::table('teachers')->insertGetId(['user_id' => $thandi->id, 'qualification' => 'B.Ed'] + $now);
-        DB::table('staffs')->insert(['user_id' => $thandi->id] + $now);
-        DB::table('class_teachers')->insert(['class_section_id' => $this->ids['homeroom_a'], 'class_teacher_id' => $teacher, 'session_year_id' => $this->yearId] + $now);
+        $teacher = SchoolTable::query('teachers')->insertGetId(['user_id' => $thandi->id, 'qualification' => 'B.Ed'] + $now);
+        SchoolTable::query('staffs')->insert(['user_id' => $thandi->id] + $now);
+        SchoolTable::query('class_teachers')->insert(['class_section_id' => $this->ids['homeroom_a'], 'class_teacher_id' => $teacher, 'session_year_id' => $this->yearId] + $now);
 
         $sipho = $this->user('Sipho', 'Dlamini', 'sipho@example.com', 'Parent');
-        $this->ids['sipho'] = DB::table('parents')->insertGetId(['user_id' => $sipho->id, 'first_name' => 'Sipho', 'last_name' => 'Dlamini', 'gender' => 'Male', 'email' => 'sipho@example.com', 'mobile' => '0820000000', 'occupation' => 'Engineer'] + $now);
+        $this->ids['sipho'] = SchoolTable::query('parents')->insertGetId(['user_id' => $sipho->id, 'first_name' => 'Sipho', 'last_name' => 'Dlamini', 'gender' => 'Male', 'email' => 'sipho@example.com', 'mobile' => '0820000000', 'occupation' => 'Engineer'] + $now);
 
         $this->ids['lerato'] = $this->learner('Lerato', 'Dlamini', 'DEMO-0001', $this->ids['homeroom_a']);
         $this->ids['kabelo'] = $this->learner('Kabelo', 'Dlamini', 'DEMO-0002', $this->ids['homeroom_b']);
@@ -182,11 +183,11 @@ class SearchTest extends TestCase
         $this->ids[strtolower($first).'_user'] = $user->id;
         $now = ['created_at' => now(), 'updated_at' => now()];
         $class = DB::table('class_sections')->where('id', $homeroom)->value('class_id');
-        $student = DB::table('students')->insertGetId([
+        $student = SchoolTable::query('students')->insertGetId([
             'user_id' => $user->id, 'class_id' => $class, 'class_section_id' => $homeroom, 'category_id' => $this->ids['category'],
             'admission_no' => $admission, 'roll_number' => 1, 'admission_date' => now()->toDateString(), 'father_id' => $this->ids['sipho'] ?? null,
         ] + $now);
-        DB::table('student_sessions')->insert(['student_id' => $student, 'class_section_id' => $homeroom, 'session_year_id' => $this->yearId, 'status' => 1] + $now);
+        SchoolTable::query('student_sessions')->insert(['student_id' => $student, 'class_section_id' => $homeroom, 'session_year_id' => $this->yearId, 'status' => 1] + $now);
 
         return $student;
     }
