@@ -173,6 +173,41 @@ void main() {
     expect(kept.single.fromUser.userName, 'Tara Naidoo');
   });
 
+  group('a context.changed push', () {
+    tearDown(() => NotificationUtility.onContextChanged = null);
+
+    test(
+      'in the foreground asks the app to fetch /me/context, silently',
+      () async {
+        var asked = 0;
+        NotificationUtility.onContextChanged = () => asked++;
+
+        await NotificationUtility.foregroundMessageListener(
+          const RemoteMessage(data: {'type': 'context.changed'}),
+        );
+
+        expect(asked, 1);
+        expect(NotificationUtility.unreadCount.value, 0);
+        expect(await const NotificationPreferences().getNotificationCount(), 0);
+      },
+    );
+
+    test('in the background is noted for when the app comes back', () async {
+      const preferences = NotificationPreferences();
+      expect(await preferences.takeContextChanged(), isFalse);
+
+      await NotificationUtility.handleBackgroundMessage(
+        const RemoteMessage(data: {'type': 'context.changed'}),
+        config,
+      );
+
+      expect(await preferences.getNotificationCount(), 0);
+      expect(await preferences.takeContextChanged(), isTrue);
+      // Taken once.
+      expect(await preferences.takeContextChanged(), isFalse);
+    });
+  });
+
   testWidgets('a tap opens what the app maps the type to', (tester) async {
     late BuildContext context;
     await tester.pumpWidget(

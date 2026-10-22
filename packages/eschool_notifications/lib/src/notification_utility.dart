@@ -34,6 +34,14 @@ class NotificationUtility {
   static String chatNotificaitonType = 'chat';
   static String feePaymentDueType = 'fees-due';
 
+  /// A silent push: something `/me/context` holds changed on the server
+  /// (a module switched, a child linked, an approval given). Never shown.
+  static const String contextChangedType = 'context.changed';
+
+  /// What the app does when a [contextChangedType] push arrives while it is
+  /// in front: fetch `/me/context` again. Set by the app once it runs.
+  static void Function()? onContextChanged;
+
   static NotificationConfig? _config;
   static SessionRepository? _session;
 
@@ -167,6 +175,10 @@ class NotificationUtility {
   static Future<void> foregroundMessageListener(
     RemoteMessage remoteMessage,
   ) async {
+    if (remoteMessage.data['type'] == contextChangedType) {
+      onContextChanged?.call();
+      return;
+    }
     if (!config.typesNotCounted.contains(remoteMessage.data['type'])) {
       const preferences = NotificationPreferences();
       final int oldCount = await preferences.getNotificationCount();
@@ -334,6 +346,12 @@ class NotificationUtility {
     NotificationConfig config,
   ) async {
     const preferences = NotificationPreferences();
+    if (remoteMessage.data['type'] == contextChangedType) {
+      // Shown to nobody: the app fetches /me/context when it next comes
+      // to the front.
+      await preferences.noteContextChanged();
+      return;
+    }
     if (!config.typesNotCounted.contains(remoteMessage.data['type'])) {
       await Firebase.initializeApp();
 

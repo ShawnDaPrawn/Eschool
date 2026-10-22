@@ -4,6 +4,7 @@ import 'package:eschool_teacher/app/deepLinks.dart';
 import 'package:eschool_teacher/app/routes.dart';
 import 'package:eschool_teacher/cubits/authCubit.dart';
 import 'package:eschool_teacher/utils/uiUtils.dart';
+import 'package:eschool_notifications/eschool_notifications.dart';
 import 'package:eschool_session/eschool_session.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -30,6 +31,12 @@ class _SessionWatcherState extends State<SessionWatcher> {
     if (context.read<AuthCubit>().state is Authenticated) {
       context.read<MeContextCubit>().load();
     }
+    // A context.changed push while the app is in front: fetch it now.
+    NotificationUtility.onContextChanged = () {
+      if (mounted && context.read<AuthCubit>().state is Authenticated) {
+        context.read<MeContextCubit>().load();
+      }
+    };
     _links = deepLinks.targets.listen(
       (target) => openDeepLink(
         target,
@@ -42,6 +49,7 @@ class _SessionWatcherState extends State<SessionWatcher> {
   @override
   void dispose() {
     _links?.cancel();
+    NotificationUtility.onContextChanged = null;
     super.dispose();
   }
 
@@ -68,7 +76,15 @@ class _SessionWatcherState extends State<SessionWatcher> {
               context.read<SchoolSelectionCubit>().syncWithContext(state.context),
         ),
       ],
-      child: widget.child,
+      // Back in front after a while, or after a context.changed push in
+      // the background: fetch /me/context again.
+      child: MeContextRefresher(
+        isSignedIn: (context) =>
+            context.read<AuthCubit>().state is Authenticated,
+        takeChangeNotice: () =>
+            const NotificationPreferences().takeContextChanged(),
+        child: widget.child,
+      ),
     );
   }
 }

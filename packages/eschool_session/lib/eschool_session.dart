@@ -18,6 +18,7 @@ export 'src/auth/session_dio.dart';
 export 'src/auth/session_repository.dart';
 export 'src/context/me_context.dart';
 export 'src/context/me_context_cubit.dart';
+export 'src/context/me_context_refresher.dart';
 export 'src/context/me_context_repository.dart';
 export 'src/deep_links/deep_link_coordinator.dart';
 export 'src/deep_links/deep_link_parser.dart';
