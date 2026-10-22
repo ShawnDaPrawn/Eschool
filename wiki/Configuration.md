@@ -77,7 +77,7 @@ The `mysql` connection uses `utf8mb4`/`utf8mb4_unicode_ci`, `strict => false`, `
 | `BROADCAST_DRIVER` | `log` | `null` | No broadcasting is used by the app. |
 | `CACHE_DRIVER` | `file` | `file` | Default cache store (`storage/framework/cache/data`). Used by Spatie's permission cache (24 hours) and the scheduler's overlap lock. `config/cache.php` reads `CACHE_DRIVER`, not Laravel 12's `CACHE_STORE`. |
 | `FILESYSTEM_DISK` | `local` | `local` | Default disk. Uploads are written to the `public` disk explicitly (`storage/app/public`, served at `/storage`); private files such as the Firebase service account use `local` (`storage/app`). |
-| `QUEUE_CONNECTION` | `sync` | `sync` | `sync` runs queued jobs inside the request (fine for development). Production uses `database` with a worker; see [Deployment](Deployment#queue-worker). The database queue's `retry_after` is 180 seconds, longer than the worker's `--timeout=120`. |
+| `QUEUE_CONNECTION` | `database` | `database` | Mail, pushes and the outbox run as jobs on a worker (`php artisan queue:work`); see [Deployment](Deployment#queue-worker) and [Queue and delivery](#queue-and-delivery) below. `sync` runs them inside the request (tests use it). The database queue's `retry_after` is 180 seconds, longer than the worker's `--timeout=120`, and it dispatches jobs only once their transaction commits. |
 | `SESSION_DRIVER` | `file` | `file` | Admin panel sessions (`storage/framework/sessions`). |
 | `SESSION_LIFETIME` | `120` | `120` | Minutes. |
 | `SANCTUM_EXPIRATION` | `43200` | `60 * 24 * 30` | Minutes before a mobile-app token expires (30 days). Expired tokens are pruned daily; see [Scheduled-Tasks-and-Commands](Scheduled-Tasks-and-Commands). |
@@ -92,7 +92,7 @@ These are fallbacks. Once the Email Settings page has been saved, the `mail_*` s
 
 | Key | Default | Config fallback | Overridden by setting |
 |---|---|---|---|
-| `MAIL_MAILER` | `smtp` | `log` | `mail_mailer` (config `mail.default`) |
+| `MAIL_MAILER` | `ses` | `log` | `mail_mailer` (config `mail.default`). `ses` is Amazon SES in `af-south-1` (keys below); `smtp` uses the server below |
 | `MAIL_HOST` | empty | `smtp.gmail.com` | `mail_host` |
 | `MAIL_PORT` | empty | `587` | `mail_port` (cast to int) |
 | `MAIL_USERNAME` | empty | empty | `mail_username` |
@@ -101,13 +101,30 @@ These are fallbacks. Once the Email Settings page has been saved, the `mail_*` s
 | `MAIL_FROM_ADDRESS` | empty | `hello@example.com` | `mail_send_from` (config `mail.from.address`, also used as the sender by several controllers) |
 | `MAIL_FROM_NAME` | `"${APP_NAME}"` | `Example` | If it equals `APP_NAME` (as in `.env.example`), it follows the `school_name` setting; a different value of its own is kept. |
 
-The `smtp` mailer in `config/mail.php` sets `verify_peer => false`, so the SMTP server's TLS certificate is not verified. The Email Settings form offers `smtp`, `mailgun`, `sendmail`, `postmark` and `amazon_ses`; `config/mail.php` defines the SES mailer as `ses`, so choosing "Amazon SES" makes sending fail with "Mailer [amazon_ses] is not defined." Mailgun and Postmark also need the `MAILGUN_*` or `POSTMARK_TOKEN` keys below, which only `.env` can set.
+The `smtp` mailer in `config/mail.php` sets `verify_peer => false`, so the SMTP server's TLS certificate is not verified. The Email Settings form offers `smtp`, `mailgun`, `sendmail`, `postmark` and `amazon_ses`; `config/mail.php` defines `amazon_ses` as the same SES transport as `ses`. Mailgun and Postmark also need the `MAILGUN_*` or `POSTMARK_TOKEN` keys below, which only `.env` can set.
+
+### Queue and delivery
+
+Phase 0 moved mail and push off the web request ([Notifications](Notifications#queued-delivery-and-notification_deliveries)).
+
+| Key | Default | Read in | Meaning |
+|---|---|---|---|
+| `SES_ACCESS_KEY_ID`, `SES_SECRET_ACCESS_KEY` | empty (fall back to `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`) | `config/services.php` (`ses.key`, `ses.secret`) | The SES sending user's key (Secret Manager `navigateed-ses-access-key-id`, `navigateed-ses-secret-access-key`). Needed on the worker, and on the web service for the mail settings test, which sends at once |
+| `AWS_SES_REGION` | `af-south-1` | `config/services.php` (`ses.region`) | |
+| `AWS_SES_CONFIGURATION_SET` | empty | `config/services.php` (`ses.options.ConfigurationSetName`) | The configuration set that publishes Delivery, Bounce, Complaint and Reject to SNS |
+| `SES_SNS_TOPIC_ARNS` | empty | `config/services.php` (`ses_notifications.topic_arns`) | Comma-separated SNS topics `POST /webhook/mail/ses` accepts; empty refuses every call |
+| `NOTIFICATION_QUEUE` | `default` | `config/platform.php` (`deliveries.queue`) | Queue of the `SendMail` and `SendPush` jobs |
+| `NOTIFICATION_TRIES` | `3` | `config/platform.php` (`deliveries.tries`) | Attempts per message; backoff 60, 300, 900 seconds |
+| `OUTBOX_BATCH`, `OUTBOX_MAX_ATTEMPTS` | `100`, `10` | `config/platform.php` (`outbox`) | Events per `DispatchOutbox` run; failed runs before an event is parked |
+| `MONEY_CURRENCY` | `ZAR` | `config/platform.php` (`money.currency`) | Currency of amounts stored without one (all fee columns in Phase 0) |
+
+`config/platform.php` also holds the outbox listener registry (`outbox.listeners`) and the attribute names the audit log never stores (`audit.never_store`).
 
 ### Storage, broadcasting and leftovers
 
 | Key | Default | Meaning |
 |---|---|---|
-| `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY` | empty | Credentials for the `s3` disk, SES, SQS and DynamoDB cache. No code uses the `s3` disk. |
+| `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY` | empty | Credentials for the `s3` disk, SQS and DynamoDB cache, and for SES when `SES_*` keys are not set. No code uses the `s3` disk. |
 | `AWS_DEFAULT_REGION` | `us-east-1` | |
 | `AWS_BUCKET` | empty | |
 | `AWS_USE_PATH_STYLE_ENDPOINT` | `false` | |
@@ -226,7 +243,7 @@ See [Installation-Wizard](Installation-Wizard) for how these are used.
 
 ### config/services.php
 
-Besides the stock `mailgun`, `postmark` and `ses` entries, it defines `services.stripe` (`key`, `secret`, `webhook_secret`); Stripe is the only payment gateway since Phase 0 removed Razorpay, Paystack and Flutterwave. Its only use is as a fallback in `PaymentService::webhookSecret()`: the `stripe_webhook_secret` settings row, or `services.stripe.webhook_secret` (`STRIPE_WEBHOOK_SECRET`) when the row is empty. When both are empty the webhook is refused. See [Payments](Payments).
+Besides the stock `mailgun` and `postmark` entries, `services.ses` (SES keys, region `af-south-1`, configuration set) and `services.ses_notifications` (the SNS topics the mail webhook accepts), it defines `services.stripe` (`key`, `secret`, `webhook_secret`); Stripe is the only payment gateway since Phase 0 removed Razorpay, Paystack and Flutterwave. Its only use is as a fallback in `PaymentService::webhookSecret()`: the `stripe_webhook_secret` settings row, or `services.stripe.webhook_secret` (`STRIPE_WEBHOOK_SECRET`) when the row is empty. When both are empty the webhook is refused. See [Payments](Payments).
 
 ### Other config files
 
