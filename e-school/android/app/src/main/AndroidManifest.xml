@@ -58,9 +58,10 @@
             </intent-filter>
 
             <!-- Android App Links: a link to the web portal opens this app.
-                 The hosts prove it with /.well-known/assetlinks.json from the
-                 web build (web/.well-known/); the release runbook puts the
-                 signing key's fingerprint there. The app maps each path to
+                 The hosts prove it with /.well-known/assetlinks.json, from
+                 web/well-known/ in the web build (firebase.json serves it
+                 there); the release runbook puts the signing key's
+                 fingerprint in it. The app maps each path to
                  its screen (lib/app/deepLinks.dart, through app_links). -->
             <intent-filter android:autoVerify="true">
                 <action android:name="android.intent.action.VIEW" />

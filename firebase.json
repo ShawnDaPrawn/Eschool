@@ -13,8 +13,12 @@
     {
       "target": "app",
       "public": "e-school/build/web",
-      "ignore": ["**/.last_build_id", "**/.DS_Store"],
-      "rewrites": [{ "source": "**", "destination": "/index.html" }],
+      "ignore": ["**/.*"],
+      "rewrites": [
+        { "source": "/.well-known/assetlinks.json", "destination": "/well-known/assetlinks.json" },
+        { "source": "/.well-known/apple-app-site-association", "destination": "/well-known/apple-app-site-association" },
+        { "source": "**", "destination": "/index.html" }
+      ],
       "headers": [
         {
           "source": "**",
@@ -34,8 +38,12 @@
     {
       "target": "teach",
       "public": "e-school-teacher/build/web",
-      "ignore": ["**/.last_build_id", "**/.DS_Store"],
-      "rewrites": [{ "source": "**", "destination": "/index.html" }],
+      "ignore": ["**/.*"],
+      "rewrites": [
+        { "source": "/.well-known/assetlinks.json", "destination": "/well-known/assetlinks.json" },
+        { "source": "/.well-known/apple-app-site-association", "destination": "/well-known/apple-app-site-association" },
+        { "source": "**", "destination": "/index.html" }
+      ],
       "headers": [
         {
           "source": "**",
