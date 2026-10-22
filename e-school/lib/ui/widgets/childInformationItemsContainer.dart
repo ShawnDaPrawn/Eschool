@@ -26,79 +26,57 @@ class ChildInformationItemsContainer extends StatefulWidget {
 
 class ChildInformationItemsContainerState
     extends State<ChildInformationItemsContainer> {
+  // Each screen shows the child picked in the child switcher, so none is
+  // handed a child here.
   late final List<MenuContainerDetails> _menuItems = [
     MenuContainerDetails(
       route: Routes.childAssignments,
-      arguments: ChildSubjectsArguments(
-        childId: widget.student.id,
-        subjects: widget.subjectsForFilter,
-      ),
       iconPath: Assets.assignmentIconParent,
       titleKey: assignmentsKey,
     ),
     MenuContainerDetails(
       route: Routes.childTeachers,
-      arguments: widget.student.id,
       iconPath: Assets.teachersIcon,
       titleKey: teachersKey,
     ),
     MenuContainerDetails(
       route: Routes.childAttendance,
-      arguments: widget.student.id,
       iconPath: Assets.attendanceIcon,
       titleKey: attendanceKey,
     ),
     MenuContainerDetails(
       route: Routes.childTimeTable,
-      arguments: widget.student.id,
       iconPath: Assets.timetableIcon,
       titleKey: timeTableKey,
     ),
     MenuContainerDetails(
       route: Routes.academicCalendar,
-      arguments: AcademicCalendarArguments(
-        hasBack: true,
-        childId: widget.student.id,
-      ),
+      arguments: const AcademicCalendarArguments(hasBack: true),
       iconPath: Assets.holidayIcon,
       titleKey: academicCalendarKey,
     ),
     MenuContainerDetails(
       route: Routes.exam,
-      arguments: ChildSubjectsArguments(
-        childId: widget.student.id,
-        subjects: widget.subjectsForFilter,
-      ),
       iconPath: Assets.examIcon,
       titleKey: examsKey,
     ),
     MenuContainerDetails(
       route: Routes.childResults,
-      arguments: ChildSubjectsArguments(
-        childId: widget.student.id,
-        subjects: widget.subjectsForFilter,
-      ),
       iconPath: Assets.resultIcon,
       titleKey: resultKey,
     ),
     MenuContainerDetails(
       route: Routes.subjectWiseReport,
-      arguments: ChildSubjectsArguments(
-        childId: widget.student.id,
-        subjects: widget.subjectsForFilter,
-      ),
       iconPath: Assets.reportsIcon,
       titleKey: reportsKey,
     ),
     MenuContainerDetails(
       route: Routes.childFees,
-      arguments: widget.student,
       iconPath: Assets.feesIcon,
       titleKey: feesKey,
     ),
     MenuContainerDetails(
       route: Routes.manageLeaves,
-      arguments: widget.student,
       iconPath: Assets.manageLeavesIcon,
       titleKey: manageLeavesKey,
     ),

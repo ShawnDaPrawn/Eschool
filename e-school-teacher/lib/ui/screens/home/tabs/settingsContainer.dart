@@ -9,6 +9,7 @@ import 'package:eschool_teacher/ui/screens/home/widgets/changePasswordBottomshee
 import 'package:eschool_teacher/ui/screens/home/widgets/logoutButton.dart';
 import 'package:eschool_teacher/ui/widgets/customAppbar.dart';
 import 'package:eschool_teacher/ui/widgets/notificationIconWidget.dart';
+import 'package:eschool_teacher/app/sharedScreens.dart';
 import 'package:eschool_teacher/utils/appLanguages.dart';
 import 'package:eschool_teacher/utils/labelKeys.dart';
 import 'package:eschool_teacher/utils/uiUtils.dart';
@@ -55,53 +56,62 @@ class SettingsContainer extends StatelessWidget {
     required BuildContext context,
     Widget? customIcon,
   }) {
-    return InkWell(
-      onTap: () {
-        onTap();
-      },
-      child: Padding(
-        padding: EdgeInsetsDirectional.only(
-          bottom: 10,
-          top: 10,
-          start: MediaQuery.sizeOf(context).width * 0.075,
-          end: MediaQuery.sizeOf(context).width * 0.075,
-        ),
-        child: DecoratedBox(
-          decoration: BoxDecoration(
-            border: Border.all(color: Colors.transparent),
-          ),
-          child: Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.all(10),
-                decoration: BoxDecoration(
-                  color: Theme.of(context).colorScheme.primary,
-                  shape: BoxShape.circle,
-                ),
-                alignment: Alignment.center,
-                child:
-                    customIcon ??
-                    Icon(icon, color: Theme.of(context).colorScheme.onPrimary),
+    // One node for screen readers: a button named by its title.
+    return MergeSemantics(
+      child: Semantics(
+        button: true,
+        child: InkWell(
+          onTap: () {
+            onTap();
+          },
+          child: Padding(
+            padding: EdgeInsetsDirectional.only(
+              bottom: 10,
+              top: 10,
+              start: MediaQuery.sizeOf(context).width * 0.075,
+              end: MediaQuery.sizeOf(context).width * 0.075,
+            ),
+            child: DecoratedBox(
+              decoration: BoxDecoration(
+                border: Border.all(color: Colors.transparent),
               ),
-              const SizedBox(width: 15),
-              Expanded(
-                child: Text(
-                  title,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: TextStyle(
-                    color: Theme.of(context).colorScheme.onSurfaceVariant,
-                    fontSize: 15,
+              child: Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(10),
+                    decoration: BoxDecoration(
+                      color: Theme.of(context).colorScheme.primary,
+                      shape: BoxShape.circle,
+                    ),
+                    alignment: Alignment.center,
+                    child:
+                        customIcon ??
+                        Icon(
+                          icon,
+                          color: Theme.of(context).colorScheme.onPrimary,
+                        ),
                   ),
-                ),
+                  const SizedBox(width: 15),
+                  Expanded(
+                    child: Text(
+                      title,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
+                        fontSize: 15,
+                      ),
+                    ),
+                  ),
+                  Icon(
+                    Icons.chevron_right,
+                    color: Theme.of(
+                      context,
+                    ).colorScheme.onSurfaceVariant.withValues(alpha: 0.8),
+                  ),
+                ],
               ),
-              Icon(
-                Icons.chevron_right,
-                color: Theme.of(
-                  context,
-                ).colorScheme.onSurfaceVariant.withValues(alpha: 0.8),
-              ),
-            ],
+            ),
           ),
         ),
       ),
@@ -145,6 +155,17 @@ class SettingsContainer extends StatelessWidget {
             Navigator.of(context).pushNamed(Routes.notifications);
           },
           context: context,
+        ),
+        //the shared screens, each once the server has it
+        ...sharedScreenEntries(
+          context,
+          tile: ({required title, required icon, required onTap}) =>
+              _buildSettingDetailsTile(
+                title: title,
+                icon: icon,
+                onTap: onTap,
+                context: context,
+              ),
         ),
         _buildSettingDetailsTile(
           icon: Icons.password,

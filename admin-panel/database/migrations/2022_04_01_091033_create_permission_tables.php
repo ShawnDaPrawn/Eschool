@@ -11,7 +11,10 @@ return new class extends Migration
      */
     public function up(): void
     {
-        $teams = config('permission.teams');
+        // Always the single-school shape, whatever config says today: every
+        // install, new or old, reaches teams mode through the same later
+        // migration (2026_10_23_100500_add_school_id_to_permission_tables).
+        $teams = false;
         $tableNames = config('permission.table_names');
         $columnNames = config('permission.column_names');
         $pivotRole = $columnNames['role_pivot_key'] ?? 'role_id';

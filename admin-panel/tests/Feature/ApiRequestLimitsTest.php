@@ -2,7 +2,7 @@
 
 namespace Tests\Feature;
 
-use Illuminate\Support\Facades\DB;
+use App\Services\Platform\Tenancy\SchoolTable;
 use Tests\Concerns\RunsAppServer;
 use Tests\Support\DemoSchool;
 use Tests\TestCase;
@@ -38,7 +38,7 @@ class ApiRequestLimitsTest extends TestCase
     public function test_an_exam_that_is_not_open_says_so_before_checking_the_key(): void
     {
         $id = self::$school->ids;
-        $upcoming = DB::table('online_exams')->insertGetId([
+        $upcoming = SchoolTable::query('online_exams')->insertGetId([
             'model_type' => 'App\Models\ClassSection', 'model_id' => $id['section_a'], 'subject_id' => $id['maths'],
             'title' => 'Next week', 'exam_key' => 1234, 'duration' => 30, 'session_year_id' => 1,
             'start_date' => now()->addDays(2), 'end_date' => now()->addDays(3),
@@ -81,11 +81,11 @@ class ApiRequestLimitsTest extends TestCase
     public function test_events_say_which_have_a_day_schedule(): void
     {
         // has_day_schedule is now read with the events instead of one query per event.
-        $multiDay = DB::table('events')->insertGetId([
+        $multiDay = SchoolTable::query('events')->insertGetId([
             'session_year_id' => 1, 'title' => 'Science week', 'type' => 'multiple',
             'start_date' => now()->addDays(20)->toDateString(), 'end_date' => now()->addDays(22)->toDateString(),
         ]);
-        DB::table('multiple_events')->insert([
+        SchoolTable::query('multiple_events')->insert([
             ['event_id' => $multiDay, 'title' => 'Opening', 'date' => now()->addDays(20)->toDateString()],
             ['event_id' => $multiDay, 'title' => 'Fair', 'date' => now()->addDays(21)->toDateString()],
         ]);
@@ -101,7 +101,7 @@ class ApiRequestLimitsTest extends TestCase
     public function test_chat_messages_come_a_page_at_a_time_without_a_limit(): void
     {
         $id = self::$school->ids;
-        DB::table('chat_messages')->insert(array_map(fn (int $i) => [
+        SchoolTable::query('chat_messages')->insert(array_map(fn (int $i) => [
             'modal_type' => 'App/Models/User', 'modal_id' => $id['tara_user'], 'sender_id' => $id['farid_user'],
             'body' => "Message $i", 'date' => now()->subMinutes(200 - $i), 'created_at' => now(), 'updated_at' => now(),
         ], range(1, 120)));

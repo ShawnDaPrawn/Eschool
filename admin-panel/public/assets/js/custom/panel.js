@@ -43,6 +43,15 @@
         });
     };
 
+    /* ---- School switcher -----------------------------------------
+       People at several schools choose the school beside the year;
+       the form posts the choice and the panel reloads in that school. */
+    $(document).on("change", ".js-school-switcher", function () {
+        if (String($(this).val()) !== String(this.getAttribute("data-selected"))) {
+            this.form.submit();
+        }
+    });
+
     $(document).on("change", ".js-year-switcher:not(#filter_session_year_global)", function () {
         if (String($(this).val()) !== String(this.getAttribute("data-selected"))) {
             window.panelSwitchYear($(this).val());

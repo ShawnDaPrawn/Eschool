@@ -251,6 +251,31 @@ Rules for every panel page, old or new:
 - **Keyboard and screen readers.** Every control is a real `<button>`, `<a>` or form field with a visible label or `aria-label`; focus is always visible (a 3px `secondary` outline); dialogs trap focus and return it. `layouts/master` provides a skip link and a `<main>` landmark; a page has exactly one `<h1>`.
 - **Width.** Every page works at 1024 px (a school laptop) and at 1280 px without scrolling sideways; wide tables scroll inside their card. Playwright checks this and runs axe on every panel page (see [Testing-and-CI](Testing-and-CI#playwright-admin-panel)).
 
+### Material 3 controls (`<x-m3.*>`)
+
+The page pattern's components above (`<x-page.*>`) give a panel page its structure. The controls inside pages, and the public website's pages, use the Blade components in [`resources/views/components/m3/`](https://github.com/ShawnDaPrawn/Eschool/tree/main/admin-panel/resources/views/components/m3) rather than hand-written `m3-*` markup. A component holds the markup and the accessibility wiring (labels, `aria-describedby`, `aria-invalid`, required marks) in one place, so changing how a button or a checkbox looks or behaves is one edit that reaches every page. Write raw `m3-*` markup only for something no component covers yet; when the same markup appears twice, make it a component.
+
+Each component's file starts with a comment showing how to use it. The common rules:
+- `class` goes on the outer element, so it places the component in a grid (`class="m3-col-12 m3-col-medium-6"`).
+- On form controls, `input-class` and every other attribute (`id`, `maxlength`, `data-*`, `autocomplete`…) go on the input itself, so script hooks keep working.
+- `required` adds both the attribute and the asterisk.
+- Old input and the server's validation error for the field are filled in automatically.
+
+| Component | Use it for |
+|---|---|
+| `<x-m3.button>`, `<x-m3.icon-button>` | Buttons (`variant` filled, tonal, outlined, text, elevated, error; `icon`; `href` makes a link). An icon button needs a `label`; it is the accessible name and the tooltip. |
+| `<x-m3.text-field>`, `<x-m3.select>` | Text inputs (and `type="textarea"`) and selects outside a form card: the website's forms, dialogs, filters on older pages. In a panel form card use `<x-page.field>`, which page.js checks as people type. |
+| `<x-m3.checkbox>`, `<x-m3.radio>`, `<x-m3.switch>` | Single controls with their label. |
+| `<x-m3.checkbox-group>`, `<x-m3.radio-group>` | A labelled set (`legend`, `options`, `value`), in a `<fieldset>`. |
+| `<x-m3.file-field>` | A file upload: the file's name in a field and an Upload button. |
+| `<x-m3.card>` | A titled section that isn't a form (`variant` outlined, filled or elevated; `actions` and `footer` slots). Forms use `<x-page.form-card>`. |
+| `<x-m3.dialog id title>` | A dialog other than a confirmation (those use `<x-page.confirm-dialog>`). With `form-action` / `form-id` it wraps a form and gets Close and submit buttons. |
+| `<x-m3.menu id>` + `<x-m3.menu-item>` | A menu opened by `data-m3-menu="id"` on any button. |
+| `<x-m3.chip>` | A label or a `status` (success, warning, danger, info, neutral). |
+
+`tests/Feature/M3ComponentsTest.php` renders each component and checks the markup the library and the scripts depend on. Add a case when you add a component or an option.
+
+
 ## Changing the brand
 
 1. Edit `packages/eschool_core/lib/src/theme/brand_colors.dart`.

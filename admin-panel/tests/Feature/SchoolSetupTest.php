@@ -7,8 +7,8 @@ use App\Models\InstallmentFee;
 use App\Models\SessionYear;
 use App\Models\Settings;
 use App\Models\Shift;
+use App\Services\Platform\Tenancy\SchoolTable;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Support\Facades\DB;
 use Spatie\Permission\Models\Role;
 use Tests\TestCase;
 
@@ -114,8 +114,8 @@ class SchoolSetupTest extends TestCase
 
     public function test_class_names_can_be_written_as_schools_write_them(): void
     {
-        $medium = DB::table('mediums')->insertGetId(['name' => 'English']);
-        $section = DB::table('sections')->insertGetId(['name' => 'A']);
+        $medium = SchoolTable::query('mediums')->insertGetId(['name' => 'English']);
+        $section = SchoolTable::query('sections')->insertGetId(['name' => 'A']);
         $this->actingAs($this->superAdmin());
 
         // Only [A-Za-z0-9_] was allowed, so "Grade 1" was refused.
@@ -157,8 +157,8 @@ class SchoolSetupTest extends TestCase
 
     public function test_the_class_subject_edit_link_keeps_the_listed_session_year(): void
     {
-        $medium = DB::table('mediums')->insertGetId(['name' => 'English']);
-        $section = DB::table('sections')->insertGetId(['name' => 'A']);
+        $medium = SchoolTable::query('mediums')->insertGetId(['name' => 'English']);
+        $section = SchoolTable::query('sections')->insertGetId(['name' => 'A']);
         $this->actingAs($this->superAdmin())->postJson('/session-years', $this->newYear('2031'))->assertOk();
         $year = SessionYear::where('name', '2031')->firstOrFail();
         $this->postJson('/class', ['name' => 'Grade 1', 'medium_id' => $medium, 'section_id' => [$section]])->assertJson(['error' => false]);

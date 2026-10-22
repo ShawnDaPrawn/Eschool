@@ -43,7 +43,9 @@ trait Auditable
         });
 
         if (in_array(SoftDeletes::class, class_uses_recursive(static::class), true)) {
-            static::restored(function (Model $model) {
+            // registerModelEvent rather than restored(), which only models
+            // with SoftDeletes have.
+            static::registerModelEvent('restored', function (Model $model) {
                 Audit::record('restored', $model);
             });
         }

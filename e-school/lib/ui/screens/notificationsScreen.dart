@@ -1,5 +1,6 @@
 // ignore_for_file: public_member_api_docs, sort_constructors_first
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:eschool/app/routes.dart';
 import 'package:eschool/cubits/notificationCubit.dart';
 import 'package:eschool/data/models/customNotification.dart';
 import 'package:eschool/data/repositories/parentRepository.dart';
@@ -8,7 +9,9 @@ import 'package:eschool/data/repositories/studentRepository.dart';
 import 'package:eschool/ui/screens/home/homeScreen.dart';
 import 'package:eschool_core/eschool_core.dart';
 import 'package:eschool/ui/widgets/noDataContainer.dart';
+import 'package:eschool/utils/api.dart';
 import 'package:eschool/utils/constants.dart';
+import 'package:eschool_notifications/eschool_notifications.dart';
 import 'package:eschool/utils/labelKeys.dart';
 import 'package:eschool/utils/uiUtils.dart';
 import 'package:flutter/material.dart';
@@ -74,6 +77,19 @@ class _NotificationScreenState extends State<NotificationScreen> {
         clipBehavior: Clip.none,
         children: [
           const CustomBackButton(),
+          //notification settings, once the server has them
+          Align(
+            alignment: AlignmentDirectional.topEnd,
+            child: Transform.translate(
+              offset: const Offset(0, -12),
+              child: NotificationSettingsButton(
+                repository: ApiNotificationSettingsRepository(Api.client),
+                onPressed: () => Navigator.of(
+                  context,
+                ).pushNamed(Routes.notificationSettings),
+              ),
+            ),
+          ),
           Align(
             alignment: Alignment.topCenter,
             child: Text(

@@ -107,6 +107,9 @@ class _MyAppState extends State<MyApp> {
             cache: HiveMeContextCache(),
           ),
         ),
+        BlocProvider<SchoolSelectionCubit>(
+          create: (_) => SchoolSelectionCubit(store: Api.selection),
+        ),
         BlocProvider<AppConfigurationCubit>(
           create: (_) => AppConfigurationCubit(SystemRepository()),
         ),

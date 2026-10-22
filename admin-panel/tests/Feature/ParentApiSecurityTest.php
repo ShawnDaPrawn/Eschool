@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use App\Models\User;
 use App\Services\ParentPolicyService;
+use App\Services\Platform\Tenancy\SchoolTable;
 use Illuminate\Http\Client\PendingRequest;
 use Illuminate\Http\Client\Response;
 use Illuminate\Support\Facades\DB;
@@ -172,13 +173,13 @@ class ParentApiSecurityTest extends TestCase
         $stamp = ['created_at' => $now, 'updated_at' => $now];
         $session = (int) DB::table('settings')->where('type', 'session_year')->value('message');
 
-        $medium = DB::table('mediums')->insertGetId(['name' => 'English'] + $stamp);
-        $class = DB::table('classes')->insertGetId(['name' => 'Grade 1', 'medium_id' => $medium] + $stamp);
-        $category = DB::table('categories')->insertGetId(['name' => 'General'] + $stamp);
+        $medium = SchoolTable::query('mediums')->insertGetId(['name' => 'English'] + $stamp);
+        $class = SchoolTable::query('classes')->insertGetId(['name' => 'Grade 1', 'medium_id' => $medium] + $stamp);
+        $category = SchoolTable::query('categories')->insertGetId(['name' => 'General'] + $stamp);
         $sections = [];
         foreach (['a' => 'A', 'b' => 'B'] as $family => $name) {
-            $section = DB::table('sections')->insertGetId(['name' => $name] + $stamp);
-            $sections[$family] = DB::table('class_sections')->insertGetId(['class_id' => $class, 'section_id' => $section] + $stamp);
+            $section = SchoolTable::query('sections')->insertGetId(['name' => $name] + $stamp);
+            $sections[$family] = SchoolTable::query('class_sections')->insertGetId(['class_id' => $class, 'section_id' => $section] + $stamp);
         }
 
         $parents = [
@@ -189,19 +190,19 @@ class ParentApiSecurityTest extends TestCase
             $parentUser = $this->user($p['email'], 'Parent', ['gender' => $p['gender']]);
             ParentPolicyService::acceptCurrent($parentUser);
             $this->ids[$p['key'].'_user'] = $parentUser->id;
-            $parentId = DB::table('parents')->insertGetId([
+            $parentId = SchoolTable::query('parents')->insertGetId([
                 'user_id' => $parentUser->id, 'first_name' => $parentUser->first_name, 'last_name' => 'Test',
                 'gender' => $p['gender'], 'email' => $p['email'], 'mobile' => '0000000000', 'occupation' => 'Engineer',
             ] + $stamp);
 
             $childUser = $this->user("child.$family@example.com", 'Student');
             $this->ids["child_{$family}_user"] = $childUser->id;
-            $childId = DB::table('students')->insertGetId([
+            $childId = SchoolTable::query('students')->insertGetId([
                 'user_id' => $childUser->id, 'class_id' => $class, 'class_section_id' => $sections[$family], 'category_id' => $category,
                 'admission_no' => "ADM-$family", 'admission_date' => '2022-06-01', $p['column'] => $parentId,
             ] + $stamp);
             $this->ids["child_$family"] = $childId;
-            DB::table('student_sessions')->insert([
+            SchoolTable::query('student_sessions')->insert([
                 'student_id' => $childId, 'class_section_id' => $sections[$family], 'session_year_id' => $session, 'status' => 1,
             ] + $stamp);
 
@@ -210,27 +211,27 @@ class ParentApiSecurityTest extends TestCase
                 'first_name' => $family === 'a' ? 'Alice' : 'Bob', 'dob' => '1985-04-12',
             ]);
             $this->ids["teacher_{$family}_user"] = $teacherUser->id;
-            $teacherId = DB::table('teachers')->insertGetId(['user_id' => $teacherUser->id, 'qualification' => 'B.Ed'] + $stamp);
-            DB::table('class_teachers')->insert([
+            $teacherId = SchoolTable::query('teachers')->insertGetId(['user_id' => $teacherUser->id, 'qualification' => 'B.Ed'] + $stamp);
+            SchoolTable::query('class_teachers')->insert([
                 'class_section_id' => $sections[$family], 'class_teacher_id' => $teacherId, 'session_year_id' => $session,
             ] + $stamp);
 
-            $this->ids["fees_paid_$family"] = DB::table('fees_paids')->insertGetId([
+            $this->ids["fees_paid_$family"] = SchoolTable::query('fees_paids')->insertGetId([
                 'parent_id' => $parentId, 'student_id' => $childId, 'class_id' => $class, 'mode' => 2,
                 'total_amount' => 100, 'is_fully_paid' => 1, 'date' => '2022-07-01', 'session_year_id' => $session,
             ] + $stamp);
-            $this->ids["transaction_$family"] = DB::table('payment_transactions')->insertGetId([
+            $this->ids["transaction_$family"] = SchoolTable::query('payment_transactions')->insertGetId([
                 'student_id' => $childId, 'class_id' => $class, 'parent_id' => $parentId, 'mode' => 2, 'payment_gateway' => 2,
                 'order_id' => 'pi_family'.strtoupper($family), 'payment_status' => 2, 'total_amount' => 100,
                 'date' => $now, 'session_year_id' => $session,
             ] + $stamp);
 
-            $lesson = DB::table('lessons')->insertGetId(['name' => "Lesson $family", 'class_section_id' => $sections[$family], 'subject_id' => 1] + $stamp);
+            $lesson = SchoolTable::query('lessons')->insertGetId(['name' => "Lesson $family", 'class_section_id' => $sections[$family], 'subject_id' => 1] + $stamp);
             $this->ids["lesson_$family"] = $lesson;
-            DB::table('lesson_topics')->insert(['lesson_id' => $lesson, 'name' => 'Topic '.strtoupper($family)] + $stamp);
+            SchoolTable::query('lesson_topics')->insert(['lesson_id' => $lesson, 'name' => 'Topic '.strtoupper($family)] + $stamp);
         }
 
-        $this->ids['transaction_a_paid'] = DB::table('payment_transactions')->insertGetId([
+        $this->ids['transaction_a_paid'] = SchoolTable::query('payment_transactions')->insertGetId([
             'student_id' => $this->ids['child_a'], 'class_id' => $class, 'parent_id' => 1, 'mode' => 2, 'payment_gateway' => 2,
             'order_id' => 'pi_familyApaid', 'payment_status' => 1, 'total_amount' => 100, 'date' => $now, 'session_year_id' => $session,
         ] + $stamp);
@@ -255,7 +256,7 @@ class ParentApiSecurityTest extends TestCase
 
     private function leave(string $userKey, int $status): int
     {
-        return DB::table('leaves')->insertGetId([
+        return SchoolTable::query('leaves')->insertGetId([
             'user_id' => $this->ids[$userKey], 'reason' => 'Unwell', 'from_date' => '2022-07-01', 'to_date' => '2022-07-01',
             'status' => (string) $status, 'session_year_id' => 1, 'created_at' => now(), 'updated_at' => now(),
         ]);

@@ -3,7 +3,7 @@
 namespace App\Actions\Transfers;
 
 use App\Models\LeaveMaster;
-use Illuminate\Support\Facades\DB;
+use App\Services\Platform\Tenancy\SchoolTable;
 
 class TransferLeaveSettings
 {
@@ -25,7 +25,7 @@ class TransferLeaveSettings
                     );
                 })->toArray();
                 if (! empty($data)) {
-                    DB::table('leave_masters')->insert($data);
+                    SchoolTable::query('leave_masters')->insert($data);
                 }
             });
     }

@@ -39,3 +39,9 @@ dev_dependencies:
   flutter_test:
     sdk: flutter
   flutter_lints: ^6.0.0
+
+flutter:
+  assets:
+    # The avatar set (AvatarSet): apps load them as
+    # packages/eschool_core/assets/avatars/<key>.svg.
+    - assets/avatars/
