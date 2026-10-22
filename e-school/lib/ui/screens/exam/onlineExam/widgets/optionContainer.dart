@@ -172,7 +172,6 @@ class _OptionContainerState extends State<OptionContainer>
                           textAlign: TeXViewTextAlign.left,
                           fontStyle: TeXViewFontStyle(fontSize: 16),
                         ),
-                        renderingEngine: const TeXViewRenderingEngine.katex(),
                       )
                     : Container(
                         padding: EdgeInsets.symmetric(

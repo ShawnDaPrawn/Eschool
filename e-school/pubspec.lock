@@ -676,10 +676,10 @@ packages:
     dependency: "direct main"
     description:
       name: flutter_tex
-      sha256: "816074d8a49dd2301704aaf481f9b052b935b8790018a88b69a60d003d5e89e4"
+      sha256: "9eb089c34ef89b581557b119f7887d6c972323d52784eeb06434969eee103cab"
       url: "https://pub.dev"
     source: hosted
-    version: "4.0.9"
+    version: "5.3.0"
   flutter_web_plugins:
     dependency: "direct main"
     description: flutter
@@ -1688,10 +1688,10 @@ packages:
     dependency: "direct overridden"
     description:
       name: webview_flutter_plus
-      sha256: "57ec757eada4e23bfb015f5d5f84a45108cb2c29b1e77e23956768cd5e0c8468"
+      sha256: "43628503cb687c3e02b34cf4c21c67a347b2e27563e006e0789676c8ed8ea65b"
       url: "https://pub.dev"
     source: hosted
-    version: "0.4.7"
+    version: "0.4.20"
   webview_flutter_wkwebview:
     dependency: transitive
     description:

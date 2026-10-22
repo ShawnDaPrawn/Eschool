@@ -49,7 +49,6 @@ class QuestionContainer extends StatelessWidget {
                           sizeUnit: TeXViewSizeUnit.pixels,
                           fontStyle: TeXViewFontStyle(fontSize: 20),
                         ),
-                        renderingEngine: const TeXViewRenderingEngine.katex(),
                       )
                     : Text(
                         questionNumber == null

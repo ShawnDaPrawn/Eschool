@@ -54,7 +54,7 @@ dependencies:
   flutter_html: ^3.0.0
   package_info_plus: ^10.1.0
   flutter_stripe: ^12.6.0
-  flutter_tex: 4.0.9
+  flutter_tex: 5.3.0
   wakelock_plus: ^1.8.1
   external_path: ^3.0.0
   flutter_animate: ^4.5.2
@@ -72,7 +72,7 @@ dependencies:
   fl_chart: ^1.2.0
 
 dependency_overrides:
-  webview_flutter_plus: 0.4.7
+  webview_flutter_plus: 0.4.20
 
 
 dev_dependencies:
