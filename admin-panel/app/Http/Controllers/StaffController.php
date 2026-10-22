@@ -791,7 +791,8 @@ class StaffController extends Controller
             $tempRow['gender'] = $row->user->gender;
             $tempRow['address'] = $row->user->current_address;
             $tempRow['email'] = $row->user->email;
-            $tempRow['dob'] = date($data['date_formate'], strtotime($row->user->dob));
+            // The date of birth is nullable, so a staff member may have none.
+            $tempRow['dob'] = $row->user->dob ? date($data['date_formate'], strtotime($row->user->dob)) : '';
             $tempRow['mobile'] = $row->user->mobile;
             $tempRow['image'] = $row->user->image;
             $tempRow['operate'] = $operate;
