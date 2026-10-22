@@ -17,7 +17,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>{{ config('app.name') }}</title>
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <link rel="shortcut icon" href="{{ url(Storage::url(schoolSetting('favicon'))) }}" />
+    <link rel="shortcut icon" href="{{ schoolSetting('favicon') ? url(Storage::url(schoolSetting('favicon'))) : asset('assets/navigateed/favicon.svg') }}" />
 
     {{-- Third-party: brand icons, the carousels and the date picker. --}}
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css"

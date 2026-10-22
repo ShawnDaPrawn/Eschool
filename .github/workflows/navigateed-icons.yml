@@ -1,0 +1,35 @@
+name: Build NavigateEd brand icons
+on:
+  push:
+    branches: [brand/navigateed-academic-identity]
+    paths:
+      - branding/navigateed/**
+      - scripts/generate_navigateed_icons.py
+      - .github/workflows/navigateed-icons.yml
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  generate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - run: python -m pip install "cairosvg==2.7.1" "pillow==11.3.0"
+      - run: python scripts/generate_navigateed_icons.py
+      - name: Commit generated PNGs to review branch
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add e-school/assets/images/branding/*.png e-school-teacher/assets/images/branding/*.png
+          git add e-school/android/app/src/main/res e-school-teacher/android/app/src/main/res
+          git add e-school/ios/Runner/Assets.xcassets e-school-teacher/ios/Runner/Assets.xcassets
+          git add admin-panel/public/assets/navigateed/*.png admin-panel/public/apple-touch-icon.png
+          if ! git diff --cached --quiet; then
+            git commit -m "Render NavigateEd PNG and native mobile icons"
+            git push
+          fi
