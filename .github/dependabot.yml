@@ -1,0 +1,78 @@
+# Dependabot version updates for every project in the repository (Build Bible
+# 5.1: "Dependabot on all four projects"). Security updates are switched on in
+# Settings > Code security. Minor and patch updates are grouped into one pull
+# request per ecosystem a week; majors come one by one. Each pull request runs
+# CI like any other and is merged only when green.
+
+version: 2
+
+updates:
+  # Laravel panel and API.
+  - package-ecosystem: composer
+    directory: /admin-panel
+    schedule:
+      interval: weekly
+      day: monday
+      time: "06:00"
+      timezone: Africa/Johannesburg
+    open-pull-requests-limit: 5
+    groups:
+      composer-minor-and-patch:
+        patterns: ["*"]
+        update-types: [minor, patch]
+
+  # Both Flutter apps and every shared package under packages/.
+  - package-ecosystem: pub
+    directories:
+      - /e-school
+      - /e-school-teacher
+      - /packages/*
+    schedule:
+      interval: weekly
+      day: monday
+      time: "06:00"
+      timezone: Africa/Johannesburg
+    open-pull-requests-limit: 5
+    groups:
+      pub-minor-and-patch:
+        patterns: ["*"]
+        update-types: [minor, patch]
+
+  # Documentation site, and the panel's Playwright project.
+  - package-ecosystem: npm
+    directories:
+      - /documentation
+      - /admin-panel/e2e
+    schedule:
+      interval: weekly
+      day: monday
+      time: "06:00"
+      timezone: Africa/Johannesburg
+    open-pull-requests-limit: 5
+    groups:
+      npm-minor-and-patch:
+        patterns: ["*"]
+        update-types: [minor, patch]
+
+  # Base images of admin-panel/Dockerfile (php, composer).
+  - package-ecosystem: docker
+    directory: /admin-panel
+    schedule:
+      interval: weekly
+      day: monday
+      time: "06:00"
+      timezone: Africa/Johannesburg
+    open-pull-requests-limit: 2
+
+  # Actions in .github/workflows, including the commit-pinned ones.
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+      time: "06:00"
+      timezone: Africa/Johannesburg
+    open-pull-requests-limit: 5
+    groups:
+      actions:
+        patterns: ["*"]
