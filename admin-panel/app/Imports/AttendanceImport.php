@@ -37,7 +37,7 @@ class AttendanceImport implements ToCollection, WithHeadingRow, WithReadFilter
         return new RowLimit;
     }
 
-    public function collection(Collection $rows)
+    public function collection(Collection $rows): void
     {
         $sessionYearId = (int) getSettings('session_year')['session_year'];
         $enrolled = StudentSessions::where(['class_section_id' => $this->class_section_id, 'session_year_id' => $sessionYearId])
