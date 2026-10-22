@@ -4,7 +4,12 @@ declare(strict_types=1);
 
 namespace Tests\Support;
 
-use Illuminate\Contracts\Console\Kernel;
+use Illuminate\Foundation\Bootstrap\BootProviders;
+use Illuminate\Foundation\Bootstrap\LoadConfiguration;
+use Illuminate\Foundation\Bootstrap\LoadEnvironmentVariables;
+use Illuminate\Foundation\Bootstrap\RegisterFacades;
+use Illuminate\Foundation\Bootstrap\RegisterProviders;
+use Illuminate\Foundation\Bootstrap\SetRequestForConsole;
 use Illuminate\Routing\Route;
 use Illuminate\Routing\Router;
 use Illuminate\Support\Facades\Facade;
@@ -52,14 +57,23 @@ final readonly class ApiRoute
 
     /**
      * For data providers, which run before any test has an application:
-     * boots one to read its routes, then lets it go.
+     * boots one to read its routes, then lets it go. It skips the
+     * HandleExceptions bootstrapper, whose global error handlers PHPUnit
+     * would otherwise see a later test remove.
      *
      * @return list<self>
      */
     public static function fromFreshApplication(): array
     {
         $app = require dirname(__DIR__, 2).'/bootstrap/app.php';
-        $app->make(Kernel::class)->bootstrap();
+        $app->bootstrapWith([
+            LoadEnvironmentVariables::class,
+            LoadConfiguration::class,
+            RegisterFacades::class,
+            SetRequestForConsole::class,
+            RegisterProviders::class,
+            BootProviders::class,
+        ]);
         $routes = self::all($app['router']);
         $app->flush();
         Facade::clearResolvedInstances();
