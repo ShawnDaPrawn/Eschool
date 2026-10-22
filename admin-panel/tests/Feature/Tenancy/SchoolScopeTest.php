@@ -9,8 +9,10 @@ use App\Models\Mediums;
 use App\Models\Platform\School;
 use App\Models\SessionYear;
 use App\Models\Settings;
+use App\Models\User;
 use App\Services\Platform\Tenancy\CurrentSchool;
 use App\Services\Platform\Tenancy\NoCurrentSchool;
+use App\Services\Platform\Tenancy\SchoolRoles;
 use App\Services\Platform\Tenancy\SchoolTable;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Artisan;
@@ -56,6 +58,28 @@ class SchoolScopeTest extends TestCase
         $this->assertEqualsCanonicalizing(['English', 'Afrikaans'], $this->current->acrossSchools(fn () => Mediums::query()->pluck('name')->all()));
         // A relation reaches no further than the scope.
         $this->assertSame(2, $b->school->id);
+    }
+
+    public function test_users_of_another_school_are_not_found(): void
+    {
+        app(SchoolRoles::class)->seed(2);
+        $make = fn (string $email) => User::query()->forceCreate([
+            'first_name' => 'Test', 'last_name' => 'User', 'email' => $email, 'password' => bcrypt('Secret-Pass-2026'), 'gender' => 'Female', 'mobile' => '0820000000',
+        ]);
+        $mine = $make('mine@example.com');
+        $mine->assignRole('Teacher');
+        $theirs = $make('theirs@example.com');
+        $this->current->run(2, fn () => $theirs->assignRole('Teacher'));
+        $nobodys = $make('nobody@example.com');
+
+        $this->assertNotNull(User::query()->find($mine->id));
+        $this->assertNull(User::query()->find($theirs->id), "another school's teacher");
+        $this->assertNotNull(User::query()->find($nobodys->id), 'an account with no school yet');
+        $this->assertNotNull($this->current->run(2, fn () => User::query()->find($theirs->id)));
+        $this->assertNull($this->current->run(2, fn () => User::query()->find($mine->id)));
+        $this->assertNotNull(User::acrossSchools()->find($theirs->id));
+        $this->current->forget();
+        $this->assertSame(3, User::query()->whereIn('id', [$mine->id, $theirs->id, $nobodys->id])->count(), 'the console sees everyone');
     }
 
     public function test_bulk_inserts_and_upserts_get_the_current_schools_id(): void

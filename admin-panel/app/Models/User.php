@@ -5,7 +5,9 @@ declare(strict_types=1);
 namespace App\Models;
 
 use App\Models\Platform\RolePivot;
+use App\Models\Platform\SchoolMembership;
 use App\Services\Platform\Audit\Auditable;
+use App\Services\Platform\Tenancy\MemberScope;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
@@ -94,6 +96,9 @@ class User extends Authenticatable
 
     protected static function booted()
     {
+        // Once a school is chosen, only the people who belong to it.
+        static::addGlobalScope(new MemberScope);
+
         // A new password ends a forced change (learners:flag-dob-passwords),
         // unless the same save sets the flag itself.
         static::saving(function (User $user) {
@@ -132,6 +137,17 @@ class User extends Authenticatable
     public function roles(): BelongsToMany
     {
         return $this->spatieRoles()->using(RolePivot::class);
+    }
+
+    public function memberships(): HasMany
+    {
+        return $this->hasMany(SchoolMembership::class);
+    }
+
+    /** Every user, whichever school they belong to: for identity and platform code only. */
+    public static function acrossSchools(): Builder
+    {
+        return static::withoutGlobalScope(MemberScope::class);
     }
 
     public function student(): HasOne

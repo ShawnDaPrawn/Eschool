@@ -215,7 +215,7 @@ class TeacherController extends Controller
                         'parents-edit',
                     ]);
                 }
-                $user->assignRole([2]);
+                $user->assignRole('Teacher');
                 $school_name = getSettings('school_name');
 
                 $data = [
@@ -329,7 +329,7 @@ class TeacherController extends Controller
                         'parents-edit',
                     ]);
                 }
-                $user->assignRole([2]);
+                $user->assignRole('Teacher');
                 $roleName = $user->getRoleNames()->first();
                 $school_name = getSettings('school_name');
                 $school_email = getSettings('school_email');

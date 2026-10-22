@@ -78,9 +78,26 @@ class PlatformServiceProvider extends ServiceProvider
 
         // Memberships follow role grants at the current school.
         Event::listen(RoleAttached::class, function (RoleAttached $event) {
-            if ($event->model instanceof User) {
-                $this->withRoleNames($event->rolesOrIds, fn (string $role) => $this->app->make(MembershipService::class)->grant($event->model, $this->app->make(CurrentSchool::class)->id(), $role));
+            $user = $event->model;
+            if (! $user instanceof User) {
+                return;
             }
+            $schoolId = $this->app->make(CurrentSchool::class)->id();
+            $grant = fn () => $this->withRoleNames($event->rolesOrIds, fn (string $role) => $this->app->make(MembershipService::class)->grant($user, $schoolId, $role));
+            if ($user->exists) {
+                $grant();
+
+                return;
+            }
+            // assignRole() on a user not saved yet: Spatie attaches the role
+            // once it is saved, and so does this.
+            $done = false;
+            User::saved(function (User $saved) use ($user, $grant, &$done) {
+                if (! $done && $saved === $user) {
+                    $done = true;
+                    $grant();
+                }
+            });
         });
         Event::listen(RoleDetached::class, function (RoleDetached $event) {
             if ($event->model instanceof User) {
