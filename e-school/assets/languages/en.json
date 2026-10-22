@@ -438,5 +438,13 @@
   "switchChild": "Switch child",
   "yourChildren": "Your children",
   "chooseSchool": "Choose a school",
-  "switchSchool": "Switch school"
+  "switchSchool": "Switch school",
+  "emailChannel": "Email",
+  "inAppChannel": "In the app",
+  "lockedByYourSchool": "Your school always sends this.",
+  "notificationSettingsHint": "Choose how your school reaches you. Notices with a lock are always sent.",
+  "notificationSettings": "Notification settings",
+  "pushChannel": "Push",
+  "notAvailableYet": "This is not available yet.",
+  "nothingToSetUpYet": "Nothing to set up yet."
 }

@@ -438,5 +438,13 @@
   "switchChild": "تبديل الطفل",
   "yourChildren": "أطفالك",
   "chooseSchool": "اختر مدرسة",
-  "switchSchool": "تبديل المدرسة"
+  "switchSchool": "تبديل المدرسة",
+  "emailChannel": "البريد الإلكتروني",
+  "inAppChannel": "داخل التطبيق",
+  "lockedByYourSchool": "ترسل مدرستك هذا دائمًا.",
+  "notificationSettingsHint": "اختر كيف تتواصل معك مدرستك. الإشعارات المقفلة تُرسل دائمًا.",
+  "notificationSettings": "إعدادات الإشعارات",
+  "pushChannel": "إشعار فوري",
+  "notAvailableYet": "هذا غير متاح بعد.",
+  "nothingToSetUpYet": "لا يوجد ما يمكن ضبطه بعد."
 }

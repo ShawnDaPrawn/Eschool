@@ -438,5 +438,13 @@
   "switchChild": "Çocuğu değiştir",
   "yourChildren": "Çocuklarınız",
   "chooseSchool": "Bir okul seçin",
-  "switchSchool": "Okulu değiştir"
+  "switchSchool": "Okulu değiştir",
+  "emailChannel": "E-posta",
+  "inAppChannel": "Uygulamada",
+  "lockedByYourSchool": "Okulunuz bunu her zaman gönderir.",
+  "notificationSettingsHint": "Okulunuzun size nasıl ulaşacağını seçin. Kilitli bildirimler her zaman gönderilir.",
+  "notificationSettings": "Bildirim ayarları",
+  "pushChannel": "Anlık bildirim",
+  "notAvailableYet": "Bu henüz kullanılamıyor.",
+  "nothingToSetUpYet": "Henüz ayarlanacak bir şey yok."
 }

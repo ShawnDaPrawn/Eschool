@@ -438,5 +438,13 @@
   "switchChild": "Ganti anak",
   "yourChildren": "Anak Anda",
   "chooseSchool": "Pilih sekolah",
-  "switchSchool": "Ganti sekolah"
+  "switchSchool": "Ganti sekolah",
+  "emailChannel": "Email",
+  "inAppChannel": "Di aplikasi",
+  "lockedByYourSchool": "Sekolah Anda selalu mengirim ini.",
+  "notificationSettingsHint": "Pilih cara sekolah menghubungi Anda. Pemberitahuan bergembok selalu dikirim.",
+  "notificationSettings": "Pengaturan notifikasi",
+  "pushChannel": "Notifikasi push",
+  "notAvailableYet": "Ini belum tersedia.",
+  "nothingToSetUpYet": "Belum ada yang perlu diatur."
 }

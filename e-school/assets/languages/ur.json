@@ -438,5 +438,13 @@
   "switchChild": "بچہ تبدیل کریں",
   "yourChildren": "آپ کے بچے",
   "chooseSchool": "اسکول منتخب کریں",
-  "switchSchool": "اسکول تبدیل کریں"
+  "switchSchool": "اسکول تبدیل کریں",
+  "emailChannel": "ای میل",
+  "inAppChannel": "ایپ میں",
+  "lockedByYourSchool": "آپ کا اسکول یہ ہمیشہ بھیجتا ہے۔",
+  "notificationSettingsHint": "منتخب کریں کہ آپ کا اسکول آپ تک کیسے پہنچے۔ تالے والے نوٹس ہمیشہ بھیجے جاتے ہیں۔",
+  "notificationSettings": "اطلاعات کی ترتیبات",
+  "pushChannel": "پش",
+  "notAvailableYet": "یہ ابھی دستیاب نہیں ہے۔",
+  "nothingToSetUpYet": "ابھی ترتیب دینے کے لیے کچھ نہیں ہے۔"
 }

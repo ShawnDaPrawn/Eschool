@@ -438,5 +438,13 @@
   "switchChild": "Changer d'enfant",
   "yourChildren": "Vos enfants",
   "chooseSchool": "Choisir un établissement",
-  "switchSchool": "Changer d'établissement"
+  "switchSchool": "Changer d'établissement",
+  "emailChannel": "E-mail",
+  "inAppChannel": "Dans l'application",
+  "lockedByYourSchool": "Votre établissement envoie toujours ceci.",
+  "notificationSettingsHint": "Choisissez comment votre établissement vous joint. Les avis avec un cadenas sont toujours envoyés.",
+  "notificationSettings": "Paramètres des notifications",
+  "pushChannel": "Notification push",
+  "notAvailableYet": "Ce n'est pas encore disponible.",
+  "nothingToSetUpYet": "Rien à configurer pour l'instant."
 }

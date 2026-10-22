@@ -72,6 +72,7 @@ export 'src/widgets/home_gallery_container.dart';
 export 'src/widgets/load_more_error_widget.dart';
 export 'src/widgets/one_day_leave_status_container.dart';
 export 'src/widgets/password_hide_show_button.dart';
+export 'src/widgets/screen_scaffold.dart';
 export 'src/widgets/screen_top_background_container.dart';
 export 'src/widgets/search_text_field.dart';
 export 'src/widgets/semester_break_container.dart';

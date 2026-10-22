@@ -45,6 +45,18 @@ const String yourChildrenKey = 'yourChildren';
 const String chooseSchoolKey = 'chooseSchool';
 const String switchSchoolKey = 'switchSchool';
 
+// The Notifications settings screen (eschool_notifications).
+const String emailChannelKey = 'emailChannel';
+const String inAppChannelKey = 'inAppChannel';
+const String lockedByYourSchoolKey = 'lockedByYourSchool';
+const String notificationSettingsHintKey = 'notificationSettingsHint';
+const String notificationSettingsKey = 'notificationSettings';
+const String pushChannelKey = 'pushChannel';
+
+// Shared by the screens built once in the packages.
+const String notAvailableYetKey = 'notAvailableYet';
+const String nothingToSetUpYetKey = 'nothingToSetUpYet';
+
 /// Every key above, for the apps' tests.
 const List<String> sharedLabelKeys = [
   addMoreCharactorsToSearchKey,
@@ -84,4 +96,12 @@ const List<String> sharedLabelKeys = [
   yourChildrenKey,
   chooseSchoolKey,
   switchSchoolKey,
+  emailChannelKey,
+  inAppChannelKey,
+  lockedByYourSchoolKey,
+  notificationSettingsHintKey,
+  notificationSettingsKey,
+  pushChannelKey,
+  notAvailableYetKey,
+  nothingToSetUpYetKey,
 ];
