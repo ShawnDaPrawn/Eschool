@@ -127,7 +127,10 @@ class _MyAppState extends State<MyApp> {
           ),
         ),
         BlocProvider<ChildSelectionCubit>(
-          create: (_) => ChildSelectionCubit(store: HiveSelectionStore()),
+          create: (_) => ChildSelectionCubit(store: Api.selection),
+        ),
+        BlocProvider<SchoolSelectionCubit>(
+          create: (_) => SchoolSelectionCubit(store: Api.selection),
         ),
         //the subjects of the child picked in the child switcher, for the
         //child screens' filters

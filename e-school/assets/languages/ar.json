@@ -436,5 +436,7 @@
   "availableInMobileApp": "يعمل هذا حاليًا في تطبيق NavigateEd على هاتفك.",
   "chooseChild": "اختر طفلاً",
   "switchChild": "تبديل الطفل",
-  "yourChildren": "أطفالك"
+  "yourChildren": "أطفالك",
+  "chooseSchool": "اختر مدرسة",
+  "switchSchool": "تبديل المدرسة"
 }

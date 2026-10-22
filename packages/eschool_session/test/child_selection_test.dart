@@ -6,19 +6,19 @@ import 'package:flutter_test/flutter_test.dart';
 
 import 'support/harness.dart';
 
-const MeChild asha = MeChild(
+final MeChild asha = MeChild.of(
   id: 21,
   name: 'Asha Demo',
   schoolId: 1,
   schoolName: 'Northcliff High',
-  avatarUrl: 'girl_2',
+  image: 'girl_2',
 );
-const MeChild cara = MeChild(
+final MeChild cara = MeChild.of(
   id: 23,
   name: 'Cara Demo',
   schoolId: 2,
   schoolName: 'Riverside Primary',
-  avatarUrl: 'girl_3',
+  image: 'girl_3',
 );
 
 /// A child screen: shows which child it was built for, and counts how

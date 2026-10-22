@@ -4,6 +4,15 @@
 /// Hive boxes live.
 library;
 
+// The generated models of /me/context the session hands to the apps.
+export 'package:eschool_api/eschool_api.dart'
+    show
+        ContextUser,
+        CurrentSchool,
+        NotificationRule,
+        SchoolMembership,
+        SchoolSummary;
+
 export 'src/auth/auth_mode.dart';
 export 'src/auth/session_dio.dart';
 export 'src/auth/session_repository.dart';
@@ -14,6 +23,9 @@ export 'src/deep_links/deep_link_coordinator.dart';
 export 'src/deep_links/deep_link_parser.dart';
 export 'src/selection/child_selection_cubit.dart';
 export 'src/selection/child_switcher.dart';
+export 'src/selection/school_header.dart';
+export 'src/selection/school_selection_cubit.dart';
+export 'src/selection/school_switcher.dart';
 export 'src/selection/selection_store.dart';
 export 'src/storage/app_storage.dart';
 export 'src/update/force_update.dart';

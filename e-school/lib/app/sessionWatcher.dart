@@ -2,15 +2,17 @@ import 'dart:async';
 
 import 'package:eschool/app/deepLinks.dart';
 import 'package:eschool/app/selectedChild.dart';
+import 'package:eschool/app/routes.dart';
 import 'package:eschool/cubits/authCubit.dart';
+import 'package:eschool/utils/uiUtils.dart';
 import 'package:eschool_session/eschool_session.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-/// Keeps what the server says about the signed-in user (`/me/context`) and
-/// a parent's children in the child switcher in step with sign-in and
-/// sign-out, and opens screens that links ask for. Sits under the app-wide
-/// providers, above the MaterialApp.
+/// Keeps what the server says about the signed-in user (`/me/context`), a
+/// parent's children in the child switcher and the school switcher in step
+/// with sign-in and sign-out, and opens screens that links ask for. Sits
+/// under the app-wide providers, above the MaterialApp.
 class SessionWatcher extends StatefulWidget {
   const SessionWatcher({required this.child, super.key});
 
@@ -69,6 +71,7 @@ class _SessionWatcherState extends State<SessionWatcher> {
             } else if (state is Unauthenticated) {
               context.read<MeContextCubit>().clear();
               context.read<ChildSelectionCubit>().clear();
+              context.read<SchoolSelectionCubit>().clear();
             }
           },
         ),
@@ -85,8 +88,61 @@ class _SessionWatcherState extends State<SessionWatcher> {
               previous.context?.children != current.context?.children,
           listener: (context, _) => _syncChildren(),
         ),
+        // The school switcher lists the schools /me/context names.
+        BlocListener<MeContextCubit, MeContextState>(
+          listenWhen: (previous, current) => previous.context != current.context,
+          listener: (context, state) =>
+              context.read<SchoolSelectionCubit>().syncWithContext(state.context),
+        ),
+        // A parent's child screens are sent for the child's school: picking
+        // a child at another school moves there, with that school's context.
+        BlocListener<ChildSelectionCubit, ChildSelectionState>(
+          listenWhen: (previous, current) =>
+              previous.selected?.schoolId != current.selected?.schoolId,
+          listener: (context, state) async {
+            final int schoolId = state.selected?.schoolId ?? 0;
+            final MeContextCubit meContext = context.read<MeContextCubit>();
+            if (await context.read<SchoolSelectionCubit>().follow(schoolId)) {
+              meContext.load();
+            }
+          },
+        ),
+        // A parent who switches school sees a child at that school.
+        BlocListener<SchoolSelectionCubit, SchoolSelectionState>(
+          listenWhen: (previous, current) =>
+              previous.selectedId != current.selectedId,
+          listener: (context, state) {
+            final ChildSelectionCubit children = context
+                .read<ChildSelectionCubit>();
+            final int? schoolId = state.selectedId;
+            final MeChild? shown = children.selected;
+            if (schoolId == null ||
+                shown == null ||
+                shown.schoolId == 0 ||
+                shown.schoolId == schoolId) {
+              return;
+            }
+            for (final MeChild child in children.state.children) {
+              if (child.schoolId == schoolId) {
+                children.select(child.id);
+                return;
+              }
+            }
+          },
+        ),
       ],
       child: widget.child,
     );
   }
+}
+
+/// After a school switch: back to home, where everything is fetched again
+/// for the new school.
+void returnHomeAfterSchoolSwitch() {
+  final NavigatorState? navigator = UiUtils.rootNavigatorKey.currentState;
+  final bool isParent = navigator?.context.read<AuthCubit>().isParent() ?? false;
+  navigator?.pushNamedAndRemoveUntil(
+    isParent ? Routes.parentHome : Routes.home,
+    (_) => false,
+  );
 }

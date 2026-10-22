@@ -436,5 +436,7 @@
   "availableInMobileApp": "Por ahora, esto funciona en la aplicación NavigateEd de tu teléfono.",
   "chooseChild": "Elige un hijo",
   "switchChild": "Cambiar de hijo",
-  "yourChildren": "Tus hijos"
+  "yourChildren": "Tus hijos",
+  "chooseSchool": "Elige un colegio",
+  "switchSchool": "Cambiar de colegio"
 }

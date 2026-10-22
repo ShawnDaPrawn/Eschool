@@ -23,6 +23,27 @@ Map<String, Object?> _student(int id, String firstName) => {
   'class_section_name': 'Grade 7 A',
 };
 
+/// A child as /me/context lists them (the generated Child model).
+Map<String, Object?> _contextChild(
+  int id,
+  String firstName,
+  int schoolId,
+  String schoolName,
+) => {
+  'id': id,
+  'user_id': id + 100,
+  'first_name': firstName,
+  'last_name': 'Mokoena',
+  'name': '$firstName Mokoena',
+  'image': null,
+  'school': {
+    'id': schoolId,
+    'name': schoolName,
+    'short_name': null,
+    'crest_url': null,
+  },
+};
+
 /// A signed-in parent of Thandi and Sipho, without Hive.
 class _SignedInParent extends AuthRepository {
   _SignedInParent({this.isStudent = false});
@@ -218,17 +239,9 @@ void main() {
       repository: _NoContext(
         MeContext.fromJson({
           'children': [
+            _contextChild(12, 'Sipho', 2, 'Riverside Primary'),
             {
-              'id': 12,
-              'name': 'Sipho Mokoena',
-              'school_id': 2,
-              'school_name': 'Riverside Primary',
-            },
-            {
-              'id': 30,
-              'name': 'Ayanda Mokoena',
-              'school_id': 1,
-              'school_name': 'Northcliff High',
+              ..._contextChild(30, 'Ayanda', 1, 'Northcliff High'),
               'homeroom': 'Grade 4 C',
             },
           ],

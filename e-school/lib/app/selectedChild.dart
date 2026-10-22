@@ -36,14 +36,15 @@ List<MeChild> switcherChildren(BuildContext context) {
 }
 
 /// A v1 child as the switcher shows it.
-MeChild childFromStudent(Student student, {String schoolName = ''}) => MeChild(
-  id: student.id,
-  userId: student.userId,
-  name: student.getFullName(),
-  schoolName: schoolName,
-  avatarUrl: student.image,
-  homeroom: student.classSectionName,
-);
+MeChild childFromStudent(Student student, {String schoolName = ''}) =>
+    MeChild.of(
+      id: student.id,
+      userId: student.userId,
+      name: student.getFullName(),
+      schoolName: schoolName,
+      image: student.image,
+      homeroom: student.classSectionName,
+    );
 
 /// The v1 [Student] of the child on show: from the parent's sign-in data
 /// when it has them, otherwise built from what `/me/context` says (a child
@@ -63,15 +64,14 @@ Student? selectedStudent(BuildContext context, {ChildSelectionState? state}) {
       return student;
     }
   }
-  final List<String> names = child.name.split(' ');
   return Student.fromJson({
     'id': child.id,
     'user_id': child.userId,
-    'first_name': names.first,
-    'last_name': names.skip(1).join(' '),
+    'first_name': child.child.firstName,
+    'last_name': child.child.lastName,
     'image': child.avatarUrl,
-    'class_section_name': child.homeroom,
-    'admission_no': child.studentNumber,
+    'class_section_name': child.homeroom ?? '',
+    'admission_no': child.studentNumber ?? '',
   });
 }
 

@@ -1,5 +1,6 @@
 import 'package:eschool/app/routeArguments.dart';
 import 'package:eschool/app/routes.dart';
+import 'package:eschool/app/sessionWatcher.dart';
 import 'package:eschool/cubits/appConfigurationCubit.dart';
 import 'package:eschool/cubits/authCubit.dart';
 import 'package:eschool/cubits/chat/chatUsersCubit.dart';
@@ -228,6 +229,10 @@ class _ParentHomeScreenState extends State<ParentHomeScreen>
                           ],
                         ),
                         const Spacer(),
+                        //only for a parent at more than one school
+                        const SchoolSwitcherButton(
+                          onSwitched: returnHomeAfterSchoolSwitch,
+                        ),
                         IconButton(
                           iconSize: 20,
                           color: Theme.of(context).colorScheme.onInverseSurface,

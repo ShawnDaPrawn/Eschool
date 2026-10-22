@@ -41,6 +41,10 @@ const String chooseChildKey = 'chooseChild';
 const String switchChildKey = 'switchChild';
 const String yourChildrenKey = 'yourChildren';
 
+// The school switcher (eschool_session).
+const String chooseSchoolKey = 'chooseSchool';
+const String switchSchoolKey = 'switchSchool';
+
 /// Every key above, for the apps' tests.
 const List<String> sharedLabelKeys = [
   addMoreCharactorsToSearchKey,
@@ -78,4 +82,6 @@ const List<String> sharedLabelKeys = [
   chooseChildKey,
   switchChildKey,
   yourChildrenKey,
+  chooseSchoolKey,
+  switchSchoolKey,
 ];
