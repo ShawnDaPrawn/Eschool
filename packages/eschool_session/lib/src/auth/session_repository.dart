@@ -11,6 +11,15 @@ abstract final class SessionBoxKeys {
   static const String hasSubscribedToNotificationTopics =
       'hasSubscribedToNotificationTopics';
   static const String meContext = 'meContext';
+
+  /// When [meContext] was fetched, in milliseconds since the epoch.
+  static const String meContextFetchedAt = 'meContextFetchedAt';
+
+  /// The child a guardian picked in the child switcher (their learner id).
+  static const String selectedChildId = 'selectedChildId';
+
+  /// The school picked in the school switcher, sent as `X-School-Id`.
+  static const String selectedSchoolId = 'selectedSchoolId';
 }
 
 /// Who is signed in on this device. Each app's AuthRepository reads and

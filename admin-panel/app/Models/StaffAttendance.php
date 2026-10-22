@@ -2,10 +2,13 @@
 
 namespace App\Models;
 
+use App\Services\Platform\Tenancy\BelongsToSchool;
 use Illuminate\Database\Eloquent\Model;
 
 class StaffAttendance extends Model
 {
+    use BelongsToSchool;
+
     protected $fillable = [
         'user_id',
         'session_year_id',

@@ -12,6 +12,7 @@ use App\Models\Students;
 use App\Models\StudentSessions;
 use App\Models\User;
 use App\Models\UserNotification;
+use App\Services\Platform\Tenancy\SchoolTable;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Event;
@@ -75,7 +76,7 @@ class DailyWorkflowsTest extends TestCase
     public function test_students_of_a_class_with_only_optional_fees_can_be_paid_for(): void
     {
         // Grade 6 has no fees; give it an optional one only.
-        DB::table('fees_classes')->insert([
+        SchoolTable::query('fees_classes')->insert([
             'session_year_id' => 1, 'class_id' => $this->school->ids['class_c'], 'fees_type_id' => $this->school->ids['fees_bus'],
             'choiceable' => 1, 'amount' => 200,
         ]);
@@ -243,11 +244,11 @@ class DailyWorkflowsTest extends TestCase
 
     public function test_a_list_search_stays_within_the_list_filters(): void
     {
-        $lastYear = DB::table('session_years')->insertGetId([
+        $lastYear = SchoolTable::query('session_years')->insertGetId([
             'name' => 'Old year', 'start_date' => now()->subYears(2), 'end_date' => now()->subYear(), 'fee_due_date' => now()->subYears(2),
             'fee_due_charges' => 0, 'include_fee_installments' => 0, 'default' => 0,
         ]);
-        DB::table('holidays')->insert(['session_year_id' => $lastYear, 'date' => now()->subYear()->subMonth(), 'title' => 'Old founders day', 'description' => '-']);
+        SchoolTable::query('holidays')->insert(['session_year_id' => $lastYear, 'date' => now()->subYear()->subMonth(), 'title' => 'Old founders day', 'description' => '-']);
 
         $_GET = ['search' => 'founders', 'limit' => 10, 'offset' => 0];
         $response = $this->actingAs($this->superAdmin())->getJson('/holiday/1?'.http_build_query($_GET));

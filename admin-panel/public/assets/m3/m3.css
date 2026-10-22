@@ -1268,6 +1268,46 @@ select.m3-text-field__input+.m3-text-field__label,
     padding-block: var(--m3-space-4);
 }
 
+/* File field (<x-m3.file-field>): the chosen file's name in a text field, and an
+   Upload button that opens the visually hidden <input type="file">. */
+.m3-file-field__row {
+    display: flex;
+    align-items: center;
+    gap: var(--m3-space-2);
+}
+
+.m3-file-field__name {
+    flex: 1 1 auto;
+}
+
+/* The name field only displays the chosen file: it reads as a normal field. */
+.m3-file-field .file-upload-info:disabled {
+    border-color: var(--md-sys-color-outline);
+    color: var(--md-sys-color-on-surface);
+    cursor: default;
+}
+
+.m3-file-field .file-upload-info:disabled + .m3-text-field__label {
+    color: var(--md-sys-color-on-surface-variant);
+}
+
+.m3-file-field .file-upload-info.error {
+    border-color: var(--md-sys-color-error);
+}
+
+.m3-file-field .file-upload-info.error + .m3-text-field__label {
+    color: var(--md-sys-color-error);
+}
+
+.m3-file-field__row + label.error {
+    display: block;
+    margin: var(--m3-space-1) 0 0;
+    padding: 0 var(--m3-space-4);
+    color: var(--md-sys-color-error);
+    font-size: var(--md-sys-typescale-body-small-size);
+    line-height: var(--md-sys-typescale-body-small-line-height);
+}
+
 /* ── 7. Selection controls ───────────────────────────────────────────────
    The input stays a real, focusable checkbox or radio over a 40px control,
    so forms and labels work as usual:
@@ -1737,6 +1777,30 @@ a.m3-chip {
 
 .m3-card__actions--start {
     justify-content: flex-start;
+}
+
+/* Card header (<x-m3.card>): the headline and subhead, with actions at the end. */
+.m3-card__header {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--m3-space-2) var(--m3-space-4);
+    margin-block-end: var(--m3-space-2);
+}
+
+.m3-card__heading {
+    display: flex;
+    flex-direction: column;
+    gap: var(--m3-space-1);
+    min-width: 0;
+}
+
+.m3-card__header-actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--m3-space-2);
 }
 
 /* ── 10. Dialogs ─────────────────────────────────────────────────────────

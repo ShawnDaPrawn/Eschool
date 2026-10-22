@@ -28,6 +28,10 @@ const List<DeepLinkRoute> deepLinkRoutes = [
   DeepLinkRoute(Routes.termsAndCondition, Routes.termsAndCondition),
   DeepLinkRoute('/contact', Routes.contactUs),
   DeepLinkRoute(Routes.contactUs, Routes.contactUs),
+  // The shared screens (Phase 1). A push's `link` names these paths too.
+  DeepLinkRoute(Routes.notificationSettings, Routes.notificationSettings),
+  DeepLinkRoute(Routes.mySchool, Routes.mySchool),
+  DeepLinkRoute(Routes.profilePicture, Routes.profilePicture),
 ];
 
 /// Links that opened the app or arrive while it runs. A web build also

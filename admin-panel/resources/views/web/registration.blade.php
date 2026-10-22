@@ -33,12 +33,9 @@
                             method="POST" novalidate="novalidate">
                             @csrf
 
-                            @include('web.partials.text-field', ['name' => 'first_name', 'label' => __('first_name'), 'required' => true, 'class' => $third])
-                            @include('web.partials.text-field', ['name' => 'last_name', 'label' => __('last_name'), 'required' => true, 'class' => $third])
-                            @include('web.partials.text-field', [
-                                'name' => 'mobile', 'label' => __('mobile'), 'type' => 'tel', 'class' => $third, 'inputClass' => 'mobile',
-                                'attrs' => ['inputmode' => 'numeric', 'maxlength' => 16, 'pattern' => '[0-9]{7,16}'],
-                            ])
+                            <x-m3.text-field name="first_name" :label="__('first_name')" required :class="$third" />
+                            <x-m3.text-field name="last_name" :label="__('last_name')" required :class="$third" />
+                            <x-m3.text-field name="mobile" type="tel" :label="__('mobile')" input-class="mobile" :class="$third" inputmode="numeric" maxlength="16" pattern="[0-9]{7,16}" />
 
                             <div class="{{ $third }}">
                                 <fieldset class="m3-fieldset">
@@ -56,15 +53,9 @@
                                 </fieldset>
                             </div>
                             <div class="{{ $third }}">
-                                @include('web.partials.file-field', [
-                                    'name' => 'image', 'label' => __('image'), 'required' => true,
-                                    'accept' => 'image/*', 'hint' => __('image_size_hint'),
-                                ])
+                                <x-m3.file-field name="image" :label="__('image')" required accept="image/*" :hint="__('image_size_hint')" />
                             </div>
-                            @include('web.partials.text-field', [
-                                'name' => 'dob', 'label' => __('dob'), 'required' => true, 'class' => $third,
-                                'inputClass' => 'datepicker-popup-no-future',
-                            ])
+                            <x-m3.text-field name="dob" :label="__('dob')" required input-class="datepicker-popup-no-future" :class="$third" />
 
                             <div class="{{ $half }}">
                                 <label class="m3-text-field m3-text-field--select">
@@ -91,35 +82,20 @@
                                 </label>
                             </div>
 
-                            @include('web.partials.text-field', [
-                                'name' => 'admission_no', 'label' => __('gr_number'), 'value' => $admission_no,
-                                'required' => true, 'readonly' => true, 'class' => $half,
-                            ])
-                            @include('web.partials.text-field', [
-                                'name' => 'admission_date', 'label' => __('admission_date'), 'value' => $admission_date,
-                                'required' => true, 'readonly' => true, 'class' => $half, 'inputClass' => 'datepicker-popup-no-future',
-                            ])
+                            <x-m3.text-field name="admission_no" :label="__('gr_number')" :value="$admission_no" required readonly :class="$half" />
+                            <x-m3.text-field name="admission_date" :label="__('admission_date')" :value="$admission_date" required readonly input-class="datepicker-popup-no-future" :class="$half" />
 
-                            @include('web.partials.text-field', [
-                                'name' => 'current_address', 'id' => 'current_address', 'label' => __('current_address'),
-                                'type' => 'textarea', 'rows' => 2, 'required' => true, 'class' => $half,
-                            ])
-                            @include('web.partials.text-field', [
-                                'name' => 'permanent_address', 'id' => 'permanent_address', 'label' => __('permanent_address'),
-                                'type' => 'textarea', 'rows' => 2, 'required' => true, 'class' => $half,
-                            ])
+                            <x-m3.text-field name="current_address" id="current_address" type="textarea" :label="__('current_address')" rows="2" required :class="$half" />
+                            <x-m3.text-field name="permanent_address" id="permanent_address" type="textarea" :label="__('permanent_address')" rows="2" required :class="$half" />
 
                             {{-- The school's own fields (Student Registration Fields in the admin panel). --}}
                             @foreach ($studentFields as $row)
                                 @php
                                     $label = $fieldLabel($row->name);
-                                    $required = $row->is_required === 1;
+                                    $required = (bool) $row->is_required;
                                 @endphp
                                 @if ($row->type === 'text' || $row->type === 'number')
-                                    @include('web.partials.text-field', [
-                                        'name' => $row->name, 'label' => $label, 'type' => $row->type,
-                                        'required' => $required, 'asterisk' => $row->is_required, 'class' => $half,
-                                    ])
+                                    <x-m3.text-field :name="$row->name" :type="$row->type" :label="$label" :required="$required" :class="$half" />
                                 @endif
                                 @if ($row->type === 'dropdown')
                                     <div class="{{ $half }}">
@@ -183,17 +159,11 @@
                                     </div>
                                 @endif
                                 @if ($row->type === 'textarea')
-                                    @include('web.partials.text-field', [
-                                        'name' => $row->name, 'label' => $label, 'type' => 'textarea', 'rows' => 3,
-                                        'required' => $required, 'asterisk' => $row->is_required, 'class' => $half,
-                                    ])
+                                    <x-m3.text-field :name="$row->name" type="textarea" :label="$label" rows="3" :required="$required" :class="$half" />
                                 @endif
                                 @if ($row->type === 'file')
                                     <div class="{{ $half }}">
-                                        @include('web.partials.file-field', [
-                                            'name' => $row->name, 'label' => $label,
-                                            'required' => $row->is_required, 'fileRequired' => $required,
-                                        ])
+                                        <x-m3.file-field :name="$row->name" :label="$label" :required="$required" />
                                     </div>
                                 @endif
                             @endforeach
@@ -214,27 +184,11 @@
 
                             <div class="m3-col-12" id="guardian_div" style="display:none;">
                                 <div class="m3-grid site-form-grid">
-                                    @include('web.partials.text-field', [
-                                        'name' => 'guardian_email', 'id' => 'email', 'type' => 'email',
-                                        'label' => __('guardian') . ' ' . __('email'), 'required' => true, 'class' => $half,
-                                    ])
-                                    @include('web.partials.text-field', [
-                                        'name' => 'guardian_mobile', 'id' => 'guardian_mobile', 'type' => 'number',
-                                        'label' => __('guardian') . ' ' . __('mobile'), 'required' => true, 'class' => $half,
-                                        'attrs' => ['min' => 0],
-                                    ])
-                                    @include('web.partials.text-field', [
-                                        'name' => 'guardian_first_name', 'id' => 'guardian_first_name',
-                                        'label' => __('guardian') . ' ' . __('first_name'), 'required' => true, 'class' => $half,
-                                    ])
-                                    @include('web.partials.text-field', [
-                                        'name' => 'guardian_last_name', 'id' => 'guardian_last_name',
-                                        'label' => __('guardian') . ' ' . __('last_name'), 'required' => true, 'class' => $half,
-                                    ])
-                                    @include('web.partials.text-field', [
-                                        'name' => 'guardian_dob', 'id' => 'guardian_dob', 'inputClass' => 'datepicker-popup-no-future',
-                                        'label' => __('guardian') . ' ' . __('dob'), 'required' => true, 'class' => $half,
-                                    ])
+                                    <x-m3.text-field name="guardian_email" id="email" type="email" :label="__('guardian') . ' ' . __('email')" required :class="$half" />
+                                    <x-m3.text-field name="guardian_mobile" id="guardian_mobile" type="number" :label="__('guardian') . ' ' . __('mobile')" required :class="$half" min="0" />
+                                    <x-m3.text-field name="guardian_first_name" id="guardian_first_name" :label="__('guardian') . ' ' . __('first_name')" required :class="$half" />
+                                    <x-m3.text-field name="guardian_last_name" id="guardian_last_name" :label="__('guardian') . ' ' . __('last_name')" required :class="$half" />
+                                    <x-m3.text-field name="guardian_dob" id="guardian_dob" :label="__('guardian') . ' ' . __('dob')" required input-class="datepicker-popup-no-future" :class="$half" />
                                     <div class="{{ $half }}">
                                         <fieldset class="m3-fieldset">
                                             <legend class="m3-fieldset__legend">{{ __('gender') }} <span class="m3-text-field__required" aria-hidden="true">*</span></legend>
@@ -250,16 +204,9 @@
                                             </div>
                                         </fieldset>
                                     </div>
-                                    @include('web.partials.text-field', [
-                                        'name' => 'guardian_occupation', 'id' => 'guardian_occupation',
-                                        'label' => __('guardian') . ' ' . __('occupation'), 'required' => true, 'class' => $half,
-                                    ])
+                                    <x-m3.text-field name="guardian_occupation" id="guardian_occupation" :label="__('guardian') . ' ' . __('occupation')" required :class="$half" />
                                     <div class="{{ $half }}">
-                                        @include('web.partials.file-field', [
-                                            'name' => 'guardian_image', 'label' => __('guardian') . ' ' . __('image'),
-                                            'required' => true, 'fileRequired' => true, 'fileClass' => 'guardian_image',
-                                            'infoId' => 'guardian_image', 'accept' => 'image/*', 'hint' => __('image_size_hint'),
-                                        ])
+                                        <x-m3.file-field name="guardian_image" :label="__('guardian') . ' ' . __('image')" required accept="image/*" :hint="__('image_size_hint')" input-class="guardian_image" info-id="guardian_image" />
                                     </div>
                                 </div>
                             </div>
@@ -267,37 +214,14 @@
                             <div class="m3-col-12" id="parents_div" style="display:none;">
                                 <div class="m3-grid site-form-grid">
                                     @foreach (['father', 'mother'] as $parent)
-                                        @include('web.partials.text-field', [
-                                            'name' => $parent . '_email', 'id' => $parent . '_email', 'type' => 'email',
-                                            'label' => __($parent . '_email'), 'required' => true, 'class' => $half,
-                                        ])
-                                        @include('web.partials.text-field', [
-                                            'name' => $parent . '_mobile', 'id' => $parent . '_mobile', 'type' => 'number',
-                                            'label' => __($parent) . ' ' . __('mobile'), 'required' => true, 'class' => $half,
-                                            'attrs' => ['min' => 0],
-                                        ])
-                                        @include('web.partials.text-field', [
-                                            'name' => $parent . '_first_name', 'id' => $parent . '_first_name',
-                                            'label' => __($parent) . ' ' . __('first_name'), 'required' => true, 'class' => $half,
-                                        ])
-                                        @include('web.partials.text-field', [
-                                            'name' => $parent . '_last_name', 'id' => $parent . '_last_name',
-                                            'label' => __($parent) . ' ' . __('last_name'), 'required' => true, 'class' => $half,
-                                        ])
-                                        @include('web.partials.text-field', [
-                                            'name' => $parent . '_dob', 'id' => $parent . '_dob', 'inputClass' => 'datepicker-popup-no-future',
-                                            'label' => __($parent) . ' ' . __('dob'), 'required' => true, 'class' => $half,
-                                        ])
-                                        @include('web.partials.text-field', [
-                                            'name' => $parent . '_occupation', 'id' => $parent . '_occupation',
-                                            'label' => __($parent) . ' ' . __('occupation'), 'required' => true, 'class' => $half,
-                                        ])
+                                        <x-m3.text-field :name="$parent . '_email'" :id="$parent . '_email'" type="email" :label="__($parent . '_email')" required :class="$half" />
+                                        <x-m3.text-field :name="$parent . '_mobile'" :id="$parent . '_mobile'" type="number" :label="__($parent) . ' ' . __('mobile')" required :class="$half" min="0" />
+                                        <x-m3.text-field :name="$parent . '_first_name'" :id="$parent . '_first_name'" :label="__($parent) . ' ' . __('first_name')" required :class="$half" />
+                                        <x-m3.text-field :name="$parent . '_last_name'" :id="$parent . '_last_name'" :label="__($parent) . ' ' . __('last_name')" required :class="$half" />
+                                        <x-m3.text-field :name="$parent . '_dob'" :id="$parent . '_dob'" :label="__($parent) . ' ' . __('dob')" required input-class="datepicker-popup-no-future" :class="$half" />
+                                        <x-m3.text-field :name="$parent . '_occupation'" :id="$parent . '_occupation'" :label="__($parent) . ' ' . __('occupation')" required :class="$half" />
                                         <div class="{{ $half }}">
-                                            @include('web.partials.file-field', [
-                                                'name' => $parent . '_image', 'label' => __($parent) . ' ' . __('image'),
-                                                'required' => true, 'fileRequired' => true, 'fileClass' => $parent . '_image',
-                                                'infoId' => $parent . '_image', 'accept' => 'image/*', 'hint' => __('image_size_hint'),
-                                            ])
+                                            <x-m3.file-field :name="$parent . '_image'" :label="__($parent) . ' ' . __('image')" required accept="image/*" :hint="__('image_size_hint')" :input-class="$parent . '_image'" :info-id="$parent . '_image'" />
                                         </div>
                                         @if (! $loop->last)
                                             <hr class="m3-divider m3-col-12 site-registration__divider">

@@ -10,6 +10,7 @@ use App\Models\Teacher;
 use App\Models\User;
 use App\Models\UserNotification;
 use App\Services\ParentPolicyService;
+use App\Services\Platform\Tenancy\SchoolTable;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Tests\Concerns\RunsAppServer;
@@ -96,7 +97,7 @@ class ApiRegressionTest extends TestCase
                 'marks_data' => [['student_id' => $id['asha'], 'obtained_marks' => 40], ['student_id' => $id['ben'], 'obtained_marks' => 5]],
             ]);
         } finally {
-            DB::table('grades')->insert((array) $band);
+            SchoolTable::query('grades')->insert((array) $band);
         }
 
         $this->assertTrue($response->json('error'), $response->body());
@@ -123,7 +124,7 @@ class ApiRegressionTest extends TestCase
                 'marks_data' => [['subject_id' => $id['science'], 'obtained_marks' => 33], ['subject_id' => $id['maths'], 'obtained_marks' => 5]],
             ]);
         } finally {
-            DB::table('grades')->insert((array) $band);
+            SchoolTable::query('grades')->insert((array) $band);
             $maths->delete();
         }
 
@@ -190,11 +191,11 @@ class ApiRegressionTest extends TestCase
     public function test_a_parent_chat_preview_shows_an_attachment_only_message(): void
     {
         $id = self::$school->ids;
-        $messageId = DB::table('chat_messages')->insertGetId([
+        $messageId = SchoolTable::query('chat_messages')->insertGetId([
             'modal_type' => 'App/Models/User', 'modal_id' => $id['farid_user'], 'sender_id' => $id['tara_user'],
             'body' => null, 'date' => now()->addMinute(), 'created_at' => now()->addMinute(), 'updated_at' => now()->addMinute(),
         ]);
-        DB::table('chat_files')->insert(['message_id' => $messageId, 'file_type' => 1, 'file_name' => 'chat/photo.png', 'created_at' => now(), 'updated_at' => now()]);
+        SchoolTable::query('chat_files')->insert(['message_id' => $messageId, 'file_type' => 1, 'file_name' => 'chat/photo.png', 'created_at' => now(), 'updated_at' => now()]);
 
         // The parent list didn't load the message's files, so the preview was blank.
         $teachers = $this->apiClient(self::$school->tokens['farid'])->get('/api/parent/get-user-list', ['offset' => 0, 'limit' => 10])->json('data.items');
@@ -207,11 +208,11 @@ class ApiRegressionTest extends TestCase
     public function test_a_teacher_chat_preview_shows_a_parents_attachment_only_message(): void
     {
         $id = self::$school->ids;
-        $messageId = DB::table('chat_messages')->insertGetId([
+        $messageId = SchoolTable::query('chat_messages')->insertGetId([
             'modal_type' => 'App/Models/User', 'modal_id' => $id['tara_user'], 'sender_id' => $id['gina_user'],
             'body' => null, 'date' => now()->addMinutes(2), 'created_at' => now()->addMinutes(2), 'updated_at' => now()->addMinutes(2),
         ]);
-        DB::table('chat_files')->insert(['message_id' => $messageId, 'file_type' => 1, 'file_name' => 'chat/report.png', 'created_at' => now(), 'updated_at' => now()]);
+        SchoolTable::query('chat_files')->insert(['message_id' => $messageId, 'file_type' => 1, 'file_name' => 'chat/report.png', 'created_at' => now(), 'updated_at' => now()]);
 
         // The parent branch selected only body and date, so the message's files never loaded.
         $parents = $this->apiClient(self::$school->tokens['tara'])->get('/api/teacher/get-user-list', ['isParent' => 1, 'limit' => 50, 'offset' => 0])->json('data.items');
@@ -225,7 +226,7 @@ class ApiRegressionTest extends TestCase
         $id = self::$school->ids;
         // Sent before the school's time zone moved back (India to Johannesburg is 3.5 hours),
         // so its local time stamp is later than a message sent now.
-        DB::table('chat_messages')->insert([
+        SchoolTable::query('chat_messages')->insert([
             'modal_type' => 'App/Models/User', 'modal_id' => $id['tara_user'], 'sender_id' => $id['mona_user'], 'body' => 'Before the change',
             'date' => now()->addHours(3), 'created_at' => now()->addHours(3), 'updated_at' => now()->addHours(3),
         ]);
@@ -246,11 +247,11 @@ class ApiRegressionTest extends TestCase
 
     public function test_the_holiday_list_holds_only_the_current_years_holidays(): void
     {
-        $lastYear = DB::table('session_years')->insertGetId([
+        $lastYear = SchoolTable::query('session_years')->insertGetId([
             'name' => 'Last year', 'start_date' => now()->subYears(2), 'end_date' => now()->subYear(), 'fee_due_date' => now()->subYears(2),
             'fee_due_charges' => 0, 'include_fee_installments' => 0, 'default' => 0, 'created_at' => now(), 'updated_at' => now(),
         ]);
-        DB::table('holidays')->insert(['session_year_id' => $lastYear, 'date' => now()->subYear()->subMonth(), 'title' => 'Old holiday', 'description' => '-']);
+        SchoolTable::query('holidays')->insert(['session_year_id' => $lastYear, 'date' => now()->subYear()->subMonth(), 'title' => 'Old holiday', 'description' => '-']);
 
         // Every year's holidays were listed, unlike events, so the app calendar showed old ones.
         $titles = collect($this->apiClient(self::$school->tokens['asha'])->get('/api/holidays')->json('data'))->pluck('title')->all();
@@ -327,7 +328,7 @@ class ApiRegressionTest extends TestCase
         $sam->assignRole('Teacher');
         ParentPolicyService::acceptCurrent($sam);
         $teacher = Teacher::forceCreate(['user_id' => $sam->id, 'qualification' => 'B.Ed']);
-        DB::table('subject_teachers')->insert([
+        SchoolTable::query('subject_teachers')->insert([
             'class_section_id' => $id['section_a'], 'subject_id' => $id['maths'], 'teacher_id' => $teacher->id, 'session_year_id' => 1,
             'created_at' => now(), 'updated_at' => now(),
         ]);

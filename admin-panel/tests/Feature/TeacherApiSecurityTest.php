@@ -5,6 +5,8 @@ namespace Tests\Feature;
 use App\Models\Assignment;
 use App\Models\User;
 use App\Services\ParentPolicyService;
+use App\Services\Platform\Tenancy\SchoolOwnedTables;
+use App\Services\Platform\Tenancy\SchoolTable;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
@@ -307,6 +309,8 @@ class TeacherApiSecurityTest extends TestCase
 
     private function insert(string $table, array $values): int
     {
-        return DB::table($table)->insertGetId($values + ['created_at' => now(), 'updated_at' => now()]);
+        $query = SchoolOwnedTables::isSchoolOwned($table) ? SchoolTable::query($table) : DB::table($table);
+
+        return $query->insertGetId($values + ['created_at' => now(), 'updated_at' => now()]);
     }
 }

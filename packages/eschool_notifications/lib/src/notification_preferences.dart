@@ -13,6 +13,27 @@ class NotificationPreferences {
   static const String chatNotificationsBackgroundItemKey =
       'chatNotificationsBackgroundItem';
 
+  /// Set when a `context.changed` push arrived in the background.
+  static const String contextChangedKey = 'contextChanged';
+
+  Future<void> noteContextChanged() async {
+    final SharedPreferences prefs = await SharedPreferences.getInstance();
+    await prefs.reload();
+    await prefs.setBool(contextChangedKey, true);
+  }
+
+  /// Whether a `context.changed` push arrived since the last call; clears
+  /// the note.
+  Future<bool> takeContextChanged() async {
+    final SharedPreferences prefs = await SharedPreferences.getInstance();
+    await prefs.reload();
+    final bool changed = prefs.getBool(contextChangedKey) ?? false;
+    if (changed) {
+      await prefs.remove(contextChangedKey);
+    }
+    return changed;
+  }
+
   Future<void> setNotificationCount(int value) async {
     final SharedPreferences prefs = await SharedPreferences.getInstance();
     await prefs.reload();

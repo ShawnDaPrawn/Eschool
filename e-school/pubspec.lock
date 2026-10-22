@@ -265,6 +265,13 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "2.1.0"
+  eschool_api:
+    dependency: transitive
+    description:
+      path: "../packages/eschool_api"
+      relative: true
+    source: path
+    version: "0.1.0"
   eschool_core:
     dependency: "direct main"
     description:
@@ -276,6 +283,13 @@ packages:
     dependency: "direct main"
     description:
       path: "../packages/eschool_notifications"
+      relative: true
+    source: path
+    version: "0.1.0"
+  eschool_people:
+    dependency: "direct main"
+    description:
+      path: "../packages/eschool_people"
       relative: true
     source: path
     version: "0.1.0"
