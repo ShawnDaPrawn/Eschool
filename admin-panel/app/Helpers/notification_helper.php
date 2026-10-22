@@ -3,6 +3,7 @@
 use App\Models\Settings;
 use App\Models\User;
 use App\Services\Platform\Notifications\PushQueue;
+use App\Services\Platform\Secrets\SecretSettings;
 use Google\Client;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;

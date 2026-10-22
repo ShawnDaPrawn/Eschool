@@ -6,6 +6,7 @@ namespace Tests\Feature\Platform;
 
 use App\Models\Settings;
 use App\Services\Payment\PaymentService;
+use App\Services\Platform\Notifications\FcmClient;
 use App\Services\Platform\Secrets\SecretSettings;
 use App\Services\SettingsConfigService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -122,6 +123,19 @@ class SecretSettingsTest extends TestCase
 
         config(['secrets.fcm_service_account' => '{"not": "a service account"}']);
         $this->assertNull(SecretSettings::fcmCredentials());
+    }
+
+    public function test_the_push_helpers_read_the_fcm_service_account_through_secret_settings(): void
+    {
+        // With nothing configured the helper answers null (and push is reported
+        // as not configured) instead of failing on how it looks the secret up.
+        $this->assertNull(getAccessToken());
+        $this->assertNull(app(FcmClient::class)->projectId());
+
+        config(['secrets.fcm_service_account' => json_encode([
+            'type' => 'service_account', 'project_id' => 'navigateed-test', 'private_key' => 'k', 'client_email' => 'x@example.iam.gserviceaccount.com',
+        ])]);
+        $this->assertSame('navigateed-test', app(FcmClient::class)->projectId());
     }
 
     public function test_the_audit_lists_rows_without_values_and_purge_clears_only_what_is_replaced(): void

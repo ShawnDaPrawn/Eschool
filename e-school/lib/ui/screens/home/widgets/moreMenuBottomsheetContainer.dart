@@ -88,135 +88,139 @@ class MoreMenuBottomsheetContainer extends StatelessWidget {
       ),
       child: LayoutBuilder(
         builder: (context, boxConstraints) {
-          return Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Row(
-                children: [
-                  Container(
-                    height: boxConstraints.maxWidth * 0.22,
-                    width: boxConstraints.maxWidth * 0.22,
-                    decoration: BoxDecoration(
-                      border: Border.all(
-                        width: 2,
-                        color: Theme.of(context).colorScheme.onSurfaceVariant,
+          // Scrolls when the menu is taller than the space Home leaves it
+          // (short or landscape screens); where it fits it looks as before.
+          return SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Row(
+                  children: [
+                    Container(
+                      height: boxConstraints.maxWidth * 0.22,
+                      width: boxConstraints.maxWidth * 0.22,
+                      decoration: BoxDecoration(
+                        border: Border.all(
+                          width: 2,
+                          color: Theme.of(context).colorScheme.onSurfaceVariant,
+                        ),
+                        borderRadius: BorderRadius.circular(
+                          boxConstraints.maxWidth * 0.11,
+                        ),
                       ),
-                      borderRadius: BorderRadius.circular(
-                        boxConstraints.maxWidth * 0.11,
+                      child: CustomUserProfileImageWidget(
+                        profileUrl: context
+                            .read<AuthCubit>()
+                            .getStudentDetails()
+                            .image,
+                        color: Theme.of(context).colorScheme.onSurface,
                       ),
                     ),
-                    child: CustomUserProfileImageWidget(
-                      profileUrl: context
-                          .read<AuthCubit>()
-                          .getStudentDetails()
-                          .image,
-                      color: Theme.of(context).colorScheme.onSurface,
+                    SizedBox(width: boxConstraints.maxWidth * 0.075),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          Text(
+                            context
+                                .read<AuthCubit>()
+                                .getStudentDetails()
+                                .getFullName(),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: TextStyle(
+                              color: Theme.of(context).colorScheme.onSurface,
+                              fontWeight: FontWeight.w500,
+                              fontSize: 18,
+                            ),
+                          ),
+                          Row(
+                            children: [
+                              Flexible(
+                                flex: 2,
+                                child: Text(
+                                  '${UiUtils.getTranslatedLabel(context, classKey)}: ${context.read<AuthCubit>().getStudentDetails().classSectionNameWithSemester(context: context)}',
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.w400,
+                                    color: Theme.of(
+                                      context,
+                                    ).colorScheme.onSurfaceVariant,
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(width: 10),
+                              Container(
+                                width: 1.5,
+                                height: 12,
+                                color: Theme.of(
+                                  context,
+                                ).colorScheme.onSurfaceVariant,
+                              ),
+                              const SizedBox(width: 10),
+                              Flexible(
+                                child: Text(
+                                  '${UiUtils.getTranslatedLabel(context, rollNoKey)}: ${context.read<AuthCubit>().getStudentDetails().rollNumber}',
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.w400,
+                                    color: Theme.of(
+                                      context,
+                                    ).colorScheme.onSurfaceVariant,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
                     ),
-                  ),
-                  SizedBox(width: boxConstraints.maxWidth * 0.075),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        Text(
-                          context
-                              .read<AuthCubit>()
-                              .getStudentDetails()
-                              .getFullName(),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: TextStyle(
+                    Padding(
+                      padding: const EdgeInsetsDirectional.only(end: 10),
+                      child: InkWell(
+                        onTap: () {
+                          closeBottomMenu();
+                          Navigator.of(context).pushNamed(
+                            Routes.studentProfile,
+                            arguments: context
+                                .read<AuthCubit>()
+                                .getStudentDetails(),
+                          );
+                        },
+                        child: Transform.rotate(
+                          angle: pi,
+                          child: Icon(
+                            Icons.arrow_back_ios,
                             color: Theme.of(context).colorScheme.onSurface,
-                            fontWeight: FontWeight.w500,
-                            fontSize: 18,
                           ),
                         ),
-                        Row(
-                          children: [
-                            Flexible(
-                              flex: 2,
-                              child: Text(
-                                '${UiUtils.getTranslatedLabel(context, classKey)}: ${context.read<AuthCubit>().getStudentDetails().classSectionNameWithSemester(context: context)}',
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                                style: TextStyle(
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.w400,
-                                  color: Theme.of(
-                                    context,
-                                  ).colorScheme.onSurfaceVariant,
-                                ),
-                              ),
-                            ),
-                            const SizedBox(width: 10),
-                            Container(
-                              width: 1.5,
-                              height: 12,
-                              color: Theme.of(
-                                context,
-                              ).colorScheme.onSurfaceVariant,
-                            ),
-                            const SizedBox(width: 10),
-                            Flexible(
-                              child: Text(
-                                '${UiUtils.getTranslatedLabel(context, rollNoKey)}: ${context.read<AuthCubit>().getStudentDetails().rollNumber}',
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                                style: TextStyle(
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.w400,
-                                  color: Theme.of(
-                                    context,
-                                  ).colorScheme.onSurfaceVariant,
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
-                  ),
-                  Padding(
-                    padding: const EdgeInsetsDirectional.only(end: 10),
-                    child: InkWell(
-                      onTap: () {
-                        closeBottomMenu();
-                        Navigator.of(context).pushNamed(
-                          Routes.studentProfile,
-                          arguments: context
-                              .read<AuthCubit>()
-                              .getStudentDetails(),
-                        );
-                      },
-                      child: Transform.rotate(
-                        angle: pi,
-                        child: Icon(
-                          Icons.arrow_back_ios,
-                          color: Theme.of(context).colorScheme.onSurface,
-                        ),
                       ),
                     ),
-                  ),
-                ],
-              ),
-              Divider(
-                color: Theme.of(context).colorScheme.onSurfaceVariant,
-                height: 50,
-              ),
-              Wrap(
-                children: homeBottomSheetMenu
-                    .map(
-                      (e) => _buildMoreMenuContainer(
-                        context: context,
-                        boxConstraints: boxConstraints,
-                        iconUrl: e.iconUrl,
-                        title: e.title,
-                      ),
-                    )
-                    .toList(),
-              ),
-              SizedBox(height: UiUtils.getScrollViewBottomPadding(context)),
-            ],
+                  ],
+                ),
+                Divider(
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  height: 50,
+                ),
+                Wrap(
+                  children: homeBottomSheetMenu
+                      .map(
+                        (e) => _buildMoreMenuContainer(
+                          context: context,
+                          boxConstraints: boxConstraints,
+                          iconUrl: e.iconUrl,
+                          title: e.title,
+                        ),
+                      )
+                      .toList(),
+                ),
+                SizedBox(height: UiUtils.getScrollViewBottomPadding(context)),
+              ],
+            ),
           );
         },
       ),
