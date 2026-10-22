@@ -3,6 +3,9 @@
 use App\Http\Controllers\AnnouncementController;
 use App\Http\Controllers\AssignmentController;
 use App\Http\Controllers\AttendanceController;
+use App\Http\Controllers\Auth\ForgotPasswordController;
+use App\Http\Controllers\Auth\LoginController;
+use App\Http\Controllers\Auth\ResetPasswordController;
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\Classes;
 use App\Http\Controllers\ClassTeacherController;
@@ -60,18 +63,18 @@ use Illuminate\Support\Facades\Route;
 */
 // Manual Authentication Routes
 
-Route::get('login', [App\Http\Controllers\Auth\LoginController::class, 'showLoginForm'])->middleware('guest')->name('login');
-Route::post('login', [App\Http\Controllers\Auth\LoginController::class, 'login'])->middleware(['guest', 'throttle:login']);
-Route::post('logout', [App\Http\Controllers\Auth\LoginController::class, 'logout'])->name('logout');
+Route::get('login', [LoginController::class, 'showLoginForm'])->middleware('guest')->name('login');
+Route::post('login', [LoginController::class, 'login'])->middleware(['guest', 'throttle:login']);
+Route::post('logout', [LoginController::class, 'logout'])->name('logout');
 
 // There is no public sign-up. Staff create accounts, and those accounts always
 // have a role. Students apply through the public online registration form.
 
 // Password Reset Routes (if needed)
-Route::get('password/reset', [App\Http\Controllers\Auth\ForgotPasswordController::class, 'showLinkRequestForm'])->name('password.request');
-Route::post('password/email', [App\Http\Controllers\Auth\ForgotPasswordController::class, 'sendResetLinkEmail'])->middleware('throttle:login')->name('password.email');
-Route::get('password/reset/{token}', [App\Http\Controllers\Auth\ResetPasswordController::class, 'showResetForm'])->name('password.reset');
-Route::post('password/reset', [App\Http\Controllers\Auth\ResetPasswordController::class, 'reset'])->name('password.update');
+Route::get('password/reset', [ForgotPasswordController::class, 'showLinkRequestForm'])->name('password.request');
+Route::post('password/email', [ForgotPasswordController::class, 'sendResetLinkEmail'])->middleware('throttle:login')->name('password.email');
+Route::get('password/reset/{token}', [ResetPasswordController::class, 'showResetForm'])->name('password.reset');
+Route::post('password/reset', [ResetPasswordController::class, 'reset'])->name('password.update');
 Route::get('web-set-language/{lang}', [LanguageController::class, 'set_language'])->name('web.set.language');
 
 Route::group(['middleware' => 'language'], function () {

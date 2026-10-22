@@ -11,6 +11,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Str;
+use Illuminate\Testing\TestResponse;
 use Symfony\Component\Mailer\Transport\Smtp\EsmtpTransport;
 use Tests\TestCase;
 
@@ -242,7 +243,7 @@ class SesWebhookTest extends TestCase
     }
 
     /** SNS posts JSON as text/plain. */
-    private function postSns(array $message): \Illuminate\Testing\TestResponse
+    private function postSns(array $message): TestResponse
     {
         return $this->call('POST', '/webhook/mail/ses', [], [], [], ['CONTENT_TYPE' => 'text/plain; charset=UTF-8', 'HTTP_X_AMZ_SNS_MESSAGE_TYPE' => $message['Type']], json_encode($message));
     }

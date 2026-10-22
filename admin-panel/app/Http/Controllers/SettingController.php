@@ -2,13 +2,14 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Language;
 use App\Models\SessionYear;
 use App\Models\Settings;
-use App\Models\Language;
 use App\Services\ChatMessageCleanupService;
 use App\Services\MailService;
 use App\Services\SessionYearService;
 use Illuminate\Http\Request;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
@@ -34,10 +35,10 @@ class SettingController extends Controller
         $getTimezoneList = getTimezoneList();
         $getTimeFormat = getTimeFormat();
 
-         $session_year = SessionYear::orderBy('id', 'desc')->get();
-       
+        $session_year = SessionYear::orderBy('id', 'desc')->get();
 
-         $language = Language::select('id', 'name')->orderBy('id', 'desc')->get();
+        $language = Language::select('id', 'name')->orderBy('id', 'desc')->get();
+
         return view('settings.index', compact('settings', 'getDateFormat', 'getTimezoneList', 'getTimeFormat', 'session_year'));
     }
 
@@ -113,10 +114,8 @@ class SettingController extends Controller
                             'message' => $request->input($row, ''),
                         ];
                     }
-                    
+
                     Settings::where('type', $row)->update($data);
-                        
-                      
 
                     // Cache::forget('settings.all');
                     // Cache::forget('session_year.all');
@@ -125,7 +124,7 @@ class SettingController extends Controller
 
                     // $setting->message = $data['message'];
                     // $setting->save();
-                    
+
                 } else {
                     $setting = new Settings;
                     $setting->type = $row;
@@ -612,7 +611,7 @@ class SettingController extends Controller
             'project_id' => 'required',
             // JSON uploads are often detected as text/plain, so the content is checked instead of the type.
             'service_account_file' => ['bail', 'nullable', 'file', 'max:64', function ($attribute, $value, $fail) {
-                $json = $value instanceof \Illuminate\Http\UploadedFile
+                $json = $value instanceof UploadedFile
                     ? json_decode((string) @file_get_contents($value->getRealPath()), true)
                     : null;
                 if (! is_array($json) || empty($json['private_key']) || empty($json['client_email'])) {
@@ -666,7 +665,7 @@ class SettingController extends Controller
                 'error' => false,
                 'message' => trans('data_update_successfully'),
             ];
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             report($e);
             $response = [
                 'error' => true,
@@ -726,7 +725,7 @@ class SettingController extends Controller
                 'error' => false,
                 'message' => trans('data_update_successfully'),
             ];
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             report($e);
             $response = [
                 'error' => true,
@@ -768,7 +767,7 @@ class SettingController extends Controller
                 'error' => false,
                 'message' => trans('data_delete_successfully'),
             ];
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             report($e);
             $response = [
                 'error' => true,
@@ -788,7 +787,7 @@ class SettingController extends Controller
                 'error' => false,
                 'message' => trans('data_delete_successfully'),
             ];
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             report($e);
             $response = [
                 'error' => true,

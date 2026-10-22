@@ -44,7 +44,6 @@ class StudentsImport extends DefaultValueBinder implements SkipsEmptyRows, ToCol
 
     public $class_section_id;
 
-
     /**
      * @param  array  $row
      * @return Model|null

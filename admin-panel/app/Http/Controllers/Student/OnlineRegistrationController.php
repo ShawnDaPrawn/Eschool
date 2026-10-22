@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Student;
 
 use App\Http\Controllers\Controller;
+use App\Mail\Platform\TemplateMail;
 use App\Models\Category;
 use App\Models\ClassSchool;
 use App\Models\ClassSection;
@@ -17,7 +18,6 @@ use App\Models\Students;
 use App\Models\StudentSessions;
 use App\Models\Subject;
 use App\Models\User;
-use App\Mail\Platform\TemplateMail;
 use App\Services\MailService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;

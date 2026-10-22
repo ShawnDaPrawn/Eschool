@@ -12,7 +12,8 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 class ExamMarks extends Model
 {
     use Auditable, HasFactory, SoftDeletes;
-    protected $hidden = ["deleted_at", "created_at", "updated_at"];
+
+    protected $hidden = ['deleted_at', 'created_at', 'updated_at'];
 
     public function timetable()
     {
@@ -28,7 +29,6 @@ class ExamMarks extends Model
     {
         return $this->belongsTo(Students::class)->withTrashed();
     }
-
 
     //     return $this->hasManyThrough(Exam::class,ExamTimetable::class,'id','id','exam_id')->orderBy('date','asc');
     // }

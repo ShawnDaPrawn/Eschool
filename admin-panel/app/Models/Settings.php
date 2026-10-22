@@ -7,14 +7,16 @@ namespace App\Models;
 use App\Services\Platform\Audit\Auditable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+
 class Settings extends Model
 {
     use Auditable, HasFactory;
+
     public $timestamps = false;
 
     protected $fillable = [
         'type',
-        'message'
+        'message',
     ];
 
     /**
