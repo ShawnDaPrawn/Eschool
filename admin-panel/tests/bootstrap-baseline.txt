@@ -200,7 +200,6 @@ resources/views/students/result_template.blade.php
 resources/views/students/stu-detail.blade.php
 resources/views/subject/index.blade.php
 resources/views/subject/teacher.blade.php
-resources/views/system-update/index.blade.php
 resources/views/teacher/details.blade.php
 resources/views/teacher/index.blade.php
 resources/views/timetable/addmore.blade.php
