@@ -1,6 +1,6 @@
 # Admin panel redesign, part one (Phase 0, feature 0.11)
 
-Build Bible section 5.3 ("Admin panel: no training needed") and section 6, build step 11, with the Playwright checks and `DemoSchoolSeeder` of build step 13. Work stream S3. The admin panel gets navigation by job, one page pattern, a Home with a setup checklist and today's numbers, a global search, an always-visible year switcher with read-only past years, and a new-year wizard. Every existing page keeps its address and keeps working; Home, search and the wizard are built on the new page pattern.
+Build Bible section 5.3 (the admin panel standard) and section 6, build step 11, with the Playwright checks and `DemoSchoolSeeder` of build step 13. Work stream S3. The admin panel gets navigation by job, one page pattern, a Home with a setup checklist and today's numbers, a global search, an always-visible year switcher with read-only past years, and a new-year wizard. Every existing page keeps its address and keeps working; Home, search and the wizard are built on the new page pattern.
 
 ## What changes
 
@@ -18,23 +18,23 @@ Build Bible section 5.3 ("Admin panel: no training needed") and section 6, build
 
 ## User stories
 
-- **School admin (Super Admin):** I find "add a learner", "set up terms" and "send a notice" from Home without help. Home tells me what my school still has to set up and takes me to the page that does it. I find any learner, parent, teacher, homeroom or settings page by typing in the header. I can look at last year without changing it by accident, and I roll the school into next year in one guided page.
+- **School admin (Super Admin):** From Home I can work out, without help, how to add a learner, how to set up terms and how to send a notice. Home tells me what my school still has to set up and takes me to the page that does it. I find any learner, parent, teacher, homeroom or settings page by typing in the header. I can look at last year without changing it by accident, and I roll the school into next year in one guided page.
 - **Staff with a custom role (for example Finance):** the navigation shows only the sections my role can use (Money); search finds only what I may open; Home shows only the numbers I may see.
 - **Teacher:** the navigation shows only my pages (my learners, registers, lessons, marks, notices, leave); search finds only the learners of my homerooms and pages I can open; I am refused admin-only pages; the year switcher shows past years read-only.
 - **Learner and parent:** nothing changes in the apps. They keep seeing the school's current year until the admin makes the next one current.
-- **Engineer, Test and Review roles:** a demo school with known sign-ins exists on any environment; Playwright checks every panel page at 1280 and 1024 px with axe.
+- **Engineer, Test and Review roles:** a demo school with known sign-ins exists on any environment; Playwright, with axe, checks every panel page at widths of 1280 and 1024 px.
 
 ## Acceptance tests
 
-UX acceptance tests from the Bible's Phase 0 table, then the behaviour behind them. PHPUnit classes are in `admin-panel/tests/Feature/Panel/`, `tests/Feature/Academics/` and `tests/Feature/DemoSchoolSeederTest.php`; Playwright specs in `admin-panel/e2e/tests/`.
+The scripted UX paths first, then the behaviour behind them. PHPUnit classes are in `admin-panel/tests/Feature/Panel/`, `tests/Feature/Academics/` and `tests/Feature/DemoSchoolSeederTest.php`; Playwright specs in `admin-panel/e2e/tests/`.
 
 | Given | When | Then | Test |
 | --- | --- | --- | --- |
-| A new admin on Home | they look for "add a learner", "set up terms" and "send a notice" | each is two clicks (or keys) away and opens in under 30 seconds | `navigation.spec.ts` |
+| A new admin on Home | they look for the pages to add a learner, to set up terms and to send a notice | each is two clicks or keys away and opens in under 30 seconds | `navigation.spec.ts` |
 | A brand-new school | the admin follows the Home checklist | each of the seven steps links to its page and turns done from the school's data; when all are done Home says the school is ready for learners | `HomeTest::test_a_new_school_sees_every_step_still_to_do_with_a_link_to_do_it`, `test_each_step_is_done_once_the_school_has_the_data`, `test_an_ended_year_sends_the_year_step_to_the_new_year` |
 | Any learner, parent, teacher, homeroom or settings page | the admin types in the header's search box | it opens in under 10 seconds | `search.spec.ts`, `SearchTest` |
 | The admin switches to last year | they look at any page | the banner shows, every list follows the year and every write button is disabled; the server refuses writes | `year-switcher.spec.ts`, `ReadOnlyYearsTest` |
-| The admin runs the new-year wizard | they create next year, choose what to carry forward and make it current | it takes under five minutes and the current year is untouched until the switch | `new-year-wizard.spec.ts`, `NewYearTest` |
+| The admin runs the new-year wizard | they set up next year, pick what to copy across and switch to it | it is done in less than five minutes, and nothing in the current year changes before the switch | `new-year-wizard.spec.ts`, `NewYearTest` |
 | Every page the old sidebar reached | someone with the permission looks for it | it is in the navigation, at the same address | `NavigationTest::test_every_page_of_the_old_sidebar_is_in_the_navigation`, `test_someone_with_every_permission_can_reach_every_old_sidebar_page`, `test_old_sidebar_links_still_open_their_pages` |
 | A Teacher, or a custom Finance role | they open the panel | they see only the sections and items their permissions open; empty sections are hidden | `NavigationTest::test_a_teacher_sees_only_what_their_permissions_open`, `test_a_custom_staff_role_sees_only_its_own_sections`, `teacher.spec.ts` |
 | Every navigation label | the panel is shown in English or Arabic | the label exists in every `resources/lang/*.json` | `NavigationTest::test_every_navigation_label_is_in_every_panel_language_file`, `TranslationsTest` |
@@ -126,4 +126,4 @@ On staging, seeded with `InstallationSeeder` and `DemoSchoolSeeder` (password `N
 
 - Legacy pages keep their own markup; the axe problems specific to them are listed in `admin-panel/e2e/allowlist.json` (unlabelled filter selects, icon-only row actions, page-specific contrast) and go when each page moves to the page pattern.
 - Breadcrumbs show section and group only; a "recent pages" list and saved searches are not built.
-- The Bible's 390 px Playwright width (section 5.2) is not in this stream's task; the e2e projects cover 1280 and 1024 px.
+- A 390 px Playwright width (the Build Bible, section 5.2) was not in this stream's task; the e2e projects cover 1280 and 1024 px.

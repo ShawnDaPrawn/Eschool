@@ -1,14 +1,14 @@
 # Release
 
-How a phase (or a hot fix) reaches production, following the Build Bible's release outline (Appendix D): tag, build image, back up production, deploy to staging and smoke test, rehearse migrations on a staging copy of production, deploy production, run migrations through the entrypoint, smoke test every profile, watch errors for an hour, announce.
+How a phase (or a hot fix) gets to production. The ten steps below run in order: tag the release, build the image, back up production, prove the release on staging, rehearse the migrations against a copy of production data, deploy, check every profile, watch for an hour, and tell people. The Build Bible, Appendix D, is the outline we follow.
 
-**Who.** The Release role runs it; the product owner approves the production deployment in GitHub. A production release happens only after the phase gate has passed and the product owner has accepted the phase on staging (Bible section 4). Hot fixes for a live defect do not wait for a gate but follow the same steps and are reported the same day.
+**Who.** The Release role runs it; the product owner approves the production deployment in GitHub. Production gets a phase only once its gate has passed and the product owner has signed it off on staging (the Build Bible, section 4). A hot fix for something broken in production skips the gate, but not the steps, and the product owner hears about it the same day.
 
 **Status.** Not yet executed: no release has gone through this runbook. The first one is Phase 0's (`v0.1.0`), after [environments.md](environments.md) step 7.
 
 ## Before you start
 
-- [ ] Phase exit checklist complete (Appendix D): every "what exists when done" item ticked, security checks recorded in `engineering/security/phase-N.md`, self-test matrix complete with no failed rows, UX scripts passed, performance budgets met on staging (`k6-smoke.yml`), demo recorded, product owner's acceptance on staging recorded.
+- [ ] The phase gate is closed in the build log: the phase plan's features delivered or deferred with a reason, the security record (`engineering/security/phase-N.md`) and the self-test record complete with nothing failing, the UX scripts run, the k6 smoke (`k6-smoke.yml`) within budget on staging, and the demo and the product owner's sign-off recorded.
 - [ ] `CHANGELOG.md`: the Unreleased section becomes `## vX.Y.Z (YYYY-MM-DD)`, with a fresh empty Unreleased above it.
 - [ ] Appendices A, B and E, the wiki and the user docs updated.
 - [ ] `main` is green and staging runs the commit you will tag.
@@ -44,7 +44,7 @@ gcloud sql backups list --instance=navigateed-mysql --project=navigateed-d8c06 -
 
 Already done by the merge. Confirm: **Actions > Deploy staging** is green for the tagged commit, and `infra/deploy/smoke.sh https://<staging panel>` passes.
 
-### 5. Rehearse the migrations on a staging copy of production
+### 5. Rehearse the migrations against a copy of production
 
 This proves the release's migrations run on real data, at real size, in acceptable time. It puts production data in staging for the duration: follow [restore.md](restore.md), "Restore production into staging", which also makes staging unable to e-mail or push to real people, then:
 
@@ -86,4 +86,4 @@ To the product owner and the pilot schools' contacts: the version, what changed 
 
 ## Rollback in short
 
-Redeploy the previous image ([rollback.md](rollback.md)). Migrations are additive, so the previous code runs on the new schema and no down-migration is needed in the common case. Restore from backup only on data corruption, through [restore.md](restore.md).
+Redeploy the previous image ([rollback.md](rollback.md)). Migrations are additive, so the previous code still runs on the new schema and a down-migration is rarely needed. A backup is restored only when data is damaged, through [restore.md](restore.md).

@@ -1,18 +1,18 @@
 # Engineering
 
-Working files for building NavigateEd on top of the seed codebase. The NavigateEd Build Bible (held by the product owner) is the source of truth; this folder holds what the Bible asks engineers to keep in the repository.
+The working records for building NavigateEd on the seed codebase. The product owner's Build Bible is the plan; it is private and stays out of this public repository. This folder holds our own records of what we build: plans, specs, decisions, runbooks and test evidence.
 
-| Artefact | Path |
+| What | Where |
 | --- | --- |
-| Phase plans and open questions | `phases/phase-N.md`, `phases/phase-N-questions.md` |
-| Feature specs | `specs/<module>/<feature>.md` |
-| Decision records | `adr/NNNN-<title>.md` (context, options, decision, consequences) |
-| Self-test runs | `self-tests/phase-N.md`, screenshots in `self-tests/evidence/` |
-| Runbooks (deploy, rollback, restore, incident, release) | `runbooks/` |
-| Threat model and security test results | `security/` |
-| Performance smoke test (k6) with the Bible's latency budgets | `perf/k6-smoke.js` |
-| Living appendices of the Bible (data model, module and notification catalogues, build log) | `bible/` |
+| The plan for each phase and the questions it raised | `phases/phase-N.md`, `phases/phase-N-questions.md` |
+| One spec per feature, written before the code | `specs/<module>/<feature>.md` |
+| Decision records | `adr/NNNN-<title>.md` |
+| Self-test records, with screenshots in `self-tests/evidence/` | `self-tests/phase-N.md` |
+| Runbooks: deploy, rollback, restore, incident, release, environments | `runbooks/` |
+| Threat model and each phase's security record | `security/` |
+| Performance smoke test (k6) with our latency budgets | `perf/k6-smoke.js` |
+| What exists so far: data model, module and notification catalogues, build log | `bible/` |
 
-The changelog is [`CHANGELOG.md`](../CHANGELOG.md) at the repository root, newest first. The developer wiki is [`wiki/`](../wiki) and the user documentation is [`documentation/`](../documentation).
+Release notes go in [`CHANGELOG.md`](../CHANGELOG.md) at the repository root. The developer wiki is [`wiki/`](../wiki) and the user documentation is [`documentation/`](../documentation).
 
-Precedence when sources disagree: the product owner's decisions, then the Bible, then the repository guides (`README.md`, `CONTRIBUTING.md`, `wiki/Contributing.md`, `wiki/UI-Standards.md`), then existing code conventions.
+When two sources disagree, the product owner's latest decision wins, then the Build Bible, then the repository guides (`README.md`, `CONTRIBUTING.md`, `wiki/Contributing.md`, `wiki/UI-Standards.md`), then the conventions of the existing code.

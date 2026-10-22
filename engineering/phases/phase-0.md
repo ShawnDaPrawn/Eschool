@@ -1,6 +1,6 @@
 # Phase 0: Groundwork
 
-**Goal.** Make the seed safe to grow. Nothing the users see changes except the admin panel's navigation and the school-year tools, but underneath there is a queue, a scheduler, an audit log, an outbox, money in cents, an API v2 skeleton, web builds of both apps, a staging environment definition, and the CI gates every later phase relies on. The dangerous and unused parts of the seed are gone.
+**Goal.** Get the seed ready for the work that follows without changing what users do, apart from a clearer admin panel. Phase 0 removes the unsafe and unused parts of the seed and adds the plumbing later work builds on: background jobs, an audit trail, an outbox, money held in cents, an API v2 skeleton, web builds of the apps, environment definitions and stricter CI.
 
 Source: Build Bible section 6. Open decisions and the defaults taken are in [phase-0-questions.md](phase-0-questions.md).
 
@@ -24,9 +24,9 @@ The phase runs as parallel work streams, each on its own branch and merged into 
 | # | Feature | Stream | Spec |
 | --- | --- | --- | --- |
 | 0.1 | Engineering scaffolding: `engineering/`, `CHANGELOG.md`, ADR 0001 to 0003, wiki sidebar links, PR template | S4 | this file |
-| 0.2 | Remove System Update, the GET maintenance routes, Razorpay, Paystack and Flutterwave, the dead route block, `EnsureUserIsTeacher`, the duplicate route registration | S1 | [specs/platform/removals.md](../specs/platform/removals.md) |
+| 0.2 | Remove System Update, the GET maintenance routes, the Razorpay, Paystack and Flutterwave gateways, the dead route block, `EnsureUserIsTeacher`, the duplicate route registration | S1 | [specs/platform/removals.md](../specs/platform/removals.md) |
 | 0.3 | `ResponseService` returns its response instead of calling `exit()`; every call site returns it | S1 | [specs/platform/response-service.md](../specs/platform/response-service.md) |
-| 0.4 | Queue, scheduler and mail off the request path: database queue, `SendMail` and `SendPush` jobs, `notification_deliveries` | S5 | [specs/platform/queue-and-delivery.md](../specs/platform/queue-and-delivery.md) |
+| 0.4 | Queue and scheduler, with mail and push sent from jobs instead of inside the request: database queue, `SendMail` and `SendPush` jobs, `notification_deliveries` | S5 | [specs/platform/queue-and-delivery.md](../specs/platform/queue-and-delivery.md) |
 | 0.5 | Transactional email through the chosen provider with bounce and complaint webhooks | S5 | [specs/platform/queue-and-delivery.md](../specs/platform/queue-and-delivery.md) |
 | 0.6 | Kernel scaffolding: outbox, audit log, `Money` and `*_cents` columns, `settings.school_id` | S5 | [specs/platform/kernel.md](../specs/platform/kernel.md) |
 | 0.7 | Security fixes in the seed | S6 | [specs/platform/security-fixes.md](../specs/platform/security-fixes.md) |
@@ -37,6 +37,6 @@ The phase runs as parallel work streams, each on its own branch and merged into 
 | 0.12 | Environments and operations: staging, deploy workflows, worker and scheduler, backups, logs, runbooks | S4 | [specs/platform/environments.md](../specs/platform/environments.md) |
 | 0.13 | Test infrastructure: `DemoSchoolSeeder`, Pint, Larastan 1, tenancy scaffold, Playwright, integration smoke, k6 | S7, S2, S8 | [specs/platform/test-infrastructure.md](../specs/platform/test-infrastructure.md) |
 
-## Exit gate (R0)
+## Exit gate
 
-The checklist is the Bible's, section 6. Status is kept in [`engineering/bible/build-log.md`](../bible/build-log.md) and the self-test record in [`engineering/self-tests/phase-0.md`](../self-tests/phase-0.md). Items that need the cloud project (staging live, worker and scheduler running for seven days, backup restore drill) and items that need people (UX scripts with new users, the product owner's acceptance) are tracked there as open until they happen.
+The gate is in the Build Bible, section 6. Our status against it is kept in the [build log](../bible/build-log.md), with the evidence in the [self-test record](../self-tests/phase-0.md) and the [security record](../security/phase-0.md). What needs the cloud project (staging, a week of the worker and scheduler, the restore drill) or people (UX scripts with new users, the product owner's acceptance) stays open there until it has happened.

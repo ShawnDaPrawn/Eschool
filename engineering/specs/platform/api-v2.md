@@ -85,7 +85,7 @@ None. `/me/context` already carries `modules`, `notification_rules`, `feature_fl
 ## Defaults taken
 
 - School id is always 1 and the school comes from settings until Phase 1 adds `schools`; `short_name` reads a new optional setting `school_short_name` (null until set), `crest_url` the `logo1` setting (null when none, rather than the eSchool default logo).
-- `api` stays 60 a minute per user (the Bible says per token): per user is the stricter of the two and v1 already relies on it.
+- `api` stays 60 a minute per user (the Build Bible counts per token): per user is the stricter of the two and v1 already relies on it.
 - `staff` admits Teachers too (the panel's rule, `CheckRole`); finer access is for policies.
 - `/me/context` does not run the v1 session checks (a learner without a current-year session can still read it); v1 calls still do.
 - Idempotency applies to signed-in writes only; answers with 5xx, 401, 403, 409 and 429 are not stored, so they can be retried; a first request silent for 5 minutes frees its key.
