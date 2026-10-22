@@ -3,7 +3,9 @@
 use App\Models\Settings;
 use App\Models\User;
 use App\Services\Platform\Notifications\PushQueue;
+use App\Services\Platform\Notifications\PushTopics;
 use App\Services\Platform\Secrets\SecretSettings;
+use App\Services\Platform\Tenancy\CurrentSchool;
 use Google\Client;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
@@ -88,15 +90,10 @@ function sendNotificationToTopic($title, $body, $type, $image, $userinfo)
         'image' => $image,
     ];
 
-    $topicMap = [
-        'all' => ['allAndroid', 'allIOS'],
-        'students' => ['studentsAndroid', 'studentsIOS'],
-        'parents' => ['parentsAndroid', 'parentsIOS'],
-        'teachers' => ['teachersAndroid', 'teachersIOS'],
-    ];
-
-    foreach ($topicMap[$userinfo] as $topic) {
-        if (str_contains($topic, 'Android')) {
+    // The current school's topics (school_{id}_{audience}_{platform}); school 1
+    // also keeps the pre-Phase 1 names installed apps subscribe to.
+    foreach (PushTopics::for(app(CurrentSchool::class)->id(), (string) $userinfo) as ['topic' => $topic, 'platform' => $platform]) {
+        if ($platform === 'android') {
             $message = [
                 'message' => [
                     'topic' => $topic,

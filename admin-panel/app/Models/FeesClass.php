@@ -5,13 +5,14 @@ declare(strict_types=1);
 namespace App\Models;
 
 use App\Services\Platform\Ledger\HasMoneyColumns;
+use App\Services\Platform\Tenancy\BelongsToSchool;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 class FeesClass extends Model
 {
-    use HasFactory, HasMoneyColumns;
+    use BelongsToSchool, HasFactory, HasMoneyColumns;
 
     /** Float money columns and their cents (HasMoneyColumns); the cents are the truth. */
     public function moneyColumns(): array

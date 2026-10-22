@@ -10,6 +10,7 @@ use App\Models\Settings;
 use App\Models\User;
 use App\Services\Payment\FeesPaymentService;
 use App\Services\Payment\PaymentService;
+use App\Services\Platform\Tenancy\SchoolTable;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
@@ -347,7 +348,7 @@ class PaymentWebhookTest extends TestCase
     private function seedSchool(): void
     {
         $now = now();
-        $this->sessionYearId = DB::table('session_years')->insertGetId([
+        $this->sessionYearId = SchoolTable::query('session_years')->insertGetId([
             'name' => 'Current', 'start_date' => $now->copy()->subMonths(2)->toDateString(), 'end_date' => $now->copy()->addMonths(8)->toDateString(),
             'include_fee_installments' => 1, 'fee_due_date' => $now->copy()->addDays(30)->toDateString(), 'fee_due_charges' => 10,
             'created_at' => $now, 'updated_at' => $now,
@@ -361,15 +362,15 @@ class PaymentWebhookTest extends TestCase
             Settings::updateOrCreate(['type' => $type], ['message' => $message]);
         }
 
-        $mediumId = DB::table('mediums')->insertGetId(['name' => 'English']);
-        $this->classId = DB::table('classes')->insertGetId(['name' => 'Grade 5', 'medium_id' => $mediumId]);
-        $otherClassId = DB::table('classes')->insertGetId(['name' => 'Grade 6', 'medium_id' => $mediumId]);
-        $sectionId = DB::table('sections')->insertGetId(['name' => 'A']);
-        $classSectionId = DB::table('class_sections')->insertGetId(['class_id' => $this->classId, 'section_id' => $sectionId]);
-        $categoryId = DB::table('categories')->insertGetId(['name' => 'General']);
+        $mediumId = SchoolTable::query('mediums')->insertGetId(['name' => 'English']);
+        $this->classId = SchoolTable::query('classes')->insertGetId(['name' => 'Grade 5', 'medium_id' => $mediumId]);
+        $otherClassId = SchoolTable::query('classes')->insertGetId(['name' => 'Grade 6', 'medium_id' => $mediumId]);
+        $sectionId = SchoolTable::query('sections')->insertGetId(['name' => 'A']);
+        $classSectionId = SchoolTable::query('class_sections')->insertGetId(['class_id' => $this->classId, 'section_id' => $sectionId]);
+        $categoryId = SchoolTable::query('categories')->insertGetId(['name' => 'General']);
 
         $parentUser = $this->user('parent@example.com', 'Parent');
-        $this->parentId = DB::table('parents')->insertGetId([
+        $this->parentId = SchoolTable::query('parents')->insertGetId([
             'user_id' => $parentUser->id, 'first_name' => 'Pat', 'last_name' => 'Parent', 'gender' => 'Male',
             'email' => 'parent@example.com', 'mobile' => '0000000000', 'occupation' => 'None',
         ]);
@@ -377,15 +378,15 @@ class PaymentWebhookTest extends TestCase
         $this->otherStudentId = $this->student('student2@example.com', 'GR2', $classSectionId, $categoryId);
 
         foreach (['tuition' => [0, 600, $this->classId], 'transport' => [0, 400, $this->classId], 'sports' => [1, 200, $this->classId], 'other_class' => [1, 300, $otherClassId]] as $name => [$choiceable, $amount, $classId]) {
-            $this->feeTypes[$name] = DB::table('fees_types')->insertGetId(['name' => $name]);
-            DB::table('fees_classes')->insert([
+            $this->feeTypes[$name] = SchoolTable::query('fees_types')->insertGetId(['name' => $name]);
+            SchoolTable::query('fees_classes')->insert([
                 'session_year_id' => $this->sessionYearId, 'class_id' => $classId, 'fees_type_id' => $this->feeTypes[$name],
                 'choiceable' => $choiceable, 'amount' => $amount,
             ]);
         }
 
         foreach ([[-10, 'First'], [60, 'Second']] as [$days, $name]) {
-            $this->installmentIds[] = DB::table('installment_fees')->insertGetId([
+            $this->installmentIds[] = SchoolTable::query('installment_fees')->insertGetId([
                 'name' => $name, 'due_date' => $now->copy()->addDays($days)->toDateString(), 'due_charges' => 5, 'session_year_id' => $this->sessionYearId,
             ]);
         }
@@ -394,11 +395,11 @@ class PaymentWebhookTest extends TestCase
     private function student(string $email, string $grNumber, int $classSectionId, int $categoryId): int
     {
         $user = $this->user($email, 'Student');
-        $studentId = DB::table('students')->insertGetId([
+        $studentId = SchoolTable::query('students')->insertGetId([
             'user_id' => $user->id, 'class_section_id' => $classSectionId, 'category_id' => $categoryId, 'admission_no' => $grNumber,
             'admission_date' => now()->toDateString(), 'father_id' => $this->parentId,
         ]);
-        DB::table('student_sessions')->insert([
+        SchoolTable::query('student_sessions')->insert([
             'student_id' => $studentId, 'class_section_id' => $classSectionId, 'session_year_id' => $this->sessionYearId, 'status' => 1,
         ]);
 

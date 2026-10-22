@@ -2,7 +2,7 @@ This page describes the MySQL/MariaDB schema of the admin panel as it stands aft
 
 ## Conventions that apply everywhere
 
-- **One school per database.** No table has a school or tenant column.
+- **Many schools in one database (Phase 1).** Every school-owned table has a `school_id` (NOT NULL, indexed, a foreign key to `schools`), and its model uses `BelongsToSchool`, which limits every query to the current school and fills `school_id` on new rows. `settings`, `audit_log`, `domain_events`, `notification_deliveries` and `idempotency_keys` have a nullable `school_id` (null: the platform's). `users` has none: people belong to schools through `school_memberships`. The decision for every table is in `App\Services\Platform\Tenancy\SchoolOwnedTables` and [the tenancy spec](https://github.com/ShawnDaPrawn/Eschool/blob/main/engineering/specs/platform/tenancy.md); `SchoolOwnedTablesTest` checks them against the schema. Column lists below leave `school_id` out.
 - **Mixed foreign-key styles.** Tables from the original 2022 migration ([`2022_04_01_105826_all_tables.php`](https://github.com/ShawnDaPrawn/Eschool/blob/main/admin-panel/database/migrations/2022_04_01_105826_all_tables.php)) store relations in plain `int(11)` columns with **no** database constraint (for example `students.user_id`, `class_sections.class_id`, `exam_marks.student_id`). Tables added from 2022-12 onward mostly use `bigint unsigned` columns with real `FOREIGN KEY` constraints. The FK column in the tables below is marked "FK" only when a constraint exists.
 - **Cascades live in models, not in the database.** Most deletes are soft deletes, and the cascade to child rows is done in each model's `booted()` / `boot()` `deleting` listener (see [Model-level cascades](#model-level-cascades)). Database `ON DELETE` rules only fire on hard deletes.
 - **Soft deletes.** Most tables have `deleted_at`. A few models do **not** use the `SoftDeletes` trait even though their table has the column: `Staff` (`staffs`), `LessonTopic` (`lesson_topics`), `File` (`files`), `Language` (`languages`), `OnlineExamQuestionOption`, `OnlineExamQuestionAnswer`. Deleting through those models removes the row for real.
@@ -28,15 +28,15 @@ Legend: **SD** = has `deleted_at`. "FK" = database foreign-key constraint (with 
 
 ### Spatie permission tables
 
-Created by [`2022_04_01_091033_create_permission_tables.php`](https://github.com/ShawnDaPrawn/Eschool/blob/main/admin-panel/database/migrations/2022_04_01_091033_create_permission_tables.php) from `config/permission.php` (teams disabled).
+Created by [`2022_04_01_091033_create_permission_tables.php`](https://github.com/ShawnDaPrawn/Eschool/blob/main/admin-panel/database/migrations/2022_04_01_091033_create_permission_tables.php) in the single-school shape, then given teams mode by `2026_10_23_100500_add_school_id_to_permission_tables.php` (`config/permission.php`: `teams` on, the team is `school_id`).
 
 | Table | Columns | Notes |
 |---|---|---|
 | `permissions` | `id`, `name`, `guard_name`, timestamps | Unique (`name`, `guard_name`). All permissions use guard `web` |
-| `roles` | `id`, `name`, `guard_name`, `custom_role` (int, default 0), timestamps | Unique (`name`, `guard_name`). `custom_role` was added by `2024_03_12_135926_add_column_type_in_events_table.php`; 1 marks roles created on the Roles page |
-| `model_has_permissions` | `permission_id` (FK cascade), `model_type`, `model_id` | Direct per-user permissions (used for `class-teacher`, `student-leave-approve` and the teacher "grant permission" option) |
-| `model_has_roles` | `role_id` (FK cascade), `model_type`, `model_id` | |
-| `role_has_permissions` | `permission_id`, `role_id` (both FK cascade) | |
+| `roles` | `id`, `school_id` (nullable, FK `schools`), `name`, `guard_name`, `custom_role` (int, default 0), timestamps | Unique (`school_id`, `name`, `guard_name`): each school has its own roles. `custom_role` was added by `2024_03_12_135926_add_column_type_in_events_table.php`; 1 marks roles created on the Roles page |
+| `model_has_permissions` | `school_id` (FK `schools`), `permission_id` (FK cascade), `model_type`, `model_id` | Primary key (`school_id`, `permission_id`, `model_id`, `model_type`): given at one school. Direct per-user permissions (used for `class-teacher`, `student-leave-approve` and the teacher "grant permission" option) |
+| `model_has_roles` | `school_id` (FK `schools`), `role_id` (FK cascade), `model_type`, `model_id` | Primary key (`school_id`, `role_id`, `model_id`, `model_type`): a role is granted at one school |
+| `role_has_permissions` | `permission_id`, `role_id` (both FK cascade) | Follows its role's school |
 
 See [Roles and Permissions](Roles-and-Permissions) for the role and permission catalogue.
 
@@ -178,7 +178,7 @@ See [Public Website](Public-Website).
 
 | Table | Purpose and key columns | Notes |
 |---|---|---|
-| `settings` | Key/value store: `school_id` (nullable: null for platform keys; school keys from Phase 1), `type`, `message` (both `text`), no timestamps; index (`school_id`, `type(191)`) | Audited (secret values redacted). Holds `session_year`, `system_version`, school details, payment and app settings, ID-card design keys, terms and conditions, and more. Read with `getSettings()` in `app/Helpers/settings_helper.php` (no caching) |
+| `settings` | Key/value store: `school_id` (nullable: null for platform keys; school keys from Phase 1), `type`, `message` (both `text`), no timestamps; index (`school_id`, `type(191)`) | Audited (secret values redacted). Holds `session_year`, `system_version`, school details, payment and app settings, ID-card design keys, terms and conditions, and more. Read with `getSettings()` in `app/Helpers/settings_helper.php` (no caching): the current school's rows over the platform's. Platform keys (mail server, push project, app versions, `system_version`) are always platform rows (`PlatformSettings::KEYS`); every other key is written for the current school |
 | `languages` | `name`, `code`, `file` (JSON file in `resources/lang`), `is_rtl`, `status` | `2026_05_26_173526` inserts English (`en`, `en.json`) if missing |
 | `email_tempalates` | Editable email templates. `type` (unique), `subject`, `content` | The table name keeps the original misspelling; the model is `EmailTemplate` (it was `EmailTempalate` until Phase 0) |
 
@@ -192,6 +192,15 @@ Added in Phase 0 (Build Bible 3.1). Specs: [queue-and-delivery](https://github.c
 | `webhook_receipts` | Provider events already processed. `provider`, `event_id` (unique together), `event_type`, `received_at` | SNS message ids of SES feedback |
 | `domain_events` | The outbox. `school_id`, `type`, `payload` (JSON), `occurred_at`, `available_at`, `dispatched_at`, `attempts`, `last_error` | Written by `Outbox::record()` inside the change's transaction; dispatched once by `DispatchOutbox` |
 | `audit_log` | Who changed what. `school_id`, `actor_id`, `actor_type` (user, guest, system), `action`, `subject_type`, `subject_id`, `before`, `after` (JSON), `ip`, `request_id`, `created_at` | Append-only. Written by the `Auditable` trait (`User`, `Students`, `ExamMarks`, `FeesPaid`, `Settings`) and `Audit::record()`; never holds hidden attributes or secret values |
+
+### Schools and memberships
+
+Added in Phase 1 (the Build Bible, section 7). Spec: [tenancy](https://github.com/ShawnDaPrawn/Eschool/blob/main/engineering/specs/platform/tenancy.md).
+
+| Table | Purpose and key columns | Notes |
+|---|---|---|
+| `schools` | One row per school. `name`, `slug` (unique), `status` (active, suspended, archived), `timezone`, `package_key`, `short_name`, `tagline`, `crest_path`, `theme_color`, `secondary_color`, timestamps | School 1 is created from the install's settings by the first tenancy migration. The name, crest, timezone and colours follow the school's settings rows (`SchoolBranding`) |
+| `school_memberships` | A person's role at a school. `user_id` (FK cascade), `school_id` (FK), `role` (role name), `status` (active, suspended, ended), `starts_on`, `ends_on`, timestamps | Unique (`user_id`, `school_id`, `role`). Back-filled from every role grant at school 1; granted and ended with Spatie's role events. Active: status active, today within the dates, the school active |
 
 ### Framework tables
 

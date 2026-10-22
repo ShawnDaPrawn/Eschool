@@ -1671,5 +1671,11 @@
     "get_in_touch": "تواصل معنا",
     "image_size_hint": "حجم الصورة الموصى به: 120×120 بكسل (مربعة)",
     "load_more": "عرض المزيد",
-    "menu": "القائمة"
+    "menu": "القائمة",
+    "no_school_membership": "حسابك غير مرتبط بمدرسة نشطة. اطلب من مدرستك إضافتك.",
+    "school_not_available": "ليس لديك صلاحية الوصول إلى تلك المدرسة.",
+    "platform_setting_home_school_only": "لا يمكن تغيير إعدادات المنصة إلا من المدرسة الرئيسية.",
+    "school_switcher": "المدرسة",
+    "switch_school": "تبديل المدرسة",
+    "school_switched": "أنت تعمل الآن في :school."
 }

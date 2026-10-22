@@ -21,7 +21,7 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
-Route::group(['middleware' => 'auth:sanctum'], function () {
+Route::group(['middleware' => ['auth:sanctum', 'school.context:optional']], function () {
     Route::post('logout', [ApiController::class, 'logout']);
 });
 
@@ -31,13 +31,14 @@ Route::group(['middleware' => 'auth:sanctum'], function () {
 Route::group(['prefix' => 'student'], function () {
 
     // Non Authenticated APIs
-    Route::post('login', [Student\AuthController::class, 'login'])->middleware(['throttle:login', 'portal.sign-in']);
-    Route::post('forgot-password', [Student\AuthController::class, 'forgotPassword'])->middleware('throttle:login');
+    Route::post('login', [Student\AuthController::class, 'login'])->middleware(['throttle:login', 'school.context:sign-in', 'portal.sign-in']);
+    Route::post('forgot-password', [Student\AuthController::class, 'forgotPassword'])->middleware(['throttle:login', 'school.context:sign-in']);
 
     // Authenticated APIs
     Route::group([
         'middleware' => [
             'auth:sanctum',
+            'school.context',
             'role:Student',
             'student.session.active',
             'password.change',
@@ -111,11 +112,11 @@ Route::group(['prefix' => 'student'], function () {
  **/
 Route::group(['prefix' => 'parent'], function () {
     // Non Authenticated APIs
-    Route::post('login', [ParentApi\AuthController::class, 'login'])->middleware(['throttle:login', 'portal.sign-in']);
+    Route::post('login', [ParentApi\AuthController::class, 'login'])->middleware(['throttle:login', 'school.context:sign-in', 'portal.sign-in']);
 
     // After sign-in, before the rest of the parent API. No child session is
     // required: accepting the terms is what unlocks the rest.
-    Route::group(['middleware' => ['auth:sanctum', 'role:Parent']], function () {
+    Route::group(['middleware' => ['auth:sanctum', 'school.context', 'role:Parent']], function () {
         Route::get('policy-acceptance', [ParentApi\PolicyController::class, 'show']);
         Route::post('policy-acceptance', [ParentApi\PolicyController::class, 'store']);
     });
@@ -124,6 +125,7 @@ Route::group(['prefix' => 'parent'], function () {
     Route::group([
         'middleware' => [
             'auth:sanctum',
+            'school.context',
             'role:Parent',
             'parent.children.session.active',
             'parent.policy',
@@ -144,7 +146,7 @@ Route::group(['prefix' => 'parent'], function () {
         Route::post('get-user-message', [ParentApi\ChatController::class, 'getUserChatMessage']);
         Route::post('read-all-message', [ParentApi\ChatController::class, 'readAllMessages']);
 
-        Route::group(['middleware' => ['auth:sanctum', CheckChild::class]], function () {
+        Route::group(['middleware' => ['auth:sanctum', 'school.context', CheckChild::class]], function () {
 
             Route::get('subjects', [ParentApi\SubjectController::class, 'subjects']);
             Route::get('class-subjects', [ParentApi\SubjectController::class, 'classSubjects']);
@@ -195,10 +197,10 @@ Route::group(['prefix' => 'parent'], function () {
  **/
 Route::group(['prefix' => 'teacher'], function () {
     // Non Authenticated APIs
-    Route::post('login', [Teacher\AuthController::class, 'login'])->middleware(['throttle:login', 'portal.sign-in']);
+    Route::post('login', [Teacher\AuthController::class, 'login'])->middleware(['throttle:login', 'school.context:sign-in', 'portal.sign-in']);
 
     // First sign-in only. Same controller as the parent app.
-    Route::group(['middleware' => ['auth:sanctum', 'role:Teacher', 'teacher.active']], function () {
+    Route::group(['middleware' => ['auth:sanctum', 'school.context', 'role:Teacher', 'teacher.active']], function () {
         Route::get('policy-acceptance', [ParentApi\PolicyController::class, 'show']);
         Route::post('policy-acceptance', [ParentApi\PolicyController::class, 'store']);
     });
@@ -206,7 +208,7 @@ Route::group(['prefix' => 'teacher'], function () {
     // Authenticated APIs
     // teacher.active: a deactivated teacher's old tokens stop working (401).
     // password.change: a flagged account must change its password first, when the app supports it.
-    Route::group(['middleware' => ['auth:sanctum', 'role:Teacher', 'teacher.active', 'teacher.policy', 'password.change']], function () {
+    Route::group(['middleware' => ['auth:sanctum', 'school.context', 'role:Teacher', 'teacher.active', 'teacher.policy', 'password.change']], function () {
         Route::get('dashboard', [Teacher\DashboardController::class, 'dashboard']);
         Route::get('classes', [Teacher\ClassController::class, 'classes']);
 
@@ -253,7 +255,7 @@ Route::group(['prefix' => 'teacher'], function () {
         Route::post('submit-exam-marks/subject', [Teacher\ExamController::class, 'submitExamMarksBySubjects']); // Submit Exam Marks By Subjects Route
         Route::post('submit-exam-marks/student', [Teacher\ExamController::class, 'submitExamMarksByStudent']); // Submit Exam Marks By Students Route
 
-        Route::group(['middleware' => ['auth:sanctum', CheckStudent::class]], function () {
+        Route::group(['middleware' => ['auth:sanctum', 'school.context', CheckStudent::class]], function () {
             Route::get('get-student-result', [Teacher\ExamController::class, 'GetStudentExamResult']); // Student Exam Result
             Route::get('get-student-marks', [Teacher\ExamController::class, 'GetStudentExamMarks']); // Student Exam Marks
         });
@@ -297,19 +299,24 @@ Route::group(['prefix' => 'teacher'], function () {
 /**
  * GENERAL APIs
  **/
-Route::get('holidays', [ApiController::class, 'getHolidays']);
-Route::get('sliders', [ApiController::class, 'getSliders']);
-Route::get('current-session-year', [ApiController::class, 'getCurrentSessionYear']);
-Route::get('settings', [ApiController::class, 'getSettings']);
-Route::post('forgot-password', [ApiController::class, 'forgotPassword'])->middleware('throttle:login');
-Route::get('get-events-list', [ApiController::class, 'getEvents']);
-// Both apps ask with GET; POST is kept for any client that already uses it.
-Route::match(['get', 'post'], 'get-events-details', [ApiController::class, 'getEventsDetails']);
-Route::get('get-session-year', [ApiController::class, 'getSessionYear']);
-Route::get('get-semesters', [ApiController::class, 'getSemesters']);
-Route::get('get-gallery-albums', [ApiController::class, 'getGalleryAlbums']);
-Route::get('get-gallery-images', [ApiController::class, 'getGalleryImages']);
-Route::get('get-gallery-videos', [ApiController::class, 'getGalleryVideos']);
-Route::group(['middleware' => ['auth:sanctum']], function () {
+// Anyone may call these (the apps call several before signing in): the
+// signed-in user's school when a token comes with the request, else the
+// school X-School-Id names, else the default school (school.context:public).
+Route::middleware('school.context:public')->group(function () {
+    Route::get('holidays', [ApiController::class, 'getHolidays']);
+    Route::get('sliders', [ApiController::class, 'getSliders']);
+    Route::get('current-session-year', [ApiController::class, 'getCurrentSessionYear']);
+    Route::get('settings', [ApiController::class, 'getSettings']);
+    Route::post('forgot-password', [ApiController::class, 'forgotPassword'])->middleware(['throttle:login', 'school.context:sign-in']);
+    Route::get('get-events-list', [ApiController::class, 'getEvents']);
+    // Both apps ask with GET; POST is kept for any client that already uses it.
+    Route::match(['get', 'post'], 'get-events-details', [ApiController::class, 'getEventsDetails']);
+    Route::get('get-session-year', [ApiController::class, 'getSessionYear']);
+    Route::get('get-semesters', [ApiController::class, 'getSemesters']);
+    Route::get('get-gallery-albums', [ApiController::class, 'getGalleryAlbums']);
+    Route::get('get-gallery-images', [ApiController::class, 'getGalleryImages']);
+    Route::get('get-gallery-videos', [ApiController::class, 'getGalleryVideos']);
+});
+Route::group(['middleware' => ['auth:sanctum', 'school.context:optional']], function () {
     Route::post('change-password', [ApiController::class, 'changePassword']);
 });

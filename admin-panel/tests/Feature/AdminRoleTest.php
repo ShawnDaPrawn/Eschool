@@ -6,8 +6,8 @@ namespace Tests\Feature;
 
 use App\Models\Students;
 use App\Models\User;
+use App\Services\Platform\Tenancy\SchoolTable;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Spatie\Permission\Models\Role;
 use Tests\TestCase;
@@ -34,22 +34,22 @@ class AdminRoleTest extends TestCase
         $this->seedLikeInstaller();
         Role::create(['name' => 'Admin', 'custom_role' => 1]);
 
-        $this->sessionYearId = DB::table('session_years')->insertGetId([
+        $this->sessionYearId = SchoolTable::query('session_years')->insertGetId([
             'name' => 'Current', 'start_date' => now()->subMonths(2)->toDateString(), 'end_date' => now()->addMonths(8)->toDateString(),
         ]);
-        $mediumId = DB::table('mediums')->insertGetId(['name' => 'English']);
-        $this->classId = DB::table('classes')->insertGetId(['name' => 'Grade 5', 'medium_id' => $mediumId]);
+        $mediumId = SchoolTable::query('mediums')->insertGetId(['name' => 'English']);
+        $this->classId = SchoolTable::query('classes')->insertGetId(['name' => 'Grade 5', 'medium_id' => $mediumId]);
         foreach (['A', 'B'] as $name) {
-            $sectionId = DB::table('sections')->insertGetId(['name' => $name]);
-            $this->sections[$name] = DB::table('class_sections')->insertGetId(['class_id' => $this->classId, 'section_id' => $sectionId]);
+            $sectionId = SchoolTable::query('sections')->insertGetId(['name' => $name]);
+            $this->sections[$name] = SchoolTable::query('class_sections')->insertGetId(['class_id' => $this->classId, 'section_id' => $sectionId]);
         }
     }
 
     public function test_a_teacher_with_a_custom_admin_role_sees_only_their_sections_attendance(): void
     {
         $teacher = $this->user('teacher@example.com', ['Teacher', 'Admin']);
-        $teacherId = DB::table('teachers')->insertGetId(['user_id' => $teacher->id, 'qualification' => 'B.Ed']);
-        DB::table('class_teachers')->insert(['class_section_id' => $this->sections['A'], 'class_teacher_id' => $teacherId, 'session_year_id' => $this->sessionYearId]);
+        $teacherId = SchoolTable::query('teachers')->insertGetId(['user_id' => $teacher->id, 'qualification' => 'B.Ed']);
+        SchoolTable::query('class_teachers')->insert(['class_section_id' => $this->sections['A'], 'class_teacher_id' => $teacherId, 'session_year_id' => $this->sessionYearId]);
 
         $url = '/home/widget/attendance?'.http_build_query(['class_id' => $this->classId, 'session_year_id' => $this->sessionYearId]);
 
@@ -62,8 +62,8 @@ class AdminRoleTest extends TestCase
 
     public function test_a_custom_admin_role_does_not_see_every_student(): void
     {
-        $categoryId = DB::table('categories')->insertGetId(['name' => 'General']);
-        DB::table('students')->insert([
+        $categoryId = SchoolTable::query('categories')->insertGetId(['name' => 'General']);
+        SchoolTable::query('students')->insert([
             'user_id' => $this->user('student@example.com', ['Student'])->id, 'class_section_id' => $this->sections['A'],
             'category_id' => $categoryId, 'admission_no' => 'GR1', 'admission_date' => now()->toDateString(),
         ]);

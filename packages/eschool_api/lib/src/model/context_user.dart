@@ -52,7 +52,7 @@ class ContextUser {
   @JsonKey(name: r'image', required: true, includeIfNull: true)
   final String? image;
 
-  /// Role names, for example `Parent`, `Teacher`, `Super Admin` or a role the school created.
+  /// The user's role names at the current school, for example `Parent`, `Teacher`, `Super Admin` or a role the school created.
   @JsonKey(name: r'roles', required: true, includeIfNull: false)
   final List<String> roles;
 
