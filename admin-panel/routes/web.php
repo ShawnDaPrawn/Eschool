@@ -43,6 +43,7 @@ use App\Http\Controllers\TeacherController;
 use App\Http\Controllers\TimetableController;
 use App\Http\Controllers\WebController;
 use App\Http\Controllers\WebhookController;
+use App\Http\Controllers\Webhooks\MailWebhookController;
 use App\Http\Controllers\WebSettingController;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Route;
@@ -527,6 +528,10 @@ Route::group(['middleware' => ['Role', 'auth']], function () {
 // Payment gateway webhooks. Stripe is the only gateway (Razorpay, Paystack and
 // Flutterwave were removed in Phase 0).
 Route::post('webhook/stripe', [WebhookController::class, 'stripe']);
+
+// Amazon SES bounce, complaint and delivery notices, posted by SNS (signed;
+// only the topics in services.ses_notifications.topic_arns are accepted).
+Route::post('webhook/mail/ses', [MailWebhookController::class, 'ses'])->middleware('throttle:mail-webhook')->name('webhook.mail.ses');
 
 // Linked from the public website footer; the school may not have written them yet.
 Route::get('/privacy-policy', function () {

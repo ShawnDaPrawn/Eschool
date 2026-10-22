@@ -24,10 +24,24 @@ return [
         'token' => env('POSTMARK_TOKEN'),
     ],
 
+    /*
+    | Amazon SES, the transactional mail provider (ADR 0004): Cape Town region so
+    | mail data stays in South Africa. Bounces, complaints and deliveries come
+    | back through SNS to POST /webhook/mail/ses, which accepts only the topics
+    | listed in ses_notifications.topic_arns.
+    */
+
     'ses' => [
         'key' => env('AWS_ACCESS_KEY_ID'),
         'secret' => env('AWS_SECRET_ACCESS_KEY'),
-        'region' => env('AWS_DEFAULT_REGION', 'us-east-1'),
+        'region' => env('AWS_SES_REGION', 'af-south-1'),
+        'options' => array_filter([
+            'ConfigurationSetName' => env('AWS_SES_CONFIGURATION_SET'),
+        ]),
+    ],
+
+    'ses_notifications' => [
+        'topic_arns' => array_values(array_filter(array_map('trim', explode(',', (string) env('SES_SNS_TOPIC_ARNS', ''))))),
     ],
 
     /*

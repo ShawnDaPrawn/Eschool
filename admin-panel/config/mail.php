@@ -50,6 +50,12 @@ return [
             'transport' => 'ses',
         ],
 
+        // The Email Configuration page has offered "amazon_ses" as a mailer;
+        // it is the same SES transport.
+        'amazon_ses' => [
+            'transport' => 'ses',
+        ],
+
         'mailgun' => [
             'transport' => 'mailgun',
         ],
