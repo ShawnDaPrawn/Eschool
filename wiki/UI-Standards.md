@@ -193,6 +193,41 @@ Class names are `m3-<component>`, `m3-<component>__<part>` and `m3-<component>--
 
 **No new Bootstrap.** `tests/Unit/BootstrapFreeTest.php` scans the views, `app/` and the page scripts for Bootstrap classes, `data-toggle` / `data-bs-*` attributes, Bootstrap's jQuery plugins and Bootstrap assets. `tests/bootstrap-baseline.txt` lists the files that still use it. The test fails when a file not on the list uses Bootstrap, and when a file on the list no longer does, so the list only shrinks. When you rewrite a page, build it with the library and take it off the list. `UPDATE_BOOTSTRAP_BASELINE=1 vendor/bin/phpunit tests/Unit/BootstrapFreeTest.php` removes finished files; it never adds any.
 
+### Blade components (`<x-m3.*>`)
+
+Pages are built from the Blade components in [`resources/views/components/m3/`](https://github.com/ShawnDaPrawn/Eschool/tree/main/admin-panel/resources/views/components/m3), not from the library's raw markup. A component holds the markup, the accessibility wiring (labels, `aria-describedby`, `aria-invalid`, required marks) and the admin's defaults in one place, so a change to how a text field or a table looks or behaves is one edit that reaches every page. Write raw `m3-*` markup only for something no component covers yet, and when the same markup appears twice, make it a component.
+
+Each component's file starts with a comment showing how to use it. The common rules:
+- `class` goes on the outer element, so it places the component in a grid (`class="m3-col-12 m3-col-medium-6"`).
+- On form fields, `input-class` and every other attribute (`id`, `maxlength`, `data-*`, `autocomplete`…) go on the input itself, so script hooks keep working.
+- A field's `required` adds both the attribute and the asterisk.
+- Old input and the server's validation error for the field are filled in automatically.
+
+| Component | Use it for |
+|---|---|
+| `<x-m3.page title>` | An admin page: the headline (with `subtitle` and an `actions` slot) and the content. It adds the `m3` class, so only migrated pages get the library's base styles. |
+| `<x-m3.card title>` | A titled section of a page (`variant` outlined, filled or elevated; `actions` and `footer` slots). |
+| `<x-m3.button>`, `<x-m3.icon-button>` | Buttons (`variant` filled, tonal, outlined, text, elevated, error; `icon`; `href` makes a link). An icon button needs a `label`; it is the accessible name and the tooltip. |
+| `<x-m3.text-field>` | Text, email, number, date and password inputs, and `type="textarea"` (`hint`, `error`, `icon`, `readonly`). |
+| `<x-m3.select>` | Selects from `options` (value ⇒ label), with `placeholder`, `multiple` and a slot for custom options. |
+| `<x-m3.checkbox>`, `<x-m3.radio>`, `<x-m3.switch>` | Single controls with their label. |
+| `<x-m3.checkbox-group>`, `<x-m3.radio-group>` | A labelled set (`legend`, `options`, `value`), in a `<fieldset>`. |
+| `<x-m3.file-field>` | A file upload: the file's name in a field and an Upload button. |
+| `<x-m3.dialog id title>` | A dialog. With `form-action` / `form-id` it wraps a form and gets Close and submit buttons (`submit` label); otherwise use the `actions` slot. |
+| `<x-m3.data-table>` + `<x-m3.column>` | A list page's table, with the admin's defaults: server paging, search, refresh, columns, export, sticky actions and cards on phones. `<x-m3.column field="operate" actions events="actionEvents">` is the row-actions column. |
+| `<x-m3.menu id>` + `<x-m3.menu-item>` | A menu opened by `data-m3-menu="id"` on any button. |
+| `<x-m3.chip>` | A label or a `status` (success, warning, danger, info, neutral). |
+
+**Migrating an admin page.** Most admin pages are one pattern: a create form, a list, and an edit dialog. On the new version:
+1. Wrap the page in `<x-m3.page>`.
+2. Put the form and the list in `<x-m3.card>`s inside a `.m3-grid`, and build the form from the field components.
+3. Make the list a `<x-m3.data-table>`.
+4. Make `#editModal` an `<x-m3.dialog>` with the same form id and classes.
+
+Keep every `id`, `name` and script-hook class the page's JavaScript and `validate.js` use. Then take the page off `tests/bootstrap-baseline.txt`.
+
+`tests/Feature/M3ComponentsTest.php` renders each component and checks the markup the library and the scripts depend on. Add a case when you add a component or an option.
+
 ## Changing the brand
 
 1. Edit `packages/eschool_core/lib/src/theme/brand_colors.dart`.
