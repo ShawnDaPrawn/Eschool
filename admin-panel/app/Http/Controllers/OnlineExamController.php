@@ -20,6 +20,7 @@ use App\Models\StudentOnlineExamStatus;
 use App\Models\Students;
 use App\Models\Subject;
 use App\Models\SubjectTeacher;
+use App\Services\Platform\Files\FileNames;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -699,7 +700,7 @@ class OnlineExamController extends Controller
                     $image = $request->file('image');
 
                     // made file name with combination of current time
-                    $file_name = time().'-'.$image->getClientOriginalName();
+                    $file_name = time().'-'.FileNames::forUpload($image);
 
                     // made file path to store in database
                     $file_path = 'online-exam-questions/'.$file_name;
@@ -747,7 +748,7 @@ class OnlineExamController extends Controller
                         $image = $request->file('image');
 
                         // made file name with combination of current time
-                        $file_name = time().'-'.$image->getClientOriginalName();
+                        $file_name = time().'-'.FileNames::forUpload($image);
 
                         // made file path to store in database
                         $file_path = 'online-exam-questions/'.$file_name;

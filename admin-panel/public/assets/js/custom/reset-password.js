@@ -140,7 +140,9 @@
                 return;
             }
 
-            if (newPassword.value.length < 8) {
+            // The server applies the full rule (letters, numbers, not breached).
+            var minLength = parseInt(form.dataset.minLength || '10', 10);
+            if (newPassword.value.length < minLength) {
                 if (typeof showErrorToast === 'function') {
                     showErrorToast(form.dataset.msgMinLength || '');
                 }

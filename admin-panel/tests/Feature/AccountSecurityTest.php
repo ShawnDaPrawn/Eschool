@@ -40,16 +40,18 @@ class AccountSecurityTest extends TestCase
         $this->getJson('/home/widget/events')->assertForbidden();
         $this->get('/resetpassword')->assertOk();
 
+        // Refused by the password rule now (no number), before the default check.
         $this->postJson('/changePassword', [
             'old_password' => 'superadmin',
             'new_password' => 'superadmin',
             'confirm_password' => 'superadmin',
-        ])->assertJson(['error' => true]);
+        ])->assertJsonValidationErrors('new_password');
+        $this->assertTrue(Hash::check('superadmin', $this->superAdmin()->password));
 
         $this->postJson('/changePassword', [
             'old_password' => 'superadmin',
-            'new_password' => 'a-better-password',
-            'confirm_password' => 'a-better-password',
+            'new_password' => 'A-better-password-26',
+            'confirm_password' => 'A-better-password-26',
         ])->assertJson(['error' => false]);
 
         // Still signed in (the session was updated with the new password), and free to go.
@@ -82,8 +84,8 @@ class AccountSecurityTest extends TestCase
 
         $this->actingAs($teacher)->postJson('/changePassword', [
             'old_password' => 'secret123',
-            'new_password' => 'brand-new-pass',
-            'confirm_password' => 'brand-new-pass',
+            'new_password' => 'Brand-new-pass-26',
+            'confirm_password' => 'Brand-new-pass-26',
         ])->assertJson(['error' => false]);
         $this->assertSame(0, $teacher->tokens()->count());
     }

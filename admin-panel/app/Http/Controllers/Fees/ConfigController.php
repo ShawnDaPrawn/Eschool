@@ -6,6 +6,7 @@ namespace App\Http\Controllers\Fees;
 
 use App\Http\Controllers\Controller;
 use App\Models\Settings;
+use App\Services\Platform\Secrets\SecretSettings;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
@@ -27,8 +28,13 @@ class ConfigController extends Controller
         }
         $settings = getSettings();
         $domain = request()->getSchemeAndHttpHost();
+        // Secrets set in the environment (Secret Manager) are neither shown nor saved here.
+        $fromEnvironment = [
+            'stripe_secret_key' => SecretSettings::fromEnvironment('stripe_secret_key'),
+            'stripe_webhook_secret' => SecretSettings::fromEnvironment('stripe_webhook_secret'),
+        ];
 
-        return view('fees.fees_config', compact('settings', 'domain'));
+        return view('fees.fees_config', compact('settings', 'domain', 'fromEnvironment'));
     }
 
     public function feesConfigUpdate(Request $request)
@@ -42,7 +48,7 @@ class ConfigController extends Controller
         }
         // An enabled gateway's currency is sent to it as an ISO 4217 code.
         $currency = 'regex:/^[A-Za-z]{3}$/';
-        $validator = Validator::make($request->all(), [
+        $validator = Validator::make($request->all(), SecretSettings::rulesFor([
             'stripe_status' => 'required',
             'stripe_publishable_key' => 'required_if:stripe_status,1|nullable',
             'stripe_secret_key' => 'required_if:stripe_status,1|nullable',
@@ -54,7 +60,7 @@ class ConfigController extends Controller
             'compulsory_fee_payment_mode' => 'required',
             'is_student_can_pay_fees' => 'required',
 
-        ]);
+        ]));
         if ($validator->fails()) {
             $response = [
                 'error' => true,
@@ -93,8 +99,10 @@ class ConfigController extends Controller
                     $setting->save();
                 }
 
-                // stripe_secret_key
-                if (Settings::where('type', 'stripe_secret_key')->exists()) {
+                // stripe_secret_key (not when STRIPE_SECRET_KEY provides it)
+                if (SecretSettings::fromEnvironment('stripe_secret_key')) {
+                    // Kept in the environment; nothing to save.
+                } elseif (Settings::where('type', 'stripe_secret_key')->exists()) {
                     $data = [
                         'message' => trim($request->stripe_secret_key),
                     ];
@@ -106,8 +114,10 @@ class ConfigController extends Controller
                     $setting->save();
                 }
 
-                // stripe_webhook_secret
-                if (Settings::where('type', 'stripe_webhook_secret')->exists()) {
+                // stripe_webhook_secret (not when STRIPE_WEBHOOK_SECRET provides it)
+                if (SecretSettings::fromEnvironment('stripe_webhook_secret')) {
+                    // Kept in the environment; nothing to save.
+                } elseif (Settings::where('type', 'stripe_webhook_secret')->exists()) {
                     $data = [
                         'message' => trim($request->stripe_webhook_secret),
                     ];

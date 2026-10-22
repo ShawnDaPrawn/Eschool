@@ -310,7 +310,7 @@ class ApiContractTest extends TestCase
             'teacher/login' => [null, 'post', 'teacher/login', ['email' => 'tara@example.com', 'password' => 'secret123']],
             'student/forgot-password' => [null, 'post', 'student/forgot-password', ['gr_no' => 'GR-ASHA', 'dob' => '2015-06-01']],
             'common/forgot-password' => [null, 'post', 'forgot-password', ['email' => 'tara@example.com']],
-            'common/change-password' => ['cara', 'post', 'change-password', ['current_password' => 'secret123', 'new_password' => 'newsecret123', 'new_confirm_password' => 'newsecret123']],
+            'common/change-password' => ['cara', 'post', 'change-password', ['current_password' => 'secret123', 'new_password' => 'Quokka-lantern-58', 'new_confirm_password' => 'Quokka-lantern-58']],
             'common/logout' => ['theo', 'post', 'logout', []],
         ];
 

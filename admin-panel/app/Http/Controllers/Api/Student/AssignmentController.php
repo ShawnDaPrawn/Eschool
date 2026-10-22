@@ -16,6 +16,7 @@ use App\Models\StudentSessions;
 use App\Models\SubjectTeacher;
 use App\Models\Teacher;
 use App\Models\UserNotification;
+use App\Services\Platform\Files\FileNames;
 use App\Services\ResponseService;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
@@ -202,7 +203,7 @@ class AssignmentController extends Controller
             if ($request->hasFile('files')) {
                 foreach ($request->file('files') as $key => $image) {
                     $file = new File;
-                    $file->file_name = $image->getClientOriginalName();
+                    $file->file_name = FileNames::forUpload($image);
                     $file->modal()->associate($assignment_submission);
                     $file->type = 1;
                     $file->file_url = $image->store('assignment', 'public');

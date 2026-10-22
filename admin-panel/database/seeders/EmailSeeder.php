@@ -3,6 +3,7 @@
 namespace Database\Seeders;
 
 use App\Models\EmailTemplate;
+use App\Services\Platform\Identity\LearnerInvitations;
 use Illuminate\Database\Seeder;
 
 class EmailSeeder extends Seeder
@@ -146,6 +147,17 @@ HTML;
             [
                 'subject' => 'student application rejection',
                 'content' => $reject_application,
+            ]
+        );
+
+        // Sent to each guardian of a new learner, with a link to choose the
+        // learner's password (LearnerInvitations). Placeholders: name,
+        // child_name, child_grnumber, setup_link, expires_on, school_*.
+        EmailTemplate::firstOrCreate(
+            ['type' => LearnerInvitations::EMAIL_TEMPLATE],
+            [
+                'subject' => 'Set up {$child_name}\'s sign-in',
+                'content' => LearnerInvitations::defaultTemplate(),
             ]
         );
     }

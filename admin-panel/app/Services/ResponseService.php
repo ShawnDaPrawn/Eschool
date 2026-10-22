@@ -232,8 +232,31 @@ class ResponseService
     {
         report($e);
 
-        // The URL without its query string: the query is in the params, redacted.
-        Log::error(self::truncate($e->getMessage(), self::LOG_CONTEXT_LIMIT).'---> '.$e->getFile().' At Line : '.$e->getLine()."\n\n".request()->method().' : '.self::truncate(request()->url())."\nParams : ", self::loggable(request()->all()));
+        // The path without its query string, and the fields with their values
+        // left out except ids: logs carry no personal data beyond ids.
+        Log::error(self::truncate($e->getMessage(), self::LOG_CONTEXT_LIMIT).'---> '.$e->getFile().' At Line : '.$e->getLine()."\n\n".request()->method().' : /'.ltrim(self::truncate(request()->path()), '/')."\nParams : ", self::withoutValues(request()->all()));
+    }
+
+    /**
+     * The request's fields as they may go into the log: every value replaced by
+     * [omitted] except a whole-number id (a key that is id or ends in _id), at
+     * most 100 fields a level and 5 levels deep.
+     *
+     * @param  array<array-key, mixed>  $values
+     * @return array<array-key, mixed>
+     */
+    private static function withoutValues(array $values, int $depth = 0): array
+    {
+        $kept = [];
+        foreach (array_slice($values, 0, 100, true) as $key => $value) {
+            $kept[$key] = match (true) {
+                is_array($value) && $depth < 4 => self::withoutValues($value, $depth + 1),
+                preg_match('/(^|_)id$/i', (string) $key) === 1 && (is_int($value) || (is_string($value) && ctype_digit($value) && strlen($value) < 19)) => (int) $value,
+                default => '[omitted]',
+            };
+        }
+
+        return $kept;
     }
 
     /**
@@ -279,50 +302,47 @@ class ResponseService
         return strlen($value) > $limit ? mb_strcut($value, 0, $limit).'... ['.strlen($value).' bytes]' : $value;
     }
 
-    public static function logCurlRequest()
+    /**
+     * Which request led to an error, without personal data (logs carry ids
+     * only): the method, the path, the names but never the values of the
+     * query, form and file fields, and the signed-in user's id. It used to
+     * write the request as a curl command with every field's value.
+     */
+    public static function logCurlRequest(): void
     {
         $request = request();
-        // Log::error("CURL Request:\n", $request->all());
-        $method = strtoupper($request->method());
-        $url = $request->url().($request->query() ? '?'.http_build_query(self::redact($request->query())) : '');
-        $headers = [];
 
-        // Never write credentials to the log.
-        foreach ($request->headers->all() as $key => $values) {
-            foreach ($values as $value) {
-                $headers[] = "-H '".$key.': '.(self::isSensitiveKey($key) ? '[redacted]' : self::truncate((string) $value))."'";
-            }
-        }
-
-        $data = '';
-
-        if (in_array($method, ['POST', 'PUT', 'PATCH', 'DELETE'])) {
-            // Multipart (e.g., file upload)
-            $parts = array_merge(self::formFields(self::redact($request->input())), self::formFields($request->files->all()));
-            $data = ' '.implode(" \\\n  ", $parts);
-        }
-
-        $curl = "curl -X {$method} '".$url."' \\\n  ".implode(" \\\n  ", $headers).$data;
-
-        Log::error("CURL Request:\n".self::truncate($curl, self::LOG_CONTEXT_LIMIT));
+        Log::error('Request: '.strtoupper($request->method()).' /'.ltrim(self::truncate($request->path()), '/'), self::requestShape());
     }
 
     /**
-     * -F options for nested form values, at any depth (a value nested deeper
-     * than the old three levels was turned into "Array" with a PHP warning).
+     * @return array{query: list<string>, fields: list<string>, files: list<string>, user_id: int|string|null}
      */
-    private static function formFields(array $values, string $prefix = ''): array
+    private static function requestShape(): array
     {
-        $fields = [];
+        $request = request();
+
+        return [
+            'query' => self::fieldNames($request->query()),
+            'fields' => self::fieldNames(array_diff_key($request->input(), $request->query())),
+            'files' => self::fieldNames($request->files->all()),
+            'user_id' => $request->user()?->getAuthIdentifier(),
+        ];
+    }
+
+    /**
+     * Dotted field names at any depth, list positions shown as *; at most 100.
+     *
+     * @return list<string>
+     */
+    private static function fieldNames(array $values, string $prefix = ''): array
+    {
+        $names = [];
         foreach ($values as $key => $value) {
-            $name = $prefix === '' ? (string) $key : $prefix.'['.$key.']';
-            if (is_array($value)) {
-                $fields = array_merge($fields, self::formFields($value, $name));
-            } else {
-                $fields[] = "-F '{$name}={$value}'";
-            }
+            $name = $prefix.(is_int($key) ? '*' : (string) $key);
+            $names = array_merge($names, is_array($value) && $value !== [] ? self::fieldNames($value, $name.'.') : [$name]);
         }
 
-        return $fields;
+        return array_slice(array_values(array_unique($names)), 0, 100);
     }
 }

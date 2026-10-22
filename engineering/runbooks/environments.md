@@ -176,7 +176,21 @@ read -rs VALUE && printf '%s' "$VALUE" | gcloud secrets versions add <secret-nam
 - New revisions read `latest`; redeploy (or re-run the deploy workflow) to pick up a new value.
 - In production, adding or rotating a secret is the product owner's call (Build Bible section 4).
 
-Secrets still stored in `settings` rows (SMTP, FCM, payment keys) move to Secret Manager in Phase 0 work stream S6; their names will be added to the script and this table then.
+The secrets that used to sit in `settings` rows are read from the environment since Phase 0 (work stream S6; see [wiki Configuration](../../wiki/Configuration.md#secrets)). Proposed names, to be added to `infra/gcp/provision.sh` and the service accounts above:
+
+| Secret | Mounted as | Roles | Value |
+| --- | --- | --- | --- |
+| `navigateed-mail-password` | `MAIL_PASSWORD` | panel, worker | the SMTP password (until SES replaces SMTP) |
+| `navigateed-stripe-secret-key` | `STRIPE_SECRET_KEY` | panel | Stripe dashboard > Developers > API keys |
+| `navigateed-stripe-webhook-secret` | `STRIPE_WEBHOOK_SECRET` | panel | the signing secret of the `webhook/stripe` endpoint in the Stripe dashboard |
+| `navigateed-recaptcha-secret-key` | `RECAPTCHA_SECRET_KEY` | panel | the reCAPTCHA admin console |
+| `navigateed-fcm-service-account` | `FCM_SERVICE_ACCOUNT_JSON` | panel, worker | the whole Firebase service account JSON |
+
+Once they are mounted in an environment:
+
+1. Open Email, General, Fees and Firebase settings in the panel: each secret shows "Set in the environment".
+2. Run `php artisan secrets:audit-settings` as a Cloud Run job with the admin image (it lists rows, never values), then `php artisan secrets:audit-settings --purge`. It deletes the rows the environment replaces, the uploaded Firebase file, and every `razorpay_*`, `paystack_*` and `flutterwave_*` row.
+3. Revoke the removed gateways' keys in their dashboards, and rotate any secret that was ever shown on a settings page.
 
 ## Costs to know about
 

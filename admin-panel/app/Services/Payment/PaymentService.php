@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Services\Payment;
 
+use App\Services\Platform\Secrets\SecretSettings;
 use InvalidArgumentException;
 
 class PaymentService
@@ -22,11 +23,12 @@ class PaymentService
     ];
 
     /**
-     * Where each gateway's webhook secret is kept: the settings table row the
-     * fee settings page saves, then the .env key it also writes (via config()).
+     * Each gateway's webhook secret: STRIPE_WEBHOOK_SECRET (Secret Manager) or,
+     * on installs without it, the row the fee settings page saves
+     * (SecretSettings).
      */
     private const WEBHOOK_SECRETS = [
-        'stripe' => ['stripe_webhook_secret', 'services.stripe.webhook_secret'],
+        'stripe' => 'stripe_webhook_secret',
     ];
 
     /**
@@ -38,10 +40,8 @@ class PaymentService
 
         switch ((int) $payment_method) {
             case self::STRIPE:
-                $stripe_setting_secret_key = getSettings('stripe_secret_key');
-                $stripe_secret_key = $stripe_setting_secret_key['stripe_secret_key'];
-
-                return new StripePayment($stripe_secret_key, $currency_code);
+                // STRIPE_SECRET_KEY, else the fee settings row.
+                return new StripePayment(SecretSettings::get('stripe_secret_key'), $currency_code);
             default:
                 throw new \Exception('Invalid payment method selected');
         }
@@ -74,14 +74,8 @@ class PaymentService
         if (! isset(self::WEBHOOK_SECRETS[$gateway])) {
             throw new InvalidArgumentException("Unknown payment gateway: $gateway");
         }
-        [$setting, $config] = self::WEBHOOK_SECRETS[$gateway];
 
-        $secret = trim((string) (getSettings($setting)[$setting] ?? ''));
-        if ($secret === '') {
-            $secret = trim((string) config($config, ''));
-        }
-
-        return $secret;
+        return SecretSettings::get(self::WEBHOOK_SECRETS[$gateway]);
     }
 
     /**

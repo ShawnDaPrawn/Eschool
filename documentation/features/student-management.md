@@ -22,9 +22,23 @@ Similarly, you can add parent's details by entering parent's First name, Last na
 
 Similarly, you can add Guardian's details which is optional. A guardian can be any person who is legally responsible for the care of the student if parent is not available.
 
-A Student in this system is identified by a GR number which is auto-generated when student is added in the system. The default password for student login is date of birth in ddmmyyyy format.
+A Student in this system is identified by a GR number which is auto-generated when student is added in the system. The learner signs in to the app with the GR number and a password their parent or guardian chooses (see [Learner sign-in](#learner-sign-in)). Parents receive their own login by email.
 
-The credentials to login will be sent to the parent's email.
+## Learner sign-in
+
+A new learner's password is never their date of birth. When you add a learner (one by one, by importing a spreadsheet, or by accepting an online application), each parent or guardian with an email address receives an email with a link to choose the learner's password. The link works once and for 7 days.
+
+If a family has no email address, or the link has expired:
+
+1. Open **Learners** and find the learner.
+2. Open the **Sign-in** menu on the learner's row and choose **Print sign-in sheet**.
+3. Give the printed sheet to the family. It shows the GR number, a one-time set-up code and the address of the set-up page (`/learner-setup` on your school's panel address). The code works once and for 30 days; printing a new sheet stops the old code.
+
+The same menu has **Email guardians a sign-in link**, which sends a fresh link to every guardian with an email address.
+
+On the set-up page the family enters the GR number and the code (or simply opens the emailed link), chooses a password and saves it. Passwords need at least 10 characters with letters and numbers, and passwords found in known data breaches are refused. The learner then signs in to the app with the GR number and the new password.
+
+Learners whose password is still their date of birth can keep signing in. The app asks them to choose a new password once it supports this.
 
 ## Parent Master Details
 
@@ -44,7 +58,7 @@ Admin can customize the categories of students in this section. The sample categ
 
 ## Reset Password
 
-Admin can reset the password of any student if the student forgets it.
+When a learner asks for a new password in the app, the request appears under **Learner passwords**. Resetting it gives the learner a new random password that nobody sees, signs them out of the app on every device, and emails their guardians a link to choose a new password. You can also print a sign-in sheet straight away for families without email (see [Learner sign-in](#learner-sign-in)).
 
 ## Import Student Data
 

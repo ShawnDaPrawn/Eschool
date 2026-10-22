@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers;
 
+use App\Services\Platform\Files\FileNames;
 use App\Services\ResponseService;
 use App\Http\Requests\StoreLessonRequest;
 use App\Http\Requests\UpdateLessonRequest;
@@ -100,7 +101,7 @@ class LessonController extends Controller
 
                         $image = $file['thumbnail'];
                         // made file name with combination of current time
-                        $file_name = time().'-'.$image->getClientOriginalName();
+                        $file_name = time().'-'.FileNames::forUpload($image);
                         // made file path to store in database
                         $file_path = 'lessons/'.$file_name;
                         // resized image
@@ -116,7 +117,7 @@ class LessonController extends Controller
 
                         $image = $file['thumbnail'];
                         // made file name with combination of current time
-                        $file_name = time().'-'.$image->getClientOriginalName();
+                        $file_name = time().'-'.FileNames::forUpload($image);
                         // made file path to store in database
                         $file_path = 'lessons/'.$file_name;
                         // resized image
@@ -133,7 +134,7 @@ class LessonController extends Controller
 
                         $image = $file['thumbnail'];
                         // made file name with combination of current time
-                        $file_name = time().'-'.$image->getClientOriginalName();
+                        $file_name = time().'-'.FileNames::forUpload($image);
                         // made file path to store in database
                         $file_path = 'lessons/'.$file_name;
                         // resized image
@@ -331,7 +332,7 @@ class LessonController extends Controller
 
                             $image = $file['thumbnail'];
                             // made file name with combination of current time
-                            $file_name = time().'-'.$image->getClientOriginalName();
+                            $file_name = time().'-'.FileNames::forUpload($image);
                             // made file path to store in database
                             $file_path = 'lessons/'.$file_name;
                             // resized image
@@ -360,7 +361,7 @@ class LessonController extends Controller
 
                             $image = $file['thumbnail'];
                             // made file name with combination of current time
-                            $file_name = time().'-'.$image->getClientOriginalName();
+                            $file_name = time().'-'.FileNames::forUpload($image);
                             // made file path to store in database
                             $file_path = 'lessons/'.$file_name;
                             // resized image
@@ -380,7 +381,7 @@ class LessonController extends Controller
 
                             $image = $file['thumbnail'];
                             // made file name with combination of current time
-                            $file_name = time().'-'.$image->getClientOriginalName();
+                            $file_name = time().'-'.FileNames::forUpload($image);
                             // made file path to store in database
                             $file_path = 'lessons/'.$file_name;
                             // resized image
@@ -414,7 +415,7 @@ class LessonController extends Controller
 
                             $image = $file['thumbnail'];
                             // made file name with combination of current time
-                            $file_name = time().'-'.$image->getClientOriginalName();
+                            $file_name = time().'-'.FileNames::forUpload($image);
                             // made file path to store in database
                             $file_path = 'lessons/'.$file_name;
                             // resized image
@@ -431,7 +432,7 @@ class LessonController extends Controller
 
                             $image = $file['thumbnail'];
                             // made file name with combination of current time
-                            $file_name = time().'-'.$image->getClientOriginalName();
+                            $file_name = time().'-'.FileNames::forUpload($image);
                             // made file path to store in database
                             $file_path = 'lessons/'.$file_name;
                             // resized image
@@ -446,7 +447,7 @@ class LessonController extends Controller
 
                             $image = $file['thumbnail'];
                             // made file name with combination of current time
-                            $file_name = time().'-'.$image->getClientOriginalName();
+                            $file_name = time().'-'.FileNames::forUpload($image);
                             // made file path to store in database
                             $file_path = 'lessons/'.$file_name;
                             // resized image

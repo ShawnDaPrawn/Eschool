@@ -101,6 +101,21 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Learner Invitations
+    |--------------------------------------------------------------------------
+    |
+    | How many days a guardian's link to set a learner's password, and a set-up
+    | code the school prints, stay valid. See LearnerInvitations.
+    |
+    */
+
+    'learner_invitations' => [
+        'link_days' => (int) env('LEARNER_INVITATION_LINK_DAYS', 7),
+        'code_days' => (int) env('LEARNER_SETUP_CODE_DAYS', 30),
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
     | Password Confirmation Timeout
     |--------------------------------------------------------------------------
     |

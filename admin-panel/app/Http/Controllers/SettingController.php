@@ -7,6 +7,7 @@ use App\Models\SessionYear;
 use App\Models\Settings;
 use App\Services\ChatMessageCleanupService;
 use App\Services\MailService;
+use App\Services\Platform\Secrets\SecretSettings;
 use App\Services\SessionYearService;
 use Illuminate\Http\Request;
 use Illuminate\Http\UploadedFile;
@@ -68,7 +69,7 @@ class SettingController extends Controller
             'linkedin' => 'nullable',
             'maplink' => 'nullable',
             'recaptcha_site_key' => 'required_if:recaptcha_status,1',
-            'recaptcha_secret_key' => 'required_if:recaptcha_status,1',
+            'recaptcha_secret_key' => SecretSettings::fromEnvironment('recaptcha_secret_key') ? 'nullable' : 'required_if:recaptcha_status,1',
             'recaptcha_status' => 'nullable',
             'logo1' => 'nullable|file|mimes:jpeg,jpg,png,gif,webp,svg',
             'logo2' => 'nullable|file|mimes:jpeg,jpg,png,gif,webp,svg',
@@ -97,6 +98,8 @@ class SettingController extends Controller
             'recaptcha_secret_key',
             'recaptcha_status',
         ];
+        // RECAPTCHA_SECRET_KEY, when set, is not saved from the form.
+        $settings = SecretSettings::editable($settings);
         try {
             foreach ($settings as $row) {
                 if (Settings::where('type', $row)->exists()) {
@@ -270,7 +273,8 @@ class SettingController extends Controller
 
             return redirect(route('home'))->withErrors($response);
         }
-        $request->validate([
+        // MAIL_PASSWORD, when set (Secret Manager), is neither asked for nor saved.
+        $request->validate(SecretSettings::rulesFor([
             'mail_mailer' => 'required',
             'mail_host' => 'required',
             'mail_port' => 'required',
@@ -278,9 +282,9 @@ class SettingController extends Controller
             'mail_password' => 'required',
             'mail_encryption' => 'required',
             'mail_send_from' => 'required|email',
-        ]);
+        ]));
 
-        $settings = [
+        $settings = SecretSettings::editable([
             'mail_mailer',
             'mail_host',
             'mail_port',
@@ -288,7 +292,7 @@ class SettingController extends Controller
             'mail_password',
             'mail_encryption',
             'mail_send_from',
-        ];
+        ]);
 
         try {
             foreach ($settings as $row) {
@@ -638,7 +642,9 @@ class SettingController extends Controller
             // the private local disk (storage/app), never on the public disk.
             $currentFile = Settings::where('type', 'service_account_file')->value('message');
             $newFile = null;
-            if ($request->hasFile('service_account_file')) {
+            if (SecretSettings::fromEnvironment('service_account_file')) {
+                // FCM_SERVICE_ACCOUNT_JSON (Secret Manager) is used; an upload is ignored.
+            } elseif ($request->hasFile('service_account_file')) {
                 $newFile = $request->file('service_account_file')->storeAs(
                     dirname(self::SERVICE_ACCOUNT_FILE),
                     basename(self::SERVICE_ACCOUNT_FILE),

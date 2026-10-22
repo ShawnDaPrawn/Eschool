@@ -92,6 +92,9 @@ class RouteServiceProvider extends ServiceProvider
         // Checking or changing the signed-in user's own password.
         RateLimiter::for('password', fn (Request $request) => Limit::perMinute(20)->by('password:'.($request->user()?->id ?: $request->ip())));
 
+        // Content security policy reports: one page load can send a few, a flood can't fill the log.
+        RateLimiter::for('csp', fn (Request $request) => Limit::perMinute(30)->by('csp:'.$request->ip()));
+
         $this->configureApiV2RateLimiting();
     }
 

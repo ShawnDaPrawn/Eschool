@@ -7,8 +7,10 @@ use App\Http\Middleware\CheckRole;
 use App\Http\Middleware\CheckStudent;
 use App\Http\Middleware\DemoMiddleware;
 use App\Http\Middleware\EncryptCookies;
+use App\Http\Middleware\EnforcePasswordChange;
 use App\Http\Middleware\EnsureParentChildrenSessionIsActive;
 use App\Http\Middleware\EnsureStudentSessionIsActive;
+use App\Http\Middleware\EnsureTeacherActive;
 use App\Http\Middleware\EnsureUserHasAnyRole;
 use App\Http\Middleware\EnsureUserIsStaff;
 use App\Http\Middleware\HandleIdempotencyKey;
@@ -79,6 +81,8 @@ return Application::configure(basePath: dirname(__DIR__))
 
         $middleware->validateCsrfTokens(except: [
             'webhook/*',
+            // Browsers send content security policy reports without a token.
+            'csp-report',
         ]);
 
         // Outermost, so every response and every log line of the request has its id.
@@ -132,6 +136,8 @@ return Application::configure(basePath: dirname(__DIR__))
             'parent.children.session.active' => EnsureParentChildrenSessionIsActive::class,
             'parent.policy' => RequireParentPolicyAcceptance::class,
             'teacher.policy' => RequireParentPolicyAcceptance::class,
+            'teacher.active' => EnsureTeacherActive::class,
+            'password.change' => EnforcePasswordChange::class,
             // API v2 role groups and writes (routes/api_v2.php).
             'staff' => EnsureUserIsStaff::class,
             'role.any' => EnsureUserHasAnyRole::class,

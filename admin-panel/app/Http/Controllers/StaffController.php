@@ -17,6 +17,7 @@ use App\Models\Teacher;
 use App\Models\User;
 use App\Services\IdCardService;
 use App\Services\MailService;
+use App\Services\Platform\Files\FileNames;
 use App\Services\ResponseService;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
@@ -528,7 +529,7 @@ class StaffController extends Controller
                 if ($request->hasFile('image')) {
                     $image = $request->file('image');
                     // made file name with combination of current time
-                    $file_name = time().'-'.$image->getClientOriginalName();
+                    $file_name = time().'-'.FileNames::forUpload($image);
                     // made file path to store in database
                     $file_path = 'staff/'.$file_name;
                     // resized image
@@ -621,7 +622,7 @@ class StaffController extends Controller
                 if ($request->hasFile('image')) {
                     $image = $request->file('image');
                     // made file name with combination of current time
-                    $file_name = time().'-'.$image->getClientOriginalName();
+                    $file_name = time().'-'.FileNames::forUpload($image);
                     // made file path to store in database
                     $file_path = 'staff/'.$file_name;
                     // resized image
@@ -873,7 +874,7 @@ class StaffController extends Controller
 
                 $image = $request->file('image');
                 // made file name with combination of current time
-                $file_name = time().'-'.$image->getClientOriginalName();
+                $file_name = time().'-'.FileNames::forUpload($image);
                 // made file path to store in database
                 $file_path = 'staff/'.$file_name;
                 // resized image

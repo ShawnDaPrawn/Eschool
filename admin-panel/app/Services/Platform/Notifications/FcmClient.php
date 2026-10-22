@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Services\Platform\Notifications;
 
-use App\Models\Settings;
+use App\Services\Platform\Secrets\SecretSettings;
 use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
@@ -12,8 +12,9 @@ use RuntimeException;
 
 /**
  * Posts one message to FCM HTTP v1 and says what happened. The project id
- * and the service account come from the FCM settings page, as before
- * (getAccessToken() in notification_helper.php caches the OAuth token).
+ * and the service account come from SecretSettings: the environment
+ * (Secret Manager) first, else the FCM settings page (getAccessToken() in
+ * notification_helper.php caches the OAuth token).
  *
  * Network errors, 429 and 5xx answers throw, so the SendPush job retries;
  * other refusals (an expired device token, a bad message) are returned as
@@ -23,7 +24,9 @@ class FcmClient
 {
     public function projectId(): ?string
     {
-        $projectId = trim((string) Settings::where('type', 'project_id')->value('message'));
+        // The settings row, else the project in FCM_SERVICE_ACCOUNT_JSON
+        // (Secret Manager), as the security stream set it up.
+        $projectId = trim((string) SecretSettings::fcmProjectId());
 
         return $projectId === '' ? null : $projectId;
     }

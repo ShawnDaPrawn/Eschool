@@ -6,8 +6,11 @@ namespace App\Http\Controllers\Api\Teacher;
 
 use App\Http\Controllers\Api\Teacher\Concerns\TeacherAccess;
 use App\Http\Controllers\Controller;
+use App\Http\Middleware\EnsureTeacherActive;
 use App\Models\Teacher;
 use App\Services\IdCardService;
+use App\Services\Platform\Identity\AppTokens;
+use App\Services\Platform\Identity\DateOfBirthPasswords;
 use App\Services\ResponseService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -37,7 +40,12 @@ class AuthController extends Controller
             if (! $auth->hasRole('Teacher')) {
                 return ResponseService::errorResponse('Invalid Login Credentials', null, 101);
             }
-            $token = $auth->createToken($auth->first_name)->plainTextToken;
+            // A deactivated teacher gets no token (EnsureTeacherActive refuses
+            // the tokens they already had).
+            if (! EnsureTeacherActive::isActive($auth)) {
+                return ResponseService::errorResponse(EnsureTeacherActive::message(), null, null);
+            }
+            $token = AppTokens::issue($auth, AppTokens::TEACHER);
             $user = $auth->load(['teacher']);
 
             $dynamicFields = null;
@@ -71,7 +79,11 @@ class AuthController extends Controller
                 $auth->save();
             }
 
-            return ResponseService::successResponse('User logged-in!', $user, ['token' => $token], 100);
+            // Added for v1 clients: true when the account must choose a new password.
+            return ResponseService::successResponse('User logged-in!', $user, [
+                'token' => $token,
+                'password_change_required' => DateOfBirthPasswords::changeRequiredAtSignIn($auth, (string) $request->password),
+            ], 100);
         } else {
             return ResponseService::errorResponse('Invalid Login Credentials', null, 101);
         }

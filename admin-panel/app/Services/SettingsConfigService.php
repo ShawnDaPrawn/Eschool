@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Services;
 
+use App\Services\Platform\Secrets\SecretSettings;
 use Illuminate\Database\QueryException;
 use PDOException;
 
@@ -43,6 +44,10 @@ class SettingsConfigService
         $senderFollowsAppName = config('mail.from.name') === config('app.name');
 
         foreach (self::CONFIG_KEYS as $type => $key) {
+            // A secret the environment provides (MAIL_PASSWORD) wins over its row.
+            if (isset(SecretSettings::SECRETS[$type]) && SecretSettings::fromEnvironment($type)) {
+                continue;
+            }
             $value = trim((string) ($settings[$type] ?? ''));
             if ($value !== '') {
                 config([$key => $type === 'mail_port' ? (int) $value : $value]);
