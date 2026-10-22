@@ -6,7 +6,7 @@ RUN apt-get update \
     && apt-get install -y --no-install-recommends \
         git unzip libpng-dev libjpeg62-turbo-dev libfreetype6-dev libzip-dev libicu-dev libonig-dev \
     && docker-php-ext-configure gd --with-freetype --with-jpeg \
-    && docker-php-ext-install -j"$(nproc)" pdo_mysql mbstring exif gd zip bcmath intl opcache \
+    && docker-php-ext-install -j"$(nproc)" pdo_mysql mbstring exif gd zip bcmath intl opcache pcntl \
     && a2enmod rewrite headers \
     && rm -rf /var/lib/apt/lists/*
 
@@ -27,6 +27,14 @@ RUN cp storage/app/public/.htaccess /opt/public-storage.htaccess \
     && cp docker/php.ini /usr/local/etc/php/conf.d/navigateed.ini \
     && chmod 755 docker/entrypoint.sh
 
+# The release this image was built from (the git tag or commit), shown in Error
+# Reporting and the logs. The deploy workflows pass it; local builds say "dev".
+ARG APP_RELEASE=dev
+ENV APP_RELEASE=${APP_RELEASE}
+LABEL org.opencontainers.image.revision=${APP_RELEASE}
+
+# CONTAINER_ROLE picks what the container runs: web (default), worker or
+# scheduler. See docker/entrypoint.sh.
 EXPOSE 8080
 
 ENTRYPOINT ["/var/www/html/docker/entrypoint.sh"]

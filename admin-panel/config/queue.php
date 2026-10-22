@@ -40,9 +40,9 @@ return [
             'driver' => 'database',
             'table' => 'jobs',
             'queue' => 'default',
-            // Seconds before a reserved job counts as lost and runs again. Keep it
-            // above the worker's --timeout (120), or a slow job runs twice.
-            'retry_after' => (int) env('DB_QUEUE_RETRY_AFTER', 180),
+            // Longer than the worker's --timeout=120 (docker/entrypoint.sh), or a
+            // job still running would be handed to a second worker.
+            'retry_after' => 180,
             // A job dispatched inside a transaction is queued only if it commits.
             'after_commit' => true,
         ],
@@ -76,6 +76,20 @@ return [
             'after_commit' => false,
         ],
 
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Worker Health
+    |--------------------------------------------------------------------------
+    |
+    | GET /up/worker answers 503 once a due job has waited longer than this, so
+    | the worker's uptime check fails when the worker stops emptying the queue.
+    |
+    */
+
+    'worker_health' => [
+        'max_wait_seconds' => (int) env('QUEUE_HEALTH_MAX_WAIT', 600),
     ],
 
     /*

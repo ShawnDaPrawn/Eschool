@@ -40,6 +40,10 @@ trait RunsAppServer
     {
         Artisan::call('migrate:fresh', ['--force' => true]);
         $this->seedLikeInstaller();
+        // This data is committed, outside any test transaction, and a class that
+        // never starts the server does not reset the flag when it ends: the next
+        // RefreshDatabase test must migrate again rather than assume it is empty.
+        RefreshDatabaseState::$migrated = false;
     }
 
     protected static function appServerRunning(): bool
