@@ -10,6 +10,7 @@ use App\Models\ClassSection;
 use App\Models\Staff;
 use App\Models\StaffAttendance;
 use App\Models\StudentSessions;
+use App\Models\Teacher;
 use App\Models\User;
 
 /**
@@ -31,10 +32,16 @@ class TodayNumbers
             $user->canAny(['student-list', 'class-teacher']) ? route('students.index') : null);
 
         if ($user->can('attendance-staff')) {
-            $staff = Staff::count();
-            $marked = StaffAttendance::where('date', $today)->count();
+            // The same roster as the staff register: staff and teachers with an
+            // account, each person once.
+            $roster = Staff::whereHas('user')->pluck('user_id')
+                ->concat(Teacher::whereHas('user')->pluck('user_id'))
+                ->unique()->values();
+            $staff = $roster->count();
+            $register = fn () => StaffAttendance::where('session_year_id', $sessionYearId)->where('date', $today)->whereIn('user_id', $roster);
+            $marked = $register()->distinct()->count('user_id');
             // A half day still counts as at school today.
-            $present = StaffAttendance::where('date', $today)->whereIn('type', ['present', 'first_half', 'second_half'])->count();
+            $present = $register()->whereIn('type', ['present', 'first_half', 'second_half'])->distinct()->count('user_id');
             $numbers[] = $this->number('staff', __('today_staff_present'),
                 $marked > 0 ? __('today_of', ['count' => $present, 'total' => $staff]) : '–',
                 $marked > 0 ? null : __('today_staff_register_not_taken'),

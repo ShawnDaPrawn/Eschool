@@ -54,6 +54,17 @@ class NewYearService
         'leave' => ['new_year_carry_leave', TransferLeaveSettings::class],
     ];
 
+    /**
+     * Choices that need another: a lesson belongs to a subject teacher, so
+     * carrying the timetable carries the teachers too (the timetable transfer
+     * leaves out lessons whose subject teacher the new year does not have).
+     *
+     * @var array<string, list<string>>
+     */
+    public const NEEDS = [
+        'timetable' => ['teachers'],
+    ];
+
     public function __construct(private readonly SessionYearService $years) {}
 
     /** The year being prepared: the newest year that starts after the current one and has not ended. */
@@ -139,6 +150,12 @@ class NewYearService
      */
     public function carryOptions(SessionYear $from, ?SessionYear $to, array $chosen = []): array
     {
+        foreach (self::NEEDS as $key => $needs) {
+            if (in_array($key, $chosen, true)) {
+                $chosen = array_values(array_unique([...$chosen, ...$needs]));
+            }
+        }
+
         $options = [];
         foreach (self::CARRY as $key => [$label]) {
             $source = $this->count($key, $from->id);
@@ -184,7 +201,13 @@ class NewYearService
         $unpublished = Exam::where('session_year_id', $current->id)->where('publish', 0)->count();
         $pendingLeave = Leave::where('session_year_id', $current->id)->where('status', 0)->count();
         $learners = StudentSessions::where('session_year_id', $current->id)->where('status', 1)->distinct()->count('student_id');
-        $placed = $next ? StudentSessions::where('session_year_id', $next->id)->distinct()->count('student_id') : 0;
+        // Placed means this year's own learners have a row next year; new
+        // admissions next year do not make up for learners still unplaced.
+        $placed = $next
+            ? StudentSessions::where('session_year_id', $next->id)
+                ->whereIn('student_id', StudentSessions::select('student_id')->where('session_year_id', $current->id)->where('status', 1))
+                ->distinct()->count('student_id')
+            : 0;
         $url = fn (string $route, string $permission) => Route::has($route) && $user->can($permission) ? route($route) : null;
 
         return [

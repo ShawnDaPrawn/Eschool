@@ -6,6 +6,7 @@ namespace Tests\Feature\Academics;
 
 use App\Models\SessionYear;
 use App\Models\User;
+use App\Services\Academics\NewYearService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
@@ -102,9 +103,52 @@ class NewYearTest extends TestCase
 
         $response = $this->actingAs($this->superAdmin())->postJson(route('new-year.make-current'), ['year_id' => $next->id, 'carry' => ['grading', 'timetable']])->assertOk();
 
-        $response->assertJson(['data' => ['copied' => ['timetable'], 'skipped' => ['grading']]]);
+        // The timetable needs its subject teachers, so they are carried with it.
+        $response->assertJson(['data' => ['copied' => ['teachers', 'timetable'], 'skipped' => ['grading']]]);
         $this->assertSame(1, DB::table('grades')->where('session_year_id', $next->id)->count());
         $this->assertSame(1, DB::table('timetables')->where('session_year_id', $next->id)->count());
+        $lesson = DB::table('timetables')->where('session_year_id', $next->id)->first();
+        $this->assertSame($next->id, (int) DB::table('subject_teachers')->where('id', $lesson->subject_teacher_id)->value('session_year_id'), 'The lesson points at next year\'s subject teacher');
+    }
+
+    public function test_carried_rows_point_at_next_years_terms_and_subject_teachers(): void
+    {
+        $termOne = (int) DB::table('semesters')->where('session_year_id', $this->current->id)->value('id');
+        foreach (['class_subjects', 'class_teachers', 'subject_teachers', 'timetables'] as $table) {
+            DB::table($table)->where('session_year_id', $this->current->id)->update(['semester_id' => $termOne]);
+        }
+        $next = $this->createNextYear();
+        $nextTermOne = (int) DB::table('semesters')->where('session_year_id', $next->id)->where('name', 'Term 1')->value('id');
+
+        $this->actingAs($this->superAdmin())->postJson(route('new-year.make-current'), [
+            'year_id' => $next->id,
+            'carry' => ['subjects', 'teachers', 'timetable'],
+        ])->assertOk();
+
+        foreach (['class_subjects', 'class_teachers', 'subject_teachers', 'timetables'] as $table) {
+            $this->assertSame([$nextTermOne], DB::table($table)->where('session_year_id', $next->id)->distinct()->pluck('semester_id')->map(fn ($id) => (int) $id)->all(), "$table points at next year's Term 1");
+        }
+        $lesson = DB::table('timetables')->where('session_year_id', $next->id)->first();
+        $subjectTeacher = DB::table('subject_teachers')->where('id', $lesson->subject_teacher_id)->first();
+        $this->assertSame($next->id, (int) $subjectTeacher->session_year_id);
+        $this->assertSame($nextTermOne, (int) $subjectTeacher->semester_id);
+        // The current year's rows keep their own term.
+        $this->assertSame([$termOne], DB::table('timetables')->where('session_year_id', $this->current->id)->distinct()->pluck('semester_id')->map(fn ($id) => (int) $id)->all());
+    }
+
+    public function test_promotions_are_checked_per_learner_not_by_count(): void
+    {
+        $next = $this->createNextYear();
+        $service = app(NewYearService::class);
+        $promotions = fn () => collect($service->yearEndChecklist($this->current, $next, $this->superAdmin()))->firstWhere('key', 'promotions');
+
+        // A new admission for next year does not stand in for this year's learner.
+        $newcomer = DB::table('students')->insertGetId(['user_id' => User::forceCreate(['first_name' => 'Nia', 'last_name' => 'New', 'email' => 'GR-2', 'password' => Hash::make('secret123'), 'gender' => 'Female', 'mobile' => '0'])->id, 'class_id' => DB::table('classes')->value('id'), 'class_section_id' => $this->ids['homeroom_b'], 'category_id' => DB::table('categories')->value('id'), 'admission_no' => 'GR-2', 'roll_number' => 2, 'admission_date' => now()->toDateString(), 'created_at' => now(), 'updated_at' => now()]);
+        DB::table('student_sessions')->insert(['student_id' => $newcomer, 'class_section_id' => $this->ids['homeroom_b'], 'session_year_id' => $next->id, 'status' => 1, 'created_at' => now(), 'updated_at' => now()]);
+        $this->assertFalse($promotions()['ok']);
+
+        DB::table('student_sessions')->insert(['student_id' => $this->ids['student'], 'class_section_id' => $this->ids['homeroom_b'], 'session_year_id' => $next->id, 'status' => 1, 'created_at' => now(), 'updated_at' => now()]);
+        $this->assertTrue($promotions()['ok']);
     }
 
     public function test_the_preview_says_what_the_switch_will_do(): void

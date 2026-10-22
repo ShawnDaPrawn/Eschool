@@ -110,6 +110,26 @@ class HomeTest extends TestCase
         $this->assertMatchesRegularExpression('/data-today="learners"[^>]*>\s*<span class="page-stat-label">[^<]+<\/span>\s*<span class="page-stat-value">0<\/span>/', $last->getContent());
     }
 
+    public function test_staff_present_counts_staff_and_teachers_once_in_the_selected_year(): void
+    {
+        $this->buildSchool();
+        $past = SessionYear::create(['name' => 'Last year', 'start_date' => now()->subYear()->subMonths(2)->toDateString(), 'end_date' => now()->subMonths(3)->toDateString()]);
+        $today = now(schoolSetting('time_zone', config('app.timezone')))->toDateString();
+        $teacherUserId = (int) DB::table('teachers')->value('user_id');
+        $now = ['created_at' => now(), 'updated_at' => now()];
+        $staffUser = User::forceCreate(['first_name' => 'Sipho', 'last_name' => 'Staff', 'email' => 'sipho@example.com', 'password' => Hash::make('secret123'), 'gender' => 'Male', 'mobile' => '0123456789']);
+        DB::table('staffs')->insert(['user_id' => $staffUser->id] + $now);
+        // The register lists the teacher (only in teachers) and the staff member;
+        // only the teacher is marked for today in the selected year.
+        DB::table('staff_attendances')->insert(['user_id' => $teacherUserId, 'session_year_id' => $this->year->id, 'date' => $today, 'type' => 'present'] + $now);
+        // A mark for the same day in another year does not count in this one.
+        DB::table('staff_attendances')->insert(['user_id' => $staffUser->id, 'session_year_id' => $past->id, 'date' => $today, 'type' => 'present'] + $now);
+
+        $page = $this->actingAs($this->superAdmin())->get('/home')->assertOk();
+
+        $this->assertMatchesRegularExpression('/data-today="staff"[^>]*>\s*<span class="page-stat-label">[^<]+<\/span>\s*<span class="page-stat-value">1 of 2<\/span>/', $page->getContent());
+    }
+
     private function buildSchool(): void
     {
         foreach (['school_name' => 'Demo School', 'school_email' => 'office@example.com', 'school_phone' => '0123456789', 'school_address' => '1 Main Road'] as $type => $message) {
