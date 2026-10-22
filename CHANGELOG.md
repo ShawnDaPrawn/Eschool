@@ -30,6 +30,9 @@ Phase 0 (Groundwork): built on the phase branch, not yet released to production.
 - Tablet and desktop layouts: a navigation rail and a centred content column. Routes take typed arguments.
 - Portal addresses and `navigateed://` links open the matching screen after sign-in.
 - Web builds of both apps, for `app.navigateed.co.za` (learners and parents) and `teach.navigateed.co.za` (teachers). Uploads, payments and push notifications are not available in the browser yet.
+- The web portals sign in with the panel's session cookie (no token in the browser) and show pictures and PDFs from the panel; a browser that reports an invalid language opens in English instead of a blank page.
+- Teacher app: the take-attendance button and each lesson on Schedule are read out by screen readers.
+- The fees list shows the learner's homeroom ("Grade 5 A") instead of "Grade".
 
 ### API
 
@@ -60,6 +63,8 @@ Phase 0 (Groundwork): built on the phase branch, not yet released to production.
 - Deactivated teachers are signed out and cannot sign in.
 - App tokens are named per app; signing in signs out the same app's other devices, and a password change revokes every other session.
 - CORS is limited to the panel and the web portals.
+- Web portals use Sanctum's cookie mode: a portal sign-in starts a new session instead of issuing a token, a refused sign-in keeps no session, signing out ends it, and a password change elsewhere ends it. The panel no longer encrypts its cookies twice (everyone signs in to the panel again once after the deploy).
+- Uploaded files under `/storage` send CORS headers to the panel and portal origins only (`GET` and `HEAD`, `Vary: Origin`).
 - New learners' passwords are set by a guardian through an e-mailed link or a printed one-time code; passwords that were a date of birth are flagged for a change.
 - Uploads are stored per school, client file names are sanitised, and files whose content does not match their type are refused.
 - A report-only content security policy on the panel, with violations reported to `/csp-report`.
@@ -73,6 +78,7 @@ Phase 0 (Groundwork): built on the phase branch, not yet released to production.
 
 - Environments on Google Cloud: `infra/gcp/provision.sh staging|production` creates or updates Cloud SQL (backups; point-in-time recovery in production), the uploads bucket, Secret Manager secrets (names only), least-privilege service accounts, the Cloud Run services `navigateed-admin` and `navigateed-worker`, the `navigateed-scheduler` job with an every-minute Cloud Scheduler trigger, Workload Identity Federation for GitHub Actions, uptime checks and alerts. It gives the panel, the worker and the scheduler job the SES settings and keys and the secrets that left the `settings` rows, each mounted once it has a value. Not yet run against a real project.
 - Deploy workflows: staging on every merge to `main` once the repository variable `STAGING_DEPLOY_ENABLED` is `true`; production from a `v*` tag after a reviewer approves, with a database backup first and smoke tests after. Both deploy the documentation and the two web portals to Firebase Hosting.
+- `SESSION_DOMAIN=.navigateed.co.za` for staging and production, applied by `provision.sh` once `APP_URL` is on that domain; until then the deploy workflow builds the portals with `WEB_AUTH_MODE=bearer` (the `WEB_AUTH_MODE` environment variable overrides).
 - Runbooks for environments, deploy, release, rollback, restore (with the restore drill, not yet run) and incidents in `engineering/runbooks/`.
 - Local stack with Docker Compose at the repository root: MySQL 8, the panel, the worker and the scheduler, built from the same image as Cloud Run.
 - k6 smoke test (`engineering/perf/k6-smoke.js`) with the Bible's p95 budgets (300 ms for lists, 150 ms for `/api/v2/me/context`), run by hand from **Actions > k6 smoke**.
@@ -86,7 +92,7 @@ Phase 0 (Groundwork): built on the phase branch, not yet released to production.
 ### Developers
 
 - `engineering/`: phase plans and questions, feature specs, decision records (ADR 0001 to 0005), runbooks, the security record, the self-test record and the living appendices; and this changelog.
-- `DemoSchoolSeeder`: a demo school with a user per profile (password `NavigateDemo2026`), for demos, self-tests and Playwright.
+- `DemoSchoolSeeder`: a demo school with a user per profile (password `NavigateDemo2026`), an exam paper to capture marks for and an assignment, for demos, self-tests and Playwright.
 - Playwright checks of every panel page at 1280 and 1024 px with axe, the main flows and the removed URLs, in CI.
 - Test suites for tenancy (every API route), the role matrix (every route against every role) and the OpenAPI contract (every v2 response).
 - CI builds both apps for the web and runs their smoke flows on an Android emulator and in Chrome.

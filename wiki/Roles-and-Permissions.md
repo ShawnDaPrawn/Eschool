@@ -302,4 +302,4 @@ Each removal migration also calls `PermissionRegistrar::forgetCachedPermissions(
 - [API Overview](API-Overview)
 - [API Teacher](API-Teacher)
 - [API Parent](API-Parent)
-- [Admin Modules](Admin-Modules)
+- [Admin Panel Overview](Admin-Panel-Overview)

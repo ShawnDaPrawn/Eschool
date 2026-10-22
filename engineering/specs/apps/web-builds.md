@@ -8,7 +8,8 @@ Both apps now build for the web: the learner and parent app as the portal at `ap
 
 | Area | Phone | Web | How |
 | --- | --- | --- | --- |
-| Signing in | Bearer token kept in Hive | Sanctum session cookie for the portal origin; no token is stored; requests go with credentials and send `X-XSRF-TOKEN` | `AuthMode.cookie` in `eschool_session` (one switch: `--dart-define=WEB_AUTH_MODE=bearer` goes back to tokens) |
+| Signing in | Bearer token kept in Hive | Sanctum session cookie for the portal origin; no token is stored; requests go with credentials and writes send `X-XSRF-TOKEN` (a 419 fetches a fresh token and retries once) | `AuthMode.cookie` and `XsrfInterceptor` in `eschool_session` (one switch: `--dart-define=WEB_AUTH_MODE=bearer` goes back to tokens) |
+| Browser language | n/a | A language tag the browser reports that is not valid (a browser started without a system language) is dropped, English when none is left, before Flutter starts | `web/locale_guard.js` in both apps |
 | Storage | Hive in the app's private support directory | Hive on IndexedDB | `initAppStorage()` (`app_storage_io.dart` / `app_storage_web.dart`) |
 | Push notifications | FCM topics and local notifications (awesome_notifications) | None: the Notifications screen lists them from the API (in-app notices) | `NotificationUtility.isActive` is false on the web; sign-in sends no `fcm_id` or `device_type`, so the server keeps the user's phone |
 | Crash reports | Firebase Crashlytics | None (no Firebase app on the web); errors go to the browser console | `prepareApp()` skips `Firebase.initializeApp()` on the web |
@@ -42,6 +43,8 @@ Each app's `web/manifest.json` and `web/index.html` carry its name (NavigateEd, 
 | Either app | `flutter build web --release` runs with the staging or production settings | it succeeds | CI `apps-web` |
 | A learner, a parent, a teacher in Chrome, against the fake API | they sign in | they land on home and open one screen (profile, child, timetable) | CI `apps-smoke-chrome`, `integration_test/*_smoke_test.dart` |
 | The web build | sign-in succeeds | no token is stored; the next request has no `Authorization` header and is sent with credentials | `session_repository_test`, `api_client_test` |
+| The web build in cookie mode | it writes without an XSRF cookie / gets 419 | it fetches `/sanctum/csrf-cookie` first / fetches a fresh token and retries once | `xsrf_interceptor_test` |
+| The learner portal built in cookie mode on another local port | the demo learner signs in in Chromium with no system language | home opens; sign-in sent `X-XSRF-TOKEN` and no `Authorization`; `/api/v2/me/context` 200; pictures load with no CORS error | S9 browser check ([evidence](../../self-tests/evidence/p0-learner-cookie-sign-in-1280.png)) |
 | The web build | a learner, parent or teacher signs in | the request has no `fcm_id` or `device_type` | `NotificationUtility.signInDeviceFields()`, smoke flows (`NotificationUtility.enabled` off) |
 | The web build at 390, 820 and 1280 px | any screen opens | no horizontal scroll, nothing cut off: phone layout, rail and column, extended rail | `layout_test`; self-test step 3 |
 | A PDF study material in the browser | the learner opens it | it shows in the app (pdf.js); when pdf.js cannot load, only the PDF view fails | self-test step 4 |
@@ -55,9 +58,9 @@ None on the server. In the browser: Hive boxes (`authBox` without a token, `sett
 
 ## Endpoints
 
-Unchanged. The web build calls the same v1 endpoints and `GET /api/v2/me/context`, with the session cookie instead of a token. It depends on the server side of cookie mode (S6 and S7): the portal origins in `SANCTUM_STATEFUL_DOMAINS` and `CORS_ALLOWED_ORIGINS` with credentials, the session and `XSRF-TOKEN` cookies on `.navigateed.co.za`, and sign-in endpoints that start a web session for stateful requests. Until the server does that, build the portals with `--dart-define=WEB_AUTH_MODE=bearer`.
+Unchanged. The web build calls the same v1 endpoints and `GET /api/v2/me/context`, with the session cookie instead of a token. The server side of cookie mode (S6, S9): the portal origins in `SANCTUM_STATEFUL_DOMAINS` and `CORS_ALLOWED_ORIGINS` with credentials, the session and `XSRF-TOKEN` cookies on `.navigateed.co.za` (`SESSION_DOMAIN`), and sign-in endpoints that start a web session for stateful requests and answer `token: ""` (`PortalSession`). Cookie mode needs the panel under the portals' parent domain; on the `run.app` address the deploy workflow builds the portals with `WEB_AUTH_MODE=bearer` and `provision.sh` keeps their origins out of the stateful list ([environments runbook](../../runbooks/environments.md), "Web portal sign-in").
 
-PDF viewing downloads the file from its storage address with no credentials, so the storage origin must allow the portal origins (CORS).
+Pictures and PDFs are fetched from the panel's `/storage` with no credentials; Apache answers the portal origins with CORS headers there (`docker/storage-cors.conf`, S9).
 
 ## Screens
 
@@ -73,7 +76,8 @@ None.
 
 ## Security notes
 
-- No token in browser storage (cookie mode); the session cookie is the server's (`HttpOnly`, `Secure`, `SameSite=Lax`), and writes need the XSRF header.
+- No token in browser storage or in the portal's JavaScript (cookie mode): a portal sign-in answers with an empty `token`; the session cookie is the server's (`HttpOnly`, `Secure`, `SameSite=Lax`, on `.navigateed.co.za`), it is regenerated at sign-in and ended at sign-out, and writes need the XSRF header.
+- `locale_guard.js` is a file of the build (not inline), so a future content security policy can allow it with `'self'`.
 - The hosting headers forbid framing (`X-Frame-Options: DENY`) and MIME sniffing. A content security policy is not set yet: Flutter web needs `wasm-unsafe-eval`, and the build loads CanvasKit from `www.gstatic.com` and pdf.js from `cdn.jsdelivr.net`; add one (report-only first) with those sources.
 - pdf.js is loaded from jsDelivr at a pinned version (4.6.82, the one pdfx 2.11 is built for).
 - No key or secret is in the web builds; the only settings are the server address, environment and flavour.

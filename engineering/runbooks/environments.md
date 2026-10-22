@@ -41,7 +41,7 @@ The two cloud environments are separate projects, so the staging deployer has no
 | `navigateed-scheduler-invoker` | start the scheduler job | the job only (`run.invoker`) |
 | `navigateed-deployer` | deploy revisions and update the job (`run.developer`), run them as the two runtime accounts (`iam.serviceAccountUser` on each), push images (`artifactregistry.writer` on the repository), take and read Cloud SQL backups (custom role `navigateedReleaseBackup`), deploy Hosting (`firebasehosting.admin`) | as listed; it can be impersonated only by GitHub Actions jobs running in this environment of `ShawnDaPrawn/Eschool` (Workload Identity Federation, no key) |
 
-The container environment the script sets on all three roles: `CONTAINER_ROLE`, `APP_ENV=production`, `APP_DEBUG=false`, `APP_URL`, `LOG_CHANNEL=json`, `LOG_LEVEL`, `GOOGLE_CLOUD_PROJECT`, `DB_CONNECTION`, `DB_SOCKET` (`/cloudsql/<project>:africa-south1:navigateed-mysql`), `DB_DATABASE`, `DB_USERNAME`, `CACHE_DRIVER=database`, `SESSION_DRIVER=database`, `QUEUE_CONNECTION=database`, `TIMEZONE`, `MAIL_MAILER` (`ses`), `AWS_SES_REGION` (`af-south-1`), `SESSION_SAME_SITE` (`lax`), `LEARNER_INVITATION_LINK_DAYS` (7), `LEARNER_SETUP_CODE_DAYS` (30), and where set `TRUSTED_HOSTS`, `SANCTUM_STATEFUL_DOMAINS`, `SESSION_COOKIE`, `ADMIN_EMAIL`, `AWS_SES_CONFIGURATION_SET`, `SES_SNS_TOPIC_ARNS`, `CORS_ALLOWED_ORIGINS` (empty: the portal hostnames of Q0.2 for that `APP_URL`). Secrets are mounted as `APP_KEY`, `DB_PASSWORD`, (panel only) `ADMIN_PASSWORD`, and the secrets in the "Secrets" table on the roles it names, each once it has a value (Cloud Run refuses a revision that mounts a secret without one, so the script skips it until then and says so). The worker sends every queued mail and push, so it needs the SES settings, `MAIL_PASSWORD` and the Firebase account; the panel needs them for the Email Configuration page's test mail. The deploy workflows change only the image, so these settings stay as the script set them. Staging runs `APP_ENV=production` on purpose, so it behaves exactly like production. See [wiki Configuration](../../wiki/Configuration.md) for each variable.
+The container environment the script sets on all three roles: `CONTAINER_ROLE`, `APP_ENV=production`, `APP_DEBUG=false`, `APP_URL`, `LOG_CHANNEL=json`, `LOG_LEVEL`, `GOOGLE_CLOUD_PROJECT`, `DB_CONNECTION`, `DB_SOCKET` (`/cloudsql/<project>:africa-south1:navigateed-mysql`), `DB_DATABASE`, `DB_USERNAME`, `CACHE_DRIVER=database`, `SESSION_DRIVER=database`, `QUEUE_CONNECTION=database`, `TIMEZONE`, `MAIL_MAILER` (`ses`), `AWS_SES_REGION` (`af-south-1`), `SESSION_SAME_SITE` (`lax`), `LEARNER_INVITATION_LINK_DAYS` (7), `LEARNER_SETUP_CODE_DAYS` (30), and where set `TRUSTED_HOSTS`, `SANCTUM_STATEFUL_DOMAINS` and `SESSION_DOMAIN` (see "Web portal sign-in" below), `SESSION_COOKIE`, `ADMIN_EMAIL`, `AWS_SES_CONFIGURATION_SET`, `SES_SNS_TOPIC_ARNS`, `CORS_ALLOWED_ORIGINS` (empty: the portal hostnames of Q0.2 for that `APP_URL`). Secrets are mounted as `APP_KEY`, `DB_PASSWORD`, (panel only) `ADMIN_PASSWORD`, and the secrets in the "Secrets" table on the roles it names, each once it has a value (Cloud Run refuses a revision that mounts a secret without one, so the script skips it until then and says so). The worker sends every queued mail and push, so it needs the SES settings, `MAIL_PASSWORD` and the Firebase account; the panel needs them for the Email Configuration page's test mail. The deploy workflows change only the image, so these settings stay as the script set them. Staging runs `APP_ENV=production` on purpose, so it behaves exactly like production. See [wiki Configuration](../../wiki/Configuration.md) for each variable.
 
 ## One-time setup by the product owner
 
@@ -112,6 +112,7 @@ Then add, per environment (**Settings > Environments > <name>**):
 | Variable | `PANEL_URL` | `https://staging-admin.navigateed.co.za` once DNS works | `https://admin.navigateed.co.za` once DNS works | no (default: the service's `run.app` address) |
 | Variable | `API_BASE_URL` | the API address compiled into the web portals | same | no (default: `PANEL_URL`) |
 | Variable | `APP_PORTAL_URL`, `TEACH_PORTAL_URL` | portal addresses to smoke-test | same | no |
+| Variable | `WEB_AUTH_MODE` | `cookie` or `bearer`, how the web portals sign in | same | no (default: `cookie` when `API_BASE_URL` is a `*.navigateed.co.za` address, `bearer` otherwise; see "Web portal sign-in") |
 | Variable | `GCP_REGION`, `FIREBASE_PROJECT_ID`, `GCP_ARTIFACT_REPOSITORY`, `GCP_SQL_INSTANCE` | only if different from `africa-south1`, `GCP_PROJECT_ID`, `navigateed`, `navigateed-mysql` | same | no |
 
 The two "secrets" are identifiers, not credentials; they are stored as secrets so they stay out of logs. There is no key to store: Workload Identity Federation lets only jobs running in that GitHub environment act as that environment's deployer.
@@ -162,6 +163,25 @@ If step 4 breaks the panel: `gcloud run services replace navigateed-admin-before
 - Portals and docs: Firebase console > Hosting > each site > **Add custom domain** (`app.`, `teach.`, and for staging `staging-app.`, `staging-teach.`), then the DNS records it shows.
 - Panel and API: Cloud Run domain mappings are not offered in `africa-south1`; use a global external Application Load Balancer with a serverless network endpoint group for `navigateed-admin`, a Google-managed certificate for `admin.navigateed.co.za`, and a Cloud Armor policy (see [wiki Deployment](../../wiki/Deployment.md)). Then set `APP_URL` in the env file, re-run the script (it keeps the `run.app` address in `TRUSTED_HOSTS`), and set `PANEL_URL` in the GitHub environment.
 - Mail: the SES records in ADR 0004.
+
+#### Web portal sign-in
+
+The portals sign in with the panel's session cookie (Sanctum's cookie mode; [wiki Security Model](../../wiki/Security-Model.md) "Web portals"). The browser sends that cookie to the API, and lets the portal read the `XSRF-TOKEN` cookie, only when the panel and the portal are on the same site with a shared cookie domain, so it needs the custom domains above.
+
+| Setting | Production | Staging | Where |
+| --- | --- | --- | --- |
+| Panel and API | `https://admin.navigateed.co.za` | `https://staging-admin.navigateed.co.za` | `APP_URL` (env file), `PANEL_URL` (GitHub) |
+| Portals | `https://app.navigateed.co.za`, `https://teach.navigateed.co.za` | `https://staging-app.navigateed.co.za`, `https://staging-teach.navigateed.co.za` | `CORS_ALLOWED_ORIGINS` (empty: these defaults) |
+| `SESSION_DOMAIN` | `.navigateed.co.za` | `.navigateed.co.za` | env file |
+| `SANCTUM_STATEFUL_DOMAINS` | `app.navigateed.co.za,teach.navigateed.co.za` | `staging-app.navigateed.co.za,staging-teach.navigateed.co.za` | env file |
+| `SESSION_SAME_SITE` | `lax` (the portals are the same site as the panel) | `lax` | env file |
+| `SESSION_SECURE_COOKIE` | not set: true because `APP_URL` is `https://` | not set | |
+| `SESSION_COOKIE` | not set (keeps today's name) | `navigateed_staging_session` (must differ from production's on the shared domain) | env file |
+| Portal builds | `WEB_AUTH_MODE=cookie` | `WEB_AUTH_MODE=cookie` | chosen by the deploy workflow |
+
+`provision.sh` applies `SESSION_DOMAIN` and the portal `SANCTUM_STATEFUL_DOMAINS` only when `APP_URL` is under `SESSION_DOMAIN`. Until the custom domain is live (the `run.app` address), it sets `SESSION_DOMAIN=null` and `SANCTUM_STATEFUL_DOMAINS` to the panel's own host, and the deploy workflow builds the portals with `WEB_AUTH_MODE=bearer`, which works across sites. After moving `APP_URL` to the custom domain: re-run `provision.sh`, set `PANEL_URL` (and `API_BASE_URL` if used) in the GitHub environment, and deploy again so the portals are rebuilt in cookie mode. Moving the cookies to `.navigateed.co.za` signs everyone out of the panel once.
+
+Staging and production both set an `XSRF-TOKEN` cookie on `.navigateed.co.za`; a browser using both replaces one with the other. The portals then get a 419 once, fetch a fresh token and retry, so nobody sees it.
 
 ## Secrets
 

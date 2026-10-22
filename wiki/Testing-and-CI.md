@@ -44,6 +44,7 @@ Steps, in order:
 5. **Static analysis (Larastan)**: `vendor/bin/phpstan analyse --memory-limit=2G --no-progress` – [Larastan](https://github.com/larastan/larastan) at level 0, configured in [phpstan.neon](https://github.com/ShawnDaPrawn/Eschool/blob/main/admin-panel/phpstan.neon). [phpstan-baseline.neon](https://github.com/ShawnDaPrawn/Eschool/blob/main/admin-panel/phpstan-baseline.neon) lists the errors that predate it, so only new ones fail (an undefined variable, an unknown class, a call to a missing method). The relation-existence rule is ignored because relation methods have no return types.
 6. **Config, routes and views cache**: `php artisan config:cache && php artisan route:cache && php artisan view:cache && php artisan optimize:clear` – production installs may run `php artisan optimize`, so every cache must build. This fails on, for example, two routes with the same name (which breaks `route:cache`) or a Blade view that does not compile. The caches are cleared again before the tests run.
 7. `php artisan test` – the PHPUnit suites below.
+8. **Storage CORS in Apache**: `bash docker/tests/storage-cors.sh` – starts the runner's Apache with `docker/storage-cors.conf` and the origins production allows, and checks that only `GET` and `HEAD` from the panel and portal origins get `Access-Control-Allow-Origin` for files under `/storage`, with `Vary: Origin` always (skipped with a message on a machine without `apache2`, failed in CI).
 
 ### `openapi`: OpenAPI contract (lint)
 
@@ -253,7 +254,7 @@ Browser checks of the admin panel live in [admin-panel/e2e](https://github.com/S
 
 ### Demo school accounts
 
-`database/seeders/DemoSchoolSeeder.php` creates them; every account's password is `NavigateDemo2026` (`DemoSchoolSeeder::PASSWORD`). They are public demo sign-ins: never seed a production database that people use.
+`database/seeders/DemoSchoolSeeder.php` creates them; every account's password is `NavigateDemo2026` (`DemoSchoolSeeder::PASSWORD`). They are public demo sign-ins: never seed a production database that people use. The seed also has the unpublished exam "Term 4 test" (a Mathematics paper for both grades dated the day before the seed ran, with `DEMO-A-0001`'s mark) and the assignment "Fractions worksheet" for 5 A, so marks capture and the assignments list work from the seed alone.
 
 | Profile | Signs in with |
 |---|---|

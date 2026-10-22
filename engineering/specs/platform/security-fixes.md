@@ -10,6 +10,8 @@ Phase 0, feature 0.7. Owner role: Backend (security). Work stream S6. Build Bibl
 | Teacher status | `users.status` ignored for teachers | checked at the teacher app and panel sign-in; `EnsureTeacherActive` (`teacher.active`) on both teacher API groups; Deactivate / Activate on the teacher list |
 | App tokens | named after the person, never revoked at sign-in | named `student-app`, `parent-app`, `teacher-app` (`AppTokens`); see the token rule below |
 | CORS | every origin | the panel (`APP_URL`) and the web portals only; cookies for Sanctum's cookie mode |
+| Web portal sign-in (S9, self-test defect D1) | the portals could not sign in from their own origin: the panel's web group encrypted cookies twice, so the API could not read the session `/sanctum/csrf-cookie` started (419), and sign-in issued only tokens (401 after it) | a portal sign-in (a request from a stateful origin) logs the `web` guard in on a regenerated session and answers `token: ""`; a refused one keeps no session; logout ends the session; Sanctum's `AuthenticateSession` ends it when the password changes (`PortalSession`, `portal.sign-in`) |
+| Uploaded files (S9, defect D2) | `/storage` sent no CORS headers, so the portals could not show pictures or PDFs | Apache (`docker/storage-cors.conf`) and `server.php` answer `GET`/`HEAD` from the CORS origins with `Access-Control-Allow-Origin` and `Vary: Origin` |
 | Learner passwords | date of birth (`ddmmyyyy`), mailed to the parents; a staff reset put it back | a random password nobody sees; each guardian is emailed a signed, expiring, single-use link to choose it; the school can print a one-time set-up code; existing date-of-birth passwords are flagged for a forced change |
 | Uploads | `UploadService` read a missing `school_id`; client file names stored as sent | stored under `schools/{id}/` (`CurrentSchool`); every client name through `FileNames::sanitize()`; wrong content and unusable names refused |
 | Content security policy | none | report-only policy on every HTML page, `POST /csp-report` |
@@ -21,6 +23,7 @@ Phase 0, feature 0.7. Owner role: Backend (security). Work stream S6. Build Bibl
 - Signing in to an app revokes the account's earlier tokens for that same app, so an account is signed in on one device per app. Tokens of the account's other apps are left alone: a teacher who is also a parent stays signed in to the teacher app when signing in to the parent side.
 - Tokens issued before tokens carried an app name are treated as this app's when the account can use only this app; otherwise they expire (30 days).
 - Signing out revokes the account's tokens for that app.
+- A web portal in cookie mode holds a session, not a token: signing in or out of a portal leaves the phone apps' tokens (and their FCM id) alone, and signing out ends the session.
 - Changing the password in an app revokes every other token of the account; the device that made the change stays signed in. Changing it in the panel, a reset by email, deactivating a teacher and the learner set-up revoke all of them.
 
 ## User stories
@@ -47,6 +50,11 @@ Phase 0, feature 0.7. Owner role: Backend (security). Work stream S6. Build Bibl
 | A teacher who is also a parent | they sign in to the parent side, or sign out of the teacher app | the other app stays signed in | `AppTokensTest` |
 | A password change | in the app / in the panel | every other token / every token is revoked | `AppTokensTest` |
 | A browser on a portal origin / on any other origin | it calls the API | CORS headers / none; native apps without an Origin keep working | `Platform/CorsTest` |
+| A learner, parent or teacher on their portal origin | `GET /sanctum/csrf-cookie`, then sign-in with `X-XSRF-TOKEN` | signed in with a new session, `token: ""`, no token row; `/api/v2/me/context` and a v1 read work with the session; the role groups and `checkChild` apply | `Platform/PortalSignInTest` |
+| A portal | signs out / its sign-in is refused / the password changes elsewhere | the session ends (401 after) / no session / 401 on the next request; the phone's token and FCM id stay | `PortalSignInTest` |
+| A portal write without `X-XSRF-TOKEN` | it is sent | 419 | `PortalSignInTest::test_portal_writes_need_the_csrf_token` |
+| A phone app (no Origin) / an unknown origin | signs in | a token as before, no cookie / not treated as a portal | `PortalSignInTest` |
+| A portal origin / any other origin | fetches a file under `/storage` | `Access-Control-Allow-Origin` for `GET` and `HEAD` / none; `Vary: Origin` always | `Platform/StorageCorsTest`, `docker/tests/storage-cors.sh` (real Apache, CI) |
 | A school admin | adds a learner with two parents | the learner's password is not the date of birth; each parent gets a link; the welcome mail carries no password | `Platform/LearnerInvitationTest` |
 | A guardian | uses the link with a strong password | the password is set; the same link and the other guardian's link no longer work | `LearnerInvitationTest` |
 | A link | after 7 days, with another token, or with a changed expiry | "This link no longer works" | `LearnerInvitationTest` |
@@ -88,7 +96,8 @@ Retention: an invitation row holds no secret in clear and is closed once used, r
 | `POST students/{id}/sign-in-sheet` | the same | printable page with a new code |
 | `POST teachers/{id}/status` | `Role`, `auth`; `teacher-edit` | `status` 0 or 1 |
 | `POST csp-report` | web, no CSRF, `throttle:csp` | 204 |
-| v1 `POST api/{student,parent,teacher}/login` | unchanged | adds top-level `password_change_required` (bool); snapshots updated additively |
+| v1 `POST api/{student,parent,teacher}/login` | unchanged, plus `portal.sign-in` | adds top-level `password_change_required` (bool); snapshots updated additively. From a portal origin: a session instead of a token (`token: ""`) |
+| v1 `POST api/logout` | unchanged | from a portal: ends the session as well |
 | v1 student, parent, teacher groups | adds `password.change`; teacher groups add `teacher.active` | |
 
 No `openapi.yaml` change: these are v1 and panel routes.
@@ -122,3 +131,4 @@ One email, `learner_invitation` (template in `email_tempalates`, sent through `M
 4. In the app's change-password, try `password123` and `Password1234`: refused with the rule.
 5. Open the panel with the browser's developer tools: the response has `Content-Security-Policy-Report-Only`, and the console shows no violation on Home, People, Academics and Settings pages.
 6. On staging with the secrets mounted, open Email and Fees settings: "Set in the environment"; run `php artisan secrets:audit-settings`, then `--purge`.
+7. Open `staging-app.navigateed.co.za` and sign in as the demo learner: in the browser's storage view there is no token, the `navigateed_staging_session` cookie is `HttpOnly` on `.navigateed.co.za`, and pictures load. Sign out: the next API call answers 401.
