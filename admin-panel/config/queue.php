@@ -13,7 +13,9 @@ return [
     |
     */
 
-    'default' => env('QUEUE_CONNECTION', 'sync'),
+    // Jobs (mail, push, the outbox) run on the navigateed-worker service, not
+    // inside the web request. Tests use sync (phpunit.xml).
+    'default' => env('QUEUE_CONNECTION', 'database'),
 
     /*
     |--------------------------------------------------------------------------
@@ -38,8 +40,11 @@ return [
             'driver' => 'database',
             'table' => 'jobs',
             'queue' => 'default',
-            'retry_after' => 90,
-            'after_commit' => false,
+            // Seconds before a reserved job counts as lost and runs again. Keep it
+            // above the worker's --timeout (120), or a slow job runs twice.
+            'retry_after' => (int) env('DB_QUEUE_RETRY_AFTER', 180),
+            // A job dispatched inside a transaction is queued only if it commits.
+            'after_commit' => true,
         ],
 
         'beanstalkd' => [

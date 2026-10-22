@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers;
 
+use App\Mail\Platform\TemplateMail;
 use App\Models\ClassTeacher;
 use App\Models\EmailTemplate;
 use App\Models\FormField;
@@ -11,7 +12,6 @@ use App\Models\Settings;
 use App\Models\SubjectTeacher;
 use App\Models\Teacher;
 use App\Models\User;
-use App\Services\EmailTemplateService;
 use App\Services\MailService;
 use App\Services\ResponseService;
 use Exception;
@@ -371,17 +371,7 @@ class TeacherController extends Controller
                             'user_id' => $user->id,
                         ]);
                     } else {
-                        $htmlcontent = EmailTemplateService::render((string) $staffTemplate, $data);
-
-                        $emailPayload = [
-                            'body' => $htmlcontent,
-                            'email' => $data['email'],
-                            'subject' => $data['subject'],
-                        ];
-
-                        MailService::sendWithFallback('teacher.email', $emailPayload, function ($message) use ($emailPayload) {
-                            $message->to($emailPayload['email'])->subject($emailPayload['subject']);
-                        });
+                        MailService::queue(TemplateMail::staffWelcome($data, 'teacher.email'), (int) $user->id);
                     }
                 } catch (Throwable $e) {
                     Log::error('Failed to send teacher welcome email: '.$e->getMessage(), [

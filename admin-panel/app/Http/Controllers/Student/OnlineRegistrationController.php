@@ -17,7 +17,7 @@ use App\Models\Students;
 use App\Models\StudentSessions;
 use App\Models\Subject;
 use App\Models\User;
-use App\Services\EmailTemplateService;
+use App\Mail\Platform\TemplateMail;
 use App\Services\MailService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -338,29 +338,7 @@ class OnlineRegistrationController extends Controller
                         'ios_app' => (string) $ios_app,
                         'url' => url('/'),
                     ];
-                    $htmlcontent = EmailTemplateService::render($AcceptTemplate, $parent_data);
-
-                    $emailPayload = [
-                        'body' => $htmlcontent,
-                        'email' => $parent_data['email'],
-                        'subject' => $parent_data['subject'],
-                        'type' => $parent_data['type'],
-                        'name' => $parent_data['name'],
-                        'child_name' => $parent_data['child_name'],
-                        'class_name' => $parent_data['class_name'],
-                        'school_name' => $parent_data['school_name'],
-                        'school_contact' => $parent_data['school_contact'],
-                        'school_email' => $parent_data['school_email'],
-                        'url' => $parent_data['url'],
-                        'username' => $parent_data['username'],
-                        'password' => $parent_data['password'],
-                        'child_grnumber' => $parent_data['child_grnumber'],
-                        'child_password' => $parent_data['child_password'],
-                    ];
-                    MailService::sendWithFallback('students.email', $emailPayload, function ($message) use ($emailPayload, $admin_mail, $school_name) {
-                        $message->to($emailPayload['email'])->subject($emailPayload['subject']);
-                        $message->from($admin_mail, $school_name);
-                    });
+                    MailService::queue(TemplateMail::parentWelcome($parent_data)->from($admin_mail, $school_name));
 
                     // MailService::sendWithFallback('students.email', $parent_data, function ($message) use ($parent_data) {
                     //     $message->to($parent_data['email'])->subject($parent_data['subject']);
@@ -406,19 +384,7 @@ class OnlineRegistrationController extends Controller
                         'school_contact' => (string) $school_contact,
                         'url' => url('/'),
                     ];
-                    $htmlcontent = EmailTemplateService::render($rejectionTemplate, $gaurdian_data);
-
-                    $emailPayload = [
-                        'body' => $htmlcontent,
-                        'email' => $gaurdian_data['email'],
-                        'subject' => $gaurdian_data['subject'],
-                        'type' => $gaurdian_data['type'],
-                    ];
-
-                    MailService::sendWithFallback('students.email', $emailPayload, function ($message) use ($emailPayload, $admin_mail, $school_name) {
-                        $message->to($emailPayload['email'])->subject($emailPayload['subject']);
-                        $message->from($admin_mail, $school_name);
-                    });
+                    MailService::queue(TemplateMail::registrationRejected($gaurdian_data)->from($admin_mail, $school_name));
 
                     // $data = [
                     //     'subject' => 'Response To Online Registration',

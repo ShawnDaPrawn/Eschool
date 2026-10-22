@@ -363,8 +363,8 @@ class SettingController extends Controller
                 return response()->json($response);
             }
 
-            // send mail and check result
-            $status = MailService::sendWithFallback('mail', $data, function ($message) use ($data, $admin_mail) {
+            // Sent at once, not queued: the answer says whether the mail server accepted it.
+            $status = MailService::sendNow('mail', $data, function ($message) use ($data, $admin_mail) {
                 $message->to($data['email'])->subject('Connection Verified successfully');
                 $message->from($admin_mail, 'Eschool Admin');
             });

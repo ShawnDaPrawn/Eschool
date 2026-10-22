@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Student;
 
 use App\Http\Controllers\Controller;
+use App\Mail\Platform\TemplateMail;
 use App\Models\AssignmentSubmission;
 use App\Models\Attendance;
 use App\Models\Category;
@@ -24,7 +25,6 @@ use App\Models\StudentSessions;
 use App\Models\StudentSubject;
 use App\Models\Subject;
 use App\Models\User;
-use App\Services\EmailTemplateService;
 use App\Services\MailService;
 use App\Services\ResponseService;
 use Carbon\Carbon;
@@ -618,7 +618,6 @@ class StudentController extends Controller
             $school_email = $settings['school_email'];
             $school_contact = $settings['school_phone'];
 
-            $AcceptTemplate = EmailTemplate::where('type', 'student_registration')->value('content');
             $applink = Settings::whereIn('type', ['teacher_app_link', 'teacher_ios_app_link'])
                 ->pluck('message', 'type')
                 ->toArray();
@@ -646,29 +645,7 @@ class StudentController extends Controller
                     'url' => url('/'),
 
                 ];
-                $htmlcontent = EmailTemplateService::render((string) $AcceptTemplate, $father_data);
-                $emailPayload = [
-                    'body' => $htmlcontent,
-                    'email' => $father_data['email'],
-                    'subject' => $father_data['subject'],
-                    'type' => $father_data['type'],
-                    'name' => $father_data['name'],
-                    'url' => $father_data['url'],
-                    'child_name' => $father_data['child_name'],
-                    'class_name' => $father_data['class_name'],
-                    'school_name' => $father_data['school_name'],
-                    'school_contact' => $father_data['school_contact'],
-                    'school_email' => $father_data['school_email'],
-                    'username' => $father_data['username'],
-                    'password' => $father_data['password'],
-                    'child_grnumber' => $father_data['child_grnumber'],
-                    'child_password' => $father_data['child_password'],
-
-                ];
-                MailService::sendWithFallback('students.email', $emailPayload, function ($message) use ($emailPayload, $admin_mail, $school_name) {
-                    $message->to($emailPayload['email'])->subject($emailPayload['subject']);
-                    $message->from($admin_mail, $school_name);
-                });
+                MailService::queue(TemplateMail::parentWelcome($father_data)->from($admin_mail, $school_name));
 
                 // MailService::sendWithFallback('students.email', $father_data, function ($message) use ($father_data) {
                 //     $message->to($father_data['email'])->subject($father_data['subject']);
@@ -692,28 +669,7 @@ class StudentController extends Controller
                     'ios_app' => (string) $ios_app,
                     'url' => url('/'),
                 ];
-                $htmlcontent = EmailTemplateService::render((string) $AcceptTemplate, $mother_data);
-                $emailPayload = [
-                    'body' => $htmlcontent,
-                    'email' => $mother_data['email'],
-                    'subject' => $mother_data['subject'],
-                    'type' => $mother_data['type'],
-                    'name' => $mother_data['name'],
-                    'url' => $mother_data['url'],
-                    'child_name' => $mother_data['child_name'],
-                    'class_name' => $mother_data['class_name'],
-                    'school_name' => $mother_data['school_name'],
-                    'school_contact' => $mother_data['school_contact'],
-                    'school_email' => $mother_data['school_email'],
-                    'username' => $mother_data['username'],
-                    'password' => $mother_data['password'],
-                    'child_grnumber' => $mother_data['child_grnumber'],
-                    'child_password' => $mother_data['child_password'],
-                ];
-                MailService::sendWithFallback('students.email', $emailPayload, function ($message) use ($emailPayload, $admin_mail, $school_name) {
-                    $message->to($emailPayload['email'])->subject($emailPayload['subject']);
-                    $message->from($admin_mail, $school_name);
-                });
+                MailService::queue(TemplateMail::parentWelcome($mother_data)->from($admin_mail, $school_name));
 
                 // MailService::sendWithFallback('students.email', $mother_data, function ($message) use ($mother_data) {
                 //     $message->to($mother_data['email'])->subject($mother_data['subject']);
@@ -750,31 +706,7 @@ class StudentController extends Controller
                     'url' => (string) url('/'),
                 ];
 
-                $htmlcontent = EmailTemplateService::render($template, $guardian_data);
-
-                $emailPayload = [
-                    'body' => $htmlcontent,
-                    'email' => $guardian_data['username'],
-                    'subject' => $guardian_data['subject'],
-                    'type' => $guardian_data['type'],
-
-                    'name' => $guardian_data['name'],
-                    'child_name' => $guardian_data['child_name'],
-                    'class_name' => $guardian_data['class_name'],
-                    'school_name' => $guardian_data['school_name'],
-                    'school_contact' => $guardian_data['school_contact'],
-                    'school_email' => $guardian_data['school_email'],
-                    'url' => $guardian_data['url'],
-                    'username' => $guardian_data['username'],
-                    'password' => $guardian_data['password'],
-                    'child_grnumber' => $guardian_data['child_grnumber'],
-                    'child_password' => $guardian_data['child_password'],
-                ];
-
-                // 3. Dispatch the mail message cleanly
-                MailService::sendWithFallback('students.email', $emailPayload, function ($message) use ($emailPayload) {
-                    $message->to($emailPayload['email'])->subject($emailPayload['subject']);
-                });
+                MailService::queue(TemplateMail::parentWelcome($guardian_data, $template));
             }
 
             DB::commit();
