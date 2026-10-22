@@ -101,8 +101,9 @@ BACKUP_ROLE=navigateedReleaseBackup
 SECRET_APP_KEY=navigateed-app-key
 SECRET_DB_PASSWORD=navigateed-db-password
 SECRET_ADMIN_PASSWORD=navigateed-admin-password
-# Created empty for the transactional mail work (ADR 0004); values are added
-# by the product owner when the AWS account exists.
+# Created empty for transactional mail (ADR 0004); values are added by the
+# product owner when the AWS account exists. Mounted on the panel and the
+# worker as SES_ACCESS_KEY_ID and SES_SECRET_ACCESS_KEY once both have one.
 SECRET_SES_KEY_ID=navigateed-ses-access-key-id
 SECRET_SES_SECRET=navigateed-ses-secret-access-key
 
@@ -216,7 +217,8 @@ ensure_secrets() {
     seed_secret "$SECRET_ADMIN_PASSWORD" gen_password
     # The database password is seeded with the database user (ensure_sql).
 
-    for name in "$SECRET_APP_KEY" "$SECRET_DB_PASSWORD" "$SECRET_ADMIN_PASSWORD"; do
+    # The panel sends mail too (the Email Configuration page's test mail).
+    for name in "$SECRET_APP_KEY" "$SECRET_DB_PASSWORD" "$SECRET_ADMIN_PASSWORD" "$SECRET_SES_KEY_ID" "$SECRET_SES_SECRET"; do
         grant_secret "$name" "$SA_ADMIN_EMAIL"
     done
     for name in "$SECRET_APP_KEY" "$SECRET_DB_PASSWORD" "$SECRET_SES_KEY_ID" "$SECRET_SES_SECRET"; do
@@ -329,6 +331,7 @@ app_env() { # role
         "DB_DATABASE=$DB_NAME" "DB_USERNAME=$DB_USER"
         CACHE_DRIVER=database SESSION_DRIVER=database QUEUE_CONNECTION=database
         TIMEZONE=Africa/Johannesburg
+        "MAIL_MAILER=${MAIL_MAILER:-ses}" "AWS_SES_REGION=${AWS_SES_REGION:-af-south-1}"
     )
     # Production keeps its live APP_URL until env/production.env names one.
     if [ -n "$APP_URL" ] || [ "$ENVIRONMENT" != production ]; then
@@ -338,6 +341,8 @@ app_env() { # role
     [ "$PANEL_URL" = "$RUN_URL" ] || pairs+=("TRUSTED_HOSTS=${RUN_URL#https://}")
     [ -z "$SANCTUM_STATEFUL_DOMAINS" ] || pairs+=("SANCTUM_STATEFUL_DOMAINS=$SANCTUM_STATEFUL_DOMAINS")
     [ -z "$SESSION_COOKIE" ] || pairs+=("SESSION_COOKIE=$SESSION_COOKIE")
+    [ -z "${AWS_SES_CONFIGURATION_SET:-}" ] || pairs+=("AWS_SES_CONFIGURATION_SET=$AWS_SES_CONFIGURATION_SET")
+    [ -z "${SES_SNS_TOPIC_ARNS:-}" ] || pairs+=("SES_SNS_TOPIC_ARNS=$SES_SNS_TOPIC_ARNS")
     if [ "$1" = web ] && [ -n "$ADMIN_EMAIL" ]; then
         pairs+=("ADMIN_EMAIL=$ADMIN_EMAIL")
     fi
@@ -375,11 +380,24 @@ ensure_service() { # name, role, extra flags...
     fi
 }
 
+# The SES keys as extra --update-secrets entries, once both secrets have a
+# value: Cloud Run refuses a revision that mounts a secret without a version.
+ses_secrets() {
+    if secret_has_version "$SECRET_SES_KEY_ID" && secret_has_version "$SECRET_SES_SECRET"; then
+        printf ',SES_ACCESS_KEY_ID=%s:latest,SES_SECRET_ACCESS_KEY=%s:latest' "$SECRET_SES_KEY_ID" "$SECRET_SES_SECRET"
+    else
+        note "SES keys not mounted: $SECRET_SES_KEY_ID or $SECRET_SES_SECRET has no value yet (environments.md, 'Secrets'); re-run after adding them"
+    fi
+}
+
 ensure_run_services() {
+    local ses
+    ses="$(ses_secrets)"
+
     log "Cloud Run service $SERVICE_ADMIN (public)"
     ensure_service "$SERVICE_ADMIN" web \
         --service-account="$SA_ADMIN_EMAIL" \
-        --update-secrets="APP_KEY=$SECRET_APP_KEY:latest,DB_PASSWORD=$SECRET_DB_PASSWORD:latest,ADMIN_PASSWORD=$SECRET_ADMIN_PASSWORD:latest" \
+        --update-secrets="APP_KEY=$SECRET_APP_KEY:latest,DB_PASSWORD=$SECRET_DB_PASSWORD:latest,ADMIN_PASSWORD=$SECRET_ADMIN_PASSWORD:latest$ses" \
         --cpu="$ADMIN_CPU" --memory="$ADMIN_MEMORY" --concurrency="$ADMIN_CONCURRENCY" --timeout=300 \
         --min-instances="$ADMIN_MIN_INSTANCES" --max-instances="$ADMIN_MAX_INSTANCES" \
         --ingress=all --cpu-boost
@@ -389,7 +407,7 @@ ensure_run_services() {
     log "Cloud Run service $SERVICE_WORKER (no public ingress, CPU always allocated)"
     ensure_service "$SERVICE_WORKER" worker \
         --service-account="$SA_WORKER_EMAIL" \
-        --update-secrets="APP_KEY=$SECRET_APP_KEY:latest,DB_PASSWORD=$SECRET_DB_PASSWORD:latest" \
+        --update-secrets="APP_KEY=$SECRET_APP_KEY:latest,DB_PASSWORD=$SECRET_DB_PASSWORD:latest$ses" \
         --cpu="$WORKER_CPU" --memory="$WORKER_MEMORY" --timeout=300 \
         --min-instances="$WORKER_MIN_INSTANCES" --max-instances="$WORKER_MAX_INSTANCES" \
         --ingress=internal --no-cpu-throttling

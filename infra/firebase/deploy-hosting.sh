@@ -1,13 +1,14 @@
 #!/usr/bin/env bash
 # Deploys the Firebase Hosting sites defined in firebase.json (the documentation
-# site and, once the web builds exist, the learner and parent portal and the
-# teacher portal) to one Firebase project.
+# site, the learner and parent portal and the teacher portal) to one Firebase
+# project.
 #
 # Each hosting target in firebase.json is pointed at the site named by the
 # environment variable FIREBASE_SITE_<TARGET> (target in upper case, dashes as
 # underscores: target "app" reads FIREBASE_SITE_APP), so the same firebase.json
-# serves staging and production. A firebase.json without targets deploys to
-# the project's default site.
+# serves staging and production. The "docs" target falls back to the
+# project's default site when FIREBASE_SITE_DOCS is unset. A firebase.json
+# without targets deploys to the project's default site.
 #
 # Usage: infra/firebase/deploy-hosting.sh FIREBASE_PROJECT_ID [MESSAGE]
 # Needs the Firebase CLI (firebase-tools) and jq, signed in through
@@ -26,6 +27,9 @@ mapfile -t targets < <(jq -r '.hosting | if type == "array" then .[] else . end 
 for target in "${targets[@]}"; do
     var="FIREBASE_SITE_$(printf '%s' "$target" | tr '[:lower:]-' '[:upper:]_')"
     site="${!var:-}"
+    # The documentation is served from the project's default site, whose id
+    # is the project id, unless FIREBASE_SITE_DOCS names another.
+    [ -n "$site" ] || [ "$target" != docs ] || site="$PROJECT"
     if [ -z "$site" ]; then
         echo "error: set $var to the Firebase Hosting site for target \"$target\"" >&2
         exit 1
