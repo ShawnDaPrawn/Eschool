@@ -24,11 +24,12 @@ class ManageLeavesScreen extends StatefulWidget {
   State<ManageLeavesScreen> createState() => _ManageLeavesScreenState();
 
   static Route route(RouteSettings routeSettings) {
-    final arguments = routeSettings.arguments! as Map<String, dynamic>;
     return CupertinoPageRoute(
       builder: (_) => BlocProvider<LeaveCubit>(
         create: (context) => LeaveCubit(LeaveRepository()),
-        child: ManageLeavesScreen(studentDetails: arguments['studentDetails']),
+        child: ManageLeavesScreen(
+          studentDetails: routeSettings.arguments! as Student,
+        ),
       ),
     );
   }
@@ -239,7 +240,7 @@ class _ManageLeavesScreenState extends State<ManageLeavesScreen> {
           Navigator.of(context)
               .pushNamed<bool?>(
                 Routes.addLeave,
-                arguments: {'studentDetails': widget.studentDetails},
+                arguments: widget.studentDetails,
               )
               .then((value) {
                 if (value == true) {

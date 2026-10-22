@@ -47,9 +47,7 @@ void onNotificationTap(String notificationType, Map<String, dynamic> data) {
     }
     UiUtils.rootNavigatorKey.currentState?.pushNamed(
       Routes.chatMessages,
-      arguments: {
-        'chatUser': ChatUser.fromJsonAPI(jsonDecode(data['sender_info'])),
-      },
+      arguments: ChatUser.fromJsonAPI(jsonDecode(data['sender_info'])),
     );
   }
 }

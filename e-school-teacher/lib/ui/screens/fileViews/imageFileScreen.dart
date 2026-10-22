@@ -23,15 +23,14 @@ class ImageFileScreen extends StatefulWidget {
   final String? title;
 
   static Route route(RouteSettings routeSettings) {
-    final StudyMaterial studyMaterial =
-        (routeSettings.arguments as Map?)?['studyMaterial'] ??
-        StudyMaterial.fromJson({});
-    final List<StudyMaterial> multipleFiles =
-        (routeSettings.arguments as Map?)?['multiStudyMaterial'] ?? [];
-    final bool isItFile = (routeSettings.arguments as Map?)?['isFile'] ?? false;
-    final int? initialPageNumber =
-        (routeSettings.arguments as Map?)?['initialPage'];
-    final String? title = (routeSettings.arguments as Map?)?['title'];
+    final arguments =
+        routeSettings.arguments as ImageFileViewArguments? ??
+        ImageFileViewArguments(studyMaterial: StudyMaterial.fromJson({}));
+    final StudyMaterial studyMaterial = arguments.studyMaterial;
+    final List<StudyMaterial> multipleFiles = arguments.multiStudyMaterial;
+    final bool isItFile = arguments.isFile;
+    final int? initialPageNumber = arguments.initialPage;
+    final String? title = arguments.title;
 
     return CupertinoPageRoute(
       builder: (_) => ImageFileScreen(

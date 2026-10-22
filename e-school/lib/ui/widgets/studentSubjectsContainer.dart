@@ -1,3 +1,4 @@
+import 'package:eschool/app/routeArguments.dart';
 import 'package:eschool/app/routes.dart';
 import 'package:eschool/data/models/subject.dart';
 import 'package:eschool/ui/widgets/subjectImageContainer.dart';
@@ -29,7 +30,10 @@ class StudentSubjectsContainer extends StatelessWidget {
       onTap: () {
         Navigator.of(context).pushNamed(
           Routes.subjectDetails,
-          arguments: {'childId': childId, 'subject': subject},
+          arguments: SubjectDetailsArguments(
+            childId: childId,
+            subject: subject,
+          ),
         );
       },
       child: SizedBox(

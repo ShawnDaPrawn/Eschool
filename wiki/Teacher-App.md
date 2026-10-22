@@ -92,7 +92,7 @@ Most content screens are filtered by class section and subject using `SubjectsOf
 |---|---|---|---|
 | `ClassScreen` | `SubjectsOfClassSectionCubit`, `StudentsByClassSectionCubit`, `AppConfigurationCubit` | `TeacherRepository`, `StudentRepository` | Subjects tab for every teacher; students tab and the "take attendance" button only when opened with `isClassTeacher: true`. Students: GET `teacher/student-list`. |
 | `SubjectScreen` | `LessonsCubit`, `AnnouncementsCubit` | `LessonRepository`, `AnnouncementRepository` | Lessons and announcements of one subject, with add buttons. |
-| `SearchStudentScreen` | (none) | | Filters the student list passed in the route arguments locally (no API call); used from `ClassScreen` and `AttendanceScreen`. |
+| `SearchStudentScreen` | (none) | | Filters the student list passed in its route arguments (`SearchStudentArguments`) locally (no API call); used from `ClassScreen` and `AttendanceScreen`. |
 | `StudentDetailsScreen` | `StudentMoreDetailsCubit` | `StudentRepository` | GET `teacher/student-details`; links to the student's results (`Routes.resultList`). |
 
 ### Class attendance

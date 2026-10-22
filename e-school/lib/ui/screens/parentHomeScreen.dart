@@ -1,3 +1,4 @@
+import 'package:eschool/app/routeArguments.dart';
 import 'package:eschool/app/routes.dart';
 import 'package:eschool/cubits/appConfigurationCubit.dart';
 import 'package:eschool/cubits/authCubit.dart';
@@ -262,14 +263,14 @@ class _ParentHomeScreenState extends State<ParentHomeScreen>
           if (isCompulsoryFeePaymentAndDuePayment) {
             Navigator.of(context).pushNamed(
               Routes.feesDetails,
-              arguments: {
-                'studentDetails': student,
-                'sessionYearId': context
+              arguments: FeesDetailsArguments(
+                studentDetails: student,
+                sessionYearId: context
                     .read<AppConfigurationCubit>()
                     .getAppConfiguration()
                     .sessionYear
                     .id,
-              },
+              ),
             );
           } else {
             Navigator.of(

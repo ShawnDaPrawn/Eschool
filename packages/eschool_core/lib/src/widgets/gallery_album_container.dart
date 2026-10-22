@@ -12,10 +12,9 @@ class GalleryAlbumContainer extends StatelessWidget {
       effects: customItemFadeAppearanceEffects(),
       child: GestureDetector(
         onTap: () {
-          Navigator.of(context).pushNamed(
-            SharedRoutes.galleryAlbumPhotos,
-            arguments: {'album': album},
-          );
+          Navigator.of(
+            context,
+          ).pushNamed(SharedRoutes.galleryAlbumPhotos, arguments: album);
         },
         child: Column(
           mainAxisSize: MainAxisSize.min,

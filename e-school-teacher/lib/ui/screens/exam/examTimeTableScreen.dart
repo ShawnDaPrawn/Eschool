@@ -1,3 +1,4 @@
+import 'package:eschool_teacher/app/routeArguments.dart';
 import 'package:eschool_teacher/cubits/examTimeTableCubit.dart';
 import 'package:eschool_teacher/data/models/exam.dart';
 import 'package:eschool_teacher/data/repositories/studentRepository.dart';
@@ -30,17 +31,17 @@ class ExamTimeTableScreen extends StatefulWidget {
   State<ExamTimeTableScreen> createState() => _ExamTimeTableState();
 
   static Route route(RouteSettings routeSettings) {
-    final examDetails = routeSettings.arguments! as Map<String, dynamic>;
+    final examDetails = routeSettings.arguments! as ExamTimeTableArguments;
 
     return CupertinoPageRoute(
       builder: (_) => BlocProvider(
         create: (context) => ExamTimeTableCubit(StudentRepository()),
         child: ExamTimeTableScreen(
-          studentId: examDetails['studentId'],
-          examID: examDetails['examID'],
-          examName: examDetails['examName'],
-          classId: examDetails['classId'],
-          className: examDetails['className'],
+          studentId: examDetails.studentId,
+          examID: examDetails.examId,
+          examName: examDetails.examName,
+          classId: examDetails.classId,
+          className: examDetails.className,
         ),
       ),
     );

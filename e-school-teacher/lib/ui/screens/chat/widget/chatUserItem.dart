@@ -91,7 +91,7 @@ class ChatUserItemWidget extends StatelessWidget {
           Navigator.pushNamed(
             context,
             Routes.chatMessages,
-            arguments: {'chatUser': chatUser},
+            arguments: chatUser,
           );
         },
         borderRadius: BorderRadius.circular(12),

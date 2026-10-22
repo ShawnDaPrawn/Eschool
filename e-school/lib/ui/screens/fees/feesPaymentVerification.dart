@@ -1,3 +1,4 @@
+import 'package:eschool/app/routeArguments.dart';
 import 'package:eschool/cubits/postFeesPaymentCubit.dart';
 import 'package:eschool/data/models/student.dart';
 import 'package:eschool/utils/labelKeys.dart';
@@ -26,14 +27,14 @@ class FeesPaymentVerification extends StatefulWidget {
   @override
   FeesPaymentVerificationState createState() => FeesPaymentVerificationState();
   static Route route(RouteSettings routeSettings) {
-    final arguments = routeSettings.arguments! as Map<String, dynamic>;
+    final arguments = routeSettings.arguments! as PaymentVerificationArguments;
     return CupertinoPageRoute(
       builder: (_) => FeesPaymentVerification(
-        studentDetails: arguments['studentDetails'],
-        transactionId: arguments['transactionId'],
-        paymentIntentId: arguments['paymentIntentId'],
-        status: arguments['status'],
-        isStudentPayingFees: arguments['isStudentPaying'],
+        studentDetails: arguments.studentDetails,
+        transactionId: arguments.transactionId,
+        paymentIntentId: arguments.paymentIntentId,
+        status: arguments.status,
+        isStudentPayingFees: arguments.isStudentPaying,
       ),
     );
   }

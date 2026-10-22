@@ -300,13 +300,13 @@ class UiUtils {
         Navigator.pushNamed(
           context,
           Routes.pdfFileView,
-          arguments: {'studyMaterial': studyMaterial},
+          arguments: PdfFileViewArguments(studyMaterial: studyMaterial),
         );
       } else if (studyMaterial.fileExtension.isImage()) {
         Navigator.pushNamed(
           context,
           Routes.imageFileView,
-          arguments: {'studyMaterial': studyMaterial},
+          arguments: ImageFileViewArguments(studyMaterial: studyMaterial),
         );
       } else {
         if (studyMaterial.studyMaterialType ==

@@ -1,3 +1,4 @@
+import 'package:eschool/app/routeArguments.dart';
 import 'package:eschool/app/routes.dart';
 import 'package:eschool/utils/uiUtils.dart';
 import 'package:eschool_session/eschool_session.dart';
@@ -13,6 +14,11 @@ const List<DeepLinkRoute> deepLinkRoutes = [
   DeepLinkRoute('/payments', Routes.feesTransaction),
   DeepLinkRoute(Routes.feesTransaction, Routes.feesTransaction),
   DeepLinkRoute(Routes.gallery, Routes.gallery),
+  DeepLinkRoute(
+    Routes.academicCalendar,
+    Routes.academicCalendar,
+    arguments: _academicCalendarArguments,
+  ),
   DeepLinkRoute(Routes.settings, Routes.settings),
   DeepLinkRoute('/about', Routes.aboutUs),
   DeepLinkRoute(Routes.aboutUs, Routes.aboutUs),
@@ -23,6 +29,11 @@ const List<DeepLinkRoute> deepLinkRoutes = [
   DeepLinkRoute('/contact', Routes.contactUs),
   DeepLinkRoute(Routes.contactUs, Routes.contactUs),
 ];
+
+Object? _academicCalendarArguments(
+  Map<String, String> values,
+  Map<String, String> query,
+) => const AcademicCalendarArguments(hasBack: true);
 
 /// Links that opened the app or arrive while it runs. A web build also
 /// accepts its own origin, so the portal works on any host it is served

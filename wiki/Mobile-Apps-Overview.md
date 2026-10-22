@@ -27,6 +27,8 @@ Both apps use the same folder structure under `lib/`:
 | `lib/main.dart` | Calls `initializeApp()`; carries the version comment `///v-3.5.0`. |
 | `lib/app/app.dart` | `initializeApp()` (Firebase, Crashlytics, notifications, Hive), `MyApp` with the global `MultiBlocProvider` and `MaterialApp`. |
 | `lib/app/routes.dart` | `Routes` class: route-name constants and `onGenerateRouted()` (a `switch` over route names, unknown names give an empty `Scaffold`). |
+| `lib/app/routeArguments.dart` | The typed arguments of the routes that take several values (see [Route arguments](#route-arguments)). |
+| `lib/app/deepLinks.dart`, `lib/app/sessionWatcher.dart` | The links the app understands, and what keeps `/me/context` and links in step with sign-in (see [Links into the app](#links-into-the-app)). |
 | `lib/cubits/` | Feature Cubits (one file per Cubit, state classes in the same file). Sub-folders `chat/` and `gallery/`. Some screen-private Cubits live next to their screen, e.g. `e-school/lib/ui/screens/reports/cubits/`. |
 | `lib/data/models/` | Plain Dart model classes with `fromJson` / `toJson`. |
 | `lib/data/repositories/` | One class per domain (`AuthRepository`, `StudentRepository`, `SystemRepository`, ...). Repositories are the only layer that calls `Api`. |
@@ -85,6 +87,10 @@ The splash screen (`lib/ui/screens/splashScreen.dart`) then:
 3. Waits at least 2 seconds, then routes to the login screen when `AuthCubit` is `Unauthenticated`, otherwise to the home screen. The student app has extra branches (a parent's first sign-in, parent home, compulsory-fee screen), see [Student-Parent-App](Student-Parent-App#login-and-the-two-user-types).
 
 If the configuration request fails the splash shows an `ErrorContainer` with a retry button; the app cannot get past the splash screen without reaching the server.
+
+## Route arguments
+
+Screens are opened by name (`Navigator.pushNamed(context, Routes.x, arguments: ...)`) and each screen's `static Route route(RouteSettings)` reads `routeSettings.arguments`. The arguments are typed: a route that takes several values has a small class in `lib/app/routeArguments.dart` (for example `ChildSubjectsArguments(childId:, subjects:)` for a child's assignments, exams, results and reports, `FeesDetailsArguments` with a `forChildId` constructor for fee reminders, `ExamTimeTableArguments`, `ClassScreenArguments` and `AddOrEditLessonArguments` in the teacher app); a route that takes one value receives it as it is (a `Student`, an `Assignment`, an `Event`, a `ChatUser`, a `GalleryAlbum`, a child id, the payment URL). The file viewers' `ImageFileViewArguments` and `PdfFileViewArguments` are in `eschool_core`, because both apps and the shared widgets open them. Passing the wrong type fails when the route is built, and `test/routes_test.dart` in each app builds every argument-taking route with its class. The add and edit screens, the file viewers and the academic calendar also open without arguments.
 
 ## State management
 

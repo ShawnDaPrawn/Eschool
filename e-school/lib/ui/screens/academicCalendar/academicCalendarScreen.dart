@@ -1,4 +1,5 @@
 // ignore_for_file: public_member_api_docs, sort_constructors_first
+import 'package:eschool/app/routeArguments.dart';
 import 'package:eschool/cubits/academicCalendarCubit.dart';
 import 'package:eschool/cubits/academicCalendarPdfDownloadCubit.dart';
 import 'package:eschool/cubits/appConfigurationCubit.dart';
@@ -52,7 +53,9 @@ class AcademicCalendarScreen extends StatefulWidget {
   }
 
   static Route route(RouteSettings routeSettings) {
-    final arguments = routeSettings.arguments! as Map<String, dynamic>;
+    final arguments =
+        routeSettings.arguments as AcademicCalendarArguments? ??
+        const AcademicCalendarArguments();
     return CupertinoPageRoute(
       builder: (_) => BlocProvider<AcademicCalendarCubit>(
         create: (context) => AcademicCalendarCubit(
@@ -61,8 +64,8 @@ class AcademicCalendarScreen extends StatefulWidget {
           appConfigurationCubit: context.read<AppConfigurationCubit>(),
         ),
         child: AcademicCalendarScreen(
-          hasBack: arguments['hasBack'] ?? false,
-          childId: arguments['childId'],
+          hasBack: arguments.hasBack,
+          childId: arguments.childId,
         ),
       ),
     );

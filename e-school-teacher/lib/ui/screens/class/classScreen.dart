@@ -1,3 +1,4 @@
+import 'package:eschool_teacher/app/routeArguments.dart';
 import 'package:eschool_teacher/app/routes.dart';
 import 'package:eschool_teacher/cubits/studentsByClassSectionCubit.dart';
 import 'package:eschool_teacher/cubits/subjectsOfClassSectionCubit.dart';
@@ -34,7 +35,7 @@ class ClassScreen extends StatefulWidget {
   State<ClassScreen> createState() => _ClassScreenState();
 
   static Route route(RouteSettings routeSettings) {
-    final arguments = routeSettings.arguments! as Map<String, dynamic>;
+    final arguments = routeSettings.arguments! as ClassScreenArguments;
     return CupertinoPageRoute(
       builder: (_) => MultiBlocProvider(
         providers: [
@@ -48,8 +49,8 @@ class ClassScreen extends StatefulWidget {
           ),
         ],
         child: ClassScreen(
-          classSection: arguments['classSection'],
-          isClassTeacher: arguments['isClassTeacher'],
+          classSection: arguments.classSection,
+          isClassTeacher: arguments.isClassTeacher,
         ),
       ),
     );
@@ -110,14 +111,14 @@ class _ClassScreenState extends State<ClassScreen> {
                                       onTap: () {
                                         Navigator.of(context).pushNamed(
                                           Routes.searchStudent,
-                                          arguments: {
-                                            'students': context
+                                          arguments: SearchStudentArguments(
+                                            students: context
                                                 .read<
                                                   StudentsByClassSectionCubit
                                                 >()
                                                 .getStudents(),
-                                            'fromAttendanceScreen': false,
-                                          },
+                                            fromAttendanceScreen: false,
+                                          ),
                                         );
                                       },
                                     );

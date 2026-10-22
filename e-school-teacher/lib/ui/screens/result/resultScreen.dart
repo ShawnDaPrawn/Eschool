@@ -1,3 +1,4 @@
+import 'package:eschool_teacher/app/routeArguments.dart';
 import 'package:eschool_teacher/cubits/downloadResultPdfCubit.dart';
 import 'package:eschool_teacher/cubits/examCubit.dart';
 import 'package:eschool_teacher/cubits/studentCompletedExamWithResultCubit.dart';
@@ -28,7 +29,7 @@ class ResultListScreen extends StatelessWidget {
   final int classSectionId;
 
   static Route route(RouteSettings routeSettings) {
-    final studentData = routeSettings.arguments! as Map<String, dynamic>;
+    final studentData = routeSettings.arguments! as ResultListArguments;
     return CupertinoPageRoute(
       builder: (_) => MultiBlocProvider(
         providers: [
@@ -44,10 +45,10 @@ class ResultListScreen extends StatelessWidget {
           ),
         ],
         child: ResultListScreen(
-          studentId: studentData['studentId'],
-          studentName: studentData['studentName'],
-          className: studentData['className'],
-          classSectionId: studentData['classSectionId'],
+          studentId: studentData.studentId,
+          studentName: studentData.studentName,
+          className: studentData.className,
+          classSectionId: studentData.classSectionId,
         ),
       ),
     );

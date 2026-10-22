@@ -1,3 +1,4 @@
+import 'package:eschool_teacher/app/routeArguments.dart';
 import 'package:eschool_teacher/app/routes.dart';
 import 'package:eschool_teacher/cubits/appConfigurationCubit.dart';
 import 'package:eschool_teacher/cubits/classAttendanceCubit.dart';
@@ -137,12 +138,12 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
                           Navigator.of(context)
                               .pushNamed<List<Map<int, AttendanceType?>>?>(
                                 Routes.searchStudent,
-                                arguments: {
-                                  'fromAttendanceScreen': true,
-                                  'students': widget.students,
-                                  'listOfAttendanceReport': _listOfAttendance,
-                                  'onLeaveStudents': state.leaveDetails,
-                                },
+                                arguments: SearchStudentArguments(
+                                  fromAttendanceScreen: true,
+                                  students: widget.students,
+                                  listOfAttendanceReport: _listOfAttendance,
+                                  leaveDetails: state.leaveDetails,
+                                ),
                               )
                               .then((value) {
                                 if (value != null) {

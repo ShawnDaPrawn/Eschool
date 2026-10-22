@@ -1,3 +1,4 @@
+import 'package:eschool_teacher/app/routeArguments.dart';
 import 'package:eschool_core/eschool_core.dart';
 import 'package:eschool_teacher/app/routes.dart';
 import 'package:eschool_teacher/cubits/lessonDeleteCubit.dart';
@@ -150,12 +151,12 @@ class LessonsContainer extends StatelessWidget {
                                 Navigator.of(context)
                                     .pushNamed<bool?>(
                                       Routes.addOrEditLesson,
-                                      arguments: {
-                                        'lesson': lesson,
-                                        'subject': subject,
-                                        'classSectionDetails':
+                                      arguments: AddOrEditLessonArguments(
+                                        lesson: lesson,
+                                        subject: subject,
+                                        classSectionDetails:
                                             classSectionDetails,
-                                      },
+                                      ),
                                     )
                                     .then((value) {
                                       if (value != null && value) {
@@ -262,12 +263,12 @@ class LessonsContainer extends StatelessWidget {
                                 Navigator.of(context)
                                     .pushNamed<bool?>(
                                       Routes.topicsByLesson,
-                                      arguments: {
-                                        'classSectionDetails':
+                                      arguments: TopicsByLessonArguments(
+                                        classSectionDetails:
                                             classSectionDetails,
-                                        'subject': subject,
-                                        'lesson': lesson,
-                                      },
+                                        subject: subject,
+                                        lesson: lesson,
+                                      ),
                                     )
                                     .then((value) {
                                       if (value != null && value) {

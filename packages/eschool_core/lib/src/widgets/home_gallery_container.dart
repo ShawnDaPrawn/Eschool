@@ -68,11 +68,7 @@ class _HomeGalleryContainerState extends State<HomeGalleryContainer> {
               ),
               InkWell(
                 onTap: () {
-                  Navigator.pushNamed(
-                    context,
-                    SharedRoutes.gallery,
-                    arguments: {'hasBack': true},
-                  );
+                  Navigator.pushNamed(context, SharedRoutes.gallery);
                 },
                 child: Text(
                   SharedUiUtils.getTranslatedLabel(context, viewAllKey),

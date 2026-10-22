@@ -22,10 +22,11 @@ class PdfFileScreen extends StatefulWidget {
   final bool isFile;
 
   static Route route(RouteSettings routeSettings) {
-    final StudyMaterial studyMaterial =
-        (routeSettings.arguments as Map?)?['studyMaterial'] ??
-        StudyMaterial.fromJson({});
-    final bool isItFile = (routeSettings.arguments as Map?)?['isFile'] ?? false;
+    final arguments =
+        routeSettings.arguments as PdfFileViewArguments? ??
+        PdfFileViewArguments(studyMaterial: StudyMaterial.fromJson({}));
+    final StudyMaterial studyMaterial = arguments.studyMaterial;
+    final bool isItFile = arguments.isFile;
     return CupertinoPageRoute(
       builder: (_) => BlocProvider(
         create: (context) => PdfFileSaveCubit(StudyMaterialRepository()),

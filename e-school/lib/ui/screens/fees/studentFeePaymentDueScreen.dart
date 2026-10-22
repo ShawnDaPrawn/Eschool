@@ -1,3 +1,4 @@
+import 'package:eschool/app/routeArguments.dart';
 import 'package:eschool/app/routes.dart';
 import 'package:eschool/cubits/appConfigurationCubit.dart';
 import 'package:eschool/cubits/askParentsToPayFeesCubit.dart';
@@ -176,17 +177,17 @@ class _StudentFeePaymentDueScreenState
                       onTap: () {
                         Navigator.of(context).pushNamed(
                           Routes.feesDetails,
-                          arguments: {
-                            'studentDetails': context
+                          arguments: FeesDetailsArguments(
+                            studentDetails: context
                                 .read<AuthCubit>()
                                 .getStudentDetails(),
-                            'sessionYearId': context
+                            sessionYearId: context
                                 .read<AppConfigurationCubit>()
                                 .getAppConfiguration()
                                 .sessionYear
                                 .id,
-                            'isStudentPaying': true,
-                          },
+                            isStudentPaying: true,
+                          ),
                         );
                       },
                       titleColor: Theme.of(context).colorScheme.primary,

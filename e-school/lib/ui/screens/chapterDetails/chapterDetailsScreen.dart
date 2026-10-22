@@ -1,3 +1,4 @@
+import 'package:eschool/app/routeArguments.dart';
 import 'package:eschool/data/models/lesson.dart';
 import 'package:eschool_core/eschool_core.dart';
 import 'package:eschool/ui/screens/chapterDetails/widgets/topicsContainer.dart';
@@ -19,12 +20,12 @@ class ChapterDetailsScreen extends StatefulWidget {
   State<ChapterDetailsScreen> createState() => _ChapterDetailsScreenState();
 
   static Route route(RouteSettings routeSettings) {
-    final arguments = routeSettings.arguments! as Map<String, dynamic>;
+    final arguments = routeSettings.arguments! as ChapterDetailsArguments;
 
     return CupertinoPageRoute(
       builder: (_) => ChapterDetailsScreen(
-        lesson: arguments['lesson'],
-        childId: arguments['childId'],
+        lesson: arguments.lesson,
+        childId: arguments.childId,
       ),
     );
   }

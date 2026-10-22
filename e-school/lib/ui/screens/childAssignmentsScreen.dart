@@ -1,3 +1,4 @@
+import 'package:eschool/app/routeArguments.dart';
 import 'package:eschool/cubits/assignmentsCubit.dart';
 import 'package:eschool/cubits/authCubit.dart';
 import 'package:eschool/data/models/subject.dart';
@@ -29,13 +30,13 @@ class ChildAssignmentsScreen extends StatefulWidget {
   State<ChildAssignmentsScreen> createState() => _ChildAssignmentsScreenState();
 
   static Route route(RouteSettings routeSettings) {
-    final arguments = routeSettings.arguments! as Map<String, dynamic>;
+    final arguments = routeSettings.arguments! as ChildSubjectsArguments;
     return CupertinoPageRoute(
       builder: (_) => BlocProvider<AssignmentsCubit>(
         create: (context) => AssignmentsCubit(AssignmentRepository()),
         child: ChildAssignmentsScreen(
-          childId: arguments['childId'],
-          subjects: arguments['subjects'],
+          childId: arguments.childId,
+          subjects: arguments.subjects,
         ),
       ),
     );

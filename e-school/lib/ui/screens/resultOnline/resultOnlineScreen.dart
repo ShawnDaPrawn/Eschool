@@ -1,3 +1,4 @@
+import 'package:eschool/app/routeArguments.dart';
 import 'package:eschool/cubits/authCubit.dart';
 import 'package:eschool/cubits/resultOnlineCubit.dart';
 import 'package:eschool/data/models/resultOnlineDetails.dart';
@@ -29,17 +30,17 @@ class ResultOnlineScreen extends StatefulWidget {
   @override
   ResultOnlineScreenState createState() => ResultOnlineScreenState();
   static Route route(RouteSettings routeSettings) {
-    final arguments = routeSettings.arguments! as Map<String, dynamic>;
+    final arguments = routeSettings.arguments! as ResultOnlineArguments;
     return CupertinoPageRoute(
       builder: (_) => BlocProvider(
         create: (context) => ResultOnlineCubit(ResultOnlineRepository()),
         child: ResultOnlineScreen(
-          examId: arguments['examId'],
-          examName: arguments['examName'],
-          subjectName: arguments['subjectName'],
-          childId: arguments['childId'] ?? 0,
-          totalMarks: arguments['totalMarks'],
-          obtainedMarks: arguments['obtainedMarks'],
+          examId: arguments.examId,
+          examName: arguments.examName,
+          subjectName: arguments.subjectName,
+          childId: arguments.childId ?? 0,
+          totalMarks: arguments.totalMarks,
+          obtainedMarks: arguments.obtainedMarks,
         ),
       ),
     );

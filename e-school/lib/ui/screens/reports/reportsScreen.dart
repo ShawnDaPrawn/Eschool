@@ -1,3 +1,4 @@
+import 'package:eschool/app/routeArguments.dart';
 import 'package:eschool/cubits/authCubit.dart';
 import 'package:eschool/data/models/subject.dart';
 import 'package:eschool/cubits/appConfigurationCubit.dart';
@@ -86,12 +87,12 @@ class ReportsScreen extends StatefulWidget {
   }
 
   static Route route(RouteSettings routeSettings) {
-    final arguments = routeSettings.arguments as Map<String, dynamic>?;
+    final arguments = routeSettings.arguments as ChildSubjectsArguments?;
     return CupertinoPageRoute(
       builder: (context) => ReportsScreen.builder(
         context,
-        childId: arguments?['childId'],
-        subjects: arguments?['subjects'],
+        childId: arguments?.childId,
+        subjects: arguments?.subjects,
       ),
     );
   }

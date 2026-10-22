@@ -1,3 +1,4 @@
+import 'package:eschool/app/routeArguments.dart';
 import 'package:eschool/cubits/resultsCubit.dart';
 import 'package:eschool/cubits/semestersCubit.dart';
 import 'package:eschool/data/models/subject.dart';
@@ -17,7 +18,7 @@ class ChildResultsScreen extends StatelessWidget {
   final List<Subject>? subjects;
 
   static Route route(RouteSettings routeSettings) {
-    final arguments = routeSettings.arguments! as Map<String, dynamic>;
+    final arguments = routeSettings.arguments! as ChildSubjectsArguments;
     return CupertinoPageRoute(
       builder: (_) => MultiBlocProvider(
         providers: [
@@ -27,8 +28,8 @@ class ChildResultsScreen extends StatelessWidget {
           BlocProvider<SemestersCubit>(create: (context) => SemestersCubit()),
         ],
         child: ChildResultsScreen(
-          childId: arguments['childId'],
-          subjects: arguments['subjects'],
+          childId: arguments.childId,
+          subjects: arguments.subjects,
         ),
       ),
     );

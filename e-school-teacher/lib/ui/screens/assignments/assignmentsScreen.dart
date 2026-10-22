@@ -1,3 +1,4 @@
+import 'package:eschool_teacher/app/routeArguments.dart';
 import 'package:eschool_teacher/app/routes.dart';
 import 'package:eschool_teacher/cubits/assignmentCubit.dart';
 import 'package:eschool_teacher/cubits/dashboardCubit.dart';
@@ -179,7 +180,7 @@ class _AssignmentsScreenState extends State<AssignmentsScreen> {
           Navigator.of(context)
               .pushNamed<bool?>(
                 Routes.addAssignment,
-                arguments: {'editAssignment': false},
+                arguments: AddOrEditAssignmentArguments(editAssignment: false),
               )
               .then((value) {
                 if (value != null && value) {

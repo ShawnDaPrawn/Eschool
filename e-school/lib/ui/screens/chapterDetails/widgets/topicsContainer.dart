@@ -1,3 +1,4 @@
+import 'package:eschool/app/routeArguments.dart';
 import 'package:eschool/app/routes.dart';
 import 'package:eschool_core/eschool_core.dart';
 import 'package:eschool/ui/widgets/noDataContainer.dart';
@@ -24,7 +25,7 @@ class TopicsContainer extends StatelessWidget {
           onTap: () {
             Navigator.of(context).pushNamed(
               Routes.topicDetails,
-              arguments: {'topic': topic, 'childId': childId},
+              arguments: TopicDetailsArguments(topic: topic, childId: childId),
             );
           },
           child: Container(

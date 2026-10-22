@@ -1,3 +1,4 @@
+import 'package:eschool_teacher/app/routeArguments.dart';
 import 'package:eschool_teacher/app/routes.dart';
 import 'package:eschool_teacher/cubits/subjectsOfClassSectionCubit.dart';
 import 'package:eschool_teacher/data/models/classSectionDetails.dart';
@@ -26,10 +27,10 @@ class SubjectsContainer extends StatelessWidget {
         onTap: () {
           Navigator.of(context).pushNamed(
             Routes.subject,
-            arguments: {
-              'subject': subject,
-              'classSectionDetails': classSectionDetails,
-            },
+            arguments: SubjectScreenArguments(
+              subject: subject,
+              classSectionDetails: classSectionDetails,
+            ),
           );
         },
         child: Container(

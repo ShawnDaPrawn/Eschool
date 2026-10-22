@@ -1,3 +1,4 @@
+import 'package:eschool_teacher/app/routeArguments.dart';
 import 'package:eschool_teacher/app/routes.dart';
 import 'package:eschool_teacher/cubits/studentMoreDetailsCubit.dart';
 import 'package:eschool_teacher/data/models/guardianDetails.dart';
@@ -383,13 +384,13 @@ class _StudentDetailsContainerState extends State<StudentDetailsContainer> {
         Navigator.pushNamed(
           context,
           Routes.resultList,
-          arguments: {
-            'studentId': widget.student.id,
-            'studentName':
+          arguments: ResultListArguments(
+            studentId: widget.student.id,
+            studentName:
                 '${widget.student.firstName} ${widget.student.lastName}',
-            'className': widget.student.classSectionName,
-            'classSectionId': widget.student.classSectionId,
-          },
+            className: widget.student.classSectionName,
+            classSectionId: widget.student.classSectionId,
+          ),
         );
       },
       child: Container(

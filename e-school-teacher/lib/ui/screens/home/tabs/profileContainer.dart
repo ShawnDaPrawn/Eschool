@@ -175,10 +175,10 @@ class _ProfileContainerState extends State<ProfileContainer> {
           if (state is DownloadIdCardSuccess) {
             Navigator.of(context).pushNamed(
               Routes.pdfFileView,
-              arguments: {
-                'studyMaterial': StudyMaterial.fromURL(state.filePath),
-                'isFile': true,
-              },
+              arguments: PdfFileViewArguments(
+                studyMaterial: StudyMaterial.fromURL(state.filePath),
+                isFile: true,
+              ),
             );
           } else if (state is DownloadIdCardFailure) {
             UiUtils.showBottomToastOverlay(

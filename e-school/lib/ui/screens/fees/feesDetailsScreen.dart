@@ -1,3 +1,4 @@
+import 'package:eschool/app/routeArguments.dart';
 import 'package:eschool/app/routes.dart';
 import 'package:eschool/cubits/appConfigurationCubit.dart';
 import 'package:eschool/cubits/authCubit.dart';
@@ -35,8 +36,8 @@ class FeesDetailsScreen extends StatefulWidget {
   @override
   FeesDetailsScreenState createState() => FeesDetailsScreenState();
   static Route route(RouteSettings routeSettings) {
-    final arguments = routeSettings.arguments! as Map<String, dynamic>;
-    if (arguments['childId'] != null) {
+    final arguments = routeSettings.arguments! as FeesDetailsArguments;
+    if (arguments.childId != null) {
       return CupertinoPageRoute(
         builder: (_) => BlocProvider(
           create: (context) => StudentDetailedFeesCubit(StudentRepository()),
@@ -44,7 +45,7 @@ class FeesDetailsScreen extends StatefulWidget {
             studentDetails: null,
             sessionYearId: null,
             isStudentPaying: false,
-            childId: int.tryParse(arguments['childId'].toString()),
+            childId: arguments.childId,
           ),
         ),
       );
@@ -53,9 +54,9 @@ class FeesDetailsScreen extends StatefulWidget {
       builder: (_) => BlocProvider(
         create: (context) => StudentDetailedFeesCubit(StudentRepository()),
         child: FeesDetailsScreen(
-          studentDetails: arguments['studentDetails'],
-          sessionYearId: arguments['sessionYearId'],
-          isStudentPaying: arguments['isStudentPaying'] ?? false,
+          studentDetails: arguments.studentDetails,
+          sessionYearId: arguments.sessionYearId,
+          isStudentPaying: arguments.isStudentPaying,
         ),
       ),
     );
@@ -721,31 +722,28 @@ class FeesDetailsScreenState extends State<FeesDetailsScreen> {
                   : state.paymentGatewayDetails['id'].toString();
 
               Navigator.of(context)
-                  .pushNamed(
-                    Routes.webViewPaymentScreen,
-                    arguments: {'paymentURL': paymentUrl},
-                  )
+                  .pushNamed(Routes.webViewPaymentScreen, arguments: paymentUrl)
                   .then((value) {
                     if (value is bool) {
                       if (value) {
                         Navigator.of(context).pushReplacementNamed(
                           Routes.paymentVerify,
-                          arguments: {
-                            'studentDetails': studentDetails,
-                            'transactionId': paymentTransactionId,
-                            'status': 1,
-                            'isStudentPaying': widget.isStudentPaying,
-                          },
+                          arguments: PaymentVerificationArguments(
+                            studentDetails: studentDetails,
+                            transactionId: paymentTransactionId,
+                            status: 1,
+                            isStudentPaying: widget.isStudentPaying,
+                          ),
                         );
                       } else {
                         Navigator.of(context).pushReplacementNamed(
                           Routes.paymentVerify,
-                          arguments: {
-                            'studentDetails': studentDetails,
-                            'transactionId': paymentTransactionId,
-                            'status': 0,
-                            'isStudentPaying': widget.isStudentPaying,
-                          },
+                          arguments: PaymentVerificationArguments(
+                            studentDetails: studentDetails,
+                            transactionId: paymentTransactionId,
+                            status: 0,
+                            isStudentPaying: widget.isStudentPaying,
+                          ),
                         );
                       }
                     }
@@ -1322,24 +1320,24 @@ class FeesDetailsScreenState extends State<FeesDetailsScreen> {
       if (context.mounted) {
         Navigator.of(context).pushReplacementNamed(
           Routes.paymentVerify,
-          arguments: {
-            'studentDetails': studentDetails,
-            'transactionId': paymentTransactionId,
-            'paymentIntentId': paymentIntentId,
-            'isStudentPaying': widget.isStudentPaying,
-          },
+          arguments: PaymentVerificationArguments(
+            studentDetails: studentDetails,
+            transactionId: paymentTransactionId,
+            paymentIntentId: paymentIntentId,
+            isStudentPaying: widget.isStudentPaying,
+          ),
         );
       }
     } catch (e) {
       if (context.mounted) {
         Navigator.of(context).pushReplacementNamed(
           Routes.paymentVerify,
-          arguments: {
-            'studentDetails': studentDetails,
-            'transactionId': paymentTransactionId,
-            'paymentIntentId': paymentIntentId,
-            'isStudentPaying': widget.isStudentPaying,
-          },
+          arguments: PaymentVerificationArguments(
+            studentDetails: studentDetails,
+            transactionId: paymentTransactionId,
+            paymentIntentId: paymentIntentId,
+            isStudentPaying: widget.isStudentPaying,
+          ),
         );
       }
     }

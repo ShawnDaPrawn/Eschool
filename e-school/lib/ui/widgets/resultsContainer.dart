@@ -1,3 +1,4 @@
+import 'package:eschool/app/routeArguments.dart';
 import 'package:eschool/app/routes.dart';
 import 'package:eschool/cubits/appConfigurationCubit.dart';
 import 'package:eschool/cubits/authCubit.dart';
@@ -274,7 +275,10 @@ class _ResultsContainerState extends State<ResultsContainer> {
           onItemTap: () {
             Navigator.of(context).pushNamed(
               Routes.result,
-              arguments: {'childId': widget.childId, 'result': result},
+              arguments: ResultArguments(
+                childId: widget.childId,
+                result: result,
+              ),
             );
           },
         ),
@@ -465,16 +469,16 @@ class _ResultsContainerState extends State<ResultsContainer> {
       onItemTap: () {
         Navigator.of(context).pushNamed(
           Routes.resultOnline,
-          arguments: {
-            'examId': result.examId,
-            'examName': result.examName,
-            'subjectName': result.subject.showType
+          arguments: ResultOnlineArguments(
+            examId: result.examId,
+            examName: result.examName,
+            subjectName: result.subject.showType
                 ? result.subject.subjectNameWithType
                 : result.subject.name,
-            'childId': widget.childId,
-            'totalMarks': result.totalMarks,
-            'obtainedMarks': result.obtainedMarks,
-          },
+            childId: widget.childId,
+            totalMarks: result.totalMarks,
+            obtainedMarks: result.obtainedMarks,
+          ),
         );
       },
     );

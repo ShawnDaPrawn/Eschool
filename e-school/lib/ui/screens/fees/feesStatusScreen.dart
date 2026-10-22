@@ -1,3 +1,4 @@
+import 'package:eschool/app/routeArguments.dart';
 import 'package:eschool/app/routes.dart';
 import 'package:eschool/cubits/appConfigurationCubit.dart';
 import 'package:eschool/cubits/authCubit.dart';
@@ -20,10 +21,9 @@ class FeesStatusScreen extends StatefulWidget {
   final Student studentDetails;
 
   static Route route(RouteSettings routeSettings) {
-    final arguments = routeSettings.arguments! as Map<String, dynamic>;
     return CupertinoPageRoute(
       builder: (_) =>
-          FeesStatusScreen(studentDetails: arguments['studentDetails']),
+          FeesStatusScreen(studentDetails: routeSettings.arguments! as Student),
     );
   }
 
@@ -96,14 +96,14 @@ class _FeesStatusScreenState extends State<FeesStatusScreen> {
             .getOnlineFeesPaymentStatus()) {
           Navigator.of(context).pushNamed(
             Routes.feesDetails,
-            arguments: {
-              'studentDetails': widget.studentDetails,
-              'sessionYearId': context
+            arguments: FeesDetailsArguments(
+              studentDetails: widget.studentDetails,
+              sessionYearId: context
                   .read<AppConfigurationCubit>()
                   .getAppConfiguration()
                   .sessionYear
                   .id,
-            },
+            ),
           );
         } else {
           //show snackbar
@@ -216,14 +216,14 @@ class _FeesStatusScreenState extends State<FeesStatusScreen> {
                                   .getOnlineFeesPaymentStatus()) {
                                 Navigator.of(context).pushNamed(
                                   Routes.feesDetails,
-                                  arguments: {
-                                    'studentDetails': widget.studentDetails,
-                                    'sessionYearId': context
+                                  arguments: FeesDetailsArguments(
+                                    studentDetails: widget.studentDetails,
+                                    sessionYearId: context
                                         .read<AppConfigurationCubit>()
                                         .getAppConfiguration()
                                         .sessionYear
                                         .id,
-                                  },
+                                  ),
                                 );
                               }
                             }

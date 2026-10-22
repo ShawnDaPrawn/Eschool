@@ -1,3 +1,4 @@
+import 'package:eschool_teacher/app/routeArguments.dart';
 import 'package:eschool_core/eschool_core.dart';
 import 'package:eschool_teacher/app/routes.dart';
 import 'package:eschool_teacher/cubits/deleteTopicCubit.dart';
@@ -149,13 +150,13 @@ class TopicsContainer extends StatelessWidget {
                                 Navigator.of(context)
                                     .pushNamed<bool?>(
                                       Routes.addOrEditTopic,
-                                      arguments: {
-                                        'classSectionDetails':
+                                      arguments: AddOrEditTopicArguments(
+                                        classSectionDetails:
                                             classSectionDetails,
-                                        'subject': subject,
-                                        'lesson': lesson,
-                                        'topic': topic,
-                                      },
+                                        subject: subject,
+                                        lesson: lesson,
+                                        topic: topic,
+                                      ),
                                     )
                                     .then((value) {
                                       if (value != null && value) {

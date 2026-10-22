@@ -1,3 +1,4 @@
+import 'package:eschool_teacher/app/routeArguments.dart';
 import 'package:eschool_teacher/app/routes.dart';
 import 'package:eschool_teacher/cubits/announcementsCubit.dart';
 import 'package:eschool_teacher/cubits/lessonsCubit.dart';
@@ -32,7 +33,7 @@ class SubjectScreen extends StatefulWidget {
   State<SubjectScreen> createState() => _SubjectScreenState();
 
   static Route<dynamic> route(RouteSettings routeSettings) {
-    final arguments = routeSettings.arguments! as Map<String, dynamic>;
+    final arguments = routeSettings.arguments! as SubjectScreenArguments;
     return CupertinoPageRoute(
       builder: (_) => MultiBlocProvider(
         providers: [
@@ -42,8 +43,8 @@ class SubjectScreen extends StatefulWidget {
           ),
         ],
         child: SubjectScreen(
-          classSectionDetails: arguments['classSectionDetails'],
-          subject: arguments['subject'],
+          classSectionDetails: arguments.classSectionDetails,
+          subject: arguments.subject,
         ),
       ),
     );
@@ -104,14 +105,14 @@ class _SubjectScreenState extends State<SubjectScreen> {
               ? Routes.addOrEditLesson
               : Routes.addOrEditAnnouncement,
           arguments: _selectedTabTitle == chaptersKey
-              ? {
-                  'subject': widget.subject,
-                  'classSectionDetails': widget.classSectionDetails,
-                }
-              : {
-                  'subject': widget.subject,
-                  'classSectionDetails': widget.classSectionDetails,
-                },
+              ? AddOrEditLessonArguments(
+                  subject: widget.subject,
+                  classSectionDetails: widget.classSectionDetails,
+                )
+              : AddOrEditAnnouncementArguments(
+                  subject: widget.subject,
+                  classSectionDetails: widget.classSectionDetails,
+                ),
         )
         .then((value) {
           if (value != null && value is bool && value) {

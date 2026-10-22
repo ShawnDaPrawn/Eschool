@@ -1,3 +1,4 @@
+import 'package:eschool/app/routeArguments.dart';
 import 'package:eschool/cubits/authCubit.dart';
 import 'package:eschool/cubits/topicStudyMaterialCubit.dart';
 import 'package:eschool_core/eschool_core.dart';
@@ -23,13 +24,13 @@ class TopicDetailsScreen extends StatefulWidget {
   State<TopicDetailsScreen> createState() => _TopicDetailsScreenState();
 
   static Route route(RouteSettings routeSettings) {
-    final arguments = routeSettings.arguments! as Map<String, dynamic>;
+    final arguments = routeSettings.arguments! as TopicDetailsArguments;
     return CupertinoPageRoute(
       builder: (_) => BlocProvider<TopicStudyMaterialCubit>(
         create: (context) => TopicStudyMaterialCubit(SubjectRepository()),
         child: TopicDetailsScreen(
-          topic: arguments['topic'],
-          childId: arguments['childId'],
+          topic: arguments.topic,
+          childId: arguments.childId,
         ),
       ),
     );

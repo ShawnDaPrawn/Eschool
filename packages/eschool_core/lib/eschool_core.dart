@@ -33,6 +33,7 @@ export 'src/theme/app_theme.dart';
 export 'src/theme/brand_colors.dart';
 export 'src/theme/readable_on.dart';
 export 'src/theme/status_colors.dart';
+export 'src/ui/file_view_arguments.dart';
 export 'src/ui/shared_assets.dart';
 export 'src/ui/shared_routes.dart';
 export 'src/ui/shared_ui_utils.dart';

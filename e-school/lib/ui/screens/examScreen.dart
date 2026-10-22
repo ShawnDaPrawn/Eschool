@@ -1,3 +1,4 @@
+import 'package:eschool/app/routeArguments.dart';
 import 'package:eschool/cubits/semestersCubit.dart';
 import 'package:eschool/data/models/subject.dart';
 import 'package:eschool/ui/screens/home/widgets/examContainer.dart';
@@ -11,13 +12,13 @@ class ExamScreen extends StatelessWidget {
   final List<Subject>? subjects;
 
   static Route route(RouteSettings routeSettings) {
-    final arguments = routeSettings.arguments! as Map<String, dynamic>;
+    final arguments = routeSettings.arguments! as ChildSubjectsArguments;
     return CupertinoPageRoute(
       builder: (_) => BlocProvider<SemestersCubit>(
         create: (context) => SemestersCubit(),
         child: ExamScreen(
-          childId: arguments['childId'],
-          subjects: arguments['subjects'],
+          childId: arguments.childId,
+          subjects: arguments.subjects,
         ),
       ),
     );

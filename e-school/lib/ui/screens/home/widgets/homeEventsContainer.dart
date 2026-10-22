@@ -1,3 +1,4 @@
+import 'package:eschool/app/routeArguments.dart';
 import 'package:eschool/app/routes.dart';
 import 'package:eschool/data/models/event.dart';
 import 'package:eschool/ui/widgets/listItemForEvents.dart';
@@ -61,7 +62,7 @@ class HomeEventsContainer extends StatelessWidget {
                   Navigator.pushNamed(
                     context,
                     Routes.academicCalendar,
-                    arguments: {'hasBack': true},
+                    arguments: AcademicCalendarArguments(hasBack: true),
                   );
                 },
                 child: Text(

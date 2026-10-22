@@ -1,3 +1,4 @@
+import 'package:eschool/app/routeArguments.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:eschool_core/eschool_core.dart';
 import 'package:eschool/ui/screens/playVideo/widgets/playPauseButton.dart';
@@ -26,12 +27,11 @@ class PlayVideoScreen extends StatefulWidget {
   State<PlayVideoScreen> createState() => _PlayVideoScreenState();
 
   static Route route(RouteSettings routeSettings) {
-    final arguments = routeSettings.arguments! as Map<String, dynamic>;
+    final arguments = routeSettings.arguments! as PlayVideoArguments;
     return CupertinoPageRoute(
       builder: (context) => PlayVideoScreen(
-        currentlyPlayingVideo:
-            arguments['currentlyPlayingVideo'] as StudyMaterial,
-        relatedVideos: arguments['relatedVideos'] as List<StudyMaterial>,
+        currentlyPlayingVideo: arguments.currentlyPlayingVideo,
+        relatedVideos: arguments.relatedVideos,
       ),
     );
   }

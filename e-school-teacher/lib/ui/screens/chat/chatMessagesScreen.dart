@@ -31,8 +31,7 @@ class ChatMessagesScreen extends StatefulWidget {
 
   static CupertinoPageRoute route(RouteSettings routeSettings) {
     final ChatUser user =
-        (routeSettings.arguments as Map<String, dynamic>?)?['chatUser'] ??
-        ChatUser.fromJsonAPI({});
+        routeSettings.arguments as ChatUser? ?? ChatUser.fromJsonAPI({});
     return CupertinoPageRoute(
       builder: (_) => BlocProvider<ChatMessagesCubit>(
         create: (context) => ChatMessagesCubit(ChatRepository()),
@@ -98,7 +97,7 @@ class _ChatMessagesScreenState extends State<ChatMessagesScreen> {
     Navigator.pushNamed(
       context,
       Routes.chatUserProfile,
-      arguments: {'chatUser': widget.chatUser},
+      arguments: widget.chatUser,
     );
   }
 

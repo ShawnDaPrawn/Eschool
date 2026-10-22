@@ -15,10 +15,11 @@ class WebViewPaymentScreen extends StatefulWidget {
   State<WebViewPaymentScreen> createState() => _WebViewPaymentScreenState();
 
   static Route route(RouteSettings routeSettings) {
-    final arguments = routeSettings.arguments! as Map<String, dynamic>;
     return CupertinoPageRoute(
       builder: (_) =>
-          WebViewPaymentScreen(paymentUrl: arguments['paymentURL'] ?? ''),
+          WebViewPaymentScreen(
+            paymentUrl: routeSettings.arguments as String? ?? '',
+          ),
     );
   }
 }

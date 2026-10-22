@@ -1,3 +1,4 @@
+import 'package:eschool_teacher/app/routeArguments.dart';
 import 'package:eschool_teacher/cubits/createLessonCubit.dart';
 import 'package:eschool_teacher/cubits/dashboardCubit.dart';
 import 'package:eschool_teacher/cubits/editLessonCubit.dart';
@@ -36,8 +37,8 @@ class AddOrEditLessonScreen extends StatefulWidget {
 
   static Route<bool?> route(RouteSettings routeSettings) {
     final arguments =
-        (routeSettings.arguments ?? Map<String, dynamic>.from({}))
-            as Map<String, dynamic>;
+        routeSettings.arguments as AddOrEditLessonArguments? ??
+        const AddOrEditLessonArguments();
 
     return CupertinoPageRoute(
       builder: (_) => MultiBlocProvider(
@@ -54,9 +55,9 @@ class AddOrEditLessonScreen extends StatefulWidget {
           ),
         ],
         child: AddOrEditLessonScreen(
-          classSectionDetails: arguments['classSectionDetails'],
-          lesson: arguments['lesson'],
-          subject: arguments['subject'],
+          classSectionDetails: arguments.classSectionDetails,
+          lesson: arguments.lesson,
+          subject: arguments.subject,
         ),
       ),
     );

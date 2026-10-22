@@ -1,3 +1,4 @@
+import 'package:eschool_teacher/app/routeArguments.dart';
 import 'package:eschool_teacher/cubits/createAnnouncementCubit.dart';
 import 'package:eschool_teacher/cubits/dashboardCubit.dart';
 import 'package:eschool_teacher/cubits/editAnnouncementCubit.dart';
@@ -35,8 +36,8 @@ class AddOrEditAnnouncementScreen extends StatefulWidget {
 
   static Route<bool?> route(RouteSettings routeSettings) {
     final arguments =
-        (routeSettings.arguments ?? Map<String, dynamic>.from({}))
-            as Map<String, dynamic>;
+        routeSettings.arguments as AddOrEditAnnouncementArguments? ??
+        const AddOrEditAnnouncementArguments();
     return CupertinoPageRoute(
       builder: (_) => MultiBlocProvider(
         providers: [
@@ -54,9 +55,9 @@ class AddOrEditAnnouncementScreen extends StatefulWidget {
           ),
         ],
         child: AddOrEditAnnouncementScreen(
-          announcement: arguments['announcement'],
-          subject: arguments['subject'],
-          classSectionDetails: arguments['classSectionDetails'],
+          announcement: arguments.announcement,
+          subject: arguments.subject,
+          classSectionDetails: arguments.classSectionDetails,
         ),
       ),
     );

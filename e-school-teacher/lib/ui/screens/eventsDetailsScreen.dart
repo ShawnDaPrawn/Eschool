@@ -18,11 +18,10 @@ class EventDetailsScreen extends StatefulWidget {
   const EventDetailsScreen({required this.event, super.key});
 
   static Route route(RouteSettings routeSettings) {
-    final arguments = routeSettings.arguments! as Map<String, dynamic>;
     return CupertinoPageRoute(
       builder: (_) => BlocProvider<EventDetailsCubit>(
         create: (context) => EventDetailsCubit(SystemRepository()),
-        child: EventDetailsScreen(event: arguments['event']),
+        child: EventDetailsScreen(event: routeSettings.arguments! as Event),
       ),
     );
   }

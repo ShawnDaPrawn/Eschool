@@ -1,3 +1,4 @@
+import 'package:eschool_teacher/app/routeArguments.dart';
 import 'package:eschool_teacher/app/routes.dart';
 import 'package:eschool_teacher/cubits/studentCompletedExamWithResultCubit.dart';
 import 'package:eschool_teacher/data/models/studentResult.dart';
@@ -170,13 +171,12 @@ class _ResultsContainerState extends State<ResultsContainer> {
                                   Navigator.of(context)
                                       .pushNamed(
                                         Routes.addResult,
-                                        arguments: {
-                                          'studentResultData': resultData,
-                                          'studentName': widget.studentName,
-                                          'studentId': widget.studentId,
-                                          'classSectionId':
-                                              widget.classSectionId,
-                                        },
+                                        arguments: AddResultArguments(
+                                          studentResultData: resultData,
+                                          studentName: widget.studentName!,
+                                          studentId: widget.studentId!,
+                                          classSectionId: widget.classSectionId,
+                                        ),
                                       )
                                       .then((value) {
                                         //If marks is submitted then re-call the API to get updated data

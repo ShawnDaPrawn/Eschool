@@ -1,3 +1,4 @@
+import 'package:eschool_teacher/app/routeArguments.dart';
 import 'package:eschool_teacher/app/routes.dart';
 import 'package:eschool_teacher/cubits/topicsCubit.dart';
 import 'package:eschool_teacher/data/models/classSectionDetails.dart';
@@ -26,7 +27,7 @@ class TopcisByLessonScreen extends StatefulWidget {
   State<TopcisByLessonScreen> createState() => _TopcisByLessonScreenState();
 
   static Route<bool?> route(RouteSettings routeSettings) {
-    final arguments = routeSettings.arguments! as Map<String, dynamic>;
+    final arguments = routeSettings.arguments! as TopicsByLessonArguments;
     return CupertinoPageRoute(
       builder: (_) => MultiBlocProvider(
         providers: [
@@ -35,9 +36,9 @@ class TopcisByLessonScreen extends StatefulWidget {
           ),
         ],
         child: TopcisByLessonScreen(
-          classSectionDetails: arguments['classSectionDetails'],
-          lesson: arguments['lesson'],
-          subject: arguments['subject'],
+          classSectionDetails: arguments.classSectionDetails,
+          lesson: arguments.lesson,
+          subject: arguments.subject,
         ),
       ),
     );
@@ -76,11 +77,11 @@ class _TopcisByLessonScreenState extends State<TopcisByLessonScreen> {
             Navigator.of(context)
                 .pushNamed<bool?>(
                   Routes.addOrEditTopic,
-                  arguments: {
-                    'classSectionDetails': widget.classSectionDetails,
-                    'subject': widget.subject,
-                    'lesson': widget.lesson,
-                  },
+                  arguments: AddOrEditTopicArguments(
+                    classSectionDetails: widget.classSectionDetails,
+                    subject: widget.subject,
+                    lesson: widget.lesson,
+                  ),
                 )
                 .then((value) {
                   if (value != null && value) {

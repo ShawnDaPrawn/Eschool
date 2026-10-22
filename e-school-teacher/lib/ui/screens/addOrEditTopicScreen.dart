@@ -1,3 +1,4 @@
+import 'package:eschool_teacher/app/routeArguments.dart';
 import 'package:eschool_teacher/cubits/createTopicCubit.dart';
 import 'package:eschool_teacher/cubits/dashboardCubit.dart';
 import 'package:eschool_teacher/cubits/editTopicCubit.dart';
@@ -40,8 +41,8 @@ class AddOrEditTopicScreen extends StatefulWidget {
 
   static Route<bool?> route(RouteSettings routeSettings) {
     final arguments =
-        (routeSettings.arguments ?? Map<String, dynamic>.from({}))
-            as Map<String, dynamic>;
+        routeSettings.arguments as AddOrEditTopicArguments? ??
+        const AddOrEditTopicArguments();
 
     return CupertinoPageRoute(
       builder: (_) => MultiBlocProvider(
@@ -57,10 +58,10 @@ class AddOrEditTopicScreen extends StatefulWidget {
           BlocProvider(create: (context) => EditTopicCubit(TopicRepository())),
         ],
         child: AddOrEditTopicScreen(
-          classSectionDetails: arguments['classSectionDetails'],
-          subject: arguments['subject'],
-          lesson: arguments['lesson'],
-          topic: arguments['topic'],
+          classSectionDetails: arguments.classSectionDetails,
+          subject: arguments.subject,
+          lesson: arguments.lesson,
+          topic: arguments.topic,
         ),
       ),
     );

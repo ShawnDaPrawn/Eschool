@@ -1,3 +1,4 @@
+import 'package:eschool_teacher/app/routeArguments.dart';
 import 'package:dotted_border/dotted_border.dart';
 import 'package:eschool_teacher/cubits/createAssignmentCubit.dart';
 import 'package:eschool_teacher/cubits/dashboardCubit.dart';
@@ -35,7 +36,7 @@ class AddAssignmentScreen extends StatefulWidget {
   final Assignment? assignment;
 
   static Route<bool?> routes(RouteSettings routeSettings) {
-    final arguments = routeSettings.arguments! as Map<String, dynamic>;
+    final arguments = routeSettings.arguments! as AddOrEditAssignmentArguments;
     return CupertinoPageRoute(
       builder: (context) {
         return MultiBlocProvider(
@@ -51,8 +52,8 @@ class AddAssignmentScreen extends StatefulWidget {
             ),
           ],
           child: AddAssignmentScreen(
-            editassignment: arguments['editAssignment'],
-            assignment: arguments['assignment'],
+            editassignment: arguments.editAssignment,
+            assignment: arguments.assignment,
           ),
         );
       },

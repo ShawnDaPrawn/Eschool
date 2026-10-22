@@ -16,8 +16,7 @@ class GalleryAlbumPhotosScreen extends StatefulWidget {
       _GalleryAlbumPhotosScreenState();
 
   static Route route(RouteSettings routeSettings) {
-    final arguments = routeSettings.arguments! as Map<String, dynamic>;
-    final album = arguments['album'] as GalleryAlbum;
+    final album = routeSettings.arguments! as GalleryAlbum;
     return CupertinoPageRoute(
       builder: (context) => BlocProvider(
         create: (context) => GalleryAlbumPhotosCubit(
@@ -92,16 +91,14 @@ class _GalleryAlbumPhotosScreenState extends State<GalleryAlbumPhotosScreen> {
                 onTap: () {
                   Navigator.of(context).pushNamed(
                     Routes.imageFileView,
-                    arguments: {
-                      'studyMaterial': StudyMaterial.fromURL(
-                        state.photos[index],
-                      ),
-                      'multiStudyMaterial': state.photos
+                    arguments: ImageFileViewArguments(
+                      studyMaterial: StudyMaterial.fromURL(state.photos[index]),
+                      multiStudyMaterial: state.photos
                           .map<StudyMaterial>((e) => StudyMaterial.fromURL(e))
                           .toList(),
-                      'title': widget.album.title,
-                      'initialPage': index,
-                    },
+                      title: widget.album.title,
+                      initialPage: index,
+                    ),
                   );
                 },
                 child: ClipRRect(

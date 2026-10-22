@@ -1,3 +1,4 @@
+import 'package:eschool/app/routeArguments.dart';
 import 'package:eschool/cubits/authCubit.dart';
 import 'package:eschool/cubits/subjectAnnouncementsCubit.dart';
 import 'package:eschool/cubits/subjectLessonsCubit.dart';
@@ -24,7 +25,7 @@ class SubjectDetailsScreen extends StatefulWidget {
   State<SubjectDetailsScreen> createState() => _SubjectDetailsScreenState();
 
   static Route route(RouteSettings routeSettings) {
-    final arguments = routeSettings.arguments! as Map<String, dynamic>;
+    final arguments = routeSettings.arguments! as SubjectDetailsArguments;
 
     return CupertinoPageRoute(
       builder: (_) => MultiBlocProvider(
@@ -37,8 +38,8 @@ class SubjectDetailsScreen extends StatefulWidget {
           ),
         ],
         child: SubjectDetailsScreen(
-          childId: arguments['childId'],
-          subject: arguments['subject'],
+          childId: arguments.childId,
+          subject: arguments.subject,
         ),
       ),
     );

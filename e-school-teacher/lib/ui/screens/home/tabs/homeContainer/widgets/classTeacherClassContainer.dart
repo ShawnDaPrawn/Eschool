@@ -1,3 +1,4 @@
+import 'package:eschool_teacher/app/routeArguments.dart';
 import 'package:eschool_core/eschool_core.dart';
 import 'package:eschool_teacher/app/routes.dart';
 import 'package:eschool_teacher/data/models/classSectionDetails.dart';
@@ -28,7 +29,10 @@ class ClassTeacherClassContainer extends StatelessWidget {
           onTap: () {
             Navigator.of(context).pushNamed(
               Routes.classScreen,
-              arguments: {'isClassTeacher': true, 'classSection': classDetails},
+              arguments: ClassScreenArguments(
+                isClassTeacher: true,
+                classSection: classDetails,
+              ),
             );
           },
           child: Container(

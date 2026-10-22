@@ -1,3 +1,4 @@
+import 'package:eschool_teacher/app/routeArguments.dart';
 import 'package:eschool_core/eschool_core.dart';
 import 'package:eschool_teacher/app/routes.dart';
 import 'package:eschool_teacher/cubits/announcementsCubit.dart';
@@ -170,12 +171,13 @@ class AnnouncementsContainer extends StatelessWidget {
                                   Navigator.of(context)
                                       .pushNamed<bool?>(
                                         Routes.addOrEditAnnouncement,
-                                        arguments: {
-                                          'subject': subject,
-                                          'classSectionDetails':
-                                              classSectionDetails,
-                                          'announcement': announcement,
-                                        },
+                                        arguments:
+                                            AddOrEditAnnouncementArguments(
+                                              subject: subject,
+                                              classSectionDetails:
+                                                  classSectionDetails,
+                                              announcement: announcement,
+                                            ),
                                       )
                                       .then((value) {
                                         if (value != null && value) {

@@ -1,3 +1,4 @@
+import 'package:eschool/app/routeArguments.dart';
 import 'package:eschool/app/routes.dart';
 import 'package:eschool/cubits/authCubit.dart';
 import 'package:eschool/cubits/subjectLessonsCubit.dart';
@@ -28,7 +29,10 @@ class _ChaptersContainerState extends State<ChaptersContainer> {
         onTap: () {
           Navigator.of(context).pushNamed(
             Routes.chapterDetails,
-            arguments: {'lesson': lesson, 'childId': widget.childId},
+            arguments: ChapterDetailsArguments(
+              lesson: lesson,
+              childId: widget.childId,
+            ),
           );
         },
         child: Container(

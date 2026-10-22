@@ -1,3 +1,4 @@
+import 'package:eschool/app/routeArguments.dart';
 import 'dart:convert';
 
 import 'package:eschool/app/routes.dart';
@@ -49,7 +50,9 @@ void onNotificationTap(String notificationType, Map<String, dynamic> data) {
   } else if (notificationType == NotificationUtility.feePaymentDueType) {
     UiUtils.rootNavigatorKey.currentState?.pushNamed(
       Routes.feesDetails,
-      arguments: {'childId': data['child_id']},
+      arguments: FeesDetailsArguments.forChildId(
+        int.tryParse('${data['child_id']}'),
+      ),
     );
   } else if (notificationType == NotificationUtility.chatNotificaitonType) {
     //get off the route if already on it
@@ -58,9 +61,7 @@ void onNotificationTap(String notificationType, Map<String, dynamic> data) {
     }
     UiUtils.rootNavigatorKey.currentState?.pushNamed(
       Routes.chatMessages,
-      arguments: {
-        'chatUser': ChatUser.fromJsonAPI(jsonDecode(data['sender_info'])),
-      },
+      arguments: ChatUser.fromJsonAPI(jsonDecode(data['sender_info'])),
     );
   }
 }

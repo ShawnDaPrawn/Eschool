@@ -1,3 +1,4 @@
+import 'package:eschool_teacher/app/routeArguments.dart';
 import 'package:eschool_teacher/app/routes.dart';
 import 'package:eschool_teacher/cubits/assignmentCubit.dart';
 import 'package:eschool_teacher/cubits/deleteAssignmentCubit.dart';
@@ -127,10 +128,10 @@ class AssignmentsContainer extends StatelessWidget {
                                   Navigator.of(context)
                                       .pushNamed<bool?>(
                                         Routes.addAssignment,
-                                        arguments: {
-                                          'editAssignment': true,
-                                          'assignment': assignment,
-                                        },
+                                        arguments: AddOrEditAssignmentArguments(
+                                          editAssignment: true,
+                                          assignment: assignment,
+                                        ),
                                       )
                                       .then((value) {
                                         if (value != null && value) {

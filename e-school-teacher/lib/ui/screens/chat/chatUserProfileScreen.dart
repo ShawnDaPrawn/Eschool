@@ -13,8 +13,7 @@ class ChatUserProfileScreen extends StatefulWidget {
 
   static CupertinoPageRoute route(RouteSettings routeSettings) {
     final ChatUser user =
-        (routeSettings.arguments as Map<String, dynamic>?)?['chatUser'] ??
-        ChatUser.fromJsonAPI({});
+        routeSettings.arguments as ChatUser? ?? ChatUser.fromJsonAPI({});
     return CupertinoPageRoute(
       builder: (_) => ChatUserProfileScreen(chatUser: user),
     );

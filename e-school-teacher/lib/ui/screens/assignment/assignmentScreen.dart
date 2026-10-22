@@ -22,7 +22,6 @@ class AssignmentScreen extends StatefulWidget {
   final Assignment assignment;
 
   static Route<dynamic> route(RouteSettings routeSettings) {
-    final arguments = routeSettings.arguments! as Map<String, dynamic>;
     return CupertinoPageRoute(
       builder: (_) => MultiBlocProvider(
         providers: [
@@ -31,7 +30,9 @@ class AssignmentScreen extends StatefulWidget {
                 ReviewAssignmentCubit(ReviewAssignmentRepository()),
           ),
         ],
-        child: AssignmentScreen(assignment: arguments['assignment']),
+        child: AssignmentScreen(
+          assignment: routeSettings.arguments! as Assignment,
+        ),
       ),
     );
   }

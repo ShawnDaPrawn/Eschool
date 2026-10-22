@@ -1,3 +1,4 @@
+import 'package:eschool_teacher/app/routeArguments.dart';
 import 'package:eschool_teacher/app/routes.dart';
 import 'package:eschool_teacher/cubits/examCubit.dart';
 import 'package:eschool_teacher/data/models/exam.dart';
@@ -73,13 +74,13 @@ class _ExamListContainerState extends State<ExamListContainer> {
                   }
                   Navigator.of(context).pushNamed(
                     Routes.examTimeTable,
-                    arguments: {
-                      'examID': examList[index].examID,
-                      'examName': examList[index].examName.toString(),
-                      'studentId': widget.studentId,
-                      'classId': examList[index].classId,
-                      'className': examList[index].className,
-                    },
+                    arguments: ExamTimeTableArguments(
+                      examId: examList[index].examID!,
+                      examName: examList[index].examName.toString(),
+                      studentId: widget.studentId,
+                      classId: examList[index].classId!,
+                      className: examList[index].className!,
+                    ),
                   );
                 },
               ),

@@ -71,9 +71,7 @@ class _ExamOnlineListContainerState extends State<ExamOnlineListContainer> {
   Future<void> navigateToExamScreen() async {
     Navigator.of(context).pop();
 
-    Navigator.of(
-      context,
-    ).pushNamed(Routes.examOnline, arguments: {'exam': examSelected});
+    Navigator.of(context).pushNamed(Routes.examOnline, arguments: examSelected);
   }
 
   void onTapOnlineExam(ExamsOnline exam) {

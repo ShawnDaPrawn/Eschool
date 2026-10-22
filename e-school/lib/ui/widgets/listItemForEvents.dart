@@ -100,11 +100,7 @@ class EventItemContainer extends StatelessWidget {
         !isDetailsScreen && !event.isSingleDayEvent && event.hasDaySchedule;
     final onTap = hasDetails
         ? () {
-            Navigator.pushNamed(
-              context,
-              Routes.eventDetails,
-              arguments: {'event': event},
-            );
+            Navigator.pushNamed(context, Routes.eventDetails, arguments: event);
           }
         : null;
     return GestureDetector(

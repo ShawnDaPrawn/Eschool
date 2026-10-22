@@ -1,3 +1,4 @@
+import 'package:eschool/app/routeArguments.dart';
 import 'package:eschool/app/routes.dart';
 import 'package:eschool/cubits/appConfigurationCubit.dart';
 import 'package:eschool/cubits/authCubit.dart';
@@ -153,17 +154,17 @@ class SettingsContainer extends StatelessWidget {
               if (isStudentLoginAndFeePaymentAllowed) {
                 Navigator.of(context).pushNamed(
                   Routes.feesDetails,
-                  arguments: {
-                    'studentDetails': context
+                  arguments: FeesDetailsArguments(
+                    studentDetails: context
                         .read<AuthCubit>()
                         .getStudentDetails(),
-                    'sessionYearId': context
+                    sessionYearId: context
                         .read<AppConfigurationCubit>()
                         .getAppConfiguration()
                         .sessionYear
                         .id,
-                    'isStudentPaying': true,
-                  },
+                    isStudentPaying: true,
+                  ),
                 );
               } else {
                 Navigator.of(context).pushNamed(Routes.feesTransaction);
@@ -178,11 +179,7 @@ class SettingsContainer extends StatelessWidget {
             onTap: () {
               Navigator.of(context).pushNamed(
                 Routes.manageLeaves,
-                arguments: {
-                  'studentDetails': context
-                      .read<AuthCubit>()
-                      .getStudentDetails(),
-                },
+                arguments: context.read<AuthCubit>().getStudentDetails(),
               );
             },
             // customIcon: SvgPicture.asset(UiUtils.getImagePath("manage_leaves.svg")),

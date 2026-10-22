@@ -23,8 +23,6 @@ class AddLeaveScreen extends StatefulWidget {
   State<AddLeaveScreen> createState() => _AddLeaveScreenState();
 
   static Route route(RouteSettings routeSettings) {
-    final arguments = routeSettings.arguments! as Map<String, dynamic>;
-
     return CupertinoPageRoute<bool?>(
       builder: (_) => MultiBlocProvider(
         providers: [
@@ -35,7 +33,9 @@ class AddLeaveScreen extends StatefulWidget {
             create: (context) => HolidaysCubit(SystemRepository()),
           ),
         ],
-        child: AddLeaveScreen(studentDetails: arguments['studentDetails']),
+        child: AddLeaveScreen(
+          studentDetails: routeSettings.arguments! as Student,
+        ),
       ),
     );
   }

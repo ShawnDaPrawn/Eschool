@@ -1,3 +1,4 @@
+import 'package:eschool/app/routeArguments.dart';
 import 'dart:async';
 
 import 'package:eschool/app/routes.dart';
@@ -24,9 +25,9 @@ class ExamOnlineScreen extends StatefulWidget {
   @override
   ExamOnlineScreenState createState() => ExamOnlineScreenState();
   static Route route(RouteSettings routeSettings) {
-    final arguments = routeSettings.arguments! as Map<String, dynamic>;
     return CupertinoPageRoute(
-      builder: (_) => ExamOnlineScreen(exam: arguments['exam']),
+      builder: (_) =>
+          ExamOnlineScreen(exam: routeSettings.arguments! as ExamsOnline),
     );
   }
 }
@@ -505,13 +506,13 @@ class ExamOnlineScreenState extends State<ExamOnlineScreen>
               Navigator.pushReplacementNamed(
                 context,
                 Routes.resultOnline,
-                arguments: {
-                  'examId': widget.exam.id,
-                  'examName': widget.exam.title,
-                  'subjectName': widget.exam.subject.showType
+                arguments: ResultOnlineArguments(
+                  examId: widget.exam.id,
+                  examName: widget.exam.title,
+                  subjectName: widget.exam.subject.showType
                       ? widget.exam.subject.subjectNameWithType
                       : widget.exam.subject.name,
-                },
+                ),
               );
             },
           ),
