@@ -44,7 +44,7 @@ flowchart LR
 | Web portals | Both apps built for the browser (`flutter build web`): the learner and parent portal from `e-school/`, the teacher portal from `e-school-teacher/`, deployed to Firebase Hosting ([`firebase.json`](firebase.json)) | Flutter web |
 | [`documentation/`](documentation) | End-user guides, published to GitHub Pages and Firebase Hosting | Docusaurus 3 |
 | [`wiki/`](wiki) | Developer wiki. The Wiki tab is published from this folder. | Markdown |
-| [`engineering/`](engineering) | How NavigateEd is built: phase plans and questions, feature specs, decision records, runbooks, the security and self-test records, and the living appendices of the Build Bible | Markdown |
+| [`engineering/`](engineering) | How NavigateEd is built: phase plans and questions, feature specs, decision records, runbooks, the security and self-test records, and the record of what each phase built (data model, catalogues, build log) | Markdown |
 | [`infra/`](infra) | Google Cloud provisioning (`infra/gcp/provision.sh` and an env file per environment), the Firebase Hosting deploy script and the post-deploy smoke test | Bash, gcloud |
 | [`docker-compose.yml`](docker-compose.yml) | The local stack: MySQL 8, the panel, the queue worker and the scheduler, from the same image as Cloud Run | Docker Compose |
 | [`.github/workflows/`](.github/workflows) | Tests, analysis, web builds, app smoke flows, Playwright, the docs build, the dependency audit and secret scan, deploys, and wiki publishing | GitHub Actions |

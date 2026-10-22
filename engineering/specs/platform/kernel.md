@@ -1,6 +1,6 @@
 # Kernel scaffolding: outbox, audit log, money in cents, settings.school_id (Phase 0, feature 0.6)
 
-Phase 0, feature 0.6. Owner role: Backend (work stream S5). Source: Build Bible section 6, build step 6; section 3.1 (Outbox, Audit, Ledger, Settings); principle 5 (money is ledger-grade); 5.4 data rules. Queued delivery and mail are in [queue-and-delivery](queue-and-delivery.md).
+Phase 0, feature 0.6. Owner role: Backend (work stream S5). Source: Build Bible section 6, build step 6; section 3.1 (Outbox, Audit, Ledger, Settings); section 1 (the money principle); section 5.4 (data rules). Queued delivery and mail are in [queue-and-delivery](queue-and-delivery.md).
 
 No user-visible change. Underneath: domain events can be written in the same transaction as a change and dispatched once by the worker; people, marks, fee payments and settings are audited; every fee amount has an exact integer-cents twin that the code reads; settings can be scoped per school in Phase 1 without another migration.
 
@@ -45,7 +45,7 @@ No user-visible change. Underneath: domain events can be written in the same tra
 | Cents columns (BIGINT, nullable, after their float) | `fees_classes.amount_cents`, `fees_paids.total_amount_cents`, `fees_paids.due_charges_cents`, `fees_choiceables.total_amount_cents` (optional fees and due-charge rows), `paid_installment_fees.amount_cents`, `paid_installment_fees.due_charges_cents`, `payment_transactions.total_amount_cents` |
 | Not money | `installment_fees.due_charges` and `session_years.fee_due_charges` are percentages (column comments "in percentage (%)") and get no cents column. |
 
-Back-fill (in the migration, and again by `php artisan money:backfill-cents`, scheduled daily at 02:10): `ROUND(CAST(float AS DECIMAL(20,6)) * 100)` in id ranges of 1000, only where cents are empty. The floats stay until Phase 5. Migrations: `2026_10_22_100100_create_domain_events_table`, `..._100200_create_audit_log_table`, `..._100300_add_school_id_to_settings_table`, `..._100400_add_cents_columns_to_money_tables`; every `down()` is tested.
+Back-fill (in the migration, and again by `php artisan money:backfill-cents`, scheduled daily at 02:10): `ROUND(CAST(float AS DECIMAL(20,6)) * 100)` in id ranges of 1000, only where cents are empty. The floats stay until the ledger work in a later phase. Migrations: `2026_10_22_100100_create_domain_events_table`, `..._100200_create_audit_log_table`, `..._100300_add_school_id_to_settings_table`, `..._100400_add_cents_columns_to_money_tables`; every `down()` is tested.
 
 ## Code
 
@@ -79,7 +79,7 @@ None: kernel, always on.
 - Audit rows never contain `$hidden` attributes (passwords, remember tokens), `platform.audit.never_store` names (API and device tokens) or the values of secret settings. They are append-only through the model; a retention job (later phase) is the only thing that may delete them.
 - An audit row that cannot be written is logged (`audit_record_failed`, ids only) and never blocks the change; before the table exists (earlier migrations) nothing is written.
 - Query-builder writes are not audited by the trait; use `Audit::record()` where they matter.
-- Money: no floats in `Money`'s API; `MoneyCast` refuses floats. Legacy panel money writes still lack idempotency keys (Phase 5 ledger); the two fee removal actions now run in a transaction.
+- Money: no floats in `Money`'s API; `MoneyCast` refuses floats. Legacy panel money writes still lack idempotency keys (they arrive with the ledger work in a later phase); the two fee removal actions now run in a transaction.
 - Outbox listeners run inside the dispatch transaction; listeners with external effects must queue a job.
 
 ## Self-test steps

@@ -11,7 +11,7 @@ How code reaches staging and production, what the pipeline does, and how to chec
 | Staging | every push to `main` (a merged pull request), or **Actions > Deploy staging > Run workflow** | none | no (staging data is disposable) |
 | Production | pushing a `v*` tag, or **Actions > Deploy production > Run workflow** with a `v*` tag selected | a reviewer on the `production` environment (the product owner) | yes, an on-demand Cloud SQL backup |
 
-Production is never deployed by a merge. The production workflow refuses any ref that is not a `v*` tag. Hot fixes for a live defect follow the same path with a patch tag (`v0.1.1`) and are reported to the product owner the same day.
+Production is never deployed by a merge. The production workflow refuses any ref that is not a `v*` tag. A hot fix for a production defect follows the same path with a patch tag (`v0.1.1`) and are reported to the product owner the same day.
 
 ## What the pipeline does
 

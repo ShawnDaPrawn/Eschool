@@ -5,8 +5,8 @@ Status: Accepted (Phase 0, defaulted). The rules are the defaults taken for Q0.5
 ## Context
 
 - Today a learner is identified inside one school by `students.admission_no` (the "GR number"), which is also stored in `users.email` as the student's sign-in name. It is chosen by the school, is not unique across schools, and changes when a learner moves.
-- Phase 1 makes NavigateEd multi-school with one `users` row per human. A learner who moves from one NavigateEd school to another must keep their record, achievements and (later) portfolio, so they need an identifier that belongs to the platform, not to a school.
-- Learners will have a handle for sign-in and for being found by teachers and peers inside a school. Most learners are children: POPIA treats everyone under 18 as a child, and the Bible requires parent approval before a learner signs in.
+- Phase 1 makes NavigateEd multi-school with one `users` row per human. A learner who moves from one NavigateEd school to another must keep their record and history, so they need an identifier that belongs to the platform, not to a school.
+- Learners will have a handle for sign-in and for being found by teachers and peers inside a school. Most learners are children: POPIA treats everyone under 18 as a child, and a learner's account only works once a guardian has approved it (the Build Bible, section 1).
 
 ## Options
 
@@ -50,4 +50,4 @@ Status: Accepted (Phase 0, defaulted). The rules are the defaults taken for Q0.5
 - A ten-digit number with a check digit is easy to read out and hard to mistype; validation is a pure function the apps and the panel can share (`eschool_core` and a PHP service).
 - The year prefix makes the number roughly sortable by first enrolment; it is not a secret and is not used for authentication on its own.
 - The 2026 example in the questions file (`2600012347`) has the wrong check digit; this record carries the corrected example.
-- Handle approval adds a guardian step for children, consistent with "no learner access without a verified, approving guardian". The approval request is a locked notification type (`approval.requested`).
+- Handle approval adds a guardian step for children, in line with the rule that a learner's account depends on an approving guardian. The approval request will be a notification the school cannot switch off.

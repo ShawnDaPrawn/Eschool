@@ -16,7 +16,7 @@
             <img src="{{ schoolLogoUrl('logo1') }}" alt="{{ config('app.name') }}">
         </a>
         <a class="panel-topbar__logo panel-topbar__logo--mini" href="{{ route('home') }}">
-            <img src="{{ schoolSetting('favicon') ? asset('storage/' . schoolSetting('favicon')) : asset('assets/logo.svg') }}" alt="{{ config('app.name') }}">
+            <img src="{{ schoolSetting('favicon') ? asset('storage/' . schoolSetting('favicon')) : asset('assets/logo2.svg') }}" alt="{{ config('app.name') }}">
         </a>
     </div>
     <div class="panel-topbar__bar">

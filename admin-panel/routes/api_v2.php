@@ -35,7 +35,7 @@ Route::prefix('auth')->middleware(['throttle:auth'])->name('api.v2.auth.')->grou
     //
 });
 
-// Money writes (fees, wallet; Phase 5) go in the "money" group inside their
+// Money writes (a later phase) go in the "money" group inside their
 // profile's group: 30 a minute per token, and every write needs an
 // Idempotency-Key.
 $money = ['throttle:money', 'idempotent:required'];

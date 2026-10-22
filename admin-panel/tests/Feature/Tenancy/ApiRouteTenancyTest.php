@@ -19,8 +19,8 @@ use Tests\TestCase;
  * the any-profile list.
  *
  * Phase 1 adds School B (DemoSchoolSeeder) and replaces assertIsolated() with
- * the real check: a School A user asks for a School B record through the
- * route and gets 403 or 404, never data. The cases, lists and the route
+ * the real check: a School A user who asks the route for a School B record is
+ * answered 403 or 404 and sees none of it. The cases, lists and the route
  * enumeration stay as they are.
  */
 class ApiRouteTenancyTest extends TestCase

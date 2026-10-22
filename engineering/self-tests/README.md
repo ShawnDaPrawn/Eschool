@@ -1,51 +1,42 @@
 # Self-test runs
 
-Before a feature is marked done, the Test role walks it as every profile it touches, on staging, in a browser and on a phone (Build Bible section 5.2, "Self-testing across profiles"). Each run is recorded in `phase-N.md` in this folder, one table row per feature, profile and device. Screenshots go in `evidence/` and are linked from the row. A feature with a failed row is not done.
+A feature is not done until someone in the Test role has used it as each profile it affects, in a browser and on a phone, on staging (the Build Bible, section 5.2, sets the rule). Each run goes in `phase-N.md` in this folder as one table row per feature, profile and device, with its screenshots in `evidence/`. Any failed row keeps the feature open.
 
 ## Profiles
 
-The seeded users in `DemoSchoolSeeder` (one school in Phase 0, two from Phase 1):
+The demo accounts come from `DemoSchoolSeeder` (see its header for the sign-in details). Phase 0 has one school:
 
-| Profile | Seeded user |
+| Profile | Demo account |
 | --- | --- |
-| SaaS admin | platform staff, no school |
-| School admin | super admin at School A and at School B |
-| Finance | finance role at School A |
-| Teacher | subject teacher and homeroom teacher at School A |
-| Grade head | teacher with a grade assignment |
-| Facilitator | sport coach, no teaching allocation |
-| Counsellor | counsellor role |
-| Learner | approved learner; unapproved learner |
-| Parent | parent with two children at School A; parent with a child at each school |
-| Vendor | tuck shop vendor at School A |
+| School admin | Super Admin of the demo school |
+| Finance | staff member with the custom Finance role |
+| Teacher | homeroom and subject teacher; a second homeroom teacher |
+| Learner | approved learner, signing in to the app with an admission number |
+| Parent | parent of two learners in different grades |
 
-## Template (Appendix C)
+Phase 1 adds a second school and the profiles it introduces; this table grows with the seeder.
+
+## Recording a run
+
+One row per feature, profile and device:
 
 ```markdown
 | Feature | Profile | Device or browser | Steps | Result | Evidence | Defect |
 |---|---|---|---|---|---|---|
-| Register by QR | Teacher (homeroom) | Pixel 6a, Android 15 | Open register, scan 3 cards, mark 1 absent, save offline, go online | Pass | evidence/p2-register-qr.png | |
-| Register by QR | Grade head | Chrome 1280 px | Open yesterday's register, amend, save | Pass | evidence/p2-register-amend.png | |
+| Year switcher | School admin | Chrome 1280 px | Switch to last year, open Learners, try to edit one | Pass | evidence/p0-year-switcher-edit.png | |
 ```
 
-- **Feature**: the feature name from the phase plan.
-- **Device or browser**: model and OS version, or browser and window width (390, 820 or 1280 px).
-- **Steps**: what was done, as a new user would do it.
+- **Feature**: as named in the phase plan.
+- **Device or browser**: the phone model and OS version, or the browser and window width (390, 820 or 1280 px).
+- **Steps**: what you did, the way a first-time user would.
 - **Result**: Pass or Fail.
-- **Evidence**: a screenshot path under `evidence/`, named `p<N>-<feature>-<step>.png`.
-- **Defect**: the issue or pull request raised when the row failed.
+- **Evidence**: a screenshot under `evidence/`, named `p<N>-<feature>-<step>.png`.
+- **Defect**: the issue or pull request opened for a failure.
 
 ## UX scripts
 
-Five tasks per profile per phase, written as a sentence a new user would be told ("Find out which room your child's next lesson is in"), run on staging with no help, timed, with any wrong turn noted. A task passes if it is completed in under two minutes without a wrong turn; four of five must pass per profile, and failures are fixed before the gate.
+Each phase also tries its screens on people who have not seen them. Give them a task in one plain sentence (for example "Find out when your child's next lesson starts and where"), offer no help, time it on staging and note every wrong turn. A quick task with no wrong turn passes; the Build Bible, section 5.2, sets the time limit and how many tasks each profile must pass, and failures are fixed before the phase closes.
 
-Starter scripts for Phase 0:
+Phase 0's tasks follow its acceptance paths: for an admin, the jobs the new navigation is built around (adding a learner, setting up terms, sending a notice) and the year tools; for teachers, learners and parents, the everyday screens of their app.
 
-| Profile | Tasks |
-| --- | --- |
-| Admin | Add a learner; set up terms; send a notice; switch to last year; create next year |
-| Teacher | Today's timetable; take a register; capture a mark; see a learner's page; message a parent |
-| Learner | Next lesson and room; assignments due; results; a notice; change language |
-| Parent | Child's attendance today; fees balance; a report card; a notice; switch child |
-
-Record UX script runs in the same `phase-N.md`, in a second table: profile, task, time taken, wrong turns, result.
+Record the runs in the same `phase-N.md`, in a second table: profile, task, time taken, wrong turns, result.

@@ -1,8 +1,8 @@
 # Feature specs
 
-One file per feature, at `specs/<module>/<feature>.md`, written before the code. The spec is the contract the Test and Review roles check a pull request against (Build Bible section 4, "Spec before code").
+One file per feature, at `specs/<module>/<feature>.md`, written before the code. Whoever tests or reviews a pull request checks it against its spec (the Build Bible, section 4).
 
-Modules are the backend domains and kernel parts (`platform`, `people`, `academics`, `communication`, `money`, `activities`, `wellbeing`, `growth`), plus `apps` and `panel` for work that lives only in the Flutter apps or the admin panel.
+The module is the backend domain the feature belongs to (Phase 0's backend work is all `platform`), or `apps` and `panel` for work that lives only in the Flutter apps or the admin panel.
 
 ## Template
 
@@ -12,8 +12,8 @@ Modules are the backend domains and kernel parts (`platform`, `people`, `academi
 Phase N, feature N.M. Owner role: <Backend | App | Admin UX | Release | ...>.
 
 ## User stories
-One or more per profile the feature touches (SaaS admin, school admin, finance,
-teacher, grade head, facilitator, counsellor, learner, parent, vendor).
+At least one for each profile the feature touches (school admin, teacher,
+learner, parent, and so on).
 
 ## Acceptance tests
 Given ..., when ..., then ... One per story, plus the refusals: wrong role,

@@ -1,9 +1,8 @@
 import { expect, test } from '@playwright/test';
 
 /**
- * Global search (the Bible's UX acceptance test): a learner, a parent, a
- * teacher, a class or a settings page opens from the search box in under ten
- * seconds.
+ * Global search (a Phase 0 UX acceptance path): typing in the search box opens
+ * a learner, parent, teacher, class or settings page within ten seconds.
  */
 test.use({ storageState: '.auth/admin-flows.json' });
 

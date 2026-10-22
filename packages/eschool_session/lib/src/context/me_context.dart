@@ -2,8 +2,8 @@ import 'package:equatable/equatable.dart';
 
 /// What `GET /api/v2/me/context` says about the signed-in user: who they are,
 /// their roles, the school they are working in (its branding and timezone)
-/// and the modules switched on there. The apps read it on launch, after
-/// sign-in and after a school switch, and keep the last answer.
+/// and the modules switched on there. The apps fetch it at start-up, after
+/// signing in and on changing school, and keep the last answer.
 ///
 /// The reader is lenient: a missing or oddly shaped field becomes empty
 /// rather than failing, so a newer or older server never stops the app.
