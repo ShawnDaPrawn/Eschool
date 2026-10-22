@@ -18,6 +18,8 @@ use App\Models\SessionYear;
 use App\Models\StudentSessions;
 use App\Models\User;
 use App\Models\UserNotification;
+use App\Services\Platform\Ledger\LegacyAmount;
+use App\Services\Platform\Ledger\Money;
 use App\Services\Payment\FeesPaymentService;
 use App\Services\Payment\PaymentService;
 use App\Services\ResponseService;
@@ -56,12 +58,12 @@ class FeesController extends Controller
             $class_id = $studentSession->class_section->class_id;
 
             // Total optional fees amount
-            $optional_fees_amount = FeesClass::select(DB::raw('SUM(amount) as optional_fees_amount'))->where(['class_id' => $class_id, 'choiceable' => 1, 'session_year_id' => $session_year_id])->first();
-            $optional_fees_amount = $optional_fees_amount['optional_fees_amount'];
+            $optional_fees_amount = FeesClass::select(DB::raw('SUM(amount_cents) as optional_fees_amount'))->where(['class_id' => $class_id, 'choiceable' => 1, 'session_year_id' => $session_year_id])->first();
+            $optional_fees_amount = LegacyAmount::fromCents($optional_fees_amount['optional_fees_amount']);
 
             // Total optional fees amount
-            $compulsory_fees_amount = FeesClass::select(DB::raw('SUM(amount) as compulsory_fees_amount'))->where(['class_id' => $class_id, 'choiceable' => 0, 'session_year_id' => $session_year_id])->first();
-            $compulsory_fees_amount = $compulsory_fees_amount['compulsory_fees_amount'];
+            $compulsory_fees_amount = FeesClass::select(DB::raw('SUM(amount_cents) as compulsory_fees_amount'))->where(['class_id' => $class_id, 'choiceable' => 0, 'session_year_id' => $session_year_id])->first();
+            $compulsory_fees_amount = LegacyAmount::fromCents($compulsory_fees_amount['compulsory_fees_amount']);
 
             // Fees Class Data
             $fees_class = FeesClass::where('class_id', $class_id)->where('session_year_id', $session_year_id)->with('fees_type')->get();
@@ -216,7 +218,7 @@ class FeesController extends Controller
             $payment_transaction_db = $pending['transaction'];
 
             $paymentIntent = PaymentService::create($request->payment_method)->createAndFormatPaymentIntent(
-                $plan['total_amount'],
+                Money::ofCents($plan['total_amount_cents']),
                 $feesPaymentService->gatewayMetadata($plan, $pending, $parent_id, ['email' => $email, 'name' => $name, 'mobile' => $mobile])
             );
 

@@ -79,7 +79,7 @@ class WebhookController extends Controller
     {
         $expected_currency = PaymentService::currencyCode((int) $transaction->payment_gateway);
         if (! is_string($currency) || strcasecmp($currency, $expected_currency) !== 0
-            || ! PaymentService::amountMatches((int) $transaction->payment_gateway, $expected_currency, $transaction->total_amount, $amount)) {
+            || ! PaymentService::amountMatches((int) $transaction->payment_gateway, $expected_currency, $transaction->money('total_amount'), $amount)) {
             Log::error($gateway.' webhook: amount paid does not match the transaction', [
                 'payment_transaction_id' => $transaction->id,
                 'amount' => $amount,

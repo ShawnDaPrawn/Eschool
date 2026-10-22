@@ -12,6 +12,8 @@ use App\Models\PaidInstallmentFee;
 use App\Models\PaymentTransaction;
 use App\Models\SessionYear;
 use App\Models\StudentSessions;
+use App\Services\Platform\Ledger\LegacyAmount;
+use App\Services\Platform\Ledger\Money;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
@@ -24,6 +26,11 @@ use Illuminate\Validation\ValidationException;
  * amount is only compared against it. markPaid()/markFailed() record what a
  * gateway webhook confirmed, using only the stored transaction and the rows
  * created with it, never the webhook's metadata.
+ *
+ * Amounts are worked out in integer cents. An installment's share of the
+ * fees (and its due charges) is kept as an exact fraction until the one
+ * rounding, half up, so totals are what they always were; the float values
+ * in the plan are for the v1 API and the gateway metadata only.
  */
 class FeesPaymentService
 {
@@ -33,8 +40,8 @@ class FeesPaymentService
 
     public const OPTIONAL = 2;
 
-    /** Rounding slack, in currency units, between the app's total and ours. */
-    private const AMOUNT_TOLERANCE = 0.02;
+    /** Rounding slack, in cents, between the app's total and ours. */
+    private const AMOUNT_TOLERANCE_CENTS = 2;
 
     private const DUE_NO = -1;
 
@@ -54,10 +61,12 @@ class FeesPaymentService
      *     session_year_id: int,
      *     type_of_fee: int,
      *     total_amount: float,
+     *     total_amount_cents: int,
      *     is_fully_paid: int,
      *     due_charges: float|null,
-     *     optional_fees: list<array{fees_type_id: int, amount: float}>,
-     *     installments: list<array{installment_fee_id: int, amount: float, due_charges: float|null}>
+     *     due_charges_cents: int|null,
+     *     optional_fees: list<array{fees_type_id: int, amount: float, amount_cents: int}>,
+     *     installments: list<array{installment_fee_id: int, amount: float, amount_cents: int, due_charges: float|null, due_charges_cents: int|null}>
      * }
      *
      * @throws ValidationException with a message for the payer when the request can't be paid
@@ -83,16 +92,20 @@ class FeesPaymentService
             'session_year_id' => $sessionYearId,
             'type_of_fee' => $typeOfFee,
             'total_amount' => 0.0,
+            'total_amount_cents' => 0,
             'is_fully_paid' => 0,
             'due_charges' => null,
+            'due_charges_cents' => null,
             'optional_fees' => [],
             'installments' => [],
         ];
 
-        // Each entry: [amount, due charges, due state]. Due charges whose due date
-        // falls on the boundary (the app may be a timezone ahead or behind) are
-        // accepted either way, whichever matches what the app showed.
+        // Each entry: [amount, due charges, due state, id], amounts in cents times
+        // $denominator (an installment is an exact share of the fees). Due charges
+        // whose due date falls on the boundary (the app may be a timezone ahead or
+        // behind) are accepted either way, whichever matches what the app showed.
         $items = [];
+        $denominator = 1;
 
         switch ($typeOfFee) {
             case self::COMPULSORY:
@@ -103,9 +116,10 @@ class FeesPaymentService
                     $this->fail('Installments have been started; please pay the remaining installments.');
                 }
                 $base = $this->compulsoryTotal($classId, $sessionYearId);
-                $percent = (float) $sessionYear->fee_due_charges;
-                $due = ($percent > 0 && $sessionYear->fee_due_date) ? $base * $percent / 100 : 0.0;
-                $items[] = [$base, $due, $due > 0 ? $this->dueState($sessionYear->fee_due_date) : self::DUE_NO];
+                $percent = (int) $sessionYear->fee_due_charges;
+                $denominator = 100;
+                $due = ($percent > 0 && $sessionYear->fee_due_date) ? $base * $percent : 0;
+                $items[] = [$base * 100, $due, $due > 0 ? $this->dueState($sessionYear->fee_due_date) : self::DUE_NO, null];
                 $plan['is_fully_paid'] = 1;
                 break;
 
@@ -124,12 +138,14 @@ class FeesPaymentService
                 if ($paidIds->intersect($ids)->isNotEmpty()) {
                     $this->fail('This installment is already paid.');
                 }
-                $perInstallment = $this->compulsoryTotal($classId, $sessionYearId) / $all->count();
+                // Each installment is base / count, its due charges that times percent / 100.
+                $base = $this->compulsoryTotal($classId, $sessionYearId);
+                $denominator = $all->count() * 100;
                 foreach ($ids as $id) {
                     $installment = $all->get($id);
-                    $percent = (float) $installment->due_charges;
-                    $due = $percent > 0 ? $perInstallment * $percent / 100 : 0.0;
-                    $items[] = [$perInstallment, $due, $due > 0 ? $this->dueState($installment->getRawOriginal('due_date')) : self::DUE_NO, $id];
+                    $percent = (int) $installment->due_charges;
+                    $due = $percent > 0 ? $base * $percent : 0;
+                    $items[] = [$base * 100, $due, $due > 0 ? $this->dueState($installment->getRawOriginal('due_date')) : self::DUE_NO, $id];
                 }
                 $plan['is_fully_paid'] = $paidIds->merge($ids)->unique()->count() >= $all->count() ? 1 : 0;
                 break;
@@ -149,7 +165,7 @@ class FeesPaymentService
                     $this->fail('This optional fee is already paid.');
                 }
                 foreach ($ids as $id) {
-                    $items[] = [(float) $fees->get($id)->amount, 0.0, self::DUE_NO, $id];
+                    $items[] = [(int) $fees->get($id)->money('amount')?->cents, 0, self::DUE_NO, $id];
                 }
                 $plan['is_fully_paid'] = $compulsoryFullyPaid ? 1 : 0;
                 break;
@@ -158,33 +174,39 @@ class FeesPaymentService
                 $this->fail('Invalid fee type.');
         }
 
-        $withDueCharges = $this->chooseDueCharges($items, $clientAmount);
+        $withDueCharges = $this->chooseDueCharges($items, $denominator, $clientAmount);
 
-        $total = 0.0;
-        $dueTotal = 0.0;
+        $total = 0;
+        $dueTotal = 0;
         foreach ($items as $index => $item) {
             [$amount, $due] = $item;
-            $due = $withDueCharges[$index] ? $due : 0.0;
+            $due = $withDueCharges[$index] ? $due : 0;
             $total += $amount + $due;
             $dueTotal += $due;
 
+            $amountCents = Money::ofFraction($amount, $denominator)->cents;
             if ($typeOfFee === self::INSTALLMENTS) {
+                $dueCents = $due > 0 ? Money::ofFraction($due, $denominator)->cents : null;
                 $plan['installments'][] = [
                     'installment_fee_id' => $item[3],
-                    'amount' => round($amount, 2),
-                    'due_charges' => $due > 0 ? round($due, 2) : null,
+                    'amount' => LegacyAmount::fromCents($amountCents),
+                    'amount_cents' => $amountCents,
+                    'due_charges' => LegacyAmount::fromCents($dueCents),
+                    'due_charges_cents' => $dueCents,
                 ];
             } elseif ($typeOfFee === self::OPTIONAL) {
-                $plan['optional_fees'][] = ['fees_type_id' => $item[3], 'amount' => round($amount, 2)];
+                $plan['optional_fees'][] = ['fees_type_id' => $item[3], 'amount' => LegacyAmount::fromCents($amountCents), 'amount_cents' => $amountCents];
             }
         }
 
-        $plan['total_amount'] = round($total, 2);
+        $plan['total_amount_cents'] = Money::ofFraction($total, $denominator)->cents;
+        $plan['total_amount'] = LegacyAmount::fromCentsOrZero($plan['total_amount_cents']);
         if ($typeOfFee === self::COMPULSORY && $dueTotal > 0) {
-            $plan['due_charges'] = round($dueTotal, 2);
+            $plan['due_charges_cents'] = Money::ofFraction($dueTotal, $denominator)->cents;
+            $plan['due_charges'] = LegacyAmount::fromCents($plan['due_charges_cents']);
         }
 
-        if ($plan['total_amount'] <= 0) {
+        if ($plan['total_amount_cents'] <= 0) {
             $this->fail('There are no fees to pay.');
         }
 
@@ -206,7 +228,7 @@ class FeesPaymentService
         $transaction->type_of_fee = $plan['type_of_fee'];
         $transaction->payment_gateway = $paymentMethod;
         $transaction->payment_status = 2;
-        $transaction->total_amount = $plan['total_amount'];
+        $transaction->total_amount_cents = $plan['total_amount_cents'];
         $transaction->date = date('Y-m-d H:i:s');
         $transaction->session_year_id = $plan['session_year_id'];
         $transaction->save();
@@ -219,6 +241,7 @@ class FeesPaymentService
                 'fees_type_id' => $fee['fees_type_id'],
                 'is_due_charges' => 0,
                 'total_amount' => $fee['amount'],
+                'total_amount_cents' => $fee['amount_cents'],
                 'session_year_id' => $plan['session_year_id'],
                 'date' => date('Y-m-d'),
                 'payment_transaction_id' => $transaction->id,
@@ -235,7 +258,9 @@ class FeesPaymentService
                 'installment_fee_id' => $installment['installment_fee_id'],
                 'session_year_id' => $plan['session_year_id'],
                 'amount' => $installment['amount'],
+                'amount_cents' => $installment['amount_cents'],
                 'due_charges' => $installment['due_charges'],
+                'due_charges_cents' => $installment['due_charges_cents'],
                 'date' => date('Y-m-d'),
                 'payment_transaction_id' => $transaction->id,
                 'status' => 0,
@@ -321,7 +346,7 @@ class FeesPaymentService
                 if ($dueCharges !== null) {
                     FeesChoiceable::create($scope + [
                         'is_due_charges' => 1,
-                        'total_amount' => $dueCharges,
+                        'total_amount_cents' => $dueCharges,
                         'date' => date('Y-m-d'),
                         'payment_transaction_id' => $transaction->id,
                         'status' => 1,
@@ -331,8 +356,9 @@ class FeesPaymentService
 
             $feesPaid = FeesPaid::where($scope)->lockForUpdate()->first();
             $isFullyPaid = $this->isFullyPaidAfter($transaction, $feesPaid);
+            $paid = $transaction->money('total_amount') ?? Money::zero();
             if ($feesPaid) {
-                $feesPaid->total_amount = $feesPaid->total_amount + $transaction->total_amount;
+                $feesPaid->total_amount_cents = ($feesPaid->money('total_amount') ?? Money::zero())->plus($paid);
                 $feesPaid->is_fully_paid = $isFullyPaid;
                 $feesPaid->save();
             } else {
@@ -342,11 +368,11 @@ class FeesPaymentService
                 $feesPaid->class_id = $transaction->class_id;
                 $feesPaid->payment_transaction_id = $transaction->id;
                 $feesPaid->mode = 2;
-                $feesPaid->total_amount = $transaction->total_amount;
+                $feesPaid->total_amount_cents = $paid;
                 $feesPaid->date = date('Y-m-d');
                 $feesPaid->session_year_id = $transaction->session_year_id;
                 $feesPaid->is_fully_paid = $isFullyPaid;
-                $feesPaid->due_charges = $dueCharges;
+                $feesPaid->due_charges_cents = $dueCharges;
                 $feesPaid->save();
             }
 
@@ -382,9 +408,10 @@ class FeesPaymentService
         });
     }
 
-    private function compulsoryTotal(int $classId, int $sessionYearId): float
+    /** The class's compulsory fees for the year, in cents. */
+    private function compulsoryTotal(int $classId, int $sessionYearId): int
     {
-        $total = (float) FeesClass::where(['class_id' => $classId, 'choiceable' => 0, 'session_year_id' => $sessionYearId])->sum('amount');
+        $total = (int) FeesClass::where(['class_id' => $classId, 'choiceable' => 0, 'session_year_id' => $sessionYearId])->sum('amount_cents');
         if ($total <= 0) {
             $this->fail('There are no compulsory fees to pay.');
         }
@@ -393,18 +420,18 @@ class FeesPaymentService
     }
 
     /**
-     * Due charges paid with a full compulsory payment: what the transaction
-     * charged above the class's compulsory fees.
+     * Due charges paid with a full compulsory payment, in cents: what the
+     * transaction charged above the class's compulsory fees.
      */
-    private function compulsoryDueCharges(PaymentTransaction $transaction): ?float
+    private function compulsoryDueCharges(PaymentTransaction $transaction): ?int
     {
-        $base = (float) FeesClass::where([
+        $base = (int) FeesClass::where([
             'class_id' => $transaction->class_id,
             'choiceable' => 0,
             'session_year_id' => $transaction->session_year_id,
-        ])->sum('amount');
+        ])->sum('amount_cents');
 
-        $due = round((float) $transaction->total_amount - $base, 2);
+        $due = (int) $transaction->money('total_amount')?->cents - $base;
 
         return ($base > 0 && $due > 0) ? $due : null;
     }
@@ -455,12 +482,12 @@ class FeesPaymentService
      *
      * @return array<int, bool>
      */
-    private function chooseDueCharges(array $items, $clientAmount): array
+    private function chooseDueCharges(array $items, int $denominator, $clientAmount): array
     {
         if (! is_numeric($clientAmount)) {
             $this->fail('Invalid amount.');
         }
-        $clientAmount = (float) $clientAmount;
+        $clientCents = (int) LegacyAmount::toCents($clientAmount);
 
         $options = [false];
         foreach ($items as $item) {
@@ -472,12 +499,12 @@ class FeesPaymentService
 
         foreach ($options as $includeBoundary) {
             $charged = [];
-            $total = 0.0;
+            $total = 0;
             foreach ($items as $index => $item) {
                 $charged[$index] = $item[2] === self::DUE_YES || ($includeBoundary && $item[2] === self::DUE_MAYBE);
-                $total += $item[0] + ($charged[$index] ? $item[1] : 0.0);
+                $total += $item[0] + ($charged[$index] ? $item[1] : 0);
             }
-            if (abs(round($total, 2) - $clientAmount) <= self::AMOUNT_TOLERANCE) {
+            if (abs(Money::ofFraction($total, $denominator)->cents - $clientCents) <= self::AMOUNT_TOLERANCE_CENTS) {
                 return $charged;
             }
         }
