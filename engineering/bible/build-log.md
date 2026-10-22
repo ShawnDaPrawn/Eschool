@@ -5,7 +5,7 @@ What each phase delivered, what it deferred and why, and which of our questions 
 | Phase | Status | Started | Finished | Delivered | Deferred | Open decisions |
 | --- | --- | --- | --- | --- | --- | --- |
 | 0 Groundwork | Built and merged; gate items that need the cloud or people open | 2026-10-21 | 2026-10-22 (code) | Queue, scheduler and worker; mail through SES with delivery records; outbox; audit log; money in cents; API v2 with `/me/context` and `openapi.yaml`; web builds of both apps; panel navigation by job, Home checklist, search, year switcher, new-year wizard; security fixes; staging and production definitions, deploy workflows and runbooks; CI gates. [Details](#phase-0-delivered) | Everything that needs the cloud project or people (staging, production changes, the restore drill, SES, seven days of the worker, UX scripts, the demo) and the follow-ups below. [Details](#phase-0-deferred-with-reasons) | Q0.1 to Q0.6 defaulted and waiting for the product owner; Q0.8 onwards defaulted by the streams ([phase-0-questions.md](../phases/phase-0-questions.md)) |
-| 1 | Not started | | | | | |
+| 1 Schools and identity | In progress ([plan](../phases/phase-1.md)) | 2026-10-22 | | | | Q1.1 to Q1.5 defaulted ([phase-1-questions.md](../phases/phase-1-questions.md)) |
 
 ## Phase 0 delivered
 
