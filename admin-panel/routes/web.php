@@ -30,6 +30,7 @@ use App\Http\Controllers\OnlineExamController;
 use App\Http\Controllers\OnlineExamQuestionController;
 use App\Http\Controllers\Panel\Academics\NewYearController;
 use App\Http\Controllers\Panel\People\LearnerInvitationController;
+use App\Http\Controllers\Panel\Platform\SchoolSwitchController;
 use App\Http\Controllers\Panel\SearchController;
 use App\Http\Controllers\ParentsController;
 use App\Http\Controllers\Platform\CspReportController;
@@ -116,6 +117,8 @@ Route::middleware('school.context:public')->group(function () {
 // EnforceReadOnlyYears: a year other than the current one is read-only in the panel.
 Route::group(['middleware' => ['Role', 'auth', 'school.context', EnforceReadOnlyYears::class]], function () {
     Route::post('/set-session-year', [SessionYearController::class, 'setSessionYearToSessionStorage'])->name('set.session.year');
+    // The school switcher, for people at several schools.
+    Route::post('/school/switch', SchoolSwitchController::class)->name('school.switch');
     Route::group(['middleware' => 'language'], function () {
         // Route::get('/home', [HomeController::class, 'index']);
         Route::get('home', [HomeController::class, 'index'])->name('home');

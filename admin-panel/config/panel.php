@@ -23,8 +23,9 @@ return [
          * does not depend on the school year.
          */
         'allow' => [
-            // Switching the year itself, and signing out.
+            // Switching the year or the school, and signing out.
             'set-session-year',
+            'school/switch',
             'logout',
 
             // The signed-in person's own profile and password.
