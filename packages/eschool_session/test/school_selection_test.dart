@@ -58,12 +58,25 @@ void main() {
   tearDown(() => cubit.close());
 
   group('SchoolSelectionCubit', () {
-    test('one school: nothing to switch and no header', () async {
+    test('one school: nothing to switch, but the school is sent', () async {
       await cubit.syncWithContext(oneSchool);
 
       expect(cubit.state.canSwitch, isFalse);
       expect(cubit.state.selectedId, 1);
-      expect(store.schoolId, isNull);
+      expect(store.schoolId, 1);
+    });
+
+    test('a single school other than the default is sent too', () async {
+      final Map<String, dynamic> json =
+          jsonDecode(jsonEncode(phase1GuardianJson)) as Map<String, dynamic>;
+      json['schools'] = [(json['schools'] as List).last];
+      final MeContext onlySchoolTwo = MeContext.fromJson(json);
+      final int only = onlySchoolTwo.schools.single.school.id;
+
+      await cubit.syncWithContext(onlySchoolTwo);
+
+      expect(cubit.state.canSwitch, isFalse);
+      expect(store.schoolId, only);
     });
 
     test('several schools: the current one is chosen and sent', () async {
@@ -90,7 +103,7 @@ void main() {
 
       await cubit.syncWithContext(oneSchool);
 
-      expect(store.schoolId, isNull);
+      expect(store.schoolId, 1);
       expect(cubit.state.selectedId, 1);
     });
 
@@ -168,6 +181,11 @@ void main() {
 
     test('sends none before a school is chosen', () async {
       expect((await send(null)).headers.containsKey('X-School-Id'), isFalse);
+    });
+
+    test('every call says the app joins per-school push topics', () async {
+      expect((await send(null)).headers['X-Push-Topics'], 'school');
+      expect((await send(2)).headers['X-Push-Topics'], 'school');
     });
 
     test('a call that names its own school keeps it', () async {

@@ -10,6 +10,7 @@ export 'src/notification_config.dart';
 export 'src/notification_platform.dart';
 export 'src/notification_preferences.dart';
 export 'src/notification_utility.dart';
+export 'src/school_topics.dart';
 export 'src/settings/notification_settings_button.dart';
 export 'src/settings/notification_settings_cubit.dart';
 export 'src/settings/notification_settings_repository.dart';

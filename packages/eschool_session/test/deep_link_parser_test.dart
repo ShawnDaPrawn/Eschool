@@ -199,45 +199,48 @@ void main() {
       );
     });
 
-    test('opens after switching to its school and fetching its context', () async {
-      final InMemorySelectionStore store = InMemorySelectionStore();
-      final SchoolSelectionCubit schools = SchoolSelectionCubit(store: store);
-      await schools.syncWithContext(
-        MeContext.fromJson({
-          'schools': [
-            for (final int id in [1, 2])
-              {
-                'school': {
-                  'id': id,
-                  'name': 'School $id',
-                  'short_name': null,
-                  'crest_url': null,
+    test(
+      'opens after switching to its school and fetching its context',
+      () async {
+        final InMemorySelectionStore store = InMemorySelectionStore();
+        final SchoolSelectionCubit schools = SchoolSelectionCubit(store: store);
+        await schools.syncWithContext(
+          MeContext.fromJson({
+            'schools': [
+              for (final int id in [1, 2])
+                {
+                  'school': {
+                    'id': id,
+                    'name': 'School $id',
+                    'short_name': null,
+                    'crest_url': null,
+                  },
+                  'roles': ['Parent'],
                 },
-                'roles': ['Parent'],
-              },
-          ],
-        }),
-      );
-      final _CountingContext contexts = _CountingContext();
-      final MeContextCubit meContext = MeContextCubit(
-        repository: contexts,
-        cache: InMemoryMeContextCache(),
-      );
-      final List<String> steps = [];
+            ],
+          }),
+        );
+        final _CountingContext contexts = _CountingContext();
+        final MeContextCubit meContext = MeContextCubit(
+          repository: contexts,
+          cache: InMemoryMeContextCache(),
+        );
+        final List<String> steps = [];
 
-      await openPushLink(
-        const PushLink(target: DeepLinkTarget('/noticeBoard'), schoolId: 2),
-        schools: schools,
-        meContext: meContext,
-        open: (target) =>
-            steps.add('open ${target.routeName} at ${store.schoolId}'),
-      );
+        await openPushLink(
+          const PushLink(target: DeepLinkTarget('/noticeBoard'), schoolId: 2),
+          schools: schools,
+          meContext: meContext,
+          open: (target) =>
+              steps.add('open ${target.routeName} at ${store.schoolId}'),
+        );
 
-      expect(contexts.calls, 1);
-      expect(steps, ['open /noticeBoard at 2']);
-      await schools.close();
-      await meContext.close();
-    });
+        expect(contexts.calls, 1);
+        expect(steps, ['open /noticeBoard at 2']);
+        await schools.close();
+        await meContext.close();
+      },
+    );
   });
 }
 

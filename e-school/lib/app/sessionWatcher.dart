@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:eschool/app/deepLinks.dart';
 import 'package:eschool/app/selectedChild.dart';
 import 'package:eschool/app/routes.dart';
+import 'package:eschool/cubits/appConfigurationCubit.dart';
 import 'package:eschool/cubits/authCubit.dart';
 import 'package:eschool/utils/uiUtils.dart';
 import 'package:eschool_notifications/eschool_notifications.dart';
@@ -103,11 +104,33 @@ class _SessionWatcherState extends State<SessionWatcher> {
               previous.selectedId != current.selectedId,
           listener: (context, _) => EndpointAvailability.forget(),
         ),
+        // School-wide pushes come on each school's own topics: the device
+        // joins those of the schools /me/context names.
+        BlocListener<MeContextCubit, MeContextState>(
+          listenWhen: (previous, current) =>
+              previous.context != current.context,
+          listener: (context, state) {
+            final AuthState auth = context.read<AuthCubit>().state;
+            final List<SchoolMembership> schools =
+                state.context?.schools ?? const [];
+            if (auth is! Authenticated || schools.isEmpty) {
+              return;
+            }
+            NotificationUtility.syncSchoolTopics(
+              audience: auth.isStudent
+                  ? NotificationAudience.students
+                  : NotificationAudience.parents,
+              schoolIds: schools.map((membership) => membership.school.id),
+            );
+          },
+        ),
         // The school switcher lists the schools /me/context names.
         BlocListener<MeContextCubit, MeContextState>(
-          listenWhen: (previous, current) => previous.context != current.context,
-          listener: (context, state) =>
-              context.read<SchoolSelectionCubit>().syncWithContext(state.context),
+          listenWhen: (previous, current) =>
+              previous.context != current.context,
+          listener: (context, state) => context
+              .read<SchoolSelectionCubit>()
+              .syncWithContext(state.context),
         ),
         // A parent's child screens are sent for the child's school: picking
         // a child at another school moves there, with that school's context.
@@ -159,12 +182,20 @@ class _SessionWatcherState extends State<SessionWatcher> {
   }
 }
 
-/// After a school switch: back to home, where everything is fetched again
-/// for the new school.
-void returnHomeAfterSchoolSwitch() {
+/// After a school switch: the new school's app settings first (its year,
+/// fee settings, payment keys), then back to home, where everything else is
+/// fetched again for the new school.
+Future<void> returnHomeAfterSchoolSwitch() async {
   final NavigatorState? navigator = UiUtils.rootNavigatorKey.currentState;
-  final bool isParent = navigator?.context.read<AuthCubit>().isParent() ?? false;
-  navigator?.pushNamedAndRemoveUntil(
+  if (navigator == null) {
+    return;
+  }
+  await navigator.context.read<AppConfigurationCubit>().fetchAppConfiguration();
+  if (!navigator.mounted) {
+    return;
+  }
+  final bool isParent = navigator.context.read<AuthCubit>().isParent();
+  navigator.pushNamedAndRemoveUntil(
     isParent ? Routes.parentHome : Routes.home,
     (_) => false,
   );

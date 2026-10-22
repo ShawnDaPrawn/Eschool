@@ -10,8 +10,8 @@ class SchoolSelectionState extends Equatable {
   /// Every school the user belongs to, from `/me/context` `schools`.
   final List<SchoolMembership> schools;
 
-  /// The school every API call is sent for (`X-School-Id`), or `null` when
-  /// none was chosen (the server then uses the user's own school).
+  /// The school every API call is sent for (`X-School-Id`), or `null`
+  /// before the server has named the user's schools.
   final int? selectedId;
 
   SchoolMembership? get selected {
@@ -75,13 +75,10 @@ class SchoolSelectionCubit extends Cubit<SchoolSelectionState> {
       return;
     }
     emit(SchoolSelectionState(schools: schools, selectedId: selectedId));
-    final int? stored = _store.schoolId;
-    if (stored != null && !listed(stored)) {
-      // The user left that school: stop sending it.
-      await _store.setSchoolId(schools.length > 1 ? selectedId : null);
-    } else if (schools.length > 1 && selectedId != stored) {
-      // Several schools: every call says which one. One school needs no
-      // header, the server knows it.
+    // Stored even for one school: the calls made before sign-in (the app
+    // settings at start-up) have no user to go by, so without the header
+    // the server would answer them for its default school.
+    if (selectedId != _store.schoolId) {
       await _store.setSchoolId(selectedId);
     }
   }

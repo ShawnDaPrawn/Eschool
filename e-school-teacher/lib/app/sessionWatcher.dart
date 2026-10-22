@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:eschool_teacher/app/deepLinks.dart';
 import 'package:eschool_teacher/app/routes.dart';
+import 'package:eschool_teacher/cubits/appConfigurationCubit.dart';
 import 'package:eschool_teacher/cubits/authCubit.dart';
 import 'package:eschool_teacher/utils/uiUtils.dart';
 import 'package:eschool_notifications/eschool_notifications.dart';
@@ -76,11 +77,31 @@ class _SessionWatcherState extends State<SessionWatcher> {
               previous.selectedId != current.selectedId,
           listener: (context, _) => EndpointAvailability.forget(),
         ),
+        // School-wide pushes come on each school's own topics: the device
+        // joins those of the schools /me/context names.
+        BlocListener<MeContextCubit, MeContextState>(
+          listenWhen: (previous, current) =>
+              previous.context != current.context,
+          listener: (context, state) {
+            final List<SchoolMembership> schools =
+                state.context?.schools ?? const [];
+            if (context.read<AuthCubit>().state is! Authenticated ||
+                schools.isEmpty) {
+              return;
+            }
+            NotificationUtility.syncSchoolTopics(
+              audience: NotificationAudience.teachers,
+              schoolIds: schools.map((membership) => membership.school.id),
+            );
+          },
+        ),
         // The school switcher lists the schools /me/context names.
         BlocListener<MeContextCubit, MeContextState>(
-          listenWhen: (previous, current) => previous.context != current.context,
-          listener: (context, state) =>
-              context.read<SchoolSelectionCubit>().syncWithContext(state.context),
+          listenWhen: (previous, current) =>
+              previous.context != current.context,
+          listener: (context, state) => context
+              .read<SchoolSelectionCubit>()
+              .syncWithContext(state.context),
         ),
       ],
       // Back in front after a while, or after a context.changed push in
@@ -96,11 +117,17 @@ class _SessionWatcherState extends State<SessionWatcher> {
   }
 }
 
-/// After a school switch: back to home, where everything is fetched again
-/// for the new school.
-void returnHomeAfterSchoolSwitch() {
-  UiUtils.rootNavigatorKey.currentState?.pushNamedAndRemoveUntil(
-    Routes.home,
-    (_) => false,
-  );
+/// After a school switch: the new school's app settings first (its year
+/// and other settings), then back to home, where everything else is fetched
+/// again for the new school.
+Future<void> returnHomeAfterSchoolSwitch() async {
+  final NavigatorState? navigator = UiUtils.rootNavigatorKey.currentState;
+  if (navigator == null) {
+    return;
+  }
+  await navigator.context.read<AppConfigurationCubit>().fetchAppConfiguration();
+  if (!navigator.mounted) {
+    return;
+  }
+  navigator.pushNamedAndRemoveUntil(Routes.home, (_) => false);
 }

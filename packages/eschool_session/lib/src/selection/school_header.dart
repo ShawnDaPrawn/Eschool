@@ -4,10 +4,18 @@ import 'package:dio/dio.dart';
 /// at several schools is answered for the school they are working in (the
 /// server checks the header against their memberships). A request that
 /// already names a school keeps its own.
+///
+/// Every request also says `X-Push-Topics: school`: this app joins each
+/// school's own push topics (`SchoolTopics`), so the server lets a user who
+/// is not at the first school sign in with it, which it refuses to app
+/// versions that join the shared topic names from before Phase 1.
 class SchoolHeaderInterceptor extends Interceptor {
   SchoolHeaderInterceptor(this.schoolId);
 
   static const String headerName = 'X-School-Id';
+
+  static const String pushTopicsHeader = 'X-Push-Topics';
+  static const String pushTopicsSchool = 'school';
 
   /// The school to send, or `null` to send none (the server then uses the
   /// user's own school).
@@ -29,6 +37,7 @@ class SchoolHeaderInterceptor extends Interceptor {
         options.headers[headerName] = '$id';
       }
     }
+    options.headers[pushTopicsHeader] = pushTopicsSchool;
     handler.next(options);
   }
 }
