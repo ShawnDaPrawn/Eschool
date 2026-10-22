@@ -24,6 +24,16 @@ final class CentsColumns
     ];
 
     /**
+     * SQL for a row's amount in cents: its cents, or for a row whose cents are
+     * still empty (written by a raw insert) its float rounded the way the
+     * back-fill rounds it. Use it in SUM() so such rows are not counted as 0.
+     */
+    public static function sql(string $float, string $cents): string
+    {
+        return "COALESCE(`{$cents}`, ROUND(CAST(`{$float}` AS DECIMAL(20,6)) * 100))";
+    }
+
+    /**
      * Fill empty cents from the floats, half up, in id ranges.
      *
      * @return int rows changed

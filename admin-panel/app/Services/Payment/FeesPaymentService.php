@@ -12,6 +12,7 @@ use App\Models\PaidInstallmentFee;
 use App\Models\PaymentTransaction;
 use App\Models\SessionYear;
 use App\Models\StudentSessions;
+use App\Services\Platform\Ledger\CentsColumns;
 use App\Services\Platform\Ledger\LegacyAmount;
 use App\Services\Platform\Ledger\Money;
 use Carbon\Carbon;
@@ -65,8 +66,8 @@ class FeesPaymentService
      *     is_fully_paid: int,
      *     due_charges: float|null,
      *     due_charges_cents: int|null,
-     *     optional_fees: list<array{fees_type_id: int, amount: float, amount_cents: int}>,
-     *     installments: list<array{installment_fee_id: int, amount: float, amount_cents: int, due_charges: float|null, due_charges_cents: int|null}>
+     *     optional_fees: list<array{fees_type_id: int, amount: float}>,
+     *     installments: list<array{installment_fee_id: int, amount: float, due_charges: float|null}>
      * }
      *
      * @throws ValidationException with a message for the payer when the request can't be paid
@@ -190,12 +191,10 @@ class FeesPaymentService
                 $plan['installments'][] = [
                     'installment_fee_id' => $item[3],
                     'amount' => LegacyAmount::fromCents($amountCents),
-                    'amount_cents' => $amountCents,
                     'due_charges' => LegacyAmount::fromCents($dueCents),
-                    'due_charges_cents' => $dueCents,
                 ];
             } elseif ($typeOfFee === self::OPTIONAL) {
-                $plan['optional_fees'][] = ['fees_type_id' => $item[3], 'amount' => LegacyAmount::fromCents($amountCents), 'amount_cents' => $amountCents];
+                $plan['optional_fees'][] = ['fees_type_id' => $item[3], 'amount' => LegacyAmount::fromCents($amountCents)];
             }
         }
 
@@ -241,7 +240,7 @@ class FeesPaymentService
                 'fees_type_id' => $fee['fees_type_id'],
                 'is_due_charges' => 0,
                 'total_amount' => $fee['amount'],
-                'total_amount_cents' => $fee['amount_cents'],
+                'total_amount_cents' => LegacyAmount::toCents($fee['amount']),
                 'session_year_id' => $plan['session_year_id'],
                 'date' => date('Y-m-d'),
                 'payment_transaction_id' => $transaction->id,
@@ -258,9 +257,9 @@ class FeesPaymentService
                 'installment_fee_id' => $installment['installment_fee_id'],
                 'session_year_id' => $plan['session_year_id'],
                 'amount' => $installment['amount'],
-                'amount_cents' => $installment['amount_cents'],
+                'amount_cents' => LegacyAmount::toCents($installment['amount']),
                 'due_charges' => $installment['due_charges'],
-                'due_charges_cents' => $installment['due_charges_cents'],
+                'due_charges_cents' => LegacyAmount::toCents($installment['due_charges']),
                 'date' => date('Y-m-d'),
                 'payment_transaction_id' => $transaction->id,
                 'status' => 0,
@@ -411,7 +410,7 @@ class FeesPaymentService
     /** The class's compulsory fees for the year, in cents. */
     private function compulsoryTotal(int $classId, int $sessionYearId): int
     {
-        $total = (int) FeesClass::where(['class_id' => $classId, 'choiceable' => 0, 'session_year_id' => $sessionYearId])->sum('amount_cents');
+        $total = (int) FeesClass::where(['class_id' => $classId, 'choiceable' => 0, 'session_year_id' => $sessionYearId])->sum(DB::raw(CentsColumns::sql('amount', 'amount_cents')));
         if ($total <= 0) {
             $this->fail('There are no compulsory fees to pay.');
         }
@@ -429,7 +428,7 @@ class FeesPaymentService
             'class_id' => $transaction->class_id,
             'choiceable' => 0,
             'session_year_id' => $transaction->session_year_id,
-        ])->sum('amount_cents');
+        ])->sum(DB::raw(CentsColumns::sql('amount', 'amount_cents')));
 
         $due = (int) $transaction->money('total_amount')?->cents - $base;
 

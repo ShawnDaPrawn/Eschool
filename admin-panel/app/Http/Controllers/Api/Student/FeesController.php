@@ -18,10 +18,11 @@ use App\Models\SessionYear;
 use App\Models\StudentSessions;
 use App\Models\User;
 use App\Models\UserNotification;
-use App\Services\Platform\Ledger\LegacyAmount;
-use App\Services\Platform\Ledger\Money;
 use App\Services\Payment\FeesPaymentService;
 use App\Services\Payment\PaymentService;
+use App\Services\Platform\Ledger\CentsColumns;
+use App\Services\Platform\Ledger\LegacyAmount;
+use App\Services\Platform\Ledger\Money;
 use App\Services\ResponseService;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Carbon\Carbon;
@@ -58,11 +59,11 @@ class FeesController extends Controller
             $class_id = $studentSession->class_section->class_id;
 
             // Total optional fees amount
-            $optional_fees_amount = FeesClass::select(DB::raw('SUM(amount_cents) as optional_fees_amount'))->where(['class_id' => $class_id, 'choiceable' => 1, 'session_year_id' => $session_year_id])->first();
+            $optional_fees_amount = FeesClass::select(DB::raw('SUM('.CentsColumns::sql('amount', 'amount_cents').') as optional_fees_amount'))->where(['class_id' => $class_id, 'choiceable' => 1, 'session_year_id' => $session_year_id])->first();
             $optional_fees_amount = LegacyAmount::fromCents($optional_fees_amount['optional_fees_amount']);
 
             // Total optional fees amount
-            $compulsory_fees_amount = FeesClass::select(DB::raw('SUM(amount_cents) as compulsory_fees_amount'))->where(['class_id' => $class_id, 'choiceable' => 0, 'session_year_id' => $session_year_id])->first();
+            $compulsory_fees_amount = FeesClass::select(DB::raw('SUM('.CentsColumns::sql('amount', 'amount_cents').') as compulsory_fees_amount'))->where(['class_id' => $class_id, 'choiceable' => 0, 'session_year_id' => $session_year_id])->first();
             $compulsory_fees_amount = LegacyAmount::fromCents($compulsory_fees_amount['compulsory_fees_amount']);
 
             // Fees Class Data

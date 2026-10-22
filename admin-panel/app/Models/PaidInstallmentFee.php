@@ -9,7 +9,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 
 class PaidInstallmentFee extends Model
 {
-    use HasFactory, SoftDeletes, HasMoneyColumns;
+    use HasFactory, HasMoneyColumns, SoftDeletes;
 
     /** Float money columns and their cents (HasMoneyColumns); the cents are the truth. */
     public function moneyColumns(): array
@@ -19,6 +19,7 @@ class PaidInstallmentFee extends Model
             'due_charges' => 'due_charges_cents',
         ];
     }
+
     protected $fillable = [
         'id',
         'student_id',
@@ -32,9 +33,10 @@ class PaidInstallmentFee extends Model
         'due_charges_cents',
         'date',
         'payment_transaction_id',
-        'status'
+        'status',
     ];
-    protected $hidden = ["created_at", "updated_at"];
+
+    protected $hidden = ['created_at', 'updated_at'];
 
     public function class()
     {

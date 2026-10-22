@@ -4,15 +4,15 @@ declare(strict_types=1);
 
 namespace App\Models;
 
-use App\Services\Platform\Ledger\HasMoneyColumns;
 use App\Services\Platform\Audit\Auditable;
+use App\Services\Platform\Ledger\HasMoneyColumns;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 class FeesPaid extends Model
 {
-    use Auditable, HasFactory, SoftDeletes, HasMoneyColumns;
+    use Auditable, HasFactory, HasMoneyColumns, SoftDeletes;
 
     /** Float money columns and their cents (HasMoneyColumns); the cents are the truth. */
     public function moneyColumns(): array
@@ -23,7 +23,7 @@ class FeesPaid extends Model
         ];
     }
 
-    protected $hidden = ["deleted_at", "created_at", "updated_at"];
+    protected $hidden = ['deleted_at', 'created_at', 'updated_at'];
 
     public function session_year()
     {

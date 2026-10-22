@@ -17,3 +17,7 @@ Schedule::command('sanctum:prune-expired --hours=24')->daily();
 // minute. Queued jobs run on the worker (php artisan queue:work).
 // Domain events recorded in the outbox go to their listeners.
 Schedule::job(new DispatchOutbox)->everyMinute()->name('outbox-dispatch');
+
+// Fills *_cents for fee rows written outside the models and logs any row
+// whose cents and float disagree ("money_cents_check").
+Schedule::command('money:backfill-cents')->dailyAt('02:10')->withoutOverlapping();

@@ -10,33 +10,35 @@ use Stripe\Exception\ApiErrorException;
 use Stripe\PaymentIntent;
 use Stripe\StripeClient;
 
-class StripePayment implements PaymentInterface {
+class StripePayment implements PaymentInterface
+{
     private StripeClient $stripe;
+
     private string $currencyCode;
 
     /**
      * StripePayment constructor.
-     * @param $secretKey
-     * @param $currencyCode
      */
-    public function __construct($secretKey, $currencyCode) {
+    public function __construct($secretKey, $currencyCode)
+    {
         // Call Stripe Class and Create Payment Intent
         $this->stripe = new StripeClient($secretKey);
         $this->currencyCode = $currencyCode;
     }
 
     /**
-     * @param $amount
-     * @param $customMetaData
      * @return PaymentIntent
+     *
      * @throws ApiErrorException
      */
-    public function createPaymentIntent($amount, $customMetaData) {
+    public function createPaymentIntent($amount, $customMetaData)
+    {
         try {
             $amount = self::amountInSubunits($this->currencyCode, $amount);
+
             return $this->stripe->paymentIntents->create(
                 [
-                    'amount'   => $amount,
+                    'amount' => $amount,
                     'currency' => $this->currencyCode,
                     'metadata' => $customMetaData,
                 ]
@@ -48,22 +50,20 @@ class StripePayment implements PaymentInterface {
     }
 
     /**
-     * @param $amount
-     * @param $customMetaData
-     * @return array
      * @throws ApiErrorException
      */
-    public function createAndFormatPaymentIntent($amount, $customMetaData): array {
+    public function createAndFormatPaymentIntent($amount, $customMetaData): array
+    {
         $paymentIntent = $this->createPaymentIntent($amount, $customMetaData);
+
         return $this->format($paymentIntent);
     }
 
     /**
-     * @param $paymentId
-     * @return array
      * @throws ApiErrorException
      */
-    public function retrievePaymentIntent($paymentId): array {
+    public function retrievePaymentIntent($paymentId): array
+    {
         try {
             return $this->format($this->stripe->paymentIntents->retrieve($paymentId));
         } catch (ApiErrorException $e) {
@@ -72,34 +72,26 @@ class StripePayment implements PaymentInterface {
     }
 
     /**
-     * @param $paymentIntent
      * @return array
      */
-    public function format($paymentIntent) {
+    public function format($paymentIntent)
+    {
         return $this->formatPaymentIntent($paymentIntent->id, $paymentIntent->amount, $paymentIntent->currency, $paymentIntent->status, $paymentIntent->metadata, $paymentIntent);
     }
 
-    /**
-     * @param $id
-     * @param $amount
-     * @param $currency
-     * @param $status
-     * @param $metadata
-     * @param $paymentIntent
-     * @return array
-     */
-    public function formatPaymentIntent($id, $amount, $currency, $status, $metadata, $paymentIntent): array {
+    public function formatPaymentIntent($id, $amount, $currency, $status, $metadata, $paymentIntent): array
+    {
         return [
-            'id'                       => $paymentIntent->id,
-            'amount'                   => $paymentIntent->amount,
-            'currency'                 => $paymentIntent->currency,
-            'metadata'                 => $paymentIntent->metadata,
-            'status'                   => match ($paymentIntent->status) {
-                "canceled" => "failed",
-                "succeeded" => "succeed",
-                "processing", "requires_action", "requires_capture", "requires_confirmation", "requires_payment_method" => "pending",
+            'id' => $paymentIntent->id,
+            'amount' => $paymentIntent->amount,
+            'currency' => $paymentIntent->currency,
+            'metadata' => $paymentIntent->metadata,
+            'status' => match ($paymentIntent->status) {
+                'canceled' => 'failed',
+                'succeeded' => 'succeed',
+                'processing', 'requires_action', 'requires_capture', 'requires_confirmation', 'requires_payment_method' => 'pending',
             },
-            'payment_gateway_response' => $paymentIntent
+            'payment_gateway_response' => $paymentIntent,
         ];
     }
 
@@ -112,10 +104,11 @@ class StripePayment implements PaymentInterface {
      * Stripe's minimum charge. Takes Money (cents); an old float or string
      * amount is converted to cents first.
      */
-    public static function amountInSubunits(string $currency, $amount): int {
+    public static function amountInSubunits(string $currency, $amount): int
+    {
         $zeroDecimalCurrencies = [
             'BIF', 'CLP', 'DJF', 'GNF', 'JPY', 'KMF', 'KRW', 'MGA', 'PYG',
-            'RWF', 'UGX', 'VND', 'VUV', 'XAF', 'XOF', 'XPF'
+            'RWF', 'UGX', 'VND', 'VUV', 'XAF', 'XOF', 'XPF',
         ];
         $currency = strtoupper($currency);
         $cents = $amount instanceof Money ? $amount->cents : (int) LegacyAmount::toCents($amount);
@@ -132,15 +125,15 @@ class StripePayment implements PaymentInterface {
     }
 
     /**
-     * @param $currency
-     * @param $amount
      * @return float|int
      */
-    public function minimumAmountValidation($currency, $amount) {
+    public function minimumAmountValidation($currency, $amount)
+    {
         return self::minimumAmount(strtoupper((string) $currency), $amount);
     }
 
-    private static function minimumAmount(string $currency, $amount) {
+    private static function minimumAmount(string $currency, $amount)
+    {
         $minimumAmount = match ($currency) {
             'USD', 'EUR', 'INR', 'NZD', 'SGD', 'BRL', 'CAD', 'AUD', 'CHF' => 0.50,
             'AED', 'PLN', 'RON' => 2.00,
@@ -157,7 +150,7 @@ class StripePayment implements PaymentInterface {
             'XAF' => 100,
             default => null,
         };
-        if (!empty($minimumAmount)) {
+        if (! empty($minimumAmount)) {
             if ($amount === null) {
                 return $minimumAmount;
             }

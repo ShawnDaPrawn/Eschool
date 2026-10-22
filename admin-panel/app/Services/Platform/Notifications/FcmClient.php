@@ -5,7 +5,9 @@ declare(strict_types=1);
 namespace App\Services\Platform\Notifications;
 
 use App\Models\Settings;
+use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
 use RuntimeException;
 
 /**
@@ -37,14 +39,20 @@ class FcmClient
      * @param  array{message: array<string, mixed>}  $message
      * @return array{status: 'sent'|'rejected'|'not_configured', id?: string|null, error?: string}
      *
-     * @throws RuntimeException|\Illuminate\Http\Client\ConnectionException when worth retrying
+     * @throws RuntimeException|ConnectionException when worth retrying
      */
     public function send(array $message): array
     {
+        $token = $this->accessToken();
+        if ($token === null) {
+            // The line the helpers always wrote for a push without credentials.
+            Log::error('Cannot send FCM notification: Access token is null');
+
+            return ['status' => 'not_configured', 'error' => 'Push notifications are not configured (no FCM service account token)'];
+        }
         $projectId = $this->projectId();
-        $token = $projectId === null ? null : $this->accessToken();
-        if ($projectId === null || $token === null) {
-            return ['status' => 'not_configured', 'error' => 'Push notifications are not configured (FCM project id or service account)'];
+        if ($projectId === null) {
+            return ['status' => 'not_configured', 'error' => 'Push notifications are not configured (no FCM project id)'];
         }
 
         $response = Http::withToken($token)

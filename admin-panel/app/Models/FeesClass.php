@@ -20,8 +20,10 @@ class FeesClass extends Model
             'amount' => 'amount_cents',
         ];
     }
+
     use SoftDeletes;
-    protected $hidden = ["deleted_at", "created_at", "updated_at"];
+
+    protected $hidden = ['deleted_at', 'created_at', 'updated_at'];
 
     public function fees_type()
     {
@@ -43,7 +45,7 @@ class FeesClass extends Model
         static::deleting(function ($feesClass) {
 
             $query = FeesChoiceable::where([
-                'class_id'     => $feesClass->class_id,
+                'class_id' => $feesClass->class_id,
                 'fees_type_id' => $feesClass->fees_type_id,
             ]);
 
