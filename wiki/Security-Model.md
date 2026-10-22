@@ -128,8 +128,8 @@ See [Roles-and-Permissions](Roles-and-Permissions) for the full permission list 
 | `api/parent/*` child endpoints | additionally `CheckChild` | See next table |
 | `api/teacher/*` | `auth:sanctum`, `role:Teacher`, `teacher.active` | Only Teacher tokens of active teachers |
 | `api/teacher/get-student-result`, `get-student-marks` | additionally `CheckStudent` | The `student_id` must be in a class section the teacher is class teacher of |
-| `api/logout`, `api/change-password` | `auth:sanctum` | Any signed-in app user |
-| General (`holidays`, `sliders`, `settings`, `get-events-list`, galleries, ...) | none | Public school information only; `GET api/settings` returns only the Stripe publishable key, never the secret key or webhook secret |
+| `api/logout`, `api/change-password` | `auth:sanctum`, `school.context:optional` | Any signed-in app user (also one whose memberships have ended) |
+| General (`holidays`, `sliders`, `settings`, `get-events-list`, galleries, ...) | `school.context:public` | Public school information only, of the default school (or the signed-in user's, or the school `X-School-Id` names); `GET api/settings` returns only the Stripe publishable key, never the secret key or webhook secret |
 
 ### API: scoping to the caller's own data
 
@@ -148,6 +148,26 @@ Role checks only say what kind of user is calling. Each endpoint must also limit
 | Teacher (API and admin lists) | `Lesson::scopeLessonTeachers`, `LessonTopic::scopeLessonTopicTeachers`, `Assignment::scopeAssignmentTeachers`, `AssignmentSubmission::scopeAssignmentSubmissionTeachers`, `Students::scopeOfTeacher` | `app/Models/` | Rows are matched on the exact (class section, subject) pair in `subject_teachers`, so teaching Maths in 5A and Science in 5B does not expose Science in 5A |
 
 See [API-Overview](API-Overview), [API-Student](API-Student), [API-Parent](API-Parent) and [API-Teacher](API-Teacher) for the endpoints themselves.
+
+### School isolation
+
+One database serves many schools; no school may see another's data (the Build Bible, section 1 and 5.1). The spec is [tenancy](https://github.com/ShawnDaPrawn/Eschool/blob/main/engineering/specs/platform/tenancy.md); [Architecture](Architecture#tenancy) has the overview.
+
+| Rule | Where | Guarantee |
+|---|---|---|
+| The school comes from memberships | `school.context` ([SetSchoolContext](https://github.com/ShawnDaPrawn/Eschool/blob/main/admin-panel/app/Http/Middleware/SetSchoolContext.php)) after `auth` on the panel group and every v1 and v2 group | A signed-in request works in one of the user's active memberships; `X-School-Id` (or the panel's switcher) only picks among them; any other school is 403; no active membership is 403 (signed out of the panel) |
+| Every school-owned query is limited | `BelongsToSchool` (global `SchoolScope`, fill on create, `SchoolBuilder` for bulk inserts) on every school-owned model; `MemberScope` on `User`; `App\Models\Platform\Role` | Another school's rows are not found by id, list, relation or search; new rows get the current school |
+| No school is never "every school" | `CurrentSchool::scopeId()` | A signed-in request without `school.context` is refused (`NoCurrentSchool`) the moment it asks for school data; console and queue work without a school may read across schools but cannot write a school row |
+| Validation stays in the school | `SchoolAwarePresenceVerifier` | `exists:` refuses another school's ids; `unique:` holds per school |
+| Roles per school | Spatie teams mode, `school_id` as the team | A role given at one school counts nowhere else |
+| Settings and pushes per school | `PlatformSettings`, `PushTopics` | A school reads and writes its own settings over the platform's; its notices go to its own `school_{id}_*` topics. Pages that change what every school shares (mail server, push project, app versions, languages) open only in the default school (`school.default`) |
+| Jobs keep their school | Laravel's Context carries `school_id` | A job runs in the school it was queued in |
+| Public routes choose explicitly | `school.context:public`, `:sign-in`; webhooks find the record's school | The default school (school 1), or the account's or the record's own |
+| Platform staff | no membership | Reach a school only through audited impersonation (stream T4, on `CurrentSchool::impersonate()`) |
+
+The tenancy suite ([Testing-and-CI](Testing-and-CI#tenancy-suite)) asks every API route and every panel page, list, export, document and search for a second school's records and fails on any trace of them.
+
+**Adding a school-owned table:** give the migration a `school_id` (`$table->foreignId('school_id')->constrained('schools')` and an index), add the table to `SchoolOwnedTables::REQUIRED` (or another list, with the reason in the tenancy spec), and put `BelongsToSchool` on the model. Never filter by a `school_id` from the request. Query it through the model (or `SchoolTable::query()` where there is no model), not `DB::table()`. A unique index on it starts with `school_id`. `SchoolOwnedTablesTest` fails until the table is sorted and its columns match.
 
 ## Input handling
 
@@ -346,9 +366,10 @@ Code outside `config/` reads configuration through `config()`, secrets through `
 
 1. **Check a permission in every admin controller action**, including JSON/AJAX endpoints and list (`show`) endpoints, with `Auth::user()->can('<module>-<action>')` or a `ResponseService::noPermissionThen*()` helper, and return immediately when it fails. Hiding a sidebar item is not a check.
 2. **Add new permission strings to `InstallationSeeder`** and to the Super Admin list (and the Teacher list if teachers need it). There is no Super Admin bypass.
-3. **Use the right role middleware.** Admin routes go inside the `['Role', 'auth']` group; Super Admin-only routes use `role:Super Admin`. App routes go in the matching `role:Student` / `role:Parent` / `role:Teacher` group in `routes/api.php`.
+3. **Use the right role middleware.** Admin routes go inside the `['Role', 'auth', 'school.context']` group; Super Admin-only routes use `role:Super Admin` after `school.context`. App routes go in the matching `role:Student` / `role:Parent` / `role:Teacher` group in `routes/api.php`, after `auth:sanctum` and `school.context`.
 4. **Scope every API query to the caller.** Parents: resolve children only through `$parent->children()` (`CheckChild` or `resolveChild()`), never `Students::find($request->child_id)`. Teachers: go through `currentTeacher()`, `teachesSubject()`, `isClassTeacherOf()`, `teachesStudent()` or the model scopes, and match class section and subject as a pair. Students: limit to their class section, subjects and session. Treat every id in a request as untrusted.
 5. **Never trust amounts, flags or ownership sent by an app.** Compute totals on the server (`FeesPaymentService`), and record payments only from signed webhooks.
+5a. **Keep every school's data its own.** School-owned tables carry `school_id` and their models use `BelongsToSchool` (see [School isolation](#school-isolation) for adding a table); never take a school id from the request; query through models or `SchoolTable::query()`, not `DB::table()`; assign roles by name; and run console work in `CurrentSchool::run($school, ...)`.
 6. **Never concatenate input into SQL.** Use the query builder; in `whereRaw`/`orWhereRaw`/`selectRaw` use `?` placeholders and a bindings array. Group `OR` search conditions in a closure.
 7. **Escape output.** Use `{{ }}` in Blade; use `{!! !!}` only for HTML that staff wrote on purpose. In JavaScript that builds HTML, wrap every row field in `escapeHtml()` and every link in `safeUrl()`; add `data-escape="true"` to new bootstrap-table tables and `data-escape="false"` only on columns that return HTML you built safely. Pass PHP values to scripts with `@json`.
 8. **Do not compile stored content as Blade.** Fill email templates with `EmailTemplateService::render()`.

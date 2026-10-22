@@ -3,21 +3,31 @@ This page documents authorization in the admin panel and the REST API: the spati
 ## Setup
 
 - Package: `spatie/laravel-permission` `^6.0` (`composer.json`), provider registered in [`bootstrap/app.php`](https://github.com/ShawnDaPrawn/Eschool/blob/main/admin-panel/bootstrap/app.php).
-- Config: [`config/permission.php`](https://github.com/ShawnDaPrawn/Eschool/blob/main/admin-panel/config/permission.php) uses the default models (`Spatie\Permission\Models\Role` / `Permission`) and table names (`roles`, `permissions`, `model_has_roles`, `model_has_permissions`, `role_has_permissions`). `teams` is `false`, `enable_wildcard_permission` is `false`, `events_enabled` is `false`, and the permission cache key is `spatie.permission.cache` with a 24 hour expiry on the default cache store.
+- Config: [`config/permission.php`](https://github.com/ShawnDaPrawn/Eschool/blob/main/admin-panel/config/permission.php) uses `App\Models\Platform\Role` and `App\Models\Platform\Permission` and the default table names (`roles`, `permissions`, `model_has_roles`, `model_has_permissions`, `role_has_permissions`). `teams` is `true` with `team_foreign_key` `school_id` (see [Teams and memberships](#teams-and-memberships)), `events_enabled` is `true` (memberships follow role grants), `enable_wildcard_permission` is `false`, and the permission cache key is `spatie.permission.cache` with a 24 hour expiry on the default cache store.
 - `App\Models\User` uses the `HasRoles` trait with `$guard_name = 'web'`. Every role and permission is on the `web` guard, and the same user model is used for Sanctum API tokens, so role checks behave the same in the panel and the API.
 - `roles.custom_role` (int) marks roles created on the Roles page (1) versus seeded roles (0).
 - **There is no `Gate::before` super-user rule** (it is commented out in `AuthServiceProvider`). The Super Admin role can do only what its seeded permission list allows. For example it does not hold `exam-upload-marks`, `manage-online-exam`, `lesson-*` or `attendance-*`; those are teacher work.
 - Middleware aliases (in `bootstrap/app.php`): `permission`, `role`, `role_or_permission` (spatie), `Role` (`CheckRole`), `checkChild` (`CheckChild`), `checkStudent` (`CheckStudent`), `student.session.active`, `parent.children.session.active`.
 
+## Teams and memberships
+
+Since Phase 1 one install serves many schools, and roles are per school (the Build Bible, section 3.1; spec: [tenancy](https://github.com/ShawnDaPrawn/Eschool/blob/main/engineering/specs/platform/tenancy.md)).
+
+- **Teams mode, the team being the school.** `roles.school_id` says whose role it is (every school has its own `Super Admin`, `Teacher`, `Parent` and `Student`, and the roles it creates; role names are unique per school). `model_has_roles` and `model_has_permissions` carry the `school_id` the role or permission was given at. `CurrentSchool` sets Spatie's team (`setPermissionsTeamId`) for every request, command and job, so `hasRole()`, `can()`, `assignRole()`, `syncRoles()` and the `role:` middleware all work at the current school.
+- **Role queries see the school's roles.** `App\Models\Platform\Role` limits queries to the current school, so `Role::where('name', 'Parent')`, `Role::find($id)` and the Roles page never reach another school's roles. Assign roles by name (`assignRole('Teacher')`), never by id. `App\Models\Platform\Permission::roles()` reads every school's roles, because Spatie's shared permission cache is built from it.
+- **A school's system roles.** `App\Services\Platform\Tenancy\SchoolRoles::seed($school)` creates or updates them with their permissions (the lists live there now); `InstallationSeeder` runs it for every school on each deploy, so new permissions reach every school.
+- **Memberships.** `school_memberships` (user, school, role, status, `starts_on`, `ends_on`) says who belongs to which school with which role. Giving a role at a school grants the membership and taking it away ends it (Spatie's role events); nothing historical is deleted. `school.context` lets a signed-in user work only in a school where they have an active membership (`X-School-Id` or the panel's switcher picks among them). `MembershipService` reads them.
+- **Platform staff** have no membership. They reach a school only through audited impersonation (stream T4 builds it on `CurrentSchool::impersonate()`).
+
 ## Roles
 
 | Role | Created by | Assigned to | Can sign in to |
 |---|---|---|---|
-| `Super Admin` | `InstallationSeeder` | User id 1 by `AddSuperAdminSeeder` (`superadmin@gmail.com` / `superadmin`; change it) | Admin panel |
-| `Teacher` | `InstallationSeeder` | Every teacher created by `TeacherController` (`$user->assignRole([2])`, which assumes the Teacher role has id 2) | Admin panel (teacher view) and the teacher app |
-| `Parent` | `InstallationSeeder` (no permissions) | Father/mother/guardian users created with a student | Parent side of the student/parent app only |
-| `Student` | `InstallationSeeder` (no permissions) | Student users | Student side of the app only |
-| Custom roles | Roles page (`RoleController`, `custom_role = 1`) | Staff members via `StaffController` | Admin panel |
+| `Super Admin` | `SchoolRoles` (from `InstallationSeeder`), per school | User id 1 by `AddSuperAdminSeeder` (`superadmin@gmail.com` / `superadmin`; change it) | Admin panel |
+| `Teacher` | `SchoolRoles`, per school | Every teacher created by `TeacherController` (`$user->assignRole('Teacher')`: the current school's Teacher role) | Admin panel (teacher view) and the teacher app |
+| `Parent` | `SchoolRoles`, per school (no permissions) | Father/mother/guardian users created with a student | Parent side of the student/parent app only |
+| `Student` | `SchoolRoles`, per school (no permissions) | Student users | Student side of the app only |
+| Custom roles | Roles page (`RoleController`, `custom_role = 1`), at the current school | Staff members via `StaffController` | Admin panel |
 
 There is no built-in "Staff" role: staff accounts always get a custom role. The name `Admin` is checked in a few places (`HomeController`, and the unused `Students::scopeOfTeacher`) but no seeder creates it; a custom role named `Admin` would hit those branches.
 

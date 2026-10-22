@@ -224,7 +224,7 @@ All classes are in [admin-panel/tests/Feature](https://github.com/ShawnDaPrawn/E
 | `SettingsConfigTest` | `RefreshDatabase`, installer seed | No PHP file in `app/`, `bootstrap/`, `database/`, `resources/views/` or `routes/` calls `env()` (comments and Blade comments are ignored), because `env()` returns `null` outside `config/` once config is cached; `SettingsConfigService::apply()` overrides `app.name`, `app.timezone` (and PHP's default timezone), the SMTP settings and `mail.from.address` from the `settings` table, and keeps `mail.from.name` following the school name only when it was following `APP_NAME`; empty or invalid settings (an unknown timezone, an empty mail host) keep the `.env` values; saving `/email-settings` leaves `.env` byte-for-byte unchanged and stores a password containing spaces and `#` intact. Needs a `.env` file in `admin-panel/` (it compares the file before and after). |
 | `StudentApiSecurityTest` | `RunsAppServer` per test (started on first request), `migrate:fresh` | `/api/settings` contains none of the payment secrets; the removed Razorpay, Paystack and Flutterwave are neither offered in `payment_options` nor accepted as `payment_method` by the student or parent endpoint, even with their old settings rows switched on; online-exam questions do not include answers and selecting every option scores nothing; another class's exam cannot be taken; `OnlineExamScoringService` needs exactly the correct options; the student API is only for active student accounts; forgot-password answers the same whether or not the account exists; a password change signs out other devices; chat only goes to the student's teachers and attachments get safe names; fee payments use server amounts and only the caller's transactions; elective subjects must come from the class's groups; other class sections' content is not served. |
 | `TeacherApiSecurityTest` | In-process, `RefreshDatabase`, installer seed, Sanctum tokens, `Storage::fake('public')` | Answers pass back through the response middleware (`X-Content-Type-Options`, `X-RateLimit-Limit`). Two teachers, each class and subject teacher of one section. Only the owner can delete an assignment; student details only for the student's teachers; only the class teacher sees and decides student leaves; only the lesson's teacher can change its files; attendance only for the class teacher's own class; exam marks need the class or subject teacher and their students; only the teacher's own timetable link can be changed; chat is limited to own students and parents, and attachment files never collide; a Teacher-role user without a teacher record gets nothing. |
-| `Platform\ContextTest` | In-process, `UsesDemoSchool`, `ValidatesOpenApiResponses` | `GET /api/v2/me/context`: 401 without a token; a learner, parent, guardian, teacher, the Super Admin and a school-created role each get their own user, roles, school, year and terms; a parent gets only their own children, each with their school; an account with no role gets 403; branding is passed on as stored; no current year gives `session_year: null`; the query count stays fixed (7 for a teacher, 10 for a parent) whatever the number of children. |
+| `Platform\ContextTest` | In-process, `UsesDemoSchool`, `ValidatesOpenApiResponses` | `GET /api/v2/me/context`: 401 without a token; a learner, parent, guardian, teacher, the Super Admin and a school-created role each get their own user, roles, school, year and terms; a parent gets only their own children, each with their school; an account with no role gets 403; branding is passed on as stored; no current year gives `session_year: null`; the query count stays fixed (8 for a teacher, 11 for a parent, the memberships being one query) whatever the number of children. |
 | `Platform\ApiV2GroundRulesTest` | `RefreshDatabase`, installer seed, test-only routes on the `api` group | v2 routes load under `/api/v2` with the `api` group; the `staff` group admits every role except Parent and Student; `role.any` needs a role; errors come in the envelope with their real status (401, 404, 405, 422 with every message by field, 500 without exception text); a response thrown on purpose and v1 errors are left alone; the `auth` limiter allows 5 a minute per account and 20 per address; the `money` limiter allows 30 a minute per token. |
 | `Platform\IdempotencyKeyTest` | `RefreshDatabase`, installer seed, test-only routes | The `Idempotency-Key` middleware: a retry gets the stored answer and the work runs once; the key, user, route, request hash and answer are stored for 24 hours; another payload with the same key gets 422; field order does not matter but the path and uploaded files do; keys are per user and expire; expired rows are pruned; a retry while the first runs gets 409; failures free the key and refusals are kept; reads and keyless writes pass through; `idempotent:required` refuses a write without a key; malformed keys get 400. |
 | `Platform\IdempotencyKeysMigrationTest` | none (schema changes) | The `idempotency_keys` migration rolls back and runs again. |
@@ -255,17 +255,21 @@ Browser checks of the admin panel live in [admin-panel/e2e](https://github.com/S
 
 `database/seeders/DemoSchoolSeeder.php` creates them; every account's password is `NavigateDemo2026` (`DemoSchoolSeeder::PASSWORD`). They are public demo sign-ins: never seed a production database that people use.
 
-| Profile | Signs in with |
-|---|---|
-| Super Admin | `admin.a@demo.navigateed.test` |
-| Teacher (homeroom 5 A, subject teacher) | `teacher.a@demo.navigateed.test` |
-| Second teacher (homeroom 6 A) | `teacher2.a@demo.navigateed.test` |
-| Staff with the custom Finance role (fees only) | `finance.a@demo.navigateed.test` |
-| Parent of two learners (5 A and 6 A) | `parent.a@demo.navigateed.test` |
-| Second parent | `parent2.a@demo.navigateed.test` |
-| Learner (Grade 5 A), in the app | admission number `DEMO-A-0001` |
+| Profile | School A (NavigateEd Demo School, school 1) | School B (Baobab Demo High) |
+|---|---|---|
+| Super Admin | `admin.a@demo.navigateed.test` | `admin.b@demo.navigateed.test` |
+| Teacher (first homeroom, subject teacher) | `teacher.a@demo.navigateed.test` | `teacher.b@demo.navigateed.test` |
+| Second teacher (second homeroom) | `teacher2.a@demo.navigateed.test` | `teacher2.b@demo.navigateed.test` |
+| Staff with the custom Finance role (fees only) | `finance.a@demo.navigateed.test` | `finance.b@demo.navigateed.test` |
+| Parent of two learners | `parent.a@demo.navigateed.test` | `parent.b@demo.navigateed.test` |
+| Second parent | `parent2.a@demo.navigateed.test` | `parent2.b@demo.navigateed.test` |
+| Learner, in the app | admission number `DEMO-A-0001` | admission number `DEMO-B-0001` |
+| Parent with a child at each school | `parent.both@demo.navigateed.test` (Johan Botha at A, Refilwe Molefe at B) | |
+| Super Admin at both schools (sees the school switcher) | `admin.both@demo.navigateed.test` | |
 
-The seeder is idempotent (run it again and it updates the same rows), runs `InstallationSeeder` first when the roles are missing, and never replaces a running current year. It gives the school last year and this year with different learners in each homeroom, so the year switcher has something to show, and enough data for Home's setup checklist to be complete.
+School A has Grades 5 and 6; School B has Grades 8 and 9 and its own subjects, fees and notices, so nothing of School B appears in School A by name.
+
+The seeder is idempotent (run it again and it updates the same rows), runs `InstallationSeeder` first when the roles are missing, and never replaces a running current year. It gives each school last year and this year with different learners in each homeroom, so the year switcher has something to show, and enough data for Home's setup checklist to be complete.
 
 ### What runs
 
@@ -313,7 +317,7 @@ The server side of the same features has its own feature tests, which run with t
 | `Panel\SearchTest` | Happy path, a teacher finds nothing they cannot open, escaping in JSON and on the page, limits, the selected year, guests |
 | `Panel\ReadOnlyYearsTest` | A past year refuses every write (JSON and plain forms), keeps switching back, sign-out, the profile and year-independent settings working, and lists follow the selected year |
 | `Academics\NewYearTest` | Creating next year leaves the current year untouched; the switch runs the chosen transfers once, refuses ended and current years, validates field by field and needs the right permissions |
-| `DemoSchoolSeederTest` | A user per profile on an installed and on an empty database, idempotent, never replaces a running current year |
+| `DemoSchoolSeederTest` | A user per profile at each of the two demo schools on an installed and on an empty database, the parent with a child at each school and the admin at both, idempotent, never replaces a running current year |
 
 ## Running the checks locally
 
@@ -408,20 +412,26 @@ cd ../admin-panel && composer audit --locked   # the CI audit for PHP packages
 
 ## Tenancy suite
 
-[tests/Feature/Tenancy/ApiRouteTenancyTest.php](https://github.com/ShawnDaPrawn/Eschool/blob/main/admin-panel/tests/Feature/Tenancy/ApiRouteTenancyTest.php) is the scaffold of the cross-school suite every API route needs: once there are two schools, a user of one school must never get another school's data from any route (the answer is 403 or 404). It has one case per route and method, v1 and v2, read from the router by `ApiRoute::fromFreshApplication()`, so a new route is covered the moment it is registered. No database, about 8 seconds.
+The cross-school suite in [tests/Feature/Tenancy](https://github.com/ShawnDaPrawn/Eschool/tree/main/admin-panel/tests/Feature/Tenancy) is the gate of Phase 1: a user of one school never gets another school's data, from any API route or panel page. It runs on two complete schools built once per class by [UsesTwoSchools](https://github.com/ShawnDaPrawn/Eschool/blob/main/admin-panel/tests/Concerns/UsesTwoSchools.php): School A is the usual `DemoSchool`, and School B (school 2) is another `DemoSchool` built inside `CurrentSchool::run(2, ...)` with the label "Baobab", so every School B name, title and sign-in carries that word (`DemoSchool::build('Baobab')`). An answer to a School A user that contains "Baobab" is a leak. Each test runs in a transaction that is rolled back. About 70 seconds for both files.
 
-Phase 0 runs one school, so each case asserts what can be asserted today:
+[ApiRouteTenancyTest](https://github.com/ShawnDaPrawn/Eschool/blob/main/admin-panel/tests/Feature/Tenancy/ApiRouteTenancyTest.php) has one case per API route and method, v1 and v2, read from the router by `ApiRoute::fromFreshApplication()`, so a new route is covered the moment it is registered:
 
 | Check | Fails when |
 | --- | --- |
-| The route exists in the router | never for routes from the provider; guards the lists below |
 | It needs a token: `auth:sanctum` is on the route and a request without a token gets 401 | the route answers anonymously and is not on `PUBLIC` |
 | It sits in a role group (`role:<Role>`, `staff` or `role.any`) | the route has none and is not on `ANY_PROFILE` |
+| `school.context` comes after `auth:sanctum` (`school.context:public` or `:sign-in` on the public routes) | the route would work without a school |
+| A School A user of the route's profile asks it for School B's records: every id the API reads (`child_id`, `student_id`, `class_section_id`, `exam_id`, `lesson_id` and so on) is School B's, and on `CheckChild` and `CheckStudent` routes once more with the user's own child or learner | the answer contains "Baobab", or is a server error |
+| A v2 route is asked to work in School B (`X-School-Id`) by someone with no membership there | the answer is not 403 |
 | The lists are true | a `PUBLIC` route needs a token, an `ANY_PROFILE` route has a role group, or a listed route no longer exists |
 
-`PUBLIC` names the 17 v1 routes anyone may call (the logins, the password resets and the school information the apps show before sign-in), each with its reason; `ANY_PROFILE` names `POST api/logout` and `POST api/change-password` (v1, every app). v2 routes for every profile use the `role.any` group instead, so neither list should grow.
+Two more cases check the marker itself (School B's own people see "Baobab" in their answers) and a parent with a child at each school (each child only while working in its school, chosen with `X-School-Id`). v1 refuses the way it always has for a record it cannot find (an error envelope, a 4xx or an empty list), so the check is "nothing of School B and no server error"; v2 answers 403 or 404.
 
-Phase 1 adds School B (`DemoSchoolSeeder`) and replaces the body of `assertIsolated()` with the real request: as a School A user, ask for a School B record through the route (by id, `child_id`, `student_id` and so on) and assert 403 or 404. The cases and the lists stay as they are.
+[PanelTenancyTest](https://github.com/ShawnDaPrawn/Eschool/blob/main/admin-panel/tests/Feature/Tenancy/PanelTenancyTest.php) signs in as School A's Super Admin and opens every panel GET route without parameters (pages and the bootstrap-table lists, plain and with School B's ids as filters), every GET route with `{id}` (once for each kind of School B record), every export and document (the register export, ID cards, certificates, the fee receipt, result PDFs, learner reports) and the global, parent and lesson searches. Nothing may contain "Baobab"; for a PDF the data handed to its view is checked, because the file's text is compressed. It collects every problem and reports them together.
+
+The rest of the folder covers the parts underneath: `SchoolOwnedTablesTest` (every table sorted, columns and indexes as decided, every school-owned model uses `BelongsToSchool`), `TenancyMigrationsTest` (each migration's down() and the back-fill of a single-school install), `SchoolScopeTest` (scope, fill, bulk inserts, console without a school, a signed-in route without `school.context`, queued jobs, validation rules, settings, users), `SchoolContextTest` (memberships and `X-School-Id`), `SchoolRolesTest` (teams mode), `PanelSchoolSwitcherTest` and `ContextSchoolsTest` (`/me/context` for someone at two schools and the contributor registry).
+
+Test code outside a request works in school 1 (`TestCase::setUp()` chooses it, as a single-school install's console would); each request chooses its own school and the test's comes back when it ends. A test that needs a second school creates it with `School::forceCreate(['id' => 2, ...])` and `SchoolRoles::seed(2)`, and works in it with `app(CurrentSchool::class)->run(2, fn () => ...)`. Raw inserts into school-owned tables in tests go through `SchoolTable::query($table)` (fills `school_id`).
 
 ## Authorization matrix
 
