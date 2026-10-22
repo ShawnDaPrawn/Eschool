@@ -51,7 +51,7 @@ dependencies:
   carousel_slider: ^5.1.2
   flutter_html: ^3.0.0
   package_info_plus: ^10.1.0
-  flutter_stripe: ^12.6.0
+  flutter_stripe: ^14.2.0
   flutter_tex: 4.0.9
   wakelock_plus: ^1.5.2
   external_path: ^2.2.0
