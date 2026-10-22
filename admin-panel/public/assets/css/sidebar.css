@@ -274,138 +274,6 @@
 }
 
 /* ============================================================
-   SIDEBAR NAV SEARCH (moved out of the Blade partial)
-   ============================================================ */
-.sidebar .nav .nav-item.sidebar-search-item {
-    position: -webkit-sticky;
-    position: sticky;
-    top: 0;
-    z-index: 20;
-    /* Solid drawer colour so menu items scrolling up are hidden behind it.
-       Needs this specificity to beat the `.sidebar .nav .nav-item
-       { background: transparent }` rule, which left the search see-through. */
-    background: var(--app-nav-bg);
-    padding: 12px 0.75rem 8px !important;
-    margin-bottom: 0;
-}
-
-/* Drawer colour → transparent fade just below the search bar, shown only once the nav
-   is scrolled (sidebar.js toggles .is-stuck). Items disappear smoothly behind
-   the bar instead of hard-cutting. Replaces the old border line. */
-.sidebar .nav .nav-item.sidebar-search-item::after {
-    content: "";
-    position: absolute;
-    left: 0;
-    right: 0;
-    top: 100%;
-    height: 18px;
-    background: linear-gradient(to bottom, var(--app-nav-bg) 0%, transparent 100%);
-    opacity: 0;
-    transition: opacity 0.2s ease;
-    pointer-events: none;
-}
-
-.sidebar .nav .nav-item.sidebar-search-item.is-stuck::after {
-    opacity: 1;
-}
-
-.sidebar-search-wrapper {
-    position: relative;
-    display: flex;
-    align-items: center;
-}
-
-.sidebar-search-input {
-    width: 100%;
-    border: 1px solid var(--app-nav-divider);
-    border-radius: var(--md-sys-shape-corner-full);
-    background: var(--app-nav-hover);
-    color: var(--app-nav-fg-strong);
-    font-size: 0.9rem;
-    line-height: 1.2;
-    padding: 0.6rem 2.2rem 0.6rem 2.4rem;
-    outline: none;
-    transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out, background-color 0.15s ease-in-out;
-}
-
-.sidebar-search-input::placeholder {
-    color: var(--app-nav-muted);
-}
-
-.sidebar-search-input:focus {
-    border-color: var(--app-nav-sub-active);
-    background: var(--app-nav-hover);
-    box-shadow: 0 0 0 0.2rem color-mix(in srgb, var(--app-nav-sub-active) 30%, transparent);
-}
-
-.sidebar-search-icon {
-    position: absolute;
-    left: 0.85rem;
-    width: 16px;
-    height: 16px;
-    color: var(--app-nav-muted);
-    pointer-events: none;
-}
-
-.sidebar-search-clear {
-    position: absolute;
-    right: 0.55rem;
-    display: none;
-    align-items: center;
-    justify-content: center;
-    width: 22px;
-    height: 22px;
-    padding: 0;
-    border: 0;
-    border-radius: 50%;
-    background: transparent;
-    color: var(--app-nav-muted);
-    cursor: pointer;
-    line-height: 1;
-}
-
-.sidebar-search-clear svg {
-    width: 14px;
-    height: 14px;
-}
-
-.sidebar-search-clear:hover {
-    color: var(--app-nav-fg-strong);
-    background: var(--app-nav-hover);
-}
-
-.sidebar-search-no-results {
-    display: none;
-    padding: 12px 4px 2px;
-    font-size: 0.85rem;
-    color: var(--app-nav-muted);
-    text-align: center;
-}
-
-.sidebar .nav .nav-item.sidebar-search-hidden,
-.sidebar .nav .sub-menu .nav-item.sidebar-search-hidden {
-    display: none !important;
-}
-
-/* RTL mirroring for the search field */
-[dir="rtl"] .sidebar-search-input,
-.rtl .sidebar-search-input {
-    padding: 0.6rem 2.4rem 0.6rem 2.2rem;
-}
-
-[dir="rtl"] .sidebar-search-icon,
-.rtl .sidebar-search-icon {
-    left: auto;
-    right: 0.85rem;
-}
-
-[dir="rtl"] .sidebar-search-clear,
-.rtl .sidebar-search-clear {
-    right: auto;
-    left: 0.55rem;
-}
-
-/* ============================================================
    MOBILE HEADER CONTROLS (inside the off-canvas sidebar)
    Tight top: the close (X) sits inline with the session-year
    select, so there's no empty header band above them.
@@ -552,11 +420,6 @@
         width: 18px;
         height: 18px;
     }
-
-    .sidebar-search-input {
-        padding-top: 0.7rem;
-        padding-bottom: 0.7rem;
-    }
 }
 
 /* ============================================================
@@ -596,11 +459,6 @@
 
     .sidebar-icon-only .sidebar .nav .nav-item .nav-link svg.menu-arrow,
     .sidebar-icon-only .sidebar .nav .nav-item .nav-link .menu-arrow {
-        display: none;
-    }
-
-    /* No room for the search box when collapsed to icons only. */
-    .sidebar-icon-only .sidebar .nav .nav-item.sidebar-search-item {
         display: none;
     }
 }
