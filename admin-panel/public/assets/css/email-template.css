@@ -1,49 +1,79 @@
+/* Placeholder tags ({name}, {school_name} …) that insert into the editor:
+   M3 assist chips — 32px, 8px corners, outline-variant border, label-large,
+   the on-surface state layer on hover. */
 .custom-tag-btn {
-    background-color: var(--md-sys-color-surface-container-low);
-    color: var(--md-sys-color-on-surface-variant);
+    display: inline-flex;
+    align-items: center;
+    min-height: 32px;
+    margin: 4px;
+    padding: 0 16px;
+    background: transparent;
+    color: var(--md-sys-color-on-surface);
     border: 1px solid var(--md-sys-color-outline-variant);
-    border-radius: 8px;
-    padding: 8px 16px;
-    font-size: 14px;
-    font-weight: 600;
-    margin: 5px;
+    border-radius: var(--md-sys-shape-corner-small);
+    font-family: var(--md-ref-typeface-plain);
+    font-size: var(--md-sys-typescale-label-large-size);
+    line-height: var(--md-sys-typescale-label-large-line-height);
+    font-weight: var(--md-sys-typescale-label-large-weight);
+    letter-spacing: var(--md-sys-typescale-label-large-tracking);
     cursor: pointer;
-    transition: all 0.2s ease-in-out;
+    transition: background-color 0.15s ease;
 }
 
 .custom-tag-btn:hover {
-    background-color: var(--md-sys-color-surface-container);
-    border-color: var(--md-sys-color-outline);
-    transform: translateY(-1px);
+    background: color-mix(in srgb, var(--md-sys-color-on-surface) var(--md-sys-state-hover-opacity), transparent);
+}
+
+.custom-tag-btn:active {
+    background: color-mix(in srgb, var(--md-sys-color-on-surface) var(--md-sys-state-pressed-opacity), transparent);
+}
+
+.custom-tag-btn:focus {
+    outline: 0;
+}
+
+.custom-tag-btn:focus-visible {
+    outline: 3px solid var(--md-sys-color-secondary);
+    outline-offset: 2px;
 }
 
 .nav-tabs .nav-link {
     cursor: pointer;
 }
 
-/* Toast notification */
+/* M3 tab content sits on the card, not in the template's bordered box. */
+#emailTabContent {
+    padding: 0;
+    border: 0;
+    text-align: start;
+}
+
+/* Toast notification: an M3 snackbar (inverse surface, 4px corners, level-3
+   shadow, bottom centre); the status shows as a leading bar colour. */
 #toast-msg {
     position: fixed;
-    top: 20px;
-    right: 20px;
+    bottom: 24px;
+    left: 50%;
+    transform: translateX(-50%);
     z-index: 9999;
-    min-width: 250px;
+    min-width: 288px;
+    max-width: min(560px, calc(100vw - 32px));
     display: none;
-    border-radius: 6px;
-    padding: 14px 20px;
-    font-size: 14px;
-    font-weight: 500;
+    padding: 14px 16px;
+    border: 0;
+    border-inline-start: 4px solid transparent;
+    border-radius: var(--md-sys-shape-corner-extra-small);
+    background-color: var(--md-sys-color-inverse-surface);
+    color: var(--md-sys-color-on-inverse-surface);
     box-shadow: var(--md-sys-elevation-level3);
+    font-size: var(--md-sys-typescale-body-medium-size);
+    line-height: var(--md-sys-typescale-body-medium-line-height);
 }
 
 #toast-msg.success {
-    background-color: color-mix(in srgb, var(--app-status-success) 20%, var(--md-sys-color-surface-container-lowest));
-    color: var(--app-status-success-text);
-    border: 1px solid color-mix(in srgb, var(--app-status-success) 30%, var(--md-sys-color-surface-container-lowest));
+    border-inline-start-color: var(--app-status-success);
 }
 
 #toast-msg.error {
-    background-color: color-mix(in srgb, var(--md-sys-color-error) 15%, var(--md-sys-color-surface-container-lowest));
-    color: var(--md-sys-color-error);
-    border: 1px solid color-mix(in srgb, var(--md-sys-color-error) 30%, var(--md-sys-color-surface-container-lowest));
+    border-inline-start-color: var(--md-sys-color-error);
 }

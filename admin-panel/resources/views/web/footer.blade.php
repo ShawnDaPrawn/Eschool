@@ -1,316 +1,82 @@
-<footer class="commonMT">
-
-    <div class="container">
-      <div class="row">
-        <div class="col-sm-6 col-md-6 col-lg-3">
-          <div class="companyInfoWrapper">
-            <div>
-              <a href="index.html">
-                <a href="{{url('/')}}">
-                    <img src="{{ schoolLogoUrl('logo1') }}" height="50px" width="150px" alt="logo">
+{{-- Site footer. Uses $settings (controller) and the section flags set in web.master. --}}
+<footer class="site-footer">
+    <div class="m3-page">
+        <div class="m3-grid site-footer__grid">
+            <div class="m3-col-12 m3-col-medium-6 m3-col-expanded-3 m3-stack m3-gap-4">
+                <a class="site-logo" href="{{ url('/') }}">
+                    <img src="{{ schoolLogoUrl('logo1') }}" height="50" width="150" alt="logo">
                 </a>
-              </a>
-            </div>
-            <div>
-              <span class="commonDesc">
-                {{isset($settings['school_address']) ? $settings['school_address'] : ' Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor
-                incididunt ut labore et dolore magna.'}}
-              </span>
-            </div>
-
-            <div class="socialIcons">
-              <span>
-                <a href="{{isset($settings['facebook']) ? $settings['facebook'] : ''}}" target="_blank">
-                  <i class="fa-brands fa-facebook-square"></i>
-                </a>
-              </span>
-              <span>
-                <a href="{{isset($settings['instagram']) ? $settings['instagram'] : ''}}" target="_blank">
-                  <i class="fa-brands fa-instagram-square"></i>
-                </a>
-              </span>
-              <span>
-                <a href="{{isset($settings['linkedin']) ? $settings['linkedin'] : ''}}" target="_blank">
-                  <i class="fa-brands fa-linkedin"></i>
-                </a>
-              </span>
-            </div>
-          </div>
-        </div>
-
-        <div class="col-sm-6 col-md-6 col-lg-3">
-          <div class="linksWrapper usefulLinksDiv">
-            <span class="title">{{ __('useful_links') }}</span>
-                <span><a href="{{url('/')}}">{{ __('home') }}</a></span>
-                @if ($about || $whoweare || $teacher)<span><a href="{{route('about.us')}}">{{ __('about-us') }}</a></span> @endif
-                @if ($photo)<span><a href="{{route('photo')}}">{{ __('photos') }}</a></span> @endif
-                @if ($video)<span><a href="{{route('video')}}">{{ __('videos') }}</a></span> @endif
-                @if ($question)<span><a href="{{route('contact.us')}}"> {{ __('contact_us') }}</a></span> @endif
-          </div>
-        </div>
-
-        <div class="col-sm-6 col-md-6 col-lg-3">
-            <div class="linksWrapper">
-                <span class="title">{{ __('quick_links') }}</span>
-                <span>
-                    <a href="{{url('login')}}">
-                        {{ __('admin_login')}}
+                <p class="site-footer__text">
+                    {{ isset($settings['school_address']) ? $settings['school_address'] : ' Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor
+                    incididunt ut labore et dolore magna.' }}
+                </p>
+                <div class="m3-row m3-gap-2">
+                    <a class="m3-icon-button m3-icon-button--tonal site-footer__social" href="{{ isset($settings['facebook']) ? $settings['facebook'] : '' }}"
+                        target="_blank" rel="noopener" aria-label="Facebook">
+                        <i class="fa-brands fa-facebook-square" aria-hidden="true"></i>
                     </a>
-                </span>
-                <span>
-                    <a href="{{url('terms-conditions')}}">
-                        {{ __('terms_condition')}}
+                    <a class="m3-icon-button m3-icon-button--tonal site-footer__social" href="{{ isset($settings['instagram']) ? $settings['instagram'] : '' }}"
+                        target="_blank" rel="noopener" aria-label="Instagram">
+                        <i class="fa-brands fa-instagram-square" aria-hidden="true"></i>
                     </a>
-                </span>
-                <span>
-                    <a href="{{url('privacy-policy')}}">
-                        {{ __('privacy_policy')}}
+                    <a class="m3-icon-button m3-icon-button--tonal site-footer__social" href="{{ isset($settings['linkedin']) ? $settings['linkedin'] : '' }}"
+                        target="_blank" rel="noopener" aria-label="LinkedIn">
+                        <i class="fa-brands fa-linkedin" aria-hidden="true"></i>
                     </a>
-                </span>
+                </div>
+            </div>
+
+            <nav class="m3-col-12 m3-col-medium-6 m3-col-expanded-3" aria-labelledby="site-footer-useful">
+                <h2 class="site-footer__title" id="site-footer-useful">{{ __('useful_links') }}</h2>
+                <ul class="site-footer__links">
+                    <li><a href="{{ url('/') }}">{{ __('home') }}</a></li>
+                    @if ($about || $whoweare || $teacher)
+                        <li><a href="{{ route('about.us') }}">{{ __('about-us') }}</a></li>
+                    @endif
+                    @if ($photo)
+                        <li><a href="{{ route('photo') }}">{{ __('photos') }}</a></li>
+                    @endif
+                    @if ($video)
+                        <li><a href="{{ route('video') }}">{{ __('videos') }}</a></li>
+                    @endif
+                    @if ($question)
+                        <li><a href="{{ route('contact.us') }}">{{ __('contact_us') }}</a></li>
+                    @endif
+                </ul>
+            </nav>
+
+            <nav class="m3-col-12 m3-col-medium-6 m3-col-expanded-3" aria-labelledby="site-footer-quick">
+                <h2 class="site-footer__title" id="site-footer-quick">{{ __('quick_links') }}</h2>
+                <ul class="site-footer__links">
+                    <li><a href="{{ url('login') }}">{{ __('admin_login') }}</a></li>
+                    <li><a href="{{ url('terms-conditions') }}">{{ __('terms_condition') }}</a></li>
+                    <li><a href="{{ url('privacy-policy') }}">{{ __('privacy_policy') }}</a></li>
+                </ul>
+            </nav>
+
+            <div class="m3-col-12 m3-col-medium-6 m3-col-expanded-3">
+                <h2 class="site-footer__title">{{ __('contact_info') }}</h2>
+                <ul class="site-footer__links site-footer__contact">
+                    <li>
+                        <x-icon name="phone" class="m3-icon" />
+                        <a href="tel:{{ $settings['school_phone'] }}" dir="ltr">{{ isset($settings['school_phone']) ? $settings['school_phone'] : '+27 12 345 6789' }}</a>
+                    </li>
+                    <li>
+                        <x-icon name="mail" class="m3-icon" />
+                        <a href="mailto:{{ $settings['school_email'] }}">{{ isset($settings['school_email']) ? $settings['school_email'] : 'info@tokensoft.tech' }}</a>
+                    </li>
+                    <li>
+                        <x-icon name="map-pin" class="m3-icon" />
+                        <span>{{ isset($settings['school_address']) ? $settings['school_address'] : 'Pretoria, South Africa' }}</span>
+                    </li>
+                </ul>
             </div>
         </div>
-
-        <div class="col-sm-6 col-md-6 col-lg-3">
-          <div class="linksWrapper">
-            <span class="title">{{ __('contact_info') }}</span>
-                <span class="iconsWrapper">
-                    <span>
-                        <i class="fa-solid fa-phone-volume"></i>
-                    </span>
-                    <span>
-                        <a href="tel:{{$settings['school_phone']}}">{{isset($settings['school_phone']) ? $settings['school_phone'] : '+27 12 345 6789'}}</a>
-                    </span>
-                </span>
-            <span class="iconsWrapper">
-                <span>
-                    <i class="fa-solid fa-envelope"></i>
-                </span>
-                <span>
-                        <a href="mailto:{{$settings['school_email']}}">{{isset($settings['school_email'])? $settings['school_email'] :  'info@tokensoft.tech'}}</a>
-                </span>
-            </span>
-            <span class="iconsWrapper">
-                <span>
-                    <i class="fa-solid fa-location-dot location"></i>
-                </span>
-                <span>
-                    {{isset($settings['school_address']) ? $settings['school_address'] : 'Pretoria, South Africa'}}
-                </span>
-            </span>
-          </div>
-        </div>
-      </div>
     </div>
-    <div class="copyRightText">
-      <span>{{__('copyright')}} © <?= date('Y'); ?> <a href="{{config('app.url')}}" target="_blank">{{config('app.name')}}</a>. {{__('all_rights_reserved')}}. Tokensoft, Pretoria.</span>
+
+    <div class="site-footer__copyright">
+        <p class="m3-page">
+            {{ __('copyright') }} © <?= date('Y') ?> <a href="{{ config('app.url') }}" target="_blank" rel="noopener">{{ config('app.name') }}</a>. {{ __('all_rights_reserved') }}. Tokensoft, Pretoria.
+        </p>
     </div>
-  </footer>
-  <script>
-    let currentSlide = 0;
-    const swiperDataWrappers = document.querySelector('.slider-content .row');
-
-    if(swiperDataWrappers != null)
-    {
-        const swiperDataWrapperWidth = document.querySelector('.swiperDataWrapper').offsetWidth;
-
-        function showSlide(n) {
-            currentSlide = (n + swiperDataWrappers.children.length) % swiperDataWrappers.children.length;
-
-            const transformValue = -currentSlide * swiperDataWrapperWidth + 'px';
-            swiperDataWrappers.style.transform = 'translateX(' + transformValue + ')';
-        }
-
-        function changeSlide(n) {
-            showSlide(currentSlide + n);
-        }
-
-        // Initial display
-        showSlide(0);
-
-        // Infinite loop by resetting the position after transition
-        swiperDataWrappers.addEventListener('transitionend', () => {
-            if (currentSlide === 0) {
-                swiperDataWrappers.style.transition = 'none';
-                currentSlide = swiperDataWrappers.children.length / 1;
-                showSlide(currentSlide);
-                setTimeout(() => {
-                    swiperDataWrappers.style.transition = 'transform 0.5s ease-in-out';
-                });
-            }
-        });
-    }
-
-
-</script>
-
-<script>
-    let currentVideoSlide = 0;
-    const swiperDataVideoWrappers = document.querySelector('.slider-video .row');
-
-    if(swiperDataVideoWrappers != null)
-    {
-        const swiperDataVideoWrapperWidth = document.querySelector('.swiperVideoDataWrapper').offsetWidth;
-
-        function showVideoSlide(n) {
-            currentVideoSlide = (n + swiperDataVideoWrappers.children.length) % swiperDataVideoWrappers.children.length;
-
-            const transformValue = -currentVideoSlide * swiperDataVideoWrapperWidth + 'px';
-            swiperDataVideoWrappers.style.transform = 'translateX(' + transformValue + ')';
-        }
-
-        function changeVideoSlide(n) {
-            showVideoSlide(currentVideoSlide + n);
-        }
-
-        // Initial display
-        showVideoSlide(0);
-
-        // Infinite loop by resetting the position after transition
-        swiperDataVideoWrappers.addEventListener('transitionend', () => {
-            if (currentVideoSlide === 0) {
-                swiperDataVideoWrappers.style.transition = 'none';
-                currentVideoSlide = swiperDataVideoWrappers.children.length / 1;
-                showVideoSlide(currentVideoSlide);
-                setTimeout(() => {
-                    swiperDataVideoWrappers.style.transition = 'transform 0.5s ease-in-out';
-                });
-            }
-        });
-    }
-
-
-</script>
-
-<script>
-    var baseUrl = "{{ URL::to('/') }}";
-    const onErrorImage = (e) => {
-        e.target.onerror = null;
-        e.target.src = "{{ asset('assets/no-image.svg') }}";
-    };
-</script>
-<!-- bootstrap  -->
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js"
-    integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM" crossorigin="anonymous">
-</script>
-
-<!-- fontawesome icons   -->
-{{-- <script src="https://kit.fontawesome.com/1d2a297b20.js" crossorigin="anonymous"></script> --}}
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css" integrity="sha512-Kc323vGBEqzTmouAECnVceyQqyqdsSiqLQISBL29aUW4U/M7pSPA/gEUZQqv1cwx4OnYxTxve5UMg5GT6L4JJg==" crossorigin="anonymous" referrerpolicy="no-referrer" />
-
-<!-- swiper  -->
-<script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-element-bundle.min.js"></script>
-
-<!-- swiper  -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
-<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
-
-<!-- Base and vendor scripts -->
-<script src="{{ asset('/assets/js/vendor.bundle.base.js') }}"></script>
-
-<!-- jQuery and related plugins -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/OwlCarousel2/2.3.4/owl.carousel.min.js"></script>
-<script src="{{ asset('/assets/js/jquery.validate.min.js') }}"></script>
-<script src="{{ asset('/assets/js/jquery-additional-methods.min.js') }}"></script>
-<script src="https://www.google.com/recaptcha/api.js" async defer></script>
-<script src="https://www.google.com/recaptcha/api.js?onload=onloadCallback&render=explicit"
-    async defer>
-</script>
-<!-- Additional plugins -->
-<script src="{{ asset('/assets/select2/select2.min.js') }}"></script>
-<script src="{{ asset('/assets/js/ekko-lightbox.min.js') }}"></script>
-<script src="{{ asset('/assets/js/flatpickr.min.js') }}"></script>
-<script src="{{ asset('/assets/jquery-toast-plugin/jquery.toast.min.js') }}"></script>
-<script src="{{ asset('/assets/js/sweetalert2.all.min.js') }}"></script>
-
-<!-- Custom scripts -->
-<script src="{{ asset('/assets/js/custom/function.js') }}?v={{ filemtime(public_path('assets/js/custom/function.js')) }}"></script>
-<script src="{{ asset('/assets/js/custom/validate.js') }}"></script>
-<script src="{{ asset('/assets/js/script.js') }}?v={{ filemtime(public_path('assets/js/script.js')) }}"></script>
-
-
-@if ($errors->any())
-    @foreach ($errors->all() as $error)
-        <script type='text/javascript'>
-            $.toast({
-                text: $('<div>').text(@json($error)).html(),
-                showHideTransition: 'slide',
-                icon: 'error',
-                loaderBg: 'var(--app-status-danger)',
-                position: 'top-right'
-            });
-        </script>
-    @endforeach
-@endif
-
-@if (Session::has('success'))
-    <script>
-        $.toast({
-            text: $('<div>').text(@json(Session::get('success'))).html(),
-            showHideTransition: 'slide',
-            icon: 'success',
-            loaderBg: 'var(--app-status-success)',
-            position: 'top-right'
-        });
-    </script>
-
-@else
-
-
-@endif
-
-<script>
-    $(document).ready(function () {
-      // Initialize each carousel separately
-      $(".slider-content.owl-carousel").each(function () {
-        var owl = $(this).owlCarousel({
-          loop: false,
-          margin: 20,
-          nav: false,
-          responsive: {
-            0: {
-              items: 1,
-            },
-            600: {
-              items: 3,
-            },
-            1000: {
-              items: 5,
-            },
-          },
-        });
-
-        // Custom navigation buttons for this specific carousel
-        $(this)
-          .closest(".commonSlider")
-          .find(".prev")
-          .click(function () {
-            owl.trigger("prev.owl.carousel");
-          });
-
-        $(this)
-          .closest(".commonSlider")
-          .find(".next")
-          .click(function () {
-            owl.trigger("next.owl.carousel");
-          });
-      });
-    });
-
-    $(document).ready(function () {
-      $(".hero-carousel").owlCarousel({
-        items: 1,
-        loop: true,
-        autoplay: true,
-        autoplayTimeout: 2000, // Set autoplay interval in milliseconds
-        autoplayHoverPause: true, // Pause autoplay when mouse hovers over the carousel
-        nav: true,
-        navText: [
-          "<i class='fa-solid fa-arrow-left'></i>",
-          "<i class='fa-solid fa-arrow-right'></i>",
-        ],
-      });
-    });
-</script>
-
-{{-- Colours come from the design tokens (m3-tokens.css, linked in web.header), not the school theme-colour settings. --}}
+</footer>

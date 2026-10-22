@@ -140,10 +140,10 @@
                     </div>
 
                     <div class="modal-footer elective-modal-footer">
-                        <button type="button" class="btn elective-btn-cancel" data-dismiss="modal">
+                        <button type="button" class="btn btn-secondary elective-btn-cancel" data-dismiss="modal">
                             {{ __('cancel') }}
                         </button>
-                        <button type="submit" id="saveAssignmentBtn" class="btn elective-btn-save" disabled>
+                        <button type="submit" id="saveAssignmentBtn" class="btn btn-theme elective-btn-save" disabled>
                             {{ __('save_assignment') }}
                         </button>
                     </div>

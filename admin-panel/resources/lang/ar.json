@@ -1373,5 +1373,15 @@
     "api_idempotency_key_missing": "يحتاج هذا الطلب إلى ترويسة Idempotency-Key.",
     "api_idempotency_key_invalid": "يجب أن تتكون ترويسة Idempotency-Key من 1 إلى 255 حرفًا مرئيًا من ASCII.",
     "api_idempotency_key_reused": "تم استخدام مفتاح Idempotency-Key هذا من قبل لطلب مختلف.",
-    "api_idempotency_key_in_progress": "لا يزال طلب بمفتاح Idempotency-Key هذا قيد المعالجة. حاول مرة أخرى بعد قليل."
+    "api_idempotency_key_in_progress": "لا يزال طلب بمفتاح Idempotency-Key هذا قيد المعالجة. حاول مرة أخرى بعد قليل.",
+    "Day": "اليوم",
+    "To": "إلى",
+    "Skip to content": "انتقل إلى المحتوى",
+    "Please enter a valid mobile number (7 to 16 digits).": "يرجى إدخال رقم جوال صحيح (من 7 إلى 16 رقمًا).",
+    "back_to_home": "العودة إلى الرئيسية",
+    "contact_form_subtitle": "القبول بسهولة: ابدأ طلبك من خلال نموذج الاتصال.",
+    "get_in_touch": "تواصل معنا",
+    "image_size_hint": "حجم الصورة الموصى به: 120×120 بكسل (مربعة)",
+    "load_more": "عرض المزيد",
+    "menu": "القائمة"
 }

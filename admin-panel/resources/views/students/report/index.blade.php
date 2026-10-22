@@ -18,8 +18,8 @@
 
         <div class="page-header">
             <h3 class="page-title">{{ __('student_report') }}</h3>
-            <a href="{{ route('students.report') }}" class="btn btn-inverse btn-sm d-inline-flex align-items-center">
-                <x-icon name="back" :size="16" class="mr-1" /> {{ __('back') }}
+            <a href="{{ route('students.report') }}" class="btn btn-secondary btn-sm">
+                <x-icon name="back" :size="18" /> {{ __('back') }}
             </a>
         </div>
 

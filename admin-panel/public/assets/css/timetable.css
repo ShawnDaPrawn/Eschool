@@ -20,14 +20,8 @@
     flex-direction: column;
     background: var(--md-sys-color-surface-container-lowest);
     border: 1px solid var(--md-sys-color-outline-variant);
-    border-radius: 14px;
-    box-shadow: var(--md-sys-elevation-level1);
+    border-radius: var(--app-radius);
     overflow: hidden;
-    transition: box-shadow 0.25s ease, border-color 0.25s ease, transform 0.25s ease;
-}
-
-.timetable-day:hover {
-    box-shadow: var(--md-sys-elevation-level2);
 }
 
 /* --- Day header (theme-tinted bar) ---------------------------- */
@@ -105,7 +99,7 @@
     background: var(--md-sys-color-surface-container-lowest);
     border: 1px solid var(--md-sys-color-outline-variant);
     border-left: 3px solid var(--md-sys-color-primary);
-    border-radius: 10px;
+    border-radius: var(--app-radius);
     transition: background-color 0.2s ease, border-color 0.2s ease;
 }
 
@@ -220,7 +214,7 @@
     color: var(--md-sys-color-on-surface-variant);
     background: color-mix(in srgb, var(--md-sys-color-primary) 3%, var(--md-sys-color-surface-container-lowest));
     border: 1px dashed color-mix(in srgb, var(--md-sys-color-primary) 18%, var(--md-sys-color-outline-variant));
-    border-radius: 14px;
+    border-radius: var(--app-radius);
 }
 
 .timetable-empty::before {
@@ -311,47 +305,37 @@
     }
 }
 
-/* --- Day tabs: a segmented pill row --------------------------- */
+/* --- Day tabs ------------------------------------------------
+   M3 primary tabs: the markup carries .nav-tabs, so the global tab rules
+   (m3-components.css) draw them. Here they only fill the width and scroll
+   sideways when the seven days don't fit. */
 .tt-days.timetable_nav {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.375rem;
-    padding: 0.3125rem;
+    flex-wrap: nowrap;
     margin-bottom: 1.5rem;
-    border: 1px solid var(--md-sys-color-outline-variant);
-    border-radius: 12px;
-    background: var(--md-sys-color-surface-container);
+    overflow-x: auto;
+    overflow-y: hidden;
+    scrollbar-width: none;
+}
+
+.tt-days.timetable_nav::-webkit-scrollbar {
+    display: none;
 }
 
 .tt-days.timetable_nav .nav-item {
-    flex: 1 1 auto;
-    margin: 0;
+    flex: 1 0 auto;
 }
 
+/* The indicator sits on the bar's bottom edge, inside the scroll box. */
 .tt-days.timetable_nav .nav-link {
-    display: block;
-    text-align: center;
-    padding: 0.5rem 0.75rem;
-    border: 0;
-    border-radius: 9px;
-    background: transparent;
-    color: var(--md-sys-color-on-surface-variant);
-    font-family: var(--md-ref-typeface-plain);
-    font-weight: 500;
-    font-size: 0.875rem;
+    margin-bottom: 0;
     white-space: nowrap;
-    transition: background 0.2s ease, color 0.2s ease;
 }
 
-.tt-days.timetable_nav .nav-link:hover {
-    background: color-mix(in srgb, var(--md-sys-color-primary) 7%, transparent);
-    color: var(--md-sys-color-primary);
-}
-
-.tt-days.timetable_nav .nav-link.active {
-    background: var(--md-sys-color-surface-container-lowest);
-    color: var(--md-sys-color-primary);
-    box-shadow: var(--md-sys-elevation-level1);
+/* M3 tab content sits on the card, not in the template's bordered box. */
+.tt-days.timetable_nav+.tab-content {
+    padding: 0;
+    border: 0;
+    text-align: start;
 }
 
 /* --- Column header (desktop) — aligns with the .tt-row grid --- */
@@ -403,14 +387,8 @@
     padding: 0.625rem 0.875rem;
     margin: 0;
     border: 1px solid var(--md-sys-color-outline-variant);
-    border-radius: 12px;
+    border-radius: var(--app-radius);
     background: var(--md-sys-color-surface-container-lowest);
-    transition: border-color 0.2s ease, box-shadow 0.2s ease;
-}
-
-.tt-row:hover {
-    border-color: color-mix(in srgb, var(--md-sys-color-primary) 22%, var(--md-sys-color-outline-variant));
-    box-shadow: var(--md-sys-elevation-level1);
 }
 
 .tt-row .form-control {
@@ -421,31 +399,45 @@
     min-width: 0;
 }
 
-/* --- Delete button ------------------------------------------- */
+/* --- Delete button ------------------------------------------
+   M3 icon button (40px circle) in the error colour, with its state layer. */
 .tt-row__remove {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    width: 38px;
-    height: 38px;
+    width: 40px;
+    height: 40px;
     padding: 0;
-    border: 1px solid color-mix(in srgb, var(--md-sys-color-error) 22%, transparent);
-    border-radius: 9px;
-    background: color-mix(in srgb, var(--md-sys-color-error) 8%, var(--md-sys-color-surface-container-lowest));
+    border: 0;
+    border-radius: var(--md-sys-shape-corner-full);
+    background: transparent;
     color: var(--md-sys-color-error);
-    transition: background 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+    transition: background-color 0.15s ease;
 }
 
 .tt-row__remove:hover {
-    background: color-mix(in srgb, var(--md-sys-color-error) 14%, var(--md-sys-color-surface-container-lowest));
-    border-color: color-mix(in srgb, var(--md-sys-color-error) 35%, transparent);
+    background: color-mix(in srgb, var(--md-sys-color-error) var(--md-sys-state-hover-opacity), transparent);
     color: var(--md-sys-color-error);
+}
+
+.tt-row__remove:active {
+    background: color-mix(in srgb, var(--md-sys-color-error) var(--md-sys-state-pressed-opacity), transparent);
+}
+
+.tt-row__remove:focus {
+    outline: 0;
+}
+
+.tt-row__remove:focus-visible {
+    outline: 3px solid var(--md-sys-color-secondary);
+    outline-offset: 2px;
 }
 
 .tt-row__remove:disabled,
 .tt-row__remove.disabled {
-    opacity: 0.4;
-    cursor: not-allowed;
+    background: transparent;
+    color: color-mix(in srgb, var(--md-sys-color-on-surface) var(--md-sys-state-disabled-content-opacity), transparent);
+    cursor: default;
 }
 
 /* --- Footer action bar: add-period + submit ------------------ */
@@ -460,30 +452,13 @@
     border-top: 1px solid var(--md-sys-color-outline-variant);
 }
 
-/* Add-period — a dashed ghost button reading as "insert another row". */
-.tt-add {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.5rem;
-    padding: 0.5rem 1rem;
-    border: 1px dashed color-mix(in srgb, var(--md-sys-color-primary) 40%, var(--md-sys-color-outline-variant));
-    border-radius: 10px;
-    background: color-mix(in srgb, var(--md-sys-color-primary) 5%, var(--md-sys-color-surface-container-lowest));
-    color: var(--md-sys-color-primary);
-    font-family: var(--md-ref-typeface-plain);
-    font-weight: 500;
-    font-size: 0.875rem;
-    transition: background 0.2s ease, border-color 0.2s ease;
-}
-
-.tt-add:hover {
-    background: color-mix(in srgb, var(--md-sys-color-primary) 10%, var(--md-sys-color-surface-container-lowest));
-    border-color: var(--md-sys-color-primary);
-    color: var(--md-sys-color-primary);
-}
-
-.tt-footer .btn-theme {
+.tt-footer .btn {
     margin: 0;
+}
+
+/* Add period: an M3 outlined button with a leading icon (16px sides). */
+.tt-footer .btn.tt-add {
+    padding: 0 16px;
 }
 
 /* --- Responsive: stack rows into labelled fields -------------- */
@@ -515,15 +490,18 @@
     .tt-row__remove {
         grid-column: 1 / -1;
         width: 100%;
-        height: 40px;
-        gap: 0.5rem;
+        gap: 8px;
+        border: 1px solid var(--md-sys-color-outline);
+        border-radius: var(--app-radius);
     }
 
     .tt-row__remove::after {
         content: attr(data-label);
         font-family: var(--md-ref-typeface-plain);
-        font-weight: 500;
-        font-size: 0.875rem;
+        font-size: var(--md-sys-typescale-label-large-size);
+        line-height: var(--md-sys-typescale-label-large-line-height);
+        font-weight: var(--md-sys-typescale-label-large-weight);
+        letter-spacing: var(--md-sys-typescale-label-large-tracking);
     }
 }
 
@@ -534,9 +512,5 @@
 
     .tt-row .tt-cell {
         grid-column: 1 / -1 !important;
-    }
-
-    .tt-days.timetable_nav .nav-item {
-        flex-basis: calc(33.333% - 0.25rem);
     }
 }

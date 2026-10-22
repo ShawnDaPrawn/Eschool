@@ -220,7 +220,7 @@ Everything the admin panel and public site load is committed under [public/asset
 
 | Folder | Contents |
 |---|---|
-| `assets/css` | `style.css`, `rtl.css`, `vendor.bundle.base.css`, page styles (`sidebar.css`, `header.css`, `content.css`, `tables.css`, `timetable.css`, `system-update.css`, `webstyle.css` for the public site, and others) |
+| `assets/css` | `style.css`, `rtl.css`, `vendor.bundle.base.css`, page styles (`sidebar.css`, `header.css`, `content.css`, `tables.css`, `timetable.css`, `system-update.css`, `site.css` for the public site, and others) |
 | `assets/js` | `vendor.bundle.base.js` (jQuery and Bootstrap), Chart.js, jQuery Validate, Flatpickr, Moment, SweetAlert2, jquery.repeater and others |
 | `assets/js/custom` | App code: `custom.js`, `function.js`, `formatter.js`, `queryParams.js`, `custom-bootstrap-table.js`, `bootstrap-table-locale.js`, `validate.js`, `sidebar.js`, `dashboard.js`, `timetable.js`, `staff-attendance.js`, `reset-password.js`, `system-update.js` |
 | `assets/bootstrap-table` | bootstrap-table with the mobile, export, fixed-columns and reorder-rows extensions, tableExport and jsPDF |

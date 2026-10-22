@@ -1,680 +1,307 @@
 @extends('web.master')
 
-<!-- navbar ends here  -->
 @section('content')
+    {{-- Hero: the school's sliders (Owl Carousel; script.js styles its arrows as M3 icon buttons). --}}
+    <section class="site-hero">
+        <h1 class="m3-visually-hidden">{{ config('app.name') }}</h1>
+        <div class="owl-carousel site-hero__carousel" data-site-carousel="hero">
+            @if ($sliders->isEmpty())
+                <div class="site-hero__slide">
+                    <img src="{{ url('assets/images/heroImg1.png') }}" alt="" class="site-hero__image" />
+                </div>
+                <div class="site-hero__slide">
+                    <img src="{{ url('assets/images/heroImg2.png') }}" alt="" class="site-hero__image" />
+                </div>
+                <div class="site-hero__slide">
+                    <img src="{{ url('assets/images/heroImg3.png') }}" alt="" class="site-hero__image" />
+                </div>
+                <div class="site-hero__slide">
+                    <img src="{{ url('assets/images/heroImg4.png') }}" alt="" class="site-hero__image" />
+                </div>
+            @else
+                @foreach ($sliders as $slider)
+                    <div class="site-hero__slide">
+                        <img src="{{ url($slider->image) }}" alt="" class="site-hero__image">
+                    </div>
+                @endforeach
+            @endif
+        </div>
+    </section>
 
-    <div class="main">
-        <section class="heroSection">
-            <div class="owl-carousel owl-theme hero-carousel">
-                @if ($sliders->isEmpty())
-                    <div class="item">
-                        <img src="{{ url('assets/images/heroImg1.png') }}" alt="" class="swiperImage" />
+    @if ($about)
+        <section class="m3-section site-about">
+            <div class="m3-page m3-grid m3-gap-8">
+                <div class="m3-col-12 m3-col-expanded-6">
+                    <img class="site-about__image" src="{{ isset($about->image) ? $about->image : url('assets/images/dummyImg.png') }}" alt="">
+                </div>
+                <div class="m3-col-12 m3-col-expanded-6 m3-stack m3-gap-6 site-about__content">
+                    @include('web.partials.section-head', [
+                        'tag' => isset($about->tag) ? $about->tag : '',
+                        'heading' => isset($about->heading) ? $about->heading : '',
+                        'content' => isset($about->content) ? $about->content : '',
+                        'align' => 'start',
+                    ])
+                    <div>
+                        <a class="m3-button m3-button--filled m3-button--icon-trailing" href="{{ route('about.us') }}">
+                            {{ __('read_more') }}
+                            <x-icon name="arrow-right" class="m3-icon site-flip-rtl" />
+                        </a>
                     </div>
-                    <div class="item">
-                        <img src="{{ url('assets/images/heroImg2.png') }}" alt="" class="swiperImage" />
-                    </div>
-                    <div class="item">
-                        <img src="{{ url('assets/images/heroImg3.png') }}" alt="" class="swiperImage" />
-                    </div>
-                    <div class="item">
-                        <img src="{{ url('assets/images/heroImg4.png') }}" alt="" class="swiperImage" />
-                    </div>
-                @else
-                    @foreach ($sliders as $slider)
-                        <div class="item">
-                            <img src="{{ url($slider->image) }}" alt="" class="swiperImage">
-                        </div>
-                    @endforeach
-                @endif
+                </div>
             </div>
         </section>
+    @endif
 
-        <!-- heroSection ends here  -->
-        @if ($about)
-            <section class="aboutUs commonMT">
-                <div class="container">
-                    <div class="row aboutWrapper">
-                        <div class="col-sm-12 col-md-12 col-lg-6">
-                            <div class="aboutImgWrapper">
-                                <img src="{{ isset($about->image) ? $about->image : url('assets/images/dummyImg.png') }}"
-                                    alt="">
-                            </div>
-                        </div>
+    @if ($program)
+        <section class="m3-section m3-surface-container-low site-programs">
+            <div class="m3-page">
+                <img src="{{ url('assets/images/notes.svg') }}" class="site-programs__notes" alt="notesImg">
+                <img src="{{ url('assets/images/bulbImg.svg') }}" class="site-programs__bulb" alt="bulbImg">
+                @include('web.partials.section-head', [
+                    'tag' => isset($program->tag) ? $program->tag : 'Educational Programs',
+                    'heading' => isset($program->heading) ? $program->heading : 'Educational Programs for every Stage',
+                    'content' => isset($program->content) ? $program->content : 'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.',
+                ])
+                <ul class="m3-grid site-programs__grid">
+                    @if (isset($eprograms))
+                        @foreach ($eprograms as $item)
+                            <li class="m3-col-12 m3-col-medium-6 m3-col-large-3">
+                                <article class="m3-card m3-card--outlined site-program">
+                                    <img class="m3-card__media site-program__image" src="{{ $item->image }}" alt="...">
+                                    <h3 class="m3-card__content m3-card__headline">{{ $item->title }}</h3>
+                                </article>
+                            </li>
+                        @endforeach
+                    @else
+                        @foreach (['Pre-primary School', 'Primary School', 'Secondary School', 'Higher Secondary School'] as $title)
+                            <li class="m3-col-12 m3-col-medium-6 m3-col-large-3">
+                                <article class="m3-card m3-card--outlined site-program">
+                                    <img class="m3-card__media site-program__image" src="{{ url('assets/images/programImg.png') }}" alt="...">
+                                    <h3 class="m3-card__content m3-card__headline">{{ $title }}</h3>
+                                </article>
+                            </li>
+                        @endforeach
+                    @endif
+                </ul>
+            </div>
+        </section>
+    @endif
 
-                        <div class="col-sm-12 col-md-12 col-lg-6">
-                            <div class="aboutContentWrapper">
-                                <span class="commonTag">
-                                    {{ isset($about->tag) ? $about->tag : '' }}
-                                </span>
-                                <span class="commonTitle">
-                                    {{ isset($about->heading) ? $about->heading : '' }}
-                                </span>
-                                <span class="commonDesc">
-                                    {{ isset($about->content) ? $about->content : '' }}
-
-                                </span>
-                                <a class="commonBtn" href="{{ route('about.us') }}">{{ __('read_more') }}
-                                    <i class="fa-solid fa-arrow-right" aria-hidden="true"></i></a>
-                            </div>
-                        </div>
-
-                    </div>
-                </div>
-            </section>
-            <!-- aboutUs ends here  -->
-        @endif
-
-        @if ($program)
-            <section class="programs commonMT">
-                <div class="container">
-                    <div class="row">
-                        <div class="col-lg-12">
-                            <div class="programsCardWrapper">
-                                <div class="row">
-                                    <div class="col-12">
-                                        <div class="flex_column_center">
-                                            <span class="commonTag">
-                                                {{ isset($program->tag) ? $program->tag : 'Educational Programs' }}
-                                            </span>
-                                            <span class="commonTitle">
-                                                {{ isset($program->heading) ? $program->heading : 'Educational Programs for every Stage' }}
-                                            </span>
-
-                                            <span class="commonDesc">
-                                                {{ isset($program->content)
-                                                    ? $program->content
-                                                    : "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    tempor incididunt ut labore et dolore magna aliqua." }}
-                                            </span>
-                                        </div>
-                                    </div>
-
-                                    <div class="col-lg-12">
-                                        <div class="programsCardWrapper">
-                                            <div class="row">
-                                                @if (isset($eprograms))
-                                                    @foreach ($eprograms as $item)
-                                                        <div class="col-sm-6 col-md-6 col-lg-3">
-                                                            <div class="card">
-                                                                <img src="{{ $item->image }}"alt="...">
-                                                                <div class="cardTitle"><span>{{ $item->title }}</span>
-                                                                </div>
-                                                            </div>
-                                                        </div>
-                                                    @endforeach
-                                                @else
-                                                    <div class="col-sm-6 col-md-6 col-lg-3">
-                                                        <div class="card">
-                                                            <img src="{{ url('assets/images/programImg.png') }}"
-                                                                alt="...">
-                                                            <div class="cardTitle"><span>Pre-primary School</span></div>
-                                                        </div>
-                                                    </div>
-                                                    <div class="col-sm-6 col-md-6 col-lg-3">
-                                                        <div class="card">
-                                                            <img src="{{ url('assets/images/programImg.png') }}"
-                                                                alt="...">
-                                                            <div class="cardTitle"><span>Primary School</span></div>
-                                                        </div>
-                                                    </div>
-                                                    <div class="col-sm-6 col-md-6 col-lg-3">
-                                                        <div class="card">
-                                                            <img src="{{ url('assets/images/programImg.png') }}"
-                                                                alt="...">
-                                                            <div class="cardTitle"><span>Secondary School</span></div>
-                                                        </div>
-                                                    </div>
-                                                    <div class="col-sm-6 col-md-6 col-lg-3">
-                                                        <div class="card">
-                                                            <img src="{{ url('assets/images/programImg.png') }}"
-                                                                alt="...">
-                                                            <div class="cardTitle"><span>Higher Secondary School</span>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                @endif
-                                                <div class="sideImgs">
-                                                    <img src="{{ url('assets/images/notes.svg') }}" class="notesImg"
-                                                        alt="notesImg">
-                                                    <img src="{{ url('assets/images/bulbImg.svg') }}" class="bulbImg"
-                                                        alt="bulbImg">
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </section>
-            <!-- programs ends here  -->
-        @endif
-
-        @if ($event)
-            <section class="events commonMT container">
-                <div class="row">
-                    <div class="col-12">
-                        <div class="flex_column_center">
-                            <span class="commonTag">
-                                {{ isset($event->tag) ? $event->tag : 'Our Events and News' }}
-                            </span>
-                            <span class="commonTitle">
-                                {{ isset($event->heading) ? $event->heading : "Don't Miss the Biggest Events and News of the Year!" }}
-                            </span>
-
-                            <span class="commonDesc">
-                                {{ isset($event->content) ? $event->content : 'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.' }}
-                            </span>
-                        </div>
-                    </div>
-
-                    <div class="col-lg-12">
-                        <div class="eventsCardWrapper">
-                            <div class="row">
-                                @if (isset($news))
-                                    @foreach ($news as $item)
-                                        <div class="col-md-6 col-lg-6">
-                                            <div class="card" data-id="{{ $item->id }}">
-                                                <div class="eventDescWrapper">
-                                                    <div class="eventTitle">{{ $item->title }}</div>
-                                                    <hr>
-                                                    <div class="eventDate">
-                                                        @if ($item->date)
-                                                            <span
-                                                                class="month">{{ date('d M, Y', strtotime($item->date)) }}</span>
-                                                        @else
-                                                            @if ($item->end_date)
-                                                                <span
-                                                                    class="month">{{ date('d M, Y', strtotime($item->start_date)) . '  To  ' . date('d M, Y', strtotime($item->end_date)) }}</span>
-                                                            @else
-                                                                <span
-                                                                    class="month">{{ date('d M, Y', strtotime($item->start_date)) }}</span>
-                                                            @endif
-                                                        @endif
-                                                    </div>
-                                                    <span class="eventType"
-                                                        style="display: none">{{ $item->type }}</span>
-                                                    <span class="eventDesc">{{ $item->description }}</span>
-                                                    <button type="button" class="eventReadMoreBtn">{{ __('view_details') }}</button>
-                                                    <span class="image" style="display: none">{{ $item->image }}</span>
-                                                    <span class="eventDetails"
-                                                        style="display: none">{{ $item->multipleEvent }}</span>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    @endforeach
-                                @endif
-                            </div>
-
-                            <!-- Add a modal container -->
-                            <div id="eventModal" class="modal">
-                                <div class="modal-content modal-dialog-scrollable">
-                                    <div class="modal-header">
-                                        <h4 id="fullEventTitle"></h4>
-                                        <button type="button" class="close" aria-label="{{ __('close') }}"><i
-                                                class="fa-solid fa-xmark" aria-hidden="true"></i></button>
-                                    </div>
-                                    <div class="event-modal-body">
-                                        <span class="eventDate" id="fullEventDate"></span>
-                                        <img class="eventImage" style="display: none" id="eventImage" src=""
-                                            alt="image" /><br><br><br>
-                                        <span class="fullEventDescription" id="fullEventDescription"></span>
-
-
-                                        <div class="eventDetails" style="display: none">
-                                            <span class="eventDay"></span>
-                                            <div class="eventDescription">
-                                                <div class="d-flex">
-                                                    <div class="eventTime">
-                                                        <span class="time"></span>
-                                                    </div>
-                                                    <div class="multiEvent">
-                                                        <div class="eventTitle">
-                                                            <h5 class="subtitle"></h5>
-                                                            <span class="subdescription"></span>
-                                                        </div>
-                                                        <div>
-                                                            <i class="fa fa-calendar menu-icon"></i>
-                                                            <span class="date"></span>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-
-                                        <div id="multiEventDetails"></div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </section>
-            <!-- events ends here  -->
-        @endif
-
-        @if ($photo)
-            <section class="ourPhotos commonMT">
-                <div class="container">
-                    <div class="row">
-                        <div class="col-12">
-                            <div class="flex_column_center">
-                                <span class="commonTag">
-                                    {{ isset($photo->tag) ? $photo->tag : 'Our Photos' }}
-                                </span>
-                                <span class="commonTitle">
-                                    {{ isset($photo->heading) ? $photo->heading : ' Capturing Memories, Building Dreams' }}
-                                </span>
-                                <span class="commonDesc">
-                                    {{ isset($photo->content)
-                                        ? $photo->content
-                                        : "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod
-                                                                                                                                                                                                                                                                                                                                                                tempor incididunt ut labore et dolore magna aliqua." }}
-                                </span>
-                            </div>
-                        </div>
-                        <div class="col-12">
-                            <div class="commonSlider">
-                                <div class="viewAllBtn">
-                                    <a class="commonBtn" href="{{ route('photo') }}">
-                                        {{ __('view_all') }}
-                                        <i class="fa-solid fa-circle-chevron-right" aria-hidden="true"></i>
-                                    </a>
-                                </div>
-                                <div class="slider-content owl-carousel">
-                                    @if (isset($images))
-                                        @foreach ($images as $image)
-                                            <!-- Example slide -->
-                                            <a href="{{ route('photo.gallery', $image->id) }}">
-                                                <div class="swiperDataWrapper">
-                                                    <div class="img_div">
-                                                        <img src="{{ $image->thumbnail }}" alt="">
-                                                    </div>
-                                                    <div class="festival">
-                                                        <span>{{ $image->name }}</span>
-                                                        <span><i class="fa-solid fa-arrow-right"></i></span>
-                                                    </div>
-                                                </div>
-                                            </a>
-                                        @endforeach
-                                    @endif
-
-                                    <!-- Add more swiperDataWrapper elements here -->
-                                </div>
-                                <!-- Navigation buttons -->
-                                <div class="navigationBtns">
-                                    <button type="button" class="prev commonBtn" aria-label="{{ __('Previous') }}">
-                                        <i class="fa-solid fa-arrow-left"></i>
-                                    </button>
-                                    <button type="button" class="next commonBtn" aria-label="{{ __('Next') }}">
-                                        <i class="fa-solid fa-arrow-right"></i>
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </section>
-        @endif
-
-        <!-- ourPhotos ends here  -->
-
-        @if ($video)
-            <section class="ourPhotos ourVideos commonMT">
-                <div class="container">
-                    <div class="row">
-                        <div class="col-12">
-                            <div class="flex_column_center">
-                                <span class="commonTag">
-                                    {{ isset($video->tag) ? $video->tag : 'Our Videos' }}
-                                </span>
-                                <span class="commonTitle">
-                                    {{ isset($video->heading) ? $video->heading : 'Rewind, Replay, Rejoice! Dive into Our Video Vault' }}
-                                </span>
-
-                                <span class="commonDesc">
-                                    {{ isset($video->content) ? $video->content : 'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.' }}
-                                </span>
-                            </div>
-                        </div>
-                        <div class="col-12">
-                            <div class="commonSlider">
-                                <div class="viewAllBtn">
-                                    <a class="commonBtn" href="{{ route('video') }}">
-                                        {{ __('view_all') }}
-                                        <i class="fa-solid fa-circle-chevron-right" aria-hidden="true"></i>
-                                    </a>
-                                </div>
-
-                                <div class="slider-content owl-carousel">
-                                    @if (isset($videos))
-                                        @foreach ($videos as $index => $item)
-                                            <div class="swiperDataWrapper">
-                                                <div class="img_div">
-                                                    <img src="{{ $item->embeded_url['thumbnailUrl'] }}"
-                                                        data-embedUrl="{{ $item->embeded_url['embedUrl'] }}"
-                                                        class="openVideo" alt="Thumbnail">
-                                                </div>
-                                            </div>
-                                        @endforeach
-                                    @endif
-                                </div>
-
-                                <!-- Navigation buttons -->
-                                <div class="navigationBtns">
-                                    <button type="button" class="prev commonBtn" aria-label="{{ __('Previous') }}">
-                                        <i class="fa-solid fa-arrow-left"></i>
-                                    </button>
-                                    <button type="button" class="next commonBtn" aria-label="{{ __('Next') }}">
-                                        <i class="fa-solid fa-arrow-right"></i>
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                        <!-- Modal -->
-                        <div id="videoModal" class="modal">
-                            <div class="modal-content">
-                                <div class="iframe_div">
-                                    <iframe id="videoIframe" class="video_player" src="" frameborder="0"
-                                        allowfullscreen></iframe>
-                                </div>
-                            </div>
-                        </div>
-
-                    </div>
-                </div>
-            </section>
-            <!-- ourVideos ends here  -->
-        @endif
-
-
-        @if ($faq)
-            <section class="faqs commonMT">
-                <div class="container">
-                    <div class="row">
-                        <div class="col-12">
-                            <div class="flex_column_center">
-                                <span class="commonTag">
-                                    {{ isset($faq->tag) ? $faq->tag : "FAQ'S" }}
-                                </span>
-                                <span class="commonTitle">
-                                    {{ isset($faq->heading) ? $faq->heading : "Got Questions? We've Got Answers! Dive into Our FAQs" }}
-                                </span>
-                                <span class="commonDesc">
-                                    {{ isset($faq->content) ? $faq->content : 'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.' }}
-                                </span>
-                            </div>
-                        </div>
-
-                        <div class="col-12">
-                            <div class="accordion" id="accordionExample">
-                                @if (isset($faqs))
-                                    @foreach ($faqs as $item)
-                                        <div class="accordion-item">
-                                            <h2 class="accordion-header" id="headingFour">
-                                                <button class="accordion-button collapsed" type="button"
-                                                    data-bs-toggle="collapse"
-                                                    data-bs-target="#collapse-{{ $item->id }}" aria-expanded="false"
-                                                    aria-controls="collapse-{{ $item->id }}">
-                                                    <span>{{ $item->id }}. {{ $item->question }}</span>
-                                                </button>
-                                            </h2>
-                                            <div id="collapse-{{ $item->id }}" class="accordion-collapse collapse"
-                                                aria-labelledby="headingThree" data-bs-parent="#accordionExample">
-                                                <div class="accordion-body">
-                                                    <span>{{ $item->answer }}</span>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    @endforeach
-                                @endif
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </section>
-            <!-- faqs ends here  -->
-        @endif
-
-
-        @if ($app)
-            <section class="ourApp commonMT container">
-                <div class="row">
-                    <div class="col-12">
-                        <div class="flex_column_center">
-                            <span class="commonTag">
-                                {{ isset($app->tag) ? $app->tag : 'Download Our School Apps!' }}
-                            </span>
-                            <span class="commonTitle">
-                                {{ isset($app->heading) ? $app->heading : 'Empower Everyone: Teachers, Students, Parents - Get the App Now!' }}
-                            </span>
-
-                            <span class="commonDesc">
-                                {{ isset($app->content)
-                                    ? $app->content
-                                    : 'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.' }}
-                            </span>
-                        </div>
-                    </div>
-                    <div class="col-12">
-                        <div class="row wrapper">
-                            <div class="col-12 col-sm-6 col-md-6 col-lg-3">
-                                <div class="card">
-                                    <span>
-                                        <img src="{{ url('assets/images/androidApp.svg') }}" class="card-img-top"
-                                            alt="...">
-                                    </span>
-                                    <span class="appName"> {{ __('student_parent_app') }}</span>
-                                    <a class="demoBtn" href="{{ isset($settings['app_link']) ? $settings['app_link'] : '' }}">{{ __('android_demo') }}
-                                        <i class="fa-solid fa-arrow-right" aria-hidden="true"></i></a>
-                                </div>
-                            </div>
-                            <div class="col-12 col-sm-6 col-md-6 col-lg-3">
-                                <div class="card">
-                                    <span>
-                                        <img src="{{ url('assets/images/iosApp.svg') }}" class="card-img-top"
-                                            alt="...">
-                                    </span>
-                                    <span class="appName">{{ __('student_parent_app') }}</span>
-                                    <a class="demoBtn" href="{{ isset($settings['ios_app_link']) ? $settings['ios_app_link'] : '' }}">{{ __('ios_demo') }}
-                                        <i class="fa-solid fa-arrow-right" aria-hidden="true"></i></a>
-                                </div>
-                            </div>
-                            <div class="col-12 col-sm-6 col-md-6 col-lg-3">
-                                <div class="card">
-                                    <span>
-                                        <img src="{{ url('assets/images/androidApp.svg') }}" class="card-img-top"
-                                            alt="...">
-                                    </span>
-                                    <span class="appName">{{ __('teacher_app') }}</span>
-                                    <a class="demoBtn" href="{{ isset($settings['teacher_app_link']) ? $settings['teacher_app_link'] : '' }}">{{ __('android_demo') }}
-                                        <i class="fa-solid fa-arrow-right" aria-hidden="true"></i></a>
-                                </div>
-                            </div>
-                            <div class="col-12 col-sm-6 col-md-6 col-lg-3">
-                                <div class="card">
-                                    <span>
-                                        <img src="{{ url('assets/images/iosApp.svg') }}" class="card-img-top"
-                                            alt="...">
-                                    </span>
-                                    <span class="appName">{{ __('teacher_app') }}</span>
-                                    <a class="demoBtn" href="{{ isset($settings['teacher_ios_app_link']) ? $settings['teacher_ios_app_link'] : '' }}">{{ __('ios_demo') }}
-                                        <i class="fa-solid fa-arrow-right" aria-hidden="true"></i></a>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </section>
-            <!-- ourApp ends here  -->
-        @endif
-
-    </div>
-@endsection
-@section('script')
-    <script type="text/javascript">
-        // Function to format time (e.g., from "09:00:00" to "09:00 AM")
-        function formatTime(timeString) {
-            const [hours, minutes] = timeString.split(':');
-            const formattedHours = parseInt(hours) % 12 || 12;
-            const period = parseInt(hours) < 12 ? 'AM' : 'PM';
-            return `${formattedHours}:${minutes} ${period}`;
-        }
-
-        function formatDate(dateString) {
-            const date = new Date(dateString);
-            const day = date.getDate().toString().padStart(2, '0');
-            const month = (date.getMonth() + 1).toString().padStart(2, '0');
-            const year = date.getFullYear();
-            return `${day}-${month}-${year}`;
-        }
-
-        document.addEventListener("DOMContentLoaded", function() {
-            const eventDescElements = document.querySelectorAll(".eventDesc");
-
-            eventDescElements.forEach(function(eventDescElement) {
-                const originalText = eventDescElement.textContent;
-                const maxLength = 100;
-                const readMoreBtn = eventDescElement.nextElementSibling; // Assuming the button is a sibling
-                if (originalText.length > maxLength) {
-                    const truncatedText = originalText.substring(0, maxLength) + "...";
-                    eventDescElement.textContent = truncatedText;
-
-                    readMoreBtn.style.display = "inline"; // Show the button
-                }
-                // Add event listener to "Read More" button
-                readMoreBtn.addEventListener("click", function() {
-                    // Get the title from eventDescWrapper
-
-                    const title = eventDescElement.parentElement.querySelector(".eventTitle")
-                        .textContent;
-                    // Get the date and month from eventDateWrapper
-                    const month = eventDescElement.parentElement.querySelector(".month")
-                        .textContent;
-                    const image = eventDescElement.parentElement.querySelector(".image")
-                        .textContent;
-
-                    const EventDetails = eventDescElement.parentElement.querySelector(
-                        ".eventDetails").textContent;
-
-                    const details = EventDetails.replace(/</g, '');
-
-
-                    // Display the full event information in the modal
-                    document.getElementById("fullEventTitle").textContent = title;
-                    document.getElementById("fullEventDate").textContent = month;
-                    document.getElementById("fullEventDescription").textContent = originalText;
-
-                    if (image) {
-                        document.getElementById("eventImage").src = image;
-                        document.getElementById("eventImage").style.display = "block";
-                    } else {
-                        document.getElementById("eventImage").style.display = "none";
-                    }
-
-                    if (details && details.length > 0) {
-                        const events = JSON.parse(details);
-                        const modalContainer = document.querySelector('.eventDetails');
-                        let currentDay = 0; // Initialize the current day counter
-                        let prevDate = null;
-
-
-                        function cloneAndPopulateEventDescription() {
-                            let eventDescription = $('.eventDetails:last').clone().show();
-
-                            return eventDescription;
-                        }
-
-                        $.each(events, function(key, event) {
-
-                            const startTime = formatTime(event.start_time);
-                            const endTime = formatTime(event.end_time);
-                            const eventDescription = cloneAndPopulateEventDescription();
-
-                            $('#multiEventDetails').append(eventDescription);
-
-                            if (event.date) {
-                                if (event.date !== prevDate) {
-                                    currentDay++; // Increment currentDay if the date is different
-                                    prevDate = event.date; // Update prevDate
-                                    eventDescription.find('.eventDay').text('Day ' +
-                                        currentDay).show(); // Show day element
+    @if ($event)
+        <section class="m3-section site-events">
+            <div class="m3-page">
+                @include('web.partials.section-head', [
+                    'tag' => isset($event->tag) ? $event->tag : 'Our Events and News',
+                    'heading' => isset($event->heading) ? $event->heading : "Don't Miss the Biggest Events and News of the Year!",
+                    'content' => isset($event->content) ? $event->content : 'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.',
+                ])
+                <ul class="m3-grid site-events__grid">
+                    @if (isset($news))
+                        @foreach ($news as $item)
+                            @php
+                                if ($item->date) {
+                                    $when = date('d M, Y', strtotime($item->date));
+                                } elseif ($item->end_date) {
+                                    $when = date('d M, Y', strtotime($item->start_date)) . '  To  ' . date('d M, Y', strtotime($item->end_date));
                                 } else {
-                                    eventDescription.find('.eventDay')
-                                        .hide(); // Hide day element if date is same
+                                    $when = date('d M, Y', strtotime($item->start_date));
                                 }
-                                eventDescription.find('.time').text(startTime + ' To ' +
-                                    endTime);
-                                eventDescription.find('.subtitle').text(event.title);
-                                eventDescription.find('.subdescription').text(event
-                                    .description);
-                                eventDescription.find('.date').text(formatDate(event.date));
-                            }
-                        });
-                    }
+                            @endphp
+                            <li class="m3-col-12 m3-col-expanded-6">
+                                <article class="m3-card m3-card--outlined site-event" data-id="{{ $item->id }}">
+                                    <div class="m3-card__content site-event__content">
+                                        <h3 class="m3-card__headline site-event__title">{{ $item->title }}</h3>
+                                        <hr class="m3-divider">
+                                        <span class="m3-chip m3-chip--tonal m3-chip--with-icon site-event__date">
+                                            <x-icon name="calendar" class="m3-icon" /><bdi>{{ $when }}</bdi>
+                                        </span>
+                                        <p class="m3-card__supporting site-event__description">{{ $item->description }}</p>
+                                    </div>
+                                    <div class="m3-card__actions m3-card__actions--start">
+                                        <button type="button" class="m3-button m3-button--text site-event__more"
+                                            data-event-title="{{ $item->title }}"
+                                            data-event-date="{{ $when }}"
+                                            data-event-description="{{ $item->description }}"
+                                            data-event-image="{{ $item->image }}"
+                                            data-event-programme="{{ $item->multipleEvent }}"
+                                            aria-haspopup="dialog">{{ __('view_details') }}</button>
+                                    </div>
+                                </article>
+                            </li>
+                        @endforeach
+                    @endif
+                </ul>
+            </div>
 
+            {{-- Event details: filled in by script.js from the card's data-event-* attributes. --}}
+            <dialog class="m3-dialog m3-dialog--fullscreen-compact site-event-dialog" id="eventModal" aria-labelledby="fullEventTitle">
+                <div class="m3-dialog__header">
+                    <h2 class="m3-dialog__headline" id="fullEventTitle"></h2>
+                    <button type="button" class="m3-icon-button" data-m3-dialog-close aria-label="{{ __('close') }}">
+                        <x-icon name="close" class="m3-icon" />
+                    </button>
+                </div>
+                <div class="m3-dialog__content site-event-dialog__content">
+                    <span class="m3-chip m3-chip--tonal m3-chip--with-icon">
+                        <x-icon name="calendar" class="m3-icon" /><bdi id="fullEventDate"></bdi>
+                    </span>
+                    <img class="site-event-dialog__image" id="eventImage" src="" alt="image" hidden />
+                    <p class="site-event-dialog__description" id="fullEventDescription"></p>
+                    <div class="site-programme" id="multiEventDetails"></div>
+                </div>
+            </dialog>
+            <template id="eventProgrammeItem">
+                <h3 class="site-programme__day"></h3>
+                <div class="site-programme__item">
+                    <p class="site-programme__time"></p>
+                    <div class="site-programme__body">
+                        <h4 class="site-programme__title"></h4>
+                        <p class="site-programme__description"></p>
+                        <p class="site-programme__date"><x-icon name="calendar" class="m3-icon" /><span></span></p>
+                    </div>
+                </div>
+            </template>
+        </section>
+    @endif
 
-                    // Show the modal
-                    const modal = document.getElementById("eventModal");
-                    modal.style.display = "block";
-                    // Disable scrolling
-                    document.body.classList.add("modal-open");
+    @if ($photo)
+        <section class="m3-section m3-surface-container-low site-gallery-strip">
+            <div class="m3-page">
+                <div class="site-gallery-strip__head">
+                    @include('web.partials.section-head', [
+                        'tag' => isset($photo->tag) ? $photo->tag : 'Our Photos',
+                        'heading' => isset($photo->heading) ? $photo->heading : ' Capturing Memories, Building Dreams',
+                        'content' => isset($photo->content) ? $photo->content : 'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.',
+                        'align' => 'start',
+                    ])
+                    <a class="m3-button m3-button--filled m3-button--icon-trailing" href="{{ route('photo') }}">
+                        {{ __('view_all') }}
+                        <x-icon name="arrow-right" class="m3-icon site-flip-rtl" />
+                    </a>
+                </div>
+                <div class="site-slider">
+                    <div class="owl-carousel site-slider__track" data-site-carousel="strip">
+                        @if (isset($images))
+                            @foreach ($images as $image)
+                                <a class="site-album" href="{{ route('photo.gallery', $image->id) }}">
+                                    <img class="site-album__image" src="{{ $image->thumbnail }}" alt="">
+                                    <span class="site-album__label">
+                                        <span>{{ $image->name }}</span>
+                                        <x-icon name="arrow-right" class="m3-icon site-flip-rtl" />
+                                    </span>
+                                </a>
+                            @endforeach
+                        @endif
+                    </div>
+                    <div class="site-slider__nav">
+                        <button type="button" class="m3-icon-button m3-icon-button--outlined" data-site-carousel-prev aria-label="{{ __('Previous') }}">
+                            <x-icon name="arrow-left" class="m3-icon site-flip-rtl" />
+                        </button>
+                        <button type="button" class="m3-icon-button m3-icon-button--outlined" data-site-carousel-next aria-label="{{ __('Next') }}">
+                            <x-icon name="arrow-right" class="m3-icon site-flip-rtl" />
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </section>
+    @endif
 
-                });
-            });
-            // Close the modal when the close button is clicked
-            document.querySelector(".close").addEventListener("click", function() {
-                const modal = document.getElementById("eventModal");
-                modal.style.display = "none";
+    @if ($video)
+        <section class="m3-section site-gallery-strip">
+            <div class="m3-page">
+                <div class="site-gallery-strip__head">
+                    @include('web.partials.section-head', [
+                        'tag' => isset($video->tag) ? $video->tag : 'Our Videos',
+                        'heading' => isset($video->heading) ? $video->heading : 'Rewind, Replay, Rejoice! Dive into Our Video Vault',
+                        'content' => isset($video->content) ? $video->content : 'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.',
+                        'align' => 'start',
+                    ])
+                    <a class="m3-button m3-button--filled m3-button--icon-trailing" href="{{ route('video') }}">
+                        {{ __('view_all') }}
+                        <x-icon name="arrow-right" class="m3-icon site-flip-rtl" />
+                    </a>
+                </div>
+                <div class="site-slider">
+                    <div class="owl-carousel site-slider__track" data-site-carousel="strip">
+                        @if (isset($videos))
+                            @foreach ($videos as $index => $item)
+                                @include('web.partials.video-thumb', ['item' => $item, 'number' => $index + 1])
+                            @endforeach
+                        @endif
+                    </div>
+                    <div class="site-slider__nav">
+                        <button type="button" class="m3-icon-button m3-icon-button--outlined" data-site-carousel-prev aria-label="{{ __('Previous') }}">
+                            <x-icon name="arrow-left" class="m3-icon site-flip-rtl" />
+                        </button>
+                        <button type="button" class="m3-icon-button m3-icon-button--outlined" data-site-carousel-next aria-label="{{ __('Next') }}">
+                            <x-icon name="arrow-right" class="m3-icon site-flip-rtl" />
+                        </button>
+                    </div>
+                </div>
+            </div>
+            @include('web.partials.video-dialog')
+        </section>
+    @endif
 
+    @if ($faq)
+        <section class="m3-section m3-surface-container-low site-faqs">
+            <div class="m3-page">
+                @include('web.partials.section-head', [
+                    'tag' => isset($faq->tag) ? $faq->tag : "FAQ'S",
+                    'heading' => isset($faq->heading) ? $faq->heading : "Got Questions? We've Got Answers! Dive into Our FAQs",
+                    'content' => isset($faq->content) ? $faq->content : 'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.',
+                ])
+                <div class="m3-card m3-card--outlined site-faqs__list" id="accordionExample">
+                    @if (isset($faqs))
+                        @foreach ($faqs as $item)
+                            <details class="m3-expansion" name="site-faqs" id="faq-{{ $item->id }}">
+                                <summary class="m3-expansion__header">{{ $item->id }}. {{ $item->question }}</summary>
+                                <div class="m3-expansion__content">
+                                    <p>{{ $item->answer }}</p>
+                                </div>
+                            </details>
+                        @endforeach
+                    @endif
+                </div>
+            </div>
+        </section>
+    @endif
 
-                const eventDetailsContainer = document.getElementById("multiEventDetails");
-                eventDetailsContainer.innerHTML = "";
-                document.body.classList.remove("modal-open"); // Enable scrolling
-
-            });
-            // Close the modal when clicking outside of it
-            window.addEventListener("click", function(event) {
-                if (event.target == document.getElementById("eventModal")) {
-                    const modal = document.getElementById("eventModal");
-                    modal.style.display = "none";
-
-                    const eventDetailsContainer = document.getElementById("multiEventDetails");
-                    eventDetailsContainer.innerHTML = "";
-                    document.body.classList.remove("modal-open"); // Enable scrolling
-
-                }
-
-            });
-        });
-    </script>
-
-    <script type="text/javascript">
-        $(document).ready(function() {
-            $('.openVideo').click(function() {
-                // Get the modal
-
-                var modal = document.getElementById('videoModal');
-
-                var embedUrl = this.getAttribute('data-embedUrl');
-
-                videoIframe.src = embedUrl;
-                // Display the modal when the image is clicked
-                modal.style.display = "block";
-
-                // Close the modal when clicking outside of it
-                window.addEventListener("click", function(event) {
-                    if (event.target == document.getElementById("videoModal")) {
-                        const modal = document.getElementById("videoModal");
-                        modal.style.display = "none";
-                        // Enable scrolling
-                        document.body.classList.remove("modal-open");
-                        var videoElement = document.getElementById('videoIframe');
-                        videoElement.src = "";
-                    }
-                });
-            });
-        });
-    </script>
+    @if ($app)
+        <section class="m3-section site-apps">
+            <div class="m3-page">
+                @include('web.partials.section-head', [
+                    'tag' => isset($app->tag) ? $app->tag : 'Download Our School Apps!',
+                    'heading' => isset($app->heading) ? $app->heading : 'Empower Everyone: Teachers, Students, Parents - Get the App Now!',
+                    'content' => isset($app->content) ? $app->content : 'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.',
+                ])
+                @php
+                    $appCards = [
+                        ['androidApp.svg', __('student_parent_app'), $settings['app_link'] ?? '', __('android_demo')],
+                        ['iosApp.svg', __('student_parent_app'), $settings['ios_app_link'] ?? '', __('ios_demo')],
+                        ['androidApp.svg', __('teacher_app'), $settings['teacher_app_link'] ?? '', __('android_demo')],
+                        ['iosApp.svg', __('teacher_app'), $settings['teacher_ios_app_link'] ?? '', __('ios_demo')],
+                    ];
+                @endphp
+                <ul class="m3-grid site-apps__grid">
+                    @foreach ($appCards as [$icon, $name, $link, $label])
+                        <li class="m3-col-12 m3-col-medium-6 m3-col-large-3">
+                            <article class="m3-card site-app-card">
+                                <div class="m3-card__content">
+                                    <img src="{{ url('assets/images/' . $icon) }}" class="site-app-card__icon" alt="..." width="60" height="60">
+                                    <h3 class="m3-card__headline site-app-card__name">{{ $name }}</h3>
+                                    <div>
+                                        <a class="m3-button m3-button--outlined m3-button--inverse m3-button--icon-trailing" href="{{ $link }}">
+                                            {{ $label }}
+                                            <x-icon name="arrow-right" class="m3-icon site-flip-rtl" />
+                                        </a>
+                                    </div>
+                                </div>
+                            </article>
+                        </li>
+                    @endforeach
+                </ul>
+            </div>
+        </section>
+    @endif
 @endsection

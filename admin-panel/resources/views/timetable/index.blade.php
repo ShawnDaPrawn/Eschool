@@ -65,7 +65,7 @@
                         </div>
 
                         <div id="timetable-div" class="d-none">
-                            <ul class="nav tt-days timetable_nav" role="tablist">
+                            <ul class="nav nav-tabs tt-days timetable_nav" role="tablist">
                                 @foreach ($days as $key => $label)
                                     <li class="nav-item">
                                         <a class="nav-link {{ $loop->first ? 'active' : '' }}" id="{{ $key }}-tab"

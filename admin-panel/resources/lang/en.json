@@ -1393,5 +1393,8 @@
     "api_idempotency_key_missing": "This request needs an Idempotency-Key header.",
     "api_idempotency_key_invalid": "The Idempotency-Key header must be 1 to 255 visible ASCII characters.",
     "api_idempotency_key_reused": "This Idempotency-Key was already used for a different request.",
-    "api_idempotency_key_in_progress": "A request with this Idempotency-Key is still being handled. Try again shortly."
+    "api_idempotency_key_in_progress": "A request with this Idempotency-Key is still being handled. Try again shortly.",
+    "Day": "Day",
+    "To": "To",
+    "Skip to content": "Skip to content"
 }
