@@ -2,6 +2,7 @@
 
 use App\Http\Middleware\EncryptCookies;
 use App\Http\Middleware\VerifyCsrfToken;
+use Laravel\Sanctum\Http\Middleware\AuthenticateSession;
 
 return [
 
@@ -71,6 +72,9 @@ return [
     'middleware' => [
         'verify_csrf_token' => VerifyCsrfToken::class,
         'encrypt_cookies' => EncryptCookies::class,
+        // A web portal's session ends when the account's password changes
+        // elsewhere, as the apps' tokens are revoked then.
+        'authenticate_session' => AuthenticateSession::class,
     ],
 
 ];

@@ -370,7 +370,20 @@ app_env() { # role
     fi
     # With a custom domain, the run.app address must stay accepted.
     [ "$PANEL_URL" = "$RUN_URL" ] || pairs+=("TRUSTED_HOSTS=${RUN_URL#https://}")
-    [ -z "$SANCTUM_STATEFUL_DOMAINS" ] || pairs+=("SANCTUM_STATEFUL_DOMAINS=$SANCTUM_STATEFUL_DOMAINS")
+    # The web portals sign in with the session cookie (cookie mode) only when
+    # the panel, which serves the API, is under the parent domain they share
+    # (SESSION_DOMAIN, .navigateed.co.za): the session and XSRF-TOKEN cookies
+    # are set there so app. and teach. send and read them. On any other address
+    # (the run.app one) only the panel itself is stateful, SESSION_DOMAIN is
+    # cleared, and the deploy workflow builds the portals with bearer tokens.
+    local panel_host="${PANEL_URL#https://}"
+    panel_host="${panel_host%%/*}"
+    if [ -n "${SESSION_DOMAIN:-}" ] && [[ ".$panel_host" == *"$SESSION_DOMAIN" ]]; then
+        pairs+=("SESSION_DOMAIN=$SESSION_DOMAIN")
+        [ -z "$SANCTUM_STATEFUL_DOMAINS" ] || pairs+=("SANCTUM_STATEFUL_DOMAINS=$SANCTUM_STATEFUL_DOMAINS")
+    else
+        pairs+=("SESSION_DOMAIN=null" "SANCTUM_STATEFUL_DOMAINS=$panel_host")
+    fi
     [ -z "$SESSION_COOKIE" ] || pairs+=("SESSION_COOKIE=$SESSION_COOKIE")
     [ -z "${AWS_SES_CONFIGURATION_SET:-}" ] || pairs+=("AWS_SES_CONFIGURATION_SET=$AWS_SES_CONFIGURATION_SET")
     [ -z "${SES_SNS_TOPIC_ARNS:-}" ] || pairs+=("SES_SNS_TOPIC_ARNS=$SES_SNS_TOPIC_ARNS")

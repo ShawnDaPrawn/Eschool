@@ -15,6 +15,7 @@ use App\Models\Students;
 use App\Models\StudentSessions;
 use App\Services\Platform\Identity\AppTokens;
 use App\Services\Platform\Identity\DateOfBirthPasswords;
+use App\Services\Platform\Identity\PortalSession;
 use App\Services\ResponseService;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
@@ -69,7 +70,6 @@ class AuthController extends Controller
                 $auth->save();
             }
 
-            $token = AppTokens::issue($auth, AppTokens::PARENT);
             $user = $auth->load(['parent']);
 
             $children = Students::where('father_id', $user->parent->id)->orWhere('mother_id', $user->parent->id)->orWhere('guardian_id', $user->parent->id)->with('class_section')
@@ -319,6 +319,9 @@ class AuthController extends Controller
             }
 
             $data = array_merge($user, ['dynamic_fields' => $parentDynamicFields ?? null, 'children' => $children->toArray()]);
+
+            // Only now that a child's session is active (no token or session for a refused sign-in).
+            $token = PortalSession::signIn($request, $auth, AppTokens::PARENT);
 
             // Added for v1 clients: true when the account must choose a new password.
             return ResponseService::successResponse('User logged-in!', $data, [

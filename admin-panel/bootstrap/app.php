@@ -8,6 +8,7 @@ use App\Http\Middleware\CheckRole;
 use App\Http\Middleware\CheckStudent;
 use App\Http\Middleware\DemoMiddleware;
 use App\Http\Middleware\EncryptCookies;
+use App\Http\Middleware\EndRefusedPortalSignIn;
 use App\Http\Middleware\EnforcePasswordChange;
 use App\Http\Middleware\EnsureParentChildrenSessionIsActive;
 use App\Http\Middleware\EnsureStudentSessionIsActive;
@@ -30,7 +31,7 @@ use Illuminate\Auth\Middleware\AuthenticateWithBasicAuth;
 use Illuminate\Auth\Middleware\Authorize;
 use Illuminate\Auth\Middleware\EnsureEmailIsVerified;
 use Illuminate\Auth\Middleware\RequirePassword;
-use Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse;
+use Illuminate\Cookie\Middleware\EncryptCookies as BaseEncryptCookies;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
@@ -40,7 +41,6 @@ use Illuminate\Routing\Middleware\SubstituteBindings;
 use Illuminate\Routing\Middleware\ThrottleRequests;
 use Illuminate\Routing\Middleware\ValidateSignature;
 use Illuminate\Session\Middleware\AuthenticateSession;
-use Illuminate\Session\Middleware\StartSession;
 use Illuminate\Support\Facades\Route;
 use Illuminate\View\Middleware\ShareErrorsFromSession;
 use Laravel\Sanctum\Http\Middleware\EnsureFrontendRequestsAreStateful;
@@ -92,12 +92,14 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->append(SecurityHeaders::class);
         $middleware->append(LimitRequestInput::class);
 
-        // Web middleware group
-        $middleware->web(append: [
+        // Web middleware group. The app's EncryptCookies replaces the framework's
+        // (keeping both encrypted every cookie twice, so the web portals' API
+        // calls, which Sanctum decrypts once with the app's, could not read the
+        // session that /sanctum/csrf-cookie started: defect D1).
+        $middleware->web(replace: [
+            BaseEncryptCookies::class => EncryptCookies::class,
+        ], append: [
             LanguageManager::class,
-            EncryptCookies::class,
-            AddQueuedCookiesToResponse::class,
-            StartSession::class,
             // Signs out other sessions when the password changes.
             AuthenticateSession::class,
             ShareErrorsFromSession::class,
@@ -140,6 +142,8 @@ return Application::configure(basePath: dirname(__DIR__))
             'teacher.policy' => RequireParentPolicyAcceptance::class,
             'teacher.active' => EnsureTeacherActive::class,
             'password.change' => EnforcePasswordChange::class,
+            // The app sign-in endpoints: a refused web portal sign-in keeps no session.
+            'portal.sign-in' => EndRefusedPortalSignIn::class,
             // API v2 role groups and writes (routes/api_v2.php).
             'staff' => EnsureUserIsStaff::class,
             'role.any' => EnsureUserHasAnyRole::class,
