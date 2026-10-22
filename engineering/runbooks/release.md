@@ -63,6 +63,8 @@ Approve the waiting **Deploy production** run (Actions > the run > Review deploy
 
 Nothing to do by hand: the panel's new revision runs `php artisan migrate --force` on start (docker/migrate.php, one instance at a time). Check its startup logs show the expected migrations and no error.
 
+After a release that mounts secrets for the first time (the first one after Phase 0 in each environment, or after adding a value to a secret listed in [environments.md](environments.md), "Secrets"), and only once `infra/gcp/provision.sh` has mounted them: run `php artisan secrets:audit-settings --purge` as an artisan execution of the scheduler job (the commands are in environments.md, "Secrets"). It clears the `settings` rows the environment now replaces, so no key stays in the database.
+
 ### 8. Smoke test every profile
 
 - The workflow's smoke job must be green.
