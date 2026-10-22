@@ -32,8 +32,10 @@ return [
     */
 
     'ses' => [
-        'key' => env('AWS_ACCESS_KEY_ID'),
-        'secret' => env('AWS_SECRET_ACCESS_KEY'),
+        // SES keys of their own (Secret Manager: navigateed-ses-access-key-id,
+        // navigateed-ses-secret-access-key), else the general AWS keys.
+        'key' => env('SES_ACCESS_KEY_ID', env('AWS_ACCESS_KEY_ID')),
+        'secret' => env('SES_SECRET_ACCESS_KEY', env('AWS_SECRET_ACCESS_KEY')),
         'region' => env('AWS_SES_REGION', 'af-south-1'),
         'options' => array_filter([
             'ConfigurationSetName' => env('AWS_SES_CONFIGURATION_SET'),

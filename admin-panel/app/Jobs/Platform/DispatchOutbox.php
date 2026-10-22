@@ -10,7 +10,6 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Support\Facades\Log;
-use Throwable;
 
 /**
  * Hands undispatched domain events to their listeners. Scheduled every
@@ -38,10 +37,5 @@ class DispatchOutbox implements ShouldQueue
         }
 
         return $stats;
-    }
-
-    public function failed(?Throwable $e): void
-    {
-        Log::error('job_failed', ['job' => class_basename($this), 'exception' => $e ? get_class($e) : null]);
     }
 }

@@ -26,7 +26,7 @@ return new class extends Migration
             $table->json('before')->nullable();
             $table->json('after')->nullable();
             $table->string('ip', 45)->nullable();
-            $table->string('request_id', 100)->nullable()->index();
+            $table->string('request_id', 128)->nullable()->index();
             $table->timestamp('created_at', 6)->useCurrent();
 
             $table->index(['subject_type', 'subject_id']);

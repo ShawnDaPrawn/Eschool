@@ -61,11 +61,12 @@ class SendMail implements ShouldBeEncrypted, ShouldQueue
     }
 
     /**
-     * Called once the last attempt has failed.
+     * Called once the last attempt has failed. The worker's generic failed-job
+     * line covers the job; this one says which message was given up on.
      */
     public function failed(?Throwable $e): void
     {
-        Log::error('job_failed', [
+        Log::error('notification_delivery_abandoned', [
             'job' => class_basename($this),
             'delivery_key' => $this->deliveryKey,
             'attempts' => $this->tries,

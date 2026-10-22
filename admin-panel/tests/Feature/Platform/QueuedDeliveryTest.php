@@ -125,7 +125,7 @@ class QueuedDeliveryTest extends TestCase
         $this->assertStringContainsString('[address]', (string) $rows[0]->error_summary);
         $this->assertStringNotContainsString('father@example.org', (string) $rows[0]->error_summary);
 
-        Log::shouldHaveReceived('error')->withArgs(fn (string $message, array $context = []) => $message === 'job_failed'
+        Log::shouldHaveReceived('error')->withArgs(fn (string $message, array $context = []) => $message === 'notification_delivery_abandoned'
             && $context['job'] === 'SendMail' && $context['delivery_key'] === $rows[0]->delivery_key
             && ! str_contains(json_encode($context), 'father@example.org'))->once();
         Log::shouldHaveReceived('info')->withArgs(fn (string $message, array $context = []) => $message === 'notification_delivery'
