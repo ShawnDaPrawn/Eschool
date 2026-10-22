@@ -74,11 +74,10 @@ class _FeesStatusScreenState extends State<FeesStatusScreen> {
   }
 
   Widget _buildCurrentYearPendingFees() {
-    final List<String> className = widget.studentDetails.classSectionName.split(
-      ' ',
-    );
     return ListItemForFeesStatus(
-      className: className[0], //only className,without Division
+      // The homeroom as the school named it ("Grade 5 A"). Its first word
+      // alone ("Grade") was shown before.
+      className: widget.studentDetails.classSectionName,
       status: 0, //pending
       receiptProcessing: false,
       fileNamePrefix: '',
