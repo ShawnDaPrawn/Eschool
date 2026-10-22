@@ -24,8 +24,9 @@ use Tests\TestCase;
  * response does not match the spec: every request below goes through
  * ValidatesOpenApiResponses.
  *
- * Adding a v2 endpoint: describe it in openapi.yaml and add its scenarios to
- * scenarios() (each profile that may call it, and the refusals).
+ * Adding a v2 endpoint: describe it in openapi.yaml, add its scenarios to
+ * scenarios() (each profile that may call it, and the refusals), and
+ * regenerate packages/eschool_api (tool/generate.sh).
  */
 class OpenApiContractTest extends TestCase
 {
@@ -126,6 +127,14 @@ class OpenApiContractTest extends TestCase
         }
 
         $this->assertSame([], $uncovered, 'These v2 routes have no scenario in OpenApiContractTest::scenarios()');
+    }
+
+    public function test_the_dart_clients_sample_answer_matches_the_spec(): void
+    {
+        // packages/eschool_api's tests decode this file; both sides read one shape.
+        $fixture = json_decode((string) file_get_contents(base_path('../packages/eschool_api/test/fixtures/me_context_parent.json')), true);
+
+        OpenApiSpec::assertResponseMatches('GET', 'api/v2/me/context', new JsonResponse($fixture));
     }
 
     public function test_a_response_that_breaks_the_spec_fails(): void

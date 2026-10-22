@@ -82,7 +82,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        app: [e-school, e-school-teacher, packages/eschool_core]
+        app: [e-school, e-school-teacher, packages/eschool_core, packages/eschool_api]
     defaults:
       run:
         working-directory: ${{ matrix.app }}
@@ -94,6 +94,23 @@ jobs:
           channel: stable
           cache: true
       - run: flutter pub get --enforce-lockfile
+      # packages/eschool_api is generated from admin-panel/openapi.yaml: regenerate
+      # it and fail if the committed code differs (or files were added or removed).
+      - if: matrix.app == 'packages/eschool_api'
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+      - if: matrix.app == 'packages/eschool_api'
+        name: Generated client matches openapi.yaml
+        run: |
+          tool/generate.sh
+          if [ -n "$(git status --porcelain -- .)" ]; then
+            git status --short -- .
+            git diff -- . | head -200
+            echo "::error::packages/eschool_api is out of date: run packages/eschool_api/tool/generate.sh and commit the result"
+            exit 1
+          fi
       # Style-only "info" lints are reported but don't fail the build; errors and warnings do.
       - run: flutter analyze --no-fatal-infos
       - run: flutter test
