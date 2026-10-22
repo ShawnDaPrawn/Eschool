@@ -6,7 +6,6 @@ import 'package:eschool_core/eschool_core.dart';
 import 'package:eschool_teacher/utils/labelKeys.dart';
 import 'package:eschool_teacher/utils/uiUtils.dart';
 import 'package:eschool_teacher/data/models/attendanceEnums.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
 class SearchStudentScreen extends StatefulWidget {
@@ -29,7 +28,7 @@ class SearchStudentScreen extends StatefulWidget {
     RouteSettings routeSettings,
   ) {
     final arguments = routeSettings.arguments! as SearchStudentArguments;
-    return CupertinoPageRoute(
+    return AdaptivePageRoute(
       builder: (_) => SearchStudentScreen(
         fromAttendanceScreen: arguments.fromAttendanceScreen,
         students: arguments.students,

@@ -18,7 +18,6 @@ import 'package:eschool_teacher/ui/widgets/myClassesDropDownMenu.dart';
 import 'package:eschool_teacher/utils/labelKeys.dart';
 import 'package:eschool_teacher/utils/uiUtils.dart';
 import 'package:file_picker/file_picker.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:permission_handler/permission_handler.dart';
@@ -38,7 +37,7 @@ class AddOrEditAnnouncementScreen extends StatefulWidget {
     final arguments =
         routeSettings.arguments as AddOrEditAnnouncementArguments? ??
         const AddOrEditAnnouncementArguments();
-    return CupertinoPageRoute(
+    return AdaptivePageRoute(
       builder: (_) => MultiBlocProvider(
         providers: [
           BlocProvider(

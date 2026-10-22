@@ -27,6 +27,7 @@ API client, and the widgets and cubits both apps had copies of.
 | `config/` | `AppConfig`: `API_BASE_URL`, `ENV`, `FLAVOR` from `--dart-define` |
 | `cubits/` | Cubits both apps use; each takes a repository interface |
 | `l10n/` | `AppLocalization`, `AppLocalizationDelegate`, the shared label keys |
+| `layout/` | `Breakpoints` (phone below 600, tablet to 1024, desktop above), `ContentColumn`, `AdaptiveScaffold`, `AdaptivePageRoute`: every screen keeps its phone look and gets a centred column, and the home screens a navigation rail, on tablets and desktops |
 | `models/` | Data models |
 | `repositories/` | Interfaces the shared cubits read through; each app's repositories implement them, and tests pass fakes |
 | `shell/` | `AppShell`: what shared widgets need from the app they run in |

@@ -1,8 +1,8 @@
+import 'package:eschool_core/eschool_core.dart';
 import 'package:eschool/ui/widgets/customAppbar.dart';
 import 'package:eschool/utils/constants.dart';
 import 'package:eschool/utils/labelKeys.dart';
 import 'package:eschool/utils/uiUtils.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 
@@ -15,7 +15,7 @@ class WebViewPaymentScreen extends StatefulWidget {
   State<WebViewPaymentScreen> createState() => _WebViewPaymentScreenState();
 
   static Route route(RouteSettings routeSettings) {
-    return CupertinoPageRoute(
+    return AdaptivePageRoute(
       builder: (_) =>
           WebViewPaymentScreen(
             paymentUrl: routeSettings.arguments as String? ?? '',

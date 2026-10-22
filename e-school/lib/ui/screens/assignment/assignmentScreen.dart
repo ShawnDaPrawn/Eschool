@@ -11,7 +11,6 @@ import 'package:eschool/ui/widgets/customAppbar.dart';
 import 'package:eschool/utils/assets.dart';
 import 'package:eschool/utils/labelKeys.dart';
 import 'package:eschool/utils/uiUtils.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -25,7 +24,7 @@ class AssignmentScreen extends StatefulWidget {
   State<AssignmentScreen> createState() => _AssignmentScreenState();
 
   static Route<Assignment> route(RouteSettings routeSettings) {
-    return CupertinoPageRoute(
+    return AdaptivePageRoute(
       builder: (_) =>
           AssignmentScreen(assignment: routeSettings.arguments! as Assignment),
     );

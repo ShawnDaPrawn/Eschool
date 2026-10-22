@@ -4,7 +4,6 @@ import 'package:eschool_core/eschool_core.dart';
 import 'package:eschool/ui/screens/playVideo/widgets/playPauseButton.dart';
 import 'package:eschool/ui/screens/playVideo/widgets/videoControlsContainer.dart';
 import 'package:eschool/utils/uiUtils.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/gestures.dart';
@@ -28,7 +27,7 @@ class PlayVideoScreen extends StatefulWidget {
 
   static Route route(RouteSettings routeSettings) {
     final arguments = routeSettings.arguments! as PlayVideoArguments;
-    return CupertinoPageRoute(
+    return AdaptivePageRoute(
       builder: (context) => PlayVideoScreen(
         currentlyPlayingVideo: arguments.currentlyPlayingVideo,
         relatedVideos: arguments.relatedVideos,

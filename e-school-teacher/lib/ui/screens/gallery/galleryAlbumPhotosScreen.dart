@@ -3,7 +3,6 @@ import 'package:eschool_core/eschool_core.dart';
 import 'package:eschool_teacher/data/repositories/systemInfoRepository.dart';
 import 'package:eschool_teacher/ui/widgets/albumGridItemLoadingContainer.dart';
 import 'package:eschool_teacher/utils/uiUtils.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -17,7 +16,7 @@ class GalleryAlbumPhotosScreen extends StatefulWidget {
 
   static Route route(RouteSettings routeSettings) {
     final album = routeSettings.arguments! as GalleryAlbum;
-    return CupertinoPageRoute(
+    return AdaptivePageRoute(
       builder: (context) => BlocProvider(
         create: (context) => GalleryAlbumPhotosCubit(
           album: album,

@@ -3,7 +3,6 @@ import 'package:eschool_teacher/ui/widgets/customAppbar.dart';
 import 'package:eschool_teacher/utils/assets.dart';
 import 'package:eschool_teacher/utils/labelKeys.dart';
 import 'package:eschool_teacher/utils/uiUtils.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 
@@ -32,7 +31,7 @@ class ImageFileScreen extends StatefulWidget {
     final int? initialPageNumber = arguments.initialPage;
     final String? title = arguments.title;
 
-    return CupertinoPageRoute(
+    return AdaptivePageRoute(
       builder: (_) => ImageFileScreen(
         imageFileMaterial: studyMaterial,
         listOfImages: multipleFiles,

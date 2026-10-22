@@ -51,7 +51,6 @@ import 'package:eschool/ui/screens/studentProfileScreen.dart';
 import 'package:eschool/ui/screens/subjectDetails/subjectDetailsScreen.dart';
 import 'package:eschool/ui/screens/termsAndConditionScreen.dart';
 import 'package:eschool/ui/screens/topicDetailsScreen.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
 // ignore: avoid_classes_with_only_static_members
@@ -160,7 +159,7 @@ class Routes {
         return SplashScreen.route(routeSettings);
 
       case auth:
-        return CupertinoPageRoute(builder: (_) => const AuthScreen());
+        return AdaptivePageRoute(builder: (_) => const AuthScreen());
 
       case studentLogin:
         return StudentLoginScreen.route(routeSettings);
@@ -232,10 +231,10 @@ class Routes {
         return ChildTeachersScreen.route(routeSettings);
 
       case settings:
-        return CupertinoPageRoute(builder: (_) => const SettingsScreen());
+        return AdaptivePageRoute(builder: (_) => const SettingsScreen());
 
       case parentProfile:
-        return CupertinoPageRoute(builder: (_) => const ParentProfileScreen());
+        return AdaptivePageRoute(builder: (_) => const ParentProfileScreen());
 
       case noticeBoard:
         return NoticeBoardScreen.route(routeSettings);
@@ -306,7 +305,7 @@ class Routes {
         return GalleryAlbumPhotosScreen.route(routeSettings);
 
       default:
-        return CupertinoPageRoute(builder: (context) => const Scaffold());
+        return AdaptivePageRoute(builder: (context) => const Scaffold());
     }
   }
 }

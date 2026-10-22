@@ -1,3 +1,4 @@
+import 'package:eschool_core/eschool_core.dart';
 import 'package:eschool/cubits/academicCalendarCubit.dart';
 import 'package:eschool/cubits/appConfigurationCubit.dart';
 import 'package:eschool/cubits/assignmentsCubit.dart';
@@ -35,9 +36,9 @@ import 'package:eschool/utils/homeBottomsheetMenu.dart';
 import 'package:eschool/utils/labelKeys.dart';
 import 'package:eschool_notifications/eschool_notifications.dart';
 import 'package:eschool/utils/uiUtils.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 
 //value notifier to show notification icon active/deactivated
 /// The unread badge; kept by eschool_notifications.
@@ -53,7 +54,8 @@ class HomeScreen extends StatefulWidget {
   State<HomeScreen> createState() => HomeScreenState();
 
   static Route route(RouteSettings routeSettings) {
-    return CupertinoPageRoute(
+    return AdaptivePageRoute(
+      contentColumn: false,
       builder: (_) => MultiBlocProvider(
         providers: [
           BlocProvider<TimeTableCubit>(
@@ -461,41 +463,46 @@ class HomeScreenState extends State<HomeScreen>
       child: Scaffold(
         body: context.read<AppConfigurationCubit>().appUnderMaintenance()
             ? const AppUnderMaintenanceContainer()
-            : Stack(
-                children: [
-                  IndexedStack(
-                    index: _currentSelectedStackItemIndex,
-                    children: [
-                      const HomeContainer(),
-                      const ChatUsersScreen(),
-                      const AssignmentsContainer(),
-                      _currentlyOpenMenuIndex != -1
-                          ? _buildMenuItemContainer()
-                          : const SizedBox(),
-                    ],
-                  ),
-                  IgnorePointer(
-                    ignoring: !_isMoreMenuOpen,
-                    child: FadeTransition(
-                      opacity: _moreMenuBackgroundContainerColorAnimation,
-                      child: _buildMoreMenuBackgroundContainer(),
+            : AdaptiveScaffold(
+                selectedIndex: _currentSelectedBottomNavIndex,
+                onDestinationSelected: changeBottomNavItem,
+                destinations: _buildRailDestinations(),
+                body: Stack(
+                  children: [
+                    IndexedStack(
+                      index: _currentSelectedStackItemIndex,
+                      children: [
+                        const HomeContainer(),
+                        const ChatUsersScreen(),
+                        const AssignmentsContainer(),
+                        _currentlyOpenMenuIndex != -1
+                            ? _buildMenuItemContainer()
+                            : const SizedBox(),
+                      ],
                     ),
-                  ),
-                  //More menu bottom sheet
-                  Align(
-                    alignment: Alignment.bottomCenter,
-                    child: SlideTransition(
-                      position: _moreMenuBottomsheetAnimation,
-                      child: MoreMenuBottomsheetContainer(
-                        closeBottomMenu: _closeBottomMenu,
-                        onTapMoreMenuItemContainer: _onTapMoreMenuItemContainer,
+                    IgnorePointer(
+                      ignoring: !_isMoreMenuOpen,
+                      child: FadeTransition(
+                        opacity: _moreMenuBackgroundContainerColorAnimation,
+                        child: _buildMoreMenuBackgroundContainer(),
                       ),
                     ),
-                  ),
-                  Align(
-                    alignment: Alignment.bottomCenter,
-                    child: _buildBottomNavigationContainer(),
-                  ),
+                    //More menu bottom sheet
+                    Align(
+                      alignment: Alignment.bottomCenter,
+                      child: SlideTransition(
+                        position: _moreMenuBottomsheetAnimation,
+                        child: MoreMenuBottomsheetContainer(
+                          closeBottomMenu: _closeBottomMenu,
+                          onTapMoreMenuItemContainer:
+                              _onTapMoreMenuItemContainer,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                bottomNavigationBar: _buildBottomNavigationContainer(),
+                overlays: [
                   context.read<AppConfigurationCubit>().forceUpdate()
                       ? FutureBuilder<bool>(
                           future: UiUtils.forceUpdate(
@@ -517,5 +524,28 @@ class HomeScreenState extends State<HomeScreen>
               ),
       ),
     );
+  }
+
+  /// The bottom bar's items as a navigation rail, for tablets and desktops.
+  List<AdaptiveDestination> _buildRailDestinations() {
+    //phones draw the bottom bar, which follows the chat count itself
+    if (Breakpoints.isPhone(context)) {
+      return const [];
+    }
+    final chatState = context.watch<ChatUsersCubit>().state;
+    return [
+      for (int index = 0; index < _bottomNavItems.length; index++)
+        AdaptiveDestination(
+          icon: SvgPicture.asset(_bottomNavItems[index].disableImageUrl),
+          selectedIcon: SvgPicture.asset(_bottomNavItems[index].activeImageUrl),
+          label: UiUtils.getTranslatedLabel(
+            context,
+            _bottomNavItems[index].title,
+          ),
+          badgeCount: index == 1 && chatState is ChatUsersFetchSuccess
+              ? chatState.totalUnreadUsers
+              : null,
+        ),
+    ];
   }
 }

@@ -24,7 +24,6 @@ import 'package:eschool/utils/assets.dart';
 import 'package:eschool/utils/labelKeys.dart';
 import 'package:eschool_notifications/eschool_notifications.dart';
 import 'package:eschool/utils/uiUtils.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -37,7 +36,7 @@ class ParentHomeScreen extends StatefulWidget {
   State<ParentHomeScreen> createState() => _ParentHomeScreenState();
 
   static Route route(RouteSettings routeSettings) {
-    return CupertinoPageRoute(
+    return AdaptivePageRoute(
       builder: (_) => MultiBlocProvider(
         providers: [
           BlocProvider<SlidersCubit>(
@@ -515,7 +514,7 @@ class _ParentHomeScreenState extends State<ParentHomeScreen>
       onPressed: () {
         Navigator.of(
           context,
-        ).push(CupertinoPageRoute(builder: (_) => const ChatUsersScreen()));
+        ).push(AdaptivePageRoute(builder: (_) => const ChatUsersScreen()));
       },
       child: BlocBuilder<ChatUsersCubit, ChatUsersState>(
         builder: (context, state) {

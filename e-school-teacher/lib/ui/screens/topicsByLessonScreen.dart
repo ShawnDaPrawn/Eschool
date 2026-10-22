@@ -10,7 +10,6 @@ import 'package:eschool_core/eschool_core.dart';
 import 'package:eschool_teacher/ui/widgets/topicsContainer.dart';
 import 'package:eschool_teacher/utils/labelKeys.dart';
 import 'package:eschool_teacher/utils/uiUtils.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -28,7 +27,7 @@ class TopcisByLessonScreen extends StatefulWidget {
 
   static Route<bool?> route(RouteSettings routeSettings) {
     final arguments = routeSettings.arguments! as TopicsByLessonArguments;
-    return CupertinoPageRoute(
+    return AdaptivePageRoute(
       builder: (_) => MultiBlocProvider(
         providers: [
           BlocProvider<TopicsCubit>(

@@ -12,7 +12,6 @@ import 'package:eschool/ui/widgets/noDataContainer.dart';
 import 'package:eschool/ui/widgets/swapStatusFilterBottomsheetContainer.dart';
 import 'package:eschool/utils/labelKeys.dart';
 import 'package:eschool/utils/uiUtils.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -24,7 +23,7 @@ class ManageLeavesScreen extends StatefulWidget {
   State<ManageLeavesScreen> createState() => _ManageLeavesScreenState();
 
   static Route route(RouteSettings routeSettings) {
-    return CupertinoPageRoute(
+    return AdaptivePageRoute(
       builder: (_) => BlocProvider<LeaveCubit>(
         create: (context) => LeaveCubit(LeaveRepository()),
         child: ManageLeavesScreen(

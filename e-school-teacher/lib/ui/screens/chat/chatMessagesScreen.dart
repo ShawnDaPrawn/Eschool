@@ -32,7 +32,7 @@ class ChatMessagesScreen extends StatefulWidget {
   static CupertinoPageRoute route(RouteSettings routeSettings) {
     final ChatUser user =
         routeSettings.arguments as ChatUser? ?? ChatUser.fromJsonAPI({});
-    return CupertinoPageRoute(
+    return AdaptivePageRoute(
       builder: (_) => BlocProvider<ChatMessagesCubit>(
         create: (context) => ChatMessagesCubit(ChatRepository()),
         child: ChatMessagesScreen(chatUser: user),

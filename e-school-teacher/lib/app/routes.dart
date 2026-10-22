@@ -43,7 +43,6 @@ import 'package:eschool_teacher/ui/screens/teacherAttendance/teacherAttendanceSc
 import 'package:eschool_teacher/ui/screens/termsAndConditionScreen.dart';
 import 'package:eschool_teacher/ui/screens/topicsByLessonScreen.dart';
 import 'package:eschool_teacher/ui/screens/topicsScreen.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
 // ignore: avoid_classes_with_only_static_members
@@ -285,7 +284,7 @@ class Routes {
         return TeacherAttendenceScreen.route(routeSettings);
       default:
         {
-          return CupertinoPageRoute(builder: (context) => const Scaffold());
+          return AdaptivePageRoute(builder: (context) => const Scaffold());
         }
     }
   }

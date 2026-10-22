@@ -88,6 +88,19 @@ The splash screen (`lib/ui/screens/splashScreen.dart`) then:
 
 If the configuration request fails the splash shows an `ErrorContainer` with a retry button; the app cannot get past the splash screen without reaching the server.
 
+## Layout on tablets and desktops
+
+The screens were designed for phones. Three pieces in `eschool_core/lib/src/layout/` let them work at every width without a second code path, and leave phones exactly as they were:
+
+| Piece | What it does |
+|---|---|
+| `Breakpoints` | `ScreenSize.phone` below 600 px, `tablet` from 600 to 1024, `desktop` above; `Breakpoints.of(context)` reads the width the widget has. `contentMaxWidth` is 640. |
+| `ContentColumn` | On a phone, returns its child unchanged. Wider, centres the child in a column at most 640 px wide on the page background (`surfaceContainerLow`) and tells the child, through `MediaQuery`, that the screen is the column's width, so screens that size things as a share of `MediaQuery.sizeOf(context).width` keep their proportions. |
+| `AdaptiveScaffold` | The home screens' layout: on a phone the tab content with the app's own floating bottom bar, as before; on a tablet a `NavigationRail` with labels and the content in a `ContentColumn`; on a desktop the rail extended. The force-update dialog is drawn over all of it. |
+| `AdaptivePageRoute` | The `CupertinoPageRoute` every screen opens with, whose page is wrapped in a `ContentColumn`. The two home routes pass `contentColumn: false` because `AdaptiveScaffold` lays them out. |
+
+Every route in both apps is an `AdaptivePageRoute`, so every existing screen renders in the column at 820 and 1280 px; the learner home and the teacher home switch their bottom bars for a rail. Bottom sheets keep Material 3's 640 px limit. Tests: `packages/eschool_core/test/layout_test.dart` checks each piece at 390, 820 and 1280 px.
+
 ## Route arguments
 
 Screens are opened by name (`Navigator.pushNamed(context, Routes.x, arguments: ...)`) and each screen's `static Route route(RouteSettings)` reads `routeSettings.arguments`. The arguments are typed: a route that takes several values has a small class in `lib/app/routeArguments.dart` (for example `ChildSubjectsArguments(childId:, subjects:)` for a child's assignments, exams, results and reports, `FeesDetailsArguments` with a `forChildId` constructor for fee reminders, `ExamTimeTableArguments`, `ClassScreenArguments` and `AddOrEditLessonArguments` in the teacher app); a route that takes one value receives it as it is (a `Student`, an `Assignment`, an `Event`, a `ChatUser`, a `GalleryAlbum`, a child id, the payment URL). The file viewers' `ImageFileViewArguments` and `PdfFileViewArguments` are in `eschool_core`, because both apps and the shared widgets open them. Passing the wrong type fails when the route is built, and `test/routes_test.dart` in each app builds every argument-taking route with its class. The add and edit screens, the file viewers and the academic calendar also open without arguments.

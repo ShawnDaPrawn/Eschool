@@ -1,8 +1,8 @@
+import 'package:eschool_core/eschool_core.dart';
 import 'package:eschool/app/routeArguments.dart';
 import 'package:eschool/cubits/semestersCubit.dart';
 import 'package:eschool/data/models/subject.dart';
 import 'package:eschool/ui/screens/home/widgets/examContainer.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -13,7 +13,7 @@ class ExamScreen extends StatelessWidget {
 
   static Route route(RouteSettings routeSettings) {
     final arguments = routeSettings.arguments! as ChildSubjectsArguments;
-    return CupertinoPageRoute(
+    return AdaptivePageRoute(
       builder: (_) => BlocProvider<SemestersCubit>(
         create: (context) => SemestersCubit(),
         child: ExamScreen(

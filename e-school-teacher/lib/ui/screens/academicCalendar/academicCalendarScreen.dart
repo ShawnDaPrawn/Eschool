@@ -16,7 +16,6 @@ import 'package:eschool_teacher/ui/screens/academicCalendar/widgets/listItemForE
 import 'package:eschool_teacher/ui/widgets/noDataContainer.dart';
 import 'package:eschool_teacher/utils/labelKeys.dart';
 import 'package:eschool_teacher/utils/uiUtils.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -37,7 +36,7 @@ class AcademicCalendarScreen extends StatefulWidget {
   }
 
   static Route route(RouteSettings routeSettings) {
-    return CupertinoPageRoute(
+    return AdaptivePageRoute(
       builder: (_) => BlocProvider<AcademicCalendarCubit>(
         create: (context) => AcademicCalendarCubit(
           SystemRepository(),

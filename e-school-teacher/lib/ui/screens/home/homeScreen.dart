@@ -1,3 +1,4 @@
+import 'package:eschool_core/eschool_core.dart';
 import 'package:eschool_teacher/cubits/appConfigurationCubit.dart';
 import 'package:eschool_teacher/cubits/chat/chatUsersCubit.dart';
 import 'package:eschool_teacher/cubits/timeTableCubit.dart';
@@ -14,9 +15,9 @@ import 'package:eschool_teacher/utils/assets.dart';
 import 'package:eschool_teacher/utils/labelKeys.dart';
 import 'package:eschool_notifications/eschool_notifications.dart';
 import 'package:eschool_teacher/utils/uiUtils.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 
 //value notifier to show notification icon active/deavtive
 /// The unread badge; kept by eschool_notifications.
@@ -30,7 +31,8 @@ class HomeScreen extends StatefulWidget {
   State<HomeScreen> createState() => _HomeScreenState();
 
   static Route<dynamic> route(RouteSettings routeSettings) {
-    return CupertinoPageRoute(
+    return AdaptivePageRoute(
+      contentColumn: false,
       builder: (_) => BlocProvider(
         create: (context) => TimeTableCubit(TeacherRepository()),
         child: const HomeScreen(),
@@ -219,21 +221,21 @@ class _HomeScreenState extends State<HomeScreen>
       child: Scaffold(
         body: context.read<AppConfigurationCubit>().appUnderMaintenance()
             ? const AppUnderMaintenanceContainer()
-            : Stack(
-                children: [
-                  IndexedStack(
-                    index: _currentSelectedBottomNavIndex,
-                    children: const [
-                      HomeContainer(),
-                      TimeTableContainer(),
-                      ProfileContainer(),
-                      SettingsContainer(),
-                    ],
-                  ),
-                  Align(
-                    alignment: Alignment.bottomCenter,
-                    child: _buildBottomNavigationContainer(),
-                  ),
+            : AdaptiveScaffold(
+                selectedIndex: _currentSelectedBottomNavIndex,
+                onDestinationSelected: _changeBottomNavItem,
+                destinations: _buildRailDestinations(),
+                body: IndexedStack(
+                  index: _currentSelectedBottomNavIndex,
+                  children: const [
+                    HomeContainer(),
+                    TimeTableContainer(),
+                    ProfileContainer(),
+                    SettingsContainer(),
+                  ],
+                ),
+                bottomNavigationBar: _buildBottomNavigationContainer(),
+                overlays: [
                   if (context.read<AppConfigurationCubit>().forceUpdate())
                     FutureBuilder<bool>(
                       future: UiUtils.forceUpdate(
@@ -255,5 +257,17 @@ class _HomeScreenState extends State<HomeScreen>
               ),
       ),
     );
+  }
+
+  /// The bottom bar's items as a navigation rail, for tablets and desktops.
+  List<AdaptiveDestination> _buildRailDestinations() {
+    return [
+      for (final item in _bottomNavItems)
+        AdaptiveDestination(
+          icon: SvgPicture.asset(item.disableImageUrl),
+          selectedIcon: SvgPicture.asset(item.activeImageUrl),
+          label: UiUtils.getTranslatedLabel(context, item.title),
+        ),
+    ];
   }
 }

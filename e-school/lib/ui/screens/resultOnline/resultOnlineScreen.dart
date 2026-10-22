@@ -6,7 +6,6 @@ import 'package:eschool/data/repositories/resultRepository.dart';
 import 'package:eschool_core/eschool_core.dart';
 import 'package:eschool/utils/labelKeys.dart';
 import 'package:eschool/utils/uiUtils.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -31,7 +30,7 @@ class ResultOnlineScreen extends StatefulWidget {
   ResultOnlineScreenState createState() => ResultOnlineScreenState();
   static Route route(RouteSettings routeSettings) {
     final arguments = routeSettings.arguments! as ResultOnlineArguments;
-    return CupertinoPageRoute(
+    return AdaptivePageRoute(
       builder: (_) => BlocProvider(
         create: (context) => ResultOnlineCubit(ResultOnlineRepository()),
         child: ResultOnlineScreen(

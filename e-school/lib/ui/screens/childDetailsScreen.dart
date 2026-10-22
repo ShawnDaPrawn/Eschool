@@ -10,7 +10,6 @@ import 'package:eschool/ui/widgets/shimmerLoaders/subjectsShimmerLoadingContaine
 import 'package:eschool/ui/widgets/studentSubjectsContainer.dart';
 import 'package:eschool/utils/labelKeys.dart';
 import 'package:eschool/utils/uiUtils.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -22,7 +21,7 @@ class ChildDetailsScreen extends StatefulWidget {
   State<ChildDetailsScreen> createState() => _ChildDetailsScreenState();
 
   static Route route(RouteSettings routeSettings) {
-    return CupertinoPageRoute(
+    return AdaptivePageRoute(
       builder: (_) => BlocProvider<ChildSubjectsCubit>(
         create: (context) => ChildSubjectsCubit(ParentRepository()),
         child: ChildDetailsScreen(student: routeSettings.arguments! as Student),

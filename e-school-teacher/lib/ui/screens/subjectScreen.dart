@@ -16,7 +16,6 @@ import 'package:eschool_teacher/ui/widgets/tabBarBackgroundContainer.dart';
 import 'package:eschool_teacher/utils/assets.dart';
 import 'package:eschool_teacher/utils/labelKeys.dart';
 import 'package:eschool_teacher/utils/uiUtils.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -34,7 +33,7 @@ class SubjectScreen extends StatefulWidget {
 
   static Route<dynamic> route(RouteSettings routeSettings) {
     final arguments = routeSettings.arguments! as SubjectScreenArguments;
-    return CupertinoPageRoute(
+    return AdaptivePageRoute(
       builder: (_) => MultiBlocProvider(
         providers: [
           BlocProvider(create: (context) => LessonsCubit(LessonRepository())),

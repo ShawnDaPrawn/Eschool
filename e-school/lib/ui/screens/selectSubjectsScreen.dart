@@ -12,7 +12,6 @@ import 'package:eschool_core/eschool_core.dart';
 import 'package:eschool/ui/widgets/subjectImageContainer.dart';
 import 'package:eschool/utils/labelKeys.dart';
 import 'package:eschool/utils/uiUtils.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -23,7 +22,7 @@ class SelectSubjectsScreen extends StatefulWidget {
   State<SelectSubjectsScreen> createState() => _SelectSubjectsScreenState();
 
   static Route route(RouteSettings routeSettings) {
-    return CupertinoPageRoute(
+    return AdaptivePageRoute(
       builder: (_) => MultiBlocProvider(
         providers: [
           BlocProvider<SelectElectiveSubjectsCubit>(

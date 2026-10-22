@@ -9,7 +9,6 @@ import 'package:eschool_teacher/ui/screens/teacherAttendance/widgets/teacherAtte
 import 'package:eschool_teacher/ui/screens/teacherAttendance/widgets/totalAttendanceContainer.dart';
 import 'package:eschool_teacher/utils/labelKeys.dart';
 import 'package:eschool_teacher/utils/uiUtils.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:table_calendar/table_calendar.dart';
@@ -22,7 +21,7 @@ class TeacherAttendenceScreen extends StatefulWidget {
       _TeacherAttendenceScreenState();
 
   static Route route(RouteSettings routeSettings) {
-    return CupertinoPageRoute(
+    return AdaptivePageRoute(
       builder: (context) => BlocProvider<TeacherAttendanceCubit>(
         create: (context) =>
             TeacherAttendanceCubit(TeacherAttendanceRepository()),

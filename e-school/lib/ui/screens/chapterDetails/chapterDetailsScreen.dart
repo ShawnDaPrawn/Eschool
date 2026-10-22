@@ -7,7 +7,6 @@ import 'package:eschool/ui/widgets/filesContainer.dart';
 import 'package:eschool/ui/widgets/videosContainer.dart';
 import 'package:eschool/utils/labelKeys.dart';
 import 'package:eschool/utils/uiUtils.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
 class ChapterDetailsScreen extends StatefulWidget {
@@ -22,7 +21,7 @@ class ChapterDetailsScreen extends StatefulWidget {
   static Route route(RouteSettings routeSettings) {
     final arguments = routeSettings.arguments! as ChapterDetailsArguments;
 
-    return CupertinoPageRoute(
+    return AdaptivePageRoute(
       builder: (_) => ChapterDetailsScreen(
         lesson: arguments.lesson,
         childId: arguments.childId,

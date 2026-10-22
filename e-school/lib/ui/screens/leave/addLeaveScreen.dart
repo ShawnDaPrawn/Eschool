@@ -10,7 +10,6 @@ import 'package:eschool/ui/widgets/customAppbar.dart';
 import 'package:eschool/utils/labelKeys.dart';
 import 'package:eschool/utils/uiUtils.dart';
 import 'package:file_picker/file_picker.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:permission_handler/permission_handler.dart';
@@ -23,7 +22,7 @@ class AddLeaveScreen extends StatefulWidget {
   State<AddLeaveScreen> createState() => _AddLeaveScreenState();
 
   static Route route(RouteSettings routeSettings) {
-    return CupertinoPageRoute<bool?>(
+    return AdaptivePageRoute<bool?>(
       builder: (_) => MultiBlocProvider(
         providers: [
           BlocProvider<AddLeaveCubit>(

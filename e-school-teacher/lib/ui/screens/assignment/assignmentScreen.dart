@@ -11,7 +11,6 @@ import 'package:eschool_teacher/ui/widgets/attachmentsBottomsheetContainer.dart'
 import 'package:eschool_teacher/ui/widgets/customAppbar.dart';
 import 'package:eschool_teacher/utils/labelKeys.dart';
 import 'package:eschool_teacher/utils/uiUtils.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
@@ -22,7 +21,7 @@ class AssignmentScreen extends StatefulWidget {
   final Assignment assignment;
 
   static Route<dynamic> route(RouteSettings routeSettings) {
-    return CupertinoPageRoute(
+    return AdaptivePageRoute(
       builder: (_) => MultiBlocProvider(
         providers: [
           BlocProvider<ReviewAssignmentCubit>(

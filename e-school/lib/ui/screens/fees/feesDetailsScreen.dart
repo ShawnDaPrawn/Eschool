@@ -16,7 +16,6 @@ import 'package:eschool/ui/widgets/tabBarBackgroundContainer.dart';
 import 'package:eschool/utils/labelKeys.dart';
 import 'package:eschool/utils/stripeService.dart';
 import 'package:eschool/utils/uiUtils.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -38,7 +37,7 @@ class FeesDetailsScreen extends StatefulWidget {
   static Route route(RouteSettings routeSettings) {
     final arguments = routeSettings.arguments! as FeesDetailsArguments;
     if (arguments.childId != null) {
-      return CupertinoPageRoute(
+      return AdaptivePageRoute(
         builder: (_) => BlocProvider(
           create: (context) => StudentDetailedFeesCubit(StudentRepository()),
           child: FeesDetailsScreen(
@@ -50,7 +49,7 @@ class FeesDetailsScreen extends StatefulWidget {
         ),
       );
     }
-    return CupertinoPageRoute(
+    return AdaptivePageRoute(
       builder: (_) => BlocProvider(
         create: (context) => StudentDetailedFeesCubit(StudentRepository()),
         child: FeesDetailsScreen(

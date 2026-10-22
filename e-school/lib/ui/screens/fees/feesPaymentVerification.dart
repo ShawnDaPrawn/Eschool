@@ -4,7 +4,6 @@ import 'package:eschool/data/models/student.dart';
 import 'package:eschool/utils/labelKeys.dart';
 import 'package:eschool/utils/uiUtils.dart';
 import 'package:eschool_core/eschool_core.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:lottie/lottie.dart';
@@ -28,7 +27,7 @@ class FeesPaymentVerification extends StatefulWidget {
   FeesPaymentVerificationState createState() => FeesPaymentVerificationState();
   static Route route(RouteSettings routeSettings) {
     final arguments = routeSettings.arguments! as PaymentVerificationArguments;
-    return CupertinoPageRoute(
+    return AdaptivePageRoute(
       builder: (_) => FeesPaymentVerification(
         studentDetails: arguments.studentDetails,
         transactionId: arguments.transactionId,

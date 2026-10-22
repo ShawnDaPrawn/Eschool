@@ -6,7 +6,6 @@ import 'package:eschool/ui/widgets/listItemForEvents.dart';
 import 'package:eschool/ui/widgets/noDataContainer.dart';
 import 'package:eschool/utils/labelKeys.dart';
 import 'package:eschool/utils/uiUtils.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -17,7 +16,7 @@ class EventDetailsScreen extends StatefulWidget {
   const EventDetailsScreen({required this.event, super.key});
 
   static Route route(RouteSettings routeSettings) {
-    return CupertinoPageRoute(
+    return AdaptivePageRoute(
       builder: (_) => BlocProvider<EventDetailsCubit>(
         create: (context) => EventDetailsCubit(SystemRepository()),
         child: EventDetailsScreen(event: routeSettings.arguments! as Event),

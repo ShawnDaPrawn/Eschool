@@ -18,7 +18,6 @@ import 'package:eschool_teacher/ui/widgets/myClassesDropDownMenu.dart';
 import 'package:eschool_teacher/utils/labelKeys.dart';
 import 'package:eschool_teacher/utils/uiUtils.dart';
 import 'package:file_picker/file_picker.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -37,7 +36,7 @@ class AddAssignmentScreen extends StatefulWidget {
 
   static Route<bool?> routes(RouteSettings routeSettings) {
     final arguments = routeSettings.arguments! as AddOrEditAssignmentArguments;
-    return CupertinoPageRoute(
+    return AdaptivePageRoute(
       builder: (context) {
         return MultiBlocProvider(
           providers: [

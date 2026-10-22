@@ -18,7 +18,7 @@ class ChatUsersSearchScreen extends StatefulWidget {
   State<ChatUsersSearchScreen> createState() => _ChatUsersSearchScreenState();
 
   static CupertinoPageRoute route(RouteSettings routeSettings) {
-    return CupertinoPageRoute(
+    return AdaptivePageRoute(
       builder: (_) => BlocProvider<ChatUsersSearchCubit>(
         create: (context) => ChatUsersSearchCubit(ChatRepository()),
         child: const ChatUsersSearchScreen(),

@@ -17,7 +17,7 @@ class ChatUsersScreen extends StatefulWidget {
   const ChatUsersScreen({super.key});
 
   static CupertinoPageRoute route(RouteSettings routeSettings) {
-    return CupertinoPageRoute(builder: (_) => const ChatUsersScreen());
+    return AdaptivePageRoute(builder: (_) => const ChatUsersScreen());
   }
 
   @override

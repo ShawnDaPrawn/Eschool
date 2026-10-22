@@ -28,7 +28,6 @@ import 'package:eschool/ui/screens/reports/tabs/leaveReportTab.dart';
 import 'package:eschool/ui/screens/reports/cubits/leaveReportCubit.dart';
 import 'package:eschool/cubits/leavesCubit.dart';
 import 'package:eschool/data/repositories/leaveRepository.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -88,7 +87,7 @@ class ReportsScreen extends StatefulWidget {
 
   static Route route(RouteSettings routeSettings) {
     final arguments = routeSettings.arguments as ChildSubjectsArguments?;
-    return CupertinoPageRoute(
+    return AdaptivePageRoute(
       builder: (context) => ReportsScreen.builder(
         context,
         childId: arguments?.childId,

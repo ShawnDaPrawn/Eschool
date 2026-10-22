@@ -4,7 +4,6 @@ import 'package:eschool/ui/widgets/customTabBarContainer.dart';
 import 'package:eschool/ui/widgets/tabBarBackgroundContainer.dart';
 import 'package:eschool/utils/labelKeys.dart';
 import 'package:eschool/utils/uiUtils.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -15,7 +14,7 @@ class GalleryScreen extends StatefulWidget {
   State<GalleryScreen> createState() => _GalleryScreenState();
 
   static Route route(RouteSettings routeSettings) {
-    return CupertinoPageRoute(builder: (_) => const GalleryScreen());
+    return AdaptivePageRoute(builder: (_) => const GalleryScreen());
   }
 }
 

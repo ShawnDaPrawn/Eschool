@@ -5,7 +5,6 @@ import 'package:eschool_teacher/ui/widgets/customAppbar.dart';
 import 'package:eschool_teacher/utils/assets.dart';
 import 'package:eschool_teacher/utils/labelKeys.dart';
 import 'package:eschool_teacher/utils/uiUtils.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_pdfview/flutter_pdfview.dart';
@@ -27,7 +26,7 @@ class PdfFileScreen extends StatefulWidget {
         PdfFileViewArguments(studyMaterial: StudyMaterial.fromJson({}));
     final StudyMaterial studyMaterial = arguments.studyMaterial;
     final bool isItFile = arguments.isFile;
-    return CupertinoPageRoute(
+    return AdaptivePageRoute(
       builder: (_) => BlocProvider(
         create: (context) => PdfFileSaveCubit(StudyMaterialRepository()),
         child: PdfFileScreen(pdfFileMaterial: studyMaterial, isFile: isItFile),
