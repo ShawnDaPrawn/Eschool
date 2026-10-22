@@ -130,14 +130,17 @@ var lightColor = getComputedStyle(document.body).getPropertyValue('--light');
         //   document.querySelector('.navbar').classList.add('fixed-top');
         // }
 
-        if ($(".navbar").hasClass("fixed-top")) {
-            document.querySelector('.page-body-wrapper').classList.remove('pt-0');
-            document.querySelector('.navbar').classList.remove('pt-5');
-        } else {
-            document.querySelector('.page-body-wrapper').classList.add('pt-0');
-            document.querySelector('.navbar').classList.add('pt-5');
-            document.querySelector('.navbar').classList.add('mt-3');
-
+        // Only the template's .navbar header needs this; the panel's header
+        // (layouts/header.blade.php, .panel-topbar) sets its own spacing.
+        if (document.querySelector('.navbar') && document.querySelector('.page-body-wrapper')) {
+            if ($(".navbar").hasClass("fixed-top")) {
+                document.querySelector('.page-body-wrapper').classList.remove('pt-0');
+                document.querySelector('.navbar').classList.remove('pt-5');
+            } else {
+                document.querySelector('.page-body-wrapper').classList.add('pt-0');
+                document.querySelector('.navbar').classList.add('pt-5');
+                document.querySelector('.navbar').classList.add('mt-3');
+            }
         }
         // document.querySelector('#bannerClose').addEventListener('click',function() {
         //   // document.querySelector('#proBanner').classList.add('d-none');

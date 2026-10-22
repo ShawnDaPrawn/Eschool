@@ -185,9 +185,12 @@ class NavigationTest extends TestCase
         $html = $page->getContent();
         $page->assertSee('data-panel-layout', false);
         $page->assertSee('href="#main-content"', false);
-        $this->assertMatchesRegularExpression('#<a class="nav-link active" href="'.preg_quote(route('announcement.index'), '#').'"\s+aria-current="page"#', $html);
-        $this->assertMatchesRegularExpression('/data-target="#nav-section-communication"\s+aria-expanded="true"/', $html);
-        $this->assertMatchesRegularExpression('/data-target="#nav-section-settings"\s+aria-expanded="false"/', $html);
+        $this->assertMatchesRegularExpression('#<a class="panel-nav__item" href="'.preg_quote(route('announcement.index'), '#').'"\s+aria-current="page"#', $html);
+        $this->assertMatchesRegularExpression('/aria-expanded="true"\s+aria-controls="nav-section-communication"/', $html);
+        $this->assertMatchesRegularExpression('/aria-expanded="false"\s+aria-controls="nav-section-settings"/', $html);
+        // The open section's links show; the closed ones wait behind their button.
+        $this->assertMatchesRegularExpression('/<div class="panel-nav__panel" id="nav-section-communication"\s*>/', $html);
+        $this->assertMatchesRegularExpression('/<div class="panel-nav__panel" id="nav-section-settings"\s+hidden\s*>/', $html);
         $page->assertSee(route('students.create'), false);
         $page->assertSee(__('nav_add_learner'));
     }

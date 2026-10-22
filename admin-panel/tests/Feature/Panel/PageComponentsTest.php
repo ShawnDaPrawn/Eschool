@@ -55,6 +55,9 @@ class PageComponentsTest extends TestCase
         $view->assertSee('data-toolbar="#filters"', false);
         $view->assertSee('data-page-table-init', false);
         $view->assertDontSee('data-toggle="table"', false);
+        $view->assertSee('<tbody data-table-body></tbody>', false);
+        $view->assertSee('data-table-search="notices"', false);
+        $view->assertSee('data-error-template="notices"', false);
         $view->assertSee('data-bulk-bar="notices"', false);
         $view->assertSee('data-empty-template="notices"', false);
         $view->assertSee('No notices yet');
@@ -66,13 +69,16 @@ class PageComponentsTest extends TestCase
     {
         $view = $this->blade('<x-page.field name="start_date" type="date" label="Starts on" help="The first school day" required />');
 
-        $view->assertSee('<label for="field-start-date">', false);
+        $view->assertSee('<label class="m3-text-field " for="field-start-date">', false);
         $view->assertSee('id="field-start-date"', false);
         $view->assertSee('aria-describedby="field-start-date-help field-start-date-error"', false);
-        $view->assertSee('id="field-start-date-error" class="invalid-feedback"', false);
+        $view->assertSee('<span class="m3-text-field__label">Starts on', false);
+        $view->assertSee('id="field-start-date-help" class="m3-text-field__supporting page-field-help"', false);
+        $view->assertSee('id="field-start-date-error" class="m3-text-field__supporting m3-text-field__supporting--error page-field-error"', false);
         $view->assertSee('required', false);
 
         $select = $this->blade('<x-page.field name="grade" type="select" label="Grade" :options="[1 => \'Grade <5>\']" placeholder="Choose" />');
+        $select->assertSee('m3-text-field--select', false);
         $select->assertSee('Grade &lt;5&gt;', false);
         $select->assertDontSee('Grade <5>', false);
     }
@@ -95,8 +101,9 @@ class PageComponentsTest extends TestCase
         $this->superAdmin()->update(['password' => Hash::make('components-test')]);
 
         $this->actingAs($this->superAdmin())->get('/medium')->assertOk()
-            ->assertSee('id="page-confirm"', false)
+            ->assertSee('<dialog class="m3-dialog page-confirm" id="page-confirm"', false)
             ->assertSee('aria-modal="true"', false)
+            ->assertSee('assets/m3/m3.js', false)
             ->assertSee('assets/js/custom/page.js', false);
     }
 }

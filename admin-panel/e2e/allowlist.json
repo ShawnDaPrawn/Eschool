@@ -42,8 +42,7 @@
                 "/roles/create",
                 "/semester",
                 "/settings",
-                "/staff-attendance",
-                "/system-update"
+                "/staff-attendance"
             ],
             "reason": "Legacy page: page-specific hints, badges, step numbers or tab labels use a muted colour below 4.5:1; the shared header, sidebar, tables and footer were fixed in Phase 0. It is fixed when the page moves to the page pattern (resources/views/components/page); until then it is listed here, not hidden."
         },

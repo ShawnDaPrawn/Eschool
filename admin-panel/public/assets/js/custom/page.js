@@ -626,7 +626,18 @@
         list.appendChild(this.pageButton("", page + 1, { icon: chevron(rtl ? "m15 18-6-6 6-6" : "m9 18 6-6-6-6"), label: label("page_table_next", "Next page"), disabled: page >= pages }));
     };
 
+    function initTables(root) {
+        (root || document).querySelectorAll("table[data-page-table-init]").forEach(function (element) {
+            if (element.id && !tables[element.id]) {
+                tables[element.id] = new PageTable(element);
+                tables[element.id].load();
+            }
+        });
+    }
+
     window.PageTable = {
+        /** Starts the tables under root (the page on load; call it for a table added later). */
+        init: initTables,
         get: function (id) {
             return tables[id] || null;
         },
@@ -646,12 +657,7 @@
     };
 
     ready(function () {
-        document.querySelectorAll("table[data-page-table-init]").forEach(function (element) {
-            if (element.id && !tables[element.id]) {
-                tables[element.id] = new PageTable(element);
-                tables[element.id].load();
-            }
-        });
+        initTables(document);
     });
 
     // Filters: a change reloads the table they belong to, from its first page.

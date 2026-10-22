@@ -68,8 +68,11 @@
         body.classList.toggle('sidebar-offcanvas-open', open);
         if (opener) opener.setAttribute('aria-expanded', open ? 'true' : 'false');
         if (open) {
-            var first = sidebar.querySelector('select, button, a[href]');
-            if (first) first.focus();
+            // After the drawer has become visible, or focus can't land in it.
+            setTimeout(function () {
+                var first = sidebar.querySelector('select, button, a[href]');
+                if (first && isOpen()) first.focus();
+            }, 50);
         } else if (opener && sidebar.contains(document.activeElement)) {
             opener.focus();
         }

@@ -47,7 +47,7 @@ test('the wizard creates next year and makes it current', async ({ page }) => {
 
   // 5. Make it current, after confirming.
   await page.getByRole('button', { name: `Make ${next} current` }).click();
-  const dialog = page.getByRole('dialog');
+  const dialog = page.getByRole('alertdialog');
   await expect(dialog).toBeVisible();
   await Promise.all([page.waitForURL(/\/home$/), dialog.getByRole('button', { name: `Make ${next} current` }).click()]);
   await expect(page.getByRole('combobox', { name: 'School year' })).toContainText(`${next} (current)`);

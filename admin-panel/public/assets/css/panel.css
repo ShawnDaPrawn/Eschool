@@ -307,7 +307,7 @@
 .year-banner,
 .panel-notice {
     align-items: center;
-    margin: var(--m3-space-4) 2.5rem 0;
+    margin: var(--m3-space-4) 2rem 0;
 }
 
 .year-banner {
@@ -344,6 +344,8 @@
 }
 
 .panel-notice__text {
+    flex: 1 1 0;
+    min-width: 0;
     color: var(--md-sys-color-on-surface);
 }
 
@@ -353,11 +355,16 @@
     text-decoration: underline;
 }
 
-@media (max-width: 767px) {
+@media (max-width: 991px) {
     .year-banner,
     .panel-notice {
+        margin: var(--m3-space-3) 1rem 0;
+    }
+}
+
+@media (max-width: 767px) {
+    .year-banner {
         flex-wrap: wrap;
-        margin: var(--m3-space-3) var(--m3-space-4) 0;
     }
 }
 
@@ -1163,6 +1170,10 @@
     margin: 0;
     padding: 0 0 var(--m3-space-2);
     list-style: none;
+}
+
+.search-results li + li {
+    border-top: 1px solid var(--md-sys-color-outline-variant);
 }
 
 .search-result {
