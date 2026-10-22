@@ -197,6 +197,10 @@ return [
     |
     */
 
-    'same_site' => 'lax',
+    // lax: the cookie is not sent on cross-site POSTs, but is on links into the
+    // panel. The web portals are same-site subdomains (app., teach.), so their
+    // cookie-mode API calls still carry it. SESSION_DOMAIN=.navigateed.co.za
+    // shares it with them (see wiki/Configuration).
+    'same_site' => env('SESSION_SAME_SITE', 'lax'),
 
 ];
