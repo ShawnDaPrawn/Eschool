@@ -5,8 +5,8 @@ Status: Accepted (Phase 0). The hostnames are the default taken for Q0.2 in [pha
 ## Context
 
 - `e-school/` (learner and parent) and `e-school-teacher/` (teacher) are separate Flutter apps that duplicate 144 files (33 byte-identical, 30 shared widgets), hard-code `baseUrl` in `lib/utils/constants.dart`, have no `web/` folder, no flavours and no deep links, and only two tests each.
-- `packages/eschool_core` already holds the Material 3 theme, the `ApiClient`, seven models and five widgets, with theme, contrast and golden tests. The look must not change (non-negotiable).
-- The product needs every profile on phone, tablet, desktop and the web; a teacher app with facilitator and vendor flavours; staging and production builds that differ only by configuration; and typed API clients for new modules (see [ADR 0002](0002-api-v2-and-openapi.md)).
+- `packages/eschool_core` already holds the Material 3 theme, the `ApiClient`, seven models and five widgets, with theme, contrast and golden tests. The look has to stay exactly as it is.
+- Every profile has to work on a phone, a tablet, a desktop and in a browser; the teacher app has to be able to take more flavours later; staging and production builds should differ in configuration only; and new endpoints should reach the apps through typed clients (see [ADR 0002](0002-api-v2-and-openapi.md)).
 - One Firebase project (`navigateed-d8c06`) already serves FCM, Crashlytics and the documentation site's Hosting.
 
 ## Options
@@ -22,19 +22,18 @@ Option 3.
 
 ```
 packages/
-  eschool_core/            theme, ApiClient, shared widgets (kept), plus layout:
-                           Breakpoints, AdaptiveScaffold, ContentColumn, state containers
+  eschool_core/            the existing theme, ApiClient and widgets, plus the layout
+                           helpers (Breakpoints, AdaptiveScaffold, ContentColumn)
   eschool_api/             Dart models and clients generated from openapi.yaml
-  eschool_session/         sign-in methods, /me/context, current school and child,
-                           ModuleGate, deep links, force update
+  eschool_session/         sign-in, /me/context, the current school and child,
+                           ModuleGate, deep links, forced updates
   eschool_notifications/   FCM, local notifications, the Notifications settings screen
-  eschool_features/<module>/  one package per module: screens, cubits, repositories
 e-school/                  learner and parent shell; web build
-e-school-teacher/          teacher shell with flavours teacher, facilitator, vendor; web build
+e-school-teacher/          teacher shell (FLAVOR=teacher); web build
 ```
 
-- **Configuration** comes from `--dart-define` (`API_BASE_URL`, `ENV`, `FLAVOR`) through `AppConfig`, replacing the constants. Staging and production builds differ only by defines; no key or secret is ever compiled in.
-- **Web**: `flutter build web` for both shells; mobile-only plugins behind conditional imports with web alternatives; Hive on IndexedDB; Sanctum cookie mode (`EnsureFrontendRequestsAreStateful` with the portal origins). The builds are deployed to Firebase Hosting sites by the deploy workflows (`.github/workflows/deploy-staging.yml`, `deploy-production.yml`).
+- **Configuration** comes from `--dart-define` (`API_BASE_URL`, `ENV`, `FLAVOR`) through `AppConfig`, replacing the constants. The defines are the only difference between a staging and a production build, and no key or secret is compiled in.
+- **Web**: both shells build with `flutter build web`; plugins that only work on phones sit behind conditional imports, with a web fallback; Hive on IndexedDB; Sanctum cookie mode (`EnsureFrontendRequestsAreStateful` with the portal origins). The builds are deployed to Firebase Hosting sites by the deploy workflows (`.github/workflows/deploy-staging.yml`, `deploy-production.yml`).
 - **Hostnames** (Q0.2 default):
 
 | Host | Serves | Hosted on |
@@ -49,7 +48,7 @@ e-school-teacher/          teacher shell with flavours teacher, facilitator, ven
 
 ## Consequences
 
-- New modules are written once, in a feature package both shells can compose. Existing screens move into packages in Phase 0 with no visual change on phones; the theme, contrast and golden tests guard the look.
+- New screens are written once, in a package both shells can use. Existing screens move into packages in Phase 0 with no visual change on phones; the theme, contrast and golden tests guard the look.
 - The web portals share the apps' code, so every screen must work at phone, tablet and desktop widths (Breakpoints at 600 and 1024 px) and without mobile-only plugins.
 - Cookie mode needs the portals and the API under one registrable domain: the session and `XSRF-TOKEN` cookies are set for `.navigateed.co.za` so the portal can read the CSRF cookie and send it back. CORS must allow only the portal origins.
 - **Open item for the product owner**: with staging hostnames under the same `navigateed.co.za` parent, production's parent-domain cookies are also sent to the `staging-*` hosts, and the fixed `XSRF-TOKEN` cookie name can collide between the two environments in one browser. Staging must at least use its own `SESSION_COOKIE` name. The safer choice is a separate registrable domain for staging (for example `navigateed-staging.co.za`); the deploy configuration takes the hostnames as variables, so either works without code changes.

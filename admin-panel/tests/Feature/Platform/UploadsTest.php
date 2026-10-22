@@ -16,8 +16,9 @@ use Tests\Support\SignInFixtures;
 use Tests\TestCase;
 
 /**
- * Uploads with a double extension, a wrong type or a traversal name are
- * refused; stored names come from the sanitiser; UploadService stores under
+ * The upload guards: a file with two extensions, a type that does not match
+ * or a name that climbs out of its folder is refused; the sanitiser names
+ * every stored file; UploadService stores under
  * the school's folder.
  */
 class UploadsTest extends TestCase

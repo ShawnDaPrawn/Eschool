@@ -8,12 +8,12 @@ Started in Phase 0 by work stream S4. Status of each mitigation: **in place** (i
 
 | Asset | Why it matters | Where it lives |
 | --- | --- | --- |
-| Learners' records: names, dates of birth, guardians, attendance, marks, reports, discipline, medical notes, photos | Children's personal information under POPIA; harm if exposed or altered | Cloud SQL `navigateed` database; uploads bucket |
+| Learners' records: names, dates of birth, guardians, attendance, marks, reports, photos | Children's personal information under POPIA; harm if exposed or altered | Cloud SQL `navigateed` database; uploads bucket |
 | Parents' and staff contact details | Personal information; phishing and fraud target | Cloud SQL |
 | Credentials: passwords (hashed), Sanctum tokens (hashed), sessions | Account takeover, impersonating a parent or teacher | Cloud SQL; tokens on phones (Hive) and in browsers |
-| Money records: fees, payments, transactions (later the ledger and wallet) | Fraud, disputes, school income | Cloud SQL; payment provider |
+| Money records: fees, payments, transactions | Fraud, disputes, school income | Cloud SQL; payment provider |
 | Platform secrets: `APP_KEY`, database password, SMTP/SES, FCM service account, payment keys | Each unlocks data or a channel to real people | Secret Manager (Phase 0 moves the rest out of `settings` rows) |
-| Channels to people: e-mail, push, later SMS | Abuse sends messages in the school's name to children and parents | SES/SMTP, FCM |
+| Channels to people: e-mail and push | Abuse sends messages in the school's name to children and parents | SES/SMTP, FCM |
 | The release pipeline and cloud project | Whoever controls them controls everything above | GitHub Actions, GCP IAM |
 | Availability during the school day | Registers, timetables and notices are needed in real time | Cloud Run, Cloud SQL |
 
@@ -23,13 +23,13 @@ Started in Phase 0 by work stream S4. Status of each mitigation: **in place** (i
 | --- | --- | --- |
 | Learner | own data through the app or portal (after guardian approval from Phase 1) | curious or mischievous; may try to see classmates' marks or change their own |
 | Parent | their children's data | may try other children's data (enumeration of `child_id`); account sharing |
-| Teacher, grade head, counsellor, facilitator | allocated classes and learners | over-reach beyond allocation; a departed teacher keeping access |
+| Teachers and other staff with allocations | allocated classes and learners | over-reach beyond allocation; a departed teacher keeping access |
 | School admin, finance | their school | mistakes with wide effect; insider misuse; from Phase 1, must never see another school |
 | Platform staff (SaaS admin) | no school by default; audited impersonation from Phase 1 | insider misuse |
 | Anonymous internet user | public pages, sign-in, webhooks, public API reads | credential stuffing, scraping, injection, upload abuse, denial of service |
 | Payment and mail providers | call our webhooks | spoofed callbacks if signatures are not checked |
 | Supply chain: Composer, pub, npm packages, Docker base images, GitHub Actions | run inside our build and runtime | a compromised dependency or action |
-| Engineers and AI agents with repository and cloud access | broad, by the Bible's mandate | a mistake or leaked credential with production reach |
+| Engineers and AI agents with repository and cloud access | broad, to build, test and deploy | a mistake or leaked credential with production reach |
 
 ## Trust boundaries
 
@@ -75,10 +75,10 @@ flowchart LR
 | # | Threat (boundary) | Mitigation | Status |
 | --- | --- | --- | --- |
 | T1 | A parent, learner or teacher reads or changes another person's records by changing an id (1) | Role groups on every route; `CheckChild`, teacher allocation checks and model scopes; the `*SecurityTest` suites and 162 API snapshots; four tests per endpoint (wrong role, other user's record) | in place; new domains add Policies (later) |
-| T2 | A user of one school sees another school's data (1, 3) | `school_id` on every school-owned row, `BelongsToSchool` global scope, school from the membership never from a request parameter; `tests/Feature/Tenancy/` on every API route | scaffold Phase 0 (S7); enforced Phase 1 |
+| T2 | A user of one school sees another school's data (1, 3) | A `school_id` column on each school-owned table, a global scope on each school-owned model, school from the membership never from a request parameter; `tests/Feature/Tenancy/` on every API route | scaffold Phase 0 (S7); enforced Phase 1 |
 | T3 | Account takeover by credential stuffing or weak passwords (1) | Login throttling (5 a minute per account), lockout, password policy `min(10)->letters()->numbers()->uncompromised()`, tokens revoked at login and password change, inactive teachers refused | throttling in place; policy and revocation Phase 0 (S6) |
-| T4 | A learner signs in without an approving guardian (1) | Learner tokens issued only when an approving guardian exists | later (Phase 1) |
-| T5 | Malicious upload: script, HTML, SVG with script, path traversal (1) | `RejectDangerousUploads`, SVG sanitising, `sanitizeFileName`, storage outside the web root, `nosniff` and sandboxing CSP on served files; malware and content scanning | in place; scanning later (Phase 2, Files kernel) |
+| T4 | A learner signs in without an approving guardian (1) | No token for a learner until a guardian has approved the account | later (Phase 1) |
+| T5 | Malicious upload: script, HTML, SVG with script, path traversal (1) | `RejectDangerousUploads`, SVG sanitising, `sanitizeFileName`, storage outside the web root, `nosniff` and sandboxing CSP on served files; malware and content scanning | in place; scanning later |
 | T6 | Injection and cross-site scripting in the panel (1) | Eloquent and bindings; `data-escape="true"` tables with `escapeHtml()`/`safeUrl()`; CSRF on the web group; CSP (report-only first) | in place; CSP Phase 0 (S6) |
 | T7 | Spoofed payment or mail callbacks credit a payment or hide a bounce (2) | Signature verification per provider, idempotency on the provider's event id, amount checked against the transaction; SNS signature verification for SES (ADR 0004) | payments in place; SES Phase 0 (S5) |
 | T8 | Secrets leak from code, logs or settings rows (4) | Secret Manager only; `env()` only in `config/`; gitleaks over the whole history in CI; JSON logs keep ids only and mask e-mail, ID and phone numbers; no arguments in traces; no secret in any app build | gitleaks, logging and Secret Manager wiring in place; settings rows moved Phase 0 (S6) |
@@ -97,7 +97,7 @@ flowchart LR
 - `Log::error($e)` call sites (for example in `LanguageController`, `LeaveController`) log the exception as text, which bypasses the formatter's query-error handling; they should call `report($e)`.
 - Firebase client API key restrictions to be confirmed by the product owner ([phase-0.md](phase-0.md)).
 - Staging hostnames under the production parent domain receive production's cookies ([ADR 0003](../adr/0003-app-packages-and-web.md)); a separate staging domain is recommended.
-- External security test before the pilot (end of Phase 2) and before money features (end of Phase 5).
+- External security testing at the points the Build Bible sets (section 5.1).
 
 ## See also
 

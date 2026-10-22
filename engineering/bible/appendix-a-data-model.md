@@ -1,20 +1,6 @@
 # Appendix A: data model reference
 
-The living copy of the Build Bible's Appendix A. Every school-owned table carries `school_id`, timestamps and, where people may dispute a record, soft deletes. Money is integer cents. Memberships carry `starts_on` and `ends_on`. Engineers extend this table at the end of each phase; the **Status** column says what exists in the code today.
-
-| Domain | Tables (key columns) | Phase | Status |
-| --- | --- | --- | --- |
-| Kernel | `domain_events` (type, payload, dispatched_at); `audit_log` (actor, action, subject, before, after); `notification_deliveries` (type, channel, recipient, status, provider ref); `settings` (+ `school_id`); also `webhook_receipts`, `idempotency_keys`, `learner_invitations`, the `*_cents` money columns and `users.password_change_required` (see below) | 0 | Built |
-| Kernel | `schools` (name, slug, status, timezone, package, branding); `school_memberships` (user, school, role, status, dates); `school_modules` (module, in_package, enabled, read_only); `notification_rules` (portal, type, channel, mode); `notification_preferences` (user, type, channel, enabled); `consents`; `retention_rules`; `sign_in_methods`; `webauthn_credentials` | 1 | Planned |
-| People | `users` (kept; + `handle`); `students` (kept; `caste` dropped); `learners` view fields (`student_number`); `enrolments` (learner, grade, homeroom, dates, reason); `guardian_links` (learner, guardian, relationship, rights, status); `learner_approvals`; `profile_field_categories`; `profile_field_definitions`; `profile_field_values` (encrypted flag) | 1 | Planned |
-| People | `intakes`; `applications`; `application_documents`; `application_events`; `offers`; `cards` (person, type, chip uid, status); `card_keys`; `card_scans`; `gate_passes`; `consent_requests`; `meeting_slots`; `photo_tags` | 4 | Planned |
-| Academics | `terms` (grade range, dates, marks_lock_on, reports_on); `grade_levels`; `subject_standards` (framework, code, phase, ratios); `subjects.standard_id`; `curriculum_plans`; `curriculum_topics`; `assessment_plans`; `assessment_tasks`; `assessment_questions`; `assessment_marks` (status); `question_marks`; `mark_snapshots`; `report_templates`; `report_cards`; `teaching_groups` (+ memberships, allocations); `bell_schedules`; `periods`; `rooms`; `lessons`; `attendances` (+ amended_by, source); `content_items` (markdown, topic tags); `transfer_packages` (Phase 3) | 2 | Planned |
-| Communication | `audiences`; `messages` (channels, scheduled_at, approval); `message_reads`; `consultations`; `consultation_questions`; `candidates`; `participation`; `responses` (Phase 4); existing `chat_*`, `notifications`, `announcements` kept | 2, 4 | Planned |
-| Growth | `ai_usage`; `ai_flags`; `ai_prompts`; `learner_notes`; `tutor_sessions`; `tutor_messages`; `topic_links`; `mastery_records`; `practice_items`; `practice_reviews`; `past_papers`; `study_plans`; `drafts`; `risk_signals`; `interventions`; `peer_tutoring_sessions`, `service_hours`, `admission_requirements` (Phase 4); `reading_passages`, `reading_sessions`, `credentials`, `assistant_actions` (Phase 6) | 3, 4, 6 | Planned |
-| Wellbeing | `discipline_frameworks`; `discipline_records`; `detentions`; `grade_head_assignments`; `support_plans`; `incident_reports`; `incident_threads`; `support_cases` (encrypted notes); `appointments` (Phase 4) | 3, 4 | Planned |
-| Activities | `activity_groups` (parent, discipline, gender, age rule, season); `group_memberships`; `group_staff`; `group_sessions`; `group_materials`; `houses`; `house_memberships`; `point_categories`; `house_points`; `award_categories`; `award_definitions`; `award_presentations` | 4 | Planned |
-| Money | `ledger_accounts`; `ledger_entries` (idempotency key); `ledger_postings`; `fee_plans`; `fee_items`; `fee_discounts`; `fee_accounts`; `fee_account_holders`; `invoices`; `invoice_lines`; `bill_runs`; `payments`; `payment_allocations`; `debit_mandates`; `bank_statement_lines`; `wallet_limits`; `withdrawal_requests`; `vendors`; `products`; `orders`; `order_lines`; `settlements`; `events`; `ticket_types`; `tickets`; `settlement_reports` (Phase 6); seed tables `fees_*`, `payment_transactions` kept for v1 | 5, 6 | Planned |
-| Platform | `packages`; `subscriptions`; `usage_meters`; `support_access_log`; `analytics_*` projections (Phase 6) | 1, 6 | Planned |
+The tables and columns NavigateEd has added to the seed's schema, phase by phase. It holds only what exists in the code; tables still planned are tracked in the private Build Bible (Appendix A) and are added here when a phase builds them. Engineers extend this page at the end of each phase.
 
 ## Phase 0: what was built
 
@@ -23,13 +9,18 @@ Every table below is additive, with a tested `down()`. The new kernel tables car
 | Table or column | Key columns | Purpose | Stream |
 | --- | --- | --- | --- |
 | `notification_deliveries` | school_id, delivery_key, type, channel, recipient_user_id, recipient_hash, status, provider, provider_message_id, attempt, error_summary, queued_at, sent_at, failed_at, feedback_at | One row per mail or push attempt, updated by the SES feedback webhook | S5 |
-| `webhook_receipts` | provider, event_id (unique per provider), event_type, received_at | Makes every webhook idempotent on the provider's event id (SNS `MessageId` first) | S5 |
+| `webhook_receipts` | provider, event_id (unique per provider), event_type, received_at | Lets each webhook ignore a repeat of an event it has already handled (SNS `MessageId` first) | S5 |
 | `domain_events` | school_id, type, payload, occurred_at, available_at, dispatched_at, attempts, last_error | The outbox: written in the writer's transaction, dispatched every minute by `DispatchOutbox` | S5 |
 | `audit_log` | school_id, actor_id, actor_type, action, subject_type, subject_id, before, after, ip, request_id, created_at | Who changed what on `users`, `students`, `exam_marks`, `fees_paids` and `settings`; rows cannot be changed or deleted; passwords, tokens and secret values never stored | S5 |
 | `idempotency_keys` | user_id, key, key_hash, method, route, request_hash, response_status, response_headers, response_body, expires_at | Replays the first answer to an API v2 write sent again with the same `Idempotency-Key` | S7 |
-| `fees_classes.amount_cents`; `fees_paids.total_amount_cents`, `due_charges_cents`; `fees_choiceables.total_amount_cents`; `paid_installment_fees.amount_cents`, `due_charges_cents`; `payment_transactions.total_amount_cents` | integer cents beside each float column | Money in cents (`Money`, currency from `platform.money.currency`, ZAR), back-filled by `money:backfill-cents`; the float columns stay for v1 until Phase 5 drops them after reconciliation. `installment_fees.due_charges` and `session_years.fee_due_charges` are percentages and stay as they are | S5 |
-| `settings.school_id` | nullable, indexed | Lets Phase 1 scope settings per school without a second migration | S5 |
-| `learner_invitations` | school_id, learner_user_id, guardian_user_id, channel, token_hash, code_hash, expires_at, used_at, revoked_at, created_by | A guardian sets a new learner's password through an e-mailed link or a printed one-time code (stream S6) | S6 |
-| `users.password_change_required` | boolean | Flags the date-of-birth passwords of existing learners for a change at the next sign-in (stream S6) | S6 |
+| `learner_invitations` | school_id, learner_user_id, guardian_user_id, channel, token_hash, code_hash, expires_at, used_at, revoked_at, created_by | A guardian sets a new learner's password through an e-mailed link or a printed one-time code | S6 |
 
-Not built in Phase 0, by design: a `currency` column per money row (one currency, ZAR, until Phase 5's ledger); `school_id` on the seed's tables (Phase 1).
+## Phase 0: seed tables changed
+
+| Table or column | Key columns | Purpose | Stream |
+| --- | --- | --- | --- |
+| `fees_classes.amount_cents`; `fees_paids.total_amount_cents`, `due_charges_cents`; `fees_choiceables.total_amount_cents`; `paid_installment_fees.amount_cents`, `due_charges_cents`; `payment_transactions.total_amount_cents` | integer cents beside each float column | Money in cents (`Money`, currency from `platform.money.currency`, ZAR), back-filled by `money:backfill-cents`; the float columns stay for v1 until the ledger work in a later phase drops them after reconciliation. `installment_fees.due_charges` and `session_years.fee_due_charges` are percentages and stay as they are | S5 |
+| `settings.school_id` | nullable, indexed | Lets Phase 1 scope settings per school without a second migration | S5 |
+| `users.password_change_required` | boolean | Flags the date-of-birth passwords of existing learners for a change at the next sign-in | S6 |
+
+Not built in Phase 0, by design: a `currency` column per money row (one currency, ZAR, until the ledger work in a later phase); `school_id` on the seed's tables (Phase 1).

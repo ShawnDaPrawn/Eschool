@@ -16,16 +16,16 @@ Spec:
 - [ ] `engineering` (specs, decision records, runbooks, security, self-tests)
 - [ ] Infrastructure and CI (`infra/`, `.github/`, `admin-panel/Dockerfile`, `admin-panel/docker/`, `docker-compose.yml`)
 
-## Checklist (Build Bible, Appendix D)
+## Checklist
 
-- [ ] Spec linked; acceptance tests in it pass
-- [ ] Follows the domain recipe (or the Holiday recipe for a legacy page)
-- [ ] Migrations reversible; `school_id`, dates, cents where they apply
-- [ ] Four tests per endpoint plus tenancy; policy tests; app tests; Playwright for panel pages
-- [ ] OpenAPI, generated models, every language file, wiki and user docs updated
-- [ ] Module switch and notification types registered
-- [ ] No raw colour, no renamed v1 field, no `env()` outside config, no key in a client
-- [ ] CI green; Review role approved
+- [ ] The spec is linked and its acceptance tests pass
+- [ ] New backend code uses the domain folders (a change to a legacy panel page may follow the Holiday example in the wiki's Contributing page)
+- [ ] Every migration has a working `down()`; new tables have `school_id` and timestamps, and money is in cents
+- [ ] Tests for the happy path, the wrong role, someone else's record and the tenancy suite; policy tests for new policies; app tests; Playwright for new panel pages
+- [ ] `openapi.yaml` and the generated client, all language files, the wiki and the user docs are up to date
+- [ ] Any new module switch or notification type is registered
+- [ ] No raw colours, no v1 field renamed or removed, no `env()` outside `config/`, no key or secret in an app
+- [ ] CI passes and a reviewer has approved
 
 ## Test plan
 

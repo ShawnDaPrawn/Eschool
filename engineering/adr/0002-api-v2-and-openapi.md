@@ -4,10 +4,10 @@ Status: Accepted (Phase 0). Source: Build Bible sections 3.3 and 5.5, Phase 0 st
 
 ## Context
 
-- API v1 (`routes/api.php`) has 155 routes in three role groups (`student/`, `parent/`, `teacher/`) plus 14 general routes. Payloads are hand-built arrays, there is no machine-readable description, and `ResponseService` ends each response with `exit()`.
+- API v1 (`routes/api.php`) has 155 routes: most sit in the `student/`, `parent/` and `teacher/` groups, and 14 are shared. Payloads are hand-built arrays, there is no machine-readable description, and `ResponseService` ends each response with `exit()`.
 - The two apps hard-code about 160 endpoint strings each (`lib/utils/api.dart`) and map error `code`s by hand. Builds already installed on phones keep calling v1 for months after a release; a forced update is the last resort.
 - The 162 snapshots in `admin-panel/tests/snapshots/api/` pin the shape of v1 responses, and `ApiContractTest` checks them.
-- Multi-school (Phase 1) needs one call that tells an app who the user is, which schools and roles they have, and what each school has switched on. New modules need typed clients in the new Flutter packages (`packages/eschool_api`), not more hand-written strings.
+- Multi-school (Phase 1) needs one call that tells an app who the user is, which schools and roles they have, and what each school has switched on. New endpoints should reach the apps through a typed client (`packages/eschool_api`), not more hand-written strings.
 
 ## Options
 
@@ -20,12 +20,12 @@ Status: Accepted (Phase 0). Source: Build Bible sections 3.3 and 5.5, Phase 0 st
 
 Option 3.
 
-- **Base path** `/api/v2/`, loaded from `routes/api_v2.php` with `auth:sanctum` and the role groups. The **envelope stays** `{error, message, data, code}` so the apps' `ApiClient` keeps working. Apps use Sanctum bearer tokens; the web portals use Sanctum's cookie mode.
-- **`GET /api/v2/me/context`**: the user, their schools and roles, the current school (branding, timezone, terms, modules on, notification rules, feature flags, sign-in methods), and for parents each child with that child's school. Apps call it on launch, after sign-in and after a school switch, and cache it. Phase 0 serves one school and an empty module list.
-- **Resources are nouns** with the same list parameters everywhere: `page`, `per_page`, `sort`, `filter[...]`, `q`. Writes that create money, marks or records accept an `Idempotency-Key` header.
-- **Rate limits**: `api` 60 a minute per token (as v1 today), `auth` 5 a minute per account, `money` 30 a minute per token, stricter on OTP; every group limits per token and per IP.
-- **The contract**: `admin-panel/openapi.yaml` (OpenAPI 3.1). A CI job validates the file; `ApiContractTest` (extended to v2) validates every v2 response against it in `tests/Feature/Contracts/`; `packages/eschool_api` is generated from it. A pull request that changes a v2 response without changing the spec fails.
-- **v1 is frozen, add-only**: no field or route is renamed or removed; fields may be added. When a phase touches a v1 controller, its rules move into a `Services/<Domain>` service that v1 and v2 both call. The v1 snapshots stay unchanged unless only fields were added.
+- **Base path** `/api/v2/`, routes in `routes/api_v2.php`, behind `auth:sanctum` and grouped by role. The **envelope stays** `{error, message, data, code}` so the apps' `ApiClient` keeps working. The mobile apps send Sanctum bearer tokens; the web portals are meant to sign in with Sanctum cookies.
+- **`GET /api/v2/me/context`** returns in one answer what an app needs to set itself up: the user and roles, the schools they belong to, the current school's branding, timezone, year and terms, its modules, notification rules, feature flags and sign-in methods, and for a parent each child with that child's school. Apps fetch it at start-up, after signing in and when the user changes school, and keep a cached copy. In Phase 0 it serves one school and an empty module list.
+- **Resources are nouns**, and every list takes the same parameters (`page`, `per_page`, `sort`, `filter[...]`, `q`). A write that creates a record, a mark or a money movement takes an `Idempotency-Key` header.
+- **Rate limits**, named limiters per group: `api` at 60 requests a minute (v1's existing limit), `auth` at 5 a minute per account with OTP tighter still, and `money` at 30 a minute; each group counts per caller and per IP.
+- **The contract**: `admin-panel/openapi.yaml` (OpenAPI 3.1). A CI job validates the file; `ApiContractTest` (extended to v2) validates every v2 response against it in `tests/Feature/Contracts/`; the Dart client in `packages/eschool_api` is generated from the file. A pull request that changes a v2 response without changing the spec fails.
+- **v1 is frozen, add-only**: no field or route is renamed or removed; fields may be added. When a phase changes a v1 controller, the rules go into a domain service shared by v1 and v2. The v1 snapshots stay unchanged unless only fields were added.
 - **Retirement**: a v1 endpoint is removed only when the structured request logs (the `route` field, see `engineering/runbooks/incident.md` and `wiki/Configuration`) show no callers for a full school term, and then only in a later phase.
 
 ## Consequences

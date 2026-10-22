@@ -12,12 +12,12 @@ use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Storage;
 
 /**
- * What GET /api/v2/me/context answers: the signed-in user, their schools and
- * roles, the current school with its year and terms, what is switched on
- * there, and a parent's children.
+ * What GET /api/v2/me/context answers: the signed-in user with their roles
+ * and schools, the current school with its year and terms, what is switched
+ * on there, and a parent's children.
  *
- * The apps call it on launch, after sign-in and after a school switch, so it
- * has a budget of 150 ms at p95: a fixed handful of queries whatever the
+ * Every app asks for it at start-up, after signing in and on changing school,
+ * so it has a budget of 150 ms at p95: a fixed handful of queries whatever the
  * number of children (ContextTest counts them).
  */
 class ContextService

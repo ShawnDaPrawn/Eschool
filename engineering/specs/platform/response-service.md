@@ -84,7 +84,7 @@ $this->app['auth']->forgetGuards();   // between requests made as different user
 $this->withToken($token)->getJson('/api/teacher/get-assignment')->assertOk();
 ```
 
-`Sanctum::actingAs($user)` works too when the token itself is not under test. `TeacherApiSecurityTest` is the first class moved; `RunsAppServer` stays for the other API and panel suites until they are moved (Bible: keep it until every suite is moved).
+`Sanctum::actingAs($user)` works too when the token itself is not under test. `TeacherApiSecurityTest` is the first class moved; `RunsAppServer` stays for the other API and panel suites until they are moved (it stays until every suite has moved).
 
 ## Self-test steps
 

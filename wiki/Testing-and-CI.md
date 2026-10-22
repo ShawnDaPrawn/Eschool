@@ -65,7 +65,7 @@ A matrix over `app: [e-school, e-school-teacher]`: `flutter pub get --enforce-lo
 
 ### `apps-smoke-android`: Flutter smoke flows on Android (matrix)
 
-A matrix over `app: [e-school, e-school-teacher]`, 45-minute limit. With KVM switched on and Java 17, `reactivecircus/android-emulator-runner` starts an API 34 `google_apis` emulator (Pixel 6 profile, x86_64) and runs `flutter test integration_test`: each profile's smoke flow (sign in, land on Home, open one screen) against the fake API in `integration_test/support/` (no server).
+A matrix over `app: [e-school, e-school-teacher]`, 45-minute limit. With KVM switched on and Java 17, `reactivecircus/android-emulator-runner` starts an API 34 `google_apis` emulator (Pixel 6 profile, x86_64) and runs `flutter test integration_test`: each profile's smoke flow (sign in, reach Home, open a screen) against the fake API in `integration_test/support/` (no server).
 
 ### `apps-smoke-chrome`: Flutter smoke flow in Chrome (matrix)
 
@@ -110,7 +110,7 @@ See [Playwright (admin panel)](#playwright-admin-panel) for what it checks.
 | [deploy-staging.yml](https://github.com/ShawnDaPrawn/Eschool/blob/main/.github/workflows/deploy-staging.yml) | push to `main` (when the repository variable `STAGING_DEPLOY_ENABLED` is `true`), manual | Calls `deploy-environment.yml` for `staging` |
 | [deploy-production.yml](https://github.com/ShawnDaPrawn/Eschool/blob/main/.github/workflows/deploy-production.yml) (`check`, `deploy`) | a `v*` tag, manual | Checks the ref is a `v*` tag, then calls `deploy-environment.yml` for `production` with a backup first, after a reviewer approves the `production` environment |
 | [deploy-environment.yml](https://github.com/ShawnDaPrawn/Eschool/blob/main/.github/workflows/deploy-environment.yml) (`deploy`, `smoke`) | called by the two above | Builds and pushes the image, deploys the panel, the worker and the scheduler job, builds the web portals, deploys Firebase Hosting (docs and portals), then smoke-tests the panel, API, worker and portals ([Deployment](Deployment)) |
-| [k6-smoke.yml](https://github.com/ShawnDaPrawn/Eschool/blob/main/.github/workflows/k6-smoke.yml) (`k6`) | manual | Runs `engineering/perf/k6-smoke.js` against an environment with the Bible's p95 budgets |
+| [k6-smoke.yml](https://github.com/ShawnDaPrawn/Eschool/blob/main/.github/workflows/k6-smoke.yml) (`k6`) | manual | Runs `engineering/perf/k6-smoke.js` against an environment and checks our p95 latency budgets |
 
 ## Admin panel test setup
 
@@ -408,7 +408,7 @@ cd ../admin-panel && composer audit --locked   # the CI audit for PHP packages
 
 ## Tenancy suite
 
-[tests/Feature/Tenancy/ApiRouteTenancyTest.php](https://github.com/ShawnDaPrawn/Eschool/blob/main/admin-panel/tests/Feature/Tenancy/ApiRouteTenancyTest.php) is the scaffold of the cross-school suite the Bible requires on every API route ("a School A user asking for School B's record gets 403 or 404, never data"). It has one case per route and method, v1 and v2, read from the router by `ApiRoute::fromFreshApplication()`, so a new route is covered the moment it is registered. No database, about 8 seconds.
+[tests/Feature/Tenancy/ApiRouteTenancyTest.php](https://github.com/ShawnDaPrawn/Eschool/blob/main/admin-panel/tests/Feature/Tenancy/ApiRouteTenancyTest.php) is the scaffold of the cross-school suite every API route needs: once there are two schools, a user of one school must never get another school's data from any route (the answer is 403 or 404). It has one case per route and method, v1 and v2, read from the router by `ApiRoute::fromFreshApplication()`, so a new route is covered the moment it is registered. No database, about 8 seconds.
 
 Phase 0 runs one school, so each case asserts what can be asserted today:
 
@@ -428,10 +428,10 @@ Phase 1 adds School B (`DemoSchoolSeeder`) and replaces the body of `assertIsola
 [tests/Feature/Authorization/RoleMatrixTest.php](https://github.com/ShawnDaPrawn/Eschool/blob/main/admin-panel/tests/Feature/Authorization/RoleMatrixTest.php) is the generated matrix of every API route against every role. For each profile (Student, Parent, Teacher, Super Admin, a role the school created, and an account with no role) it signs in with a real Sanctum token and calls every role-grouped route (v1 and v2, from the router) that the profile's role is outside; each must answer 401 or 403. The refusal comes from the role middleware before any controller runs, so nothing changes. 706 requests in all, in-process on one `DemoSchool` (`UsesDemoSchool`), with the rate limits off; under 10 seconds.
 
 - Which roles a group admits is in `ApiRoute::allowsRole()`: `role:A|B` admits A and B, `staff` every role except Parent and Student, `role.any` any role; nobody without a role gets through a role group.
-- `test_the_matrix_knows_every_role` fails when the database has a role the matrix does not list (for example when the Phase 1 seeder adds Finance or Counsellor): add it to `profiles()`.
+- `test_the_matrix_knows_every_role` fails when the database has a role the matrix does not list (for example when the Phase 1 seeder adds a role): add it to `profiles()`.
 - Routes outside role groups are the public and any-profile routes the Tenancy suite lists.
 
-Phase 1 extends it to platform staff without impersonation and to the new profiles, as the Bible's security checks ask.
+Phase 1 extends it to platform staff and to the profiles Phase 1 adds.
 
 ## Contracts suite
 

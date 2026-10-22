@@ -10,7 +10,7 @@ use Illuminate\Support\Facades\Schema;
 /**
  * Integer cents beside every float money column (Build Bible step 6). The
  * models keep both in step from now on (HasMoneyColumns) and read the cents;
- * the floats stay until Phase 5.
+ * the floats stay until the ledger work in a later phase.
  *
  * Back-fill: each float is written as an exact decimal with six places
  * (CAST AS DECIMAL), multiplied by 100 and rounded half up (ROUND on a

@@ -233,7 +233,7 @@ class ResponseService
         report($e);
 
         // The path without its query string, and the fields with their values
-        // left out except ids: logs carry no personal data beyond ids.
+        // left out except ids: the only personal data a log may hold is ids.
         Log::error(self::truncate($e->getMessage(), self::LOG_CONTEXT_LIMIT).'---> '.$e->getFile().' At Line : '.$e->getLine()."\n\n".request()->method().' : /'.ltrim(self::truncate(request()->path()), '/')."\nParams : ", self::withoutValues(request()->all()));
     }
 

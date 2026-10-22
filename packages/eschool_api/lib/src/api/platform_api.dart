@@ -18,7 +18,7 @@ class PlatformApi {
   const PlatformApi(this._dio);
 
   /// The signed-in user, their schools and the current school
-  /// Everything an app needs on launch: the user and their roles, their schools, the current school (branding, timezone, year and terms), the modules switched on there, notification rules, feature flags and sign-in methods, and for a parent their children with each child&#39;s school. The apps call it on launch, after sign-in and after a school switch, and cache it. Every profile may call it. Budget: 150 ms at p95.  Phase 0 runs one school (id 1); &#x60;modules&#x60;, &#x60;notification_rules&#x60; and &#x60;feature_flags&#x60; are empty until Phase 1 fills them.
+  /// What an app needs to set itself up: the user and their roles, the schools they belong to, the current school (branding, timezone, year and terms), which modules it has on, its notification rules and feature flags, the sign-in methods it offers and, for a parent, each child with that child&#39;s school. Apps fetch it at start-up, after signing in and when the user changes school, and keep a cached copy. Every profile may call it. Budget: 150 ms at p95.  Phase 0 runs one school (id 1); &#x60;modules&#x60;, &#x60;notification_rules&#x60; and &#x60;feature_flags&#x60; are empty until Phase 1 fills them.
   ///
   /// Parameters:
   /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation

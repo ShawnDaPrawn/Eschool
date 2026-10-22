@@ -90,7 +90,7 @@ This repository builds on the eSchool 3.5.0 codebase. Since then it has added CI
 
 ## NavigateEd
 
-This codebase is the seed of **NavigateEd**, a multi-school platform for South African schools, grown phase by phase without a rewrite: a platform kernel is added underneath the existing panel and API, and new domains beside them (see [Architecture](Architecture#where-it-is-going)). The engineering record lives in the repository, next to the code:
+This codebase is the seed of **NavigateEd**, which grows it phase by phase, without a rewrite, into one platform for many South African schools: a platform kernel is added underneath the existing panel and API, and new domains beside them (see [Architecture](Architecture#where-it-is-going)). The engineering record lives in the repository, next to the code:
 
 | What | Where |
 |---|---|

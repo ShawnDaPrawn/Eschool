@@ -6,7 +6,7 @@ namespace App\Services\Platform\Ledger;
 
 /**
  * Keeps a seed model's float money columns and their *_cents twins in step
- * until the floats are dropped (Phase 5). The model lists the pairs in
+ * until the floats are dropped (with the ledger work in a later phase). The model lists the pairs in
  * moneyColumns(), float column => cents column.
  *
  * - Cents are the truth. Reading the float attribute (or serialising the

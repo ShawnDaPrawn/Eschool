@@ -44,7 +44,7 @@ None; tests only. Dev dependency `league/openapi-psr7-validator` ^0.24 (installe
 
 ### Security notes
 
-These suites are the Bible's "cross-school suite" and "authorisation matrix" of the security gate. Phase 0 asserts authentication and role groups on every route; the cross-school assertion arrives with the second school in Phase 1.
+These two suites are the cross-school and authorisation checks of each phase's security gate (the Build Bible, section 5.1). Phase 0 asserts authentication and role groups on every route; the cross-school assertion arrives with the second school in Phase 1.
 
 ### Self-test steps
 

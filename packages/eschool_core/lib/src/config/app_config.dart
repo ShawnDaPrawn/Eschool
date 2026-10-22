@@ -12,7 +12,7 @@
 /// |---|---|---|
 /// | `API_BASE_URL` | The admin panel's address, without a trailing `/` | [defaultApiBaseUrl] |
 /// | `ENV` | `production`, `staging` or `local` | `production` |
-/// | `FLAVOR` | Which shell this build is: `learner` (the student and parent app), `teacher`; later `facilitator` and `vendor` | the app's own |
+/// | `FLAVOR` | Which shell this build is: `learner` (the student and parent app) or `teacher` | the app's own |
 ///
 /// A build without any define talks to the production server, as every build
 /// did before these settings existed.

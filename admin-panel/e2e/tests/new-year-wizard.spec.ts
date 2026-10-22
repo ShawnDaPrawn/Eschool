@@ -2,9 +2,9 @@ import { expect, test } from '@playwright/test';
 import { csrfToken } from '../support/accounts';
 
 /**
- * The new-year wizard (the Bible's UX acceptance test): creating next year,
- * choosing what to carry forward and making it current takes under five
- * minutes and leaves the current year untouched until the switch. Runs last
+ * The new-year wizard (a Phase 0 UX acceptance path): setting up next year,
+ * picking what to copy across and switching to it is done in less than five
+ * minutes, and nothing in the current year changes before the switch. Runs last
  * (the wizard project depends on the others) and makes this year current again
  * at the end, so the suite can run again on the same database.
  */

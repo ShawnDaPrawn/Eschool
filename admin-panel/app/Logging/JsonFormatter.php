@@ -20,7 +20,7 @@ use UnitEnum;
  * (request id, user id, school id, route, method), and for errors with an
  * exception a stack trace that Cloud Error Reporting groups.
  *
- * Logs carry no personal data beyond ids (Build Bible 5.6). The message is the
+ * Logs hold ids and no other personal data (Build Bible 5.6). The message is the
  * code's own text, with e-mail addresses, South African ID numbers and phone
  * numbers masked. Context and extra values are kept only when they cannot hold
  * personal data: numbers and booleans, values under keys ending in "id" or

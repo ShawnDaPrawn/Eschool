@@ -139,7 +139,7 @@ jobs:
       # The same build the deploy workflow makes, with the staging settings.
       - run: flutter build web --release --dart-define-from-file=config/staging.json
 
-  # The integration_test/ smoke flows (sign in, land on home, open one screen)
+  # The integration_test/ smoke flows (sign in, reach Home, open a screen)
   # against the fake API in integration_test/support/fixtures.dart: no server.
   apps-smoke-android:
     name: Flutter smoke flows on Android (${{ matrix.app }})

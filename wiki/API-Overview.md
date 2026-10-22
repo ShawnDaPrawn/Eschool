@@ -392,7 +392,7 @@ Note: the v1 session and policy middleware on the student, parent and teacher gr
 
 ### `GET /api/v2/me/context`
 
-What every app reads on launch, after sign-in and after a school switch, and caches. Every profile may call it (`role.any`). Controller `Api/V2/Platform/ContextController`, service `Services/Platform/ContextService`, resources in `Http/Resources/Platform/`. Budget 150 ms at p95: 7 queries for a teacher, 10 for a parent, whatever the number of children (`ContextTest` counts them).
+Apps fetch it when they start, after signing in and when the user changes school, and keep the last answer. Every profile may call it (`role.any`). Controller `Api/V2/Platform/ContextController`, service `Services/Platform/ContextService`, resources in `Http/Resources/Platform/`. Budget 150 ms at p95: 7 queries for a teacher, 10 for a parent, whatever the number of children (`ContextTest` counts them).
 
 | Field | Content |
 | --- | --- |
@@ -453,7 +453,7 @@ A 429 carries `Retry-After` and the `X-RateLimit-*` headers, in the error envelo
 
 ### Adding a v2 endpoint
 
-Follow the domain recipe (Bible 3.2), for example for a `Money` endpoint:
+Follow the domain recipe (the Build Bible, section 3.2), for example for a `Money` endpoint:
 
 1. Migration with `school_id` (from Phase 1), model in `app/Models/Money/`, policy in `app/Policies/Money/` registered in `AuthServiceProvider`.
 2. A FormRequest per write in `app/Http/Requests/Money/`; the rules in a service in `app/Services/Money/`, inside `DB::transaction`.

@@ -1,4 +1,4 @@
-This page shows how the parts of eSchool fit together: what runs where, how requests move through the server, and how the apps, Firebase and the payment gateway connect to it. It then describes where the system is going as NavigateEd (the target architecture of the Build Bible, section 3) and how the current code grows into it. Each topic has its own detailed page, linked from the sections below.
+This page shows how the parts of eSchool fit together: what runs where, how requests move through the server, and how the apps, Firebase and the payment gateway connect to it. It then outlines how NavigateEd grows the current code (the Build Bible, section 3, has the target). Each topic has its own detailed page, linked from the sections below.
 
 ## Deployment model
 
@@ -184,55 +184,20 @@ The app asks the API to start a payment. The server works out the amount from th
 
 ## Where it is going
 
-NavigateEd grows this code into a multi-school platform without re-platforming (Build Bible section 3; decision record [ADR 0001](https://github.com/ShawnDaPrawn/Eschool/blob/main/engineering/adr/0001-seed-kernel-and-domains.md)). The final shape is the same Laravel app with a **platform kernel** added underneath and **domains** added beside the existing code, serving four clients:
+NavigateEd grows this code into a multi-school platform without re-platforming (Build Bible section 3; decision record [ADR 0001](https://github.com/ShawnDaPrawn/Eschool/blob/main/engineering/adr/0001-seed-kernel-and-domains.md)). It stays one Laravel app and one database. Shared services that every feature needs go into a **platform kernel** under `app/Services/Platform/`, and new features are written in **domain** folders beside the existing code (`app/Models/<Domain>/`, `app/Services/<Domain>/`, `app/Policies/<Domain>/`, `app/Http/Requests/<Domain>/`, thin controllers and Resources), so the legacy controllers keep serving while new work follows one pattern.
 
-```mermaid
-flowchart TB
-    subgraph Clients
-        LP["Learner and parent<br/>e-school app and web portal"]
-        TA["Teacher app<br/>facilitator and vendor flavours, web portal"]
-        AP["Admin panel<br/>redesigned, plus SaaS admin"]
-        PP["Public pages<br/>intake forms, school page"]
-    end
-    subgraph App["admin-panel: one Laravel app on Cloud Run"]
-        API["API v1 kept unchanged · API v2 with an OpenAPI contract · panel and public pages"]
-        subgraph Domains
-            D1["People"] --- D2["Academics"] --- D3["Communication"] --- D4["Money"]
-            D5["Activities"] --- D6["Wellbeing"] --- D7["Growth"] --- D8["Platform"]
-        end
-        subgraph Kernel["Platform kernel (app/Services/Platform)"]
-            K["Tenancy · Identity · Modules · Notifier · Outbox · Audit · Ledger · AiGateway · Files"]
-        end
-        API --> Domains --> Kernel
-    end
-    Clients --> API
-    Kernel --> S1[("Cloud SQL<br/>MySQL 8, one database")]
-    Kernel --> S2[("Cloud Storage")]
-    Kernel --> S3["Queue worker"]
-    Kernel --> S4["Scheduler"]
-    Kernel --> S5["Reverb<br/>live updates"]
-    Kernel --> S6["Converter<br/>Python, MarkItDown"]
-    Kernel --> S7["FCM and e-mail"]
-    Kernel --> S8["Payment providers"]
-    Kernel --> S9["AI and speech<br/>behind AiGateway"]
-```
+What exists after Phase 0:
 
-| Layer | What it is |
+| Part | What is in the code |
 |---|---|
-| Clients | Two Flutter shells over shared packages (`packages/eschool_core`, `eschool_api`, `eschool_session`, `eschool_notifications`, `eschool_features/*`), each also built for the web; the redesigned panel; public pages |
-| API | v1 stays exactly as the installed apps use it (fields added, never renamed or removed); v2 under `/api/v2` carries everything new, with `admin-panel/openapi.yaml` as the contract and `GET /api/v2/me/context` telling the apps who the user is and what each school has switched on |
-| Domains | People, Academics, Communication, Money, Activities, Wellbeing, Growth, Platform. Each uses Laravel's folders with a subfolder per domain: `app/Models/<Domain>/`, `app/Services/<Domain>/` (the only place with business rules), `app/Policies/<Domain>/`, `app/Http/Requests/<Domain>/`, thin controllers, Resources, and tests per domain |
-| Kernel | Tenancy (`BelongsToSchool`, the current school from the membership), Identity (memberships, guardian links, approvals), Modules (per-school switches), Notifier, Outbox (domain events in the same transaction), Audit, Ledger (integer cents, idempotent), AiGateway, Files, and per-school Settings |
-| Services | `navigateed-admin` (web), `navigateed-worker` (queue), `navigateed-scheduler` (every minute), later `navigateed-converter` and `navigateed-reverb`; Cloud SQL with `school_id` everywhere; a bucket per environment; Secret Manager; all in `africa-south1` |
+| Kernel | Queued mail and push (`SendMail`, `SendPush`, `notification_deliveries`), the outbox (`domain_events`, `DispatchOutbox`), the audit log (`Auditable`, `audit_log`), money in integer cents (`Money`, the `*_cents` columns), the password rule, per-app tokens and learner invitations, upload names, `settings.school_id`, and `CurrentSchool`, which answers the single school until Phase 1 |
+| API | v1 exactly as the installed apps use it (fields may be added, never renamed or removed); v2 under `/api/v2` for everything new, with `admin-panel/openapi.yaml` as the contract and `GET /api/v2/me/context` telling an app who the user is |
+| Clients | Two Flutter shells over shared packages (`packages/eschool_core`, `eschool_api`, `eschool_session`, `eschool_notifications`), each also built for the web; the panel with its navigation by job; the public pages |
+| Services | `navigateed-admin` (web), `navigateed-worker` (queue) and `navigateed-scheduler` (every minute), all from one image in `africa-south1`, with Cloud SQL, a bucket per environment and Secret Manager |
 
-### How the seed grows
+Phase 1 adds schools, `school_id` on every school-owned table (back-filled to one school) and Spatie's teams mode. Later phases add their domains beside the existing code, move the rules of any legacy controller they change into a domain service that v1 and v2 share, and replace a screen only with a better one. A v1 endpoint is retired only once the request logs (the `route` field on every JSON log line) show no callers for a full term.
 
-1. **Phase 0** adds the kernel's scaffolding without changing behaviour: the queue and scheduler, outbox, audit, money in cents, the API v2 skeleton with `/me/context`, the app packages and web builds, the panel's new navigation, staging, and the CI gates.
-2. **Phase 1** adds `schools` and `school_id` to every table with a back-fill to one school, turns on Spatie's teams mode, and adds memberships, guardian links and approvals, module switches and notification rules. The installed apps keep working because v1 keeps answering.
-3. **Each later phase** adds domains beside the existing code, moves the rules of any legacy controller it touches into a domain service that v1 and v2 both call, and replaces a screen only when the new one is at least as good.
-4. **Retirement** comes last: a v1 endpoint is removed only when the request logs (the `route` field on every JSON log line) show no callers for a full term.
-
-Until then, everything above this section describes the code as it runs today. The phase plans are in [`engineering/phases/`](https://github.com/ShawnDaPrawn/Eschool/tree/main/engineering/phases) and the decisions in [`engineering/adr/`](https://github.com/ShawnDaPrawn/Eschool/tree/main/engineering/adr).
+Everything above this section describes the code as it runs today. The phase plans are in [`engineering/phases/`](https://github.com/ShawnDaPrawn/Eschool/tree/main/engineering/phases) and the decisions in [`engineering/adr/`](https://github.com/ShawnDaPrawn/Eschool/tree/main/engineering/adr).
 
 ## See also
 

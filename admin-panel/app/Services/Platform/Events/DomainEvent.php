@@ -7,8 +7,8 @@ namespace App\Services\Platform\Events;
 use Carbon\CarbonImmutable;
 
 /**
- * Something that happened in one domain that another may react to (a mark
- * posted, a learner enrolled, a payment allocated). Subclass it per event,
+ * Something that happened in one domain that another may react to (for
+ * example a fee paid or a learner added). Subclass it per event,
  * record it with Outbox::record() inside the transaction that made the
  * change, and register listeners for its type in config/platform.php.
  *

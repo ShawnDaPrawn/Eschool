@@ -1,22 +1,22 @@
 # Phase 0: open questions and defaults taken
 
-The Bible asks these to be settled in Phase 0. Until the product owner answers, engineering carries on with the default below. Each default is recorded as a decision record where it shapes code.
+The questions Phase 0 had to settle, and the ones that came up while building it. Until the product owner answers, engineering works to the default below. Each default is recorded as a decision record where it shapes code.
 
 | # | Question | Default taken | Where it lands | Status |
 | --- | --- | --- | --- | --- |
-| Q0.1 | Transactional email provider and sending domain | Amazon SES in `af-south-1` (Cape Town), so mail data stays in South Africa; Laravel's `ses` mailer; bounces and complaints arrive through SNS to `POST /webhook/mail/ses`. Sending domain `mail.navigateed.co.za` with SPF, DKIM and DMARC (`p=quarantine`). The mailer stays switchable through `MAIL_MAILER`, so SMTP keeps working for schools that self-host. | [ADR 0004](../adr/0004-transactional-email.md) | Defaulted |
+| Q0.1 | Which provider sends transactional mail, and from which domain | Amazon SES in `af-south-1` (Cape Town), so mail data stays in South Africa; Laravel's `ses` mailer; bounces and complaints arrive through SNS to `POST /webhook/mail/ses`. Sending domain `mail.navigateed.co.za` with SPF, DKIM and DMARC (`p=quarantine`). The mailer stays switchable through `MAIL_MAILER`, so SMTP keeps working for schools that self-host. | [ADR 0004](../adr/0004-transactional-email.md) | Defaulted |
 | Q0.2 | Portal hostnames | `app.navigateed.co.za` (learner and parent web portal), `teach.navigateed.co.za` (teacher portal), `admin.navigateed.co.za` (panel and API). Staging prefixes each with `staging-`. | [ADR 0003](../adr/0003-app-packages-and-web.md), CORS, Sanctum stateful domains | Defaulted |
-| Q0.3 | First South African gateway to sandbox (built in Phase 5) | Peach Payments: cards, instant EFT, PayShap and hosted checkout behind one integration. | Recorded only; no code in Phase 0 | Defaulted |
+| Q0.3 | Which South African payment gateway to try first in a sandbox (built in a later phase) | Peach Payments: cards, instant EFT, PayShap and hosted checkout behind one integration. | Recorded only; no code in Phase 0 | Defaulted |
 | Q0.4 | Cloud SQL tier | Production `db-custom-2-7680` (2 vCPU, 7.5 GB) with high availability, automated backups, 7-day point-in-time recovery; staging `db-g1-small` without HA. | [runbooks/environments.md](../runbooks/environments.md) | Defaulted |
-| Q0.5 | Student number format (needed in Phase 1) | Ten digits: two-digit year of first enrolment at any NavigateEd school, a seven-digit platform sequence, and a Luhn check digit (for example `2600012344`). No school code, name or birth date inside it, so it never changes when a learner moves school. | Phase 1, [ADR 0005](../adr/0005-student-number-and-handles.md) | Defaulted |
-| Q0.6 | Age rule for handles (needed in Phase 1) | POPIA treats everyone under 18 as a child: a learner under 18 can propose a handle but it takes effect only after an approving guardian accepts it; 18 and over sets it directly. Handles are 3 to 20 characters, lower-case letters, digits, dot and underscore, and may not contain the learner's surname. | Phase 1, [ADR 0005](../adr/0005-student-number-and-handles.md) | Defaulted |
-| Q0.7 | Branch naming | The Bible asks for `feat/p<N>-<slug>`; this run's tooling assigns one branch per session, so Phase 0 and Phase 1 each ship as one pull request from that branch, built from internal work-stream branches. | This file | Noted |
+| Q0.5 | Student number format (Phase 1 uses it) | Ten digits: two-digit year of first enrolment at any NavigateEd school, a seven-digit platform sequence, and a Luhn check digit (for example `2600012344`). No school code, name or birth date inside it, so it never changes when a learner moves school. | Phase 1, [ADR 0005](../adr/0005-student-number-and-handles.md) | Defaulted |
+| Q0.6 | From what age a learner sets their own handle (Phase 1 uses it) | POPIA treats everyone under 18 as a child: a learner under 18 can propose a handle but it takes effect only after an approving guardian accepts it; 18 and over sets it directly. Handles are 3 to 20 characters, lower-case letters, digits, dot and underscore, and may not contain the learner's surname. | Phase 1, [ADR 0005](../adr/0005-student-number-and-handles.md) | Defaulted |
+| Q0.7 | Branch naming | The convention is one branch per feature (`feat/p<N>-<slug>`); this run's tooling assigns one branch per session, so Phase 0 and Phase 1 each ship as one pull request from that branch, built from internal work-stream branches. | This file | Noted |
 | Q0.8 | How the v1 API shows the removed gateways (S1) | Left out of v1 `payment_options`, the way v1 already shows a disabled gateway; no field renamed or removed | `ApiController` settings; snapshots unchanged | Defaulted |
 | Q0.9 | What happens to the removed gateways' settings rows (S1) | Kept in the database until `secrets:audit-settings --purge` (S6) clears every `razorpay_*`, `paystack_*` and `flutterwave_*` row | Release runbook, step 7 | Defaulted |
 | Q0.10 | When the installer seeders run in a container (S1) | `InstallationSeeder` and `EmailSeeder` run on every start of the web role (they are idempotent) | `docker/entrypoint.sh` | Defaulted |
 | Q0.11 | Staging's API address (S2) | `https://staging-admin.navigateed.co.za` | `config/staging.json` in both apps | Defaulted |
 | Q0.12 | Desktop layout of the apps (S2) | Desktop above 1024 px; content in a centred 640 px column beside a navigation rail | `eschool_core` `Breakpoints`, `ContentColumn` | Defaulted |
-| Q0.13 | How the web portals sign in (S2) | Sanctum cookie mode by default (the Bible's rule); `WEB_AUTH_MODE=bearer` switches a build back to tokens. The server side of cookie mode is still open (self-test defect D1) | ADR 0003, `eschool_session` | Defaulted |
+| Q0.13 | How the web portals sign in (S2) | Sanctum cookie mode by default (the Build Bible, section 3.4); `WEB_AUTH_MODE=bearer` switches a build back to tokens. The server side of cookie mode is still open (self-test defect D1) | ADR 0003, `eschool_session` | Defaulted |
 | Q0.14 | Which Hosting site serves the docs (S2) | The project's default site (`navigateed-d8c06` in production, `navigateed-staging` in staging); `FIREBASE_SITE_DOCS` overrides it | `.firebaserc`, `infra/firebase/deploy-hosting.sh` | Defaulted |
 | Q0.15 | Which school years are read-only in the panel (S3) | Every year other than the current one, including an upcoming year until it is made current | `EnforceReadOnlyYears` | Defaulted |
 | Q0.16 | How the read-only guard decides (S3) | It refuses every write in a read-only year except the routes on an allow-list (`panel.read_only_years.allow`), so a new route is safe by default | `config/panel.php` | Defaulted |
@@ -37,17 +37,6 @@ The Bible asks these to be settled in Phase 0. Until the product owner answers, 
 | Q0.31 | Which roles read the secrets that left the `settings` rows (S8) | The panel all of them; the worker the SES keys, the SMTP password and the Firebase account; the scheduler job, which is also the one-off artisan runner, the same as the panel so `secrets:audit-settings --purge` sees what the panel sees | `infra/gcp/provision.sh`, [environments.md](../runbooks/environments.md) | Defaulted |
 | Q0.32 | The SES configuration set names (S8) | `navigateed-staging` and `navigateed-production`, created with the AWS account | `infra/gcp/env/*.env` | Defaulted |
 
-## Phase 1 decisions from the end of Phase 0
+## Questions Phase 1 depends on
 
-The Bible's Phase 0 hand-off lists the decisions to settle in Phase 0 for Phase 1, and its exit gate asks that they are answered or defaulted. All six are defaulted and wait for the product owner:
-
-| Decision | Default | Status |
-| --- | --- | --- |
-| The transactional email provider and sending domain | Q0.1: Amazon SES in Cape Town, `mail.navigateed.co.za` | Defaulted |
-| The portal hostnames | Q0.2: `app.`, `teach.` and `admin.navigateed.co.za`, `staging-` prefixed on staging | Defaulted |
-| The first South African gateway to sandbox (Phase 5 builds it) | Q0.3: Peach Payments | Defaulted |
-| The Cloud SQL tier | Q0.4: production `db-custom-2-7680` with high availability; staging `db-g1-small` | Defaulted |
-| The student number format | Q0.5: ten digits, year of first enrolment, platform sequence, Luhn check digit | Defaulted |
-| The age rule for handles | Q0.6: under 18 a guardian approves the handle | Defaulted |
-
-Phase 1's own decisions (whether one verified guardian is enough to approve; which default profile fields are locked; whether schools switch modules themselves; the default mandatory notification set per portal; the avatar set's size and style) belong in `phase-1-questions.md`.
+Q0.1 to Q0.6 are the questions the Build Bible (section 6) asks Phase 0 to settle for Phase 1. All six have a default above and wait for the product owner's answers. Questions that belong to Phase 1 itself go in `phase-1-questions.md`.
