@@ -73,6 +73,11 @@ class SesWebhookTest extends TestCase
         $this->assertSame('Complaint: abuse', $complained->error_summary);
         $this->assertSame('delivered', $delivered->refresh()->status);
         $this->assertSame('bounced', $bounced->refresh()->status);
+
+        $rejected = $this->sentDelivery('msg-reject');
+        $this->postSns($this->notification(['eventType' => 'Reject', 'mail' => ['messageId' => 'msg-reject'], 'reject' => ['reason' => 'Bad content']]))->assertOk();
+        $this->assertSame('failed', $rejected->refresh()->status);
+        $this->assertSame('Reject: Bad content', $rejected->error_summary);
     }
 
     public function test_the_same_sns_message_is_processed_once(): void

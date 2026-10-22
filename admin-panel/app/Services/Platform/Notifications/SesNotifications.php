@@ -105,6 +105,8 @@ class SesNotifications
             'Delivery' => [NotificationDelivery::DELIVERED, null],
             'Bounce' => [NotificationDelivery::BOUNCED, 'Bounce: '.($payload['bounce']['bounceType'] ?? 'Undetermined').'/'.($payload['bounce']['bounceSubType'] ?? 'Undetermined')],
             'Complaint' => [NotificationDelivery::COMPLAINED, 'Complaint: '.($payload['complaint']['complaintFeedbackType'] ?? 'unspecified')],
+            // SES refused to send it (for example a virus in an attachment).
+            'Reject' => [NotificationDelivery::FAILED, 'Reject: '.($payload['reject']['reason'] ?? 'unspecified')],
             default => [null, null],
         };
 
