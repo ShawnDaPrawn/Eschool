@@ -17,28 +17,30 @@
 {{--
     The admin panel shell: header (search, year switcher, account), the
     navigation by job (config/navigation.php) and the main area. Every panel
-    page extends this layout. data-panel-layout marks panel pages for the
-    Playwright checks; data-read-only-year switches page.js's read-only mode.
+    page extends this layout. The shell is built with the Material 3 library
+    (public/assets/m3); the pages inside it keep their own markup until they
+    move. data-panel-layout marks panel pages for the Playwright checks;
+    data-read-only-year switches panel.js's read-only mode.
 --}}
 <body class="sidebar-fixed" data-panel-layout
     @if ($panelYear->isReadOnly()) data-read-only-year="{{ $panelYear->selectedId() }}" @endif>
-    <a class="skip-link" href="#main-content">{{ __('skip_to_content') }}</a>
+    <a class="m3-skip-link" href="#main-content">{{ __('skip_to_content') }}</a>
     <div class="container-scroller">
 
         @include('layouts.header')
 
-        <div class="container-fluid page-body-wrapper">
+        <div class="page-body-wrapper panel-body">
 
             @include('layouts.sidebar')
 
-            <main class="main-panel d-flex flex-column min-vh-100" id="main-content" tabindex="-1">
+            <main class="main-panel panel-main" id="main-content" tabindex="-1">
 
                 @include('layouts.partials.read-only-banner')
                 @include('layouts.partials.notices')
 
                 @yield('content')
 
-                <div class="mt-auto">
+                <div class="panel-main__footer">
                     @include('layouts.footer')
                 </div>
 
@@ -69,6 +71,7 @@
     <script>
         window.panelShell = @json($panelShell);
     </script>
+    <script src="{{ asset('/assets/m3/m3.js') }}?v={{ filemtime(public_path('assets/m3/m3.js')) }}"></script>
     <script src="{{ asset('/assets/js/custom/panel.js') }}?v={{ filemtime(public_path('assets/js/custom/panel.js')) }}"></script>
     <script src="{{ asset('/assets/js/custom/page.js') }}?v={{ filemtime(public_path('assets/js/custom/page.js')) }}"></script>
 

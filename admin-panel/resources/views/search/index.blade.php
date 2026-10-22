@@ -4,46 +4,49 @@
     {{ __('search_title') }}
 @endsection
 
-{{-- Global search results (SearchController), on the page pattern. --}}
+{{-- Global search results (SearchController), on the page pattern and the Material 3 library. --}}
 @section('content')
-    <div class="content-wrapper">
+    <div class="content-wrapper m3 page-content">
         <x-page.header :title="__('search_title')" :subtitle="__('search_subtitle')" :breadcrumbs="false" />
 
-        <form class="page-search-form card page-section" role="search" method="GET" action="{{ route('search') }}">
-            <div class="card-body">
+        <form class="m3-card m3-card--outlined page-section page-search-form" role="search" method="GET" action="{{ route('search') }}">
+            <div class="m3-card__content">
                 <label for="search-page-input" class="page-card-title">{{ __('search_label') }}</label>
-                <div class="page-search-row">
-                    <input id="search-page-input" type="search" name="q" class="form-control" value="{{ $term }}"
-                        maxlength="{{ \App\Services\Panel\GlobalSearch::MAX_LENGTH }}" autocomplete="off"
-                        placeholder="{{ __('search_placeholder') }}">
-                    <button type="submit" class="btn btn-theme">{{ __('search_button') }}</button>
+                <div class="m3-row m3-row--nowrap m3-gap-3 m3-items-center page-search-row">
+                    <div class="m3-search">
+                        <input id="search-page-input" type="search" name="q" class="m3-search__input" value="{{ $term }}"
+                            maxlength="{{ \App\Services\Panel\GlobalSearch::MAX_LENGTH }}" autocomplete="off"
+                            placeholder="{{ __('search_placeholder') }}">
+                    </div>
+                    <button type="submit" class="m3-button m3-button--filled">{{ __('search_button') }}</button>
                 </div>
             </div>
         </form>
 
         @if ($term === '' || $tooShort)
-            <x-page.empty-state icon="search" :title="__('search_start_title')" :message="__('search_start_hint')" class="card" />
+            <x-page.empty-state icon="search" :title="__('search_start_title')" :message="__('search_start_hint')" class="m3-card m3-card--outlined" />
         @elseif ($groups === [])
-            <x-page.empty-state icon="search" :title="__('search_nothing_title', ['term' => $term])" :message="__('search_nothing_hint')" class="card" />
+            <x-page.empty-state icon="search" :title="__('search_nothing_title', ['term' => $term])" :message="__('search_nothing_hint')" class="m3-card m3-card--outlined" />
         @else
-            <p class="sr-only" role="status">{{ trans_choice('search_results_count', array_sum(array_map(fn ($g) => count($g['items']), $groups)), ['count' => array_sum(array_map(fn ($g) => count($g['items']), $groups))]) }}</p>
+            <p class="m3-visually-hidden" role="status">{{ trans_choice('search_results_count', array_sum(array_map(fn ($g) => count($g['items']), $groups)), ['count' => array_sum(array_map(fn ($g) => count($g['items']), $groups))]) }}</p>
             @foreach ($groups as $group)
-                <section class="card page-section search-group" aria-labelledby="search-group-{{ $group['key'] }}" data-search-group="{{ $group['key'] }}">
-                    <div class="card-body">
-                        <h2 class="page-section-title" id="search-group-{{ $group['key'] }}">{{ $group['label'] }}</h2>
-                        <ul class="search-results">
-                            @foreach ($group['items'] as $item)
-                                <li>
-                                    <a class="search-result" href="{{ $item['url'] }}">
-                                        <span class="search-result-title">{{ $item['title'] }}</span>
+                <section class="m3-card m3-card--outlined page-section search-group" aria-labelledby="search-group-{{ $group['key'] }}" data-search-group="{{ $group['key'] }}">
+                    <h2 class="page-section-title search-group__title" id="search-group-{{ $group['key'] }}">{{ $group['label'] }}</h2>
+                    <ul class="m3-list m3-list--divided search-results">
+                        @foreach ($group['items'] as $item)
+                            <li>
+                                <a class="m3-list__item m3-list__item--interactive search-result" href="{{ $item['url'] }}" data-search-result>
+                                    <span class="m3-list__content">
+                                        <span class="m3-list__headline search-result-title">{{ $item['title'] }}</span>
                                         @if ($item['subtitle'])
-                                            <span class="search-result-subtitle">{{ $item['subtitle'] }}</span>
+                                            <span class="m3-list__supporting search-result-subtitle">{{ $item['subtitle'] }}</span>
                                         @endif
-                                    </a>
-                                </li>
-                            @endforeach
-                        </ul>
-                    </div>
+                                    </span>
+                                    <x-icon name="chevron-right" :size="20" class="m3-list__trailing search-result-chevron" />
+                                </a>
+                            </li>
+                        @endforeach
+                    </ul>
                 </section>
             @endforeach
         @endif

@@ -9,7 +9,7 @@
 
 <script src="{{ asset('/assets/js/off-canvas.js') }}"></script>
 <script src="{{ asset('/assets/js/hoverable-collapse.js') }}"></script>
-<script src="{{ asset('/assets/js/custom/sidebar.js') }}"></script>
+<script src="{{ asset('/assets/js/custom/sidebar.js') }}?v={{ filemtime(public_path('assets/js/custom/sidebar.js')) }}"></script>
 <script src="{{ asset('/assets/js/misc.js') }}?v={{ filemtime(public_path('assets/js/misc.js')) }}"></script>
 <script src="{{ asset('/assets/js/settings.js') }}"></script>
 <script src="{{ asset('/assets/js/todolist.js') }}"></script>
@@ -77,22 +77,6 @@
 @endif
 
 <script>
-    // Scroll to active item in sidebar
-    $(document).ready(function() {
-        const sidebar = document.querySelector('.sidebar .nav');
-        let activeItem = sidebar.querySelector('.nav-item.active');
-
-        if (activeItem) {
-            const sidebarRect = sidebar.getBoundingClientRect();
-            const itemRect = activeItem.getBoundingClientRect();
-
-            // Calculate offset so the active item is centered
-            const offset = activeItem.offsetTop - sidebar.offsetHeight / 2 + activeItem.offsetHeight / 2;
-
-            sidebar.scrollTop = offset;
-        }
-    });
-
     $(document).on('click', '.deletedata', function() {
         const relatedEntities = $(this).data('related'); // array OR undefined
         let extraHtml = '';

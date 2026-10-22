@@ -24,6 +24,8 @@
 <link rel="stylesheet" href="{{ asset('/assets/css/m3-base.css') }}?v={{ filemtime(public_path('assets/css/m3-base.css')) }}">
 {{-- Material 3 components (buttons, fields, dialogs, menus …), before the redesign sheets so they can refine them. --}}
 <link rel="stylesheet" href="{{ asset('/assets/css/m3-components.css') }}?v={{ filemtime(public_path('assets/css/m3-components.css')) }}">
+{{-- The Material 3 web library: the panel shell (header, navigation) and the page components are built with it. Its classes are all .m3-*, so legacy pages are unaffected. --}}
+<link rel="stylesheet" href="{{ asset('/assets/m3/m3.css') }}?v={{ filemtime(public_path('assets/m3/m3.css')) }}">
 {{-- Admin chrome redesign (sidebar + topbar) — loaded after style/rtl so they override the legacy rules in both. --}}
 <link rel="stylesheet" href="{{ asset('/assets/css/sidebar.css') }}?v={{ filemtime(public_path('assets/css/sidebar.css')) }}">
 <link rel="stylesheet" href="{{ asset('/assets/css/header.css') }}?v={{ filemtime(public_path('assets/css/header.css')) }}">

@@ -107,7 +107,7 @@ class SearchTest extends TestCase
         $admin = $this->actingAs($this->superAdmin());
 
         $this->assertCount(5, $this->group($admin->getJson('/search?q=zulu')->json('groups'), 'learners'));
-        $this->assertSame(20, substr_count($admin->get('/search?q=zulu')->getContent(), 'class="search-result"'));
+        $this->assertSame(20, substr_count($admin->get('/search?q=zulu')->getContent(), 'data-search-result'));
 
         $this->assertSame([], $admin->getJson('/search?q=z')->json('groups'), 'One letter is too short to search');
         $this->assertSame([], $admin->getJson('/search?q=%25')->json('groups'), 'A % sign is not a wildcard');

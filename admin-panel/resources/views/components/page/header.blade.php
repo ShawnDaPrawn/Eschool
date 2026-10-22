@@ -1,7 +1,8 @@
 {{--
     Page header: where you are (section and group from config/navigation.php),
     the page title (the page's only h1), an optional line under it, and at most
-    one primary action. Extra, quieter actions go in the `actions` slot.
+    one primary action (an M3 filled button). Extra, quieter actions go in the
+    `actions` slot (outlined or text M3 buttons).
 
     <x-page.header :title="__('nav_notices')" :subtitle="__('notices_subtitle')"
         :primary-label="__('send_a_notice')" primary-href="#notice-form" primary-icon="plus" />
@@ -24,7 +25,7 @@
     $navItem = $breadcrumbs ? app(\App\Services\Panel\Navigation::class)->current(auth()->user()) : null;
     $showPrimary = $primaryLabel && $primaryHref && (! $primaryPermission || auth()->user()?->can($primaryPermission));
 @endphp
-<header {{ $attributes->merge(['class' => 'page-head']) }}>
+<header {{ $attributes->merge(['class' => 'm3 page-head']) }}>
     <div class="page-head-text">
         @if ($navItem && $navItem['section'] !== 'home')
             <nav aria-label="{{ __('page_breadcrumb') }}">
@@ -43,7 +44,7 @@
         <div class="page-head-actions">
             {{ $actions ?? '' }}
             @if ($showPrimary)
-                <a href="{{ $primaryHref }}" class="btn btn-theme page-head-primary" @if ($primaryWrite) data-write @endif>
+                <a href="{{ $primaryHref }}" class="m3-button m3-button--filled m3-button--icon-leading page-head-primary" @if ($primaryWrite) data-write @endif>
                     @if ($primaryIcon)
                         <x-icon :name="$primaryIcon" :size="18" />
                     @endif
