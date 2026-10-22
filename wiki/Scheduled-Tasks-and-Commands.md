@@ -37,13 +37,38 @@ Schedule::command('sanctum:prune-expired --hours=24')->daily();
 
 "Midnight" is in the scheduler timezone: `config('app.schedule_timezone')` is not set, so Laravel uses `config('app.timezone')`. `SettingsConfigService` sets that from the `time_zone` setting (General Settings) on every boot, falling back to `TIMEZONE` in `.env` and then `UTC`. Because the settings migration seeds `time_zone = Africa/Johannesburg`, a fresh install runs these at midnight South Africa Standard Time (Pretoria) until the timezone is changed.
 
-Nothing runs unless cron calls the scheduler every minute:
+Nothing runs unless something calls `php artisan schedule:run` every minute. The schedule itself stays in `routes/console.php` only; what calls it depends on where the panel runs.
+
+### On Cloud Run
+
+Cloud Run has no cron, so the image has a scheduler role (`CONTAINER_ROLE=scheduler` in [docker/entrypoint.sh](https://github.com/ShawnDaPrawn/Eschool/blob/main/admin-panel/docker/entrypoint.sh)) that runs one `schedule:run` and exits:
+
+| Piece | What it is |
+|---|---|
+| `navigateed-scheduler` | A Cloud Run Job running the panel image with `CONTAINER_ROLE=scheduler`: one task, no retries, 30-minute task timeout, the uploads bucket and Cloud SQL attached, service account `navigateed-worker-run` |
+| `navigateed-scheduler-every-minute` | A Cloud Scheduler job (`* * * * *`) that starts an execution of `navigateed-scheduler` through the Cloud Run Admin API, as the service account `navigateed-scheduler-invoker` (which may start that job and nothing else) |
+
+Both are created by [infra/gcp/provision.sh](https://github.com/ShawnDaPrawn/Eschool/blob/main/infra/gcp/provision.sh) and get each release's image from the deploy workflow; see [Deployment](Deployment#container-roles). Things to know:
+
+- Each minute is a fresh container, so a task's `withoutOverlapping()` lock must live in a store all executions share: Cloud Run sets `CACHE_DRIVER=database` (the `cache_locks` table).
+- `schedule:run` decides what is due from the time it starts. A container that takes most of a minute to start could miss that minute's tasks; daily tasks at midnight are the ones to watch.
+- An alert fires when more than two executions fail in ten minutes ("scheduler runs failing"). List recent runs with `gcloud run jobs executions list --job=navigateed-scheduler --region=africa-south1 --project=<project> --limit=5`.
+- To stop the schedule (for a restore, or to save cost on staging): `gcloud scheduler jobs pause navigateed-scheduler-every-minute --location=africa-south1 --project=<project>`, and `resume` to start it again.
+- The same job runs one-off Artisan commands with `CONTAINER_ROLE=artisan`, for example `gcloud run jobs execute navigateed-scheduler --wait --update-env-vars=CONTAINER_ROLE=artisan --args=schedule:list --region=africa-south1 --project=<project>`.
+
+**Status**: written in Phase 0, not yet provisioned. Until then nothing runs the schedule on Cloud Run.
+
+### On your own server
+
+The standard cron entry for the web server user:
 
 ```cron
 * * * * * cd /path/to/admin-panel && php artisan schedule:run >> /dev/null 2>&1
 ```
 
-For local development, `php artisan schedule:work` runs the scheduler in the foreground. `php artisan schedule:test` lets you pick one task and run it now.
+### Locally
+
+`php artisan schedule:work` runs the scheduler in the foreground (Docker Compose's `scheduler` service does this, `CONTAINER_ROLE=scheduler-loop`). `php artisan schedule:test` lets you pick one task and run it now.
 
 ## app:cleanup-old-chat-messages
 
@@ -54,7 +79,7 @@ For local development, `php artisan schedule:work` runs the scheduler in the for
 | Signature | `app:cleanup-old-chat-messages` (no arguments or options) |
 | Description | Delete chat messages (and their files) older than the configured retention period |
 | Scheduled | Daily, without overlapping |
-| Output | `Deleted N old chat message(s).`; also `Log::info('Cleaned up old chat messages', ['deleted' => N])`, which is not written with the default `LOG_LEVEL=error` |
+| Output | `Deleted N old chat message(s).`; also `Log::info('Cleaned up old chat messages', ['deleted' => N])`, written when `LOG_LEVEL` is `info` or lower (Cloud Run runs `info`; `.env.example` has `error`) |
 | Exit code | Always `0` (`self::SUCCESS`) unless an exception is thrown |
 
 It calls `ChatMessageCleanupService::deleteOlderThanConfiguredDays()` in [app/Services/ChatMessageCleanupService.php](https://github.com/ShawnDaPrawn/Eschool/blob/main/admin-panel/app/Services/ChatMessageCleanupService.php):
@@ -135,16 +160,21 @@ Commands from Laravel and packages that the app's own code runs, or that operato
 
 | Command | Used by / when |
 |---|---|
-| `migrate --force` | Installer, System Update, `/migrate` URL, manual updates |
-| `db:seed --class=InstallationSeeder --force` | Installer, System Update, `/seeder_install` URL |
-| `db:seed --class=AddSuperAdminSeeder --force` | Installer (once only) |
-| `db:seed --class=EmailSeeder --force` | Installer, System Update |
+| `migrate --force` | Installer; the container's web role on every start (through `docker/migrate.php`, one instance at a time); manual updates |
+| `db:seed --class=InstallationSeeder --force` | Installer; the container's web role on every start; manual updates |
+| `db:seed --class=AddSuperAdminSeeder --force` | Installer, and `docker/provision-admin.php` on an empty database (once only) |
+| `db:seed --class=EmailSeeder --force` | Installer; the container's web role on every start; manual updates |
 | `key:generate` | Before the first web request; the installer runs it again with `--force` |
-| `storage:link` | Installer, `/storage-link` URL |
-| `view:clear`, `route:clear`, `config:clear`, `cache:clear` | `InstallationSeeder`, `/clear`, `/migrate`, `/seeder_install`, installer finish step (which also runs `optimize:clear`) |
+| `storage:link` | Installer; the container's entrypoint links `public/storage` itself |
+| `view:clear`, `route:clear`, `config:clear`, `cache:clear` | `InstallationSeeder`, `POST /clear`, installer finish step (which also runs `optimize:clear`) |
 | `optimize`, `optimize:clear` | Production caching; see [Deployment](Deployment#caching) |
 | `permission:cache-reset` | Spatie permission cache, after editing roles or permissions directly in the database |
+| `queue:work` | The worker: the container's worker role runs `queue:work --tries=3 --timeout=120 --sleep=3 --max-time=3600`; see [Deployment](Deployment#queue-worker) |
+| `queue:restart` | After deploying new code on your own server, so running workers pick it up |
+| `queue:failed`, `queue:retry` | List jobs that used up their tries, and retry them once the cause is fixed |
 | `schedule:run`, `schedule:list`, `schedule:work`, `schedule:test` | The scheduler |
+
+The in-panel System Update and the `/migrate`, `/seeder_install` and `/storage-link` URLs that used to run some of these were removed in Phase 0.
 
 The wizard package's default command `install:users` does not exist in this app; `config/installer.php` replaces it with the seeders above.
 

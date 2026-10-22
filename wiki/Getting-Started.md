@@ -11,6 +11,7 @@ This page gets every part of the project running on a development machine. Start
 | Flutter | 3.44.9 stable (CI version). Dart SDK `>=3.8.0 <4.0.0` | Mobile apps |
 | Android Studio / Xcode | Current | Mobile app builds |
 | A Firebase project | | Push notifications and Crashlytics. The apps will not build without it |
+| Docker with the Compose plugin | Current | Optional: the whole panel stack in containers ([Option C](#option-c-docker-compose-the-cloud-run-setup-on-your-machine)) |
 
 ## 1. Admin panel (server and API)
 
@@ -107,7 +108,8 @@ Next, set up the school in **Settings**: name, logo, time zone, the current sess
 | `/install` | Web installer (blocked once installation is complete) |
 | `/api/...` | REST API for the apps (see [API Overview](API-Overview)) |
 | `/storage/...` | Uploaded files, served through the `public/storage` symlink |
-| `/webhook/{stripe,razorpay,paystack,flutterwave}` | Payment gateway callbacks (see [Payments](Payments)) |
+| `/webhook/stripe` | Stripe's payment callbacks (see [Payments](Payments)) |
+| `/up`, `/up/worker` | Health checks: the app boots; the queue is being worked |
 
 ## 2. Mobile apps
 
@@ -154,6 +156,9 @@ Run these from the repository root. Each line uses a subshell, so the working di
 # Dependency audits
 (cd admin-panel && composer audit --locked)
 (cd documentation && npm audit --audit-level=critical)
+
+# Secret scan over the whole history (gitleaks 8.x from its GitHub releases), as security.yml runs it
+gitleaks git --log-opts="--all" --config .gitleaks.toml --redact
 ```
 
 [Testing and CI](Testing-and-CI) has the details, including how to create the test database.

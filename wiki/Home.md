@@ -29,7 +29,7 @@ flowchart LR
     Server -- "push" --> FCM["Firebase Cloud Messaging"]
     FCM --> S
     FCM --> T
-    PG["Payment gateways<br/>Stripe, Razorpay, Paystack, Flutterwave"] -- "webhooks" --> WEB
+    PG["Payment gateway<br/>Stripe"] -- "webhooks" --> WEB
     S -- "checkout" --> PG
 ```
 
@@ -58,27 +58,27 @@ Roles and what each one may do are covered in [Roles and Permissions](Roles-and-
 
 **Setting up a dev environment?** [Getting Started](Getting-Started).
 
-**Running it in production?** [Deployment](Deployment), [Configuration](Configuration), [Scheduled Tasks and Commands](Scheduled-Tasks-and-Commands), [Security Model](Security-Model#security-checklist-for-deployers).
+**Running it in production?** [Deployment](Deployment), [Configuration](Configuration), [Scheduled Tasks and Commands](Scheduled-Tasks-and-Commands), [Security Model](Security-Model#security-checklist-for-deployers), and the [runbooks](https://github.com/ShawnDaPrawn/Eschool/tree/main/engineering/runbooks) for deploys, releases, rollback, restore and incidents.
 
 **Building the apps for your school?** [Mobile App Configuration](Mobile-App-Configuration), then [Building and Releasing Apps](Building-and-Releasing-Apps).
 
-**Adding a feature or endpoint?** [Contributing](Contributing), [Admin Modules](Admin-Modules), [API Overview](API-Overview), [Security Model](Security-Model#rules-for-contributors).
+**Adding a feature or endpoint?** [Contributing](Contributing) (including [adding an admin module](Contributing#adding-an-admin-module-end-to-end)), [API Overview](API-Overview), [Security Model](Security-Model#rules-for-contributors), and for NavigateEd work the spec template and domain recipe in the [engineering folder](https://github.com/ShawnDaPrawn/Eschool/tree/main/engineering).
 
-**Something broken?** [Troubleshooting and FAQ](Troubleshooting-and-FAQ).
+**Something broken?** [Troubleshooting and FAQ](Troubleshooting-and-FAQ); in production, the [incident runbook](https://github.com/ShawnDaPrawn/Eschool/blob/main/engineering/runbooks/incident.md).
 
 ## Feature map
 
 | Area | Admin panel | Apps | Wiki page |
 |---|---|---|---|
 | Academic setup: session years, mediums, classes, sections, streams, shifts, semesters, subjects | Yes | Read-only | [Academic Structure](Academic-Structure) |
-| Students, parents, teachers, staff, ID cards, promotion | Yes | Profiles | [Admin Modules](Admin-Modules) |
+| Students, parents, teachers, staff, ID cards, promotion | Yes | Profiles | [Admin Panel Overview](Admin-Panel-Overview) |
 | Attendance: students and staff | Yes | Teachers mark; students and parents view | [API Teacher](API-Teacher) |
-| Timetable, lessons, topics, study material | Yes | Yes | [Admin Modules](Admin-Modules) |
+| Timetable, lessons, topics, study material | Yes | Yes | [Admin Panel Overview](Admin-Panel-Overview) |
 | Assignments and submissions | Yes | Teachers create; students submit | [API Student](API-Student) |
 | Exams, marks, grades, report cards | Yes | Results | [Exams and Grading](Exams-and-Grading) |
 | Online exams | Yes | Students take them | [Exams and Grading](Exams-and-Grading#online-exams) |
-| Fees, installments, online payment, receipts | Yes | Parents and students pay | [Payments](Payments) |
-| Leave: staff and students | Yes | Yes | [Admin Modules](Admin-Modules) |
+| Fees, installments, online payment (Stripe), receipts | Yes | Parents and students pay | [Payments](Payments) |
+| Leave: staff and students | Yes | Yes | [Admin Panel Overview](Admin-Panel-Overview) |
 | Announcements, custom notifications, push | Yes | Yes | [Notifications](Notifications) |
 | Chat between teachers and students or parents | Settings | Yes | [Chat](Chat) |
 | Public website, online admission, gallery | Yes | — | [Public Website](Public-Website) |
@@ -87,3 +87,24 @@ Roles and what each one may do are covered in [Roles and Permissions](Roles-and-
 ## About this fork
 
 This repository builds on the eSchool 3.5.0 codebase. Since then it has added CI, upgraded the apps to the current Flutter and Gradle toolchain, completed the translations, and hardened security throughout: API scoping by role, child and class, permission checks, SQL-injection and XSS fixes, upload filtering, webhook signature checks and security headers. See [Release History](Release-History) and [Security Model](Security-Model).
+
+## NavigateEd
+
+This codebase is the seed of **NavigateEd**, a multi-school platform for South African schools, grown phase by phase without a rewrite: a platform kernel is added underneath the existing panel and API, and new domains beside them (see [Architecture](Architecture#where-it-is-going)). The engineering record lives in the repository, next to the code:
+
+| What | Where |
+|---|---|
+| Phase plans, open questions and the defaults taken | [`engineering/phases/`](https://github.com/ShawnDaPrawn/Eschool/tree/main/engineering/phases) |
+| Feature specs | [`engineering/specs/`](https://github.com/ShawnDaPrawn/Eschool/tree/main/engineering/specs) |
+| Decision records (architecture, API v2, app packages, e-mail, student numbers) | [`engineering/adr/`](https://github.com/ShawnDaPrawn/Eschool/tree/main/engineering/adr) |
+| Runbooks: environments, deploy, release, rollback, restore, incident | [`engineering/runbooks/`](https://github.com/ShawnDaPrawn/Eschool/tree/main/engineering/runbooks) |
+| Threat model and security records | [`engineering/security/`](https://github.com/ShawnDaPrawn/Eschool/tree/main/engineering/security) |
+| Self-test runs | [`engineering/self-tests/`](https://github.com/ShawnDaPrawn/Eschool/tree/main/engineering/self-tests) |
+| What changed, newest first | [`CHANGELOG.md`](https://github.com/ShawnDaPrawn/Eschool/blob/main/CHANGELOG.md) (earlier history: [Release History](Release-History)) |
+
+## See also
+
+- [Architecture](Architecture)
+- [Getting Started](Getting-Started)
+- [Contributing](Contributing)
+- [Deployment](Deployment)
