@@ -208,5 +208,5 @@ Hard bounces and complaints are also suppressed by SES's account-level suppressi
 - [Configuration](Configuration)
 - [Mobile-App-Configuration](Mobile-App-Configuration)
 - [API-Overview](API-Overview)
-- [Admin-Modules](Admin-Modules)
+- [Admin-Panel-Overview](Admin-Panel-Overview)
 - [Troubleshooting-and-FAQ](Troubleshooting-and-FAQ)

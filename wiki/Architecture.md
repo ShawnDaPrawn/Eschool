@@ -137,7 +137,7 @@ flowchart LR
     R --> H[("Hive boxes<br/>auth, settings")]
 ```
 
-- The base URL is a compile-time constant in `lib/utils/constants.dart`.
+- The server address, environment and flavour are build settings (`--dart-define` `API_BASE_URL`, `ENV`, `FLAVOR`) read by `AppConfig` in `eschool_core`; the same code builds staging and production.
 - On login the API returns a Sanctum token. The app keeps it in the Hive `authBoxKey` box and sends it as `Authorization: Bearer <token>` on every call. Tokens expire after `SANCTUM_EXPIRATION` minutes, 43200 (30 days) by default.
 - Push notifications come in through `firebase_messaging` and are shown with `awesome_notifications`. Crashes go to Firebase Crashlytics.
 - The student/parent app takes payments through Stripe (`flutter_stripe`) or a webview (`webview_flutter`). The server never trusts the app's word that a payment succeeded. It confirms through the gateway API or the gateway's signed webhook.

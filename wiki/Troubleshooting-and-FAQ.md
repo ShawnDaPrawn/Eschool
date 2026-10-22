@@ -26,7 +26,7 @@ That happened on code older than commit [e13ac7d](https://github.com/ShawnDaPraw
 ## Signing in from the apps
 
 **The app can't reach the server.**
-- Check `baseUrl` in `lib/utils/constants.dart`. It must be the server's address with no trailing slash. From an Android emulator, use `10.0.2.2`, not `localhost`.
+- Check the `API_BASE_URL` the app was built with (`--dart-define`, or `config/staging.json` / `config/production.json`; no define means the production server). It must be the server's address with no trailing slash. From an Android emulator, use `10.0.2.2`, not `localhost`. A debug build with an unusable value stops at start-up and says why.
 - Android release builds of the student app, and every build of the teacher app, allow **HTTPS only**. iOS needs HTTPS too. Use an `https://` URL with a certificate from a public CA. See [Mobile App Configuration](Mobile-App-Configuration#https-requirement).
 
 **Students can't sign in with their email.**
@@ -74,8 +74,8 @@ See [Payments](Payments#payment-confirmation-webhooks).
 **Pending payments turn into failed ones.**
 Transactions left pending for more than an hour are marked failed whenever the fee details or transaction list are loaded. Start a new payment.
 
-**Paystack or Flutterwave checkout never closes in the app.**
-The app's webview waits for a redirect to `/response/{paystack|flutterwave}/success` on the `baseUrl` host. It never finishes if the panel is served from a different host than `baseUrl`.
+**Paystack or Flutterwave checkout.**
+Both gateways were removed in Phase 0; the server offers only Stripe, so the app no longer opens their checkout. The webview code that waited for `/response/{paystack|flutterwave}/success` on the `API_BASE_URL` host is unused.
 
 ## Building the apps
 

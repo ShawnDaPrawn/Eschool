@@ -11,3 +11,43 @@ The Bible asks these to be settled in Phase 0. Until the product owner answers, 
 | Q0.5 | Student number format (needed in Phase 1) | Ten digits: two-digit year of first enrolment at any NavigateEd school, a seven-digit platform sequence, and a Luhn check digit (for example `2600012344`). No school code, name or birth date inside it, so it never changes when a learner moves school. | Phase 1, [ADR 0005](../adr/0005-student-number-and-handles.md) | Defaulted |
 | Q0.6 | Age rule for handles (needed in Phase 1) | POPIA treats everyone under 18 as a child: a learner under 18 can propose a handle but it takes effect only after an approving guardian accepts it; 18 and over sets it directly. Handles are 3 to 20 characters, lower-case letters, digits, dot and underscore, and may not contain the learner's surname. | Phase 1, [ADR 0005](../adr/0005-student-number-and-handles.md) | Defaulted |
 | Q0.7 | Branch naming | The Bible asks for `feat/p<N>-<slug>`; this run's tooling assigns one branch per session, so Phase 0 and Phase 1 each ship as one pull request from that branch, built from internal work-stream branches. | This file | Noted |
+| Q0.8 | How the v1 API shows the removed gateways (S1) | Left out of v1 `payment_options`, the way v1 already shows a disabled gateway; no field renamed or removed | `ApiController` settings; snapshots unchanged | Defaulted |
+| Q0.9 | What happens to the removed gateways' settings rows (S1) | Kept in the database until `secrets:audit-settings --purge` (S6) clears every `razorpay_*`, `paystack_*` and `flutterwave_*` row | Release runbook, step 7 | Defaulted |
+| Q0.10 | When the installer seeders run in a container (S1) | `InstallationSeeder` and `EmailSeeder` run on every start of the web role (they are idempotent) | `docker/entrypoint.sh` | Defaulted |
+| Q0.11 | Staging's API address (S2) | `https://staging-admin.navigateed.co.za` | `config/staging.json` in both apps | Defaulted |
+| Q0.12 | Desktop layout of the apps (S2) | Desktop above 1024 px; content in a centred 640 px column beside a navigation rail | `eschool_core` `Breakpoints`, `ContentColumn` | Defaulted |
+| Q0.13 | How the web portals sign in (S2) | Sanctum cookie mode by default (the Bible's rule); `WEB_AUTH_MODE=bearer` switches a build back to tokens. The server side of cookie mode is still open (self-test defect D1) | ADR 0003, `eschool_session` | Defaulted |
+| Q0.14 | Which Hosting site serves the docs (S2) | The project's default site (`navigateed-d8c06` in production, `navigateed-staging` in staging); `FIREBASE_SITE_DOCS` overrides it | `.firebaserc`, `infra/firebase/deploy-hosting.sh` | Defaulted |
+| Q0.15 | Which school years are read-only in the panel (S3) | Every year other than the current one, including an upcoming year until it is made current | `EnforceReadOnlyYears` | Defaulted |
+| Q0.16 | How the read-only guard decides (S3) | It refuses every write in a read-only year except the routes on an allow-list (`panel.read_only_years.allow`), so a new route is safe by default | `config/panel.php` | Defaulted |
+| Q0.17 | Where pages without an obvious section go (S3) | Holidays and Promote learners under Academics > School year; learner leave under Wellbeing; staff leave under People | `config/navigation.php` | Defaulted |
+| Q0.18 | The finance profile in the demo school (S3) | A custom role named "Finance" with the fee permissions, as a school would create it | `DemoSchoolSeeder` | Defaulted |
+| Q0.19 | The confirm dialog's accessible role (S3) | `alertdialog` | `resources/views/components/page/confirm-dialog.blade.php` | Defaulted |
+| Q0.20 | When a queued mail reads its template (S5) | When the mail is built on the worker, so a template edited after queueing is used | `App\Jobs\Platform\SendMail` | Defaulted |
+| Q0.21 | How contact-form attachments reach the worker (S5) | Inside the job payload, which is encrypted (`ShouldBeEncrypted`) | `SendMail` | Defaulted |
+| Q0.22 | What happens when writing the audit log fails (S5) | The failure is logged and the change goes ahead; auditing never blocks a write | `Auditable` | Defaulted |
+| Q0.23 | How instalment amounts are rounded in cents (S5) | Shares stay exact until a single half-up rounding to cents | `FeesPaymentService` | Defaulted |
+| Q0.24 | Whether `DispatchOutbox` runs may overlap (S5) | They may: row locks make overlapping runs safe, so the job is not unique | `App\Jobs\Platform\DispatchOutbox` | Defaulted |
+| Q0.25 | Where v1's money values come from (S5) | Derived from the cents columns; the v1 snapshots are unchanged, and values are now exact where the float columns had rounded them | `Money`, v1 controllers | Defaulted |
+| Q0.26 | The legacy mail failure log (S5) | `MailService`'s old failure log keeps the address for now (`LogRedactionTest` records it); removed with `MailService` | Follow-up in the build log | Defaulted |
+| Q0.27 | How long a learner's set-up link and printed code stay valid (S6) | Link 7 days (`LEARNER_INVITATION_LINK_DAYS`), printed one-time code 30 days (`LEARNER_SETUP_CODE_DAYS`) | `config/auth.php` | Defaulted |
+| Q0.28 | What signing in does to other devices (S6) | Signing in signs out the same app's other devices; a password change signs out every other session | `AppTokens` | Defaulted |
+| Q0.29 | Which browser origins may call the API when none are configured (S6) | The panel plus the Q0.2 portal hostnames for that environment (`staging-` prefixed on staging); localhost on any port only for local and testing installs | `config/cors.php`, `CORS_ALLOWED_ORIGINS` | Defaulted |
+| Q0.30 | When Cloud Run mounts a secret that is created empty (S8) | Only once it has a value, because Cloud Run refuses a revision that mounts a secret without a version; the script says which are missing | `infra/gcp/provision.sh` | Defaulted |
+| Q0.31 | Which roles read the secrets that left the `settings` rows (S8) | The panel all of them; the worker the SES keys, the SMTP password and the Firebase account; the scheduler job, which is also the one-off artisan runner, the same as the panel so `secrets:audit-settings --purge` sees what the panel sees | `infra/gcp/provision.sh`, [environments.md](../runbooks/environments.md) | Defaulted |
+| Q0.32 | The SES configuration set names (S8) | `navigateed-staging` and `navigateed-production`, created with the AWS account | `infra/gcp/env/*.env` | Defaulted |
+
+## Phase 1 decisions from the end of Phase 0
+
+The Bible's Phase 0 hand-off lists the decisions to settle in Phase 0 for Phase 1, and its exit gate asks that they are answered or defaulted. All six are defaulted and wait for the product owner:
+
+| Decision | Default | Status |
+| --- | --- | --- |
+| The transactional email provider and sending domain | Q0.1: Amazon SES in Cape Town, `mail.navigateed.co.za` | Defaulted |
+| The portal hostnames | Q0.2: `app.`, `teach.` and `admin.navigateed.co.za`, `staging-` prefixed on staging | Defaulted |
+| The first South African gateway to sandbox (Phase 5 builds it) | Q0.3: Peach Payments | Defaulted |
+| The Cloud SQL tier | Q0.4: production `db-custom-2-7680` with high availability; staging `db-g1-small` | Defaulted |
+| The student number format | Q0.5: ten digits, year of first enrolment, platform sequence, Luhn check digit | Defaulted |
+| The age rule for handles | Q0.6: under 18 a guardian approves the handle | Defaulted |
+
+Phase 1's own decisions (whether one verified guardian is enough to approve; which default profile fields are locked; whether schools switch modules themselves; the default mandatory notification set per portal; the avatar set's size and style) belong in `phase-1-questions.md`.

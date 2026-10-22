@@ -101,10 +101,31 @@ BACKUP_ROLE=navigateedReleaseBackup
 SECRET_APP_KEY=navigateed-app-key
 SECRET_DB_PASSWORD=navigateed-db-password
 SECRET_ADMIN_PASSWORD=navigateed-admin-password
-# Created empty for the transactional mail work (ADR 0004); values are added
-# by the product owner when the AWS account exists.
+# Created empty; the product owner adds each value (environments.md,
+# "Secrets"). Transactional mail (ADR 0004), then the keys that used to sit in
+# the panel's settings rows (work stream S6, wiki Configuration).
 SECRET_SES_KEY_ID=navigateed-ses-access-key-id
 SECRET_SES_SECRET=navigateed-ses-secret-access-key
+SECRET_MAIL_PASSWORD=navigateed-mail-password
+SECRET_STRIPE_KEY=navigateed-stripe-secret-key
+SECRET_STRIPE_WEBHOOK=navigateed-stripe-webhook-secret
+SECRET_RECAPTCHA=navigateed-recaptcha-secret-key
+SECRET_FCM=navigateed-fcm-service-account
+
+# Those secrets as "variable|secret|roles that mount it". Each is mounted once
+# it has a value: Cloud Run refuses a revision that mounts a secret without a
+# version. The worker sends the queued mail and pushes; the scheduler job is
+# also the one-off artisan runner (runbooks/incident.md), so maintenance
+# commands such as secrets:audit-settings see what the panel sees.
+OPTIONAL_SECRETS=(
+    "SES_ACCESS_KEY_ID|$SECRET_SES_KEY_ID|web worker scheduler"
+    "SES_SECRET_ACCESS_KEY|$SECRET_SES_SECRET|web worker scheduler"
+    "MAIL_PASSWORD|$SECRET_MAIL_PASSWORD|web worker scheduler"
+    "FCM_SERVICE_ACCOUNT_JSON|$SECRET_FCM|web worker scheduler"
+    "STRIPE_SECRET_KEY|$SECRET_STRIPE_KEY|web scheduler"
+    "STRIPE_WEBHOOK_SECRET|$SECRET_STRIPE_WEBHOOK|web scheduler"
+    "RECAPTCHA_SECRET_KEY|$SECRET_RECAPTCHA|web scheduler"
+)
 
 PROJECT_NUMBER="$("${G[@]}" projects describe "$PROJECT_ID" --format='value(projectNumber)' 2>/dev/null || true)"
 if [ -z "$PROJECT_NUMBER" ]; then
@@ -209,7 +230,7 @@ gen_password() { openssl rand -base64 30 | tr -d '/+=\n' | cut -c1-32; }
 ensure_secrets() {
     log "Secret Manager (names only)"
     local name
-    for name in "$SECRET_APP_KEY" "$SECRET_DB_PASSWORD" "$SECRET_ADMIN_PASSWORD" "$SECRET_SES_KEY_ID" "$SECRET_SES_SECRET"; do
+    for name in "$SECRET_APP_KEY" "$SECRET_DB_PASSWORD" "$SECRET_ADMIN_PASSWORD"; do
         ensure_secret "$name"
     done
     seed_secret "$SECRET_APP_KEY" gen_app_key
@@ -219,8 +240,17 @@ ensure_secrets() {
     for name in "$SECRET_APP_KEY" "$SECRET_DB_PASSWORD" "$SECRET_ADMIN_PASSWORD"; do
         grant_secret "$name" "$SA_ADMIN_EMAIL"
     done
-    for name in "$SECRET_APP_KEY" "$SECRET_DB_PASSWORD" "$SECRET_SES_KEY_ID" "$SECRET_SES_SECRET"; do
+    for name in "$SECRET_APP_KEY" "$SECRET_DB_PASSWORD"; do
         grant_secret "$name" "$SA_WORKER_EMAIL"
+    done
+
+    # The worker's account runs the worker and the scheduler job.
+    local entry var secret roles
+    for entry in "${OPTIONAL_SECRETS[@]}"; do
+        IFS='|' read -r var secret roles <<< "$entry"
+        ensure_secret "$secret"
+        case " $roles " in *" web "*) grant_secret "$secret" "$SA_ADMIN_EMAIL" ;; esac
+        case " $roles " in *" worker "* | *" scheduler "*) grant_secret "$secret" "$SA_WORKER_EMAIL" ;; esac
     done
 }
 
@@ -329,6 +359,10 @@ app_env() { # role
         "DB_DATABASE=$DB_NAME" "DB_USERNAME=$DB_USER"
         CACHE_DRIVER=database SESSION_DRIVER=database QUEUE_CONNECTION=database
         TIMEZONE=Africa/Johannesburg
+        "MAIL_MAILER=${MAIL_MAILER:-ses}" "AWS_SES_REGION=${AWS_SES_REGION:-af-south-1}"
+        "SESSION_SAME_SITE=${SESSION_SAME_SITE:-lax}"
+        "LEARNER_INVITATION_LINK_DAYS=${LEARNER_INVITATION_LINK_DAYS:-7}"
+        "LEARNER_SETUP_CODE_DAYS=${LEARNER_SETUP_CODE_DAYS:-30}"
     )
     # Production keeps its live APP_URL until env/production.env names one.
     if [ -n "$APP_URL" ] || [ "$ENVIRONMENT" != production ]; then
@@ -338,6 +372,10 @@ app_env() { # role
     [ "$PANEL_URL" = "$RUN_URL" ] || pairs+=("TRUSTED_HOSTS=${RUN_URL#https://}")
     [ -z "$SANCTUM_STATEFUL_DOMAINS" ] || pairs+=("SANCTUM_STATEFUL_DOMAINS=$SANCTUM_STATEFUL_DOMAINS")
     [ -z "$SESSION_COOKIE" ] || pairs+=("SESSION_COOKIE=$SESSION_COOKIE")
+    [ -z "${AWS_SES_CONFIGURATION_SET:-}" ] || pairs+=("AWS_SES_CONFIGURATION_SET=$AWS_SES_CONFIGURATION_SET")
+    [ -z "${SES_SNS_TOPIC_ARNS:-}" ] || pairs+=("SES_SNS_TOPIC_ARNS=$SES_SNS_TOPIC_ARNS")
+    # Empty: config/cors.php allows the Q0.2 portal hostnames for this APP_URL.
+    [ -z "${CORS_ALLOWED_ORIGINS:-}" ] || pairs+=("CORS_ALLOWED_ORIGINS=$CORS_ALLOWED_ORIGINS")
     if [ "$1" = web ] && [ -n "$ADMIN_EMAIL" ]; then
         pairs+=("ADMIN_EMAIL=$ADMIN_EMAIL")
     fi
@@ -375,11 +413,26 @@ ensure_service() { # name, role, extra flags...
     fi
 }
 
+# The optional secrets a role mounts, as extra --update-secrets entries
+# (",VAR=secret:latest"), leaving out those without a value yet.
+optional_secrets() { # role
+    local entry var secret roles
+    for entry in "${OPTIONAL_SECRETS[@]}"; do
+        IFS='|' read -r var secret roles <<< "$entry"
+        case " $roles " in *" $1 "*) ;; *) continue ;; esac
+        if secret_has_version "$secret"; then
+            printf ',%s=%s:latest' "$var" "$secret"
+        else
+            note "$1: $var not mounted, $secret has no value yet (environments.md, 'Secrets'); re-run after adding it"
+        fi
+    done
+}
+
 ensure_run_services() {
     log "Cloud Run service $SERVICE_ADMIN (public)"
     ensure_service "$SERVICE_ADMIN" web \
         --service-account="$SA_ADMIN_EMAIL" \
-        --update-secrets="APP_KEY=$SECRET_APP_KEY:latest,DB_PASSWORD=$SECRET_DB_PASSWORD:latest,ADMIN_PASSWORD=$SECRET_ADMIN_PASSWORD:latest" \
+        --update-secrets="APP_KEY=$SECRET_APP_KEY:latest,DB_PASSWORD=$SECRET_DB_PASSWORD:latest,ADMIN_PASSWORD=$SECRET_ADMIN_PASSWORD:latest$(optional_secrets web)" \
         --cpu="$ADMIN_CPU" --memory="$ADMIN_MEMORY" --concurrency="$ADMIN_CONCURRENCY" --timeout=300 \
         --min-instances="$ADMIN_MIN_INSTANCES" --max-instances="$ADMIN_MAX_INSTANCES" \
         --ingress=all --cpu-boost
@@ -389,7 +442,7 @@ ensure_run_services() {
     log "Cloud Run service $SERVICE_WORKER (no public ingress, CPU always allocated)"
     ensure_service "$SERVICE_WORKER" worker \
         --service-account="$SA_WORKER_EMAIL" \
-        --update-secrets="APP_KEY=$SECRET_APP_KEY:latest,DB_PASSWORD=$SECRET_DB_PASSWORD:latest" \
+        --update-secrets="APP_KEY=$SECRET_APP_KEY:latest,DB_PASSWORD=$SECRET_DB_PASSWORD:latest$(optional_secrets worker)" \
         --cpu="$WORKER_CPU" --memory="$WORKER_MEMORY" --timeout=300 \
         --min-instances="$WORKER_MIN_INSTANCES" --max-instances="$WORKER_MAX_INSTANCES" \
         --ingress=internal --no-cpu-throttling
@@ -402,7 +455,7 @@ ensure_scheduler() {
     mapfile -t volumes < <(volume_args "${describe[@]}")
     local env secrets common
     env="$(app_env scheduler)"
-    secrets="APP_KEY=$SECRET_APP_KEY:latest,DB_PASSWORD=$SECRET_DB_PASSWORD:latest"
+    secrets="APP_KEY=$SECRET_APP_KEY:latest,DB_PASSWORD=$SECRET_DB_PASSWORD:latest$(optional_secrets scheduler)"
     common=(
         --region="$REGION" --service-account="$SA_WORKER_EMAIL"
         --tasks=1 --max-retries=0 --task-timeout="$JOB_TASK_TIMEOUT"

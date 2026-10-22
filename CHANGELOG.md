@@ -1,6 +1,6 @@
 # Changelog
 
-What changed in NavigateEd, newest first. Each phase release gets a section when it reaches production; work merged since the last release sits under **Unreleased**. Entries are grouped as Added, Changed, Removed, Fixed and Security, and say what changed for the people who use or run the platform. Deployers' actions are marked **Deploy:**.
+What changed in NavigateEd, newest first. Each phase release gets a section when it reaches production; work merged since the last release sits under **Unreleased**. Entries are grouped by who notices them (Admin panel, Apps, API, Platform, Security, Operations, Removed, Developers), and say in plain words what changed for the people who use or run the platform. Deployers' actions are marked **Deploy:**.
 
 Earlier history is kept where it was written and is not repeated here:
 
@@ -9,28 +9,87 @@ Earlier history is kept where it was written and is not repeated here:
 
 ## Unreleased
 
-Phase 0 (Groundwork), in progress on the phase branch.
+Phase 0 (Groundwork): built on the phase branch, not yet released to production. Nothing changes for teachers, learners and parents on their phones; the admin panel's navigation and school-year tools are new, and the platform underneath is ready for Phase 1.
 
-### Added
+### Admin panel
 
-- Engineering folder: the spec template, decision records (ADR 0001 to 0005) and the self-test template under `engineering/`, and this changelog.
+- Navigation is arranged by job (Home, People, Academics, Communication, Money, Activities, Wellbeing, Settings) in plain words. Every page keeps its address.
+- Home shows a setup checklist worked out from the school's data, and today's numbers.
+- Global search in the header ("/" or Ctrl/Cmd+K) finds learners, parents, staff, homerooms, subjects and settings pages.
+- The year switcher in the header shows past years read-only: a banner on every page, write buttons disabled, and the server refuses changes.
+- "Start the new school year" creates next year, copies what you choose (terms, subjects and their teachers, the timetable) and makes it current in one step.
+- The header, navigation and new page components are built with the Material 3 library instead of Bootstrap.
+- The teacher list has Deactivate and Activate; a deactivated teacher is signed out everywhere and cannot sign in.
+- The Email Configuration page's "Amazon SES" choice now works.
+- Fixed: the staff list did not load when a staff member had no date of birth.
+
+### Apps
+
+- Both apps read the server address and environment from build settings (`--dart-define` `API_BASE_URL`, `ENV`, `FLAVOR`, or `config/staging.json` and `config/production.json`) instead of `lib/utils/constants.dart`.
+- Shared code, sign-in and notifications moved into the packages `eschool_core`, `eschool_session` and `eschool_notifications`; nothing changes on phones.
+- Tablet and desktop layouts: a navigation rail and a centred content column. Routes take typed arguments.
+- Portal addresses and `navigateed://` links open the matching screen after sign-in.
+- Web builds of both apps, for `app.navigateed.co.za` (learners and parents) and `teach.navigateed.co.za` (teachers). Uploads, payments and push notifications are not available in the browser yet.
+
+### API
+
+- `/api/v2` in the same `{error, message, data, code}` envelope, starting with `GET /api/v2/me/context`: the user, roles, current school, switched-on modules, notification rules, feature flags, sign-in methods and children.
+- Named rate limiters (`api`, `auth`, `money`) and an `Idempotency-Key` header for v2 writes.
+- `admin-panel/openapi.yaml` (OpenAPI 3.1) is the contract: linted in CI, every v2 response is validated against it, and `packages/eschool_api` is generated from it.
+- API responses now carry the security, rate-limit and CORS headers (`ResponseService` returns its response instead of exiting). The v1 API is unchanged: the 162 response snapshots still match.
+
+### Platform
+
+- Mail and push notifications are sent by queued jobs with retries, and every delivery attempt is recorded.
+- Transactional email goes through Amazon SES in Cape Town; bounces, complaints and deliveries come back from SNS and are recorded.
+- A domain-event outbox, dispatched every minute.
+- Audit log for users, learners, marks, fee payments and settings.
+- Money is stored and computed in integer cents beside the old float columns, which keep working for v1 (back-filled daily by `money:backfill-cents`).
+- Settings can carry a school id, ready for Phase 1.
 - Structured JSON logs (`LOG_CHANNEL=json`) to stderr with a request id, user id, school id and route on every line, an `X-Request-Id` response header, and exceptions formatted for Cloud Error Reporting. Log context carries ids only, never request bodies; e-mail addresses, ID numbers and phone numbers in messages are masked.
-- `GET /up/worker`: a health check that fails when a queued job has waited more than ten minutes, for the worker's uptime check. A job that uses up its tries is logged once as "Queued job failed" (by name, without its data) for alerting, and log lines written by a job carry its name and id.
-- Container roles: the one Docker image runs as the web service (default), the queue worker (`CONTAINER_ROLE=worker`: `queue:work --tries=3 --timeout=120`, restarted hourly, stopped gracefully on SIGTERM) or the scheduler (`CONTAINER_ROLE=scheduler`: one `schedule:run`, for a Cloud Run Job started every minute). Only the web role migrates (one instance at a time, behind a MySQL lock) and runs the installer seeders.
-- Local stack with Docker Compose at the repository root: MySQL 8, the panel, the worker and the scheduler, built from the same image as Cloud Run.
-- Environments on Google Cloud: `infra/gcp/provision.sh staging|production` creates or updates Cloud SQL (backups; point-in-time recovery in production), the uploads bucket, Secret Manager secrets (names only), least-privilege service accounts, the Cloud Run services `navigateed-admin` and `navigateed-worker`, the `navigateed-scheduler` job with an every-minute Cloud Scheduler trigger, Workload Identity Federation for GitHub Actions, uptime checks and alerts. Not yet run against a real project.
-- Deploy workflows: staging on every merge to `main` once the repository variable `STAGING_DEPLOY_ENABLED` is `true`; production from a `v*` tag after a reviewer approves, with a database backup first and smoke tests after. Runbooks for environments, deploy, release, rollback, restore (with the restore drill, not yet run) and incidents in `engineering/runbooks/`.
-- A one-off `artisan` container role, run as an execution of the scheduler job, for maintenance commands such as `queue:retry`.
-- Secret scanning with gitleaks over the whole history on every pull request, push to `main` and weekly, and Dependabot for Composer, pub (both apps and every package), npm (docs and the panel's Playwright project), Docker and GitHub Actions. The dependency audit also lists outdated Dart packages (`dart pub outdated`, informational). Threat model and the Phase 0 security record in `engineering/security/`.
-- k6 smoke test (`engineering/perf/k6-smoke.js`) with the Bible's p95 budgets (300 ms for lists, 150 ms for `/api/v2/me/context` once it exists), run by hand against any environment from **Actions > k6 smoke**.
-
-### Changed
-
-- The database queue's `retry_after` is 180 seconds, longer than the worker's 120-second job timeout, so a slow job is not picked up by a second worker.
-- PHP no longer puts function arguments into exception traces (`zend.exception_ignore_args`), so a password or name passed to a function cannot reach a log. The image adds the `pcntl` extension, which `queue:work` needs to enforce job timeouts and stop cleanly.
+- `GET /up/worker`: a health check that fails when a queued job has waited more than ten minutes. A job that uses up its tries is logged once as "Queued job failed" (by name, without its data), and log lines written by a job carry its name and id.
+- Container roles: the one Docker image runs as the web service (default), the queue worker (`CONTAINER_ROLE=worker`: `queue:work --tries=3 --timeout=120`, restarted hourly, stopped gracefully on SIGTERM), the scheduler (`CONTAINER_ROLE=scheduler`: one `schedule:run`, for a Cloud Run Job started every minute) or a one-off `artisan` command. Only the web role migrates (one instance at a time, behind a MySQL lock) and runs the installer seeders, `InstallationSeeder` and `EmailSeeder`, on every start.
+- The database queue's `retry_after` is 180 seconds, longer than the worker's 120-second job timeout, so a slow job is not picked up twice.
+- PHP no longer puts function arguments into exception traces (`zend.exception_ignore_args`). The image adds the `pcntl` extension, which `queue:work` needs to enforce job timeouts and stop cleanly.
+- Routes are registered once.
+- Fixed: fresh container installs failed on the `EmailSeeder` name.
 
 ### Security
 
-- Secret scan of the whole history: no credentials found. The Firebase Android API keys in `google-services.json` are public client identifiers and are allowlisted for that file and key format only; the product owner should confirm their restrictions in the Cloud Console (`engineering/security/phase-0.md`).
+- One password rule everywhere: at least 10 characters, letters and numbers, and not found in known breaches.
+- Deactivated teachers are signed out and cannot sign in.
+- App tokens are named per app; signing in signs out the same app's other devices, and a password change revokes every other session.
+- CORS is limited to the panel and the web portals.
+- New learners' passwords are set by a guardian through an e-mailed link or a printed one-time code; passwords that were a date of birth are flagged for a change.
+- Uploads are stored per school, client file names are sanitised, and files whose content does not match their type are refused.
+- A report-only content security policy on the panel, with violations reported to `/csp-report`.
+- Secrets are read from Secret Manager (environment variables) instead of `settings` rows; `php artisan secrets:audit-settings --purge` clears the old rows.
+- Failing requests are logged without their values.
+- A custom role named "Admin" no longer sees every learner.
+- Secret scanning with gitleaks over the whole history on every pull request, push to `main` and weekly: no credentials found. The Firebase Android API keys in `google-services.json` are public client identifiers and are allowlisted for that file and key format only; the product owner should confirm their restrictions in the Cloud Console (`engineering/security/phase-0.md`).
+- Dependabot for Composer, pub (both apps and every package), npm (docs and the panel's Playwright project), Docker and GitHub Actions. The dependency audit also lists outdated Dart packages (`dart pub outdated`, informational). Threat model and the Phase 0 security record in `engineering/security/`.
 
-**Deploy:** set `LOG_CHANNEL=json`, `CACHE_DRIVER=database` and `QUEUE_CONNECTION=database` on Cloud Run and add the `navigateed-worker` service and `navigateed-scheduler` job (`infra/gcp/provision.sh` does all of this); see `engineering/runbooks/environments.md`.
+### Operations
+
+- Environments on Google Cloud: `infra/gcp/provision.sh staging|production` creates or updates Cloud SQL (backups; point-in-time recovery in production), the uploads bucket, Secret Manager secrets (names only), least-privilege service accounts, the Cloud Run services `navigateed-admin` and `navigateed-worker`, the `navigateed-scheduler` job with an every-minute Cloud Scheduler trigger, Workload Identity Federation for GitHub Actions, uptime checks and alerts. It gives the panel, the worker and the scheduler job the SES settings and keys and the secrets that left the `settings` rows, each mounted once it has a value. Not yet run against a real project.
+- Deploy workflows: staging on every merge to `main` once the repository variable `STAGING_DEPLOY_ENABLED` is `true`; production from a `v*` tag after a reviewer approves, with a database backup first and smoke tests after. Both deploy the documentation and the two web portals to Firebase Hosting.
+- Runbooks for environments, deploy, release, rollback, restore (with the restore drill, not yet run) and incidents in `engineering/runbooks/`.
+- Local stack with Docker Compose at the repository root: MySQL 8, the panel, the worker and the scheduler, built from the same image as Cloud Run.
+- k6 smoke test (`engineering/perf/k6-smoke.js`) with the Bible's p95 budgets (300 ms for lists, 150 ms for `/api/v2/me/context`), run by hand from **Actions > k6 smoke**.
+
+### Removed
+
+- The in-panel System Update and the `storage-link`, `migrate` and `seeder_install` URLs (the container does these at start).
+- The Razorpay, Paystack and Flutterwave gateways, from the panel and from the learner and parent app. Stripe stays, the v1 API is unchanged, and old transactions still show their gateway.
+- The unused `EnsureUserIsTeacher` middleware.
+
+### Developers
+
+- `engineering/`: phase plans and questions, feature specs, decision records (ADR 0001 to 0005), runbooks, the security record, the self-test record and the living appendices; and this changelog.
+- `DemoSchoolSeeder`: a demo school with a user per profile (password `NavigateDemo2026`), for demos, self-tests and Playwright.
+- Playwright checks of every panel page at 1280 and 1024 px with axe, the main flows and the removed URLs, in CI.
+- Test suites for tenancy (every API route), the role matrix (every route against every role) and the OpenAPI contract (every v2 response).
+- CI builds both apps for the web and runs their smoke flows on an Android emulator and in Chrome.
+- The `EmailTempalate` model is renamed `EmailTemplate` (the table name is unchanged).
+
+**Deploy:** deploy the worker (`navigateed-worker`) and the scheduler job with this release: mail and push are queued now. Run `infra/gcp/provision.sh` for the environment, which sets `LOG_CHANNEL=json`, `CACHE_DRIVER=database`, `QUEUE_CONNECTION=database`, `MAIL_MAILER=ses` and the SES settings, and creates the secrets; add the SES keys and the secrets that left the `settings` rows to Secret Manager, re-run the script, then run `php artisan secrets:audit-settings --purge` (`engineering/runbooks/release.md`, step 7). See `engineering/runbooks/environments.md`.

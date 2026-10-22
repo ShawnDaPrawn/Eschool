@@ -21,7 +21,7 @@ Status: Accepted (Phase 0). The provider and sending domain are the default take
 Option 3.
 
 - **Mailer**: Laravel's `ses` mailer (`aws/aws-sdk-php`), selected by `MAIL_MAILER=ses`, region `af-south-1`. The mailer stays switchable, so SMTP keeps working for schools that self-host. Sending happens only in queued jobs on the worker, never in the request.
-- **Credentials**: an AWS IAM user limited to `ses:SendRawEmail` and `ses:SendEmail` on the sending identity, with its access key in Secret Manager (`navigateed-ses-access-key-id`, `navigateed-ses-secret-access-key`, mounted as `AWS_ACCESS_KEY_ID` and `AWS_SECRET_ACCESS_KEY` on the worker only). Rotation every 90 days through the deploy runbook. Never in `settings` rows, the repository or an app.
+- **Credentials**: an AWS IAM user limited to `ses:SendRawEmail` and `ses:SendEmail` on the sending identity, with its access key in Secret Manager (`navigateed-ses-access-key-id`, `navigateed-ses-secret-access-key`, mounted as `SES_ACCESS_KEY_ID` and `SES_SECRET_ACCESS_KEY` on the worker, which sends every queued mail, and on the panel for the Email Configuration test mail; amended at the Phase 0 close to match the code). Rotation every 90 days through the deploy runbook. Never in `settings` rows, the repository or an app.
 - **Sending domain** `mail.navigateed.co.za` (staging: `staging-mail.navigateed.co.za`, so staging can never send as production):
   - DKIM: SES Easy DKIM, three CNAME records.
   - SPF: a custom MAIL FROM domain `bounce.mail.navigateed.co.za` with `MX 10 feedback-smtp.af-south-1.amazonses.com` and `TXT "v=spf1 include:amazonses.com -all"`.
