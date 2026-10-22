@@ -11,7 +11,7 @@
     "require": {
         "php": "^8.3.0",
         "ext-curl": "*",
-        "awobaz/compoships": "^2.4",
+        "awobaz/compoships": "^3.1",
         "aws/aws-php-sns-message-validator": "^1.10",
         "aws/aws-sdk-php": "^3.356",
         "barryvdh/laravel-dompdf": "^3.1",
