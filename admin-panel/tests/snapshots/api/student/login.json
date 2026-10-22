@@ -59,6 +59,7 @@
         },
         "error": "bool",
         "message": "string",
+        "password_change_required": "bool",
         "token": "string"
     }
 }
