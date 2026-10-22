@@ -4,27 +4,26 @@ declare(strict_types=1);
 
 namespace App\Models;
 
-use App\Models\Staff;
-use App\Models\Notification;
-use App\Models\UserNotification;
-use App\Models\Leave;
-use Spatie\Permission\Models\Role;
+use App\Services\Platform\Audit\Auditable;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
+use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Foundation\Auth\User as Authenticatable;
+use Illuminate\Notifications\Notifiable;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 use Laravel\Sanctum\HasApiTokens;
 use Spatie\Permission\Traits\HasRoles;
-use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Notifications\Notifiable;
-use Illuminate\Database\Eloquent\SoftDeletes;
-use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Foundation\Auth\User as Authenticatable;
-use Illuminate\Database\Eloquent\Relations\HasOne;
-use Illuminate\Database\Eloquent\Relations\HasMany;
-use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
 class User extends Authenticatable
 {
-    use HasApiTokens, HasFactory, Notifiable, HasRoles, SoftDeletes;
+    use Auditable, HasApiTokens, HasFactory, HasRoles, Notifiable, SoftDeletes;
+
     protected string $guard_name = 'web';
+
     protected function getDefaultGuardName(): string
     {
         return $this->guard_name;
@@ -50,7 +49,7 @@ class User extends Authenticatable
         'current_address',
         'permanent_address',
         'status',
-        'reset_request'
+        'reset_request',
     ];
 
     /**
@@ -61,9 +60,11 @@ class User extends Authenticatable
     protected $hidden = [
         'password',
         'remember_token',
+        // Sent as its own field at sign-in, not inside every user object.
+        'password_change_required',
         'deleted_at',
         'created_at',
-        'updated_at'
+        'updated_at',
     ];
 
     /**
@@ -83,11 +84,20 @@ class User extends Authenticatable
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
+            'password_change_required' => 'boolean',
         ];
     }
 
     protected static function booted()
     {
+        // A new password ends a forced change (learners:flag-dob-passwords),
+        // unless the same save sets the flag itself.
+        static::saving(function (User $user) {
+            if ($user->exists && $user->isDirty('password') && ! $user->isDirty('password_change_required')) {
+                $user->password_change_required = false;
+            }
+        });
+
         static::deleting(function (User $user) {
             if ($user->isForceDeleting() || empty($user->email)) {
                 return;
@@ -102,7 +112,13 @@ class User extends Authenticatable
     // Frees the original email for reuse by mutating it on soft-delete, since `email` carries a hard DB-level unique index.
     public static function buildDeletedEmailPlaceholder(string $email, int|string $id): string
     {
-        return substr($email, 0, 190) . '::deleted-' . $id . '-' . time();
+        return substr($email, 0, 190).'::deleted-'.$id.'-'.time();
+    }
+
+    /** Learner accounts. Unlike role('Student'), this works before the roles are seeded. */
+    public function scopeLearners(Builder $query): Builder
+    {
+        return $query->whereHas('roles', fn (Builder $roles) => $roles->where('name', 'Student'));
     }
 
     public function student(): HasOne
@@ -140,7 +156,7 @@ class User extends Authenticatable
         return $this->morphMany(ChatMessage::class, 'modal');
     }
 
-    //Getter Attributes
+    // Getter Attributes
     public function getImageAttribute($value): string
     {
         return url(Storage::url($value));
@@ -148,6 +164,6 @@ class User extends Authenticatable
 
     public function getFullNameAttribute(): string
     {
-        return $this->first_name . ' ' . $this->last_name;
+        return $this->first_name.' '.$this->last_name;
     }
 }

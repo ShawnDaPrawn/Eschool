@@ -4,13 +4,15 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-return new class extends Migration {
+return new class extends Migration
+{
     /**
      * Run the migrations.
      *
      * @return void
      */
-    public function up() {
+    public function up()
+    {
         Schema::create('students', function (Blueprint $table) {
             $table->id();
             $table->integer('user_id');
@@ -36,7 +38,6 @@ return new class extends Migration {
             $table->timestamps();
             $table->softDeletes();
         });
-
 
         Schema::create('teachers', function (Blueprint $table) {
             $table->id();
@@ -236,7 +237,6 @@ return new class extends Migration {
             $table->softDeletes();
         });
 
-
         Schema::create('exam_results', function (Blueprint $table) {
             $table->id();
             $table->integer('exam_id');
@@ -340,7 +340,8 @@ return new class extends Migration {
      *
      * @return void
      */
-    public function down() {
+    public function down()
+    {
         Schema::dropIfExists('students');
         Schema::dropIfExists('categories');
         Schema::dropIfExists('session_years');

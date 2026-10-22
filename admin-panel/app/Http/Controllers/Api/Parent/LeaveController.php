@@ -17,6 +17,7 @@ use App\Models\Students;
 use App\Models\StudentSessions;
 use App\Models\Teacher;
 use App\Models\UserNotification;
+use App\Services\Platform\Files\FileNames;
 use App\Services\ResponseService;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
@@ -38,7 +39,7 @@ class LeaveController extends Controller
         $unknown = array_diff(array_keys($request->all()), $allowed);
 
         if (! empty($unknown)) {
-            ResponseService::validationError('Unknown fields: '.implode(', ', $unknown));
+            return ResponseService::validationError('Unknown fields: '.implode(', ', $unknown));
         }
 
         $validator = Validator::make($request->all(), [
@@ -54,7 +55,7 @@ class LeaveController extends Controller
         ]);
 
         if ($validator->fails()) {
-            ResponseService::validationError($validator->errors()->first());
+            return ResponseService::validationError($validator->errors()->first());
         }
         try {
             $parentUserId = Auth::id();
@@ -86,8 +87,7 @@ class LeaveController extends Controller
             $teacher_ids = ClassTeacher::where('class_section_id', $student_class_section_id)->pluck('class_teacher_id');
             $user = Teacher::whereIn('id', $teacher_ids)->pluck('user_id')->toArray();
 
-             $sessionYear = SessionYear::where('id', $session_year_id)->first();
-            
+            $sessionYear = SessionYear::where('id', $session_year_id)->first();
 
             $public_holiday = Holiday::whereDate('date', '>=', $sessionYear->start_date)->whereDate('date', '<=', $sessionYear->end_date)->get()->pluck('date')->toArray();
 
@@ -123,7 +123,7 @@ class LeaveController extends Controller
                     $file = new File;
                     $file->modal_type = "App\Models\Leave";
                     $file->modal_id = $leave->id;
-                    $file->file_name = $file_upload->getClientOriginalName();
+                    $file->file_name = FileNames::forUpload($file_upload);
                     $file->type = 1;
                     $file->file_url = $file_upload->store('leave', 'public');
                     $file->save();
@@ -155,9 +155,10 @@ class LeaveController extends Controller
                 $user_notification->save();
             }
             sendSimpleNotification($user, $title, $body, $type, $image, $userinfo);
-            ResponseService::successResponse('Data Stored Successfully', $leave ?? '', [], 200);
+
+            return ResponseService::successResponse('Data Stored Successfully', $leave ?? '', [], 200);
         } catch (\Throwable $e) {
-            ResponseService::errorResponse('error_occurred', null, 103, $e);
+            return ResponseService::errorResponse('error_occurred', null, 103, $e);
         }
     }
 
@@ -170,7 +171,7 @@ class LeaveController extends Controller
             'session_year_id' => 'nullable|integer',
         ]);
         if ($validator->fails()) {
-            ResponseService::validationError($validator->errors()->first());
+            return ResponseService::validationError($validator->errors()->first());
         }
         try {
 
@@ -208,9 +209,10 @@ class LeaveController extends Controller
                 'taken_leaves' => $sql->where('status', 1)->sum('days'),
                 'leave_details' => $sql,
             ];
-            ResponseService::successResponse('Data Fetched Successfully', $data, [], 200);
+
+            return ResponseService::successResponse('Data Fetched Successfully', $data, [], 200);
         } catch (\Throwable $e) {
-            ResponseService::errorResponse('error_occurred', null, 103, $e);
+            return ResponseService::errorResponse('error_occurred', null, 103, $e);
         }
     }
 
@@ -220,7 +222,7 @@ class LeaveController extends Controller
             'leave_id' => 'required|integer',
         ]);
         if ($validator->fails()) {
-            ResponseService::validationError($validator->errors()->first());
+            return ResponseService::validationError($validator->errors()->first());
         }
         try {
             // Only a still-pending leave (status 0) of one of this parent's children: an

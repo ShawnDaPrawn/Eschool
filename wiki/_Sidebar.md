@@ -12,7 +12,6 @@
 - [Installation Wizard](Installation-Wizard)
 - [Deployment](Deployment)
 - [Scheduled Tasks and Commands](Scheduled-Tasks-and-Commands)
-- [System Update](System-Update)
 
 **Data and domain**
 - [Database Schema](Database-Schema)
@@ -21,7 +20,6 @@
 - [Exams and Grading](Exams-and-Grading)
 
 **Features**
-- [Admin Modules](Admin-Modules)
 - [Public Website](Public-Website)
 - [Payments](Payments)
 - [Notifications](Notifications)
@@ -49,3 +47,9 @@
 - [Contributing](Contributing)
 - [Release History](Release-History)
 - [Troubleshooting and FAQ](Troubleshooting-and-FAQ)
+
+**NavigateEd engineering**
+- [Engineering folder](https://github.com/ShawnDaPrawn/Eschool/tree/main/engineering)
+- [Runbooks](https://github.com/ShawnDaPrawn/Eschool/tree/main/engineering/runbooks)
+- [Decision records](https://github.com/ShawnDaPrawn/Eschool/tree/main/engineering/adr)
+- [Changelog](https://github.com/ShawnDaPrawn/Eschool/blob/main/CHANGELOG.md)

@@ -45,9 +45,7 @@ class ResultController extends Controller
             $classes = ClassSection::with('class', 'section', 'class.medium', 'streams')->get();
         }
 
-         $session_years = SessionYear::orderBy('id', 'ASC')->get();
-       
-         
+        $session_years = SessionYear::orderBy('id', 'ASC')->get();
 
         return view('students.generate_result', compact('classes', 'session_years', 'is_teacher'));
     }
@@ -195,7 +193,7 @@ class ResultController extends Controller
                                         ->where('ending_range', '>=', $grade_percent)
                                         ->pluck('grade')
                                         ->first();
-                                  
+
                                 } else {
                                     $subjectGrade = null;
                                 }
@@ -218,7 +216,7 @@ class ResultController extends Controller
             $grade = Grade::where('starting_range', '<=', $grade_percentage)
                 ->where('ending_range', '>=', $grade_percentage)
                 ->pluck('grade')
-                ->first();          
+                ->first();
             $result = ($grade_percentage >= 40) ? 'Passed' : 'Failed';
         } else {
             $percentage = null;
@@ -244,7 +242,7 @@ class ResultController extends Controller
             'result' => $result,
         ];
 
-        $pdf = PDF::loadView('students.result_template', compact('data', 'settings', 'exams', 'subjects'));
+        $pdf = Pdf::loadView('students.result_template', compact('data', 'settings', 'exams', 'subjects'));
 
         return $pdf->stream('result.pdf');
     }
@@ -282,7 +280,7 @@ class ResultController extends Controller
 
         $sessionYear = SessionYear::where('id', $session_year_id)
             ->value('name');
-           
+
         // Student
         $student = StudentSessions::with(
             'student.user:id,first_name,last_name,dob',
@@ -388,7 +386,7 @@ class ResultController extends Controller
                         $grade = Grade::where('starting_range', '<=', $percent)
                             ->where('ending_range', '>=', $percent)
                             ->value('grade');
-                      
+
                     }
                 }
             }
@@ -431,7 +429,7 @@ class ResultController extends Controller
             'result' => $result,
         ];
 
-        $pdf = PDF::loadView(
+        $pdf = Pdf::loadView(
             'students.exam_result_template',
             compact('data', 'settings', 'exam', 'subjects')
         );
@@ -648,7 +646,7 @@ class ResultController extends Controller
 
                     if ($timetable?->date) {
                         try {
-                            $examDateCarbons[] = \Carbon\Carbon::parse($timetable->date);
+                            $examDateCarbons[] = Carbon::parse($timetable->date);
                         } catch (\Throwable $e) {
                             // Ignore invalid dates
                             $response = [

@@ -232,6 +232,50 @@ void main() {
     });
   });
 
+  group('getIfSupported', () {
+    test('returns the response like get', () async {
+      final result = await client.getIfSupported(
+        url: 'https://school.test/api/v2/me/context',
+        useAuthToken: true,
+      );
+
+      expect(result!['data'], 'ok');
+    });
+
+    test('answers null when the server has no such route', () async {
+      useServer((_) async => _json({'message': 'Not Found'}, status: 404));
+
+      final result = await client.getIfSupported(
+        url: 'https://school.test/api/v2/me/context',
+        useAuthToken: true,
+      );
+
+      expect(result, isNull);
+      expect(unauthorizedCalls, 0);
+    });
+
+    test('still fails on other errors, and 401 still tells the app', () async {
+      useServer((_) async => _json({'error': true}, status: 401));
+
+      final e = await failure(
+        client.getIfSupported(url: 'https://school.test/x', useAuthToken: true),
+      );
+
+      expect(e.errorMessage, ApiErrorCodes.unauthorizedAccess);
+      expect(unauthorizedCalls, 1);
+    });
+  });
+
+  test('a cookie-signed-in client sends no Authorization header', () {
+    final cookieClient = ApiClient(
+      authToken: () => '',
+      onUnauthorized: () {},
+      sendsBearerToken: false,
+    );
+
+    expect(cookieClient.headers(), {'Accept': 'application/json'});
+  });
+
   group('download', () {
     test(
       'a missing file is reported as not found, without logging out',

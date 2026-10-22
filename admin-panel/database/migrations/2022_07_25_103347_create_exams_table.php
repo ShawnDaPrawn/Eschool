@@ -33,7 +33,7 @@ return new class extends Migration
             $table->integer('ending_range')->after('starting_range');
         });
         Schema::table('exam_marks', function (Blueprint $table) {
-            $table->string('teacher_review', 1024)->nullable()->default(NULL)->change();
+            $table->string('teacher_review', 1024)->nullable()->default(null)->change();
         });
     }
 

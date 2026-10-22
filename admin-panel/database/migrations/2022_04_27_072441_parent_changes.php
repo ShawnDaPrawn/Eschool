@@ -14,14 +14,13 @@ return new class extends Migration
     public function up()
     {
         Schema::table('users', function (Blueprint $table) {
-            $table->string('gender',16)->nullable()->after('name');
+            $table->string('gender', 16)->nullable()->after('name');
             $table->string('current_address')->nullable()->after('dob');
             $table->string('permanent_address')->nullable()->after('current_address');
 
             $table->dropColumn('name');
-            $table->string('first_name',128)->after('id');
-            $table->string('last_name',128)->after('first_name');
-
+            $table->string('first_name', 128)->after('id');
+            $table->string('last_name', 128)->after('first_name');
 
         });
 
@@ -42,13 +41,13 @@ return new class extends Migration
 
         Schema::table('parents', function (Blueprint $table) {
             $table->integer('user_id')->nullable()->change();
-            $table->string('first_name',128)->after('user_id');
-            $table->string('last_name',128)->after('first_name');
-            $table->string('gender',16)->after('last_name');
+            $table->string('first_name', 128)->after('user_id');
+            $table->string('last_name', 128)->after('first_name');
+            $table->string('gender', 16)->after('last_name');
             $table->string('email')->nullable()->after('gender');
-            $table->string('mobile',16)->after('email');
-            $table->string('occupation',128)->after('mobile');
-            $table->string('image',1024)->nullable()->after('occupation');
+            $table->string('mobile', 16)->after('email');
+            $table->string('occupation', 128)->after('mobile');
+            $table->string('image', 1024)->nullable()->after('occupation');
             $table->date('dob')->nullable()->after('image');
         });
     }

@@ -1,3 +1,4 @@
+import 'package:eschool_teacher/app/routeArguments.dart';
 import 'package:eschool_teacher/app/routes.dart';
 import 'package:eschool_teacher/cubits/announcementsCubit.dart';
 import 'package:eschool_teacher/cubits/lessonsCubit.dart';
@@ -8,17 +9,13 @@ import 'package:eschool_teacher/data/repositories/lessonRepository.dart';
 import 'package:eschool_teacher/ui/widgets/announcementsContainer.dart';
 import 'package:eschool_teacher/ui/widgets/appBarSubTitleContainer.dart';
 import 'package:eschool_teacher/ui/widgets/appBarTitleContainer.dart';
-import 'package:eschool_teacher/ui/widgets/customFloatingActionButton.dart';
-import 'package:eschool_teacher/ui/widgets/customRefreshIndicator.dart';
+import 'package:eschool_core/eschool_core.dart';
 import 'package:eschool_teacher/ui/widgets/customTabBarContainer.dart';
 import 'package:eschool_teacher/ui/widgets/lessonsContainer.dart';
-import 'package:eschool_teacher/ui/widgets/screenTopBackgroundContainer.dart';
-import 'package:eschool_teacher/ui/widgets/svgButton.dart';
 import 'package:eschool_teacher/ui/widgets/tabBarBackgroundContainer.dart';
 import 'package:eschool_teacher/utils/assets.dart';
 import 'package:eschool_teacher/utils/labelKeys.dart';
 import 'package:eschool_teacher/utils/uiUtils.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -35,8 +32,8 @@ class SubjectScreen extends StatefulWidget {
   State<SubjectScreen> createState() => _SubjectScreenState();
 
   static Route<dynamic> route(RouteSettings routeSettings) {
-    final arguments = routeSettings.arguments! as Map<String, dynamic>;
-    return CupertinoPageRoute(
+    final arguments = routeSettings.arguments! as SubjectScreenArguments;
+    return AdaptivePageRoute(
       builder: (_) => MultiBlocProvider(
         providers: [
           BlocProvider(create: (context) => LessonsCubit(LessonRepository())),
@@ -45,8 +42,8 @@ class SubjectScreen extends StatefulWidget {
           ),
         ],
         child: SubjectScreen(
-          classSectionDetails: arguments['classSectionDetails'],
-          subject: arguments['subject'],
+          classSectionDetails: arguments.classSectionDetails,
+          subject: arguments.subject,
         ),
       ),
     );
@@ -107,14 +104,14 @@ class _SubjectScreenState extends State<SubjectScreen> {
               ? Routes.addOrEditLesson
               : Routes.addOrEditAnnouncement,
           arguments: _selectedTabTitle == chaptersKey
-              ? {
-                  'subject': widget.subject,
-                  'classSectionDetails': widget.classSectionDetails,
-                }
-              : {
-                  'subject': widget.subject,
-                  'classSectionDetails': widget.classSectionDetails,
-                },
+              ? AddOrEditLessonArguments(
+                  subject: widget.subject,
+                  classSectionDetails: widget.classSectionDetails,
+                )
+              : AddOrEditAnnouncementArguments(
+                  subject: widget.subject,
+                  classSectionDetails: widget.classSectionDetails,
+                ),
         )
         .then((value) {
           if (value != null && value is bool && value) {

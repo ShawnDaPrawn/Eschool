@@ -4,18 +4,21 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers;
 
-use App\Services\ResponseService;
+use App\Mail\Platform\TemplateMail;
 use App\Models\ClassTeacher;
-use App\Models\EmailTempalate;
+use App\Models\EmailTemplate;
 use App\Models\FormField;
 use App\Models\Settings;
 use App\Models\SubjectTeacher;
 use App\Models\Teacher;
 use App\Models\User;
-use App\Services\EmailTemplateService;
 use App\Services\MailService;
+use App\Services\Platform\Files\FileNames;
+use App\Services\Platform\Identity\AppTokens;
+use App\Services\ResponseService;
 use Exception;
 use Illuminate\Http\Request;
+use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
@@ -29,7 +32,7 @@ class TeacherController extends Controller
     /**
      * Display a listing of the resource.
      *
-     * @return \Illuminate\Http\Response
+     * @return Response
      */
     public function index()
     {
@@ -62,7 +65,7 @@ class TeacherController extends Controller
     /**
      * Store a newly created resource in storage.
      *
-     * @return \Illuminate\Http\Response
+     * @return Response
      */
     public function store(Request $request)
     {
@@ -109,7 +112,7 @@ class TeacherController extends Controller
                 if ($request->hasFile('image')) {
                     $image = $request->file('image');
                     // made file name with combination of current time
-                    $file_name = time().'-'.$image->getClientOriginalName();
+                    $file_name = time().'-'.FileNames::forUpload($image);
                     // made file path to store in database
                     $file_path = 'teachers/'.$file_name;
                     // resized image
@@ -230,7 +233,7 @@ class TeacherController extends Controller
                 if ($request->hasFile('image')) {
                     $image = $request->file('image');
                     // made file name with combination of current time
-                    $file_name = time().'-'.$image->getClientOriginalName();
+                    $file_name = time().'-'.FileNames::forUpload($image);
                     // made file path to store in database
                     $file_path = 'teachers/'.$file_name;
                     // resized image
@@ -332,7 +335,7 @@ class TeacherController extends Controller
                 $school_contact = getSettings('school_phone');
 
                 $applink = Settings::whereIn('type', ['teacher_app_link', 'teacher_ios_app_link'])->pluck('message', 'type')->toArray();
-                $staffTemplate = EmailTempalate::where('type', 'staff_registration')->value('content');
+                $staffTemplate = EmailTemplate::where('type', 'staff_registration')->value('content');
 
                 $cleanSchoolName = is_array($school_name) ? ($school_name['school_name'] ?? '') : $school_name;
                 $cleanSchoolEmail = is_array($school_email) ? ($school_email['school_email'] ?? '') : $school_email;
@@ -370,17 +373,7 @@ class TeacherController extends Controller
                             'user_id' => $user->id,
                         ]);
                     } else {
-                        $htmlcontent = EmailTemplateService::render((string) $staffTemplate, $data);
-
-                        $emailPayload = [
-                            'body' => $htmlcontent,
-                            'email' => $data['email'],
-                            'subject' => $data['subject'],
-                        ];
-
-                        MailService::sendWithFallback('teacher.email', $emailPayload, function ($message) use ($emailPayload) {
-                            $message->to($emailPayload['email'])->subject($emailPayload['subject']);
-                        });
+                        MailService::queue(TemplateMail::staffWelcome($data, 'teacher.email'), (int) $user->id);
                     }
                 } catch (Throwable $e) {
                     Log::error('Failed to send teacher welcome email: '.$e->getMessage(), [
@@ -407,7 +400,7 @@ class TeacherController extends Controller
      * Display the specified resource.
      *
      * @param  int  $id
-     * @return \Illuminate\Http\Response
+     * @return Response
      */
     public function show()
     {
@@ -485,6 +478,11 @@ class TeacherController extends Controller
             data-id='.$row->id.' data-user_id='.$row->user_id.'
             data-url='.url('teachers', $row->user_id).'
             title="Delete"><i class="fa fa-trash"></i></a>';
+            $isActive = (int) ($row->user?->status ?? 1) === 1;
+            $operate .= '&nbsp;&nbsp;<a class="btn btn-xs btn-rounded btn-icon teacher-status '.($isActive ? 'btn-inverse-danger' : 'btn-inverse-success').'"
+            data-url='.url('teachers/'.$row->user_id.'/status').' data-status='.($isActive ? 0 : 1).'
+            data-confirm-text="'.e(trans($isActive ? 'teacher_deactivate_confirm' : 'teacher_activate_confirm')).'"
+            title="'.e(trans($isActive ? 'deactivate' : 'activate')).'"><i class="fa '.($isActive ? 'fa-ban' : 'fa-check').'"></i></a>';
 
             $data = getSettings('date_formate');
 
@@ -502,6 +500,7 @@ class TeacherController extends Controller
             $tempRow['mobile'] = $row->user?->mobile;
             $tempRow['image'] = $row->user?->image;
             $tempRow['qualification'] = $row->qualification;
+            $tempRow['status'] = $isActive ? 1 : 0;
             $tempRow['dynamic_data_field'] = json_decode($row->dynamic_fields ?? '[]');
 
             if ($row->user?->can(['student-create', 'student-list', 'student-edit', 'student-delete', 'parents-list', 'parents-edit'])) {
@@ -520,10 +519,46 @@ class TeacherController extends Controller
     }
 
     /**
+     * Deactivates or reactivates a teacher. A deactivated teacher can't sign in
+     * to the panel or the teacher app, and is signed out of the app at once.
+     */
+    public function changeStatus(Request $request, $id)
+    {
+        if (! Auth::user()->can('teacher-edit')) {
+            return response()->json(['error' => true, 'message' => trans('no_permission_message')]);
+        }
+
+        $validator = Validator::make($request->all(), ['status' => 'required|in:0,1']);
+        if ($validator->fails()) {
+            return response()->json(['error' => true, 'message' => $validator->errors()->first()]);
+        }
+
+        $teacher = Teacher::where('user_id', $id)->with('user')->first();
+        if (! $teacher || ! $teacher->user || $teacher->user_id === Auth::id()) {
+            return response()->json(['error' => true, 'message' => trans('no_permission_message')]);
+        }
+
+        try {
+            $user = $teacher->user;
+            $user->status = (int) $request->input('status');
+            $user->save();
+            if ($user->status !== 1) {
+                AppTokens::revokeAll($user);
+            }
+
+            return response()->json(['error' => false, 'message' => trans('data_update_successfully')]);
+        } catch (Throwable $e) {
+            report($e);
+
+            return response()->json(['error' => true, 'message' => trans('error_occurred')]);
+        }
+    }
+
+    /**
      * Show the form for editing the specified resource.
      *
      * @param  int  $id
-     * @return \Illuminate\Http\Response
+     * @return Response
      */
     public function edit($id)
     {
@@ -576,7 +611,7 @@ class TeacherController extends Controller
                 }
                 $image = $request->file('image');
                 // made file name with combination of current time
-                $file_name = time().'-'.$image->getClientOriginalName();
+                $file_name = time().'-'.FileNames::forUpload($image);
                 // made file path to store in database
                 $file_path = 'teachers/'.$file_name;
                 // resized image
@@ -692,7 +727,7 @@ class TeacherController extends Controller
      * Remove the specified resource from storage.
      *
      * @param  int  $id
-     * @return \Illuminate\Http\Response
+     * @return Response
      */
     public function destroy($id)
     {
@@ -742,7 +777,7 @@ class TeacherController extends Controller
                 'error' => false,
                 'message' => trans('data_delete_successfully'),
             ]);
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             return response()->json([
                 'error' => true,
                 'message' => trans('error_occurred'),

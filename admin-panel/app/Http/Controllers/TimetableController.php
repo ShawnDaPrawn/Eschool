@@ -4,60 +4,59 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers;
 
-use App\Services\ResponseService;
-use Throwable;
-use App\Models\Subject;
-use App\Models\Teacher;
-use App\Models\Semester;
-use App\Models\Timetable;
 use App\Models\ClassSchool;
 use App\Models\ClassSection;
 use App\Models\ClassSessionConfig;
 use App\Models\ClassSubject;
 use App\Models\ClassTeacher;
+use App\Models\Semester;
 use App\Models\SessionYear;
-use Illuminate\Http\Request;
+use App\Models\Subject;
 use App\Models\SubjectTeacher;
-use Illuminate\Support\Facades\DB;
+use App\Models\Teacher;
+use App\Models\Timetable;
+use Illuminate\Http\Request;
+use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Facades\Validator;
+use Throwable;
 
 class TimetableController extends Controller
 {
     /**
      * Display a listing of the resource.
      *
-     * @return \Illuminate\Http\Response
+     * @return Response
      */
     public function index()
     {
 
-        if (!Auth::user()->can('timetable-list')) {
-            $response = array(
-                'message' => trans('no_permission_message')
-            );
+        if (! Auth::user()->can('timetable-list')) {
+            $response = [
+                'message' => trans('no_permission_message'),
+            ];
+
             return redirect(route('home'))->withErrors($response);
         }
-          $session_years = SessionYear::orderBy('id', 'ASC')->get();
-        
-       
+        $session_years = SessionYear::orderBy('id', 'ASC')->get();
+
         return view('timetable.index', compact('session_years'));
     }
 
     /**
      * Store a newly created resource in storage.
      *
-     * @param \Illuminate\Http\Request $request
-     * @return \Illuminate\Http\Response
+     * @return Response
      */
     public function store(Request $request)
     {
-        if (!Auth::user()->can('timetable-create')) {
-            $response = array(
+        if (! Auth::user()->can('timetable-create')) {
+            $response = [
                 'error' => true,
-                'message' => trans('no_permission_message')
-            );
+                'message' => trans('no_permission_message'),
+            ];
+
             return response()->json($response);
         }
 
@@ -89,12 +88,12 @@ class TimetableController extends Controller
             } elseif ($day_name == 'sunday') {
                 $day = 7;
             }
-            $a = $day_name . "_group";
+            $a = $day_name.'_group';
             foreach ($request->$a as $data) {
                 if (isset($data['id']) && $data['id'] != '') {
                     $timetable = Timetable::find($data['id']);
                 } else {
-                    $timetable = new Timetable();
+                    $timetable = new Timetable;
                 }
 
                 $class_id = ClassSection::where('id', $class_section_id)->pluck('class_id');
@@ -102,7 +101,7 @@ class TimetableController extends Controller
 
                 $currentSemester = Semester::where('session_year_id', $session_year_id)
                     ->get()
-                    ->first(fn($s) => $s->current);
+                    ->first(fn ($s) => $s->current);
 
                 $isClassHaveSemester = ClassSessionConfig::classHasSemester($class_id, $session_year_id);
 
@@ -137,7 +136,7 @@ class TimetableController extends Controller
     public function getSubjectByClassSection(Request $request)
     {
         // Used by the timetable editor (index), which is gated on timetable-list.
-        if (!Auth::user()->can('timetable-list')) {
+        if (! Auth::user()->can('timetable-list')) {
             return $this->noPermissionJson();
         }
         $class = ClassSchool::withSessionConfigFor($request->session_year_id)
@@ -158,12 +157,13 @@ class TimetableController extends Controller
                 ->with('subject')
                 ->get();
         }
+
         return response($subjects);
     }
 
     public function getClassSemesters(Request $request)
     {
-        if (!Auth::user()->can('timetable-list')) {
+        if (! Auth::user()->can('timetable-list')) {
             return $this->noPermissionJson();
         }
         $class = ClassSchool::withSessionConfigFor($request->session_year_id)
@@ -182,7 +182,7 @@ class TimetableController extends Controller
 
         return response()->json([
             'has_semesters' => $hasSemesters,
-            'semesters' => $semesters
+            'semesters' => $semesters,
         ]);
     }
 
@@ -263,10 +263,10 @@ class TimetableController extends Controller
                         ? date('d-m-Y', strtotime($semester->end_date))
                         : $semester->end_date->format('d-m-Y');
 
-                    $label = $section->class->name . ' ' . $section->section->name
-                        . ' - ' . $section->class->medium->name
-                        . ($section->class->streams->name ?? '')
-                        . ' - ' . $semester->name;
+                    $label = $section->class->name.' '.$section->section->name
+                        .' - '.$section->class->medium->name
+                        .($section->class->streams->name ?? '')
+                        .' - '.$semester->name;
 
                     $result[] = [
                         'class_section_id' => $section->id,
@@ -278,9 +278,9 @@ class TimetableController extends Controller
                     ];
                 }
             } else {
-                $label = $section->class->name . ' ' . $section->section->name
-                    . ' - ' . $section->class->medium->name
-                    . ($section->class->streams->name ?? '');
+                $label = $section->class->name.' '.$section->section->name
+                    .' - '.$section->class->medium->name
+                    .($section->class->streams->name ?? '');
 
                 $result[] = [
                     'class_section_id' => $section->id,
@@ -298,7 +298,7 @@ class TimetableController extends Controller
 
     public function getteacherbysubject(Request $request)
     {
-        if (!Auth::user()->can('timetable-list')) {
+        if (! Auth::user()->can('timetable-list')) {
             return $this->noPermissionJson();
         }
         $request->validate([
@@ -308,21 +308,22 @@ class TimetableController extends Controller
         ]);
 
         $classId = ClassSection::where('id', $request->class_section_id)->pluck('class_id');
-        $isClassHasSemester = ClassSessionConfig::classHasSemester($classId,  $request->session_year_id);
+        $isClassHasSemester = ClassSessionConfig::classHasSemester($classId, $request->session_year_id);
         $currentSemester = Semester::where('session_year_id', $request->session_year_id)
             ->get()
-            ->first(fn($s) => $s->current);
+            ->first(fn ($s) => $s->current);
 
         $teacher = SubjectTeacher::where([
             'class_section_id' => $request->class_section_id,
             'subject_id' => $request->subject_id,
-            'session_year_id' => $request->session_year_id
+            'session_year_id' => $request->session_year_id,
         ])
             ->with('teacher')
             ->when($isClassHasSemester && $currentSemester, function ($query) use ($currentSemester) {
                 $query->where('semester_id', $currentSemester->id);
             })
             ->get();
+
         return response(
             $teacher
         );
@@ -330,13 +331,13 @@ class TimetableController extends Controller
 
     public function checkTimetable(Request $request)
     {
-        if (!Auth::user()->can('timetable-list')) {
+        if (! Auth::user()->can('timetable-list')) {
             return $this->noPermissionJson();
         }
         $query = Timetable::with('subject_teacher')->where([
             'class_section_id' => $request->class_section_id,
             'session_year_id' => $request->session_year_id,
-            'day' => $request->day
+            'day' => $request->day,
         ]);
 
         if ($request->semester_id) {
@@ -349,55 +350,55 @@ class TimetableController extends Controller
     /**
      * Remove the specified resource from storage.
      *
-     * @param int $id
-     * @return \Illuminate\Http\Response
+     * @param  int  $id
+     * @return Response
      */
     public function destroy($id)
     {
-        if (!Auth::user()->can('timetable-delete')) {
-            $response = array(
+        if (! Auth::user()->can('timetable-delete')) {
+            $response = [
                 'error' => true,
-                'message' => trans('no_permission_message')
-            );
+                'message' => trans('no_permission_message'),
+            ];
+
             return response()->json($response);
         }
         try {
             Timetable::find($id)->delete();
             $response = [
                 'error' => false,
-                'message' => trans('data_delete_successfully')
+                'message' => trans('data_delete_successfully'),
             ];
         } catch (Throwable $e) {
-            $response = array(
+            $response = [
                 'error' => true,
-                'message' => trans('error_occurred')
-            );
+                'message' => trans('error_occurred'),
+            ];
         }
+
         return response()->json($response);
     }
-
 
     public function class_timetable()
     {
         // check the user if teacher exists
         $user = Auth::user()->teacher;
         if ($user) {
-              $session_years = SessionYear::orderBy('id', 'ASC')->get();
-            
-            
+            $session_years = SessionYear::orderBy('id', 'ASC')->get();
+
             return view('timetable.class_timetable', compact('session_years'));
         } else {
             // if teacher doesn't exists then send the class section data for select option directly to view
-            if (!Auth::user()->can('class-timetable')) {
-                $response = array(
+            if (! Auth::user()->can('class-timetable')) {
+                $response = [
                     'error' => true,
-                    'message' => trans('no_permission_message')
-                );
+                    'message' => trans('no_permission_message'),
+                ];
+
                 return response()->json($response);
             }
-             $session_years = SessionYear::orderBy('id', 'ASC')->get();
-            
-            
+            $session_years = SessionYear::orderBy('id', 'ASC')->get();
+
             return view('timetable.class_timetable', compact('session_years'));
         }
     }
@@ -405,7 +406,7 @@ class TimetableController extends Controller
     public function gettimetablebyclass(Request $request)
     {
         // Same rule as the class timetable page (class_timetable()).
-        if (!Auth::user()->teacher && !Auth::user()->can('class-timetable')) {
+        if (! Auth::user()->teacher && ! Auth::user()->can('class-timetable')) {
             return $this->noPermissionJson();
         }
         Session::put('class_timetable', $request->class_section_id);
@@ -427,7 +428,7 @@ class TimetableController extends Controller
 
         return [
             'timetable' => $timetable,
-            'days' => $day
+            'days' => $day,
         ];
     }
 
@@ -437,25 +438,22 @@ class TimetableController extends Controller
         $user = Auth::user()->teacher;
         if ($user) {
             // if teacher exists then send the timetable data directly to view by its credentials
-              $session_years = SessionYear::orderBy('id', 'ASC')->get();
-           
+            $session_years = SessionYear::orderBy('id', 'ASC')->get();
 
             return view('timetable.teacher_timetable', compact('session_years'));
         } else {
             // if teacher doesn't exists then send the class section data for select option directly to view
-            if (!Auth::user()->can('teacher-timetable')) {
-                $response = array(
+            if (! Auth::user()->can('teacher-timetable')) {
+                $response = [
                     'error' => true,
-                    'message' => trans('no_permission_message')
-                );
+                    'message' => trans('no_permission_message'),
+                ];
+
                 return response()->json($response);
             }
 
             $teacher = Teacher::with('user')->teachers()->get();
-              $session_years = SessionYear::orderBy('id', 'ASC')->get();
-           
-            
-            
+            $session_years = SessionYear::orderBy('id', 'ASC')->get();
 
             return view('timetable.teacher_timetable', compact('teacher', 'session_years'));
         }
@@ -464,12 +462,12 @@ class TimetableController extends Controller
     public function gettimetablebyteacher(Request $request)
     {
         // Same rule as the teacher timetable page (teacher_timetable()).
-        if (!Auth::user()->teacher && !Auth::user()->can('teacher-timetable')) {
+        if (! Auth::user()->teacher && ! Auth::user()->can('teacher-timetable')) {
             return $this->noPermissionJson();
         }
         $subject_teacher = SubjectTeacher::select('id')->where('teacher_id', $request->teacher_id)->pluck('id');
-        $timetable = array();
-        $day = array();
+        $timetable = [];
+        $day = [];
         for ($i = 0; $i < count($subject_teacher); $i++) {
             $timetable[] = Timetable::with('subject_teacher', 'class_section', 'semester')
                 ->where('session_year_id', $request->session_year_id)
@@ -484,13 +482,13 @@ class TimetableController extends Controller
 
         return $data = [
             'timetable' => $timetable,
-            'days' => $day
+            'days' => $day,
         ];
     }
 
     public function getTimetableBySubjectTeacherClass(Request $request)
     {
-        if (!Auth::user()->teacher && !Auth::user()->can('teacher-timetable')) {
+        if (! Auth::user()->teacher && ! Auth::user()->can('teacher-timetable')) {
             return $this->noPermissionJson();
         }
         $teacher = Auth::user()->teacher;
@@ -522,9 +520,10 @@ class TimetableController extends Controller
             $day = (clone $timetableQuery)->select('day', 'day_name')
                 ->groupBy('day', 'day_name')->get();
         }
+
         return $data = [
             'timetable' => $timetable,
-            'days' => $day
+            'days' => $day,
         ];
     }
 
@@ -536,10 +535,11 @@ class TimetableController extends Controller
         $teachesPeriod = $timetable && $teacher_id && $timetable->subject_teacher
             && (int) $timetable->subject_teacher->teacher_id === (int) $teacher_id;
         if (! $timetable || (! Auth::user()->can('timetable-edit') && ! $teachesPeriod)) {
-            $response = array(
+            $response = [
                 'error' => true,
-                'message' => trans('no_permission_message')
-            );
+                'message' => trans('no_permission_message'),
+            ];
+
             return response()->json($response);
         }
 
@@ -549,10 +549,11 @@ class TimetableController extends Controller
             'link_name' => ['required', 'string', 'max:255', 'not_regex:/[<>]/'],
         ]);
         if ($validator->fails()) {
-            $response = array(
+            $response = [
                 'error' => true,
-                'message' => $validator->errors()->first()
-            );
+                'message' => $validator->errors()->first(),
+            ];
+
             return response()->json($response);
         }
 
@@ -563,32 +564,34 @@ class TimetableController extends Controller
 
             $response = [
                 'error' => false,
-                'message' => trans('data_store_successfully')
+                'message' => trans('data_store_successfully'),
             ];
         } catch (Throwable $e) {
-            $response = array(
+            $response = [
                 'error' => true,
-                'message' => trans('error_occurred')
-            );
+                'message' => trans('error_occurred'),
+            ];
         }
+
         return response()->json($response);
     }
 
     public function getTimeatableDetails($id)
     {
         // Used by the live-class link editor on the teacher timetable page.
-        if (!Auth::user()->teacher && !Auth::user()->can('teacher-timetable')) {
+        if (! Auth::user()->teacher && ! Auth::user()->can('teacher-timetable')) {
             return $this->noPermissionJson();
         }
         $timetable = Timetable::where('id', $id)->first();
+
         return response($timetable);
     }
 
     private function noPermissionJson()
     {
-        return response()->json(array(
+        return response()->json([
             'error' => true,
-            'message' => trans('no_permission_message')
-        ));
+            'message' => trans('no_permission_message'),
+        ]);
     }
 }

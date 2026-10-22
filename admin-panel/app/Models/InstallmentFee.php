@@ -10,7 +10,8 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 class InstallmentFee extends Model
 {
     use HasFactory, SoftDeletes;
-    protected $hidden = ["created_at", "updated_at"];
+
+    protected $hidden = ['created_at', 'updated_at'];
 
     public function session_year()
     {
@@ -22,10 +23,11 @@ class InstallmentFee extends Model
         return $this->hasMany(PaidInstallmentFee::class, 'installment_fee_id');
     }
 
-    //Getter Attributes
+    // Getter Attributes
     public function getDueDateAttribute($value)
     {
         $data = getSettings('date_formate');
+
         return date($data['date_formate'] ?? 'd-m-Y', strtotime($value));
     }
 

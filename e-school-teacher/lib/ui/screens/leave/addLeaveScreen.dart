@@ -1,19 +1,13 @@
 import 'package:eschool_teacher/cubits/addLeaveCubit.dart';
 import 'package:eschool_teacher/cubits/appConfigurationCubit.dart';
 import 'package:eschool_teacher/cubits/holidaysCubit.dart';
-import 'package:eschool_teacher/data/models/leave.dart';
 import 'package:eschool_teacher/data/repositories/leaveRepository.dart';
 import 'package:eschool_teacher/data/repositories/systemInfoRepository.dart';
-import 'package:eschool_teacher/ui/screens/leave/widgets/oneDayLeaveStatusContainer.dart';
-import 'package:eschool_teacher/ui/widgets/bottomSheetTextFieldContainer.dart';
 import 'package:eschool_core/eschool_core.dart';
 import 'package:eschool_teacher/ui/widgets/customAppbar.dart';
-import 'package:eschool_teacher/ui/widgets/errorContainer.dart';
-import 'package:eschool_teacher/utils/extensions.dart';
 import 'package:eschool_teacher/utils/labelKeys.dart';
 import 'package:eschool_teacher/utils/uiUtils.dart';
 import 'package:file_picker/file_picker.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:permission_handler/permission_handler.dart';
@@ -25,7 +19,7 @@ class AddLeaveScreen extends StatefulWidget {
   State<AddLeaveScreen> createState() => _AddLeaveScreenState();
 
   static Route route(RouteSettings routeSettings) {
-    return CupertinoPageRoute<bool?>(
+    return AdaptivePageRoute<bool?>(
       builder: (_) => MultiBlocProvider(
         providers: [
           BlocProvider<AddLeaveCubit>(
@@ -279,6 +273,9 @@ class _AddLeaveScreenState extends State<AddLeaveScreen> {
           BottomsheetAddFilesDottedBorderContainer(
             onTap: () async {
               FocusScope.of(context).unfocus();
+              if (UiUtils.showMobileOnlyNotice(context)) {
+                return;
+              }
               final permission = await Permission.storage.request();
               if (permission.isGranted) {
                 final pickedFile = await FilePicker.pickFiles(

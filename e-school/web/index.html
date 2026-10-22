@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <!--
+    The base path the app is served from. `flutter build web` replaces
+    $FLUTTER_BASE_HREF with the value of --base-href ("/" by default), which
+    is what the Firebase Hosting sites use.
+  -->
+  <base href="$FLUTTER_BASE_HREF">
+
+  <meta charset="UTF-8">
+  <meta content="IE=Edge" http-equiv="X-UA-Compatible">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="NavigateEd for learners and parents: timetable, homework, results, fees and messages from your school.">
+  <meta name="theme-color" content="#6d28d9">
+
+  <!-- iOS meta tags & icons -->
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="NavigateEd">
+  <link rel="apple-touch-icon" href="icons/Icon-192.png">
+
+  <!-- Favicon -->
+  <link rel="icon" type="image/png" href="favicon.png"/>
+
+  <title>NavigateEd</title>
+  <link rel="manifest" href="manifest.json">
+</head>
+<body>
+  <noscript>NavigateEd needs JavaScript. Turn it on in your browser's settings and reload this page.</noscript>
+
+  <!--
+    pdf.js, which the PDF viewer of the web build (pdfx) draws with. The
+    version must match the one pdfx expects; see "Web builds" in the wiki's
+    Building-and-Releasing-Apps page before changing it.
+  -->
+  <script src="https://cdn.jsdelivr.net/npm/pdfjs-dist@4.6.82/build/pdf.min.mjs" type="module"></script>
+  <script type="module">
+    // pdf.min.mjs above sets pdfjsLib. When it cannot load (offline, or
+    // blocked), only opening a PDF fails; the rest of the app still runs.
+    if (globalThis.pdfjsLib) {
+      globalThis.pdfjsLib.GlobalWorkerOptions.workerSrc =
+        'https://cdn.jsdelivr.net/npm/pdfjs-dist@4.6.82/build/pdf.worker.mjs';
+    }
+  </script>
+
+  <!-- Before Flutter starts: an invalid browser language falls back to English. -->
+  <script src="locale_guard.js"></script>
+  <script src="flutter_bootstrap.js" async></script>
+</body>
+</html>

@@ -2,8 +2,8 @@
 
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
-use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
@@ -21,7 +21,7 @@ return new class extends Migration
         $settings = getSettings('session_year');
         $currentSessionId = $settings['session_year'] ?? null;
 
-        if (!empty($currentSessionId)) {
+        if (! empty($currentSessionId)) {
             DB::table('semesters')
                 ->whereNull('session_year_id')
                 ->update(['session_year_id' => $currentSessionId]);

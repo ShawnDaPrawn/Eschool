@@ -2,20 +2,14 @@ import 'package:eschool/cubits/addLeaveCubit.dart';
 import 'package:eschool/cubits/appConfigurationCubit.dart';
 import 'package:eschool/cubits/authCubit.dart';
 import 'package:eschool/cubits/holidaysCubit.dart';
-import 'package:eschool/data/models/leave.dart';
 import 'package:eschool/data/models/student.dart';
 import 'package:eschool/data/repositories/leaveRepository.dart';
 import 'package:eschool/data/repositories/systemInfoRepository.dart';
-import 'package:eschool/ui/screens/leave/widgets/oneDayLeaveStatusContainer.dart';
-import 'package:eschool/ui/widgets/bottomSheetTextFieldContainer.dart';
 import 'package:eschool_core/eschool_core.dart';
 import 'package:eschool/ui/widgets/customAppbar.dart';
-import 'package:eschool/ui/widgets/errorContainer.dart';
-import 'package:eschool/utils/extensions.dart';
 import 'package:eschool/utils/labelKeys.dart';
 import 'package:eschool/utils/uiUtils.dart';
 import 'package:file_picker/file_picker.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:permission_handler/permission_handler.dart';
@@ -28,9 +22,7 @@ class AddLeaveScreen extends StatefulWidget {
   State<AddLeaveScreen> createState() => _AddLeaveScreenState();
 
   static Route route(RouteSettings routeSettings) {
-    final arguments = routeSettings.arguments! as Map<String, dynamic>;
-
-    return CupertinoPageRoute<bool?>(
+    return AdaptivePageRoute<bool?>(
       builder: (_) => MultiBlocProvider(
         providers: [
           BlocProvider<AddLeaveCubit>(
@@ -40,7 +32,9 @@ class AddLeaveScreen extends StatefulWidget {
             create: (context) => HolidaysCubit(SystemRepository()),
           ),
         ],
-        child: AddLeaveScreen(studentDetails: arguments['studentDetails']),
+        child: AddLeaveScreen(
+          studentDetails: routeSettings.arguments! as Student,
+        ),
       ),
     );
   }
@@ -281,6 +275,9 @@ class _AddLeaveScreenState extends State<AddLeaveScreen> {
           BottomsheetAddFilesDottedBorderContainer(
             onTap: () async {
               FocusScope.of(context).unfocus();
+              if (UiUtils.showMobileOnlyNotice(context)) {
+                return;
+              }
               final permission = await Permission.storage.request();
               if (permission.isGranted) {
                 final pickedFile = await FilePicker.pickFiles(

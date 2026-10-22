@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
@@ -12,7 +11,7 @@ class Announcement extends Model
 {
     use SoftDeletes;
 
-    protected $hidden = ["deleted_at", "updated_at"];
+    protected $hidden = ['deleted_at', 'updated_at'];
 
     protected static function booted()
     {
@@ -25,16 +24,18 @@ class Announcement extends Model
         });
     }
 
-    public function table() {
+    public function table()
+    {
         return $this->morphTo()->withTrashed();
     }
 
-    public function file() {
+    public function file()
+    {
         return $this->morphMany(File::class, 'modal');
     }
 
-    public function semester() {
+    public function semester()
+    {
         return $this->belongsTo(Semester::class);
     }
-
 }

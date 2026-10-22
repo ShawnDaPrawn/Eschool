@@ -17,7 +17,7 @@ Both apps ship the same eight languages. English is the default. Files are in `a
 | `fr` | Français - French | `fr.json` | LTR |
 | `id` | Bahasa Indonesia - Indonesian | `id.json` | LTR |
 
-Each file is a flat JSON object of label key to text: 428 keys per file in `e-school/`, 427 in `e-school-teacher/`. The keys are also declared as Dart constants in `lib/utils/labelKeys.dart` (for example `const String homeKey = 'home';`), and error messages use keys from `lib/utils/errorMessageKeysAndCodes.dart`. Sixteen keys starting with `timeago` (`timeagoPrefixAgo`, `timeagoSuffixAgo`, `timeagoMinutes`, ...) feed the relative-time strings.
+Each file is a flat JSON object of label key to text: 428 keys per file in `e-school/`, 427 in `e-school-teacher/`. The keys are also declared as Dart constants in `lib/utils/labelKeys.dart` (for example `const String homeKey = 'home';`); the keys used by the widgets both apps share are declared once in `packages/eschool_core/lib/src/l10n/label_keys.dart` (listed in `sharedLabelKeys`), and each app's `labelKeys.dart` re-exports them, so app code uses the same names. `test/shared_label_keys_test.dart` in each app fails if one of those keys is missing from the app's `en.json`. Error messages use keys from `lib/utils/errorMessageKeysAndCodes.dart`. Sixteen keys starting with `timeago` (`timeagoPrefixAgo`, `timeagoSuffixAgo`, `timeagoMinutes`, ...) feed the relative-time strings.
 
 The 3.5.0 changelogs list `ar`, `es`, `fr` (student app), `id`, `pt-BR` and `tr` as added in that release. The teacher changelog also lists `assets/languages/er.json`, which does not exist in the repository.
 
@@ -27,7 +27,7 @@ The 3.5.0 changelogs list `ar`, `es`, `fr` (student app), `id`, `pt-BR` and `tr`
 flowchart LR
     H["Hive box settings: currentLanguageCode"] --> C["AppLocalizationCubit"]
     C -->|"state.language (Locale)"| M["MaterialApp.locale"]
-    M --> D["AppLocalization.delegate.load(locale)"]
+    M --> D["AppLocalizationDelegate(appLanguages).load(locale)"]
     D --> J["rootBundle: assets/languages/code.json"]
     J --> L["AppLocalization._localizedValues"]
     L --> T["UiUtils.getTranslatedLabel(context, key)"]
@@ -35,9 +35,9 @@ flowchart LR
 
 1. `AppLocalizationCubit` (`lib/cubits/appLocalizationCubit.dart`) starts with `SettingsRepository.getCurrentLanguageCode()`, which reads `currentLanguageCode` from the Hive `settings` box and falls back to `defaultLanguageCode`.
 2. `UiUtils.getLocaleFromLanguageCode()` splits the code on `-`: `en` becomes `Locale('en')`, `pt-BR` becomes `Locale('pt', 'BR')`.
-3. `MyApp` (`lib/app/app.dart`) watches the Cubit and passes the locale to `MaterialApp.locale`. `supportedLocales` is built from `appLanguages`, and the delegates are `AppLocalization.delegate`, `GlobalMaterialLocalizations.delegate`, `GlobalWidgetsLocalizations.delegate` and `GlobalCupertinoLocalizations.delegate`.
-4. `_AppLocalizationDelegate.isSupported()` accepts only locales in `appLanguages`. `load()` creates `AppLocalization(locale)` and calls `loadJson()`, which loads `assets/languages/<languageCode>.json`, or `<languageCode>-<countryCode>.json` when the locale has a country code, and stores every value as a string. It also registers a `timeago` `LookupMessages` built from the `timeago*` keys (falling back to `timeago.EnMessages()` if that fails).
-5. Widgets call `UiUtils.getTranslatedLabel(context, someKey)`, which returns the translated text, or the key itself if the current file does not contain it.
+3. `MyApp` (`lib/app/app.dart`) watches the Cubit and passes the locale to `MaterialApp.locale`. `supportedLocales` is built from `appLanguages`, and the delegates are `AppLocalizationDelegate(appLanguages)`, `GlobalMaterialLocalizations.delegate`, `GlobalWidgetsLocalizations.delegate` and `GlobalCupertinoLocalizations.delegate`.
+4. `AppLocalization` and `AppLocalizationDelegate` live in the shared package (`packages/eschool_core/lib/src/l10n/app_localization.dart`); each app passes its own `appLanguages`. `AppLocalizationDelegate.isSupported()` accepts only locales in that list. `load()` creates `AppLocalization(locale)` and calls `loadJson()`, which loads `assets/languages/<languageCode>.json`, or `<languageCode>-<countryCode>.json` when the locale has a country code, and stores every value as a string. It also registers a `timeago` `LookupMessages` built from the `timeago*` keys (falling back to `timeago.EnMessages()` if that fails).
+5. Widgets call `UiUtils.getTranslatedLabel(context, someKey)` (in the shared widgets, `SharedUiUtils.getTranslatedLabel`, which `UiUtils` forwards to), which returns the translated text, or the key itself if the current file does not contain it.
 6. Changing the language (`ChangeLanguageBottomsheetContainer`, from the settings screen in both apps) calls `AppLocalizationCubit.changeLanguage(code)`, which saves the code to Hive and emits the new locale; `MaterialApp` rebuilds and the delegate loads the new file.
 
 The language is a device-local preference. It is not sent to the API, and server-generated text (notifications, announcements, PDFs) arrives in whatever language the school entered.

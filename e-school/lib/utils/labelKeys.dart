@@ -1,5 +1,7 @@
 //Need to have label keys to support multi language support
 
+export 'package:eschool_core/label_keys.dart';
+
 const String homeKey = 'home';
 const String attendanceKey = 'attendance';
 const String menuKey = 'menu';
@@ -13,7 +15,6 @@ const String reportsKey = 'reports';
 const String examsKey = 'exams';
 const String profileKey = 'profile';
 const String personalDetailsKey = 'personalDetails';
-const String otherDetailsKey = 'otherDetails';
 const String nameKey = 'name';
 const String classKey = 'class';
 const String rollNumberKey = 'rollNumber';
@@ -44,20 +45,16 @@ const String payNowKey = 'payNow';
 
 const String subjectNameKey = 'subjectName';
 const String assignmentNameKey = 'assignmentName';
-const String retryKey = 'retry';
 
 const String dueDateKey = 'dueDate';
 const String instructionsKey = 'instructions';
 
 const String referenceMaterialsKey = 'referenceMaterials';
 const String addFilesKey = 'addFiles';
-const String fileDownloadingKey = 'downloadingFile';
-const String viewFileKey = 'viewFile';
 
 const String downloadKey = 'download';
 const String failedToDownloadKey = 'failedToDownload';
 
-const String cancelKey = 'cancel';
 const String totalPresentKey = 'totalPresent';
 const String totalAbsentKey = 'totalAbsent';
 
@@ -94,10 +91,7 @@ const String subKey = 'sub';
 const String marksKey = 'marks';
 const String totalKey = 'total';
 const String totalMarksKey = 'totalMarks';
-const String gradeKey = 'grade';
-const String dateKey = 'date';
 const String obtainedMarksKey = 'obtainedMarks';
-const String percentageKey = 'percentage';
 const String selectSubjectsKey = 'selectSubjects';
 const String coreSubjectsKey = 'coreSubjects';
 const String electiveSubjectsKey = 'electiveSubjects';
@@ -185,11 +179,8 @@ const String teachersKey = 'teachers';
 const String noTeachersFoundKey = 'noTeachersFound';
 const String latestNoticesKey = 'latestNotices';
 
-const String viewAllKey = 'viewAll';
 
 const String logoutDialogMessageKey = 'logoutDialogMessage';
-const String yesKey = 'yes';
-const String noKey = 'no';
 const String resetPasswordKey = 'resetPassword';
 
 const String enterGrNumberKey = 'enterGrNumber';
@@ -250,7 +241,6 @@ const String totalLeaveKey = 'totalLeave';
 const String attemptedKey = 'attempted';
 const String missedKey = 'missed';
 
-const String examNameKey = 'examName';
 const String examTimeTableKey = 'examTimeTable';
 const String noExamsFoundKey = 'noExamsFound';
 const String noResultPublishedKey = 'noResultPublished';
@@ -341,13 +331,11 @@ const String chatSendHintKey = 'chatSendHint';
 
 const String documentKey = 'document';
 const String cameraKey = 'camera';
-const String galleryKey = 'gallery';
 
 const String yesterdayKey = 'yesterday';
 const String loadingMoreChatsKey = 'loadingMoreChats';
 const String errorLoadingMoreChatsRertyKey = 'errorLoadingMoreChatsRetry';
 const String errorSendingMessageRetrykey = 'errorSendingMessageRetry';
-const String errorLoadingMoreTapToRetryKey = 'errorLoadingMoreTapToRetry';
 
 const String selectedFilesKey = 'selectedFiles';
 const String camaraImagesKey = 'cameraImages';
@@ -369,11 +357,8 @@ const String filesReceivedKey = 'filesReceived';
 const String searchKey = 'search';
 const String noUsersFoundKey = 'noUsersFound';
 const String searchByUsernameAboveKey = 'searchByUsernameAbove';
-const String addMoreCharactorsToSearchKey = 'addMoreCharactersToSearch';
-const String searchHintKey = 'searchHint';
 
 const String todaysTimetableKey = 'todaysTimetable';
-const String toKey = 'to';
 const String viewMoreKey = 'viewMore';
 const String viewLessKey = 'viewLess';
 const String upcomingExamsKey = 'upcomingExams';
@@ -431,14 +416,6 @@ const String octoberKey = 'october';
 const String novemberKey = 'november';
 const String decemberKey = 'december';
 
-const String sundayKey = 'sunday';
-const String mondayKey = 'monday';
-const String tuesdayKey = 'tuesday';
-const String wednesdayKey = 'wednesday';
-const String thursdayKey = 'thursday';
-const String fridayKey = 'friday';
-const String saturdayKey = 'saturday';
-const String unknownKey = 'unknown';
 
 const String addLeaveKey = 'addLeave';
 const String reasonKey = 'reason';
@@ -451,9 +428,6 @@ const String pickValidDateRangeWithoutHolidaysKey =
 const String leaveRequestAddedSuccessfullyKey = 'leaveRequestAddedSuccessfully';
 const String submitLeaveKey = 'submitLeave';
 
-const String fullKey = 'full';
-const String firstHalfKey = 'firstHalf';
-const String secondHalfKey = 'secondHalf';
 
 const String filterBySessionYearKey = 'filterBySessionYear';
 const String filterByMonthKey = 'filterByMonth';
@@ -469,13 +443,10 @@ const String leaveRequestsKey = 'leaveRequests';
 const String attachmentsKey = 'attachments';
 const String addMultipleAttachmentsKey = 'addMultipleAttachments';
 
-const String deleteDialogTitleKey = 'deleteDialogTitle';
-const String deleteDialogMessageKey = 'deleteDialogMessage';
 
 const String paymentOptionsKey = 'paymentOptions';
 const String noPaymentOptionsAvlKey = 'noPaymentOptionsAvl';
 
-const String semesterBreakKey = 'semesterBreak';
 
 const String rejectionReasonKey = 'rejectionReason';
 

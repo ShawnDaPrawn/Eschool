@@ -4,9 +4,8 @@ declare(strict_types=1);
 
 namespace App\Models;
 
-use App\Models\Notification;
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
 
 class UserNotification extends Model
 {
@@ -14,11 +13,11 @@ class UserNotification extends Model
 
     public function notification()
     {
-        return $this->belongsTo(Notification::class,'notification_id');
+        return $this->belongsTo(Notification::class, 'notification_id');
     }
+
     public function user()
     {
-        return $this->belongsTo(User::class,'user_id');
+        return $this->belongsTo(User::class, 'user_id');
     }
 }
-

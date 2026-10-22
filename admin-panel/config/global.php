@@ -17,4 +17,3 @@ return [
     'SUCCESS_MSG_CLASS' => 'alert alert-success',
     'ERROR_MSG_CLASS' => 'alert alert-danger',
 ];
-?>

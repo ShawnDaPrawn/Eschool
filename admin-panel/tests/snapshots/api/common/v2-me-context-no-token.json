@@ -1,0 +1,13 @@
+{
+    "request": "GET /api/v2/me/context",
+    "status": 401,
+    "error": true,
+    "message": "Sign in again to continue.",
+    "code": "unauthenticated",
+    "shape": {
+        "code": "string",
+        "data": "null",
+        "error": "bool",
+        "message": "string"
+    }
+}

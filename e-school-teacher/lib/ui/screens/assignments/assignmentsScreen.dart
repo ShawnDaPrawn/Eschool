@@ -1,3 +1,4 @@
+import 'package:eschool_teacher/app/routeArguments.dart';
 import 'package:eschool_teacher/app/routes.dart';
 import 'package:eschool_teacher/cubits/assignmentCubit.dart';
 import 'package:eschool_teacher/cubits/dashboardCubit.dart';
@@ -9,12 +10,10 @@ import 'package:eschool_teacher/ui/screens/assignments/widgets/assignmentsContai
 import 'package:eschool_teacher/ui/widgets/classSubjectsDropDownMenu.dart';
 import 'package:eschool_teacher/ui/widgets/customAppbar.dart';
 import 'package:eschool_teacher/ui/widgets/customDropDownMenu.dart';
-import 'package:eschool_teacher/ui/widgets/customFloatingActionButton.dart';
-import 'package:eschool_teacher/ui/widgets/customRefreshIndicator.dart';
+import 'package:eschool_core/eschool_core.dart';
 import 'package:eschool_teacher/ui/widgets/myClassesDropDownMenu.dart';
 import 'package:eschool_teacher/utils/labelKeys.dart';
 import 'package:eschool_teacher/utils/uiUtils.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -22,7 +21,7 @@ class AssignmentsScreen extends StatefulWidget {
   const AssignmentsScreen({super.key});
 
   static Route<dynamic> route(RouteSettings routeSettings) {
-    return CupertinoPageRoute(
+    return AdaptivePageRoute(
       builder: (_) => MultiBlocProvider(
         providers: [
           BlocProvider<SubjectsOfClassSectionCubit>(
@@ -180,7 +179,7 @@ class _AssignmentsScreenState extends State<AssignmentsScreen> {
           Navigator.of(context)
               .pushNamed<bool?>(
                 Routes.addAssignment,
-                arguments: {'editAssignment': false},
+                arguments: AddOrEditAssignmentArguments(editAssignment: false),
               )
               .then((value) {
                 if (value != null && value) {

@@ -3,9 +3,10 @@
 declare(strict_types=1);
 
 namespace App\Console\Commands;
+
+use Illuminate\Console\Command;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Console\Command;
 
 class DeleteFeesPaid extends Command
 {
@@ -34,6 +35,7 @@ class DeleteFeesPaid extends Command
         DB::table('payment_transactions')->delete();
         DB::table('fees_paids')->delete();
         Log::info('data-delete');
+
         return 0;
     }
 }

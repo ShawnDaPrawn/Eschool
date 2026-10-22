@@ -13,7 +13,7 @@ return new class extends Migration
         // get the settings helper
         $settings = getSettings('session_year');
 
-        if (!isset($settings['session_year'])) {
+        if (! isset($settings['session_year'])) {
             return; // skip migration if session_year setting is not found (its applicable to fresh installations)
         }
 
@@ -50,8 +50,6 @@ return new class extends Migration
             DB::table('student_sessions')->insert($chunk);
         }
     }
-
-
 
     /**
      * Reverse the migrations.

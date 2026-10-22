@@ -4,44 +4,45 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers;
 
-use App\Services\ResponseService;
-use Throwable;
-use Carbon\Carbon;
-use App\Models\Exam;
-use App\Models\Semester;
-use App\Models\ExamClass;
 use App\Models\ClassSchool;
 use App\Models\ClassSubject;
-use Illuminate\Http\Request;
+use App\Models\Exam;
+use App\Models\ExamClass;
 use App\Models\ExamTimetable;
+use App\Models\Semester;
 use App\Models\SessionYear;
-use Illuminate\Support\Facades\DB;
+use App\Services\ResponseService;
+use Illuminate\Http\Request;
+use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
+use Throwable;
 
 class ExamTimetableController extends Controller
 {
     /**
      * Display a listing of the resource.
      *
-     * @return \Illuminate\Http\Response
+     * @return Response
      */
     public function index()
     {
-        if (!Auth::user()->can('exam-timetable-create')) {
-            $response = array(
-                'message' => trans('no_permission_message')
-            );
+        if (! Auth::user()->can('exam-timetable-create')) {
+            $response = [
+                'message' => trans('no_permission_message'),
+            ];
+
             return redirect(route('home'))->withErrors($response);
         }
         $settings = getSettings();
-         $currentSessionYear = SessionYear::where('id', $settings['session_year'])->first();
-        
+        $currentSessionYear = SessionYear::where('id', $settings['session_year'])->first();
+
         $class_name = ClassSchool::withSessionConfigFor($currentSessionYear->id ?? null)
             ->with('medium', 'streams')
             ->get();
-         $session_years = SessionYear::orderBy('id', 'ASC')->get();
-        
+        $session_years = SessionYear::orderBy('id', 'ASC')->get();
+
         $exams = Exam::where('publish', 0)->where('session_year_id', $currentSessionYear->id)->get();
 
         return response(view('exams.exam-timetable', compact('exams', 'class_name', 'session_years', 'currentSessionYear')));
@@ -50,7 +51,7 @@ class ExamTimetableController extends Controller
     /**
      * Show the form for creating a new resource.
      *
-     * @return \Illuminate\Http\Response
+     * @return Response
      */
     public function create()
     {
@@ -63,10 +64,11 @@ class ExamTimetableController extends Controller
      */
     public function store(Request $request)
     {
-        if (!Auth::user()->can('exam-timetable-create')) {
-            $response = array(
-                'message' => trans('no_permission_message')
-            );
+        if (! Auth::user()->can('exam-timetable-create')) {
+            $response = [
+                'message' => trans('no_permission_message'),
+            ];
+
             return redirect(route('home'))->withErrors($response);
         }
         // dd($request->all());
@@ -81,14 +83,15 @@ class ExamTimetableController extends Controller
             ],
             [
                 'timetable.*.passing_marks.lte' => trans('passing_marks_should_less_than_or_equal_to_total_marks'),
-                'timetable.*.end_time.after' => trans('end_time_should_be_greater_than_start_time')
+                'timetable.*.end_time.after' => trans('end_time_should_be_greater_than_start_time'),
             ]
         );
         if ($validator->fails()) {
-            $response = array(
+            $response = [
                 'error' => true,
-                'message' => $validator->errors()->first()
-            );
+                'message' => $validator->errors()->first(),
+            ];
+
             return response()->json($response);
         }
         try {
@@ -96,7 +99,7 @@ class ExamTimetableController extends Controller
 
             foreach ($request->timetable as $timetable) {
                 $date = date('Y-m-d', strtotime($timetable['date']));
-                $exam_timetable[] = array(
+                $exam_timetable[] = [
                     'exam_id' => $request->exam_id,
                     'class_id' => $request->class_id,
                     'subject_id' => $timetable['subject_id'],
@@ -105,36 +108,38 @@ class ExamTimetableController extends Controller
                     'start_time' => $timetable['start_time'],
                     'end_time' => $timetable['end_time'],
                     'date' => $date,
-                    'session_year_id' => $session_year_id
-                );
+                    'session_year_id' => $session_year_id,
+                ];
             }
             ExamTimetable::insert($exam_timetable);
-            $response = array(
+            $response = [
                 'error' => false,
                 'message' => trans('data_store_successfully'),
-            );
+            ];
         } catch (Throwable $e) {
             report($e);
-            $response = array(
+            $response = [
                 'error' => true,
-                'message' => trans('error_occurred')
-            );
+                'message' => trans('error_occurred'),
+            ];
         }
+
         return response()->json($response);
     }
 
     /**
      * Display the specified resource.
      *
-     * @param int $id
-     * @return \Illuminate\Http\Response
+     * @param  int  $id
+     * @return Response
      */
     public function show()
     {
-        if (!Auth::user()->can('exam-timetable-create')) {
-            $response = array(
-                'message' => trans('no_permission_message')
-            );
+        if (! Auth::user()->can('exam-timetable-create')) {
+            $response = [
+                'message' => trans('no_permission_message'),
+            ];
+
             return redirect(route('home'))->withErrors($response);
         }
         $offset = 0;
@@ -143,15 +148,19 @@ class ExamTimetableController extends Controller
         $order = 'ASC';
         $session_year_id = $_GET['session_year_id'] ?? getSettings('session_year')['session_year'];
 
-        if (isset($_GET['offset']))
+        if (isset($_GET['offset'])) {
             $offset = $_GET['offset'];
-        if (isset($_GET['limit']))
+        }
+        if (isset($_GET['limit'])) {
             $limit = $_GET['limit'];
+        }
 
-        if (isset($_GET['sort']))
+        if (isset($_GET['sort'])) {
             $sort = $_GET['sort'];
-        if (isset($_GET['order']))
+        }
+        if (isset($_GET['order'])) {
             $order = $_GET['order'];
+        }
 
         $currentSemester = Semester::get()->first(function ($semester) {
             return $semester->current;
@@ -166,9 +175,9 @@ class ExamTimetableController extends Controller
                     ->whereColumn('exam_timetables.class_id', 'exam_classes.class_id')
                     ->whereNull('exam_timetables.deleted_at');
             })
-            ->with(['exam.session_year:id,name', 'class' => fn($query) => $query->withSessionConfigFor($session_year_id)]);
+            ->with(['exam.session_year:id,name', 'class' => fn ($query) => $query->withSessionConfigFor($session_year_id)]);
 
-        if (isset($_GET['search']) && !empty($_GET['search'])) {
+        if (isset($_GET['search']) && ! empty($_GET['search'])) {
             $search = $_GET['search'];
             // Grouped, so a search can't step outside the session year and the exam/class filters.
             $sql->where(fn ($query) => $query->whereHas('class_timetable', function ($q) use ($search) {
@@ -178,8 +187,8 @@ class ExamTimetableController extends Controller
                     ->orWhere('start_time', 'LIKE', "%$search%")
                     ->orWhere('end_time', 'LIKE', "%$search%")
                     ->orWhere('date', 'LIKE', "%$search%")
-                    ->orWhere('created_at', 'LIKE', "%" . convertDateFormat($search) . "%")
-                    ->orWhere('updated_at', 'LIKE', "%" . convertDateFormat($search) . "%");
+                    ->orWhere('created_at', 'LIKE', '%'.convertDateFormat($search).'%')
+                    ->orWhere('updated_at', 'LIKE', '%'.convertDateFormat($search).'%');
             })->orWhereHas('exam', function ($q) use ($search) {
                 $q->where('name', 'LIKE', "%$search%");
             })->orWhereHas('class', function ($q) use ($search) {
@@ -198,21 +207,17 @@ class ExamTimetableController extends Controller
         }
         $total = $sql->count();
 
-
         $sql->orderBy($sort, $order)->skip($offset)->take($limit);
         $res = $sql->get();
 
-
-        $bulkData = array();
+        $bulkData = [];
         $bulkData['total'] = $total;
-        $rows = array();
+        $rows = [];
         $no = 1;
         foreach ($res as $row) {
-            $tempRow = array();
-
+            $tempRow = [];
 
             $class = $row->class;
-
 
             $class_subjects = '';
 
@@ -225,12 +230,12 @@ class ExamTimetableController extends Controller
             }
 
             $operate = '';
-            $operate .= '<a href="#" class="btn btn-xs btn-gradient-primary btn-rounded btn-icon edit-data" data-id=' . $row->id . ' title="Edit" data-toggle="modal" data-target="#editModal"><i class="fa fa-edit"></i></a>&nbsp;&nbsp;';
+            $operate .= '<a href="#" class="btn btn-xs btn-gradient-primary btn-rounded btn-icon edit-data" data-id='.$row->id.' title="Edit" data-toggle="modal" data-target="#editModal"><i class="fa fa-edit"></i></a>&nbsp;&nbsp;';
 
             $tempRow['id'] = $row->id;
             $tempRow['no'] = $no++;
             $tempRow['exam_name'] = $row->exam->name ?? 'N/A (Exam Missing)';
-            $tempRow['class_name'] = ($row->class->name ?? 'Unknown Class') . ' - ' . ($row->class->medium->name ?? 'No Medium');
+            $tempRow['class_name'] = ($row->class->name ?? 'Unknown Class').' - '.($row->class->medium->name ?? 'No Medium');
             $tempRow['stream_name'] = $row->class->streams->name ?? '-';
             $tempRow['exam_id'] = $row->exam_id;
             $tempRow['class_id'] = $row->class_id;
@@ -238,11 +243,11 @@ class ExamTimetableController extends Controller
             $subjectIds = [];
             foreach ($class_subjects as $subjects) {
                 if ($subjects->subject) {
-                    $tempRow['subjects'][] = array(
+                    $tempRow['subjects'][] = [
                         'id' => $subjects->subject->id,
                         'name' => $subjects->subject->name,
-                        'type' => $subjects->subject->type
-                    );
+                        'type' => $subjects->subject->type,
+                    ];
                     $subjectIds[] = $subjects->subject->id;
                 }
             }
@@ -251,12 +256,12 @@ class ExamTimetableController extends Controller
             // always contains options for subjects already in use, even when the
             // class no longer has matching class_subjects records.
             foreach ($tempRow['timetable'] as $timetableRow) {
-                if ($timetableRow->subject && !in_array($timetableRow->subject->id, $subjectIds)) {
-                    $tempRow['subjects'][] = array(
+                if ($timetableRow->subject && ! in_array($timetableRow->subject->id, $subjectIds)) {
+                    $tempRow['subjects'][] = [
                         'id' => $timetableRow->subject->id,
                         'name' => $timetableRow->subject->name,
-                        'type' => $timetableRow->subject->type
-                    );
+                        'type' => $timetableRow->subject->type,
+                    ];
                     $subjectIds[] = $timetableRow->subject->id;
                 }
             }
@@ -272,14 +277,15 @@ class ExamTimetableController extends Controller
             $rows[] = $tempRow;
         }
         $bulkData['rows'] = $rows;
+
         return response()->json($bulkData);
     }
 
     /**
      * Show the form for editing the specified resource.
      *
-     * @param int $id
-     * @return \Illuminate\Http\Response
+     * @param  int  $id
+     * @return Response
      */
     public function edit($id)
     {
@@ -289,9 +295,8 @@ class ExamTimetableController extends Controller
     /**
      * Update the specified resource in storage.
      *
-     * @param \Illuminate\Http\Request $request
-     * @param int $id
-     * @return \Illuminate\Http\Response
+     * @param  int  $id
+     * @return Response
      */
     public function update(Request $request, $id)
     {
@@ -302,30 +307,32 @@ class ExamTimetableController extends Controller
     /**
      * Remove the specified resource from storage.
      *
-     * @param int $id
-     * @return \Illuminate\Http\Response
+     * @param  int  $id
+     * @return Response
      */
     public function destroy($id)
     {
-        if (!Auth::user()->can('exam-timetable-create')) {
-            $response = array(
-                'message' => trans('no_permission_message')
-            );
+        if (! Auth::user()->can('exam-timetable-create')) {
+            $response = [
+                'message' => trans('no_permission_message'),
+            ];
+
             return redirect(route('home'))->withErrors($response);
         }
         try {
             $exam = ExamTimetable::find($id);
             $exam->delete();
-            $response = array(
+            $response = [
                 'error' => false,
-                'message' => trans('data_delete_successfully')
-            );
+                'message' => trans('data_delete_successfully'),
+            ];
         } catch (Throwable $e) {
-            $response = array(
+            $response = [
                 'error' => true,
-                'message' => trans('error_occurred')
-            );
+                'message' => trans('error_occurred'),
+            ];
         }
+
         return response()->json($response);
     }
 
@@ -333,31 +340,32 @@ class ExamTimetableController extends Controller
     {
         try {
             $exam_classes = ExamClass::with('class.medium', 'class.streams')->where('exam_id', $exam_id)->get();
-            $response = array(
+            $response = [
                 'error' => false,
-                'data' => $exam_classes
-            );
+                'data' => $exam_classes,
+            ];
         } catch (Throwable $e) {
-            $response = array(
+            $response = [
                 'error' => true,
-                'message' => trans('error_occurred')
-            );
+                'message' => trans('error_occurred'),
+            ];
         }
+
         return response()->json($response);
     }
 
     public function getSubjectsByClass(Request $request, $class_id)
     {
-        if (!Auth::user()->can('exam-timetable-create')) {
-            $response = array(
-                'message' => trans('no_permission_message')
-            );
+        if (! Auth::user()->can('exam-timetable-create')) {
+            $response = [
+                'message' => trans('no_permission_message'),
+            ];
+
             return redirect(route('home'))->withErrors($response);
         }
         try {
             $session_year = getSettings('session_year');
             $session_year_id = $session_year['session_year'];
-
 
             $class = ClassSchool::withSessionConfigFor($session_year_id)->where('id', $class_id)->first();
             $semester_id = $request->input('semester_id');
@@ -374,26 +382,27 @@ class ExamTimetableController extends Controller
                     ->with('subject')
                     ->get();
             }
-            $response = array(
+            $response = [
                 'error' => false,
-                'data' => $exam_subjects
-            );
+                'data' => $exam_subjects,
+            ];
         } catch (Throwable $e) {
-            $response = array(
+            $response = [
                 'error' => true,
-                'message' => trans('error_occurred')
-            );
+                'message' => trans('error_occurred'),
+            ];
         }
+
         return response()->json($response);
     }
 
-
     public function updateTimetable(Request $request)
     {
-        if (!Auth::user()->can('exam-timetable-create')) {
-            $response = array(
-                'message' => trans('no_permission_message')
-            );
+        if (! Auth::user()->can('exam-timetable-create')) {
+            $response = [
+                'message' => trans('no_permission_message'),
+            ];
+
             return redirect(route('home'))->withErrors($response);
         }
         $validator = Validator::make(
@@ -409,14 +418,15 @@ class ExamTimetableController extends Controller
             [
 
                 'edit_timetable.*.passing_marks.lte' => trans('passing_marks_should_less_than_or_equal_to_total_marks'),
-                'edit_timetable.*.end_time.after' => trans('end_time_should_be_greater_than_start_time')
+                'edit_timetable.*.end_time.after' => trans('end_time_should_be_greater_than_start_time'),
             ]
         );
         if ($validator->fails()) {
-            $response = array(
+            $response = [
                 'error' => true,
-                'message' => $validator->errors()->first()
-            );
+                'message' => $validator->errors()->first(),
+            ];
+
             return response()->json($response);
         }
         try {
@@ -432,14 +442,14 @@ class ExamTimetableController extends Controller
                         $date = date('Y-m-d', strtotime($timetable['date']));
                         $timetable_db->date = $date;
                         $timetable_db->save();
-                        $response = array(
+                        $response = [
                             'error' => false,
                             'message' => trans('data_update_successfully'),
-                            'status' => 200
-                        );
+                            'status' => 200,
+                        ];
                     } else {
                         $date = date('Y-m-d', strtotime($timetable['date']));
-                        $insert_data[] = array(
+                        $insert_data[] = [
                             'exam_id' => $request->exam_id,
                             'class_id' => $request->class_id,
                             'subject_id' => $timetable['subject_id'],
@@ -449,29 +459,30 @@ class ExamTimetableController extends Controller
                             'end_time' => $timetable['end_time'],
                             'session_year_id' => $request->session_year_id,
                             'date' => $date,
-                        );
+                        ];
                     }
                 }
                 if (isset($insert_data)) {
                     ExamTimetable::insert($insert_data);
-                    $response = array(
+                    $response = [
                         'error' => false,
                         'message' => trans('data_store_successfully'),
-                        'status' => 200
-                    );
+                        'status' => 200,
+                    ];
                 }
             } else {
-                $response = array(
+                $response = [
                     'error' => true,
-                    'message' => trans('no_exam_timetable_data_found')
-                );
+                    'message' => trans('no_exam_timetable_data_found'),
+                ];
             }
         } catch (Throwable $e) {
-            $response = array(
+            $response = [
                 'error' => true,
-                'message' => trans('error_occurred')
-            );
+                'message' => trans('error_occurred'),
+            ];
         }
+
         return response()->json($response);
     }
 
@@ -479,45 +490,48 @@ class ExamTimetableController extends Controller
     {
         try {
             $query = Exam::where('session_year_id', $session_year_id);
-            if (!$request->boolean('show_all')) {
+            if (! $request->boolean('show_all')) {
                 $query->where('publish', 0);
             }
             $exams = $query->get();
-            $response = array(
+            $response = [
                 'error' => false,
-                'data' => $exams
-            );
+                'data' => $exams,
+            ];
         } catch (Throwable $e) {
-            $response = array(
+            $response = [
                 'error' => true,
-                'message' => trans('error_occurred')
-            );
+                'message' => trans('error_occurred'),
+            ];
         }
+
         return response()->json($response);
     }
 
     public function deleteTimetable($id)
     {
-        if (!Auth::user()->can('exam-timetable-create')) {
-            $response = array(
-                'message' => trans('no_permission_message')
-            );
+        if (! Auth::user()->can('exam-timetable-create')) {
+            $response = [
+                'message' => trans('no_permission_message'),
+            ];
+
             return redirect(route('home'))->withErrors($response);
         }
         try {
             $exam_timetable = ExamTimetable::find($id);
             $exam_timetable->delete();
-            $response = array(
+            $response = [
                 'error' => false,
                 'message' => trans('data_delete_successfully'),
-                'status' => 200
-            );
+                'status' => 200,
+            ];
         } catch (Throwable $e) {
-            $response = array(
+            $response = [
                 'error' => true,
-                'message' => trans('error_occurred')
-            );
+                'message' => trans('error_occurred'),
+            ];
         }
+
         return response()->json($response);
     }
 }

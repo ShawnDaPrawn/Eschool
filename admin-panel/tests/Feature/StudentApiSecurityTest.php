@@ -54,11 +54,39 @@ class StudentApiSecurityTest extends TestCase
         $response = $this->api()->get('/api/settings', ['type' => 'app_settings']);
 
         $this->assertSame(200, $response->status());
-        $this->assertSame('rzp_public_key', $response->json('data.payment_options.razorpay.razorpay_api_key'));
-        $this->assertArrayNotHasKey('razorpay_webhook_secret', $response->json('data.payment_options.razorpay'));
+        $this->assertSame('pk_public', $response->json('data.payment_options.stripe.stripe_publishable_key'));
+        $this->assertArrayNotHasKey('stripe_secret_key', $response->json('data.payment_options.stripe'));
+        $this->assertArrayNotHasKey('stripe_webhook_secret', $response->json('data.payment_options.stripe'));
         foreach (self::SECRETS as $secret) {
             $this->assertStringNotContainsString($secret, $response->body());
         }
+    }
+
+    /**
+     * Razorpay, Paystack and Flutterwave were removed. A school that had them
+     * switched on still has their settings rows: the apps must stop offering
+     * them, and a payment through one must be refused like a disabled gateway.
+     */
+    public function test_removed_gateways_are_neither_offered_nor_accepted(): void
+    {
+        $options = $this->api()->get('/api/settings', ['type' => 'app_settings'])->json('data.payment_options');
+        $this->assertArrayHasKey('stripe', $options);
+        foreach (['razorpay', 'paystack', 'flutterwave'] as $gateway) {
+            $this->assertArrayNotHasKey($gateway, $options);
+        }
+
+        $payment = ['type_of_fee' => 2, 'is_fully_paid' => 0, 'amount' => '200.00', 'optional_fees_data' => [['id' => $this->ids['fee_sports'], 'amount' => '200.00']]];
+        foreach ([1, 3, 4] as $method) {
+            foreach ([
+                [$this->api($this->token('student')), '/api/student/add-fees-transaction', []],
+                [$this->api($this->token('parent')), '/api/parent/add-fees-transaction', ['child_id' => $this->ids['student']]],
+            ] as [$api, $url, $extra]) {
+                $response = $api->asForm()->post($url, ['payment_method' => $method] + $extra + $payment);
+                $this->assertTrue($response->json('error'), "$url accepted payment method $method");
+                $this->assertSame('The selected payment method is not available.', $response->json('message'));
+            }
+        }
+        $this->assertSame(0, PaymentTransaction::count());
     }
 
     public function test_exam_answers_are_not_sent_and_picking_every_option_scores_nothing(): void
@@ -196,7 +224,7 @@ class StudentApiSecurityTest extends TestCase
         $other = $student->createToken('other device')->plainTextToken;
 
         $response = $this->api($current)->asForm()->post('/api/change-password', [
-            'current_password' => 'secret123', 'new_password' => 'new-secret-123', 'new_confirm_password' => 'new-secret-123',
+            'current_password' => 'secret123', 'new_password' => 'Quokka-lantern-58', 'new_confirm_password' => 'Quokka-lantern-58',
         ]);
         $this->assertFalse($response->json('error'), $response->body());
 
@@ -230,7 +258,7 @@ class StudentApiSecurityTest extends TestCase
         $api = $this->api($this->token('student'));
 
         $response = $api->asForm()->post('/api/student/add-fees-transaction', [
-            'payment_method' => 1, 'type_of_fee' => 2, 'is_fully_paid' => 1, 'amount' => '1.00',
+            'payment_method' => 2, 'type_of_fee' => 2, 'is_fully_paid' => 1, 'amount' => '1.00',
             'optional_fees_data' => [['id' => $this->ids['fee_sports'], 'amount' => '1.00']],
         ]);
         $this->assertTrue($response->json('error'));
@@ -238,7 +266,7 @@ class StudentApiSecurityTest extends TestCase
 
         // The parent app's endpoint uses the same server-side pricing.
         $response = $this->api($this->token('parent'))->asForm()->post('/api/parent/add-fees-transaction', [
-            'child_id' => $this->ids['student'], 'payment_method' => 1, 'type_of_fee' => 2, 'is_fully_paid' => 1, 'amount' => '1.00',
+            'child_id' => $this->ids['student'], 'payment_method' => 2, 'type_of_fee' => 2, 'is_fully_paid' => 1, 'amount' => '1.00',
             'optional_fees_data' => [['id' => $this->ids['fee_sports'], 'amount' => '1.00']],
         ]);
         $this->assertTrue($response->json('error'));
@@ -311,6 +339,7 @@ class StudentApiSecurityTest extends TestCase
             'name' => 'Current', 'start_date' => $now->copy()->subMonths(2)->toDateString(), 'end_date' => $now->copy()->addMonths(8)->toDateString(),
             'fee_due_date' => $now->copy()->addDays(30)->toDateString(), 'fee_due_charges' => 0, 'created_at' => $now, 'updated_at' => $now,
         ]);
+        // Razorpay, Paystack and Flutterwave rows as an install that used them still has.
         $settings = [
             'session_year' => $sessionYear, 'currency_code' => 'ZAR', 'currency_symbol' => 'R',
             'razorpay_status' => 1, 'razorpay_api_key' => 'rzp_public_key', 'razorpay_secret_key' => self::SECRETS[0], 'razorpay_webhook_secret' => self::SECRETS[1],

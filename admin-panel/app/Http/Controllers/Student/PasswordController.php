@@ -6,6 +6,8 @@ namespace App\Http\Controllers\Student;
 
 use App\Http\Controllers\Controller;
 use App\Models\User;
+use App\Services\Platform\Identity\AppTokens;
+use App\Services\Platform\Identity\LearnerInvitations;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
@@ -82,7 +84,13 @@ class PasswordController extends Controller
         return response()->json($bulkData);
     }
 
-    public function change_password(Request $request)
+    /**
+     * A learner asked for a new password (forgot-password in the app). Their
+     * password becomes a random one nobody knows and the guardians are emailed
+     * a link to choose a new one; the school can print a set-up code as well.
+     * It used to go back to the date of birth.
+     */
+    public function change_password(Request $request, LearnerInvitations $invitations)
     {
         if (! Auth::user()->can('student-reset-password')) {
             $response = [
@@ -92,24 +100,29 @@ class PasswordController extends Controller
             return response()->json($response);
         }
         try {
-            // Students only, back to their date of birth as stored: this used to take any
-            // user id and a date from the request, so it could reset a staff or Super Admin
-            // password to a value the caller knew.
-            $user = User::role('Student')->whereNotNull('dob')->find($request->id);
+            // Students only: this used to take any user id and a date from the request,
+            // so it could reset a staff or Super Admin password to a value the caller knew.
+            $user = User::role('Student')->whereHas('student')->find($request->id);
             if (! $user) {
                 return response()->json(['error' => true, 'message' => trans('no_permission_message')]);
             }
-            $user->reset_request = 0;
-            $user->password = Hash::make(date('dmY', strtotime((string) $user->dob)));
-            $user->save();
+            $user->forceFill([
+                'reset_request' => 0,
+                'password' => Hash::make(LearnerInvitations::unguessablePassword()),
+            ])->save();
             // Whoever had the old password is signed out of the app.
-            $user->tokens()->delete();
+            AppTokens::revokeAll($user);
+            $sent = $invitations->inviteGuardians($user, Auth::user());
 
             $response = [
                 'error' => false,
-                'message' => trans('data_update_successfully'),
+                'message' => $sent > 0
+                    ? trans('learner_invitation_sent', ['count' => $sent])
+                    : trans('learner_invitation_no_guardian_email'),
+                'data' => ['sheet_url' => route('students.sign-in-sheet', $user->id)],
             ];
         } catch (Throwable $e) {
+            report($e);
             $response = [
                 'error' => true,
                 'message' => trans('error_occurred'),

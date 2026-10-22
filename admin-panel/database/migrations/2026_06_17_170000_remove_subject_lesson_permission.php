@@ -39,7 +39,7 @@ return new class extends Migration
 
         if (! $permissionId) {
             $permissionId = DB::table('permissions')->insertGetId([
-                'name'       => 'subject-lesson',
+                'name' => 'subject-lesson',
                 'guard_name' => 'web',
                 'created_at' => $now,
                 'updated_at' => $now,
@@ -61,7 +61,7 @@ return new class extends Migration
 
             if (! $exists) {
                 DB::table('role_has_permissions')->insert([
-                    'role_id'       => $roleId,
+                    'role_id' => $roleId,
                     'permission_id' => $permissionId,
                 ]);
             }

@@ -28,8 +28,6 @@ class PostFeesPaymentCubit extends Cubit<PostFeesPaymentState> {
     required String transactionId,
     required bool verifyStripePaymentIntent, int? childId,
     String? paymentIntentId,
-    String? paymentId,
-    String? paymentSignature,
   }) async {
     emit(PostFeesPaymentInProgress());
     try {
@@ -50,8 +48,6 @@ class PostFeesPaymentCubit extends Cubit<PostFeesPaymentState> {
         await _studentRepository.storeFees(
           childId: childId,
           transactionId: transactionId,
-          paymentId: paymentId,
-          paymentSignature: paymentSignature,
         );
         emit(PostFeesPaymentSuccess());
       } else {

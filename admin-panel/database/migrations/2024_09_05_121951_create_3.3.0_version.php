@@ -2,8 +2,8 @@
 
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
-use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
@@ -23,13 +23,13 @@ return new class extends Migration
 
         DB::table('web_settings')->insert([
             [
-                'name'=> 'registration',
+                'name' => 'registration',
                 'tag' => 'Student Registration Form',
                 'heading' => 'Please complete the form below to enroll in our programs at school. Provide accurate and detailed information to help us process your registration efficiently and ensure you receive the best ',
                 'content' => null,
                 'image' => null,
-                'status' => 1
-            ]
+                'status' => 1,
+            ],
         ]);
 
         Schema::create('semesters', function (Blueprint $table) {
@@ -82,7 +82,6 @@ return new class extends Migration
 
         DB::table('web_settings')->where('name', 'registration')->delete();
 
-
         Schema::table('classes', function (Blueprint $table) {
             $table->dropColumn('include_semesters');
         });
@@ -108,7 +107,6 @@ return new class extends Migration
         });
 
         Schema::dropIfExists('semesters');
-
 
     }
 };

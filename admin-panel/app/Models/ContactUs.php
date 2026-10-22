@@ -10,18 +10,18 @@ use Illuminate\Database\Eloquent\Model;
 class ContactUs extends Model
 {
     use HasFactory;
-    
+
     protected $fillable = [
         'first_name',
-        'last_name', 
+        'last_name',
         'email',
         'phone',
         'message',
-        'date'
+        'date',
     ];
-    
+
     protected $hidden = [
         'created_at',
-        'updated_at'
+        'updated_at',
     ];
 }

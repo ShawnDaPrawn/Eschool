@@ -24,7 +24,7 @@ class TransferLeaveSettings
                         ]
                     );
                 })->toArray();
-                if (!empty($data)) {
+                if (! empty($data)) {
                     DB::table('leave_masters')->insert($data);
                 }
             });

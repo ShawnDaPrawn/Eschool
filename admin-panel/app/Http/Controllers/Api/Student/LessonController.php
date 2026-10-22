@@ -36,7 +36,7 @@ class LessonController extends Controller
         ]);
 
         if ($validator->fails()) {
-            ResponseService::validationError($validator->errors()->first());
+            return ResponseService::validationError($validator->errors()->first());
         }
         try {
             $student = $request->user()->student;
@@ -65,9 +65,9 @@ class LessonController extends Controller
             }
             $data = $data->get();
 
-            ResponseService::successResponse('Lessons Fetched Successfully', $data);
+            return ResponseService::successResponse('Lessons Fetched Successfully', $data);
         } catch (Throwable $e) {
-            ResponseService::errorResponse('error_occurred', null, 103, $e);
+            return ResponseService::errorResponse('error_occurred', null, 103, $e);
         }
     }
 
@@ -107,7 +107,7 @@ class LessonController extends Controller
 
             $currentSemester = Semester::where('session_year_id', $session_year_id)
                 ->get()
-                ->first(fn($s) => $s->current);
+                ->first(fn ($s) => $s->current);
 
             $isClassHaveSemester = ClassSessionConfig::classHasSemester(
                 $studentSession->class_section->class_id,

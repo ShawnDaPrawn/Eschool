@@ -20,6 +20,7 @@ use App\Models\Subject;
 use App\Models\SubjectTeacher;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
@@ -408,7 +409,7 @@ class MarksController extends Controller
             ];
         }
 
-        return response()->json($response); 
+        return response()->json($response);
     }
 
     /**
@@ -416,7 +417,7 @@ class MarksController extends Controller
      * the class teacher of (as showExamResult checks) or teach the subject in.
      * Returns null for other roles, which are limited by their permissions alone.
      */
-    private function teacherMarksClassSectionIds($session_year_id, $subject_id): ?\Illuminate\Support\Collection
+    private function teacherMarksClassSectionIds($session_year_id, $subject_id): ?Collection
     {
         $user = Auth::user();
         if (! $user->hasRole('Teacher')) {

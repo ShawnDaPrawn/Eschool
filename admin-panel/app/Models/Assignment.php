@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -30,36 +31,36 @@ class Assignment extends Model
             }
         });
     }
-  public function session_year()
-{
-    return $this->belongsTo(SessionYear::class, 'session_year_id');
-}
 
-public function getTeacherAttribute()
-{
-    $subjectTeachers = $this->subject_teachers;
+    public function session_year()
+    {
+        return $this->belongsTo(SessionYear::class, 'session_year_id');
+    }
 
-    // Check if the relation is successfully loaded as a Collection
-    if ($subjectTeachers instanceof \Illuminate\Database\Eloquent\Collection) {
-        $subjectTeacher = $subjectTeachers
-            ->where('class_section_id', $this->class_section_id)
-            ->where('session_year_id', $this->session_year_id)
-            ->first();
+    public function getTeacherAttribute()
+    {
+        $subjectTeachers = $this->subject_teachers;
+
+        // Check if the relation is successfully loaded as a Collection
+        if ($subjectTeachers instanceof Collection) {
+            $subjectTeacher = $subjectTeachers
+                ->where('class_section_id', $this->class_section_id)
+                ->where('session_year_id', $this->session_year_id)
+                ->first();
+
+            return $subjectTeacher?->teacher ?? null;
+        }
+
+        // Safe fallback query directly on the database if the relation is null
+        $subjectTeacher = SubjectTeacher::where([
+            'class_section_id' => $this->class_section_id,
+            'subject_id' => $this->subject_id,
+            'session_year_id' => $this->session_year_id,
+        ])->first();
 
         return $subjectTeacher?->teacher ?? null;
     }
 
-    // Safe fallback query directly on the database if the relation is null
-    $subjectTeacher = \App\Models\SubjectTeacher::where([
-        'class_section_id' => $this->class_section_id,
-        'subject_id'       => $this->subject_id,
-        'session_year_id'  => $this->session_year_id
-    ])->first();
-
-    return $subjectTeacher?->teacher ?? null;
-}
-
-   
     public function subject()
     {
         return $this->belongsTo(Subject::class)->withTrashed();

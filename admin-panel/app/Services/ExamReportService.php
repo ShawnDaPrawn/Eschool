@@ -9,9 +9,6 @@ use App\Models\ExamMarks;
 use App\Models\ExamResult;
 use App\Models\ExamTimetable;
 use App\Models\OnlineExam;
-use App\Models\OnlineExamQuestionAnswer;
-use App\Models\OnlineExamQuestionChoice;
-use App\Models\OnlineExamStudentAnswer;
 use App\Models\StudentOnlineExamStatus;
 use App\Models\StudentSessions;
 

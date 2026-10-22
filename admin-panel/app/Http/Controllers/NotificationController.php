@@ -4,31 +4,34 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers;
 
-use Throwable;
-use Carbon\Carbon;
-use App\Models\User;
 use App\Models\Notification;
-use Illuminate\Http\Request;
+use App\Models\User;
 use App\Models\UserNotification;
+use App\Services\Platform\Files\FileNames;
+use Carbon\Carbon;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
+use Throwable;
 
 class NotificationController extends Controller
 {
     public function index()
     {
-        if (!Auth::user()->can('notification-list')) {
-            $response = array(
-                'message' => trans('no_permission_message')
-            );
+        if (! Auth::user()->can('notification-list')) {
+            $response = [
+                'message' => trans('no_permission_message'),
+            ];
+
             return redirect(route('home'))->withErrors($response);
         }
+
         return view('notification.index');
     }
 
     public function getRecipients(Request $request)
     {
-        if (!Auth::user()->can('notification-create')) {
+        if (! Auth::user()->can('notification-create')) {
             return response()->json([
                 'error' => true,
                 'message' => trans('no_permission_message'),
@@ -46,7 +49,7 @@ class NotificationController extends Controller
             'teachers' => 'Teacher',
         ];
 
-        if (!array_key_exists($recipientType, $roleMap)) {
+        if (! array_key_exists($recipientType, $roleMap)) {
             return response()->json(['total' => 0, 'rows' => []]);
         }
 
@@ -106,10 +109,11 @@ class NotificationController extends Controller
 
     public function store(Request $request)
     {
-        if (!Auth::user()->can('notification-create')) {
-            $response = array(
-                'message' => trans('no_permission_message')
-            );
+        if (! Auth::user()->can('notification-create')) {
+            $response = [
+                'message' => trans('no_permission_message'),
+            ];
+
             return redirect(route('home'))->withErrors($response);
         }
         $validator = Validator::make($request->all(), [
@@ -121,10 +125,11 @@ class NotificationController extends Controller
             'user_id.*' => 'integer',
         ]);
         if ($validator->fails()) {
-            $response = array(
+            $response = [
                 'error' => true,
-                'message' => $validator->errors()->first()
-            );
+                'message' => $validator->errors()->first(),
+            ];
+
             return response()->json($response);
         }
         try {
@@ -135,18 +140,18 @@ class NotificationController extends Controller
                 static fn ($id) => $id > 0
             )));
 
-            if (!$isBroadcast && empty($userIds)) {
+            if (! $isBroadcast && empty($userIds)) {
                 return response()->json([
                     'error' => true,
                     'message' => trans('please_select_at_least_one_user'),
                 ]);
             }
 
-            $type = "custom";
+            $type = 'custom';
             $image = null;
-            $userinfo = $isBroadcast ? "all" : "specific";
+            $userinfo = $isBroadcast ? 'all' : 'specific';
 
-            $notification = new Notification();
+            $notification = new Notification;
             $notification->send_to = $isBroadcast ? 1 : 2;
             $notification->title = $request->title;
             $notification->session_year_id = (int) getSettings('session_year')['session_year'];
@@ -158,28 +163,28 @@ class NotificationController extends Controller
             if ($request->hasFile('image')) {
                 $notification_image = $request->file('image');
                 // made file name with combination of current time
-                $file_name = time() . '-' . $notification_image->getClientOriginalName();
-                //made file path to store in database
-                $file_path = 'notifications/' . $file_name;
-                //resized image
+                $file_name = time().'-'.FileNames::forUpload($notification_image);
+                // made file path to store in database
+                $file_path = 'notifications/'.$file_name;
+                // resized image
                 resizeImage($notification_image);
-                //stored image to storage/public/parents folder
+                // stored image to storage/public/parents folder
                 $destinationPath = storage_path('app/public/notifications');
                 $notification_image->move($destinationPath, $file_name);
-                //saved file path to database
+                // saved file path to database
                 $notification->image = $file_path;
-                $image = asset('storage/' . $file_path);
+                $image = asset('storage/'.$file_path);
             }
 
             $title = $request->title;
-            $body =  $request->message;
-            $type =  $type;
+            $body = $request->message;
+            $type = $type;
             $notification->save();
 
             // Only save individual user notifications for specific users
-            if (!$isBroadcast) {
+            if (! $isBroadcast) {
                 foreach ($userIds as $data) {
-                    $user_notification = new UserNotification();
+                    $user_notification = new UserNotification;
                     $user_notification->notification_id = $notification->id;
                     $user_notification->user_id = $data;
                     $user_notification->save();
@@ -193,10 +198,10 @@ class NotificationController extends Controller
                 sendSimpleNotification($userIds, $title, $body, $type, $image, $userinfo);
             }
 
-            $response = array(
+            $response = [
                 'error' => false,
-                'message' => trans('notification_sent_successfully')
-            );
+                'message' => trans('notification_sent_successfully'),
+            ];
         } catch (Throwable $e) {
             report($e);
             $message = trans('error_occurred');
@@ -206,21 +211,23 @@ class NotificationController extends Controller
             } elseif (str_contains($exceptionMessage, 'permission') || str_contains($exceptionMessage, 'unauthorized')) {
                 $message = trans('no_permission_message');
             }
-            $response = array(
+            $response = [
                 'error' => true,
                 'message' => $message,
-            );
+            ];
         }
+
         return response()->json($response);
     }
 
     public function show()
     {
-        if (!Auth::user()->can('notification-list')) {
-            $response = array(
+        if (! Auth::user()->can('notification-list')) {
+            $response = [
                 'error' => true,
-                'message' => trans('no_permission_message')
-            );
+                'message' => trans('no_permission_message'),
+            ];
+
             return response()->json($response);
         }
         $offset = 0;
@@ -228,20 +235,24 @@ class NotificationController extends Controller
         $sort = 'id';
         $order = 'DESC';
 
-        if (isset($_GET['offset']))
+        if (isset($_GET['offset'])) {
             $offset = $_GET['offset'];
-        if (isset($_GET['limit']))
+        }
+        if (isset($_GET['limit'])) {
             $limit = $_GET['limit'];
+        }
 
-        if (isset($_GET['sort']))
+        if (isset($_GET['sort'])) {
             $sort = $_GET['sort'];
-        if (isset($_GET['order']))
+        }
+        if (isset($_GET['order'])) {
             $order = $_GET['order'];
+        }
 
         $session_year_id = $_GET['session_year_id'] ?? getSettings('session_year')['session_year'];
 
         $sql = Notification::where('id', '!=', 0)->where('is_custom', 1)->where('session_year_id', $session_year_id);
-        if (isset($_GET['search']) && !empty($_GET['search'])) {
+        if (isset($_GET['search']) && ! empty($_GET['search'])) {
             $search = $_GET['search'];
             $sql->where(fn ($query) => $query->where('id', 'LIKE', "%$search%")
                 ->orwhere('message', 'LIKE', "%$search%")
@@ -252,15 +263,15 @@ class NotificationController extends Controller
 
         $sql->orderBy($sort, $order)->skip($offset)->take($limit);
         $res = $sql->get();
-        $bulkData = array();
+        $bulkData = [];
         $bulkData['total'] = $total;
-        $rows = array();
-        $tempRow = array();
+        $rows = [];
+        $tempRow = [];
         $no = 1;
 
         foreach ($res as $row) {
 
-            $operate = '<a href=' . route('notifications.destroy', $row->id) . ' class="btn btn-xs btn-gradient-danger btn-rounded btn-icon delete-form" data-id=' . $row->id . '><i class="fa fa-trash"></i></a>';
+            $operate = '<a href='.route('notifications.destroy', $row->id).' class="btn btn-xs btn-gradient-danger btn-rounded btn-icon delete-form" data-id='.$row->id.'><i class="fa fa-trash"></i></a>';
 
             $tempRow['id'] = $row->id;
             $tempRow['no'] = $no++;
@@ -276,16 +287,18 @@ class NotificationController extends Controller
         }
 
         $bulkData['rows'] = $rows;
+
         return response()->json($bulkData);
     }
 
     public function destroy($id)
     {
-        if (!Auth::user()->can('notification-delete')) {
-            $response = array(
+        if (! Auth::user()->can('notification-delete')) {
+            $response = [
                 'error' => true,
-                'message' => trans('no_permission_message')
-            );
+                'message' => trans('no_permission_message'),
+            ];
+
             return response()->json($response);
         }
         try {
@@ -293,15 +306,16 @@ class NotificationController extends Controller
             $data->delete();
             $response = [
                 'error' => false,
-                'message' => trans('data_delete_successfully')
+                'message' => trans('data_delete_successfully'),
             ];
         } catch (Throwable $e) {
             report($e);
-            $response = array(
+            $response = [
                 'error' => true,
                 'message' => trans('error_occurred'),
-            );
+            ];
         }
+
         return response()->json($response);
     }
 }

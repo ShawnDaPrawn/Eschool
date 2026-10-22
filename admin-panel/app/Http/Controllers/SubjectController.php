@@ -5,15 +5,17 @@ declare(strict_types=1);
 namespace App\Http\Controllers;
 
 use App\Models\Assignment;
-use App\Models\Mediums;
-use App\Models\Subject;
 use App\Models\ClassSubject;
 use App\Models\ExamMarks;
 use App\Models\ExamTimetable;
+use App\Models\Mediums;
 use App\Models\StudentSubject;
+use App\Models\Subject;
 use App\Models\SubjectTeacher;
-use App\Services\ResponseService;
+use App\Services\Platform\Files\FileNames;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
@@ -23,7 +25,7 @@ class SubjectController extends Controller
     /**
      * Display a listing of the resource.
      *
-     * @return \Illuminate\Http\Response
+     * @return Response
      */
     public function index()
     {
@@ -32,15 +34,15 @@ class SubjectController extends Controller
         }
         $subjects = Subject::orderBy('id', 'DESC')->get();
         $mediums = Mediums::orderBy('id', 'DESC')->get();
+
         return response(view('subject.index', compact('subjects', 'mediums')));
     }
 
     /**
      * Update the specified resource in storage.
      *
-     * @param \Illuminate\Http\Request $request
-     * @param int $id
-     * @return \Illuminate\Http\JsonResponse
+     * @param  int  $id
+     * @return JsonResponse
      */
     public function update(Request $request, $id)
     {
@@ -56,33 +58,36 @@ class SubjectController extends Controller
             'image' => 'max:2048',
         ])->setAttributeNames(
             ['bg_color' => 'Background Color'],
-        );;
+        );
 
         if ($validator->fails()) {
-            $response = array(
+            $response = [
                 'error' => true,
-                'message' => $validator->errors()->first()
-            );
+                'message' => $validator->errors()->first(),
+            ];
+
             return response()->json($response);
         }
 
         try {
             $subject = Subject::where(['name' => $request->name, 'medium_id' => $request->medium_id, 'type' => $request->type])->whereNot('id', $id)->count();
             if ($subject) {
-                $response = array(
+                $response = [
                     'error' => true,
-                    'message' => trans('subject_already_exists')
-                );
+                    'message' => trans('subject_already_exists'),
+                ];
+
                 return response()->json($response);
             } else {
                 $validator = Validator::make($request->all(), [
-                    'code' => 'nullable|unique:subjects,code,' . $id . ',id,deleted_at,NULL'
+                    'code' => 'nullable|unique:subjects,code,'.$id.',id,deleted_at,NULL',
                 ]);
                 if ($validator->fails()) {
-                    $response = array(
+                    $response = [
                         'error' => true,
-                        'message' => $validator->errors()->first()
-                    );
+                        'message' => $validator->errors()->first(),
+                    ];
+
                     return response()->json($response);
                 }
                 $subject = Subject::find($id);
@@ -99,41 +104,41 @@ class SubjectController extends Controller
                     $image = $request->file('image');
 
                     // made file name with combination of current time
-                    $file_name = time() . '-' . $image->getClientOriginalName();
-                    //made file path to store in database
-                    $file_path = 'subjects/' . $file_name;
+                    $file_name = time().'-'.FileNames::forUpload($image);
+                    // made file path to store in database
+                    $file_path = 'subjects/'.$file_name;
                     if ($image->getClientMimeType() != 'image/svg+xml' && $image->getClientMimeType() != 'image/svg') {
-                        //resized image
+                        // resized image
                         resizeImage($image);
                     }
-                    //stored image to storage/public/subjects folder
+                    // stored image to storage/public/subjects folder
                     $destinationPath = storage_path('app/public/subjects');
                     $image->move($destinationPath, $file_name);
-                    //saved file path to database
+                    // saved file path to database
                     $subject->image = $file_path;
                 }
                 $subject->save();
 
-                $response = array(
+                $response = [
                     'error' => false,
                     'message' => trans('data_update_successfully'),
-                );
+                ];
             }
         } catch (\Throwable $e) {
             report($e);
-            $response = array(
+            $response = [
                 'error' => true,
-                'message' => trans('error_occurred')
-            );
+                'message' => trans('error_occurred'),
+            ];
         }
+
         return response()->json($response);
     }
 
     /**
      * Store a newly created resource in storage.
      *
-     * @param \Illuminate\Http\Request $request
-     * @return \Illuminate\Http\JsonResponse
+     * @return JsonResponse
      */
     public function store(Request $request)
     {
@@ -152,38 +157,41 @@ class SubjectController extends Controller
         );
 
         if ($validator->fails()) {
-            $response = array(
+            $response = [
                 'error' => true,
-                'message' => $validator->errors()->first()
-            );
+                'message' => $validator->errors()->first(),
+            ];
+
             return response()->json($response);
         }
 
         try {
             $subject = Subject::where(['name' => $request->name, 'medium_id' => $request->medium_id, 'type' => $request->type])->count();
             if ($subject) {
-                $response = array(
+                $response = [
                     'error' => true,
-                    'message' => trans('subject_already_exists')
-                );
+                    'message' => trans('subject_already_exists'),
+                ];
+
                 return response()->json($response);
             } else {
                 $validator = Validator::make($request->all(), [
                     'code' => 'nullable|unique:subjects,code,NULL,id,deleted_at,NULL',
                 ]);
                 if ($validator->fails()) {
-                    $response = array(
+                    $response = [
                         'error' => true,
-                        'message' => $validator->errors()->first()
-                    );
+                        'message' => $validator->errors()->first(),
+                    ];
+
                     return response()->json($response);
                 }
 
                 $file_path = null;
                 if ($request->hasFile('image')) {
                     $image = $request->file('image');
-                    $file_name = time() . '-' . $image->getClientOriginalName();
-                    $file_path = 'subjects/' . $file_name;
+                    $file_name = time().'-'.FileNames::forUpload($image);
+                    $file_path = 'subjects/'.$file_name;
                     if ($image->getClientMimeType() != 'image/svg+xml' && $image->getClientMimeType() != 'image/svg') {
                         resizeImage($image);
                     }
@@ -191,7 +199,7 @@ class SubjectController extends Controller
                     $image->move($destinationPath, $file_name);
                 }
 
-                $subject = new Subject();
+                $subject = new Subject;
                 $subject->medium_id = $request->medium_id;
                 $subject->name = $request->name;
                 $subject->bg_color = $request->bg_color;
@@ -200,24 +208,26 @@ class SubjectController extends Controller
                 $subject->image = $file_path ?? '';
                 $subject->save();
 
-                $response = array(
+                $response = [
                     'error' => false,
                     'message' => trans('data_store_successfully'),
-                );
+                ];
             }
         } catch (\Throwable $e) {
             report($e);
-            $response = array(
+            $response = [
                 'error' => true,
-                'message' => trans('error_occurred')
-            );
+                'message' => trans('error_occurred'),
+            ];
         }
+
         return response()->json($response);
     }
 
     /**
      * Remove the specified resource from storage.
-     * @return \Illuminate\Http\JsonResponse
+     *
+     * @return JsonResponse
      */
     public function destroy($id)
     {
@@ -234,13 +244,13 @@ class SubjectController extends Controller
             $subject->delete();
 
             return response()->json([
-                'error'   => false,
-                'message' => trans('data_delete_successfully')
+                'error' => false,
+                'message' => trans('data_delete_successfully'),
             ]);
         } catch (\Throwable $e) {
             return response()->json([
-                'error'   => true,
-                'message' => trans('error_occurred')
+                'error' => true,
+                'message' => trans('error_occurred'),
             ]);
         }
     }
@@ -256,35 +266,38 @@ class SubjectController extends Controller
         $sort = 'id';
         $order = 'DESC';
 
-        if (isset($_GET['offset']))
+        if (isset($_GET['offset'])) {
             $offset = $_GET['offset'];
-        if (isset($_GET['limit']))
+        }
+        if (isset($_GET['limit'])) {
             $limit = $_GET['limit'];
+        }
 
-        if (isset($_GET['sort']))
+        if (isset($_GET['sort'])) {
             $sort = $_GET['sort'];
-        if (isset($_GET['order']))
+        }
+        if (isset($_GET['order'])) {
             $order = $_GET['order'];
+        }
 
         $sql = Subject::with('medium');
-        if (isset($_GET['search']) && !empty($_GET['search'])) {
+        if (isset($_GET['search']) && ! empty($_GET['search'])) {
             $search = $_GET['search'];
             $sql = $sql->where(fn ($query) => $query->where('id', 'LIKE', "%$search%")->orwhere('name', 'LIKE', "%$search%")->orwhere('code', 'LIKE', "%$search%")->orwhere('type', 'LIKE', "%$search%"));
         }
-        if (isset($_GET['medium_id']) && !empty($_GET['medium_id'])) {
+        if (isset($_GET['medium_id']) && ! empty($_GET['medium_id'])) {
             $sql = $sql->where('medium_id', $_GET['medium_id']);
         }
-
 
         $total = $sql->count();
 
         $sql = $sql->orderBy($sort, $order)->skip($offset)->take($limit);
         $res = $sql->get();
 
-        $bulkData = array();
+        $bulkData = [];
         $bulkData['total'] = $total;
-        $rows = array();
-        $tempRow = array();
+        $rows = [];
+        $tempRow = [];
         $no = 1;
 
         // Batch load related data existence to avoid N+1 queries
@@ -317,13 +330,13 @@ class SubjectController extends Controller
                 $relatedData[] = 'subject teachers';
             }
 
-            $operate = '<a href="#" class="btn btn-xs btn-gradient-primary btn-rounded btn-icon edit-data" data-id=' . $row->id . ' title="Edit" data-toggle="modal" data-target="#editModal"><i class="fa fa-edit"></i></a>&nbsp;&nbsp;';
+            $operate = '<a href="#" class="btn btn-xs btn-gradient-primary btn-rounded btn-icon edit-data" data-id='.$row->id.' title="Edit" data-toggle="modal" data-target="#editModal"><i class="fa fa-edit"></i></a>&nbsp;&nbsp;';
             $operate .= '
             <a
-                href="' . route('subject.destroy', $row->id) . '"
+                href="'.route('subject.destroy', $row->id).'"
                 class="btn btn-xs btn-gradient-danger btn-rounded btn-icon delete-form"
-                data-id="' . $row->id . '"'
-                . (!empty($relatedData) ? " data-related='" . json_encode($relatedData) . "'" : '') .
+                data-id="'.$row->id.'"'
+                .(! empty($relatedData) ? " data-related='".json_encode($relatedData)."'" : '').
                 '>
                 <i class="fa fa-trash"></i>
             </a>';
@@ -347,6 +360,7 @@ class SubjectController extends Controller
         }
 
         $bulkData['rows'] = $rows;
+
         return response()->json($bulkData);
     }
 }

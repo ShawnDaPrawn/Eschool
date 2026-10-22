@@ -1,25 +1,21 @@
 import 'dart:math';
 
-import 'package:eschool/app/appLocalization.dart';
+import 'package:eschool_core/eschool_core.dart';
+import 'package:eschool_session/eschool_session.dart';
 import 'package:eschool/app/routes.dart';
 import 'package:eschool/cubits/appConfigurationCubit.dart';
 import 'package:eschool/cubits/appLocalizationCubit.dart';
 import 'package:eschool/cubits/downloadFileCubit.dart';
-import 'package:eschool/data/models/studyMaterial.dart';
 import 'package:eschool/data/repositories/subjectRepository.dart';
 import 'package:eschool/ui/widgets/downloadFileBottomsheetContainer.dart';
 import 'package:eschool/ui/widgets/errorMessageOverlayContainer.dart';
-import 'package:eschool/utils/api.dart';
-import 'package:eschool/utils/assets.dart';
 import 'package:eschool/utils/constants.dart';
 import 'package:eschool/utils/errorMessageKeysAndCodes.dart';
-import 'package:eschool/utils/extensions.dart';
 import 'package:eschool/utils/labelKeys.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart' as intl;
-import 'package:open_filex/open_filex.dart';
-import 'package:package_info_plus/package_info_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import 'package:timeago/timeago.dart' as timeago;
@@ -28,47 +24,59 @@ import 'package:timeago/timeago.dart' as timeago;
 class UiUtils {
   //This extra padding will add to MediaQuery.of(context).padding.top in order to give same top padding in every screen
 
-  static double screenContentTopPadding = 15;
-  static double screenContentHorizontalPadding = 25;
-  static double screenTitleFontSize = 18;
+  static const double screenContentTopPadding =
+      SharedUiUtils.screenContentTopPadding;
+  static const double screenContentHorizontalPadding =
+      SharedUiUtils.screenContentHorizontalPadding;
+  static const double screenTitleFontSize = SharedUiUtils.screenTitleFontSize;
   static double screenContentHorizontalPaddingInPercentage = 0.075;
 
-  static double screenSubTitleFontSize = 14;
-  static double extraScreenContentTopPaddingForScrolling = 0.02;
+  static const double screenSubTitleFontSize =
+      SharedUiUtils.screenSubTitleFontSize;
+  static const double extraScreenContentTopPaddingForScrolling =
+      SharedUiUtils.extraScreenContentTopPaddingForScrolling;
 
   static double homeAndChatMessagePageAppbarHeightPercentage = 0.16;
-  static double appBarSmallerHeightPercentage = 0.15;
+  static const double appBarSmallerHeightPercentage =
+      SharedUiUtils.appBarSmallerHeightPercentage;
   static double appBarMediumHeightPercentage = 0.19;
-  static double appBarBiggerHeightPercentage = 0.24;
+  static const double appBarBiggerHeightPercentage =
+      SharedUiUtils.appBarBiggerHeightPercentage;
 
   static double bottomNavigationHeightPercentage = 0.08;
-  static double bottomNavigationBottomMargin = 25;
-  static double appBarContentTopPadding = 25;
-  static double bottomSheetTopRadius = 20;
+  static const double bottomNavigationBottomMargin =
+      SharedUiUtils.bottomNavigationBottomMargin;
+  static const double appBarContentTopPadding =
+      SharedUiUtils.appBarContentTopPadding;
+  static const double bottomSheetTopRadius = SharedUiUtils.bottomSheetTopRadius;
 
-  static double bottomSheetHorizontalContentPadding = 20;
+  static const double bottomSheetHorizontalContentPadding =
+      SharedUiUtils.bottomSheetHorizontalContentPadding;
 
-  static double subjectFirstLetterFontSize = 20;
+  static const double subjectFirstLetterFontSize =
+      SharedUiUtils.subjectFirstLetterFontSize;
 
   static double defaultProfilePictureHeightAndWidthPercentage = 0.175;
 
   static double questionContainerHeightPercentage = 0.725;
 
-  static Duration tabBackgroundContainerAnimationDuration = const Duration(
-    milliseconds: 300,
-  );
+  static const Duration tabBackgroundContainerAnimationDuration =
+      SharedUiUtils.tabBackgroundContainerAnimationDuration;
 
   static Duration showCaseDisplayDelayInDuration = const Duration(
     milliseconds: 350,
   );
-  static Curve tabBackgroundContainerAnimationCurve = Curves.easeInOut;
+  static const Curve tabBackgroundContainerAnimationCurve =
+      SharedUiUtils.tabBackgroundContainerAnimationCurve;
 
-  static double shimmerLoadingContainerDefaultHeight = 7;
+  static const double shimmerLoadingContainerDefaultHeight =
+      SharedUiUtils.shimmerLoadingContainerDefaultHeight;
 
   static int defaultShimmerLoadingContentCount = 6;
-  static int defaultChatShimmerLoaders = 15;
+  static const int defaultChatShimmerLoaders =
+      SharedUiUtils.defaultChatShimmerLoaders;
 
-  static double textFieldFontSize = 15;
+  static const double textFieldFontSize = SharedUiUtils.textFieldFontSize;
 
   //key for global navigation
   static GlobalKey<NavigatorState> rootNavigatorKey =
@@ -97,49 +105,30 @@ class UiUtils {
     required BuildContext context,
     required double appBarHeightPercentage,
     bool keepExtraSpace = true,
-  }) {
-    return MediaQuery.sizeOf(context).height *
-        (appBarHeightPercentage +
-            (keepExtraSpace ? extraScreenContentTopPaddingForScrolling : 0));
-  }
+  }) => SharedUiUtils.getScrollViewTopPadding(
+    context: context,
+    appBarHeightPercentage: appBarHeightPercentage,
+    keepExtraSpace: keepExtraSpace,
+  );
 
-  static ColorScheme getColorScheme(BuildContext context) {
-    return Theme.of(context).colorScheme;
-  }
+  static ColorScheme getColorScheme(BuildContext context) =>
+      SharedUiUtils.getColorScheme(context);
 
-  static Locale getLocaleFromLanguageCode(String languageCode) {
-    final List<String> result = languageCode.split('-');
-    return result.length == 1
-        ? Locale(result.first)
-        : Locale(result.first, result.last);
-  }
+  static Locale getLocaleFromLanguageCode(String languageCode) =>
+      SharedUiUtils.getLocaleFromLanguageCode(languageCode);
 
-  static String getTranslatedLabel(BuildContext context, String labelKey) {
-    return (AppLocalization.of(context)!.getTranslatedValues(labelKey) ??
-            labelKey)
-        .trim();
-  }
+  static String getTranslatedLabel(BuildContext context, String labelKey) =>
+      SharedUiUtils.getTranslatedLabel(context, labelKey);
 
   static Future<dynamic> showBottomSheet({
     required Widget child,
     required BuildContext context,
     bool? enableDrag,
-  }) async {
-    final result = await showModalBottomSheet(
-      enableDrag: enableDrag ?? false,
-      isScrollControlled: true,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.only(
-          topLeft: Radius.circular(bottomSheetTopRadius),
-          topRight: Radius.circular(bottomSheetTopRadius),
-        ),
-      ),
-      context: context,
-      builder: (_) => child,
-    );
-
-    return result;
-  }
+  }) => SharedUiUtils.showBottomSheet(
+    child: child,
+    context: context,
+    enableDrag: enableDrag,
+  );
 
   static bool isTodayInSessionYear(DateTime firstDate, DateTime lastDate) {
     final currentDate = DateTime.now();
@@ -228,6 +217,20 @@ class UiUtils {
     return "${UiUtils.getTranslatedLabel(context, dueKey)}, ${dateTime.day} $monthName ${dateTime.year}, ${hour.toString().padLeft(2, '0')}:${dateTime.minute.toString().padLeft(2, '0')} $amOrPm";
   }
 
+  /// True in a web build, where attaching files and paying are not built
+  /// yet: it tells the user to do it in the app on their phone instead.
+  static bool showMobileOnlyNotice(BuildContext context) {
+    if (!kIsWeb) {
+      return false;
+    }
+    showCustomSnackBar(
+      context: context,
+      errorMessage: getTranslatedLabel(context, availableInMobileAppKey),
+      backgroundColor: Theme.of(context).colorScheme.primary,
+    );
+    return true;
+  }
+
   static Future<void> showCustomSnackBar({
     required BuildContext context,
     required String errorMessage,
@@ -284,11 +287,8 @@ class UiUtils {
     return '';
   }
 
-  static String getBackButtonPath(BuildContext context) {
-    return Directionality.of(context).name == TextDirection.rtl.name
-        ? Assets.rtlBackIcon
-        : Assets.backIcon;
-  }
+  static String getBackButtonPath(BuildContext context) =>
+      SharedUiUtils.getBackButtonPath(context);
 
   /// Whether [url] is a web (http/https) link. Links that come from other
   /// users or from the server are only opened when they are, because other
@@ -328,13 +328,13 @@ class UiUtils {
         Navigator.pushNamed(
           context,
           Routes.pdfFileView,
-          arguments: {'studyMaterial': studyMaterial},
+          arguments: PdfFileViewArguments(studyMaterial: studyMaterial),
         );
       } else if (studyMaterial.fileExtension.isImage()) {
         Navigator.pushNamed(
           context,
           Routes.imageFileView,
-          arguments: {'studyMaterial': studyMaterial},
+          arguments: ImageFileViewArguments(studyMaterial: studyMaterial),
         );
       } else {
         if (studyMaterial.studyMaterialType ==
@@ -385,10 +385,10 @@ class UiUtils {
           );
         } else {
           try {
-            final fileOpenResult = await OpenFilex.open(
+            final bool opened = await DeviceFiles.open(
               result['filePath'].toString(),
             );
-            if (fileOpenResult.type != ResultType.done) {
+            if (!opened) {
               showCustomSnackBar(
                 context: context,
                 errorMessage: getTranslatedLabel(context, unableToOpenKey),
@@ -410,23 +410,14 @@ class UiUtils {
   static Widget buildProgressContainer({
     required double width,
     required Color color,
-  }) {
-    return Container(
-      width: width,
-      decoration: BoxDecoration(
-        color: color,
-        borderRadius: BorderRadius.circular(3),
-      ),
-    );
-  }
+  }) => SharedUiUtils.buildProgressContainer(width: width, color: color);
 
   static String formatDateAndTime(DateTime dateTime) {
     return intl.DateFormat('dd-MM-yyyy  kk:mm').format(dateTime);
   }
 
-  static String formatDate(DateTime dateTime) {
-    return "${dateTime.day.toString().padLeft(2, '0')}-${dateTime.month.toString().padLeft(2, '0')}-${dateTime.year}";
-  }
+  static String formatDate(DateTime dateTime) =>
+      SharedUiUtils.formatDate(dateTime);
 
   /*  //Date format is DD-MM-YYYY
   static String formatStringDate(String date) {
@@ -480,64 +471,10 @@ class UiUtils {
     return value.isEmpty ? '-' : value;
   }
 
-  static Future<bool> forceUpdate(String updatedVersion) async {
-    final PackageInfo packageInfo = await PackageInfo.fromPlatform();
-    final String currentVersion =
-        '${packageInfo.version}+${packageInfo.buildNumber}';
-    if (updatedVersion.isEmpty) {
-      return false;
-    }
-
-    final bool updateBasedOnVersion = _shouldUpdateBasedOnVersion(
-      currentVersion.split('+').first,
-      updatedVersion.split('+').first,
-    );
-
-    if (updatedVersion.split('+').length == 1 ||
-        currentVersion.split('+').length == 1) {
-      return updateBasedOnVersion;
-    }
-
-    final bool updateBasedOnBuildNumber = _shouldUpdateBasedOnBuildNumber(
-      currentVersion.split('+').last,
-      updatedVersion.split('+').last,
-    );
-
-    return updateBasedOnVersion || updateBasedOnBuildNumber;
-  }
-
-  static bool _shouldUpdateBasedOnVersion(
-    String currentVersion,
-    String updatedVersion,
-  ) {
-    final List<int> currentVersionList = currentVersion
-        .split('.')
-        .map((e) => int.parse(e))
-        .toList();
-    final List<int> updatedVersionList = updatedVersion
-        .split('.')
-        .map((e) => int.parse(e))
-        .toList();
-
-    if (updatedVersionList[0] > currentVersionList[0]) {
-      return true;
-    }
-    if (updatedVersionList[1] > currentVersionList[1]) {
-      return true;
-    }
-    if (updatedVersionList[2] > currentVersionList[2]) {
-      return true;
-    }
-
-    return false;
-  }
-
-  static bool _shouldUpdateBasedOnBuildNumber(
-    String currentBuildNumber,
-    String updatedBuildNumber,
-  ) {
-    return int.parse(updatedBuildNumber) > int.parse(currentBuildNumber);
-  }
+  /// Whether the server asks this install to update; the rules are in
+  /// `ForceUpdate.isRequired` (eschool_session).
+  static Future<bool> forceUpdate(String updatedVersion) =>
+      ForceUpdate.check(updatedVersion);
 
   static void showFeatureDisableInDemoVersion(BuildContext context) {
     showCustomSnackBar(
@@ -603,30 +540,6 @@ class UiUtils {
     );
   }
 
-  static String? getYoutubeThumbnailUrl(String youtubeUrl) {
-    try {
-      final uri = Uri.parse(youtubeUrl);
-      String? videoId;
-
-      // youtu.be/<id>
-      if (uri.host.contains('youtu.be')) {
-        videoId = uri.pathSegments.isNotEmpty ? uri.pathSegments[0] : null;
-      }
-      // youtube.com/*
-      else if (uri.host.contains('youtube.com')) {
-        if (uri.path == '/watch') {
-          videoId = uri.queryParameters['v'];
-        } else if (uri.pathSegments.isNotEmpty) {
-          videoId = uri.pathSegments.last;
-        }
-      }
-
-      if (videoId == null || videoId.isEmpty) return null;
-
-      // hqdefault is always available
-      return 'https://img.youtube.com/vi/$videoId/hqdefault.jpg';
-    } catch (_) {
-      return null;
-    }
-  }
+  static String? getYoutubeThumbnailUrl(String youtubeUrl) =>
+      SharedUiUtils.getYoutubeThumbnailUrl(youtubeUrl);
 }

@@ -109,6 +109,13 @@
                             <form method="POST" action="{{ route('password.update') }}">
                                 @csrf
                                 <input type="hidden" name="token" value="{{ $token }}">
+                                @if ($errors->any())
+                                    <div class="alert alert-danger" role="alert">
+                                        @foreach ($errors->all() as $error)
+                                            <div>{{ $error }}</div>
+                                        @endforeach
+                                    </div>
+                                @endif
                                 <div class="form-group">
                                     <label>{{ __('email') }}</label>
                                     <input id="email" type="email" class="form-control form-control-lg" name="email"
@@ -119,7 +126,7 @@
                                     <label>{{ __('password') }}</label>
                                     <div class="input-group">
                                         <input id="password" type="password" class="form-control form-control-lg"
-                                            name="password" required autocomplete="current-password"
+                                            name="password" required autocomplete="new-password"
                                             placeholder="{{ __('password') }}">
                                         <div class="input-group-append">
                                             <span class="input-group-text">
@@ -127,6 +134,7 @@
                                             </span>
                                         </div>
                                     </div>
+                                    <small class="form-text text-muted">{{ __('password_rules_hint') }}</small>
                                 </div>
                                 <div class="form-group">
                                     <label>{{ __('confirm_password') }}</label>

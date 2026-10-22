@@ -5,12 +5,13 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Student;
 
 use App\Http\Controllers\Controller;
+use App\Mail\Platform\TemplateMail;
 use App\Models\AssignmentSubmission;
 use App\Models\Attendance;
 use App\Models\Category;
 use App\Models\ClassSection;
 use App\Models\ClassTeacher;
-use App\Models\EmailTempalate;
+use App\Models\EmailTemplate;
 use App\Models\ExamMarks;
 use App\Models\ExamResult;
 use App\Models\FormField;
@@ -24,17 +25,20 @@ use App\Models\StudentSessions;
 use App\Models\StudentSubject;
 use App\Models\Subject;
 use App\Models\User;
-use App\Services\EmailTemplateService;
 use App\Services\MailService;
+use App\Services\Platform\Files\FileNames;
+use App\Services\Platform\Identity\LearnerInvitations;
 use App\Services\ResponseService;
 use Carbon\Carbon;
 use Exception;
 use Illuminate\Http\Request;
+use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
+use Illuminate\Validation\ValidationException;
 use Spatie\Permission\Models\Role;
 use Throwable;
 
@@ -64,8 +68,7 @@ class StudentController extends Controller
 
         $category = Category::where('status', 1)->get();
         $formFields = FormField::where('for', 1)->orderBy('rank', 'ASC')->get();
-          $session_years = SessionYear::orderBy('id', 'ASC')->get();
-        
+        $session_years = SessionYear::orderBy('id', 'ASC')->get();
 
         return view('students.details', compact('class_section', 'category', 'formFields', 'session_years', 'is_restricted_teacher'));
     }
@@ -208,7 +211,7 @@ class StudentController extends Controller
 
                     $father_image = $request->file('father_image');
                     // made file name with combination of current time
-                    $file_name = time().'-'.$father_image->getClientOriginalName();
+                    $file_name = time().'-'.FileNames::forUpload($father_image);
                     // made file path to store in database
                     $file_path = 'parents/'.$file_name;
                     // resized image
@@ -302,7 +305,7 @@ class StudentController extends Controller
 
                     $mother_image = $request->file('mother_image');
                     // made file name with combination of current time
-                    $file_name = time().'-'.$mother_image->getClientOriginalName();
+                    $file_name = time().'-'.FileNames::forUpload($mother_image);
                     // made file path to store in database
                     $file_path = 'parents/'.$file_name;
                     // resized image
@@ -409,7 +412,7 @@ class StudentController extends Controller
 
                         $guardian_image = $request->file('guardian_image');
                         // made file name with combination of current time
-                        $file_name = time().'-'.$guardian_image->getClientOriginalName();
+                        $file_name = time().'-'.FileNames::forUpload($guardian_image);
                         // made file path to store in database
                         $file_path = 'parents/'.$file_name;
                         // resized image
@@ -506,11 +509,13 @@ class StudentController extends Controller
             $roll_number_db = $roll_number_db['max(roll_number)'];
             $roll_number = $roll_number_db + 1;
 
-            $child_plaintext_password = str_replace('-', '', date('d-m-Y', strtotime($request->dob ?? '2000-01-01')));
+            // No date-of-birth password: a random one nobody sees. Each guardian gets
+            // a link to choose the learner's password (LearnerInvitations, below).
+            $child_password_note = trans('learner_password_by_invitation');
 
             if ($request->hasFile('image')) {
                 $student_image = $request->file('image');
-                $file_name = time().'-'.$student_image->getClientOriginalName();
+                $file_name = time().'-'.FileNames::forUpload($student_image);
                 $file_path = 'students/'.$file_name;
                 resizeImage($student_image);
                 $destinationPath = storage_path('app/public/students');
@@ -518,7 +523,7 @@ class StudentController extends Controller
                 $user->image = $file_path;
             }
 
-            $user->password = Hash::make($child_plaintext_password);
+            $user->password = Hash::make(LearnerInvitations::unguessablePassword());
             $user->first_name = $request->first_name;
             $user->last_name = $request->last_name;
             //            $user->email = (isset($request->email)) ? $request->email : "";
@@ -617,7 +622,6 @@ class StudentController extends Controller
             $school_email = $settings['school_email'];
             $school_contact = $settings['school_phone'];
 
-            $AcceptTemplate = EmailTempalate::where('type', 'student_registration')->value('content');
             $applink = Settings::whereIn('type', ['teacher_app_link', 'teacher_ios_app_link'])
                 ->pluck('message', 'type')
                 ->toArray();
@@ -634,7 +638,7 @@ class StudentController extends Controller
                     'password' => (string) ' '.$father_plaintext_password,
                     'child_name' => (string) ' '.$request->first_name.' '.$request->last_name,
                     'child_grnumber' => (string) ' '.$admission_no,
-                    'child_password' => (string) ' '.$child_plaintext_password,
+                    'child_password' => (string) ' '.$child_password_note,
                     'type' => 'application_accept',
                     'class_name' => (string) $class_section_name,
                     'school_name' => (string) $school_name,
@@ -645,29 +649,7 @@ class StudentController extends Controller
                     'url' => url('/'),
 
                 ];
-                $htmlcontent = EmailTemplateService::render((string) $AcceptTemplate, $father_data);
-                $emailPayload = [
-                    'body' => $htmlcontent,
-                    'email' => $father_data['email'],
-                    'subject' => $father_data['subject'],
-                    'type' => $father_data['type'],
-                    'name' => $father_data['name'],
-                    'url' => $father_data['url'],
-                    'child_name' => $father_data['child_name'],
-                    'class_name' => $father_data['class_name'],
-                    'school_name' => $father_data['school_name'],
-                    'school_contact' => $father_data['school_contact'],
-                    'school_email' => $father_data['school_email'],
-                    'username' => $father_data['username'],
-                    'password' => $father_data['password'],
-                    'child_grnumber' => $father_data['child_grnumber'],
-                    'child_password' => $father_data['child_password'],
-
-                ];
-                MailService::sendWithFallback('students.email', $emailPayload, function ($message) use ($emailPayload, $admin_mail, $school_name) {
-                    $message->to($emailPayload['email'])->subject($emailPayload['subject']);
-                    $message->from($admin_mail, $school_name);
-                });
+                MailService::queue(TemplateMail::parentWelcome($father_data)->from($admin_mail, $school_name));
 
                 // MailService::sendWithFallback('students.email', $father_data, function ($message) use ($father_data) {
                 //     $message->to($father_data['email'])->subject($father_data['subject']);
@@ -681,7 +663,7 @@ class StudentController extends Controller
                     'password' => (string) ' '.$mother_plaintext_password,
                     'child_name' => (string) ' '.$request->first_name.' '.$request->last_name,
                     'child_grnumber' => (string) ' '.$admission_no,
-                    'child_password' => (string) ' '.$child_plaintext_password,
+                    'child_password' => (string) ' '.$child_password_note,
                     'type' => 'application_accept',
                     'class_name' => (string) $class_section_name,
                     'school_name' => (string) $school_name,
@@ -691,34 +673,13 @@ class StudentController extends Controller
                     'ios_app' => (string) $ios_app,
                     'url' => url('/'),
                 ];
-                $htmlcontent = EmailTemplateService::render((string) $AcceptTemplate, $mother_data);
-                $emailPayload = [
-                    'body' => $htmlcontent,
-                    'email' => $mother_data['email'],
-                    'subject' => $mother_data['subject'],
-                    'type' => $mother_data['type'],
-                    'name' => $mother_data['name'],
-                    'url' => $mother_data['url'],
-                    'child_name' => $mother_data['child_name'],
-                    'class_name' => $mother_data['class_name'],
-                    'school_name' => $mother_data['school_name'],
-                    'school_contact' => $mother_data['school_contact'],
-                    'school_email' => $mother_data['school_email'],
-                    'username' => $mother_data['username'],
-                    'password' => $mother_data['password'],
-                    'child_grnumber' => $mother_data['child_grnumber'],
-                    'child_password' => $mother_data['child_password'],
-                ];
-                MailService::sendWithFallback('students.email', $emailPayload, function ($message) use ($emailPayload, $admin_mail, $school_name) {
-                    $message->to($emailPayload['email'])->subject($emailPayload['subject']);
-                    $message->from($admin_mail, $school_name);
-                });
+                MailService::queue(TemplateMail::parentWelcome($mother_data)->from($admin_mail, $school_name));
 
                 // MailService::sendWithFallback('students.email', $mother_data, function ($message) use ($mother_data) {
                 //     $message->to($mother_data['email'])->subject($mother_data['subject']);
                 // });
             } else {
-                $template = EmailTempalate::where('type', 'student_registration')->value('content');
+                $template = EmailTemplate::where('type', 'student_registration')->value('content');
                 if (empty($template)) {
                     $template = "Hello , registration successful! Thank you for joining {$school_name}.";
                 }
@@ -731,63 +692,45 @@ class StudentController extends Controller
                 $ios_app = $applink['teacher_ios_app_link'] ?? '';
 
                 $guardian_data = [
-                    'subject'         => 'Welcome to ' . (string)$school_name,
-                    'email'           => (string)$guardian_email,
-                    'name'            => (string)$guardian_name,
-                    'username'        => (string)$guardian_email,
-                    'password'        => (string)$guardian_plaintext_password,
-                    'child_name'      => (string)($request->first_name . ' ' . $request->last_name),
-                    'child_grnumber'  => (string)$admission_no,
-                    'child_password'  => (string)$child_plaintext_password,
-                    'type'            => 'application_accept',
-                    'class_name'      => (string)$class_section_name,
-                    'school_name'     => (string)$school_name,
-                    'school_email'    => (string)$school_email,
-                    'school_contact'  => (string)$school_contact,
-                    'android_app'     => (string)$android_app,
-                    'ios_app'         => (string)$ios_app,
-                    'url'             => (string)url('/'),
+                    'subject' => 'Welcome to '.(string) $school_name,
+                    'email' => (string) $guardian_email,
+                    'name' => (string) $guardian_name,
+                    'username' => (string) $guardian_email,
+                    'password' => (string) $guardian_plaintext_password,
+                    'child_name' => (string) ($request->first_name.' '.$request->last_name),
+                    'child_grnumber' => (string) $admission_no,
+                    'child_password' => (string) $child_password_note,
+                    'type' => 'application_accept',
+                    'class_name' => (string) $class_section_name,
+                    'school_name' => (string) $school_name,
+                    'school_email' => (string) $school_email,
+                    'school_contact' => (string) $school_contact,
+                    'android_app' => (string) $android_app,
+                    'ios_app' => (string) $ios_app,
+                    'url' => (string) url('/'),
                 ];
 
-                $htmlcontent = EmailTemplateService::render($template, $guardian_data);
-
-                $emailPayload = [
-                    'body'            => $htmlcontent,
-                    'email'           => $guardian_data['username'],
-                    'subject'         => $guardian_data['subject'],
-                    'type'            => $guardian_data['type'],
-
-                    'name'            => $guardian_data['name'],
-                    'child_name'      => $guardian_data['child_name'],
-                    'class_name'      => $guardian_data['class_name'],
-                    'school_name'     => $guardian_data['school_name'],
-                    'school_contact'  => $guardian_data['school_contact'],
-                    'school_email'    => $guardian_data['school_email'],
-                    'url'             => $guardian_data['url'],
-                    'username'        => $guardian_data['username'],
-                    'password'        => $guardian_data['password'],
-                    'child_grnumber'  => $guardian_data['child_grnumber'],
-                    'child_password'  => $guardian_data['child_password']
-                ];
-
-                // 3. Dispatch the mail message cleanly
-                MailService::sendWithFallback('students.email', $emailPayload, function ($message) use ($emailPayload) {
-                    $message->to($emailPayload['email'])->subject($emailPayload['subject']);
-                });
+                MailService::queue(TemplateMail::parentWelcome($guardian_data, $template));
             }
 
             DB::commit();
-            ResponseService::successResponse(trans('data_store_successfully'));
-        } catch (\Illuminate\Validation\ValidationException $e) {
+
+            // After the commit, so a link never names a learner that was rolled back.
+            rescue(fn () => app(LearnerInvitations::class)->inviteGuardians($user, Auth::user()));
+
+            return ResponseService::successResponse(trans('data_store_successfully'));
+        } catch (ValidationException $e) {
             DB::rollback();
-            ResponseService::errorResponse($e->validator->errors()->first(), $e->validator->errors(), 422);
+
+            return ResponseService::errorResponse($e->validator->errors()->first(), $e->validator->errors(), 422);
         } catch (Throwable $e) {
             if (Str::contains($e->getMessage(), ['Failed', 'Mail', 'Mailer', 'MailManager'])) {
-                ResponseService::successResponse(trans('email_not_send'));
+                return ResponseService::successResponse(trans('email_not_send'));
             } else {
                 DB::rollback();
                 report($e);
-                ResponseService::errorResponse(trans('error_occurred'), $e);
+
+                return ResponseService::errorResponse(trans('error_occurred'), $e);
             }
         }
     }
@@ -796,7 +739,7 @@ class StudentController extends Controller
      * Display the specified resource.
      *
      * @param  int  $id
-     * @return \Illuminate\Http\Response
+     * @return Response
      */
     public function show()
     {
@@ -896,10 +839,10 @@ class StudentController extends Controller
             if (! $student) {
                 continue;
             }
-                         $operate = '';
+            $operate = '';
             if (! $hideActions) {
                 if (Auth::user()->can('student-edit')) {
-                     $operate .= '<a class="btn btn-xs btn-gradient-primary btn-rounded btn-icon editdata"
+                    $operate .= '<a class="btn btn-xs btn-gradient-primary btn-rounded btn-icon editdata"
             data-id='.$student->id.'
             data-url='.url('students').'
             title="Edit"
@@ -947,6 +890,22 @@ class StudentController extends Controller
         </a>&nbsp;&nbsp;';
                 }
 
+                // Sign-in set-up: email the guardians a link, or print a one-time code.
+                if (Auth::user()->canAny(['student-create', 'student-edit', 'student-reset-password'])) {
+                    $operate .= '<div class="dropdown">
+                <button class="btn btn-xs btn-gradient-info btn-rounded btn-icon dropdown-toggle"
+                    type="button" data-toggle="dropdown" title="'.e(trans('learner_sign_in')).'">
+                    <i class="fa fa-key"></i>
+                </button>
+                <div class="dropdown-menu">
+                    <a href="#" class="dropdown-item learner-invite" data-url="'.route('students.invite-guardians', $student->user_id).'">
+                        <i class="fa fa-envelope mr-2"></i>'.e(trans('email_guardians_sign_in_link')).'</a>
+                    <a href="#" class="dropdown-item learner-sheet" data-url="'.route('students.sign-in-sheet', $student->user_id).'">
+                        <i class="fa fa-print mr-2"></i>'.e(trans('print_sign_in_sheet')).'</a>
+                </div>
+            </div>&nbsp;&nbsp;';
+                }
+
                 // Show certificate dropdown on Student Detail view only
                 if (Auth::user()->can('generate-document')) {
                     $operate .= '<div class="dropdown">
@@ -977,8 +936,6 @@ class StudentController extends Controller
              <i class="fa fa-file-pdf-o"></i>
         </a>&nbsp;&nbsp;';
             }
-
-        
 
             $tempRow = [];
 
@@ -1201,7 +1158,7 @@ class StudentController extends Controller
 
                         $guardian_image = $request->file('guardian_image');
                         // made file name with combination of current time
-                        $file_name = time().'-'.$guardian_image->getClientOriginalName();
+                        $file_name = time().'-'.FileNames::forUpload($guardian_image);
                         // made file path to store in database
                         $file_path = 'parents/'.$file_name;
                         // resized image
@@ -1262,7 +1219,7 @@ class StudentController extends Controller
 
                 $student_image = $request->file('image');
                 // made file name with combination of current time
-                $file_name = time().'-'.$student_image->getClientOriginalName();
+                $file_name = time().'-'.FileNames::forUpload($student_image);
                 // made file path to store in database
                 $file_path = 'students/'.$file_name;
                 // resized image
@@ -1366,7 +1323,7 @@ class StudentController extends Controller
      * Remove the specified resource from storage.
      *
      * @param  int  $id
-     * @return \Illuminate\Http\Response
+     * @return Response
      */
     public function destroy($id)
     {
@@ -1454,7 +1411,7 @@ class StudentController extends Controller
                 'error' => false,
                 'message' => trans('data_delete_successfully'),
             ]);
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             return response()->json([
                 'error' => true,
                 'message' => trans('error_occurred'),
@@ -1482,7 +1439,7 @@ class StudentController extends Controller
                 'error' => false,
                 'message' => trans('user_delete_successfully'),
             ];
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             report($e);
             $response = [
                 'error' => true,

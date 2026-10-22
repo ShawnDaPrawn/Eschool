@@ -1,4 +1,4 @@
-The admin panel serves a JSON REST API under `/api` that both Flutter apps use. Routes are declared in [`routes/api.php`](https://github.com/ShawnDaPrawn/Eschool/blob/main/admin-panel/routes/api.php) and handled by the four controllers in [`app/Http/Controllers/Api/`](https://github.com/ShawnDaPrawn/Eschool/tree/main/admin-panel/app/Http/Controllers/Api). This page covers what every endpoint has in common (base URL, authentication, middleware, response envelope, error codes, limits) and ends with the master index of all 159 routes. Per-role details are on [API-Student](API-Student), [API-Parent](API-Parent) and [API-Teacher](API-Teacher).
+The admin panel serves a JSON REST API under `/api` that both Flutter apps use. Routes are declared in [`routes/api.php`](https://github.com/ShawnDaPrawn/Eschool/blob/main/admin-panel/routes/api.php) and handled by the four controllers in [`app/Http/Controllers/Api/`](https://github.com/ShawnDaPrawn/Eschool/tree/main/admin-panel/app/Http/Controllers/Api). This page covers what every endpoint has in common (base URL, authentication, middleware, response envelope, error codes, limits) and ends with the master index of all 159 v1 routes. Per-role details are on [API-Student](API-Student), [API-Parent](API-Parent) and [API-Teacher](API-Teacher). New endpoints go on [API v2](#api-v2) (`/api/v2`), described by `admin-panel/openapi.yaml`; v1 keeps serving the installed apps unchanged.
 
 ## At a glance
 
@@ -14,6 +14,7 @@ The admin panel serves a JSON REST API under `/api` that both Flutter apps use. 
 | Server time | `app.timezone`, which `SettingsConfigService::apply()` (called from `AppServiceProvider`) sets from the `time_zone` setting on every boot, falling back to `TIMEZONE` in `.env` (default `UTC`). Exam windows, due dates and "today" in the API use it, except where the code asks for UTC explicitly. |
 | Response | JSON object with `error`, `message`, `data`, `code` (see [Response envelope](#response-envelope)) |
 | Route count | 159: 1 logout, 49 student, 43 parent, 53 teacher, 13 general |
+| API v2 | `/api/v2/...` from `routes/api_v2.php`, contract `admin-panel/openapi.yaml`, Dart client `packages/eschool_api`; 1 route so far (`GET /api/v2/me/context`). See [API v2](#api-v2) |
 
 ## Base URL and how the apps build it
 
@@ -21,12 +22,12 @@ The API is part of the same Laravel application as the admin panel and the publi
 
 The Flutter apps hard-code the server address in one constant each:
 
-| App | File | Constants |
+| App | Where the address comes from | Names in the code |
 | --- | --- | --- |
-| Student/parent (`e-school`) | [`lib/utils/constants.dart`](https://github.com/ShawnDaPrawn/Eschool/blob/main/e-school/lib/utils/constants.dart) | `baseUrl = 'https://navigateed-admin-972068206844.africa-south1.run.app'`, `databaseUrl = '$baseUrl/api/'`, `storageUrl = '$baseUrl/storage/'` |
-| Teacher (`e-school-teacher`) | [`lib/utils/constants.dart`](https://github.com/ShawnDaPrawn/Eschool/blob/main/e-school-teacher/lib/utils/constants.dart) | same three constants |
+| Student/parent (`e-school`) | the `API_BASE_URL` build setting (`--dart-define`, or `config/staging.json` / `config/production.json`), read by `AppConfig` in `eschool_core`; no define means `https://navigateed-admin-972068206844.africa-south1.run.app` | `baseUrl`, `databaseUrl = '$baseUrl/api/'`, `storageUrl = '$baseUrl/storage/'` in `lib/utils/constants.dart`, mapped from `AppConfig` |
+| Teacher (`e-school-teacher`) | the same | the same three names |
 
-`baseUrl` must not end with `/`. Every endpoint is then a static string in the `Api` class of `lib/utils/api.dart`, for example `static String studentLogin = '${databaseUrl}student/login';`. Uploaded files are served from `/storage/...` (the public disk); the apps prefix relative paths with `storageUrl`, while some endpoints (chat attachments, gallery) already return absolute URLs built with `asset()`. Click-by-click setup of `baseUrl` is in the end-user docs: https://shawndaprawn.github.io/Eschool/mobile-app/integrate-admin-panel/ . See also [Mobile-App-Configuration](Mobile-App-Configuration).
+`API_BASE_URL` must not end with `/` ([Mobile-App-Configuration](Mobile-App-Configuration#build-settings)). Every endpoint is then a static string in the `Api` class of `lib/utils/api.dart`, for example `static String studentLogin = '${databaseUrl}student/login';`. Uploaded files are served from `/storage/...` (the public disk); the apps prefix relative paths with `storageUrl`, while some endpoints (chat attachments, gallery) already return absolute URLs built with `asset()`. Click-by-click setup of `baseUrl` is in the end-user docs: https://shawndaprawn.github.io/Eschool/mobile-app/integrate-admin-panel/ . See also [Mobile-App-Configuration](Mobile-App-Configuration).
 
 ## Route groups
 
@@ -141,10 +142,10 @@ Almost every endpoint answers through [`app/Services/ResponseService.php`](https
 
 Things to know about this envelope:
 
-- **HTTP status is always 200.** `successResponse` and `errorResponse` call `response()->json(...)->send()` without a status, so clients must branch on `error`, not on the status code. Real non-200 statuses only come from middleware (401, 403, 422, 429) and from uncaught framework errors.
+- **HTTP status is always 200.** `successResponse` and `errorResponse` build `response()->json(...)` without a status, so clients must branch on `error`, not on the status code. Real non-200 statuses only come from middleware (401, 403, 422, 429) and from uncaught framework errors.
 - **`config/constants.php` does not exist** in this repo, so `config('constants.RESPONSE_CODE.*')` is `null`. Every `validationError()` and every `errorResponse()` without an explicit code therefore returns `"code": null`. The apps rely on this: when `code` is `null` they show `message` verbatim.
 - **`details`** holds the exception message, file and line only when `APP_DEBUG=true`; otherwise it is `""`.
-- **The script exits inside the controller.** Both helpers end with `exit()`. The response is sent before the middleware stack unwinds, so after-middleware does not touch it: CORS headers from `HandleCors`, the `SecurityHeaders` headers and throttle headers are not added to these responses. Endpoints that `return response()->json(...)` instead (gallery, `get-events-details`, the middleware errors above) go through the full stack. For the same reason the feature tests cannot call these endpoints in-process; they serve the app from a separate `php -S` process ([`tests/Concerns/RunsAppServer.php`](https://github.com/ShawnDaPrawn/Eschool/blob/main/admin-panel/tests/Concerns/RunsAppServer.php), see [Testing-and-CI](Testing-and-CI)).
+- **The controller returns the response.** The helpers return it and every action does `return ResponseService::...` (a helper that must stop the request throws it in an `HttpResponseException`). The response therefore goes back through the middleware like any other: `HandleCors`, `SecurityHeaders` and the throttle headers apply. Until Phase 0 the helpers sent the response and called `exit()`, so these responses went out without those headers and API tests needed a separate server; they can now call the API in-process (see [Testing-and-CI](Testing-and-CI#testsconcernsrunsappserverphp)).
 
 Examples taken from the code:
 
@@ -238,6 +239,7 @@ RateLimiter::for('login', function (Request $request) {
 - `api` applies to every API route. `login` is added on top for the five login/reset routes, and also on the web `password/email` route.
 - The per-account key includes the path, so `student/login` and `student/forgot-password` are counted separately. The comment in the code gives the reason: default passwords are dates of birth.
 - Exceeding a limit returns HTTP 429 (`ThrottleRequestsException`), as JSON only when the request sends `Accept: application/json`.
+- API v2 adds two limiters on top of `api`, defined in `RouteServiceProvider::configureApiV2RateLimiting()`: `auth` (5 a minute per account, 20 per address) and `money` (30 a minute per token). See [API v2 rate limits](#rate-limits).
 
 ## Roles and scoping
 
@@ -315,7 +317,7 @@ For any type other than `app_settings`, `data` is the raw settings value with th
 | `compulsory_fee_payment_mode`, `is_student_can_pay_fees` | fee settings |
 | `chat_settings` | `max_files_or_images_in_one_message` (default 10), `max_file_size_in_bytes` (setting in MB times 1,000,000; default 10,000,000), `max_characters_in_text_message` (default 500), `automatically_messages_removed_days` (default 30) |
 | `holiday_days` | `leave_masters.holiday_days` for the current session |
-| `payment_options` | `currency_code`, `currency_symbol`, optional `fees_due_date` / `fees_due_charges`, and one object per enabled gateway with only its public key: `razorpay` (`razorpay_api_key`), `stripe` (`stripe_publishable_key`), `paystack` (`paystack_public_key`), `flutterwave` (`flutterwave_public_key`), each with its status and currency code |
+| `payment_options` | `currency_code`, `currency_symbol`, optional `fees_due_date` / `fees_due_charges`, and, when Stripe is enabled, `stripe` with only its public key (`stripe_publishable_key`), its status and currency code. `razorpay`, `paystack` and `flutterwave` were removed in Phase 0 and are always left out, as a disabled gateway is |
 | `online_exam_terms_condition` | HTML-decoded text |
 | `current_semester` | the semester whose `current` attribute is true, or `null` |
 | `semester_breaks` | list of `{start, end}` gaps between consecutive semesters inside the session year, or `null` |
@@ -336,6 +338,130 @@ Secret keys and webhook secrets are never included. Until commit `839c9eb` this 
 | `GET /api/get-gallery-albums` | `per_page`, `page` | albums (`id`, `title`, `thumbnail_url`) |
 | `GET /api/get-gallery-images` | `album_id` (required) | absolute URLs of the album's images |
 | `GET /api/get-gallery-videos` | `per_page`, `page` | video URLs (YouTube URL, or an absolute local URL) |
+
+## API v2
+
+New endpoints go on `/api/v2`. v1 stays as it is for the apps already installed: its routes, fields and error bodies never change, and fields are only added. v2 keeps v1's envelope, so the apps' `ApiClient` can read both, and adds real HTTP statuses, string error codes, one list convention, idempotent writes and a machine-checked contract.
+
+### Base path and route file
+
+| Item | Value |
+| --- | --- |
+| Base path | `https://<admin-panel-host>/api/v2/` |
+| Route file | [`routes/api_v2.php`](https://github.com/ShawnDaPrawn/Eschool/blob/main/admin-panel/routes/api_v2.php), loaded by `bootstrap/app.php` (`withRouting(then: ...)`) with prefix `api/v2` and the same `api` middleware group as v1 |
+| Route names | `api.v2.<area>.<action>`, for example `api.v2.me.context` |
+| Contract | [`admin-panel/openapi.yaml`](https://github.com/ShawnDaPrawn/Eschool/blob/main/admin-panel/openapi.yaml) (OpenAPI 3.1) |
+| Dart client | [`packages/eschool_api`](https://github.com/ShawnDaPrawn/Eschool/tree/main/packages/eschool_api), generated from the contract |
+| Authentication | Sanctum bearer tokens for the apps (the token from the v1 sign-in); Sanctum's cookie mode for the web portals |
+
+Every route sits in a role group:
+
+| Group | Middleware | Who gets in |
+| --- | --- | --- |
+| every profile | `auth:sanctum`, `role.any` | any signed-in user with at least one role |
+| `student/*` | `auth:sanctum`, `role:Student`, `student.session.active` | learners, as in v1 |
+| `parent/*` | `auth:sanctum`, `role:Parent`, `parent.children.session.active`, `parent.policy` | parents, as in v1 |
+| `teacher/*` | `auth:sanctum`, `role:Teacher`, `teacher.policy` | teachers, as in v1 |
+| `staff/*` | `auth:sanctum`, `staff` | the Super Admin, Teachers and every role a school creates (any role except Parent and Student, the panel's rule) |
+| `auth/*` | `throttle:auth` | sign-in, one-time codes and resets (Phase 1) |
+
+Every authenticated group also has `idempotent` (see [Idempotency](#idempotency)). Money writes go in a nested group with `throttle:money` and `idempotent:required` inside their profile's group. `role.any` (`EnsureUserHasAnyRole`) and `staff` (`EnsureUserIsStaff`) answer 403 like Spatie's `role:`.
+
+### Envelope and errors
+
+Every answer is `{error, message, data, code}`, as in v1. Unlike v1:
+
+- **Real HTTP statuses.** Success is 2xx with `code: 200`; a failure is 4xx or 5xx with `error: true`. Check the status (or `error`), as before.
+- **String error codes**, rendered for every exception under `/api/v2` by `App\Exceptions\ApiV2ExceptionRenderer` (registered in `bootstrap/app.php`; v1 errors keep Laravel's own bodies):
+
+| HTTP | `code` | When |
+| --- | --- | --- |
+| 400 | `bad_request`, `idempotency_key_missing`, `idempotency_key_invalid` | unreadable request; a money write without an `Idempotency-Key`; a malformed key |
+| 401 | `unauthenticated` | no token, or an expired or revoked one (the apps sign out) |
+| 403 | `forbidden` | outside the route's role group, or a policy says no |
+| 404 | `not_found` | no such endpoint or record (also another school's record, from Phase 1) |
+| 405 | `method_not_allowed` | wrong method |
+| 409 | `idempotency_key_in_progress`, `conflict` | the first request with this key is still running; a concurrent change |
+| 422 | `validation_failed`, `idempotency_key_reused` | invalid input (`message` is the first error, `data.errors` has every message by field); a key reused for another request |
+| 429 | `too_many_requests` | over a limit; `Retry-After` says how long to wait |
+| 500 | `server_error` | a bug; no exception text unless `APP_DEBUG` is on (then in `details`) |
+
+Any other status comes with `http_error`. Clients must accept codes they do not know. A response a helper throws on purpose (`HttpResponseException`) passes through unchanged. Messages are labels (`api_*` in `resources/lang/*.json`).
+
+Note: the v1 session and policy middleware on the student, parent and teacher groups still answer in their v1 shapes (`SESSION_NOT_ACTIVE`, `policy_acceptance_required`). No v2 route sits in those groups yet; when the first does, give those answers the v2 envelope for `/api/v2` paths.
+
+### `GET /api/v2/me/context`
+
+Apps fetch it when they start, after signing in and when the user changes school, and keep the last answer. Every profile may call it (`role.any`). Controller `Api/V2/Platform/ContextController`, service `Services/Platform/ContextService`, resources in `Http/Resources/Platform/`. Budget 150 ms at p95: 7 queries for a teacher, 10 for a parent, whatever the number of children (`ContextTest` counts them).
+
+| Field | Content |
+| --- | --- |
+| `user` | `id`, `first_name`, `last_name`, `name`, `email` (a learner's GR number), `image` (URL or null), `roles` |
+| `schools` | `[{school: {id, name, short_name, crest_url}, roles}]`: one school (id 1) until Phase 1 adds memberships |
+| `current_school` | `id`, `name`, `short_name` (setting `school_short_name`), `crest_url` (setting `logo1`, null when none), `tagline`, `branding` (`theme_color`, `secondary_color` as stored), `timezone` (setting `time_zone`), `session_year` (the `session_year` setting's year with its `terms`: the semesters, each with `current`), or null when no year is set |
+| `modules`, `notification_rules` | `[]` until Phase 1 |
+| `feature_flags` | `{}` until Phase 1 (always an object) |
+| `sign_in_methods` | `["password"]`; passkeys, Google, Microsoft and email links arrive in Phase 1 |
+| `children` | a parent's children (as father, mother or guardian): `id` (the v1 `child_id`), `user_id`, names, `image`, `school`; `[]` for everyone else |
+
+### List conventions
+
+Every v2 list endpoint takes the same query parameters, defined once in `openapi.yaml` under `components/parameters`:
+
+| Parameter | Meaning |
+| --- | --- |
+| `page` | page number, from 1 |
+| `per_page` | 1 to 100, default 20 |
+| `sort` | comma-separated fields, `-` for descending: `-created_at,name` |
+| `filter[<field>]` | exact filters, for example `filter[status]=active`; each list documents its fields |
+| `q` | free-text search |
+
+and answers `data: {items: [...], pagination: {page, per_page, total, last_page}}` (`Pagination` in the spec).
+
+### Idempotency
+
+Writes accept an `Idempotency-Key` header (a UUID is best; 1 to 255 visible ASCII characters). `App\Http\Middleware\HandleIdempotencyKey` (alias `idempotent`) with `App\Services\Platform\IdempotencyService` follows the IETF Idempotency-Key draft:
+
+- the first request with a key runs, and its answer is stored in `idempotency_keys` (user, key, route, request hash, status, headers, body) for 24 hours;
+- the same key with the same request (method, path, input and uploaded files) gets the stored answer again with `Idempotent-Replayed: true`, and the work does not run again;
+- the same key with a different request: 422 `idempotency_key_reused`; while the first request is still running: 409 `idempotency_key_in_progress`;
+- answers that may be retried are not stored (5xx, 401, 403, 409, 429), so a retry runs again;
+- keys are per user; requests without a signed-in user and reads pass straight through;
+- `idempotent:required` (money writes) refuses a write without a key: 400 `idempotency_key_missing`.
+
+Expired rows are deleted daily by `model:prune` (`routes/console.php`).
+
+### Rate limits
+
+| Limiter | Limit | Applies to |
+| --- | --- | --- |
+| `api` | 60 a minute per user (per address when signed out) | every v1 and v2 route (the `api` group) |
+| `auth` | 5 a minute per account (`email`, `handle` or `gr_number`) and 20 per address | the v2 `auth` group |
+| `money` | 30 a minute per token (per session for the portals) | the v2 money groups |
+
+A 429 carries `Retry-After` and the `X-RateLimit-*` headers, in the error envelope.
+
+### OpenAPI is the contract
+
+`admin-panel/openapi.yaml` describes every v2 route, schema and error. It is checked three ways:
+
+- CI's **OpenAPI contract (lint)** job runs Redocly CLI (`redocly.yaml`: `recommended-strict`, so any warning fails);
+- `tests/Feature/Contracts` fails when a v2 route has no operation in the spec (or an operation has no route), when a route has no scenario there, and when any response does not match: every v2 response in a test using `ValidatesOpenApiResponses` is validated with `league/openapi-psr7-validator`. Response objects set `additionalProperties: false`, so a new field fails until the spec has it;
+- CI regenerates `packages/eschool_api` and fails if the committed client differs.
+
+`ApiContractTest` also snapshots the v2 context for each app, like every v1 call. See [Testing-and-CI](Testing-and-CI#contracts-suite).
+
+### Adding a v2 endpoint
+
+Follow the domain recipe (the Build Bible, section 3.2), for example for a `Money` endpoint:
+
+1. Migration with `school_id` (from Phase 1), model in `app/Models/Money/`, policy in `app/Policies/Money/` registered in `AuthServiceProvider`.
+2. A FormRequest per write in `app/Http/Requests/Money/`; the rules in a service in `app/Services/Money/`, inside `DB::transaction`.
+3. A thin controller in `app/Http/Controllers/Api/V2/Money/`: request, policy, service, then `return ResponseService::successResponse('...', new SomethingResource($model));` with a JSON Resource from `app/Http/Resources/Money/`. Errors are exceptions (`ValidationException`, `AuthorizationException`, `ModelNotFoundException`); the renderer turns them into the envelope.
+4. The route in `routes/api_v2.php` inside the right role group (money writes in the nested money group), with a name `api.v2....`.
+5. The operation and schemas in `openapi.yaml`; lists use the shared parameters and `Pagination`, writes the `IdempotencyKey` parameter.
+6. Run `packages/eschool_api/tool/generate.sh` and commit the regenerated client.
+7. Tests in `tests/Feature/Money/` (wrong role, another user's record, the happy path, the policy) using `ValidatesOpenApiResponses`, and the endpoint's scenarios in `OpenApiContractTest::scenarios()`. The Tenancy and Authorization suites pick the route up from the router.
 
 ## Master route index
 
@@ -536,6 +662,12 @@ Controller names are shortened: `Api` = `ApiController`, `Student\Area`, `Parent
 | GET | `get-gallery-images` | `Api@getGalleryImages` | none |
 | GET | `get-gallery-videos` | `Api@getGalleryVideos` | none |
 | POST | `change-password` | `Api@changePassword` | `auth:sanctum` |
+
+### API v2 (`/api/v2/...`) — details in [API v2](#api-v2)
+
+| Method | Path | Controller@method | Middleware |
+| --- | --- | --- | --- |
+| GET | `v2/me/context` | `V2\Platform\Context@show` | `auth:sanctum`, `role.any`, `idempotent` |
 
 Several "read" endpoints are `POST` (`get-user-message`, `get-leave-list`, `get-payment-status`, `get-student-leave-list`) and one `GET` writes data (`student/send-fee-notification`); keep the method as listed. `get-events-details` accepts both `GET` and `POST` (`Route::match`).
 

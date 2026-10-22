@@ -1,0 +1,565 @@
+openapi: 3.1.0
+info:
+  title: NavigateEd API v2
+  version: 2.0.0
+  summary: The contract for every /api/v2 endpoint.
+  description: |
+    API v2 is served by the admin panel's Laravel app under `/api/v2`, next to
+    v1 (`/api`), which keeps serving the installed apps unchanged. This file is
+    the contract: `tests/Feature/Contracts` validates every v2 response against
+    it and fails on a v2 route it does not describe, CI lints it, and
+    `packages/eschool_api` (the apps' Dart client) is generated from it.
+
+    Change it in the same pull request as the endpoint. Fields and endpoints
+    are only ever added: nothing is renamed or removed while an app version in
+    use still reads it.
+
+    ## Envelope
+
+    Every answer is a JSON object `{error, message, data, code}`, as in v1:
+    `error` is `false` on success and `true` on failure, `message` is a
+    sentence the app may show, `data` is the payload (or `null`) and `code` is
+    `200` on success and a string error code (below) on failure. Unlike v1, v2
+    also uses real HTTP statuses: 2xx on success, 4xx or 5xx with
+    `error: true`. A failure may carry `details` (exception text, only when
+    the server runs in debug mode).
+
+    ## Error codes
+
+    | HTTP | `code` | When |
+    | --- | --- | --- |
+    | 400 | `bad_request` | The request could not be read |
+    | 400 | `idempotency_key_missing` | A write that needs an `Idempotency-Key` came without one |
+    | 400 | `idempotency_key_invalid` | The `Idempotency-Key` is not 1 to 255 visible ASCII characters |
+    | 401 | `unauthenticated` | No token, or an expired or revoked one: sign the user out |
+    | 403 | `forbidden` | Signed in, but this profile may not do this |
+    | 404 | `not_found` | No such endpoint or record (also for another school's record) |
+    | 405 | `method_not_allowed` | Wrong HTTP method |
+    | 409 | `idempotency_key_in_progress` | The first request with this key is still running; retry shortly |
+    | 409 | `conflict` | A concurrent change got there first |
+    | 413 | `payload_too_large` | The body is too large |
+    | 419 | `session_expired` | Web portals: the CSRF token expired |
+    | 422 | `validation_failed` | Invalid input; `data.errors` lists every message by field, `message` is the first |
+    | 422 | `idempotency_key_reused` | This key was already used for a different request |
+    | 429 | `too_many_requests` | Over a rate limit; wait `Retry-After` seconds |
+    | 500 | `server_error` | A bug on our side; the request may be retried |
+    | 503 | `unavailable` | Maintenance or overload |
+
+    Any other status comes with `http_error`. Clients must accept codes they do
+    not know (treat them by HTTP status).
+
+    ## Authentication
+
+    The apps send a Sanctum personal access token (`Authorization: Bearer
+    <id>|<token>`), issued by the v1 sign-in endpoints. The web portals sign in
+    with Sanctum cookies instead: `GET /sanctum/csrf-cookie`, then the session
+    cookie plus an `X-XSRF-TOKEN` header. Every v2 route sits in a role group
+    (Student, Parent, Teacher, staff, or every profile); another profile gets
+    403.
+
+    ## Rate limits
+
+    | Limiter | Limit | Applies to |
+    | --- | --- | --- |
+    | `api` | 60 a minute per user (per address when signed out) | every route |
+    | `auth` | 5 a minute per account and 20 per address | sign-in, one-time codes, password resets |
+    | `money` | 30 a minute per token | money writes |
+
+    Answers carry `X-RateLimit-Limit` and `X-RateLimit-Remaining`; a 429 adds
+    `Retry-After` (seconds).
+
+    ## Lists
+
+    List endpoints take the same parameters everywhere (see
+    `components/parameters`): `page` (from 1), `per_page` (1 to 100),
+    `sort` (comma-separated fields, `-` for descending), `filter[<field>]`
+    and `q` (free-text search). They answer `data: {items: [...],
+    pagination: Pagination}`.
+
+    ## Idempotency
+
+    Writes accept an `Idempotency-Key` header (any unique string, a UUID is
+    best). A retry with the same key and the same request gets the first
+    answer again, with `Idempotent-Replayed: true`, and the work runs once.
+    The same key with a different request is refused (422
+    `idempotency_key_reused`). Keys are per user and kept 24 hours. Money
+    writes require one.
+  contact:
+    name: NavigateEd engineering
+servers:
+  - url: /api/v2
+    description: The admin panel's host (for example https://admin.navigateed.co.za/api/v2)
+security:
+  - bearerAuth: []
+  - cookieAuth: []
+tags:
+  - name: Platform
+    description: Who is signed in and the school they work in.
+paths:
+  /me/context:
+    get:
+      operationId: getMeContext
+      tags: [Platform]
+      summary: The signed-in user, their schools and the current school
+      description: |
+        What an app needs to set itself up: the user and their roles, the
+        schools they belong to, the current school (branding, timezone, year
+        and terms), which modules it has on, its notification rules and
+        feature flags, the sign-in methods it offers and, for a parent, each
+        child with that child's school. Apps fetch it at start-up, after
+        signing in and when the user changes school, and keep a cached copy. Every profile may call it. Budget: 150 ms at p95.
+
+        Phase 0 runs one school (id 1); `modules`, `notification_rules` and
+        `feature_flags` are empty until Phase 1 fills them.
+      responses:
+        '200':
+          description: The context.
+          headers:
+            X-RateLimit-Limit:
+              $ref: '#/components/headers/X-RateLimit-Limit'
+            X-RateLimit-Remaining:
+              $ref: '#/components/headers/X-RateLimit-Remaining'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ContextResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      description: A Sanctum personal access token, `<id>|<token>`, from an app's sign-in.
+    cookieAuth:
+      type: apiKey
+      in: cookie
+      name: e_school_session
+      description: |
+        The web portals' Sanctum session cookie (named by SESSION_COOKIE;
+        `e_school_session` by default), with the `X-XSRF-TOKEN` header from
+        `GET /sanctum/csrf-cookie` on writes.
+  parameters:
+    Page:
+      name: page
+      in: query
+      description: The page of a list, from 1.
+      schema:
+        type: integer
+        minimum: 1
+        default: 1
+    PerPage:
+      name: per_page
+      in: query
+      description: Items per page.
+      schema:
+        type: integer
+        minimum: 1
+        maximum: 100
+        default: 20
+    Sort:
+      name: sort
+      in: query
+      description: Comma-separated fields to sort by; a leading `-` sorts that field descending, for example `-created_at,name`.
+      schema:
+        type: string
+        pattern: '^-?[a-z_]+(,-?[a-z_]+)*$'
+    Filter:
+      name: filter
+      in: query
+      description: 'Filters by field, for example `filter[status]=active&filter[class_id]=3`. Each list says which fields it filters on.'
+      style: deepObject
+      explode: true
+      schema:
+        type: object
+        additionalProperties:
+          type: string
+    Q:
+      name: q
+      in: query
+      description: Free-text search over the list's main text fields.
+      schema:
+        type: string
+        maxLength: 200
+    IdempotencyKey:
+      name: Idempotency-Key
+      in: header
+      description: Makes a write safe to retry. Any unique string of 1 to 255 visible ASCII characters (a UUID is best), kept 24 hours per user. Required on money writes.
+      schema:
+        type: string
+        minLength: 1
+        maxLength: 255
+        pattern: '^[\x21-\x7E]+$'
+  headers:
+    X-RateLimit-Limit:
+      description: Requests allowed in the current minute.
+      schema:
+        type: integer
+    X-RateLimit-Remaining:
+      description: Requests left in the current minute.
+      schema:
+        type: integer
+    Retry-After:
+      description: Seconds to wait before trying again.
+      schema:
+        type: integer
+    Idempotent-Replayed:
+      description: '`true` when this is the stored answer to an earlier request with the same Idempotency-Key.'
+      schema:
+        type: string
+  responses:
+    Unauthenticated:
+      description: No valid token or session. The app signs the user out.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    Forbidden:
+      description: This profile may not use this endpoint.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    NotFound:
+      description: No such endpoint or record.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    ValidationFailed:
+      description: Invalid input, or an Idempotency-Key reused for a different request.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    IdempotencyKeyProblem:
+      description: A write that needs an Idempotency-Key came without a valid one.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    IdempotencyKeyInProgress:
+      description: The first request with this Idempotency-Key is still running.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    TooManyRequests:
+      description: Over a rate limit.
+      headers:
+        Retry-After:
+          $ref: '#/components/headers/Retry-After'
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    ServerError:
+      description: A bug on our side.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+  schemas:
+    ErrorCode:
+      type: string
+      description: What went wrong (see the table in the description). Clients must accept codes they do not know.
+      enum:
+        - bad_request
+        - unauthenticated
+        - forbidden
+        - not_found
+        - method_not_allowed
+        - conflict
+        - payload_too_large
+        - session_expired
+        - validation_failed
+        - too_many_requests
+        - server_error
+        - unavailable
+        - http_error
+        - idempotency_key_missing
+        - idempotency_key_invalid
+        - idempotency_key_reused
+        - idempotency_key_in_progress
+    ErrorResponse:
+      type: object
+      description: The envelope of every failure.
+      additionalProperties: false
+      required: [error, message, data, code]
+      properties:
+        error:
+          type: boolean
+          description: Always true.
+        message:
+          type: string
+          description: A sentence the app may show (for validation, the first message).
+        data:
+          description: Every validation message by field, for `validation_failed`; otherwise null.
+          oneOf:
+            - $ref: '#/components/schemas/ValidationErrors'
+            - type: 'null'
+        code:
+          $ref: '#/components/schemas/ErrorCode'
+        details:
+          type: string
+          description: Exception text, only when the server runs in debug mode.
+    ValidationErrors:
+      type: object
+      additionalProperties: false
+      required: [errors]
+      properties:
+        errors:
+          type: object
+          description: Messages by field name (nested fields use dots, for example `items.0.amount`).
+          additionalProperties:
+            type: array
+            items:
+              type: string
+    Pagination:
+      type: object
+      description: 'Where a page sits in a list. List endpoints answer `data: {items, pagination}`.'
+      additionalProperties: false
+      required: [page, per_page, total, last_page]
+      properties:
+        page:
+          type: integer
+          minimum: 1
+        per_page:
+          type: integer
+          minimum: 1
+          maximum: 100
+        total:
+          type: integer
+          minimum: 0
+        last_page:
+          type: integer
+          minimum: 1
+    ContextResponse:
+      type: object
+      additionalProperties: false
+      required: [error, message, data, code]
+      properties:
+        error:
+          type: boolean
+          description: Always false.
+        message:
+          type: string
+        data:
+          $ref: '#/components/schemas/Context'
+        code:
+          type: integer
+          description: Always 200.
+    Context:
+      type: object
+      additionalProperties: false
+      required: [user, schools, current_school, modules, notification_rules, feature_flags, sign_in_methods, children]
+      properties:
+        user:
+          $ref: '#/components/schemas/ContextUser'
+        schools:
+          type: array
+          description: Every school the user belongs to, with their roles there (one school until Phase 1).
+          items:
+            $ref: '#/components/schemas/SchoolMembership'
+        current_school:
+          $ref: '#/components/schemas/CurrentSchool'
+        modules:
+          type: array
+          description: Modules switched on at the current school (empty until Phase 1).
+          items:
+            $ref: '#/components/schemas/Module'
+        notification_rules:
+          type: array
+          description: The current school's notification rules for this profile (empty until Phase 1).
+          items:
+            $ref: '#/components/schemas/NotificationRule'
+        feature_flags:
+          type: object
+          description: Feature switches by key (empty until Phase 1).
+          additionalProperties:
+            type: boolean
+        sign_in_methods:
+          type: array
+          description: How this user may sign in at the current school, for example `password` (passkeys, Google, Microsoft and email links arrive in Phase 1).
+          items:
+            type: string
+        children:
+          type: array
+          description: A parent's children (as father, mother or guardian); empty for everyone else.
+          items:
+            $ref: '#/components/schemas/Child'
+    ContextUser:
+      type: object
+      additionalProperties: false
+      required: [id, first_name, last_name, name, email, image, roles]
+      properties:
+        id:
+          type: integer
+        first_name:
+          type: string
+        last_name:
+          type: string
+        name:
+          type: string
+          description: First and last name.
+        email:
+          type: string
+          description: The sign-in name; a learner's is their GR number.
+        image:
+          type: [string, 'null']
+          description: The profile picture's URL, or null.
+        roles:
+          type: array
+          description: Role names, for example `Parent`, `Teacher`, `Super Admin` or a role the school created.
+          items:
+            type: string
+    SchoolSummary:
+      type: object
+      additionalProperties: false
+      required: [id, name, short_name, crest_url]
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        short_name:
+          type: [string, 'null']
+        crest_url:
+          type: [string, 'null']
+          description: The school's crest or logo, shown beside the NavigateEd brand; null when none is uploaded.
+    SchoolMembership:
+      type: object
+      additionalProperties: false
+      required: [school, roles]
+      properties:
+        school:
+          $ref: '#/components/schemas/SchoolSummary'
+        roles:
+          type: array
+          items:
+            type: string
+    CurrentSchool:
+      type: object
+      additionalProperties: false
+      required: [id, name, short_name, crest_url, tagline, branding, timezone, session_year]
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        short_name:
+          type: [string, 'null']
+        crest_url:
+          type: [string, 'null']
+        tagline:
+          type: [string, 'null']
+        branding:
+          $ref: '#/components/schemas/Branding'
+        timezone:
+          type: string
+          description: IANA timezone the school's dates and times are shown in, for example `Africa/Johannesburg`.
+        session_year:
+          description: The current school year, or null when none is set.
+          oneOf:
+            - $ref: '#/components/schemas/SessionYear'
+            - type: 'null'
+    Branding:
+      type: object
+      description: The school's colours as the school stored them (usually `#RRGGBB`). Shown only on the crest and the school's own page, never in place of the NavigateEd theme.
+      additionalProperties: false
+      required: [theme_color, secondary_color]
+      properties:
+        theme_color:
+          type: [string, 'null']
+        secondary_color:
+          type: [string, 'null']
+    SessionYear:
+      type: object
+      additionalProperties: false
+      required: [id, name, start_date, end_date, terms]
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        start_date:
+          type: [string, 'null']
+          format: date
+        end_date:
+          type: [string, 'null']
+          format: date
+        terms:
+          type: array
+          items:
+            $ref: '#/components/schemas/Term'
+    Term:
+      type: object
+      additionalProperties: false
+      required: [id, name, start_date, end_date, current]
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        start_date:
+          type: [string, 'null']
+          format: date
+        end_date:
+          type: [string, 'null']
+          format: date
+        current:
+          type: boolean
+          description: Whether today, in the school's timezone, falls in this term.
+    Module:
+      type: object
+      description: A module switched on at the school (Phase 1).
+      additionalProperties: false
+      required: [key, read_only]
+      properties:
+        key:
+          type: string
+          description: The module's key in config/modules.php, for example `fees`.
+        read_only:
+          type: boolean
+          description: True when the module was switched off with data left in it, so it can be seen but not changed.
+    NotificationRule:
+      type: object
+      description: How the school sends one notification type to this profile (Phase 1).
+      additionalProperties: false
+      required: [type, channel, mode]
+      properties:
+        type:
+          type: string
+          description: The notification type's key, for example `fees.invoice`.
+        channel:
+          type: string
+          description: '`push`, `email` or `in_app`.'
+        mode:
+          type: string
+          description: '`mandatory`, `default_on`, `default_off` or `off`.'
+    Child:
+      type: object
+      additionalProperties: false
+      required: [id, user_id, first_name, last_name, name, image, school]
+      properties:
+        id:
+          type: integer
+          description: The learner's id (the `child_id` the v1 parent endpoints take).
+        user_id:
+          type: integer
+        first_name:
+          type: string
+        last_name:
+          type: string
+        name:
+          type: string
+        image:
+          type: [string, 'null']
+        school:
+          $ref: '#/components/schemas/SchoolSummary'

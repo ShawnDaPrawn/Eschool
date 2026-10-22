@@ -29,7 +29,7 @@ class EnsureParentChildrenSessionIsActive
             ->get();
 
         $hasAnyValidSession = false;
-        $hasAnyActiveChild  = false;
+        $hasAnyActiveChild = false;
 
         foreach ($children as $child) {
 
@@ -52,7 +52,7 @@ class EnsureParentChildrenSessionIsActive
         if (! $hasAnyValidSession) {
             return response()->json([
                 'message' => 'Your account is not active for the current academic year because promotion to the next class has not been completed. Please contact the administration.',
-                'code'    => 'SESSION_NOT_ACTIVE',
+                'code' => 'SESSION_NOT_ACTIVE',
             ], Response::HTTP_UNAUTHORIZED);
         }
 
@@ -60,7 +60,7 @@ class EnsureParentChildrenSessionIsActive
         if (! $hasAnyActiveChild) {
             return response()->json([
                 'message' => 'Your account is deactivated. Please contact admin for further help.',
-                'code'    => 'ACCOUNT_DEACTIVATED',
+                'code' => 'ACCOUNT_DEACTIVATED',
             ], Response::HTTP_UNAUTHORIZED);
         }
 

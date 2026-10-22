@@ -36,7 +36,11 @@ class LogRedactionTest extends TestCase
         }
     }
 
-    public function test_a_large_request_makes_a_small_log_entry(): void
+    /**
+     * Logs carry ids only: the request is logged by its field names, never
+     * their values (it used to be a curl command with every value).
+     */
+    public function test_a_large_request_makes_a_small_log_entry_without_values(): void
     {
         Log::spy();
         $request = Request::create('/api/student/apply-leave?token=query-secret', 'POST', [
@@ -54,7 +58,7 @@ class LogRedactionTest extends TestCase
         $entries = [];
         Log::shouldHaveReceived('error')->withArgs(function (string $message, array $context = []) use (&$entries) {
             // report() also logs the exception itself; that entry is the framework's.
-            if (str_starts_with($message, 'CURL Request') || str_contains($message, 'Params : ')) {
+            if (str_starts_with($message, 'Request: ') || str_contains($message, 'Params : ')) {
                 $entries[] = $message.json_encode($context);
             }
 
@@ -62,12 +66,18 @@ class LogRedactionTest extends TestCase
         });
 
         $this->assertCount(2, $entries);
-        $this->assertStringContainsString('a[b][c][d][e]=deep-value', $entries[0]);
+        $this->assertStringStartsWith('Request: POST /api/student/apply-leave', $entries[0]);
+        // The request line names the fields; the parameters line keeps their shape.
+        foreach (['a.b.c.d.e', 'password', 'reason', 'items.*', 'token'] as $name) {
+            $this->assertStringContainsString('"'.$name.'"', $entries[0]);
+        }
+        foreach (['"a":{"b":{"c":{"d":{"e":"[omitted]"}}}}', '"password":"[omitted]"', '"reason":"[omitted]"', '"token":"[omitted]"'] as $shape) {
+            $this->assertStringContainsString($shape, $entries[1]);
+        }
         foreach ($entries as $entry) {
             $this->assertLessThan(25000, strlen($entry));
-            $this->assertStringContainsString('bytes]', $entry);
-            foreach (['Body#Secret3', 'query-secret'] as $secret) {
-                $this->assertStringNotContainsString($secret, $entry);
+            foreach (['deep-value', 'Body#Secret3', 'query-secret', 'rrrrrrrr', 'iiiiiiii'] as $value) {
+                $this->assertStringNotContainsString($value, $entry);
             }
         }
     }

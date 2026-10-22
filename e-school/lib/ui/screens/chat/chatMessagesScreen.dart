@@ -4,24 +4,15 @@ import 'package:eschool/cubits/appConfigurationCubit.dart';
 import 'package:eschool/cubits/authCubit.dart';
 import 'package:eschool/cubits/chat/chatMessagesCubit.dart';
 import 'package:eschool/cubits/chat/chatUsersCubit.dart';
-import 'package:eschool/data/models/chatMessage.dart';
+import 'package:eschool_core/eschool_core.dart';
 import 'package:eschool/data/models/chatUser.dart';
 import 'package:eschool/data/repositories/chatRepository.dart';
 import 'package:eschool/ui/screens/chat/widget/attachmentDialog.dart';
 import 'package:eschool/ui/screens/chat/widget/messageSendingWidget.dart';
 import 'package:eschool/ui/screens/chat/widget/singleMessageItem.dart';
-import 'package:eschool/ui/widgets/customBackButton.dart';
-import 'package:eschool_core/eschool_core.dart';
-import 'package:eschool/ui/widgets/customShimmerContainer.dart';
-import 'package:eschool/ui/widgets/customUserProfileImageWidget.dart';
-import 'package:eschool/ui/widgets/errorContainer.dart';
 import 'package:eschool/ui/widgets/noDataContainer.dart';
-import 'package:eschool/ui/widgets/screenTopBackgroundContainer.dart';
-import 'package:eschool/ui/widgets/shimmerLoadingContainer.dart';
-import 'package:eschool/utils/animationConfiguration.dart';
-import 'package:eschool/utils/extensions.dart';
 import 'package:eschool/utils/labelKeys.dart';
-import 'package:eschool/utils/notificationUtils/chatNotificationsUtils.dart';
+import 'package:eschool_notifications/eschool_notifications.dart';
 import 'package:eschool/utils/uiUtils.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -39,9 +30,8 @@ class ChatMessagesScreen extends StatefulWidget {
 
   static CupertinoPageRoute route(RouteSettings routeSettings) {
     final ChatUser user =
-        (routeSettings.arguments as Map<String, dynamic>?)?['chatUser'] ??
-        ChatUser.fromJsonAPI({});
-    return CupertinoPageRoute(
+        routeSettings.arguments as ChatUser? ?? ChatUser.fromJsonAPI({});
+    return AdaptivePageRoute(
       builder: (_) => BlocProvider<ChatMessagesCubit>(
         create: (context) => ChatMessagesCubit(
           ChatRepository(),
@@ -107,7 +97,7 @@ class _ChatMessagesScreenState extends State<ChatMessagesScreen> {
     Navigator.pushNamed(
       context,
       Routes.chatUserProfile,
-      arguments: {'chatUser': widget.chatUser},
+      arguments: widget.chatUser,
     );
   }
 

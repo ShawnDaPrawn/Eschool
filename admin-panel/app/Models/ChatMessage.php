@@ -4,10 +4,9 @@ declare(strict_types=1);
 
 namespace App\Models;
 
-use App\Models\ChatFile;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Storage;
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 class ChatMessage extends Model
 {
@@ -23,7 +22,7 @@ class ChatMessage extends Model
 
     public function file()
     {
-        return $this->hasMany(ChatFile::class, 'message_id','id');
+        return $this->hasMany(ChatFile::class, 'message_id', 'id');
     }
 
     public function getFilesAttribute(): array
@@ -32,7 +31,7 @@ class ChatMessage extends Model
             return [];
         }
 
-        return $this->file->map(fn ($file) => asset('storage/' . $file->file_name))->values()->all();
+        return $this->file->map(fn ($file) => asset('storage/'.$file->file_name))->values()->all();
     }
 
     public function getFileUrlAttribute($value)

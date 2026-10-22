@@ -307,7 +307,7 @@ class _AssignmentDetailsBottomsheetContainerState
                       onPressed: () {
                         Navigator.of(context).pushNamed(
                           Routes.assignment,
-                          arguments: {'assignment': widget.assignment},
+                          arguments: widget.assignment,
                         );
                       },
                       child: Text(

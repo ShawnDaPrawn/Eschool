@@ -1,10 +1,9 @@
+import 'package:eschool_teacher/app/routeArguments.dart';
 import 'package:eschool_teacher/app/routes.dart';
 import 'package:eschool_teacher/cubits/studentMoreDetailsCubit.dart';
 import 'package:eschool_teacher/data/models/guardianDetails.dart';
 import 'package:eschool_teacher/data/models/student.dart';
-import 'package:eschool_teacher/ui/widgets/customUserProfileImageWidget.dart';
-import 'package:eschool_teacher/ui/widgets/errorContainer.dart';
-import 'package:eschool_teacher/ui/widgets/shimmerLoadingContainer.dart';
+import 'package:eschool_core/eschool_core.dart';
 import 'package:eschool_teacher/utils/labelKeys.dart';
 import 'package:eschool_teacher/utils/uiUtils.dart';
 import 'package:flutter/material.dart';
@@ -385,13 +384,13 @@ class _StudentDetailsContainerState extends State<StudentDetailsContainer> {
         Navigator.pushNamed(
           context,
           Routes.resultList,
-          arguments: {
-            'studentId': widget.student.id,
-            'studentName':
+          arguments: ResultListArguments(
+            studentId: widget.student.id,
+            studentName:
                 '${widget.student.firstName} ${widget.student.lastName}',
-            'className': widget.student.classSectionName,
-            'classSectionId': widget.student.classSectionId,
-          },
+            className: widget.student.classSectionName,
+            classSectionId: widget.student.classSectionId,
+          ),
         );
       },
       child: Container(

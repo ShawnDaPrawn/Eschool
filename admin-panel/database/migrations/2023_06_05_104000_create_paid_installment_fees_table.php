@@ -16,40 +16,39 @@ return new class extends Migration
         Schema::create('paid_installment_fees', function (Blueprint $table) {
             $table->id();
 
-            //foreign key class id
+            // foreign key class id
             $table->bigInteger('class_id')->unsigned()->index();
             $table->foreign('class_id')->references('id')->on('classes')->onDelete('cascade');
 
-            //foreign key student id
+            // foreign key student id
             $table->bigInteger('student_id')->unsigned()->index();
             $table->foreign('student_id')->references('id')->on('students')->onDelete('cascade');
 
-            //foreign key parent id
+            // foreign key parent id
             $table->bigInteger('parent_id')->unsigned()->index();
             $table->foreign('parent_id')->references('id')->on('parents')->onDelete('cascade');
 
-            //foreign key installment fee id
+            // foreign key installment fee id
             $table->bigInteger('installment_fee_id')->unsigned()->index();
             $table->foreign('installment_fee_id')->references('id')->on('installment_fees')->onDelete('cascade');
 
-
-            //foreign key session year id
+            // foreign key session year id
             $table->bigInteger('session_year_id')->unsigned()->index();
             $table->foreign('session_year_id')->references('id')->on('session_years')->onDelete('cascade');
 
-            //Amount
+            // Amount
             $table->float('amount', 8, 2);
 
-            //Due Charges
+            // Due Charges
             $table->float('due_charges', 8, 2)->nullable()->default(null);
 
-            //date
+            // date
             $table->date('date');
 
-            //amount
+            // amount
             $table->float('amount', 8, 2)->change();
 
-            //foreign key payment_transaction_id
+            // foreign key payment_transaction_id
             $table->bigInteger('payment_transaction_id')->unsigned()->index();
             $table->foreign('payment_transaction_id')->references('id')->on('payment_transactions')->onDelete('cascade');
 
@@ -77,7 +76,7 @@ return new class extends Migration
             $table->float('total_amount', 8, 2)->change();
             $table->date('date')->after('session_year_id')->nullable()->default(null);
 
-            //foreign key payment_transaction_id
+            // foreign key payment_transaction_id
             $table->bigInteger('payment_transaction_id')->unsigned()->nullable()->default(null)->index()->after('date');
             $table->foreign('payment_transaction_id')->references('id')->on('payment_transactions')->onDelete('cascade');
         });
@@ -109,7 +108,7 @@ return new class extends Migration
             $table->integer('total_amount')->change();
         });
 
-        //remove the date and changing back total amount to integer
+        // remove the date and changing back total amount to integer
         Schema::table('fees_choiceables', function (Blueprint $table) {
             $table->integer('total_amount')->change();
             $table->dropColumn('date');

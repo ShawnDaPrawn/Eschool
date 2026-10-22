@@ -89,7 +89,6 @@ resources/views/dashboard/partials/attendance.blade.php
 resources/views/dashboard/partials/events.blade.php
 resources/views/dashboard/partials/exams.blade.php
 resources/views/dashboard/partials/fees-collection.blade.php
-resources/views/dashboard/partials/header.blade.php
 resources/views/dashboard/partials/leaves.blade.php
 resources/views/dashboard/partials/noticeboard.blade.php
 resources/views/dashboard/partials/stat-cards.blade.php
@@ -120,10 +119,6 @@ resources/views/holiday/list.blade.php
 resources/views/layouts/app.blade.php
 resources/views/layouts/footer.blade.php
 resources/views/layouts/footer_js.blade.php
-resources/views/layouts/header.blade.php
-resources/views/layouts/master.blade.php
-resources/views/layouts/partials/profile-dropdown.blade.php
-resources/views/layouts/sidebar.blade.php
 resources/views/leave/index.blade.php
 resources/views/leave/leave_details.blade.php
 resources/views/leave/leave_request.blade.php
@@ -200,7 +195,6 @@ resources/views/students/result_template.blade.php
 resources/views/students/stu-detail.blade.php
 resources/views/subject/index.blade.php
 resources/views/subject/teacher.blade.php
-resources/views/system-update/index.blade.php
 resources/views/teacher/details.blade.php
 resources/views/teacher/index.blade.php
 resources/views/timetable/addmore.blade.php

@@ -1,3 +1,4 @@
+import 'package:eschool_teacher/app/routeArguments.dart';
 import 'package:eschool_core/eschool_core.dart';
 import 'package:eschool_teacher/app/routes.dart';
 import 'package:eschool_teacher/cubits/lessonDeleteCubit.dart';
@@ -7,14 +8,9 @@ import 'package:eschool_teacher/data/models/lesson.dart';
 import 'package:eschool_teacher/data/models/subject.dart';
 import 'package:eschool_teacher/data/repositories/lessonRepository.dart';
 import 'package:eschool_teacher/ui/widgets/attachmentsBottomsheetContainer.dart';
-import 'package:eschool_teacher/ui/widgets/confirmDeleteDialog.dart';
-import 'package:eschool_teacher/ui/widgets/customShimmerContainer.dart';
 import 'package:eschool_teacher/ui/widgets/deleteButton.dart';
 import 'package:eschool_teacher/ui/widgets/editButton.dart';
-import 'package:eschool_teacher/ui/widgets/errorContainer.dart';
 import 'package:eschool_teacher/ui/widgets/noDataContainer.dart';
-import 'package:eschool_teacher/ui/widgets/shimmerLoadingContainer.dart';
-import 'package:eschool_teacher/utils/animationConfiguration.dart';
 import 'package:eschool_teacher/utils/errorMessageKeysAndCodes.dart';
 import 'package:eschool_teacher/utils/labelKeys.dart';
 import 'package:eschool_teacher/utils/uiUtils.dart';
@@ -155,12 +151,12 @@ class LessonsContainer extends StatelessWidget {
                                 Navigator.of(context)
                                     .pushNamed<bool?>(
                                       Routes.addOrEditLesson,
-                                      arguments: {
-                                        'lesson': lesson,
-                                        'subject': subject,
-                                        'classSectionDetails':
+                                      arguments: AddOrEditLessonArguments(
+                                        lesson: lesson,
+                                        subject: subject,
+                                        classSectionDetails:
                                             classSectionDetails,
-                                      },
+                                      ),
                                     )
                                     .then((value) {
                                       if (value != null && value) {
@@ -267,12 +263,12 @@ class LessonsContainer extends StatelessWidget {
                                 Navigator.of(context)
                                     .pushNamed<bool?>(
                                       Routes.topicsByLesson,
-                                      arguments: {
-                                        'classSectionDetails':
+                                      arguments: TopicsByLessonArguments(
+                                        classSectionDetails:
                                             classSectionDetails,
-                                        'subject': subject,
-                                        'lesson': lesson,
-                                      },
+                                        subject: subject,
+                                        lesson: lesson,
+                                      ),
                                     )
                                     .then((value) {
                                       if (value != null && value) {

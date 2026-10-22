@@ -1,7 +1,7 @@
 // ignore_for_file: must_be_immutable
 
 import 'package:eschool/data/models/paymentOptions.dart';
-import 'package:eschool/utils/extensions.dart';
+import 'package:eschool_core/eschool_core.dart';
 import 'package:eschool/utils/labelKeys.dart';
 import 'package:eschool/utils/uiUtils.dart';
 import 'package:flutter/material.dart';
@@ -24,7 +24,6 @@ class PaymentSelectionBottomSheetStateState
 
   @override
   void initState() {
-    if (widget.enabledPayments.razorpay != null) options.add('razorpay');
     if (widget.enabledPayments.stripe != null) options.add('stripe');
     if (widget.enabledPayments.paystack != null) options.add('paystack');
     if (widget.enabledPayments.flutterwave != null) options.add('flutterwave');

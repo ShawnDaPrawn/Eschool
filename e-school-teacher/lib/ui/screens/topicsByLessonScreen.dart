@@ -1,3 +1,4 @@
+import 'package:eschool_teacher/app/routeArguments.dart';
 import 'package:eschool_teacher/app/routes.dart';
 import 'package:eschool_teacher/cubits/topicsCubit.dart';
 import 'package:eschool_teacher/data/models/classSectionDetails.dart';
@@ -5,12 +6,10 @@ import 'package:eschool_teacher/data/models/lesson.dart';
 import 'package:eschool_teacher/data/models/subject.dart';
 import 'package:eschool_teacher/data/repositories/topicRepository.dart';
 import 'package:eschool_teacher/ui/widgets/customAppbar.dart';
-import 'package:eschool_teacher/ui/widgets/customFloatingActionButton.dart';
-import 'package:eschool_teacher/ui/widgets/customRefreshIndicator.dart';
+import 'package:eschool_core/eschool_core.dart';
 import 'package:eschool_teacher/ui/widgets/topicsContainer.dart';
 import 'package:eschool_teacher/utils/labelKeys.dart';
 import 'package:eschool_teacher/utils/uiUtils.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -27,8 +26,8 @@ class TopcisByLessonScreen extends StatefulWidget {
   State<TopcisByLessonScreen> createState() => _TopcisByLessonScreenState();
 
   static Route<bool?> route(RouteSettings routeSettings) {
-    final arguments = routeSettings.arguments! as Map<String, dynamic>;
-    return CupertinoPageRoute(
+    final arguments = routeSettings.arguments! as TopicsByLessonArguments;
+    return AdaptivePageRoute(
       builder: (_) => MultiBlocProvider(
         providers: [
           BlocProvider<TopicsCubit>(
@@ -36,9 +35,9 @@ class TopcisByLessonScreen extends StatefulWidget {
           ),
         ],
         child: TopcisByLessonScreen(
-          classSectionDetails: arguments['classSectionDetails'],
-          lesson: arguments['lesson'],
-          subject: arguments['subject'],
+          classSectionDetails: arguments.classSectionDetails,
+          lesson: arguments.lesson,
+          subject: arguments.subject,
         ),
       ),
     );
@@ -77,11 +76,11 @@ class _TopcisByLessonScreenState extends State<TopcisByLessonScreen> {
             Navigator.of(context)
                 .pushNamed<bool?>(
                   Routes.addOrEditTopic,
-                  arguments: {
-                    'classSectionDetails': widget.classSectionDetails,
-                    'subject': widget.subject,
-                    'lesson': widget.lesson,
-                  },
+                  arguments: AddOrEditTopicArguments(
+                    classSectionDetails: widget.classSectionDetails,
+                    subject: widget.subject,
+                    lesson: widget.lesson,
+                  ),
                 )
                 .then((value) {
                   if (value != null && value) {

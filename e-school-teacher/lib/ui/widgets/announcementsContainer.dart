@@ -1,20 +1,15 @@
+import 'package:eschool_teacher/app/routeArguments.dart';
 import 'package:eschool_core/eschool_core.dart';
 import 'package:eschool_teacher/app/routes.dart';
 import 'package:eschool_teacher/cubits/announcementsCubit.dart';
 import 'package:eschool_teacher/cubits/deleteAnnouncementCubit.dart';
-import 'package:eschool_teacher/data/models/announcement.dart';
 import 'package:eschool_teacher/data/models/classSectionDetails.dart';
 import 'package:eschool_teacher/data/models/subject.dart';
 import 'package:eschool_teacher/data/repositories/announcementRepository.dart';
 import 'package:eschool_teacher/ui/widgets/attachmentsBottomsheetContainer.dart';
-import 'package:eschool_teacher/ui/widgets/confirmDeleteDialog.dart';
-import 'package:eschool_teacher/ui/widgets/customShimmerContainer.dart';
 import 'package:eschool_teacher/ui/widgets/deleteButton.dart';
 import 'package:eschool_teacher/ui/widgets/editButton.dart';
-import 'package:eschool_teacher/ui/widgets/errorContainer.dart';
 import 'package:eschool_teacher/ui/widgets/noDataContainer.dart';
-import 'package:eschool_teacher/ui/widgets/shimmerLoadingContainer.dart';
-import 'package:eschool_teacher/utils/animationConfiguration.dart';
 import 'package:eschool_teacher/utils/errorMessageKeysAndCodes.dart';
 import 'package:eschool_teacher/utils/labelKeys.dart';
 import 'package:eschool_teacher/utils/uiUtils.dart';
@@ -176,12 +171,13 @@ class AnnouncementsContainer extends StatelessWidget {
                                   Navigator.of(context)
                                       .pushNamed<bool?>(
                                         Routes.addOrEditAnnouncement,
-                                        arguments: {
-                                          'subject': subject,
-                                          'classSectionDetails':
-                                              classSectionDetails,
-                                          'announcement': announcement,
-                                        },
+                                        arguments:
+                                            AddOrEditAnnouncementArguments(
+                                              subject: subject,
+                                              classSectionDetails:
+                                                  classSectionDetails,
+                                              announcement: announcement,
+                                            ),
                                       )
                                       .then((value) {
                                         if (value != null && value) {

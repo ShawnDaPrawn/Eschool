@@ -48,6 +48,9 @@ class _UploadAssignmentBottomsheetContainerState
   }
 
   Future<void> _addFiles() async {
+    if (UiUtils.showMobileOnlyNotice(context)) {
+      return;
+    }
     //upload files
     final permission = await Permission.storage.request();
     if (permission.isGranted) {

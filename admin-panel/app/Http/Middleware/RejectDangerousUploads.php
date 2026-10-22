@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Middleware;
 
+use App\Services\Platform\Files\FileNames;
 use Closure;
 use enshrined\svgSanitize\Sanitizer;
 use Illuminate\Http\Request;
@@ -17,6 +18,11 @@ use Illuminate\Http\UploadedFile;
  * SVG images are allowed (subjects and the website use them) but scripts, event
  * handlers and external references are stripped from them first, since not every
  * web server applies storage/app/public/.htaccess.
+ *
+ * Also refused: a picture or PDF whose content is something else (photo.jpg that
+ * is really a PDF or a script), and a name that is nothing but dots or carries
+ * control characters. PHP and Symfony keep only the last part of a path a client
+ * sends, and FileNames::sanitize() cleans every name that is stored or shown.
  */
 class RejectDangerousUploads
 {
@@ -25,6 +31,12 @@ class RejectDangerousUploads
         'shtml', 'shtm', 'stm', 'htaccess', 'htpasswd', 'ini', 'cgi', 'pl', 'py', 'rb', 'sh', 'bash',
         'asp', 'aspx', 'ascx', 'ashx', 'asmx', 'jsp', 'jspx', 'war', 'exe', 'dll', 'bat', 'cmd', 'vbs', 'ps1',
         'html', 'htm', 'xhtml', 'xht', 'mht', 'mhtml', 'hta', 'js', 'mjs', 'swf', 'xml', 'xsl', 'xslt', 'svgz',
+    ];
+
+    /** Extensions whose content is checked: a picture must be a picture, a PDF a PDF. */
+    private const CONTENT_FAMILIES = [
+        'jpg' => 'image/', 'jpeg' => 'image/', 'png' => 'image/', 'gif' => 'image/', 'webp' => 'image/', 'bmp' => 'image/',
+        'pdf' => 'application/pdf',
     ];
 
     /** Content types detected from the file itself (PHP source has no mapped extension). */
@@ -45,6 +57,8 @@ class RejectDangerousUploads
         foreach ($this->files($request->allFiles()) as $file) {
             $message = match (true) {
                 $this->isDangerous($file) => trans('The file type is not allowed.'),
+                FileNames::isRefused($file->getClientOriginalName()) => trans('The file name is not allowed.'),
+                $this->contentDoesNotMatch($file) => trans('The file content does not match its extension.'),
                 $this->hasTooManyPixels($file) => trans('The image is too large. Please upload one of at most 30 megapixels.'),
                 ! $this->sanitizeSvg($file) => trans('The SVG file is too large or not valid.'),
                 default => null,
@@ -73,6 +87,17 @@ class RejectDangerousUploads
             || preg_match(self::BLOCKED_MIME_PATTERN, (string) $file->getMimeType()) === 1;
     }
 
+    /** A .jpg, .png, .pdf (and so on) whose detected type is of another kind. */
+    private function contentDoesNotMatch(UploadedFile $file): bool
+    {
+        $expected = self::CONTENT_FAMILIES[strtolower($file->getClientOriginalExtension())] ?? null;
+        if ($expected === null) {
+            return false;
+        }
+
+        return ! str_starts_with(strtolower((string) $file->getMimeType()), $expected);
+    }
+
     /** Reads only the image header, so it is cheap even for a huge file. */
     private function hasTooManyPixels(UploadedFile $file): bool
     {
@@ -97,7 +122,7 @@ class RejectDangerousUploads
             return false;
         }
 
-        $sanitizer = new Sanitizer();
+        $sanitizer = new Sanitizer;
         $sanitizer->removeRemoteReferences(true);
         $clean = $sanitizer->sanitize((string) file_get_contents($file->getRealPath()));
 

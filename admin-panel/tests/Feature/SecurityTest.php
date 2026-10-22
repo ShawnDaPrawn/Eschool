@@ -19,31 +19,22 @@ class SecurityTest extends TestCase
 {
     use RefreshDatabase;
 
-    private const MAINTENANCE_URLS = ['storage-link', 'migrate', 'seeder_install'];
-
     protected function setUp(): void
     {
         parent::setUp();
         $this->seedLikeInstaller();
     }
 
-    public function test_maintenance_urls_redirect_guests_to_login(): void
+    // The storage-link, migrate and seeder_install URLs are gone; RemovedFeaturesTest covers them.
+    public function test_cache_clear_redirects_guests_to_login(): void
     {
-        foreach (self::MAINTENANCE_URLS as $url) {
-            $this->get('/'.$url)->assertRedirect(route('login'));
-        }
         $this->post('/clear')->assertRedirect(route('login'));
     }
 
-    public function test_maintenance_urls_are_forbidden_for_other_roles(): void
+    public function test_cache_clear_is_forbidden_for_other_roles(): void
     {
-        $teacher = $this->teacher();
-
-        foreach (self::MAINTENANCE_URLS as $url) {
-            $this->actingAs($teacher)->get('/'.$url)->assertForbidden();
-        }
         // Clearing the cache can reset rate limits.
-        $this->actingAs($teacher)->post('/clear')->assertForbidden();
+        $this->actingAs($this->teacher())->post('/clear')->assertForbidden();
     }
 
     public function test_there_is_no_public_sign_up(): void
@@ -196,9 +187,10 @@ class SecurityTest extends TestCase
 
             return true;
         });
-        $this->assertStringContainsString('visible', $logged);
-        foreach (['old-secret', 'new-secret', 'token-secret'] as $secret) {
-            $this->assertStringNotContainsString($secret, $logged);
+        // Field names only: no values at all, secret or not.
+        $this->assertStringContainsString('"name"', $logged);
+        foreach (['old-secret', 'new-secret', 'token-secret', 'visible'] as $value) {
+            $this->assertStringNotContainsString($value, $logged);
         }
     }
 
@@ -231,11 +223,11 @@ class SecurityTest extends TestCase
             ->assertJson(['message' => 'Unauthenticated.']);
     }
 
-    public function test_the_student_password_reset_only_resets_students_to_their_own_date_of_birth(): void
+    public function test_the_student_password_reset_only_resets_students_and_never_to_a_known_value(): void
     {
         $clerk = $this->user('clerk@example.com');
         $clerk->assignRole(Role::create(['name' => 'Clerk'])->givePermissionTo('student-reset-password'));
-        $student = $this->user('GR-1');
+        $student = User::findOrFail($this->student('GR-1')->user_id);
         $student->forceFill(['dob' => '2015-06-01', 'reset_request' => 1])->save();
         $student->assignRole('Student');
 
@@ -243,8 +235,12 @@ class SecurityTest extends TestCase
         $this->actingAs($clerk)->postJson('/student-change-password', ['id' => $this->superAdmin()->id, 'dob' => '01-01-1970'])->assertJson(['error' => true]);
         $this->assertFalse(Hash::check('01011970', $this->superAdmin()->password));
 
+        // Not back to the date of birth any more, nor to anything the caller sent: the
+        // guardians are emailed a link to choose a new one (LearnerInvitationTest).
         $this->postJson('/student-change-password', ['id' => $student->id, 'dob' => '01-01-1970'])->assertJson(['error' => false]);
-        $this->assertTrue(Hash::check('01062015', $student->fresh()->password));
+        foreach (['01011970', '01062015', 'secret123'] as $known) {
+            $this->assertFalse(Hash::check($known, $student->fresh()->password), $known);
+        }
         $this->assertSame(0, (int) $student->fresh()->reset_request);
     }
 

@@ -1,3 +1,4 @@
+import 'package:eschool_teacher/app/routeArguments.dart';
 import 'package:eschool_teacher/app/routes.dart';
 import 'package:eschool_teacher/cubits/appConfigurationCubit.dart';
 import 'package:eschool_teacher/cubits/classAttendanceCubit.dart';
@@ -5,16 +6,12 @@ import 'package:eschool_teacher/cubits/submitClassAttendanceCubit.dart';
 import 'package:eschool_teacher/data/models/student.dart';
 import 'package:eschool_teacher/data/repositories/teacherRepository.dart';
 import 'package:eschool_teacher/data/models/attendanceEnums.dart';
-import 'package:eschool_teacher/ui/widgets/customBackButton.dart';
 import 'package:eschool_core/eschool_core.dart';
-import 'package:eschool_teacher/ui/widgets/errorContainer.dart';
-import 'package:eschool_teacher/ui/widgets/screenTopBackgroundContainer.dart';
 import 'package:eschool_teacher/ui/widgets/searchButton.dart';
 import 'package:eschool_teacher/ui/widgets/studentAttendanceTileContainer.dart';
 import 'package:eschool_teacher/utils/assets.dart';
 import 'package:eschool_teacher/utils/labelKeys.dart';
 import 'package:eschool_teacher/utils/uiUtils.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/svg.dart';
@@ -27,7 +24,7 @@ class AttendanceScreen extends StatefulWidget {
   State<AttendanceScreen> createState() => _AttendanceScreenState();
 
   static Route route(RouteSettings routeSettings) {
-    return CupertinoPageRoute(
+    return AdaptivePageRoute(
       builder: (_) => MultiBlocProvider(
         providers: [
           BlocProvider(
@@ -140,12 +137,12 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
                           Navigator.of(context)
                               .pushNamed<List<Map<int, AttendanceType?>>?>(
                                 Routes.searchStudent,
-                                arguments: {
-                                  'fromAttendanceScreen': true,
-                                  'students': widget.students,
-                                  'listOfAttendanceReport': _listOfAttendance,
-                                  'onLeaveStudents': state.leaveDetails,
-                                },
+                                arguments: SearchStudentArguments(
+                                  fromAttendanceScreen: true,
+                                  students: widget.students,
+                                  listOfAttendanceReport: _listOfAttendance,
+                                  leaveDetails: state.leaveDetails,
+                                ),
                               )
                               .then((value) {
                                 if (value != null) {

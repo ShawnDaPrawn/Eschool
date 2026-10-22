@@ -78,7 +78,7 @@ e-school/
 │   ├── data/repositories/      API calls grouped by domain
 │   ├── ui/screens/             Screens, grouped by feature
 │   ├── ui/widgets/             Shared widgets
-│   └── utils/                  api.dart (endpoint list and Dio client), constants.dart (base URL), labels, Hive keys, notifications
+│   └── utils/                  api.dart (endpoint list and Dio client), constants.dart (names mapped from AppConfig's build settings), labels, Hive keys, notifications
 ├── assets/
 │   ├── languages/*.json        UI translations
 │   ├── images/, animations/    Images, branding and Lottie files

@@ -6,21 +6,21 @@ namespace App\Http\Controllers;
 
 use App\Models\Announcement;
 use App\Models\ClassSchool;
-use App\Models\Semester;
-use App\Models\SessionYear;
 use App\Models\ClassSection;
 use App\Models\ClassSubject;
 use App\Models\File;
-use App\Models\Settings;
+use App\Models\Semester;
+use App\Models\SessionYear;
 use App\Models\Students;
 use App\Models\Subject;
 use App\Models\SubjectTeacher;
-use App\Models\User;
-use Illuminate\Support\Str;
-use Illuminate\Support\Facades\DB;
+use App\Services\Platform\Files\FileNames;
 use Illuminate\Http\Request;
+use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Str;
 use Throwable;
 
 class AnnouncementController extends Controller
@@ -28,19 +28,20 @@ class AnnouncementController extends Controller
     /**
      * Display a listing of the resource.
      *
-     * @return \Illuminate\Http\Response
+     * @return Response
      */
     public function index()
     {
-        if (!Auth::user()->can('announcement-list')) {
-            $response = array(
-                'message' => trans('no_permission_message')
-            );
+        if (! Auth::user()->can('announcement-list')) {
+            $response = [
+                'message' => trans('no_permission_message'),
+            ];
+
             return redirect(route('home'))->withErrors($response);
         }
         $class_section = ClassSection::SubjectTeacher()->with('class.medium', 'section')->get();
-         $session_years = SessionYear::orderBy('id', 'ASC')->get();
-        
+        $session_years = SessionYear::orderBy('id', 'ASC')->get();
+
         return view('announcement.index', compact('class_section', 'session_years'));
     }
 
@@ -66,7 +67,7 @@ class AnnouncementController extends Controller
 
             $hasSemesters = $class && $class->getIncludeSemestersForSession($session_year_id);
 
-            $baseName = $section->class->name . ' ' . $section->section->name . ' - ' . $section->class->medium->name . ' ' . ($section->class->streams->name ?? '');
+            $baseName = $section->class->name.' '.$section->section->name.' - '.$section->class->medium->name.' '.($section->class->streams->name ?? '');
 
             if ($hasSemesters) {
                 if ($isTeacher) {
@@ -91,7 +92,7 @@ class AnnouncementController extends Controller
                 foreach ($semesters as $semester) {
                     $result[] = [
                         'id' => $section->id,
-                        'name' => $baseName . ' - ' . $semester->name,
+                        'name' => $baseName.' - '.$semester->name,
                         'class_id' => $section->class->id,
                         'semester_id' => $semester->id,
                     ];
@@ -105,6 +106,7 @@ class AnnouncementController extends Controller
                 ];
             }
         }
+
         return response()->json($result);
     }
 
@@ -145,55 +147,57 @@ class AnnouncementController extends Controller
         } else {
             $info = '';
         }
+
         return response()->json($info);
     }
 
     /**
      * Store a newly created resource in storage.
      *
-     * @param \Illuminate\Http\Request $request
-     * @return \Illuminate\Http\Response
+     * @return Response
      */
     public function store(Request $request)
     {
-        if (!Auth::user()->can('announcement-create')) {
-            $response = array(
+        if (! Auth::user()->can('announcement-create')) {
+            $response = [
                 'error' => true,
-                'message' => trans('no_permission_message')
-            );
+                'message' => trans('no_permission_message'),
+            ];
+
             return response()->json($response);
         }
         $validator = Validator::make($request->all(), [
             'title' => 'required',
             'set_data' => 'required',
             'file' => 'nullable|array',
-            'file.*' => 'mimes:pdf,doc,docx,xls,xlsx,ppt,pptx,jpg,jpeg,png,gif|max:4096'
+            'file.*' => 'mimes:pdf,doc,docx,xls,xlsx,ppt,pptx,jpg,jpeg,png,gif|max:4096',
         ], [
             'title.required' => trans('title_is_required'),
             'set_data.required' => trans('assign_to_field_is_required'),
         ]);
         if ($validator->fails()) {
-            $response = array(
+            $response = [
                 'error' => true,
-                'message' => $validator->errors()->first()
-            );
+                'message' => $validator->errors()->first(),
+            ];
+
             return response()->json($response);
         }
         try {
-            $user = array();
+            $user = [];
             // $data = getSettings('session_year');
-            if (!empty($request->get_data)) {
+            if (! empty($request->get_data)) {
                 $getdata = count($request->get_data);
             } else {
                 $getdata = 1;
             }
             for ($i = 0; $i < $getdata; $i++) {
-                $announcement = new Announcement();
+                $announcement = new Announcement;
                 $announcement->title = $request->title;
                 $announcement->description = $request->description;
                 $announcement->session_year_id = getSettings('session_year')['session_year'];
                 $announcement->semester_id = $request->semester_id ?: null;
-                if (!empty($request->set_data)) {
+                if (! empty($request->set_data)) {
                     if ($request->set_data == 'class_section') {
                         $teacher_id = Auth::user()->teacher->id;
                         $subject_teacher_id = SubjectTeacher::select('id')->where(['class_section_id' => $request->class_section_id, 'teacher_id' => $teacher_id, 'subject_id' => $request->get_data[$i]])->get()->pluck('id');
@@ -206,13 +210,14 @@ class AnnouncementController extends Controller
                                     $user = Students::select('user_id')->where('class_section_id', $request->class_section_id)->get()->pluck('user_id');
                                 }
                             }
-                            $title = 'New announcement in ' . $subject_name[0]->subject->name;
+                            $title = 'New announcement in '.$subject_name[0]->subject->name;
                             $body = $request->title;
                         } else {
-                            $response = array(
+                            $response = [
                                 'error' => true,
-                                'message' => trans('no_data_found')
-                            );
+                                'message' => trans('no_data_found'),
+                            ];
+
                             return response()->json($response);
                         }
                     }
@@ -226,7 +231,7 @@ class AnnouncementController extends Controller
                     }
                     if ($request->set_data == 'noticeboard') {
                         $announcement->table_id = null;
-                        $announcement->table_type = "";
+                        $announcement->table_type = '';
                         $user = Students::select('user_id')->get()->pluck('user_id');
                         $title = 'Noticeboard updated';
                         $body = $request->title;
@@ -239,8 +244,8 @@ class AnnouncementController extends Controller
                 $announcement->save();
                 if ($request->hasFile('file')) {
                     foreach ($request->file as $file_upload) {
-                        $file = new File();
-                        $file->file_name = $file_upload->getClientOriginalName();
+                        $file = new File;
+                        $file->file_name = FileNames::forUpload($file_upload);
                         $file->type = 1;
                         $file->file_url = $file_upload->store('announcement', 'public');
                         $file->modal()->associate($announcement);
@@ -249,17 +254,17 @@ class AnnouncementController extends Controller
                 }
                 sendSimpleNotification($user, $title, $body, $type, $image, $userinfo);
             }
-            $response = array(
+            $response = [
                 'error' => false,
-                'message' => trans('data_store_successfully')
-            );
-        } catch (\Throwable $e) {
+                'message' => trans('data_store_successfully'),
+            ];
+        } catch (Throwable $e) {
             if (Str::contains($e->getMessage(), ['does not exist', 'file_get_contents'])) {
                 DB::commit();
-                $response = array(
+                $response = [
                     'error' => false,
-                    'message' => "Data Stored successfully. But App push notification not send."
-                );
+                    'message' => 'Data Stored successfully. But App push notification not send.',
+                ];
             } else {
                 DB::rollBack();
                 $message = trans('error_occurred');
@@ -269,34 +274,36 @@ class AnnouncementController extends Controller
                 } elseif (str_contains($exceptionMessage, 'subject') && str_contains($exceptionMessage, 'not')) {
                     $message = trans('no_data_found');
                 }
-                $response = array(
+                $response = [
                     'error' => true,
-                    'message' => $message
-                );
+                    'message' => $message,
+                ];
             }
         }
+
         return response()->json($response);
     }
 
     public function update(Request $request)
     {
-        if (!Auth::user()->can('announcement-edit')) {
-            $response = array(
+        if (! Auth::user()->can('announcement-edit')) {
+            $response = [
                 'error' => true,
-                'message' => trans('no_permission_message')
-            );
+                'message' => trans('no_permission_message'),
+            ];
+
             return response()->json($response);
         }
         $request->validate([
             'title' => 'required',
-            'set_data' => 'required'
+            'set_data' => 'required',
         ], [
             'title.required' => trans('title_is_required'),
             'set_data.required' => trans('assign_to_field_is_required'),
         ]);
         try {
 
-            $user = array();
+            $user = [];
             $title = ''; // Initialize $title to avoid undefined variable
             $body = '';  // Initialize $body to avoid undefined variable
             if (Auth::user()->teacher) {
@@ -306,7 +313,7 @@ class AnnouncementController extends Controller
             $announcement->title = $request->title;
             $announcement->description = $request->description;
             $announcement->semester_id = $request->semester_id ?: null;
-            if (!empty($request->set_data)) {
+            if (! empty($request->set_data)) {
                 if ($request->set_data == 'class_section') {
                     $subject_teacher_id = SubjectTeacher::select('id')->where(['class_section_id' => $request->class_section_id, 'subject_id' => $request->get_data, 'teacher_id' => $teacher_id])->get()->pluck('id');
                     $subject_name = SubjectTeacher::where(['class_section_id' => $request->class_section_id, 'subject_id' => $request->get_data, 'teacher_id' => $teacher_id])->with('subject')->get();
@@ -317,7 +324,7 @@ class AnnouncementController extends Controller
                             $user = Students::select('user_id')->where('class_section_id', $request->class_section_id)->get()->pluck('user_id');
                         }
                         if (isset($subject_name[0]) && isset($subject_name[0]->subject)) {
-                            $title = 'Update announcement in ' . $subject_name[0]->subject->name;
+                            $title = 'Update announcement in '.$subject_name[0]->subject->name;
                         } else {
                             $title = 'Update announcement';
                         }
@@ -334,7 +341,7 @@ class AnnouncementController extends Controller
                 }
                 if ($request->set_data == 'noticeboard') {
                     $announcement->table_id = null;
-                    $announcement->table_type = "";
+                    $announcement->table_type = '';
                     $user = Students::select('user_id')->get()->pluck('user_id');
                     $title = 'Noticeboard updated';
                     $body = $request->title;
@@ -348,8 +355,8 @@ class AnnouncementController extends Controller
 
             if ($request->hasFile('file')) {
                 foreach ($request->file as $file_upload) {
-                    $file = new File();
-                    $file->file_name = $file_upload->getClientOriginalName();
+                    $file = new File;
+                    $file->file_name = FileNames::forUpload($file_upload);
                     $file->type = 1;
                     $file->file_url = $file_upload->store('announcement', 'public');
                     $file->modal()->associate($announcement);
@@ -365,33 +372,35 @@ class AnnouncementController extends Controller
         } catch (Throwable $e) {
             if (Str::contains($e->getMessage(), ['does not exist', 'file_get_contents'])) {
                 DB::commit();
-                $response = array(
+                $response = [
                     'error' => false,
-                    'message' => "Data Stored successfully. But App push notification not send."
-                );
+                    'message' => 'Data Stored successfully. But App push notification not send.',
+                ];
             } else {
                 DB::rollBack();
-                $response = array(
+                $response = [
                     'error' => true,
-                    'message' => trans('error_occurred')
-                );
+                    'message' => trans('error_occurred'),
+                ];
             }
         }
+
         return response()->json($response);
     }
 
     /**
      * Display the specified resource.
      *
-     * @param int $id
-     * @return \Illuminate\Http\Response
+     * @param  int  $id
+     * @return Response
      */
     public function show()
     {
-        if (!Auth::user()->can('announcement-list')) {
-            $response = array(
-                'message' => trans('no_permission_message')
-            );
+        if (! Auth::user()->can('announcement-list')) {
+            $response = [
+                'message' => trans('no_permission_message'),
+            ];
+
             return response()->json($response);
         }
 
@@ -399,14 +408,18 @@ class AnnouncementController extends Controller
         $limit = 10;
         $sort = 'id';
         $order = 'DESC';
-        if (isset($_GET['offset']))
+        if (isset($_GET['offset'])) {
             $offset = $_GET['offset'];
-        if (isset($_GET['limit']))
+        }
+        if (isset($_GET['limit'])) {
             $limit = $_GET['limit'];
-        if (isset($_GET['sort']))
+        }
+        if (isset($_GET['sort'])) {
             $sort = $_GET['sort'];
-        if (isset($_GET['order']))
+        }
+        if (isset($_GET['order'])) {
             $order = $_GET['order'];
+        }
 
         $session_year_id = $_GET['session_year_id'] ?? getSettings('session_year')['session_year'];
         $sql = Announcement::with('table', 'file', 'semester')->where('session_year_id', $session_year_id);
@@ -421,7 +434,7 @@ class AnnouncementController extends Controller
             });
         }
 
-        if (isset($_GET['search']) && !empty($_GET['search'])) {
+        if (isset($_GET['search']) && ! empty($_GET['search'])) {
             $search = $_GET['search'];
             $sql->where(function ($query) use ($search) {
                 $query->where('id', 'LIKE', "%$search%")
@@ -433,10 +446,10 @@ class AnnouncementController extends Controller
         $total = $sql->count();
         $sql->orderBy($sort, $order)->skip($offset)->take($limit);
         $res = $sql->get();
-        $bulkData = array();
+        $bulkData = [];
         $bulkData['total'] = $total;
-        $rows = array();
-        $tempRow = array();
+        $rows = [];
+        $tempRow = [];
         $no = 1;
         $user = Auth::user();
         $isTeacher = $user->hasRole('Teacher');
@@ -447,14 +460,14 @@ class AnnouncementController extends Controller
             // Teachers manage their own subject announcements; every other role manages noticeboard announcements.
             // Gate the action buttons on the granular permissions so custom roles work, not on hardcoded role names.
             $canManageRow = $isTeacher
-                ? $row->table_type == "App\\Models\\SubjectTeacher"
-                : $row->table_type == "";
+                ? $row->table_type == 'App\\Models\\SubjectTeacher'
+                : $row->table_type == '';
             if ($canManageRow) {
                 if ($canEdit) {
-                    $operate .= '<a class="btn btn-xs btn-gradient-primary btn-rounded btn-icon edit-announcement-form" data-id="' . $row->id . '"  title="Edit" data-toggle="modal" data-target="#editModal"><i class="fa fa-edit"></i></a>&nbsp;&nbsp;';
+                    $operate .= '<a class="btn btn-xs btn-gradient-primary btn-rounded btn-icon edit-announcement-form" data-id="'.$row->id.'"  title="Edit" data-toggle="modal" data-target="#editModal"><i class="fa fa-edit"></i></a>&nbsp;&nbsp;';
                 }
                 if ($canDelete) {
-                    $operate .= '<a class="btn btn-xs btn-gradient-danger btn-rounded btn-icon deletedata" data-id="' . $row->id . '" data-url="' . url('announcement', $row->id) . '" title="Delete"><i class="fa fa-trash"></i></a>';
+                    $operate .= '<a class="btn btn-xs btn-gradient-danger btn-rounded btn-icon deletedata" data-id="'.$row->id.'" data-url="'.url('announcement', $row->id).'" title="Delete"><i class="fa fa-trash"></i></a>';
                 }
             }
 
@@ -463,25 +476,25 @@ class AnnouncementController extends Controller
             $tempRow['title'] = $row->title;
             $tempRow['description'] = $row->description;
             $tempRow['type'] = $row->table_type;
-            if ($tempRow['type'] == "App\\Models\\ClassSection") {
+            if ($tempRow['type'] == 'App\\Models\\ClassSection') {
                 $assign = 'class_section';
-                $class = $row->table?->class?->name . ' - ' . $row->table?->section?->name;
+                $class = $row->table?->class?->name.' - '.$row->table?->section?->name;
                 $class1 = $class;
             }
-            if ($tempRow['type'] == "App\\Models\\ClassSchool") {
+            if ($tempRow['type'] == 'App\\Models\\ClassSchool') {
                 $assign = 'class';
                 $class = $row->table?->name;
                 $class1 = $class;
             }
-            if ($tempRow['type'] == "App\\Models\\SubjectTeacher") {
+            if ($tempRow['type'] == 'App\\Models\\SubjectTeacher') {
                 $assign = 'Subject';
                 $class = $row->table;
-                $semesterName = $row->semester ? ' - ' . $row->semester->name : '';
-                $class1 = $row->table?->class_section?->class?->name . '-' . $row->table?->class_section?->section?->name . $semesterName . ' - ' . $row->table?->subject?->name;
+                $semesterName = $row->semester ? ' - '.$row->semester->name : '';
+                $class1 = $row->table?->class_section?->class?->name.'-'.$row->table?->class_section?->section?->name.$semesterName.' - '.$row->table?->subject?->name;
             }
-            if ($tempRow['type'] == "") {
+            if ($tempRow['type'] == '') {
                 $assign = 'noticeboard';
-                $class = trans("noticeboard");
+                $class = trans('noticeboard');
                 $class1 = $class;
             }
             $tempRow['assign'] = $assign;
@@ -493,36 +506,39 @@ class AnnouncementController extends Controller
             $rows[] = $tempRow;
         }
         $bulkData['rows'] = $rows;
+
         return response()->json($bulkData);
     }
 
     /**
      * Remove the specified resource from storage.
      *
-     * @param int $id
-     * @return \Illuminate\Http\Response
+     * @param  int  $id
+     * @return Response
      */
     public function destroy($id)
     {
-        if (!Auth::user()->can('announcement-delete')) {
-            $response = array(
+        if (! Auth::user()->can('announcement-delete')) {
+            $response = [
                 'error' => true,
-                'message' => trans('no_permission_message')
-            );
+                'message' => trans('no_permission_message'),
+            ];
+
             return response()->json($response);
         }
         try {
             Announcement::find($id)->delete();
-            $response = array(
+            $response = [
                 'error' => false,
-                'message' => trans('data_delete_successfully')
-            );
+                'message' => trans('data_delete_successfully'),
+            ];
         } catch (Throwable $e) {
-            $response = array(
+            $response = [
                 'error' => true,
-                'message' => trans('error_occurred')
-            );
+                'message' => trans('error_occurred'),
+            ];
         }
+
         return response()->json($response);
     }
 }

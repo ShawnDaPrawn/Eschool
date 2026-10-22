@@ -193,6 +193,64 @@ Class names are `m3-<component>`, `m3-<component>__<part>` and `m3-<component>--
 
 **No new Bootstrap.** `tests/Unit/BootstrapFreeTest.php` scans the views, `app/` and the page scripts for Bootstrap classes, `data-toggle` / `data-bs-*` attributes, Bootstrap's jQuery plugins and Bootstrap assets. `tests/bootstrap-baseline.txt` lists the files that still use it. The test fails when a file not on the list uses Bootstrap, and when a file on the list no longer does, so the list only shrinks. When you rewrite a page, build it with the library and take it off the list. `UPDATE_BOOTSTRAP_BASELINE=1 vendor/bin/phpunit tests/Unit/BootstrapFreeTest.php` removes finished files; it never adds any.
 
+### Admin panel page pattern
+
+Since Phase 0 every new panel page is built the same way, so a school admin can find their way without training. A page has a header with its title and a single main action, then filters, then a table whose rows can be acted on together. An empty page explains how to start and offers the button that does it. Forms sit in cards, check each field as it is filled in and save without reloading, and one confirm dialog serves the whole page. The pieces are Blade components in [`resources/views/components/page/`](https://github.com/ShawnDaPrawn/Eschool/tree/main/admin-panel/resources/views/components/page), built with the Material 3 library above (no Bootstrap classes, no Bootstrap or bootstrap-table JavaScript), laid out by `public/assets/css/panel.css` and driven by `public/assets/js/custom/page.js`; `layouts/master` loads `m3/m3.css`, `m3/m3.js`, `panel.css` and `page.js` on every panel page. The panel shell itself (header, navigation drawer, read-only banner, notices) is built the same way. Home, global search and the new-year wizard use the pattern. Existing pages keep their markup and keep working; move a page onto the pattern when a phase touches it.
+
+| Component | Use it for | Notes |
+|---|---|---|
+| `<x-page.header>` | The top of every page | `title` (the page's only `<h1>`), optional `subtitle`, and at most one primary action, an M3 filled button (`primary-label`, `primary-href`, `primary-icon`, `primary-permission`). Quieter actions (outlined or text M3 buttons) go in the `actions` slot. Shows "section / group" from the navigation registry above the title. |
+| `<x-page.filters id="...">` | Filter fields above a list | An M3 row of fields. Give the table `toolbar="#id"`: every named field in it is sent with the table's request, and a field with `data-filter="table_id"` reloads that table from its first page when it changes. |
+| `<x-page.table>` | Every server-side list | An M3 outlined card drawn by `PageTable` in page.js (no bootstrap-table), from the list endpoints the panel already has: it sends `offset`, `limit`, `sort`, `order` and `search` (through the page's `queryParams` function when there is one, plus the toolbar's fields) and reads `{"total": n, "rows": [...]}`. It has a search bar, sortable columns (`data-sortable="true"`, announced with `aria-sort`), page sizes 10/25/50/100, pages and refresh. Cells are text (`data-escape="true"`); a column's `data-formatter` names a global function `(value, row, index, field)` that returns HTML, and `data-events` a global object of `{"click .selector": fn(event, value, row, index)}`, as on the older pages. A `<th data-field="state" data-checkbox="true">` column plus a `bulk` slot of buttons with `data-bulk-action="url"` (and `data-bulk-confirm="question"`) gives bulk actions: page.js posts the ticked rows' `ids[]` and refreshes. `empty-title`, `empty-message`, `empty-action-label`, `empty-action-href` design the empty state; a search with no match shows "Nothing matches", and a failed load offers "Try again". From page code: `PageTable.refresh(id)`, `PageTable.selections(id)`, `PageTable.init(element)` for a table added later. |
+| `<x-page.empty-state>` | A page or card with nothing in it yet | An icon in a tonal circle, a short title, one sentence on how to get started, and the action (an M3 filled button) that does it. |
+| `<x-page.form-card>` | Any form that saves | An M3 outlined card. Posts with `fetch` and the CSRF token, never reloads on an error, and keeps a draft in `sessionStorage` until the save works (passwords and files are never kept), so an expired session or a closed tab loses nothing. Props: `action`, `method`, `title`, `submit-label`, `redirect`, `reset-on-success`, `refresh-table`. |
+| `<x-page.field>` | One labelled field | An M3 outlined text field (the label floats onto the outline). `name`, `label`, `type` (any input type, `select` with `options`, or `textarea`), `help`, `required`. Renders `label for`, `aria-describedby` for the hint and the error, and the supporting-text error page.js fills. Lay several out with `.m3-grid` and `.m3-col-12 .m3-col-expanded-4`. Extra attributes (`min`, `max`, `maxlength`, `pattern`) go on the control and are checked as people type. |
+| `<x-page.confirm-dialog>` | Confirming an action | An M3 dialog (a native `<dialog>` with the `alertdialog` role), one per page, already in `layouts/master`. Add `data-confirm="question"` (and `data-confirm-title`, `data-confirm-label`, `data-confirm-danger`) to a button or link, or call `pageConfirm({title, message, confirmLabel, danger})`, which returns a promise of `true` or `false`. Focus moves into the dialog and back; Escape cancels. |
+
+A form card's endpoint answers JSON. On success: `{"error": false, "message": "...", "redirect": "optional url", "data": {...}}`; page.js shows the message, then goes to `redirect`, resets the form, refreshes a table, or fires a `page-form:saved` event for the page's own script. On a validation error: HTTP 422 with Laravel's `{"message": "...", "errors": {"field": ["..."]}}` (a FormRequest does this); each message appears under its field (`terms.0.name` maps to `terms[0][name]`), the first field gets focus and a summary appears at the top of the form. Anything else (`{"error": true, "message": "..."}`, a 500, no network): the message appears and nothing typed is lost.
+
+A list page on the pattern:
+
+```blade
+@extends('layouts.master')
+@section('title') {{ __('nav_notices') }} @endsection
+@section('content')
+<div class="content-wrapper m3 page-content">
+    <x-page.header :title="__('nav_notices')" :primary-label="__('send_a_notice')"
+        primary-href="#notice-form" primary-permission="announcement-create" />
+
+    <x-page.form-card id="notice-form" :action="url('announcement')" :title="__('send_a_notice')"
+        :submit-label="__('send')" reset-on-success refresh-table="table_list">
+        <x-page.field name="title" :label="__('title')" required maxlength="255" />
+        <x-page.field name="description" type="textarea" :label="__('description')" required />
+    </x-page.form-card>
+
+    <x-page.filters id="notice-filters">
+        <x-page.field name="filter_class_id" type="select" :label="__('grade')" :options="$grades"
+            :placeholder="__('all')" data-filter="table_list" />
+    </x-page.filters>
+    <x-page.table :url="url('announcement-list')" toolbar="#notice-filters" empty-icon="announcement"
+        :empty-title="__('no_notices_yet')" :empty-message="__('no_notices_yet_hint')"
+        :empty-action-label="__('send_a_notice')" empty-action-href="#notice-form">
+        <x-slot:columns>
+            <th data-field="title" data-sortable="true">{{ __('title') }}</th>
+            <th data-field="operate" data-escape="false">{{ __('action') }}</th>
+        </x-slot:columns>
+    </x-page.table>
+</div>
+@endsection
+```
+
+Rules for every panel page, old or new:
+
+- **Navigation.** Add the page to [`config/navigation.php`](https://github.com/ShawnDaPrawn/Eschool/blob/main/admin-panel/config/navigation.php), not to a sidebar file: pick the section by the job people do (Home, People, Academics, Communication, Money, Activities, Wellbeing, Settings), a group, a `label` key in plain words, the route, the `permissions` that show it, the `module` key Phase 1 will switch (or `null`) and `keywords` for search. `NavigationTest` fails on an item without a route, permissions or module key, and on a label missing from a language file. The item is shown only to people with one of its permissions; the page must still check its own permission.
+- **Plain words.** "Learners", "Homerooms", "Terms", "Grades", "School years", not table names (students, class sections, semesters, classes, session years). Every new label goes into every file in `resources/lang/` (English and Arabic today).
+- **Escaping.** Tables keep `data-escape="true"`; only a column that returns HTML built with `escapeHtml()` and `safeUrl()` sets `data-escape="false"`. Blade output uses `{{ }}`.
+- **Read-only years.** When the header's year switcher shows a year other than the current one, the server refuses writes (`EnforceReadOnlyYears`, allow-list in `config/panel.php`) and `panel.js` disables POST forms' submit buttons, delete buttons and anything marked `data-write`, and stops jQuery writes before they leave. Mark a control `data-write` if it changes year-scoped data without a form; mark a form `data-year-safe` only if its endpoint is on the allow-list.
+- **Material 3, not Bootstrap.** New and rewritten markup uses the library's `m3-*` classes and `data-m3-*` behaviour; `BootstrapFreeTest` fails otherwise. A page on the pattern still sits inside the shell that loads Bootstrap for the older pages, so give the page's own wrapper the `m3` class (as `<x-page.*>` components do) for the library's base rules.
+- **Keyboard and screen readers.** Every control is a real `<button>`, `<a>` or form field with a visible label or `aria-label`; focus is always visible (a 3px `secondary` outline); dialogs trap focus and return it. `layouts/master` provides a skip link and a `<main>` landmark; a page has exactly one `<h1>`.
+- **Width.** Every page works at 1024 px (a school laptop) and at 1280 px without scrolling sideways; wide tables scroll inside their card. Playwright checks this and runs axe on every panel page (see [Testing-and-CI](Testing-and-CI#playwright-admin-panel)).
+
 ## Changing the brand
 
 1. Edit `packages/eschool_core/lib/src/theme/brand_colors.dart`.

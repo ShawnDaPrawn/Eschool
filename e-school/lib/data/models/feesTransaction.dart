@@ -98,11 +98,14 @@ class FeesTransaction {
   }
 
   String get paymentGatewayString {
+    //past transactions keep the gateway they were paid through
     switch (paymentGateway) {
       case 2:
         return 'Stripe';
       case 3:
         return 'PayStack';
+      case 4:
+        return 'Flutterwave';
       default:
         return 'Razorpay';
     }

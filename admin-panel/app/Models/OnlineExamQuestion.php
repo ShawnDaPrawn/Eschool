@@ -4,24 +4,27 @@ declare(strict_types=1);
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Model;
-use Illuminate\Support\Facades\Storage;
-use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Facades\Storage;
 
 class OnlineExamQuestion extends Model
 {
     use HasFactory, SoftDeletes;
-    protected $hidden = ["deleted_at", "created_at", "updated_at"];
+
+    protected $hidden = ['deleted_at', 'created_at', 'updated_at'];
 
     public function class_subject()
     {
         return $this->belongsTo(ClassSubject::class, 'class_subject_id');
     }
+
     public function options()
     {
         return $this->hasMany(OnlineExamQuestionOption::class, 'question_id');
     }
+
     public function answers()
     {
         return $this->hasMany(OnlineExamQuestionAnswer::class, 'question_id')->with('options');

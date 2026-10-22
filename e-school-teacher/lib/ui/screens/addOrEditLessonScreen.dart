@@ -1,3 +1,4 @@
+import 'package:eschool_teacher/app/routeArguments.dart';
 import 'package:eschool_teacher/cubits/createLessonCubit.dart';
 import 'package:eschool_teacher/cubits/dashboardCubit.dart';
 import 'package:eschool_teacher/cubits/editLessonCubit.dart';
@@ -5,14 +6,12 @@ import 'package:eschool_teacher/cubits/subjectsOfClassSectionCubit.dart';
 import 'package:eschool_teacher/data/models/classSectionDetails.dart';
 import 'package:eschool_teacher/data/models/lesson.dart';
 import 'package:eschool_teacher/data/models/pickedStudyMaterial.dart';
-import 'package:eschool_teacher/data/models/studyMaterial.dart';
+import 'package:eschool_core/eschool_core.dart';
 import 'package:eschool_teacher/data/models/subject.dart';
 import 'package:eschool_teacher/data/repositories/lessonRepository.dart';
 import 'package:eschool_teacher/data/repositories/teacherRepository.dart';
 import 'package:eschool_teacher/ui/widgets/addStudyMaterialBottomSheet.dart';
 import 'package:eschool_teacher/ui/widgets/addedStudyMaterialFileContainer.dart';
-import 'package:eschool_teacher/ui/widgets/bottomSheetTextFieldContainer.dart';
-import 'package:eschool_core/eschool_core.dart';
 import 'package:eschool_teacher/ui/widgets/classSubjectsDropDownMenu.dart';
 import 'package:eschool_teacher/ui/widgets/customAppbar.dart';
 import 'package:eschool_teacher/ui/widgets/customDropDownMenu.dart';
@@ -21,7 +20,6 @@ import 'package:eschool_teacher/ui/widgets/myClassesDropDownMenu.dart';
 import 'package:eschool_teacher/ui/widgets/studyMaterialContainer.dart';
 import 'package:eschool_teacher/utils/labelKeys.dart';
 import 'package:eschool_teacher/utils/uiUtils.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -38,10 +36,10 @@ class AddOrEditLessonScreen extends StatefulWidget {
 
   static Route<bool?> route(RouteSettings routeSettings) {
     final arguments =
-        (routeSettings.arguments ?? Map<String, dynamic>.from({}))
-            as Map<String, dynamic>;
+        routeSettings.arguments as AddOrEditLessonArguments? ??
+        const AddOrEditLessonArguments();
 
-    return CupertinoPageRoute(
+    return AdaptivePageRoute(
       builder: (_) => MultiBlocProvider(
         providers: [
           BlocProvider(
@@ -56,9 +54,9 @@ class AddOrEditLessonScreen extends StatefulWidget {
           ),
         ],
         child: AddOrEditLessonScreen(
-          classSectionDetails: arguments['classSectionDetails'],
-          lesson: arguments['lesson'],
-          subject: arguments['subject'],
+          classSectionDetails: arguments.classSectionDetails,
+          lesson: arguments.lesson,
+          subject: arguments.subject,
         ),
       ),
     );

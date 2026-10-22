@@ -24,7 +24,7 @@ class TransferExamGrades
                         ]
                     );
                 })->toArray();
-                if (!empty($data)) {
+                if (! empty($data)) {
                     DB::table('grades')->insert($data);
                 }
             });

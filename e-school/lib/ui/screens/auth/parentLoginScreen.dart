@@ -8,12 +8,10 @@ import 'package:eschool/ui/screens/auth/widgets/forgotPasswordRequestBottomsheet
 import 'package:eschool/ui/screens/auth/widgets/termsAndConditionAndPrivacyPolicyContainer.dart';
 import 'package:eschool_core/eschool_core.dart';
 import 'package:eschool/ui/widgets/customTextFieldContainer.dart';
-import 'package:eschool/ui/widgets/passwordHideShowButton.dart';
 import 'package:eschool/utils/assets.dart';
 import 'package:eschool/utils/constants.dart';
 import 'package:eschool/utils/labelKeys.dart';
 import 'package:eschool/utils/uiUtils.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/flutter_svg.dart';
@@ -25,7 +23,7 @@ class ParentLoginScreen extends StatefulWidget {
   State<ParentLoginScreen> createState() => _ParentLoginScreenState();
 
   static Route route(RouteSettings routeSettings) {
-    return CupertinoPageRoute(
+    return AdaptivePageRoute(
       builder: (_) => BlocProvider<SignInCubit>(
         child: const ParentLoginScreen(),
         create: (_) => SignInCubit(AuthRepository()),

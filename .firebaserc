@@ -1,5 +1,14 @@
 {
   "projects": {
     "default": "navigateed-d8c06"
+  },
+  "targets": {
+    "navigateed-d8c06": {
+      "hosting": {
+        "docs": ["navigateed-d8c06"],
+        "app": ["navigateed-app"],
+        "teach": ["navigateed-teach"]
+      }
+    }
   }
 }

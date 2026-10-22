@@ -27,10 +27,15 @@ use App\Models\Semester;
 use App\Models\SessionYear;
 use App\Models\Students;
 use App\Models\StudentSessions;
+use App\Services\OnlineExamScoringService;
+use App\Services\Platform\Ledger\CentsColumns;
+use App\Services\Platform\Ledger\LegacyAmount;
+use App\Services\Platform\Ledger\Money;
 use App\Services\ResponseService;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 
 /**
  * Admin panel: a student's report (attendance, fees, leave, assignments, exams).
@@ -58,9 +63,7 @@ class ReportController extends Controller
 
         $category = Category::where('status', 1)->get();
         $formFields = FormField::where('for', 1)->orderBy('rank', 'ASC')->get();
-         $session_years = SessionYear::orderBy('id', 'ASC')->get();
-        
-        
+        $session_years = SessionYear::orderBy('id', 'ASC')->get();
 
         return view('students.stu-detail', compact('class_section', 'category', 'formFields', 'session_years', 'is_restricted_teacher'));
     }
@@ -175,7 +178,7 @@ class ReportController extends Controller
             ?: (getSettings('session_year')['session_year'] ?? null);
 
         return $sessionYear = SessionYear::find($currentSessionYearId);
-       
+
     }
 
     private function getStudentSession($studentId, $sessionYearId)
@@ -372,13 +375,15 @@ class ReportController extends Controller
             $classId = $classSectionModel->class_id;
         }
 
-        $baseAmount = $classId
-            ? FeesClass::where([
+        // Worked out in cents; the page shows currency units.
+        $baseCents = $classId
+            ? (int) FeesClass::where([
                 'class_id' => $classId,
                 'choiceable' => 0,
                 'session_year_id' => $sessionYear->id,
-            ])->sum('amount')
+            ])->sum(DB::raw(CentsColumns::sql('amount', 'amount_cents')))
             : 0;
+        $baseAmount = LegacyAmount::fromCentsOrZero($baseCents);
 
         $allInstallments = $classId
             ? InstallmentFee::where([
@@ -388,7 +393,7 @@ class ReportController extends Controller
 
         // installment_fees has no per-installment amount column — split baseAmount equally
         $installmentCount = $allInstallments->count();
-        $perInstallmentAmount = $installmentCount > 0 ? round($baseAmount / $installmentCount, 2) : 0;
+        $perInstallmentAmount = $installmentCount > 0 ? LegacyAmount::fromCents(Money::ofFraction($baseCents, $installmentCount)->cents) : 0;
 
         $installmentsPaid = collect();
         if ($allInstallments->isNotEmpty()) {
@@ -415,13 +420,13 @@ class ReportController extends Controller
             if (! $date) {
                 return null;
             }
-            $targetDate = \Carbon\Carbon::parse($date)->format('Y-m-d');
+            $targetDate = Carbon::parse($date)->format('Y-m-d');
 
             return $allTransactions->first(function ($txn) use ($amount, $targetDate, $typeOfFee) {
                 return $txn->type_of_fee == $typeOfFee
-                    && (float) $txn->total_amount === (float) $amount
+                    && $txn->money('total_amount')?->cents === LegacyAmount::toCents($amount)
                     && $txn->date
-                    && \Carbon\Carbon::parse($txn->date)->format('Y-m-d') === $targetDate;
+                    && Carbon::parse($txn->date)->format('Y-m-d') === $targetDate;
             });
         };
 
@@ -443,7 +448,7 @@ class ReportController extends Controller
 
             $data['ledgerRows'] = $allInstallments->map(function ($installment) use ($installmentsPaid, $matchTransaction, $perInstallmentAmount) {
                 $paidRecord = $installmentsPaid->firstWhere('installment_fee_id', $installment->id);
-                $dueDate = \Carbon\Carbon::parse($installment->due_date);
+                $dueDate = Carbon::parse($installment->due_date);
 
                 // Paid installments always show the actual amount that was paid.
                 // Unpaid installments show the calculated equal share of the total course fee.
@@ -458,7 +463,7 @@ class ReportController extends Controller
                     'due_date' => $dueDate->format('d-m-Y'),
                     'due_charges' => $dueCharges,
                     'is_paid' => (bool) $paidRecord,
-                    'paid_date' => $paidRecord ? \Carbon\Carbon::parse($paidRecord->date)->format('d-m-Y') : null,
+                    'paid_date' => $paidRecord ? Carbon::parse($paidRecord->date)->format('d-m-Y') : null,
                     'is_overdue' => ! $paidRecord && $dueDate->lt(now()),
                     'mode' => $txn->mode ?? null,
                     'transaction_id' => $txn->payment_id ?? null,
@@ -467,12 +472,12 @@ class ReportController extends Controller
             });
 
             $paidCount = $data['ledgerRows']->where('is_paid', true)->count();
-            $totalPaid = $installmentsPaid->sum('amount');
+            $paidCents = (int) $installmentsPaid->sum(fn ($paid) => $paid->money('amount')?->cents ?? 0);
             $totalInstallments = $allInstallments->count();
 
             $data['courseFees'] = $baseAmount;
-            $data['paidAmount'] = $totalPaid;
-            $data['outstandingAmount'] = max($baseAmount - $totalPaid, 0);
+            $data['paidAmount'] = LegacyAmount::fromCentsOrZero($paidCents);
+            $data['outstandingAmount'] = LegacyAmount::fromCentsOrZero(max($baseCents - $paidCents, 0));
 
             $row->date = $installmentsPaid->last()->date;
 
@@ -509,8 +514,9 @@ class ReportController extends Controller
                 $row->mode = $latestTxn->mode ?? null;
 
                 $data['courseFees'] = $baseAmount;
+                $paidCents = (int) $feesPaid->money('total_amount')?->cents;
                 $data['paidAmount'] = $feesPaid->total_amount;
-                $data['outstandingAmount'] = max($baseAmount - $feesPaid->total_amount, 0);
+                $data['outstandingAmount'] = LegacyAmount::fromCentsOrZero(max($baseCents - $paidCents, 0));
             }
         }
 
@@ -592,7 +598,7 @@ class ReportController extends Controller
             $totalMarks = OnlineExamQuestionChoice::where('online_exam_id', $onlineExam->id)->sum('marks');
 
             // a question counts only when exactly its correct options were picked
-            $score = app(\App\Services\OnlineExamScoringService::class)->score((int) $request->id, (int) $onlineExam->id);
+            $score = app(OnlineExamScoringService::class)->score((int) $request->id, (int) $onlineExam->id);
 
             $obtainedMarks = OnlineExamQuestionChoice::where('online_exam_id', $onlineExam->id)
                 ->whereIn('id', $score['correct_choice_ids'])
@@ -607,8 +613,7 @@ class ReportController extends Controller
 
         $data['onlineExamDetail'] = $onlineExamData;
 
-         $data['gradeRanges'] = Grade::where('session_year_id', $sessionYear->id)->get();
-       
+        $data['gradeRanges'] = Grade::where('session_year_id', $sessionYear->id)->get();
 
         return $this->response($request, 'exam', $data);
     }

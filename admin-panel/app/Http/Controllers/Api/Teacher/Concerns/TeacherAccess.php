@@ -15,6 +15,7 @@ use App\Models\StudentSessions;
 use App\Models\SubjectTeacher;
 use App\Models\Teacher;
 use App\Services\ResponseService;
+use Illuminate\Http\Exceptions\HttpResponseException;
 use Illuminate\Support\Facades\Auth;
 
 /**
@@ -26,14 +27,15 @@ trait TeacherAccess
 {
     /**
      * The signed-in user's teacher record. A user without one teaches nothing,
-     * so the request is refused rather than continuing with a null teacher.
+     * so the request is refused (a 403 thrown as an HttpResponseException, which
+     * every helper below passes on) rather than continuing with a null teacher.
      */
     private function currentTeacher(): Teacher
     {
         $teacher = Auth::user()?->teacher;
 
         if (! $teacher) {
-            ResponseService::errorResponse('no_permission_message', null, 403);
+            throw new HttpResponseException(ResponseService::errorResponse('no_permission_message', null, 403));
         }
 
         return $teacher;

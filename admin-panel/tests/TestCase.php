@@ -8,9 +8,19 @@ use Database\Seeders\AddSuperAdminSeeder;
 use Database\Seeders\EmailSeeder;
 use Database\Seeders\InstallationSeeder;
 use Illuminate\Foundation\Testing\TestCase as BaseTestCase;
+use Illuminate\Http\Client\Request as HttpRequest;
+use Illuminate\Support\Facades\Http;
 
 abstract class TestCase extends BaseTestCase
 {
+    /**
+     * Passwords the faked Have I Been Pwned range API reports as found in a
+     * breach. Every other password is reported clean.
+     *
+     * @var list<string>
+     */
+    protected array $breachedPasswords = [];
+
     protected function setUp(): void
     {
         parent::setUp();
@@ -18,6 +28,31 @@ abstract class TestCase extends BaseTestCase
         // The installer redirects every page to /install until storage/installed
         // exists; tests run against an already-installed app.
         $this->withoutMiddleware(ToInstallMiddleware::class);
+
+        $this->fakePasswordBreachCheck();
+    }
+
+    /**
+     * The password rule asks api.pwnedpasswords.com about every new password;
+     * tests answer for it instead of calling the internet. Only that host is
+     * faked, so other HTTP calls behave as before.
+     */
+    private function fakePasswordBreachCheck(): void
+    {
+        Http::fake(['api.pwnedpasswords.com/range/*' => function (HttpRequest $request) {
+            $prefix = strtoupper(substr($request->url(), -5));
+            $lines = [];
+            foreach ($this->breachedPasswords as $password) {
+                $hash = strtoupper(sha1($password));
+                if (str_starts_with($hash, $prefix)) {
+                    $lines[] = substr($hash, 5).':42';
+                }
+            }
+            // The real API pads every answer with zero-count lines.
+            $lines[] = str_repeat('0', 35).':0';
+
+            return Http::response(implode("\r\n", $lines));
+        }]);
     }
 
     /**

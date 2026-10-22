@@ -127,9 +127,13 @@ class DailyWorkflowsTest extends TestCase
             ->where(['session_year_id' => 1, 'class_section_id' => $this->school->ids['section_a'], 'status' => 1])->count());
 
         $sent = collect(Mail::mailer()->getSymfonyTransport()->messages())->map(fn ($m) => $m->getOriginalMessage());
-        $this->assertSame(['ravi.naidoo@example.com', 'priya.naidoo@example.com', 'lerato.mokoena@example.com'],
-            $sent->map(fn ($m) => $m->getTo()[0]->getAddress())->all());
-        $this->assertStringContainsString('Thabo Mokoena', $sent->last()->getHtmlBody());
+        $guardians = ['ravi.naidoo@example.com', 'priya.naidoo@example.com', 'lerato.mokoena@example.com'];
+        // The welcome emails, then (once the whole file is in) each guardian's link to set the learner's password.
+        $welcome = $sent->filter(fn ($m) => str_starts_with((string) $m->getSubject(), 'Welcome to'))->values();
+        $this->assertSame($guardians, $welcome->map(fn ($m) => $m->getTo()[0]->getAddress())->all());
+        $this->assertStringContainsString('Thabo Mokoena', $welcome->last()->getHtmlBody());
+        $invitations = $sent->filter(fn ($m) => str_contains((string) $m->getHtmlBody(), '/learner-setup/'))->values();
+        $this->assertSame($guardians, $invitations->map(fn ($m) => $m->getTo()[0]->getAddress())->all());
     }
 
     public function test_an_uploaded_attendance_sheet_is_saved_like_the_attendance_form(): void
@@ -280,18 +284,16 @@ class DailyWorkflowsTest extends TestCase
 
     public function test_an_enabled_payment_gateway_needs_a_currency_it_accepts(): void
     {
-        $save = fn (array $razorpay) => $this->actingAs($this->superAdmin())->postJson('/fees-config/update', $razorpay + [
-            'stripe_status' => 0, 'paystack_status' => 0, 'flutterwave_status' => 0, 'currency_code' => 'ZAR', 'currency_symbol' => 'R',
-            'compulsory_fee_payment_mode' => 1, 'is_student_can_pay_fees' => 1,
+        $save = fn (array $stripe) => $this->actingAs($this->superAdmin())->postJson('/fees-config/update', $stripe + [
+            'currency_code' => 'ZAR', 'currency_symbol' => 'R', 'compulsory_fee_payment_mode' => 1, 'is_student_can_pay_fees' => 1,
         ]);
-        $keys = ['razorpay_status' => 1, 'razorpay_secret_key' => 's', 'razorpay_api_key' => 'k', 'razorpay_webhook_secret' => 'w', 'razorpay_webhook_url' => 'https://example.com/hook'];
+        $keys = ['stripe_status' => 1, 'stripe_secret_key' => 's', 'stripe_publishable_key' => 'k', 'stripe_webhook_secret' => 'w', 'stripe_webhook_url' => 'https://example.com/hook'];
 
         // Any text was accepted, and the parent app's payment then failed with "Oops! Error occurred".
-        $save($keys + ['razorpay_currency_code' => 'Rand'])->assertJson(['error' => true]);
-        $save($keys + ['razorpay_currency_code' => 'XYZ'])->assertJson(['error' => true, 'message' => trans('currency_not_supported_by_razorpay')]);
-        $save($keys + ['razorpay_currency_code' => 'zar'])->assertJson(['error' => false]);
+        $save($keys + ['stripe_currency_code' => 'Rand'])->assertJson(['error' => true]);
+        $save($keys + ['stripe_currency_code' => 'zar'])->assertJson(['error' => false]);
         // A gateway that is off doesn't hold up the rest of the page.
-        $save(['razorpay_status' => 0, 'razorpay_currency_code' => 'Test value'])->assertJson(['error' => false]);
+        $save(['stripe_status' => 0, 'stripe_currency_code' => 'Test value'])->assertJson(['error' => false]);
     }
 
     public function test_deleting_a_lesson_removes_its_and_its_topics_stored_files(): void

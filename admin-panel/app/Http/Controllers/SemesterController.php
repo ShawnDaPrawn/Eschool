@@ -30,9 +30,8 @@ class SemesterController extends Controller
             return redirect(route('home'))
                 ->withErrors(['message' => trans('no_permission_message')]);
         }
-         $session_years = SessionYear::orderBy('id', 'ASC')->get();
-        
-        
+        $session_years = SessionYear::orderBy('id', 'ASC')->get();
+
         $classes = ClassSchool::with('medium', 'streams')->get();
 
         // dd();

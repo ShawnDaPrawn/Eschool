@@ -78,7 +78,7 @@ class BootstrapFreeTest extends TestCase
 
         $finished = array_values(array_diff($baseline, array_keys($using)));
         $this->assertSame([], $finished,
-            "These files no longer use Bootstrap. Remove them from ".self::BASELINE
+            'These files no longer use Bootstrap. Remove them from '.self::BASELINE
             ." (or run with UPDATE_BOOTSTRAP_BASELINE=1):\n".implode("\n", $finished));
     }
 

@@ -1,7 +1,4 @@
-import 'package:eschool/cubits/gallery/galleryAlbumsCubit.dart';
-import 'package:eschool/ui/widgets/customRefreshIndicator.dart';
-import 'package:eschool/ui/widgets/errorContainer.dart';
-import 'package:eschool/ui/widgets/galleryAlbumContainer.dart';
+import 'package:eschool_core/eschool_core.dart';
 import 'package:eschool/ui/widgets/shimmerLoaders/albumGridItemLoadingContainer.dart';
 import 'package:eschool/utils/uiUtils.dart';
 import 'package:flutter/material.dart';

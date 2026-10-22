@@ -1,146 +1,83 @@
-<!-- partial:../../partials/_navbar.html -->
-@if (Session::get('locale'))
-    {{ app()->setLocale(Session::get('locale')) }}
-@endif
-
-<nav class="navbar default-layout-navbar col-lg-12 col-12 p-0 fixed-top d-flex flex-row">
-    <div class="text-center navbar-brand-wrapper d-flex align-items-center justify-content-center">
-        <a class="navbar-brand header-logo brand-logo" href="{{ URL::to('/home') }}"> <img
-                src="{{ schoolLogoUrl('logo1') }}" alt="logo"> </a>
-        <a class="navbar-brand brand-logo-mini" href="{{ URL::to('/') }}"> <img
-                src="{{ schoolSetting('favicon') ? asset('storage/' . schoolSetting('favicon')) : asset('assets/logo2.svg') }}" alt="logo"> </a>
+{{--
+    Panel header, a Material 3 top app bar: the menu toggle, logo, global
+    search, the always-visible school year switcher, cache clear (Super Admin),
+    language and the account menu. Built with the Material 3 library
+    (public/assets/m3); menus open with data-m3-menu (m3.js). Styles:
+    public/assets/css/panel.css ("Header"); behaviour: panel.js, sidebar.js.
+--}}
+@php
+    $panelYear = $panelYear ?? app(\App\Services\Panel\SessionYearContext::class);
+    $headerYears = \App\Models\SessionYear::query()->select('id', 'name', 'start_date', 'end_date')->orderBy('start_date')->orderBy('id')->get();
+    $locale = app()->getLocale();
+@endphp
+<header class="panel-topbar m3">
+    <div class="panel-topbar__brand">
+        <a class="panel-topbar__logo panel-topbar__logo--full" href="{{ route('home') }}">
+            <img src="{{ schoolLogoUrl('logo1') }}" alt="{{ config('app.name') }}">
+        </a>
+        <a class="panel-topbar__logo panel-topbar__logo--mini" href="{{ route('home') }}">
+            <img src="{{ schoolSetting('favicon') ? asset('storage/' . schoolSetting('favicon')) : asset('assets/logo2.svg') }}" alt="{{ config('app.name') }}">
+        </a>
     </div>
-    <div class="navbar-menu-wrapper d-flex align-items-stretch">
-        <button class="navbar-toggler navbar-toggler align-self-center" type="button" data-toggle="minimize"
-            aria-label="{{ __('toggle') . ' ' . __('sidebar') }}">
-            <x-icon name="menu" :size="22" />
+    <div class="panel-topbar__bar">
+        {{-- Wide screens: shrink the navigation to its icons. Small screens: open it as a drawer. --}}
+        <button type="button" class="m3-icon-button panel-topbar__menu panel-topbar__menu--minimize" data-panel-nav-minimize
+            aria-controls="sidebar" aria-expanded="true" aria-label="{{ __('nav_toggle_menu') }}">
+            <x-icon name="menu" :size="24" />
         </button>
-        @php
-            $email_config_verify_value = DB::table('settings')
-                ->select('message')
-                ->where('type', 'email_configration_verification')
-                ->first();
-             
+        <button type="button" class="m3-icon-button panel-topbar__menu panel-topbar__menu--drawer" data-panel-nav-open
+            aria-controls="sidebar" aria-expanded="false" aria-label="{{ __('nav_toggle_menu') }}">
+            <x-icon name="menu" :size="24" />
+        </button>
 
-           
-            if ($email_config_verify_value) {
-                $message = $email_config_verify_value->message;
-            } else {
-                $message = 0;
-            }
-        @endphp
-        @php
-            $current_year_row = DB::table('session_years')
-                ->select('name', 'end_date')
-                ->where('id', getSettings('session_year')['session_year'] ?? null)
-                ->whereNull('deleted_at')
-                ->first();
-            $current_year_ended = $current_year_row && $current_year_row->end_date < date('Y-m-d');
-        @endphp
-        @if ($current_year_ended && auth()->user()->can('session-year-create'))
-            <div class="mx-auto order-0 d-none d-lg-block">
-                <div class="alert alert-fill-danger my-2" role="alert">
-                    <x-icon name="alert" :size="16" />
-                    {{ __('current_session_year_has_ended', ['name' => $current_year_row->name, 'date' => date(getSettings('date_formate')['date_formate'] ?? 'd-m-Y', strtotime($current_year_row->end_date))]) }}
-                    <a href="{{ url('session-years') }}" class="alert-link">{{ __('create_the_next_session_year') }}</a>.
-                </div>
-            </div>
-        @elseif ($message == 0)
-            @can('email-setting-create')
-                <div class="mx-auto order-0 d-none d-lg-block">
-                    <div class="alert alert-fill-danger my-2" role="alert">
-                        <x-icon name="alert" :size="16" /> {{ __('email_configration_is_not_verified') }} <a
-                            href="{{ route('setting.email-config-index') }}" class="alert-link">{{ __('click_here_to_redirect_to_email_configration') }}</a>.
-                    </div>
-                </div>
-            @endcan
-        @endif
-        @php
-             $current_session_id = getSettings('session_year')['session_year'];
-            
-            $current_session = DB::table('session_years')
-                ->select('id', 'name')
-                ->where('id', $current_session_id)
-                ->whereNull('deleted_at')
-                ->first();
-            $session_years = DB::table('session_years')
-                ->select('id', 'name', 'start_date', 'end_date')
-                ->whereNull('deleted_at')
-                ->orderBy('id', 'ASC')
-                ->get();
-           
-           
+        @includeWhen(Route::has('search'), 'layouts.partials.search-box')
 
-            $current_session = $session_years->firstWhere('id', $current_session_id);
-            $filter_session_year_selected = session('session_year', $current_session_id);
-            
-        @endphp
-        <ul class="navbar-nav navbar-nav-right d-none d-lg-flex">
-            <li>
-                <div class="d-flex align-items-center gap-between-elements-1">
-                    <span class="info-tooltip">
-                        <x-icon name="info" :size="18" />
-                        <span class="tooltip-text">
-                            {{ __('sessionYearFilterInfo') }}
-                        </span>
-                    </span>
-                   
-
-                    <select id="filter_session_year_global" data-scope="global"
-                        class="session-year-dropdown filter_session_year">
-                        @foreach ($session_years as $session_year)
-                            <option value="{{ $session_year->id }}"
-                                data-start-date="{{ date('d-m-Y', strtotime($session_year->start_date)) }}"
-                                data-end-date="{{ date('d-m-Y', strtotime($session_year->end_date)) }}"
-                                {{ $session_year->id == $filter_session_year_selected ? 'selected' : '' }}>
-                                {{ $session_year->name }}
-                                @if ($current_session && $session_year->id == $current_session->id)
-                                    - {{ __('system_default') }}
-                                @endif
+        <div class="panel-topbar__actions">
+            <div class="panel-year">
+                <label class="m3-text-field m3-text-field--select panel-field--compact panel-year__field">
+                    <select id="filter_session_year_global" data-scope="global" data-selected="{{ $panelYear->selectedId() }}"
+                        class="m3-text-field__input filter_session_year js-year-switcher" aria-labelledby="panel-year-label">
+                        @foreach ($headerYears as $year)
+                            <option value="{{ $year->id }}"
+                                data-start-date="{{ date('d-m-Y', strtotime($year->start_date)) }}"
+                                data-end-date="{{ date('d-m-Y', strtotime($year->end_date)) }}"
+                                @selected($year->id === $panelYear->selectedId())>
+                                {{ $year->name }}@if ($year->id === $panelYear->currentId()) ({{ __('nav_current_year') }})@endif
                             </option>
                         @endforeach
                     </select>
-                </div>
-            </li>
+                    <span class="m3-text-field__label" id="panel-year-label">{{ __('nav_school_year') }}</span>
+                </label>
+            </div>
 
             @if (Auth::user()->hasRole('Super Admin'))
-                <li class="nav-item d-flex align-items-center">
-                    <form action="{{ url('clear') }}" method="POST" class="m-0">
-                        @csrf
-                        <button type="submit" class="btn btn-outline-primary topbar-action-btn">
-                            <x-icon name="refresh" :size="18" />
-                            <span>{{ __('cache_clear') }}</span>
-                        </button>
-                    </form>
-                </li>
+                <form action="{{ url('clear') }}" method="POST" class="panel-topbar__clear" data-year-safe>
+                    @csrf
+                    <button type="submit" class="m3-button m3-button--outlined m3-button--icon-leading panel-topbar__clear-button"
+                        data-m3-tooltip="{{ __('cache_clear') }}">
+                        <x-icon name="refresh" :size="18" />
+                        <span class="panel-topbar__clear-label">{{ __('cache_clear') }}</span>
+                    </button>
+                </form>
             @endif
-            <li class="nav-item dropdown">
-                <a class="nav-link count-indicator dropdown-toggle" id="messageDropdown" href="#"
-                    data-toggle="dropdown" aria-expanded="false">
-                    <x-icon name="language" :size="20" />
-                </a>
-                <div class="dropdown-menu dropdown-menu-right navbar-dropdown language-dropdown"
-                    aria-labelledby="messageDropdown">
-                    @foreach (get_language() as $key => $language)
-                        <a class="dropdown-item language-item {{ app()->getLocale() == $language->code ? 'active' : '' }}"
-                            href="{{ url('set-language') . '/' . $language->code }}">
-                            <span class="language-name">{{ $language->name }}</span>
-                            @if (app()->getLocale() == $language->code)
-                                <x-icon name="check" :size="16" class="language-check" />
-                            @endif
-                        </a>
-                    @endforeach
-                </div>
-            </li>
-            @include('layouts.partials.profile-dropdown', ['id' => 'profileDropdownDesktop'])
-        </ul>
 
-        <ul class="navbar-nav navbar-nav-right d-flex d-md-none">
-            @include('layouts.partials.profile-dropdown', ['id' => 'profileDropdownMobile'])
-        </ul>
-        <button class="navbar-toggler navbar-toggler-right d-lg-none align-self-center" type="button"
-            data-toggle="offcanvas" aria-label="{{ __('menu') }}">
-            <x-icon name="menu" :size="22" />
-        </button>
+            <button type="button" class="m3-icon-button panel-topbar__language" data-m3-menu="panel-language-menu"
+                aria-haspopup="menu" aria-expanded="false" aria-label="{{ __('nav_change_language') }}">
+                <x-icon name="language" :size="24" />
+            </button>
+            <div class="m3-menu panel-menu" id="panel-language-menu" popover role="menu" aria-label="{{ __('nav_change_language') }}">
+                @foreach (get_language() as $language)
+                    <a class="m3-menu__item panel-menu__item" role="menuitem" href="{{ url('set-language') . '/' . $language->code }}"
+                        @if ($locale == $language->code) aria-current="true" @endif lang="{{ $language->code }}">
+                        <span class="panel-menu__text">{{ $language->name }}</span>
+                        @if ($locale == $language->code)
+                            <x-icon name="check" :size="20" />
+                        @endif
+                    </a>
+                @endforeach
+            </div>
+
+            @include('layouts.partials.profile-dropdown', ['id' => 'profileDropdown'])
+        </div>
     </div>
-</nav>
+</header>

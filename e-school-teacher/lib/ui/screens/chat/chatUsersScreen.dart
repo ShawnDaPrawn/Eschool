@@ -3,16 +3,9 @@ import 'package:eschool_teacher/app/routes.dart';
 import 'package:eschool_teacher/cubits/chat/chatUsersCubit.dart';
 import 'package:eschool_teacher/ui/screens/chat/widget/chatUserItem.dart';
 import 'package:eschool_teacher/ui/widgets/appBarTitleContainer.dart';
-import 'package:eschool_teacher/ui/widgets/customBackButton.dart';
-import 'package:eschool_teacher/ui/widgets/customShimmerContainer.dart';
 import 'package:eschool_teacher/ui/widgets/customTabBarContainer.dart';
-import 'package:eschool_teacher/ui/widgets/errorContainer.dart';
-import 'package:eschool_teacher/ui/widgets/loadMoreErrorWidget.dart';
 import 'package:eschool_teacher/ui/widgets/noDataContainer.dart';
-import 'package:eschool_teacher/ui/widgets/screenTopBackgroundContainer.dart';
-import 'package:eschool_teacher/ui/widgets/shimmerLoadingContainer.dart';
 import 'package:eschool_teacher/ui/widgets/tabBarBackgroundContainer.dart';
-import 'package:eschool_teacher/utils/animationConfiguration.dart';
 import 'package:eschool_teacher/utils/labelKeys.dart';
 import 'package:eschool_teacher/utils/uiUtils.dart';
 import 'package:flutter/cupertino.dart';
@@ -24,7 +17,7 @@ class ChatUsersScreen extends StatefulWidget {
   const ChatUsersScreen({super.key});
 
   static CupertinoPageRoute route(RouteSettings routeSettings) {
-    return CupertinoPageRoute(builder: (_) => const ChatUsersScreen());
+    return AdaptivePageRoute(builder: (_) => const ChatUsersScreen());
   }
 
   @override

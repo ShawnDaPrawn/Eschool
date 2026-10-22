@@ -10,9 +10,10 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Mediums extends Model
 {
-    protected $hidden = ["deleted_at", "created_at", "updated_at"];
-    use SoftDeletes;
+    protected $hidden = ['deleted_at', 'created_at', 'updated_at'];
+
     use HasFactory;
+    use SoftDeletes;
 
     protected static function booted()
     {

@@ -1,7 +1,6 @@
 import 'dart:math';
 import 'package:eschool_teacher/ui/widgets/albumGridItemLoadingContainer.dart';
-import 'package:eschool_teacher/ui/widgets/customShimmerContainer.dart';
-import 'package:eschool_teacher/ui/widgets/shimmerLoadingContainer.dart';
+import 'package:eschool_core/eschool_core.dart';
 import 'package:flutter/cupertino.dart';
 
 class HomeContainerShimmerContainer extends StatelessWidget {

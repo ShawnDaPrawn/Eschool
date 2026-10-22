@@ -13,6 +13,7 @@ use App\Services\ResponseService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Validation\ValidationException;
 use Maatwebsite\Excel\Facades\Excel;
 use Throwable;
 
@@ -104,24 +105,27 @@ class BulkImportController extends Controller
             'file.mimes' => trans('bulk_student_file_mimes'),
         ]);
         if ($validator->fails()) {
-            ResponseService::validationError($validator->errors()->first());
+            return ResponseService::validationError($validator->errors()->first());
         }
         try {
             $class_section_id = $request->class_section_id;
             Excel::import(new StudentsImport($class_section_id), $request->file);
-            ResponseService::successResponse(trans('data_store_successfully'));
-        } catch (\Illuminate\Validation\ValidationException $e) {
+
+            return ResponseService::successResponse(trans('data_store_successfully'));
+        } catch (ValidationException $e) {
             // Handle validation errors from the import
             $errors = $e->errors();
             $firstError = collect($errors)->flatten()->first();
-            ResponseService::errorResponse($firstError, null, 422);
+
+            return ResponseService::errorResponse($firstError, null, 422);
         } catch (Throwable $e) {
             $message = 'Oops! Something went wrong.';
             $exceptionMessage = strtolower((string) $e->getMessage());
             if (str_contains($exceptionMessage, 'file') && (str_contains($exceptionMessage, 'xlsx') || str_contains($exceptionMessage, 'csv') || str_contains($exceptionMessage, 'xls'))) {
                 $message = trans('please_select_valid_file');
             }
-            ResponseService::errorResponse($message, null, 103, $e);
+
+            return ResponseService::errorResponse($message, null, 103, $e);
         }
     }
 }

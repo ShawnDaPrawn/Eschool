@@ -1,0 +1,26 @@
+import 'package:eschool_core/eschool_core.dart';
+import 'package:flutter/material.dart';
+import 'package:lottie/lottie.dart';
+
+class FloatingActionAddButton extends StatelessWidget {
+  const FloatingActionAddButton({required this.onTap, super.key});
+  final Function onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return FloatingActionButton(
+      elevation: 4.5,
+      onPressed: () {
+        onTap();
+      },
+      child: Padding(
+        padding: const EdgeInsets.all(13.5),
+        child: Lottie.asset(
+          SharedAssets.addFloatingAnimation,
+          animate: true,
+          repeat: true,
+        ),
+      ),
+    );
+  }
+}

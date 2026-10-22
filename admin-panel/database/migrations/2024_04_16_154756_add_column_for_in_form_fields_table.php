@@ -14,7 +14,7 @@ return new class extends Migration
     public function up()
     {
         Schema::table('form_fields', function (Blueprint $table) {
-           $table->string('for')->nullable()->after('type')->comment('1- student, 2-parent ,3-teacher');
+            $table->string('for')->nullable()->after('type')->comment('1- student, 2-parent ,3-teacher');
         });
         Schema::table('parents', static function (Blueprint $table) {
             $table->text('dynamic_fields')->after('occupation');

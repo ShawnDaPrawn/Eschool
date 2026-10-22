@@ -4,14 +4,16 @@ declare(strict_types=1);
 
 namespace App\Models;
 
+use App\Services\Platform\Audit\Auditable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 class ExamMarks extends Model
 {
-    use HasFactory, SoftDeletes;
-    protected $hidden = ["deleted_at", "created_at", "updated_at"];
+    use Auditable, HasFactory, SoftDeletes;
+
+    protected $hidden = ['deleted_at', 'created_at', 'updated_at'];
 
     public function timetable()
     {
@@ -27,7 +29,6 @@ class ExamMarks extends Model
     {
         return $this->belongsTo(Students::class)->withTrashed();
     }
-
 
     //     return $this->hasManyThrough(Exam::class,ExamTimetable::class,'id','id','exam_id')->orderBy('date','asc');
     // }

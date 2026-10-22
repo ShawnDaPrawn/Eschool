@@ -442,6 +442,19 @@ window.setOnlineRegistrationFormMode = function (mode, row) {
 };
 
 window.studentEvents = {
+    // Sign-in set-up (LearnerInvitationController).
+    'click .learner-invite': function (e) {
+        e.preventDefault();
+        ajaxRequest('POST', $(e.currentTarget).data('url'), new FormData(), null, function (response) {
+            showSuccessToast(response.message);
+        }, function (response) {
+            showErrorToast(response.message);
+        });
+    },
+    'click .learner-sheet': function (e) {
+        e.preventDefault();
+        openLearnerSignInSheet($(e.currentTarget).data('url'));
+    },
     'click .editdata': function (e, value, row, index) {
         $("#edit_id").val(row.user_id);
         $("#edit_first_name").val(row.first_name);
@@ -1484,6 +1497,30 @@ window.onlineExamQuestionsEvents = {
 };
 
 window.teacherActionEvents = {
+    // Deactivate or reactivate: the server signs a deactivated teacher out.
+    'click .teacher-status': function (e) {
+        e.preventDefault();
+        var link = $(e.currentTarget);
+        Swal.fire({
+            text: link.data('confirm-text'),
+            icon: 'warning',
+            showCancelButton: true,
+            cancelButtonText: trans('Cancel'),
+            confirmButtonText: trans('Confirm!')
+        }).then(function (result) {
+            if (!result.isConfirmed) {
+                return;
+            }
+            var data = new FormData();
+            data.append('status', link.data('status'));
+            ajaxRequest('POST', link.data('url'), data, null, function (response) {
+                showSuccessToast(response.message);
+                $('#table_list').bootstrapTable('refresh');
+            }, function (response) {
+                showErrorToast(response.message);
+            });
+        });
+    },
     'click .editdata': function (e, value, row, index) {
         $('input[type=checkbox].edit_checkbox').removeAttr('checked');
         $('.edit_text_number').val('');

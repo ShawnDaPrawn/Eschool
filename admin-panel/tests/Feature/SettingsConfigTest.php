@@ -45,6 +45,8 @@ class SettingsConfigTest extends TestCase
     {
         $this->seedLikeInstaller();
         config(['mail.from.name' => config('app.name')]); // MAIL_FROM_NAME="${APP_NAME}", as in .env.example
+        // The rows are the fallback for installs without MAIL_PASSWORD (SecretSettingsTest has the other case).
+        config(['secrets.mail_password' => null]);
         foreach ([
             'school_name' => 'Greenfield High',
             'time_zone' => 'Africa/Johannesburg',
@@ -55,7 +57,6 @@ class SettingsConfigTest extends TestCase
             'mail_password' => 'p@ss word#1',
             'mail_encryption' => 'ssl',
             'mail_send_from' => 'office@example.org',
-            'paystack_secret_key' => 'sk_test_123',
         ] as $type => $message) {
             Settings::updateOrInsert(['type' => $type], ['message' => $message]);
         }
@@ -71,7 +72,6 @@ class SettingsConfigTest extends TestCase
         $this->assertSame('p@ss word#1', config('mail.mailers.smtp.password'));
         $this->assertSame('ssl', config('mail.mailers.smtp.encryption'));
         $this->assertSame('office@example.org', config('mail.from.address'));
-        $this->assertSame('sk_test_123', config('paystack.secretKey'));
     }
 
     public function test_unset_or_invalid_settings_keep_the_env_config(): void

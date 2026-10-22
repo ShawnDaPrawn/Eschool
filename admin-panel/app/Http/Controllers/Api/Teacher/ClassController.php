@@ -21,6 +21,7 @@ use App\Models\SubjectTeacher;
 use App\Models\Teacher;
 use App\Services\ResponseService;
 use Carbon\Carbon;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
@@ -44,12 +45,12 @@ class ClassController extends Controller
                 $sessionYearId
             );
 
-            ResponseService::successResponse('Teacher Classes Fetched Successfully.', [
+            return ResponseService::successResponse('Teacher Classes Fetched Successfully.', [
                 'class_teacher' => $classTeacherSections->isNotEmpty() ? $classTeacherSections : (object) null,
                 'other' => $otherClassSections,
             ]);
         } catch (\Exception $e) {
-            ResponseService::errorResponse('error_occurred', null, 103, $e);
+            return ResponseService::errorResponse('error_occurred', null, 103, $e);
         }
     }
 
@@ -62,7 +63,7 @@ class ClassController extends Controller
         ]);
 
         if ($validator->fails()) {
-            ResponseService::validationError($validator->errors()->first());
+            return ResponseService::validationError($validator->errors()->first());
         }
         try {
             $session_year = getSettings('session_year');
@@ -108,9 +109,9 @@ class ClassController extends Controller
                 return $item;
             });
 
-            ResponseService::successResponse('Teacher Subject Fetched Successfully.', $subjects);
+            return ResponseService::successResponse('Teacher Subject Fetched Successfully.', $subjects);
         } catch (\Exception $e) {
-            ResponseService::errorResponse('error_occurred', null, 103, $e);
+            return ResponseService::errorResponse('error_occurred', null, 103, $e);
         }
     }
 
@@ -122,7 +123,7 @@ class ClassController extends Controller
             'semester_id' => 'nullable|integer',
         ]);
         if ($validator->fails()) {
-            ResponseService::validationError($validator->errors()->first());
+            return ResponseService::validationError($validator->errors()->first());
         }
         try {
 
@@ -143,7 +144,7 @@ class ClassController extends Controller
                 ->exists();
 
             if (! $isTeacherAssigned) {
-                ResponseService::errorResponse('You are not assigned to this class section', null, 403);
+                return ResponseService::errorResponse('You are not assigned to this class section', null, 403);
             }
 
             // Get student IDs for this class section in the current session year
@@ -180,9 +181,10 @@ class ClassController extends Controller
                     }
                 }
             }
-            ResponseService::successResponse('Student Details Fetched Successfully', $data);
+
+            return ResponseService::successResponse('Student Details Fetched Successfully', $data);
         } catch (\Exception $e) {
-            ResponseService::errorResponse('error_occurred', null, 103, $e);
+            return ResponseService::errorResponse('error_occurred', null, 103, $e);
         }
     }
 
@@ -192,11 +194,11 @@ class ClassController extends Controller
             'student_id' => 'required|numeric',
         ]);
         if ($validator->fails()) {
-            ResponseService::validationError($validator->errors()->first());
+            return ResponseService::validationError($validator->errors()->first());
         }
         try {
             if (! $this->teachesStudent($request->student_id)) {
-                ResponseService::errorResponse('no_permission_message', null, 403);
+                return ResponseService::errorResponse('no_permission_message', null, 403);
             }
 
             $session_year = getSettings('session_year');
@@ -232,7 +234,7 @@ class ClassController extends Controller
                 if ($student_data_ids['guardian_id'] != 0) {
                     $guardian_data = Parents::where('id', $student_data_ids['guardian_id'])->get();
 
-                    ResponseService::successResponse('Student Details Fetched Successfully', null, [
+                    return ResponseService::successResponse('Student Details Fetched Successfully', null, [
                         'gurdian_data' => $guardian_data,
                         'father_data' => $father_data,
                         'mother_data' => $mother_data,
@@ -241,7 +243,7 @@ class ClassController extends Controller
                         'today_attendance' => $today_attendance,
                     ]);
                 } else {
-                    ResponseService::successResponse('Student Details Fetched Successfully', null, [
+                    return ResponseService::successResponse('Student Details Fetched Successfully', null, [
                         'father_data' => $father_data,
                         'mother_data' => $mother_data,
                         'total_present' => $student_total_present,
@@ -251,7 +253,7 @@ class ClassController extends Controller
                 }
             }
         } catch (\Exception $e) {
-            ResponseService::errorResponse('error_occurred', null, 103, $e);
+            return ResponseService::errorResponse('error_occurred', null, 103, $e);
         }
     }
 
@@ -259,7 +261,7 @@ class ClassController extends Controller
      * Returns [$classTeacherSections, $otherClassSections] for the given teacher
      * and session year, filtered to the current semester where applicable.
      *
-     * @return array{0: \Illuminate\Database\Eloquent\Collection, 1: \Illuminate\Database\Eloquent\Collection}
+     * @return array{0: Collection, 1: Collection}
      */
     private function getTeacherClassSections($teacher, $sessionYearId): array
     {

@@ -1,4 +1,4 @@
-This page covers how the admin panel notifies people: push notifications to the Flutter apps through Firebase Cloud Messaging (FCM HTTP v1), the in-app notification list stored in the database, and email (SMTP through Laravel's mailer, with editable templates). It lists every event in the code that sends a notification and who receives it.
+This page covers how the admin panel notifies people: push notifications to the Flutter apps through Firebase Cloud Messaging (FCM HTTP v1), the in-app notification list stored in the database, and email (Amazon SES or SMTP through Laravel's mailer, with editable templates). Since Phase 0 mail and pushes are sent by queued jobs on the worker, not inside the web request, and every attempt is recorded in `notification_deliveries`; SES reports bounces, complaints and deliveries back through a webhook. It lists every event in the code that sends a notification and who receives it.
 
 Click-by-click setup is in the Docusaurus pages [Notification Settings](https://shawndaprawn.github.io/Eschool/admin-panel/notification-settings/), [Email Configuration](https://shawndaprawn.github.io/Eschool/admin-panel/email-config/), [Custom Notifications](https://shawndaprawn.github.io/Eschool/features/custom-notifications/) and, for the app side, [Integrate Firebase](https://shawndaprawn.github.io/Eschool/mobile-app/integrate-firebase/).
 
@@ -6,14 +6,15 @@ Click-by-click setup is in the Docusaurus pages [Notification Settings](https://
 
 ### Code
 
-All push code is in [`app/Helpers/notification_helper.php`](https://github.com/ShawnDaPrawn/Eschool/blob/main/admin-panel/app/Helpers/notification_helper.php), autoloaded through `composer.json` (`autoload.files`). It uses `google/apiclient` (`^2.18`) only to mint OAuth access tokens; `composer.json` keeps just the `FirebaseCloudMessaging` service from `google/apiclient-services` (`extra.google/apiclient-services` plus the `Google\Task\Composer::cleanup` pre-autoload hook). The FCM call itself is a cURL POST.
+The helpers are in [`app/Helpers/notification_helper.php`](https://github.com/ShawnDaPrawn/Eschool/blob/main/admin-panel/app/Helpers/notification_helper.php), autoloaded through `composer.json` (`autoload.files`). They build the FCM messages and queue them; the [`SendPush`](https://github.com/ShawnDaPrawn/Eschool/blob/main/admin-panel/app/Jobs/Platform/SendPush.php) job sends each one on the worker through `App\Services\Platform\Notifications\FcmClient` (Laravel's HTTP client, 5 s connect and 10 s timeouts). `google/apiclient` (`^2.18`) is used only to mint OAuth access tokens; `composer.json` keeps just the `FirebaseCloudMessaging` service from `google/apiclient-services`.
 
 | Function | What it does |
 |---|---|
-| `sendSimpleNotification($user, $title, $body, $type, $image, $userinfo)` | Sends to specific users. `$user` is a list of `users.id`. Loads the `fcm_id` of those users with a non-empty token, split by `users.device_type` (`android` / `ios`), and POSTs one message per token to `https://fcm.googleapis.com/v1/projects/<project_id>/messages:send`. Android tokens get a data-only message; iOS tokens get a `notification` block (title, body) plus the same `data`. |
-| `sendNotificationToTopic($title, $body, $type, $image, $userinfo)` | Sends to topics. `$userinfo` picks a pair from `all` (`allAndroid`, `allIOS`), `students`, `parents`, `teachers`; Android topics get data-only, iOS topics get `notification` + `data`. Only the custom-notification broadcast calls it, always with `all`. |
-| `sendFCMCurl($url, $access_token, $Data)` | Performs the POST with `Authorization: Bearer <token>`. Logs and returns false when cURL itself fails or there is no token. It does not read the FCM response, so rejected messages (for example an expired token) are not reported. TLS verification uses cURL defaults (commit `420df6d`). |
-| `getAccessToken()` | Reads the `service_account_file` setting, resolves it on the `local` disk (`storage/app`), falling back to the `public` disk for older installs, checks that `Google\Client` exists, then `setAuthConfig()`, scope `https://www.googleapis.com/auth/firebase.messaging`, `fetchAccessTokenWithAssertion()`. Each send fetches a new token (no caching). Errors are logged and return null. |
+| `sendSimpleNotification($user, $title, $body, $type, $image, $userinfo)` | Sends to specific users. `$user` is a list of `users.id`. Loads those users with a non-empty `fcm_id` and `device_type` `android` or `ios` and queues one `SendPush` per device (`PushQueue::toDevice()`), with a `notification_deliveries` row each. Android tokens get a data-only message; iOS tokens get a `notification` block (title, body) plus the same `data`. |
+| `sendNotificationToTopic($title, $body, $type, $image, $userinfo)` | Sends to topics. `$userinfo` picks a pair from `all` (`allAndroid`, `allIOS`), `students`, `parents`, `teachers`; one `SendPush` per topic. Android topics get data-only, iOS topics get `notification` + `data`. Only the custom-notification broadcast calls it, always with `all`. |
+| `getAccessToken()` | Reads the `service_account_file` setting, resolves it on the `local` disk (`storage/app`), falling back to the `public` disk for older installs, checks that `Google\Client` exists, then `setAuthConfig()`, scope `https://www.googleapis.com/auth/firebase.messaging`, `fetchAccessTokenWithAssertion()`. The token is cached for 50 minutes per service-account file. Errors are logged and return null. |
+
+`SendPush` reads FCM's answer: a 2xx records the delivery `sent` with FCM's message name; a 429, a 5xx or a network error is retried (3 tries, 60/300/900 s backoff); any other refusal (an expired or unregistered token, a bad message) is recorded `failed` with the status and FCM error code and not retried. Without credentials it logs "Cannot send FCM notification: Access token is null", as the helpers always did, and records the delivery `failed` without retrying. A push never fails the action that triggered it.
 
 The `data` payload always contains `click_action` = `FLUTTER_NOTIFICATION_CLICK`, `title`, `body`, `type`, `image`. Type `chat` adds `sender_info` (the sender profile as a JSON string); type `fees-due` adds `child_id`. The apps route chat notifications (`type == 'chat'`) to the chat screens; see `lib/utils/notificationUtils/generalNotificationUtility.dart` in both apps.
 
@@ -88,7 +89,7 @@ Exams, online exams, results, events, holidays and timetables send no notificati
 
 Notes on specific triggers, as written:
 
-- Payment pushes from the webhook are wrapped in `try`/`catch` so a failed push never undoes the payment. Other callers are inside the controller's general `try`, so an FCM exception there becomes an `error_occurred` response even though the data was saved (`compulsoryFeesPaidStore` special-cases this with "Data Stored successfully. But App push notification not send.").
+- Pushes are queued, so neither a slow nor a failing FCM affects the triggering request any more; with the `sync` queue (tests, local development) a failed send is logged and swallowed. `compulsoryFeesPaidStore` still special-cases a push exception with "Data Stored successfully. But App push notification not send.", which can no longer happen.
 
 ## Custom notifications (admin panel)
 
@@ -108,7 +109,7 @@ Notes on specific triggers, as written:
 
 ### Configuration
 
-The mail server is configured in **System Settings > Email Configuration** (`GET email-settings`, route `setting.email-config-index`, view `settings/email_configuration.blade.php`). The settings are stored only in the `settings` table; since commit `e13ac7d` nothing is written to `.env`.
+In production the mailer is Amazon SES (`MAIL_MAILER=ses`, see [SES bounces, complaints and deliveries](#ses-bounces-complaints-and-deliveries)). Schools that self-host can use SMTP. The mail server is configured in **System Settings > Email Configuration** (`GET email-settings`, route `setting.email-config-index`, view `settings/email_configuration.blade.php`). The settings are stored only in the `settings` table; since commit `e13ac7d` nothing is written to `.env`.
 
 | Setting (`settings.type`) | Applied onto config key at boot | Written by |
 |---|---|---|
@@ -116,23 +117,22 @@ The mail server is configured in **System Settings > Email Configuration** (`GET
 | `mail_host`, `mail_port` (cast to int), `mail_username`, `mail_password`, `mail_encryption` | `mail.mailers.smtp.host`, `.port`, `.username`, `.password`, `.encryption` | same |
 | `mail_send_from` | `mail.from.address` | same |
 | `school_name` (General Settings) | `app.name`, and `mail.from.name` when that was equal to `app.name` (the `.env.example` default `MAIL_FROM_NAME="${APP_NAME}"`) | `SettingController::update` |
-| `email_configration_verification` | none | Set to 1 by `POST verify-email-settings` (`setting.varify-email-config`, `SettingController::verifyEmailConfigration`) when a test email (view `mail.blade.php`, subject "Connection Verified successfully", sender name `Eschool Admin`) is sent successfully. While it is 0, the admin header shows "email configuration is not verified" to users with `email-setting-create`. |
+| `email_configration_verification` | none | Set to 1 by `POST verify-email-settings` (`setting.varify-email-config`, `SettingController::verifyEmailConfigration`) when a test email (view `mail.blade.php`, subject "Connection Verified successfully", sender name `Eschool Admin`) is sent successfully; this one mail is sent at once (`MailService::sendNow()`), not queued. While it is 0, the admin header shows "email configuration is not verified" to users with `email-setting-create`. |
 
 [`App\Services\SettingsConfigService::apply()`](https://github.com/ShawnDaPrawn/Eschool/blob/main/admin-panel/app/Services/SettingsConfigService.php) runs from `AppServiceProvider::boot()` on every request and console command. It loads all settings and copies each non-empty value above onto its config key, so the `.env` `MAIL_*` values (read by [`config/mail.php`](https://github.com/ShawnDaPrawn/Eschool/blob/main/admin-panel/config/mail.php)) are only a fallback for settings that are empty, and saved mail settings take effect on the next request even with `php artisan config:cache`. If the settings table cannot be read (not installed or not migrated yet) the `.env` config is kept. A `MAIL_FROM_NAME` that differs from `APP_NAME` is left alone. The same service also applies the `time_zone` setting to `app.timezone` and PHP's default timezone, and the Paystack keys (see [Payments](Payments#settings-reference)). `SettingsConfigTest` checks the overrides and fails if any code outside `config/` calls `env()`.
 
-The form displays the effective config values (`config('mail.default')`, `config('mail.mailers.smtp.*')`, `config('mail.from.address')`), or `x` placeholders when `config('app.demo_mode')` is true. Its mailer drop-down offers `smtp`, `mailgun`, `sendmail`, `postmark` and `amazon_ses`; `config/mail.php` defines `smtp`, `ses`, `mailgun`, `postmark`, `sendmail`, `log`, `array` and `failover`, so `amazon_ses` is not a valid mailer name (the SES one is `ses`), and the form only collects SMTP-style fields. `config/mail.php` defaults: mailer `env('MAIL_MAILER', 'log')`, SMTP host `smtp.gmail.com`, port 587, encryption `tls`, and `'verify_peer' => false` on the SMTP mailer (the SMTP server's TLS certificate is not verified). Senders take the from address from `config('mail.from.address')`. See [Configuration](Configuration).
+The form displays the effective config values (`config('mail.default')`, `config('mail.mailers.smtp.*')`, `config('mail.from.address')`), or `x` placeholders when `config('app.demo_mode')` is true. Its mailer drop-down offers `smtp`, `mailgun`, `sendmail`, `postmark` and `amazon_ses`; `config/mail.php` defines `smtp`, `ses` (and `amazon_ses`, the same SES transport), `mailgun`, `postmark`, `sendmail`, `log`, `array` and `failover`. The form only collects SMTP-style fields; SES takes its keys from the environment. `config/mail.php` defaults: mailer `env('MAIL_MAILER', 'log')`, SMTP host `smtp.gmail.com`, port 587, encryption `tls`, and `'verify_peer' => false` on the SMTP mailer (the SMTP server's TLS certificate is not verified). Senders take the from address from `config('mail.from.address')`. See [Configuration](Configuration).
 
 ### MailService and templates
 
-[`MailService`](https://github.com/ShawnDaPrawn/Eschool/blob/main/admin-panel/app/Services/MailService.php):
+[`MailService`](https://github.com/ShawnDaPrawn/Eschool/blob/main/admin-panel/app/Services/MailService.php) queues mail; the [`SendMail`](https://github.com/ShawnDaPrawn/Eschool/blob/main/admin-panel/app/Jobs/Platform/SendMail.php) job sends it on the worker (3 tries, 60/300/900 s backoff; the queued payload is encrypted because welcome mails carry new logins).
 
-- `send($view, $data, $callback)` wraps `Mail::send()`, returns false on any exception and logs the error **and the full `$data`** at info level.
-- `sendWithFallback(...)` calls `send()` and additionally logs the payload when it fails.
-- `isEmailConfigured()` checks for SMTP username and password; nothing calls it.
+- `queue(Mailable $mail, ?int $recipientUserId)` renders the mail once (a template or view error is caught here, logged and `false` returned, so nothing broken is queued), checks the recipient address, records a `queued` delivery and dispatches `SendMail`.
+- `send($view, $data, $callback)` and `sendWithFallback(...)` keep their old signatures: the callback runs against a recorder (`App\Mail\Platform\MessageRecorder`) and its addresses, subject and attachments are queued with the view as a `ViewMail` (attachment contents travel with the job, since uploads are temporary). They return `true` once queued, `false` when the mail could not be built. A callback that uses anything else is sent at once, the old way.
+- `sendNow($view, $data, $callback)` sends on the request and says whether the mailer accepted it; only the mail settings test uses it.
+- Failures are logged as before ("Email sending failed: ..." and "Failed email details" with the data redacted: `body` and password fields never reach the log).
 
-Because welcome emails carry generated passwords in `$data`, a failed send writes those passwords to `storage/logs`. The log redaction added in commit `ee49250` applies to `ResponseService` error logs, not to `MailService`.
-
-Editable templates live in the `email_tempalates` table (model `App\Models\EmailTempalate`, columns `type` unique, `subject`, `content`). [`database/seeders/EmailSeeder.php`](https://github.com/ShawnDaPrawn/Eschool/blob/main/admin-panel/database/seeders/EmailSeeder.php) creates three with `firstOrCreate` (so admin edits survive), and both the installer (`config/installer.php`) and the system updater run it.
+Editable templates live in the `email_tempalates` table (model `App\Models\EmailTemplate`, columns `type` unique, `subject`, `content`). [`database/seeders/EmailSeeder.php`](https://github.com/ShawnDaPrawn/Eschool/blob/main/admin-panel/database/seeders/EmailSeeder.php) creates three with `firstOrCreate` (so admin edits survive), and both the installer (`config/installer.php`) and the system updater run it.
 
 | `type` | Used for | Placeholders in the seeded HTML |
 |---|---|---|
@@ -140,7 +140,7 @@ Editable templates live in the `email_tempalates` table (model `App\Models\Email
 | `staff_registration` | Teacher and staff welcome email | `{$name}`, `{$role}`, `{$school_name}`, `{$email}`, `{$password}`, `{$school_contact}`, `{$school_email}` |
 | `student_application_regect` | Rejected online registration | `{$name}`, `{$child_name}`, `{$class_name}`, `{$school_name}`, `{$school_contact}`, `{$school_email}` |
 
-[`EmailTemplateService::render($template, $data)`](https://github.com/ShawnDaPrawn/Eschool/blob/main/admin-panel/app/Services/EmailTemplateService.php) replaces `{$key}` or `{key}` with the HTML-escaped scalar value and leaves unknown placeholders as they are. Templates are never compiled as Blade (commit `ef7df75` stopped `Blade::render`, which let a template run PHP). The rendered HTML is passed as `body` to a thin Blade wrapper (`students/email.blade.php`, `staff/email.blade.php`, `teacher/email.blade.php`) that prints it unescaped.
+[`EmailTemplateService::render($template, $data)`](https://github.com/ShawnDaPrawn/Eschool/blob/main/admin-panel/app/Services/EmailTemplateService.php) replaces `{$key}` or `{key}` with the HTML-escaped scalar value and leaves unknown placeholders as they are. Templates are never compiled as Blade (commit `ef7df75` stopped `Blade::render`, which let a template run PHP). The template mails are [`TemplateMail`](https://github.com/ShawnDaPrawn/Eschool/blob/main/admin-panel/app/Mail/Platform/TemplateMail.php) Mailables (`parentWelcome()`, `registrationRejected()`, `staffWelcome()`): when built they read the template by `type` and render it through `EmailTemplateService`, and pass the HTML as `body` to the same thin Blade wrapper as before (`students/email.blade.php`, `staff/email.blade.php`, `teacher/email.blade.php`), which prints it unescaped. Subjects and senders are unchanged.
 
 The editor is **System Settings > Email Template**: `GET email-tamplate` (route name `email.Template`, `EmailController::index`, view `settings/email-template.blade.php`) and `POST email/store` (`email.store`), both requiring `email-setting-create`. `store` takes `type` = `student`, `staff` or `rejection` and `content`; the subject saved with it is fixed by the controller. The senders only read `content`; each one sets its own subject.
 
@@ -151,12 +151,14 @@ The editor is **System Settings > Email Template**: `GET email-tamplate` (route 
 | Parent welcome with credentials | `Student\StudentController::store` (admission) | Father and mother, or guardian | `student_registration` / `students.email` | `Welcome to <school_name>` |
 | Parent welcome with credentials | `Student\OnlineRegistrationController::updateStatus` with status 1 (online registration accepted) | The student's parents | `student_registration` / `students.email` | as above |
 | Registration rejected | `Student\OnlineRegistrationController::updateStatus` with another status (user `status` set to 2) | The student's parents | `student_application_regect` / `students.email` | `Response To Online Registration` |
-| Parent welcome on bulk upload | `StudentsImport::collection()` (Students > Add Bulk Data) | Father, mother, guardian of each row | `Mail::send('students.email', ...)` directly, no template | `Welcome to <school_name>` |
+| Parent welcome on bulk upload | `StudentsImport::collection()` (Students > Add Bulk Data) | Father, mother, guardian of each row | `student_registration` / `students.email` | `Welcome to <school_name>` |
 | Teacher welcome | `TeacherController::store` | The teacher | `staff_registration` / `teacher.email` | `Welcome to <school_name>` |
 | Staff welcome | `StaffController::store` | The staff member | `staff_registration` / `staff.email` | `Welcome to <school_name>` |
 | Contact-form reply | `POST contact-us/reply/{id}` (`WebSettingController::reply`, permission `contact-us`) | The `email` posted with the reply | view `web_settings/testmail.blade.php`, attachments allowed | `Reply to Your Query` |
 | Mail settings test | `POST verify-email-settings` | The address entered | view `mail.blade.php` | `Connection Verified successfully` |
 | Password reset link | Web `POST password/email` (`ForgotPasswordController`, `throttle:login`) and API `POST /api/forgot-password` (`ApiController::forgotPassword`, `throttle:login`) | The account email | Laravel's default reset notification | Laravel default |
+
+Every mail in the table except the mail settings test is queued (see [Queued delivery](#queued-delivery-and-notification_deliveries)).
 
 Sender: the student/parent emails in `Student\StudentController` and `Student\OnlineRegistrationController`, and the contact-us reply call `from(config('mail.from.address'), <school name>)`; the teacher, staff and bulk-import emails do not set a sender, so Laravel uses `mail.from.address` and `mail.from.name` (which normally follows the school name, see above).
 
@@ -164,17 +166,47 @@ Generated passwords are the person's date of birth as `ddmmyyyy` (`str_replace('
 
 Known problems, as written:
 
-- `StudentsImport` passes no `body` to `students.email`, and that view prints `$body` for `application_accept` emails, so rendering is expected to fail with an undefined-variable error; the import runs in a DB transaction that rolls back on any exception.
-- `TeacherController::store`, when it restores a soft-deleted user with the same email, sends `teacher.email` without `body`; `MailService` catches the resulting error and logs the payload.
-- The contact-us reply reports success even when sending failed (the return value of `sendWithFallback()` is ignored).
+- `TeacherController::store`, when it restores a soft-deleted user with the same email, sends `teacher.email` without `body`; `MailService` catches the render error before queueing and logs the (redacted) payload.
+- The contact-us reply reports success even when sending fails; it now means "queued", and a failed send shows in `notification_deliveries`.
 - Welcome emails for parents use the `teacher_app_link` / `teacher_ios_app_link` settings as their `android_app` / `ios_app` values.
+
+## Queued delivery and notification_deliveries
+
+Every mail and push is a job on the database queue (`QUEUE_CONNECTION=database`, worker `navigateed-worker`; `sync` in tests) and has one `notification_deliveries` row per attempt:
+
+| Column | Meaning |
+|---|---|
+| `delivery_key` | UUID shared by the attempts of one message |
+| `type` | `mail.<template type or view>` (for example `mail.student_registration`, `mail.web_settings.testmail`) or `push.<type>` (`push.chat`, `push.attendance`, ...) |
+| `channel` | `mail` or `push` |
+| `recipient_user_id`, `recipient_hash` | the user where known, and SHA-256 of the lower-cased address, device token or `topic:<name>`: raw addresses and tokens are never stored |
+| `status` | `queued`, `sent`, `failed`, then from the provider `delivered`, `bounced` or `complained` |
+| `provider`, `provider_message_id` | mailer name (`ses`, `smtp`, ...) or `fcm`; SES's message id, the Message-ID, or FCM's message name |
+| `attempt`, `error_summary` | 1, 2, 3; a short error with addresses replaced by `[address]` |
+| `queued_at`, `sent_at`, `failed_at`, `feedback_at` | when each happened |
+
+Each status change writes one `notification_delivery` log line (ids, channel, type, status, provider, attempt) for log-based metrics; a message given up after its last attempt writes `notification_delivery_abandoned`. Settings: `config/platform.php` (`deliveries`: queue, tries, backoff). Spec: [queue-and-delivery](https://github.com/ShawnDaPrawn/Eschool/blob/main/engineering/specs/platform/queue-and-delivery.md).
+
+## SES bounces, complaints and deliveries
+
+Mail goes through Amazon SES in `af-south-1` when `MAIL_MAILER=ses` ([ADR 0004](https://github.com/ShawnDaPrawn/Eschool/blob/main/engineering/adr/0004-transactional-email.md)); SMTP keeps working with `MAIL_MAILER=smtp`. An SES configuration set publishes Delivery, Bounce, Complaint and Reject events to an SNS topic subscribed to `POST /webhook/mail/ses` ([MailWebhookController](https://github.com/ShawnDaPrawn/Eschool/blob/main/admin-panel/app/Http/Controllers/Webhooks/MailWebhookController.php), `App\Services\Platform\Notifications\SesNotifications`):
+
+- outside CSRF like the payment webhooks, `throttle:mail-webhook` (600 a minute per address);
+- the SNS signature is verified (`aws/aws-php-sns-message-validator`) against a certificate fetched over HTTPS from an `sns.<region>.amazonaws.com` host and cached for a day;
+- only topics listed in `SES_SNS_TOPIC_ARNS` are accepted (anyone can sign from their own topic); with none configured every call answers 401;
+- a `SubscriptionConfirmation` is confirmed by fetching its `SubscribeURL`, on SNS hosts only;
+- Delivery, Bounce, Complaint and Reject set the delivery with the quoted SES message id to `delivered`, `bounced` (`Bounce: Permanent/General`), `complained` (`Complaint: abuse`) or `failed` (`Reject: <reason>`); a late delivery notice never undoes a bounce or complaint;
+- each SNS `MessageId` is processed once (`webhook_receipts`).
+
+Hard bounces and complaints are also suppressed by SES's account-level suppression list. Showing undeliverable addresses to schools is a later phase.
 
 ## See also
 
+- [Database-Schema](Database-Schema)
 - [Chat](Chat)
 - [Payments](Payments#payment-confirmation-webhooks)
 - [Configuration](Configuration)
 - [Mobile-App-Configuration](Mobile-App-Configuration)
 - [API-Overview](API-Overview)
-- [Admin-Modules](Admin-Modules)
+- [Admin-Panel-Overview](Admin-Panel-Overview)
 - [Troubleshooting-and-FAQ](Troubleshooting-and-FAQ)

@@ -14,7 +14,7 @@ return new class extends Migration
     public function up()
     {
         Schema::table('users', function (Blueprint $table) {
-            $table->string('device_type',128)->after('fcm_id')->comment('android, ios')->nullable();
+            $table->string('device_type', 128)->after('fcm_id')->comment('android, ios')->nullable();
         });
     }
 

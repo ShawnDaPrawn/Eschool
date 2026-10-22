@@ -4,12 +4,6 @@ declare(strict_types=1);
 
 namespace App\Models;
 
-
-use App\Models\ClassSection;
-use App\Models\OnlineExamStudentAnswer;
-use App\Models\StudentOnlineExamStatus;
-use App\Models\OnlineExamQuestionChoice;
-use App\Models\Subject;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
@@ -18,7 +12,8 @@ class OnlineExam extends Model
 {
     use HasFactory;
     use SoftDeletes;
-    protected $hidden = ["deleted_at", "created_at", "updated_at"];
+
+    protected $hidden = ['deleted_at', 'created_at', 'updated_at'];
 
     public function model()
     {
@@ -44,7 +39,6 @@ class OnlineExam extends Model
     {
         return $this->hasOne(StudentOnlineExamStatus::class, 'online_exam_id');
     }
-
 
     protected static function booted()
     {

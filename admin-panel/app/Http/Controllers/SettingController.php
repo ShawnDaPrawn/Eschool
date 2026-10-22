@@ -2,13 +2,15 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Language;
 use App\Models\SessionYear;
 use App\Models\Settings;
-use App\Models\Language;
 use App\Services\ChatMessageCleanupService;
 use App\Services\MailService;
+use App\Services\Platform\Secrets\SecretSettings;
 use App\Services\SessionYearService;
 use Illuminate\Http\Request;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
@@ -34,10 +36,10 @@ class SettingController extends Controller
         $getTimezoneList = getTimezoneList();
         $getTimeFormat = getTimeFormat();
 
-         $session_year = SessionYear::orderBy('id', 'desc')->get();
-       
+        $session_year = SessionYear::orderBy('id', 'desc')->get();
 
-         $language = Language::select('id', 'name')->orderBy('id', 'desc')->get();
+        $language = Language::select('id', 'name')->orderBy('id', 'desc')->get();
+
         return view('settings.index', compact('settings', 'getDateFormat', 'getTimezoneList', 'getTimeFormat', 'session_year'));
     }
 
@@ -67,7 +69,7 @@ class SettingController extends Controller
             'linkedin' => 'nullable',
             'maplink' => 'nullable',
             'recaptcha_site_key' => 'required_if:recaptcha_status,1',
-            'recaptcha_secret_key' => 'required_if:recaptcha_status,1',
+            'recaptcha_secret_key' => SecretSettings::fromEnvironment('recaptcha_secret_key') ? 'nullable' : 'required_if:recaptcha_status,1',
             'recaptcha_status' => 'nullable',
             'logo1' => 'nullable|file|mimes:jpeg,jpg,png,gif,webp,svg',
             'logo2' => 'nullable|file|mimes:jpeg,jpg,png,gif,webp,svg',
@@ -96,6 +98,8 @@ class SettingController extends Controller
             'recaptcha_secret_key',
             'recaptcha_status',
         ];
+        // RECAPTCHA_SECRET_KEY, when set, is not saved from the form.
+        $settings = SecretSettings::editable($settings);
         try {
             foreach ($settings as $row) {
                 if (Settings::where('type', $row)->exists()) {
@@ -113,10 +117,8 @@ class SettingController extends Controller
                             'message' => $request->input($row, ''),
                         ];
                     }
-                    
+
                     Settings::where('type', $row)->update($data);
-                        
-                      
 
                     // Cache::forget('settings.all');
                     // Cache::forget('session_year.all');
@@ -125,7 +127,7 @@ class SettingController extends Controller
 
                     // $setting->message = $data['message'];
                     // $setting->save();
-                    
+
                 } else {
                     $setting = new Settings;
                     $setting->type = $row;
@@ -271,7 +273,8 @@ class SettingController extends Controller
 
             return redirect(route('home'))->withErrors($response);
         }
-        $request->validate([
+        // MAIL_PASSWORD, when set (Secret Manager), is neither asked for nor saved.
+        $request->validate(SecretSettings::rulesFor([
             'mail_mailer' => 'required',
             'mail_host' => 'required',
             'mail_port' => 'required',
@@ -279,9 +282,9 @@ class SettingController extends Controller
             'mail_password' => 'required',
             'mail_encryption' => 'required',
             'mail_send_from' => 'required|email',
-        ]);
+        ]));
 
-        $settings = [
+        $settings = SecretSettings::editable([
             'mail_mailer',
             'mail_host',
             'mail_port',
@@ -289,7 +292,7 @@ class SettingController extends Controller
             'mail_password',
             'mail_encryption',
             'mail_send_from',
-        ];
+        ]);
 
         try {
             foreach ($settings as $row) {
@@ -363,8 +366,8 @@ class SettingController extends Controller
                 return response()->json($response);
             }
 
-            // send mail and check result
-            $status = MailService::sendWithFallback('mail', $data, function ($message) use ($data, $admin_mail) {
+            // Sent at once, not queued: the answer says whether the mail server accepted it.
+            $status = MailService::sendNow('mail', $data, function ($message) use ($data, $admin_mail) {
                 $message->to($data['email'])->subject('Connection Verified successfully');
                 $message->from($admin_mail, 'Eschool Admin');
             });
@@ -612,7 +615,7 @@ class SettingController extends Controller
             'project_id' => 'required',
             // JSON uploads are often detected as text/plain, so the content is checked instead of the type.
             'service_account_file' => ['bail', 'nullable', 'file', 'max:64', function ($attribute, $value, $fail) {
-                $json = $value instanceof \Illuminate\Http\UploadedFile
+                $json = $value instanceof UploadedFile
                     ? json_decode((string) @file_get_contents($value->getRealPath()), true)
                     : null;
                 if (! is_array($json) || empty($json['private_key']) || empty($json['client_email'])) {
@@ -639,7 +642,9 @@ class SettingController extends Controller
             // the private local disk (storage/app), never on the public disk.
             $currentFile = Settings::where('type', 'service_account_file')->value('message');
             $newFile = null;
-            if ($request->hasFile('service_account_file')) {
+            if (SecretSettings::fromEnvironment('service_account_file')) {
+                // FCM_SERVICE_ACCOUNT_JSON (Secret Manager) is used; an upload is ignored.
+            } elseif ($request->hasFile('service_account_file')) {
                 $newFile = $request->file('service_account_file')->storeAs(
                     dirname(self::SERVICE_ACCOUNT_FILE),
                     basename(self::SERVICE_ACCOUNT_FILE),
@@ -666,7 +671,7 @@ class SettingController extends Controller
                 'error' => false,
                 'message' => trans('data_update_successfully'),
             ];
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             report($e);
             $response = [
                 'error' => true,
@@ -726,7 +731,7 @@ class SettingController extends Controller
                 'error' => false,
                 'message' => trans('data_update_successfully'),
             ];
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             report($e);
             $response = [
                 'error' => true,
@@ -768,7 +773,7 @@ class SettingController extends Controller
                 'error' => false,
                 'message' => trans('data_delete_successfully'),
             ];
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             report($e);
             $response = [
                 'error' => true,
@@ -788,7 +793,7 @@ class SettingController extends Controller
                 'error' => false,
                 'message' => trans('data_delete_successfully'),
             ];
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             report($e);
             $response = [
                 'error' => true,

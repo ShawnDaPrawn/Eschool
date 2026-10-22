@@ -432,5 +432,6 @@
   "schoolPoliciesIntro": "تطلب مدرستك الموافقة على هذا قبل استخدام التطبيق.",
   "iHaveReadAndAccept": "لقد قرأت هذا وأوافق عليه",
   "acceptAndContinue": "قبول والمتابعة",
-  "notNow": "ليس الآن"
+  "notNow": "ليس الآن",
+  "availableInMobileApp": "يعمل هذا حاليًا في تطبيق NavigateEd على هاتفك."
 }

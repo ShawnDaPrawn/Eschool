@@ -3,14 +3,13 @@
 use App\Models\Grade;
 use App\Models\Language;
 use App\Models\Settings;
-use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Storage;
 use Intervention\Image\Drivers\Gd\Driver;
 use Intervention\Image\ImageManager;
+
 function getSettings($type = '')
 {
-   
-       
+
     $settingList = [];
     if ($type == '') {
         $setting = Settings::get();
@@ -45,8 +44,8 @@ function schoolLogoUrl(string $type = 'logo1'): string
 
 function get_language()
 {
-      
-     return Language::get();
+
+    return Language::get();
 }
 
 function getTimeFormat()
@@ -143,7 +142,7 @@ function flattenMyModel($model)
 function findExamGrade($session_year_id, $percentage)
 {
     $grades = Grade::where('session_year_id', $session_year_id)->get();
-   
+
     if (count($grades)) {
         foreach ($grades as $row) {
             if (floor($percentage) >= $row['starting_range'] && floor($percentage) <= $row['ending_range']) {

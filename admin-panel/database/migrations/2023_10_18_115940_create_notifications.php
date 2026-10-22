@@ -20,7 +20,7 @@ return new class extends Migration
             $table->string('message', 128);
             $table->integer('send_to');
             $table->string('image', 512)->nullable();
-            $table->string('url',512)->nullable();
+            $table->string('url', 512)->nullable();
             $table->integer('user_id')->nullable();
             $table->dateTime('date');
             $table->timestamps();

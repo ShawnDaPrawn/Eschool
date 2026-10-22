@@ -13,58 +13,58 @@ return [
             'version' => '>= 8.3.0',
             'check' => [
                 'type' => 'php',
-                'value' => 80300
-            ]
+                'value' => 80300,
+            ],
         ],
         'pdo' => [
             'name' => 'PDO',
             'check' => [
                 'type' => 'extension',
-                'value' => 'pdo_mysql'
-            ]
+                'value' => 'pdo_mysql',
+            ],
         ],
         'mbstring' => [
             'name' => 'Mbstring extension',
             'check' => [
                 'type' => 'extension',
-                'value' => 'mbstring'
-            ]
+                'value' => 'mbstring',
+            ],
         ],
         'fileinfo' => [
             'name' => 'Fileinfo extension',
             'check' => [
                 'type' => 'extension',
-                'value' => 'fileinfo'
-            ]
+                'value' => 'fileinfo',
+            ],
         ],
         'openssl' => [
             'name' => 'OpenSSL extension',
             'check' => [
                 'type' => 'extension',
-                'value' => 'openssl'
-            ]
+                'value' => 'openssl',
+            ],
         ],
         'tokenizer' => [
             'name' => 'Tokenizer extension',
             'check' => [
                 'type' => 'extension',
-                'value' => 'tokenizer'
-            ]
+                'value' => 'tokenizer',
+            ],
         ],
         'json' => [
             'name' => 'Json extension',
             'check' => [
                 'type' => 'extension',
-                'value' => 'json'
-            ]
+                'value' => 'json',
+            ],
         ],
         'curl' => [
             'name' => 'Curl extension',
             'check' => [
                 'type' => 'extension',
-                'value' => 'curl'
-            ]
-        ]
+                'value' => 'curl',
+            ],
+        ],
     ],
 
     'folders' => [
@@ -72,27 +72,27 @@ return [
             'name' => '/storage/framework',
             'check' => [
                 'type' => 'directory',
-                'value' => '../storage/framework'
-            ]
+                'value' => '../storage/framework',
+            ],
         ],
         'storage.logs' => [
             'name' => '/storage/logs',
             'check' => [
                 'type' => 'directory',
-                'value' => '../storage/logs'
+                'value' => '../storage/logs',
             ],
         ],
         'storage.cache' => [
             'name' => '/bootstrap/cache',
             'check' => [
                 'type' => 'directory',
-                'value' => '../bootstrap/cache'
-            ]
+                'value' => '../bootstrap/cache',
+            ],
         ],
     ],
 
     'database' => [
-        'seeders' => false
+        'seeders' => false,
     ],
 
     'commands' => [
@@ -106,9 +106,9 @@ return [
     'admin_area' => [
         'user' => [
             'email' => 'superadmin@gmail.com',
-            'password' => 'superadmin'
-        ]
+            'password' => 'superadmin',
+        ],
     ],
 
-    'login' => '/login'
+    'login' => '/login',
 ];

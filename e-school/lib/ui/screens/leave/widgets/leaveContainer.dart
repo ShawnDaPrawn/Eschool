@@ -4,7 +4,7 @@ import 'package:eschool/cubits/leavesCubit.dart';
 import 'package:eschool/data/models/leave.dart';
 import 'package:eschool/data/repositories/leaveRepository.dart';
 import 'package:eschool/ui/screens/leave/widgets/leaveDetailsBottomsheetContainer.dart';
-import 'package:eschool/ui/widgets/confirmDeleteDialog.dart';
+import 'package:eschool_core/eschool_core.dart';
 import 'package:eschool/utils/labelKeys.dart';
 import 'package:eschool/utils/uiUtils.dart';
 import 'package:flutter/material.dart';

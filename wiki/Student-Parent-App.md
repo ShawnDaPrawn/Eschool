@@ -200,12 +200,13 @@ On Android, local notifications are only created by the app (data messages); on 
 
 | Gateway | `payment_method` | Client side | Server response used |
 |---|---|---|---|
-| Razorpay | `1` | `razorpay_flutter` (`Razorpay().open()` with key, order id, amount, currency, parent contact prefill). Native `com.razorpay:checkout:1.6.33` plus ProGuard keep rules. | `payment_gateway_details.id` = Razorpay order id |
 | Stripe | `2` | `flutter_stripe` payment sheet via `StripeService.payWithPaymentSheet()`; `Stripe.publishableKey` is set from `payment_options.stripe.stripe_publishable_key`. `MainActivity` extends `FlutterFragmentActivity`, which the Stripe plugin needs. | `payment_gateway_details.id` = PaymentIntent id, `payment_gateway_response.client_secret` |
-| Paystack | `3` | `webview_flutter` in `WebViewPaymentScreen` | `payment_gateway_response.data.authorization_url` |
-| Flutterwave | `4` | `webview_flutter` in `WebViewPaymentScreen` | `payment_gateway_details.id` (used as the checkout URL) |
+| Paystack | `3` | `webview_flutter` in `WebViewPaymentScreen`; the server no longer offers it (see below) | `payment_gateway_response.data.authorization_url` |
+| Flutterwave | `4` | `webview_flutter` in `WebViewPaymentScreen`; the server no longer offers it (see below) | `payment_gateway_details.id` (used as the checkout URL) |
 
-A gateway is offered when its object is present in `payment_options` (the server only includes it when `<gateway>_status` is set). If none are enabled the app shows `noPaymentOptionsAvl`; if exactly one is enabled it is used directly; otherwise `PaymentSelectionBottomSheet` (`lib/ui/screens/fees/widgets/paymentSelection.dart`) lists them in the order Razorpay, Stripe, Paystack, Flutterwave and returns the chosen tag.
+A gateway is offered when its object is present in `payment_options` (the server only includes it when `<gateway>_status` is set). If none are enabled the app shows `noPaymentOptionsAvl`; if exactly one is enabled it is used directly; otherwise `PaymentSelectionBottomSheet` (`lib/ui/screens/fees/widgets/paymentSelection.dart`) lists them in the order Stripe, Paystack, Flutterwave and returns the chosen tag.
+
+Since Phase 0 the server offers Stripe only: `payment_options` no longer contains `razorpay`, `paystack` or `flutterwave`, and `add-fees-transaction` refuses `payment_method` `1`, `3` and `4` as not available. Razorpay (`payment_method` `1`) was removed from the app as well, with `razorpay_flutter`, the native `com.razorpay:checkout` dependency and its ProGuard rules; a `razorpay` object an older server still sends is ignored. The WebView checkout (`WebViewPaymentScreen`, used by Paystack and Flutterwave) stays in the app, unused until a hosted-checkout gateway is added again (Peach Payments is the default for Phase 5). Past transactions paid through Razorpay still show "Razorpay" in the transaction list (`FeesTransaction.paymentGatewayString`).
 
 ### Payment flow
 
@@ -222,13 +223,13 @@ sequenceDiagram
     F-->>U: FeesPaymentFetchSuccess
     U->>G: open checkout
     G-->>U: success / failure / cancel
-    U->>V: push paymentVerify (transactionId, status, paymentId, signature, paymentIntentId)
+    U->>V: push paymentVerify (transactionId, status, paymentIntentId)
     alt Stripe
         V->>API: POST get-payment-status (payment_intent_id)
         API-->>V: succeeded or another status
     end
     alt success
-        V->>API: POST store-fees (transaction_id, payment_id, payment_signature, child_id)
+        V->>API: POST store-fees (transaction_id, child_id)
     else failure
         V->>API: POST fail-payment-transaction (payment_transaction_id)
     end
@@ -238,8 +239,8 @@ Details from the code:
 
 1. `FeesPaymentCubit.addFeesTransaction()` → `StudentRepository.addFeesTransaction()` posts `amount`, `type_of_fee`, `is_fully_paid`, `payment_method`, `child_id` (parents), and, depending on the fee type, `due_charges`, `installment_data[]` (`id`, `name`, `amount`, `due_charges`) or `optional_fees_data[]` (`id`, `amount`). It returns `payment_gateway_details`.
 2. The screen keeps `payment_transaction_id` and launches the gateway.
-3. Razorpay's success handler passes `paymentId` and `signature`; failure passes `status: 0`. Stripe always goes to verification with the `paymentIntentId`; `PostFeesPaymentCubit.storeFees()` then asks the server for the PaymentIntent status and only stores the fee if it is `succeeded` (`StripeService.paymentIntentSuccessResponse`).
-4. `WebViewPaymentScreen` watches main-frame navigations. It blocks non-http(s) schemes, lets the gateway's own pages load, and ends the payment only when the WebView reaches the school's own host (`Uri.parse(baseUrl).host`) on `/response/paystack/success` (success) or `/response/flutterwave/success` (success for `status=successful`, failure for `cancelled`/`failed`, otherwise unknown). These are the `paystackSuccessCallback` / `flutterwaveSuccessCallback` routes in `admin-panel/routes/web.php`. An unknown result pops without going to verification, leaving the outcome to the gateway webhook. Leaving the WebView with a double back-press (system back or the app-bar back button) counts as failure.
+3. Stripe always goes to verification with the `paymentIntentId`; `PostFeesPaymentCubit.storeFees()` then asks the server for the PaymentIntent status and only stores the fee if it is `succeeded` (`StripeService.paymentIntentSuccessResponse`).
+4. `WebViewPaymentScreen` (not reached while the server offers only Stripe) watches main-frame navigations. It blocks non-http(s) schemes, lets the gateway's own pages load, and ends the payment only when the WebView reaches the school's own host (`Uri.parse(baseUrl).host`) on `/response/paystack/success` (success) or `/response/flutterwave/success` (success for `status=successful`, failure for `cancelled`/`failed`, otherwise unknown). These are the `paystackSuccessCallback` / `flutterwaveSuccessCallback` routes in `admin-panel/routes/web.php`. An unknown result pops without going to verification, leaving the outcome to the gateway webhook. Leaving the WebView with a double back-press (system back or the app-bar back button) counts as failure.
 5. Any exception during verification calls `fail-payment-transaction`.
 
 Server-side processing, webhooks and the transaction tables are documented on [Payments](Payments). Admin configuration steps: https://shawndaprawn.github.io/Eschool/admin-panel/fee-payment/.
@@ -265,9 +266,20 @@ There is no polling. New messages arrive as FCM messages with `type = chat`: in 
 | Fee receipt | `FeesReceiptCubit` | GET `student/fees-paid-receipt-pdf` or `parent/fees-paid-receipt-pdf`, base64 in `pdf` | `<app documents>/Fees Receipts/<prefix>_fees_payment_receipt_on_<timestamp>.pdf` |
 | Academic calendar | `AcademicCalendarPdfDownloadCubit` | GET `student/academic-calendar-pdf` or `parent/academic-calendar-pdf`, base64 in `pdf` | `<app documents>/Academic Calendar/<name>.pdf` |
 | Study material / assignment files | `DownloadFileCubit` | `Api.download()` from the file URL | Downloaded to the temporary directory first, then copied to the public Downloads folder on Android when storage permission is granted (`external_path`), otherwise to the app documents directory |
-| PDF viewed in app | `PdfFileSaveCubit` | `PdfFileScreen` (`flutter_pdfview`) | saved on request |
+| PDF viewed in app | `PdfFileSaveCubit` | `PdfFileScreen` (`PdfDocumentView`: flutter_pdfview on phones, pdfx on the web) | saved on request |
 
-Server-supplied names pass through `sanitizeFileName()` before they are used in a path. PDFs and images open in the in-app viewers (`Routes.pdfFileView`, `Routes.imageFileView`); other files open with `open_filex`. The PDFs themselves are generated by the admin panel, see [Admin-Modules](Admin-Modules).
+Server-supplied names pass through `sanitizeFileName()` before they are used in a path. The ID card, receipt and calendar PDFs are written by `DeviceFiles.saveDocument()` (`eschool_core`). PDFs and images open in the in-app viewers (`Routes.pdfFileView`, `Routes.imageFileView`); other files open with `DeviceFiles.open()` (open_filex). The PDFs themselves are generated by the admin panel, see [Admin-Panel-Overview](Admin-Panel-Overview).
+
+## In a browser
+
+The web build of this app is the learner and parent portal at `app.navigateed.co.za` ([Mobile-Apps-Overview](Mobile-Apps-Overview#in-a-browser)). Signing in, home, the child screens, timetable, assignments, results, attendance, fees (viewing), notices, events, gallery, chat messages and notifications work as on a phone, laid out for the window. The differences:
+
+- The ID card, fee receipts and the academic calendar are downloaded by the browser instead of opening in another app.
+- Study material files open in a new browser tab; PDFs still open in the app.
+- Submitting assignment files, chat attachments, leave attachments and paying fees show "This works in the NavigateEd app on your phone for now." (uploads and payments from the browser are planned for Phase 1).
+- No push notifications: the Notifications screen lists them, and signing in on the web does not stop the phone's notifications.
+
+The smoke flows `integration_test/learner_smoke_test.dart` and `parent_smoke_test.dart` run this app in Chrome and on an Android emulator in CI ([Building-and-Releasing-Apps](Building-and-Releasing-Apps#smoke-flows)).
 
 ## Changes in 3.5.0
 

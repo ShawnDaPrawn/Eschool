@@ -1,5 +1,9 @@
 <?php
 
+use App\Http\Middleware\EncryptCookies;
+use App\Http\Middleware\VerifyCsrfToken;
+use Laravel\Sanctum\Http\Middleware\AuthenticateSession;
+
 return [
 
     /*
@@ -11,13 +15,21 @@ return [
     | authentication cookies. Typically, these should include your local
     | and production domains which access your API via a frontend SPA.
     |
+    | Without SANCTUM_STATEFUL_DOMAINS: local development hosts plus the hosts
+    | of every origin CORS allows (config/cors.php, loaded before this file):
+    | the panel's APP_URL and the web portals, which sign in with Sanctum's
+    | cookie mode. The native apps use bearer tokens and are not affected.
+    |
     */
 
-    'stateful' => explode(',', env('SANCTUM_STATEFUL_DOMAINS', sprintf(
-        '%s%s',
-        'localhost,localhost:3000,127.0.0.1,127.0.0.1:8000,::1',
-        env('APP_URL') ? ',' . parse_url(env('APP_URL'), PHP_URL_HOST) : ''
-    ))),
+    'stateful' => explode(',', env('SANCTUM_STATEFUL_DOMAINS', implode(',', array_values(array_unique(array_merge(
+        ['localhost', 'localhost:3000', '127.0.0.1', '127.0.0.1:8000', '::1'],
+        in_array(env('APP_ENV', 'production'), ['local', 'testing'], true) ? ['localhost:*', '127.0.0.1:*'] : [],
+        array_map(
+            static fn (string $origin) => (string) preg_replace('#^https?://#', '', $origin),
+            (array) config('cors.allowed_origins', [])
+        ),
+    )))))),
 
     /*
     |--------------------------------------------------------------------------
@@ -58,8 +70,11 @@ return [
     */
 
     'middleware' => [
-        'verify_csrf_token' => App\Http\Middleware\VerifyCsrfToken::class,
-        'encrypt_cookies' => App\Http\Middleware\EncryptCookies::class,
+        'verify_csrf_token' => VerifyCsrfToken::class,
+        'encrypt_cookies' => EncryptCookies::class,
+        // A web portal's session ends when the account's password changes
+        // elsewhere, as the apps' tokens are revoked then.
+        'authenticate_session' => AuthenticateSession::class,
     ],
 
 ];

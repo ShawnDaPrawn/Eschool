@@ -7,13 +7,26 @@ namespace App\Services;
 use Exception;
 use Illuminate\Contracts\Foundation\Application;
 use Illuminate\Http\Exceptions\HttpResponseException;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Routing\Redirector;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
-use JetBrains\PhpStorm\NoReturn;
+use Symfony\Component\HttpFoundation\Response;
 use Throwable;
 
+/**
+ * The API's response envelope, {error, message, data, code}.
+ *
+ * The response methods build and return the response; the caller returns it:
+ * `return ResponseService::successResponse(...)`. They used to send it and
+ * exit(), which skipped the response middleware and made in-process tests
+ * impossible. Code that can't return (a helper whose callers expect it to stop
+ * the request) throws it instead: `throw new HttpResponseException(...)`.
+ * Laravel then sends the thrown response, and errorResponse() passes it through
+ * when a catch block hands it the exception. ControllerMethodCallsTest fails on
+ * a call whose response is neither returned nor thrown.
+ */
 class ResponseService
 {
     /** Longest single value, and longest set of request data, written to the log. */
@@ -38,12 +51,14 @@ class ResponseService
     }
 
     /**
+     * Stops the request with a JSON error (by throwing it) unless the user has the permission.
+     *
      * @return true
      */
     public static function noPermissionThenSendJson($permission)
     {
         if (! Auth::user()->can($permission)) {
-            self::errorResponse('no_permission_message');
+            throw new HttpResponseException(self::errorResponse('no_permission_message'));
         }
 
         return true;
@@ -107,32 +122,27 @@ class ResponseService
     }
 
     /**
-     * If User don't have any of the permission that is specified in Array then Json Response will be sent
+     * Stops the request with a JSON error (by throwing it) unless the user has one of the permissions.
      *
      * @return true
      */
     public static function noAnyPermissionThenSendJson(array $permissions)
     {
         if (! Auth::user()->canany($permissions)) {
-            self::errorResponse("You Don't have enough permissions");
+            throw new HttpResponseException(self::errorResponse("You Don't have enough permissions"));
         }
 
         return true;
     }
 
-    /**
-     * @return void
-     */
-    #[NoReturn]
-    public static function successResponse(string $message = 'Success', $data = null, array $customData = [], $code = null)
+    public static function successResponse(string $message = 'Success', $data = null, array $customData = [], $code = null): JsonResponse
     {
-        response()->json(array_merge([
+        return response()->json(array_merge([
             'error' => false,
             'message' => trans($message),
             'data' => $data,
             'code' => $code ?? 200,
-        ], $customData))->send();
-        exit();
+        ], $customData));
     }
 
     /**
@@ -142,35 +152,41 @@ class ResponseService
     {
         return isset($url) ? redirect($url)->with([
             'success' => trans($message),
-        ])->send() : redirect()->back()->with([
+        ]) : redirect()->back()->with([
             'success' => trans($message),
-        ])->send();
+        ]);
     }
 
     /**
+     * The error envelope. With an exception, it is logged first; a response
+     * thrown with HttpResponseException (by a helper that stops the request,
+     * such as resolveChild()) is returned as it is and not logged, so a catch
+     * block that hands its exception here keeps the helper's answer.
+     *
      * @param  string  $message  - Pass the Translatable Field
      * @param  null  $data
      * @param  null  $code
      * @param  null  $e
-     * @return void
      */
-    #[NoReturn]
-    public static function errorResponse(string $message = 'Error Occurred', $data = null, $code = null, $e = null)
+    public static function errorResponse(string $message = 'Error Occurred', $data = null, $code = null, $e = null): Response
     {
+        if ($e instanceof HttpResponseException) {
+            return $e->getResponse();
+        }
+
         if ($e) {
             self::logErrorResponse($e);
             self::logCurlRequest();
         }
 
-        response()->json([
+        return response()->json([
             'error' => true,
             'message' => trans($message),
             'data' => $data,
             'code' => $code ?? config('constants.RESPONSE_CODE.EXCEPTION_ERROR'),
             // Exception text, file paths and line numbers are only shown while debugging; they're always in the log.
             'details' => (config('app.debug') && ! empty($e) && is_object($e)) ? $e->getMessage().' --> '.$e->getFile().' At Line : '.$e->getLine() : '',
-        ])->send();
-        exit();
+        ]);
     }
 
     /**
@@ -180,35 +196,30 @@ class ResponseService
     {
         return (($url != null) ? redirect($url) : redirect()->back())->withErrors([
             'message' => trans($message),
-        ])->send();
+        ]);
     }
 
     /**
      * @param  null  $data
      * @param  null  $code
-     * @return void
      */
-    #[NoReturn]
-    public static function warningResponse(string $message = 'Error Occurred', $data = null, $code = null)
+    public static function warningResponse(string $message = 'Error Occurred', $data = null, $code = null): JsonResponse
     {
-        response()->json([
+        return response()->json([
             'error' => false,
             'warning' => true,
             'code' => $code,
             'message' => trans($message),
             'data' => $data,
-        ])->send();
-        exit();
+        ]);
     }
 
     /**
      * @param  null  $data
-     * @return void
      */
-    #[NoReturn]
-    public static function validationError(string $message = 'Error Occurred', $data = null)
+    public static function validationError(string $message = 'Error Occurred', $data = null): Response
     {
-        self::errorResponse($message, $data, config('constants.RESPONSE_CODE.VALIDATION_ERROR'));
+        return self::errorResponse($message, $data, config('constants.RESPONSE_CODE.VALIDATION_ERROR'));
     }
 
     /**
@@ -221,8 +232,31 @@ class ResponseService
     {
         report($e);
 
-        // The URL without its query string: the query is in the params, redacted.
-        Log::error(self::truncate($e->getMessage(), self::LOG_CONTEXT_LIMIT).'---> '.$e->getFile().' At Line : '.$e->getLine()."\n\n".request()->method().' : '.self::truncate(request()->url())."\nParams : ", self::loggable(request()->all()));
+        // The path without its query string, and the fields with their values
+        // left out except ids: the only personal data a log may hold is ids.
+        Log::error(self::truncate($e->getMessage(), self::LOG_CONTEXT_LIMIT).'---> '.$e->getFile().' At Line : '.$e->getLine()."\n\n".request()->method().' : /'.ltrim(self::truncate(request()->path()), '/')."\nParams : ", self::withoutValues(request()->all()));
+    }
+
+    /**
+     * The request's fields as they may go into the log: every value replaced by
+     * [omitted] except a whole-number id (a key that is id or ends in _id), at
+     * most 100 fields a level and 5 levels deep.
+     *
+     * @param  array<array-key, mixed>  $values
+     * @return array<array-key, mixed>
+     */
+    private static function withoutValues(array $values, int $depth = 0): array
+    {
+        $kept = [];
+        foreach (array_slice($values, 0, 100, true) as $key => $value) {
+            $kept[$key] = match (true) {
+                is_array($value) && $depth < 4 => self::withoutValues($value, $depth + 1),
+                preg_match('/(^|_)id$/i', (string) $key) === 1 && (is_int($value) || (is_string($value) && ctype_digit($value) && strlen($value) < 19)) => (int) $value,
+                default => '[omitted]',
+            };
+        }
+
+        return $kept;
     }
 
     /**
@@ -268,50 +302,47 @@ class ResponseService
         return strlen($value) > $limit ? mb_strcut($value, 0, $limit).'... ['.strlen($value).' bytes]' : $value;
     }
 
-    public static function logCurlRequest()
+    /**
+     * Which request led to an error, without personal data (logs carry ids
+     * only): the method, the path, the names but never the values of the
+     * query, form and file fields, and the signed-in user's id. It used to
+     * write the request as a curl command with every field's value.
+     */
+    public static function logCurlRequest(): void
     {
         $request = request();
-        // Log::error("CURL Request:\n", $request->all());
-        $method = strtoupper($request->method());
-        $url = $request->url().($request->query() ? '?'.http_build_query(self::redact($request->query())) : '');
-        $headers = [];
 
-        // Never write credentials to the log.
-        foreach ($request->headers->all() as $key => $values) {
-            foreach ($values as $value) {
-                $headers[] = "-H '".$key.': '.(self::isSensitiveKey($key) ? '[redacted]' : self::truncate((string) $value))."'";
-            }
-        }
-
-        $data = '';
-
-        if (in_array($method, ['POST', 'PUT', 'PATCH', 'DELETE'])) {
-            // Multipart (e.g., file upload)
-            $parts = array_merge(self::formFields(self::redact($request->input())), self::formFields($request->files->all()));
-            $data = ' '.implode(" \\\n  ", $parts);
-        }
-
-        $curl = "curl -X {$method} '".$url."' \\\n  ".implode(" \\\n  ", $headers).$data;
-
-        Log::error("CURL Request:\n".self::truncate($curl, self::LOG_CONTEXT_LIMIT));
+        Log::error('Request: '.strtoupper($request->method()).' /'.ltrim(self::truncate($request->path()), '/'), self::requestShape());
     }
 
     /**
-     * -F options for nested form values, at any depth (a value nested deeper
-     * than the old three levels was turned into "Array" with a PHP warning).
+     * @return array{query: list<string>, fields: list<string>, files: list<string>, user_id: int|string|null}
      */
-    private static function formFields(array $values, string $prefix = ''): array
+    private static function requestShape(): array
     {
-        $fields = [];
+        $request = request();
+
+        return [
+            'query' => self::fieldNames($request->query()),
+            'fields' => self::fieldNames(array_diff_key($request->input(), $request->query())),
+            'files' => self::fieldNames($request->files->all()),
+            'user_id' => $request->user()?->getAuthIdentifier(),
+        ];
+    }
+
+    /**
+     * Dotted field names at any depth, list positions shown as *; at most 100.
+     *
+     * @return list<string>
+     */
+    private static function fieldNames(array $values, string $prefix = ''): array
+    {
+        $names = [];
         foreach ($values as $key => $value) {
-            $name = $prefix === '' ? (string) $key : $prefix.'['.$key.']';
-            if (is_array($value)) {
-                $fields = array_merge($fields, self::formFields($value, $name));
-            } else {
-                $fields[] = "-F '{$name}={$value}'";
-            }
+            $name = $prefix.(is_int($key) ? '*' : (string) $key);
+            $names = array_merge($names, is_array($value) && $value !== [] ? self::fieldNames($value, $name.'.') : [$name]);
         }
 
-        return $fields;
+        return array_slice(array_values(array_unique($names)), 0, 100);
     }
 }

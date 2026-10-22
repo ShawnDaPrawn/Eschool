@@ -1,3 +1,5 @@
+import 'package:eschool_core/eschool_core.dart';
+import 'package:eschool_teacher/app/deepLinks.dart';
 import 'package:eschool_teacher/ui/screens/aboutUsScreen.dart';
 import 'package:eschool_teacher/ui/screens/academicCalendar/academicCalendarScreen.dart';
 import 'package:eschool_teacher/ui/screens/addOrEditAnnouncementScreen.dart';
@@ -41,7 +43,6 @@ import 'package:eschool_teacher/ui/screens/teacherAttendance/teacherAttendanceSc
 import 'package:eschool_teacher/ui/screens/termsAndConditionScreen.dart';
 import 'package:eschool_teacher/ui/screens/topicsByLessonScreen.dart';
 import 'package:eschool_teacher/ui/screens/topicsScreen.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
 // ignore: avoid_classes_with_only_static_members
@@ -115,8 +116,8 @@ class Routes {
 
   static const String manageStudentLeaves = '/manageStudentLeaves';
 
-  static const String gallery = '/gallery';
-  static const String galleryAlbumPhotos = '/galleryAlbumPhotos';
+  static const String gallery = SharedRoutes.gallery;
+  static const String galleryAlbumPhotos = SharedRoutes.galleryAlbumPhotos;
 
   static const String teacherAttendence = '/teacherAttendence';
 
@@ -124,6 +125,11 @@ class Routes {
 
   static Route<dynamic> onGenerateRouted(RouteSettings routeSettings) {
     currentRoute = routeSettings.name ?? '';
+
+    //a link that opened the app, or came before sign-in, opens over home
+    if (currentRoute == home) {
+      openPendingDeepLink();
+    }
 
     debugPrint('Route: $currentRoute');
 
@@ -278,7 +284,7 @@ class Routes {
         return TeacherAttendenceScreen.route(routeSettings);
       default:
         {
-          return CupertinoPageRoute(builder: (context) => const Scaffold());
+          return AdaptivePageRoute(builder: (context) => const Scaffold());
         }
     }
   }

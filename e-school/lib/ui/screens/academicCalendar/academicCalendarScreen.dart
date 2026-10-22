@@ -1,4 +1,5 @@
 // ignore_for_file: public_member_api_docs, sort_constructors_first
+import 'package:eschool/app/routeArguments.dart';
 import 'package:eschool/cubits/academicCalendarCubit.dart';
 import 'package:eschool/cubits/academicCalendarPdfDownloadCubit.dart';
 import 'package:eschool/cubits/appConfigurationCubit.dart';
@@ -12,21 +13,11 @@ import 'package:eschool/data/repositories/systemInfoRepository.dart';
 import 'package:eschool/ui/screens/academicCalendar/widgets/calendarOfflineExamContainer.dart';
 import 'package:eschool/ui/screens/academicCalendar/widgets/downloadAcademicCalendarContainer.dart';
 import 'package:eschool/ui/screens/academicCalendar/widgets/holidayContainer.dart';
-import 'package:eschool/ui/screens/academicCalendar/widgets/semesterBreakContainer.dart';
 import 'package:eschool/ui/widgets/changeCalendarMonthButton.dart';
-import 'package:eschool/ui/widgets/customBackButton.dart';
-import 'package:eschool/ui/widgets/customShimmerContainer.dart';
-import 'package:eschool/ui/widgets/errorContainer.dart';
 import 'package:eschool/ui/widgets/listItemForEvents.dart';
 import 'package:eschool/ui/widgets/noDataContainer.dart';
-import 'package:eschool/ui/widgets/screenTopBackgroundContainer.dart';
-import 'package:eschool/ui/widgets/shimmerLoadingContainer.dart';
-import 'package:eschool/utils/animationConfiguration.dart';
-import 'package:eschool/utils/constants.dart';
-import 'package:eschool/utils/extensions.dart';
 import 'package:eschool/utils/labelKeys.dart';
 import 'package:eschool/utils/uiUtils.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -61,8 +52,10 @@ class AcademicCalendarScreen extends StatefulWidget {
   }
 
   static Route route(RouteSettings routeSettings) {
-    final arguments = routeSettings.arguments! as Map<String, dynamic>;
-    return CupertinoPageRoute(
+    final arguments =
+        routeSettings.arguments as AcademicCalendarArguments? ??
+        const AcademicCalendarArguments();
+    return AdaptivePageRoute(
       builder: (_) => BlocProvider<AcademicCalendarCubit>(
         create: (context) => AcademicCalendarCubit(
           SystemRepository(),
@@ -70,8 +63,8 @@ class AcademicCalendarScreen extends StatefulWidget {
           appConfigurationCubit: context.read<AppConfigurationCubit>(),
         ),
         child: AcademicCalendarScreen(
-          hasBack: arguments['hasBack'] ?? false,
-          childId: arguments['childId'],
+          hasBack: arguments.hasBack,
+          childId: arguments.childId,
         ),
       ),
     );

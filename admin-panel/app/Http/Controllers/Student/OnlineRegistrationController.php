@@ -5,10 +5,11 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Student;
 
 use App\Http\Controllers\Controller;
+use App\Mail\Platform\TemplateMail;
 use App\Models\Category;
 use App\Models\ClassSchool;
 use App\Models\ClassSection;
-use App\Models\EmailTempalate;
+use App\Models\EmailTemplate;
 use App\Models\FormField;
 use App\Models\Parents;
 use App\Models\SessionYear;
@@ -17,11 +18,12 @@ use App\Models\Students;
 use App\Models\StudentSessions;
 use App\Models\Subject;
 use App\Models\User;
-use App\Services\EmailTemplateService;
 use App\Services\MailService;
+use App\Services\Platform\Identity\LearnerInvitations;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
+use Symfony\Component\Mailer\Exception\ExceptionInterface;
 
 /**
  * Admin panel: review and accept or reject online student registrations.
@@ -63,8 +65,8 @@ class OnlineRegistrationController extends Controller
 
         $sessionYear = null;
         if ($session_year_id) {
-             $sessionYear = SessionYear::find($session_year_id);
-           
+            $sessionYear = SessionYear::find($session_year_id);
+
             if ($sessionYear) {
                 $startDate = $sessionYear->start_date;
                 $endDate = $sessionYear->end_date;
@@ -150,15 +152,15 @@ class OnlineRegistrationController extends Controller
             if (Auth::user()->can('student-edit')) {
                 if ($userStatus == 0) {
                     // Pending application — open the modal in edit mode to review/accept/reject it
-                     $operate = '<a class="btn btn-xs btn-gradient-primary btn-rounded btn-icon editdata" data-id='.$row->id.' data-url='.url('students').' title="Edit" data-toggle="modal" data-target="#editModal"><i class="fa fa-edit"></i></a>&nbsp;&nbsp;';
+                    $operate = '<a class="btn btn-xs btn-gradient-primary btn-rounded btn-icon editdata" data-id='.$row->id.' data-url='.url('students').' title="Edit" data-toggle="modal" data-target="#editModal"><i class="fa fa-edit"></i></a>&nbsp;&nbsp;';
                 } else {
                     // Already processed (accepted/rejected) — open the same modal in read-only/view mode
-                     $operate = '<a class="btn btn-xs btn-gradient-info btn-rounded btn-icon viewdata" data-id='.$row->id.' data-url='.url('students').' title="View" data-toggle="modal" data-target="#editModal"><i class="fa fa-eye"></i></a>&nbsp;&nbsp;';
+                    $operate = '<a class="btn btn-xs btn-gradient-info btn-rounded btn-icon viewdata" data-id='.$row->id.' data-url='.url('students').' title="View" data-toggle="modal" data-target="#editModal"><i class="fa fa-eye"></i></a>&nbsp;&nbsp;';
                 }
             }
 
             if (Auth::user()->can('student-delete')) {
-                 $operate .= '<a class="btn btn-xs btn-gradient-danger btn-rounded btn-icon deletepermanentdata" data-id='.$row->id.' data-user_id='.$row->user_id.' data-url='.url('permanent-delete', $row->id).' title="Permanent Delete"><i class="fa fa-trash"></i></a>&nbsp;&nbsp;';
+                $operate .= '<a class="btn btn-xs btn-gradient-danger btn-rounded btn-icon deletepermanentdata" data-id='.$row->id.' data-user_id='.$row->user_id.' data-url='.url('permanent-delete', $row->id).' title="Permanent Delete"><i class="fa fa-trash"></i></a>&nbsp;&nbsp;';
             }
 
             $tempRow['id'] = $row->id;
@@ -241,8 +243,8 @@ class OnlineRegistrationController extends Controller
             return response()->json(['error' => true, 'message' => trans('no_permission_message')]);
         }
         $request->validate([
-    'status' => 'required',
-]);
+            'status' => 'required',
+        ]);
         try {
             $user = User::with('student')->where('id', $request->edit_id)->first();
 
@@ -257,7 +259,7 @@ class OnlineRegistrationController extends Controller
             $class = ClassSchool::with('medium', 'streams')->where('id', $request->class_id)->first();
             $class_name = $class->name.' - '.$class->medium->name.' '.($class->streams->name ?? '');
 
-            $child_plaintext_password = str_replace('-', '', date('d-m-Y', strtotime($user->dob)));
+            $child_password_note = trans('learner_password_by_invitation');
             $father_id = $user->student->father_id ?? null;
             $mother_id = $user->student->mother_id ?? null;
             $guardian_id = $user->student->guardian_id ?? null;
@@ -300,7 +302,7 @@ class OnlineRegistrationController extends Controller
                     $class_section_name = $classSection->class->name.' - '.$classSection->section->name.' '.$classSection->class->medium->name.'  '.($classSection->class->streams->name ?? '');
                 }
                 // Send User Credentials via Email
-                $AcceptTemplate = EmailTempalate::where('type', 'student_registration')->value('content');
+                $AcceptTemplate = EmailTemplate::where('type', 'student_registration')->value('content');
                 $applink = Settings::whereIn('type', ['teacher_app_link', 'teacher_ios_app_link'])
                     ->pluck('message', 'type')
                     ->toArray();
@@ -327,7 +329,7 @@ class OnlineRegistrationController extends Controller
                         'password' => (string) ' '.$parent_plaintext_password,
                         'child_name' => (string) ' '.$user->first_name.' '.$user->last_name,
                         'child_grnumber' => (string) ' '.$user->email,
-                        'child_password' => (string) ' '.$child_plaintext_password,
+                        'child_password' => (string) ' '.$child_password_note,
                         'class_name' => (string) $class_section_name,
                         'type' => 'application_accept',
                         'school_name' => (string) $school_name,
@@ -337,34 +339,15 @@ class OnlineRegistrationController extends Controller
                         'ios_app' => (string) $ios_app,
                         'url' => url('/'),
                     ];
-                    $htmlcontent = EmailTemplateService::render($AcceptTemplate, $parent_data);
-
-                    $emailPayload = [
-                        'body' => $htmlcontent,
-                        'email' => $parent_data['email'],
-                        'subject' => $parent_data['subject'],
-                        'type'    => $parent_data['type'],
-                        'name'            => $parent_data['name'],
-                        'child_name'      => $parent_data['child_name'],
-                        'class_name'      => $parent_data['class_name'],
-                        'school_name'     => $parent_data['school_name'],
-                        'school_contact'  => $parent_data['school_contact'],
-                        'school_email'    => $parent_data['school_email'],
-                        'url'             => $parent_data['url'],
-                        'username'        => $parent_data['username'],
-                        'password'        => $parent_data['password'],
-                        'child_grnumber'  => $parent_data['child_grnumber'],
-                        'child_password'  => $parent_data['child_password']
-                    ];
-                    MailService::sendWithFallback('students.email', $emailPayload, function ($message) use ($emailPayload, $admin_mail, $school_name) {
-                        $message->to($emailPayload['email'])->subject($emailPayload['subject']);
-                        $message->from($admin_mail, $school_name);
-                    });
+                    MailService::queue(TemplateMail::parentWelcome($parent_data)->from($admin_mail, $school_name));
 
                     // MailService::sendWithFallback('students.email', $parent_data, function ($message) use ($parent_data) {
                     //     $message->to($parent_data['email'])->subject($parent_data['subject']);
                     // });
                 }
+
+                // Each guardian gets a link to choose the learner's password.
+                rescue(fn () => app(LearnerInvitations::class)->inviteGuardians($user, Auth::user()));
 
                 $response = [
                     'error' => false,
@@ -375,7 +358,7 @@ class OnlineRegistrationController extends Controller
                 $user->update();
                 // dd($user);
 
-                $rejectionTemplate = EmailTempalate::where('type', 'student_application_regect')->value('content');
+                $rejectionTemplate = EmailTemplate::where('type', 'student_application_regect')->value('content');
 
                 if (empty($rejectionTemplate)) {
                     \Log::warning('Skipping student rejection email: "student_application_regect" email template has no content.');
@@ -405,19 +388,7 @@ class OnlineRegistrationController extends Controller
                         'school_contact' => (string) $school_contact,
                         'url' => url('/'),
                     ];
-                    $htmlcontent = EmailTemplateService::render($rejectionTemplate, $gaurdian_data);
-
-                    $emailPayload = [
-                        'body' => $htmlcontent,
-                        'email' => $gaurdian_data['email'],
-                        'subject' => $gaurdian_data['subject'],
-                        'type' => $gaurdian_data['type'],
-                    ];
-
-                    MailService::sendWithFallback('students.email', $emailPayload, function ($message) use ($emailPayload, $admin_mail, $school_name) {
-                        $message->to($emailPayload['email'])->subject($emailPayload['subject']);
-                        $message->from($admin_mail, $school_name);
-                    });
+                    MailService::queue(TemplateMail::registrationRejected($gaurdian_data)->from($admin_mail, $school_name));
 
                     // $data = [
                     //     'subject' => 'Response To Online Registration',
@@ -467,7 +438,7 @@ class OnlineRegistrationController extends Controller
 
             // 2. Catch native Symfony/Laravel Mail exceptions directly
             if (
-                $e instanceof \Symfony\Component\Mailer\Exception\ExceptionInterface ||
+                $e instanceof ExceptionInterface ||
                 Str::contains(strtolower($e->getMessage()), ['mail', 'failed', 'smtp', 'connection'])
             ) {
 

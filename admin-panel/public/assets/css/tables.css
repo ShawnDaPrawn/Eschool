@@ -71,7 +71,8 @@
     font-weight: 600;
     font-size: 0.78rem;
     letter-spacing: 0.02em;
-    color: var(--md-sys-color-on-surface-variant);
+    /* on-surface: muted grey on the header's grey is below 4.5:1 at this size (WCAG AA). */
+    color: var(--md-sys-color-on-surface);
     text-transform: uppercase;
 }
 

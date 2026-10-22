@@ -5,13 +5,15 @@ declare(strict_types=1);
 namespace App\Http\Middleware;
 
 use App\Models\User;
+use App\Services\Platform\Identity\DateOfBirthPasswords;
 use Closure;
 use Illuminate\Http\Request;
 
 /**
  * Staff who sign in to the panel with a default password must change it before
  * doing anything else. The defaults are public (superadmin for the installer's
- * admin) or easy to find out (a date of birth for teachers and staff).
+ * admin) or easy to find out (a date of birth for teachers and staff). So must
+ * an account flagged with users.password_change_required.
  */
 class RequirePasswordChange
 {
@@ -22,9 +24,15 @@ class RequirePasswordChange
 
     public static function isDefaultPassword(User $user, string $password): bool
     {
-        // TeacherController and StaffController set the date of birth as ddmmyyyy.
-        return $password === 'superadmin'
-            || ($user->dob && $password === date('dmY', strtotime((string) $user->dob)));
+        // TeacherController and StaffController set the date of birth as ddmmyyyy;
+        // older code used other formats (DateOfBirthPasswords::FORMATS).
+        return $password === 'superadmin' || DateOfBirthPasswords::isDateOfBirth($user, $password);
+    }
+
+    /** Whether someone signing in with this password must change it first. */
+    public static function mustChange(User $user, string $password): bool
+    {
+        return (bool) $user->password_change_required || self::isDefaultPassword($user, $password);
     }
 
     public function handle(Request $request, Closure $next)

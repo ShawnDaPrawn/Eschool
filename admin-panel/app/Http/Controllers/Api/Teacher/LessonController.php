@@ -17,6 +17,7 @@ use App\Models\LessonTopic;
 use App\Rules\uniqueLessonInClass;
 use App\Rules\uniqueTopicInLesson;
 use App\Services\ResponseService;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
@@ -30,7 +31,7 @@ class LessonController extends Controller
 {
     use TeacherAccess;
 
-    public function getLesson(Request $request): void
+    public function getLesson(Request $request): JsonResponse
     {
         ResponseService::noPermissionThenSendJson('lesson-list');
 
@@ -42,7 +43,7 @@ class LessonController extends Controller
         ]);
 
         if ($validator->fails()) {
-            ResponseService::validationError($validator->errors()->first());
+            return ResponseService::validationError($validator->errors()->first());
         }
 
         try {
@@ -67,9 +68,9 @@ class LessonController extends Controller
 
             $data = $query->orderByDesc('id')->get();
 
-            ResponseService::successResponse('Lesson Fetched Successfully.', $data);
+            return ResponseService::successResponse('Lesson Fetched Successfully.', $data);
         } catch (\Exception $e) {
-            ResponseService::errorResponse('error_occurred', null, 103, $e);
+            return ResponseService::errorResponse('error_occurred', null, 103, $e);
         }
     }
 
@@ -96,7 +97,7 @@ class LessonController extends Controller
         );
 
         if ($validator->fails()) {
-            ResponseService::validationError($validator->errors()->first());
+            return ResponseService::validationError($validator->errors()->first());
         }
 
         $validator2 = Validator::make(
@@ -107,7 +108,7 @@ class LessonController extends Controller
         );
 
         if ($validator2->fails()) {
-            ResponseService::validationError($validator2->errors()->first());
+            return ResponseService::validationError($validator2->errors()->first());
         }
 
         try {
@@ -119,7 +120,7 @@ class LessonController extends Controller
             $semesterId = $isClassHaveSemester ? $request->semester_id : null;
 
             if (! $this->teachesSubject($request->class_section_id, $request->subject_id, $semesterId)) {
-                ResponseService::errorResponse('You are not assigned to this class section and subject combination.', null, 403);
+                return ResponseService::errorResponse('You are not assigned to this class section and subject combination.', null, 403);
             }
 
             $lesson = new Lesson;
@@ -158,9 +159,9 @@ class LessonController extends Controller
                 }
             }
 
-            ResponseService::successResponse('data_store_successfully');
+            return ResponseService::successResponse('data_store_successfully');
         } catch (Throwable $e) {
-            ResponseService::errorResponse('error_occurred', null, 103, $e);
+            return ResponseService::errorResponse('error_occurred', null, 103, $e);
         }
     }
 
@@ -210,7 +211,7 @@ class LessonController extends Controller
             ]
         );
         if ($validator->fails()) {
-            ResponseService::validationError($validator->errors()->first());
+            return ResponseService::validationError($validator->errors()->first());
         }
 
         $validator2 = Validator::make(
@@ -220,7 +221,7 @@ class LessonController extends Controller
             ]
         );
         if ($validator2->fails()) {
-            ResponseService::validationError($validator2->errors()->first());
+            return ResponseService::validationError($validator2->errors()->first());
         }
         try {
             $lesson = Lesson::lessonTeachers()->findOrFail($request->lesson_id);
@@ -228,7 +229,7 @@ class LessonController extends Controller
             // The lesson scope matches class sections and subjects separately, so check the
             // lesson's own pair, and the pair it is being moved to.
             if (! $this->ownsLesson($lesson) || ! $this->teachesSubject($request->class_section_id, $request->subject_id)) {
-                ResponseService::errorResponse('You are not assigned to this class section and subject combination.', null, 403);
+                return ResponseService::errorResponse('You are not assigned to this class section and subject combination.', null, 403);
             }
 
             $lesson->name = $request->name;
@@ -326,9 +327,10 @@ class LessonController extends Controller
                     }
                 }
             }
-            ResponseService::successResponse('data_store_successfully');
+
+            return ResponseService::successResponse('data_store_successfully');
         } catch (Throwable $e) {
-            ResponseService::errorResponse('error_occurred', null, 103, $e);
+            return ResponseService::errorResponse('error_occurred', null, 103, $e);
         }
     }
 
@@ -341,21 +343,22 @@ class LessonController extends Controller
         ]);
 
         if ($validator->fails()) {
-            ResponseService::validationError($validator->errors()->first());
+            return ResponseService::validationError($validator->errors()->first());
         }
         try {
             $lesson = Lesson::lessonteachers()->where('id', $request->lesson_id)->firstOrFail();
             if (! $this->ownsLesson($lesson)) {
-                ResponseService::errorResponse('no_permission_message', null, 403);
+                return ResponseService::errorResponse('no_permission_message', null, 403);
             }
             $lesson->delete();
-            ResponseService::successResponse('data_delete_successfully');
+
+            return ResponseService::successResponse('data_delete_successfully');
         } catch (Throwable $e) {
-            ResponseService::errorResponse('error_occurred', null, 103, $e);
+            return ResponseService::errorResponse('error_occurred', null, 103, $e);
         }
     }
 
-    public function getTopic(Request $request): void
+    public function getTopic(Request $request): JsonResponse
     {
         ResponseService::noPermissionThenSendJson('topic-list');
 
@@ -364,7 +367,7 @@ class LessonController extends Controller
         ]);
 
         if ($validator->fails()) {
-            ResponseService::validationError($validator->errors()->first());
+            return ResponseService::validationError($validator->errors()->first());
         }
 
         try {
@@ -375,9 +378,9 @@ class LessonController extends Controller
                 ->orderByDesc('id')
                 ->get();
 
-            ResponseService::successResponse('Topic Fetched Successfully.', $data);
+            return ResponseService::successResponse('Topic Fetched Successfully.', $data);
         } catch (\Exception $e) {
-            ResponseService::errorResponse('error_occurred', null, 103, $e);
+            return ResponseService::errorResponse('error_occurred', null, 103, $e);
         }
     }
 
@@ -401,7 +404,7 @@ class LessonController extends Controller
         );
 
         if ($validator->fails()) {
-            ResponseService::validationError($validator->errors()->first());
+            return ResponseService::validationError($validator->errors()->first());
         }
         $validator2 = Validator::make(
             $request->all(),
@@ -410,12 +413,12 @@ class LessonController extends Controller
             ]
         );
         if ($validator2->fails()) {
-            ResponseService::validationError($validator2->errors()->first());
+            return ResponseService::validationError($validator2->errors()->first());
         }
 
         try {
             if (! $this->ownsLesson(Lesson::lessonTeachers()->find($request->lesson_id))) {
-                ResponseService::errorResponse('no_permission_message', null, 403);
+                return ResponseService::errorResponse('no_permission_message', null, 403);
             }
 
             $topic = new LessonTopic;
@@ -452,9 +455,10 @@ class LessonController extends Controller
                     }
                 }
             }
-            ResponseService::successResponse('data_store_successfully');
+
+            return ResponseService::successResponse('data_store_successfully');
         } catch (\Exception $e) {
-            ResponseService::errorResponse('error_occurred', null, 103, $e);
+            return ResponseService::errorResponse('error_occurred', null, 103, $e);
         }
     }
 
@@ -481,7 +485,7 @@ class LessonController extends Controller
             ]
         );
         if ($validator->fails()) {
-            ResponseService::validationError($validator->errors()->first());
+            return ResponseService::validationError($validator->errors()->first());
         }
         $validator2 = Validator::make(
             $request->all(),
@@ -490,13 +494,13 @@ class LessonController extends Controller
             ]
         );
         if ($validator2->fails()) {
-            ResponseService::validationError($validator2->errors()->first());
+            return ResponseService::validationError($validator2->errors()->first());
         }
         try {
             $topic = LessonTopic::lessonTopicTeachers()->findOrFail($request->topic_id);
 
             if (! $this->ownsLesson($topic->lesson)) {
-                ResponseService::errorResponse('no_permission_message', null, 403);
+                return ResponseService::errorResponse('no_permission_message', null, 403);
             }
 
             $topic->name = $request->name;
@@ -594,9 +598,10 @@ class LessonController extends Controller
                     $topic_file->save();
                 }
             }
-            ResponseService::successResponse('data_store_successfully');
+
+            return ResponseService::successResponse('data_store_successfully');
         } catch (\Exception $e) {
-            ResponseService::errorResponse('error_occurred', null, 103, $e);
+            return ResponseService::errorResponse('error_occurred', null, 103, $e);
         }
     }
 
@@ -607,12 +612,13 @@ class LessonController extends Controller
         try {
             $topic = LessonTopic::LessonTopicTeachers()->findOrFail($request->topic_id);
             if (! $this->ownsLesson($topic->lesson)) {
-                ResponseService::errorResponse('no_permission_message', null, 403);
+                return ResponseService::errorResponse('no_permission_message', null, 403);
             }
             $topic->delete();
-            ResponseService::successResponse('data_delete_successfully');
+
+            return ResponseService::successResponse('data_delete_successfully');
         } catch (\Exception $e) {
-            ResponseService::errorResponse('error_occurred', null, 103, $e);
+            return ResponseService::errorResponse('error_occurred', null, 103, $e);
         }
     }
 
@@ -623,12 +629,12 @@ class LessonController extends Controller
         ]);
 
         if ($validator->fails()) {
-            ResponseService::validationError($validator->errors()->first());
+            return ResponseService::validationError($validator->errors()->first());
         }
         try {
             $file = File::find($request->file_id);
             if (! $file || ! $this->canManageFile($file)) {
-                ResponseService::errorResponse('no_permission_message', null, 403);
+                return ResponseService::errorResponse('no_permission_message', null, 403);
             }
             $file->file_name = $request->name;
 
@@ -708,9 +714,10 @@ class LessonController extends Controller
                 }
             }
             $file->save();
-            ResponseService::successResponse('data_store_successfully', $file);
-        } catch (\Throwable $e) {
-            ResponseService::errorResponse('error_occurred', null, 103, $e);
+
+            return ResponseService::successResponse('data_store_successfully', $file);
+        } catch (Throwable $e) {
+            return ResponseService::errorResponse('error_occurred', null, 103, $e);
         }
     }
 
@@ -721,17 +728,18 @@ class LessonController extends Controller
         ]);
 
         if ($validator->fails()) {
-            ResponseService::validationError($validator->errors()->first());
+            return ResponseService::validationError($validator->errors()->first());
         }
         try {
             $file = File::find($request->file_id);
             if (! $file || ! $this->canManageFile($file)) {
-                ResponseService::errorResponse('no_permission_message', null, 403);
+                return ResponseService::errorResponse('no_permission_message', null, 403);
             }
             $file->delete();
-            ResponseService::successResponse('data_delete_successfully');
+
+            return ResponseService::successResponse('data_delete_successfully');
         } catch (\Exception $e) {
-            ResponseService::errorResponse('error_occurred', null, 103, $e);
+            return ResponseService::errorResponse('error_occurred', null, 103, $e);
         }
     }
 

@@ -4,9 +4,8 @@ declare(strict_types=1);
 
 namespace App\Models;
 
-use App\Models\Event;
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
 
 class MultipleEvent extends Model
 {
@@ -19,7 +18,7 @@ class MultipleEvent extends Model
         'date',
         'start_time',
         'end_time',
-        'description'
+        'description',
     ];
 
     public function events()

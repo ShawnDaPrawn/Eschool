@@ -4,12 +4,13 @@ declare(strict_types=1);
 
 namespace App\Services;
 
+use App\Services\Platform\Secrets\SecretSettings;
 use Illuminate\Database\QueryException;
 use PDOException;
 
 /**
  * Applies the settings admins edit in the panel (school name, timezone, mail
- * server, Paystack keys) on top of the config loaded from .env.
+ * server) on top of the config loaded from .env.
  *
  * Saving those settings used to copy them into .env as well. That goes stale
  * once config is cached (php artisan config:cache), so the settings table is
@@ -27,9 +28,6 @@ class SettingsConfigService
         'mail_password' => 'mail.mailers.smtp.password',
         'mail_encryption' => 'mail.mailers.smtp.encryption',
         'mail_send_from' => 'mail.from.address',
-        'paystack_public_key' => 'paystack.publicKey',
-        'paystack_secret_key' => 'paystack.secretKey',
-        // No paystack_payment_url: the API URL is fixed (PaystackPayment::BASE_URL).
     ];
 
     public static function apply(): void
@@ -46,6 +44,10 @@ class SettingsConfigService
         $senderFollowsAppName = config('mail.from.name') === config('app.name');
 
         foreach (self::CONFIG_KEYS as $type => $key) {
+            // A secret the environment provides (MAIL_PASSWORD) wins over its row.
+            if (isset(SecretSettings::SECRETS[$type]) && SecretSettings::fromEnvironment($type)) {
+                continue;
+            }
             $value = trim((string) ($settings[$type] ?? ''));
             if ($value !== '') {
                 config([$key => $type === 'mail_port' ? (int) $value : $value]);

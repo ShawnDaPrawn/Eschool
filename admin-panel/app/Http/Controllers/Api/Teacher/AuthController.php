@@ -6,8 +6,12 @@ namespace App\Http\Controllers\Api\Teacher;
 
 use App\Http\Controllers\Api\Teacher\Concerns\TeacherAccess;
 use App\Http\Controllers\Controller;
+use App\Http\Middleware\EnsureTeacherActive;
 use App\Models\Teacher;
 use App\Services\IdCardService;
+use App\Services\Platform\Identity\AppTokens;
+use App\Services\Platform\Identity\DateOfBirthPasswords;
+use App\Services\Platform\Identity\PortalSession;
 use App\Services\ResponseService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -28,16 +32,21 @@ class AuthController extends Controller
         ]);
 
         if ($validator->fails()) {
-            ResponseService::validationError($validator->errors()->first());
+            return ResponseService::validationError($validator->errors()->first());
         }
 
         if (Auth::attempt(['email' => $request->email, 'password' => $request->password])) {
             $auth = Auth::user();
 
             if (! $auth->hasRole('Teacher')) {
-                ResponseService::errorResponse('Invalid Login Credentials', null, 101);
+                return ResponseService::errorResponse('Invalid Login Credentials', null, 101);
             }
-            $token = $auth->createToken($auth->first_name)->plainTextToken;
+            // A deactivated teacher gets no token (EnsureTeacherActive refuses
+            // the tokens they already had).
+            if (! EnsureTeacherActive::isActive($auth)) {
+                return ResponseService::errorResponse(EnsureTeacherActive::message(), null, null);
+            }
+            $token = PortalSession::signIn($request, $auth, AppTokens::TEACHER);
             $user = $auth->load(['teacher']);
 
             $dynamicFields = null;
@@ -70,9 +79,14 @@ class AuthController extends Controller
                 $auth->device_type = $request->device_type;
                 $auth->save();
             }
-            ResponseService::successResponse('User logged-in!', $user, ['token' => $token], 100);
+
+            // Added for v1 clients: true when the account must choose a new password.
+            return ResponseService::successResponse('User logged-in!', $user, [
+                'token' => $token,
+                'password_change_required' => DateOfBirthPasswords::changeRequiredAtSignIn($auth, (string) $request->password),
+            ], 100);
         } else {
-            ResponseService::errorResponse('Invalid Login Credentials', null, 101);
+            return ResponseService::errorResponse('Invalid Login Credentials', null, 101);
         }
     }
 
@@ -99,9 +113,10 @@ class AuthController extends Controller
             }
 
             $user = array_merge($user, ['dynamic_fields' => $dynamicFields ?? null]);
-            ResponseService::successResponse('Data Fetched Successfully', $user);
+
+            return ResponseService::successResponse('Data Fetched Successfully', $user);
         } catch (\Exception $e) {
-            ResponseService::errorResponse('error_occurred', null, 103, $e);
+            return ResponseService::errorResponse('error_occurred', null, 103, $e);
         }
     }
 
@@ -110,9 +125,9 @@ class AuthController extends Controller
         try {
             $output = $idCardService->buildStaffPdf([$request->user()->id])->output();
 
-            ResponseService::successResponse('Teacher ID Card PDF Fetched Successfully', null, ['pdf' => base64_encode($output)]);
+            return ResponseService::successResponse('Teacher ID Card PDF Fetched Successfully', null, ['pdf' => base64_encode($output)]);
         } catch (\Throwable $e) {
-            ResponseService::errorResponse('error_occurred', null, 103, $e);
+            return ResponseService::errorResponse('error_occurred', null, 103, $e);
         }
     }
 }

@@ -1,4 +1,4 @@
-This page explains how school fees are modelled, how the student/parent app pays them online through Razorpay, Stripe, Paystack or Flutterwave, how a payment is confirmed (only by a signed gateway webhook), how staff record cash and cheque payments, and which settings drive all of it. It describes the code after the fee-forgery fixes in commit `839c9eb` and the Flutterwave secret-hash fix in `05b97a9`.
+This page explains how school fees are modelled, how the student/parent app pays them online through Stripe, how a payment is confirmed (only by a signed gateway webhook), how staff record cash and cheque payments, and which settings drive all of it. It describes the code after the fee-forgery fixes in commit `839c9eb` and the Phase 0 removal of the Razorpay, Paystack and Flutterwave gateways (see [Removed gateways](#removed-gateways)). Stripe is the only gateway until the South African gateway arrives in Phase 5.
 
 For the click-by-click admin steps see the Docusaurus pages [Fee Payment (admin panel)](https://shawndaprawn.github.io/Eschool/admin-panel/fee-payment/), [Payment Gateway's Webhook Configuration](https://shawndaprawn.github.io/Eschool/admin-panel/webhook-config/) and [Fee Payment (features)](https://shawndaprawn.github.io/Eschool/features/fee-payment/).
 
@@ -9,14 +9,14 @@ For the click-by-click admin steps see the Docusaurus pages [Fee Payment (admin 
 | Fee setup (types, class fees, installments) | `Fees\TypeController`, `Fees\ClassController`, `SessionYearController` / `SessionYearService` |
 | Server-side pricing and recording of online payments | [`FeesPaymentService`](https://github.com/ShawnDaPrawn/Eschool/blob/main/admin-panel/app/Services/Payment/FeesPaymentService.php) |
 | Gateway factory, currency, webhook secrets, amount checks | [`PaymentService`](https://github.com/ShawnDaPrawn/Eschool/blob/main/admin-panel/app/Services/Payment/PaymentService.php) |
-| Gateway adapters | `StripePayment`, `RazorpayPayment`, `PaystackPayment`, `FlutterwavePayment` (all implement `PaymentInterface`) in [`app/Services/Payment`](https://github.com/ShawnDaPrawn/Eschool/tree/main/admin-panel/app/Services/Payment) |
+| Gateway adapter | `StripePayment` (implements `PaymentInterface`) in [`app/Services/Payment`](https://github.com/ShawnDaPrawn/Eschool/tree/main/admin-panel/app/Services/Payment) |
 | App endpoints | `Api/Student/FeesController`, `Api/Parent/FeesController` (`/api/student/*`, `/api/parent/*`) |
 | Payment confirmation | [`WebhookController`](https://github.com/ShawnDaPrawn/Eschool/blob/main/admin-panel/app/Http/Controllers/WebhookController.php) (`/webhook/*`) |
 | Offline (cash/cheque) payments, receipts, logs | `Fees\PaymentController`, `Fees\PaidController`, `Fees\TransactionLogController` (admin panel) |
 | Dashboard and app statistics | [`FeesCollectionService`](https://github.com/ShawnDaPrawn/Eschool/blob/main/admin-panel/app/Services/FeesCollectionService.php), [`FeesReportService`](https://github.com/ShawnDaPrawn/Eschool/blob/main/admin-panel/app/Services/FeesReportService.php) |
 | Tests | [`tests/Feature/PaymentWebhookTest.php`](https://github.com/ShawnDaPrawn/Eschool/blob/main/admin-panel/tests/Feature/PaymentWebhookTest.php), fee cases in `StudentApiSecurityTest` and `ParentApiSecurityTest` |
 
-Composer packages used: `stripe/stripe-php`, `razorpay/razorpay`, `unicodeveloper/laravel-paystack` (from the `laravel-shift` fork, branch `l12-compatibility`), `barryvdh/laravel-dompdf` for receipts. Flutterwave is called with raw cURL. The student/parent Flutter app uses `razorpay_flutter`, `flutter_stripe`, and a WebView (`webviewPaymentScreen.dart`) for Paystack and Flutterwave.
+Composer packages used: `stripe/stripe-php`, and `barryvdh/laravel-dompdf` for receipts. The student/parent Flutter app pays with `flutter_stripe`.
 
 ## Fee model
 
@@ -37,7 +37,7 @@ All of these use `SoftDeletes`. Column codes used throughout the code:
 | Column | Values |
 |---|---|
 | `payment_transactions.payment_status` | 0 failed, 1 succeeded, 2 pending |
-| `payment_transactions.payment_gateway` | 1 Razorpay, 2 Stripe, 3 Paystack, 4 Flutterwave (`PaymentService::RAZORPAY` ... `FLUTTERWAVE`); null for offline payments |
+| `payment_transactions.payment_gateway` | 2 Stripe (`PaymentService::STRIPE`); null for offline payments. 1 Razorpay, 3 Paystack and 4 Flutterwave appear on transactions made before they were removed (`PaymentService::RETIRED`); those ids are never reused |
 | `mode` (transactions and `fees_paids`) | 0 cash, 1 cheque, 2 online |
 | `payment_transactions.type_of_fee` | 0 compulsory in full, 1 installments, 2 optional (`FeesPaymentService::COMPULSORY`, `INSTALLMENTS`, `OPTIONAL`) |
 
@@ -63,12 +63,12 @@ sequenceDiagram
     API->>DB: FeesPaymentService prepare() prices the request from the fee setup
     API->>DB: createPendingTransaction() saves payment_status 2 and rows with status 0
     API->>GW: createAndFormatPaymentIntent(server total, metadata)
-    GW-->>API: order id, intent id, reference or checkout link
+    GW-->>API: PaymentIntent id
     API->>DB: save it as payment_transactions.order_id
     API-->>App: payment_gateway_details and payment_transaction_id
-    App->>GW: pay with Razorpay SDK, Stripe sheet or WebView
+    App->>GW: pay with the Stripe payment sheet
     App->>API: POST store-fees (transaction_id, payment_id, payment_signature)
-    GW->>WH: POST /webhook/gateway-name (signed)
+    GW->>WH: POST /webhook/stripe (signed)
     WH->>WH: verify signature, find transaction, compare amount and currency
     WH->>DB: markPaid() under a row lock (idempotent)
     WH->>DB: Notification and UserNotification rows
@@ -81,9 +81,9 @@ All are behind `auth:sanctum`. Student routes also have `role:Student` and `stud
 
 | Endpoint | Controller method | Purpose |
 |---|---|---|
-| `GET /api/settings?type=app_settings` | `ApiController::getSettings` | Public. Returns `online_payment`, `compulsory_fee_payment_mode`, `is_student_can_pay_fees`, `payment_options.currency_code/currency_symbol`, and for each enabled gateway only its public key and currency (`razorpay_api_key`, `stripe_publishable_key`, `paystack_public_key`, `flutterwave_public_key`). Secret keys and webhook secrets are never returned (the Razorpay webhook secret used to be; see [commit 839c9eb](#forgery-protections-commit-839c9eb)). |
+| `GET /api/settings?type=app_settings` | `ApiController::getSettings` | Public. Returns `online_payment`, `compulsory_fee_payment_mode`, `is_student_can_pay_fees`, `payment_options.currency_code/currency_symbol`, and, when Stripe is enabled, `payment_options.stripe` with only its status, publishable key and currency. Secret keys and webhook secrets are never returned (the Razorpay webhook secret used to be; see [commit 839c9eb](#forgery-protections-commit-839c9eb)). The removed gateways are always left out, as a disabled gateway is. |
 | `GET /api/student/fees-details`, `GET /api/parent/fees-details` (CheckChild) | `getFeesDetails` | Compulsory, optional and installment items with paid flags, totals, `compulsory_due_date`, `compulsory_due_charges`, `is_fee_pending`. Also expires the latest pending transaction if it is more than one hour old (sets `payment_status` 0). |
-| `POST /api/student/add-fees-transaction`, `POST /api/parent/add-fees-transaction` (CheckChild) | `storeFeesTransaction` | Validates `payment_method` (1-4), `amount`, `type_of_fee` (0-2), optional `optional_fees_data[]` / `installment_data[]` (each `{id: ...}`); refuses a gateway whose `*_status` setting is off; prices, creates the pending transaction and the gateway intent; returns `payment_gateway_details` (the formatted intent plus `payment_transaction_id`). `is_fully_paid` is still accepted from old app builds but ignored. |
+| `POST /api/student/add-fees-transaction`, `POST /api/parent/add-fees-transaction` (CheckChild) | `storeFeesTransaction` | Validates `payment_method` (1-4), `amount`, `type_of_fee` (0-2), optional `optional_fees_data[]` / `installment_data[]` (each `{id: ...}`); refuses (`The selected payment method is not available.`) anything but Stripe (2) with `stripe_status` on; prices, creates the pending transaction and the gateway intent; returns `payment_gateway_details` (the formatted intent plus `payment_transaction_id`). `is_fully_paid` is still accepted from old app builds but ignored. |
 | `POST /api/student/store-fees`, `POST /api/parent/store-fees` (CheckChild) | `storeFees` | Notes `payment_id` and `payment_signature` on the caller's own transaction, only if those columns are still empty. Student: pending transactions only. Parent: pending or succeeded (the webhook often arrives first). It never marks anything paid. |
 | `POST /api/student/fail-payment-transaction`, `POST /api/parent/fail-payment-transaction` | `failPaymentTransactionStatus` | Marks the caller's own **pending** transaction failed (`payment_status` 0) and sends a "Payment Failed" notification. A transaction the webhook has already marked paid is refused. The student version uses a conditional update so a concurrent webhook wins. |
 | `POST /api/student/get-payment-status`, `POST /api/parent/get-payment-status` | `Parent\FeesController::getPaymentStatus` (both routes) | Stripe only. `payment_intent_id` must match `^pi_[A-Za-z0-9_]+$` and belong to a transaction of the caller (student's own id, or the parent's children); returns the PaymentIntent `status` from Stripe. `StudentApiController::getPaymentStatus` still exists but no route points to it. |
@@ -93,7 +93,7 @@ All are behind `auth:sanctum`. Student routes also have `role:Student` and `stud
 | `GET fees-report` | `getFeesReport` | `FeesReportService::getStatistics()` (see [Reporting](#reporting-services)). |
 | `GET /api/student/send-fee-notification` | `Student\FeesController::sendFeeNotification` | Pushes "Fees are dues" (type `fees-due`, `child_id` in the data) to the student's parents. See [Notifications](Notifications). |
 
-The app sends `payment_method` as 1 Razorpay, 2 Stripe, 3 Paystack, 4 Flutterwave. Paystack and Flutterwave are opened in a WebView at the gateway URL; the WebView watches for the paths `/response/paystack/success` and `/response/flutterwave/success`, which `WebhookController::paystackSuccessCallback()` / `flutterwaveSuccessCallback()` answer with a fixed JSON message. Those landing routes change nothing.
+The app sends `payment_method` 2 for Stripe. Older builds may still send 1 (Razorpay), 3 (Paystack) or 4 (Flutterwave); the server accepts the value and answers it the way it answers a gateway the school has switched off, so an old build shows its usual "not available" message.
 
 ### Server-side pricing (`FeesPaymentService::prepare`)
 
@@ -112,16 +112,13 @@ The app sends `payment_method` as 1 Razorpay, 2 Stripe, 3 Paystack, 4 Flutterwav
 
 Who is recorded as the parent: for the student endpoint `father_id`, else `guardian_id`; the payer email is the father's, else the guardian's. For the parent endpoint, the logged-in parent.
 
-### Gateway adapters
+### Gateway adapter
 
-`PaymentService::create($payment_method)` builds the adapter with keys from the `settings` table (`getSettings()`), except Paystack, which the `Unicodeveloper\Paystack\Paystack` base class configures from `config('paystack.secretKey')`. `App\Services\SettingsConfigService::apply()` (called from `AppServiceProvider::boot()`) overwrites that config value with the `paystack_secret_key` setting on every request, so the `.env` value in `config/paystack.php` only matters while the setting is empty. `PaystackPayment` always calls `https://api.paystack.co` (`PaystackPayment::BASE_URL`): the API address used to be a setting, which let anyone with an admin session send the secret key to their own server. `PaymentService::currencyCode()` uses the gateway's own `*_currency_code` setting, else `currency_code`, upper-cased. Saving the Fees configuration requires every enabled gateway's currency to be a three-letter code, and Razorpay's to be one `RazorpayPayment::amountInSubunits()` knows; an unknown code used to fail each parent payment with `error_occurred`.
+`PaymentService::create($payment_method)` builds the adapter with keys from the `settings` table (`getSettings()`); only `PaymentService::STRIPE` (2) is accepted. `PaymentService::currencyCode()` uses the gateway's own `stripe_currency_code` setting, else `currency_code`, upper-cased. Saving the Fees configuration requires an enabled gateway's currency to be a three-letter code; any text used to be accepted, and each parent payment then failed with `error_occurred`.
 
 | Gateway | What `createPaymentIntent` creates | Stored as `order_id` | Amount sent | Notes |
 |---|---|---|---|---|
-| Razorpay | `$api->order->create()` with `notes` = metadata | Razorpay order id | `RazorpayPayment::amountInSubunits()`: x1000 for BHD, IQD, JOD, KWD, OMR, TND; x100 for the listed two-decimal currencies; unchanged for zero-decimal ones (an unknown currency throws) | Status map: `created`/`attempted` pending, `paid` succeed |
 | Stripe | `paymentIntents->create()` with `metadata` | PaymentIntent id (`pi_...`) | `StripePayment::amountInSubunits()`: raised to Stripe's minimum charge for the currency (e.g. 0.50 USD/EUR/INR, 0.30 GBP, 50 JPY), x100 except zero-decimal currencies | The app confirms with the intent's client secret from `payment_gateway_response` |
-| Paystack | `getAuthorizationResponse()` with `email` (required), `reference` from `genTranxRef()`, `callback_url` = `route('paystack.success')` | The generated reference | `amount x 100` | Throws `Email cannot be empty` when the payer has no email |
-| Flutterwave | cURL `POST https://api.flutterwave.com/v3/payments` with `tx_ref` = `uniqid()`, `meta` = metadata, `order_id` = transaction id, `redirect_url` = `route('flutterwave.success')`, a hard-coded `payment_type` of `mobilemoneyghana` | The hosted checkout link (`data.link`) | `max(1, amount)` in main units | TLS verification uses cURL defaults (commit `420df6d` removed the disabled verification) |
 
 ## Payment confirmation (webhooks)
 
@@ -129,18 +126,16 @@ Routes (in `routes/web.php`, outside every auth group; `bootstrap/app.php` exemp
 
 | Method and URL | Handler | Signature check | Events handled | Transaction lookup |
 |---|---|---|---|---|
-| `POST /webhook/razorpay` | `razorpay` | `X-Razorpay-Signature` = HMAC-SHA256 of the raw body with `PaymentService::webhookSecret('razorpay')` | `payment.captured` (paid), `payment.failed` (failed) | `payment_gateway = 1` and `order_id = payload.payment.entity.order_id` |
 | `POST /webhook/stripe` | `stripe` | `Stripe\Webhook::constructEvent()` with the `Stripe-Signature` header and `webhookSecret('stripe')`; refused outright when no secret is set | `payment_intent.succeeded` (uses `amount_received`), `payment_intent.payment_failed` | `payment_gateway = 2` and `order_id` = intent id |
-| `POST /webhook/paystack` | `paystack` | `x-paystack-signature` = HMAC-SHA512 of the raw body with `webhookSecret('paystack')` (the Paystack **secret key**) | `charge.success` only | `payment_gateway = 3` and `order_id = data.reference` |
-| `POST /webhook/flutterwave` | `flutterwave` | `verif-hash` header must equal `webhookSecret('flutterwave')` (`hash_equals`); refused when either is empty | `data.status` `successful` (paid) or `failed` | `payment_transaction_id` from `meta_data` (or `data.meta`) and `payment_gateway = 4`, because the stored `order_id` is the checkout link |
-| `GET /response/paystack/success` (`paystack.success`), `GET /response/flutterwave/success` (`flutterwave.success`) | `paystackSuccessCallback`, `flutterwaveSuccessCallback` | none | none | none: fixed JSON reply only |
 
-`PaymentService::webhookSecret($gateway)` reads the settings row first (`razorpay_webhook_secret`, `stripe_webhook_secret`, `paystack_secret_key`, `flutterwave_hash_key`), then the config value (`services.razorpay.webhook_secret`, `services.stripe.webhook_secret`, `services.paystack.secret_key`, `services.flutterwave.secret_hash`, defined in [`config/services.php`](https://github.com/ShawnDaPrawn/Eschool/blob/main/admin-panel/config/services.php) from `.env` keys that the admin panel never writes, so they are only a manual fallback). It returns `''` when neither is set, and every handler then refuses the call. All comparisons use `hash_equals`.
+`PaymentService::webhookSecret('stripe')` reads the `stripe_webhook_secret` settings row first, then `services.stripe.webhook_secret` (defined in [`config/services.php`](https://github.com/ShawnDaPrawn/Eschool/blob/main/admin-panel/config/services.php) from `STRIPE_WEBHOOK_SECRET`, which the admin panel never writes, so it is only a manual fallback). It returns `''` when neither is set, and the handler then refuses the call.
 
-After the signature, every handler does the same thing:
+`POST /webhook/razorpay`, `/webhook/paystack`, `/webhook/flutterwave` and the `GET /response/paystack/success` and `/response/flutterwave/success` landing pages were removed with their gateways and answer 404.
+
+After the signature, the handler:
 
 1. Find the transaction created by this app for that gateway. Not found: log a warning and return 200 `Transaction not found` (so a gateway shared with another integration stops retrying).
-2. On success events, `paid()` checks the reported currency against `PaymentService::currencyCode()` and the amount with `PaymentService::amountMatches()` (gateway sub-units for Razorpay/Stripe/Paystack, within 0.01 for Flutterwave). A mismatch is logged and answered with 400; nothing is recorded.
+2. On success events, `paid()` checks the reported currency against `PaymentService::currencyCode()` and the amount with `PaymentService::amountMatches()` (Stripe's sub-units). A mismatch is logged and answered with 400; nothing is recorded.
 3. `FeesPaymentService::markPaid($transactionId, $attributes)` runs in a DB transaction with `lockForUpdate()` on the transaction. If the transaction is already `payment_status = 1` it returns null and the webhook answers `Payment already recorded`, so retries and duplicates are harmless. Otherwise it:
    - stores gateway ids (`payment_id`) and sets `payment_status = 1`;
    - restores (if a failed attempt soft-deleted them) and sets `status = 1` on every `fees_choiceables` (non-due-charge) and `paid_installment_fees` row carrying this `payment_transaction_id`;
@@ -188,22 +183,17 @@ Everything below is stored only in the `settings` table (`type`/`message` pairs,
 | `compulsory_fee_payment_mode` | Fees configuration | none | When 1, login/profile APIs return `is_fee_payment_due` (from `free_app_use_date`, `fee_due_date`, installments) so the app can block use until fees are paid |
 | `is_student_can_pay_fees` | Fees configuration | none | Sent to the app; the student payment endpoints do not check it |
 | `online_payment` | General settings (`SettingController::update`) | none | Sent to the app; not checked by the payment endpoints |
-| `razorpay_status`, `razorpay_api_key`, `razorpay_secret_key`, `razorpay_webhook_secret`, `razorpay_webhook_url`, `razorpay_currency_code` | Fees configuration | `RAZORPAY_WEBHOOK_SECRET` (`services.razorpay.webhook_secret`) | API keys from settings only; webhook secret from the setting, then the config fallback |
 | `stripe_status`, `stripe_publishable_key`, `stripe_secret_key`, `stripe_webhook_secret`, `stripe_webhook_url`, `stripe_currency_code` | Fees configuration | `STRIPE_WEBHOOK_SECRET` (`services.stripe.webhook_secret`) | Secret key from settings only; webhook secret from the setting, then the config fallback |
-| `paystack_status`, `paystack_public_key`, `paystack_secret_key`, `paystack_webhook_url`, `paystack_currency_code` | Fees configuration | `PAYSTACK_PUBLIC_KEY`, `PAYSTACK_SECRET_KEY` (`config/paystack.php`); `PAYSTACK_SECRET_KEY` also as `services.paystack.secret_key` | API calls: `SettingsConfigService` copies `paystack_public_key` and `paystack_secret_key` onto `paystack.publicKey` and `paystack.secretKey` on every boot; the API address is fixed. Webhook HMAC key: the `paystack_secret_key` setting, then `services.paystack.secret_key` |
-| `flutterwave_status`, `flutterwave_public_key`, `flutterwave_secret_key`, `flutterwave_hash_key`, `flutterwave_webhook_url`, `flutterwave_currency_code` | Fees configuration | `FLW_SECRET_HASH` (`services.flutterwave.secret_hash`) | Secret key from settings only; `verif-hash` compared with `flutterwave_hash_key`, then the config fallback |
 
-`config/services.php` also defines `services.razorpay.key/secret`, `services.stripe.key/secret` and `services.flutterwave.public_key/secret_key` from `.env`, but no payment code reads them, and its comment that "the fee settings page writes these .env keys" predates commit `e13ac7d`. The read-only `paystack_payment_url` field on the form is no longer saved, and an existing `paystack_payment_url` row is ignored.
+`config/services.php` also defines `services.stripe.key/secret` from `.env`, but no payment code reads them.
 
-The `*_webhook_url` fields are read-only, pre-filled with `<scheme://host>/webhook/<gateway>`, and only stored for reference; the gateway dashboards must point at those URLs. The Docusaurus webhook page covers Razorpay, Stripe and Paystack; it has no Flutterwave section.
+The `stripe_webhook_url` field is read-only, pre-filled with `<scheme://host>/webhook/stripe`, and only stored for reference; the Stripe dashboard must point at that URL.
 
-### Flutterwave secret hash
-
-Since commit `05b97a9` the field is labelled "Flutterwave Webhook Secret Hash" with the hint "Must match the Secret hash under Settings > Webhooks in your Flutterwave dashboard (not the encryption key)", and `flutterwave_hash_key` is `required_if:flutterwave_status,1`. Before that the field was labelled as an encryption key and could be left empty; because the webhook now refuses calls without a matching `verif-hash`, an install that stored the encryption key there (or nothing) will never confirm Flutterwave payments until the real secret hash is saved.
+Installs that used a removed gateway still have its `razorpay_*`, `paystack_*` or `flutterwave_*` rows. Nothing reads them any more and `/api/settings` never returns them; they hold secret keys, so delete them when the keys move to Secret Manager.
 
 ## Forgery protections (commit 839c9eb)
 
-That commit rewrote the payment path. The behaviour it guarantees, and that `PaymentWebhookTest` checks:
+That commit rewrote the payment path while all four gateways were still in place. The behaviour it guarantees for Stripe, and that `PaymentWebhookTest` checks:
 
 - `GET /api/settings` no longer returns the Razorpay webhook secret (it was public, so anyone could sign a fake "payment captured" webhook). The commit message asks installs to rotate that secret.
 - Webhooks fail closed without a secret; Flutterwave actually checks `verif-hash` (previously any request passed); Razorpay and Paystack no longer accept an HMAC made with an empty key; Razorpay's failure branch is signed like the success branch; comparisons are constant time.
@@ -211,6 +201,22 @@ That commit rewrote the payment path. The behaviour it guarantees, and that `Pay
 - The duplicate-webhook guard used to check a column that does not exist, so replays added the amount to `fees_paids` again; recording is now idempotent under a row lock.
 - Students and parents used to choose the amount, the fully-paid flag and which installments/optional fees were covered (paying 1.00 could mark everything paid). `FeesPaymentService` now prices the payment from the fee setup, checks every item belongs to the child and is unpaid, and charges the server total.
 - `store-fees` and `fail-payment-transaction` only work on the caller's own pending transaction (parent `store-fees` also accepts its own succeeded one).
+
+## Removed gateways
+
+The Build Bible removes Razorpay, Paystack and Flutterwave in Phase 0 and keeps Stripe. What changed, and what stayed for installed apps (spec: `engineering/specs/platform/removals.md`):
+
+| Area | Now |
+|---|---|
+| Server code | `RazorpayPayment`, `PaystackPayment`, `FlutterwavePayment`, `config/paystack.php`, their `config/services.php` entries, the Paystack keys in `SettingsConfigService` and their tabs on the Fees configuration page are gone |
+| Composer | `razorpay/razorpay`, `unicodeveloper/laravel-paystack` and the `laravel-shift/laravel-paystack` VCS repository are removed |
+| Webhooks | `POST /webhook/razorpay`, `/webhook/paystack`, `/webhook/flutterwave`, `GET /response/paystack/success` and `/response/flutterwave/success` answer 404 |
+| `GET /api/settings?type=app_settings` | `payment_options` never contains `razorpay`, `paystack` or `flutterwave`, exactly as when a school switched one off, so installed apps stop offering them. No key was renamed; the API snapshots are unchanged |
+| `add-fees-transaction` | `payment_method` 1, 3 and 4 still validate and are answered `The selected payment method is not available.`, as for a disabled gateway |
+| History | `payment_transactions.payment_gateway` keeps 1, 3 and 4 on old payments; the transaction log still shows Razorpay, Paystack and Flutterwave for them (`feesOnlineTransactionLogParentGateway` in `formatter.js`) |
+| Apps | `razorpay_flutter` is removed from the student/parent app by the app work stream; installed builds keep working because the server simply stops offering the gateway |
+
+A payment left pending on a removed gateway can no longer be confirmed by its webhook; settle any such transaction by hand.
 
 ## Reporting services
 
@@ -229,37 +235,33 @@ That commit rewrote the payment path. The behaviour it guarantees, and that `Pay
 
 | Test | Checks |
 |---|---|
-| `test_flutterwave_cannot_be_enabled_without_its_webhook_secret_hash` | Fees config update refuses Flutterwave on without `flutterwave_hash_key` |
 | `test_compulsory_fees_are_priced_on_the_server` | Wrong amount refused; full payment total and `is_fully_paid` |
 | `test_due_charges_are_required_once_the_due_date_has_passed` | Due charges required after the due date; either total accepted on the due date |
 | `test_installments_are_priced_and_checked_on_the_server` | Per-installment pricing with due charges, duplicates/unknown ids refused, paid installments and full payment after installments refused |
 | `test_optional_fees_must_belong_to_the_class_and_not_be_paid` | Client per-fee amounts ignored, other-class fees and paid fees refused |
 | `test_pending_transaction_and_gateway_metadata_use_server_values` | Pending transaction, row amounts and metadata come from the plan |
-| `test_unsigned_or_wrongly_signed_razorpay_webhooks_are_refused` | Missing, wrong and empty-key signatures get 401 |
-| `test_razorpay_payment_is_recorded_once_from_the_stored_transaction` | Metadata pointing at another student is ignored; retried delivery adds the amount once |
+| `test_payment_is_recorded_once_from_the_stored_transaction` | Metadata pointing at another student is ignored; retried delivery adds the amount once |
 | `test_payment_with_a_different_amount_or_currency_is_not_recorded` | Amount or currency mismatch gets 400 |
-| `test_late_failure_event_does_not_undo_a_payment` | `payment.failed` after `payment.captured` leaves it paid |
+| `test_late_failure_event_does_not_undo_a_payment` | `payment_intent.payment_failed` after `payment_intent.succeeded` leaves it paid |
 | `test_failed_attempt_then_success_on_the_same_order_is_recorded` | Failure deletes pending rows; later success restores and records them |
 | `test_stripe_webhook_needs_a_configured_secret_and_valid_signature` | Stripe signature checking and refusal without a secret |
-| `test_paystack_webhook_checks_signature_and_reference` | HMAC-SHA512 check, `payment_id` stored, metadata due charges ignored |
-| `test_flutterwave_webhook_requires_the_secret_hash_header` | Missing or wrong `verif-hash` refused; duplicate delivery recorded once |
 | `test_compulsory_payment_with_due_charges_records_them_from_the_stored_total` | Due charges recorded from the stored total, not metadata |
+| `test_removed_gateways_have_no_webhooks_and_their_old_transactions_still_read` | The removed webhook and landing URLs answer 404; old Razorpay, Paystack and Flutterwave transactions keep their gateway in the transaction log |
 
-`StudentApiSecurityTest::test_public_settings_do_not_include_payment_secrets` and `test_fee_payments_use_server_amounts_and_own_transactions`, and `ParentApiSecurityTest::test_fee_receipt_and_payment_endpoints_refuse_another_familys_records`, cover the app side. See [Testing-and-CI](Testing-and-CI).
+`StudentApiSecurityTest::test_public_settings_do_not_include_payment_secrets`, `test_removed_gateways_are_neither_offered_nor_accepted` and `test_fee_payments_use_server_amounts_and_own_transactions`, and `ParentApiSecurityTest::test_fee_receipt_and_payment_endpoints_refuse_another_familys_records`, cover the app side. See [Testing-and-CI](Testing-and-CI).
 
 ## Gotchas
 
-- Gateway keys and webhook secrets saved in the admin panel take effect on the next request, including with `php artisan config:cache`, because they are read from the settings table (Paystack's through `SettingsConfigService` at boot). `.env` payment keys are only consulted while the matching setting is empty; with cached config they are whatever was in `.env` when the cache was built.
+- Gateway keys and webhook secrets saved in the admin panel take effect on the next request, including with `php artisan config:cache`, because they are read from the settings table. `.env` payment keys are only consulted while the matching setting is empty; with cached config they are whatever was in `.env` when the cache was built.
 - Older installs may still have payment keys in `.env` from when the panel copied them there; they are no longer updated, so a stale `.env` webhook secret is harmless only as long as the setting is filled in.
 - An enabled gateway with a missing webhook secret leaves every payment pending: the app shows the gateway's success, but nothing is recorded until a valid webhook arrives.
-- Paystack payments need a payer email (father's or guardian's for the student app, the parent's own for the parent app).
 - The student app's receipt endpoint uses the student's first `fees_paids` row, not one for a chosen session year.
 
 ## See also
 
 - [Notifications](Notifications)
 - [API-Student](API-Student), [API-Parent](API-Parent)
-- [Admin-Modules](Admin-Modules#fees)
+- [Admin-Panel-Overview](Admin-Panel-Overview)
 - [Configuration](Configuration)
 - [Security-Model](Security-Model)
 - [Database-Schema](Database-Schema)

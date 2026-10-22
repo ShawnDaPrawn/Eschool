@@ -17,7 +17,11 @@ use App\Models\PaymentTransaction;
 use App\Models\SessionYear;
 use App\Models\StudentSessions;
 use App\Models\UserNotification;
+use App\Services\Payment\FeesPaymentService;
 use App\Services\Payment\PaymentService;
+use App\Services\Platform\Ledger\CentsColumns;
+use App\Services\Platform\Ledger\LegacyAmount;
+use App\Services\Platform\Ledger\Money;
 use App\Services\ResponseService;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Carbon\Carbon;
@@ -25,6 +29,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Validation\ValidationException;
 use Throwable;
 
 /**
@@ -42,7 +47,7 @@ class FeesController extends Controller
             'child_id' => 'required',
         ]);
         if ($validator->fails()) {
-            ResponseService::validationError($validator->errors()->first());
+            return ResponseService::validationError($validator->errors()->first());
         }
         try {
             $child_id = $this->resolveChild($request)->id;
@@ -53,19 +58,19 @@ class FeesController extends Controller
             $studentSession = StudentSessions::where('student_id', $child_id)
                 ->where('session_year_id', $session_year_id)->first();
             if (! $studentSession) {
-                ResponseService::errorResponse('No session found for this student in the current session year', null, 113);
+                return ResponseService::errorResponse('No session found for this student in the current session year', null, 113);
             }
             $class_id = $studentSession->class_section->class_id;
 
             // Total optional fees amount
-            $optional_fees_amount = FeesClass::select(DB::raw('SUM(amount) as optional_fees_amount'))
+            $optional_fees_amount = FeesClass::select(DB::raw('SUM('.CentsColumns::sql('amount', 'amount_cents').') as optional_fees_amount'))
                 ->where(['class_id' => $class_id, 'choiceable' => 1, 'session_year_id' => $session_year_id])->first();
-            $optional_fees_amount = $optional_fees_amount['optional_fees_amount'];
+            $optional_fees_amount = LegacyAmount::fromCents($optional_fees_amount['optional_fees_amount']);
 
             // Total optional fees amount
-            $compulsory_fees_amount = FeesClass::select(DB::raw('SUM(amount) as compulsory_fees_amount'))
+            $compulsory_fees_amount = FeesClass::select(DB::raw('SUM('.CentsColumns::sql('amount', 'amount_cents').') as compulsory_fees_amount'))
                 ->where(['class_id' => $class_id, 'choiceable' => 0, 'session_year_id' => $session_year_id])->first();
-            $compulsory_fees_amount = $compulsory_fees_amount['compulsory_fees_amount'];
+            $compulsory_fees_amount = LegacyAmount::fromCents($compulsory_fees_amount['compulsory_fees_amount']);
 
             // Fees Class Data
             $fees_class = FeesClass::where('class_id', $class_id)->where('session_year_id', $session_year_id)->with('fees_type')->get();
@@ -151,10 +156,11 @@ class FeesController extends Controller
             }
             // Due Date And Due Charges From Session Year For Fully pay Compulsory Amount (Without Installments)
             $session_year_data = SessionYear::where('id', $session_year_id)->first();
-           
+
             $due_date = date('Y-m-d', strtotime($session_year_data->fee_due_date));
             $due_charges = $session_year_data->fee_due_charges;
-            ResponseService::successResponse('Fees Details Fetched Successfully', null, [
+
+            return ResponseService::successResponse('Fees Details Fetched Successfully', null, [
                 'compulsory_fees_data' => $compulsory_fees_data ?? [''],
                 'optional_fees_data' => $optional_fees_data ?? [''],
                 'installment_data' => $installment_data ?? (object) null,
@@ -166,7 +172,7 @@ class FeesController extends Controller
                 'is_fee_pending' => (isset($payment_transaction_status) && $payment_transaction_status == 2) ? 1 : 0,
             ], 200);
         } catch (Throwable $e) {
-            ResponseService::errorResponse('error_occurred', null, 103, $e);
+            return ResponseService::errorResponse('error_occurred', null, 103, $e);
         }
     }
 
@@ -184,12 +190,13 @@ class FeesController extends Controller
             'installment_data' => 'nullable|array',
         ]);
         if ($validator->fails()) {
-            ResponseService::validationError($validator->errors()->first());
+            return ResponseService::validationError($validator->errors()->first());
         }
-        // Only a payment gateway the school has switched on.
-        $gatewayStatusSetting = [1 => 'razorpay_status', 2 => 'stripe_status', 3 => 'paystack_status', 4 => 'flutterwave_status'][(int) $request->payment_method];
-        if (empty(getSettings($gatewayStatusSetting)[$gatewayStatusSetting] ?? null)) {
-            ResponseService::validationError('The selected payment method is not available.');
+        // Only a payment gateway the school has switched on. Razorpay (1), Paystack (3)
+        // and Flutterwave (4) were removed, so they are never available.
+        $gatewayStatusSetting = [PaymentService::STRIPE => 'stripe_status'][(int) $request->payment_method] ?? null;
+        if ($gatewayStatusSetting === null || empty(getSettings($gatewayStatusSetting)[$gatewayStatusSetting] ?? null)) {
+            return ResponseService::validationError('The selected payment method is not available.');
         }
         try {
             $child_id = $this->resolveChild($request)->id;
@@ -204,7 +211,7 @@ class FeesController extends Controller
             // What is being paid, its amount, due charges and whether it completes
             // the compulsory fees are all worked out on the server
             // (FeesPaymentService); the app's amount must match.
-            $feesPaymentService = app(\App\Services\Payment\FeesPaymentService::class);
+            $feesPaymentService = app(FeesPaymentService::class);
             try {
                 $plan = $feesPaymentService->prepare(
                     (int) $child_id,
@@ -214,8 +221,8 @@ class FeesController extends Controller
                     (array) ($request->installment_data ?? []),
                     $request->amount
                 );
-            } catch (\Illuminate\Validation\ValidationException $e) {
-                ResponseService::validationError($e->validator->errors()->first());
+            } catch (ValidationException $e) {
+                return ResponseService::validationError($e->validator->errors()->first());
             }
 
             DB::beginTransaction();
@@ -223,7 +230,7 @@ class FeesController extends Controller
             $payment_transaction_db = $pending['transaction'];
 
             $paymentIntent = PaymentService::create($request->payment_method)->createAndFormatPaymentIntent(
-                $plan['total_amount'],
+                Money::ofCents($plan['total_amount_cents']),
                 $feesPaymentService->gatewayMetadata($plan, $pending, $parent_id, ['email' => $email, 'name' => $name, 'mobile' => $mobile])
             );
 
@@ -235,10 +242,12 @@ class FeesController extends Controller
                 ...$paymentIntent,
                 'payment_transaction_id' => $payment_transaction_db->id,
             ];
-            ResponseService::successResponse('Fees Transaction Stored Successfully', [], ['payment_gateway_details' => $payment_gateway_details], 200);
+
+            return ResponseService::successResponse('Fees Transaction Stored Successfully', [], ['payment_gateway_details' => $payment_gateway_details], 200);
         } catch (Throwable $e) {
             DB::rollBack();
-            ResponseService::errorResponse('error_occurred', null, 103, $e);
+
+            return ResponseService::errorResponse('error_occurred', null, 103, $e);
         }
     }
 
@@ -251,7 +260,7 @@ class FeesController extends Controller
             'payment_signature' => 'nullable|string|max:191',
         ]);
         if ($validator->fails()) {
-            ResponseService::validationError($validator->errors()->first());
+            return ResponseService::validationError($validator->errors()->first());
         }
         try {
             // Only a pending or succeeded transaction of one of this parent's children. A
@@ -263,7 +272,7 @@ class FeesController extends Controller
                 ->whereIn('payment_status', [1, 2]) // 0 failed, 1 succeeded, 2 pending
                 ->first();
             if (! $transaction_db) {
-                ResponseService::errorResponse('No Payment Transaction Found', null, 103);
+                return ResponseService::errorResponse('No Payment Transaction Found', null, 103);
             }
 
             // The gateway's ids are recorded once; the webhook's (or the first) values stay.
@@ -274,9 +283,10 @@ class FeesController extends Controller
                 $transaction_db->payment_signature = $request->payment_signature;
             }
             $transaction_db->save();
-            ResponseService::successResponse('Data Updated Successfully', null, [], 200);
+
+            return ResponseService::successResponse('Data Updated Successfully', null, [], 200);
         } catch (Throwable $e) {
-            ResponseService::errorResponse('error_occurred', null, 103, $e);
+            return ResponseService::errorResponse('error_occurred', null, 103, $e);
         }
     }
 
@@ -287,13 +297,14 @@ class FeesController extends Controller
             'child_id' => 'required',
         ]);
         if ($validator->fails()) {
-            ResponseService::validationError($validator->errors()->first());
+            return ResponseService::validationError($validator->errors()->first());
         }
         try {
             $fees_paid = FeesPaid::where(['student_id' => $this->resolveChild($request)->id])->with('session_year:id,name', 'class.medium')->get();
-            ResponseService::successResponse('Fees Paid List Fetched Successfully', $fees_paid, [], 200);
+
+            return ResponseService::successResponse('Fees Paid List Fetched Successfully', $fees_paid, [], 200);
         } catch (Throwable $e) {
-            ResponseService::errorResponse('error_occurred', null, 103, $e);
+            return ResponseService::errorResponse('error_occurred', null, 103, $e);
         }
     }
 
@@ -304,7 +315,7 @@ class FeesController extends Controller
             'fees_paid_id' => 'required|integer',
         ]);
         if ($validator->fails()) {
-            ResponseService::validationError($validator->errors()->first());
+            return ResponseService::validationError($validator->errors()->first());
         }
         try {
             $parent = Auth::user();
@@ -329,7 +340,7 @@ class FeesController extends Controller
 
             // Check That Fees Paid Data Exists Or Not, and is for this parent's child
             if (! $fees_paid || ! $parent->parent->hasChild($fees_paid->student_id)) {
-                ResponseService::errorResponse('No Fees Paid Found', null, 103);
+                return ResponseService::errorResponse('No Fees Paid Found', null, 103);
             }
 
             // Variables
@@ -348,17 +359,17 @@ class FeesController extends Controller
             $fees_class = FeesClass::where(['class_id' => $class_id, 'choiceable' => 0])->with('fees_type')->get();
 
             // Session Year Data
-             $session_year = SessionYear::where('id', $session_year_id)->first();
-           
+            $session_year = SessionYear::where('id', $session_year_id)->first();
 
             // Load the HTML
             $pdf = Pdf::loadView('fees.fees_receipt', compact('logo', 'school_name', 'fees_paid', 'paid_installment', 'fees_choiceable', 'currency_symbol', 'school_address', 'fees_class', 'session_year'));
 
             // Get The Output Of PDF
             $output = $pdf->output();
-            ResponseService::successResponse('Fees Paid Receipt PDF Fetched Successfully', null, ['pdf' => base64_encode($output)], 200);
+
+            return ResponseService::successResponse('Fees Paid Receipt PDF Fetched Successfully', null, ['pdf' => base64_encode($output)], 200);
         } catch (Throwable $e) {
-            ResponseService::errorResponse('error_occurred', null, 103, $e);
+            return ResponseService::errorResponse('error_occurred', null, 103, $e);
         }
     }
 
@@ -389,7 +400,8 @@ class FeesController extends Controller
                 }
             }
             $fees_payment_transactions = $fees_payment_transactions->toArray();
-            ResponseService::successResponse('Fees Payment Transactions Fetched Successfully', [
+
+            return ResponseService::successResponse('Fees Payment Transactions Fetched Successfully', [
                 'current_page' => $fees_payment_transactions['current_page'],
                 'transaction-data' => $fees_payment_transactions['data'],
                 'from' => $fees_payment_transactions['from'],
@@ -399,7 +411,7 @@ class FeesController extends Controller
                 'total' => $fees_payment_transactions['total'],
             ]);
         } catch (Throwable $e) {
-            ResponseService::errorResponse('error_occurred', null, 103, $e);
+            return ResponseService::errorResponse('error_occurred', null, 103, $e);
         }
     }
 
@@ -410,7 +422,7 @@ class FeesController extends Controller
             'payment_transaction_id' => 'required|integer',
         ]);
         if ($validator->fails()) {
-            ResponseService::validationError($validator->errors()->first());
+            return ResponseService::validationError($validator->errors()->first());
         }
         try {
             // Only a still-pending transaction of one of this parent's children; a payment
@@ -420,7 +432,7 @@ class FeesController extends Controller
                 ->where('payment_status', 2) // 0 failed, 1 succeeded, 2 pending
                 ->first();
             if (! $update_status) {
-                ResponseService::errorResponse('No Payment Transaction Found', null, 103);
+                return ResponseService::errorResponse('No Payment Transaction Found', null, 103);
             }
             $total_amount = $update_status->total_amount;
             $update_status->payment_status = 0;
@@ -453,9 +465,10 @@ class FeesController extends Controller
             }
 
             sendSimpleNotification($user, 'Payment Failed', $body, $type, $image, $userinfo);
-            ResponseService::successResponse('Data Updated Successfully', null, [], 200);
+
+            return ResponseService::successResponse('Data Updated Successfully', null, [], 200);
         } catch (Throwable $e) {
-            ResponseService::errorResponse('error_occurred', null, 103, $e);
+            return ResponseService::errorResponse('error_occurred', null, 103, $e);
         }
     }
 
@@ -465,7 +478,7 @@ class FeesController extends Controller
             'payment_intent_id' => ['required', 'string', 'max:191', 'regex:/^pi_[A-Za-z0-9_]+$/'],
         ]);
         if ($validator->fails()) {
-            ResponseService::validationError($validator->errors()->first());
+            return ResponseService::validationError($validator->errors()->first());
         }
         try {
             // Shared by /api/parent and /api/student: only a Stripe payment the caller
@@ -474,19 +487,20 @@ class FeesController extends Controller
                 ->whereIn('student_id', $this->payerStudentIds($request))
                 ->exists();
             if (! $ownsPayment) {
-                ResponseService::errorResponse('No Payment Transaction Found', null, 103);
+                return ResponseService::errorResponse('No Payment Transaction Found', null, 103);
             }
 
             if (empty(getSettings('stripe_status')['stripe_status'] ?? null)) {
-                ResponseService::errorResponse('Stripe payments are not enabled', null, 103);
+                return ResponseService::errorResponse('Stripe payments are not enabled', null, 103);
             }
 
             // The app compares this with Stripe's own status ("succeeded").
             $paymentIntent = PaymentService::create(2)->retrievePaymentIntent($request->payment_intent_id);
             $data = $paymentIntent['payment_gateway_response']->status;
-            ResponseService::successResponse('Data Fetched Successfully', $data, [], 200);
+
+            return ResponseService::successResponse('Data Fetched Successfully', $data, [], 200);
         } catch (Throwable $e) {
-            ResponseService::errorResponse('error_occurred', null, 103, $e);
+            return ResponseService::errorResponse('error_occurred', null, 103, $e);
         }
     }
 

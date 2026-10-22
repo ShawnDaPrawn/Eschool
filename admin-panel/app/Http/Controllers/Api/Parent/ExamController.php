@@ -38,7 +38,7 @@ class ExamController extends Controller
             'semester_id' => 'nullable|numeric|exists:semesters,id',
         ]);
         if ($validator->fails()) {
-            ResponseService::validationError($validator->errors()->first());
+            return ResponseService::validationError($validator->errors()->first());
         }
         try {
             $student = $this->resolveChild($request);
@@ -67,7 +67,7 @@ class ExamController extends Controller
                     ->first();
 
                 if (! $semester_id) {
-                    ResponseService::validationError('Invalid semester id.');
+                    return ResponseService::validationError('Invalid semester id.');
                 }
             } else {
                 $semester_id = Semester::where('session_year_id', $session_year_id)
@@ -246,9 +246,10 @@ class ExamController extends Controller
                     }
                 }
             }
-            ResponseService::successResponse('Exam List Fetched Successfully', $exam_data ?? [], [], 200);
+
+            return ResponseService::successResponse('Exam List Fetched Successfully', $exam_data ?? [], [], 200);
         } catch (Throwable $e) {
-            ResponseService::errorResponse('error_occurred', null, 103, $e);
+            return ResponseService::errorResponse('error_occurred', null, 103, $e);
         }
     }
 
@@ -259,7 +260,7 @@ class ExamController extends Controller
             'exam_id' => 'required|nullable',
         ]);
         if ($validator->fails()) {
-            ResponseService::validationError($validator->errors()->first());
+            return ResponseService::validationError($validator->errors()->first());
         }
         try {
             $student = $this->resolveChild($request);
@@ -302,9 +303,10 @@ class ExamController extends Controller
                 ->first();
 
             $data = isset($exam_data) ? $exam_data->timetable : [];
-            ResponseService::successResponse('Exam Details Fetched Successfully', $data, [], 200);
+
+            return ResponseService::successResponse('Exam Details Fetched Successfully', $data, [], 200);
         } catch (Throwable $e) {
-            ResponseService::errorResponse('error_occurred', null, 103, $e);
+            return ResponseService::errorResponse('error_occurred', null, 103, $e);
         }
     }
 
@@ -316,7 +318,7 @@ class ExamController extends Controller
             'session_year_id' => 'nullable|integer',
         ]);
         if ($validator->fails()) {
-            ResponseService::validationError($validator->errors()->first());
+            return ResponseService::validationError($validator->errors()->first());
         }
         try {
             $child = $this->resolveChild($request);
@@ -330,7 +332,7 @@ class ExamController extends Controller
                 ->first();
 
             if (! $studentSession) {
-                ResponseService::errorResponse('No session found for this student in the current session year', null, 113);
+                return ResponseService::errorResponse('No session found for this student in the current session year', null, 113);
             }
 
             $class_id = $studentSession->class_section->class_id;
@@ -344,7 +346,7 @@ class ExamController extends Controller
                         ->first();
 
                     if (! $semester) {
-                        ResponseService::validationError('Invalid semester_id for current session year.');
+                        return ResponseService::validationError('Invalid semester_id for current session year.');
                     }
 
                     $semesterId = $semester->id;
@@ -354,7 +356,7 @@ class ExamController extends Controller
                         ->first(fn ($semester) => $semester->current);
 
                     if (! $currentSemester) {
-                        ResponseService::validationError('Current semester not found for current session year.');
+                        return ResponseService::validationError('Current semester not found for current session year.');
                     }
 
                     $semesterId = $currentSemester->id;
@@ -421,12 +423,13 @@ class ExamController extends Controller
                         'exam_marks' => $exam_marks,
                     ];
                 }
-                ResponseService::successResponse('Exam Result Fetched Successfully', $data, [], 200);
+
+                return ResponseService::successResponse('Exam Result Fetched Successfully', $data, [], 200);
             } else {
-                ResponseService::successResponse('Exam Result Fetched Successfully', [], [], 200);
+                return ResponseService::successResponse('Exam Result Fetched Successfully', [], [], 200);
             }
         } catch (Throwable $e) {
-            ResponseService::errorResponse('error_occurred', null, 103, $e);
+            return ResponseService::errorResponse('error_occurred', null, 103, $e);
         }
     }
 }

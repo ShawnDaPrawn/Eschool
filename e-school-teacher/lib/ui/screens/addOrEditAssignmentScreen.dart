@@ -1,15 +1,14 @@
+import 'package:eschool_teacher/app/routeArguments.dart';
 import 'package:dotted_border/dotted_border.dart';
 import 'package:eschool_teacher/cubits/createAssignmentCubit.dart';
 import 'package:eschool_teacher/cubits/dashboardCubit.dart';
 import 'package:eschool_teacher/cubits/editAssignmentCubit.dart';
 import 'package:eschool_teacher/cubits/subjectsOfClassSectionCubit.dart';
 import 'package:eschool_teacher/data/models/assignment.dart';
-import 'package:eschool_teacher/data/models/studyMaterial.dart';
+import 'package:eschool_core/eschool_core.dart';
 import 'package:eschool_teacher/data/repositories/assignmentRepository.dart';
 import 'package:eschool_teacher/data/repositories/teacherRepository.dart';
 import 'package:eschool_teacher/ui/widgets/assignmentAttachmentContainer.dart';
-import 'package:eschool_teacher/ui/widgets/bottomSheetTextFieldContainer.dart';
-import 'package:eschool_core/eschool_core.dart';
 import 'package:eschool_teacher/ui/widgets/classSubjectsDropDownMenu.dart';
 import 'package:eschool_teacher/ui/widgets/customAppbar.dart';
 import 'package:eschool_teacher/ui/widgets/customSwitch.dart';
@@ -19,7 +18,6 @@ import 'package:eschool_teacher/ui/widgets/myClassesDropDownMenu.dart';
 import 'package:eschool_teacher/utils/labelKeys.dart';
 import 'package:eschool_teacher/utils/uiUtils.dart';
 import 'package:file_picker/file_picker.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -37,8 +35,8 @@ class AddAssignmentScreen extends StatefulWidget {
   final Assignment? assignment;
 
   static Route<bool?> routes(RouteSettings routeSettings) {
-    final arguments = routeSettings.arguments! as Map<String, dynamic>;
-    return CupertinoPageRoute(
+    final arguments = routeSettings.arguments! as AddOrEditAssignmentArguments;
+    return AdaptivePageRoute(
       builder: (context) {
         return MultiBlocProvider(
           providers: [
@@ -53,8 +51,8 @@ class AddAssignmentScreen extends StatefulWidget {
             ),
           ],
           child: AddAssignmentScreen(
-            editassignment: arguments['editAssignment'],
-            assignment: arguments['assignment'],
+            editassignment: arguments.editAssignment,
+            assignment: arguments.assignment,
           ),
         );
       },
@@ -160,6 +158,9 @@ class _AddAssignmentScreenState extends State<AddAssignmentScreen> {
   }
 
   Future<void> _addFiles() async {
+    if (UiUtils.showMobileOnlyNotice(context)) {
+      return;
+    }
     //upload files
     final permission = await Permission.storage.request();
     if (permission.isGranted) {

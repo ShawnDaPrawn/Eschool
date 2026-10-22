@@ -13,6 +13,8 @@ use App\Models\Parents;
 use App\Models\PaymentTransaction;
 use App\Models\Students;
 use App\Models\UserNotification;
+use App\Services\Platform\Ledger\LegacyAmount;
+use App\Services\Platform\Ledger\Money;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -80,7 +82,9 @@ class PaymentController extends Controller
             $payment_transaction_store->cheque_no = (isset($request->cheque_no) && ! empty($request->cheque_no) && $request->mode == 1) ? $request->cheque_no : null;
             $payment_transaction_store->type_of_fee = 2;
             $payment_transaction_store->payment_status = 1;
-            $payment_transaction_store->total_amount = $request->total_amount;
+            // Amounts are recorded in cents (the float columns follow).
+            $paid = Money::ofCents((int) LegacyAmount::toCents($request->total_amount));
+            $payment_transaction_store->total_amount_cents = $paid;
             $payment_transaction_store->session_year_id = $session_year_id;
             $payment_transaction_store->save();
 
@@ -94,6 +98,7 @@ class PaymentController extends Controller
                         'fees_type_id' => $fees_type_data['id'],
                         'is_due_charges' => 0,
                         'total_amount' => $fees_type_data['amount'],
+                        'total_amount_cents' => LegacyAmount::toCents($fees_type_data['amount']),
                         'session_year_id' => $session_year_id,
                         'date' => $date,
                         'status' => 1,
@@ -109,7 +114,7 @@ class PaymentController extends Controller
             $update_fees_paid_query = FeesPaid::where(['student_id' => $request->student_id, 'class_id' => $request->class_id, 'session_year_id' => $session_year_id]);
 
             $fees_paid = $update_fees_paid_query->firstOrNew();
-            $fees_paid->total_amount += $request->total_amount;
+            $fees_paid->total_amount_cents = ($fees_paid->money('total_amount') ?? Money::zero())->plus($paid);
             $fees_paid->date = $date;
             if (! $fees_paid->exists) {
                 $fees_paid->student_id = $request->student_id;
@@ -176,26 +181,26 @@ class PaymentController extends Controller
             $student_id = $fees_choiceable->student_id;
             $class_id = $fees_choiceable->class_id;
             $session_year_id = $fees_choiceable->session_year_id;
-            $fees_choiceable_amount = $fees_choiceable->total_amount;
+            $fees_choiceable_amount = $fees_choiceable->money('total_amount') ?? Money::zero();
             $fees_payment_transaction_id = $fees_choiceable->payment_transaction_id;
+
+            DB::beginTransaction();
 
             // Delete Fees Choiceable Entry
             $fees_choiceable->delete();
 
             // Check the Payment Transaction ID Is Not Null
             if (isset($fees_payment_transaction_id) && ! empty($fees_payment_transaction_id)) {
-                // Check the Payment Transaction Entry
-                $fees_payment_db = PaymentTransaction::where('id', $fees_payment_transaction_id);
                 // Get the Payment Transaction Amount
-                $fees_transaction_amount = $fees_payment_db->pluck('total_amount')->first();
+                $fees_transaction_amount = PaymentTransaction::find($fees_payment_transaction_id)?->money('total_amount') ?? Money::zero();
 
                 // Reduce the amount of Deleted Choiceable Fees in Payment Transaction
-                $updated_transaction_fees_amount = $fees_transaction_amount - $fees_choiceable_amount;
+                $updated_transaction_fees_amount = $fees_transaction_amount->minus($fees_choiceable_amount);
 
                 // If Updated Fees Amount is not Zero then update the Total Amount Else Delete the entry
-                if ($updated_transaction_fees_amount != 0) {
+                if (! $updated_transaction_fees_amount->isZero()) {
                     $fees_transaction_update = PaymentTransaction::find($fees_payment_transaction_id);
-                    $fees_transaction_update->total_amount = $updated_transaction_fees_amount;
+                    $fees_transaction_update->total_amount_cents = $updated_transaction_fees_amount;
                     $fees_transaction_update->save();
                 } else {
                     $fees_transaction_update = PaymentTransaction::where('id', $fees_payment_transaction_id)->delete();
@@ -207,25 +212,27 @@ class PaymentController extends Controller
             // Get the Fees Paid ID
             $fees_paid_id = $fees_paid_db->pluck('id')->first();
             // Get the Fees Paid Amount
-            $fees_paid_amount = $fees_paid_db->pluck('total_amount')->first();
+            $fees_paid_amount = FeesPaid::find($fees_paid_id)?->money('total_amount') ?? Money::zero();
 
             // Reduce the amount of Deleted Choiceable Fees in Fees Paid
-            $updated_fees_paid_amount = $fees_paid_amount - $fees_choiceable_amount;
+            $updated_fees_paid_amount = $fees_paid_amount->minus($fees_choiceable_amount);
 
             // If Updated Fees Amount is not Zero then update the Total Amount Else Delete the entry
-            if ($updated_fees_paid_amount != 0) {
+            if (! $updated_fees_paid_amount->isZero()) {
                 $fees_paid_update = FeesPaid::find($fees_paid_id);
-                $fees_paid_update->total_amount = $updated_fees_paid_amount;
+                $fees_paid_update->total_amount_cents = $updated_fees_paid_amount;
                 $fees_paid_update->save();
             } else {
                 $fees_paid_update = FeesPaid::where('id', $fees_paid_id)->delete();
             }
+            DB::commit();
 
             $response = [
                 'error' => false,
                 'message' => trans('data_delete_successfully'),
             ];
         } catch (\Throwable $e) {
+            DB::rollBack();
             $response = [
                 'error' => true,
                 'message' => trans('error_occurred'),
@@ -325,7 +332,9 @@ class PaymentController extends Controller
                 ! empty($request->installment_fees) ? 1 : 0;
             $payment_transaction_store->payment_status = 1;
             $payment_transaction_store->date = $date;
-            $payment_transaction_store->total_amount = $request->total_amount;
+            // Amounts are recorded in cents (the float columns follow).
+            $paid = Money::ofCents((int) LegacyAmount::toCents($request->total_amount));
+            $payment_transaction_store->total_amount_cents = $paid;
             $payment_transaction_store->session_year_id = $session_year_id;
             $payment_transaction_store->save();
 
@@ -341,10 +350,12 @@ class PaymentController extends Controller
                             'class_id' => $request->class_id,
                             'installment_fee_id' => $data['id'],
                             'amount' => $data['amount'],
+                            'amount_cents' => LegacyAmount::toCents($data['amount']),
                             'session_year_id' => $session_year_id,
                             'date' => $date,
                             'status' => 1,
                             'due_charges' => $data['due_charges'] ?? null,
+                            'due_charges_cents' => LegacyAmount::toCents($data['due_charges'] ?? null),
                             'payment_transaction_id' => $payment_transaction_store->id,
                         ];
                         $is_fully_paid = $data['fully_paid'] ?? 0;
@@ -367,7 +378,7 @@ class PaymentController extends Controller
             ]);
 
             $fees_paid = $update_fees_paid_query->firstOrNew();
-            $fees_paid->total_amount += $request->total_amount;
+            $fees_paid->total_amount_cents = ($fees_paid->money('total_amount') ?? Money::zero())->plus($paid);
             $fees_paid->date = $date;
             $fees_paid->is_fully_paid = $is_fully_paid;
 
@@ -449,26 +460,26 @@ class PaymentController extends Controller
             $student_id = $paid_installment_fee_db->student_id;
             $class_id = $paid_installment_fee_db->class_id;
             $session_year_id = $paid_installment_fee_db->session_year_id;
-            $installment_fee_amount = $paid_installment_fee_db->amount;
+            $installment_fee_amount = $paid_installment_fee_db->money('amount') ?? Money::zero();
             $fees_payment_transaction_id = $paid_installment_fee_db->payment_transaction_id;
+
+            DB::beginTransaction();
 
             // Delete Fees Installment Paid Entry
             $paid_installment_fee_db->delete();
 
             // Check the Payment Transaction ID Is Not Null
             if (isset($fees_payment_transaction_id) && ! empty($fees_payment_transaction_id)) {
-                // Check the Payment Transaction Entry
-                $fees_payment_db = PaymentTransaction::where('id', $fees_payment_transaction_id);
                 // Get the Payment Transaction Amount
-                $fees_transaction_amount = $fees_payment_db->pluck('total_amount')->first();
+                $fees_transaction_amount = PaymentTransaction::find($fees_payment_transaction_id)?->money('total_amount') ?? Money::zero();
 
                 // Reduce the amount of Deleted Choiceable Fees in Payment Transaction
-                $updated_transaction_fees_amount = $fees_transaction_amount - $installment_fee_amount;
+                $updated_transaction_fees_amount = $fees_transaction_amount->minus($installment_fee_amount);
 
                 // If Updated Fees Amount is not Zero then update the Total Amount Else Delete the entry
-                if ($updated_transaction_fees_amount != 0) {
+                if (! $updated_transaction_fees_amount->isZero()) {
                     $fees_transaction_update = PaymentTransaction::find($fees_payment_transaction_id);
-                    $fees_transaction_update->total_amount = $updated_transaction_fees_amount;
+                    $fees_transaction_update->total_amount_cents = $updated_transaction_fees_amount;
                     $fees_transaction_update->save();
                 } else {
                     $fees_transaction_update = PaymentTransaction::where('id', $fees_payment_transaction_id)->delete();
@@ -480,26 +491,28 @@ class PaymentController extends Controller
             // Get the Fees Paid ID
             $fees_paid_id = $fees_paid_db->pluck('id')->first();
             // Get the Fees Paid Amount
-            $fees_paid_amount = $fees_paid_db->pluck('total_amount')->first();
+            $fees_paid_amount = FeesPaid::find($fees_paid_id)?->money('total_amount') ?? Money::zero();
 
             // Reduce the amount of Deleted Choiceable Fees in Fees Paid
-            $updated_fees_paid_amount = $fees_paid_amount - $installment_fee_amount;
+            $updated_fees_paid_amount = $fees_paid_amount->minus($installment_fee_amount);
 
             // If Updated Fees Amount is not Zero then update the Total Amount Else Delete the entry
-            if ($updated_fees_paid_amount != 0) {
+            if (! $updated_fees_paid_amount->isZero()) {
                 $fees_paid_update = FeesPaid::find($fees_paid_id);
-                $fees_paid_update->total_amount = $updated_fees_paid_amount;
+                $fees_paid_update->total_amount_cents = $updated_fees_paid_amount;
                 $fees_paid_update->is_fully_paid = 0;
                 $fees_paid_update->save();
             } else {
                 $fees_paid_update = FeesPaid::where('id', $fees_paid_id)->delete();
             }
+            DB::commit();
 
             $response = [
                 'error' => false,
                 'message' => trans('data_delete_successfully'),
             ];
         } catch (\Throwable $e) {
+            DB::rollBack();
             $response = [
                 'error' => true,
                 'message' => trans('error_occurred'),

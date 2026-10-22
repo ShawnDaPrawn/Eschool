@@ -5,21 +5,25 @@ namespace Tests\Feature;
 use App\Models\Assignment;
 use App\Models\User;
 use App\Services\ParentPolicyService;
+use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
-use Tests\Concerns\RunsAppServer;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Testing\TestResponse;
 use Tests\TestCase;
 
 /**
  * A teacher can only act on the classes, subjects, students and files they teach.
  *
  * Teacher A is class teacher and subject teacher of section A; teacher B of
- * section B (another class). Requests go to a `php -S` server (RunsAppServer),
- * with the database migrated and seeded once for the whole class.
+ * section B (another class). The API is called in-process with each teacher's
+ * Sanctum token, inside a RefreshDatabase transaction. (It used to need a
+ * separate server, RunsAppServer, because ResponseService called exit().)
  */
 class TeacherApiSecurityTest extends TestCase
 {
-    use RunsAppServer;
+    use RefreshDatabase;
 
     /** @var array<string, int> */
     private static array $ids = [];
@@ -31,11 +35,19 @@ class TeacherApiSecurityTest extends TestCase
     {
         parent::setUp();
 
-        if (! self::appServerRunning()) {
-            $this->freshInstall();
-            $this->createSchool();
-            $this->startAppServer();
-        }
+        Storage::fake('public');
+        $this->seedLikeInstaller();
+        $this->createSchool();
+    }
+
+    /** The answer now goes back through the middleware, which adds its headers. */
+    public function test_api_answers_pass_through_the_response_middleware(): void
+    {
+        $response = $this->teacherRequest('B', 'get', 'student-details', ['student_id' => self::$ids['student_a']]);
+
+        $response->assertOk()->assertJson(['error' => true, 'code' => 403]);
+        $response->assertHeader('X-Content-Type-Options', 'nosniff');
+        $response->assertHeader('X-RateLimit-Limit', '60');
     }
 
     public function test_only_the_owner_can_delete_an_assignment(): void
@@ -154,9 +166,13 @@ class TeacherApiSecurityTest extends TestCase
         // Two uploads with the same name are both kept, each under that name.
         $paths = [];
         foreach (['first', 'second'] as $content) {
-            $response = $this->apiClient(self::$tokens['A'])
-                ->attach('file[]', $content, 'notes.txt')
-                ->post('/api/teacher/send-message', ['receiver_id' => self::$ids['student_a_user']])
+            $this->app['auth']->forgetGuards();
+            $response = $this->withToken(self::$tokens['A'])
+                ->withHeader('Accept', 'application/json')
+                ->post('/api/teacher/send-message', [
+                    'receiver_id' => self::$ids['student_a_user'],
+                    'file' => [UploadedFile::fake()->createWithContent('notes.txt', $content)],
+                ])
                 ->json();
             $this->assertSuccess($response);
             $this->assertStringEndsWith('/notes.txt', $response['data']['files'][0]);
@@ -165,7 +181,7 @@ class TeacherApiSecurityTest extends TestCase
         $this->assertNotSame($paths['first'], $paths['second']);
         foreach ($paths as $content => $path) {
             $this->assertStringStartsWith('chatfile/', $path);
-            $this->assertSame($content, file_get_contents($this->appServerStoragePath('app/public/'.$path)));
+            $this->assertSame($content, Storage::disk('public')->get($path));
         }
     }
 
@@ -193,11 +209,24 @@ class TeacherApiSecurityTest extends TestCase
 
     private function api(string $teacher, string $method, string $uri, array $data = []): array
     {
-        $response = $this->apiClient(self::$tokens[$teacher])->{$method}('/api/teacher/'.$uri, $data);
+        $response = $this->teacherRequest($teacher, $method, $uri, $data);
 
-        $this->assertSame(200, $response->status(), "$uri: ".$response->body());
+        $this->assertSame(200, $response->status(), "$uri: ".$response->getContent());
 
         return $response->json();
+    }
+
+    /** One in-process request to the teacher API with the teacher's token. */
+    private function teacherRequest(string $teacher, string $method, string $uri, array $data = []): TestResponse
+    {
+        // Each request authenticates by its own token; the guard would otherwise
+        // keep the user of the previous request.
+        $this->app['auth']->forgetGuards();
+        $client = $this->withToken(self::$tokens[$teacher]);
+
+        return $method === 'get'
+            ? $client->getJson('/api/teacher/'.$uri.($data ? '?'.http_build_query($data) : ''))
+            : $client->postJson('/api/teacher/'.$uri, $data);
     }
 
     private function assertError(array $response, ?int $code = null): void
