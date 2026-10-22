@@ -46,7 +46,7 @@ dependencies:
   timeago: ^3.7.1
   package_info_plus: ^10.1.0
   file_picker: 12.0.0-beta.7
-  external_path: ^2.2.0
+  external_path: ^3.0.0
   flutter_animate: ^4.5.2
   shared_preferences: ^2.5.5
   readmore: ^3.0.0
