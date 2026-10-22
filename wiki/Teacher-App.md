@@ -177,6 +177,16 @@ Push notification taps (`NotificationUtility` in `lib/utils/notificationUtils/ge
 
 Teachers chat with both students and parents. `ChatUsersCubit` is abstract with two concrete subclasses, `StudentChatUsersCubit` and `ParentChatUserCubit`, both provided globally; `ChatUsersScreen` shows them as two lists. `ChatRepository.fetchChatUsers()` calls GET `teacher/get-user-list` with `offset`, `limit` (15), `search` and `isParent` (`1` or `0`). Messages use POST `teacher/get-user-message`, `teacher/send-message` (`receiver_id`, `message`, `file[]`) and `teacher/read-all-message`. Limits come from `chat_settings` as in the student app. The unread counter in the home app bar (`homeContainerAppBarContainer.dart`) opens `Routes.chatUserPage`. See [Chat](Chat).
 
+## In a browser
+
+The web build of this app is the teacher portal at `teach.navigateed.co.za` ([Mobile-Apps-Overview](Mobile-Apps-Overview#in-a-browser)). Classes, attendance, marks, timetable, lessons and topics, assignments and their review, announcements, leaves, chat messages and notifications work as on a phone, laid out for the window. The differences:
+
+- The ID card, results and the academic calendar PDFs are downloaded by the browser; study material files open in a new tab, PDFs in the app.
+- Adding files to assignments, announcements, study materials, leave requests and chat messages shows "This works in the NavigateEd Teacher app on your phone for now." (uploads from the browser are planned for Phase 1).
+- No push notifications: the Notifications screen lists them.
+
+The smoke flow `integration_test/teacher_smoke_test.dart` (sign in, home, the Schedule tab) runs in Chrome and on an Android emulator in CI ([Building-and-Releasing-Apps](Building-and-Releasing-Apps#smoke-flows)).
+
 ## Changes in 3.5.0
 
 What changed in the teacher app for 3.5.0:

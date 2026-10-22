@@ -1,4 +1,4 @@
-This page describes the architecture the two Flutter apps share: the student/parent app in `e-school/` (Dart package `eschool`) and the teacher app in `e-school-teacher/` (Dart package `eschool_teacher`). Both are thin clients of the Laravel REST API under `/api` in `admin-panel/`; they are built the same way, so almost everything below applies to both. App-specific details are on [Student-Parent-App](Student-Parent-App) and [Teacher-App](Teacher-App).
+This page describes the architecture the two Flutter apps share: the student/parent app in `e-school/` (Dart package `eschool`) and the teacher app in `e-school-teacher/` (Dart package `eschool_teacher`). Both are thin clients of the Laravel REST API under `/api` in `admin-panel/`; they are built the same way, so almost everything below applies to both, on phones and, as web builds, in a browser (see [In a browser](#in-a-browser)). App-specific details are on [Student-Parent-App](Student-Parent-App) and [Teacher-App](Teacher-App).
 
 ## At a glance
 
@@ -67,18 +67,16 @@ Files that were the same in both apps live once in [`packages/eschool_core`](htt
 
 ## Startup sequence
 
-`initializeApp()` in [e-school/lib/app/app.dart](https://github.com/ShawnDaPrawn/Eschool/blob/main/e-school/lib/app/app.dart) (the teacher copy has the same steps, with the orientation lock after the notification setup and without the `showCaseBox`):
+`initializeApp()` in [e-school/lib/app/app.dart](https://github.com/ShawnDaPrawn/Eschool/blob/main/e-school/lib/app/app.dart) calls `usePathUrlStrategy()` (web addresses without `#`), then `prepareApp()`, then `runApp(const MyApp())`. `prepareApp()` (the teacher copy has the same steps, with the orientation lock after the notification setup and without the `showCaseBox`):
 
-1. `WidgetsFlutterBinding.ensureInitialized()`; in release mode `debugPrint` is replaced with a no-op.
+1. `WidgetsFlutterBinding.ensureInitialized()`; `AppConfig.assertValid()`; in release mode `debugPrint` is replaced with a no-op.
 2. Registers `google_fonts/OFL.txt` with `LicenseRegistry`.
 3. Locks orientation to `DeviceOrientation.portraitUp`.
-4. `Firebase.initializeApp()` with no options, so Firebase is configured from the native files (`google-services.json`, `GoogleService-Info.plist`). There is no `firebase_options.dart`.
-5. Routes `FlutterError.onError` and `PlatformDispatcher.instance.onError` to Firebase Crashlytics.
-6. `NotificationUtility.configure(notificationConfig, session: Api.session)`, then `NotificationUtility.initializeAwesomeNotification()` creates the two Android channels `basic_channel` and `chat_notifications_channel` (both from `eschool_notifications`).
-7. `initHiveStorage(...)` initialises Hive in `getApplicationSupportDirectory()` (not Documents, which iOS exposes in the Files app because `UIFileSharingEnabled` is on) and moves boxes left in Documents by older versions; then opens the boxes (`showCaseBox`, `authBox`, `settings` in the student app; `authBox`, `settings` in the teacher app).
-8. `runApp(const MyApp())`.
+4. Except on the web: `Firebase.initializeApp()` with no options, so Firebase is configured from the native files (`google-services.json`, `GoogleService-Info.plist`; there is no `firebase_options.dart`), and `FlutterError.onError` and `PlatformDispatcher.instance.onError` go to Firebase Crashlytics. The integration smoke flows call `prepareApp(useFirebase: false)`.
+5. `NotificationUtility.configure(notificationConfig, session: Api.session)`, then `NotificationUtility.initializeAwesomeNotification()` creates the two Android channels `basic_channel` and `chat_notifications_channel` (both from `eschool_notifications`; nothing happens on the web).
+6. `initAppStorage(...)` (`eschool_session`) initialises Hive in `getApplicationSupportDirectory()` (not Documents, which iOS exposes in the Files app because `UIFileSharingEnabled` is on) and moves boxes left in Documents by older versions; on the web Hive uses IndexedDB. Then it opens the boxes (`showCaseBox`, `authBox`, `settings` in the student app; `authBox`, `settings` in the teacher app).
 
-`MyApp` creates the app-wide Cubits in a `MultiBlocProvider` and builds a `MaterialApp` with `initialRoute: Routes.splash`, `onGenerateRoute: Routes.onGenerateRouted`, `navigatorKey: UiUtils.rootNavigatorKey`, and the shared Material 3 theme `AppTheme.light(font: GoogleFonts.poppinsTextTheme)` from `eschool_core` (see [UI-Standards](UI-Standards)).
+`MyApp` creates the app-wide Cubits in a `MultiBlocProvider` and builds a `MaterialApp` with `initialRoute: Routes.splash` (on the web, `onGenerateInitialRoutes` starts every visit at the splash screen whatever the address bar says), `onGenerateRoute: Routes.onGenerateRouted`, `navigatorKey: UiUtils.rootNavigatorKey`, and the shared Material 3 theme `AppTheme.light(font: GoogleFonts.poppinsTextTheme)` from `eschool_core` (see [UI-Standards](UI-Standards)).
 
 The splash screen (`lib/ui/screens/splashScreen.dart`) then:
 
@@ -163,7 +161,7 @@ Most repository methods catch exceptions and rethrow `ApiException(e.toString())
 
 ## Session and token storage
 
-Login (`student/login`, `parent/login`, `teacher/login`) returns a Laravel Sanctum personal access token in `token` (the key in the app is still called `jwtToken`). The app also sends `fcm_id` (from `FirebaseMessaging.instance.getToken()`, empty string if it fails, e.g. on simulators) and `device_type` (`android` or `ios`), which the server uses for push notifications.
+Login (`student/login`, `parent/login`, `teacher/login`) returns a Laravel Sanctum personal access token in `token` (the key in the app is still called `jwtToken`). The app also sends `fcm_id` (from `FirebaseMessaging.instance.getToken()`, empty string if it fails, e.g. on simulators) and `device_type` (`android` or `ios`), which the server uses for push notifications; both come from `NotificationUtility.signInDeviceFields()`. A web build sends neither, so the server keeps the values of the user's phone and the phone keeps getting push notifications.
 
 The session itself (signed in or not, the token, whether FCM topics are subscribed) goes through `Api.session`, a `HiveSessionRepository` from the shared package [`packages/eschool_session`](https://github.com/ShawnDaPrawn/Eschool/tree/main/packages/eschool_session), which reads and writes the same `authBox` keys as before, so updating the app signs nobody out. `AuthRepository.getJwtToken()`, `setJwtToken()`, `getIsLogIn()` and `setIsLogIn()` delegate to it.
 
@@ -246,6 +244,24 @@ Both apps use `firebase_messaging` for delivery and `awesome_notifications` (not
 
 Server-side sending is covered on [Notifications](Notifications); chat on [Chat](Chat).
 
+## In a browser
+
+Both apps also build for the web (`flutter build web`, see [Building-and-Releasing-Apps](Building-and-Releasing-Apps#web-builds)): the student/parent app is the portal at `app.navigateed.co.za`, the teacher app at `teach.navigateed.co.za`. It is the same code, laid out for the window's width ([Layout on tablets and desktops](#layout-on-tablets-and-desktops)). What a browser cannot do the phone way goes through small platform files chosen with conditional imports (`if (dart.library.js_interop)`), so no `dart:io` call runs on the web:
+
+| Area | Phone | Web | Where |
+|---|---|---|---|
+| Signing in | Bearer token in Hive | Session cookie, no token stored | `AuthMode`, [Session and token storage](#session-and-token-storage) |
+| Storage | Hive in the support directory | Hive on IndexedDB | `initAppStorage()` in `eschool_session` |
+| Push and local notifications | FCM and awesome_notifications | None; the Notifications screen lists them from the API | `NotificationUtility.isActive` |
+| Crash reports | Firebase Crashlytics | None; errors go to the browser console | `prepareApp()` |
+| PDFs | Downloaded to a file, flutter_pdfview | Downloaded into memory, pdfx (pdf.js from `web/index.html`) | `PdfDocumentView` in `eschool_core` |
+| Receipts, ID cards, results, calendars | Saved in the documents folder, opened with open_filex | Downloaded by the browser | `DeviceFiles.saveDocument()` and `open()` in `eschool_core` |
+| Study material downloads | Saved to Downloads (external_path) | Opened in a new tab | `DownloadFileCubit` |
+| Attaching files, paying fees | As before | A notice: "This works in the NavigateEd app on your phone for now." (label `availableInMobileApp`) | `UiUtils.showMobileOnlyNotice()` |
+| Platform checks | `dart:io` `Platform` | `kIsWeb`, `defaultTargetPlatform` | |
+
+Addresses are paths (`/notices`); a reload starts at the splash screen, and an address the app understands (see [Links into the app](#links-into-the-app)) opens its screen after sign-in. Uploads from the browser and web push are planned for Phase 1. The spec is [engineering/specs/apps/web-builds.md](https://github.com/ShawnDaPrawn/Eschool/blob/main/engineering/specs/apps/web-builds.md).
+
 ## Key dependencies
 
 Constraint from `pubspec.yaml`, resolved version from `pubspec.lock`.
@@ -275,8 +291,8 @@ Constraint from `pubspec.yaml`, resolved version from `pubspec.lock`.
 | `file_picker` | `12.0.0-beta.7` (pinned) | 12.0.0-beta.7 | yes | yes | Attachments. |
 | `image_picker` | `^1.2.2` | 1.2.4 | yes | yes | Camera/gallery images. |
 | `path_provider` / `external_path` | `^2.1.5` (`any` in teacher) / `^2.2.0` | 2.1.6 / 2.2.0 | yes | yes | Save locations for downloads. |
-| `open_filex` | `^4.7.0` | 4.7.0 | yes | yes | Open downloaded files. |
-| `flutter_pdfview` | `^1.4.4` | 1.4.5 | yes | yes | In-app PDF viewer. |
+| `open_filex` | `^4.7.0` (in `eschool_core`) | 4.7.0 | yes | yes | Open downloaded files (not on the web). |
+| `flutter_pdfview` / `pdfx` | `^1.4.4` / `^2.11.0` (in `eschool_core`) | 1.4.5 / 2.11.0 | yes | yes | In-app PDF viewer: flutter_pdfview on phones, pdfx in the web build. |
 | `package_info_plus` | `^10.1.0` | 10.2.2 | yes | yes | Installed version for force update. |
 | `table_calendar` | `^3.2.0` | 3.2.1 / 3.3.0 | yes | yes | Attendance and academic calendars. |
 | `intl` | `any` | 0.20.2 / 0.20.3 | yes | yes | Date formatting. |
