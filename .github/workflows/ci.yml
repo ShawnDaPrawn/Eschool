@@ -117,3 +117,75 @@ jobs:
       - name: Documentation build tools (fails on critical)
         working-directory: documentation
         run: npm audit --audit-level=critical
+
+  playwright:
+    name: Admin panel (Playwright)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: admin-panel
+    services:
+      mariadb:
+        image: mariadb:10.11
+        env:
+          MARIADB_ROOT_PASSWORD: root
+          MARIADB_DATABASE: eschool_e2e
+        ports: ['3306:3306']
+        options: >-
+          --health-cmd="healthcheck.sh --connect --innodb_initialized"
+          --health-interval=5s --health-timeout=5s --health-retries=20
+    env:
+      DB_CONNECTION: mysql
+      DB_HOST: 127.0.0.1
+      DB_PORT: 3306
+      DB_DATABASE: eschool_e2e
+      DB_USERNAME: root
+      DB_PASSWORD: root
+      APP_URL: http://127.0.0.1:8000
+      E2E_BASE_URL: http://127.0.0.1:8000
+    steps:
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          extensions: mbstring, intl, gd, zip, pdo_mysql, bcmath, exif, fileinfo
+          coverage: none
+      - run: composer install --no-interaction --prefer-dist --no-progress
+      - run: cp .env.example .env && php artisan key:generate --force
+      - name: Database with the demo school
+        run: |
+          php artisan migrate --force
+          php artisan db:seed --class=InstallationSeeder --force
+          php artisan db:seed --class=DemoSchoolSeeder --force
+          php artisan storage:link
+      # The array cache keeps the panel's per-account request limits from
+      # throttling the page sweep; four workers serve the parallel browsers.
+      - name: Start the panel
+        run: |
+          PHP_CLI_SERVER_WORKERS=4 CACHE_DRIVER=array nohup php artisan serve --host=127.0.0.1 --port=8000 > storage/logs/serve.log 2>&1 &
+          for i in $(seq 1 30); do curl -sf -o /dev/null http://127.0.0.1:8000/login && exit 0; sleep 1; done
+          cat storage/logs/serve.log
+          exit 1
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: admin-panel/e2e/package-lock.json
+      - name: Install Playwright
+        working-directory: admin-panel/e2e
+        run: |
+          npm ci
+          npx playwright install --with-deps chromium
+      - name: Playwright checks
+        working-directory: admin-panel/e2e
+        run: npx playwright test
+      - name: Upload the report
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: |
+            admin-panel/e2e/playwright-report/
+            admin-panel/e2e/test-results/
+            admin-panel/storage/logs/
+          retention-days: 14

@@ -1,0 +1,18 @@
+{
+  "name": "eschool-admin-panel-e2e",
+  "private": true,
+  "description": "Playwright checks for the admin panel: every page at 1280 and 1024 px, accessibility (axe) and the main flows.",
+  "scripts": {
+    "test": "playwright test",
+    "test:flows": "playwright test --project=flows --project=teacher --project=wizard",
+    "report": "playwright show-report",
+    "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "@axe-core/playwright": "4.14.0",
+    "@playwright/test": "1.56.1",
+    "@types/node": "22.20.5",
+    "playwright-core": "1.56.1",
+    "typescript": "5.9.3"
+  }
+}

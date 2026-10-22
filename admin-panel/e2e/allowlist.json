@@ -1,0 +1,140 @@
+{
+    "axe": [
+        {
+            "rule": "select-name",
+            "pages": [
+                "/announcement",
+                "/attendance-monthly",
+                "/class",
+                "/exam-timetable",
+                "/exams/view-result",
+                "/form-fields",
+                "/generate-id",
+                "/generate_staff_id",
+                "/generate_teacher_id",
+                "/holiday",
+                "/leave-master",
+                "/leave-report",
+                "/leave-request",
+                "/online-registration",
+                "/promote-student",
+                "/semester",
+                "/settings",
+                "/sliders",
+                "/staff",
+                "/staff-attendance",
+                "/student-leave-request",
+                "/student/assign-roll-number",
+                "/students",
+                "/students-list",
+                "/students-report",
+                "/students/create",
+                "/students/create_bulk"
+            ],
+            "reason": "Legacy page: a filter or form <select> has no label and relies on its first option as a prompt. It is fixed when the page moves to the page pattern (resources/views/components/page); until then it is listed here, not hidden."
+        },
+        {
+            "rule": "color-contrast",
+            "pages": [
+                "/attendance-monthly",
+                "/content",
+                "/fees-config",
+                "/roles/create",
+                "/semester",
+                "/settings",
+                "/staff-attendance",
+                "/system-update"
+            ],
+            "reason": "Legacy page: page-specific hints, badges, step numbers or tab labels use a muted colour below 4.5:1; the shared header, sidebar, tables and footer were fixed in Phase 0. It is fixed when the page moves to the page pattern (resources/views/components/page); until then it is listed here, not hidden."
+        },
+        {
+            "rule": "link-name",
+            "pages": [
+                "/class",
+                "/events",
+                "/leave-master",
+                "/medium",
+                "/roles",
+                "/section",
+                "/subject"
+            ],
+            "reason": "Legacy page: an icon-only row action (edit or delete) is built as HTML in the controller without text or aria-label. It is fixed when the page moves to the page pattern (resources/views/components/page); until then it is listed here, not hidden."
+        },
+        {
+            "rule": "button-name",
+            "pages": [
+                "/chat-settings",
+                "/exam-timetable",
+                "/fees/paid",
+                "/grades",
+                "/roles/create"
+            ],
+            "reason": "Legacy page: an icon-only button (row menu, accordion toggle, add row) has no text or aria-label. It is fixed when the page moves to the page pattern (resources/views/components/page); until then it is listed here, not hidden."
+        },
+        {
+            "rule": "label",
+            "pages": [
+                "/announcement",
+                "/grades",
+                "/shifts",
+                "/staff-attendance"
+            ],
+            "reason": "Legacy page: a form field (a file picker, a time or date input, or a list checkbox the page draws itself) has no label. It is fixed when the page moves to the page pattern (resources/views/components/page); until then it is listed here, not hidden."
+        },
+        {
+            "rule": "aria-required-children",
+            "pages": [
+                "/email-tamplate",
+                "/fees-config"
+            ],
+            "reason": "Legacy page: its tab strip puts role=\"tablist\" on a list whose items are not role=\"tab\". It is fixed when the page moves to the page pattern (resources/views/components/page); until then it is listed here, not hidden."
+        },
+        {
+            "rule": "aria-required-parent",
+            "pages": [
+                "/email-tamplate",
+                "/fees-config"
+            ],
+            "reason": "Legacy page: its tab strip marks links role=\"tab\" inside a list without role=\"tablist\". It is fixed when the page moves to the page pattern (resources/views/components/page); until then it is listed here, not hidden."
+        },
+        {
+            "rule": "listitem",
+            "pages": [
+                "/email-tamplate",
+                "/fees-config"
+            ],
+            "reason": "Legacy page: the same tab strip leaves <li> elements outside a list once roles are applied. It is fixed when the page moves to the page pattern (resources/views/components/page); until then it is listed here, not hidden."
+        },
+        {
+            "rule": "scrollable-region-focusable",
+            "pages": [
+                "/attendance-monthly",
+                "/id-card-settings"
+            ],
+            "reason": "Legacy page: a box of its own (the monthly register, the card preview) scrolls but cannot take keyboard focus. It is fixed when the page moves to the page pattern (resources/views/components/page); until then it is listed here, not hidden."
+        },
+        {
+            "rule": "aria-hidden-focus",
+            "pages": [
+                "/timetable"
+            ],
+            "reason": "Legacy timetable builder: a hidden dialog keeps focusable controls. It is fixed when the page moves to the page pattern (resources/views/components/page); until then it is listed here, not hidden."
+        },
+        {
+            "rule": "aria-input-field-name",
+            "pages": [
+                "/students/create"
+            ],
+            "reason": "Legacy admission form: a Select2 search field inside the form has no name. It is fixed when the page moves to the page pattern (resources/views/components/page); until then it is listed here, not hidden."
+        },
+        {
+            "rule": "image-alt",
+            "pages": [
+                "/students/create"
+            ],
+            "reason": "Legacy admission form: the photo preview <img> has no alt text. It is fixed when the page moves to the page pattern (resources/views/components/page); until then it is listed here, not hidden."
+        }
+    ],
+    "console": [],
+    "scroll": []
+}
