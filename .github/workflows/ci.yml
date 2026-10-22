@@ -195,6 +195,10 @@ jobs:
             flow: learner_smoke_test.dart
           - app: e-school
             flow: parent_smoke_test.dart
+          - app: e-school
+            flow: child_switch_smoke_test.dart
+          - app: e-school
+            flow: notification_settings_smoke_test.dart
           - app: e-school-teacher
             flow: teacher_smoke_test.dart
     defaults:
