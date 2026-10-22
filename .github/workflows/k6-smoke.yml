@@ -1,0 +1,56 @@
+name: k6 smoke
+
+# Runs engineering/perf/k6-smoke.js against the address given: the panel, the
+# public API and a few v1 reads, held to the Build Bible's p95 budgets (300 ms
+# for lists, 150 ms for /api/v2/me/context once it exists). Run it against
+# staging at each phase gate (engineering/runbooks/release.md).
+#
+# Optional repository secrets K6_STUDENT_TOKEN and K6_TEACHER_TOKEN: app tokens
+# of staging demo accounts, never of real users.
+
+on:
+  workflow_dispatch:
+    inputs:
+      base_url:
+        description: Panel and API address, e.g. https://staging-admin.navigateed.co.za
+        type: string
+        required: true
+      duration:
+        description: How long to run (k6 duration, e.g. 2m)
+        type: string
+        default: 2m
+
+permissions:
+  contents: read
+
+jobs:
+  k6:
+    name: k6 smoke
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - uses: grafana/setup-k6-action@43b9fc21641a76002687994433dd586f56e791b1 # v1.2.2
+        with:
+          k6-version: '2.2.0'
+
+      - name: Run the smoke test
+        env:
+          BASE_URL: ${{ inputs.base_url }}
+          DURATION: ${{ inputs.duration }}
+          STUDENT_TOKEN: ${{ secrets.K6_STUDENT_TOKEN }}
+          TEACHER_TOKEN: ${{ secrets.K6_TEACHER_TOKEN }}
+        # k6 reads BASE_URL, DURATION and the tokens from the environment (__ENV).
+        run: k6 run --summary-export=k6-summary.json engineering/perf/k6-smoke.js
+
+      - name: Keep the summary
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: k6-summary
+          path: k6-summary.json
+          if-no-files-found: ignore
+          retention-days: 30

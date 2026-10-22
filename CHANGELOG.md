@@ -22,6 +22,7 @@ Phase 0 (Groundwork), in progress on the phase branch.
 - Deploy workflows: staging on every merge to `main` once the repository variable `STAGING_DEPLOY_ENABLED` is `true`; production from a `v*` tag after a reviewer approves, with a database backup first and smoke tests after. Runbooks for environments, deploy, release, rollback, restore (with the restore drill, not yet run) and incidents in `engineering/runbooks/`.
 - A one-off `artisan` container role, run as an execution of the scheduler job, for maintenance commands such as `queue:retry`.
 - Secret scanning with gitleaks over the whole history on every pull request, push to `main` and weekly, and Dependabot for Composer, pub (both apps and every package), npm (docs and the panel's Playwright project), Docker and GitHub Actions. The dependency audit also lists outdated Dart packages (`dart pub outdated`, informational). Threat model and the Phase 0 security record in `engineering/security/`.
+- k6 smoke test (`engineering/perf/k6-smoke.js`) with the Bible's p95 budgets (300 ms for lists, 150 ms for `/api/v2/me/context` once it exists), run by hand against any environment from **Actions > k6 smoke**.
 
 ### Changed
 
