@@ -13,8 +13,8 @@ flowchart LR
 
 - `.env` is read only by `config/*.php`. Nothing in `app/`, `bootstrap/`, `database/`, `resources/views` or `routes/` calls `env()`; [SettingsConfigTest](https://github.com/ShawnDaPrawn/Eschool/blob/main/admin-panel/tests/Feature/SettingsConfigTest.php) fails the build if one is added.
 - The settings screens save to the `settings` table only. Nothing in the app rewrites `.env` after installation (the old `changeEnv()` helper is gone). The wizard installer is the only code that edits `.env` (`DB_*`, `APP_URL`, `APP_KEY`).
-- On every boot, `AppServiceProvider::boot()` calls [SettingsConfigService::apply()](https://github.com/ShawnDaPrawn/Eschool/blob/main/admin-panel/app/Services/SettingsConfigService.php), which copies the school name, timezone, mail server and Paystack settings over the values loaded from `.env` (see [Settings that override .env](#settings-that-override-env)).
-- Everything else (logos, session year, payment gateways other than Paystack, chat limits, app versions) is read straight from the table with `getSettings()` or the `schoolSetting()` helper.
+- On every boot, `AppServiceProvider::boot()` calls [SettingsConfigService::apply()](https://github.com/ShawnDaPrawn/Eschool/blob/main/admin-panel/app/Services/SettingsConfigService.php), which copies the school name, timezone and mail server settings over the values loaded from `.env` (see [Settings that override .env](#settings-that-override-env)).
+- Everything else (logos, session year, the Stripe keys, chat limits, app versions) is read straight from the table with `getSettings()` or the `schoolSetting()` helper.
 - Because of this, `php artisan config:cache` and `php artisan optimize` are supported. See [Deployment](Deployment#caching).
 
 ## .env.example
@@ -37,9 +37,25 @@ flowchart LR
 
 | Key | Default | Config fallback | Meaning |
 |---|---|---|---|
-| `LOG_CHANNEL` | `stack` | `stack` | `stack` writes to the `daily` channel, `storage/logs/laravel-YYYY-MM-DD.log`, 14 files kept. `single` (one `laravel.log`) is also defined. |
+| `LOG_CHANNEL` | `stack` | `stack` | `stack` writes to the `daily` channel, `storage/logs/laravel-YYYY-MM-DD.log`, 14 files kept. `single` (one `laravel.log`) and `stderr` are also defined. `json` is the structured channel Cloud Run uses (below). |
 | `LOG_DEPRECATIONS_CHANNEL` | `null` | `null` | Where PHP deprecation notices go. |
-| `LOG_LEVEL` | `error` | `debug` | Minimum level written. `MailService` logs failed emails at `info` (passwords and the email body are left out); keep this at `warning` or higher in production. |
+| `LOG_LEVEL` | `error` | `debug` | Minimum level written. `MailService` logs failed emails at `info` (passwords and the email body are left out). With the `stack` channel keep it at `warning` or higher in production; Cloud Run runs the `json` channel at `info`, whose context holds ids only. |
+
+**The json channel** (`LOG_CHANNEL=json`, `config/logging.php`) writes one JSON object per line to stderr, in the shape Cloud Logging and Error Reporting read:
+
+| Field | Value |
+|---|---|
+| `severity`, `message`, `time`, `channel` | Monolog's level name, the message, UTC time with microseconds, the channel (`APP_ENV`) |
+| `request_id` | The request's id, also returned in the `X-Request-Id` header (`AssignRequestId` middleware). A caller's own `X-Request-Id` is kept when it is 8 to 128 letters, digits, `.`, `_`, `:` or `-`. Queued jobs keep the id of the request that queued them |
+| `user_id` | The signed-in user, when a guard has already resolved one (logging never queries) |
+| `school_id` | From the log context; null until Phase 1 sets it |
+| `route`, `method` | The matched route's URI pattern (for example `api/student/timetable`) and the HTTP method |
+| `logging.googleapis.com/trace` | The Cloud Run trace, from `X-Cloud-Trace-Context` or `traceparent`, when `GOOGLE_CLOUD_PROJECT` is set |
+| `context`, `extra` | The log call's context and other log-context values, reduced to ids: numbers and booleans, values under keys ending in `id` or `ids`, and strings up to 200 characters under `action`, `channel`, `class`, `code`, `command`, `connection`, `driver`, `event`, `exception_class`, `gateway`, `job`, `level`, `method`, `module`, `provider`, `queue`, `result`, `route`, `status`, `task` or `type`. Any other string becomes `[omitted]`; numbers under keys like `phone` or `id_number` too |
+| `exception` | Class, code, file and line of a logged exception |
+| `@type`, `stack_trace`, `serviceContext` | On error-level lines with an exception: Error Reporting's ReportedErrorEvent shape, a PHP-style stack trace without function arguments, and the service (`K_SERVICE` or `CLOUD_RUN_JOB`) and version (`APP_RELEASE`) |
+
+E-mail addresses, 13-digit ID numbers and South African phone numbers in a message are masked (`[email]`, `[id-number]`, `[phone]`); a database error keeps its SQL with placeholders, never the bound values. `tests/Feature/StructuredLoggingTest.php` covers all of this.
 
 ### Database
 
@@ -61,7 +77,7 @@ The `mysql` connection uses `utf8mb4`/`utf8mb4_unicode_ci`, `strict => false`, `
 | `BROADCAST_DRIVER` | `log` | `null` | No broadcasting is used by the app. |
 | `CACHE_DRIVER` | `file` | `file` | Default cache store (`storage/framework/cache/data`). Used by Spatie's permission cache (24 hours) and the scheduler's overlap lock. `config/cache.php` reads `CACHE_DRIVER`, not Laravel 12's `CACHE_STORE`. |
 | `FILESYSTEM_DISK` | `local` | `local` | Default disk. Uploads are written to the `public` disk explicitly (`storage/app/public`, served at `/storage`); private files such as the Firebase service account use `local` (`storage/app`). |
-| `QUEUE_CONNECTION` | `sync` | `sync` | Nothing in the app is queued; see [Deployment](Deployment#queue-workers). |
+| `QUEUE_CONNECTION` | `sync` | `sync` | `sync` runs queued jobs inside the request (fine for development). Production uses `database` with a worker; see [Deployment](Deployment#queue-worker). The database queue's `retry_after` is 180 seconds, longer than the worker's `--timeout=120`. |
 | `SESSION_DRIVER` | `file` | `file` | Admin panel sessions (`storage/framework/sessions`). |
 | `SESSION_LIFETIME` | `120` | `120` | Minutes. |
 | `SANCTUM_EXPIRATION` | `43200` | `60 * 24 * 30` | Minutes before a mobile-app token expires (30 days). Expired tokens are pruned daily; see [Scheduled-Tasks-and-Commands](Scheduled-Tasks-and-Commands). |
@@ -110,7 +126,7 @@ Read by `config/*.php` but missing from `.env.example`. Most are Laravel default
 | `ASSET_URL` | `config/app.php` | `null` | |
 | `BCRYPT_ROUNDS` | `config/hashing.php` | `10` | phpunit.xml sets 4. |
 | **`DB_PERSISTENT`** | `config/database.php` (`PDO::ATTR_PERSISTENT`) | `true` | Persistent MySQL connections are on unless set to `false`. The tests set it to `false` because shared persistent connections broke test transactions. |
-| `DATABASE_URL`, `DB_SOCKET`, `MYSQL_ATTR_SSL_CA`, `DB_FOREIGN_KEYS` | `config/database.php` | | `DB_FOREIGN_KEYS` applies to SQLite only. |
+| `DATABASE_URL`, `DB_SOCKET`, `MYSQL_ATTR_SSL_CA`, `DB_FOREIGN_KEYS` | `config/database.php` | | On Cloud Run, `DB_SOCKET=/cloudsql/<project>:africa-south1:navigateed-mysql` connects through the Cloud SQL connector. `DB_FOREIGN_KEYS` applies to SQLite only. |
 | `REDIS_CLIENT`, `REDIS_CLUSTER`, `REDIS_PREFIX`, `REDIS_URL`, `REDIS_DB`, `REDIS_CACHE_DB` | `config/database.php` | `phpredis`, `redis`, slug of `APP_NAME`, none, `0`, `1` | |
 | `SESSION_CONNECTION`, `SESSION_STORE`, `SESSION_COOKIE`, `SESSION_DOMAIN` | `config/session.php` | | `SESSION_COOKIE` defaults to `<slug of APP_NAME>_session`. |
 | `SESSION_SECURE_COOKIE` | `config/session.php` | true when `APP_URL` starts with `https://` | |
@@ -120,13 +136,14 @@ Read by `config/*.php` but missing from `.env.example`. Most are Laravel default
 | `LOG_SLACK_WEBHOOK_URL`, `LOG_PAPERTRAIL_HANDLER`, `PAPERTRAIL_URL`, `PAPERTRAIL_PORT`, `LOG_STDERR_FORMATTER` | `config/logging.php` | | |
 | `MAIL_SENDMAIL_PATH`, `MAIL_LOG_CHANNEL` | `config/mail.php` | `/usr/sbin/sendmail -t -i`, none | |
 | `MAILGUN_DOMAIN`, `MAILGUN_SECRET`, `MAILGUN_ENDPOINT`, `POSTMARK_TOKEN` | `config/services.php` | `MAILGUN_ENDPOINT=api.mailgun.net` | Needed for the Mailgun and Postmark mailers. |
-| **`PAYSTACK_PUBLIC_KEY`, `PAYSTACK_SECRET_KEY`, `PAYSTACK_PAYMENT_URL`, `PAYSTACK_MERCHANT_EMAIL`** | `config/paystack.php` (and the first two in `config/services.php`) | `''`, `''`, `https://api.paystack.co`, `''` | Fallbacks; the `paystack_*` settings replace the first two on boot. `PAYSTACK_PAYMENT_URL` is not used: payments always go to `https://api.paystack.co`. |
 | **`TRUSTED_PROXIES`** | `config/trustedproxy.php` | `*` when `K_SERVICE` is set, otherwise none | Proxies whose `X-Forwarded-For` and `X-Forwarded-Proto` are believed: comma-separated addresses or ranges, or `*`. See [Deployment](Deployment#https-proxies-and-hosts). |
 | **`CACHE_LIMITER`** | `config/cache.php` (`limiter`) | `database` when `K_SERVICE` is set, otherwise the default store | Cache store for rate limit counters and the wrong-password lockout; must be shared when there is more than one server. |
-| **`SYSTEM_UPDATE_ENABLED`** | `config/system_update.php` | false when `K_SERVICE` is set, otherwise true | Whether the System Update page may install an uploaded zip. |
-| `K_SERVICE` | the three rows above | | Set by Cloud Run; not something to set by hand. |
-| **`RAZORPAY_WEBHOOK_SECRET`, `STRIPE_WEBHOOK_SECRET`, `FLW_SECRET_HASH`** | `config/services.php` | none | Fallback webhook secrets, used only when the matching settings row is empty (see [config/services.php](#configservicesphp)). |
-| `RAZORPAY_API_KEY`, `RAZORPAY_SECRET_KEY`, `STRIPE_PUBLISHABLE_KEY`, `STRIPE_SECRET_KEY`, `FLW_PUBLIC_KEY`, `FLW_SECRET_KEY` | `config/services.php` | none | Defined but not read by the payment code, which takes these keys from the settings table. |
+| `K_SERVICE` | the rows above, and the json log channel's `service` | | Set by Cloud Run; not something to set by hand. `K_REVISION` (the revision) and, in Cloud Run Jobs, `CLOUD_RUN_JOB` are read by the json log channel. |
+| **`GOOGLE_CLOUD_PROJECT`** | `config/logging.php` (json channel) | none | The project id; lets the json channel link log lines to Cloud Run traces. Set by the provisioning script. |
+| **`APP_RELEASE`** | `config/logging.php` (json channel) | `K_REVISION` | The release (tag or commit) the image was built from: baked in by the Dockerfile's `APP_RELEASE` build argument; shown as the version in Error Reporting. |
+| **`QUEUE_HEALTH_MAX_WAIT`** | `config/queue.php` (`worker_health.max_wait_seconds`) | `600` | Seconds a due job may wait before `GET /up/worker` answers 503. |
+| **`STRIPE_WEBHOOK_SECRET`** | `config/services.php` | none | Fallback Stripe webhook secret, used only when the `stripe_webhook_secret` settings row is empty (see [config/services.php](#configservicesphp)). |
+| `STRIPE_PUBLISHABLE_KEY`, `STRIPE_SECRET_KEY` | `config/services.php` | none | Defined but not read by the payment code, which takes these keys from the settings table. |
 | `ABLY_KEY` | `config/broadcasting.php` | | |
 | `SANCTUM_STATEFUL_DOMAINS` | `config/sanctum.php` | `localhost,localhost:3000,127.0.0.1,127.0.0.1:8000,::1` plus the `APP_URL` host | |
 | `VIEW_COMPILED_PATH` | `config/view.php` | `storage/framework/views` | |
@@ -135,6 +152,20 @@ Read by `config/*.php` but missing from `.env.example`. Most are Laravel default
 The installer's Database step writes `DB_PREFIX` when a prefix is entered, but `config/database.php` hard-codes `'prefix' => ''`, so it has no effect.
 
 Variables read by the framework itself rather than a config file, used by the test suite: `LARAVEL_STORAGE_PATH` (moves `storage/`), `APP_MAINTENANCE_DRIVER`. `phpunit.xml` also sets `PULSE_ENABLED`, `TELESCOPE_ENABLED` and `NIGHTWATCH_ENABLED`, for packages the app does not install.
+
+## Container variables
+
+Read by the Docker image's entrypoint ([docker/entrypoint.sh](https://github.com/ShawnDaPrawn/Eschool/blob/main/admin-panel/docker/entrypoint.sh)) and its helper scripts rather than by `config/`, so they only matter when the panel runs from the image (Cloud Run, Docker Compose):
+
+| Variable | Default | Meaning |
+|---|---|---|
+| `CONTAINER_ROLE` | `web` | What the container runs: `web` (migrate, provision the admin, run the installer seeders, serve Apache on 8080), `worker` (`queue:work`, restarted when it exits), `scheduler` (one `schedule:run`, then exit), `scheduler-loop` (`schedule:work`, for Docker Compose) or `artisan` (the Artisan command given as the container's arguments). Only `web` migrates and seeds. See [Deployment](Deployment#container-roles). |
+| `ADMIN_EMAIL` | `info@tokensoft.tech` | The admin login `docker/provision-admin.php` puts in place of the seeded `superadmin@gmail.com` on a new database. |
+| `ADMIN_PASSWORD` | none | That admin's password; on Cloud Run the secret `navigateed-admin-password`. The web role refuses to start while the seeded login is still in place and this is empty. |
+| `PORT` | `8080` | The worker role's probe responder listens here (Cloud Run sets it). |
+| `APP_RELEASE` | `dev` | Build argument and variable: the release the image was built from (see above). |
+
+On Cloud Run, [infra/gcp/provision.sh](https://github.com/ShawnDaPrawn/Eschool/blob/main/infra/gcp/provision.sh) sets the same environment on all three roles: `CONTAINER_ROLE`, `APP_ENV=production`, `APP_DEBUG=false`, `APP_URL`, `LOG_CHANNEL=json`, `LOG_LEVEL=info`, `GOOGLE_CLOUD_PROJECT`, `DB_CONNECTION=mysql`, `DB_SOCKET`, `DB_DATABASE`, `DB_USERNAME`, `CACHE_DRIVER=database`, `SESSION_DRIVER=database`, `QUEUE_CONNECTION=database`, `TIMEZONE`, and where configured `TRUSTED_HOSTS`, `SANCTUM_STATEFUL_DOMAINS`, `SESSION_COOKIE` and (web only) `ADMIN_EMAIL`. Secrets come from Secret Manager as `APP_KEY`, `DB_PASSWORD` and (web only) `ADMIN_PASSWORD`; their values are never in the repository. Values per environment: `infra/gcp/env/*.env`.
 
 ## Settings that override .env
 
@@ -150,8 +181,6 @@ Variables read by the framework itself rather than a config file, used by the te
 | `mail_password` | `mail.mailers.smtp.password` |
 | `mail_encryption` | `mail.mailers.smtp.encryption` |
 | `mail_send_from` | `mail.from.address` |
-| `paystack_public_key` | `paystack.publicKey` |
-| `paystack_secret_key` | `paystack.secretKey` |
 | `time_zone` | `app.timezone`, and `date_default_timezone_set()` (only if it is a valid PHP timezone identifier) |
 
 Rules:
@@ -195,29 +224,9 @@ Besides the usual keys, `timezone` reads `TIMEZONE` (not `APP_TIMEZONE`) and `de
 
 See [Installation-Wizard](Installation-Wizard) for how these are used.
 
-### config/paystack.php
-
-Read by the `unicodeveloper/laravel-paystack` package, which `PaystackPayment` extends (`Config::get('paystack.secretKey')` and `paystack.paymentUrl`):
-
-| Key | Env fallback | Default | Overridden by setting |
-|---|---|---|---|
-| `publicKey` | `PAYSTACK_PUBLIC_KEY` | `''` | `paystack_public_key` |
-| `secretKey` | `PAYSTACK_SECRET_KEY` | `''` | `paystack_secret_key` |
-| `paymentUrl` | `PAYSTACK_PAYMENT_URL` | `https://api.paystack.co` | none; `PaystackPayment` ignores it and always uses `https://api.paystack.co` |
-| `merchantEmail` | `PAYSTACK_MERCHANT_EMAIL` | `''` | none |
-
 ### config/services.php
 
-Besides the stock `mailgun`, `postmark` and `ses` entries, it defines `services.razorpay` (`key`, `secret`, `webhook_secret`), `services.stripe` (`key`, `secret`, `webhook_secret`), `services.paystack` (`public_key`, `secret_key`) and `services.flutterwave` (`public_key`, `secret_key`, `secret_hash`). The comment above them still says the fee settings page writes these `.env` keys; it no longer does. Their only use is as a fallback in `PaymentService::webhookSecret()`:
-
-| Gateway | Settings row used | Fallback when the row is empty |
-|---|---|---|
-| razorpay | `razorpay_webhook_secret` | `services.razorpay.webhook_secret` (`RAZORPAY_WEBHOOK_SECRET`) |
-| stripe | `stripe_webhook_secret` | `services.stripe.webhook_secret` (`STRIPE_WEBHOOK_SECRET`) |
-| paystack | `paystack_secret_key` | `services.paystack.secret_key` (`PAYSTACK_SECRET_KEY`) |
-| flutterwave | `flutterwave_hash_key` | `services.flutterwave.secret_hash` (`FLW_SECRET_HASH`) |
-
-When both are empty the webhook is refused. See [Payments](Payments).
+Besides the stock `mailgun`, `postmark` and `ses` entries, it defines `services.stripe` (`key`, `secret`, `webhook_secret`); Stripe is the only payment gateway since Phase 0 removed Razorpay, Paystack and Flutterwave. Its only use is as a fallback in `PaymentService::webhookSecret()`: the `stripe_webhook_secret` settings row, or `services.stripe.webhook_secret` (`STRIPE_WEBHOOK_SECRET`) when the row is empty. When both are empty the webhook is refused. See [Payments](Payments).
 
 ### Other config files
 
@@ -241,16 +250,15 @@ The table is created by `2022_04_01_044234_create_settings_table.php` with three
 | App Settings (`GET/POST /app-settings`) | `SettingController@app_index/app_update`, `setting-create` | `app_link`, `ios_app_link`, `app_version`, `ios_app_version`, `force_app_update`, `app_maintenance`, `teacher_app_link`, `teacher_ios_app_link`, `teacher_app_version`, `teacher_ios_app_version`, `teacher_force_app_update`, `teacher_app_maintenance` |
 | Chat Settings (`GET /chat-settings`, `POST /chat-settings-update`) | `SettingController@chat_setting_index/chat_setting_update`, `chat-settings` | `max_files_or_images_in_one_message`, `max_file_size_in_bytes` (despite the name, the value is in MB; the API multiplies it by 1,000,000), `max_characters_in_text_message`, `automatically_messages_removed_days` |
 | Page content (`POST /setting-update`) | `SettingController@setting_page_update`, `setting-create` | Any `type` sent by the form: `privacy_policy`, `terms_condition`, `about_us`, `contact_us`, and `online_exam_terms_condition` from the online exam terms page |
-| Fees configuration (`GET /fees-config`, `POST /fees-config/update`) | `Fees\ConfigController@feesConfigIndex/feesConfigUpdate`, `fees-config` | `razorpay_status`, `razorpay_api_key`, `razorpay_secret_key`, `razorpay_webhook_secret`, `razorpay_webhook_url`, `razorpay_currency_code`; `stripe_status`, `stripe_publishable_key`, `stripe_secret_key`, `stripe_webhook_secret`, `stripe_webhook_url`, `stripe_currency_code`; `paystack_status`, `paystack_public_key`, `paystack_secret_key`, `paystack_webhook_url`, `paystack_currency_code` (the form's `paystack_payment_url` is not saved); `flutterwave_status`, `flutterwave_public_key`, `flutterwave_secret_key`, `flutterwave_hash_key`, `flutterwave_webhook_url`, `flutterwave_currency_code`; `currency_code`, `currency_symbol`, `compulsory_fee_payment_mode`, `is_student_can_pay_fees`, `enable_fees_installment`, `default_due_charges` |
+| Fees configuration (`GET /fees-config`, `POST /fees-config/update`) | `Fees\ConfigController@feesConfigIndex/feesConfigUpdate`, `fees-config` | `stripe_status`, `stripe_publishable_key`, `stripe_secret_key`, `stripe_webhook_secret`, `stripe_webhook_url`, `stripe_currency_code`; `currency_code`, `currency_symbol`, `compulsory_fee_payment_mode`, `is_student_can_pay_fees`, `enable_fees_installment`, `default_due_charges`. Rows for the removed Razorpay, Paystack and Flutterwave keys may remain in older databases and are no longer read. |
 | ID card settings (`GET /id-card-settings`, `POST /id-card-settings/update`) | `Student\IdCardController@idCardSettingIndex/updateIdCardSetting` | `header_color`, `footer_color`, `header_footer_text_color`, `layout_type`, `profile_image_style`, `card_width`, `card_height`, `student_id_card_fields`, `staff_id_card_fields` (comma-separated), `background_transparency`, `background_size`; files `background_image`, `signature` (public disk, `Idcard/`) |
-| System Update (`POST /system-update`) | `SystemUpdateController@update`, Super Admin role | `system_version` |
 
 Other keys:
 
 | Key | Purpose |
 |---|---|
 | `session_year` | Id of the current `session_years` row. Read in about 150 places (`getSettings('session_year')['session_year']`), including the student and parent session-active middleware. Written by `SessionYearService::makeCurrent()` (General Settings, **Make current** on the Session Years page, or a new year created with "Make this the current session year"), which also flips `session_years.default` and, if it changed, runs `ResetLessonSemesters`. See [Academic-Structure](Academic-Structure). |
-| `system_version` | Installed version (`3.5.0` from `InstallationSeeder`); checked and updated by [System-Update](System-Update). |
+| `system_version` | Installed version (`3.5.0` from `InstallationSeeder`). The in-panel System Update that used to raise it was removed in Phase 0; releases are deployed images. |
 | `update_warning_modal` | Read by `after-update-note-modal.blade.php` to decide whether to show the post-update notice. `HomeController@updateWarningModal` (`GET /update-warning-modal`) does not change it. |
 | `fees_due_date`, `fees_due_charges` | Read by `GET /api/settings?type=app_settings` if present; no admin screen writes them (the due date and charges are stored per session year in `session_years.fee_due_date` and `fee_due_charges`). |
 
@@ -274,7 +282,7 @@ A parent or teacher accepts those two pages in the app, after NavigateEd's own t
 | Chat limits and retention days | Mailgun or Postmark credentials, `MAIL_FROM_NAME` |
 | Privacy policy, terms, about and contact pages; email templates (table `email_tempalates`); public website sections (table `web_settings`) | |
 
-Where a value exists in both places, the setting wins whenever it is non-empty: school name over `APP_NAME`, `time_zone` over `TIMEZONE`, `mail_*` over `MAIL_*`, `paystack_*` over `PAYSTACK_*`, and the webhook secret rows over the `services.*` fallbacks. `.env` values matter only before the corresponding screen has been saved.
+Where a value exists in both places, the setting wins whenever it is non-empty: school name over `APP_NAME`, `time_zone` over `TIMEZONE`, `mail_*` over `MAIL_*`, and the Stripe webhook secret row over the `services.*` fallbacks. `.env` values matter only before the corresponding screen has been saved.
 
 ## See also
 

@@ -430,7 +430,7 @@ Exams of the student's class section or class that the student started (they hav
 
 ## Fees and payments
 
-The fee model (compulsory fees, installments, optional fees, due charges) and the webhook side are on [Payments](Payments). Admin setup: https://shawndaprawn.github.io/Eschool/admin-panel/fee-payment/ . Values used below: `type_of_fee` 0 = compulsory in full, 1 = installments, 2 = optional fees; `payment_method` 1 = Razorpay, 2 = Stripe, 3 = Paystack, 4 = Flutterwave; `payment_transactions.payment_status` 0 = failed, 1 = paid, 2 = pending.
+The fee model (compulsory fees, installments, optional fees, due charges) and the webhook side are on [Payments](Payments). Admin setup: https://shawndaprawn.github.io/Eschool/admin-panel/fee-payment/ . Values used below: `type_of_fee` 0 = compulsory in full, 1 = installments, 2 = optional fees; `payment_method` 2 = Stripe (1 Razorpay, 3 Paystack and 4 Flutterwave were removed in Phase 0 and are answered "The selected payment method is not available."); `payment_transactions.payment_status` 0 = failed, 1 = paid, 2 = pending.
 
 ```mermaid
 sequenceDiagram

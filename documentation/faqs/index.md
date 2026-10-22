@@ -2,7 +2,7 @@
 Popular questions about eSchool to help you get started!
 
 ## How to Fix Image Issues
-If you're experiencing image issues, navigate to your PHP admin panel folder and locate the public folder. Delete the existing storage link. Then, paste this URL into your browser: `your-admin-url/storage-link` (replace "your-admin-url" with your actual admin panel URL). You should be all set!
+If uploaded images don't show, the link from the admin panel's `public/storage` folder to its storage is missing. The NavigateEd server image creates it every time it starts. On a server you run yourself, open a terminal in the admin panel folder, delete the existing `public/storage` link and run `php artisan storage:link`. (The old `your-admin-url/storage-link` address has been removed.)
 
 ## What is the default password?
 - **For Students**: The default password is the student's date of birth in the format ddmmyyyy. Note: Student credentials will be sent to their respective parent's email.

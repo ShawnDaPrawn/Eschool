@@ -34,9 +34,9 @@ class NotificationController extends Controller
                     $query->whereIn('id', $notification_id)->orWhereIn('send_to', [1, 4]);
                 })->latest()->paginate();
 
-            ResponseService::successResponse('Data Fetched Successfully', $notification ?? '', [], 200);
+            return ResponseService::successResponse('Data Fetched Successfully', $notification ?? '', [], 200);
         } catch (Throwable $e) {
-            ResponseService::errorResponse('error_occurred', null, 103, $e);
+            return ResponseService::errorResponse('error_occurred', null, 103, $e);
         }
     }
 }

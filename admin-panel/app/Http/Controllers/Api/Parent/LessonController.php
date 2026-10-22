@@ -38,7 +38,7 @@ class LessonController extends Controller
         ]);
 
         if ($validator->fails()) {
-            ResponseService::validationError($validator->errors()->first());
+            return ResponseService::validationError($validator->errors()->first());
         }
 
         try {
@@ -72,9 +72,10 @@ class LessonController extends Controller
             }
 
             $data = $data->get();
-            ResponseService::successResponse('Lessons Fetched Successfully', $data, [], 200);
+
+            return ResponseService::successResponse('Lessons Fetched Successfully', $data, [], 200);
         } catch (Throwable $e) {
-            ResponseService::errorResponse('error_occurred', null, 103, $e);
+            return ResponseService::errorResponse('error_occurred', null, 103, $e);
         }
     }
 
@@ -92,7 +93,7 @@ class LessonController extends Controller
         ]);
 
         if ($validator->fails()) {
-            ResponseService::validationError($validator->errors()->first());
+            return ResponseService::validationError($validator->errors()->first());
         }
 
         try {
@@ -136,9 +137,10 @@ class LessonController extends Controller
             }
 
             $data = $data->get();
-            ResponseService::successResponse('Topics Fetched Successfully', $data, [], 200);
+
+            return ResponseService::successResponse('Topics Fetched Successfully', $data, [], 200);
         } catch (Throwable $e) {
-            ResponseService::errorResponse('error_occurred', null, 103, $e);
+            return ResponseService::errorResponse('error_occurred', null, 103, $e);
         }
     }
 }

@@ -2342,29 +2342,6 @@ $(document).on("change", ".timetable_start_time", function () {
     });
 });
 
-$("#system-update").on("submit", function (e) {
-    e.preventDefault();
-    let formElement = $(this);
-    let submitButtonElement = $(this).find(":submit");
-    let url = $(this).attr("action");
-    let data = new FormData(this);
-
-    function successCallback() {
-        setTimeout(function () {
-            window.location.reload();
-        }, 1000);
-    }
-
-    formAjaxRequest(
-        "POST",
-        url,
-        data,
-        formElement,
-        submitButtonElement,
-        successCallback,
-    );
-});
-
 $("#create-form-bulk-data").submit(function (e) {
     e.preventDefault();
     let formElement = $(this);
@@ -3776,27 +3753,6 @@ $("#teacher_timetable_teacher_id").on("change", function (e) {
     });
 });
 
-$("#razorpay_status").on("change", function (e) {
-    e.preventDefault();
-    if ($(this).val() == 1) {
-        $("#stripe_status").val(0);
-        $("#paystack_status").val(0);
-    }
-});
-$("#stripe_status").on("change", function (e) {
-    e.preventDefault();
-    if ($(this).val() == 1) {
-        $("#razorpay_status").val(0);
-        $("#paystack_status").val(0);
-    }
-});
-$("#paystack_status").on("change", function (e) {
-    e.preventDefault();
-    if ($(this).val() == 1) {
-        $("#razorpay_status").val(0);
-        $("#stripe_status").val(0);
-    }
-});
 $("#assign-roll-no-form").on("submit", function (e) {
     e.preventDefault();
     Swal.fire({

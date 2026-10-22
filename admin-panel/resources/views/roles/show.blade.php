@@ -19,7 +19,7 @@
                 @can('role-edit')
                     <a class="btn btn-sm btn-theme" href="{{ route('roles.edit', $role->id) }}">{{ __('edit') }}</a>
                 @endcan
-                <a class="btn btn-sm btn-theme" href="{{ route('roles.index') }}">{{ __('back') }}</a>
+                <a class="btn btn-sm btn-secondary" href="{{ route('roles.index') }}">{{ __('back') }}</a>
             </div>
         </div>
 

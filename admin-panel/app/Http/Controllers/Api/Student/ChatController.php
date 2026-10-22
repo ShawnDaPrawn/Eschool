@@ -176,7 +176,7 @@ class ChatController extends Controller
             'file.*' => 'file|max:'.$maxFileKb,
         ]);
         if ($validator->fails()) {
-            ResponseService::validationError($validator->errors()->first());
+            return ResponseService::validationError($validator->errors()->first());
         }
         try {
             $sender_id = $request->user()->id;
@@ -192,7 +192,7 @@ class ChatController extends Controller
                 ? Teacher::whereIn('id', $this->chatTeacherIds($studentSession, $request->user()->student, $session_year_id))->pluck('user_id')->map(fn ($id) => (int) $id)->all()
                 : [];
             if (! in_array($receiver_id, $allowed_user_ids, true)) {
-                ResponseService::errorResponse('You can not send a message to this user', null, 103);
+                return ResponseService::errorResponse('You can not send a message to this user', null, 103);
             }
 
             $message = new ChatMessage;
@@ -241,7 +241,7 @@ class ChatController extends Controller
                 $chatfile = [];
                 foreach ($message->file as $file) {
                     if (! empty($file)) {
-                        $chatfile[] = asset('storage/' . $file->file_name);
+                        $chatfile[] = asset('storage/'.$file->file_name);
                     } else {
                         $chatfile[] = '';
                     }
@@ -303,13 +303,13 @@ class ChatController extends Controller
                 'subjects' => $subjectArray,
                 'address' => $student->user->current_address,
                 'last_message' => $data ?? null,
-                'class_name' => $student->class_section->class->name . ' ' . $student->class_section->section->name . ' ' . $student->class_section->class->medium->name,
+                'class_name' => $student->class_section->class->name.' '.$student->class_section->section->name.' '.$student->class_section->class->medium->name,
                 'isParent' => 0,
                 'unread_message' => $unreadCount ?? 0,
             ];
 
-            $title = $student->user->first_name . ' ' . $student->user->last_name;
-            $body = $request->message ?? $count . ' Files Received';
+            $title = $student->user->first_name.' '.$student->user->last_name;
+            $body = $request->message ?? $count.' Files Received';
             $type = 'chat';
             $image = null;
             $user[] = $receiver_id;
@@ -317,9 +317,9 @@ class ChatController extends Controller
 
             sendSimpleNotification($user, $title, $body, $type, $image, $userinfo);
 
-            ResponseService::successResponse('message_sent_successfully', $data);
+            return ResponseService::successResponse('message_sent_successfully', $data);
         } catch (Throwable $e) {
-            ResponseService::errorResponse('error_occurred', null, 103, $e);
+            return ResponseService::errorResponse('error_occurred', null, 103, $e);
         }
     }
 
@@ -351,7 +351,7 @@ class ChatController extends Controller
             foreach ($messages as &$message) {
                 if (isset($message['file'])) {
                     $message['files'] = collect($message['file'])->map(function ($file) {
-                        return asset('storage/' . $file['file_name']);
+                        return asset('storage/'.$file['file_name']);
                     })->toArray();
 
                     unset($message['file']);
@@ -360,9 +360,9 @@ class ChatController extends Controller
                 }
             }
 
-            ResponseService::successResponse('Data Fetched Successfully', ['items' => $messages ?? [], 'total_items' => $total_items]);
+            return ResponseService::successResponse('Data Fetched Successfully', ['items' => $messages ?? [], 'total_items' => $total_items]);
         } catch (Throwable $e) {
-            ResponseService::errorResponse('error_occurred', null, 103, $e);
+            return ResponseService::errorResponse('error_occurred', null, 103, $e);
         }
     }
 
@@ -385,9 +385,9 @@ class ChatController extends Controller
                 $readMessage->save();
             }
 
-            ResponseService::successResponse('Message Read');
+            return ResponseService::successResponse('Message Read');
         } catch (Throwable $e) {
-            ResponseService::errorResponse('error_occurred', null, 103, $e);
+            return ResponseService::errorResponse('error_occurred', null, 103, $e);
         }
     }
 

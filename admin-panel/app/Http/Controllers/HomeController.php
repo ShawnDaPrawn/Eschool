@@ -480,9 +480,9 @@ class HomeController extends Controller
         $class = ClassSchool::find($class_id);
         $sections = ClassSection::with('section')->where('class_id', $class_id)->get();
 
-        // A teacher (not Admin/Super Admin) only sees the sections of which they are Class Teacher.
+        // A teacher (not Super Admin) only sees the sections of which they are Class Teacher.
         $user = Auth::user();
-        if ($user->hasRole('Teacher') && ! $user->hasRole('Admin') && ! $user->hasRole('Super Admin') && $user->teacher) {
+        if ($user->hasRole('Teacher') && ! $user->hasRole('Super Admin') && $user->teacher) {
             $allowedSectionIds = ClassTeacher::where('class_teacher_id', $user->teacher->id)
                 ->where('session_year_id', $session_year_id)
                 ->pluck('class_section_id');

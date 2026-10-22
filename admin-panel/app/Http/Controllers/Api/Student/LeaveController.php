@@ -35,7 +35,7 @@ class LeaveController extends Controller
         $unknown = array_diff(array_keys($request->all()), $allowed);
 
         if (! empty($unknown)) {
-            ResponseService::validationError('Unknown fields: ' . implode(', ', $unknown));
+            return ResponseService::validationError('Unknown fields: '.implode(', ', $unknown));
         }
 
         $validator = Validator::make($request->all(), [
@@ -50,7 +50,7 @@ class LeaveController extends Controller
         ]);
 
         if ($validator->fails()) {
-            ResponseService::validationError($validator->errors()->first());
+            return ResponseService::validationError($validator->errors()->first());
         }
         try {
             $session_year = getSettings('session_year');
@@ -108,7 +108,7 @@ class LeaveController extends Controller
             $image = null;
             $userinfo = null;
 
-            $body = $request->user()->first_name . ' ' . $request->user()->last_name . ' ' . 'has added a new leave request';
+            $body = $request->user()->first_name.' '.$request->user()->last_name.' '.'has added a new leave request';
 
             $notification = new Notification;
             $notification->send_to = 3;
@@ -132,9 +132,9 @@ class LeaveController extends Controller
             } catch (\Exception $e) {
             }
 
-            ResponseService::successResponse('Data Stored Successfully', $leave ?? '');
+            return ResponseService::successResponse('Data Stored Successfully', $leave ?? '');
         } catch (\Throwable $e) {
-            ResponseService::errorResponse('error_occurred', null, 103, $e);
+            return ResponseService::errorResponse('error_occurred', null, 103, $e);
         }
     }
 
@@ -146,7 +146,7 @@ class LeaveController extends Controller
             'session_year_id' => 'nullable|integer',
         ]);
         if ($validator->fails()) {
-            ResponseService::validationError($validator->errors()->first());
+            return ResponseService::validationError($validator->errors()->first());
         }
         try {
 
@@ -184,9 +184,9 @@ class LeaveController extends Controller
                 'leave_details' => $sql,
             ];
 
-            ResponseService::successResponse('Data Fetched Successfully', $data);
+            return ResponseService::successResponse('Data Fetched Successfully', $data);
         } catch (\Throwable $e) {
-            ResponseService::errorResponse('error_occurred', null, 103, $e);
+            return ResponseService::errorResponse('error_occurred', null, 103, $e);
         }
     }
 

@@ -6,6 +6,7 @@ namespace App\Http\Controllers\Api\Parent\Concerns;
 
 use App\Models\Students;
 use App\Services\ResponseService;
+use Illuminate\Http\Exceptions\HttpResponseException;
 use Illuminate\Http\Request;
 
 /**
@@ -18,8 +19,10 @@ trait ParentAccess
     /**
      * The child a request is about, always resolved through the logged-in parent's
      * own children. Inside the CheckChild route group the middleware has already
-     * resolved it; elsewhere child_id is looked up here. Sends an error response
-     * (and ends the request) when child_id is not one of the parent's children.
+     * resolved it; elsewhere child_id is looked up here. Ends the request with an
+     * error response (thrown as an HttpResponseException; a catch block that hands
+     * it to ResponseService::errorResponse() returns it unchanged) when child_id is
+     * not one of the parent's children.
      */
     private function resolveChild(Request $request, int $errorCode = 105): Students
     {
@@ -38,7 +41,7 @@ trait ParentAccess
             : null;
 
         if (! $child) {
-            ResponseService::errorResponse('Invalid Child ID Passed.', null, $errorCode);
+            throw new HttpResponseException(ResponseService::errorResponse('Invalid Child ID Passed.', null, $errorCode));
         }
 
         return $child;

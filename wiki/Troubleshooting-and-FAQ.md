@@ -110,7 +110,6 @@ These were found by reading the code while this wiki was written. None of them i
 | Area | Symptom | Where |
 |---|---|---|
 | API errors | Validation and permission errors return `code: null` because `config/constants.php` doesn't exist | `app/Services/ResponseService.php` |
-| API headers | `ResponseService` sends its response and calls `exit()`, so those responses skip the `SecurityHeaders`, CORS and rate-limit headers | `app/Services/ResponseService.php` |
 | Parent app | Code 105 from `CheckChild` is shown as "exam already attended" | `e-school/lib/utils/errorMessageKeysAndCodes.dart` |
 | Teacher app | `Api.examResults` points to `teacher/exam-marks`, which has no route. The method that uses it is never called | `e-school-teacher/lib/utils/api.dart` |
 

@@ -8,8 +8,8 @@ use PHPUnit\Framework\TestCase;
  * The admin panel and the public website take their colours from the Material 3
  * design tokens in public/assets/css/m3-tokens.css, which are generated from the
  * apps' theme (see packages/eschool_core/test/web_tokens_test.dart). A raw colour
- * in a stylesheet would drift from the apps, so the redesign stylesheets may only
- * use the tokens. See wiki/UI-Standards.md.
+ * in a stylesheet would drift from the apps, so the stylesheets (public/assets/css
+ * and the Material 3 library in public/assets/m3) may only use the tokens. See wiki/UI-Standards.md.
  *
  * Not checked: the generated tokens themselves, the legacy template bundles and
  * third-party CSS. Colours inside data: URIs can't read CSS variables, so they are
@@ -32,10 +32,11 @@ class DesignTokensTest extends TestCase
 
     public function test_stylesheets_use_the_design_tokens_for_colour(): void
     {
-        $dir = dirname(__DIR__, 2).'/public/assets/css';
+        $assets = dirname(__DIR__, 2).'/public/assets';
         $found = [];
 
-        foreach (glob($dir.'/*.css') as $path) {
+        // The legacy redesign sheets and the Material 3 library.
+        foreach (array_merge(glob($assets.'/css/*.css'), glob($assets.'/m3/*.css')) as $path) {
             if (in_array(basename($path), self::UNCHECKED, true)) {
                 continue;
             }

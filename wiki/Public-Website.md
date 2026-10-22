@@ -72,7 +72,7 @@ There is no setting that disables the whole website: `GET /` always renders the 
 
 ## Theming and school details
 
-The site's colours, type and shapes come from the same Material 3 design tokens as the admin panel and the apps: `web/header.blade.php` loads `assets/css/m3-tokens.css` and `m3-base.css`, and `webstyle.css` uses only the tokens. The `theme_color` and `secondary_color` settings no longer change the site. See [UI-Standards](UI-Standards#admin-panel-and-website).
+The site's colours, type and shapes come from the same Material 3 design tokens as the admin panel and the apps. It uses no Bootstrap: `web/master.blade.php` loads `assets/css/m3-tokens.css`, the Material 3 library (`assets/m3/m3.css` and `m3.js`) and the site's own layout in `assets/css/site.css`, which uses only the tokens. The `theme_color` and `secondary_color` settings no longer change the site. See [UI-Standards](UI-Standards#admin-panel-and-website).
 
 The school's own details below come from the `settings` table (General Settings page, `SettingController::update`, permission `setting-create`). They are read on each request, so they work with cached config; since commit `e13ac7d` nothing is copied into `.env`.
 

@@ -4,9 +4,8 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers;
 
-use App\Services\ResponseService;
 use App\Models\ClassTeacher;
-use App\Models\EmailTempalate;
+use App\Models\EmailTemplate;
 use App\Models\FormField;
 use App\Models\Settings;
 use App\Models\SubjectTeacher;
@@ -14,8 +13,10 @@ use App\Models\Teacher;
 use App\Models\User;
 use App\Services\EmailTemplateService;
 use App\Services\MailService;
+use App\Services\ResponseService;
 use Exception;
 use Illuminate\Http\Request;
+use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
@@ -29,7 +30,7 @@ class TeacherController extends Controller
     /**
      * Display a listing of the resource.
      *
-     * @return \Illuminate\Http\Response
+     * @return Response
      */
     public function index()
     {
@@ -62,7 +63,7 @@ class TeacherController extends Controller
     /**
      * Store a newly created resource in storage.
      *
-     * @return \Illuminate\Http\Response
+     * @return Response
      */
     public function store(Request $request)
     {
@@ -332,7 +333,7 @@ class TeacherController extends Controller
                 $school_contact = getSettings('school_phone');
 
                 $applink = Settings::whereIn('type', ['teacher_app_link', 'teacher_ios_app_link'])->pluck('message', 'type')->toArray();
-                $staffTemplate = EmailTempalate::where('type', 'staff_registration')->value('content');
+                $staffTemplate = EmailTemplate::where('type', 'staff_registration')->value('content');
 
                 $cleanSchoolName = is_array($school_name) ? ($school_name['school_name'] ?? '') : $school_name;
                 $cleanSchoolEmail = is_array($school_email) ? ($school_email['school_email'] ?? '') : $school_email;
@@ -407,7 +408,7 @@ class TeacherController extends Controller
      * Display the specified resource.
      *
      * @param  int  $id
-     * @return \Illuminate\Http\Response
+     * @return Response
      */
     public function show()
     {
@@ -523,7 +524,7 @@ class TeacherController extends Controller
      * Show the form for editing the specified resource.
      *
      * @param  int  $id
-     * @return \Illuminate\Http\Response
+     * @return Response
      */
     public function edit($id)
     {
@@ -692,7 +693,7 @@ class TeacherController extends Controller
      * Remove the specified resource from storage.
      *
      * @param  int  $id
-     * @return \Illuminate\Http\Response
+     * @return Response
      */
     public function destroy($id)
     {
@@ -742,7 +743,7 @@ class TeacherController extends Controller
                 'error' => false,
                 'message' => trans('data_delete_successfully'),
             ]);
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             return response()->json([
                 'error' => true,
                 'message' => trans('error_occurred'),

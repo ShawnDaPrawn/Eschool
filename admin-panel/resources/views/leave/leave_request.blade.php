@@ -61,10 +61,8 @@
 
 
                         <div class="col-sm-12 col-md-6 d-flex justify-content-md-end justify-content-start align-items-end mb-3">
-                            <!-- Updated padding, border-radius, and font properties to match your layout perfectly -->
-                            <button type="button" class="btn font-weight-bold px-4 py-2 text-white"
-                                data-toggle="modal" data-target="#createLeaveModal"
-                                style="background-color: #21567d; border: none; border-radius: 6px;">
+                            <button type="button" class="btn btn-theme"
+                                data-toggle="modal" data-target="#createLeaveModal">
                                 {{ __('create_leave') }}
                             </button>
 
@@ -213,19 +211,18 @@
 
 <div class="modal fade" id="createLeaveModal" tabindex="-1" role="dialog" aria-labelledby="createLeaveModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered" role="document">
-        <div class="modal-content" style="border-radius: 12px; overflow: hidden; border: none;">
+        <div class="modal-content">
 
-            <div class="modal-header" style="background-color: #21567d; padding: 18px 24px;">
-                <h5 class="modal-title font-weight-bold text-white" id="createLeaveModalLabel">
+            <div class="modal-header">
+                <h5 class="modal-title" id="createLeaveModalLabel">
                     {{ __('create') . ' ' . __('leave') }}
                 </h5>
-                <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close"
-                    style="opacity: 1; font-size: 22px;">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                     <span aria-hidden="true">&times;</span>
                 </button>
             </div>
 
-            <div class="modal-body" style="background-color: #f0f4f8; padding: 28px 24px;">
+            <div class="modal-body">
 
                 <form id="createLeaveForm" enctype="multipart/form-data" novalidate="novalidate">
                     @csrf
@@ -238,8 +235,7 @@
 
                     <div class="form-group">
                         <label for="modal_user_id">{{ __('staff') }} <span class="text-danger">*</span></label>
-                        <select name="staff_id" id="modal_user_id" class="form-control" required
-                            style="border-radius: 8px; border: 1px solid #dde3ea; background: #fff; padding: 10px 14px; height: auto;">
+                        <select name="staff_id" id="modal_user_id" class="form-control" required>
                             <option value="">{{ __('select') . ' ' . __('staff') }}</option>
                             @foreach ($modalUsers as $modalUser)
                             <option value="{{ $modalUser->id }}">
@@ -254,23 +250,20 @@
                     <div class="form-group">
                         <label for="modal_reason">{{ __('reason') }} <span class="text-danger">*</span></label>
                         <textarea name="reason" id="modal_reason" required rows="3" class="form-control"
-                            placeholder="{{ __('reason') }}"
-                            style="border-radius: 8px; border: 1px solid #dde3ea; background: #fff; padding: 10px 14px;"></textarea>
+                            placeholder="{{ __('reason') }}"></textarea>
                     </div>
 
 
                     <div class="form-group">
                         <label for="modal_from_date">{{ __('from_date') }} <span class="text-danger">*</span></label>
                         <input type="text" name="from_date" id="modal_from_date" required
-                            class="form-control" placeholder="{{ __('from_date') }}" autocomplete="off"
-                            style="border-radius: 8px; border: 1px solid #dde3ea; background: #fff; padding: 10px 14px;">
+                            class="form-control" placeholder="{{ __('from_date') }}" autocomplete="off">
                     </div>
 
                     <div class="form-group">
                         <label for="modal_to_date">{{ __('to_date') }} <span class="text-danger">*</span></label>
                         <input type="text" name="to_date" id="modal_to_date" required
-                            class="form-control" placeholder="{{ __('to_date') }}" autocomplete="off"
-                            style="border-radius: 8px; border: 1px solid #dde3ea; background: #fff; padding: 10px 14px;">
+                            class="form-control" placeholder="{{ __('to_date') }}" autocomplete="off">
                     </div>
 
                     {{-- Leave days breakdown --}}
@@ -279,18 +272,16 @@
                     <div class="form-group mb-0">
                         <label>
                             {{ __('attachments') }}
-                            <span class="text-info" style="font-size: 13px; font-weight: 500;">
+                            <span class="text-info small">
                                 ({{ __('upload_multiple_files') }})
                             </span>
                         </label>
                         {{-- name="files[]" matches what store() expects --}}
                         <input type="file" multiple name="files[]" id="modal_uploadInput" class="file-upload-default" />
                         <div class="input-group">
-                            <input type="text" class="form-control file-upload-info" placeholder="{{ __('files') }}" readonly
-                                style="border-radius: 8px 0 0 8px; border: 1px solid #dde3ea; background: #fff; padding: 10px 14px;">
+                            <input type="text" class="form-control file-upload-info" placeholder="{{ __('files') }}" readonly>
                             <div class="input-group-append">
-                                <button class="file-upload-browse btn font-weight-bold text-white mb-0" type="button"
-                                    style="background-color: #21567d; border-radius: 0 8px 8px 0; padding: 10px 20px;">
+                                <button class="file-upload-browse btn btn-theme mb-0" type="button">
                                     {{ __('upload') }}
                                 </button>
                             </div>
@@ -300,13 +291,11 @@
                 </form>
             </div>
 
-            <div class="modal-footer" style="background-color: #fff; border-top: 1px solid #e8edf2; padding: 16px 24px;">
-                <button type="button" class="btn btn-light px-4 font-weight-bold" data-dismiss="modal"
-                    style="border: 1px solid #dde3ea; border-radius: 8px; color: #555;">
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">
                     {{ __('Cancel') }}
                 </button>
-                <button type="button" class="btn font-weight-bold px-4 text-white" id="submitLeaveBtn"
-                    style="background-color: #21567d; border-radius: 8px; border: none;">
+                <button type="button" class="btn btn-theme" id="submitLeaveBtn">
                     {{ __('submit') }}
                 </button>
             </div>

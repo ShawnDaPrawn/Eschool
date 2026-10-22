@@ -132,7 +132,7 @@
                             </div>
 
                         </div>
-                        <button type="button" class="btn btn-add-installment mb-3" id="addInstallmentBtn">
+                        <button type="button" class="btn btn-outline-primary btn-block btn-add-installment mb-3" id="addInstallmentBtn">
                             <i class="fa fa-plus"></i> {{ __('add_installment') }}
                         </button>
                     </div>

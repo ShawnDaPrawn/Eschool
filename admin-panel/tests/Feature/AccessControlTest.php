@@ -2,12 +2,12 @@
 
 namespace Tests\Feature;
 
-use App\Models\EmailTempalate;
+use App\Models\EmailTemplate;
 use App\Models\Parents;
 use App\Models\Staff;
 use App\Models\Students;
-use App\Models\Subject;
 use App\Models\StudentSessions;
+use App\Models\Subject;
 use App\Models\User;
 use App\Services\EmailTemplateService;
 use App\Services\ParentPolicyService;
@@ -90,13 +90,13 @@ class AccessControlTest extends TestCase
 
     public function test_only_email_setting_managers_can_edit_email_templates(): void
     {
-        $before = EmailTempalate::where('type', 'staff_registration')->value('content');
+        $before = EmailTemplate::where('type', 'staff_registration')->value('content');
 
         $this->actingAs($this->user('Teacher', 'teacher@example.com'))
             ->postJson('/email/store', ['type' => 'staff', 'content' => '@php system("id"); @endphp'])
             ->assertForbidden();
 
-        $this->assertSame($before, EmailTempalate::where('type', 'staff_registration')->value('content'));
+        $this->assertSame($before, EmailTemplate::where('type', 'staff_registration')->value('content'));
     }
 
     public function test_subjects_need_subject_permissions(): void

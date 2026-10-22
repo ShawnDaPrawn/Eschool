@@ -1,0 +1,87 @@
+{
+    "request": "GET /api/v2/me/context",
+    "status": 200,
+    "error": false,
+    "message": "Data Fetch Successfully",
+    "code": 200,
+    "shape": {
+        "code": "number",
+        "data": {
+            "children": [
+                {
+                    "first_name": "string",
+                    "id": "number",
+                    "image": "null",
+                    "last_name": "string",
+                    "name": "string",
+                    "school": {
+                        "crest_url": "null",
+                        "id": "number",
+                        "name": "string",
+                        "short_name": "null"
+                    },
+                    "user_id": "number"
+                }
+            ],
+            "current_school": {
+                "branding": {
+                    "secondary_color": "string",
+                    "theme_color": "string"
+                },
+                "crest_url": "null",
+                "id": "number",
+                "name": "string",
+                "session_year": {
+                    "end_date": "string",
+                    "id": "number",
+                    "name": "string",
+                    "start_date": "string",
+                    "terms": [
+                        {
+                            "current": "bool",
+                            "end_date": "string",
+                            "id": "number",
+                            "name": "string",
+                            "start_date": "string"
+                        }
+                    ]
+                },
+                "short_name": "null",
+                "tagline": "null",
+                "timezone": "string"
+            },
+            "feature_flags": [],
+            "modules": [],
+            "notification_rules": [],
+            "schools": [
+                {
+                    "roles": [
+                        "string"
+                    ],
+                    "school": {
+                        "crest_url": "null",
+                        "id": "number",
+                        "name": "string",
+                        "short_name": "null"
+                    }
+                }
+            ],
+            "sign_in_methods": [
+                "string"
+            ],
+            "user": {
+                "email": "string",
+                "first_name": "string",
+                "id": "number",
+                "image": "null",
+                "last_name": "string",
+                "name": "string",
+                "roles": [
+                    "string"
+                ]
+            }
+        },
+        "error": "bool",
+        "message": "string"
+    }
+}

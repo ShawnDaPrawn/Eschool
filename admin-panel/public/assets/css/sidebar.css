@@ -301,25 +301,60 @@
     min-width: 0;
 }
 
+/* Close (×): an M3 standard icon button — 40px circle, no container,
+   the state layer on hover. */
 .sidebar-close-btn {
     flex-shrink: 0;
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    width: 36px;
-    height: 36px;
+    width: 40px;
+    height: 40px;
     padding: 0;
     border: 0;
     border-radius: var(--md-sys-shape-corner-full);
-    background: var(--app-nav-hover);
+    background: transparent;
     color: var(--app-nav-fg);
     cursor: pointer;
-    transition: background-color 0.2s ease, color 0.2s ease;
+    transition: background-color 0.15s ease, color 0.15s ease;
 }
 
 .sidebar-close-btn:hover {
-    background: var(--app-nav-divider);
+    background: var(--app-nav-hover);
     color: var(--app-nav-fg-strong);
+}
+
+.sidebar-close-btn:focus {
+    outline: 0;
+}
+
+.sidebar-close-btn:focus-visible {
+    outline: 3px solid var(--app-nav-sub-active);
+    outline-offset: 2px;
+}
+
+/* Session-year select on the dark drawer: the topbar's M3 field
+   (header.css) in the drawer's colours. */
+.sidebar .sidebar-mobile-session .sidebar-session-dropdown {
+    width: 100%;
+    margin: 0 !important;
+    border-color: color-mix(in srgb, var(--md-sys-color-on-inverse-surface) 38%, transparent);
+    background-color: var(--app-nav-hover);
+    color: var(--app-nav-fg-strong);
+}
+
+.sidebar .sidebar-mobile-session .sidebar-session-dropdown:hover {
+    border-color: var(--app-nav-fg-strong);
+}
+
+.sidebar .sidebar-mobile-session .sidebar-session-dropdown:focus {
+    border-color: var(--app-nav-sub-active);
+    box-shadow: inset 0 0 0 1px var(--app-nav-sub-active);
+}
+
+.sidebar .sidebar-mobile-session .sidebar-session-dropdown option {
+    background: var(--md-sys-color-surface-container);
+    color: var(--md-sys-color-on-surface);
 }
 
 /* ============================================================

@@ -223,7 +223,7 @@ Everything the admin panel and public site load is committed under [public/asset
 
 | Folder | Contents |
 |---|---|
-| `assets/css` | `style.css`, `rtl.css`, `vendor.bundle.base.css`, page styles (`sidebar.css`, `header.css`, `content.css`, `tables.css`, `timetable.css`, `webstyle.css` for the public site, and others), and `panel.css` (the panel shell and page pattern, loaded last) |
+| `assets/css` | `style.css`, `rtl.css`, `vendor.bundle.base.css`, page styles (`sidebar.css`, `header.css`, `content.css`, `tables.css`, `timetable.css`, `site.css` for the public site, and others), and `panel.css` (the panel shell and page pattern, loaded last) |
 | `assets/js` | `vendor.bundle.base.js` (jQuery and Bootstrap), Chart.js, jQuery Validate, Flatpickr, Moment, SweetAlert2, jquery.repeater and others |
 | `assets/js/custom` | App code: `custom.js`, `function.js`, `formatter.js`, `queryParams.js`, `custom-bootstrap-table.js`, `bootstrap-table-locale.js`, `validate.js`, `sidebar.js` (the drawer's backdrop), `dashboard.js`, `timetable.js`, `staff-attendance.js`, `reset-password.js`; `panel.js` (year switcher, global search, read-only mode), `page.js` (the page pattern's tables, forms and confirm dialog), `new-year.js` (the wizard's steps) |
 | `assets/bootstrap-table` | bootstrap-table with the mobile, export, fixed-columns and reorder-rows extensions, tableExport and jsPDF |

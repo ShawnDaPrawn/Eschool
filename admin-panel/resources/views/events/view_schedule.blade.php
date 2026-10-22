@@ -10,7 +10,7 @@
             <h3 class="page-title">
                 {{ __('manage') . ' ' . __('events') }}
             </h3>
-            <a class="btn btn-sm btn-theme" href="{{ route('events.index') }}">{{ __('back') }}</a>
+            <a class="btn btn-sm btn-secondary" href="{{ route('events.index') }}">{{ __('back') }}</a>
         </div>
         <div class="row">
             @can('event-list')
@@ -22,7 +22,7 @@
                             </h4>
 
                             <div class="row add-multiple-event-div" id="add-multiple-event-div"
-                                style="border: 1px solid #ddd; padding: 15px; border-radius: 5px; margin-bottom: 10px; display:none;">
+                                style="border: 1px solid var(--md-sys-color-outline-variant); padding: 16px; border-radius: var(--app-radius); margin-bottom: 12px; display:none;">
                                 <div class="form-group col-sm-12 col-md-6">
                                     <label>{{ __('title') }} <span class="text-danger">*</span></label>
                                     {!! Form::text('events[0][title]', null, ['required', 'placeholder' => __('title'), 'class' => 'form-control']) !!}
@@ -75,7 +75,7 @@
                                         $timerange = $event['start_time'] . ' - ' . $event['end_time'];
                                     @endphp
                                     <div class="row mt-6"
-                                        style="border: 1px solid #ddd; padding: 15px; border-radius: 5px; margin-bottom: 10px;">
+                                        style="border: 1px solid var(--md-sys-color-outline-variant); padding: 16px; border-radius: var(--app-radius); margin-bottom: 12px;">
                                         <input type="hidden" name="edit_events[{{ $key }}][id]"
                                             value="{{ $event['id'] }}" class="form-control">
 

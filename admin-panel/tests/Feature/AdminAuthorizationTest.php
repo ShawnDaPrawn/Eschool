@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Models\Language;
 use App\Models\Parents;
 use App\Models\Slider;
 use App\Models\Staff;
@@ -18,8 +19,8 @@ use Tests\TestCase;
  * requires a login, so these checks are what keeps a Teacher or a custom-role
  * staff member out of admin-only actions.
  *
- * Only paths that return a response (rather than calling exit() through
- * ResponseService) are exercised in-process; see AdminPagesTest.
+ * Requested in-process. (ResponseService used to call exit(), so paths through
+ * it were left to AdminPagesTest; it returns its response now.)
  */
 class AdminAuthorizationTest extends TestCase
 {
@@ -189,7 +190,7 @@ class AdminAuthorizationTest extends TestCase
         $this->assertFileDoesNotExist(base_path('resources/lang/x.json'));
         $this->assertDatabaseMissing('languages', ['name' => 'Evil']);
 
-        $english = \App\Models\Language::where('code', 'en')->firstOrFail();
+        $english = Language::where('code', 'en')->firstOrFail();
         $this->actingAs($superAdmin)->put('/language/'.$english->id, [
             'id' => $english->id,
             'name' => 'English',

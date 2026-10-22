@@ -10,6 +10,7 @@ Working files for building NavigateEd on top of the seed codebase. The NavigateE
 | Self-test runs | `self-tests/phase-N.md`, screenshots in `self-tests/evidence/` |
 | Runbooks (deploy, rollback, restore, incident, release) | `runbooks/` |
 | Threat model and security test results | `security/` |
+| Performance smoke test (k6) with the Bible's latency budgets | `perf/k6-smoke.js` |
 | Living appendices of the Bible (data model, module and notification catalogues, build log) | `bible/` |
 
 The changelog is [`CHANGELOG.md`](../CHANGELOG.md) at the repository root, newest first. The developer wiki is [`wiki/`](../wiki) and the user documentation is [`documentation/`](../documentation).

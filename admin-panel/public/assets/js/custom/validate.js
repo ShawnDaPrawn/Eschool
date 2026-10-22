@@ -960,21 +960,6 @@ $(".sliders-create-form").validate({
     }
 });
 
-// The file input's accept=".zip" attribute is meant for the native file
-// picker only. jquery-additional-methods' "accept" rule auto-attaches to any
-// [accept] file input and tests it against the *MIME type* (e.g.
-// "application/zip"), which never matches a bare ".zip" pattern — so once a
-// real file is picked, .valid() silently fails and the AJAX submit in
-// custom.js never fires. Extension/type checking already happens server-side
-// (mimes:zip in SystemUpdateController@update), so disable the client rule.
-$("#system-update").validate({
-    rules: {
-        'file': {
-            accept: false,
-        },
-    },
-});
-
 $.validator.addMethod("youtubeUrl", function (value, element) {
     return this.optional(element) || /^(?:http(?:s)?:\/\/)?(?:www\.)?(?:m\.)?(?:youtu\.be\/|youtube\.com\/(?:(?:watch)\?(?:.*&)?v(?:i)?=|(?:embed|v|vi|user)\/))[^\?&"'>]{11}/.test(value);
 }, function () { return trans("please_enter_valid_youtube_url"); });
