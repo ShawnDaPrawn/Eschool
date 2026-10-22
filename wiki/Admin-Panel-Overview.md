@@ -181,7 +181,7 @@ Blade templates live in [resources/views](https://github.com/ShawnDaPrawn/Eschoo
 
 | Layout | Used by | Notes |
 |---|---|---|
-| `layouts/master.blade.php` | the admin views | The panel shell: a skip link to `<main id="main-content">`, `layouts.include` (CSS, theme colours, early scripts, `panel.css` last), `layouts.header` (search, school year, cache clear, language, account), `layouts.sidebar` (the navigation by job), the read-only banner and notices, `layouts.footer`, `layouts.footer_js`, `after-update-note-modal`, the page confirm dialog, then `panel.js` and `page.js`. Sections: `title`, `css`, `content`, `js`, `script`. |
+| `layouts/master.blade.php` | the admin views | The panel shell, built with the Material 3 library (`public/assets/m3`) while the pages inside it keep Bootstrap until they move: a skip link to `<main id="main-content">`, `layouts.include` (CSS, theme colours, `m3/m3.css`, early scripts, `panel.css` last), `layouts.header` (an M3 top app bar: search, school year, cache clear, language and account menus), `layouts.sidebar` (an M3 navigation drawer: the navigation by job), the read-only banner and notices, `layouts.footer`, `layouts.footer_js`, `after-update-note-modal`, the page confirm dialog, then `m3/m3.js`, `panel.js` and `page.js`. Sections: `title`, `css`, `content`, `js`, `script`. |
 | `web/master.blade.php` | 7 public website views | Reads `web_settings` rows (`about_us`, `who_we_are`, `teacher`, `photos`, `videos`, `question`, `registration`) to decide which sections show. See [Public-Website](Public-Website). |
 | `errors::minimal` | `resources/views/errors/*` | Error pages 401 to 503, on the design tokens. `403.blade.php` adds the exception message and a Go Back button. |
 
@@ -191,7 +191,7 @@ Points worth knowing:
 - Theme: `layouts/include.blade.php` loads the Material 3 design tokens (`assets/css/m3-tokens.css`, generated from the apps' theme) and `m3-base.css`, so the panel uses the same colours, type and shapes as the apps; see [UI-Standards](UI-Standards#admin-panel-and-website). It writes the `login_image` setting into `--image-url`. The `theme_color` and `secondary_color` settings now only colour the printed certificates and result sheets.
 - Translations for JavaScript come from `<script src="{{ route('common.language.read') }}">`, which defines `window.languageLabels`. See [Localization](Localization).
 - Logos and favicon come from the `logo1`, `logo2` and `favicon` settings through `schoolLogoUrl()` and `schoolSetting()`; the school name in titles and footers is `config('app.name')`, which the `school_name` setting overrides. No view calls `env()` (enforced by `SettingsConfigTest`).
-- `resources/views/components`: `x-icon` (inline Lucide SVG icons by name), `page/*` (the page pattern: `header`, `filters`, `table`, `empty-state`, `field`, `form-card`, `confirm-dialog`; see [UI-Standards](UI-Standards#admin-panel-page-pattern)), `form/image-upload`, `form/status-radio`, `wizard`, `web-settings/section`.
+- `resources/views/components`: `x-icon` (inline Lucide SVG icons by name), `page/*` (the page pattern, on the Material 3 library: `header`, `filters`, `table`, `empty-state`, `field`, `form-card`, `confirm-dialog`; see [UI-Standards](UI-Standards#admin-panel-page-pattern)), `form/image-upload`, `form/status-radio`, `wizard`, `web-settings/section`.
 
 ### Data tables (bootstrap-table)
 
@@ -225,7 +225,8 @@ Everything the admin panel and public site load is committed under [public/asset
 |---|---|
 | `assets/css` | `style.css`, `rtl.css`, `vendor.bundle.base.css`, page styles (`sidebar.css`, `header.css`, `content.css`, `tables.css`, `timetable.css`, `site.css` for the public site, and others), and `panel.css` (the panel shell and page pattern, loaded last) |
 | `assets/js` | `vendor.bundle.base.js` (jQuery and Bootstrap), Chart.js, jQuery Validate, Flatpickr, Moment, SweetAlert2, jquery.repeater and others |
-| `assets/js/custom` | App code: `custom.js`, `function.js`, `formatter.js`, `queryParams.js`, `custom-bootstrap-table.js`, `bootstrap-table-locale.js`, `validate.js`, `sidebar.js` (the drawer's backdrop), `dashboard.js`, `timetable.js`, `staff-attendance.js`, `reset-password.js`; `panel.js` (year switcher, global search, read-only mode), `page.js` (the page pattern's tables, forms and confirm dialog), `new-year.js` (the wizard's steps) |
+| `assets/js/custom` | App code: `custom.js`, `function.js`, `formatter.js`, `queryParams.js`, `custom-bootstrap-table.js`, `bootstrap-table-locale.js`, `validate.js`, `sidebar.js` (the navigation drawer: sections, the icon-only mode, the small-screen drawer and its backdrop), `dashboard.js`, `timetable.js`, `staff-attendance.js`, `reset-password.js`; `panel.js` (year switcher, global search, read-only mode), `page.js` (the page pattern: `PageTable`, form cards and the confirm dialog), `new-year.js` (the wizard's steps) |
+| `assets/m3` | The Material 3 web library that replaces Bootstrap: `m3.css` and `m3.js` (see [UI-Standards](UI-Standards#the-material-3-web-library-replacing-bootstrap)) |
 | `assets/bootstrap-table` | bootstrap-table with the mobile, export, fixed-columns and reorder-rows extensions, tableExport and jsPDF |
 | `assets/jodit`, `assets/tinymce` | Rich text editors (Jodit replaced CKEditor 4 in the online exam editors) |
 | `assets/katex` | Maths rendering |
@@ -239,7 +240,7 @@ Phase 0 (stream S3, spec `engineering/specs/panel/redesign-part-one.md`) put eve
 
 ### Navigation registry
 
-The sidebar is built from [config/navigation.php](https://github.com/ShawnDaPrawn/Eschool/blob/main/admin-panel/config/navigation.php), not written in Blade. It has eight sections by job (Home, People, Academics, Communication, Money, Activities, Wellbeing, Settings); each section has groups and each group has items:
+The sidebar is built from [config/navigation.php](https://github.com/ShawnDaPrawn/Eschool/blob/main/admin-panel/config/navigation.php), not written in Blade, and drawn as an M3 navigation drawer (the Dark Navy `--inverse` variant) whose sections are disclosure buttons (`sidebar.js`). It has eight sections by job (Home, People, Academics, Communication, Money, Activities, Wellbeing, Settings); each section has groups and each group has items:
 
 | Item key | Meaning |
 |---|---|
@@ -256,7 +257,7 @@ The sidebar is built from [config/navigation.php](https://github.com/ShawnDaPraw
 
 ### Header and search
 
-`layouts/header.blade.php` holds the search box, the school year switcher (`#filter_session_year_global`, which existing pages read for their filters), the Cache Clear button for the Super Admin, the language menu and the account menu. On small screens the drawer repeats the year switcher.
+`layouts/header.blade.php`, an M3 top app bar with M3 menus, holds the search box, the school year switcher (`#filter_session_year_global`, which existing pages read for their filters), the Cache Clear button for the Super Admin, the language menu and the account menu. On small screens the drawer repeats the year switcher.
 
 `GET /search?q=` (route `search`, `Panel\SearchController`, `App\Services\Panel\GlobalSearch`) searches the panel's pages and settings (registry labels and keywords the person can see), learners (`student-list` or `student-report`; the selected year; a teacher without `student-create` only finds their own homerooms), parents (`parents-list`), teachers (`teacher-list` or `teacher-create`), other staff (`staff-list`), grades and homerooms (`class-list` or `class-create`) and subjects (`subject-list` or `subject-create`). Queries are 2 to 100 characters, LIKE wildcards are escaped, and results are capped: 5 per group as JSON (`Accept: application/json`, markup hex-escaped) for the header box, 20 per group on the results page. `panel.js` renders the box with `textContent` and `safeUrl()`; `/` and Ctrl/Cmd+K focus it.
 
