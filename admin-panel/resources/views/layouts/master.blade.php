@@ -18,6 +18,7 @@ $lang = Session::get('language');
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
     <title>@yield('title') || {{ config('app.name') }}</title>
     <meta name="csrf-token" content="{{ csrf_token() }}">
+    <link rel="icon" href="{{ schoolSetting('favicon') ? url(Storage::url(schoolSetting('favicon'))) : asset('assets/navigateed/favicon.svg') }}">
     @include('layouts.include')
     @yield('css')
 

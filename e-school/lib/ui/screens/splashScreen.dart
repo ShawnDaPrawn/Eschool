@@ -184,7 +184,11 @@ class _SplashScreenState extends State<SplashScreen> {
                     delay: const Duration(milliseconds: 10),
                     duration: const Duration(seconds: 1),
                   ),
-                  child: SvgPicture.asset(Assets.appLogo),
+                  child: SvgPicture.asset(
+                    Theme.of(context).brightness == Brightness.dark
+                        ? Assets.appLogoReversed
+                        : Assets.appLogo,
+                  ),
                 ),
               );
             },
