@@ -28,7 +28,7 @@ Both apps read their server address, environment and flavour from `--dart-define
 |---|---|---|
 | `API_BASE_URL` | The admin panel's public URL, with no trailing `/`. Must be `https://` unless `ENV=local`. | `https://navigateed-admin-972068206844.africa-south1.run.app` (the production server every earlier build used) |
 | `ENV` | `production`, `staging` or `local` | `production` |
-| `FLAVOR` | Which shell the build is: `learner` (student and parent app) or `teacher`. `facilitator` and `vendor` are reserved for the teacher app's later flavours. | `learner` in `e-school`, `teacher` in `e-school-teacher` |
+| `FLAVOR` | Which shell the build is: `learner` (student and parent app) or `teacher`. Later flavours of the teacher app will add values here. | `learner` in `e-school`, `teacher` in `e-school-teacher` |
 | `WEB_AUTH_MODE` | Web builds only: how the portal signs in. `cookie` uses the panel's session cookie (no token in the browser; needs the panel and the portal under one parent domain, see below); `bearer` keeps a token like the phone apps. Phone builds always use tokens. | `cookie` |
 
 Each app has a define file per environment:

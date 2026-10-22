@@ -1,6 +1,6 @@
 # Phase 0 self-test record
 
-The Phase 0 self-test matrix (Build Bible section 6, "Tests and self-testing"): admin (navigation, search, checklist, year switcher, wizard, five existing pages), teacher (sign in, timetable, attendance, marks), learner (sign in, timetable, assignments, fees view) and parent (sign in, child screens, fees), in a browser and at phone width. Recorded in the Appendix C format; the template and the profiles are in [README.md](README.md).
+What we self-tested in Phase 0 (the Build Bible, section 6, sets the scope). Admins: the new navigation, search, the Home checklist, the year switcher, the new-year wizard and five older pages. Teachers: signing in, the timetable, registers and marks. Learners: signing in, the timetable, assignments and fees. Parents: signing in, their children's screens and fees. All in a browser and at phone width. Rows use the format in [README.md](README.md), which also lists the profiles.
 
 **This run is local, not on staging.** Staging is not provisioned yet (no cloud credentials in Phase 0; see the [build log](../bible/build-log.md)), so every row was run on 2026-10-22 against the merged phase branch on one machine and says "local, staging not provisioned". The matrix must be run again on staging, in a browser and on a real phone, before the gate.
 
@@ -86,14 +86,14 @@ Follow-ups found on the way (not defects in Phase 0 code):
 
 ## UX scripts
 
-The Appendix C starter scripts need new users timed with no help, so they cannot be run here. **To run on staging with the product owner**, four of five tasks per profile in under two minutes without a wrong turn:
+The UX scripts need first-time users, timed and unaided, so they cannot be run here. **To run on staging with the product owner**, to the pass mark the Build Bible sets (section 5.2):
 
 | Profile | Tasks | Status |
 |---|---|---|
-| Admin | Add a learner; set up terms; send a notice; switch to last year; create next year | To run on staging with the product owner |
-| Teacher | Today's timetable; take a register; capture a mark; see a learner's page; message a parent | To run on staging with the product owner |
-| Learner | Next lesson and room; assignments due; results; a notice; change language | To run on staging with the product owner |
-| Parent | Child's attendance today; fees balance; a report card; a notice; switch child | To run on staging with the product owner |
+| Admin | Add a learner to a homeroom; set up this year's terms; send parents a notice; look at last year's learners; prepare next year with the wizard | To run on staging with the product owner |
+| Teacher | Find your next class; mark today's register; enter a test mark; open a learner's details; message a parent | To run on staging with the product owner |
+| Learner | Find your next lesson and its room; see what is due; check your results; read the latest notice; switch the app's language | To run on staging with the product owner |
+| Parent | Check your child was at school today; see the fees owed; open a report card; read the latest notice; switch to your other child | To run on staging with the product owner |
 
 The scripted timings above (finding each admin task in under a second, the learner page from search in under two seconds, the wizard in about four seconds) show the paths exist and are short; they are not a substitute for new users.
 

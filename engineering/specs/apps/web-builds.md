@@ -1,6 +1,6 @@
 # Web builds of both apps
 
-Phase 0, feature 0.10. Owner role: App. Build Bible Phase 0 step 10 and the "Apps in a browser" UX row; [ADR 0003](../../adr/0003-app-packages-and-web.md). Work stream S2.
+Phase 0, feature 0.10. Owner role: App. Build Bible section 6 and its UX check for the apps in a browser; [ADR 0003](../../adr/0003-app-packages-and-web.md). Work stream S2.
 
 Both apps now build for the web: the learner and parent app as the portal at `app.navigateed.co.za` (Firebase Hosting site `navigateed-app`), the teacher app at `teach.navigateed.co.za` (`navigateed-teach`). They are the same code as the phone apps, laid out for the browser's width (see [foundations.md](foundations.md)).
 
@@ -68,7 +68,7 @@ Every existing screen, in the browser. New: the mobile-only notice (a snackbar).
 
 ## Notification types
 
-None. Web push (Bible: "through a service worker") is deferred: FCM topics cannot be subscribed from a browser, so it needs a Firebase web app, a VAPID key and server-side sending to browser tokens. Until then the portals show notifications as in-app notices (the Notifications screen).
+None. Web push (which needs a service worker) is deferred: FCM topics cannot be subscribed from a browser, so it needs a Firebase web app, a VAPID key and server-side sending to browser tokens. Until then the portals show notifications as in-app notices (the Notifications screen).
 
 ## Module switch
 

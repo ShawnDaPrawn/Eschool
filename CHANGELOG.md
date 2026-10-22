@@ -81,7 +81,7 @@ Phase 0 (Groundwork): built on the phase branch, not yet released to production.
 - `SESSION_DOMAIN=.navigateed.co.za` for staging and production, applied by `provision.sh` once `APP_URL` is on that domain; until then the deploy workflow builds the portals with `WEB_AUTH_MODE=bearer` (the `WEB_AUTH_MODE` environment variable overrides).
 - Runbooks for environments, deploy, release, rollback, restore (with the restore drill, not yet run) and incidents in `engineering/runbooks/`.
 - Local stack with Docker Compose at the repository root: MySQL 8, the panel, the worker and the scheduler, built from the same image as Cloud Run.
-- k6 smoke test (`engineering/perf/k6-smoke.js`) with the Bible's p95 budgets (300 ms for lists, 150 ms for `/api/v2/me/context`), run by hand from **Actions > k6 smoke**.
+- k6 smoke test (`engineering/perf/k6-smoke.js`) with our p95 budgets (Build Bible 5.2) (300 ms for lists, 150 ms for `/api/v2/me/context`), run by hand from **Actions > k6 smoke**.
 
 ### Removed
 

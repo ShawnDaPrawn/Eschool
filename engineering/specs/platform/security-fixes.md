@@ -79,7 +79,7 @@ Phase 0, feature 0.7. Owner role: Backend (security). Work stream S6. Build Bibl
 
 | Change | Migration | down() |
 | --- | --- | --- |
-| `users.password_change_required` boolean, default false | `2026_10_22_090000_add_password_change_required_to_users_table` (also queues `learners:flag-dob-passwords`) | drops the column |
+| `users.password_change_required` boolean, default false | `2026_10_22_090000_add_password_change_required_to_users_table` (the scheduler then queues `learners:flag-dob-passwords` daily until one run completes) | drops the column |
 | `learner_invitations`: `school_id` (nullable, indexed; Phase 1 adds the key), `learner_user_id`, `guardian_user_id` (nullable), `channel` (`link` or `code`), `token_hash` (sha256, unique), `code_hash` (bcrypt), `expires_at`, `used_at`, `revoked_at`, `created_by`, timestamps | `2026_10_22_090100_create_learner_invitations_table` | drops the table |
 | `email_tempalates` row `learner_invitation` | `EmailSeeder` (firstOrCreate) | none needed |
 | `settings` rows of secrets | cleared by `secrets:audit-settings --purge` (not a migration: it needs the environment values first) | none |
@@ -113,7 +113,7 @@ No `openapi.yaml` change: these are v1 and panel routes.
 
 ## Notification types and module switch
 
-One email, `learner_invitation` (template in `email_tempalates`, sent through `MailService`). It corresponds to the Bible's locked `account.password_reset` family; the Phase 1 notifier registry should list it as locked (always sent). No module switch: sign-in is always on.
+One email, `learner_invitation` (template in `email_tempalates`, sent through `MailService`). It belongs with the password-reset mail; the Phase 1 notification registry should mark it as always sent. No module switch: sign-in is always on.
 
 ## Security notes
 

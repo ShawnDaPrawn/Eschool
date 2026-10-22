@@ -1,7 +1,7 @@
 name: k6 smoke
 
 # Runs engineering/perf/k6-smoke.js against the address given: the panel, the
-# public API and a few v1 reads, held to the Build Bible's p95 budgets (300 ms
+# public API and a few v1 reads, held to our p95 budgets (300 ms
 # for lists, 150 ms for /api/v2/me/context once it exists). Run it against
 # staging at each phase gate (engineering/runbooks/release.md).
 #
