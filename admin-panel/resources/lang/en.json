@@ -1378,5 +1378,10 @@
     "page_not_published_yet": "This page has not been published yet.",
     "student_not_in_this_class_section": "This student is not in the chosen class section this year.",
     "currency_not_supported_by_razorpay": "Razorpay does not accept this currency.",
-    "password_rules_hint": "At least 10 characters, with letters and numbers. Passwords found in known data breaches are refused."
+    "password_rules_hint": "At least 10 characters, with letters and numbers. Passwords found in known data breaches are refused.",
+    "teacher_account_deactivated": "This teacher account has been deactivated. Please contact the school.",
+    "teacher_deactivate_confirm": "Deactivate this teacher? They will be signed out and can't sign in until you activate them again.",
+    "teacher_activate_confirm": "Activate this teacher? They will be able to sign in again.",
+    "activate": "Activate",
+    "deactivate": "Deactivate"
 }

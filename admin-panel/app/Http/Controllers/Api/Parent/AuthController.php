@@ -13,6 +13,7 @@ use App\Models\SessionYear;
 use App\Models\Shift;
 use App\Models\Students;
 use App\Models\StudentSessions;
+use App\Services\Platform\Identity\AppTokens;
 use App\Services\ResponseService;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
@@ -67,7 +68,7 @@ class AuthController extends Controller
                 $auth->save();
             }
 
-            $token = $auth->createToken($auth->first_name)->plainTextToken;
+            $token = AppTokens::issue($auth, AppTokens::PARENT);
             $user = $auth->load(['parent']);
 
             $children = Students::where('father_id', $user->parent->id)->orWhere('mother_id', $user->parent->id)->orWhere('guardian_id', $user->parent->id)->with('class_section')

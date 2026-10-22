@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
+use App\Http\Middleware\EnsureTeacherActive;
 use App\Http\Middleware\RequirePasswordChange;
 use App\Providers\RouteServiceProvider;
 use Illuminate\Foundation\Auth\AuthenticatesUsers;
@@ -59,6 +60,10 @@ class LoginController extends Controller
 
         if ($user->roles->isEmpty()) {
             return $this->refuseLogin($request, 'no_permission_message');
+        }
+
+        if ($user->hasRole('Teacher') && ! EnsureTeacherActive::isActive($user)) {
+            return $this->refuseLogin($request, 'teacher_account_deactivated');
         }
 
         if (RequirePasswordChange::isDefaultPassword($user, (string) $request->input('password'))) {

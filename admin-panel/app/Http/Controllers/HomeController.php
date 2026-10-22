@@ -30,6 +30,7 @@ use App\Models\Teacher;
 use App\Models\Timetable;
 use App\Models\User;
 use App\Services\FeesCollectionService;
+use App\Services\Platform\Identity\AppTokens;
 use App\Services\ResponseService;
 use Carbon\Carbon;
 use Illuminate\Contracts\View\View;
@@ -108,7 +109,7 @@ class HomeController extends Controller
             // sessions and the apps are signed out (AuthenticateSession, tokens).
             $user->password = Hash::make($request->input('new_password'));
             $user->save();
-            $user->tokens()->delete();
+            AppTokens::revokeAll($user);
             $request->session()->forget(RequirePasswordChange::SESSION_KEY);
 
             return response()->json([

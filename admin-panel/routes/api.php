@@ -6,6 +6,8 @@ use App\Http\Controllers\Api\Student;
 use App\Http\Controllers\Api\Teacher;
 // use Illuminate\Http\Request;
 // use Illuminate\Support\Facades\Password;
+use App\Http\Middleware\CheckChild;
+use App\Http\Middleware\CheckStudent;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -140,7 +142,7 @@ Route::group(['prefix' => 'parent'], function () {
         Route::post('get-user-message', [ParentApi\ChatController::class, 'getUserChatMessage']);
         Route::post('read-all-message', [ParentApi\ChatController::class, 'readAllMessages']);
 
-        Route::group(['middleware' => ['auth:sanctum', \App\Http\Middleware\CheckChild::class]], function () {
+        Route::group(['middleware' => ['auth:sanctum', CheckChild::class]], function () {
 
             Route::get('subjects', [ParentApi\SubjectController::class, 'subjects']);
             Route::get('class-subjects', [ParentApi\SubjectController::class, 'classSubjects']);
@@ -194,13 +196,14 @@ Route::group(['prefix' => 'teacher'], function () {
     Route::post('login', [Teacher\AuthController::class, 'login'])->middleware('throttle:login');
 
     // First sign-in only. Same controller as the parent app.
-    Route::group(['middleware' => ['auth:sanctum', 'role:Teacher']], function () {
+    Route::group(['middleware' => ['auth:sanctum', 'role:Teacher', 'teacher.active']], function () {
         Route::get('policy-acceptance', [ParentApi\PolicyController::class, 'show']);
         Route::post('policy-acceptance', [ParentApi\PolicyController::class, 'store']);
     });
 
     // Authenticated APIs
-    Route::group(['middleware' => ['auth:sanctum', 'role:Teacher', 'teacher.policy']], function () {
+    // teacher.active: a deactivated teacher's old tokens stop working (401).
+    Route::group(['middleware' => ['auth:sanctum', 'role:Teacher', 'teacher.active', 'teacher.policy']], function () {
         Route::get('dashboard', [Teacher\DashboardController::class, 'dashboard']);
         Route::get('classes', [Teacher\ClassController::class, 'classes']);
 
@@ -247,7 +250,7 @@ Route::group(['prefix' => 'teacher'], function () {
         Route::post('submit-exam-marks/subject', [Teacher\ExamController::class, 'submitExamMarksBySubjects']); // Submit Exam Marks By Subjects Route
         Route::post('submit-exam-marks/student', [Teacher\ExamController::class, 'submitExamMarksByStudent']); // Submit Exam Marks By Students Route
 
-        Route::group(['middleware' => ['auth:sanctum', \App\Http\Middleware\CheckStudent::class]], function () {
+        Route::group(['middleware' => ['auth:sanctum', CheckStudent::class]], function () {
             Route::get('get-student-result', [Teacher\ExamController::class, 'GetStudentExamResult']); // Student Exam Result
             Route::get('get-student-marks', [Teacher\ExamController::class, 'GetStudentExamMarks']); // Student Exam Marks
         });
