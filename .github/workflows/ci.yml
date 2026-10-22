@@ -111,6 +111,24 @@ jobs:
       - name: PHP packages (fails on any advisory)
         working-directory: admin-panel
         run: composer audit --locked
+      - uses: subosito/flutter-action@1a449444c387b1966244ae4d4f8c696479add0b2 # v2.23.0
+        with:
+          flutter-version: '3.44.9'
+          channel: stable
+          cache: true
+      # Informational (Bible 5.1): lists outdated Dart packages in both apps and
+      # every package; never fails the build. Dependabot opens the update PRs.
+      - name: Dart packages (informational)
+        continue-on-error: true
+        run: |
+          for dir in e-school e-school-teacher packages/*/; do
+            dir="${dir%/}"
+            [ -f "$dir/pubspec.yaml" ] || continue
+            echo "::group::dart pub outdated: $dir"
+            (cd "$dir" && flutter pub get --enforce-lockfile > /dev/null && dart pub outdated) \
+              || echo "::warning::dart pub outdated could not run in $dir"
+            echo "::endgroup::"
+          done
       - uses: actions/setup-node@v4
         with:
           node-version: 22

@@ -35,8 +35,9 @@ update
 **/*.zip
 version_info.php
 
-# Tests and dev tooling
+# Tests and dev tooling (e2e is the Playwright project)
 tests
+e2e
 phpunit.xml
 .phpunit.cache
 .phpunit.result.cache

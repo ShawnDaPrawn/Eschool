@@ -38,7 +38,9 @@ return [
             'driver' => 'database',
             'table' => 'jobs',
             'queue' => 'default',
-            'retry_after' => 90,
+            // Longer than the worker's --timeout=120 (docker/entrypoint.sh), or a
+            // job still running would be handed to a second worker.
+            'retry_after' => 180,
             'after_commit' => false,
         ],
 
@@ -71,6 +73,20 @@ return [
             'after_commit' => false,
         ],
 
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Worker Health
+    |--------------------------------------------------------------------------
+    |
+    | GET /up/worker answers 503 once a due job has waited longer than this, so
+    | the worker's uptime check fails when the worker stops emptying the queue.
+    |
+    */
+
+    'worker_health' => [
+        'max_wait_seconds' => (int) env('QUEUE_HEALTH_MAX_WAIT', 600),
     ],
 
     /*
