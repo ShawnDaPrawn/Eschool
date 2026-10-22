@@ -62,7 +62,10 @@ class DeepLinkParser {
     if (segments == null) {
       return null;
     }
-    final Map<String, String> query = _query(uri);
+    return _target(segments, _query(uri));
+  }
+
+  DeepLinkTarget? _target(List<String> segments, Map<String, String> query) {
     for (final DeepLinkRoute route in routes) {
       final Map<String, String>? values = _match(route.path, segments);
       if (values == null) {
@@ -78,6 +81,23 @@ class DeepLinkParser {
       }
     }
     return null;
+  }
+
+  /// The screen an app path asks for (`/my-school`, `/invite/abc`), as a
+  /// push's `link` gives it; `null` for a path the app does not know.
+  DeepLinkTarget? parsePath(String path) {
+    final Uri? uri = Uri.tryParse(path.trim());
+    if (uri == null || uri.hasScheme || uri.hasAuthority) {
+      return null;
+    }
+    final List<String> segments = uri.path
+        .split('/')
+        .where((segment) => segment.isNotEmpty)
+        .toList();
+    if (segments.isEmpty) {
+      return null;
+    }
+    return _target(segments, uri.queryParameters);
   }
 
   /// The path segments the link names, or `null` when the link is not ours.

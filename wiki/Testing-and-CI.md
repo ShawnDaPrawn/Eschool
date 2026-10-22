@@ -52,7 +52,7 @@ Runs in `admin-panel/` with Node 22: `npx --yes @redocly/cli@2.57.0 lint openapi
 
 ### `apps`: Flutter app (matrix)
 
-A matrix over `app: [e-school, e-school-teacher, packages/eschool_core, packages/eschool_api, packages/eschool_session, packages/eschool_notifications]` with `fail-fast: false`, so a failure in one leg does not cancel the others. `eschool_core` is the shared code both apps depend on (see [Repository-Layout](Repository-Layout#packageseschool_core)); `eschool_api` is the Dart client generated from `admin-panel/openapi.yaml`; `eschool_session` holds sign-in, `/me/context`, force update and deep links; `eschool_notifications` holds push and local notifications. Each leg runs in its own folder:
+A matrix over `app: [e-school, e-school-teacher, packages/eschool_core, packages/eschool_api, packages/eschool_session, packages/eschool_notifications, packages/eschool_people]` with `fail-fast: false`, so a failure in one leg does not cancel the others. `eschool_core` is the shared code both apps depend on (see [Repository-Layout](Repository-Layout#packageseschool_core)); `eschool_api` is the Dart client generated from `admin-panel/openapi.yaml`; `eschool_session` holds sign-in, `/me/context`, the child and school switchers, force update and deep links; `eschool_notifications` holds push and local notifications and the Notifications settings screen; `eschool_people` holds the Approvals, Invitation, My school and Profile picture screens. Each leg runs in its own folder:
 
 1. `subosito/flutter-action@v2` with `flutter-version: '3.44.9'`, `channel: stable`, `cache: true`.
 2. `flutter pub get --enforce-lockfile` – fails if `pubspec.lock` does not match `pubspec.yaml`. The apps and the shared package commit their `pubspec.lock` (commit [dd3df94](https://github.com/ShawnDaPrawn/Eschool/commit/dd3df94)), pinned to what was resolved and analysed with Flutter 3.44.9.
@@ -70,7 +70,7 @@ A matrix over `app: [e-school, e-school-teacher]`, 45-minute limit. With KVM swi
 
 ### `apps-smoke-chrome`: Flutter smoke flow in Chrome (matrix)
 
-One leg per flow: `learner_smoke_test.dart` and `parent_smoke_test.dart` in `e-school`, `teacher_smoke_test.dart` in `e-school-teacher`, 30-minute limit. It starts the runner's chromedriver on port 4444 and runs `flutter drive --driver=test_driver/integration_test.dart --target=integration_test/<flow> -d web-server --browser-name=chrome --headless --no-web-resources-cdn`.
+One leg per flow: `learner_smoke_test.dart`, `parent_smoke_test.dart`, `child_switch_smoke_test.dart` (a parent of two switches child and the open screen follows) and `notification_settings_smoke_test.dart` (a parent finds Notifications settings in Settings and turns a channel off) in `e-school`, `teacher_smoke_test.dart` in `e-school-teacher`, 30-minute limit. It starts the runner's chromedriver on port 4444 and runs `flutter drive --driver=test_driver/integration_test.dart --target=integration_test/<flow> -d web-server --browser-name=chrome --headless --no-web-resources-cdn`.
 
 ### `docs`: Documentation build
 

@@ -21,16 +21,6 @@ void main() {
   // Each route reads its typed arguments when it is built; a wrong type
   // fails here instead of on a learner's phone.
   final Map<String, Object?> typedArguments = {
-    Routes.childAssignments: ChildSubjectsArguments(
-      childId: 4,
-      subjects: subjects,
-    ),
-    Routes.exam: ChildSubjectsArguments(childId: 4, subjects: subjects),
-    Routes.childResults: ChildSubjectsArguments(childId: 4, subjects: subjects),
-    Routes.subjectWiseReport: ChildSubjectsArguments(
-      childId: 4,
-      subjects: subjects,
-    ),
     Routes.examTimeTable: const ExamTimeTableArguments(
       examId: 2,
       examName: 'June exams',
@@ -46,7 +36,6 @@ void main() {
       status: 1,
     ),
     Routes.webViewPaymentScreen: 'https://checkout.test/pay',
-    Routes.childFees: student,
     Routes.manageLeaves: student,
     Routes.addLeave: student,
     Routes.academicCalendar: const AcademicCalendarArguments(hasBack: true),
@@ -69,6 +58,25 @@ void main() {
       expect(open(name, arguments), isA<PageRoute<dynamic>>());
     });
   });
+
+  // A parent's child screens show the child picked in the child switcher:
+  // they are opened with no child at all.
+  for (final String name in [
+    Routes.studentDetails,
+    Routes.childAssignments,
+    Routes.childTeachers,
+    Routes.childAttendance,
+    Routes.childTimeTable,
+    Routes.childResults,
+    Routes.childFees,
+    Routes.exam,
+    Routes.subjectWiseReport,
+    Routes.manageLeaves,
+  ]) {
+    test('$name opens for the child on show, without a child id', () {
+      expect(open(name), isA<PageRoute<dynamic>>());
+    });
+  }
 
   test('a fee reminder opens the fees of the child it names', () {
     expect(
@@ -104,6 +112,46 @@ void main() {
             .arguments,
         isA<AcademicCalendarArguments>(),
       );
+    });
+
+    test('the shared screens have addresses, and push links name them', () {
+      expect(
+        parser.parse(Uri.parse('https://app.navigateed.co.za/my-school')),
+        const DeepLinkTarget(Routes.mySchool),
+      );
+      expect(
+        parser.parsePath('/notifications/settings'),
+        const DeepLinkTarget(Routes.notificationSettings),
+      );
+      expect(
+        parser.parsePath('/approvals'),
+        const DeepLinkTarget(Routes.approvals),
+      );
+      expect(
+        parser.parse(Uri.parse('https://app.navigateed.co.za/invite/t0k3n')),
+        const DeepLinkTarget(Routes.invitation, arguments: 't0k3n'),
+      );
+      expect(
+        parser.parsePath('/profile-picture'),
+        const DeepLinkTarget(Routes.profilePicture),
+      );
+      // The notifications list keeps its address.
+      expect(
+        parser.parsePath('/notifications'),
+        const DeepLinkTarget(Routes.notifications),
+      );
+    });
+
+    test('the shared screens open as routes', () {
+      for (final String name in [
+        Routes.notificationSettings,
+        Routes.mySchool,
+        Routes.approvals,
+        Routes.profilePicture,
+      ]) {
+        expect(open(name), isA<PageRoute<dynamic>>(), reason: name);
+      }
+      expect(open(Routes.invitation, 't0k3n'), isA<PageRoute<dynamic>>());
     });
 
     test('every link opens a route the app has', () {
