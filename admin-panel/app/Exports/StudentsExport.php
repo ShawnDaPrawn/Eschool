@@ -6,6 +6,7 @@ namespace App\Exports;
 
 use App\Models\StudentSessions;
 use DateTime;
+use Illuminate\Support\Enumerable;
 use Maatwebsite\Excel\Concerns\Exportable;
 use Maatwebsite\Excel\Concerns\FromCollection;
 use Maatwebsite\Excel\Concerns\WithHeadings;
@@ -24,7 +25,7 @@ class StudentsExport implements FromCollection, WithHeadings
         $this->date = $date;
     }
 
-    public function collection(): \Illuminate\Support\Enumerable
+    public function collection(): Enumerable
     {
         $dateRange = explode(' - ', $this->date);
         $start = new DateTime($dateRange[0]);
