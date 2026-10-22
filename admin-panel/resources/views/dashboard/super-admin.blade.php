@@ -10,7 +10,7 @@
     data-url-leaves="{{ route('home.widget.leaves') }}"
     data-url-events="{{ route('home.widget.events') }}">
 
-    @include('dashboard.partials.header')
+    @include('home.top')
 
     @include('dashboard.partials.stat-cards')
 

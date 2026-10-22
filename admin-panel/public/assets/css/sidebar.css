@@ -1,544 +1,332 @@
 /* ============================================================
-   SIDEBAR — redesign (eSchool design system, see DESIGN.md → "Sidebar")
+   SIDEBAR: the panel's navigation by job
    ------------------------------------------------------------
-   Loaded after style.css / rtl.css (in include.blade.php) so it
-   overrides the legacy sidebar rules in those bundles. Colours are
-   Material 3 tokens (m3-tokens.css): the drawer is a dark section
-   (Dark Navy, inverse-surface) like the apps' headers, and the
-   active item is a purple (primary) pill. The --app-nav-* variables
-   below are the only place the drawer's colours are chosen; point
-   them at surface roles to get a light drawer. Icons are Lucide
-   <svg> (see x-icon).
+   Markup: resources/views/layouts/sidebar.blade.php, a Material 3
+   navigation drawer (public/assets/m3, the Dark Navy --inverse
+   variant) with disclosure sections. Behaviour: sidebar.js.
+   Loaded after style.css / rtl.css and m3.css, so it sets the
+   drawer's width and density for the panel. Colours are Material 3
+   tokens (m3-tokens.css): the drawer is a dark section (Dark Navy,
+   inverse-surface) like the apps' headers, and the active item is
+   a purple (primary) pill. The --app-nav-* variables below are the
+   only place the drawer's colours are chosen. Layout uses logical
+   properties, so right-to-left pages need no extra rules.
    ============================================================ */
+
+:root {
+    --panel-nav-width: 260px;
+    --panel-nav-width-collapsed: 72px;
+    --panel-topbar-height: 70px;
+}
 
 /* ---- Container -------------------------------------------- */
 .sidebar {
     --app-nav-bg: var(--md-sys-color-inverse-surface);
     --app-nav-fg: color-mix(in srgb, var(--md-sys-color-on-inverse-surface) 80%, transparent);
     --app-nav-fg-strong: var(--md-sys-color-on-inverse-surface);
-    --app-nav-muted: color-mix(in srgb, var(--md-sys-color-on-inverse-surface) 60%, transparent);
+    --app-nav-muted: color-mix(in srgb, var(--md-sys-color-on-inverse-surface) 72%, transparent);
     --app-nav-hover: color-mix(in srgb, var(--md-sys-color-on-inverse-surface) var(--md-sys-state-hover-opacity), transparent);
     --app-nav-divider: color-mix(in srgb, var(--md-sys-color-on-inverse-surface) 12%, transparent);
     --app-nav-active-bg: var(--md-sys-color-primary);
     --app-nav-active-fg: var(--md-sys-color-on-primary);
     --app-nav-sub-active: var(--md-sys-color-inverse-primary);
+    --m3-field-container: var(--md-sys-color-inverse-surface);
     background: var(--app-nav-bg);
 }
 
-/* RTL: flip the sidebar border to the left (inline-end) side. */
-[dir="rtl"] .sidebar,
-.rtl .sidebar {
-    border-right: 0;
-    border-left: 1px solid var(--app-nav-divider);
+.sidebar.panel-nav {
+    width: var(--panel-nav-width);
+    max-width: none;
+    min-height: calc(100vh - var(--panel-topbar-height));
+    padding: 0;
+    border: 0;
+    color: var(--app-nav-fg);
+    font-family: var(--md-ref-typeface-plain);
 }
 
-.sidebar .nav {
-    /* No top padding: the sticky search pins flush at the very top so menu
-       items can't peek through a gap above it (the search's own internal
-       padding provides the breathing room). */
-    padding: 0 0 1rem;
+@media (min-width: 992px) {
+    .sidebar-fixed .sidebar.panel-nav {
+        position: fixed;
+        top: var(--panel-topbar-height);
+        bottom: 0;
+        inset-inline-start: 0;
+        min-height: 0;
+    }
+
+    .sidebar-fixed .main-panel {
+        margin-left: 0;
+        margin-right: 0;
+        margin-inline-start: var(--panel-nav-width);
+        width: calc(100% - var(--panel-nav-width));
+    }
+
+    .sidebar-fixed.sidebar-icon-only .sidebar.panel-nav {
+        width: var(--panel-nav-width-collapsed);
+    }
+
+    .sidebar-fixed.sidebar-icon-only .main-panel {
+        margin-left: 0;
+        margin-right: 0;
+        margin-inline-start: var(--panel-nav-width-collapsed);
+        width: calc(100% - var(--panel-nav-width-collapsed));
+    }
 }
 
-/* Slim, subtle scrollbar (native fallback + PerfectScrollbar rail) */
-.sidebar .nav {
+/* The list scrolls inside the drawer; slim, subtle scrollbar. */
+.panel-nav__list {
+    position: relative;
+    flex: 1 1 auto;
+    min-height: 0;
+    margin: 0;
+    padding: var(--m3-space-3) var(--m3-space-3) var(--m3-space-6);
+    overflow-y: auto;
+    list-style: none;
     scrollbar-width: thin;
     scrollbar-color: var(--app-nav-divider) transparent;
 }
 
-.sidebar .nav::-webkit-scrollbar {
+.panel-nav__list::-webkit-scrollbar {
     width: 6px;
 }
 
-.sidebar .nav::-webkit-scrollbar-thumb {
+.panel-nav__list::-webkit-scrollbar-thumb {
     background: var(--app-nav-divider);
     border-radius: 6px;
 }
 
-.sidebar .nav .ps__thumb-y {
-    background: var(--app-nav-divider);
+.panel-nav__section {
+    margin: 0 0 2px;
 }
 
-/* ---- Top-level items -------------------------------------- */
-.sidebar .nav .nav-item {
-    padding: 0 0.75rem;
-    margin-bottom: 2px;
-    background: transparent;
-    transition: none;
-}
-
-/* Kill the legacy full-row hover/active background — the highlight
-   now lives on the .nav-link pill instead. */
-.sidebar .nav .nav-item:hover,
-.sidebar .nav .nav-item.active {
-    background: transparent;
-}
-
-.sidebar .nav .nav-item .nav-link {
-    position: relative;
-    align-items: center;
-    gap: 0;
-    padding: 0.6rem 0.85rem;
-    border-radius: var(--md-sys-shape-corner-full);
+/* ---- Sections (top-level items) --------------------------- */
+.panel-nav .panel-nav__link,
+.panel-nav .panel-nav__toggle {
+    width: 100%;
+    min-height: 48px;
+    padding: 0 var(--m3-space-4) 0 var(--m3-space-4);
+    gap: var(--m3-space-3);
     color: var(--app-nav-fg);
-    font-size: 0.94rem;
-    line-height: 1.2;
-    transition: background-color 0.2s ease, color 0.2s ease;
+    font-size: var(--md-sys-typescale-label-large-size);
+    line-height: var(--md-sys-typescale-label-large-line-height);
 }
 
-/* Icon — muted by default, full strength on hover and active. */
-.sidebar .nav .nav-item .nav-link svg.menu-icon,
-.sidebar .nav .nav-item .nav-link .menu-icon {
-    flex-shrink: 0;
-    width: 20px;
-    height: 20px;
-    margin: 0 0.7rem 0 0;
-    padding: 0;
+.panel-nav .panel-nav__link:hover,
+.panel-nav .panel-nav__link:focus,
+.panel-nav .panel-nav__toggle:hover,
+.panel-nav .panel-nav__toggle:focus {
+    color: var(--app-nav-fg-strong);
+}
+
+.panel-nav__icon {
+    flex: 0 0 auto;
     color: var(--app-nav-muted);
-    transition: color 0.2s ease;
 }
 
-[dir="rtl"] .sidebar .nav .nav-item .nav-link svg.menu-icon,
-.rtl .sidebar .nav .nav-item .nav-link svg.menu-icon {
-    margin: 0 0 0 0.7rem;
+.panel-nav__label {
+    flex: 1 1 auto;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 
-.sidebar .nav .nav-item .nav-link .menu-title {
-    padding: 0;
-    font-size: 0.94rem;
-    line-height: 1.2;
-    color: inherit;
-}
-
-/* Collapse chevron — rotates down→up on expand. */
-.sidebar .nav .nav-item .nav-link svg.menu-arrow,
-.sidebar .nav .nav-item .nav-link .menu-arrow {
-    position: absolute;
-    right: 0.85rem;
-    width: 16px;
-    height: 16px;
-    margin: 0;
-    padding: 0;
+.panel-nav__chevron {
+    flex: 0 0 auto;
     color: var(--app-nav-muted);
-    transition: transform 0.25s ease, color 0.2s ease;
+    transition: transform var(--m3-duration-medium) var(--m3-ease);
 }
 
-[dir="rtl"] .sidebar .nav .nav-item .nav-link svg.menu-arrow,
-.rtl .sidebar .nav .nav-item .nav-link svg.menu-arrow {
-    right: auto;
-    left: 0.85rem;
-}
-
-.sidebar .nav .nav-item .nav-link[aria-expanded="true"] svg.menu-arrow,
-.sidebar .nav .nav-item .nav-link[aria-expanded="true"] .menu-arrow {
+.panel-nav__toggle[aria-expanded="true"] .panel-nav__chevron {
     transform: rotate(180deg);
     color: var(--app-nav-fg-strong);
 }
 
-/* Hover */
-.sidebar .nav:not(.sub-menu)>.nav-item>.nav-link:hover,
-.sidebar .nav:not(.sub-menu)>.nav-item:hover:not(.nav-category):not(.nav-profile)>.nav-link {
-    background: var(--app-nav-hover);
-    color: var(--app-nav-fg-strong);
-}
-
-.sidebar .nav:not(.sub-menu)>.nav-item>.nav-link:hover svg.menu-icon,
-.sidebar .nav:not(.sub-menu)>.nav-item>.nav-link:hover .menu-arrow {
-    color: var(--app-nav-fg-strong);
-}
-
-/* Active top-level item */
-.sidebar .nav .nav-item.active>.nav-link {
+/* The section holding the current page: the primary pill. */
+.panel-nav .panel-nav__link[aria-current="page"],
+.panel-nav .panel-nav__section.is-active > .panel-nav__toggle {
     background: var(--app-nav-active-bg);
     color: var(--app-nav-active-fg);
-    font-family: var(--md-ref-typeface-plain);
-    font-weight: 500;
 }
 
-.sidebar .nav .nav-item.active>.nav-link .menu-title {
+.panel-nav .panel-nav__link[aria-current="page"] .panel-nav__icon,
+.panel-nav .panel-nav__section.is-active > .panel-nav__toggle .panel-nav__icon,
+.panel-nav .panel-nav__section.is-active > .panel-nav__toggle .panel-nav__chevron {
     color: var(--app-nav-active-fg);
 }
 
-.sidebar .nav .nav-item.active>.nav-link svg.menu-icon,
-.sidebar .nav .nav-item.active>.nav-link .menu-icon,
-.sidebar .nav .nav-item.active>.nav-link svg.menu-arrow {
-    color: var(--app-nav-active-fg);
+.panel-nav :focus-visible {
+    outline: 3px solid var(--app-nav-sub-active);
+    outline-offset: -3px;
 }
 
-
-/* ---- Sub-menu --------------------------------------------- */
-.sidebar .nav.sub-menu {
-    position: relative;
-    margin: 0.15rem 0 0.4rem;
-    padding: 0;
+/* ---- Groups and pages inside a section -------------------- */
+.panel-nav__panel {
+    padding: var(--m3-space-1) 0 var(--m3-space-2);
 }
 
-.sidebar .nav.sub-menu .nav-item {
-    padding: 0 0.75rem;
-    margin-bottom: 1px;
+.panel-nav__panel[hidden] {
+    display: none;
 }
 
-.sidebar .nav.sub-menu .nav-item .nav-link {
-    position: relative;
-    padding: 0.5rem 0.75rem 0.5rem 1.6rem;
-    border-radius: var(--md-sys-shape-corner-full);
+.panel-nav__group {
+    margin: var(--m3-space-3) 0 var(--m3-space-1);
+    padding: 0 var(--m3-space-4) 0 52px;
     color: var(--app-nav-muted);
-    font-size: 0.875rem;
-    line-height: 1.3;
+    font-size: var(--md-sys-typescale-label-small-size);
+    line-height: var(--md-sys-typescale-label-small-line-height);
+    font-weight: 500;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
 }
 
-[dir="rtl"] .sidebar .nav.sub-menu .nav-item .nav-link,
-.rtl .sidebar .nav.sub-menu .nav-item .nav-link {
-    padding: 0.5rem 1.6rem 0.5rem 0.75rem;
+.panel-nav__panel > .panel-nav__group:first-child {
+    margin-top: var(--m3-space-1);
 }
 
-/* Small bullet marker before each sub-item label. */
-.sidebar .nav.sub-menu .nav-item .nav-link::before {
+.panel-nav__items {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.panel-nav__item {
+    position: relative;
+    display: flex;
+    align-items: center;
+    min-height: 40px;
+    margin: 0 0 1px;
+    padding: var(--m3-space-2) var(--m3-space-4) var(--m3-space-2) 52px;
+    border-radius: var(--md-sys-shape-corner-full);
+    color: var(--app-nav-fg);
+    font-size: var(--md-sys-typescale-body-medium-size);
+    line-height: var(--md-sys-typescale-body-medium-line-height);
+    text-decoration: none;
+    transition: background-color var(--m3-duration-short) linear, color var(--m3-duration-short) linear;
+}
+
+/* A small marker before each page, filled for the current one. */
+.panel-nav__item::before {
     content: "";
     position: absolute;
-    left: 0.85rem;
     top: 50%;
-    transform: translateY(-50%);
-    width: 5px;
-    height: 5px;
+    inset-inline-start: 28px;
+    width: 6px;
+    height: 6px;
     border-radius: 50%;
     background: var(--app-nav-divider);
-    transition: background-color 0.2s ease, transform 0.2s ease;
+    transform: translate(-50%, -50%);
 }
 
-[dir="rtl"] .sidebar .nav.sub-menu .nav-item .nav-link::before,
-.rtl .sidebar .nav.sub-menu .nav-item .nav-link::before {
-    left: auto;
-    right: 0.85rem;
+[dir="rtl"] .panel-nav__item::before {
+    transform: translate(50%, -50%);
 }
 
-.sidebar .nav.sub-menu .nav-item .nav-link:hover {
+.panel-nav__item:hover,
+.panel-nav__item:focus {
     background: var(--app-nav-hover);
     color: var(--app-nav-fg-strong);
+    text-decoration: none;
 }
 
-.sidebar .nav.sub-menu .nav-item .nav-link:hover::before {
+.panel-nav__item:hover::before {
     background: var(--app-nav-sub-active);
 }
 
-.sidebar .nav.sub-menu .nav-item:hover {
-    background: transparent;
-}
-
-.sidebar .nav.sub-menu .nav-item .nav-link.active {
+.panel-nav__item[aria-current="page"] {
     background: var(--app-nav-hover);
     color: var(--app-nav-sub-active);
     font-weight: 500;
 }
 
-.sidebar .nav.sub-menu .nav-item .nav-link.active::before {
+.panel-nav__item[aria-current="page"]::before {
     background: var(--app-nav-sub-active);
-    transform: translateY(-50%) scale(1.15);
 }
 
-/* ---- Expand / collapse motion ----
-   Bootstrap animates the wrapper height (.collapsing). We refine the easing
-   and fade the items in/out in step with it. Items are hidden while the
-   height is animating, then fade + slide once the menu is fully open — so
-   there's no flash of full-opacity content during the height tween. */
-.sidebar .nav .nav-item .collapsing {
-    transition: height 0.24s cubic-bezier(0.25, 0.1, 0.25, 1);
-}
-
-.sidebar .nav .nav-item .collapse .sub-menu>.nav-item,
-.sidebar .nav .nav-item .collapsing .sub-menu>.nav-item {
-    opacity: 0;
-    transform: translateX(-3px);
-    transition: opacity 0.2s ease, transform 0.2s ease;
-}
-
-[dir="rtl"] .sidebar .nav .nav-item .collapse .sub-menu>.nav-item,
-[dir="rtl"] .sidebar .nav .nav-item .collapsing .sub-menu>.nav-item,
-.rtl .sidebar .nav .nav-item .collapse .sub-menu>.nav-item,
-.rtl .sidebar .nav .nav-item .collapsing .sub-menu>.nav-item {
-    transform: translateX(3px);
-}
-
-.sidebar .nav .nav-item .collapse.show .sub-menu>.nav-item {
-    opacity: 1;
-    transform: translateX(0);
-}
-
-@media (prefers-reduced-motion: reduce) {
-
-    .sidebar .nav .nav-item .collapse .sub-menu>.nav-item,
-    .sidebar .nav .nav-item .collapsing .sub-menu>.nav-item {
-        opacity: 1;
-        transform: none;
-        transition: none;
-    }
-}
-
-/* ============================================================
-   SIDEBAR NAV SEARCH (moved out of the Blade partial)
-   ============================================================ */
-.sidebar .nav .nav-item.sidebar-search-item {
-    position: -webkit-sticky;
-    position: sticky;
-    top: 0;
-    z-index: 20;
-    /* Solid drawer colour so menu items scrolling up are hidden behind it.
-       Needs this specificity to beat the `.sidebar .nav .nav-item
-       { background: transparent }` rule, which left the search see-through. */
-    background: var(--app-nav-bg);
-    padding: 12px 0.75rem 8px !important;
-    margin-bottom: 0;
-}
-
-/* Drawer colour → transparent fade just below the search bar, shown only once the nav
-   is scrolled (sidebar.js toggles .is-stuck). Items disappear smoothly behind
-   the bar instead of hard-cutting. Replaces the old border line. */
-.sidebar .nav .nav-item.sidebar-search-item::after {
-    content: "";
-    position: absolute;
-    left: 0;
-    right: 0;
-    top: 100%;
-    height: 18px;
-    background: linear-gradient(to bottom, var(--app-nav-bg) 0%, transparent 100%);
-    opacity: 0;
-    transition: opacity 0.2s ease;
-    pointer-events: none;
-}
-
-.sidebar .nav .nav-item.sidebar-search-item.is-stuck::after {
-    opacity: 1;
-}
-
-.sidebar-search-wrapper {
-    position: relative;
-    display: flex;
-    align-items: center;
-}
-
-.sidebar-search-input {
-    width: 100%;
-    border: 1px solid var(--app-nav-divider);
-    border-radius: var(--md-sys-shape-corner-full);
-    background: var(--app-nav-hover);
-    color: var(--app-nav-fg-strong);
-    font-size: 0.9rem;
-    line-height: 1.2;
-    padding: 0.6rem 2.2rem 0.6rem 2.4rem;
-    outline: none;
-    transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out, background-color 0.15s ease-in-out;
-}
-
-.sidebar-search-input::placeholder {
-    color: var(--app-nav-muted);
-}
-
-/* Focus: a 2px edge in the drawer's accent (inset, so nothing moves), no
-   glow ring. */
-.sidebar-search-input:focus {
-    border-color: var(--app-nav-sub-active);
-    background: var(--app-nav-hover);
-    box-shadow: inset 0 0 0 1px var(--app-nav-sub-active);
-}
-
-.sidebar-search-icon {
-    position: absolute;
-    left: 0.85rem;
-    width: 16px;
-    height: 16px;
-    color: var(--app-nav-muted);
-    pointer-events: none;
-}
-
-.sidebar-search-clear {
-    position: absolute;
-    right: 0.55rem;
+/* ---- Small screens: year switcher and close button --------- */
+.panel-nav__mobile {
     display: none;
     align-items: center;
-    justify-content: center;
-    width: 22px;
-    height: 22px;
-    padding: 0;
-    border: 0;
-    border-radius: 50%;
-    background: transparent;
-    color: var(--app-nav-muted);
-    cursor: pointer;
-    line-height: 1;
+    gap: var(--m3-space-2);
+    padding: var(--m3-space-4) var(--m3-space-3) var(--m3-space-1) var(--m3-space-4);
 }
 
-.sidebar-search-clear svg {
-    width: 14px;
-    height: 14px;
-}
-
-.sidebar-search-clear:hover {
-    color: var(--app-nav-fg-strong);
-    background: var(--app-nav-hover);
-}
-
-.sidebar-search-no-results {
-    display: none;
-    padding: 12px 4px 2px;
-    font-size: 0.85rem;
-    color: var(--app-nav-muted);
-    text-align: center;
-}
-
-.sidebar .nav .nav-item.sidebar-search-hidden,
-.sidebar .nav .sub-menu .nav-item.sidebar-search-hidden {
-    display: none !important;
-}
-
-/* RTL mirroring for the search field */
-[dir="rtl"] .sidebar-search-input,
-.rtl .sidebar-search-input {
-    padding: 0.6rem 2.4rem 0.6rem 2.2rem;
-}
-
-[dir="rtl"] .sidebar-search-icon,
-.rtl .sidebar-search-icon {
-    left: auto;
-    right: 0.85rem;
-}
-
-[dir="rtl"] .sidebar-search-clear,
-.rtl .sidebar-search-clear {
-    right: auto;
-    left: 0.55rem;
-}
-
-/* ============================================================
-   MOBILE HEADER CONTROLS (inside the off-canvas sidebar)
-   Tight top: the close (X) sits inline with the session-year
-   select, so there's no empty header band above them.
-   ============================================================ */
-.sidebar-mobile-header {
-    padding: 0.4rem 0.75rem 0.4rem !important;
-    margin-left: 0;
-    margin-bottom: 0.25rem;
-}
-
-.sidebar-mobile-controls {
-    padding: 0 !important;
-    gap: 0.5rem;
-}
-
-/* Session select + close (X) share one row. */
-.sidebar-mobile-top {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-}
-
-.sidebar-mobile-session {
+.panel-nav__year {
     flex: 1 1 auto;
-    min-width: 0;
 }
 
-/* Close (×): an M3 standard icon button — 40px circle, no container,
-   the state layer on hover. */
-.sidebar-close-btn {
-    flex-shrink: 0;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    width: 40px;
-    height: 40px;
-    padding: 0;
-    border: 0;
-    border-radius: var(--md-sys-shape-corner-full);
-    background: transparent;
-    color: var(--app-nav-fg);
-    cursor: pointer;
-    transition: background-color 0.15s ease, color 0.15s ease;
-}
-
-.sidebar-close-btn:hover {
-    background: var(--app-nav-hover);
-    color: var(--app-nav-fg-strong);
-}
-
-.sidebar-close-btn:focus {
-    outline: 0;
-}
-
-.sidebar-close-btn:focus-visible {
-    outline: 3px solid var(--app-nav-sub-active);
-    outline-offset: 2px;
-}
-
-/* Session-year select on the dark drawer: the topbar's M3 field
-   (header.css) in the drawer's colours. */
-.sidebar .sidebar-mobile-session .sidebar-session-dropdown {
-    width: 100%;
-    margin: 0 !important;
+/* The select on the dark drawer: the M3 field in the drawer's colours. */
+.panel-nav .panel-nav__year .m3-text-field__input {
     border-color: color-mix(in srgb, var(--md-sys-color-on-inverse-surface) 38%, transparent);
-    background-color: var(--app-nav-hover);
     color: var(--app-nav-fg-strong);
 }
 
-.sidebar .sidebar-mobile-session .sidebar-session-dropdown:hover {
+.panel-nav .panel-nav__year .m3-text-field__input:hover:not(:focus) {
     border-color: var(--app-nav-fg-strong);
 }
 
-.sidebar .sidebar-mobile-session .sidebar-session-dropdown:focus {
+.panel-nav .panel-nav__year .m3-text-field__input:focus {
     border-color: var(--app-nav-sub-active);
     box-shadow: inset 0 0 0 1px var(--app-nav-sub-active);
 }
 
-.sidebar .sidebar-mobile-session .sidebar-session-dropdown option {
+.panel-nav .panel-nav__year .m3-text-field__label,
+.panel-nav .panel-nav__year .m3-text-field__input:focus + .m3-text-field__label {
+    color: var(--app-nav-fg);
+}
+
+.panel-nav .panel-nav__year.m3-text-field--select::after {
+    background: var(--app-nav-fg);
+}
+
+.panel-nav .panel-nav__year option {
     background: var(--md-sys-color-surface-container);
     color: var(--md-sys-color-on-surface);
 }
 
+.panel-nav .panel-nav__close {
+    color: var(--app-nav-fg);
+}
+
 /* ============================================================
-   RESPONSIVE — mobile off-canvas drawer (≤991px)
-   Overlay drawer that slides in from the inline-start (left in
-   LTR, right in RTL) with a dimmed backdrop. Transform-based, so
-   it hides fully regardless of width (fixes the legacy 20px peek
-   from `right: -260px` on a 280px-wide sidebar).
+   SMALL SCREENS (991px and narrower): an overlay drawer that
+   slides in from the inline start over a dimmed backdrop.
    ============================================================ */
 @media (max-width: 991px) {
-    .sidebar.sidebar-offcanvas {
+    .panel-nav__mobile {
+        display: flex;
+    }
+
+    .sidebar.sidebar-offcanvas.panel-nav {
         position: fixed;
-        top: 70px;
+        top: var(--panel-topbar-height);
         bottom: 0;
-        left: 0;
+        left: auto;
         right: auto;
-        width: 280px;
+        inset-inline-start: 0;
+        width: 300px;
         max-width: 86vw;
+        min-height: 0;
         z-index: 1041;
-        border-right: 0;
-        border-left: 0;
         box-shadow: var(--md-sys-elevation-level3);
         transform: translateX(-100%);
-        transition: transform 0.28s ease;
-        overflow-y: auto;
+        transition: transform 0.28s var(--m3-ease), visibility 0.28s;
+        visibility: hidden;
         will-change: transform;
     }
 
-    .sidebar.sidebar-offcanvas.active {
-        transform: translateX(0);
-    }
-
-    [dir="rtl"] .sidebar.sidebar-offcanvas,
-    .rtl .sidebar.sidebar-offcanvas {
-        left: auto;
-        right: 0;
-        border-right: 0;
-        border-left: 0;
+    [dir="rtl"] .sidebar.sidebar-offcanvas.panel-nav {
         transform: translateX(100%);
     }
 
-    [dir="rtl"] .sidebar.sidebar-offcanvas.active,
-    .rtl .sidebar.sidebar-offcanvas.active {
+    .sidebar.sidebar-offcanvas.panel-nav.active {
         transform: translateX(0);
+        visibility: visible;
     }
 
-    /* Dimmed backdrop behind the drawer (created by sidebar.js) */
+    /* Dimmed backdrop behind the drawer (created by sidebar.js). */
     .sidebar-backdrop {
         position: fixed;
-        top: 70px;
+        top: var(--panel-topbar-height);
         left: 0;
         right: 0;
         bottom: 0;
@@ -554,9 +342,19 @@
         visibility: visible;
     }
 
-    /* Lock background scroll while the drawer is open */
+    /* The page behind the open drawer doesn't scroll. */
     body.sidebar-offcanvas-open {
         overflow: hidden;
+    }
+
+    /* Roomier rows so taps land comfortably inside the drawer. */
+    .panel-nav .panel-nav__link,
+    .panel-nav .panel-nav__toggle {
+        min-height: 52px;
+    }
+
+    .panel-nav__item {
+        min-height: 44px;
     }
 }
 
@@ -566,78 +364,40 @@
     }
 }
 
-/* ---- Mobile rhythm & touch targets (≤991px) ----
-   Roomier rows so taps land comfortably (~44px) inside the drawer. */
-@media (max-width: 991px) {
-    .sidebar .nav .nav-item .nav-link {
-        padding: 0.8rem 0.85rem;
-        font-size: 0.98rem;
-    }
-
-    .sidebar .nav.sub-menu .nav-item .nav-link {
-        padding: 0.7rem 0.75rem 0.7rem 1.6rem;
-        font-size: 0.92rem;
-    }
-
-    [dir="rtl"] .sidebar .nav.sub-menu .nav-item .nav-link,
-    .rtl .sidebar .nav.sub-menu .nav-item .nav-link {
-        padding: 0.7rem 1.6rem 0.7rem 0.75rem;
-    }
-
-    .sidebar .nav .nav-item .nav-link svg.menu-arrow,
-    .sidebar .nav .nav-item .nav-link .menu-arrow {
-        width: 18px;
-        height: 18px;
-    }
-
-    .sidebar-search-input {
-        padding-top: 0.7rem;
-        padding-bottom: 0.7rem;
+@media (prefers-reduced-motion: reduce) {
+    .sidebar.sidebar-offcanvas.panel-nav,
+    .panel-nav__chevron {
+        transition: none;
     }
 }
 
 /* ============================================================
-   COLLAPSED MODES — keep the Lucide <svg> icons behaving like
-   the legacy <i> icons did (style.css targeted i.menu-icon).
+   ICON-ONLY MODE (the header's menu button, wide screens):
+   section icons only. Choosing a section opens the drawer again.
    ============================================================ */
 @media (min-width: 992px) {
-
-    /* Compact (sidebar-mini): icon above title, centered. */
-    .sidebar-mini .sidebar .nav .nav-item .nav-link svg.menu-icon {
-        display: block;
-        margin: 0 auto 0.4rem;
+    .sidebar-icon-only .panel-nav__list {
+        padding-inline: var(--m3-space-2);
     }
 
-    .sidebar-mini .sidebar .nav .nav-item .nav-link svg.menu-arrow {
+    .sidebar-icon-only .panel-nav .panel-nav__link,
+    .sidebar-icon-only .panel-nav .panel-nav__toggle {
+        justify-content: center;
+        padding: 0;
+    }
+
+    .sidebar-icon-only .panel-nav__chevron,
+    .sidebar-icon-only .panel-nav__panel {
+        display: none;
+    }
+
+    /* The words stay for screen readers: they name the icon buttons. */
+    .sidebar-icon-only .panel-nav__label {
         position: absolute;
-        top: 50%;
-        right: 10px;
-        transform: translateY(-50%);
-        margin: 0;
-    }
-
-    .sidebar-mini .sidebar .nav .nav-item .nav-link[aria-expanded="true"] svg.menu-arrow {
-        transform: translateY(-50%) rotate(180deg);
-    }
-
-    /* Icon-only: hide titles + chevrons, center the icon. */
-    .sidebar-icon-only .sidebar .nav .nav-item .nav-link {
-        padding: 0.7rem 0;
-    }
-
-    .sidebar-icon-only .sidebar .nav .nav-item .nav-link svg.menu-icon,
-    .sidebar-icon-only .sidebar .nav .nav-item .nav-link .menu-icon {
-        display: block;
-        margin: 0 auto;
-    }
-
-    .sidebar-icon-only .sidebar .nav .nav-item .nav-link svg.menu-arrow,
-    .sidebar-icon-only .sidebar .nav .nav-item .nav-link .menu-arrow {
-        display: none;
-    }
-
-    /* No room for the search box when collapsed to icons only. */
-    .sidebar-icon-only .sidebar .nav .nav-item.sidebar-search-item {
-        display: none;
+        width: 1px;
+        height: 1px;
+        overflow: hidden;
+        clip: rect(0 0 0 0);
+        white-space: nowrap;
     }
 }

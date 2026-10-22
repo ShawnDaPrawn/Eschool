@@ -11,7 +11,7 @@ This page explains how the Laravel application in `admin-panel/` is put together
 | Auth | Session guard `web` for the panel; Laravel Sanctum bearer tokens (guard `sanctum`) for the apps |
 | Authorisation | `spatie/laravel-permission` roles and permissions (see [Roles-and-Permissions](Roles-and-Permissions)) |
 | Entry points | `public/index.php` (HTTP), `artisan` (CLI) |
-| Route files | `routes/web.php` (admin panel, public site, webhooks, maintenance URLs), `routes/api.php` (mobile apps, prefix `/api`), `routes/console.php` (closure commands and the schedule) |
+| Route files | `routes/web.php` (admin panel, public site, the Stripe webhook, cache clear), `routes/api.php` (mobile apps, prefix `/api`), `routes/console.php` (closure commands and the schedule) |
 | Health check | `GET /up` (registered by `withRouting(health: '/up')`, outside the `web` group) |
 | Size | 46 controller files in `app/Http/Controllers` plus 4 API and 6 auth controllers, 76 models, 92 migrations, 668 registered routes |
 
@@ -38,7 +38,7 @@ flowchart TD
 2. Service providers register. They come from three places:
    - the `providers` array in [config/app.php](https://github.com/ShawnDaPrawn/Eschool/blob/main/admin-panel/config/app.php), which Laravel 12 still honours. It lists the framework providers, `Barryvdh\DomPDF\ServiceProvider`, `Barryvdh\Debugbar\ServiceProvider`, Sanctum, Spatie Permission, `Maatwebsite\Excel\ExcelServiceProvider`, and the app's `AppServiceProvider`, `AuthServiceProvider`, `EventServiceProvider` and `RouteServiceProvider` (`BroadcastServiceProvider` is commented out);
    - `->withProviders([...])` in `bootstrap/app.php` (Spatie Permission, Sanctum and the wizard installer, again);
-   - package auto-discovery (for example `Unicodeveloper\Paystack\PaystackServiceProvider`, `Laravel\Ui\UiServiceProvider`, `dacoto\EnvSet\EnvSetServiceProvider`).
+   - package auto-discovery (for example `Laravel\Ui\UiServiceProvider`, `dacoto\EnvSet\EnvSetServiceProvider`, `Maatwebsite\Excel\ExcelServiceProvider`).
 3. The installer's service provider prepends `ToInstallMiddleware` to the `web` group. Until `storage/installed` exists, every web route except `install/*` redirects to the wizard (see [Installation-Wizard](Installation-Wizard)).
 4. Global middleware runs, then the route's group (`web` or `api`), then route middleware.
 5. Controllers do most authorisation themselves: almost every action starts with `if (! Auth::user()->can('some-permission'))` and returns a redirect or JSON error.
@@ -70,7 +70,7 @@ What the `withMiddleware` callback does:
 
 | Call | Effect |
 |---|---|
-| `validateCsrfTokens(except: ['webhook/*'])` | Payment gateway webhooks (`POST webhook/razorpay`, `stripe`, `paystack`, `flutterwave`) skip CSRF. |
+| `validateCsrfTokens(except: ['webhook/*'])` | Payment gateway webhooks skip CSRF. Since Phase 0 the only one is `POST webhook/stripe` (Razorpay, Paystack and Flutterwave were removed). |
 | `append(SecurityHeaders::class)` | Adds `SecurityHeaders` to the end of the global stack. |
 | `web(append: [...])` | Appends `LanguageManager`, `App\Http\Middleware\EncryptCookies`, `AddQueuedCookiesToResponse`, `StartSession`, `ShareErrorsFromSession`, `SubstituteBindings`, `DemoMiddleware`, `RejectDangerousUploads`. Entries already in the default group are de-duplicated. |
 | `api(prepend: [...])` | Prepends Sanctum's `EnsureFrontendRequestsAreStateful`, `throttle:api` and `SubstituteBindings`. |
@@ -130,6 +130,7 @@ Every class in [app/Http/Middleware](https://github.com/ShawnDaPrawn/Eschool/tre
 | `CheckStudent` | alias `checkStudent`; referenced by class in the teacher API group | Teacher API: the `student_id` must belong to a class section where the signed-in teacher is a class teacher (`class_teachers.class_teacher_id`), else error code 105. |
 | `DemoMiddleware` | appended to `web`; alias `demo` | When `config('app.demo_mode')` (`DEMO_MODE`) is true, blocks every non-GET request from a signed-in user except a fixed list of URIs (logins, ID cards, certificates, chat and leave list endpoints) unless the user's email is `demomodeoff@gmail.com`. Returns error code 112. |
 | `EncryptCookies` | appended to `web`; `config/sanctum.php` `encrypt_cookies` | Subclass of the framework class with an empty `$except`. |
+| `EnforceReadOnlyYears` | by class on the admin panel group in `routes/web.php` | Shares `$panelYear` (`App\Services\Panel\SessionYearContext`) with every view. While the year selected in the header is not the current one, a GET without `session_year_id` gets the selected year's id added (so lists follow it), and every POST, PUT, PATCH or DELETE not matched by `config('panel.read_only_years.allow')` is refused: 423 JSON `{error, message, code}` or a redirect back with the message and the input. See [School years in the panel](#school-years-in-the-panel). |
 | `EnsureParentChildrenSessionIsActive` | alias `parent.children.session.active` | Parent API: 403 if the user has no parent record; 401 `SESSION_NOT_ACTIVE` if no child has a `student_sessions` row for the current `session_year` setting; 401 `ACCOUNT_DEACTIVATED` if none of those rows has `status = 1`. |
 | `EnsureStudentSessionIsActive` | alias `student.session.active` | Student API: 403 unless the user has the `Student` role, `status = 1` and a student record; 401 `SESSION_NOT_ACTIVE` if there is no `student_sessions` row for the current session year or its status is 0. |
 | `LanguageManager` | appended to `web`; alias `language` | Calls `app()->setLocale(Session::get('locale'))` when the session has a locale. |
@@ -145,28 +146,30 @@ Every class in [app/Http/Middleware](https://github.com/ShawnDaPrawn/Eschool/tre
 
 Route-level usage, in short (details in [Security-Model](Security-Model) and [API-Overview](API-Overview)):
 
-- Admin panel: `Route::group(['middleware' => ['Role', 'auth']])` with a nested `language` group. `Role` runs before `auth`.
-- Maintenance URLs: `POST /clear` (the Cache Clear button), `/storage-link`, `/migrate` and `/seeder_install` need `auth` and `role:Super Admin`.
+- Admin panel: `Route::group(['middleware' => ['Role', 'auth', EnforceReadOnlyYears::class]])` with a nested `language` group. `Role` runs before `auth`; `EnforceReadOnlyYears` keeps years other than the current one read-only.
+- Maintenance: `POST /clear` (the Cache Clear button) needs `auth` and `role:Super Admin`. The System Update page and the GET URLs `/storage-link`, `/migrate` and `/seeder_install` were removed in Phase 0 and answer 404.
 - Student API: `auth:sanctum`, `role:Student`, `student.session.active`. Parent API: `auth:sanctum`, `role:Parent`, `parent.children.session.active`, with `CheckChild` on child-specific routes. Teacher API: `auth:sanctum`, `role:Teacher`, with `CheckStudent` on student-specific routes.
 
 ## The app/ folders
 
 | Folder | Contents |
 |---|---|
-| `app/Http/Controllers` | Controllers for the admin panel and public site, one per module (the larger modules are split into one controller per area in a sub-folder, like `Student/`, `Fees/`, `Exam/`, `Leave/` and `Classes/`; others are `SettingController`, `SystemUpdateController`, `WebController` for the public website, `WebhookController` for payment gateways, and so on). The base `Controller` also serves `GET /common/js/lang`, which returns `window.languageLabels = {...}` from `resources/lang/<code>.json` (falling back to `en.json`). See [Admin-Modules](Admin-Modules). |
+| `app/Http/Controllers` | Controllers for the admin panel and public site, one per module (the larger modules are split into one controller per area in a sub-folder, like `Student/`, `Fees/`, `Exam/`, `Leave/` and `Classes/`; others are `SettingController`, `WebController` for the public website, `WebhookController` for the Stripe webhook, and so on; `Panel/` holds the global search and the new-year wizard). The base `Controller` also serves `GET /common/js/lang`, which returns `window.languageLabels = {...}` from `resources/lang/<code>.json` (falling back to `en.json`). See [Admin-Modules](Admin-Modules). |
 | `app/Http/Controllers/Api` | `ApiController` (shared endpoints: settings, holidays, sliders, session years, events, gallery, forgot/change password, logout), the `Student/`, `Parent/` and `Teacher/` controllers (one per area, each role sharing an access trait). See [API-Overview](API-Overview). |
 | `app/Http/Controllers/Auth` | laravel/ui controllers using the framework's `AuthenticatesUsers` and related traits. `LoginController::authenticated()` signs out users with the `Parent` or `Student` role, because those roles may only use the apps. There is no register route. |
 | `app/Http/Middleware` | See the table above. |
-| `app/Http/Requests` | Form requests: `StoreLessonRequest`, `UpdateLessonRequest`, `StoreLessonTopicRequest`, `UpdateLessonTopicRequest`, `StoreSessionYearRequest`. Most other validation is inline with `$request->validate()` or `Validator::make()`. |
+| `app/Http/Requests` | Form requests: `StoreLessonRequest`, `UpdateLessonRequest`, `StoreLessonTopicRequest`, `UpdateLessonTopicRequest`, `StoreSessionYearRequest`, `Panel/SearchRequest`, `Academics/CreateNextYearRequest`, `Academics/SwitchToNewYearRequest`. Most other validation is inline with `$request->validate()` or `Validator::make()`. |
 | `app/Http/Resources` | `UserResource`, `TimetableCollection`. |
 | `app/Models` | 76 Eloquent models. Some names differ from Laravel conventions: `Students`, `Parents`, `Mediums`, `Settings`, `EmailTemplate` (table `email_tempalates`, which keeps the original misspelling). `User` uses Spatie's `HasRoles`. See [Database-Schema](Database-Schema). |
 | `app/Services` | Domain services: `AcademicCalendarService` (calendar PDF), `AssignmentReportService`, `ExamReportService`, `FeesReportService`, `LeaveReportService` (student report statistics), `FeesCollectionService` (fee summary for the dashboard), `ClassSessionConfigService`, `SessionYearService` (creating session years, installments, semesters and transfers; `makeCurrent()` switches the current year), `ChatMessageCleanupService`, `SettingsConfigService` (applies admin settings over the `.env` config on boot; see [Configuration](Configuration#settings-that-override-env)), `EmailTemplateService` (fills `{$placeholders}` with escaped values, no Blade compilation), `MailService`, `IdCardService` (student and staff ID card PDFs), `GalleryService`, `ImageService` and `UploadService` (file storage on the public disk, JPEG/PNG recompressed with Intervention Image), `OnlineExamScoringService`, `FormService` (backs the `Form` facade), `BootstrapTableService`, `ResponseService`. |
-| `app/Services/Payment` | `PaymentInterface`; `RazorpayPayment`, `StripePayment`, `PaystackPayment`, `FlutterwavePayment`; `PaymentService` (factory `create($payment_method)` with constants `RAZORPAY = 1`, `STRIPE = 2`, `PAYSTACK = 3`, `FLUTTERWAVE = 4`, plus `currencyCode()`, `webhookSecret()`, `amountMatches()`); `FeesPaymentService` (server-side fee calculation and transaction state). See [Payments](Payments). |
+| `app/Services/Payment` | `PaymentInterface`; `StripePayment`; `PaymentService` (factory `create($payment_method)` for `STRIPE = 2`, `RETIRED` naming the removed gateways' ids 1, 3 and 4 so old transactions still read correctly, plus `currencyCode()`, `webhookSecret()`, `amountMatches()`); `FeesPaymentService` (server-side fee calculation and transaction state). See [Payments](Payments). |
+| `app/Services/Panel` | The panel shell: `Navigation` (the navigation registry), `SessionYearContext` (current and selected school year), `GlobalSearch`, `SetupChecklist` and `TodayNumbers` (Home). See [The panel shell](#the-panel-shell). |
+| `app/Services/Academics` | `NewYearService`, behind the new-year wizard: suggests and creates next year, previews and runs the carry-forward transfers, and makes the year current through `SessionYearService::makeCurrent()`. |
 | `app/Helpers` | `settings_helper.php` and `notification_helper.php`, autoloaded as files by Composer (see [Helpers](#helpers)). |
 | `app/Rules` | `AfterNow`, `PlainName` (class and shift names), `YouTubeUrl`, `uniqueLessonInClass`, `uniqueTopicInLesson`. |
 | `app/Imports` | Maatwebsite Excel imports: `StudentsImport` (bulk student upload: like Add Student, it enrols each student in the current session year and emails parents their credentials through the `student_registration` template), `AttendanceImport`, `OnlineExamQuestionsImport`. |
 | `app/Exports` | `StudentsExport`. |
-| `app/Actions` | `ResetLessonSemesters` (run by `SessionYearService::makeCurrent()` when the current session year changes) and `Actions/Transfers/*` (`TransferClassFeeType`, `TransferClassSessionConfig`, `TransferClassSubject`, `TransferClassTeacherAndSubjectTeacher`, `TransferClassTimetable`, `TransferExamGrades`, `TransferLeaveSettings`), used by `SessionYearService` to copy setup data into a new session year. See [Academic-Structure](Academic-Structure). |
+| `app/Actions` | `ResetLessonSemesters` (run by `SessionYearService::makeCurrent()` when the current session year changes) and `Actions/Transfers/*` (`TransferClassFeeType`, `TransferClassSessionConfig`, `TransferClassSubject`, `TransferClassTeacherAndSubjectTeacher`, `TransferClassTimetable`, `TransferExamGrades`, `TransferLeaveSettings`), used by `SessionYearService` and the new-year wizard (`NewYearService`) to copy setup data into a new session year. See [Academic-Structure](Academic-Structure). |
 | `app/Facades` | `Form`, resolving the `form` singleton (`FormService`) registered in `AppServiceProvider`; aliased as `Form` in `config/app.php`. |
 | `app/Providers` | `AppServiceProvider` (binds `form`, sets `Schema::defaultStringLength(191)`, calls `SettingsConfigService::apply()`), `AuthServiceProvider` (no policies; the Super Admin `Gate::before` is commented out), `EventServiceProvider` (`Registered` to `SendEmailVerificationNotification`), `RouteServiceProvider` (rate limiters), `BroadcastServiceProvider` (not registered; `routes/channels.php` does not exist). |
 | `app/Exceptions` | `Handler.php`, a leftover that nothing uses. |
@@ -174,11 +177,11 @@ Route-level usage, in short (details in [Security-Model](Security-Model) and [AP
 
 ## Views and layouts
 
-Blade templates live in [resources/views](https://github.com/ShawnDaPrawn/Eschool/tree/main/admin-panel/resources/views), one folder per module (`students`, `fees`, `exams`, `online_exam`, `settings`, `system-update`, `web` and so on).
+Blade templates live in [resources/views](https://github.com/ShawnDaPrawn/Eschool/tree/main/admin-panel/resources/views), one folder per module (`students`, `fees`, `exams`, `online_exam`, `settings`, `academics`, `search`, `web` and so on).
 
 | Layout | Used by | Notes |
 |---|---|---|
-| `layouts/master.blade.php` | 108 admin views | Includes `layouts.include` (CSS, theme colours, early scripts), `layouts.header`, `layouts.sidebar`, `layouts.footer`, `layouts.footer_js`, then `after-update-note-modal`. Sections: `title`, `css`, `content`, `js`, `script`. |
+| `layouts/master.blade.php` | the admin views | The panel shell, built with the Material 3 library (`public/assets/m3`) while the pages inside it keep Bootstrap until they move: a skip link to `<main id="main-content">`, `layouts.include` (CSS, theme colours, `m3/m3.css`, early scripts, `panel.css` last), `layouts.header` (an M3 top app bar: search, school year, cache clear, language and account menus), `layouts.sidebar` (an M3 navigation drawer: the navigation by job), the read-only banner and notices, `layouts.footer`, `layouts.footer_js`, `after-update-note-modal`, the page confirm dialog, then `m3/m3.js`, `panel.js` and `page.js`. Sections: `title`, `css`, `content`, `js`, `script`. |
 | `web/master.blade.php` | 7 public website views | Reads `web_settings` rows (`about_us`, `who_we_are`, `teacher`, `photos`, `videos`, `question`, `registration`) to decide which sections show. See [Public-Website](Public-Website). |
 | `errors::minimal` | `resources/views/errors/*` | Error pages 401 to 503, on the design tokens. `403.blade.php` adds the exception message and a Go Back button. |
 
@@ -188,7 +191,7 @@ Points worth knowing:
 - Theme: `layouts/include.blade.php` loads the Material 3 design tokens (`assets/css/m3-tokens.css`, generated from the apps' theme) and `m3-base.css`, so the panel uses the same colours, type and shapes as the apps; see [UI-Standards](UI-Standards#admin-panel-and-website). It writes the `login_image` setting into `--image-url`. The `theme_color` and `secondary_color` settings now only colour the printed certificates and result sheets.
 - Translations for JavaScript come from `<script src="{{ route('common.language.read') }}">`, which defines `window.languageLabels`. See [Localization](Localization).
 - Logos and favicon come from the `logo1`, `logo2` and `favicon` settings through `schoolLogoUrl()` and `schoolSetting()`; the school name in titles and footers is `config('app.name')`, which the `school_name` setting overrides. No view calls `env()` (enforced by `SettingsConfigTest`).
-- `resources/views/components`: `x-icon` (inline Lucide SVG icons by name), `form/image-upload`, `form/status-radio`, `wizard`, `web-settings/section`.
+- `resources/views/components`: `x-icon` (inline Lucide SVG icons by name), `page/*` (the page pattern, on the Material 3 library: `header`, `filters`, `table`, `empty-state`, `field`, `form-card`, `confirm-dialog`; see [UI-Standards](UI-Standards#admin-panel-page-pattern)), `form/image-upload`, `form/status-radio`, `wizard`, `web-settings/section`.
 
 ### Data tables (bootstrap-table)
 
@@ -220,15 +223,74 @@ Everything the admin panel and public site load is committed under [public/asset
 
 | Folder | Contents |
 |---|---|
-| `assets/css` | `style.css`, `rtl.css`, `vendor.bundle.base.css`, page styles (`sidebar.css`, `header.css`, `content.css`, `tables.css`, `timetable.css`, `system-update.css`, `site.css` for the public site, and others) |
+| `assets/css` | `style.css`, `rtl.css`, `vendor.bundle.base.css`, page styles (`sidebar.css`, `header.css`, `content.css`, `tables.css`, `timetable.css`, `site.css` for the public site, and others), and `panel.css` (the panel shell and page pattern, loaded last) |
 | `assets/js` | `vendor.bundle.base.js` (jQuery and Bootstrap), Chart.js, jQuery Validate, Flatpickr, Moment, SweetAlert2, jquery.repeater and others |
-| `assets/js/custom` | App code: `custom.js`, `function.js`, `formatter.js`, `queryParams.js`, `custom-bootstrap-table.js`, `bootstrap-table-locale.js`, `validate.js`, `sidebar.js`, `dashboard.js`, `timetable.js`, `staff-attendance.js`, `reset-password.js`, `system-update.js` |
+| `assets/js/custom` | App code: `custom.js`, `function.js`, `formatter.js`, `queryParams.js`, `custom-bootstrap-table.js`, `bootstrap-table-locale.js`, `validate.js`, `sidebar.js` (the navigation drawer: sections, the icon-only mode, the small-screen drawer and its backdrop), `dashboard.js`, `timetable.js`, `staff-attendance.js`, `reset-password.js`; `panel.js` (year switcher, global search, read-only mode), `page.js` (the page pattern: `PageTable`, form cards and the confirm dialog), `new-year.js` (the wizard's steps) |
+| `assets/m3` | The Material 3 web library that replaces Bootstrap: `m3.css` and `m3.js` (see [UI-Standards](UI-Standards#the-material-3-web-library-replacing-bootstrap)) |
 | `assets/bootstrap-table` | bootstrap-table with the mobile, export, fixed-columns and reorder-rows extensions, tableExport and jsPDF |
 | `assets/jodit`, `assets/tinymce` | Rich text editors (Jodit replaced CKEditor 4 in the online exam editors) |
 | `assets/katex` | Maths rendering |
 | `assets/select2`, `assets/jquery-toast-plugin`, `assets/color-picker`, `assets/apexcharts`, `assets/fonts` | Other libraries |
 
 One script is loaded from a CDN: the jQuery Validate message localisation from `cdnjs.cloudflare.com`.
+
+## The panel shell
+
+Phase 0 (stream S3, spec `engineering/specs/panel/redesign-part-one.md`) put every panel page in one shell: navigation by job, a header with search and the school year, read-only past years, and a Home that says what to set up next. User guides: `documentation/admin-panel/navigation.md`, `home.md`, `search.md`, `session-year.md`, `new-year.md`.
+
+### Navigation registry
+
+The sidebar is built from [config/navigation.php](https://github.com/ShawnDaPrawn/Eschool/blob/main/admin-panel/config/navigation.php), not written in Blade, and drawn as an M3 navigation drawer (the Dark Navy `--inverse` variant) whose sections are disclosure buttons (`sidebar.js`). It has eight sections by job (Home, People, Academics, Communication, Money, Activities, Wellbeing, Settings); each section has groups and each group has items:
+
+| Item key | Meaning |
+|---|---|
+| `key` | Stable id, also used by tests |
+| `label` | Language key (`nav_*`); every language file must have it (`NavigationTest`) |
+| `route` or `url` | Named route, or a path for pages without a name; an item whose route does not exist is hidden |
+| `permissions` | The item shows when the person has any of them |
+| `roles` | Optional: the item also needs one of these roles |
+| `module` | The Phase 1 module key (Appendix B) or `null`; ignored until module switches exist |
+| `active` | Optional extra route patterns that mark the item current |
+| `keywords` | Extra words the global search matches |
+
+`App\Services\Panel\Navigation` filters the registry for the signed-in person (`sections()`, `items()`, `current()`); groups and sections with no visible item are hidden. Hiding is not a check: each page still checks its own permission. To add a page, add its item and its label in every `resources/lang/*.json`; `NavigationTest` fails if a page the old sidebar reached is missing.
+
+### Header and search
+
+`layouts/header.blade.php`, an M3 top app bar with M3 menus, holds the search box, the school year switcher (`#filter_session_year_global`, which existing pages read for their filters), the Cache Clear button for the Super Admin, the language menu and the account menu. On small screens the drawer repeats the year switcher.
+
+`GET /search?q=` (route `search`, `Panel\SearchController`, `App\Services\Panel\GlobalSearch`) searches the panel's pages and settings (registry labels and keywords the person can see), learners (`student-list` or `student-report`; the selected year; a teacher without `student-create` only finds their own homerooms), parents (`parents-list`), teachers (`teacher-list` or `teacher-create`), other staff (`staff-list`), grades and homerooms (`class-list` or `class-create`) and subjects (`subject-list` or `subject-create`). Queries are 2 to 100 characters, LIKE wildcards are escaped, and results are capped: 5 per group as JSON (`Accept: application/json`, markup hex-escaped) for the header box, 20 per group on the results page. `panel.js` renders the box with `textContent` and `safeUrl()`; `/` and Ctrl/Cmd+K focus it.
+
+### School years in the panel
+
+The current year is the `session_year` setting; the selected year is `session('session_year')`, set by the header's switcher through `POST set-session-year`. `App\Services\Panel\SessionYearContext` answers which is which and whether the selected year is read-only (any year other than the current one). `EnforceReadOnlyYears` does the rest on the server:
+
+- lists follow the selected year: a GET without `session_year_id` gets it added to the query;
+- writes are refused unless they match a pattern in `config('panel.read_only_years.allow')`: switching years, signing out, the profile and password, the new-year wizard, session years themselves, settings that do not belong to a year (school settings, languages, roles, email templates, website content, certificates and ID cards), and POSTs that only read (exports, result lookups);
+- the refusal message names both years (`read_only_year_refused`).
+
+In the page, the banner (`layouts/partials/read-only-banner.blade.php`) offers "Back to {current}", and `panel.js` disables write controls: anything marked `data-write`, the legacy delete, restore and trash buttons, and the submit buttons of POST forms not marked `data-year-safe`. A page whose form writes something that does not belong to a year adds its path to the allow list and marks the form `data-year-safe`.
+
+### Home
+
+`HomeController@index` adds two things above the existing dashboard widgets:
+
+- `App\Services\Panel\SetupChecklist`: seven steps (school profile; year and terms; grades and homerooms; subjects; staff; learners and parents; fees), each worked out from the school's data and linked to its page. People who can act on none of the steps (teachers) do not see it.
+- `App\Services\Panel\TodayNumbers`: learners this year, staff present today, registers taken today and notices, each shown only with its permission and linked when the person can open the list. They follow the selected year.
+
+### New-year wizard
+
+`GET new-year` (`Panel\Academics\NewYearController`, permission `session-year-create`; making the year current needs `session-year-edit`) is a five-step page over `App\Services\Academics\NewYearService`:
+
+1. Next year: name, dates and terms suggested from this year (`POST new-year/year` creates it with nothing carried forward and leaves the current year alone).
+2. Carry forward: subjects, teachers, timetable, grading, fees and leave settings, each through its `app/Actions/Transfers/*` class; something the new year already has is never copied twice.
+3. Year-end checks: results published, promotions decided, open leave, unpaid fees.
+4. Preview (`GET new-year/preview`): what will be copied and who moves up.
+5. Make it current (`POST new-year/make-current`): the copies and `SessionYearService::makeCurrent()` run in one transaction.
+
+### Demo school
+
+`database/seeders/DemoSchoolSeeder.php` adds one school with a user per profile (Super Admin, two teachers, a custom Finance role, two parents, six learners), last year and this year, homerooms, subjects, timetable, attendance, fees in cents and a few notices. It runs `InstallationSeeder` first when roles are missing, can run again without duplicating anything, and never replaces a running current year. The accounts and password are in [Testing-and-CI](Testing-and-CI#playwright-admin-panel); they are public, so never seed a production database people use.
 
 ## Front-end build (Vite)
 
@@ -311,7 +373,7 @@ Things to keep in mind:
 | `intervention/image` | 3.11.10 | Image recompression with the GD driver (`UploadService`, `ImageService`, `resizeImage()`). |
 | `enshrined/svg-sanitize` | 1.1.1 | SVG cleaning in `RejectDangerousUploads`. |
 | `google/apiclient` | v2.20.1 | OAuth access token for FCM (only the `FirebaseCloudMessaging` service is kept, via `extra.google/apiclient-services` and the `Google\Task\Composer::cleanup` pre-autoload script). |
-| `razorpay/razorpay`, `stripe/stripe-php`, `unicodeveloper/laravel-paystack` | 2.9.3, v18.2.0, `dev-l12-compatibility` | Payment gateway SDKs. The Paystack package comes from the `laravel-shift/laravel-paystack` fork (a `vcs` repository in `composer.json`) and reads its keys from `config/paystack.php`, which `SettingsConfigService` fills from the `paystack_*` settings. Flutterwave has no SDK; `FlutterwavePayment` calls its API directly. |
+| `stripe/stripe-php` | v18.2.0 | Stripe, the only payment gateway since Phase 0 (Razorpay, Paystack and Flutterwave, and their SDKs, were removed). |
 | `guzzlehttp/guzzle` | 7.16.0 | HTTP client behind `Http::` (reCAPTCHA verification in `WebController`, Stripe payment intent status lookup in `Api/Parent/FeesController`). |
 | `awobaz/compoships` | 2.5.5 | Multi-column relationships; used by the `ExamClass` model. |
 | `doctrine/dbal` | 3.10.6 | Schema tooling; several old migrations alter columns with `->change()`. |
