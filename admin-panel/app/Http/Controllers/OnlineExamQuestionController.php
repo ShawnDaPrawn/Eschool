@@ -16,6 +16,7 @@ use App\Models\OnlineExamStudentAnswer;
 use App\Models\SessionYear;
 use App\Models\Subject;
 use App\Models\SubjectTeacher;
+use App\Services\Platform\Files\FileNames;
 use App\Services\ResponseService;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
@@ -221,7 +222,7 @@ class OnlineExamQuestionController extends Controller
                     $image = $request->file('image');
 
                     // made file name with combination of current time
-                    $file_name = time().'-'.$image->getClientOriginalName();
+                    $file_name = time().'-'.FileNames::forUpload($image);
 
                     // made file path to store in database
                     $file_path = 'online-exam-questions/'.$file_name;
@@ -269,7 +270,7 @@ class OnlineExamQuestionController extends Controller
                     $image = $request->file('image');
 
                     // made file name with combination of current time
-                    $file_name = time().'-'.$image->getClientOriginalName();
+                    $file_name = time().'-'.FileNames::forUpload($image);
 
                     // made file path to store in database
                     $file_path = 'online-exam-questions/'.$file_name;
@@ -602,7 +603,7 @@ class OnlineExamQuestionController extends Controller
                     $image = $request->file('edit_image');
 
                     // made file name with combination of current time
-                    $file_name = time().'-'.$image->getClientOriginalName();
+                    $file_name = time().'-'.FileNames::forUpload($image);
 
                     // made file path to store in database
                     $file_path = 'online-exam-questions/'.$file_name;
@@ -680,7 +681,7 @@ class OnlineExamQuestionController extends Controller
                     $image = $request->file('edit_image');
 
                     // made file name with combination of current time
-                    $file_name = time().'-'.$image->getClientOriginalName();
+                    $file_name = time().'-'.FileNames::forUpload($image);
 
                     // made file path to store in database
                     $file_path = 'online-exam-questions/'.$file_name;

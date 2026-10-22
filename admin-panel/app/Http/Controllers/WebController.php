@@ -21,6 +21,7 @@ use App\Models\Students;
 use App\Models\Teacher;
 use App\Models\User;
 use App\Models\WebSetting;
+use App\Services\Platform\Files\FileNames;
 use Illuminate\Database\QueryException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
@@ -418,7 +419,7 @@ class WebController extends Controller
                     $father_email = $request->father_email;
                     $father_image = $request->file('father_image');
                     // made file name with combination of current time
-                    $file_name = time().'-'.$father_image->getClientOriginalName();
+                    $file_name = time().'-'.FileNames::forUpload($father_image);
                     // made file path to store in database
                     $file_path = 'parents/'.$file_name;
                     // resized image
@@ -467,7 +468,7 @@ class WebController extends Controller
 
                     $mother_image = $request->file('mother_image');
                     // made file name with combination of current time
-                    $file_name = time().'-'.$mother_image->getClientOriginalName();
+                    $file_name = time().'-'.FileNames::forUpload($mother_image);
                     // made file path to store in database
                     $file_path = 'parents/'.$file_name;
                     // resized image
@@ -520,7 +521,7 @@ class WebController extends Controller
                     $guardian_plaintext_password = str_replace('-', '', date('d-m-Y', strtotime($request->guardian_dob)));
 
                     $guardian_image = $request->file('guardian_image');
-                    $file_name = time().'-'.$guardian_image->getClientOriginalName();
+                    $file_name = time().'-'.FileNames::forUpload($guardian_image);
                     $file_path = 'parents/'.$file_name;
 
                     resizeImage($guardian_image);
@@ -566,7 +567,7 @@ class WebController extends Controller
 
             $student_image = $request->file('image');
             // made file name with combination of current time
-            $file_name = time().'-'.$student_image->getClientOriginalName();
+            $file_name = time().'-'.FileNames::forUpload($student_image);
             // made file path to store in database
             $file_path = 'students/'.$file_name;
             // resized image

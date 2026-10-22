@@ -26,6 +26,7 @@ use App\Models\Subject;
 use App\Models\User;
 use App\Services\EmailTemplateService;
 use App\Services\MailService;
+use App\Services\Platform\Files\FileNames;
 use App\Services\ResponseService;
 use Carbon\Carbon;
 use Exception;
@@ -209,7 +210,7 @@ class StudentController extends Controller
 
                     $father_image = $request->file('father_image');
                     // made file name with combination of current time
-                    $file_name = time().'-'.$father_image->getClientOriginalName();
+                    $file_name = time().'-'.FileNames::forUpload($father_image);
                     // made file path to store in database
                     $file_path = 'parents/'.$file_name;
                     // resized image
@@ -303,7 +304,7 @@ class StudentController extends Controller
 
                     $mother_image = $request->file('mother_image');
                     // made file name with combination of current time
-                    $file_name = time().'-'.$mother_image->getClientOriginalName();
+                    $file_name = time().'-'.FileNames::forUpload($mother_image);
                     // made file path to store in database
                     $file_path = 'parents/'.$file_name;
                     // resized image
@@ -410,7 +411,7 @@ class StudentController extends Controller
 
                         $guardian_image = $request->file('guardian_image');
                         // made file name with combination of current time
-                        $file_name = time().'-'.$guardian_image->getClientOriginalName();
+                        $file_name = time().'-'.FileNames::forUpload($guardian_image);
                         // made file path to store in database
                         $file_path = 'parents/'.$file_name;
                         // resized image
@@ -511,7 +512,7 @@ class StudentController extends Controller
 
             if ($request->hasFile('image')) {
                 $student_image = $request->file('image');
-                $file_name = time().'-'.$student_image->getClientOriginalName();
+                $file_name = time().'-'.FileNames::forUpload($student_image);
                 $file_path = 'students/'.$file_name;
                 resizeImage($student_image);
                 $destinationPath = storage_path('app/public/students');
@@ -1203,7 +1204,7 @@ class StudentController extends Controller
 
                         $guardian_image = $request->file('guardian_image');
                         // made file name with combination of current time
-                        $file_name = time().'-'.$guardian_image->getClientOriginalName();
+                        $file_name = time().'-'.FileNames::forUpload($guardian_image);
                         // made file path to store in database
                         $file_path = 'parents/'.$file_name;
                         // resized image
@@ -1264,7 +1265,7 @@ class StudentController extends Controller
 
                 $student_image = $request->file('image');
                 // made file name with combination of current time
-                $file_name = time().'-'.$student_image->getClientOriginalName();
+                $file_name = time().'-'.FileNames::forUpload($student_image);
                 // made file path to store in database
                 $file_path = 'students/'.$file_name;
                 // resized image

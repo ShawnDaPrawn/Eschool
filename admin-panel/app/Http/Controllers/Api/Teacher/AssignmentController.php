@@ -18,6 +18,7 @@ use App\Models\Students;
 use App\Models\StudentSubject;
 use App\Models\Subject;
 use App\Models\UserNotification;
+use App\Services\Platform\Files\FileNames;
 use App\Services\ResponseService;
 use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
@@ -205,7 +206,7 @@ class AssignmentController extends Controller
             if ($request->hasFile('file')) {
                 foreach ($request->file as $file_upload) {
                     $file = new File;
-                    $file->file_name = $file_upload->getClientOriginalName();
+                    $file->file_name = FileNames::forUpload($file_upload);
                     $file->type = 1;
                     $file->file_url = $file_upload->store('assignment', 'public');
                     $file->modal()->associate($assignment);
@@ -295,7 +296,7 @@ class AssignmentController extends Controller
             if ($request->hasFile('file')) {
                 foreach ($request->file as $file_upload) {
                     $file = new File;
-                    $file->file_name = $file_upload->getClientOriginalName();
+                    $file->file_name = FileNames::forUpload($file_upload);
                     $file->type = 1;
                     $file->file_url = $file_upload->store('assignment', 'public');
                     $file->modal()->associate($assignment);

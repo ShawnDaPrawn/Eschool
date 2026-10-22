@@ -1383,5 +1383,7 @@
     "teacher_deactivate_confirm": "Deactivate this teacher? They will be signed out and can't sign in until you activate them again.",
     "teacher_activate_confirm": "Activate this teacher? They will be able to sign in again.",
     "activate": "Activate",
-    "deactivate": "Deactivate"
+    "deactivate": "Deactivate",
+    "The file name is not allowed.": "The file name is not allowed.",
+    "The file content does not match its extension.": "The file content does not match its extension."
 }

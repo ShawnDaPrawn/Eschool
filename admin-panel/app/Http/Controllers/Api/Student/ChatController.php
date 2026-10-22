@@ -18,6 +18,7 @@ use App\Models\StudentSessions;
 use App\Models\Subject;
 use App\Models\SubjectTeacher;
 use App\Models\Teacher;
+use App\Services\Platform\Files\FileNames;
 use App\Services\ResponseService;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
@@ -210,7 +211,7 @@ class ChatController extends Controller
                     // Each file gets its own generated folder, so a client-chosen name can't
                     // overwrite another file or leave chatfile/. The app shows the last URL
                     // segment, so a cleaned-up original name is kept as the file name.
-                    $originalName = preg_replace('/[^A-Za-z0-9._-]+/', '_', basename(str_replace('\\', '/', $uploadedFile->getClientOriginalName())));
+                    $originalName = preg_replace('/[^A-Za-z0-9._-]+/', '_', FileNames::forUpload($uploadedFile));
                     $originalName = ltrim(mb_substr((string) $originalName, -120), '._');
                     $filePath = $originalName !== ''
                         ? $uploadedFile->storeAs('chatfile/'.Str::random(32), $originalName, 'public')

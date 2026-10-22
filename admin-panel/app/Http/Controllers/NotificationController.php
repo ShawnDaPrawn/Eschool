@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers;
 
+use App\Services\Platform\Files\FileNames;
 use Throwable;
 use Carbon\Carbon;
 use App\Models\User;
@@ -158,7 +159,7 @@ class NotificationController extends Controller
             if ($request->hasFile('image')) {
                 $notification_image = $request->file('image');
                 // made file name with combination of current time
-                $file_name = time() . '-' . $notification_image->getClientOriginalName();
+                $file_name = time() . '-' . FileNames::forUpload($notification_image);
                 //made file path to store in database
                 $file_path = 'notifications/' . $file_name;
                 //resized image

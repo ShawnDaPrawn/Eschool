@@ -14,6 +14,7 @@ use App\Models\Students;
 use App\Models\Subject;
 use App\Models\SubjectTeacher;
 use App\Models\Teacher;
+use App\Services\Platform\Files\FileNames;
 use App\Services\ResponseService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -142,7 +143,7 @@ class AnnouncementController extends Controller
             if ($request->hasFile('file')) {
                 foreach (Arr::wrap($request->file('file')) as $file_upload) {
                     $file = new File;
-                    $file->file_name = $file_upload->getClientOriginalName();
+                    $file->file_name = FileNames::forUpload($file_upload);
                     $file->type = 1;
                     $file->file_url = $file_upload->store('announcement', 'public');
                     $file->modal()->associate($announcement);
@@ -194,7 +195,7 @@ class AnnouncementController extends Controller
             if ($request->hasFile('file')) {
                 foreach (Arr::wrap($request->file('file')) as $file_upload) {
                     $file = new File;
-                    $file->file_name = $file_upload->getClientOriginalName();
+                    $file->file_name = FileNames::forUpload($file_upload);
                     $file->type = 1;
                     $file->file_url = $file_upload->store('announcement', 'public');
                     $file->modal()->associate($announcement);

@@ -30,6 +30,7 @@ use App\Models\Teacher;
 use App\Models\Timetable;
 use App\Models\User;
 use App\Services\FeesCollectionService;
+use App\Services\Platform\Files\FileNames;
 use App\Services\Platform\Identity\AppTokens;
 use App\Services\ResponseService;
 use Carbon\Carbon;
@@ -1175,7 +1176,7 @@ class HomeController extends Controller
                 }
 
                 $file = $request->file('image');
-                $fileName = time().'-'.$file->getClientOriginalName();
+                $fileName = time().'-'.FileNames::forUpload($file);
                 $filePath = 'profile/'.$fileName;
 
                 resizeImage($file);

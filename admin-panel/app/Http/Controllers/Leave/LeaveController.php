@@ -14,6 +14,7 @@ use App\Models\SessionYear;
 use App\Models\Staff;
 use App\Models\Teacher;
 use App\Models\User;
+use App\Services\Platform\Files\FileNames;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -178,7 +179,7 @@ class LeaveController extends Controller
                         $file = new File;
                         $file->modal_type = "App\Models\Leave";
                         $file->modal_id = $leave->id;
-                        $file->file_name = $file_upload->getClientOriginalName();
+                        $file->file_name = FileNames::forUpload($file_upload);
                         $file->type = 1;
                         $file->file_url = $file_upload->store('leave', 'public');
                         $file->save();

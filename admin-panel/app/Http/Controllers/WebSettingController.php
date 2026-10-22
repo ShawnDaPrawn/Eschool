@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers;
 
+use App\Services\Platform\Files\FileNames;
 use Carbon\Carbon;
 use App\Models\Faq;
 use App\Models\Media;
@@ -113,7 +114,7 @@ class WebSettingController extends Controller
                         }
                     }
 
-                    $file_name = time() . '-' . $imageFile->getClientOriginalName();
+                    $file_name = time() . '-' . FileNames::forUpload($imageFile);
                     $file_path = 'websettings/content/' . $file_name;
                     $destinationPath = storage_path('app/public/websettings/content');
                     $imageFile->move($destinationPath, $file_name);
@@ -187,7 +188,7 @@ class WebSettingController extends Controller
 
                 $image = $request->file('image');
 
-                $file_name = time() . '-' . $image->getClientOriginalName();
+                $file_name = time() . '-' . FileNames::forUpload($image);
 
                 $file_path = 'websettings/content/' . $file_name;
 
@@ -256,7 +257,7 @@ class WebSettingController extends Controller
             $program->title = $request->title;
             if ($request->hasFile('image')) {
                 $image = $request->file('image');
-                $file_name = time() . '-' . $image->getClientOriginalName();
+                $file_name = time() . '-' . FileNames::forUpload($image);
                 $file_path = 'websettings/educational/' . $file_name;
                 resizeImage($image);
                 $destinationPath = storage_path('app/public/websettings/educational');
@@ -365,7 +366,7 @@ class WebSettingController extends Controller
                     Storage::disk('public')->delete($program->getRawOriginal('image'));
                 }
                 $image = $request->file('image');
-                $file_name = time() . '-' . $image->getClientOriginalName();
+                $file_name = time() . '-' . FileNames::forUpload($image);
                 $file_path = 'websettings/educational/' . $file_name;
                 resizeImage($image);
                 $destinationPath = storage_path('app/public/websettings/educational');
@@ -697,7 +698,7 @@ class WebSettingController extends Controller
                 foreach ($request->file('file') as $file) {
                     $attachments[] = [
                         'path' => $file->getRealPath(),
-                        'name' => $file->getClientOriginalName(),
+                        'name' => FileNames::forUpload($file),
                         'mime' => $file->getMimeType()
                     ];
                 }

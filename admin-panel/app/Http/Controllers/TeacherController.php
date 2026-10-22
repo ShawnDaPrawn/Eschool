@@ -13,6 +13,7 @@ use App\Models\Teacher;
 use App\Models\User;
 use App\Services\EmailTemplateService;
 use App\Services\MailService;
+use App\Services\Platform\Files\FileNames;
 use App\Services\Platform\Identity\AppTokens;
 use App\Services\ResponseService;
 use Exception;
@@ -111,7 +112,7 @@ class TeacherController extends Controller
                 if ($request->hasFile('image')) {
                     $image = $request->file('image');
                     // made file name with combination of current time
-                    $file_name = time().'-'.$image->getClientOriginalName();
+                    $file_name = time().'-'.FileNames::forUpload($image);
                     // made file path to store in database
                     $file_path = 'teachers/'.$file_name;
                     // resized image
@@ -232,7 +233,7 @@ class TeacherController extends Controller
                 if ($request->hasFile('image')) {
                     $image = $request->file('image');
                     // made file name with combination of current time
-                    $file_name = time().'-'.$image->getClientOriginalName();
+                    $file_name = time().'-'.FileNames::forUpload($image);
                     // made file path to store in database
                     $file_path = 'teachers/'.$file_name;
                     // resized image
@@ -620,7 +621,7 @@ class TeacherController extends Controller
                 }
                 $image = $request->file('image');
                 // made file name with combination of current time
-                $file_name = time().'-'.$image->getClientOriginalName();
+                $file_name = time().'-'.FileNames::forUpload($image);
                 // made file path to store in database
                 $file_path = 'teachers/'.$file_name;
                 // resized image
