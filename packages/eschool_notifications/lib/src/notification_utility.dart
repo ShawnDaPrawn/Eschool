@@ -7,6 +7,7 @@ import 'package:eschool_notifications/src/chat_notifications_utils.dart';
 import 'package:eschool_notifications/src/notification_config.dart';
 import 'package:eschool_notifications/src/notification_platform.dart';
 import 'package:eschool_notifications/src/notification_preferences.dart';
+import 'package:eschool_notifications/src/school_topics.dart';
 import 'package:eschool_session/eschool_session.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
@@ -33,6 +34,14 @@ class NotificationUtility {
   static String attendenceNotificationType = 'attendance';
   static String chatNotificaitonType = 'chat';
   static String feePaymentDueType = 'fees-due';
+
+  /// A silent push: something `/me/context` holds changed on the server
+  /// (a module switched, a child linked, an approval given). Never shown.
+  static const String contextChangedType = 'context.changed';
+
+  /// What the app does when a [contextChangedType] push arrives while it is
+  /// in front: fetch `/me/context` again. Set by the app once it runs.
+  static void Function()? onContextChanged;
 
   static NotificationConfig? _config;
   static SessionRepository? _session;
@@ -84,34 +93,43 @@ class NotificationUtility {
     };
   }
 
-  //to receive topic-based notifications
+  /// Joins and leaves FCM topics as the user's schools change (see
+  /// [SchoolTopics]); replaceable in tests.
+  static SchoolTopics schoolTopics = SchoolTopics(
+    subscribe: (topic) => FirebaseMessaging.instance.subscribeToTopic(topic),
+    unsubscribe: (topic) =>
+        FirebaseMessaging.instance.unsubscribeFromTopic(topic),
+  );
+
+  /// Signing in joins no topic yet: [syncSchoolTopics] joins the user's
+  /// schools' topics once `/me/context` names them. Signing out
+  /// ([isUnsubscribe]) leaves every topic the device joined.
   static Future<void> subscribeOrUnsubscribeToNotificationTopics({
     required NotificationAudience audience,
     required bool isUnsubscribe,
   }) async {
     final SessionRepository? session = _session;
-    if (!isActive || session == null) {
+    if (!isActive || session == null || !isUnsubscribe) {
       return;
     }
-    if (session.hasSubscribedToNotificationTopics && !isUnsubscribe) {
+    try {
+      await schoolTopics.signedOut(audience);
+    } catch (_) {}
+    session.setHasSubscribedToNotificationTopics(false);
+  }
+
+  /// Keeps the device on the topics of [schoolIds] (the schools in
+  /// `/me/context`) for [audience]: called whenever the context changes.
+  static Future<void> syncSchoolTopics({
+    required NotificationAudience audience,
+    required Iterable<int> schoolIds,
+  }) async {
+    if (!isActive) {
       return;
-    } else {
-      final topics = audience.topics;
-      try {
-        for (final topic in topics) {
-          if (isUnsubscribe) {
-            await FirebaseMessaging.instance.unsubscribeFromTopic(topic);
-          } else {
-            await FirebaseMessaging.instance.subscribeToTopic(topic);
-          }
-        }
-        if (isUnsubscribe) {
-          session.setHasSubscribedToNotificationTopics(false);
-        } else {
-          session.setHasSubscribedToNotificationTopics(true);
-        }
-      } catch (_) {}
     }
+    try {
+      await schoolTopics.sync(audience, schoolIds);
+    } catch (_) {}
   }
 
   static Future<void> setUpNotificationService(
@@ -167,6 +185,10 @@ class NotificationUtility {
   static Future<void> foregroundMessageListener(
     RemoteMessage remoteMessage,
   ) async {
+    if (remoteMessage.data['type'] == contextChangedType) {
+      onContextChanged?.call();
+      return;
+    }
     if (!config.typesNotCounted.contains(remoteMessage.data['type'])) {
       const preferences = NotificationPreferences();
       final int oldCount = await preferences.getNotificationCount();
@@ -258,6 +280,30 @@ class NotificationUtility {
     }
   }
 
+  /// What a local notification keeps of a push's [data] for its tap: the
+  /// type, the whole payload when [includeData] is set, and always the
+  /// push's `link` and `school_id`, so every app can open the link at its
+  /// school.
+  static Map<String, String?> localPayload(
+    Map<String, dynamic> data, {
+    required bool includeData,
+  }) {
+    final Map<String, String?> payload = {'type': '${data['type'] ?? ''}'};
+    if (includeData) {
+      payload.addAll(
+        data.map((key, value) => MapEntry(key, value?.toString())),
+      );
+    } else {
+      for (final String key in const ['link', 'school_id']) {
+        final Object? value = data[key];
+        if (value != null) {
+          payload[key] = '$value';
+        }
+      }
+    }
+    return payload;
+  }
+
   static Future<void> createLocalNotification({
     required bool dimissable,
     required RemoteMessage message,
@@ -266,7 +312,6 @@ class NotificationUtility {
     final NotificationConfig appConfig = config ?? NotificationUtility.config;
     String title = '';
     String body = '';
-    String type = '';
     String? image;
 
     if (message.notification != null) {
@@ -276,13 +321,12 @@ class NotificationUtility {
       title = message.data['title'] ?? '';
       body = message.data['body'] ?? '';
     }
-    type = message.data['type'] ?? '';
     image = message.data['image'];
 
-    final Map<String, String?> payload = {'type': type};
-    if (appConfig.includeDataInPayload) {
-      payload.addAll(message.data.cast<String, String?>());
-    }
+    final Map<String, String?> payload = localPayload(
+      message.data,
+      includeData: appConfig.includeDataInPayload,
+    );
 
     if (image == null) {
       await AwesomeNotifications().createNotification(
@@ -334,6 +378,12 @@ class NotificationUtility {
     NotificationConfig config,
   ) async {
     const preferences = NotificationPreferences();
+    if (remoteMessage.data['type'] == contextChangedType) {
+      // Shown to nobody: the app fetches /me/context when it next comes
+      // to the front.
+      await preferences.noteContextChanged();
+      return;
+    }
     if (!config.typesNotCounted.contains(remoteMessage.data['type'])) {
       await Firebase.initializeApp();
 

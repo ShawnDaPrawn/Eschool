@@ -76,6 +76,17 @@ class DeepLinkCoordinator {
     return target;
   }
 
+  /// [takePending], but only a link [test] accepts; any other stays
+  /// waiting. For links that open before sign-in (an invitation).
+  DeepLinkTarget? takePendingWhere(bool Function(DeepLinkTarget target) test) {
+    final DeepLinkTarget? target = _pending;
+    if (target == null || !test(target)) {
+      return null;
+    }
+    _pending = null;
+    return target;
+  }
+
   Future<void> dispose() async {
     await _subscription?.cancel();
     await _targets.close();

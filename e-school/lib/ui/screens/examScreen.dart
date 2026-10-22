@@ -1,5 +1,4 @@
-import 'package:eschool_core/eschool_core.dart';
-import 'package:eschool/app/routeArguments.dart';
+import 'package:eschool/app/selectedChild.dart';
 import 'package:eschool/cubits/semestersCubit.dart';
 import 'package:eschool/data/models/subject.dart';
 import 'package:eschool/ui/screens/home/widgets/examContainer.dart';
@@ -11,15 +10,19 @@ class ExamScreen extends StatelessWidget {
   final int? childId;
   final List<Subject>? subjects;
 
+  /// A parent sees the exams of the child picked in the child switcher; a
+  /// learner sees their own.
   static Route route(RouteSettings routeSettings) {
-    final arguments = routeSettings.arguments! as ChildSubjectsArguments;
-    return AdaptivePageRoute(
-      builder: (_) => BlocProvider<SemestersCubit>(
+    return childRoute(
+      (context, child) => BlocProvider<SemestersCubit>(
         create: (context) => SemestersCubit(),
-        child: ExamScreen(
-          childId: arguments.childId,
-          subjects: arguments.subjects,
-        ),
+        child: child == null
+            ? const ExamScreen()
+            : ChildSubjectsBuilder(
+                childId: child.id,
+                builder: (subjects) =>
+                    ExamScreen(childId: child.id, subjects: subjects),
+              ),
       ),
     );
   }

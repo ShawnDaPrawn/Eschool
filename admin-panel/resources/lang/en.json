@@ -1721,5 +1721,12 @@
     "learner_setup_sheet_step_sign_in": "Sign in to the app with the GR number and that password.",
     "learner_setup_sheet_once": "The code works once. Printing a new sheet stops this code.",
     "password_change_required": "Please choose a new password before you continue.",
-    "set_in_environment": "Set in the environment (Secret Manager)"
+    "set_in_environment": "Set in the environment (Secret Manager)",
+    "no_school_membership": "Your account is not linked to an active school. Ask your school to add you.",
+    "school_not_available": "You do not have access to that school.",
+    "platform_setting_home_school_only": "Platform settings can only be changed from the main school.",
+    "school_switcher": "School",
+    "switch_school": "Switch school",
+    "school_switched": "You are now working in :school.",
+    "update_app_to_sign_in": "Please update the app to sign in. This version cannot show your school’s notices."
 }

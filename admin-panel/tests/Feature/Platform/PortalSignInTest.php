@@ -6,6 +6,7 @@ namespace Tests\Feature\Platform;
 
 use App\Http\Middleware\VerifyCsrfToken;
 use App\Services\Platform\Identity\AppTokens;
+use App\Services\Platform\Tenancy\SchoolTable;
 use Illuminate\Cookie\CookieValuePrefix;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
@@ -87,7 +88,7 @@ class PortalSignInTest extends TestCase
         $this->signInAt(self::APP_PORTAL, 'parent/login', ['email' => 'pam@example.com', 'password' => 'secret123']);
 
         $this->browser('GET', '/api/parent/timetable', ['child_id' => $this->people['student']])->assertOk()->assertJson(['error' => false]);
-        $other = DB::table('students')->insertGetId([
+        $other = SchoolTable::query('students')->insertGetId([
             'user_id' => $this->person('teacher')->id, 'class_id' => $this->people['class'], 'class_section_id' => $this->people['class_section'],
             'admission_no' => 'GR-OTHER', 'roll_number' => 2, 'admission_date' => now()->toDateString(),
         ]);

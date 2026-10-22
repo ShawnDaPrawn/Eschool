@@ -31,12 +31,32 @@ class ChildSubjectsCubit extends Cubit<ChildSubjectsState> {
   ChildSubjectsCubit(this._parentRepository) : super(ChildSubjectsInitial());
   final ParentRepository _parentRepository;
 
+  /// The child the subjects are (or are being fetched) for.
+  int? _childId;
+  int? get childId => _childId;
+
+  /// Fetches [childId]'s subjects unless they are here or on their way: the
+  /// app keeps one list, for the child picked in the child switcher.
+  Future<void> ensureFor(int childId) async {
+    if (_childId == childId &&
+        (state is ChildSubjectsFetchSuccess ||
+            state is ChildSubjectsFetchInProgress)) {
+      return;
+    }
+    await fetchChildSubjects(childId);
+  }
+
   Future<void> fetchChildSubjects(int childId) async {
+    _childId = childId;
     emit(ChildSubjectsFetchInProgress());
 
     try {
       final result =
           await _parentRepository.fetchChildSubjects(childId: childId);
+      //another child was picked while these were on their way
+      if (isClosed || childId != _childId) {
+        return;
+      }
       emit(
         ChildSubjectsFetchSuccess(
           coreSubjects: result['coreSubjects'],
@@ -46,7 +66,9 @@ class ChildSubjectsCubit extends Cubit<ChildSubjectsState> {
         ),
       );
     } catch (e) {
-      emit(ChildSubjectsFetchFailure(e.toString()));
+      if (!isClosed && childId == _childId) {
+        emit(ChildSubjectsFetchFailure(e.toString()));
+      }
     }
   }
 

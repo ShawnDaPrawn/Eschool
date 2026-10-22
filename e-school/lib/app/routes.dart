@@ -1,5 +1,6 @@
 import 'package:eschool_core/eschool_core.dart';
 import 'package:eschool/app/deepLinks.dart';
+import 'package:eschool/app/sharedScreens.dart';
 import 'package:eschool/ui/screens/aboutUsScreen.dart';
 import 'package:eschool/ui/screens/academicCalendar/academicCalendarScreen.dart';
 import 'package:eschool/ui/screens/assignment/assignmentScreen.dart';
@@ -139,6 +140,13 @@ class Routes {
   static const String manageLeaves = '/manageLeaves';
   static const String addLeave = '/addLeave';
 
+  //the screens built once in the shared packages (sharedScreens.dart)
+  static const String notificationSettings = '/notifications/settings';
+  static const String mySchool = '/my-school';
+  static const String approvals = '/approvals';
+  static const String invitation = '/invite';
+  static const String profilePicture = '/profile-picture';
+
   static const String gallery = SharedRoutes.gallery;
   static const String galleryAlbumPhotos = SharedRoutes.galleryAlbumPhotos;
 
@@ -150,6 +158,10 @@ class Routes {
     //a link that opened the app, or came before sign-in, opens over home
     if (currentRoute == home || currentRoute == parentHome) {
       openPendingDeepLink();
+    }
+    //an invitation link opens before sign-in
+    if (currentRoute == auth) {
+      openPendingPublicDeepLink();
     }
 
     debugPrint('Route: $currentRoute');
@@ -303,6 +315,21 @@ class Routes {
 
       case galleryAlbumPhotos:
         return GalleryAlbumPhotosScreen.route(routeSettings);
+
+      case notificationSettings:
+        return notificationSettingsRoute();
+
+      case mySchool:
+        return mySchoolRoute();
+
+      case approvals:
+        return approvalsRoute();
+
+      case invitation:
+        return invitationRoute(routeSettings.arguments as String? ?? '');
+
+      case profilePicture:
+        return profilePictureRoute();
 
       default:
         return AdaptivePageRoute(builder: (context) => const Scaffold());

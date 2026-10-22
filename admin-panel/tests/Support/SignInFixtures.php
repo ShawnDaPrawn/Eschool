@@ -6,6 +6,8 @@ namespace Tests\Support;
 
 use App\Models\User;
 use App\Services\ParentPolicyService;
+use App\Services\Platform\Tenancy\SchoolOwnedTables;
+use App\Services\Platform\Tenancy\SchoolTable;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 
@@ -74,6 +76,8 @@ trait SignInFixtures
 
     private function fixtureRow(string $table, array $values): int
     {
-        return DB::table($table)->insertGetId($values + ['created_at' => now(), 'updated_at' => now()]);
+        $query = SchoolOwnedTables::isSchoolOwned($table) ? SchoolTable::query($table) : DB::table($table);
+
+        return $query->insertGetId($values + ['created_at' => now(), 'updated_at' => now()]);
     }
 }

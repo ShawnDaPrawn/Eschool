@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers;
 
+use App\Models\Platform\Permission;
+use App\Models\Platform\Role;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Support\Collection;
@@ -12,8 +14,6 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Lang;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
-use Spatie\Permission\Models\Permission;
-use Spatie\Permission\Models\Role;
 
 class RoleController extends Controller
 {
@@ -157,7 +157,8 @@ class RoleController extends Controller
         if (! Auth::user()->can('role-list')) {
             return redirect(route('home'))->withErrors(['message' => trans('no_permission_message')]);
         }
-        $role = Role::find($id);
+        // Another school's role is not found (Role is limited to the school).
+        $role = Role::findOrFail($id);
         $rolePermissions = Permission::join('role_has_permissions', 'role_has_permissions.permission_id', '=', 'permissions.id')
             ->where('role_has_permissions.role_id', $id)
             ->select('permissions.*')

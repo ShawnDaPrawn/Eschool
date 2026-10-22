@@ -23,6 +23,8 @@ dependencies:
     path: ../packages/eschool_core
   eschool_notifications:
     path: ../packages/eschool_notifications
+  eschool_people:
+    path: ../packages/eschool_people
   eschool_session:
     path: ../packages/eschool_session
 
