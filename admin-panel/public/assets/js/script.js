@@ -112,9 +112,9 @@ function siteErrorPlacement(label, element) {
     if (!label.text()) {
         return;
     }
-    var field = element.closest('.site-file-field');
+    var field = element.closest('.m3-file-field');
     if (field.length) {
-        label.insertAfter(field.find('.site-file-field__row'));
+        label.insertAfter(field.find('.m3-file-field__row'));
     } else if (element.closest('.m3-fieldset').length) {
         label.insertAfter(element.closest('.m3-fieldset'));
     } else if (element.closest('.m3-text-field').length) {
@@ -130,7 +130,7 @@ function siteFieldsFor(element) {
         return $element.closest('form').find('[name="' + element.name + '"]');
     }
     if ($element.is(':file')) {
-        return $element.add($element.closest('.site-file-field').find('.file-upload-info'));
+        return $element.add($element.closest('.m3-file-field').find('.file-upload-info'));
     }
     return $element;
 }
@@ -166,13 +166,13 @@ $('#create-form,.create-form').on('submit', function (e) {
     formAjaxRequest('POST', url, data, formElement, submitButtonElement, successCallback);
 })
 
-// ── File fields (web/partials/file-field.blade.php) ──────────────────────
+// ── File fields (<x-m3.file-field>) ──────────────────────
 $(document).on('click', '.file-upload-browse', function () {
-    $(this).closest('.site-file-field').find('.file-upload-default').trigger('click');
+    $(this).closest('.m3-file-field').find('.file-upload-default').trigger('click');
 });
 
 $(document).on('change', '.file-upload-default', function () {
-    $(this).closest('.site-file-field').find('.file-upload-info').val($(this).val().replace(/C:\\fakepath\\/i, ''));
+    $(this).closest('.m3-file-field').find('.file-upload-info').val($(this).val().replace(/C:\\fakepath\\/i, ''));
 });
 
 // ── Registration: parents or a guardian ─────────────────────────────────

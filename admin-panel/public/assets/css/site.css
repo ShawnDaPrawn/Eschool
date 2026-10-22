@@ -1168,45 +1168,6 @@ label.error:empty {
     -webkit-appearance: none;
 }
 
-/* File field: the file's name in a text field, and an Upload button. */
-.site-file-field__row {
-    display: flex;
-    align-items: center;
-    gap: var(--m3-space-2);
-}
-
-.site-file-field__name {
-    flex: 1 1 auto;
-}
-
-/* The name field only displays the chosen file: it reads as a normal field. */
-.site-file-field .file-upload-info:disabled {
-    border-color: var(--md-sys-color-outline);
-    color: var(--md-sys-color-on-surface);
-    cursor: default;
-}
-
-.site-file-field .file-upload-info:disabled + .m3-text-field__label {
-    color: var(--md-sys-color-on-surface-variant);
-}
-
-.site-file-field .file-upload-info.error {
-    border-color: var(--md-sys-color-error);
-}
-
-.site-file-field .file-upload-info.error + .m3-text-field__label {
-    color: var(--md-sys-color-error);
-}
-
-.site-file-field__row + label.error {
-    display: block;
-    margin: var(--m3-space-1) 0 0;
-    padding: 0 var(--m3-space-4);
-    color: var(--md-sys-color-error);
-    font-size: var(--md-sys-typescale-body-small-size);
-    line-height: var(--md-sys-typescale-body-small-line-height);
-}
-
 .site-registration__choice {
     margin-inline-start: 0;
 }
