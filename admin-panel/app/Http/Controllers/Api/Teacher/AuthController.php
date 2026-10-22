@@ -10,6 +10,7 @@ use App\Http\Middleware\EnsureTeacherActive;
 use App\Models\Teacher;
 use App\Services\IdCardService;
 use App\Services\Platform\Identity\AppTokens;
+use App\Services\Platform\Identity\DateOfBirthPasswords;
 use App\Services\ResponseService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -78,7 +79,11 @@ class AuthController extends Controller
                 $auth->save();
             }
 
-            return ResponseService::successResponse('User logged-in!', $user, ['token' => $token], 100);
+            // Added for v1 clients: true when the account must choose a new password.
+            return ResponseService::successResponse('User logged-in!', $user, [
+                'token' => $token,
+                'password_change_required' => DateOfBirthPasswords::changeRequiredAtSignIn($auth, (string) $request->password),
+            ], 100);
         } else {
             return ResponseService::errorResponse('Invalid Login Credentials', null, 101);
         }

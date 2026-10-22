@@ -14,6 +14,7 @@ use App\Models\Shift;
 use App\Models\Students;
 use App\Models\StudentSessions;
 use App\Services\Platform\Identity\AppTokens;
+use App\Services\Platform\Identity\DateOfBirthPasswords;
 use App\Services\ResponseService;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
@@ -319,7 +320,11 @@ class AuthController extends Controller
 
             $data = array_merge($user, ['dynamic_fields' => $parentDynamicFields ?? null, 'children' => $children->toArray()]);
 
-            return ResponseService::successResponse('User logged-in!', $data, ['token' => $token], 100);
+            // Added for v1 clients: true when the account must choose a new password.
+            return ResponseService::successResponse('User logged-in!', $data, [
+                'token' => $token,
+                'password_change_required' => DateOfBirthPasswords::changeRequiredAtSignIn($auth, (string) $request->password),
+            ], 100);
         } else {
             return ResponseService::errorResponse('Invalid Login Credentials', null, 101);
         }

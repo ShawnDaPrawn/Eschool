@@ -22,6 +22,7 @@ use App\Models\Teacher;
 use App\Models\User;
 use App\Models\WebSetting;
 use App\Services\Platform\Files\FileNames;
+use App\Services\Platform\Identity\LearnerInvitations;
 use Illuminate\Database\QueryException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
@@ -563,7 +564,8 @@ class WebController extends Controller
             }
             // Create Student User First
 
-            $child_plaintext_password = str_replace('-', '', date('d-m-Y', strtotime($request->dob)));
+            // A random password nobody sees; accepting the application sends the guardians links.
+            $child_password = LearnerInvitations::unguessablePassword();
 
             $student_image = $request->file('image');
             // made file name with combination of current time
@@ -578,7 +580,7 @@ class WebController extends Controller
 
             $user_data = [
                 'image' => $file_path,
-                'password' => Hash::make($child_plaintext_password),
+                'password' => Hash::make($child_password),
                 'first_name' => $request->first_name,
                 'last_name' => $request->last_name,
                 'email' => $admission_no, // Server-generated GR Number used as email

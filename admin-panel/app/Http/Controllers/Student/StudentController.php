@@ -27,6 +27,7 @@ use App\Models\User;
 use App\Services\EmailTemplateService;
 use App\Services\MailService;
 use App\Services\Platform\Files\FileNames;
+use App\Services\Platform\Identity\LearnerInvitations;
 use App\Services\ResponseService;
 use Carbon\Carbon;
 use Exception;
@@ -508,7 +509,9 @@ class StudentController extends Controller
             $roll_number_db = $roll_number_db['max(roll_number)'];
             $roll_number = $roll_number_db + 1;
 
-            $child_plaintext_password = str_replace('-', '', date('d-m-Y', strtotime($request->dob ?? '2000-01-01')));
+            // No date-of-birth password: a random one nobody sees. Each guardian gets
+            // a link to choose the learner's password (LearnerInvitations, below).
+            $child_password_note = trans('learner_password_by_invitation');
 
             if ($request->hasFile('image')) {
                 $student_image = $request->file('image');
@@ -520,7 +523,7 @@ class StudentController extends Controller
                 $user->image = $file_path;
             }
 
-            $user->password = Hash::make($child_plaintext_password);
+            $user->password = Hash::make(LearnerInvitations::unguessablePassword());
             $user->first_name = $request->first_name;
             $user->last_name = $request->last_name;
             //            $user->email = (isset($request->email)) ? $request->email : "";
@@ -636,7 +639,7 @@ class StudentController extends Controller
                     'password' => (string) ' '.$father_plaintext_password,
                     'child_name' => (string) ' '.$request->first_name.' '.$request->last_name,
                     'child_grnumber' => (string) ' '.$admission_no,
-                    'child_password' => (string) ' '.$child_plaintext_password,
+                    'child_password' => (string) ' '.$child_password_note,
                     'type' => 'application_accept',
                     'class_name' => (string) $class_section_name,
                     'school_name' => (string) $school_name,
@@ -683,7 +686,7 @@ class StudentController extends Controller
                     'password' => (string) ' '.$mother_plaintext_password,
                     'child_name' => (string) ' '.$request->first_name.' '.$request->last_name,
                     'child_grnumber' => (string) ' '.$admission_no,
-                    'child_password' => (string) ' '.$child_plaintext_password,
+                    'child_password' => (string) ' '.$child_password_note,
                     'type' => 'application_accept',
                     'class_name' => (string) $class_section_name,
                     'school_name' => (string) $school_name,
@@ -740,7 +743,7 @@ class StudentController extends Controller
                     'password' => (string) $guardian_plaintext_password,
                     'child_name' => (string) ($request->first_name.' '.$request->last_name),
                     'child_grnumber' => (string) $admission_no,
-                    'child_password' => (string) $child_plaintext_password,
+                    'child_password' => (string) $child_password_note,
                     'type' => 'application_accept',
                     'class_name' => (string) $class_section_name,
                     'school_name' => (string) $school_name,
@@ -779,6 +782,9 @@ class StudentController extends Controller
             }
 
             DB::commit();
+
+            // After the commit, so a link never names a learner that was rolled back.
+            rescue(fn () => app(LearnerInvitations::class)->inviteGuardians($user, Auth::user()));
 
             return ResponseService::successResponse(trans('data_store_successfully'));
         } catch (ValidationException $e) {
@@ -950,6 +956,22 @@ class StudentController extends Controller
             title="Delete">
             <i class="fa fa-trash"></i>
         </a>&nbsp;&nbsp;';
+                }
+
+                // Sign-in set-up: email the guardians a link, or print a one-time code.
+                if (Auth::user()->canAny(['student-create', 'student-edit', 'student-reset-password'])) {
+                    $operate .= '<div class="dropdown">
+                <button class="btn btn-xs btn-gradient-info btn-rounded btn-icon dropdown-toggle"
+                    type="button" data-toggle="dropdown" title="'.e(trans('learner_sign_in')).'">
+                    <i class="fa fa-key"></i>
+                </button>
+                <div class="dropdown-menu">
+                    <a href="#" class="dropdown-item learner-invite" data-url="'.route('students.invite-guardians', $student->user_id).'">
+                        <i class="fa fa-envelope mr-2"></i>'.e(trans('email_guardians_sign_in_link')).'</a>
+                    <a href="#" class="dropdown-item learner-sheet" data-url="'.route('students.sign-in-sheet', $student->user_id).'">
+                        <i class="fa fa-print mr-2"></i>'.e(trans('print_sign_in_sheet')).'</a>
+                </div>
+            </div>&nbsp;&nbsp;';
                 }
 
                 // Show certificate dropdown on Student Detail view only

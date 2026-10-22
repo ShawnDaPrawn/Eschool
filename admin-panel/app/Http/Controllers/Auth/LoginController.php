@@ -66,7 +66,7 @@ class LoginController extends Controller
             return $this->refuseLogin($request, 'teacher_account_deactivated');
         }
 
-        if (RequirePasswordChange::isDefaultPassword($user, (string) $request->input('password'))) {
+        if (RequirePasswordChange::mustChange($user, (string) $request->input('password'))) {
             $request->session()->put(RequirePasswordChange::SESSION_KEY, true);
         }
 

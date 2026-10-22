@@ -40,6 +40,7 @@ Route::group(['prefix' => 'student'], function () {
             'auth:sanctum',
             'role:Student',
             'student.session.active',
+            'password.change',
         ],
     ], function () {
         Route::get('dashboard', [Student\DashboardController::class, 'dashboard']);
@@ -126,6 +127,7 @@ Route::group(['prefix' => 'parent'], function () {
             'role:Parent',
             'parent.children.session.active',
             'parent.policy',
+            'password.change',
         ],
     ], function () {
 
@@ -203,7 +205,8 @@ Route::group(['prefix' => 'teacher'], function () {
 
     // Authenticated APIs
     // teacher.active: a deactivated teacher's old tokens stop working (401).
-    Route::group(['middleware' => ['auth:sanctum', 'role:Teacher', 'teacher.active', 'teacher.policy']], function () {
+    // password.change: a flagged account must change its password first, when the app supports it.
+    Route::group(['middleware' => ['auth:sanctum', 'role:Teacher', 'teacher.active', 'teacher.policy', 'password.change']], function () {
         Route::get('dashboard', [Teacher\DashboardController::class, 'dashboard']);
         Route::get('classes', [Teacher\ClassController::class, 'classes']);
 

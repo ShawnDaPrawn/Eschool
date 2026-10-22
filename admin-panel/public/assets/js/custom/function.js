@@ -646,3 +646,23 @@ function classValidation() {
         });
     })
 }
+
+/**
+ * Opens a learner's printable sign-in set-up sheet in a new tab. It is a POST
+ * (each one makes a new one-time code), so a small form is submitted with the
+ * page's CSRF token.
+ */
+function openLearnerSignInSheet(url) {
+    var form = document.createElement('form');
+    form.method = 'POST';
+    form.action = safeUrl(url);
+    form.target = '_blank';
+    var token = document.createElement('input');
+    token.type = 'hidden';
+    token.name = '_token';
+    token.value = $('meta[name="csrf-token"]').attr('content') || '';
+    form.appendChild(token);
+    document.body.appendChild(form);
+    form.submit();
+    form.remove();
+}

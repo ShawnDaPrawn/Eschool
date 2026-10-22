@@ -28,7 +28,9 @@ use App\Http\Controllers\MediumController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\OnlineExamController;
 use App\Http\Controllers\OnlineExamQuestionController;
+use App\Http\Controllers\Panel\People\LearnerInvitationController;
 use App\Http\Controllers\ParentsController;
+use App\Http\Controllers\Platform\LearnerSetupController;
 use App\Http\Controllers\RoleController;
 use App\Http\Controllers\SectionController;
 use App\Http\Controllers\SemesterController;
@@ -73,7 +75,16 @@ Route::post('logout', [LoginController::class, 'logout'])->name('logout');
 Route::get('password/reset', [ForgotPasswordController::class, 'showLinkRequestForm'])->name('password.request');
 Route::post('password/email', [ForgotPasswordController::class, 'sendResetLinkEmail'])->middleware('throttle:login')->name('password.email');
 Route::get('password/reset/{token}', [ResetPasswordController::class, 'showResetForm'])->name('password.reset');
-Route::post('password/reset', [ResetPasswordController::class, 'reset'])->name('password.update');
+Route::post('password/reset', [ResetPasswordController::class, 'reset'])->middleware('throttle:login')->name('password.update');
+
+// A learner's password is chosen here: from a guardian's emailed link (signed,
+// expiring, single use) or with a set-up code the school printed.
+Route::get('learner-setup', [LearnerSetupController::class, 'showCode'])->name('learner-setup.code');
+Route::post('learner-setup', [LearnerSetupController::class, 'storeCode'])->middleware('throttle:login')->name('learner-setup.code.store');
+Route::get('learner-setup/{invitation}/{token}', [LearnerSetupController::class, 'showLink'])
+    ->whereNumber('invitation')->name('learner-setup.link');
+Route::post('learner-setup/{invitation}/{token}', [LearnerSetupController::class, 'storeLink'])
+    ->whereNumber('invitation')->middleware('throttle:password')->name('learner-setup.link.store');
 Route::get('web-set-language/{lang}', [LanguageController::class, 'set_language'])->name('web.set.language');
 
 Route::group(['middleware' => 'language'], function () {
@@ -200,6 +211,9 @@ Route::group(['middleware' => ['Role', 'auth']], function () {
         Route::get('students/download-sample', [Student\BulkImportController::class, 'downloadSampleFile'])->name('students.download-sample');
         Route::post('students/store_bulk', [Student\BulkImportController::class, 'storeBulkData'])->middleware('throttle:heavy')->name('students.store-bulk-data');
         Route::resource('students', Student\StudentController::class)->except(['edit']);
+        // A learner's sign-in set-up: email the guardians a link, or print a one-time code.
+        Route::post('students/{id}/invite-guardians', [LearnerInvitationController::class, 'invite'])->whereNumber('id')->name('students.invite-guardians');
+        Route::post('students/{id}/sign-in-sheet', [LearnerInvitationController::class, 'sheet'])->whereNumber('id')->name('students.sign-in-sheet');
 
         // student generate roll number
         Route::get('student/assign-roll-number', [Student\RollNumberController::class, 'indexStudentRollNumber'])->name('students.index-students-roll-number');

@@ -14,6 +14,7 @@ use App\Models\StudentSessions;
 use App\Models\User;
 use App\Services\EmailTemplateService;
 use App\Services\MailService;
+use App\Services\Platform\Identity\LearnerInvitations;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
@@ -144,6 +145,7 @@ class StudentsImport extends DefaultValueBinder implements SkipsEmptyRows, ToCol
             $mother_user = new User;
             $parentRole = Role::where('name', 'Parent')->first();
             $studentRole = Role::where('name', 'Student')->first();
+            $learners = [];
             DB::beginTransaction();
             foreach ($rows as $row) {
 
@@ -295,8 +297,9 @@ class StudentsImport extends DefaultValueBinder implements SkipsEmptyRows, ToCol
                     $category_id = $category->id;
                 }
                 $user = new User;
-                $child_plaintext_password = str_replace('-', '', date('d-m-Y', strtotime($row['dob'])));
-                $user->password = Hash::make($child_plaintext_password);
+                // A random password nobody sees; the guardians get links after the import.
+                $child_password_note = trans('learner_password_by_invitation');
+                $user->password = Hash::make(LearnerInvitations::unguessablePassword());
                 $user->first_name = $row['first_name'];
                 $user->last_name = $row['last_name'];
                 $user->email = $admission_no;
@@ -308,6 +311,7 @@ class StudentsImport extends DefaultValueBinder implements SkipsEmptyRows, ToCol
                 $user->permanent_address = $row['permanent_address'];
                 $user->save();
                 $user->assignRole($studentRole);
+                $learners[] = $user;
 
                 $student = new Students;
                 $student->user_id = $user->id;
@@ -358,7 +362,7 @@ class StudentsImport extends DefaultValueBinder implements SkipsEmptyRows, ToCol
                         'password' => ' '.$father_plaintext_password,
                         'child_name' => ' '.$row['first_name'].' '.$row['last_name'],
                         'child_grnumber' => ' '.$admission_no,
-                        'child_password' => ' '.$child_plaintext_password,
+                        'child_password' => ' '.$child_password_note,
                         'type' => 'application_accept',
                         'class_name' => $class_section_name,
                         'school_name' => $school_name,
@@ -382,7 +386,7 @@ class StudentsImport extends DefaultValueBinder implements SkipsEmptyRows, ToCol
                         'password' => ' '.$mother_plaintext_password,
                         'child_name' => ' '.$row['first_name'].' '.$row['last_name'],
                         'child_grnumber' => ' '.$admission_no,
-                        'child_password' => ' '.$child_plaintext_password,
+                        'child_password' => ' '.$child_password_note,
                         'type' => 'application_accept',
                         'class_name' => $class_section_name,
                         'school_name' => $school_name,
@@ -406,7 +410,7 @@ class StudentsImport extends DefaultValueBinder implements SkipsEmptyRows, ToCol
                         'password' => ' '.$guardian_plaintext_password,
                         'child_name' => ' '.$row['first_name'].' '.$row['last_name'],
                         'child_grnumber' => ' '.$admission_no,
-                        'child_password' => ' '.$child_plaintext_password,
+                        'child_password' => ' '.$child_password_note,
                         'type' => 'application_accept',
                         'class_name' => $class_section_name,
                         'school_name' => $school_name,
@@ -422,6 +426,11 @@ class StudentsImport extends DefaultValueBinder implements SkipsEmptyRows, ToCol
                 }
             }
             DB::commit();
+
+            // Only once the whole file is in: each guardian gets a link to set the learner's password.
+            foreach ($learners as $learner) {
+                rescue(fn () => app(LearnerInvitations::class)->inviteGuardians($learner, auth()->user()));
+            }
         } catch (\Exception $e) {
             DB::rollBack();
             throw $e;

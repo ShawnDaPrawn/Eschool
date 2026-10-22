@@ -88,6 +88,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'parent.policy' => \App\Http\Middleware\RequireParentPolicyAcceptance::class,
             'teacher.policy' => \App\Http\Middleware\RequireParentPolicyAcceptance::class,
             'teacher.active' => \App\Http\Middleware\EnsureTeacherActive::class,
+            'password.change' => \App\Http\Middleware\EnforcePasswordChange::class,
             'cache.headers' => \Illuminate\Http\Middleware\SetCacheHeaders::class,
             'can' => \Illuminate\Auth\Middleware\Authorize::class,
             'guest' => \App\Http\Middleware\RedirectIfAuthenticated::class,

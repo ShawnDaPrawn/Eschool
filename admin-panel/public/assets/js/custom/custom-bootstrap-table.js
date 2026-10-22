@@ -442,6 +442,19 @@ window.setOnlineRegistrationFormMode = function (mode, row) {
 };
 
 window.studentEvents = {
+    // Sign-in set-up (LearnerInvitationController).
+    'click .learner-invite': function (e) {
+        e.preventDefault();
+        ajaxRequest('POST', $(e.currentTarget).data('url'), new FormData(), null, function (response) {
+            showSuccessToast(response.message);
+        }, function (response) {
+            showErrorToast(response.message);
+        });
+    },
+    'click .learner-sheet': function (e) {
+        e.preventDefault();
+        openLearnerSignInSheet($(e.currentTarget).data('url'));
+    },
     'click .editdata': function (e, value, row, index) {
         $("#edit_id").val(row.user_id);
         $("#edit_first_name").val(row.first_name);
