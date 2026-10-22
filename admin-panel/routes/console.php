@@ -1,5 +1,6 @@
 <?php
 
+use App\Console\Commands\FlagDobPasswords;
 use App\Jobs\Platform\DispatchOutbox;
 use App\Models\Platform\IdempotencyKey;
 use Illuminate\Foundation\Inspiring;
@@ -24,3 +25,16 @@ Schedule::job(new DispatchOutbox)->everyMinute()->name('outbox-dispatch');
 // Fills *_cents for fee rows written outside the models and logs any row
 // whose cents and float disagree ("money_cents_check").
 Schedule::command('money:backfill-cents')->dailyAt('02:10')->withoutOverlapping();
+
+// Learners whose password is still their date of birth are flagged once,
+// on the worker, the first night after the release that added the check
+// (the worker and the scheduler then run the same release). The command
+// records when it has run, so the entry stops queueing it.
+Schedule::call(function () {
+    // A statement, not an arrow function: the pending dispatch must not be
+    // returned (and kept) but released here, which is when it is queued.
+    Artisan::queue('learners:flag-dob-passwords', ['--if-not-done' => true]);
+})
+    ->dailyAt('03:20')
+    ->name('learners-flag-dob-passwords')
+    ->when(fn () => ! FlagDobPasswords::completed());

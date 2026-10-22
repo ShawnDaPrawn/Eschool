@@ -4,9 +4,11 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Platform;
 
+use App\Console\Commands\FlagDobPasswords;
 use App\Http\Middleware\EnforcePasswordChange;
 use App\Models\User;
 use Illuminate\Console\Command;
+use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Foundation\Console\QueuedCommand;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Hash;
@@ -67,14 +69,43 @@ class DateOfBirthPasswordTest extends TestCase
         $this->assertTrue($learner->fresh()->password_change_required);
     }
 
-    public function test_the_migration_adds_the_flag_and_queues_the_command(): void
+    public function test_the_migration_adds_the_flag_without_queueing_anything(): void
     {
+        // On Cloud Run the web revision migrates before the worker is upgraded,
+        // and the old worker would not know the command.
         Queue::fake();
         Schema::shouldReceive('table')->once()->withArgs(fn ($table) => $table === 'users');
 
         (require database_path('migrations/2026_10_22_090000_add_password_change_required_to_users_table.php'))->up();
 
+        Queue::assertNothingPushed();
+    }
+
+    public function test_the_schedule_queues_the_check_once_until_a_full_run_completes(): void
+    {
+        Queue::fake();
+        $event = collect(app(Schedule::class)->events())->first(fn ($event) => $event->description === 'learners-flag-dob-passwords');
+        $this->assertNotNull($event, 'The schedule has the learner password check');
+        $this->assertSame('20 3 * * *', $event->expression);
+
+        $this->assertTrue($event->filtersPass($this->app));
+        $event->run($this->app);
         Queue::assertPushed(QueuedCommand::class, fn (QueuedCommand $job) => str_contains(serialize($job), 'learners:flag-dob-passwords'));
+
+        // A full run records itself; the entry then stops and --if-not-done skips.
+        $this->artisan('learners:flag-dob-passwords')->assertExitCode(0);
+        $this->assertTrue(FlagDobPasswords::completed());
+        $this->assertFalse($event->filtersPass($this->app));
+        $learner = $this->learner('01062015', '2015-06-01');
+        $this->artisan('learners:flag-dob-passwords', ['--if-not-done' => true])->expectsOutputToContain('already checked')->assertExitCode(0);
+        $this->assertFalse($learner->fresh()->password_change_required);
+    }
+
+    public function test_a_dry_run_does_not_count_as_done(): void
+    {
+        $this->artisan('learners:flag-dob-passwords', ['--dry-run' => true])->assertExitCode(0);
+
+        $this->assertFalse(FlagDobPasswords::completed());
     }
 
     public function test_v1_sign_in_keeps_working_and_reports_the_flag(): void
