@@ -77,7 +77,9 @@ var lightColor = getComputedStyle(document.body).getPropertyValue('--light');
                 if ($('.chats').length) {
                     const chatsScroll = new PerfectScrollbar('.chats');
                 }
-                if (body.hasClass("sidebar-fixed")) {
+                // The panel's navigation scrolls natively (data-native-scroll): the
+                // scrollbar plugin put its rails inside the <ul> and made them focusable.
+                if (body.hasClass("sidebar-fixed") && !$('#sidebar').is('[data-native-scroll]')) {
                     var fixedSidebarScroll = new PerfectScrollbar('#sidebar .nav');
                 }
             }

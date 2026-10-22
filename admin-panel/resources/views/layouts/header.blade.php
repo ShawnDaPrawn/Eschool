@@ -27,7 +27,7 @@
         <div class="navbar-nav navbar-nav-right panel-header-actions">
             <div class="panel-year d-none d-md-flex">
                 <label class="panel-year-label" for="filter_session_year_global">{{ __('nav_school_year') }}</label>
-                <select id="filter_session_year_global" data-scope="global"
+                <select id="filter_session_year_global" data-scope="global" data-selected="{{ $panelYear->selectedId() }}"
                     class="session-year-dropdown filter_session_year js-year-switcher">
                     @foreach ($headerYears as $year)
                         <option value="{{ $year->id }}"

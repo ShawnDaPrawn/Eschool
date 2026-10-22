@@ -11,7 +11,7 @@
     $navSections = app(\App\Services\Panel\Navigation::class)->sections(Auth::user());
     $sidebarYears = \App\Models\SessionYear::query()->select('id', 'name')->orderBy('start_date')->orderBy('id')->get();
 @endphp
-<nav class="sidebar sidebar-offcanvas panel-nav" id="sidebar" aria-label="{{ __('nav_main') }}">
+<nav class="sidebar sidebar-offcanvas panel-nav" id="sidebar" aria-label="{{ __('nav_main') }}" data-native-scroll>
     <ul class="nav">
         {{-- Small screens: the year switcher and close button live at the top of the drawer. --}}
         <li class="nav-item d-md-none sidebar-mobile-header">
@@ -19,7 +19,7 @@
                 <div class="sidebar-mobile-top">
                     <div class="sidebar-mobile-session">
                         <label class="sr-only" for="filter_session_year_global_mobile">{{ __('nav_school_year') }}</label>
-                        <select id="filter_session_year_global_mobile" data-scope="global"
+                        <select id="filter_session_year_global_mobile" data-scope="global" data-selected="{{ $panelYear->selectedId() }}"
                             class="session-year-dropdown sidebar-session-dropdown js-year-switcher">
                             @foreach ($sidebarYears as $year)
                                 <option value="{{ $year->id }}" @selected($year->id === $panelYear->selectedId())>

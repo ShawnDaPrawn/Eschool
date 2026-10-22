@@ -46,7 +46,7 @@ class TodayNumbers
             $taken = Attendance::where('session_year_id', $sessionYearId)->where('date', $today)->distinct()->count('class_section_id');
             $numbers[] = $this->number('attendance', __('today_registers_taken'),
                 __('today_of', ['count' => $taken, 'total' => $homerooms]),
-                $taken < $homerooms ? __('today_registers_missing', ['count' => $homerooms - $taken]) : null,
+                $taken < $homerooms ? trans_choice('today_registers_missing', $homerooms - $taken, ['count' => $homerooms - $taken]) : null,
                 $user->can('attendance-list') ? route('attendance.view') : null);
         }
 

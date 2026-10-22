@@ -44,7 +44,9 @@
     };
 
     $(document).on("change", ".js-year-switcher:not(#filter_session_year_global)", function () {
-        window.panelSwitchYear($(this).val());
+        if (String($(this).val()) !== String(this.getAttribute("data-selected"))) {
+            window.panelSwitchYear($(this).val());
+        }
     });
 
     /* ---- Global search box --------------------------------------

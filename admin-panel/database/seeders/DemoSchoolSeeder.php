@@ -238,7 +238,7 @@ class DemoSchoolSeeder extends Seeder
         $finance = Role::firstOrCreate(['name' => 'Finance', 'guard_name' => 'web']);
         $finance->forceFill(['custom_role' => 1])->save();
         $finance->syncPermissions(['fees-type', 'fees-classes', 'fees-paid', 'fees-config']);
-        $staff = $this->user("finance.$k", 'Grace', 'Molefe', 'Finance', ['gender' => 'Female']);
+        $staff = $this->user("finance.$k", 'Grace', 'Molefe', 'Finance', ['gender' => 'Female', 'dob' => '1985-09-30']);
         $this->row('staffs', ['user_id' => $staff->id]);
 
         foreach ([
@@ -435,11 +435,23 @@ class DemoSchoolSeeder extends Seeder
         return (int) DB::table($table)->insertGetId($match + $values + ($now ? $now + ['created_at' => now()] : []));
     }
 
-    /** Pictures for the demo people and subjects, so the lists show no broken images. */
+    /**
+     * Pictures for the demo people and subjects, and for the website sections
+     * the installer points at pictures it does not ship, so no page shows a
+     * broken image. A school's own website pictures are never replaced.
+     */
     private function images(): void
     {
-        Storage::disk('public')->put('demo/avatar.png', (string) file_get_contents(public_path('assets/avatar.png')));
-        Storage::disk('public')->put('demo/subject.svg', (string) file_get_contents(public_path('assets/no-image.svg')));
+        $disk = Storage::disk('public');
+        $disk->put('demo/avatar.png', (string) file_get_contents(public_path('assets/avatar.png')));
+        $disk->put('demo/subject.svg', (string) file_get_contents(public_path('assets/no-image.svg')));
+        if (Schema::hasTable('web_settings')) {
+            foreach (DB::table('web_settings')->whereNotNull('image')->pluck('image') as $path) {
+                if ($path !== '' && ! $disk->exists($path)) {
+                    $disk->put($path, (string) file_get_contents(public_path('assets/eschool.jpg')));
+                }
+            }
+        }
     }
 
     private function hasTimestamps(string $table): bool

@@ -84,6 +84,18 @@
     opacity: var(--md-sys-state-disabled-content-opacity);
 }
 
+/* Links inside list rows (a learner's name) in the primary colour, which
+   reads at 4.5:1 on the rows; the template's lighter link colour did not. */
+.bootstrap-table .table td a:not(.btn):not(.dropdown-item) {
+    color: var(--md-sys-color-primary);
+}
+
+/* The rich text editor's placeholder was too faint to read (WCAG AA). */
+.jodit-placeholder {
+    color: var(--md-sys-color-on-surface-variant) !important;
+    opacity: 1 !important;
+}
+
 /* ---- School-wide notices under the header -------------------- */
 .panel-notice {
     display: flex;

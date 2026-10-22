@@ -34,6 +34,52 @@
         });
     })();
 
+    /* ---- Names for controls the plugins draw ----------------------
+       bootstrap-table's row checkboxes and Select2's search fields
+       come without an accessible name; give them one on every page,
+       old or new, as they appear. */
+    function labelText(select) {
+        if (!select) {
+            return "";
+        }
+        var label = select.id ? document.querySelector('label[for="' + select.id + '"]') : null;
+        return (label && label.textContent.replace(/\*/g, "").trim()) || select.getAttribute("aria-label") || "";
+    }
+
+    function nameControls(root) {
+        root.querySelectorAll('input[name="btSelectAll"]:not([aria-label])').forEach(function (box) {
+            box.setAttribute("aria-label", label("page_select_all_rows", "Select all rows"));
+        });
+        root.querySelectorAll('input[name="btSelectItem"]:not([aria-label])').forEach(function (box) {
+            var index = Number(box.getAttribute("data-index") || 0) + 1;
+            box.setAttribute("aria-label", label("page_select_row", "Select row :number").replace(":number", String(index)));
+        });
+        // A table wider than its card scrolls inside it; let the keyboard reach that scroll.
+        root.querySelectorAll(".fixed-table-body:not([tabindex])").forEach(function (body) {
+            body.setAttribute("tabindex", "0");
+            body.setAttribute("role", "region");
+            body.setAttribute("aria-label", label("page_table_region", "Table"));
+        });
+        root.querySelectorAll(".select2-search__field:not([aria-label])").forEach(function (field) {
+            var container = field.closest(".select2-container");
+            var select = container && container.previousElementSibling && container.previousElementSibling.tagName === "SELECT" ? container.previousElementSibling : null;
+            field.setAttribute("aria-label", labelText(select) || label("search_label", "Search"));
+        });
+    }
+
+    $(function () {
+        nameControls(document);
+        new MutationObserver(function (mutations) {
+            mutations.forEach(function (mutation) {
+                mutation.addedNodes.forEach(function (node) {
+                    if (node.nodeType === 1) {
+                        nameControls(node.parentNode || node);
+                    }
+                });
+            });
+        }).observe(document.body, { childList: true, subtree: true });
+    });
+
     /* ---- Confirm dialog ---------------------------------------- */
     var confirmDialog = null;
 

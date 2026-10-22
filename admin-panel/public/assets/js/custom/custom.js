@@ -7690,6 +7690,12 @@ function getCsrfToken() {
 $("#filter_session_year_global").on("change", function () {
     const value = $(this).val() || 1;
 
+    // Some pages trigger "change" on load to fill their own filters; only a
+    // real switch to another year is stored and reloads the page.
+    if (String(value) === String(this.getAttribute("data-selected"))) {
+        return;
+    }
+
     sessionStorage.setItem("session_year_id_global", value);
     sessionStorage.setItem("session_year_id_table", value);
 
