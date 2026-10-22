@@ -4,6 +4,7 @@ namespace App\Actions\Transfers;
 
 use App\Models\ClassSubject;
 use App\Models\ElectiveSubjectGroup;
+use App\Services\Platform\Tenancy\SchoolTable;
 use Illuminate\Support\Facades\DB;
 
 class TransferClassSubject
@@ -67,7 +68,7 @@ class TransferClassSubject
                     }
 
                     if (! empty($insertData)) {
-                        DB::table('class_subjects')->insert($insertData);
+                        SchoolTable::query('class_subjects')->insert($insertData);
                     }
                 });
         });

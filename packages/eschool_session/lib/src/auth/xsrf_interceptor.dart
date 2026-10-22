@@ -33,10 +33,11 @@ class XsrfInterceptor extends Interceptor {
   /// GETs `<apiBaseUrl>/sanctum/csrf-cookie` with the browser's credentials.
   final Future<void> Function() fetchCsrfCookie;
 
-  static bool _changesSomething(RequestOptions options) =>
-      !const <String>{'GET', 'HEAD', 'OPTIONS'}.contains(
-        options.method.toUpperCase(),
-      );
+  static bool _changesSomething(RequestOptions options) => !const <String>{
+    'GET',
+    'HEAD',
+    'OPTIONS',
+  }.contains(options.method.toUpperCase());
 
   @override
   Future<void> onRequest(

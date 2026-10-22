@@ -10,6 +10,7 @@ use App\Http\Middleware\DemoMiddleware;
 use App\Http\Middleware\EncryptCookies;
 use App\Http\Middleware\EndRefusedPortalSignIn;
 use App\Http\Middleware\EnforcePasswordChange;
+use App\Http\Middleware\EnsureDefaultSchool;
 use App\Http\Middleware\EnsureParentChildrenSessionIsActive;
 use App\Http\Middleware\EnsureStudentSessionIsActive;
 use App\Http\Middleware\EnsureTeacherActive;
@@ -22,7 +23,10 @@ use App\Http\Middleware\RedirectIfAuthenticated;
 use App\Http\Middleware\RejectDangerousUploads;
 use App\Http\Middleware\RequireParentPolicyAcceptance;
 use App\Http\Middleware\RequirePasswordChange;
+use App\Http\Middleware\RequireSchoolPushTopics;
+use App\Http\Middleware\ResetSchoolContext;
 use App\Http\Middleware\SecurityHeaders;
+use App\Http\Middleware\SetSchoolContext;
 use App\Providers\ObservabilityServiceProvider;
 use dacoto\LaravelWizardInstaller\LaravelWizardInstallerServiceProvider;
 use dacoto\LaravelWizardInstaller\Middleware\InstallerMiddleware;
@@ -87,8 +91,13 @@ return Application::configure(basePath: dirname(__DIR__))
             'csp-report',
         ]);
 
+        // Every request starts with no school; school.context chooses it.
+        $middleware->prepend(ResetSchoolContext::class);
         // Outermost, so every response and every log line of the request has its id.
         $middleware->prepend(AssignRequestId::class);
+        // The school is chosen right after authentication, before route model
+        // binding or anything else reads school-owned rows.
+        $middleware->prependToPriorityList(before: SubstituteBindings::class, prepend: SetSchoolContext::class);
         $middleware->append(SecurityHeaders::class);
         $middleware->append(LimitRequestInput::class);
 
@@ -124,6 +133,10 @@ return Application::configure(basePath: dirname(__DIR__))
         // Alias middleware
         $middleware->alias([
             'auth' => Authenticate::class,
+            // The school a signed-in request works for (after auth, on every group).
+            'school.context' => SetSchoolContext::class,
+            // Pages that change what every school shares: the default school only.
+            'school.default' => EnsureDefaultSchool::class,
             'Role' => CheckRole::class,
             'checkChild' => CheckChild::class,
             'checkStudent' => CheckStudent::class,
@@ -144,6 +157,8 @@ return Application::configure(basePath: dirname(__DIR__))
             'password.change' => EnforcePasswordChange::class,
             // The app sign-in endpoints: a refused web portal sign-in keeps no session.
             'portal.sign-in' => EndRefusedPortalSignIn::class,
+            // v1 app sign-in: older app versions only for the first school's people.
+            'push.topics' => RequireSchoolPushTopics::class,
             // API v2 role groups and writes (routes/api_v2.php).
             'staff' => EnsureUserIsStaff::class,
             'role.any' => EnsureUserHasAnyRole::class,

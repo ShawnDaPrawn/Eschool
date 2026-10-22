@@ -1,3 +1,4 @@
+import 'package:eschool/app/selectedChild.dart';
 import 'package:eschool/app/routes.dart';
 import 'package:eschool/cubits/authCubit.dart';
 import 'package:eschool/cubits/leavesCubit.dart';
@@ -22,12 +23,17 @@ class ManageLeavesScreen extends StatefulWidget {
   @override
   State<ManageLeavesScreen> createState() => _ManageLeavesScreenState();
 
+  /// A parent manages the leave of the child picked in the child switcher;
+  /// a learner their own (the [Student] given).
   static Route route(RouteSettings routeSettings) {
-    return AdaptivePageRoute(
-      builder: (_) => BlocProvider<LeaveCubit>(
+    return childRoute(
+      (context, child) => BlocProvider<LeaveCubit>(
         create: (context) => LeaveCubit(LeaveRepository()),
         child: ManageLeavesScreen(
-          studentDetails: routeSettings.arguments! as Student,
+          studentDetails:
+              child ??
+              routeSettings.arguments as Student? ??
+              context.read<AuthCubit>().getStudentDetails(),
         ),
       ),
     );

@@ -3,7 +3,7 @@
 namespace App\Actions\Transfers;
 
 use App\Models\FeesClass;
-use Illuminate\Support\Facades\DB;
+use App\Services\Platform\Tenancy\SchoolTable;
 
 class TransferClassFeeType
 {
@@ -26,7 +26,7 @@ class TransferClassFeeType
                     );
                 })->toArray();
                 if (! empty($data)) {
-                    DB::table('fees_classes')->insert($data);
+                    SchoolTable::query('fees_classes')->insert($data);
                 }
             });
     }

@@ -1,3 +1,4 @@
+import 'package:eschool/app/selectedChild.dart';
 // ignore_for_file: public_member_api_docs, sort_constructors_first
 import 'package:eschool/app/routeArguments.dart';
 import 'package:eschool/cubits/academicCalendarCubit.dart';
@@ -55,8 +56,9 @@ class AcademicCalendarScreen extends StatefulWidget {
     final arguments =
         routeSettings.arguments as AcademicCalendarArguments? ??
         const AcademicCalendarArguments();
-    return AdaptivePageRoute(
-      builder: (_) => BlocProvider<AcademicCalendarCubit>(
+    //a parent sees the calendar of the child picked in the child switcher
+    return childRoute(
+      (context, child) => BlocProvider<AcademicCalendarCubit>(
         create: (context) => AcademicCalendarCubit(
           SystemRepository(),
           StudentRepository(),
@@ -64,7 +66,7 @@ class AcademicCalendarScreen extends StatefulWidget {
         ),
         child: AcademicCalendarScreen(
           hasBack: arguments.hasBack,
-          childId: arguments.childId,
+          childId: child?.id,
         ),
       ),
     );

@@ -15,6 +15,8 @@ import 'package:eschool_core/eschool_core.dart';
 import 'package:eschool/ui/widgets/latestNoticesContainer.dart';
 import 'package:eschool/ui/widgets/noDataContainer.dart';
 import 'package:eschool/ui/widgets/notificationIconWidget.dart';
+import 'package:eschool/app/sessionWatcher.dart';
+import 'package:eschool_session/eschool_session.dart';
 import 'package:eschool/ui/widgets/shimmerLoaders/albumGridItemLoadingContainer.dart';
 import 'package:eschool/ui/widgets/shimmerLoaders/announcementShimmerLoadingContainer.dart';
 import 'package:eschool/ui/widgets/shimmerLoaders/subjectsShimmerLoadingContainer.dart';
@@ -192,6 +194,10 @@ class _HomeContainerState extends State<HomeContainer> {
                             ),
                           ],
                         ),
+                      ),
+                      //only for a learner at more than one school
+                      const SchoolSwitcherButton(
+                        onSwitched: returnHomeAfterSchoolSwitch,
                       ),
                       const NotificationIconWidget(),
                     ],

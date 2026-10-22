@@ -28,7 +28,9 @@ Both apps use the same folder structure under `lib/`:
 | `lib/app/app.dart` | `initializeApp()` (Firebase, Crashlytics, notifications, Hive), `MyApp` with the global `MultiBlocProvider` and `MaterialApp`. |
 | `lib/app/routes.dart` | `Routes` class: route-name constants and `onGenerateRouted()` (a `switch` over route names, unknown names give an empty `Scaffold`). |
 | `lib/app/routeArguments.dart` | The typed arguments of the routes that take several values (see [Route arguments](#route-arguments)). |
-| `lib/app/deepLinks.dart`, `lib/app/sessionWatcher.dart` | The links the app understands, and what keeps `/me/context` and links in step with sign-in (see [Links into the app](#links-into-the-app)). |
+| `lib/app/deepLinks.dart`, `lib/app/sessionWatcher.dart` | The links the app understands, and what keeps `/me/context`, the child and school switchers and links in step with sign-in (see [Links into the app](#links-into-the-app) and [Choosing a child and a school](#choosing-a-child-and-a-school)). |
+| `lib/app/sharedScreens.dart` | The routes of the screens that live in the packages (Notifications settings, My school, Profile picture and, in the student app, Approvals and Invitation), and the Settings entries that open them (see [Shared screens](#shared-screens)). |
+| `lib/app/selectedChild.dart` | Student app only: how a parent's child screens read the child picked in the switcher (`childRoute`, `SelectedChildScope`). |
 | `lib/cubits/` | Feature Cubits (one file per Cubit, state classes in the same file). Sub-folders `chat/` and `gallery/`. Some screen-private Cubits live next to their screen, e.g. `e-school/lib/ui/screens/reports/cubits/`. |
 | `lib/data/models/` | Plain Dart model classes with `fromJson` / `toJson`. |
 | `lib/data/repositories/` | One class per domain (`AuthRepository`, `StudentRepository`, `SystemRepository`, ...). Repositories are the only layer that calls `Api`. |
@@ -62,8 +64,24 @@ Files that were the same in both apps live once in [`packages/eschool_core`](htt
 | `ui/` | `SharedUiUtils` (the sizes and helpers both `UiUtils` had), `SharedAssets` (paths of the images the shared widgets draw, which each app ships), `SharedRoutes` |
 | `utils/` | `extensions.dart` and the list animations with their switches (`isApplicationItemAnimationOn` and the durations) |
 | `shell/` | `AppShell`, which each app puts above its navigator in `MaterialApp.builder` |
+| `avatars/` | `AvatarSet` (the 16 avatars in `assets/avatars/`: four each of `boy_`, `girl_`, `man_` and `woman_1` to `_4`, drawn in the theme's colours only, and the default for a person from gender and role) and `PersonAvatar` (an avatar key, a photo URL or initials) |
+| `widgets/screen_scaffold.dart` | `ScreenScaffold` (the dark header, title and back button the packages' screens use) and `EmptyStateMessage` |
 
 `AppShell` carries the few things the shared widgets do differently per app: the error code to label mapping (`ErrorMessageKeysAndCode`, code 113 means something else in each app), how an attachment opens (`UiUtils.viewOrDownloadStudyMaterial`) and the button drawn next to it (`DownloadFileButton`), and the bottom bar's height. Nine shared widget files still differ in how they look between the apps and stay in each app until the screens that use them are redesigned: `customAppbar`, `customTabBarContainer`, `tabBarBackgroundContainer`, `downloadFileButton`, `downloadFileBottomsheetContainer`, `dynamicFieldListContainer`, `listItemForExamAndResult`, `noDataContainer` and `notificationIconWidget`.
+
+### Shared screens
+
+Screens that both apps (or both a phone and a portal) show are built once in a package and opened by each app's `lib/app/sharedScreens.dart`:
+
+| Screen | Package | Endpoint | In |
+|---|---|---|---|
+| Notifications settings: each notification type, push, email and in-app switches, a lock with the school's reason on a mandatory one | `eschool_notifications` (`NotificationSettingsScreen`) | `GET` and `PUT /api/v2/me/notification-preferences` | both apps; Settings, and the gear in the Notifications screen's header |
+| Approvals: a parent approves a child's account after reading the consent, or withdraws it | [`eschool_people`](https://github.com/ShawnDaPrawn/Eschool/tree/main/packages/eschool_people) (`ApprovalsScreen`) | `GET /api/v2/guardian/approvals`, `POST .../approvals/{learner}` | student app, parents only |
+| Invitation: a new parent opens the school's link, sets a password and is signed in | `eschool_people` (`InvitationScreen`) | `GET /api/v2/guardian/invitations/{token}`, `POST .../accept` | student app, from the link only, before sign-in |
+| My school: the school's contacts (call, e-mail, website, address), documents and term dates | `eschool_people` (`MySchoolScreen`) | `GET /api/v2/schools/{school}/my-school` | both apps; Settings |
+| Profile picture: pick an avatar, or upload a photo the school approves | `eschool_people` (`AvatarScreen`) | `GET`, `PUT` and `POST /api/v2/me/avatar` | both apps; Settings |
+
+Each screen reads and writes through a repository interface (with an `Api...Repository` on the app's `ApiClient` and a fake in the tests), and its request and response models are written by hand until the endpoints are in `openapi.yaml` and the generated `eschool_api` client replaces them. The exact fields are in [engineering/specs/apps/phase-1-apps.md](https://github.com/ShawnDaPrawn/Eschool/blob/main/engineering/specs/apps/phase-1-apps.md). Until the server answers an endpoint (404), its Settings entry stays hidden: `AvailableOnly` (`eschool_session`) asks once per school and remembers the answer until sign-out or a school switch. A module the school has set to read only shows its screens without the buttons that change things (`MeContext.isModuleReadOnly`).
 
 ## Startup sequence
 
@@ -101,7 +119,7 @@ Every route in both apps is an `AdaptivePageRoute`, so every existing screen ren
 
 ## Route arguments
 
-Screens are opened by name (`Navigator.pushNamed(context, Routes.x, arguments: ...)`) and each screen's `static Route route(RouteSettings)` reads `routeSettings.arguments`. The arguments are typed: a route that takes several values has a small class in `lib/app/routeArguments.dart` (for example `ChildSubjectsArguments(childId:, subjects:)` for a child's assignments, exams, results and reports, `FeesDetailsArguments` with a `forChildId` constructor for fee reminders, `ExamTimeTableArguments`, `ClassScreenArguments` and `AddOrEditLessonArguments` in the teacher app); a route that takes one value receives it as it is (a `Student`, an `Assignment`, an `Event`, a `ChatUser`, a `GalleryAlbum`, a child id, the payment URL). The file viewers' `ImageFileViewArguments` and `PdfFileViewArguments` are in `eschool_core`, because both apps and the shared widgets open them. Passing the wrong type fails when the route is built, and `test/routes_test.dart` in each app builds every argument-taking route with its class. The add and edit screens, the file viewers and the academic calendar also open without arguments.
+Screens are opened by name (`Navigator.pushNamed(context, Routes.x, arguments: ...)`) and each screen's `static Route route(RouteSettings)` reads `routeSettings.arguments`. The arguments are typed: a route that takes several values has a small class in `lib/app/routeArguments.dart` (for example `SubjectDetailsArguments(subject:, childId:)`, `FeesDetailsArguments` with a `forChildId` constructor for fee reminders, `ExamTimeTableArguments`, `ClassScreenArguments` and `AddOrEditLessonArguments` in the teacher app); a route that takes one value receives it as it is (a `Student`, an `Assignment`, an `Event`, a `ChatUser`, a `GalleryAlbum`, a child id, the payment URL). The file viewers' `ImageFileViewArguments` and `PdfFileViewArguments` are in `eschool_core`, because both apps and the shared widgets open them. Passing the wrong type fails when the route is built, and `test/routes_test.dart` in each app builds every argument-taking route with its class. The add and edit screens, the file viewers and the academic calendar also open without arguments. A parent's child screens (child details, assignments, teachers, attendance, timetable, calendar, exams, results, reports, fees, leaves) take no child at all: they show the child picked in the child switcher (see [Choosing a child and a school](#choosing-a-child-and-a-school)).
 
 ## State management
 
@@ -174,14 +192,15 @@ Hive boxes and keys (`lib/utils/hiveBoxKeys.dart`):
 | `authBox` | `jwtToken` | Bearer token sent by `Api.headers()`. |
 | `authBox` | `isLogIn` | Whether a session exists; read by `AuthCubit` at startup. |
 | `authBox` | `hasSubscribedToNotificationTopics` | Prevents re-subscribing to FCM topics on every login. |
-| `authBox` | `meContext` | The last `/api/v2/me/context` answer (JSON), see [What the server says about the user](#what-the-server-says-about-the-user). |
+| `authBox` | `meContext`, `meContextFetchedAt` | The last `/api/v2/me/context` answer, as the server sent it (JSON), and when it was fetched; see [What the server says about the user](#what-the-server-says-about-the-user). |
+| `authBox` | `selectedChildId`, `selectedSchoolId` | The child and the school picked in the switchers, kept across restarts and cleared on sign-out; see [Choosing a child and a school](#choosing-a-child-and-a-school). |
 | `authBox` | `isStudentLogIn`, `studentDetails`, `parentDetails` | Student app only: user type and cached profile JSON. |
 | `authBox` | `teacherDetails` | Teacher app only: cached profile JSON. |
 | `settings` | `currentLanguageCode` | Selected language (falls back to `defaultLanguageCode`). |
 | `settings` | `allowNotification` | Student app only. |
 | `showCaseBox` | `showHomeScreenGuide` | Student app only. |
 
-SharedPreferences keys `notificationCount` and `chatNotificationsBackgroundItem` hold data that is also written by the FCM background handler `onBackgroundMessage()`, which runs in its own isolate; `SettingsRepository` calls `prefs.reload()` before every read and write.
+SharedPreferences keys `notificationCount`, `chatNotificationsBackgroundItem` and `contextChanged` (a `context.changed` push that arrived in the background) hold data that is also written by the FCM background handler `onBackgroundMessage()`, which runs in its own isolate; `SettingsRepository` calls `prefs.reload()` before every read and write.
 
 Sign-out (`AuthCubit.signOut()`) unsubscribes from the FCM topics and calls `AuthRepository.signOutUser()`, which posts to `logout` (fire and forget; the server deletes the current token) and clears `isLogIn`, `jwtToken` and the cached profiles. Tokens expire on the server after `SANCTUM_EXPIRATION` minutes (default `60 * 24 * 30`, i.e. 30 days, in `admin-panel/config/sanctum.php`); the next request then gets a 401 and the app logs out.
 
@@ -189,13 +208,25 @@ Data protection on Android: both apps set `android:allowBackup="false"` and use 
 
 ## What the server says about the user
 
-`MeContextCubit` (`eschool_session`, provided in `MyApp`) holds the answer of `GET /api/v2/me/context`: the user, their roles, the current school (name, branding, timezone) and the modules switched on there. `SessionWatcher` (`lib/app/sessionWatcher.dart`) loads it on launch when someone is signed in and whenever `AuthCubit` becomes `Authenticated`, and clears it on sign-out. The last answer is kept in `authBox` (`meContext`) and shown while a new one loads or when the network fails.
+`MeContextCubit` (`eschool_session`, provided in `MyApp`) holds the answer of `GET /api/v2/me/context`: the user and their roles (`user.roles`), their schools with the roles at each (`schools[]`), the current school (name, crest, branding, timezone, session year), the modules switched on there (`modules[]`, each with `read_only`), the notification rules, feature flags and sign-in methods, and, for a guardian, their children (`children[]`, each with its school, student number, homeroom and whether it is approved) and their own approval state (`approval`). `MeContext` decodes each part with the generated `eschool_api` models; a key it does not know is ignored, and a key the server does not send yet reads as "not available yet" (`MeContext.has`), so an app keeps working against an older server.
 
-Nothing reads it yet in Phase 0: the modules list is empty and the apps behave as before. A server older than API v2 answers 404; the cubit then emits `MeContextUnavailable` and the app carries on with today's behaviour. School branding from the context is shown beside NavigateEd's brand in later phases, never instead of it; the theme does not read it.
+`SessionWatcher` (`lib/app/sessionWatcher.dart`) loads it on launch when someone is signed in, whenever `AuthCubit` becomes `Authenticated` and after a school switch, and clears it on sign-out. `MeContextRefresher` fetches it again when the app comes back to the front and the answer is more than five minutes old, and when a `context.changed` push arrived (in the front at once; in the background, noted and fetched on resume). The last answer and when it came are kept in `authBox` (`meContext`, `meContextFetchedAt`) and shown while a new one loads or when the network fails.
+
+A server older than API v2 answers 404; the cubit then emits `MeContextUnavailable` and the app carries on with today's behaviour (a parent's children then come from the v1 sign-in). School branding from the context is shown beside NavigateEd's brand, never instead of it; the theme does not read it.
+
+## Choosing a child and a school
+
+**Child switcher.** A parent's child screens all show one child: the one picked in `ChildSelectionCubit` (`eschool_session`). The children come from `/me/context` `children`, or from the v1 parent sign-in when the server does not send them. On a phone or tablet a bar above each child screen shows the child's avatar, name and school, and tapping it opens a list to pick another; in a window wider than 1024 px the list stays beside the screen. With one child there is no switcher. Picking a child rebuilds the open screen for that child (new cubits, a new fetch), and the choice is kept in `authBox` (`selectedChildId`), restored on the next launch and cleared on sign-out. Home's child cards pick the child too. In the student app `childRoute()` in `lib/app/selectedChild.dart` puts the frame (`ChildSwitcherFrame`) around a child screen; the v1 endpoints behind the screens still take a child id, and get the picked child's.
+
+**School switcher.** A user with roles at more than one school sees the school's crest and a switch button in the home header (`SchoolSwitcherButton`); a user at one school does not. Picking a school stores it (`selectedSchoolId`), fetches `/me/context` again for that school and returns to home, where everything is fetched afresh. From then on every request carries `X-School-Id: <school id>`, added by `SchoolHeaderInterceptor` on the `Dio` each call creates (`Api.createDio`). A parent's child screens are sent for the child's school: picking a child at another school moves the school with it, and switching school shows a child at that school.
 
 ## Links into the app
 
-`lib/app/deepLinks.dart` lists the addresses each app understands (for example `/notices`, `/notifications`, `/gallery`, and each such route's own name) and maps them to existing route names through `DeepLinkParser` (`eschool_session`). Accepted forms: `https://app.navigateed.co.za/<path>` and `https://teach.navigateed.co.za/<path>` (and their `staging-` hosts, and a web build's own origin), the hash form Flutter web uses (`/#/<path>`), and `navigateed://<path>`. `DeepLinkCoordinator` reads the link that opened the app through `app_links` (on the web, the address in the browser) and keeps it until home is shown: `Routes.onGenerateRouted` opens it over home the first time home is built, after the splash screen and sign-in. Links that arrive while the app runs open at once if the user is signed in and past sign-in, and wait otherwise. Notification taps still route by `data['type']`.
+`lib/app/deepLinks.dart` lists the addresses each app understands (for example `/notices`, `/notifications`, `/gallery`, and each such route's own name) and maps them to existing route names through `DeepLinkParser` (`eschool_session`). Accepted forms: `https://app.navigateed.co.za/<path>` and `https://teach.navigateed.co.za/<path>` (and their `staging-` hosts, and a web build's own origin), the hash form Flutter web uses (`/#/<path>`), and `navigateed://<path>`. `DeepLinkCoordinator` reads the link that opened the app through `app_links` (on the web, the address in the browser) and keeps it until home is shown: `Routes.onGenerateRouted` opens it over home the first time home is built, after the splash screen and sign-in. Links that arrive while the app runs open at once if the user is signed in and past sign-in, and wait otherwise.
+
+Phase 1 adds the shared screens' paths to both apps: `/notifications/settings`, `/my-school` and `/profile-picture`, and in the student app `/approvals` and `/invite/<token>` (`/notifications` stays the list). An invitation is the one link that opens before sign-in, from the sign-in choice, because it is how a new parent gets an account. On phones the portal hosts are declared as Android App Links and iOS universal links, so tapping `https://app.navigateed.co.za/my-school` opens the app rather than the browser once the release's signing details are in the site-association files; see [Mobile-App-Configuration](Mobile-App-Configuration#deep-links).
+
+A notification tap opens the push's `link` when it has one and the app understands it, after switching to the push's `school_id` if that is another of the user's schools (`PushLink`, `openPushLink` in `eschool_session`); a push without a link still routes by `data['type']`.
 
 ## App configuration from the server
 
@@ -239,7 +270,9 @@ Both apps use `firebase_messaging` for delivery and `awesome_notifications` (not
 
 - After login the apps subscribe to FCM topics by audience (`NotificationAudience.students`, `parents` or `teachers`): student app `studentsAndroid`/`studentsIOS` or `parentsAndroid`/`parentsIOS` plus `allAndroid`/`allIOS`; teacher app `teachersAndroid`/`teachersIOS` plus `allAndroid`/`allIOS`. These match the topic map in `sendNotificationToTopic()` in `admin-panel/app/Helpers/notification_helper.php`. Individual notifications are sent to the stored `fcm_id` instead.
 - Android messages are data-only; `NotificationUtility.createLocalNotification()` builds the visible notification (big picture when `image` is set). iOS messages carry a `notification` block and are shown by the system.
-- The payload `type` decides the tap action (`noticeboard`, `assignment`, `custom`, `Online`, `fees-due`, `chat`, ...), in each app's `onNotificationTap()`. Chat messages go through `ChatNotificationsUtils` and the `chat_notifications_channel`.
+- A payload with `link` (an app path) opens that screen, after switching to `school_id` when it names another of the user's schools (see [Links into the app](#links-into-the-app)). Otherwise the payload `type` decides the tap action (`noticeboard`, `assignment`, `custom`, `Online`, `fees-due`, `chat`, ...), in each app's `onNotificationTap()`. Chat messages go through `ChatNotificationsUtils` and the `chat_notifications_channel`.
+- `context.changed` is silent: nothing is shown, and the app fetches `/me/context` again (at once in the front; from the background, `contextChanged` in SharedPreferences notes it and the app fetches on resume).
+- What a user receives, and on which channel, is set in Notifications settings (see [Shared screens](#shared-screens)); the server applies it.
 - The unread badge count is kept in SharedPreferences (`notificationCount`) and shown from `NotificationUtility.unreadCount`; types in `notificaitonTypesToNotIncrementCount` (notice board, class, chat and, in the student app, fee-due) do not increment it.
 
 Server-side sending is covered on [Notifications](Notifications); chat on [Chat](Chat).
@@ -260,7 +293,7 @@ Both apps also build for the web (`flutter build web`, see [Building-and-Releasi
 | Attaching files, paying fees | As before | A notice: "This works in the NavigateEd app on your phone for now." (label `availableInMobileApp`) | `UiUtils.showMobileOnlyNotice()` |
 | Platform checks | `dart:io` `Platform` | `kIsWeb`, `defaultTargetPlatform` | |
 
-Addresses are paths (`/notices`); a reload starts at the splash screen, and an address the app understands (see [Links into the app](#links-into-the-app)) opens its screen after sign-in. Uploads from the browser and web push are planned for Phase 1. The spec is [engineering/specs/apps/web-builds.md](https://github.com/ShawnDaPrawn/Eschool/blob/main/engineering/specs/apps/web-builds.md).
+Addresses are paths (`/notices`); a reload starts at the splash screen, and an address the app understands (see [Links into the app](#links-into-the-app)) opens its screen after sign-in. In a wide window a parent's children are listed beside the child screens rather than in a bar above them. The web builds also serve the app-link files (`web/well-known/`, at `/.well-known/` through `firebase.json`). Uploads from the browser and web push are planned for Phase 1. The spec is [engineering/specs/apps/web-builds.md](https://github.com/ShawnDaPrawn/Eschool/blob/main/engineering/specs/apps/web-builds.md).
 
 ## Key dependencies
 

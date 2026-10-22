@@ -17,6 +17,7 @@ use App\Models\ExamResult;
 use App\Models\FormField;
 use App\Models\OnlineExamStudentAnswer;
 use App\Models\Parents;
+use App\Models\Platform\Role;
 use App\Models\SessionYear;
 use App\Models\Settings;
 use App\Models\StudentOnlineExamStatus;
@@ -39,7 +40,6 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
-use Spatie\Permission\Models\Role;
 use Throwable;
 
 /**

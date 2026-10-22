@@ -4,13 +4,14 @@ declare(strict_types=1);
 
 namespace App\Models;
 
+use App\Services\Platform\Tenancy\BelongsToSchool;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Storage;
 
 class ChatMessage extends Model
 {
-    use HasFactory;
+    use BelongsToSchool, HasFactory;
 
     /** The apps read attachments as `files` (URLs), e.g. in a chat's last-message preview. */
     protected $appends = ['files'];

@@ -7,6 +7,7 @@ namespace Tests\Feature\Academics;
 use App\Models\SessionYear;
 use App\Models\User;
 use App\Services\Academics\NewYearService;
+use App\Services\Platform\Tenancy\SchoolTable;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
@@ -72,7 +73,7 @@ class NewYearTest extends TestCase
     public function test_the_switch_runs_the_chosen_transfers_and_makes_the_year_current(): void
     {
         $next = $this->createNextYear();
-        DB::table('student_sessions')->insert(['student_id' => $this->ids['student'], 'class_section_id' => $this->ids['homeroom_b'], 'session_year_id' => $next->id, 'status' => 1, 'created_at' => now(), 'updated_at' => now()]);
+        SchoolTable::query('student_sessions')->insert(['student_id' => $this->ids['student'], 'class_section_id' => $this->ids['homeroom_b'], 'session_year_id' => $next->id, 'status' => 1, 'created_at' => now(), 'updated_at' => now()]);
 
         $response = $this->actingAs($this->superAdmin())->postJson(route('new-year.make-current'), [
             'year_id' => $next->id,
@@ -99,7 +100,7 @@ class NewYearTest extends TestCase
     public function test_the_switch_never_copies_what_the_new_year_already_has(): void
     {
         $next = $this->createNextYear();
-        DB::table('grades')->insert(['session_year_id' => $next->id, 'starting_range' => 0, 'ending_range' => 100, 'grade' => 'P', 'created_at' => now(), 'updated_at' => now()]);
+        SchoolTable::query('grades')->insert(['session_year_id' => $next->id, 'starting_range' => 0, 'ending_range' => 100, 'grade' => 'P', 'created_at' => now(), 'updated_at' => now()]);
 
         $response = $this->actingAs($this->superAdmin())->postJson(route('new-year.make-current'), ['year_id' => $next->id, 'carry' => ['grading', 'timetable']])->assertOk();
 
@@ -143,11 +144,11 @@ class NewYearTest extends TestCase
         $promotions = fn () => collect($service->yearEndChecklist($this->current, $next, $this->superAdmin()))->firstWhere('key', 'promotions');
 
         // A new admission for next year does not stand in for this year's learner.
-        $newcomer = DB::table('students')->insertGetId(['user_id' => User::forceCreate(['first_name' => 'Nia', 'last_name' => 'New', 'email' => 'GR-2', 'password' => Hash::make('secret123'), 'gender' => 'Female', 'mobile' => '0'])->id, 'class_id' => DB::table('classes')->value('id'), 'class_section_id' => $this->ids['homeroom_b'], 'category_id' => DB::table('categories')->value('id'), 'admission_no' => 'GR-2', 'roll_number' => 2, 'admission_date' => now()->toDateString(), 'created_at' => now(), 'updated_at' => now()]);
-        DB::table('student_sessions')->insert(['student_id' => $newcomer, 'class_section_id' => $this->ids['homeroom_b'], 'session_year_id' => $next->id, 'status' => 1, 'created_at' => now(), 'updated_at' => now()]);
+        $newcomer = SchoolTable::query('students')->insertGetId(['user_id' => User::forceCreate(['first_name' => 'Nia', 'last_name' => 'New', 'email' => 'GR-2', 'password' => Hash::make('secret123'), 'gender' => 'Female', 'mobile' => '0'])->id, 'class_id' => DB::table('classes')->value('id'), 'class_section_id' => $this->ids['homeroom_b'], 'category_id' => DB::table('categories')->value('id'), 'admission_no' => 'GR-2', 'roll_number' => 2, 'admission_date' => now()->toDateString(), 'created_at' => now(), 'updated_at' => now()]);
+        SchoolTable::query('student_sessions')->insert(['student_id' => $newcomer, 'class_section_id' => $this->ids['homeroom_b'], 'session_year_id' => $next->id, 'status' => 1, 'created_at' => now(), 'updated_at' => now()]);
         $this->assertFalse($promotions()['ok']);
 
-        DB::table('student_sessions')->insert(['student_id' => $this->ids['student'], 'class_section_id' => $this->ids['homeroom_b'], 'session_year_id' => $next->id, 'status' => 1, 'created_at' => now(), 'updated_at' => now()]);
+        SchoolTable::query('student_sessions')->insert(['student_id' => $this->ids['student'], 'class_section_id' => $this->ids['homeroom_b'], 'session_year_id' => $next->id, 'status' => 1, 'created_at' => now(), 'updated_at' => now()]);
         $this->assertTrue($promotions()['ok']);
     }
 
@@ -256,36 +257,36 @@ class NewYearTest extends TestCase
     {
         $now = ['created_at' => now(), 'updated_at' => now()];
         $year = $this->current->id;
-        DB::table('semesters')->insert(['name' => 'Term 1', 'start_date' => $this->current->start_date, 'end_date' => $this->current->end_date, 'session_year_id' => $year] + $now);
-        $medium = DB::table('mediums')->insertGetId(['name' => 'English'] + $now);
-        $section = DB::table('sections')->insertGetId(['name' => 'A'] + $now);
-        $classA = DB::table('classes')->insertGetId(['name' => 'Grade 5', 'medium_id' => $medium] + $now);
-        $classB = DB::table('classes')->insertGetId(['name' => 'Grade 6', 'medium_id' => $medium] + $now);
-        $this->ids['homeroom_a'] = DB::table('class_sections')->insertGetId(['class_id' => $classA, 'section_id' => $section] + $now);
-        $this->ids['homeroom_b'] = DB::table('class_sections')->insertGetId(['class_id' => $classB, 'section_id' => $section] + $now);
-        DB::table('class_session_configs')->insert(['class_id' => $classA, 'session_year_id' => $year, 'include_semesters' => 0] + $now);
+        SchoolTable::query('semesters')->insert(['name' => 'Term 1', 'start_date' => $this->current->start_date, 'end_date' => $this->current->end_date, 'session_year_id' => $year] + $now);
+        $medium = SchoolTable::query('mediums')->insertGetId(['name' => 'English'] + $now);
+        $section = SchoolTable::query('sections')->insertGetId(['name' => 'A'] + $now);
+        $classA = SchoolTable::query('classes')->insertGetId(['name' => 'Grade 5', 'medium_id' => $medium] + $now);
+        $classB = SchoolTable::query('classes')->insertGetId(['name' => 'Grade 6', 'medium_id' => $medium] + $now);
+        $this->ids['homeroom_a'] = SchoolTable::query('class_sections')->insertGetId(['class_id' => $classA, 'section_id' => $section] + $now);
+        $this->ids['homeroom_b'] = SchoolTable::query('class_sections')->insertGetId(['class_id' => $classB, 'section_id' => $section] + $now);
+        SchoolTable::query('class_session_configs')->insert(['class_id' => $classA, 'session_year_id' => $year, 'include_semesters' => 0] + $now);
         foreach (['Maths', 'English'] as $name) {
-            $subject = DB::table('subjects')->insertGetId(['name' => $name, 'code' => strtoupper(substr($name, 0, 3)), 'bg_color' => '#5c6bc0', 'image' => 's.png', 'medium_id' => $medium, 'type' => 'Theory'] + $now);
-            DB::table('class_subjects')->insert(['class_id' => $classA, 'subject_id' => $subject, 'type' => 'Compulsory', 'session_year_id' => $year] + $now);
+            $subject = SchoolTable::query('subjects')->insertGetId(['name' => $name, 'code' => strtoupper(substr($name, 0, 3)), 'bg_color' => '#5c6bc0', 'image' => 's.png', 'medium_id' => $medium, 'type' => 'Theory'] + $now);
+            SchoolTable::query('class_subjects')->insert(['class_id' => $classA, 'subject_id' => $subject, 'type' => 'Compulsory', 'session_year_id' => $year] + $now);
             $this->ids['subject'] = $subject;
         }
         $teacherUser = User::forceCreate(['first_name' => 'Tara', 'last_name' => 'Teacher', 'email' => 'tara@example.com', 'password' => Hash::make('secret123'), 'gender' => 'Female', 'mobile' => '0']);
         $teacherUser->assignRole('Teacher');
-        $teacher = DB::table('teachers')->insertGetId(['user_id' => $teacherUser->id, 'qualification' => 'B.Ed'] + $now);
-        DB::table('class_teachers')->insert(['class_section_id' => $this->ids['homeroom_a'], 'class_teacher_id' => $teacher, 'session_year_id' => $year] + $now);
-        $subjectTeacher = DB::table('subject_teachers')->insertGetId(['class_section_id' => $this->ids['homeroom_a'], 'subject_id' => $this->ids['subject'], 'teacher_id' => $teacher, 'session_year_id' => $year] + $now);
-        DB::table('timetables')->insert(['session_year_id' => $year, 'subject_teacher_id' => $subjectTeacher, 'class_section_id' => $this->ids['homeroom_a'], 'start_time' => '08:00:00', 'end_time' => '08:45:00', 'day' => 1, 'day_name' => 'Monday'] + $now);
+        $teacher = SchoolTable::query('teachers')->insertGetId(['user_id' => $teacherUser->id, 'qualification' => 'B.Ed'] + $now);
+        SchoolTable::query('class_teachers')->insert(['class_section_id' => $this->ids['homeroom_a'], 'class_teacher_id' => $teacher, 'session_year_id' => $year] + $now);
+        $subjectTeacher = SchoolTable::query('subject_teachers')->insertGetId(['class_section_id' => $this->ids['homeroom_a'], 'subject_id' => $this->ids['subject'], 'teacher_id' => $teacher, 'session_year_id' => $year] + $now);
+        SchoolTable::query('timetables')->insert(['session_year_id' => $year, 'subject_teacher_id' => $subjectTeacher, 'class_section_id' => $this->ids['homeroom_a'], 'start_time' => '08:00:00', 'end_time' => '08:45:00', 'day' => 1, 'day_name' => 'Monday'] + $now);
         foreach ([[0, 49, 'C'], [50, 79, 'B'], [80, 100, 'A']] as [$from, $to, $grade]) {
-            DB::table('grades')->insert(['session_year_id' => $year, 'starting_range' => $from, 'ending_range' => $to, 'grade' => $grade] + $now);
+            SchoolTable::query('grades')->insert(['session_year_id' => $year, 'starting_range' => $from, 'ending_range' => $to, 'grade' => $grade] + $now);
         }
-        $type = DB::table('fees_types')->insertGetId(['name' => 'Tuition', 'description' => 'Tuition'] + $now);
-        DB::table('fees_classes')->insert(['session_year_id' => $year, 'class_id' => $classA, 'fees_type_id' => $type, 'choiceable' => 0, 'amount' => 1000] + $now);
-        DB::table('leave_masters')->insert(['total_leave' => '12', 'holiday_days' => '0', 'session_year_id' => $year] + $now);
+        $type = SchoolTable::query('fees_types')->insertGetId(['name' => 'Tuition', 'description' => 'Tuition'] + $now);
+        SchoolTable::query('fees_classes')->insert(['session_year_id' => $year, 'class_id' => $classA, 'fees_type_id' => $type, 'choiceable' => 0, 'amount' => 1000] + $now);
+        SchoolTable::query('leave_masters')->insert(['total_leave' => '12', 'holiday_days' => '0', 'session_year_id' => $year] + $now);
 
         $learnerUser = User::forceCreate(['first_name' => 'Asha', 'last_name' => 'Learner', 'email' => 'GR-1', 'password' => Hash::make('secret123'), 'gender' => 'Female', 'mobile' => '0']);
         $learnerUser->assignRole('Student');
-        $category = DB::table('categories')->insertGetId(['name' => 'General', 'status' => 1] + $now);
-        $this->ids['student'] = DB::table('students')->insertGetId(['user_id' => $learnerUser->id, 'class_id' => $classA, 'class_section_id' => $this->ids['homeroom_a'], 'category_id' => $category, 'admission_no' => 'GR-1', 'roll_number' => 1, 'admission_date' => now()->toDateString()] + $now);
-        DB::table('student_sessions')->insert(['student_id' => $this->ids['student'], 'class_section_id' => $this->ids['homeroom_a'], 'session_year_id' => $year, 'status' => 1] + $now);
+        $category = SchoolTable::query('categories')->insertGetId(['name' => 'General', 'status' => 1] + $now);
+        $this->ids['student'] = SchoolTable::query('students')->insertGetId(['user_id' => $learnerUser->id, 'class_id' => $classA, 'class_section_id' => $this->ids['homeroom_a'], 'category_id' => $category, 'admission_no' => 'GR-1', 'roll_number' => 1, 'admission_date' => now()->toDateString()] + $now);
+        SchoolTable::query('student_sessions')->insert(['student_id' => $this->ids['student'], 'class_section_id' => $this->ids['homeroom_a'], 'session_year_id' => $year, 'status' => 1] + $now);
     }
 }
