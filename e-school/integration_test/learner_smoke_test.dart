@@ -29,9 +29,13 @@ void main() {
     expect(api.requested('POST student/login'), isTrue);
     expect(api.requested('GET student/dashboard'), isTrue);
 
-    await tester.tap(
-      find.byType(BorderedProfilePictureContainer).hitTestable().first,
-    );
+    // Wait until it can take a tap: on a slow emulator home is still
+    // settling when HomeScreen first appears.
+    final profilePicture = find
+        .byType(BorderedProfilePictureContainer)
+        .hitTestable();
+    await pumpUntilFound(tester, profilePicture);
+    await tester.tap(profilePicture.first);
     await pumpUntilFound(tester, find.byType(StudentProfileScreen));
     expect(find.textContaining('Thandi'), findsWidgets);
   });

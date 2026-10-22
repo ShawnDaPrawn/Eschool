@@ -30,6 +30,10 @@
                                 </div>
                                 <div class="form-group col-md-6 col-sm-12">
                                     <label>{{ __('service_account_file') }} <span class="text-danger">*<small>({{ __('only_json_file_allowed') }})</small></span></label>
+                                    {{-- Set in the environment (FCM_SERVICE_ACCOUNT_JSON): no upload here. --}}
+                                    @if (\App\Services\Platform\Secrets\SecretSettings::fromEnvironment('service_account_file'))
+                                        <input type="text" class="form-control" disabled placeholder="{{ __('set_in_environment') }}"/>
+                                    @else
                                     <input type="file" name="service_account_file" class="file-upload-default"/>
                                     <div class="input-group col-xs-12 mb-3">
                                         <input type="text" class="form-control file-upload-info" disabled="" placeholder="{{ __('service_account_file.json') }}"/>
@@ -37,6 +41,7 @@
                                           <button class="file-upload-browse btn btn-theme" type="button">{{ __('upload') }}</button>
                                         </span>
                                     </div>
+                                    @endif
                                     {{-- The key file is private; it is never linked for download. --}}
                                     @if (! empty($settings['service_account_file']))
                                         <strong>{{ __('firebase_json_file') }}</strong> &#10003;

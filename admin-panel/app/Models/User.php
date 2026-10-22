@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Models;
 
 use App\Services\Platform\Audit\Auditable;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -59,6 +60,8 @@ class User extends Authenticatable
     protected $hidden = [
         'password',
         'remember_token',
+        // Sent as its own field at sign-in, not inside every user object.
+        'password_change_required',
         'deleted_at',
         'created_at',
         'updated_at',
@@ -81,11 +84,20 @@ class User extends Authenticatable
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
+            'password_change_required' => 'boolean',
         ];
     }
 
     protected static function booted()
     {
+        // A new password ends a forced change (learners:flag-dob-passwords),
+        // unless the same save sets the flag itself.
+        static::saving(function (User $user) {
+            if ($user->exists && $user->isDirty('password') && ! $user->isDirty('password_change_required')) {
+                $user->password_change_required = false;
+            }
+        });
+
         static::deleting(function (User $user) {
             if ($user->isForceDeleting() || empty($user->email)) {
                 return;
@@ -101,6 +113,12 @@ class User extends Authenticatable
     public static function buildDeletedEmailPlaceholder(string $email, int|string $id): string
     {
         return substr($email, 0, 190).'::deleted-'.$id.'-'.time();
+    }
+
+    /** Learner accounts. Unlike role('Student'), this works before the roles are seeded. */
+    public function scopeLearners(Builder $query): Builder
+    {
+        return $query->whereHas('roles', fn (Builder $roles) => $roles->where('name', 'Student'));
     }
 
     public function student(): HasOne

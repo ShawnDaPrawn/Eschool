@@ -27,7 +27,11 @@ void main() {
     expect(api.requested('GET teacher/dashboard'), isTrue);
 
     // The bottom bar on a phone, the rail on wider screens: both say it.
-    await tester.tap(find.text('Schedule').hitTestable().first);
+    // Wait until it can take a tap: on a slow emulator the bar is still
+    // coming in when HomeScreen first appears.
+    final schedule = find.text('Schedule').hitTestable();
+    await pumpUntilFound(tester, schedule);
+    await tester.tap(schedule.first);
     await pumpUntilFound(tester, find.byType(TimeTableContainer));
     final IndexedStack tabs = tester.widget(
       find

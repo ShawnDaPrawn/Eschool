@@ -7,6 +7,7 @@ namespace App\Http\Controllers;
 use App\Models\Media;
 use App\Models\MediaFile;
 use App\Rules\YouTubeUrl;
+use App\Services\Platform\Files\FileNames;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
@@ -73,7 +74,7 @@ class MediaController extends Controller
 
             if ($request->hasFile('thumbnail')) {
                 $image = $request->file('thumbnail');
-                $file_name = $image->getClientOriginalName();
+                $file_name = FileNames::forUpload($image);
                 $file_path = 'gallery/' . $file_name;
                 resizeImage($image);
                 $destinationPath = storage_path('app/public/gallery');
@@ -89,7 +90,7 @@ class MediaController extends Controller
 
                     $file = new MediaFile();
                     $file->media_id = $media->id;
-                    $file_name = $image->getClientOriginalName();
+                    $file_name = FileNames::forUpload($image);
                     $file_path = 'gallery/' . $file_name;
                     resizeImage($image);
                     $destinationPath = storage_path("app/public/gallery/");
@@ -219,7 +220,7 @@ class MediaController extends Controller
                 }
 
                 $image = $request->file('thumbnail');
-                $file_name = $image->getClientOriginalName();
+                $file_name = FileNames::forUpload($image);
                 $file_path = 'gallery/' . $file_name;
                 resizeImage($image);
                 $destinationPath = storage_path('app/public/gallery');
@@ -305,7 +306,7 @@ class MediaController extends Controller
 
                     $file = new MediaFile();
                     $file->media_id = $request->edit_id;
-                    $file_name = $image->getClientOriginalName();
+                    $file_name = FileNames::forUpload($image);
                     $file_path = 'gallery/' . $file_name;
                     resizeImage($image);
                     $destinationPath = storage_path("app/public/gallery/");

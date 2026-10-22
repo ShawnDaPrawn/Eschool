@@ -14,6 +14,8 @@ use App\Models\Shift;
 use App\Models\Students;
 use App\Models\StudentSessions;
 use App\Models\User;
+use App\Services\Platform\Identity\AppTokens;
+use App\Services\Platform\Identity\DateOfBirthPasswords;
 use App\Services\ResponseService;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
@@ -77,7 +79,7 @@ class AuthController extends Controller
                 return ResponseService::errorResponse('Your Account is Deactivate Please contact Admin for Further Help.', null, null);
             } else {
                 // Only now that the account and its session are active.
-                $token = $auth->createToken($auth->first_name)->plainTextToken;
+                $token = AppTokens::issue($auth, AppTokens::STUDENT);
 
                 if ($request->fcm_id) {
                     $auth->fcm_id = $request->fcm_id;
@@ -241,7 +243,12 @@ class AuthController extends Controller
 
                 $data = array_merge($user, ['dynamic_fields' => $dynamicFields]);
 
-                return ResponseService::successResponse('User logged-in!', $data, ['token' => $token]);
+                // Added for v1 clients: true when the learner must choose a new password
+                // (it is still their date of birth). Older apps ignore it.
+                return ResponseService::successResponse('User logged-in!', $data, [
+                    'token' => $token,
+                    'password_change_required' => DateOfBirthPasswords::changeRequiredAtSignIn($auth, (string) $request->password),
+                ]);
             }
         } else {
             return ResponseService::errorResponse('Invalid Login Credentials', null, 101);

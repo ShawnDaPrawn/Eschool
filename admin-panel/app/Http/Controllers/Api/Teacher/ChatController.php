@@ -17,6 +17,7 @@ use App\Models\Students;
 use App\Models\Subject;
 use App\Models\SubjectTeacher;
 use App\Models\Teacher;
+use App\Services\Platform\Files\FileNames;
 use App\Services\ResponseService;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
@@ -507,7 +508,7 @@ class ChatController extends Controller
                     // The app shows the last part of the stored path as the file's name, so keep
                     // the (cleaned) original name, but inside a directory of its own so one
                     // upload can never overwrite another.
-                    $originalName = trim((string) preg_replace('/[^\w.\- ]+/u', '_', $uploadedFile->getClientOriginalName()), '. ');
+                    $originalName = trim((string) preg_replace('/[^\w.\- ]+/u', '_', FileNames::forUpload($uploadedFile)), '. ');
                     $filePath = $uploadedFile->storeAs(
                         'chatfile/'.Str::random(40),
                         $originalName !== '' ? $originalName : $uploadedFile->hashName(),

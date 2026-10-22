@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers;
 
+use App\Services\Platform\Files\FileNames;
 use Carbon\Carbon;
 use App\Models\Event;
 use App\Models\EventTiming;
@@ -125,7 +126,7 @@ class EventController extends Controller
                 if ($request->hasFile('image')) {
                     $image = $request->file('image');
                     // made file name with combination of current time
-                    $file_name = time() . '-' . $image->getClientOriginalName();
+                    $file_name = time() . '-' . FileNames::forUpload($image);
                     //made file path to store in database
                     $file_path = 'events/' . $file_name;
                     //resized image
@@ -166,7 +167,7 @@ class EventController extends Controller
                 if ($request->hasFile('image')) {
                     $image = $request->file('image');
                     // made file name with combination of current time
-                    $file_name = time() . '-' . $image->getClientOriginalName();
+                    $file_name = time() . '-' . FileNames::forUpload($image);
                     //made file path to store in database
                     $file_path = 'events/' . $file_name;
                     //resized image
@@ -487,7 +488,7 @@ class EventController extends Controller
                 if ($request->hasFile('image')) {
                     $image = $request->file('image');
                     // made file name with combination of current time
-                    $file_name = time() . '-' . $image->getClientOriginalName();
+                    $file_name = time() . '-' . FileNames::forUpload($image);
                     // made file path to store in database
                     $file_path = 'events/' . $file_name;
                     // resized image
@@ -521,7 +522,7 @@ class EventController extends Controller
                 if ($request->hasFile('image')) {
                     $image = $request->file('image');
                     // made file name with combination of current time
-                    $file_name = time() . '-' . $image->getClientOriginalName();
+                    $file_name = time() . '-' . FileNames::forUpload($image);
                     //made file path to store in database
                     $file_path = 'events/' . $file_name;
                     //resized image

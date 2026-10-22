@@ -32,6 +32,8 @@ use App\Models\User;
 use App\Services\FeesCollectionService;
 use App\Services\Panel\SetupChecklist;
 use App\Services\Panel\TodayNumbers;
+use App\Services\Platform\Files\FileNames;
+use App\Services\Platform\Identity\AppTokens;
 use App\Services\ResponseService;
 use Carbon\Carbon;
 use Illuminate\Contracts\View\View;
@@ -43,6 +45,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Validation\Rules\Password;
 use Throwable;
 
 class HomeController extends Controller
@@ -86,7 +89,7 @@ class HomeController extends Controller
     {
         $request->validate([
             'old_password' => 'required',
-            'new_password' => 'required|min:8',
+            'new_password' => ['required', Password::defaults()],
             'confirm_password' => 'required|same:new_password',
         ]);
 
@@ -109,7 +112,7 @@ class HomeController extends Controller
             // sessions and the apps are signed out (AuthenticateSession, tokens).
             $user->password = Hash::make($request->input('new_password'));
             $user->save();
-            $user->tokens()->delete();
+            AppTokens::revokeAll($user);
             $request->session()->forget(RequirePasswordChange::SESSION_KEY);
 
             return response()->json([
@@ -347,9 +350,7 @@ class HomeController extends Controller
      */
     private function getSessionMonths(int $session_year_id): array
     {
-         $sessionYear = SessionYear::find($session_year_id);
-        
-        
+        $sessionYear = SessionYear::find($session_year_id);
 
         $months = [];
 
@@ -1179,7 +1180,7 @@ class HomeController extends Controller
                 }
 
                 $file = $request->file('image');
-                $fileName = time().'-'.$file->getClientOriginalName();
+                $fileName = time().'-'.FileNames::forUpload($file);
                 $filePath = 'profile/'.$fileName;
 
                 resizeImage($file);

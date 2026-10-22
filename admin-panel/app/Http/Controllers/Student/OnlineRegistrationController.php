@@ -19,6 +19,7 @@ use App\Models\StudentSessions;
 use App\Models\Subject;
 use App\Models\User;
 use App\Services\MailService;
+use App\Services\Platform\Identity\LearnerInvitations;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
@@ -258,7 +259,7 @@ class OnlineRegistrationController extends Controller
             $class = ClassSchool::with('medium', 'streams')->where('id', $request->class_id)->first();
             $class_name = $class->name.' - '.$class->medium->name.' '.($class->streams->name ?? '');
 
-            $child_plaintext_password = str_replace('-', '', date('d-m-Y', strtotime($user->dob)));
+            $child_password_note = trans('learner_password_by_invitation');
             $father_id = $user->student->father_id ?? null;
             $mother_id = $user->student->mother_id ?? null;
             $guardian_id = $user->student->guardian_id ?? null;
@@ -328,7 +329,7 @@ class OnlineRegistrationController extends Controller
                         'password' => (string) ' '.$parent_plaintext_password,
                         'child_name' => (string) ' '.$user->first_name.' '.$user->last_name,
                         'child_grnumber' => (string) ' '.$user->email,
-                        'child_password' => (string) ' '.$child_plaintext_password,
+                        'child_password' => (string) ' '.$child_password_note,
                         'class_name' => (string) $class_section_name,
                         'type' => 'application_accept',
                         'school_name' => (string) $school_name,
@@ -344,6 +345,9 @@ class OnlineRegistrationController extends Controller
                     //     $message->to($parent_data['email'])->subject($parent_data['subject']);
                     // });
                 }
+
+                // Each guardian gets a link to choose the learner's password.
+                rescue(fn () => app(LearnerInvitations::class)->inviteGuardians($user, Auth::user()));
 
                 $response = [
                     'error' => false,

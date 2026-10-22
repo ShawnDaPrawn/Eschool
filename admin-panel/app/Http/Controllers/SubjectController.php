@@ -12,6 +12,7 @@ use App\Models\ExamMarks;
 use App\Models\ExamTimetable;
 use App\Models\StudentSubject;
 use App\Models\SubjectTeacher;
+use App\Services\Platform\Files\FileNames;
 use App\Services\ResponseService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -99,7 +100,7 @@ class SubjectController extends Controller
                     $image = $request->file('image');
 
                     // made file name with combination of current time
-                    $file_name = time() . '-' . $image->getClientOriginalName();
+                    $file_name = time() . '-' . FileNames::forUpload($image);
                     //made file path to store in database
                     $file_path = 'subjects/' . $file_name;
                     if ($image->getClientMimeType() != 'image/svg+xml' && $image->getClientMimeType() != 'image/svg') {
@@ -182,7 +183,7 @@ class SubjectController extends Controller
                 $file_path = null;
                 if ($request->hasFile('image')) {
                     $image = $request->file('image');
-                    $file_name = time() . '-' . $image->getClientOriginalName();
+                    $file_name = time() . '-' . FileNames::forUpload($image);
                     $file_path = 'subjects/' . $file_name;
                     if ($image->getClientMimeType() != 'image/svg+xml' && $image->getClientMimeType() != 'image/svg') {
                         resizeImage($image);

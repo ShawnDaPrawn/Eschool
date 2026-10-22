@@ -13,6 +13,8 @@ use App\Models\SubjectTeacher;
 use App\Models\Teacher;
 use App\Models\User;
 use App\Services\MailService;
+use App\Services\Platform\Files\FileNames;
+use App\Services\Platform\Identity\AppTokens;
 use App\Services\ResponseService;
 use Exception;
 use Illuminate\Http\Request;
@@ -110,7 +112,7 @@ class TeacherController extends Controller
                 if ($request->hasFile('image')) {
                     $image = $request->file('image');
                     // made file name with combination of current time
-                    $file_name = time().'-'.$image->getClientOriginalName();
+                    $file_name = time().'-'.FileNames::forUpload($image);
                     // made file path to store in database
                     $file_path = 'teachers/'.$file_name;
                     // resized image
@@ -231,7 +233,7 @@ class TeacherController extends Controller
                 if ($request->hasFile('image')) {
                     $image = $request->file('image');
                     // made file name with combination of current time
-                    $file_name = time().'-'.$image->getClientOriginalName();
+                    $file_name = time().'-'.FileNames::forUpload($image);
                     // made file path to store in database
                     $file_path = 'teachers/'.$file_name;
                     // resized image
@@ -476,6 +478,11 @@ class TeacherController extends Controller
             data-id='.$row->id.' data-user_id='.$row->user_id.'
             data-url='.url('teachers', $row->user_id).'
             title="Delete"><i class="fa fa-trash"></i></a>';
+            $isActive = (int) ($row->user?->status ?? 1) === 1;
+            $operate .= '&nbsp;&nbsp;<a class="btn btn-xs btn-rounded btn-icon teacher-status '.($isActive ? 'btn-inverse-danger' : 'btn-inverse-success').'"
+            data-url='.url('teachers/'.$row->user_id.'/status').' data-status='.($isActive ? 0 : 1).'
+            data-confirm-text="'.e(trans($isActive ? 'teacher_deactivate_confirm' : 'teacher_activate_confirm')).'"
+            title="'.e(trans($isActive ? 'deactivate' : 'activate')).'"><i class="fa '.($isActive ? 'fa-ban' : 'fa-check').'"></i></a>';
 
             $data = getSettings('date_formate');
 
@@ -493,6 +500,7 @@ class TeacherController extends Controller
             $tempRow['mobile'] = $row->user?->mobile;
             $tempRow['image'] = $row->user?->image;
             $tempRow['qualification'] = $row->qualification;
+            $tempRow['status'] = $isActive ? 1 : 0;
             $tempRow['dynamic_data_field'] = json_decode($row->dynamic_fields ?? '[]');
 
             if ($row->user?->can(['student-create', 'student-list', 'student-edit', 'student-delete', 'parents-list', 'parents-edit'])) {
@@ -508,6 +516,42 @@ class TeacherController extends Controller
         $bulkData['rows'] = $rows;
 
         return response()->json($bulkData);
+    }
+
+    /**
+     * Deactivates or reactivates a teacher. A deactivated teacher can't sign in
+     * to the panel or the teacher app, and is signed out of the app at once.
+     */
+    public function changeStatus(Request $request, $id)
+    {
+        if (! Auth::user()->can('teacher-edit')) {
+            return response()->json(['error' => true, 'message' => trans('no_permission_message')]);
+        }
+
+        $validator = Validator::make($request->all(), ['status' => 'required|in:0,1']);
+        if ($validator->fails()) {
+            return response()->json(['error' => true, 'message' => $validator->errors()->first()]);
+        }
+
+        $teacher = Teacher::where('user_id', $id)->with('user')->first();
+        if (! $teacher || ! $teacher->user || $teacher->user_id === Auth::id()) {
+            return response()->json(['error' => true, 'message' => trans('no_permission_message')]);
+        }
+
+        try {
+            $user = $teacher->user;
+            $user->status = (int) $request->input('status');
+            $user->save();
+            if ($user->status !== 1) {
+                AppTokens::revokeAll($user);
+            }
+
+            return response()->json(['error' => false, 'message' => trans('data_update_successfully')]);
+        } catch (Throwable $e) {
+            report($e);
+
+            return response()->json(['error' => true, 'message' => trans('error_occurred')]);
+        }
     }
 
     /**
@@ -567,7 +611,7 @@ class TeacherController extends Controller
                 }
                 $image = $request->file('image');
                 // made file name with combination of current time
-                $file_name = time().'-'.$image->getClientOriginalName();
+                $file_name = time().'-'.FileNames::forUpload($image);
                 // made file path to store in database
                 $file_path = 'teachers/'.$file_name;
                 // resized image

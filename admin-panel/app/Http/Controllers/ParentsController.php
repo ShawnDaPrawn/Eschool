@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers;
 
+use App\Services\Platform\Files\FileNames;
 use App\Services\ResponseService;
 use App\Models\FormField;
 use App\Models\Parents;
@@ -237,7 +238,7 @@ class ParentsController extends Controller
                 $image = $request->file('image');
 
                 // made file name with combination of current time
-                $file_name = time().'-'.$image->getClientOriginalName();
+                $file_name = time().'-'.FileNames::forUpload($image);
 
                 // made file path to store in database
                 $file_path = 'parents/'.$file_name;

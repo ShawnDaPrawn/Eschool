@@ -14,6 +14,7 @@ use App\Models\SessionYear;
 use App\Models\Slider;
 use App\Models\User;
 use App\Services\GalleryService;
+use App\Services\Platform\Identity\AppTokens;
 use App\Services\ResponseService;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
@@ -21,6 +22,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Password;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Validation\Rules\Password as PasswordRule;
 use Laravel\Sanctum\PersonalAccessToken;
 use Throwable;
 
@@ -34,7 +36,9 @@ class ApiController extends Controller
         try {
             $user = $request->user();
             $user->update(['fcm_id' => '']);
-            $user->currentAccessToken()->delete();
+            // Signs out of this app only; the account's other apps stay signed in.
+            $token = $user->currentAccessToken();
+            AppTokens::signOut($user, $token instanceof PersonalAccessToken ? $token : null);
 
             return ResponseService::successResponse('Logout Successfully done.');
         } catch (Throwable $e) {
@@ -272,7 +276,7 @@ class ApiController extends Controller
     {
         $validator = Validator::make($request->all(), [
             'current_password' => 'required',
-            'new_password' => 'required|min:8',
+            'new_password' => ['required', PasswordRule::defaults()],
             'new_confirm_password' => 'required|same:new_password',
         ]);
 
@@ -291,11 +295,10 @@ class ApiController extends Controller
                 'password' => Hash::make($request->input('new_password')),
             ]);
 
-            // Sign out every other device: their tokens stop working.
+            // Sign out every other device and app: their tokens stop working.
+            // The device that made the change stays signed in.
             $currentToken = $user->currentAccessToken();
-            $user->tokens()
-                ->when($currentToken instanceof PersonalAccessToken, fn ($query) => $query->whereKeyNot($currentToken->getKey()))
-                ->delete();
+            AppTokens::revokeAll($user, $currentToken instanceof PersonalAccessToken ? $currentToken : null);
 
             return ResponseService::successResponse('Password changed successfully.');
         } catch (Throwable $e) {

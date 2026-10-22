@@ -28,7 +28,10 @@ void main() {
     expect(api.requested('POST parent/login'), isTrue);
     expect(api.requested('GET parent/policy-acceptance'), isTrue);
 
-    await tester.tap(find.textContaining('Thandi').hitTestable().first);
+    // Wait until the child card can take a tap (see the learner flow).
+    final childCard = find.textContaining('Thandi').hitTestable();
+    await pumpUntilFound(tester, childCard);
+    await tester.tap(childCard.first);
     await pumpUntilFound(tester, find.byType(ChildDetailsScreen));
   });
 }

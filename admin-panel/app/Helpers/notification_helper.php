@@ -122,6 +122,19 @@ function sendNotificationToTopic($title, $body, $type, $image, $userinfo)
 function getAccessToken()
 {
     try {
+        // FCM_SERVICE_ACCOUNT_JSON (Secret Manager) wins over the uploaded file.
+        $credentials = SecretSettings::fcmCredentials();
+        if ($credentials !== null) {
+            return Cache::remember('fcm-access-token:'.md5((string) json_encode($credentials)), now()->addMinutes(50), function () use ($credentials) {
+                $client = new \Google\Client();
+                $client->setHttpClient(new \GuzzleHttp\Client(['connect_timeout' => 5, 'timeout' => 10]));
+                $client->setAuthConfig($credentials);
+                $client->setScopes(['https://www.googleapis.com/auth/firebase.messaging']);
+
+                return $client->fetchAccessTokenWithAssertion()['access_token'];
+            });
+        }
+
         $file_name = Settings::select('message')->where('type', 'service_account_file')->pluck('message')->first();
 
         if (! $file_name) {

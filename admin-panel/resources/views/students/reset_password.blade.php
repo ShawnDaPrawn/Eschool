@@ -65,22 +65,32 @@
                     showCancelButton: true,
                     confirmButtonColor: '#3085d6',
                     cancelButtonColor: '#d33',
-                    confirmButtonText: "{{ __('yes_change_it_default') }}"
+                    confirmButtonText: @json(__('reset_and_send_invitation'))
                 }).then((result) => {
                     if (result.isConfirmed) {
                         $.ajax({
                             url: "{{ url('student-change-password') }}",
                             type: "POST",
                             data: {
-                                id: row.id,
-                                dob: row.dob
+                                id: row.id
                             },
                             success: function(response) {
                                 if (response.error == true) {
                                     showErrorToast(response.message);
                                 } else {
-                                    showSuccessToast(response.message);
                                     $('#table_list').bootstrapTable('refresh');
+                                    // The guardians were emailed a link; a printed code helps a learner without one.
+                                    Swal.fire({
+                                        text: response.message,
+                                        icon: 'success',
+                                        showCancelButton: true,
+                                        cancelButtonText: @json(__('close')),
+                                        confirmButtonText: @json(__('print_sign_in_sheet'))
+                                    }).then((choice) => {
+                                        if (choice.isConfirmed) {
+                                            openLearnerSignInSheet(response.data.sheet_url);
+                                        }
+                                    });
                                 }
                             },
                             error: function(xhr) {

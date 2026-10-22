@@ -140,8 +140,8 @@ class ParentApiSecurityTest extends TestCase
         $this->assertSame(1, DB::table('chat_messages')->where('modal_id', $this->ids['teacher_a_user'])->count());
 
         // An attachment is stored in its own generated folder under its (cleaned) name,
-        // so it can't overwrite another file.
-        $withFile = $this->motherApi()->attach('file[]', 'notes', 'report final.pdf')
+        // so it can't overwrite another file. (A .pdf must be a PDF.)
+        $withFile = $this->motherApi()->attach('file[]', "%PDF-1.4\n%notes\n", 'report final.pdf')
             ->post('/api/parent/send-message', ['receiver_id' => $this->ids['teacher_a_user'], 'message' => '']);
         $this->assertApiSuccess($withFile);
         $stored = (string) DB::table('chat_files')->value('file_name');

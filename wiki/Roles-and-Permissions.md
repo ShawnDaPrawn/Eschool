@@ -25,7 +25,7 @@ Migration `2026_03_24_152838` grants `view-exam-result` to role ids 1 and 2, whi
 
 ## Permission catalogue
 
-`InstallationSeeder` creates **174** permissions with `Permission::firstOrCreate(['name' => ...], ['guard_name' => 'web'])` (the `id` values written in its array are not used) and then calls `syncPermissions()` on the two staff roles: **151** for `Super Admin` and **41** for `Teacher`. Because the installer and every system update re-run this seeder, a role's permission list is reset to the seeded list on each update.
+`InstallationSeeder` creates **174** permissions with `Permission::firstOrCreate(['name' => ...], ['guard_name' => 'web'])` (the `id` values written in its array are not used) and then calls `syncPermissions()` on the two staff roles: **151** for `Super Admin` and **41** for `Teacher`. Because the installer and every deploy (`docker/entrypoint.sh`) re-run this seeder, a role's permission list is reset to the seeded list on each release.
 
 Columns: **SA** = granted to Super Admin, **T** = granted to Teacher. "Checked in" names the main controllers that test the permission. Permissions marked *menu only* are tested only in Blade (`@can` / `@canany`) to show a menu item; *not checked* means no code tests them at all.
 
@@ -35,6 +35,7 @@ Columns: **SA** = granted to Super Admin, **T** = granted to Teacher. "Checked i
 |---|---|---|---|
 | `role-list`, `role-create`, `role-edit`, `role-delete` | Yes | | `RoleController` (constructor `permission:` middleware plus explicit checks) |
 | `staff-list`, `staff-create`, `staff-edit`, `staff-delete` | Yes | | `StaffController` |
+| `teacher-list`, `teacher-create`, `teacher-edit`, `teacher-delete` | Yes | | `TeacherController`; `teacher-edit` also deactivates and activates a teacher (`changeStatus`, see [Teacher status](#teacher-status)) |
 | `attendance-staff` | Yes | | Staff attendance pages in `StaffController` and `AttendanceController` |
 | `setting-create` | Yes | | `SettingController` (general, app and notification settings), `Student\IdCardController` (ID-card settings, image removal) |
 | `fcm-setting-create` | Yes | | `SettingController` (Firebase settings) |
@@ -73,7 +74,8 @@ Columns: **SA** = granted to Super Admin, **T** = granted to Teacher. "Checked i
 | `student-create`, `student-edit`, `student-delete` | Yes | | `Student\StudentController` |
 | `parents-list`, `parents-edit` | Yes | | `ParentsController` (parents are created and deleted with students, so there is no create/delete permission) |
 | `category-list`, `category-create`, `category-edit`, `category-delete` | Yes | | `CategoryController` |
-| `student-reset-password` | Yes | | Password reset requests from the student app (replaces `reset-password-list` and `student-change-password`) |
+| `student-reset-password` | Yes | | Password reset requests from the student app (replaces `reset-password-list` and `student-change-password`); a reset emails the guardians a set-up link and offers a sign-in sheet |
+| `student-create`, `student-edit` or `student-reset-password` (any one) | Yes | | Emailing the guardians a sign-in link and printing a sign-in sheet (`Panel\People\LearnerInvitationController`) |
 | `promote-student-list`, `promote-student-edit` | Yes | | `StudentSessionController` |
 | `assign-class-to-new-student` | Yes | | `Student\ClassAssignmentController::assignClass`, `newStudentList`, `assignClass_store` |
 | `online-registration-list` | Yes | | Online admission list, approval and rejection (`Student\OnlineRegistrationController`, `ParentsController`) |
@@ -177,22 +179,40 @@ Other forms in use:
 - `routes/web.php` wraps the admin routes in `['middleware' => ['Role', 'auth']]`. `CheckRole` lets a user through only if they have at least one role other than `Parent` and `Student`. A signed-in user without one is logged out and sent to the login page with `no_permission_message`; a guest gets the login view.
 - `LoginController::authenticated()` logs out Parent and Student users straight after login with `app_only_login_not_allowed_on_web`.
 - The self-registration route (`/register`) has been removed.
-- Maintenance routes `storage-link`, `migrate` and `seeder_install` are in a group with `['auth', 'role:Super Admin']`; `POST /clear` (the header cache button, shown to Super Admins only) needs `auth` and `role:Super Admin` too.
-- `SystemUpdateController` refuses anyone without the `Super Admin` role.
-- Login, password-reset and app-login endpoints use the `login` rate limiter (`RouteServiceProvider`): 5 attempts a minute per path and account plus 20 a minute per IP. Default passwords are dates of birth, which is why the per-account limit exists.
+- `POST /clear` (the header cache button, shown to Super Admins only) needs `auth` and `role:Super Admin`. There are no other maintenance URLs: the storage link, migrations and seeders run at deploy time, and the System Update page was removed.
+- A deactivated teacher (`users.status` 0) cannot sign in, and `CheckRole` signs out an open session on its next request.
+- Login, password-reset and app-login endpoints use the `login` rate limiter (`RouteServiceProvider`): 5 attempts a minute per path and account plus 20 a minute per IP. Parents' first passwords are still dates of birth, which is why the per-account limit exists.
+
+### Teacher status
+
+`users.status` (1 active, 0 deactivated) now applies to teachers. On the teacher list, staff with `teacher-edit` see a Status column and a Deactivate / Activate button (`POST teachers/{id}/status`, `TeacherController::changeStatus`, `status` 0 or 1). Deactivating revokes all the teacher's app tokens. A deactivated teacher:
+
+- cannot sign in to the panel or the teacher app ("deactivated");
+- is signed out of an open panel session (`CheckRole`);
+- gets 401 (`code` 401) on every teacher API route from `EnsureTeacherActive` (alias `teacher.active`, on both teacher groups), which both apps treat as signed out.
+
+Activating them again lets them sign in; their old tokens stay revoked.
 
 ## API access by role
 
 All authenticated API groups use Sanctum tokens (`auth:sanctum`) plus spatie's `role:` middleware, so a token only works on its own role's endpoints.
 
+**Token rule** (`App\Services\Platform\Identity\AppTokens`). Tokens are named after the app: `student-app`, `parent-app`, `teacher-app`.
+
+- Signing in to an app revokes the account's earlier tokens for that app, so an account is signed in on one device per app. Tokens of its other apps stay: a teacher who is also a parent stays signed in to the teacher app when signing in on the parent side.
+- Signing out (`POST /api/logout`) revokes the account's tokens for that app only.
+- Changing the password in an app revokes every other token of the account; the device that made the change stays signed in.
+- Changing the password in the panel, a reset by email, a staff reset of a learner, the learner set-up, and deactivating or removing a teacher revoke all the account's tokens.
+- Tokens issued before tokens carried an app name count as this app's when the account can only use this app; otherwise they expire after 30 days like any token.
+
 | Route prefix | Middleware | Extra per-route checks |
 |---|---|---|
 | `POST /api/student/login`, `forgot-password` | `throttle:login` | Login refuses non-students, `users.status != 1`, and students with no active `student_sessions` row for the current year before issuing a token |
-| `/api/student/*` | `auth:sanctum`, `role:Student`, `student.session.active` | Queries are built from the caller's own student record; online exam, elective, topic, announcement and submission endpoints are limited to the student's class and subjects |
+| `/api/student/*` | `auth:sanctum`, `role:Student`, `student.session.active`, `password.change` | Queries are built from the caller's own student record; online exam, elective, topic, announcement and submission endpoints are limited to the student's class and subjects |
 | `POST /api/parent/login` | `throttle:login` | Refuses non-parents |
-| `/api/parent/*` | `auth:sanctum`, `role:Parent`, `parent.children.session.active` | Child-specific routes add `CheckChild`; others resolve children through `Parent\Concerns\ParentAccess::resolveChild()` / `parentChildIds()` |
-| `POST /api/teacher/login` | `throttle:login` | Refuses non-teachers |
-| `/api/teacher/*` | `auth:sanctum`, `role:Teacher` | Permission checks (`noPermissionThenSendJson`) plus ownership helpers; `get-student-result` and `get-student-marks` add `CheckStudent` |
+| `/api/parent/*` | `auth:sanctum`, `role:Parent`, `parent.children.session.active`, `password.change` | Child-specific routes add `CheckChild`; others resolve children through `Parent\Concerns\ParentAccess::resolveChild()` / `parentChildIds()` |
+| `POST /api/teacher/login` | `throttle:login` | Refuses non-teachers and deactivated teachers |
+| `/api/teacher/*` | `auth:sanctum`, `role:Teacher`, `teacher.active`, `password.change` | Permission checks (`noPermissionThenSendJson`) plus ownership helpers; `get-student-result` and `get-student-marks` add `CheckStudent` |
 | `POST /api/logout`, `POST /api/change-password` | `auth:sanctum` | |
 | Public: `holidays`, `sliders`, `current-session-year`, `settings`, `get-events-list`, `get-events-details`, `get-session-year`, `get-semesters`, gallery endpoints, `forgot-password` | none (`forgot-password` is throttled) | |
 
@@ -203,6 +223,8 @@ The API group also has the default `throttle:api` limiter: 60 requests a minute 
 - **`CheckChild`** reads `child_id`, validates it as an integer and looks it up with `$parent->children()->whereKey($childId)` (father, mother or guardian in one OR query). On failure it returns `{"error": true, "message": "Invalid Child ID Passed.", "code": 105}`. On success the resolved child is stored as the request attribute `child`.
 - **`CheckStudent`** (teacher API) finds the caller's teacher id, the class sections they are class teacher of (`class_teachers`, any session year) and the `students.class_section_id` of `student_id`; if it is not one of them it returns `Invalid Student ID Passed.` with code 105.
 - **`EnsureStudentSessionIsActive`**, **`EnsureParentChildrenSessionIsActive`**: see [Academic Structure](Academic-Structure#session-middleware-for-the-apps).
+- **`EnsureTeacherActive`** (`teacher.active`): see [Teacher status](#teacher-status).
+- **`EnforcePasswordChange`** (`password.change`): an account flagged `users.password_change_required` (its password is still its date of birth) gets 403 with `code` `PASSWORD_CHANGE_REQUIRED` on the role groups' routes (`/api/change-password` and `/api/logout` are outside them), but only when the app sends `X-Supports-Password-Change: 1`; today's apps don't, and keep working. The v1 login answers say `password_change_required`.
 
 ### Ownership scoping
 
@@ -238,6 +260,8 @@ These commits changed authorization behaviour; the rules above describe the resu
 |---|---|
 | `2eceb8b` | `/clear` needs login; `/storage-link`, `/migrate`, `/seeder_install` need Super Admin |
 | `2de82e8` | App tokens expire after 30 days (`SANCTUM_EXPIRATION`) and are pruned daily |
+| Phase 0 (S1) | System Update page and the `storage-link`, `migrate` and `seeder_install` URLs removed |
+| Phase 0 (S6) | Teacher status enforced (`teacher.active`); tokens named per app and revoked at sign-in; forced password change for date-of-birth passwords (`password.change`); learner invitations and sign-in sheets |
 | `97e6bff` | Removed the unprotected `UserController` and `resources/views/users` (from the spatie tutorial), which let any logged-in user create a Super Admin |
 | `ef7df75` | Email template editor needs `email-setting-create`; templates are filled by `EmailTemplateService` instead of `Blade::render` |
 | `439395d` | Student, parent and teacher API groups require the matching role; `Parents::children()` fixed (it was a UNION that let mothers and guardians pass any `child_id`); `CheckChild` validates the id; login and reset throttling; `/register` removed; admin panel requires a staff role |
