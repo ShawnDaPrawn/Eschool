@@ -37,10 +37,13 @@ description = "Password fixtures in the panel's feature tests"
 # literal passwords such as 'new_confirm_password' => '...'. generic-api-key
 # reports the strong-looking ones. Found in commit da3b831 ("Apply one
 # password rule to every password a person chooses"): ApiContractTest.php and
-# StudentApiSecurityTest.php. Only password-keyed array literals in
+# StudentApiSecurityTest.php; then in 96478d7 ("Invite guardians to set
+# learner passwords") a 'password_confirmation' key in
+# Platform/LearnerInvitationTest.php. Only array literals whose key starts with
+# "password" (password, password_confirmation, new_password...) in
 # admin-panel/tests/Feature/*Test.php are allowed (condition AND).
 targetRules = ["generic-api-key"]
 condition = "AND"
 paths = ['''^admin-panel/tests/Feature/.*Test\.php$''']
 regexTarget = "match"
-regexes = ['''(?i)password'\s*=>''']
+regexes = ['''(?i)password[a-z_]*'\s*=>''']
