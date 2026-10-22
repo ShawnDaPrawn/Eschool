@@ -1,32 +1,27 @@
-import 'dart:io';
-
 import 'package:eschool/data/models/parent.dart';
 import 'package:eschool/data/models/student.dart';
 import 'package:eschool/utils/api.dart';
 import 'package:eschool/utils/hiveBoxKeys.dart';
-import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:eschool_notifications/eschool_notifications.dart';
 import 'package:hive/hive.dart';
 import 'package:intl/intl.dart';
 
 class AuthRepository {
   //LocalDataSource
   bool getIsLogIn() {
-    return Hive.box(authBoxKey).get(isLogInKey) ?? false;
+    return Api.session.isSignedIn;
   }
 
   Future<void> setIsLogIn(bool value) async {
-    return Hive.box(authBoxKey).put(isLogInKey, value);
+    return Api.session.setSignedIn(value);
   }
 
   static bool getHaSubscribedToNotificationTopics() {
-    return Hive.box(authBoxKey).get(hasSubscribedToNotificationTopicsKey) ??
-        false;
+    return Api.session.hasSubscribedToNotificationTopics;
   }
 
   static Future<void> setHaSubscribedToNotificationTopics(bool value) async {
-    return Hive.box(
-      authBoxKey,
-    ).put(hasSubscribedToNotificationTopicsKey, value);
+    return Api.session.setHasSubscribedToNotificationTopics(value);
   }
 
   bool getIsStudentLogIn() {
@@ -58,11 +53,11 @@ class AuthRepository {
   }
 
   String getJwtToken() {
-    return Hive.box(authBoxKey).get(jwtTokenKey) ?? '';
+    return Api.session.token;
   }
 
   Future<void> setJwtToken(String value) async {
-    return Hive.box(authBoxKey).put(jwtTokenKey, value);
+    return Api.session.setToken(value);
   }
 
   Future<void> signOutUser() async {
@@ -82,19 +77,11 @@ class AuthRepository {
     required String grNumber,
     required String password,
   }) async {
-    //to avoid errors when token is not retrieved in simulators
-    final fcmToken = await () async {
-      try {
-        return await FirebaseMessaging.instance.getToken();
-      } catch (_) {
-        return '';
-      }
-    }();
     final body = {
       'password': password,
       'gr_number': grNumber,
-      'fcm_id': fcmToken,
-      'device_type': Platform.isAndroid ? 'android' : 'ios',
+      //the FCM token and device type; none in a browser
+      ...await NotificationUtility.signInDeviceFields(),
     };
 
     final result = await Api.post(
@@ -113,19 +100,11 @@ class AuthRepository {
     required String email,
     required String password,
   }) async {
-    //to avoid errors when token is not retrieved in simulators
-    final fcmToken = await () async {
-      try {
-        return await FirebaseMessaging.instance.getToken();
-      } catch (_) {
-        return '';
-      }
-    }();
     final body = {
       'password': password,
       'email': email,
-      'fcm_id': fcmToken,
-      'device_type': Platform.isAndroid ? 'android' : 'ios',
+      //the FCM token and device type; none in a browser
+      ...await NotificationUtility.signInDeviceFields(),
     };
 
     final result = await Api.post(

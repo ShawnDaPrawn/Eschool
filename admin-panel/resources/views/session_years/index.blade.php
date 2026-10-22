@@ -22,7 +22,7 @@
                                 {{ __('list') . ' ' . __('session_years') }}
                             </h4>
                             @can('session-year-create')
-                                <button type="button" class="btn create-session-year-btn btn-success" data-toggle="modal"
+                                <button type="button" class="btn btn-theme create-session-year-btn" data-toggle="modal"
                                     data-target="#createSessionYearModal">
                                     {{ __('create_session_year') }}
                                 </button>

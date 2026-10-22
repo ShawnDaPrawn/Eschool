@@ -1,4 +1,4 @@
-This page describes the architecture the two Flutter apps share: the student/parent app in `e-school/` (Dart package `eschool`) and the teacher app in `e-school-teacher/` (Dart package `eschool_teacher`). Both are thin clients of the Laravel REST API under `/api` in `admin-panel/`; they are built the same way, so almost everything below applies to both. App-specific details are on [Student-Parent-App](Student-Parent-App) and [Teacher-App](Teacher-App).
+This page describes the architecture the two Flutter apps share: the student/parent app in `e-school/` (Dart package `eschool`) and the teacher app in `e-school-teacher/` (Dart package `eschool_teacher`). Both are thin clients of the Laravel REST API under `/api` in `admin-panel/`; they are built the same way, so almost everything below applies to both, on phones and, as web builds, in a browser (see [In a browser](#in-a-browser)). App-specific details are on [Student-Parent-App](Student-Parent-App) and [Teacher-App](Teacher-App).
 
 ## At a glance
 
@@ -27,42 +27,56 @@ Both apps use the same folder structure under `lib/`:
 | `lib/main.dart` | Calls `initializeApp()`; carries the version comment `///v-3.5.0`. |
 | `lib/app/app.dart` | `initializeApp()` (Firebase, Crashlytics, notifications, Hive), `MyApp` with the global `MultiBlocProvider` and `MaterialApp`. |
 | `lib/app/routes.dart` | `Routes` class: route-name constants and `onGenerateRouted()` (a `switch` over route names, unknown names give an empty `Scaffold`). |
-| `lib/app/appLocalization.dart` | `AppLocalization` and its `LocalizationsDelegate`; loads `assets/languages/<code>.json`. See [Localization](Localization). |
+| `lib/app/routeArguments.dart` | The typed arguments of the routes that take several values (see [Route arguments](#route-arguments)). |
+| `lib/app/deepLinks.dart`, `lib/app/sessionWatcher.dart` | The links the app understands, and what keeps `/me/context` and links in step with sign-in (see [Links into the app](#links-into-the-app)). |
 | `lib/cubits/` | Feature Cubits (one file per Cubit, state classes in the same file). Sub-folders `chat/` and `gallery/`. Some screen-private Cubits live next to their screen, e.g. `e-school/lib/ui/screens/reports/cubits/`. |
 | `lib/data/models/` | Plain Dart model classes with `fromJson` / `toJson`. |
 | `lib/data/repositories/` | One class per domain (`AuthRepository`, `StudentRepository`, `SystemRepository`, ...). Repositories are the only layer that calls `Api`. |
 | `lib/ui/screens/` | Screens. Most screens expose `static Route route(RouteSettings)`, which builds a `CupertinoPageRoute` and provides the screen-local Cubits; a few are wrapped in a `CupertinoPageRoute` directly in `routes.dart`. |
 | `lib/ui/widgets/` | Reusable widgets (error containers, shimmer loaders, bottom sheets, force-update dialog, ...). |
 | `lib/utils/api.dart` | `Api`: every endpoint URL, and static `post` / `get` / `download` that hand the call to the shared `ApiClient`. Also what the app does on a 401 (`logoutUser`). `ApiException` comes from `eschool_core` and is re-exported here. |
-| `lib/utils/constants.dart` | `baseUrl`, `databaseUrl`, `storageUrl`, notification channel keys, pagination limit, demo-credential switches, animation switches. |
+| `lib/utils/constants.dart` | `baseUrl`, `databaseUrl`, `storageUrl` (from the build defines, see [Mobile-App-Configuration](Mobile-App-Configuration#build-settings)), notification channel keys, pagination limit, demo-credential switches. |
 | `lib/utils/hiveBoxKeys.dart` | Hive box names and keys, SharedPreferences keys. |
 | `lib/utils/appLanguages.dart` | `defaultLanguageCode` and the `appLanguages` list. |
-| `lib/utils/labelKeys.dart` | Constants for every translation key (403 in each app). |
+| `lib/utils/labelKeys.dart` | Constants for every translation key; re-exports the keys the shared widgets use from `eschool_core`. |
 | `lib/utils/errorMessageKeysAndCodes.dart` | `ErrorMessageKeysAndCode`: maps API error codes to translation keys. |
-| `lib/utils/uiUtils.dart` | `UiUtils`: `rootNavigatorKey`, `getTranslatedLabel()`, snack bars, date helpers, `forceUpdate()`, `launchWebUrl()`. |
-| `lib/utils/notificationUtils/` | `generalNotificationUtility.dart` (`NotificationUtility`) and `chatNotificationsUtils.dart` (`ChatNotificationsUtils`). |
+| `lib/utils/uiUtils.dart` | `UiUtils`: `rootNavigatorKey`, `getTranslatedLabel()`, snack bars, date helpers, `forceUpdate()`, `launchWebUrl()`. The sizes and helpers that were the same in both apps forward to `SharedUiUtils` in `eschool_core`. |
+| `lib/utils/notificationConfig.dart` | The app's `NotificationConfig` (channel description, types that do not raise the badge, tap routing by `data['type']`, the background handler) for `NotificationUtility` and `ChatNotificationsUtils` in [`packages/eschool_notifications`](https://github.com/ShawnDaPrawn/Eschool/tree/main/packages/eschool_notifications). |
 | `lib/utils/fileNameUtils.dart` | `sanitizeFileName()` used before saving server-supplied file names. |
-| `lib/utils/animationConfiguration.dart` | `flutter_animate` effect lists, switched off by `isApplicationItemAnimationOn`. |
-| `lib/utils/assets.dart` | `Assets` class with every image/animation path. |
+| `lib/utils/assets.dart` | `Assets` class with every image/animation path; the files the shared widgets draw point at `SharedAssets`. |
 | `test/translations_test.dart` | Language file consistency. |
 | `test/theme_colors_test.dart` | Fails on colours hard-coded outside the shared theme. |
 
 The student app also has `lib/utils/stripeService.dart` (Stripe payment sheet) and `lib/utils/homeBottomsheetMenu.dart` (the "more" menu list).
 
+### What the apps share through `eschool_core`
+
+Files that were the same in both apps live once in [`packages/eschool_core`](https://github.com/ShawnDaPrawn/Eschool/tree/main/packages/eschool_core/lib/src) and both apps import them through `package:eschool_core/eschool_core.dart`:
+
+| Folder in `eschool_core/lib/src/` | What moved there |
+|---|---|
+| `l10n/` | `AppLocalization` and `AppLocalizationDelegate` (each app passes its own `appLanguages`), the shared label keys |
+| `models/` | `StudyMaterial`, `Announcement`, `Topic`, `SubjectMark`, `Result`, `ChatMessage`, `DynamicField`, the leave day types (`LeaveType`, `LeaveDateWithType`), plus the earlier gallery, calendar, chat-settings and event models |
+| `cubits/` | `GalleryAlbumCubit`, `GalleryVideosCubit`, `GalleryAlbumPhotosCubit`, `EventDetailsCubit`, `AppSettingsCubit`, each taking an interface from `repositories/` (`GalleryRepository`, `EventScheduleRepository`, `AppSettingsRepository`) that the app's `SystemRepository` implements |
+| `widgets/` | 21 of the 30 widget files the apps had in common (error container, shimmer loaders, back button, image and gallery widgets, bottom sheet parts, search field, refresh indicator, ...) and four screen parts (semester break, gallery videos tab, leave day picker, drop-down) |
+| `ui/` | `SharedUiUtils` (the sizes and helpers both `UiUtils` had), `SharedAssets` (paths of the images the shared widgets draw, which each app ships), `SharedRoutes` |
+| `utils/` | `extensions.dart` and the list animations with their switches (`isApplicationItemAnimationOn` and the durations) |
+| `shell/` | `AppShell`, which each app puts above its navigator in `MaterialApp.builder` |
+
+`AppShell` carries the few things the shared widgets do differently per app: the error code to label mapping (`ErrorMessageKeysAndCode`, code 113 means something else in each app), how an attachment opens (`UiUtils.viewOrDownloadStudyMaterial`) and the button drawn next to it (`DownloadFileButton`), and the bottom bar's height. Nine shared widget files still differ in how they look between the apps and stay in each app until the screens that use them are redesigned: `customAppbar`, `customTabBarContainer`, `tabBarBackgroundContainer`, `downloadFileButton`, `downloadFileBottomsheetContainer`, `dynamicFieldListContainer`, `listItemForExamAndResult`, `noDataContainer` and `notificationIconWidget`.
+
 ## Startup sequence
 
-`initializeApp()` in [e-school/lib/app/app.dart](https://github.com/ShawnDaPrawn/Eschool/blob/main/e-school/lib/app/app.dart) (the teacher copy has the same steps, with the orientation lock after the notification setup and without the `showCaseBox`):
+`initializeApp()` in [e-school/lib/app/app.dart](https://github.com/ShawnDaPrawn/Eschool/blob/main/e-school/lib/app/app.dart) calls `usePathUrlStrategy()` (web addresses without `#`), then `prepareApp()`, then `runApp(const MyApp())`. `prepareApp()` (the teacher copy has the same steps, with the orientation lock after the notification setup and without the `showCaseBox`):
 
-1. `WidgetsFlutterBinding.ensureInitialized()`; in release mode `debugPrint` is replaced with a no-op.
+1. `WidgetsFlutterBinding.ensureInitialized()`; `AppConfig.assertValid()`; in release mode `debugPrint` is replaced with a no-op.
 2. Registers `google_fonts/OFL.txt` with `LicenseRegistry`.
 3. Locks orientation to `DeviceOrientation.portraitUp`.
-4. `Firebase.initializeApp()` with no options, so Firebase is configured from the native files (`google-services.json`, `GoogleService-Info.plist`). There is no `firebase_options.dart`.
-5. Routes `FlutterError.onError` and `PlatformDispatcher.instance.onError` to Firebase Crashlytics.
-6. `NotificationUtility.initializeAwesomeNotification()` creates the two Android channels `basic_channel` and `chat_notifications_channel`.
-7. `initHiveStorage(...)` initialises Hive in `getApplicationSupportDirectory()` (not Documents, which iOS exposes in the Files app because `UIFileSharingEnabled` is on) and moves boxes left in Documents by older versions; then opens the boxes (`showCaseBox`, `authBox`, `settings` in the student app; `authBox`, `settings` in the teacher app).
-8. `runApp(const MyApp())`.
+4. Except on the web: `Firebase.initializeApp()` with no options, so Firebase is configured from the native files (`google-services.json`, `GoogleService-Info.plist`; there is no `firebase_options.dart`), and `FlutterError.onError` and `PlatformDispatcher.instance.onError` go to Firebase Crashlytics. The integration smoke flows call `prepareApp(useFirebase: false)`.
+5. `NotificationUtility.configure(notificationConfig, session: Api.session)`, then `NotificationUtility.initializeAwesomeNotification()` creates the two Android channels `basic_channel` and `chat_notifications_channel` (both from `eschool_notifications`; nothing happens on the web).
+6. `initAppStorage(...)` (`eschool_session`) initialises Hive in `getApplicationSupportDirectory()` (not Documents, which iOS exposes in the Files app because `UIFileSharingEnabled` is on) and moves boxes left in Documents by older versions; on the web Hive uses IndexedDB. Then it opens the boxes (`showCaseBox`, `authBox`, `settings` in the student app; `authBox`, `settings` in the teacher app).
 
-`MyApp` creates the app-wide Cubits in a `MultiBlocProvider` and builds a `MaterialApp` with `initialRoute: Routes.splash`, `onGenerateRoute: Routes.onGenerateRouted`, `navigatorKey: UiUtils.rootNavigatorKey`, and the shared Material 3 theme `AppTheme.light(font: GoogleFonts.poppinsTextTheme)` from `eschool_core` (see [UI-Standards](UI-Standards)).
+`MyApp` creates the app-wide Cubits in a `MultiBlocProvider` and builds a `MaterialApp` with `initialRoute: Routes.splash` (on the web, `onGenerateInitialRoutes` starts every visit at the splash screen whatever the address bar says), `onGenerateRoute: Routes.onGenerateRouted`, `navigatorKey: UiUtils.rootNavigatorKey`, and the shared Material 3 theme `AppTheme.light(font: GoogleFonts.poppinsTextTheme)` from `eschool_core` (see [UI-Standards](UI-Standards)).
 
 The splash screen (`lib/ui/screens/splashScreen.dart`) then:
 
@@ -71,6 +85,23 @@ The splash screen (`lib/ui/screens/splashScreen.dart`) then:
 3. Waits at least 2 seconds, then routes to the login screen when `AuthCubit` is `Unauthenticated`, otherwise to the home screen. The student app has extra branches (a parent's first sign-in, parent home, compulsory-fee screen), see [Student-Parent-App](Student-Parent-App#login-and-the-two-user-types).
 
 If the configuration request fails the splash shows an `ErrorContainer` with a retry button; the app cannot get past the splash screen without reaching the server.
+
+## Layout on tablets and desktops
+
+The screens were designed for phones. Three pieces in `eschool_core/lib/src/layout/` let them work at every width without a second code path, and leave phones exactly as they were:
+
+| Piece | What it does |
+|---|---|
+| `Breakpoints` | `ScreenSize.phone` below 600 px, `tablet` from 600 to 1024, `desktop` above; `Breakpoints.of(context)` reads the width the widget has. `contentMaxWidth` is 640. |
+| `ContentColumn` | On a phone, returns its child unchanged. Wider, centres the child in a column at most 640 px wide on the page background (`surfaceContainerLow`) and tells the child, through `MediaQuery`, that the screen is the column's width, so screens that size things as a share of `MediaQuery.sizeOf(context).width` keep their proportions. |
+| `AdaptiveScaffold` | The home screens' layout: on a phone the tab content with the app's own floating bottom bar, as before; on a tablet a `NavigationRail` with labels and the content in a `ContentColumn`; on a desktop the rail extended. The force-update dialog is drawn over all of it. |
+| `AdaptivePageRoute` | The `CupertinoPageRoute` every screen opens with, whose page is wrapped in a `ContentColumn`. The two home routes pass `contentColumn: false` because `AdaptiveScaffold` lays them out. |
+
+Every route in both apps is an `AdaptivePageRoute`, so every existing screen renders in the column at 820 and 1280 px; the learner home and the teacher home switch their bottom bars for a rail. Bottom sheets keep Material 3's 640 px limit. Tests: `packages/eschool_core/test/layout_test.dart` checks each piece at 390, 820 and 1280 px.
+
+## Route arguments
+
+Screens are opened by name (`Navigator.pushNamed(context, Routes.x, arguments: ...)`) and each screen's `static Route route(RouteSettings)` reads `routeSettings.arguments`. The arguments are typed: a route that takes several values has a small class in `lib/app/routeArguments.dart` (for example `ChildSubjectsArguments(childId:, subjects:)` for a child's assignments, exams, results and reports, `FeesDetailsArguments` with a `forChildId` constructor for fee reminders, `ExamTimeTableArguments`, `ClassScreenArguments` and `AddOrEditLessonArguments` in the teacher app); a route that takes one value receives it as it is (a `Student`, an `Assignment`, an `Event`, a `ChatUser`, a `GalleryAlbum`, a child id, the payment URL). The file viewers' `ImageFileViewArguments` and `PdfFileViewArguments` are in `eschool_core`, because both apps and the shared widgets open them. Passing the wrong type fails when the route is built, and `test/routes_test.dart` in each app builds every argument-taking route with its class. The add and edit screens, the file viewers and the academic calendar also open without arguments.
 
 ## State management
 
@@ -108,8 +139,8 @@ sequenceDiagram
 - `Api.post({body, url, useAuthToken, queryParameters, cancelToken, onSendProgress, onReceiveProgress})` sends the body as multipart `FormData` (`FormData.fromMap(body, ListFormat.multiCompatible)`), so file uploads and nested arrays go through the same call.
 - `Api.get({url, useAuthToken, queryParameters})` sends query parameters only.
 - `Api.download({url, cancelToken, savePath, updateDownloadedPercentage})` streams a file to disk with progress.
-- `ApiClient` creates a new `Dio()` per call; there are no interceptors, base options or timeouts configured.
-- `headers()` reads the token from Hive (`authBox` / `jwtToken`) and returns `{'Authorization': 'Bearer <token>'}` when `useAuthToken` is true.
+- `ApiClient` creates a new `Dio` per call from `createSessionDio()` (`eschool_session`): a plain `Dio()` on phones; on the web, one that sends the browser's cookies and Laravel's XSRF header (see [Session and token storage](#session-and-token-storage)). There are no base options or timeouts. Integration tests replace it through `Api.debugCreateDio`.
+- `headers()` reads the token from `Api.session` (Hive `authBox` / `jwtToken`) and returns `{'Authorization': 'Bearer <token>'}` when `useAuthToken` is true; a web build signed in by cookie sends no Authorization header.
 
 Response and error handling:
 
@@ -130,7 +161,11 @@ Most repository methods catch exceptions and rethrow `ApiException(e.toString())
 
 ## Session and token storage
 
-Login (`student/login`, `parent/login`, `teacher/login`) returns a Laravel Sanctum personal access token in `token` (the key in the app is still called `jwtToken`). The app also sends `fcm_id` (from `FirebaseMessaging.instance.getToken()`, empty string if it fails, e.g. on simulators) and `device_type` (`android` or `ios`), which the server uses for push notifications.
+Login (`student/login`, `parent/login`, `teacher/login`) returns a Laravel Sanctum personal access token in `token` (the key in the app is still called `jwtToken`). The app also sends `fcm_id` (from `FirebaseMessaging.instance.getToken()`, empty string if it fails, e.g. on simulators) and `device_type` (`android` or `ios`), which the server uses for push notifications; both come from `NotificationUtility.signInDeviceFields()`. A web build sends neither, so the server keeps the values of the user's phone and the phone keeps getting push notifications.
+
+The session itself (signed in or not, the token, whether FCM topics are subscribed) goes through `Api.session`, a `HiveSessionRepository` from the shared package [`packages/eschool_session`](https://github.com/ShawnDaPrawn/Eschool/tree/main/packages/eschool_session), which reads and writes the same `authBox` keys as before, so updating the app signs nobody out. `AuthRepository.getJwtToken()`, `setJwtToken()`, `getIsLogIn()` and `setIsLogIn()` delegate to it.
+
+**Web portals.** `AuthMode.current` is the one switch: phones use `bearer`; a web build uses `cookie`, Sanctum's session cookie for the portal origins (`app.` and `teach.navigateed.co.za`). In cookie mode no token is written to storage (`setJwtToken` stores an empty string), every request is sent with credentials, and requests that change something send `X-XSRF-TOKEN`, after fetching `/sanctum/csrf-cookie` when the browser has no XSRF cookie yet. The server side (stateful domains, CORS with credentials, the session cookie on the parent domain) is the security stream's work. Building a web app with `--dart-define=WEB_AUTH_MODE=bearer` switches back to tokens, for a server that does not accept the portal origins yet.
 
 Hive boxes and keys (`lib/utils/hiveBoxKeys.dart`):
 
@@ -139,6 +174,7 @@ Hive boxes and keys (`lib/utils/hiveBoxKeys.dart`):
 | `authBox` | `jwtToken` | Bearer token sent by `Api.headers()`. |
 | `authBox` | `isLogIn` | Whether a session exists; read by `AuthCubit` at startup. |
 | `authBox` | `hasSubscribedToNotificationTopics` | Prevents re-subscribing to FCM topics on every login. |
+| `authBox` | `meContext` | The last `/api/v2/me/context` answer (JSON), see [What the server says about the user](#what-the-server-says-about-the-user). |
 | `authBox` | `isStudentLogIn`, `studentDetails`, `parentDetails` | Student app only: user type and cached profile JSON. |
 | `authBox` | `teacherDetails` | Teacher app only: cached profile JSON. |
 | `settings` | `currentLanguageCode` | Selected language (falls back to `defaultLanguageCode`). |
@@ -150,6 +186,16 @@ SharedPreferences keys `notificationCount` and `chatNotificationsBackgroundItem`
 Sign-out (`AuthCubit.signOut()`) unsubscribes from the FCM topics and calls `AuthRepository.signOutUser()`, which posts to `logout` (fire and forget; the server deletes the current token) and clears `isLogIn`, `jwtToken` and the cached profiles. Tokens expire on the server after `SANCTUM_EXPIRATION` minutes (default `60 * 24 * 30`, i.e. 30 days, in `admin-panel/config/sanctum.php`); the next request then gets a 401 and the app logs out.
 
 Data protection on Android: both apps set `android:allowBackup="false"` and use `res/xml/data_extraction_rules.xml` to exclude all app data from cloud backup and device transfer, so the token is not copied to other devices. The student app's release `network_security_config.xml` allows HTTPS only; see [Mobile-App-Configuration](Mobile-App-Configuration#https-requirement).
+
+## What the server says about the user
+
+`MeContextCubit` (`eschool_session`, provided in `MyApp`) holds the answer of `GET /api/v2/me/context`: the user, their roles, the current school (name, branding, timezone) and the modules switched on there. `SessionWatcher` (`lib/app/sessionWatcher.dart`) loads it on launch when someone is signed in and whenever `AuthCubit` becomes `Authenticated`, and clears it on sign-out. The last answer is kept in `authBox` (`meContext`) and shown while a new one loads or when the network fails.
+
+Nothing reads it yet in Phase 0: the modules list is empty and the apps behave as before. A server older than API v2 answers 404; the cubit then emits `MeContextUnavailable` and the app carries on with today's behaviour. School branding from the context is shown beside NavigateEd's brand in later phases, never instead of it; the theme does not read it.
+
+## Links into the app
+
+`lib/app/deepLinks.dart` lists the addresses each app understands (for example `/notices`, `/notifications`, `/gallery`, and each such route's own name) and maps them to existing route names through `DeepLinkParser` (`eschool_session`). Accepted forms: `https://app.navigateed.co.za/<path>` and `https://teach.navigateed.co.za/<path>` (and their `staging-` hosts, and a web build's own origin), the hash form Flutter web uses (`/#/<path>`), and `navigateed://<path>`. `DeepLinkCoordinator` reads the link that opened the app through `app_links` (on the web, the address in the browser) and keeps it until home is shown: `Routes.onGenerateRouted` opens it over home the first time home is built, after the splash screen and sign-in. Links that arrive while the app runs open at once if the user is signed in and past sign-in, and wait otherwise. Notification taps still route by `data['type']`.
 
 ## App configuration from the server
 
@@ -167,7 +213,7 @@ Data protection on Android: both apps set `android:allowBackup="false"` and use 
 | `is_demo` | Value of the server's `DEMO_MODE` env; `UiUtils.isDemoVersionEnable()` is checked on the login screens and before changing the password. | both |
 | `online_payment` | `'1'` shows the "pay" buttons. | student |
 | `compulsory_fee_payment_mode`, `is_student_can_pay_fees` | Compulsory-fee gate and whether students may pay their own fees. | student |
-| `payment_options` | Currency code/symbol, due date/charges and the public keys of each enabled gateway (`razorpay`, `stripe`, `paystack`, `flutterwave`). Secret keys are never sent. | student |
+| `payment_options` | Currency code/symbol, due date/charges and the public key of each enabled gateway (since Phase 0 the server offers `stripe` only; `paystack` and `flutterwave` are still read if an older server sends them, and a `razorpay` entry is ignored). Secret keys are never sent. | student |
 | `online_exam_terms_condition` | Rules shown before an online exam. | student |
 
 These values are edited in the admin panel under App Settings (`SettingController::app_index` / `app_update`, route `app-settings`); see https://shawndaprawn.github.io/Eschool/admin-panel/app-settings/. Other `type` values of the same endpoint (`privacy_policy`, `contact_us`, `about_us`, `terms_condition`) feed the static pages through `AppSettingsCubit`.
@@ -177,9 +223,9 @@ These values are edited in the admin panel under App Settings (`SettingControlle
 Both home screens check the configuration on every build:
 
 - If `appUnderMaintenance()` is true, the body is `AppUnderMaintenanceContainer` (image `assets/images/branding/maintenance.svg`, label `appUnderMaintenance`) instead of the normal UI. The splash screen and login screens are not affected.
-- If `forceUpdate()` is true, `UiUtils.forceUpdate(getAppVersion())` compares the server version with `PackageInfo` (`version+buildNumber`). If it returns true, `ForceUpdateDialogContainer` is drawn over the home screen with a single "update" button that opens the store link. The dialog cannot be dismissed.
+- If `forceUpdate()` is true, `UiUtils.forceUpdate(getAppVersion())` compares the server version with `PackageInfo` (`version+buildNumber`) through `ForceUpdate.check()` in `eschool_session`. `getAppVersion()` and `getAppLink()` pick the iOS or Android value with `ForceUpdate.forPlatform()`; a web build has no store and never asks for an update. If it returns true, `ForceUpdateDialogContainer` is drawn over the home screen with a single "update" button that opens the store link. The dialog cannot be dismissed.
 
-`UiUtils.forceUpdate()` details worth knowing:
+The rules of `ForceUpdate.isRequired()`, unchanged from the apps' own check:
 
 - An empty server version disables the check.
 - The `x.y.z` parts are compared one position at a time, and any position where the server number is larger triggers an update. This means a server value of `3.4.1` triggers the dialog for an installed `3.5.0`. Always set the server value to the exact version you released.
@@ -189,14 +235,32 @@ Both home screens check the configuration on every build:
 
 ## Push notifications
 
-Both apps use `firebase_messaging` for delivery and `awesome_notifications` (not `flutter_local_notifications`) to display notifications on Android.
+Both apps use `firebase_messaging` for delivery and `awesome_notifications` (not `flutter_local_notifications`) to display notifications on Android. The code is in the shared package `packages/eschool_notifications`; each app's `lib/utils/notificationConfig.dart` holds what differs (see the package README). The web portals have no push notifications in Phase 0 and list notifications from the API.
 
-- After login the apps subscribe to FCM topics: student app `studentsAndroid`/`studentsIOS` or `parentsAndroid`/`parentsIOS` plus `allAndroid`/`allIOS`; teacher app `teachersAndroid`/`teachersIOS` plus `allAndroid`/`allIOS`. These match the topic map in `sendNotificationToTopic()` in `admin-panel/app/Helpers/notification_helper.php`. Individual notifications are sent to the stored `fcm_id` instead.
+- After login the apps subscribe to FCM topics by audience (`NotificationAudience.students`, `parents` or `teachers`): student app `studentsAndroid`/`studentsIOS` or `parentsAndroid`/`parentsIOS` plus `allAndroid`/`allIOS`; teacher app `teachersAndroid`/`teachersIOS` plus `allAndroid`/`allIOS`. These match the topic map in `sendNotificationToTopic()` in `admin-panel/app/Helpers/notification_helper.php`. Individual notifications are sent to the stored `fcm_id` instead.
 - Android messages are data-only; `NotificationUtility.createLocalNotification()` builds the visible notification (big picture when `image` is set). iOS messages carry a `notification` block and are shown by the system.
-- The payload `type` decides the tap action (`noticeboard`, `assignment`, `custom`, `Online`, `fees-due`, `chat`, ...). Chat messages go through `ChatNotificationsUtils` and the `chat_notifications_channel`.
-- The unread badge count is kept in SharedPreferences (`notificationCount`); types in `notificaitonTypesToNotIncrementCount` (notice board, class, chat and, in the student app, fee-due) do not increment it.
+- The payload `type` decides the tap action (`noticeboard`, `assignment`, `custom`, `Online`, `fees-due`, `chat`, ...), in each app's `onNotificationTap()`. Chat messages go through `ChatNotificationsUtils` and the `chat_notifications_channel`.
+- The unread badge count is kept in SharedPreferences (`notificationCount`) and shown from `NotificationUtility.unreadCount`; types in `notificaitonTypesToNotIncrementCount` (notice board, class, chat and, in the student app, fee-due) do not increment it.
 
 Server-side sending is covered on [Notifications](Notifications); chat on [Chat](Chat).
+
+## In a browser
+
+Both apps also build for the web (`flutter build web`, see [Building-and-Releasing-Apps](Building-and-Releasing-Apps#web-builds)): the student/parent app is the portal at `app.navigateed.co.za`, the teacher app at `teach.navigateed.co.za`. It is the same code, laid out for the window's width ([Layout on tablets and desktops](#layout-on-tablets-and-desktops)). What a browser cannot do the phone way goes through small platform files chosen with conditional imports (`if (dart.library.js_interop)`), so no `dart:io` call runs on the web:
+
+| Area | Phone | Web | Where |
+|---|---|---|---|
+| Signing in | Bearer token in Hive | Session cookie, no token stored | `AuthMode`, [Session and token storage](#session-and-token-storage) |
+| Storage | Hive in the support directory | Hive on IndexedDB | `initAppStorage()` in `eschool_session` |
+| Push and local notifications | FCM and awesome_notifications | None; the Notifications screen lists them from the API | `NotificationUtility.isActive` |
+| Crash reports | Firebase Crashlytics | None; errors go to the browser console | `prepareApp()` |
+| PDFs | Downloaded to a file, flutter_pdfview | Downloaded into memory, pdfx (pdf.js from `web/index.html`) | `PdfDocumentView` in `eschool_core` |
+| Receipts, ID cards, results, calendars | Saved in the documents folder, opened with open_filex | Downloaded by the browser | `DeviceFiles.saveDocument()` and `open()` in `eschool_core` |
+| Study material downloads | Saved to Downloads (external_path) | Opened in a new tab | `DownloadFileCubit` |
+| Attaching files, paying fees | As before | A notice: "This works in the NavigateEd app on your phone for now." (label `availableInMobileApp`) | `UiUtils.showMobileOnlyNotice()` |
+| Platform checks | `dart:io` `Platform` | `kIsWeb`, `defaultTargetPlatform` | |
+
+Addresses are paths (`/notices`); a reload starts at the splash screen, and an address the app understands (see [Links into the app](#links-into-the-app)) opens its screen after sign-in. Uploads from the browser and web push are planned for Phase 1. The spec is [engineering/specs/apps/web-builds.md](https://github.com/ShawnDaPrawn/Eschool/blob/main/engineering/specs/apps/web-builds.md).
 
 ## Key dependencies
 
@@ -222,18 +286,17 @@ Constraint from `pubspec.yaml`, resolved version from `pubspec.lock`.
 | `cached_network_image` | `^3.4.1` | 3.4.1 | yes | yes | Remote images. |
 | `flutter_html` | `^3.0.0` | 3.0.0 | yes | yes | HTML from the server (about/privacy/terms/contact pages, online exam rules). |
 | `url_launcher` | `^6.3.2` | 6.3.3 | yes | yes | External links (only http/https via `UiUtils.launchWebUrl`). |
-| `webview_flutter` | `^4.13.1` | 4.14.1 | yes | yes | Paystack/Flutterwave checkout (student), web content. |
+| `webview_flutter` | `^4.13.1` | 4.14.1 | yes | yes | The WebView checkout (student; unused while the server offers only Stripe), web content. |
 | `youtube_player_iframe` | `^6.0.2` | 6.0.2 | yes | yes | YouTube study material and gallery videos. |
 | `file_picker` | `12.0.0-beta.7` (pinned) | 12.0.0-beta.7 | yes | yes | Attachments. |
 | `image_picker` | `^1.2.2` | 1.2.4 | yes | yes | Camera/gallery images. |
 | `path_provider` / `external_path` | `^2.1.5` (`any` in teacher) / `^2.2.0` | 2.1.6 / 2.2.0 | yes | yes | Save locations for downloads. |
-| `open_filex` | `^4.7.0` | 4.7.0 | yes | yes | Open downloaded files. |
-| `flutter_pdfview` | `^1.4.4` | 1.4.5 | yes | yes | In-app PDF viewer. |
+| `open_filex` | `^4.7.0` (in `eschool_core`) | 4.7.0 | yes | yes | Open downloaded files (not on the web). |
+| `flutter_pdfview` / `pdfx` | `^1.4.4` / `^2.11.0` (in `eschool_core`) | 1.4.5 / 2.11.0 | yes | yes | In-app PDF viewer: flutter_pdfview on phones, pdfx in the web build. |
 | `package_info_plus` | `^10.1.0` | 10.2.2 | yes | yes | Installed version for force update. |
 | `table_calendar` | `^3.2.0` | 3.2.1 / 3.3.0 | yes | yes | Attendance and academic calendars. |
 | `intl` | `any` | 0.20.2 / 0.20.3 | yes | yes | Date formatting. |
 | `timeago` | `^3.7.1` | 3.7.1 | yes | yes | Relative times, localised from the language JSON. |
-| `razorpay_flutter` | `^1.4.5` | 1.4.7 | yes | no | Razorpay checkout. |
 | `flutter_stripe` | `^12.6.0` | 12.6.0 | yes | no | Stripe payment sheet. |
 | `flutter_tex` | `4.0.9` (pinned) | 4.0.9 | yes | no | Maths in online exam questions. |
 | `wakelock_plus` | `^1.5.2` | 1.8.0 | yes | no | Keeps the screen on during online exams. |
@@ -247,7 +310,7 @@ Constraint from `pubspec.yaml`, resolved version from `pubspec.lock`.
 
 Dev dependencies in both apps: `flutter_lints ^6.0.0` (6.0.0), `flutter_launcher_icons ^0.14.4` (0.14.4), `change_app_package_name ^1.5.0` (1.5.0), `flutter_test`.
 
-Native Android dependencies added in `android/app/build.gradle.kts`: `androidx.multidex:multidex:2.0.1`, Firebase BoM `31.0.2` with `firebase-messaging`, `androidx.emoji2` 1.4.0 (works around a crash when pressing back during a Stripe payment), and in the student app `com.razorpay:checkout:1.6.33`.
+Native Android dependencies added in `android/app/build.gradle.kts`: `androidx.multidex:multidex:2.0.1`, Firebase BoM `31.0.2` with `firebase-messaging`, `androidx.emoji2` 1.4.0 (works around a crash when pressing back during a Stripe payment).
 
 ## Static analysis
 

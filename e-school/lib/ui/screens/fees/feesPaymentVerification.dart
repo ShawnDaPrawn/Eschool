@@ -1,9 +1,9 @@
+import 'package:eschool/app/routeArguments.dart';
 import 'package:eschool/cubits/postFeesPaymentCubit.dart';
 import 'package:eschool/data/models/student.dart';
 import 'package:eschool/utils/labelKeys.dart';
 import 'package:eschool/utils/uiUtils.dart';
 import 'package:eschool_core/eschool_core.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:lottie/lottie.dart';
@@ -15,34 +15,25 @@ class FeesPaymentVerification extends StatefulWidget {
     required this.status,
     required this.isStudentPayingFees,
     super.key,
-    this.paymentId,
-    this.paymentSignature,
-    this.orderId,
     this.paymentIntentId,
   });
   final Student studentDetails;
   final int transactionId;
   final int? status;
-  final String? paymentId;
-  final String? orderId; //Razorpay
-  final String? paymentSignature;
   final String? paymentIntentId; //stripe
   final bool isStudentPayingFees;
 
   @override
   FeesPaymentVerificationState createState() => FeesPaymentVerificationState();
   static Route route(RouteSettings routeSettings) {
-    final arguments = routeSettings.arguments! as Map<String, dynamic>;
-    return CupertinoPageRoute(
+    final arguments = routeSettings.arguments! as PaymentVerificationArguments;
+    return AdaptivePageRoute(
       builder: (_) => FeesPaymentVerification(
-        studentDetails: arguments['studentDetails'],
-        transactionId: arguments['transactionId'],
-        paymentId: arguments['paymentId'],
-        paymentSignature: arguments['paymentSignature'],
-        orderId: arguments['orderId'],
-        paymentIntentId: arguments['paymentIntentId'],
-        status: arguments['status'],
-        isStudentPayingFees: arguments['isStudentPaying'],
+        studentDetails: arguments.studentDetails,
+        transactionId: arguments.transactionId,
+        paymentIntentId: arguments.paymentIntentId,
+        status: arguments.status,
+        isStudentPayingFees: arguments.isStudentPaying,
       ),
     );
   }
@@ -63,9 +54,7 @@ class FeesPaymentVerificationState extends State<FeesPaymentVerification> {
         transactionId: widget.transactionId.toString(),
         childId: widget.isStudentPayingFees ? null : widget.studentDetails.id,
         verifyStripePaymentIntent: widget.paymentIntentId != null,
-        paymentId: widget.paymentId,
         paymentIntentId: widget.paymentIntentId,
-        paymentSignature: widget.paymentSignature,
       );
     });
   }
@@ -169,7 +158,7 @@ class FeesPaymentVerificationState extends State<FeesPaymentVerification> {
                 jsonFileName: 'payment_cancel',
                 titleText: paymentFailureTitleKey,
                 msgText: paymentFailureMsgKey,
-              ) //for Razorpay
+              )
             : BlocBuilder<PostFeesPaymentCubit, PostFeesPaymentState>(
                 builder: (context, state) {
                   if (state is PostFeesPaymentSuccess) {

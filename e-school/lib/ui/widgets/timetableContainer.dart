@@ -1,15 +1,9 @@
 import 'package:eschool/cubits/authCubit.dart';
 import 'package:eschool/cubits/timeTableCubit.dart';
 import 'package:eschool/data/models/timeTableSlot.dart';
-import 'package:eschool/ui/widgets/customBackButton.dart';
-import 'package:eschool/ui/widgets/customShimmerContainer.dart';
-import 'package:eschool/ui/widgets/errorContainer.dart';
+import 'package:eschool_core/eschool_core.dart';
 import 'package:eschool/ui/widgets/noDataContainer.dart';
-import 'package:eschool/ui/widgets/screenTopBackgroundContainer.dart';
-import 'package:eschool/ui/widgets/shimmerLoadingContainer.dart';
 import 'package:eschool/ui/widgets/subjectImageContainer.dart';
-import 'package:eschool/utils/animationConfiguration.dart';
-import 'package:eschool/utils/constants.dart';
 import 'package:eschool/utils/labelKeys.dart';
 import 'package:eschool/utils/uiUtils.dart';
 import 'package:flutter/material.dart';

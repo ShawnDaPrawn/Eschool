@@ -55,15 +55,11 @@
 }
 
 /* --- Toggle (enable/disable) field --------------------------- */
+/* Field labels keep the global M3 label type (body-medium, 500). */
 .fees-config-page .form-group>label {
     display: inline-flex;
     align-items: center;
     gap: 0.25rem;
-    margin-bottom: 0.5rem;
-    font-size: 0.8125rem;
-    font-family: var(--md-ref-typeface-plain);
-    font-weight: 500;
-    color: var(--md-sys-color-on-surface);
 }
 
 .fees-toggle-group {
@@ -85,7 +81,7 @@
 
 /* keep the base margin-left:1.75rem (room for the .input-helper ring) */
 .fees-toggle-group .form-check-label {
-    font-size: 0.8125rem;
+    font-size: var(--md-sys-typescale-body-medium-size);
     color: var(--md-sys-color-on-surface);
     cursor: pointer;
 }
@@ -108,65 +104,52 @@
     color: var(--md-sys-color-on-surface-variant);
 }
 
-/* --- Read-only (auto-generated URL) fields ------------------- */
+/* --- Read-only (auto-generated URL) fields -------------------
+   M3 read-only field: no fill, the outline drops to on-surface 12%. The text
+   stays on-surface-variant (not the disabled 38%) so the URL can be read and
+   copied. */
 .fees-config-page input.form-control[readonly] {
-    background-color: var(--md-sys-color-surface-container-low);
+    background-color: transparent;
+    border-color: color-mix(in srgb, var(--md-sys-color-on-surface) var(--md-sys-state-disabled-container-opacity), transparent);
     color: var(--md-sys-color-on-surface-variant);
     cursor: default;
 }
 
-/* --- Payment-gateway tabs (segmented control) ---------------- */
+/* --- Payment-gateway tabs ----------------------------------------
+   M3 primary tabs: the markup carries .nav-tabs, so the global tab rules
+   (m3-components.css) draw them; here they share the width and scroll
+   sideways on a phone. */
 .fees-gateway-tabs {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.5rem;
+    flex-wrap: nowrap;
     margin-bottom: 1.5rem;
-    padding: 0.3125rem;
-    border: 1px solid var(--md-sys-color-outline-variant);
-    border-radius: 12px;
-    background: var(--md-sys-color-surface-container);
-    list-style: none;
+    overflow-x: auto;
+    overflow-y: hidden;
+    scrollbar-width: none;
+}
+
+.fees-gateway-tabs::-webkit-scrollbar {
+    display: none;
 }
 
 .fees-gateway-tabs .nav-item {
-    margin: 0;
-    flex: 1 1 auto;
+    flex: 1 0 auto;
 }
 
+/* The indicator sits on the bar's bottom edge, inside the scroll box. */
 .fees-gateway-tabs .nav-link {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 0.5rem;
-    width: 100%;
-    padding: 0.5625rem 0.875rem;
-    border: 1px solid transparent;
-    border-radius: 8px;
-    color: var(--md-sys-color-on-surface-variant);
-    font-family: var(--md-ref-typeface-plain);
-    font-weight: 500;
-    font-size: 0.875rem;
+    margin-bottom: 0;
     white-space: nowrap;
-    transition: color 0.2s ease, background-color 0.2s ease, box-shadow 0.2s ease;
 }
 
-.fees-gateway-tabs .nav-link svg {
-    opacity: 1;
+/* --- Gateway panel -------------------------------------------
+   M3 tab content sits on the card, not in a box: drop the template's
+   bordered, padded .tab-content. */
+.fees-gateway-panel {
+    padding: 0;
+    border: 0;
+    text-align: start;
 }
 
-.fees-gateway-tabs .nav-link:hover {
-    color: var(--md-sys-color-primary);
-    background: color-mix(in srgb, var(--md-sys-color-primary) 6%, transparent);
-}
-
-.fees-gateway-tabs .nav-link.active {
-    color: var(--md-sys-color-primary);
-    background: var(--md-sys-color-surface-container-lowest);
-    border-color: color-mix(in srgb, var(--md-sys-color-primary) 25%, var(--md-sys-color-outline-variant));
-    box-shadow: var(--md-sys-elevation-level1);
-}
-
-/* --- Gateway panel ------------------------------------------- */
 .fees-gateway-panel .tab-pane {
     padding: 0;
 }
@@ -189,10 +172,6 @@
 
 /* --- Responsive ---------------------------------------------- */
 @media (max-width: 575.98px) {
-    .fees-gateway-tabs {
-        flex-direction: column;
-    }
-
     .fees-config-actions .btn-theme {
         width: 100%;
     }

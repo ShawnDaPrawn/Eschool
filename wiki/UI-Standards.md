@@ -85,9 +85,9 @@ The admin panel and the public website are Blade pages, not Flutter, but they us
 |---|---|
 | [`m3-tokens.css`](https://github.com/ShawnDaPrawn/Eschool/blob/main/admin-panel/public/assets/css/m3-tokens.css) | The design tokens: `--md-sys-color-*` (every colour role of `AppTheme.light()`), `--app-status-*` and `--app-status-on-*` (`StatusColors`), state-layer opacities, `--md-sys-shape-corner-*`, `--md-sys-elevation-level0` to `5`, the type scale `--md-sys-typescale-<role>-size/line-height/weight/tracking`, and `--md-ref-typeface-plain` (Poppins). Generated; don't edit it. `packages/eschool_core/test/web_tokens_test.dart` writes it from the Dart theme and fails CI when the committed file differs. |
 | [`m3-base.css`](https://github.com/ShawnDaPrawn/Eschool/blob/main/admin-panel/public/assets/css/m3-base.css) | Poppins (`public/assets/fonts/poppins`, OFL), the old font names (`Roboto-Medium` and so on) mapped to Poppins, the status text colours `--app-status-<name>-text`, Bootstrap's colour utilities (`.text-danger`, `.bg-light`, …) on the tokens, and the legacy `--theme-color` / `--secondary-color` variables the template bundles still read, pointed at the tokens. |
-| [`m3-components.css`](https://github.com/ShawnDaPrawn/Eschool/blob/main/admin-panel/public/assets/css/m3-components.css) | The admin panel's Material 3 components, restyling the template's Bootstrap 4 markup in place: buttons, icon buttons, text fields, selects and Select2, checkboxes, radios and switches, tabs, dialogs (Bootstrap modals and SweetAlert2 confirms), menus, tooltips, snackbars (jquery-toast), progress, lists, pagination and alerts. The website's components are in `webstyle.css`. |
+| [`m3-components.css`](https://github.com/ShawnDaPrawn/Eschool/blob/main/admin-panel/public/assets/css/m3-components.css) | The admin panel's Material 3 components, restyling the template's Bootstrap 4 markup in place: buttons, icon buttons, text fields, selects and Select2, checkboxes, radios and switches, tabs, dialogs (Bootstrap modals and SweetAlert2 confirms), menus, tooltips, snackbars (jquery-toast), progress, lists, pagination and alerts. The website no longer uses it: it is built on the Material 3 library (below), with its own layout in `site.css`. |
 
-Load order, in `layouts/include.blade.php` (admin panel, login, password pages), `web/header.blade.php` (website) and the error pages: `m3-tokens.css` first, then the template's own CSS (`style.css` or `rtl.css`, Bootstrap), then `m3-base.css`, then (admin panel) `m3-components.css`, then the page stylesheets (`sidebar.css`, `header.css`, `content.css`, `tables.css`, `dashboard.css`, `webstyle.css` and the per-page ones). A page stylesheet loads after the components, so it can refine one for its screen; it shouldn't redraw one (its own button radius, a Bootstrap glow ring) unless the design calls for it.
+Load order, in `layouts/include.blade.php` (admin panel, login, password pages) and the error pages: `m3-tokens.css` first, then the template's own CSS (`style.css` or `rtl.css`, Bootstrap), then `m3-base.css`, then (admin panel) `m3-components.css`, then the page stylesheets (`sidebar.css`, `header.css`, `content.css`, `tables.css`, `dashboard.css` and the per-page ones). The public website (`web/master.blade.php`) loads `m3-tokens.css`, `m3/m3.css` and `site.css` (see below). A page stylesheet loads after the components, so it can refine one for its screen; it shouldn't redraw one (its own button radius, a Bootstrap glow ring) unless the design calls for it.
 
 The `theme_color` and `secondary_color` settings no longer colour the panel or the website. They are still used, and still editable on General Settings, for the printed certificates and result sheets.
 
@@ -145,6 +145,53 @@ The web components copy the apps' Flutter theme: Material 3's defaults, with a 1
 State layers follow M3: the content colour at 8% on hover and 10% on focus and press, drawn over the component; disabled content at 38% on a 12% container. Keyboard focus is a 3px `secondary` outline, never Bootstrap's glow ring.
 
 Text is Poppins, sized from the type scale: page headings `--md-sys-typescale-headline-small-size`, card titles `title-medium`, body `body-medium`, labels and buttons `label-large`.
+
+### The Material 3 web library (replacing Bootstrap)
+
+The admin panel and the website are moving off Bootstrap entirely, onto our own Material 3 library in `admin-panel/public/assets/m3/`. It has no third-party UI framework, and its components are the apps' Flutter components. Until a page is migrated it keeps its Bootstrap markup, restyled by `m3-components.css` (the table above).
+
+| File | What it holds |
+|---|---|
+| [`m3/m3.css`](https://github.com/ShawnDaPrawn/Eschool/blob/main/admin-panel/public/assets/m3/m3.css) | Base styles, the type scale, surfaces, the layout grid and every component, on the tokens only. |
+| [`m3/m3.js`](https://github.com/ShawnDaPrawn/Eschool/blob/main/admin-panel/public/assets/m3/m3.js) | Dialogs, menus, tabs, snackbars, confirm dialogs and the scrolling top app bar. No dependencies; it wires itself up from `data-m3-*` attributes. |
+
+A migrated page loads `css/m3-tokens.css`, then `m3/m3.css`, then its own stylesheet, and `m3/m3.js` before its scripts; its `<html>` or `<body>` has the class `m3`. It loads no Bootstrap CSS or JS, no `vendor.bundle.base`, and none of the template's `style.css` / `rtl.css`.
+
+Class names are `m3-<component>`, `m3-<component>__<part>` and `m3-<component>--<variant>`. Layout uses logical properties (`margin-inline-start` and so on), so right-to-left pages need no extra rules.
+
+**Layout.** `.m3-page` centres the content with M3's margins (16px, 24px from 600px wide). `.m3-section` adds vertical padding. `.m3-grid` is a 12-column grid: children span all 12 columns unless they have `.m3-col-N`, which can vary by M3 window class: `.m3-col-medium-N` (600px and up), `.m3-col-expanded-N` (840px), `.m3-col-large-N` (1200px). `.m3-row` (wrapping flex row) and `.m3-stack` (flex column) space their children with `.m3-gap-N` (N × 4px). The surface classes (`.m3-surface-container-low` and so on) set a background role.
+
+**Components.**
+
+| Bootstrap | M3 library |
+|---|---|
+| `.container`, `.row`, `.col-md-6` | `.m3-page`, `.m3-grid`, `.m3-col-12 .m3-col-expanded-6` |
+| `.d-flex`, `.justify-content-*`, `.mb-3` | `.m3-row` / `.m3-stack` with `.m3-gap-N`, `.m3-justify-*` |
+| `.btn .btn-theme` / `.btn-primary` | `.m3-button .m3-button--filled` |
+| `.btn-secondary`, `.btn-outline-*` | `.m3-button--outlined` |
+| `.btn-light` | `.m3-button--tonal` |
+| `.btn-link` | `.m3-button--text` |
+| `.btn-danger` | `.m3-button--filled .m3-button--error` |
+| `.btn-icon` | `.m3-icon-button` (`--filled`, `--tonal`, `--outlined`, `--error`) |
+| `.form-group` + `label` + `.form-control` | `<label class="m3-text-field"><input class="m3-text-field__input" placeholder=" "><span class="m3-text-field__label">Name</span></label>`: the label floats on the outline. `.m3-text-field--select` for a `<select>`, `.m3-text-field__supporting` for helper or error text. jQuery Validate's error labels are styled. |
+| `.form-check` + `.input-helper` | `.m3-checkbox`, `.m3-radio`, `.m3-switch` (a real input inside the label, then `__control` or `__track`) |
+| `.card`, `.card-body`, `.card-title` | `.m3-card` (`--outlined`, `--filled`, `--interactive`), `__media`, `__content`, `__headline`, `__supporting`, `__actions` |
+| `.modal` and `data-toggle="modal"` | `<dialog class="m3-dialog">` with `__headline`, `__content`, `__actions`; open it with `data-m3-dialog-open="id"` or `M3.dialog.open(el)`, close it with `data-m3-dialog-close` or `<form method="dialog">` |
+| `.dropdown-menu` and `data-toggle="dropdown"` | `<div class="m3-menu" id="…" popover role="menu">` with `.m3-menu__item`, opened by `data-m3-menu="id"` |
+| `.nav-tabs` | `.m3-tabs[role=tablist]` with `.m3-tab[role=tab][aria-controls]`; the panels switch themselves |
+| `.collapse`, accordion | `<details class="m3-expansion"><summary class="m3-expansion__header">` |
+| `.navbar` | `.m3-top-app-bar` (add `data-m3-scroll` to tint it on scroll) |
+| offcanvas, the sidebar | `.m3-navigation-drawer` (`--inverse` for Dark Navy); a `<dialog>` for a modal drawer |
+| `.badge-*` | `.m3-chip--status-success` (and `-warning`, `-danger`, `-info`, `-neutral`); `.m3-badge` for counts |
+| `.alert-*` | `.m3-banner--success` and so on |
+| `.list-group` | `.m3-list` (`--divided`) with `.m3-list__item`, `__leading`, `__content`, `__headline`, `__supporting`, `__trailing` |
+| `.pagination` | `.m3-pagination` with `.m3-pagination__item[aria-current=page]` |
+| `.progress` | `.m3-progress-linear` (set `--m3-progress`), `.m3-progress-circular` |
+| jquery-toast | `M3.snackbar({ message, type: 'success' })` |
+| SweetAlert2 confirm | `M3.confirm({ title, message, confirmText, destructive: true }).then(ok => …)` |
+| tooltip plugin | `data-m3-tooltip="Text"` |
+
+**No new Bootstrap.** `tests/Unit/BootstrapFreeTest.php` scans the views, `app/` and the page scripts for Bootstrap classes, `data-toggle` / `data-bs-*` attributes, Bootstrap's jQuery plugins and Bootstrap assets. `tests/bootstrap-baseline.txt` lists the files that still use it. The test fails when a file not on the list uses Bootstrap, and when a file on the list no longer does, so the list only shrinks. When you rewrite a page, build it with the library and take it off the list. `UPDATE_BOOTSTRAP_BASELINE=1 vendor/bin/phpunit tests/Unit/BootstrapFreeTest.php` removes finished files; it never adds any.
 
 ## Changing the brand
 

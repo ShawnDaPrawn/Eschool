@@ -1,3 +1,4 @@
+import 'package:eschool/app/routeArguments.dart';
 import 'package:eschool/cubits/authCubit.dart';
 import 'package:eschool/cubits/subjectAnnouncementsCubit.dart';
 import 'package:eschool/cubits/subjectLessonsCubit.dart';
@@ -6,14 +7,11 @@ import 'package:eschool/data/repositories/announcementRepository.dart';
 import 'package:eschool/data/repositories/subjectRepository.dart';
 import 'package:eschool/ui/screens/subjectDetails/widgets/announcementContainer.dart';
 import 'package:eschool/ui/screens/subjectDetails/widgets/chaptersContainer.dart';
-import 'package:eschool/ui/widgets/customBackButton.dart';
-import 'package:eschool/ui/widgets/customRefreshIndicator.dart';
+import 'package:eschool_core/eschool_core.dart';
 import 'package:eschool/ui/widgets/customTabBarContainer.dart';
-import 'package:eschool/ui/widgets/screenTopBackgroundContainer.dart';
 import 'package:eschool/ui/widgets/tabBarBackgroundContainer.dart';
 import 'package:eschool/utils/labelKeys.dart';
 import 'package:eschool/utils/uiUtils.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -26,9 +24,9 @@ class SubjectDetailsScreen extends StatefulWidget {
   State<SubjectDetailsScreen> createState() => _SubjectDetailsScreenState();
 
   static Route route(RouteSettings routeSettings) {
-    final arguments = routeSettings.arguments! as Map<String, dynamic>;
+    final arguments = routeSettings.arguments! as SubjectDetailsArguments;
 
-    return CupertinoPageRoute(
+    return AdaptivePageRoute(
       builder: (_) => MultiBlocProvider(
         providers: [
           BlocProvider<SubjectLessonsCubit>(
@@ -39,8 +37,8 @@ class SubjectDetailsScreen extends StatefulWidget {
           ),
         ],
         child: SubjectDetailsScreen(
-          childId: arguments['childId'],
-          subject: arguments['subject'],
+          childId: arguments.childId,
+          subject: arguments.subject,
         ),
       ),
     );

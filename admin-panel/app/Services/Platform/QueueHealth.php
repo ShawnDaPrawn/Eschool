@@ -15,9 +15,14 @@ use Illuminate\Support\Facades\DB;
 class QueueHealth
 {
     /**
-     * Seconds the oldest due, unreserved job has waited; 0 when none waits,
-     * null when the default connection is not the database queue (sync runs
-     * jobs in the request, so there is nothing to wait for).
+     * Seconds the oldest due job has waited; 0 when none waits, null when the
+     * default connection is not the database queue (sync runs jobs in the
+     * request, so there is nothing to wait for).
+     *
+     * A job is due when it is unreserved and available, or when its worker
+     * reserved it more than `retry_after` seconds ago (the worker died, and
+     * Laravel hands the job out again from then on), so a crashed worker's
+     * job counts as waiting too.
      */
     public function oldestWaitSeconds(): ?int
     {
@@ -28,13 +33,24 @@ class QueueHealth
         }
 
         $now = now()->getTimestamp();
-        $oldest = DB::connection($settings['connection'] ?? null)
-            ->table((string) ($settings['table'] ?? 'jobs'))
+        $retryAfter = (int) ($settings['retry_after'] ?? 90);
+        $jobs = fn () => DB::connection($settings['connection'] ?? null)
+            ->table((string) ($settings['table'] ?? 'jobs'));
+
+        $oldestAvailable = $jobs()
             ->whereNull('reserved_at')
             ->where('available_at', '<=', $now)
             ->min('available_at');
+        $oldestExpiredReservation = $jobs()
+            ->where('reserved_at', '<=', $now - $retryAfter)
+            ->min('reserved_at');
 
-        return $oldest === null ? 0 : max(0, $now - (int) $oldest);
+        $dueSince = array_filter([
+            $oldestAvailable === null ? null : (int) $oldestAvailable,
+            $oldestExpiredReservation === null ? null : (int) $oldestExpiredReservation + $retryAfter,
+        ], fn (?int $at) => $at !== null);
+
+        return $dueSince === [] ? 0 : max(0, $now - min($dueSince));
     }
 
     public function maxWaitSeconds(): int

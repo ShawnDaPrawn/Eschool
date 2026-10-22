@@ -1,8 +1,8 @@
+import 'package:eschool/app/routeArguments.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:eschool/app/routes.dart';
-import 'package:eschool/data/models/studyMaterial.dart';
+import 'package:eschool_core/eschool_core.dart';
 import 'package:eschool/ui/widgets/noDataContainer.dart';
-import 'package:eschool/utils/animationConfiguration.dart';
 import 'package:eschool/utils/labelKeys.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
@@ -24,10 +24,10 @@ class VideosContainer extends StatelessWidget {
           onTap: () {
             Navigator.of(context).pushNamed(
               Routes.playVideo,
-              arguments: {
-                'relatedVideos': studyMaterials,
-                'currentlyPlayingVideo': studyMaterial,
-              },
+              arguments: PlayVideoArguments(
+                relatedVideos: studyMaterials,
+                currentlyPlayingVideo: studyMaterial,
+              ),
             );
           },
           child: Container(

@@ -4,15 +4,12 @@ import 'package:eschool/data/models/student.dart';
 import 'package:eschool/data/repositories/parentRepository.dart';
 import 'package:eschool/ui/widgets/borderedProfilePictureContainer.dart';
 import 'package:eschool/ui/widgets/childInformationItemsContainer.dart';
-import 'package:eschool/ui/widgets/customBackButton.dart';
-import 'package:eschool/ui/widgets/errorContainer.dart';
-import 'package:eschool/ui/widgets/screenTopBackgroundContainer.dart';
+import 'package:eschool_core/eschool_core.dart';
 import 'package:eschool/ui/widgets/shimmerLoaders/informationMenuShimmerLoading.dart';
 import 'package:eschool/ui/widgets/shimmerLoaders/subjectsShimmerLoadingContainer.dart';
 import 'package:eschool/ui/widgets/studentSubjectsContainer.dart';
 import 'package:eschool/utils/labelKeys.dart';
 import 'package:eschool/utils/uiUtils.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -24,7 +21,7 @@ class ChildDetailsScreen extends StatefulWidget {
   State<ChildDetailsScreen> createState() => _ChildDetailsScreenState();
 
   static Route route(RouteSettings routeSettings) {
-    return CupertinoPageRoute(
+    return AdaptivePageRoute(
       builder: (_) => BlocProvider<ChildSubjectsCubit>(
         create: (context) => ChildSubjectsCubit(ParentRepository()),
         child: ChildDetailsScreen(student: routeSettings.arguments! as Student),

@@ -1,0 +1,2753 @@
+/*
+ * NavigateEd Material 3 for the web.
+ *
+ * The admin panel and the public website's component library, replacing
+ * Bootstrap. It draws the same Material 3 components as the apps' Flutter
+ * theme (packages/eschool_core, AppTheme): M3 defaults, with a 10px corner on
+ * buttons, text fields and cards (AppTheme.radius = --app-radius). Colours,
+ * type, shape and elevation come only from the generated tokens in
+ * ../css/m3-tokens.css, which must load first. Behaviour (dialogs, menus,
+ * tabs, snackbars) is in m3.js. Markup and examples: wiki/UI-Standards.md.
+ *
+ * Naming: .m3-<component>, .m3-<component>__<part>, .m3-<component>--<variant>.
+ * Layout uses logical properties, so right-to-left pages need no overrides.
+ *
+ * Contents
+ *   1. Fonts and base         7. Selection controls    13. Navigation
+ *   2. Type scale             8. Chips                 14. Tabs
+ *   3. Surfaces               9. Cards                 15. Feedback (snackbar,
+ *   4. Layout                10. Dialogs                   tooltip, progress, banner)
+ *   5. Buttons               11. Menus                 16. Misc (divider, badge,
+ *   6. Text fields           12. Lists, expansion          avatar, pagination, search)
+ */
+
+/* ── 1. Fonts and base ───────────────────────────────────────────────── */
+
+@font-face {
+    font-family: 'Poppins';
+    font-style: normal;
+    font-weight: 400;
+    font-display: swap;
+    src: url('../fonts/poppins/Poppins-Regular.woff2') format('woff2');
+}
+
+@font-face {
+    font-family: 'Poppins';
+    font-style: italic;
+    font-weight: 400;
+    font-display: swap;
+    src: url('../fonts/poppins/Poppins-Italic.woff2') format('woff2');
+}
+
+@font-face {
+    font-family: 'Poppins';
+    font-style: normal;
+    font-weight: 500;
+    font-display: swap;
+    src: url('../fonts/poppins/Poppins-Medium.woff2') format('woff2');
+}
+
+@font-face {
+    font-family: 'Poppins';
+    font-style: normal;
+    font-weight: 600;
+    font-display: swap;
+    src: url('../fonts/poppins/Poppins-SemiBold.woff2') format('woff2');
+}
+
+@font-face {
+    font-family: 'Poppins';
+    font-style: normal;
+    font-weight: 700;
+    font-display: swap;
+    src: url('../fonts/poppins/Poppins-Bold.woff2') format('woff2');
+}
+
+:root {
+    /* Spacing on M3's 4px grid. */
+    --m3-space-1: 4px;
+    --m3-space-2: 8px;
+    --m3-space-3: 12px;
+    --m3-space-4: 16px;
+    --m3-space-5: 20px;
+    --m3-space-6: 24px;
+    --m3-space-8: 32px;
+    --m3-space-10: 40px;
+    --m3-space-12: 48px;
+    --m3-space-16: 64px;
+    --m3-space-20: 80px;
+
+    /* Page width and side margins (M3 window size classes, below). */
+    --m3-page-max: 1240px;
+    --m3-page-margin: 16px;
+
+    /* Motion: M3's standard and emphasized easing. */
+    --m3-ease: cubic-bezier(0.2, 0, 0, 1);
+    --m3-ease-decelerate: cubic-bezier(0.05, 0.7, 0.1, 1);
+    --m3-duration-short: 150ms;
+    --m3-duration-medium: 250ms;
+
+    /* The surface behind a text field's floating label (set by surfaces). */
+    --m3-field-container: var(--md-sys-color-surface);
+
+    /* Status colours as text or icons on light surfaces: the raw status
+       colours are fills, too faint as text (warning is 1.9:1 on white);
+       mixed 55% with on-surface they pass 4.5:1 on white and pale tints. */
+    --app-status-success-text: color-mix(in srgb, var(--app-status-success) 55%, var(--md-sys-color-on-surface));
+    --app-status-warning-text: color-mix(in srgb, var(--app-status-warning) 55%, var(--md-sys-color-on-surface));
+    --app-status-danger-text: color-mix(in srgb, var(--app-status-danger) 55%, var(--md-sys-color-on-surface));
+    --app-status-info-text: color-mix(in srgb, var(--app-status-info) 55%, var(--md-sys-color-on-surface));
+
+    color-scheme: light;
+}
+
+/* M3 window size classes: compact < 600, medium 600–839,
+   expanded 840–1199, large 1200–1599, extra-large ≥ 1600. */
+@media (min-width: 600px) {
+    :root {
+        --m3-page-margin: 24px;
+    }
+}
+
+*,
+*::before,
+*::after {
+    box-sizing: border-box;
+}
+
+.m3-body,
+body.m3 {
+    margin: 0;
+    background: var(--md-sys-color-surface);
+    color: var(--md-sys-color-on-surface);
+    font-family: var(--md-ref-typeface-plain);
+    font-size: var(--md-sys-typescale-body-large-size);
+    line-height: var(--md-sys-typescale-body-large-line-height);
+    letter-spacing: var(--md-sys-typescale-body-large-tracking);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+}
+
+:where(.m3) img,
+:where(.m3) svg,
+:where(.m3) video {
+    max-width: 100%;
+}
+
+:where(.m3) img {
+    height: auto;
+}
+
+/* Base element rules use :where() so they have no specificity and every
+   component's own rules win. */
+:where(.m3) a {
+    color: var(--md-sys-color-primary);
+}
+
+:where(.m3) :focus-visible {
+    outline: 3px solid var(--md-sys-color-secondary);
+    outline-offset: 2px;
+}
+
+:where(.m3) ::selection {
+    background: var(--md-sys-color-primary-container);
+    color: var(--md-sys-color-on-primary-container);
+}
+
+:where(.m3) [hidden] {
+    display: none !important;
+}
+
+.m3-visually-hidden {
+    position: absolute !important;
+    width: 1px;
+    height: 1px;
+    margin: -1px;
+    padding: 0;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
+    border: 0;
+}
+
+/* Skip link: the page's first focusable element, shown only when focused.
+     <a class="m3-skip-link" href="#main">Skip to content</a>  */
+.m3-skip-link {
+    position: fixed;
+    top: var(--m3-space-2);
+    inset-inline-start: var(--m3-space-2);
+    z-index: 1100;
+    display: inline-flex;
+    align-items: center;
+    min-height: 40px;
+    padding: 0 var(--m3-space-4);
+    border-radius: var(--app-radius);
+    background: var(--md-sys-color-primary);
+    color: var(--md-sys-color-on-primary);
+    font-size: var(--md-sys-typescale-label-large-size);
+    font-weight: var(--md-sys-typescale-label-large-weight);
+    text-decoration: none;
+    transform: translateY(-200%);
+}
+
+.m3-skip-link:focus {
+    transform: none;
+}
+
+/* Icons: the <x-icon> component's inline SVG, or any 24px glyph. */
+.m3-icon {
+    display: inline-block;
+    flex: 0 0 auto;
+    width: 24px;
+    height: 24px;
+    vertical-align: middle;
+}
+
+/* ── 2. Type scale ───────────────────────────────────────────────────── */
+
+.m3-display-large {
+    font-size: var(--md-sys-typescale-display-large-size);
+    line-height: var(--md-sys-typescale-display-large-line-height);
+    font-weight: var(--md-sys-typescale-display-large-weight);
+    letter-spacing: var(--md-sys-typescale-display-large-tracking);
+}
+
+.m3-display-medium {
+    font-size: var(--md-sys-typescale-display-medium-size);
+    line-height: var(--md-sys-typescale-display-medium-line-height);
+    font-weight: var(--md-sys-typescale-display-medium-weight);
+    letter-spacing: var(--md-sys-typescale-display-medium-tracking);
+}
+
+.m3-display-small {
+    font-size: var(--md-sys-typescale-display-small-size);
+    line-height: var(--md-sys-typescale-display-small-line-height);
+    font-weight: var(--md-sys-typescale-display-small-weight);
+    letter-spacing: var(--md-sys-typescale-display-small-tracking);
+}
+
+.m3-headline-large {
+    font-size: var(--md-sys-typescale-headline-large-size);
+    line-height: var(--md-sys-typescale-headline-large-line-height);
+    font-weight: var(--md-sys-typescale-headline-large-weight);
+    letter-spacing: var(--md-sys-typescale-headline-large-tracking);
+}
+
+.m3-headline-medium {
+    font-size: var(--md-sys-typescale-headline-medium-size);
+    line-height: var(--md-sys-typescale-headline-medium-line-height);
+    font-weight: var(--md-sys-typescale-headline-medium-weight);
+    letter-spacing: var(--md-sys-typescale-headline-medium-tracking);
+}
+
+.m3-headline-small {
+    font-size: var(--md-sys-typescale-headline-small-size);
+    line-height: var(--md-sys-typescale-headline-small-line-height);
+    font-weight: var(--md-sys-typescale-headline-small-weight);
+    letter-spacing: var(--md-sys-typescale-headline-small-tracking);
+}
+
+.m3-title-large {
+    font-size: var(--md-sys-typescale-title-large-size);
+    line-height: var(--md-sys-typescale-title-large-line-height);
+    font-weight: var(--md-sys-typescale-title-large-weight);
+    letter-spacing: var(--md-sys-typescale-title-large-tracking);
+}
+
+.m3-title-medium {
+    font-size: var(--md-sys-typescale-title-medium-size);
+    line-height: var(--md-sys-typescale-title-medium-line-height);
+    font-weight: var(--md-sys-typescale-title-medium-weight);
+    letter-spacing: var(--md-sys-typescale-title-medium-tracking);
+}
+
+.m3-title-small {
+    font-size: var(--md-sys-typescale-title-small-size);
+    line-height: var(--md-sys-typescale-title-small-line-height);
+    font-weight: var(--md-sys-typescale-title-small-weight);
+    letter-spacing: var(--md-sys-typescale-title-small-tracking);
+}
+
+.m3-body-large {
+    font-size: var(--md-sys-typescale-body-large-size);
+    line-height: var(--md-sys-typescale-body-large-line-height);
+    font-weight: var(--md-sys-typescale-body-large-weight);
+    letter-spacing: var(--md-sys-typescale-body-large-tracking);
+}
+
+.m3-body-medium {
+    font-size: var(--md-sys-typescale-body-medium-size);
+    line-height: var(--md-sys-typescale-body-medium-line-height);
+    font-weight: var(--md-sys-typescale-body-medium-weight);
+    letter-spacing: var(--md-sys-typescale-body-medium-tracking);
+}
+
+.m3-body-small {
+    font-size: var(--md-sys-typescale-body-small-size);
+    line-height: var(--md-sys-typescale-body-small-line-height);
+    font-weight: var(--md-sys-typescale-body-small-weight);
+    letter-spacing: var(--md-sys-typescale-body-small-tracking);
+}
+
+.m3-label-large {
+    font-size: var(--md-sys-typescale-label-large-size);
+    line-height: var(--md-sys-typescale-label-large-line-height);
+    font-weight: var(--md-sys-typescale-label-large-weight);
+    letter-spacing: var(--md-sys-typescale-label-large-tracking);
+}
+
+.m3-label-medium {
+    font-size: var(--md-sys-typescale-label-medium-size);
+    line-height: var(--md-sys-typescale-label-medium-line-height);
+    font-weight: var(--md-sys-typescale-label-medium-weight);
+    letter-spacing: var(--md-sys-typescale-label-medium-tracking);
+}
+
+.m3-label-small {
+    font-size: var(--md-sys-typescale-label-small-size);
+    line-height: var(--md-sys-typescale-label-small-line-height);
+    font-weight: var(--md-sys-typescale-label-small-weight);
+    letter-spacing: var(--md-sys-typescale-label-small-tracking);
+}
+
+.m3-text-muted {
+    color: var(--md-sys-color-on-surface-variant);
+}
+
+.m3-text-primary {
+    color: var(--md-sys-color-primary);
+}
+
+.m3-text-error {
+    color: var(--md-sys-color-error);
+}
+
+.m3-text-center {
+    text-align: center;
+}
+
+.m3-text-end {
+    text-align: end;
+}
+
+.m3-truncate {
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+}
+
+:where(.m3) :where(h1, h2, h3, h4, h5, h6, p) {
+    margin: 0;
+}
+
+/* ── 3. Surfaces ─────────────────────────────────────────────────────────
+   Background roles. Each also tells text fields inside it what colour sits
+   behind their floating label. */
+
+.m3-surface {
+    background: var(--md-sys-color-surface);
+    --m3-field-container: var(--md-sys-color-surface);
+}
+
+.m3-surface-container-lowest {
+    background: var(--md-sys-color-surface-container-lowest);
+    --m3-field-container: var(--md-sys-color-surface-container-lowest);
+}
+
+.m3-surface-container-low {
+    background: var(--md-sys-color-surface-container-low);
+    --m3-field-container: var(--md-sys-color-surface-container-low);
+}
+
+.m3-surface-container {
+    background: var(--md-sys-color-surface-container);
+    --m3-field-container: var(--md-sys-color-surface-container);
+}
+
+.m3-surface-container-high {
+    background: var(--md-sys-color-surface-container-high);
+    --m3-field-container: var(--md-sys-color-surface-container-high);
+}
+
+.m3-inverse-surface {
+    background: var(--md-sys-color-inverse-surface);
+    color: var(--md-sys-color-on-inverse-surface);
+}
+
+/* ── 4. Layout ───────────────────────────────────────────────────────────
+   .m3-page centres content with M3 margins. .m3-grid is a 12-column grid;
+   children span all 12 unless given .m3-col-N, optionally per window class
+   (.m3-col-medium-N ≥ 600px, .m3-col-expanded-N ≥ 840px, .m3-col-large-N
+   ≥ 1200px). .m3-row and .m3-stack are flex rows and columns with gaps. */
+
+.m3-page {
+    width: 100%;
+    max-width: calc(var(--m3-page-max) + 2 * var(--m3-page-margin));
+    margin-inline: auto;
+    padding-inline: var(--m3-page-margin);
+}
+
+.m3-section {
+    padding-block: var(--m3-space-16);
+}
+
+@media (max-width: 599px) {
+    .m3-section {
+        padding-block: var(--m3-space-10);
+    }
+}
+
+.m3-grid {
+    display: grid;
+    grid-template-columns: repeat(12, minmax(0, 1fr));
+    gap: var(--m3-gap, var(--m3-space-4));
+}
+
+@media (min-width: 840px) {
+    .m3-grid {
+        gap: var(--m3-gap, var(--m3-space-6));
+    }
+}
+
+.m3-grid>* {
+    grid-column: span 12;
+    min-width: 0;
+}
+
+.m3-col-1 {
+    grid-column: span 1;
+}
+
+.m3-col-2 {
+    grid-column: span 2;
+}
+
+.m3-col-3 {
+    grid-column: span 3;
+}
+
+.m3-col-4 {
+    grid-column: span 4;
+}
+
+.m3-col-5 {
+    grid-column: span 5;
+}
+
+.m3-col-6 {
+    grid-column: span 6;
+}
+
+.m3-col-7 {
+    grid-column: span 7;
+}
+
+.m3-col-8 {
+    grid-column: span 8;
+}
+
+.m3-col-9 {
+    grid-column: span 9;
+}
+
+.m3-col-10 {
+    grid-column: span 10;
+}
+
+.m3-col-11 {
+    grid-column: span 11;
+}
+
+.m3-col-12 {
+    grid-column: span 12;
+}
+
+@media (min-width: 600px) {
+    .m3-col-medium-1 {
+        grid-column: span 1;
+    }
+
+    .m3-col-medium-2 {
+        grid-column: span 2;
+    }
+
+    .m3-col-medium-3 {
+        grid-column: span 3;
+    }
+
+    .m3-col-medium-4 {
+        grid-column: span 4;
+    }
+
+    .m3-col-medium-5 {
+        grid-column: span 5;
+    }
+
+    .m3-col-medium-6 {
+        grid-column: span 6;
+    }
+
+    .m3-col-medium-7 {
+        grid-column: span 7;
+    }
+
+    .m3-col-medium-8 {
+        grid-column: span 8;
+    }
+
+    .m3-col-medium-9 {
+        grid-column: span 9;
+    }
+
+    .m3-col-medium-10 {
+        grid-column: span 10;
+    }
+
+    .m3-col-medium-11 {
+        grid-column: span 11;
+    }
+
+    .m3-col-medium-12 {
+        grid-column: span 12;
+    }
+}
+
+@media (min-width: 840px) {
+    .m3-col-expanded-1 {
+        grid-column: span 1;
+    }
+
+    .m3-col-expanded-2 {
+        grid-column: span 2;
+    }
+
+    .m3-col-expanded-3 {
+        grid-column: span 3;
+    }
+
+    .m3-col-expanded-4 {
+        grid-column: span 4;
+    }
+
+    .m3-col-expanded-5 {
+        grid-column: span 5;
+    }
+
+    .m3-col-expanded-6 {
+        grid-column: span 6;
+    }
+
+    .m3-col-expanded-7 {
+        grid-column: span 7;
+    }
+
+    .m3-col-expanded-8 {
+        grid-column: span 8;
+    }
+
+    .m3-col-expanded-9 {
+        grid-column: span 9;
+    }
+
+    .m3-col-expanded-10 {
+        grid-column: span 10;
+    }
+
+    .m3-col-expanded-11 {
+        grid-column: span 11;
+    }
+
+    .m3-col-expanded-12 {
+        grid-column: span 12;
+    }
+}
+
+@media (min-width: 1200px) {
+    .m3-col-large-1 {
+        grid-column: span 1;
+    }
+
+    .m3-col-large-2 {
+        grid-column: span 2;
+    }
+
+    .m3-col-large-3 {
+        grid-column: span 3;
+    }
+
+    .m3-col-large-4 {
+        grid-column: span 4;
+    }
+
+    .m3-col-large-5 {
+        grid-column: span 5;
+    }
+
+    .m3-col-large-6 {
+        grid-column: span 6;
+    }
+
+    .m3-col-large-7 {
+        grid-column: span 7;
+    }
+
+    .m3-col-large-8 {
+        grid-column: span 8;
+    }
+
+    .m3-col-large-9 {
+        grid-column: span 9;
+    }
+
+    .m3-col-large-10 {
+        grid-column: span 10;
+    }
+
+    .m3-col-large-11 {
+        grid-column: span 11;
+    }
+
+    .m3-col-large-12 {
+        grid-column: span 12;
+    }
+}
+
+.m3-row,
+.m3-stack {
+    display: flex;
+    gap: var(--m3-gap, var(--m3-space-4));
+}
+
+.m3-row {
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: center;
+}
+
+.m3-stack {
+    flex-direction: column;
+}
+
+.m3-row--nowrap {
+    flex-wrap: nowrap;
+}
+
+.m3-row--start {
+    align-items: flex-start;
+}
+
+.m3-row--stretch {
+    align-items: stretch;
+}
+
+.m3-justify-center {
+    justify-content: center;
+}
+
+.m3-justify-between {
+    justify-content: space-between;
+}
+
+.m3-justify-end {
+    justify-content: flex-end;
+}
+
+.m3-items-center {
+    align-items: center;
+}
+
+.m3-grow {
+    flex: 1 1 auto;
+    min-width: 0;
+}
+
+/* A grid, row or stack takes its gap from its own .m3-gap-N class only:
+   custom properties inherit, and a nested grid must not pick up its
+   parent's gap (a 48px stack gap would make a 12-column grid 528px wide). */
+.m3-grid,
+.m3-row,
+.m3-stack {
+    --m3-gap: initial;
+}
+
+.m3-gap-0 {
+    --m3-gap: 0;
+}
+
+.m3-gap-1 {
+    --m3-gap: var(--m3-space-1);
+}
+
+.m3-gap-2 {
+    --m3-gap: var(--m3-space-2);
+}
+
+.m3-gap-3 {
+    --m3-gap: var(--m3-space-3);
+}
+
+.m3-gap-4 {
+    --m3-gap: var(--m3-space-4);
+}
+
+.m3-gap-6 {
+    --m3-gap: var(--m3-space-6);
+}
+
+.m3-gap-8 {
+    --m3-gap: var(--m3-space-8);
+}
+
+.m3-gap-12 {
+    --m3-gap: var(--m3-space-12);
+}
+
+/* Show or hide by window class. */
+@media (max-width: 599px) {
+    .m3-hide-compact {
+        display: none !important;
+    }
+}
+
+@media (min-width: 600px) {
+    .m3-only-compact {
+        display: none !important;
+    }
+}
+
+@media (max-width: 839px) {
+    .m3-hide-below-expanded {
+        display: none !important;
+    }
+}
+
+@media (min-width: 840px) {
+    .m3-only-below-expanded {
+        display: none !important;
+    }
+}
+
+/* ── State layers ────────────────────────────────────────────────────────
+   M3 draws hover, focus and press as the content colour at 8% / 10% / 10%
+   over the component. Interactive components get it from ::before, in their
+   current text colour. */
+
+.m3-button,
+.m3-icon-button,
+.m3-fab,
+.m3-chip,
+.m3-card--interactive,
+.m3-menu__item,
+.m3-list__item--interactive,
+.m3-navigation-drawer__item,
+.m3-tab,
+.m3-segmented__button,
+.m3-expansion__header,
+.m3-pagination__item {
+    position: relative;
+    isolation: isolate;
+}
+
+.m3-button::before,
+.m3-icon-button::before,
+.m3-fab::before,
+.m3-chip::before,
+.m3-card--interactive::before,
+.m3-menu__item::before,
+.m3-list__item--interactive::before,
+.m3-navigation-drawer__item::before,
+.m3-tab::before,
+.m3-segmented__button::before,
+.m3-expansion__header::before,
+.m3-pagination__item::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    border-radius: inherit;
+    background: currentColor;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity var(--m3-duration-short) linear;
+}
+
+:is(.m3-button, .m3-icon-button, .m3-fab, .m3-chip, .m3-card--interactive, .m3-menu__item, .m3-list__item--interactive, .m3-navigation-drawer__item, .m3-tab, .m3-segmented__button, .m3-expansion__header, .m3-pagination__item):hover::before {
+    opacity: var(--md-sys-state-hover-opacity);
+}
+
+:is(.m3-button, .m3-icon-button, .m3-fab, .m3-chip, .m3-card--interactive, .m3-menu__item, .m3-list__item--interactive, .m3-navigation-drawer__item, .m3-tab, .m3-segmented__button, .m3-expansion__header, .m3-pagination__item):focus-visible::before {
+    opacity: var(--md-sys-state-focus-opacity);
+}
+
+:is(.m3-button, .m3-icon-button, .m3-fab, .m3-chip, .m3-card--interactive, .m3-menu__item, .m3-list__item--interactive, .m3-navigation-drawer__item, .m3-tab, .m3-segmented__button, .m3-expansion__header, .m3-pagination__item):active::before {
+    opacity: var(--md-sys-state-pressed-opacity);
+}
+
+:is(.m3-button, .m3-icon-button, .m3-fab, .m3-chip, .m3-menu__item, .m3-tab, .m3-segmented__button, .m3-pagination__item):is(:disabled, [aria-disabled="true"])::before {
+    opacity: 0;
+}
+
+/* Full-width items sit in containers that clip (menus, cards, drawers, tab
+   bars), so their keyboard focus ring is drawn just inside their edge. */
+:where(.m3) :is(.m3-menu__item, .m3-expansion__header, .m3-list__item--interactive, .m3-navigation-drawer__item, .m3-tab):focus-visible {
+    outline-offset: -3px;
+}
+
+/* ── 5. Buttons ──────────────────────────────────────────────────────────
+   Flutter's FilledButton, FilledButton.tonal, OutlinedButton, TextButton and
+   ElevatedButton: 40px, label-large, 10px corners (AppTheme). Works on
+   <button> and <a>. */
+
+.m3-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--m3-space-2);
+    min-height: 40px;
+    padding: 0 var(--m3-space-6);
+    border: 1px solid transparent;
+    border-radius: var(--app-radius);
+    background: transparent;
+    color: var(--md-sys-color-primary);
+    font-family: var(--md-ref-typeface-plain);
+    font-size: var(--md-sys-typescale-label-large-size);
+    line-height: var(--md-sys-typescale-label-large-line-height);
+    font-weight: var(--md-sys-typescale-label-large-weight);
+    letter-spacing: var(--md-sys-typescale-label-large-tracking);
+    text-align: center;
+    text-decoration: none;
+    white-space: nowrap;
+    vertical-align: middle;
+    cursor: pointer;
+    user-select: none;
+    -webkit-tap-highlight-color: transparent;
+    transition: box-shadow var(--m3-duration-short) var(--m3-ease), background-color var(--m3-duration-short) var(--m3-ease);
+}
+
+.m3-button:hover,
+.m3-button:focus {
+    text-decoration: none;
+}
+
+.m3-button .m3-icon,
+.m3-button>svg,
+.m3-button>i {
+    width: 18px;
+    height: 18px;
+    font-size: 18px;
+    line-height: 1;
+}
+
+.m3-button--icon-leading {
+    padding-inline-start: var(--m3-space-4);
+}
+
+.m3-button--icon-trailing {
+    padding-inline-end: var(--m3-space-4);
+}
+
+.m3-button--filled {
+    background: var(--md-sys-color-primary);
+    color: var(--md-sys-color-on-primary);
+}
+
+.m3-button--filled:hover {
+    box-shadow: var(--md-sys-elevation-level1);
+}
+
+.m3-button--tonal {
+    background: var(--md-sys-color-secondary-container);
+    color: var(--md-sys-color-on-secondary-container);
+}
+
+.m3-button--tonal:hover {
+    box-shadow: var(--md-sys-elevation-level1);
+}
+
+.m3-button--elevated {
+    background: var(--md-sys-color-surface-container-low);
+    color: var(--md-sys-color-primary);
+    box-shadow: var(--md-sys-elevation-level1);
+}
+
+.m3-button--elevated:hover {
+    box-shadow: var(--md-sys-elevation-level2);
+}
+
+.m3-button--outlined {
+    border-color: var(--md-sys-color-outline);
+    color: var(--md-sys-color-primary);
+}
+
+.m3-button--text {
+    padding: 0 var(--m3-space-3);
+}
+
+/* Destructive: the filled button in the error role. */
+.m3-button--error {
+    background: var(--md-sys-color-error);
+    color: var(--md-sys-color-on-error);
+}
+
+.m3-button--outlined.m3-button--error,
+.m3-button--text.m3-button--error {
+    background: transparent;
+    color: var(--md-sys-color-error);
+}
+
+/* On a dark (inverse) surface: inverse-primary with navy text (6.9:1). */
+.m3-button--inverse {
+    background: var(--md-sys-color-inverse-primary);
+    color: var(--md-sys-color-inverse-surface);
+}
+
+.m3-button--outlined.m3-button--inverse {
+    background: transparent;
+    border-color: color-mix(in srgb, var(--md-sys-color-on-inverse-surface) 60%, transparent);
+    color: var(--md-sys-color-on-inverse-surface);
+}
+
+.m3-button--small {
+    min-height: 32px;
+    padding: 0 var(--m3-space-4);
+    gap: 6px;
+}
+
+.m3-button--large {
+    min-height: 48px;
+    padding: 0 var(--m3-space-8);
+}
+
+.m3-button--block {
+    display: flex;
+    width: 100%;
+}
+
+.m3-button:is(:disabled, [aria-disabled="true"]) {
+    cursor: default;
+    box-shadow: none;
+    background: color-mix(in srgb, var(--md-sys-color-on-surface) var(--md-sys-state-disabled-container-opacity), transparent);
+    border-color: transparent;
+    color: color-mix(in srgb, var(--md-sys-color-on-surface) var(--md-sys-state-disabled-content-opacity), transparent);
+    pointer-events: none;
+}
+
+.m3-button--outlined:is(:disabled, [aria-disabled="true"]) {
+    background: transparent;
+    border-color: color-mix(in srgb, var(--md-sys-color-on-surface) var(--md-sys-state-disabled-container-opacity), transparent);
+}
+
+.m3-button--text:is(:disabled, [aria-disabled="true"]) {
+    background: transparent;
+}
+
+/* Icon buttons: 40px circles, 24px icons. Standard (no container), filled,
+   tonal and outlined; aria-pressed="true" marks a selected toggle. */
+.m3-icon-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex: 0 0 auto;
+    width: 40px;
+    height: 40px;
+    padding: 0;
+    border: 0;
+    border-radius: var(--md-sys-shape-corner-full);
+    background: transparent;
+    color: var(--md-sys-color-on-surface-variant);
+    font-size: 20px;
+    line-height: 1;
+    text-decoration: none;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+}
+
+.m3-icon-button .m3-icon,
+.m3-icon-button>svg {
+    width: 24px;
+    height: 24px;
+}
+
+.m3-icon-button[aria-pressed="true"] {
+    color: var(--md-sys-color-primary);
+}
+
+.m3-icon-button--filled {
+    background: var(--md-sys-color-primary);
+    color: var(--md-sys-color-on-primary);
+}
+
+.m3-icon-button--tonal {
+    background: var(--md-sys-color-secondary-container);
+    color: var(--md-sys-color-on-secondary-container);
+}
+
+.m3-icon-button--outlined {
+    border: 1px solid var(--md-sys-color-outline);
+}
+
+.m3-icon-button--error {
+    color: var(--md-sys-color-error);
+}
+
+.m3-icon-button--small {
+    width: 32px;
+    height: 32px;
+}
+
+.m3-icon-button--small .m3-icon,
+.m3-icon-button--small>svg {
+    width: 20px;
+    height: 20px;
+}
+
+.m3-icon-button:is(:disabled, [aria-disabled="true"]) {
+    cursor: default;
+    background: transparent;
+    color: color-mix(in srgb, var(--md-sys-color-on-surface) var(--md-sys-state-disabled-content-opacity), transparent);
+}
+
+/* Floating action button: 56px, 16px corners, primary container. */
+.m3-fab {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--m3-space-3);
+    min-width: 56px;
+    height: 56px;
+    padding: 0 var(--m3-space-4);
+    border: 0;
+    border-radius: var(--md-sys-shape-corner-large);
+    background: var(--md-sys-color-primary);
+    color: var(--md-sys-color-on-primary);
+    box-shadow: var(--md-sys-elevation-level3);
+    font-size: var(--md-sys-typescale-label-large-size);
+    font-weight: 500;
+    text-decoration: none;
+    cursor: pointer;
+}
+
+.m3-fab:hover {
+    box-shadow: var(--md-sys-elevation-level4);
+}
+
+.m3-fab--small {
+    min-width: 40px;
+    height: 40px;
+    border-radius: var(--md-sys-shape-corner-medium);
+}
+
+/* ── 6. Text fields ──────────────────────────────────────────────────────
+   Flutter's TextField with OutlineInputBorder(radius: 10): 56px, body-large,
+   the label inside the outline that floats onto it when the field has focus
+   or a value. Markup (the input needs placeholder=" " so CSS can tell when
+   it's empty):
+
+     <label class="m3-text-field">
+       <input class="m3-text-field__input" name="email" placeholder=" ">
+       <span class="m3-text-field__label">Email</span>
+     </label>
+     <p class="m3-text-field__supporting">Helper or error text</p>
+
+   Selects and textareas use the same parts. The floating label sits on a
+   patch of --m3-field-container, which the surrounding surface sets. */
+
+.m3-text-field {
+    position: relative;
+    display: block;
+    width: 100%;
+    min-width: 0;
+}
+
+.m3-text-field__input {
+    display: block;
+    width: 100%;
+    height: 56px;
+    margin: 0;
+    padding: 0 var(--m3-space-4);
+    border: 1px solid var(--md-sys-color-outline);
+    border-radius: var(--app-radius);
+    background: transparent;
+    color: var(--md-sys-color-on-surface);
+    font-family: var(--md-ref-typeface-plain);
+    font-size: var(--md-sys-typescale-body-large-size);
+    line-height: var(--md-sys-typescale-body-large-line-height);
+    letter-spacing: var(--md-sys-typescale-body-large-tracking);
+    caret-color: var(--md-sys-color-primary);
+    appearance: none;
+    outline: 0;
+    transition: border-color var(--m3-duration-short) var(--m3-ease), box-shadow var(--m3-duration-short) var(--m3-ease);
+}
+
+textarea.m3-text-field__input {
+    height: auto;
+    min-height: 112px;
+    padding: var(--m3-space-4);
+    resize: vertical;
+}
+
+.m3-text-field__input::placeholder {
+    color: transparent;
+}
+
+/* With a floated label, a real placeholder can show. */
+.m3-text-field__input:focus::placeholder {
+    color: var(--md-sys-color-on-surface-variant);
+}
+
+.m3-text-field__label {
+    position: absolute;
+    top: 28px;
+    inset-inline-start: 12px;
+    max-width: calc(100% - 24px);
+    padding: 0 4px;
+    transform: translateY(-50%);
+    background: var(--m3-field-container);
+    color: var(--md-sys-color-on-surface-variant);
+    font-size: var(--md-sys-typescale-body-large-size);
+    line-height: var(--md-sys-typescale-body-large-line-height);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    pointer-events: none;
+    transition: top var(--m3-duration-short) var(--m3-ease), font-size var(--m3-duration-short) var(--m3-ease), color var(--m3-duration-short) var(--m3-ease);
+}
+
+textarea.m3-text-field__input+.m3-text-field__label {
+    top: 28px;
+}
+
+/* Floated: focused, filled, a select, a date, or forced. */
+.m3-text-field__input:focus+.m3-text-field__label,
+.m3-text-field__input:not(:placeholder-shown)+.m3-text-field__label,
+select.m3-text-field__input+.m3-text-field__label,
+.m3-text-field__input:is([type="date"], [type="time"], [type="datetime-local"], [type="month"], [type="file"])+.m3-text-field__label,
+.m3-text-field--float .m3-text-field__label {
+    top: 0;
+    font-size: var(--md-sys-typescale-body-small-size);
+    line-height: var(--md-sys-typescale-body-small-line-height);
+}
+
+.m3-text-field__input:hover:not(:disabled):not(:focus) {
+    border-color: var(--md-sys-color-on-surface);
+}
+
+.m3-text-field__input:focus {
+    border-color: var(--md-sys-color-primary);
+    box-shadow: inset 0 0 0 1px var(--md-sys-color-primary);
+}
+
+.m3-text-field__input:focus+.m3-text-field__label {
+    color: var(--md-sys-color-primary);
+}
+
+.m3-text-field__required {
+    color: var(--md-sys-color-error);
+}
+
+/* Error: invalid after the user touched it, aria-invalid, jQuery Validate's
+   .error, or .m3-text-field--error on the wrapper. */
+.m3-text-field__input:user-invalid,
+.m3-text-field__input[aria-invalid="true"],
+.m3-text-field__input.error,
+.m3-text-field--error .m3-text-field__input {
+    border-color: var(--md-sys-color-error);
+}
+
+.m3-text-field__input:user-invalid:focus,
+.m3-text-field__input[aria-invalid="true"]:focus,
+.m3-text-field__input.error:focus,
+.m3-text-field--error .m3-text-field__input:focus {
+    box-shadow: inset 0 0 0 1px var(--md-sys-color-error);
+}
+
+.m3-text-field__input:user-invalid+.m3-text-field__label,
+.m3-text-field__input[aria-invalid="true"]+.m3-text-field__label,
+.m3-text-field__input.error+.m3-text-field__label,
+.m3-text-field--error .m3-text-field__label {
+    color: var(--md-sys-color-error);
+}
+
+.m3-text-field__input:disabled {
+    border-color: color-mix(in srgb, var(--md-sys-color-on-surface) var(--md-sys-state-disabled-container-opacity), transparent);
+    color: color-mix(in srgb, var(--md-sys-color-on-surface) var(--md-sys-state-disabled-content-opacity), transparent);
+    cursor: default;
+}
+
+.m3-text-field__input:disabled+.m3-text-field__label {
+    color: color-mix(in srgb, var(--md-sys-color-on-surface) var(--md-sys-state-disabled-content-opacity), transparent);
+}
+
+.m3-text-field__supporting,
+.m3-text-field+label.error {
+    margin: var(--m3-space-1) 0 0;
+    padding: 0 var(--m3-space-4);
+    color: var(--md-sys-color-on-surface-variant);
+    font-size: var(--md-sys-typescale-body-small-size);
+    line-height: var(--md-sys-typescale-body-small-line-height);
+}
+
+.m3-text-field__supporting--error,
+.m3-text-field--error+.m3-text-field__supporting,
+.m3-text-field+label.error,
+.m3-text-field label.error {
+    color: var(--md-sys-color-error);
+}
+
+/* jQuery Validate inserts <label class="error"> right after the input by
+   default, inside the wrapper; show it under the field. Better, place it
+   after the wrapper (an errorPlacement that inserts after
+   .closest('.m3-text-field')): between the input and its label it stops
+   the label floating. */
+.m3-text-field label.error {
+    position: static;
+    display: block;
+    margin: var(--m3-space-1) 0 0;
+    padding: 0 var(--m3-space-4);
+    font-size: var(--md-sys-typescale-body-small-size);
+    line-height: var(--md-sys-typescale-body-small-line-height);
+}
+
+/* Leading and trailing icons. */
+.m3-text-field__icon {
+    position: absolute;
+    top: 16px;
+    width: 24px;
+    height: 24px;
+    color: var(--md-sys-color-on-surface-variant);
+    pointer-events: none;
+}
+
+.m3-text-field__icon--leading {
+    inset-inline-start: 12px;
+}
+
+.m3-text-field__icon--trailing {
+    inset-inline-end: 12px;
+}
+
+.m3-text-field--leading-icon .m3-text-field__input {
+    padding-inline-start: 52px;
+}
+
+.m3-text-field--leading-icon .m3-text-field__label {
+    inset-inline-start: 48px;
+}
+
+.m3-text-field--leading-icon .m3-text-field__input:focus+.m3-text-field__label,
+.m3-text-field--leading-icon .m3-text-field__input:not(:placeholder-shown)+.m3-text-field__label {
+    inset-inline-start: 12px;
+}
+
+.m3-text-field--trailing-icon .m3-text-field__input {
+    padding-inline-end: 52px;
+}
+
+/* Select: a chevron at the end, masked so it takes the token colour. */
+.m3-text-field--select::after {
+    content: "";
+    position: absolute;
+    top: 16px;
+    inset-inline-end: 12px;
+    width: 24px;
+    height: 24px;
+    background: var(--md-sys-color-on-surface-variant);
+    -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M7 10l5 5 5-5z'/%3E%3C/svg%3E") center / contain no-repeat;
+    mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M7 10l5 5 5-5z'/%3E%3C/svg%3E") center / contain no-repeat;
+    pointer-events: none;
+}
+
+.m3-text-field--select select.m3-text-field__input {
+    padding-inline-end: 48px;
+    cursor: pointer;
+}
+
+.m3-text-field--select select.m3-text-field__input[multiple] {
+    height: auto;
+    padding-block: var(--m3-space-4);
+}
+
+/* ── 7. Selection controls ───────────────────────────────────────────────
+   The input stays a real, focusable checkbox or radio over a 40px control,
+   so forms and labels work as usual:
+
+     <label class="m3-checkbox">
+       <input class="m3-checkbox__input" type="checkbox" name="agree">
+       <span class="m3-checkbox__control"></span>
+       I agree
+     </label>  */
+
+.m3-checkbox,
+.m3-radio,
+.m3-switch {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--m3-space-1);
+    min-height: 40px;
+    color: var(--md-sys-color-on-surface);
+    font-size: var(--md-sys-typescale-body-medium-size);
+    line-height: var(--md-sys-typescale-body-medium-line-height);
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+}
+
+.m3-checkbox__input,
+.m3-radio__input,
+.m3-switch__input {
+    position: absolute;
+    width: 40px;
+    height: 40px;
+    margin: 0;
+    opacity: 0;
+    cursor: pointer;
+}
+
+.m3-checkbox__control,
+.m3-radio__control {
+    position: relative;
+    display: inline-block;
+    flex: 0 0 auto;
+    width: 40px;
+    height: 40px;
+    border-radius: var(--md-sys-shape-corner-full);
+    transition: background-color var(--m3-duration-short) linear;
+    pointer-events: none;
+}
+
+/* State layer: on-surface, or primary once selected. */
+.m3-checkbox:hover .m3-checkbox__control,
+.m3-radio:hover .m3-radio__control {
+    background: color-mix(in srgb, var(--md-sys-color-on-surface) var(--md-sys-state-hover-opacity), transparent);
+}
+
+.m3-checkbox:hover .m3-checkbox__input:checked+.m3-checkbox__control,
+.m3-radio:hover .m3-radio__input:checked+.m3-radio__control {
+    background: color-mix(in srgb, var(--md-sys-color-primary) var(--md-sys-state-hover-opacity), transparent);
+}
+
+.m3-checkbox__input:focus-visible+.m3-checkbox__control,
+.m3-radio__input:focus-visible+.m3-radio__control {
+    background: color-mix(in srgb, var(--md-sys-color-on-surface) var(--md-sys-state-focus-opacity), transparent);
+    outline: 3px solid var(--md-sys-color-secondary);
+    outline-offset: -3px;
+}
+
+/* Checkbox: 18px, 2px corners; checked = primary fill with an on-primary tick. */
+.m3-checkbox__control::before {
+    content: "";
+    position: absolute;
+    inset: 11px;
+    border: 2px solid var(--md-sys-color-on-surface-variant);
+    border-radius: 2px;
+    transition: background-color var(--m3-duration-short) linear, border-color var(--m3-duration-short) linear;
+}
+
+.m3-checkbox__control::after {
+    content: "";
+    position: absolute;
+    inset: 11px;
+    background: var(--md-sys-color-on-primary);
+    -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 18 18'%3E%3Cpath fill='none' stroke='black' stroke-width='2' d='M4 9.4l3.2 3.2L14 5.8'/%3E%3C/svg%3E") center / 18px 18px no-repeat;
+    mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 18 18'%3E%3Cpath fill='none' stroke='black' stroke-width='2' d='M4 9.4l3.2 3.2L14 5.8'/%3E%3C/svg%3E") center / 18px 18px no-repeat;
+    opacity: 0;
+    transform: scale(0.6);
+    transition: opacity var(--m3-duration-short) var(--m3-ease), transform var(--m3-duration-short) var(--m3-ease);
+}
+
+.m3-checkbox__input:checked+.m3-checkbox__control::before,
+.m3-checkbox__input:indeterminate+.m3-checkbox__control::before {
+    border-color: var(--md-sys-color-primary);
+    background: var(--md-sys-color-primary);
+}
+
+.m3-checkbox__input:checked+.m3-checkbox__control::after {
+    opacity: 1;
+    transform: none;
+}
+
+.m3-checkbox__input:indeterminate+.m3-checkbox__control::after {
+    opacity: 1;
+    transform: none;
+    -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 18 18'%3E%3Cpath stroke='black' stroke-width='2' d='M4 9h10'/%3E%3C/svg%3E");
+    mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 18 18'%3E%3Cpath stroke='black' stroke-width='2' d='M4 9h10'/%3E%3C/svg%3E");
+}
+
+/* Error: invalid after the user touched it, aria-invalid, or jQuery
+   Validate's .error (on checkboxes and radios alike). */
+.m3-checkbox__input:is(:user-invalid, [aria-invalid="true"], .error)+.m3-checkbox__control::before,
+.m3-radio__input:is(:user-invalid, [aria-invalid="true"], .error)+.m3-radio__control::before {
+    border-color: var(--md-sys-color-error);
+}
+
+/* Radio: 20px ring; checked = primary ring with a 10px dot. */
+.m3-radio__control::before {
+    content: "";
+    position: absolute;
+    inset: 10px;
+    border: 2px solid var(--md-sys-color-on-surface-variant);
+    border-radius: var(--md-sys-shape-corner-full);
+    transition: border-color var(--m3-duration-short) linear;
+}
+
+.m3-radio__control::after {
+    content: "";
+    position: absolute;
+    inset: 15px;
+    border-radius: var(--md-sys-shape-corner-full);
+    background: var(--md-sys-color-primary);
+    transform: scale(0);
+    transition: transform var(--m3-duration-short) var(--m3-ease);
+}
+
+.m3-radio__input:checked+.m3-radio__control::before {
+    border-color: var(--md-sys-color-primary);
+}
+
+.m3-radio__input:checked+.m3-radio__control::after {
+    transform: scale(1);
+}
+
+.m3-checkbox__input:disabled+.m3-checkbox__control::before,
+.m3-radio__input:disabled+.m3-radio__control::before {
+    border-color: color-mix(in srgb, var(--md-sys-color-on-surface) var(--md-sys-state-disabled-content-opacity), transparent);
+}
+
+.m3-checkbox__input:disabled:checked+.m3-checkbox__control::before {
+    border-color: transparent;
+    background: color-mix(in srgb, var(--md-sys-color-on-surface) var(--md-sys-state-disabled-content-opacity), transparent);
+}
+
+.m3-radio__input:disabled:checked+.m3-radio__control::after {
+    background: color-mix(in srgb, var(--md-sys-color-on-surface) var(--md-sys-state-disabled-content-opacity), transparent);
+}
+
+.m3-checkbox:has(:disabled),
+.m3-radio:has(:disabled),
+.m3-switch:has(:disabled) {
+    color: color-mix(in srgb, var(--md-sys-color-on-surface) var(--md-sys-state-disabled-content-opacity), transparent);
+    cursor: default;
+}
+
+/* A labelled group of checkboxes or radios (no M3 component): a <fieldset>
+   whose <legend> reads like a text field's label.
+
+     <fieldset class="m3-fieldset">
+       <legend class="m3-fieldset__legend">Gender <span class="m3-text-field__required">*</span></legend>
+       <div class="m3-fieldset__options">
+         <label class="m3-radio">…</label>
+         <label class="m3-radio">…</label>
+       </div>
+     </fieldset>
+   jQuery Validate's error label goes after the fieldset. */
+.m3-fieldset {
+    min-width: 0;
+    margin: 0;
+    padding: 0;
+    border: 0;
+}
+
+.m3-fieldset__legend {
+    padding: 0 var(--m3-space-1);
+    color: var(--md-sys-color-on-surface-variant);
+    font-size: var(--md-sys-typescale-body-small-size);
+    line-height: var(--md-sys-typescale-body-small-line-height);
+    letter-spacing: var(--md-sys-typescale-body-small-tracking);
+}
+
+.m3-fieldset__options {
+    display: flex;
+    flex-wrap: wrap;
+    column-gap: var(--m3-space-4);
+    margin-inline-start: calc(-1 * var(--m3-space-2));
+}
+
+.m3-fieldset+label.error {
+    display: block;
+    margin: var(--m3-space-1) 0 0;
+    padding: 0 var(--m3-space-1);
+    color: var(--md-sys-color-error);
+    font-size: var(--md-sys-typescale-body-small-size);
+    line-height: var(--md-sys-typescale-body-small-line-height);
+}
+
+/* Switch: 52x32 track; the handle is 16px off and 24px on.
+
+     <label class="m3-switch">
+       <input class="m3-switch__input" type="checkbox" role="switch" name="online">
+       <span class="m3-switch__track"><span class="m3-switch__handle"></span></span>
+       Online payment
+     </label>  */
+.m3-switch {
+    gap: var(--m3-space-3);
+}
+
+.m3-switch__input {
+    width: 52px;
+    height: 32px;
+}
+
+.m3-switch__track {
+    position: relative;
+    display: inline-block;
+    flex: 0 0 auto;
+    width: 52px;
+    height: 32px;
+    border: 2px solid var(--md-sys-color-outline);
+    border-radius: var(--md-sys-shape-corner-full);
+    background: var(--md-sys-color-surface-container-highest);
+    transition: background-color var(--m3-duration-short) linear, border-color var(--m3-duration-short) linear;
+    pointer-events: none;
+}
+
+.m3-switch__handle {
+    position: absolute;
+    top: 50%;
+    inset-inline-start: 6px;
+    width: 16px;
+    height: 16px;
+    border-radius: var(--md-sys-shape-corner-full);
+    background: var(--md-sys-color-outline);
+    transform: translateY(-50%);
+    transition: inset-inline-start var(--m3-duration-medium) var(--m3-ease), width var(--m3-duration-medium) var(--m3-ease), height var(--m3-duration-medium) var(--m3-ease), background-color var(--m3-duration-short) linear;
+}
+
+.m3-switch__handle::before {
+    content: "";
+    position: absolute;
+    inset: -12px;
+    border-radius: var(--md-sys-shape-corner-full);
+    background: transparent;
+    transition: background-color var(--m3-duration-short) linear;
+}
+
+.m3-switch:hover .m3-switch__handle::before {
+    background: color-mix(in srgb, var(--md-sys-color-on-surface) var(--md-sys-state-hover-opacity), transparent);
+}
+
+.m3-switch__input:checked+.m3-switch__track {
+    border-color: var(--md-sys-color-primary);
+    background: var(--md-sys-color-primary);
+}
+
+.m3-switch__input:checked+.m3-switch__track .m3-switch__handle {
+    inset-inline-start: 22px;
+    width: 24px;
+    height: 24px;
+    background: var(--md-sys-color-on-primary);
+}
+
+.m3-switch:hover .m3-switch__input:checked+.m3-switch__track .m3-switch__handle::before {
+    background: color-mix(in srgb, var(--md-sys-color-primary) var(--md-sys-state-hover-opacity), transparent);
+}
+
+.m3-switch__input:focus-visible+.m3-switch__track {
+    outline: 3px solid var(--md-sys-color-secondary);
+    outline-offset: 2px;
+}
+
+.m3-switch__input:disabled+.m3-switch__track {
+    opacity: 0.38;
+}
+
+/* ── 8. Chips ────────────────────────────────────────────────────────────
+   32px, 8px corners. Assist (default, outlined), filter (aria-pressed or
+   --selected fills with secondary-container), input and suggestion. Status
+   labels (.m3-chip--status-*) are 24px tonal tags in a status colour. */
+
+.m3-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--m3-space-2);
+    height: 32px;
+    padding: 0 var(--m3-space-4);
+    border: 1px solid var(--md-sys-color-outline-variant);
+    border-radius: var(--md-sys-shape-corner-small);
+    background: transparent;
+    color: var(--md-sys-color-on-surface-variant);
+    font-family: var(--md-ref-typeface-plain);
+    font-size: var(--md-sys-typescale-label-large-size);
+    line-height: var(--md-sys-typescale-label-large-line-height);
+    font-weight: 500;
+    white-space: nowrap;
+    text-decoration: none;
+    vertical-align: middle;
+}
+
+button.m3-chip,
+a.m3-chip {
+    cursor: pointer;
+}
+
+.m3-chip .m3-icon,
+.m3-chip>svg,
+.m3-chip>i {
+    width: 18px;
+    height: 18px;
+    font-size: 16px;
+    color: var(--md-sys-color-primary);
+}
+
+.m3-chip--with-icon {
+    padding-inline-start: var(--m3-space-2);
+}
+
+.m3-chip--selected,
+.m3-chip[aria-pressed="true"] {
+    border-color: transparent;
+    background: var(--md-sys-color-secondary-container);
+    color: var(--md-sys-color-on-secondary-container);
+}
+
+.m3-chip--elevated {
+    border-color: transparent;
+    background: var(--md-sys-color-surface-container-low);
+    box-shadow: var(--md-sys-elevation-level1);
+}
+
+/* A brand-tinted tag (a section eyebrow, a date). */
+.m3-chip--tonal {
+    border-color: transparent;
+    background: color-mix(in srgb, var(--md-sys-color-primary) 10%, var(--md-sys-color-surface-container-lowest));
+    color: var(--md-sys-color-primary);
+}
+
+.m3-chip--status-success,
+.m3-chip--status-warning,
+.m3-chip--status-danger,
+.m3-chip--status-info,
+.m3-chip--status-neutral {
+    height: 24px;
+    padding: 0 var(--m3-space-2);
+    border-color: transparent;
+    font-size: var(--md-sys-typescale-label-medium-size);
+    line-height: var(--md-sys-typescale-label-medium-line-height);
+}
+
+.m3-chip--status-success {
+    background: color-mix(in srgb, var(--app-status-success) 14%, var(--md-sys-color-surface-container-lowest));
+    color: var(--app-status-success-text);
+}
+
+.m3-chip--status-warning {
+    background: color-mix(in srgb, var(--app-status-warning) 18%, var(--md-sys-color-surface-container-lowest));
+    color: var(--app-status-warning-text);
+}
+
+.m3-chip--status-danger {
+    background: color-mix(in srgb, var(--app-status-danger) 14%, var(--md-sys-color-surface-container-lowest));
+    color: var(--app-status-danger-text);
+}
+
+.m3-chip--status-info {
+    background: color-mix(in srgb, var(--app-status-info) 12%, var(--md-sys-color-surface-container-lowest));
+    color: var(--app-status-info-text);
+}
+
+.m3-chip--status-neutral {
+    background: var(--md-sys-color-surface-container);
+    color: var(--md-sys-color-on-surface-variant);
+}
+
+/* ── 9. Cards ────────────────────────────────────────────────────────────
+   Elevated (default in M3), filled and outlined; 10px corners (AppTheme). */
+
+.m3-card {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    border-radius: var(--app-radius);
+    background: var(--md-sys-color-surface-container-low);
+    color: var(--md-sys-color-on-surface);
+    box-shadow: var(--md-sys-elevation-level1);
+    overflow: hidden;
+    --m3-field-container: var(--md-sys-color-surface-container-low);
+}
+
+.m3-card--filled {
+    background: var(--md-sys-color-surface-container-highest);
+    box-shadow: none;
+    --m3-field-container: var(--md-sys-color-surface-container-highest);
+}
+
+.m3-card--outlined {
+    border: 1px solid var(--md-sys-color-outline-variant);
+    background: var(--md-sys-color-surface-container-lowest);
+    box-shadow: none;
+    --m3-field-container: var(--md-sys-color-surface-container-lowest);
+}
+
+.m3-card--interactive {
+    color: inherit;
+    text-decoration: none;
+    cursor: pointer;
+    transition: box-shadow var(--m3-duration-short) var(--m3-ease);
+}
+
+.m3-card--interactive:hover {
+    color: inherit;
+    text-decoration: none;
+    box-shadow: var(--md-sys-elevation-level2);
+}
+
+.m3-card--outlined.m3-card--interactive:hover {
+    box-shadow: var(--md-sys-elevation-level1);
+}
+
+.m3-card__media {
+    display: block;
+    width: 100%;
+    aspect-ratio: 16 / 9;
+    object-fit: cover;
+    background: var(--md-sys-color-surface-container);
+}
+
+.m3-card__content {
+    display: flex;
+    flex-direction: column;
+    gap: var(--m3-space-2);
+    padding: var(--m3-space-4);
+}
+
+.m3-card__headline {
+    color: var(--md-sys-color-on-surface);
+    font-size: var(--md-sys-typescale-title-medium-size);
+    line-height: var(--md-sys-typescale-title-medium-line-height);
+    font-weight: 500;
+    letter-spacing: var(--md-sys-typescale-title-medium-tracking);
+}
+
+.m3-card__subhead,
+.m3-card__supporting {
+    color: var(--md-sys-color-on-surface-variant);
+    font-size: var(--md-sys-typescale-body-medium-size);
+    line-height: var(--md-sys-typescale-body-medium-line-height);
+}
+
+.m3-card__actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: flex-end;
+    gap: var(--m3-space-2);
+    margin-top: auto;
+    padding: 0 var(--m3-space-4) var(--m3-space-4);
+}
+
+.m3-card__actions--start {
+    justify-content: flex-start;
+}
+
+/* ── 10. Dialogs ─────────────────────────────────────────────────────────
+   A native <dialog>, opened with showModal() (m3.js wires data-m3-dialog
+   triggers). surface-container-high, 28px corners, 24px padding,
+   headline-small title, actions at the end.
+
+     <dialog class="m3-dialog" id="edit-class" aria-labelledby="edit-class-title">
+       <form method="dialog" class="m3-dialog__form">  (or a real form)
+         <h2 class="m3-dialog__headline" id="edit-class-title">Edit class</h2>
+         <div class="m3-dialog__content">…</div>
+         <div class="m3-dialog__actions">
+           <button class="m3-button m3-button--text" value="cancel">Cancel</button>
+           <button class="m3-button m3-button--filled">Save</button>
+         </div>
+       </form>
+     </dialog>  */
+
+.m3-dialog {
+    width: min(560px, calc(100vw - 48px));
+    max-height: calc(100dvh - 48px);
+    margin: auto;
+    padding: 0;
+    border: 0;
+    border-radius: var(--md-sys-shape-corner-extra-large);
+    background: var(--md-sys-color-surface-container-high);
+    color: var(--md-sys-color-on-surface);
+    box-shadow: var(--md-sys-elevation-level3);
+    overflow: hidden;
+    --m3-field-container: var(--md-sys-color-surface-container-high);
+}
+
+.m3-dialog[open] {
+    display: flex;
+    flex-direction: column;
+    animation: m3-dialog-in var(--m3-duration-medium) var(--m3-ease-decelerate);
+}
+
+.m3-dialog::backdrop {
+    background: color-mix(in srgb, var(--md-sys-color-scrim) 32%, transparent);
+    animation: m3-fade-in var(--m3-duration-medium) linear;
+}
+
+/* The page behind a modal dialog or drawer doesn't scroll. */
+:root:has(:is(.m3-dialog, dialog.m3-navigation-drawer):modal) {
+    overflow: hidden;
+}
+
+.m3-dialog--wide {
+    width: min(840px, calc(100vw - 48px));
+}
+
+.m3-dialog__form {
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    max-height: inherit;
+    margin: 0;
+}
+
+.m3-dialog__header {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--m3-space-4);
+    padding: var(--m3-space-6) var(--m3-space-6) var(--m3-space-4);
+}
+
+.m3-dialog__header .m3-dialog__headline {
+    flex: 1 1 auto;
+    padding: 0;
+}
+
+.m3-dialog__header .m3-icon-button {
+    margin-block: -8px;
+    margin-inline: 0 -8px;
+}
+
+.m3-dialog__icon {
+    align-self: center;
+    margin: var(--m3-space-6) 0 0;
+    color: var(--md-sys-color-secondary);
+}
+
+.m3-dialog__headline {
+    margin: 0;
+    padding: var(--m3-space-6) var(--m3-space-6) var(--m3-space-4);
+    color: var(--md-sys-color-on-surface);
+    font-size: var(--md-sys-typescale-headline-small-size);
+    line-height: var(--md-sys-typescale-headline-small-line-height);
+    font-weight: var(--md-sys-typescale-headline-small-weight);
+}
+
+.m3-dialog__icon+.m3-dialog__headline {
+    padding-top: var(--m3-space-4);
+    text-align: center;
+}
+
+.m3-dialog__content {
+    flex: 1 1 auto;
+    min-height: 0;
+    /* The top padding leaves room for a floated text-field label. */
+    padding: var(--m3-space-2) var(--m3-space-6) 0;
+    overflow: auto;
+    color: var(--md-sys-color-on-surface);
+    font-size: var(--md-sys-typescale-body-medium-size);
+    line-height: var(--md-sys-typescale-body-medium-line-height);
+}
+
+.m3-dialog__actions {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    gap: var(--m3-space-2);
+    padding: var(--m3-space-6);
+}
+
+/* Full-screen on phones (M3: full-screen dialogs on compact windows). */
+@media (max-width: 599px) {
+    .m3-dialog--fullscreen-compact {
+        width: 100vw;
+        max-width: 100vw;
+        height: 100dvh;
+        max-height: 100dvh;
+        border-radius: 0;
+    }
+}
+
+@keyframes m3-dialog-in {
+    from {
+        opacity: 0;
+        transform: translateY(-8px) scale(0.98);
+    }
+}
+
+@keyframes m3-fade-in {
+    from {
+        opacity: 0;
+    }
+}
+
+/* ── 11. Menus ───────────────────────────────────────────────────────────
+   A popover element anchored to its trigger by m3.js:
+
+     <button class="m3-button" data-m3-menu="gallery-menu" aria-haspopup="menu">Gallery</button>
+     <div class="m3-menu" id="gallery-menu" popover role="menu">
+       <a class="m3-menu__item" role="menuitem" href="…">Photos</a>
+     </div>  */
+
+.m3-menu {
+    position: fixed;
+    inset: auto;
+    min-width: 112px;
+    max-width: min(280px, calc(100vw - 32px));
+    max-height: min(480px, calc(100dvh - 32px));
+    margin: 0;
+    padding: var(--m3-space-2) 0;
+    border: 0;
+    border-radius: var(--md-sys-shape-corner-extra-small);
+    background: var(--md-sys-color-surface-container);
+    color: var(--md-sys-color-on-surface);
+    box-shadow: var(--md-sys-elevation-level2);
+    overflow: auto;
+}
+
+.m3-menu:popover-open,
+.m3-menu.is-open {
+    display: block;
+    animation: m3-menu-in var(--m3-duration-short) var(--m3-ease-decelerate);
+}
+
+.m3-menu:not([popover]):not(.is-open) {
+    display: none;
+}
+
+.m3-menu__item {
+    display: flex;
+    align-items: center;
+    gap: var(--m3-space-3);
+    width: 100%;
+    min-height: 48px;
+    padding: 0 var(--m3-space-3);
+    border: 0;
+    background: transparent;
+    color: var(--md-sys-color-on-surface);
+    font-family: var(--md-ref-typeface-plain);
+    font-size: var(--md-sys-typescale-label-large-size);
+    line-height: var(--md-sys-typescale-label-large-line-height);
+    font-weight: 500;
+    text-align: start;
+    text-decoration: none;
+    white-space: nowrap;
+    cursor: pointer;
+}
+
+.m3-menu__item:hover,
+.m3-menu__item:focus {
+    color: var(--md-sys-color-on-surface);
+    text-decoration: none;
+}
+
+.m3-menu__item .m3-icon,
+.m3-menu__item>svg,
+.m3-menu__item>i {
+    width: 24px;
+    height: 24px;
+    font-size: 20px;
+    color: var(--md-sys-color-on-surface-variant);
+}
+
+.m3-menu__item--selected,
+.m3-menu__item[aria-current="true"],
+.m3-menu__item[aria-checked="true"] {
+    background: var(--md-sys-color-secondary-container);
+    color: var(--md-sys-color-on-secondary-container);
+}
+
+.m3-menu__item:is(:disabled, [aria-disabled="true"]) {
+    color: color-mix(in srgb, var(--md-sys-color-on-surface) var(--md-sys-state-disabled-content-opacity), transparent);
+    cursor: default;
+}
+
+.m3-menu__divider {
+    height: 1px;
+    margin: var(--m3-space-2) 0;
+    border: 0;
+    background: var(--md-sys-color-outline-variant);
+}
+
+@keyframes m3-menu-in {
+    from {
+        opacity: 0;
+        transform: scaleY(0.9);
+    }
+}
+
+/* ── 12. Lists and expansion ─────────────────────────────────────────────
+   M3 lists: rows of 56px (one line) or 72px (two lines), leading avatar or
+   icon, trailing text or control, optional dividers. */
+
+.m3-list {
+    margin: 0;
+    padding: var(--m3-space-2) 0;
+    list-style: none;
+}
+
+.m3-list--divided>.m3-list__item+.m3-list__item {
+    border-top: 1px solid var(--md-sys-color-outline-variant);
+}
+
+.m3-list__item {
+    display: flex;
+    align-items: center;
+    gap: var(--m3-space-4);
+    min-height: 56px;
+    padding: var(--m3-space-2) var(--m3-space-4);
+    color: var(--md-sys-color-on-surface);
+    text-decoration: none;
+}
+
+.m3-list__item--two-line {
+    min-height: 72px;
+}
+
+.m3-list__item--interactive {
+    width: 100%;
+    border: 0;
+    background: transparent;
+    font: inherit;
+    text-align: start;
+    cursor: pointer;
+}
+
+.m3-list__item--interactive:hover {
+    color: var(--md-sys-color-on-surface);
+    text-decoration: none;
+}
+
+.m3-list__leading {
+    display: inline-flex;
+    flex: 0 0 auto;
+    align-items: center;
+    justify-content: center;
+    color: var(--md-sys-color-on-surface-variant);
+}
+
+.m3-list__leading--avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: var(--md-sys-shape-corner-full);
+    background: var(--md-sys-color-primary-container);
+    color: var(--md-sys-color-on-primary-container);
+    overflow: hidden;
+}
+
+.m3-list__leading--avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.m3-list__content {
+    display: flex;
+    flex: 1 1 auto;
+    flex-direction: column;
+    min-width: 0;
+}
+
+.m3-list__headline {
+    color: var(--md-sys-color-on-surface);
+    font-size: var(--md-sys-typescale-body-large-size);
+    line-height: var(--md-sys-typescale-body-large-line-height);
+}
+
+.m3-list__supporting {
+    color: var(--md-sys-color-on-surface-variant);
+    font-size: var(--md-sys-typescale-body-medium-size);
+    line-height: var(--md-sys-typescale-body-medium-line-height);
+}
+
+.m3-list__overline {
+    color: var(--md-sys-color-on-surface-variant);
+    font-size: var(--md-sys-typescale-label-small-size);
+    line-height: var(--md-sys-typescale-label-small-line-height);
+    font-weight: 500;
+}
+
+.m3-list__trailing {
+    flex: 0 0 auto;
+    color: var(--md-sys-color-on-surface-variant);
+    font-size: var(--md-sys-typescale-label-small-size);
+}
+
+/* Expansion (FAQs, collapsible sections): a native <details>. */
+.m3-expansion {
+    border-bottom: 1px solid var(--md-sys-color-outline-variant);
+}
+
+.m3-expansion__header {
+    display: flex;
+    align-items: center;
+    gap: var(--m3-space-4);
+    min-height: 56px;
+    padding: var(--m3-space-2) var(--m3-space-4);
+    color: var(--md-sys-color-on-surface);
+    font-size: var(--md-sys-typescale-title-medium-size);
+    line-height: var(--md-sys-typescale-title-medium-line-height);
+    font-weight: 500;
+    list-style: none;
+    cursor: pointer;
+}
+
+.m3-expansion__header::-webkit-details-marker {
+    display: none;
+}
+
+.m3-expansion__header::after {
+    content: "";
+    flex: 0 0 auto;
+    width: 24px;
+    height: 24px;
+    margin-inline-start: auto;
+    background: var(--md-sys-color-on-surface-variant);
+    -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M7.4 8.6 12 13.2l4.6-4.6L18 10l-6 6-6-6z'/%3E%3C/svg%3E") center / contain no-repeat;
+    mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M7.4 8.6 12 13.2l4.6-4.6L18 10l-6 6-6-6z'/%3E%3C/svg%3E") center / contain no-repeat;
+    transition: transform var(--m3-duration-medium) var(--m3-ease);
+}
+
+.m3-expansion[open]>.m3-expansion__header::after {
+    transform: rotate(180deg);
+    background: var(--md-sys-color-primary);
+}
+
+.m3-expansion__content {
+    padding: 0 var(--m3-space-4) var(--m3-space-4);
+    color: var(--md-sys-color-on-surface-variant);
+    font-size: var(--md-sys-typescale-body-medium-size);
+    line-height: var(--md-sys-typescale-body-medium-line-height);
+}
+
+/* ── 13. Navigation ──────────────────────────────────────────────────────
+   Top app bar (64px), navigation drawer (standard, or modal as a <dialog>),
+   and navigation rail. The drawer's --inverse variant is the Dark Navy
+   drawer the admin panel uses. */
+
+.m3-top-app-bar {
+    position: relative;
+    z-index: 10;
+    display: flex;
+    align-items: center;
+    gap: var(--m3-space-1);
+    min-height: 64px;
+    padding: var(--m3-space-2) var(--m3-space-1);
+    background: var(--md-sys-color-surface);
+    color: var(--md-sys-color-on-surface);
+    transition: background-color var(--m3-duration-medium) linear, box-shadow var(--m3-duration-medium) linear;
+}
+
+.m3-top-app-bar--sticky {
+    position: sticky;
+    top: 0;
+}
+
+/* m3.js adds .is-scrolled once the page scrolls under the bar. */
+.m3-top-app-bar.is-scrolled {
+    background: var(--md-sys-color-surface-container);
+}
+
+.m3-top-app-bar__title {
+    flex: 1 1 auto;
+    min-width: 0;
+    margin: 0 var(--m3-space-3);
+    font-size: var(--md-sys-typescale-title-large-size);
+    line-height: var(--md-sys-typescale-title-large-line-height);
+    font-weight: 400;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.m3-top-app-bar__actions {
+    display: flex;
+    align-items: center;
+    gap: var(--m3-space-1);
+}
+
+.m3-navigation-drawer {
+    display: flex;
+    flex-direction: column;
+    width: 360px;
+    max-width: 85vw;
+    padding: var(--m3-space-3);
+    background: var(--md-sys-color-surface-container-low);
+    color: var(--md-sys-color-on-surface-variant);
+    --m3-drawer-indicator: var(--md-sys-color-secondary-container);
+    --m3-drawer-on-indicator: var(--md-sys-color-on-secondary-container);
+    --m3-drawer-active: var(--md-sys-color-on-surface);
+}
+
+.m3-navigation-drawer--inverse {
+    background: var(--md-sys-color-inverse-surface);
+    color: color-mix(in srgb, var(--md-sys-color-on-inverse-surface) 80%, transparent);
+    --m3-drawer-indicator: var(--md-sys-color-primary);
+    --m3-drawer-on-indicator: var(--md-sys-color-on-primary);
+    --m3-drawer-active: var(--md-sys-color-on-inverse-surface);
+}
+
+/* Modal drawer: a <dialog> at the inline start, over a scrim. */
+dialog.m3-navigation-drawer {
+    height: 100dvh;
+    max-height: 100dvh;
+    margin: 0;
+    margin-inline-end: auto;
+    border: 0;
+    border-start-end-radius: var(--md-sys-shape-corner-large);
+    border-end-end-radius: var(--md-sys-shape-corner-large);
+    box-shadow: var(--md-sys-elevation-level1);
+    overflow-y: auto;
+}
+
+dialog.m3-navigation-drawer:not([open]) {
+    display: none;
+}
+
+dialog.m3-navigation-drawer[open] {
+    animation: m3-drawer-in var(--m3-duration-medium) var(--m3-ease-decelerate);
+}
+
+dialog.m3-navigation-drawer::backdrop {
+    background: color-mix(in srgb, var(--md-sys-color-scrim) 32%, transparent);
+}
+
+@keyframes m3-drawer-in {
+    from {
+        transform: translateX(-100%);
+    }
+}
+
+[dir="rtl"] dialog.m3-navigation-drawer[open] {
+    animation-name: m3-drawer-in-rtl;
+}
+
+@keyframes m3-drawer-in-rtl {
+    from {
+        transform: translateX(100%);
+    }
+}
+
+.m3-navigation-drawer__headline {
+    padding: var(--m3-space-4) var(--m3-space-4) var(--m3-space-2);
+    color: inherit;
+    font-size: var(--md-sys-typescale-title-small-size);
+    line-height: var(--md-sys-typescale-title-small-line-height);
+    font-weight: 500;
+}
+
+.m3-navigation-drawer__item {
+    display: flex;
+    align-items: center;
+    gap: var(--m3-space-3);
+    min-height: 56px;
+    padding: 0 var(--m3-space-6) 0 var(--m3-space-4);
+    border: 0;
+    border-radius: var(--md-sys-shape-corner-full);
+    background: transparent;
+    color: inherit;
+    font-family: var(--md-ref-typeface-plain);
+    font-size: var(--md-sys-typescale-label-large-size);
+    line-height: var(--md-sys-typescale-label-large-line-height);
+    font-weight: 500;
+    text-align: start;
+    text-decoration: none;
+    cursor: pointer;
+}
+
+.m3-navigation-drawer__item:hover,
+.m3-navigation-drawer__item:focus {
+    color: var(--m3-drawer-active);
+    text-decoration: none;
+}
+
+.m3-navigation-drawer__item .m3-icon,
+.m3-navigation-drawer__item>svg,
+.m3-navigation-drawer__item>i {
+    width: 24px;
+    height: 24px;
+    font-size: 20px;
+}
+
+.m3-navigation-drawer__item[aria-current="page"],
+.m3-navigation-drawer__item--active {
+    background: var(--m3-drawer-indicator);
+    color: var(--m3-drawer-on-indicator);
+}
+
+.m3-navigation-drawer__badge {
+    margin-inline-start: auto;
+    font-size: var(--md-sys-typescale-label-large-size);
+}
+
+.m3-navigation-drawer__divider {
+    height: 1px;
+    margin: var(--m3-space-2) var(--m3-space-4);
+    border: 0;
+    background: currentColor;
+    opacity: 0.12;
+}
+
+/* ── 14. Tabs (primary tabs) ─────────────────────────────────────────────
+     <div class="m3-tabs" role="tablist">
+       <button class="m3-tab" role="tab" aria-selected="true" aria-controls="p1">Students</button>
+     </div>
+     <div id="p1" role="tabpanel">…</div>  */
+
+.m3-tabs {
+    display: flex;
+    overflow-x: auto;
+    border-bottom: 1px solid var(--md-sys-color-outline-variant);
+    scrollbar-width: none;
+}
+
+.m3-tabs::-webkit-scrollbar {
+    display: none;
+}
+
+.m3-tab {
+    display: inline-flex;
+    flex: 1 0 auto;
+    align-items: center;
+    justify-content: center;
+    gap: var(--m3-space-2);
+    min-height: 48px;
+    padding: 0 var(--m3-space-4);
+    border: 0;
+    background: transparent;
+    color: var(--md-sys-color-on-surface-variant);
+    font-family: var(--md-ref-typeface-plain);
+    font-size: var(--md-sys-typescale-title-small-size);
+    line-height: var(--md-sys-typescale-title-small-line-height);
+    font-weight: var(--md-sys-typescale-title-small-weight);
+    letter-spacing: var(--md-sys-typescale-title-small-tracking);
+    text-decoration: none;
+    white-space: nowrap;
+    cursor: pointer;
+}
+
+.m3-tabs--start .m3-tab {
+    flex: 0 0 auto;
+}
+
+.m3-tab[aria-selected="true"],
+.m3-tab--active {
+    color: var(--md-sys-color-primary);
+}
+
+.m3-tab[aria-selected="true"]::after,
+.m3-tab--active::after {
+    content: "";
+    position: absolute;
+    left: var(--m3-space-4);
+    right: var(--m3-space-4);
+    bottom: 0;
+    height: 3px;
+    border-radius: 3px 3px 0 0;
+    background: var(--md-sys-color-primary);
+}
+
+/* ── 15. Feedback ────────────────────────────────────────────────────── */
+
+/* Snackbar: created by M3.snackbar() in m3.js. inverse-surface, 4px
+   corners, at the bottom of the screen. */
+.m3-snackbar-host {
+    position: fixed;
+    inset-inline: 0;
+    bottom: var(--m3-space-6);
+    z-index: 1000;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--m3-space-2);
+    padding: 0 var(--m3-space-4);
+    pointer-events: none;
+}
+
+.m3-snackbar {
+    display: flex;
+    align-items: center;
+    gap: var(--m3-space-2);
+    width: 100%;
+    max-width: 560px;
+    min-height: 48px;
+    padding: var(--m3-space-1) var(--m3-space-2) var(--m3-space-1) var(--m3-space-4);
+    border-radius: var(--md-sys-shape-corner-extra-small);
+    background: var(--md-sys-color-inverse-surface);
+    color: var(--md-sys-color-on-inverse-surface);
+    box-shadow: var(--md-sys-elevation-level3);
+    font-size: var(--md-sys-typescale-body-medium-size);
+    line-height: var(--md-sys-typescale-body-medium-line-height);
+    pointer-events: auto;
+    animation: m3-snackbar-in var(--m3-duration-medium) var(--m3-ease-decelerate);
+}
+
+.m3-snackbar.is-leaving {
+    opacity: 0;
+    transform: translateY(8px);
+    transition: opacity var(--m3-duration-short) linear, transform var(--m3-duration-short) linear;
+}
+
+.m3-snackbar__icon {
+    flex: 0 0 auto;
+    width: 20px;
+    height: 20px;
+    background: currentColor;
+    -webkit-mask: var(--m3-snackbar-icon) center / contain no-repeat;
+    mask: var(--m3-snackbar-icon) center / contain no-repeat;
+}
+
+.m3-snackbar--success .m3-snackbar__icon {
+    color: var(--app-status-success);
+    --m3-snackbar-icon: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='12' cy='12' r='10'/%3E%3Cpath d='m9 12 2 2 4-4'/%3E%3C/svg%3E");
+}
+
+.m3-snackbar--error .m3-snackbar__icon {
+    color: var(--app-status-danger);
+    --m3-snackbar-icon: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='12' cy='12' r='10'/%3E%3Cpath d='M12 8v4M12 16h.01'/%3E%3C/svg%3E");
+}
+
+.m3-snackbar--warning .m3-snackbar__icon {
+    color: var(--app-status-warning);
+    --m3-snackbar-icon: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z'/%3E%3Cpath d='M12 9v4M12 17h.01'/%3E%3C/svg%3E");
+}
+
+.m3-snackbar--info .m3-snackbar__icon {
+    color: var(--app-status-info);
+    --m3-snackbar-icon: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='12' cy='12' r='10'/%3E%3Cpath d='M12 16v-4M12 8h.01'/%3E%3C/svg%3E");
+}
+
+.m3-snackbar__message {
+    flex: 1 1 auto;
+    min-width: 0;
+    padding: 10px 0;
+    /* Server messages can list several errors, one per line. */
+    white-space: pre-line;
+}
+
+.m3-snackbar__action {
+    color: var(--md-sys-color-inverse-primary);
+}
+
+.m3-snackbar .m3-icon-button {
+    color: var(--md-sys-color-on-inverse-surface);
+}
+
+@keyframes m3-snackbar-in {
+    from {
+        opacity: 0;
+        transform: translateY(16px);
+    }
+}
+
+/* Plain tooltip: data-m3-tooltip="Text" on any element. */
+[data-m3-tooltip] {
+    position: relative;
+}
+
+[data-m3-tooltip]::after {
+    content: attr(data-m3-tooltip);
+    position: absolute;
+    bottom: calc(100% + 4px);
+    left: 50%;
+    z-index: 20;
+    width: max-content;
+    max-width: 200px;
+    min-height: 24px;
+    padding: 4px 8px;
+    border-radius: var(--md-sys-shape-corner-extra-small);
+    background: var(--md-sys-color-inverse-surface);
+    color: var(--md-sys-color-on-inverse-surface);
+    font-family: var(--md-ref-typeface-plain);
+    font-size: var(--md-sys-typescale-body-small-size);
+    line-height: var(--md-sys-typescale-body-small-line-height);
+    font-weight: 400;
+    letter-spacing: normal;
+    text-align: center;
+    white-space: normal;
+    opacity: 0;
+    transform: translate(-50%, 4px);
+    transition: opacity var(--m3-duration-short) linear, transform var(--m3-duration-short) var(--m3-ease);
+    pointer-events: none;
+}
+
+[data-m3-tooltip]:hover::after,
+[data-m3-tooltip]:focus-visible::after {
+    opacity: 1;
+    transform: translate(-50%, 0);
+    transition-delay: 300ms;
+}
+
+/* Progress indicators. */
+.m3-progress-linear {
+    position: relative;
+    display: block;
+    width: 100%;
+    height: 4px;
+    border-radius: var(--md-sys-shape-corner-full);
+    background: var(--md-sys-color-secondary-container);
+    overflow: hidden;
+}
+
+.m3-progress-linear__bar {
+    display: block;
+    height: 100%;
+    width: var(--m3-progress, 0%);
+    border-radius: inherit;
+    background: var(--md-sys-color-primary);
+    transition: width var(--m3-duration-medium) var(--m3-ease);
+}
+
+.m3-progress-linear--indeterminate .m3-progress-linear__bar {
+    position: absolute;
+    width: 40%;
+    animation: m3-progress-slide 1.6s var(--m3-ease) infinite;
+}
+
+@keyframes m3-progress-slide {
+    from {
+        inset-inline-start: -40%;
+    }
+
+    to {
+        inset-inline-start: 100%;
+    }
+}
+
+.m3-progress-circular {
+    display: inline-block;
+    width: 48px;
+    height: 48px;
+    border: 4px solid var(--md-sys-color-secondary-container);
+    border-top-color: var(--md-sys-color-primary);
+    border-radius: var(--md-sys-shape-corner-full);
+    animation: m3-spin 0.9s linear infinite;
+}
+
+.m3-progress-circular--small {
+    width: 24px;
+    height: 24px;
+    border-width: 3px;
+}
+
+@keyframes m3-spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+
+    .m3-progress-linear--indeterminate .m3-progress-linear__bar,
+    .m3-progress-circular {
+        animation-duration: 3s;
+    }
+
+    .m3-dialog[open],
+    dialog.m3-navigation-drawer[open],
+    .m3-snackbar,
+    .m3-menu:popover-open {
+        animation: none;
+    }
+}
+
+/* Banner (no M3 component: a tonal note in a status colour). */
+.m3-banner {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--m3-space-3);
+    padding: var(--m3-space-3) var(--m3-space-4);
+    border-radius: var(--md-sys-shape-corner-medium);
+    background: var(--md-sys-color-secondary-container);
+    color: var(--md-sys-color-on-secondary-container);
+    font-size: var(--md-sys-typescale-body-medium-size);
+    line-height: var(--md-sys-typescale-body-medium-line-height);
+}
+
+.m3-banner--success {
+    background: color-mix(in srgb, var(--app-status-success) 14%, var(--md-sys-color-surface-container-lowest));
+    color: var(--app-status-success-text);
+}
+
+.m3-banner--warning {
+    background: color-mix(in srgb, var(--app-status-warning) 16%, var(--md-sys-color-surface-container-lowest));
+    color: var(--app-status-warning-text);
+}
+
+.m3-banner--danger {
+    background: color-mix(in srgb, var(--md-sys-color-error) 12%, var(--md-sys-color-surface-container-lowest));
+    color: var(--md-sys-color-error);
+}
+
+.m3-banner--info {
+    background: color-mix(in srgb, var(--app-status-info) 12%, var(--md-sys-color-surface-container-lowest));
+    color: var(--app-status-info-text);
+}
+
+/* ── 16. Misc ────────────────────────────────────────────────────────── */
+
+.m3-divider {
+    height: 1px;
+    margin: 0;
+    border: 0;
+    background: var(--md-sys-color-outline-variant);
+}
+
+.m3-divider--inset {
+    margin-inline-start: var(--m3-space-4);
+}
+
+/* Badge: a 6px dot, or a 16px count in the error colour. */
+.m3-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 16px;
+    height: 16px;
+    padding: 0 4px;
+    border-radius: var(--md-sys-shape-corner-full);
+    background: var(--md-sys-color-error);
+    color: var(--md-sys-color-on-error);
+    font-size: var(--md-sys-typescale-label-small-size);
+    line-height: 1;
+    font-weight: 500;
+}
+
+.m3-badge--dot {
+    min-width: 6px;
+    width: 6px;
+    height: 6px;
+    padding: 0;
+}
+
+.m3-avatar {
+    display: inline-flex;
+    flex: 0 0 auto;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    border-radius: var(--md-sys-shape-corner-full);
+    background: var(--md-sys-color-primary-container);
+    color: var(--md-sys-color-on-primary-container);
+    font-size: var(--md-sys-typescale-title-medium-size);
+    font-weight: 500;
+    object-fit: cover;
+    overflow: hidden;
+}
+
+/* Pagination (no M3 component): 40px circular page buttons. */
+.m3-pagination {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--m3-space-1);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.m3-pagination__item {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 40px;
+    height: 40px;
+    padding: 0 var(--m3-space-3);
+    border: 0;
+    border-radius: var(--md-sys-shape-corner-full);
+    background: transparent;
+    color: var(--md-sys-color-on-surface-variant);
+    font-size: var(--md-sys-typescale-label-large-size);
+    font-weight: 500;
+    text-decoration: none;
+    cursor: pointer;
+}
+
+.m3-pagination__item:hover {
+    text-decoration: none;
+}
+
+.m3-pagination__item[aria-current="page"] {
+    background: var(--md-sys-color-secondary-container);
+    color: var(--md-sys-color-on-secondary-container);
+}
+
+/* Search bar: 56px, fully rounded, surface-container-high. */
+.m3-search {
+    position: relative;
+    display: flex;
+    align-items: center;
+    width: 100%;
+    max-width: 720px;
+}
+
+.m3-search__input {
+    width: 100%;
+    height: 56px;
+    padding: 0 var(--m3-space-6) 0 56px;
+    border: 0;
+    border-radius: var(--md-sys-shape-corner-full);
+    background: var(--md-sys-color-surface-container-high);
+    color: var(--md-sys-color-on-surface);
+    font-family: var(--md-ref-typeface-plain);
+    font-size: var(--md-sys-typescale-body-large-size);
+    outline: 0;
+}
+
+.m3-search__input::placeholder {
+    color: var(--md-sys-color-on-surface-variant);
+}
+
+.m3-search__input:hover {
+    background: color-mix(in srgb, var(--md-sys-color-on-surface) var(--md-sys-state-hover-opacity), var(--md-sys-color-surface-container-high));
+}
+
+.m3-search__input:focus {
+    background: var(--md-sys-color-surface-container-highest);
+}
+
+.m3-search::before {
+    content: "";
+    position: absolute;
+    inset-inline-start: 16px;
+    width: 24px;
+    height: 24px;
+    background: var(--md-sys-color-on-surface-variant);
+    -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round'%3E%3Ccircle cx='11' cy='11' r='7'/%3E%3Cpath d='m20 20-4-4'/%3E%3C/svg%3E") center / contain no-repeat;
+    mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round'%3E%3Ccircle cx='11' cy='11' r='7'/%3E%3Cpath d='m20 20-4-4'/%3E%3C/svg%3E") center / contain no-repeat;
+    pointer-events: none;
+}
+
+/* Segmented buttons: 40px, outlined, the selected segment in
+   secondary-container with a check. */
+.m3-segmented {
+    display: inline-flex;
+    align-self: flex-start;
+    border: 1px solid var(--md-sys-color-outline);
+    border-radius: var(--md-sys-shape-corner-full);
+    overflow: hidden;
+}
+
+.m3-segmented__button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--m3-space-2);
+    min-width: 48px;
+    height: 38px;
+    padding: 0 var(--m3-space-3);
+    border: 0;
+    background: transparent;
+    color: var(--md-sys-color-on-surface);
+    font-family: var(--md-ref-typeface-plain);
+    font-size: var(--md-sys-typescale-label-large-size);
+    font-weight: 500;
+    cursor: pointer;
+}
+
+.m3-segmented__button+.m3-segmented__button {
+    border-inline-start: 1px solid var(--md-sys-color-outline);
+}
+
+.m3-segmented__button[aria-pressed="true"],
+.m3-segmented__button[aria-checked="true"] {
+    background: var(--md-sys-color-secondary-container);
+    color: var(--md-sys-color-on-secondary-container);
+}

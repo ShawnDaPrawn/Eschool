@@ -10,7 +10,10 @@
     min-height: 500px;
 }
 
-/* ---------- Sidebar ---------- */
+/* ---------- Sidebar ----------
+   The step list is an M3 navigation drawer: 56px items with a full-round
+   active indicator in secondary-container, the on-surface state layer on
+   hover, label-large text. */
 .wizard-sidebar {
     flex: 0 0 260px;
     max-width: 260px;
@@ -21,7 +24,7 @@
 .wizard-sidebar .steps-list {
     display: flex;
     flex-direction: column;
-    gap: 6px;
+    gap: 0;
     position: sticky;
     top: 90px;
 }
@@ -30,54 +33,65 @@
     display: flex;
     align-items: center;
     gap: 12px;
-    padding: 11px 14px;
-    border-radius: 12px;
+    min-height: 56px;
+    padding: 8px 24px 8px 16px;
+    border-radius: var(--md-sys-shape-corner-full);
     color: var(--md-sys-color-on-surface-variant);
     text-decoration: none;
-    font-weight: 500;
-    font-size: 14px;
-    line-height: 1.3;
-    border: 1px solid transparent;
-    transition: background-color .2s ease, color .2s ease, box-shadow .2s ease;
+    font-size: var(--md-sys-typescale-label-large-size);
+    line-height: var(--md-sys-typescale-label-large-line-height);
+    font-weight: var(--md-sys-typescale-label-large-weight);
+    letter-spacing: var(--md-sys-typescale-label-large-tracking);
+    transition: background-color .15s ease, color .15s ease;
     cursor: pointer;
 }
 
 .wizard-sidebar .step-item:hover {
-    background: var(--md-sys-color-surface-container-low);
-    color: var(--md-sys-color-primary);
+    background: color-mix(in srgb, var(--md-sys-color-on-surface) var(--md-sys-state-hover-opacity), transparent);
+    color: var(--md-sys-color-on-surface);
     text-decoration: none;
 }
 
+.wizard-sidebar .step-item:focus {
+    outline: 0;
+}
+
+.wizard-sidebar .step-item:focus-visible {
+    outline: 3px solid var(--md-sys-color-secondary);
+    outline-offset: -3px;
+}
+
 .wizard-sidebar .step-item.active {
-    background: var(--md-sys-color-primary);
-    color: var(--md-sys-color-on-primary);
-    box-shadow: var(--md-sys-elevation-level2);
+    background: var(--md-sys-color-secondary-container);
+    color: var(--md-sys-color-on-secondary-container);
 }
 
 .wizard-sidebar .step-item.active:hover {
-    color: var(--md-sys-color-on-primary);
+    background: color-mix(in srgb, var(--md-sys-color-on-secondary-container) var(--md-sys-state-hover-opacity), var(--md-sys-color-secondary-container));
+    color: var(--md-sys-color-on-secondary-container);
 }
 
 .wizard-sidebar .step-item.completed {
     color: var(--md-sys-color-primary);
 }
 
+/* Step number: a 24px circle (the M3 stepper's step icon). */
 .wizard-sidebar .step-item .step-number {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    width: 28px;
-    height: 28px;
-    border-radius: 4px;
-    background: var(--md-sys-color-surface-container);
-    color: inherit;
-    font-size: 12px;
-    font-weight: 600;
+    width: 24px;
+    height: 24px;
+    border-radius: var(--md-sys-shape-corner-full);
+    background: var(--md-sys-color-surface-container-highest);
+    color: var(--md-sys-color-on-surface-variant);
+    font-size: var(--md-sys-typescale-label-small-size);
+    font-weight: 500;
     flex-shrink: 0;
 }
 
 .wizard-sidebar .step-item.active .step-number {
-    background: color-mix(in srgb, var(--md-sys-color-on-primary) 25%, transparent);
+    background: var(--md-sys-color-primary);
     color: var(--md-sys-color-on-primary);
 }
 
@@ -141,12 +155,6 @@
     flex-wrap: wrap;
 }
 
-.wizard-nav .btn[disabled],
-.wizard-nav .btn:disabled {
-    opacity: .5;
-    cursor: not-allowed;
-}
-
 /* ---------- RTL ---------- */
 [dir="rtl"] .wizard-sidebar {
     border-right: 0;
@@ -190,7 +198,8 @@
 
     .wizard-sidebar .step-item {
         flex: 0 0 auto;
-        padding: 8px 12px;
+        min-height: 48px;
+        padding: 0 16px 0 12px;
         white-space: nowrap;
     }
 }

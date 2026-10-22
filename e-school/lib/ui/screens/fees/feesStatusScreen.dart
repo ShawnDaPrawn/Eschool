@@ -1,3 +1,4 @@
+import 'package:eschool/app/routeArguments.dart';
 import 'package:eschool/app/routes.dart';
 import 'package:eschool/cubits/appConfigurationCubit.dart';
 import 'package:eschool/cubits/authCubit.dart';
@@ -5,31 +6,22 @@ import 'package:eschool/cubits/feesReceiptCubit.dart';
 import 'package:eschool/cubits/studentFeesCubit.dart';
 import 'package:eschool/data/models/paidFees.dart';
 import 'package:eschool/data/models/student.dart';
-import 'package:eschool/ui/widgets/customBackButton.dart';
-import 'package:eschool/ui/widgets/customRefreshIndicator.dart';
-import 'package:eschool/ui/widgets/customShimmerContainer.dart';
-import 'package:eschool/ui/widgets/errorContainer.dart';
+import 'package:eschool_core/eschool_core.dart';
 import 'package:eschool/ui/widgets/listItemForFeesStatus.dart';
-import 'package:eschool/ui/widgets/screenTopBackgroundContainer.dart';
-import 'package:eschool/ui/widgets/shimmerLoadingContainer.dart';
-import 'package:eschool/utils/animationConfiguration.dart';
 import 'package:eschool/utils/labelKeys.dart';
 import 'package:eschool/utils/uiUtils.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:open_filex/open_filex.dart';
 
 class FeesStatusScreen extends StatefulWidget {
   const FeesStatusScreen({required this.studentDetails, super.key});
   final Student studentDetails;
 
   static Route route(RouteSettings routeSettings) {
-    final arguments = routeSettings.arguments! as Map<String, dynamic>;
-    return CupertinoPageRoute(
+    return AdaptivePageRoute(
       builder: (_) =>
-          FeesStatusScreen(studentDetails: arguments['studentDetails']),
+          FeesStatusScreen(studentDetails: routeSettings.arguments! as Student),
     );
   }
 
@@ -102,14 +94,14 @@ class _FeesStatusScreenState extends State<FeesStatusScreen> {
             .getOnlineFeesPaymentStatus()) {
           Navigator.of(context).pushNamed(
             Routes.feesDetails,
-            arguments: {
-              'studentDetails': widget.studentDetails,
-              'sessionYearId': context
+            arguments: FeesDetailsArguments(
+              studentDetails: widget.studentDetails,
+              sessionYearId: context
                   .read<AppConfigurationCubit>()
                   .getAppConfiguration()
                   .sessionYear
                   .id,
-            },
+            ),
           );
         } else {
           //show snackbar
@@ -158,8 +150,8 @@ class _FeesStatusScreenState extends State<FeesStatusScreen> {
                     backgroundColor: Theme.of(context).colorScheme.primary,
                   );
                   try {
-                    final fileOpenResult = await OpenFilex.open(state.filePath);
-                    if (fileOpenResult.type != ResultType.done) {
+                    final bool opened = await DeviceFiles.open(state.filePath);
+                    if (!opened) {
                       UiUtils.showCustomSnackBar(
                         context: context,
                         errorMessage: UiUtils.getTranslatedLabel(
@@ -222,14 +214,14 @@ class _FeesStatusScreenState extends State<FeesStatusScreen> {
                                   .getOnlineFeesPaymentStatus()) {
                                 Navigator.of(context).pushNamed(
                                   Routes.feesDetails,
-                                  arguments: {
-                                    'studentDetails': widget.studentDetails,
-                                    'sessionYearId': context
+                                  arguments: FeesDetailsArguments(
+                                    studentDetails: widget.studentDetails,
+                                    sessionYearId: context
                                         .read<AppConfigurationCubit>()
                                         .getAppConfiguration()
                                         .sessionYear
                                         .id,
-                                  },
+                                  ),
                                 );
                               }
                             }

@@ -1,7 +1,7 @@
+import 'package:eschool_core/eschool_core.dart';
 import 'package:eschool/cubits/timeTableCubit.dart';
 import 'package:eschool/data/repositories/studentRepository.dart';
 import 'package:eschool/ui/widgets/timetableContainer.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -10,7 +10,7 @@ class ChildTimeTableScreen extends StatelessWidget {
   final int childId;
 
   static Route route(RouteSettings routeSettings) {
-    return CupertinoPageRoute(
+    return AdaptivePageRoute(
       builder: (_) => BlocProvider<TimeTableCubit>(
         create: (context) => TimeTableCubit(StudentRepository()),
         child: ChildTimeTableScreen(childId: routeSettings.arguments! as int),

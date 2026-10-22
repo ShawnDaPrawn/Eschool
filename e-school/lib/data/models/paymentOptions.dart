@@ -7,9 +7,6 @@ class PaymentOptions {
     feesDueCharges = json['fees_due_charges'];
     currencyCode = json['currency_code'];
     currencySymbol = json['currency_symbol'];
-    razorpay = json['razorpay'] != null
-        ? RazorpayOption.fromJson(json['razorpay'])
-        : null;
     stripe = json['stripe'] != null ? Stripe.fromJson(json['stripe']) : null;
     paystack =
         json['paystack'] != null ? Paystack.fromJson(json['paystack']) : null;
@@ -17,7 +14,6 @@ class PaymentOptions {
         ? Flutterwave.fromJson(json['flutterwave'])
         : null;
   }
-  RazorpayOption? razorpay;
   Stripe? stripe;
   Paystack? paystack;
   Flutterwave? flutterwave;
@@ -25,20 +21,6 @@ class PaymentOptions {
   String? currencySymbol;
   String? feesDueDate;
   String? feesDueCharges;
-}
-
-class RazorpayOption {
-
-  RazorpayOption();
-
-  RazorpayOption.fromJson(Map<String, dynamic> json) {
-    razorpayStatus = json['razorpay_status'];
-    razorpayApiKey = json['razorpay_api_key'];
-    currencyCode = json['razorpay_currency_code'];
-  }
-  String? razorpayStatus;
-  String? razorpayApiKey;
-  String? currencyCode;
 }
 
 class Stripe {

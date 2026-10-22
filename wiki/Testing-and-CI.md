@@ -13,12 +13,13 @@ All checks live in one workflow, [.github/workflows/ci.yml](https://github.com/S
 ```mermaid
 flowchart LR
     T["push to main / pull request / weekly / manual"] --> A["admin-panel: PHP 8.3 + MariaDB 10.11"]
-    T --> B["apps: Flutter 3.44.9 matrix (e-school, e-school-teacher, packages/eschool_core)"]
+    T --> O["openapi: Redocly lint of openapi.yaml"]
+    T --> B["apps: Flutter 3.44.9 matrix (e-school, e-school-teacher, packages/eschool_core, packages/eschool_api)"]
     T --> C["docs: Node 22, npm run build"]
     T --> D["security-audit: composer audit + npm audit"]
 ```
 
-The four jobs run in parallel and do not depend on each other. A separate workflow, [wiki.yml](https://github.com/ShawnDaPrawn/Eschool/blob/main/.github/workflows/wiki.yml), publishes this wiki (see [Contributing](Contributing#editing-this-wiki)).
+The five jobs run in parallel and do not depend on each other. A separate workflow, [wiki.yml](https://github.com/ShawnDaPrawn/Eschool/blob/main/.github/workflows/wiki.yml), publishes this wiki (see [Contributing](Contributing#editing-this-wiki)).
 
 ### `admin-panel`: Admin panel (PHP tests)
 
@@ -40,14 +41,19 @@ Steps, in order:
 6. **Config, routes and views cache**: `php artisan config:cache && php artisan route:cache && php artisan view:cache && php artisan optimize:clear` – production installs may run `php artisan optimize`, so every cache must build. This fails on, for example, two routes with the same name (which breaks `route:cache`) or a Blade view that does not compile. The caches are cleared again before the tests run.
 7. `php artisan test` – the PHPUnit suites below.
 
+### `openapi`: OpenAPI contract (lint)
+
+Runs in `admin-panel/` with Node 22: `npx --yes @redocly/cli@2.57.0 lint openapi.yaml`. [redocly.yaml](https://github.com/ShawnDaPrawn/Eschool/blob/main/admin-panel/redocly.yaml) extends `recommended-strict`, so every warning fails, except `no-unused-components` (the shared list parameters and error responses are building blocks for the next endpoints) and `info-license`. The responses themselves are checked by the [Contracts suite](#contracts-suite) in the `admin-panel` job.
+
 ### `apps`: Flutter app (matrix)
 
-A matrix over `app: [e-school, e-school-teacher, packages/eschool_core]` with `fail-fast: false`, so a failure in one app does not cancel the others. The third leg is the shared package both apps depend on (see [Repository-Layout](Repository-Layout#packageseschool_core)). Each leg runs in its own folder:
+A matrix over `app: [e-school, e-school-teacher, packages/eschool_core, packages/eschool_api]` with `fail-fast: false`, so a failure in one app does not cancel the others. The third leg is the shared package both apps depend on (see [Repository-Layout](Repository-Layout#packageseschool_core)); the fourth is the Dart client generated from `admin-panel/openapi.yaml`. Each leg runs in its own folder:
 
 1. `subosito/flutter-action@v2` with `flutter-version: '3.44.9'`, `channel: stable`, `cache: true`.
 2. `flutter pub get --enforce-lockfile` – fails if `pubspec.lock` does not match `pubspec.yaml`. The apps and the shared package commit their `pubspec.lock` (commit [dd3df94](https://github.com/ShawnDaPrawn/Eschool/commit/dd3df94)), pinned to what was resolved and analysed with Flutter 3.44.9.
-3. `flutter analyze --no-fatal-infos` – errors and warnings fail the job; style-only "info" lints are reported but do not.
-4. `flutter test` – the tests in each app's `test/` folder.
+3. `packages/eschool_api` only: `actions/setup-java@v4` (Temurin 21), then **Generated client matches openapi.yaml**: `tool/generate.sh` regenerates the package and the step fails if `git status --porcelain` shows any change, so a spec change without the regenerated client (or a hand edit to `lib/`) fails.
+4. `flutter analyze --no-fatal-infos` – errors and warnings fail the job; style-only "info" lints are reported but do not.
+5. `flutter test` – the tests in each app's `test/` folder.
 
 ### `docs`: Documentation build
 
@@ -129,6 +135,10 @@ These classes still use the trait: `AdminPagesTest`, `PermissionsTest`, `Student
 |---|---|
 | [DemoSchool](https://github.com/ShawnDaPrawn/Eschool/blob/main/admin-panel/tests/Support/DemoSchool.php) | `DemoSchool::build()` creates a small but complete school on an installer-seeded database and returns its ids and Sanctum tokens: Grade 5 section A (teacher Tara, students Asha and Ben, parents Farid, Mona and Gina) and Grade 6 (teacher Theo, student Cara), with a timetable, a lesson with topic and files, an assignment and submission, announcements, attendance, a published and an unpublished exam with marks and results, online exams with questions and answers, a holiday, an event, leaves, fees with a payment, the gallery and a notification. Dates are relative to the school's "today" (in the school's timezone, which the app server runs in), so states such as upcoming or ongoing are the same on every run. |
 | [ApiShape](https://github.com/ShawnDaPrawn/Eschool/blob/main/admin-panel/tests/Support/ApiShape.php) | `ApiShape::of($json)` reduces a decoded response to its shape: every object's keys and every value's type (`string`, `number`, `bool`, `null`, unions such as `null|string`), with the items of a list merged into one shape and objects that are sometimes `null` marked `(or null)`. |
+| [ApiRoute](https://github.com/ShawnDaPrawn/Eschool/blob/main/admin-panel/tests/Support/ApiRoute.php) | `ApiRoute::all($router)` lists every route under `/api` (v1 and v2), one entry per method, with its middleware; `fromFreshApplication()` does the same for a data provider. Each entry knows whether it needs a token, its role group (`role:<Role>`, `staff`, `role.any`) and whether a role gets through it. Used by the Tenancy, Authorization and Contracts suites. |
+| [OpenApiSpec](https://github.com/ShawnDaPrawn/Eschool/blob/main/admin-panel/tests/Support/OpenApiSpec.php) | `admin-panel/openapi.yaml` for tests: its operations, the spec path for a request path, and `assertResponseMatches($method, $path, $response)`, which validates status, headers and body with `league/openapi-psr7-validator` and explains each mismatch with where in the body it is. |
+
+Two traits in `tests/Concerns` go with them: [UsesDemoSchool](https://github.com/ShawnDaPrawn/Eschool/blob/main/admin-panel/tests/Concerns/UsesDemoSchool.php) builds one `DemoSchool` per test class on a freshly migrated database (its ids assume one, so it can't be built inside `RefreshDatabase`'s transaction) and runs each test in a transaction that is rolled back; [ValidatesOpenApiResponses](https://github.com/ShawnDaPrawn/Eschool/blob/main/admin-panel/tests/Concerns/ValidatesOpenApiResponses.php) checks every `/api/v2` response the test receives against `openapi.yaml`.
 
 See also [tests/README.md](https://github.com/ShawnDaPrawn/Eschool/blob/main/admin-panel/tests/README.md).
 
@@ -138,9 +148,10 @@ In [admin-panel/tests/Unit](https://github.com/ShawnDaPrawn/Eschool/tree/main/ad
 
 | Class | What it covers |
 |---|---|
+| `BootstrapFreeTest` | The move off Bootstrap only goes forward: files using Bootstrap classes, `data-toggle` / `data-bs-*` attributes, Bootstrap's jQuery plugins or its CSS and JS must be listed in `tests/bootstrap-baseline.txt`, and a listed file that no longer uses Bootstrap must be removed from it. `UPDATE_BOOTSTRAP_BASELINE=1` removes finished files. See [UI-Standards](UI-Standards#the-material-3-web-library-replacing-bootstrap). |
 | `ControllerMethodCallsTest` | Every `$this->`, `self::` or `static::` call in a controller names a method the class has (Illuminate's base controller accepts any name through `__call`, so Larastan can't see these). Every call to a response-building `ResponseService` method in `app/` is returned or thrown (parsed with `nikic/php-parser`, not grepped): a dropped response would answer nothing and let the code after it run. |
 | `DeploySeedersTest` | Every seeder `docker/provision-admin.php` and `docker/entrypoint.sh` run exists under exactly that name in `database/seeders` (autoloading is case-sensitive on Linux; `emailseeder` once broke every fresh container install). |
-| `DesignTokensTest` | No stylesheet in `public/assets/css` writes a colour (hex, `rgb()`, `hsl()` or a named colour) outside the generated `m3-tokens.css`, the legacy template bundles and third-party CSS, so the panel and website keep the apps' colours. Skips comments, `data:` URIs and blocks between `/* design-tokens: off */` and `/* design-tokens: on */`. See [UI-Standards](UI-Standards#admin-panel-and-website). |
+| `DesignTokensTest` | No stylesheet in `public/assets/css` or the Material 3 library in `public/assets/m3` writes a colour (hex, `rgb()`, `hsl()` or a named colour) outside the generated `m3-tokens.css`, the legacy template bundles and third-party CSS, so the panel and website keep the apps' colours. Skips comments, `data:` URIs and blocks between `/* design-tokens: off */` and `/* design-tokens: on */`. See [UI-Standards](UI-Standards#admin-panel-and-website). |
 
 ## Admin panel feature tests
 
@@ -153,7 +164,7 @@ All classes are in [admin-panel/tests/Feature](https://github.com/ShawnDaPrawn/E
 | `AccessControlTest` | `RefreshDatabase`, installer seed | `CheckChild` only lets a parent reach their own children; Student/Teacher tokens are refused (403) on other roles' API groups; `throttle:login` is on every app login and password-reset route and the `login` limiter allows 5 per account; a user with no staff role is signed out of `/home`; `/register` is gone (404); only `email-setting-create` holders can save email templates; subject deletion needs subject permissions; `EmailTemplateService::render()` escapes values and never runs Blade/PHP; responses carry `X-Frame-Options`, `X-Content-Type-Options` and `Referrer-Policy`. |
 | `AdminAuthorizationTest` | `RefreshDatabase`, installer seed | Teachers cannot edit roles; built-in roles cannot be edited or deleted; custom roles only receive assignable permissions; staff cannot be given the Super Admin role; a staff manager cannot edit or delete the Super Admin; Teachers cannot use staff attendance; a language code cannot escape `resources/lang`; changing a password requires the current one; Teachers cannot manage sliders or search parents; settings logo and Firebase service-account uploads are validated. |
 | `ApiRequestLimitsTest` | `RunsAppServer` once per class (file cache, so counts last between requests), `DemoSchool` | An online exam that isn't open says so before the key is checked; 5 wrong keys stop that student for that exam (another student isn't affected) and the right key resets the count; events still say which have a day schedule (now one query); parent and teacher chat messages come 100 at a time without a `limit`, and an explicit `limit` is honoured. |
-| `ApiContractTest` | `RunsAppServer` once, `DemoSchool` | Calls every endpoint the apps use (about 165 calls: shared, student, parent and teacher; reads first, then changes, then sign-in and sign-out) and compares each response's status, `error`, `message`, `code` and `ApiShape` with `tests/snapshots/api/<app>/<call>.json`. Fails if a response changes shape or a snapshot has no matching call. `UPDATE_API_SNAPSHOTS=1` rewrites the snapshots (review the diff); changed ones are also written to `storage/framework/testing/api-snapshots/`. `API_RESPONSES_DIR=<dir>` saves every full response, to diff the data before and after a refactor. |
+| `ApiContractTest` | `RunsAppServer` once, `DemoSchool` | Calls every endpoint the apps use (about 165 calls: shared, student, parent and teacher; reads first, then changes, then sign-in and sign-out) and compares each response's status, `error`, `message`, `code` and `ApiShape` with `tests/snapshots/api/<app>/<call>.json`. Fails if a response changes shape or a snapshot has no matching call. `UPDATE_API_SNAPSHOTS=1` rewrites the snapshots (review the diff); changed ones are also written to `storage/framework/testing/api-snapshots/`. `API_RESPONSES_DIR=<dir>` saves every full response, to diff the data before and after a refactor. The v2 calls (`GET /api/v2/me/context` for each app and without a token) are snapshotted the same way and also validated against `openapi.yaml`. |
 | `ApiRegressionTest` | `RunsAppServer` once per class, `DemoSchool` | Bugs found while building the snapshots: profiles and parent sign-in work for people whose `dynamic_fields` is null; the student profile reports whether fees are due; submitting marks saves every student's marks when some already had marks; a lesson can be saved under its own name. Mismatches between what the apps read and what the API sends: event schedules can be fetched with GET; parent and teacher exam timetables carry `starting_time`/`ending_time`; teacher topics include their files; the parent "Assigned" tab (`is_submitted=0`) lists only work the child has not handed in; class announcements reach the notice board of that class only (student and parent), and a parent's request without `type` is limited to what the child may see.; classes carry `include_semesters` as `1`/`0`, as the teacher app reads it. |
 | `AdminPagesTest` | `RunsAppServer` (fresh install, real server) | Gives `superadmin@gmail.com` a non-default password (a default one sends every page to the change-password form), logs in through the real login form (CSRF token and cookies) and opens every GET route without parameters. Skips routes with side effects (`delete-chat-message/cron-job`) and the prefixes `api/`, `install`, `_debugbar`, `sanctum/`, `storage/`. Fails on any 403 or any 5xx. |
 | `AdminRoleTest` | `RefreshDatabase`, installer seed | No `Admin` role is seeded, and a custom role a school calls "Admin" gets no extra access: a teacher who also has it sees only their own sections in the attendance widget, and `Students::scopeOfTeacher()` gives it no students (Super Admin sees everything). |
@@ -174,10 +185,14 @@ All classes are in [admin-panel/tests/Feature](https://github.com/ShawnDaPrawn/E
 | `SettingsConfigTest` | `RefreshDatabase`, installer seed | No PHP file in `app/`, `bootstrap/`, `database/`, `resources/views/` or `routes/` calls `env()` (comments and Blade comments are ignored), because `env()` returns `null` outside `config/` once config is cached; `SettingsConfigService::apply()` overrides `app.name`, `app.timezone` (and PHP's default timezone), the SMTP settings and `mail.from.address` from the `settings` table, and keeps `mail.from.name` following the school name only when it was following `APP_NAME`; empty or invalid settings (an unknown timezone, an empty mail host) keep the `.env` values; saving `/email-settings` leaves `.env` byte-for-byte unchanged and stores a password containing spaces and `#` intact. Needs a `.env` file in `admin-panel/` (it compares the file before and after). |
 | `StudentApiSecurityTest` | `RunsAppServer` per test (started on first request), `migrate:fresh` | `/api/settings` contains none of the payment secrets; the removed Razorpay, Paystack and Flutterwave are neither offered in `payment_options` nor accepted as `payment_method` by the student or parent endpoint, even with their old settings rows switched on; online-exam questions do not include answers and selecting every option scores nothing; another class's exam cannot be taken; `OnlineExamScoringService` needs exactly the correct options; the student API is only for active student accounts; forgot-password answers the same whether or not the account exists; a password change signs out other devices; chat only goes to the student's teachers and attachments get safe names; fee payments use server amounts and only the caller's transactions; elective subjects must come from the class's groups; other class sections' content is not served. |
 | `TeacherApiSecurityTest` | In-process, `RefreshDatabase`, installer seed, Sanctum tokens, `Storage::fake('public')` | Answers pass back through the response middleware (`X-Content-Type-Options`, `X-RateLimit-Limit`). Two teachers, each class and subject teacher of one section. Only the owner can delete an assignment; student details only for the student's teachers; only the class teacher sees and decides student leaves; only the lesson's teacher can change its files; attendance only for the class teacher's own class; exam marks need the class or subject teacher and their students; only the teacher's own timetable link can be changed; chat is limited to own students and parents, and attachment files never collide; a Teacher-role user without a teacher record gets nothing. |
+| `Platform\ContextTest` | In-process, `UsesDemoSchool`, `ValidatesOpenApiResponses` | `GET /api/v2/me/context`: 401 without a token; a learner, parent, guardian, teacher, the Super Admin and a school-created role each get their own user, roles, school, year and terms; a parent gets only their own children, each with their school; an account with no role gets 403; branding is passed on as stored; no current year gives `session_year: null`; the query count stays fixed (7 for a teacher, 10 for a parent) whatever the number of children. |
+| `Platform\ApiV2GroundRulesTest` | `RefreshDatabase`, installer seed, test-only routes on the `api` group | v2 routes load under `/api/v2` with the `api` group; the `staff` group admits every role except Parent and Student; `role.any` needs a role; errors come in the envelope with their real status (401, 404, 405, 422 with every message by field, 500 without exception text); a response thrown on purpose and v1 errors are left alone; the `auth` limiter allows 5 a minute per account and 20 per address; the `money` limiter allows 30 a minute per token. |
+| `Platform\IdempotencyKeyTest` | `RefreshDatabase`, installer seed, test-only routes | The `Idempotency-Key` middleware: a retry gets the stored answer and the work runs once; the key, user, route, request hash and answer are stored for 24 hours; another payload with the same key gets 422; field order does not matter but the path and uploaded files do; keys are per user and expire; expired rows are pruned; a retry while the first runs gets 409; failures free the key and refusals are kept; reads and keyless writes pass through; `idempotent:required` refuses a write without a key; malformed keys get 400. |
+| `Platform\IdempotencyKeysMigrationTest` | none (schema changes) | The `idempotency_keys` migration rolls back and runs again. |
 | `TranslationsTest` | none (session only) | Every `resources/lang/*.json` is a flat map of string labels and `en.json` exists; `GET /common/js/lang` (`common.language.read`) returns `window.languageLabels = <file>` as `text/javascript` for the session language, and falls back to English for a missing file, no session language, or a path such as `../../.env`. |
 | `UploadSecurityTest` | none | Registers a test route `api/_upload-test` on the real `api` middleware group. `RejectDangerousUploads` refuses `shell.php`, `SHELL.PHTML`, `photo.php.jpg`, `.user.ini`, PHP content named `notes.txt` and `page.html` (HTTP 422, `error: true`), including files nested in arrays; strips `<script>`, `onload` and `javascript:` from an SVG while keeping its shapes; refuses a PNG whose header declares more than 30 megapixels and an SVG over 2 MB without decoding them; accepts ordinary text and JPEG files. |
 
-The fork's history explains why these exist: see [Security-Model](Security-Model) for the controls they protect and [Release-History](Release-History) for the commits.
+The fork's history explains why these exist: see [Security-Model](Security-Model) for the controls they protect and [Release-History](Release-History) for the commits. The three suites that walk every API route have their own sections below: [Tenancy](#tenancy-suite), [Authorization](#authorization-matrix) and [Contracts](#contracts-suite).
 
 ## Flutter tests
 
@@ -265,13 +280,13 @@ The tests that use `RunsAppServer` start `php -S` on a random free port on 127.0
 With Flutter 3.44.9 (stable) installed:
 
 ```bash
-cd e-school            # or e-school-teacher, or packages/eschool_core
+cd e-school            # or e-school-teacher, packages/eschool_core, packages/eschool_api
 flutter pub get --enforce-lockfile
 flutter analyze --no-fatal-infos
 flutter test
 ```
 
-`flutter test` must run from the app folder, because the translation test reads `assets/languages/` by relative path. The shared package has its own tests in `packages/eschool_core/test/` (models, helpers, the theme and its screenshot; no assets needed). After an intended visual change to the theme, regenerate the screenshot with `flutter test --update-goldens test/goldens` in that folder and check the image before committing it.
+`flutter test` must run from the app folder, because the translation test reads `assets/languages/` by relative path. The shared package has its own tests in `packages/eschool_core/test/` (models, helpers, the theme and its screenshot; no assets needed). After an intended visual change to the theme, regenerate the screenshot with `flutter test --update-goldens test/goldens` in that folder and check the image before committing it. `packages/eschool_api` is generated from `admin-panel/openapi.yaml`: after changing the spec run `tool/generate.sh` there (Java 11 or newer and the Dart SDK) and commit the result, as CI regenerates it and fails on a difference.
 
 ### Documentation build and audits
 
@@ -283,6 +298,49 @@ npm run build                          # fails on broken links
 npm audit --audit-level=critical       # the CI audit for the docs
 cd ../admin-panel && composer audit --locked   # the CI audit for PHP packages
 ```
+
+## Tenancy suite
+
+[tests/Feature/Tenancy/ApiRouteTenancyTest.php](https://github.com/ShawnDaPrawn/Eschool/blob/main/admin-panel/tests/Feature/Tenancy/ApiRouteTenancyTest.php) is the scaffold of the cross-school suite the Bible requires on every API route ("a School A user asking for School B's record gets 403 or 404, never data"). It has one case per route and method, v1 and v2, read from the router by `ApiRoute::fromFreshApplication()`, so a new route is covered the moment it is registered. No database, about 8 seconds.
+
+Phase 0 runs one school, so each case asserts what can be asserted today:
+
+| Check | Fails when |
+| --- | --- |
+| The route exists in the router | never for routes from the provider; guards the lists below |
+| It needs a token: `auth:sanctum` is on the route and a request without a token gets 401 | the route answers anonymously and is not on `PUBLIC` |
+| It sits in a role group (`role:<Role>`, `staff` or `role.any`) | the route has none and is not on `ANY_PROFILE` |
+| The lists are true | a `PUBLIC` route needs a token, an `ANY_PROFILE` route has a role group, or a listed route no longer exists |
+
+`PUBLIC` names the 17 v1 routes anyone may call (the logins, the password resets and the school information the apps show before sign-in), each with its reason; `ANY_PROFILE` names `POST api/logout` and `POST api/change-password` (v1, every app). v2 routes for every profile use the `role.any` group instead, so neither list should grow.
+
+Phase 1 adds School B (`DemoSchoolSeeder`) and replaces the body of `assertIsolated()` with the real request: as a School A user, ask for a School B record through the route (by id, `child_id`, `student_id` and so on) and assert 403 or 404. The cases and the lists stay as they are.
+
+## Authorization matrix
+
+[tests/Feature/Authorization/RoleMatrixTest.php](https://github.com/ShawnDaPrawn/Eschool/blob/main/admin-panel/tests/Feature/Authorization/RoleMatrixTest.php) is the generated matrix of every API route against every role. For each profile (Student, Parent, Teacher, Super Admin, a role the school created, and an account with no role) it signs in with a real Sanctum token and calls every role-grouped route (v1 and v2, from the router) that the profile's role is outside; each must answer 401 or 403. The refusal comes from the role middleware before any controller runs, so nothing changes. 706 requests in all, in-process on one `DemoSchool` (`UsesDemoSchool`), with the rate limits off; under 10 seconds.
+
+- Which roles a group admits is in `ApiRoute::allowsRole()`: `role:A|B` admits A and B, `staff` every role except Parent and Student, `role.any` any role; nobody without a role gets through a role group.
+- `test_the_matrix_knows_every_role` fails when the database has a role the matrix does not list (for example when the Phase 1 seeder adds Finance or Counsellor): add it to `profiles()`.
+- Routes outside role groups are the public and any-profile routes the Tenancy suite lists.
+
+Phase 1 extends it to platform staff without impersonation and to the new profiles, as the Bible's security checks ask.
+
+## Contracts suite
+
+[tests/Feature/Contracts/OpenApiContractTest.php](https://github.com/ShawnDaPrawn/Eschool/blob/main/admin-panel/tests/Feature/Contracts/OpenApiContractTest.php) holds API v2 to its contract, [admin-panel/openapi.yaml](https://github.com/ShawnDaPrawn/Eschool/blob/main/admin-panel/openapi.yaml). It uses `league/openapi-psr7-validator` (dev dependency) through `Tests\Support\OpenApiSpec`.
+
+| Test | Fails when |
+| --- | --- |
+| `test_v2_responses_match_the_spec` (one case per scenario) | a scenario's response (every profile that may call the route, plus 401 and 403) has an undocumented status, header or body: a missing or extra field, a wrong type or format |
+| `test_a_rate_limited_answer_matches_the_spec` | the 429 does not match |
+| `test_every_v2_route_is_in_the_spec_and_every_operation_is_a_route` | a v2 route has no operation in the spec, or the spec describes one nothing serves |
+| `test_every_v2_route_has_a_scenario_here` | a v2 route has no scenario in `scenarios()` |
+| `test_the_spec_is_valid_openapi_3_1` | the spec does not parse as OpenAPI 3.1 or its server is not `/api/v2` |
+| `test_the_dart_clients_sample_answer_matches_the_spec` | `packages/eschool_api/test/fixtures/me_context_parent.json`, which the Dart client's tests decode, no longer matches |
+| `test_a_response_that_breaks_the_spec_fails` | the validator stops catching an extra field, a missing field, a wrong type or an undocumented status |
+
+Any test can opt in with the `ValidatesOpenApiResponses` trait: every `/api/v2` response it receives is validated, whatever the test asserts (`ContextTest` does). `ApiContractTest` also validates its v2 calls. Response schemas set `additionalProperties: false`, so a new field fails here until it is in the spec; then regenerate the Dart client (`packages/eschool_api/tool/generate.sh`), which CI checks. Run the suite with `php artisan test --filter=OpenApiContractTest`; lint the spec locally with `npx --yes @redocly/cli@2.57.0 lint openapi.yaml` in `admin-panel/`.
 
 ## See also
 

@@ -4,11 +4,8 @@ import 'package:eschool/cubits/authCubit.dart';
 import 'package:eschool/cubits/userProfileCubit.dart';
 import 'package:eschool/data/repositories/authRepository.dart';
 import 'package:eschool/data/repositories/policyRepository.dart';
-import 'package:eschool/ui/widgets/errorContainer.dart';
-import 'package:eschool/utils/animationConfiguration.dart';
-import 'package:eschool/utils/assets.dart';
 import 'package:eschool_core/eschool_core.dart';
-import 'package:flutter/cupertino.dart';
+import 'package:eschool/utils/assets.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -21,7 +18,7 @@ class SplashScreen extends StatefulWidget {
   State<SplashScreen> createState() => _SplashScreenState();
 
   static Route route(RouteSettings routeSettings) {
-    return CupertinoPageRoute(
+    return AdaptivePageRoute(
       builder: (_) => MultiBlocProvider(
         providers: [
           BlocProvider<UserProfileCubit>(

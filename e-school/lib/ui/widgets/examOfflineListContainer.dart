@@ -1,14 +1,12 @@
+import 'package:eschool/app/routeArguments.dart';
 import 'package:eschool/app/routes.dart';
 import 'package:eschool/cubits/authCubit.dart';
 import 'package:eschool/cubits/examDetailsCubit.dart';
 import 'package:eschool/data/models/exam.dart';
-import 'package:eschool/ui/widgets/customRefreshIndicator.dart';
-import 'package:eschool/ui/widgets/customShimmerContainer.dart';
-import 'package:eschool/ui/widgets/errorContainer.dart';
+import 'package:eschool_core/eschool_core.dart';
 import 'package:eschool/ui/widgets/examsFilterContainer.dart';
 import 'package:eschool/ui/widgets/listItemForExamAndResult.dart';
 import 'package:eschool/ui/widgets/noDataContainer.dart';
-import 'package:eschool/ui/widgets/shimmerLoadingContainer.dart';
 import 'package:eschool/utils/labelKeys.dart';
 import 'package:eschool/utils/uiUtils.dart';
 import 'package:flutter/material.dart';
@@ -76,11 +74,11 @@ class _ExamOfflineListContainerState extends State<ExamOfflineListContainer> {
                 }
                 Navigator.of(context).pushNamed(
                   Routes.examTimeTable,
-                  arguments: {
-                    'examID': examList[index].examID,
-                    'examName': examList[index].examName.toString(),
-                    'childID': widget.childId,
-                  },
+                  arguments: ExamTimeTableArguments(
+                    examId: examList[index].examID!,
+                    examName: examList[index].examName.toString(),
+                    childId: widget.childId,
+                  ),
                 );
               },
             ),

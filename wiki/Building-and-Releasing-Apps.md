@@ -1,4 +1,4 @@
-This page explains how to run, check and build the two Flutter apps (`e-school/` and `e-school-teacher/`) locally and for release: toolchain versions, the commands CI runs, the Android Gradle (Kotlin DSL) setup, iOS CocoaPods and Xcode settings, and how version numbers flow into the store builds. Configuration values you must set first are on [Mobile-App-Configuration](Mobile-App-Configuration).
+This page explains how to run, check and build the two Flutter apps (`e-school/` and `e-school-teacher/`) locally and for release: toolchain versions, the commands CI runs, the integration smoke flows, the Android Gradle (Kotlin DSL) setup, iOS CocoaPods and Xcode settings, the web builds and their Firebase Hosting sites, and how version numbers flow into the store builds. Configuration values you must set first are on [Mobile-App-Configuration](Mobile-App-Configuration).
 
 ## Toolchain
 
@@ -28,7 +28,7 @@ flutter run
 
 Before the first run:
 
-1. Set `baseUrl` in `lib/utils/constants.dart` to a running admin panel ([Mobile-App-Configuration](Mobile-App-Configuration#server-url)). Without a reachable server the app stays on the splash screen error.
+1. Choose the server. A plain `flutter run` talks to the production server; for another one pass `--dart-define=API_BASE_URL=...` (add `--dart-define=ENV=local` for an `http://` address) or `--dart-define-from-file=config/staging.json` ([Mobile-App-Configuration](Mobile-App-Configuration#build-settings)). Without a reachable server the app stays on the splash screen error.
 2. `android/app/google-services.json` and `ios/Runner/GoogleService-Info.plist` are already committed for Firebase project `navigateed-d8c06`. Android builds fail if the JSON is removed, because the Google services Gradle plugin is applied, and the Xcode project lists the plist as a resource.
 3. For iOS, `flutter pub get` must run before `pod install`: the `Podfile` reads `ios/Flutter/Generated.xcconfig` and raises an error if it is missing.
 4. For a local `http://` server: the student app's debug build allows cleartext (debug manifest and `src/debug/res/xml/network_security_config.xml`); the teacher app has no such override, so use HTTPS or add one locally. iOS requires HTTPS in both apps.
@@ -37,17 +37,18 @@ Before the first run:
 
 ## What CI checks
 
-Job `apps` in [.github/workflows/ci.yml](https://github.com/ShawnDaPrawn/Eschool/blob/main/.github/workflows/ci.yml), run on pushes to `main`, pull requests, a weekly schedule (`17 5 * * 1`) and manual dispatch. It is a matrix over `[e-school, e-school-teacher]` with `fail-fast: false`, working directory set to the app folder:
+Four Flutter jobs in [.github/workflows/ci.yml](https://github.com/ShawnDaPrawn/Eschool/blob/main/.github/workflows/ci.yml), run on pushes to `main`, pull requests, a weekly schedule (`17 5 * * 1`) and manual dispatch:
 
-```bash
-flutter pub get --enforce-lockfile
-flutter analyze --no-fatal-infos   # info-level lints are reported, warnings and errors fail
-flutter test
-```
+| Job | What it runs |
+|---|---|
+| `apps` | A matrix over both apps and the shared packages (`packages/eschool_core`, `eschool_session`, `eschool_notifications`), `fail-fast: false`: `flutter pub get --enforce-lockfile`, `flutter analyze --no-fatal-infos` (info-level lints are reported, warnings and errors fail) and `flutter test` |
+| `apps-web` | `flutter build web --release --dart-define-from-file=config/staging.json` for both apps |
+| `apps-smoke-android` | The [smoke flows](#smoke-flows) on an Android 14 (API 34, x86_64) emulator started by `reactivecircus/android-emulator-runner`, with KVM on |
+| `apps-smoke-chrome` | Each smoke flow in Chrome with `flutter drive` and the runner's chromedriver |
 
-`flutter test` runs `test/translations_test.dart`, the only test in each app, which checks that `appLanguages` and `assets/languages/*.json` match and that every language file has exactly the keys of `en.json` ([Localization](Localization#the-translations-test)).
+The apps' `flutter test` covers the translations ([Localization](Localization#the-translations-test)), the shared label keys, hard-coded colours and every route; the packages test the shared widgets and layout (at 390, 820 and 1280 px), the API client, the build settings, the session store, `/me/context`, the deep link parser, force update and the notification topics.
 
-CI does not build APKs, app bundles or iOS archives, and it never needs the Firebase files: `flutter analyze` and `flutter test` do not run Gradle or Xcode. A green CI run therefore says nothing about whether the native build succeeds. See [Testing-and-CI](Testing-and-CI) for the other jobs.
+CI does not build APKs, app bundles or iOS archives: `flutter analyze` and `flutter test` do not run Gradle or Xcode. The emulator job builds a debug APK, so it does catch a broken Gradle setup, but not release signing or shrinking. See [Testing-and-CI](Testing-and-CI) for the other jobs.
 
 To reproduce CI locally:
 
@@ -55,6 +56,34 @@ To reproduce CI locally:
 cd e-school && flutter pub get --enforce-lockfile && flutter analyze --no-fatal-infos && flutter test
 cd ../e-school-teacher && flutter pub get --enforce-lockfile && flutter analyze --no-fatal-infos && flutter test
 ```
+
+## Smoke flows
+
+`integration_test/` in each app signs in, lands on home and opens one screen, against a fake API (`FakeApi` from `package:eschool_core/testing.dart`, answering from `integration_test/support/fixtures.dart`), with no server, no Firebase and no push:
+
+| Flow | File | Opens |
+|---|---|---|
+| Learner | `e-school/integration_test/learner_smoke_test.dart` | Home, then the learner's profile |
+| Parent | `e-school/integration_test/parent_smoke_test.dart` | Home, then the child's details |
+| Teacher | `e-school-teacher/integration_test/teacher_smoke_test.dart` | Home, then the Schedule tab |
+
+On an Android emulator or a phone:
+
+```bash
+cd e-school && flutter test integration_test
+```
+
+In Chrome, with a chromedriver that matches the installed Chrome running on port 4444:
+
+```bash
+chromedriver --port=4444 &
+cd e-school
+flutter drive --driver=test_driver/integration_test.dart \
+  --target=integration_test/learner_smoke_test.dart \
+  -d web-server --browser-name=chrome --headless --no-web-resources-cdn
+```
+
+Add `--browser-dimension=390x844` for phone width (the default is 1600x1024) and `--chrome-binary=<path>` for a Chrome that is not on the path. The first build takes a minute or two and the page stays blank until it is done. A new screen in a flow needs its API answers in `fixtures.dart`; anything without one gets the API's empty answer (`data: []`).
 
 ## Android build
 
@@ -72,7 +101,7 @@ Since 3.5.0 both apps use the Gradle Kotlin DSL (`build.gradle.kts`, `settings.g
 | `ndkVersion` | `flutter.ndkVersion` | `"28.2.13676358"` |
 | `externalNativeBuild.cmake.version` | not set | `"3.31.5"` |
 | `lint.checkReleaseBuilds` | `false` (avoids fetching `play-services-tapandpay`, which the Stripe Android SDK references but is not in public Maven repositories) | not set |
-| Extra dependencies | multidex 2.0.1, Firebase BoM 31.0.2 + `firebase-messaging`, `androidx.emoji2` 1.4.0 (three artifacts), `com.razorpay:checkout:1.6.33` | same without Razorpay |
+| Extra dependencies | multidex 2.0.1, Firebase BoM 31.0.2 + `firebase-messaging`, `androidx.emoji2` 1.4.0 (three artifacts) | same |
 
 `compileSdk`, `minSdk` and `targetSdk` are not pinned in the repository: they are the defaults of the Flutter Gradle plugin of the Flutter SDK you build with (3.44.x in CI). Run `flutter build apk` once and read the merged manifest, or check the Flutter SDK's `FlutterExtension`, if you need the exact numbers for a store listing. To pin them, replace the `flutter.*` references with numbers.
 
@@ -97,7 +126,6 @@ The `release` signing config is filled from `android/key.properties` (`keyAlias`
 
 | Rule | Purpose |
 |---|---|
-| `-dontwarn com.razorpay.**`, `-keep class com.razorpay.** { *; }`, `-optimizations !method/inlining/`, `-keepclasseswithmembers class * { public void onPayment*(...); }` | Razorpay checkout callbacks (also present in the teacher app, harmless there). |
 | `-keep class io.flutter.**` (and `app`, `plugin`, `util`, `view`, `plugins` sub-packages), `-dontwarn io.flutter.embedding.**` | Flutter embedding. |
 | `-keep class com.google.firebase.** { *; }` | Firebase. |
 | `-ignorewarnings` | Suppresses all R8 warnings. |
@@ -109,6 +137,8 @@ flutter build apk                 # universal APK
 flutter build apk --split-per-abi # per-ABI APKs (README)
 flutter build appbundle           # AAB for Google Play
 ```
+
+Every build command takes the environment's define file, so staging and production builds differ only by it: `flutter build appbundle --dart-define-from-file=config/staging.json` (or `config/production.json`). Without one, the build uses the production server ([Mobile-App-Configuration](Mobile-App-Configuration#build-settings)).
 
 Outputs go to `build/app/outputs/` inside the app folder. Docs: https://shawndaprawn.github.io/Eschool/mobile-app/generate-release/
 
@@ -140,6 +170,38 @@ flutter build ipa
 
 Set the signing team in Xcode (no `DEVELOPMENT_TEAM` is committed) and register the bundle id and push capability in the Apple developer account.
 
+## Web builds
+
+Both apps build for the browser: the learner and parent app is the portal at `app.navigateed.co.za`, the teacher app at `teach.navigateed.co.za` ([Mobile-Apps-Overview](Mobile-Apps-Overview#in-a-browser) explains what differs from the phone apps).
+
+```bash
+cd e-school            # or e-school-teacher
+flutter build web --release --dart-define-from-file=config/production.json
+```
+
+The result is in `build/web`. To try it, serve that folder with any static server (`python3 -m http.server --directory build/web 8080`) and open http://localhost:8080; the app talks to the server in `API_BASE_URL`, which must allow the page's origin (CORS). `flutter run -d chrome` runs a debug build with hot reload.
+
+`web/index.html` and `web/manifest.json` hold the name, the theme colour (the brand primary) and the icons, made from `assets/images/branding/ic_launcher.png`. `web/index.html` also loads pdf.js 4.6.82 from jsDelivr for the PDF viewer (pdfx); change that version only together with pdfx.
+
+### Hosting
+
+`firebase.json` has three Firebase Hosting targets:
+
+| Target | Folder | Production site | Staging site |
+|---|---|---|---|
+| `docs` | `documentation/build` (built by the predeploy step) | `navigateed-d8c06` | `navigateed-staging` |
+| `app` | `e-school/build/web` | `navigateed-app` | `navigateed-staging-app` |
+| `teach` | `e-school-teacher/build/web` | `navigateed-teach` | `navigateed-staging-teach` |
+
+The `app` and `teach` targets send every path to `index.html` (the apps use path addresses like `/notices`) and answer with `Cache-Control: no-cache`, `X-Content-Type-Options: nosniff`, `X-Frame-Options: DENY` and `Referrer-Policy: strict-origin-when-cross-origin`. Nothing in `firebase.json` builds Flutter: the deploy workflow builds both apps with `API_BASE_URL`, `ENV` and `FLAVOR` (`learner`, `teacher`), then `infra/firebase/deploy-hosting.sh` points each target at the site in `FIREBASE_SITE_<TARGET>` and deploys. `.firebaserc` maps the targets for the production project, for a manual deploy:
+
+```bash
+(cd e-school && flutter build web --release --dart-define-from-file=config/production.json)
+(cd e-school-teacher && flutter build web --release --dart-define-from-file=config/production.json)
+firebase deploy --only hosting
+firebase deploy --only hosting:docs   # the documentation site alone
+```
+
 ## Versioning
 
 | Place | Student app | Teacher app | Notes |
@@ -155,7 +217,7 @@ Release checklist:
 
 1. Bump `version` in `pubspec.yaml` (build number must increase for both stores).
 2. Fix or remove the iOS target-level `FLUTTER_BUILD_*` values as above.
-3. Build and upload.
+3. Build and upload. The web builds of the same commit go out with the deploy workflow.
 4. After the store release is live, update App Settings in the admin panel: `app_version` / `ios_app_version` (or the `teacher_*` keys) to the exact released value, then optionally set `force_app_update` to `1`.
 
 Version history of the apps is on [Release-History](Release-History).
@@ -165,6 +227,7 @@ Version history of the apps is on [Release-History](Release-History).
 - [Mobile-App-Configuration](Mobile-App-Configuration)
 - [Mobile-Apps-Overview](Mobile-Apps-Overview)
 - [Testing-and-CI](Testing-and-CI)
+- [Documentation-Site](Documentation-Site)
 - [Localization](Localization)
 - [Release-History](Release-History)
 - [Troubleshooting-and-FAQ](Troubleshooting-and-FAQ)

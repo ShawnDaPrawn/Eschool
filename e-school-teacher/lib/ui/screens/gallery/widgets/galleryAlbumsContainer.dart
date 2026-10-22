@@ -1,8 +1,5 @@
-import 'package:eschool_teacher/cubits/gallery/galleryAlbumsCubit.dart';
+import 'package:eschool_core/eschool_core.dart';
 import 'package:eschool_teacher/ui/widgets/albumGridItemLoadingContainer.dart';
-import 'package:eschool_teacher/ui/widgets/customRefreshIndicator.dart';
-import 'package:eschool_teacher/ui/widgets/errorContainer.dart';
-import 'package:eschool_teacher/ui/widgets/galleryAlbumContainer.dart';
 import 'package:eschool_teacher/utils/uiUtils.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';

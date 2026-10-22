@@ -1,13 +1,12 @@
+import 'package:eschool/app/routeArguments.dart';
 import 'package:eschool/cubits/authCubit.dart';
 import 'package:eschool/data/models/subject.dart';
 import 'package:eschool/cubits/appConfigurationCubit.dart';
-import 'package:eschool/ui/widgets/customBackButton.dart';
-import 'package:eschool/ui/widgets/screenTopBackgroundContainer.dart';
+import 'package:eschool_core/eschool_core.dart';
 import 'package:eschool/utils/labelKeys.dart';
 import 'package:eschool/utils/uiUtils.dart';
 import 'package:eschool/cubits/sessionYearCubit.dart';
 import 'package:eschool/data/repositories/systemInfoRepository.dart';
-import 'package:eschool/ui/widgets/errorContainer.dart';
 import 'package:eschool/ui/screens/reports/widgets/reportsTabContainer.dart';
 import 'package:eschool/ui/screens/reports/tabs/attendanceReportTab.dart';
 import 'package:eschool/ui/screens/reports/tabs/feesReportTab.dart';
@@ -29,7 +28,6 @@ import 'package:eschool/ui/screens/reports/tabs/leaveReportTab.dart';
 import 'package:eschool/ui/screens/reports/cubits/leaveReportCubit.dart';
 import 'package:eschool/cubits/leavesCubit.dart';
 import 'package:eschool/data/repositories/leaveRepository.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -88,12 +86,12 @@ class ReportsScreen extends StatefulWidget {
   }
 
   static Route route(RouteSettings routeSettings) {
-    final arguments = routeSettings.arguments as Map<String, dynamic>?;
-    return CupertinoPageRoute(
+    final arguments = routeSettings.arguments as ChildSubjectsArguments?;
+    return AdaptivePageRoute(
       builder: (context) => ReportsScreen.builder(
         context,
-        childId: arguments?['childId'],
-        subjects: arguments?['subjects'],
+        childId: arguments?.childId,
+        subjects: arguments?.subjects,
       ),
     );
   }

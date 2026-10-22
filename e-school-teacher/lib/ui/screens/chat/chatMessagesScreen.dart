@@ -5,24 +5,15 @@ import 'package:eschool_teacher/cubits/appConfigurationCubit.dart';
 import 'package:eschool_teacher/cubits/authCubit.dart';
 import 'package:eschool_teacher/cubits/chat/chatMessagesCubit.dart';
 import 'package:eschool_teacher/cubits/chat/chatUsersCubit.dart';
-import 'package:eschool_teacher/data/models/chatMessage.dart';
+import 'package:eschool_core/eschool_core.dart';
 import 'package:eschool_teacher/data/models/chatUser.dart';
 import 'package:eschool_teacher/data/repositories/chatRepository.dart';
 import 'package:eschool_teacher/ui/screens/chat/widget/attachmentDialog.dart';
 import 'package:eschool_teacher/ui/screens/chat/widget/messageSendingWidget.dart';
 import 'package:eschool_teacher/ui/screens/chat/widget/singleMessageItem.dart';
-import 'package:eschool_teacher/ui/widgets/customBackButton.dart';
-import 'package:eschool_core/eschool_core.dart';
-import 'package:eschool_teacher/ui/widgets/customShimmerContainer.dart';
-import 'package:eschool_teacher/ui/widgets/customUserProfileImageWidget.dart';
-import 'package:eschool_teacher/ui/widgets/errorContainer.dart';
 import 'package:eschool_teacher/ui/widgets/noDataContainer.dart';
-import 'package:eschool_teacher/ui/widgets/screenTopBackgroundContainer.dart';
-import 'package:eschool_teacher/ui/widgets/shimmerLoadingContainer.dart';
-import 'package:eschool_teacher/utils/animationConfiguration.dart';
-import 'package:eschool_teacher/utils/extensions.dart';
 import 'package:eschool_teacher/utils/labelKeys.dart';
-import 'package:eschool_teacher/utils/notificationUtils/chatNotificationsUtils.dart';
+import 'package:eschool_notifications/eschool_notifications.dart';
 import 'package:eschool_teacher/utils/uiUtils.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -40,9 +31,8 @@ class ChatMessagesScreen extends StatefulWidget {
 
   static CupertinoPageRoute route(RouteSettings routeSettings) {
     final ChatUser user =
-        (routeSettings.arguments as Map<String, dynamic>?)?['chatUser'] ??
-        ChatUser.fromJsonAPI({});
-    return CupertinoPageRoute(
+        routeSettings.arguments as ChatUser? ?? ChatUser.fromJsonAPI({});
+    return AdaptivePageRoute(
       builder: (_) => BlocProvider<ChatMessagesCubit>(
         create: (context) => ChatMessagesCubit(ChatRepository()),
         child: ChatMessagesScreen(chatUser: user),
@@ -107,7 +97,7 @@ class _ChatMessagesScreenState extends State<ChatMessagesScreen> {
     Navigator.pushNamed(
       context,
       Routes.chatUserProfile,
-      arguments: {'chatUser': widget.chatUser},
+      arguments: widget.chatUser,
     );
   }
 

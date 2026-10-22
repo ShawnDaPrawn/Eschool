@@ -1,3 +1,4 @@
+import 'package:eschool_teacher/app/routeArguments.dart';
 import 'package:eschool_teacher/app/routes.dart';
 import 'package:eschool_teacher/data/models/exam.dart';
 import 'package:eschool_teacher/utils/labelKeys.dart';
@@ -26,13 +27,12 @@ class HomeContainerExamItemContainer extends StatelessWidget {
         }
         Navigator.of(context).pushNamed(
           Routes.examTimeTable,
-          arguments: {
-            'examID': exam.examID,
-            'examName': exam.examName.toString(),
-            'studentId': null,
-            'classId': exam.classId,
-            'className': exam.className,
-          },
+          arguments: ExamTimeTableArguments(
+            examId: exam.examID!,
+            examName: exam.examName.toString(),
+            classId: exam.classId!,
+            className: exam.className!,
+          ),
         );
       },
       child: Container(

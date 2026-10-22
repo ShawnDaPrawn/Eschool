@@ -1,14 +1,8 @@
 import 'package:eschool_teacher/app/routes.dart';
-import 'package:eschool_teacher/cubits/gallery/galleryPhotosCubit.dart';
 import 'package:eschool_core/eschool_core.dart';
-import 'package:eschool_teacher/data/models/studyMaterial.dart';
+import 'package:eschool_teacher/data/repositories/systemInfoRepository.dart';
 import 'package:eschool_teacher/ui/widgets/albumGridItemLoadingContainer.dart';
-import 'package:eschool_teacher/ui/widgets/customBackButton.dart';
-import 'package:eschool_teacher/ui/widgets/customImageWidget.dart';
-import 'package:eschool_teacher/ui/widgets/errorContainer.dart';
-import 'package:eschool_teacher/ui/widgets/screenTopBackgroundContainer.dart';
 import 'package:eschool_teacher/utils/uiUtils.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -21,11 +15,13 @@ class GalleryAlbumPhotosScreen extends StatefulWidget {
       _GalleryAlbumPhotosScreenState();
 
   static Route route(RouteSettings routeSettings) {
-    final arguments = routeSettings.arguments! as Map<String, dynamic>;
-    final album = arguments['album'] as GalleryAlbum;
-    return CupertinoPageRoute(
+    final album = routeSettings.arguments! as GalleryAlbum;
+    return AdaptivePageRoute(
       builder: (context) => BlocProvider(
-        create: (context) => GalleryAlbumPhotosCubit(album: album),
+        create: (context) => GalleryAlbumPhotosCubit(
+          album: album,
+          galleryRepository: SystemRepository(),
+        ),
         child: GalleryAlbumPhotosScreen(album: album),
       ),
     );
@@ -94,16 +90,14 @@ class _GalleryAlbumPhotosScreenState extends State<GalleryAlbumPhotosScreen> {
                 onTap: () {
                   Navigator.of(context).pushNamed(
                     Routes.imageFileView,
-                    arguments: {
-                      'studyMaterial': StudyMaterial.fromURL(
-                        state.photos[index],
-                      ),
-                      'multiStudyMaterial': state.photos
+                    arguments: ImageFileViewArguments(
+                      studyMaterial: StudyMaterial.fromURL(state.photos[index]),
+                      multiStudyMaterial: state.photos
                           .map<StudyMaterial>((e) => StudyMaterial.fromURL(e))
                           .toList(),
-                      'title': widget.album.title,
-                      'initialPage': index,
-                    },
+                      title: widget.album.title,
+                      initialPage: index,
+                    ),
                   );
                 },
                 child: ClipRRect(

@@ -6,21 +6,28 @@
 
 @section('css')
     <style>
+        /* Recipient counts in the tabs: the M3 large badge shape (16px,
+           full round, label-small); tonal on an inactive tab, primary on the
+           active one. */
         .recipients-tab-badge {
-            min-width: 1.5rem;
-            padding: 0.2rem 0.5rem;
-            font-size: 0.7rem;
-            font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 16px;
+            height: 16px;
+            padding: 0 4px;
+            border: 0;
+            border-radius: var(--md-sys-shape-corner-full);
+            font-size: var(--md-sys-typescale-label-small-size);
+            font-weight: var(--md-sys-typescale-label-small-weight);
             line-height: 1;
-            background-color: color-mix(in srgb, var(--md-sys-color-primary) 14%, transparent);
-            color: var(--md-sys-color-primary);
-            border: 1px solid color-mix(in srgb, var(--md-sys-color-primary) 25%, transparent);
+            background-color: var(--md-sys-color-secondary-container);
+            color: var(--md-sys-color-on-secondary-container);
         }
 
         #recipientsTabs .nav-link.active .recipients-tab-badge {
             background-color: var(--md-sys-color-primary);
-            color: #fff;
-            border-color: var(--md-sys-color-primary);
+            color: var(--md-sys-color-on-primary);
         }
     </style>
 @endsection
@@ -95,15 +102,15 @@
                     <div class="card-body">
                         <h4 class="card-title">{{ __('recipients') }}</h4>
 
-                        <div id="recipients_empty_state" class="text-center" style="padding: 2.5rem 1rem; color: #8c8c8c;">
+                        <div id="recipients_empty_state" class="text-center" style="padding: 2.5rem 1rem; color: var(--md-sys-color-on-surface-variant);">
                             <div style="font-size: 2.5rem; color: var(--md-sys-color-primary); opacity: 0.8;">
                                 <i class="fa fa-users"></i>
                             </div>
-                            <h5 id="recipients_empty_title" class="mt-3" style="color: #343a40; font-weight: 600;">
+                            <h5 id="recipients_empty_title" class="mt-3" style="color: var(--md-sys-color-on-surface); font-weight: 500;">
                                 {{ __('select_a_recipient_group') }}
                             </h5>
                             <p id="recipients_empty_message" class="mb-0"
-                                style="color: rgba(27, 27, 27, 0.7); max-width: 320px; margin-left: auto; margin-right: auto;">
+                                style="color: var(--md-sys-color-on-surface-variant); max-width: 320px; margin-left: auto; margin-right: auto;">
                                 {{ __('choose_recipient_group_help') }}
                             </p>
                         </div>
@@ -534,10 +541,10 @@
             var email = row.email || '';
             return '<div class="d-flex align-items-center">' +
                 '<img src="' + img + '" alt="" onerror="onErrorImage(event)" ' +
-                'style="width: 36px; height: 36px; border-radius: 50%; object-fit: cover; margin-right: 12px; border: 1px solid rgba(27,27,27,0.08);">' +
+                'style="width: 36px; height: 36px; border-radius: 50%; object-fit: cover; margin-right: 12px; border: 1px solid var(--md-sys-color-outline-variant);">' +
                 '<div>' +
-                '<div style="font-weight: 600; color: #343a40;">' + $('<div>').text(name.trim()).html() + '</div>' +
-                '<div style="font-size: 0.8rem; color: #8c8c8c;">' + $('<div>').text(email).html() + '</div>' +
+                '<div style="font-weight: 500; color: var(--md-sys-color-on-surface);">' + $('<div>').text(name.trim()).html() + '</div>' +
+                '<div style="font-size: 0.8rem; color: var(--md-sys-color-on-surface-variant);">' + $('<div>').text(email).html() + '</div>' +
                 '</div>' +
                 '</div>';
         }

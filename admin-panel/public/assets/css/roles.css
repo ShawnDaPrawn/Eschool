@@ -33,13 +33,13 @@
     margin-bottom: 1rem;
     background: color-mix(in srgb, var(--md-sys-color-primary) 5%, var(--md-sys-color-surface-container-lowest));
     border: 1px solid var(--md-sys-color-outline-variant);
-    border-radius: 12px;
+    border-radius: var(--app-radius);
 }
 
 .permission-groups__toolbar-label {
     display: flex;
     align-items: center;
-    gap: 0.5rem;
+    gap: 12px;
     margin: 0;
     cursor: pointer;
     font-family: var(--md-ref-typeface-plain);
@@ -54,30 +54,9 @@
     gap: 0.5rem;
 }
 
-/* Expand/collapse toggle — a single neutral ghost button (white, hairline, muted →
-   theme on hover), the same language as the topbar / table-toolbar actions. Its
-   label swaps in JS; the leading chevron flips on the open state (below). */
-.permission-groups__action-btn {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.35rem;
-    padding: 0.3rem 0.7rem;
-    font-size: 0.8125rem;
-    font-family: var(--md-ref-typeface-plain);
-    font-weight: 500;
-    color: var(--md-sys-color-on-surface-variant);
-    background: var(--md-sys-color-surface-container-lowest);
-    border: 1px solid var(--md-sys-color-outline-variant);
-    border-radius: 8px;
-    cursor: pointer;
-    transition: color 0.2s ease, border-color 0.2s ease, background 0.2s ease;
-}
-
-.permission-groups__action-btn:hover {
-    color: var(--md-sys-color-primary);
-    border-color: color-mix(in srgb, var(--md-sys-color-primary) 30%, transparent);
-    background: color-mix(in srgb, var(--md-sys-color-primary) 6%, var(--md-sys-color-surface-container-lowest));
-}
+/* Expand/collapse toggle: an M3 outlined small button (.btn .btn-outline-primary
+   .btn-sm in the markup). Its label swaps in JS; the leading chevron flips on the
+   open state (below). */
 
 /* Leading chevron — points down when all groups are collapsed, rotates 180° to
    point up once they're expanded (mirrors the per-group .card-header__toggle). */
@@ -115,20 +94,15 @@
     }
 }
 
-/* Group card — a nested mini-card: one radius notch below the outer .card (12px),
-   hairline border + the resting card shadow. No hover-lift (it's a form control,
-   not a navigational card) — overrides the global .card:hover. */
+/* Group card — an M3 outlined card (10px, hairline border, no shadow, no
+   hover lift). */
 .permission-accordion .card {
     margin-bottom: 0;
     overflow: hidden;
     border: 1px solid var(--md-sys-color-outline-variant);
-    border-radius: 12px;
-    box-shadow: var(--md-sys-elevation-level1);
-    transition: border-color 0.2s ease, box-shadow 0.2s ease;
-}
-
-.permission-accordion .card:hover {
-    box-shadow: var(--md-sys-elevation-level1);
+    border-radius: var(--app-radius);
+    box-shadow: none;
+    transition: border-color 0.2s ease;
 }
 
 /* Bootstrap's stock accordion squares off corners so stacked cards read as one
@@ -136,12 +110,12 @@
    `:not(:first-of-type)` drops the top radii (specificity 0,3,0, beating the
    0,2,0 rule above). But these cards sit in a 2-column grid, not a vertical
    stack — so the first card ended up flat-bottomed, the last flat-topped and the
-   middle ones fully square. Re-assert the full 12px radius on every corner at
+   middle ones fully square. Re-assert the full radius on every corner at
    matching specificity (roles.css loads after style.css, so it wins on order). */
 .permission-accordion.accordion>.card,
 .permission-accordion.accordion>.card:not(:first-of-type),
 .permission-accordion.accordion>.card:not(:last-of-type) {
-    border-radius: 12px;
+    border-radius: var(--app-radius);
 }
 
 /* A group with selections gets a theme-tinted edge. */
@@ -162,13 +136,13 @@
 }
 
 .permission-accordion .card-header:hover {
-    background: color-mix(in srgb, var(--md-sys-color-primary) 5%, var(--md-sys-color-surface-container-lowest));
+    background: color-mix(in srgb, var(--md-sys-color-on-surface) var(--md-sys-state-hover-opacity), var(--md-sys-color-surface-container-lowest));
 }
 
 .permission-accordion .card-header .permission-group__header-label {
     display: flex;
     align-items: center;
-    gap: 0.5rem;
+    gap: 12px;
     min-width: 0;
     margin: 0;
     cursor: pointer;
@@ -209,20 +183,38 @@
     border-color: color-mix(in srgb, var(--md-sys-color-primary) 25%, transparent);
 }
 
-/* Collapse chevron — muted → theme on hover, rotates 180° when open. */
+/* Collapse chevron — an M3 icon button (32px, the small size that fits the
+   header row) in on-surface-variant with its state layer; rotates 180° when
+   open. */
 .card-header__toggle {
     flex-shrink: 0;
-    padding: 0.25rem 0.35rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    margin: -4px;
+    padding: 0;
     background: transparent;
     border: 0;
+    border-radius: var(--md-sys-shape-corner-full);
     line-height: 1;
     color: var(--md-sys-color-on-surface-variant);
     cursor: pointer;
-    transition: transform 0.2s ease, color 0.2s ease;
+    transition: transform 0.2s ease, background-color 0.15s ease;
 }
 
 .card-header__toggle:hover {
-    color: var(--md-sys-color-primary);
+    background: color-mix(in srgb, var(--md-sys-color-on-surface-variant) var(--md-sys-state-hover-opacity), transparent);
+}
+
+.card-header__toggle:focus {
+    outline: 0;
+}
+
+.card-header__toggle:focus-visible {
+    outline: 3px solid var(--md-sys-color-secondary);
+    outline-offset: 2px;
 }
 
 .card-header__toggle[aria-expanded="true"] {
@@ -231,8 +223,8 @@
 
 .card-header__toggle-icon {
     display: block;
-    width: 14px;
-    height: 14px;
+    width: 20px;
+    height: 20px;
 }
 
 .permission-accordion .card-body {
@@ -258,7 +250,7 @@
 .permission-group__item-label {
     display: flex;
     align-items: center;
-    gap: 0.5rem;
+    gap: 12px;
     margin: 0;
     cursor: pointer;
     font-size: 0.875rem;
@@ -273,16 +265,14 @@
     white-space: nowrap;
 }
 
-/* Custom checkbox — neutral box when unchecked, theme fill when checked.
-   (Kept from the recent permission-checkbox design; softened radius to 5px and
-   added the form-field focus glow for keyboard a11y.)
+/* M3 checkbox on the native input: an 18px box with 2px corners and a 2px
+   on-surface-variant outline; checked / indeterminate fill with primary and
+   show the on-primary tick or dash. Hover and keyboard focus show the 40px
+   circular state layer (on-surface, or primary when checked); keyboard
+   focus also gets the secondary focus outline.
 
-   The resting border is a NEUTRAL gray (the form-field border tone), NOT the
-   theme color: muted/light themes like #a59b5b render a theme-tinted outline at
-   near-zero contrast against the white/cream card, so an unchecked box read as
-   "disappeared". The theme color is reserved for the checked/indeterminate fill
-   (set below), which is the standard checkbox pattern and stays visible at any
-   brand color. */
+   The tick and dash are white, the value of --md-sys-color-on-primary,
+   written out because a data URI can't read CSS variables. */
 .permission-groups__toolbar-input,
 .permission-group__header-input,
 .permission-group__item-input {
@@ -293,25 +283,73 @@
     width: 18px;
     height: 18px;
     margin: 0;
-    border: 2px solid var(--md-sys-color-outline);
-    border-radius: 5px;
-    background-color: var(--md-sys-color-surface-container-lowest);
+    border: 2px solid var(--md-sys-color-on-surface-variant);
+    border-radius: 2px;
+    background-color: transparent;
     background-repeat: no-repeat;
     background-position: center;
     background-size: 14px 14px;
     cursor: pointer;
-    transition: background-color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+    transition: background-color 0.15s ease, border-color 0.15s ease;
+}
+
+.permission-groups__toolbar-input:focus,
+.permission-group__header-input:focus,
+.permission-group__item-input:focus {
+    outline: 0;
 }
 
 .permission-groups__toolbar-input:focus-visible,
 .permission-group__header-input:focus-visible,
 .permission-group__item-input:focus-visible {
-    outline: 0;
-    box-shadow: 0 0 0 0.2rem color-mix(in srgb, var(--md-sys-color-primary) 24%, transparent);
+    outline: 3px solid var(--md-sys-color-secondary);
+    outline-offset: 2px;
 }
 
-/* The tick and dash are white, the value of --md-sys-color-on-primary,
-   written out because a data URI can't read CSS variables. */
+/* The 40px circular state layer behind the box: a ::before on the label,
+   centred on the checkbox (which sits at the label's inline start). */
+.permission-groups__toolbar-label,
+.permission-accordion .card-header .permission-group__header-label,
+.permission-group__item-label {
+    position: relative;
+    z-index: 0;
+}
+
+.permission-groups__toolbar-label::before,
+.permission-accordion .card-header .permission-group__header-label::before,
+.permission-group__item-label::before {
+    content: "";
+    position: absolute;
+    z-index: -1;
+    top: 50%;
+    inset-inline-start: -11px;
+    width: 40px;
+    height: 40px;
+    margin-top: -20px;
+    border-radius: var(--md-sys-shape-corner-full);
+    background: transparent;
+    pointer-events: none;
+    transition: background-color 0.15s ease;
+}
+
+.permission-groups__toolbar-label:hover::before,
+.permission-accordion .card-header .permission-group__header-label:hover::before,
+.permission-group__item-label:hover::before {
+    background: color-mix(in srgb, var(--md-sys-color-on-surface) var(--md-sys-state-hover-opacity), transparent);
+}
+
+.permission-groups__toolbar-label:hover:has(input:is(:checked, :indeterminate))::before,
+.permission-accordion .card-header .permission-group__header-label:hover:has(input:is(:checked, :indeterminate))::before,
+.permission-group__item-label:hover:has(input:checked)::before {
+    background: color-mix(in srgb, var(--md-sys-color-primary) var(--md-sys-state-hover-opacity), transparent);
+}
+
+.permission-groups__toolbar-label:has(input:focus-visible)::before,
+.permission-accordion .card-header .permission-group__header-label:has(input:focus-visible)::before,
+.permission-group__item-label:has(input:focus-visible)::before {
+    background: color-mix(in srgb, var(--md-sys-color-on-surface) var(--md-sys-state-focus-opacity), transparent);
+}
+
 .permission-groups__toolbar-input:checked,
 .permission-group__header-input:checked,
 .permission-group__item-input:checked {
@@ -330,8 +368,8 @@
 .permission-groups__toolbar-input:not(:checked):not(:indeterminate),
 .permission-group__header-input:not(:checked):not(:indeterminate),
 .permission-group__item-input:not(:checked):not(:indeterminate) {
-    background-color: var(--md-sys-color-surface-container-lowest);
-    border-color: var(--md-sys-color-outline);
+    background-color: transparent;
+    border-color: var(--md-sys-color-on-surface-variant);
     background-image: none;
 }
 
@@ -348,7 +386,7 @@
     margin-bottom: 1.25rem;
     background: color-mix(in srgb, var(--md-sys-color-primary) 5%, var(--md-sys-color-surface-container-lowest));
     border: 1px solid var(--md-sys-color-outline-variant);
-    border-radius: 12px;
+    border-radius: var(--app-radius);
 }
 
 .role-permissions__role-name {
@@ -402,8 +440,7 @@
     overflow: hidden;
     background: var(--md-sys-color-surface-container-lowest);
     border: 1px solid var(--md-sys-color-outline-variant);
-    border-radius: 12px;
-    box-shadow: var(--md-sys-elevation-level1);
+    border-radius: var(--app-radius);
 }
 
 .role-permissions__card-header {
@@ -441,20 +478,23 @@
     padding: 0.875rem 1rem;
 }
 
-/* Permission chip — soft neutral badge with a theme status dot. */
+/* Permission chip — an M3 assist chip (32px, 8px corners, outline-variant
+   border, label-large) with a primary dot as its leading icon. */
 .role-permissions__badge {
     display: inline-flex;
     align-items: center;
-    gap: 0.375rem;
-    padding: 0.25rem 0.7rem;
-    font-size: 0.8rem;
+    gap: 8px;
+    min-height: 32px;
+    padding: 0 16px 0 12px;
     font-family: var(--md-ref-typeface-plain);
-    font-weight: 500;
-    line-height: 1.4;
+    font-size: var(--md-sys-typescale-label-large-size);
+    line-height: var(--md-sys-typescale-label-large-line-height);
+    font-weight: var(--md-sys-typescale-label-large-weight);
+    letter-spacing: var(--md-sys-typescale-label-large-tracking);
     color: var(--md-sys-color-on-surface-variant);
-    background: var(--md-sys-color-surface-container);
+    background: transparent;
     border: 1px solid var(--md-sys-color-outline-variant);
-    border-radius: 8px;
+    border-radius: var(--md-sys-shape-corner-small);
 }
 
 .role-permissions__badge::before {
@@ -471,5 +511,5 @@
     text-align: center;
     color: var(--md-sys-color-on-surface-variant);
     border: 1px dashed var(--md-sys-color-outline-variant);
-    border-radius: 12px;
+    border-radius: var(--app-radius);
 }

@@ -1,3 +1,4 @@
+import 'package:eschool/app/routeArguments.dart';
 import 'package:eschool/app/routes.dart';
 import 'package:eschool/cubits/appConfigurationCubit.dart';
 import 'package:eschool/cubits/authCubit.dart';
@@ -6,23 +7,16 @@ import 'package:eschool/cubits/resultsCubit.dart';
 import 'package:eschool/cubits/resultsOnlineCubit.dart';
 import 'package:eschool/cubits/semestersCubit.dart';
 import 'package:eschool/cubits/studentDashboardCubit.dart';
-import 'package:eschool/data/models/result.dart';
+import 'package:eschool_core/eschool_core.dart';
 import 'package:eschool/data/models/resultOnline.dart';
 import 'package:eschool/data/models/semester.dart';
 import 'package:eschool/data/models/subject.dart';
 import 'package:eschool/ui/widgets/assignmentsSubjectsContainer.dart';
-import 'package:eschool/ui/widgets/customBackButton.dart';
-import 'package:eschool/ui/widgets/customRefreshIndicator.dart';
-import 'package:eschool/ui/widgets/customShimmerContainer.dart';
 import 'package:eschool/ui/widgets/customTabBarContainer.dart';
-import 'package:eschool/ui/widgets/errorContainer.dart';
 import 'package:eschool/ui/widgets/listItemForExamAndResult.dart';
 import 'package:eschool/ui/widgets/listItemForOnlineExamAndOnlineResult.dart';
 import 'package:eschool/ui/widgets/noDataContainer.dart';
-import 'package:eschool/ui/widgets/screenTopBackgroundContainer.dart';
 import 'package:eschool/ui/widgets/semesterFilterBottomsheetContainer.dart';
-import 'package:eschool/ui/widgets/shimmerLoadingContainer.dart';
-import 'package:eschool/ui/widgets/svgButton.dart';
 import 'package:eschool/ui/widgets/tabBarBackgroundContainer.dart';
 import 'package:eschool/utils/assets.dart';
 import 'package:eschool/utils/labelKeys.dart';
@@ -281,7 +275,10 @@ class _ResultsContainerState extends State<ResultsContainer> {
           onItemTap: () {
             Navigator.of(context).pushNamed(
               Routes.result,
-              arguments: {'childId': widget.childId, 'result': result},
+              arguments: ResultArguments(
+                childId: widget.childId,
+                result: result,
+              ),
             );
           },
         ),
@@ -472,16 +469,16 @@ class _ResultsContainerState extends State<ResultsContainer> {
       onItemTap: () {
         Navigator.of(context).pushNamed(
           Routes.resultOnline,
-          arguments: {
-            'examId': result.examId,
-            'examName': result.examName,
-            'subjectName': result.subject.showType
+          arguments: ResultOnlineArguments(
+            examId: result.examId,
+            examName: result.examName,
+            subjectName: result.subject.showType
                 ? result.subject.subjectNameWithType
                 : result.subject.name,
-            'childId': widget.childId,
-            'totalMarks': result.totalMarks,
-            'obtainedMarks': result.obtainedMarks,
-          },
+            childId: widget.childId,
+            totalMarks: result.totalMarks,
+            obtainedMarks: result.obtainedMarks,
+          ),
         );
       },
     );

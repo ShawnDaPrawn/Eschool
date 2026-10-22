@@ -9,15 +9,8 @@ import 'package:eschool_teacher/ui/screens/assignment/widgets/rejectAssignmentBo
 import 'package:eschool_teacher/ui/screens/chat/widget/messageItemComponents.dart';
 import 'package:eschool_teacher/ui/widgets/attachmentsBottomsheetContainer.dart';
 import 'package:eschool_teacher/ui/widgets/customAppbar.dart';
-import 'package:eschool_teacher/ui/widgets/customRefreshIndicator.dart';
-import 'package:eschool_teacher/ui/widgets/customShimmerContainer.dart';
-import 'package:eschool_teacher/ui/widgets/customUserProfileImageWidget.dart';
-import 'package:eschool_teacher/ui/widgets/errorContainer.dart';
-import 'package:eschool_teacher/ui/widgets/shimmerLoadingContainer.dart';
-import 'package:eschool_teacher/utils/animationConfiguration.dart';
 import 'package:eschool_teacher/utils/labelKeys.dart';
 import 'package:eschool_teacher/utils/uiUtils.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
@@ -28,8 +21,7 @@ class AssignmentScreen extends StatefulWidget {
   final Assignment assignment;
 
   static Route<dynamic> route(RouteSettings routeSettings) {
-    final arguments = routeSettings.arguments! as Map<String, dynamic>;
-    return CupertinoPageRoute(
+    return AdaptivePageRoute(
       builder: (_) => MultiBlocProvider(
         providers: [
           BlocProvider<ReviewAssignmentCubit>(
@@ -37,7 +29,9 @@ class AssignmentScreen extends StatefulWidget {
                 ReviewAssignmentCubit(ReviewAssignmentRepository()),
           ),
         ],
-        child: AssignmentScreen(assignment: arguments['assignment']),
+        child: AssignmentScreen(
+          assignment: routeSettings.arguments! as Assignment,
+        ),
       ),
     );
   }

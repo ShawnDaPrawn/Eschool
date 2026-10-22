@@ -63,6 +63,17 @@ class WorkerHealthTest extends TestCase
         $this->getJson('/up/worker')->assertOk();
     }
 
+    public function test_a_job_left_reserved_by_a_crashed_worker_counts_once_its_reservation_expires(): void
+    {
+        $retryAfter = (int) config('queue.connections.database.retry_after');
+        $this->queueJob(availableSecondsAgo: 3600, reservedSecondsAgo: $retryAfter + 900);
+
+        $response = $this->getJson('/up/worker');
+
+        $response->assertStatus(503)->assertJson(['status' => 'stalled']);
+        $this->assertGreaterThanOrEqual(900, $response->json('oldest_wait_seconds'));
+    }
+
     public function test_without_a_database_queue_there_is_nothing_to_wait_for(): void
     {
         config(['queue.default' => 'sync']);
@@ -122,14 +133,15 @@ class WorkerHealthTest extends TestCase
         $this->assertNull(Context::get('job'));
     }
 
-    private function queueJob(int $availableSecondsAgo, bool $reserved = false): void
+    private function queueJob(int $availableSecondsAgo, bool $reserved = false, ?int $reservedSecondsAgo = null): void
     {
         $now = now()->getTimestamp();
+        $reservedAt = $reservedSecondsAgo !== null ? $now - $reservedSecondsAgo : ($reserved ? $now : null);
         DB::table('jobs')->insert([
             'queue' => 'default',
             'payload' => '{}',
-            'attempts' => $reserved ? 1 : 0,
-            'reserved_at' => $reserved ? $now : null,
+            'attempts' => $reservedAt !== null ? 1 : 0,
+            'reserved_at' => $reservedAt,
             'available_at' => $now - $availableSecondsAgo,
             'created_at' => $now - max($availableSecondsAgo, 0),
         ]);

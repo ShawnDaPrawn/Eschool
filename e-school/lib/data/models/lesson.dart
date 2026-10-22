@@ -1,5 +1,4 @@
-import 'package:eschool/data/models/studyMaterial.dart';
-import 'package:eschool/data/models/topic.dart';
+import 'package:eschool_core/eschool_core.dart';
 
 class Lesson {
   Lesson({

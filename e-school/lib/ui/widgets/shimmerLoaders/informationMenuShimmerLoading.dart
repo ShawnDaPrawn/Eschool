@@ -1,5 +1,4 @@
-import 'package:eschool/ui/widgets/customShimmerContainer.dart';
-import 'package:eschool/ui/widgets/shimmerLoadingContainer.dart';
+import 'package:eschool_core/eschool_core.dart';
 import 'package:flutter/cupertino.dart';
 
 class InformationMenuShimmerContainer extends StatelessWidget {

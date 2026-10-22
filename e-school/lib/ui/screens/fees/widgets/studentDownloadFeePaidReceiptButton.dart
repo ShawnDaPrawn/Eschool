@@ -5,7 +5,6 @@ import 'package:eschool/utils/labelKeys.dart';
 import 'package:eschool/utils/uiUtils.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:open_filex/open_filex.dart';
 
 class StudentDownloadFeePaidReceiptButton extends StatelessWidget {
   const StudentDownloadFeePaidReceiptButton({
@@ -60,8 +59,8 @@ class StudentDownloadFeePaidReceiptButton extends StatelessWidget {
             backgroundColor: Theme.of(context).colorScheme.primary,
           );
           try {
-            final fileOpenResult = await OpenFilex.open(state.filePath);
-            if (fileOpenResult.type != ResultType.done) {
+            final bool opened = await DeviceFiles.open(state.filePath);
+            if (!opened) {
               UiUtils.showCustomSnackBar(
                 context: context,
                 errorMessage: UiUtils.getTranslatedLabel(

@@ -15,10 +15,10 @@
                 <span>{{ __('select_all') }}</span>
             </label>
             <div class="permission-groups__toolbar-actions">
-                <button type="button" class="permission-groups__action-btn" data-permission-toggle-all
+                <button type="button" class="btn btn-outline-primary btn-sm permission-groups__action-btn" data-permission-toggle-all
                     data-label-expand="{{ __('expand_all') }}" data-label-collapse="{{ __('collapse_all') }}"
                     aria-expanded="false">
-                    <x-icon name="chevron-down" :size="14" class="permission-groups__action-icon" />
+                    <x-icon name="chevron-down" :size="18" class="permission-groups__action-icon" />
                     <span data-permission-toggle-label>{{ __('expand_all') }}</span>
                 </button>
                 <span class="permission-groups__counter">

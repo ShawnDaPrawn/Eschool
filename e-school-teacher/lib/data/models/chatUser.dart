@@ -1,13 +1,16 @@
 // ignore_for_file: public_member_api_docs, sort_constructors_first
+import 'package:eschool_notifications/eschool_notifications.dart';
 import 'dart:convert';
 
-import 'package:eschool_teacher/data/models/chatMessage.dart';
+import 'package:eschool_core/eschool_core.dart';
 
-class ChatUser {
+class ChatUser implements ChatSender {
   int id;
+  @override
   int userId;
   String firstName;
   String lastName;
+  @override
   String profileUrl;
   List<String>? subjectNames;
   ChatMessage? lastMessage;
@@ -35,6 +38,7 @@ class ChatUser {
   }
 
   bool get hasUnreadMessages => unreadNotificationsCount != 0;
+  @override
   String get userName => '$firstName $lastName';
 
   ChatUser({
@@ -129,6 +133,7 @@ class ChatUser {
     );
   }
 
+  @override
   Map<String, dynamic> toMap() {
     return <String, dynamic>{
       'id': id,

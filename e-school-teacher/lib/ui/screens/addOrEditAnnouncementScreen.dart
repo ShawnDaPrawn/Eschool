@@ -1,17 +1,15 @@
+import 'package:eschool_teacher/app/routeArguments.dart';
 import 'package:eschool_teacher/cubits/createAnnouncementCubit.dart';
 import 'package:eschool_teacher/cubits/dashboardCubit.dart';
 import 'package:eschool_teacher/cubits/editAnnouncementCubit.dart';
 import 'package:eschool_teacher/cubits/subjectsOfClassSectionCubit.dart';
-import 'package:eschool_teacher/data/models/announcement.dart';
+import 'package:eschool_core/eschool_core.dart';
 import 'package:eschool_teacher/data/models/classSectionDetails.dart';
-import 'package:eschool_teacher/data/models/studyMaterial.dart';
 import 'package:eschool_teacher/data/models/subject.dart';
 import 'package:eschool_teacher/data/repositories/announcementRepository.dart';
 import 'package:eschool_teacher/data/repositories/teacherRepository.dart';
 import 'package:eschool_teacher/ui/widgets/addedFileContainer.dart';
 import 'package:eschool_teacher/ui/widgets/announcementAttachmentContainer.dart';
-import 'package:eschool_teacher/ui/widgets/bottomSheetTextFieldContainer.dart';
-import 'package:eschool_core/eschool_core.dart';
 import 'package:eschool_teacher/ui/widgets/classSubjectsDropDownMenu.dart';
 import 'package:eschool_teacher/ui/widgets/customAppbar.dart';
 import 'package:eschool_teacher/ui/widgets/customDropDownMenu.dart';
@@ -20,7 +18,6 @@ import 'package:eschool_teacher/ui/widgets/myClassesDropDownMenu.dart';
 import 'package:eschool_teacher/utils/labelKeys.dart';
 import 'package:eschool_teacher/utils/uiUtils.dart';
 import 'package:file_picker/file_picker.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:permission_handler/permission_handler.dart';
@@ -38,9 +35,9 @@ class AddOrEditAnnouncementScreen extends StatefulWidget {
 
   static Route<bool?> route(RouteSettings routeSettings) {
     final arguments =
-        (routeSettings.arguments ?? Map<String, dynamic>.from({}))
-            as Map<String, dynamic>;
-    return CupertinoPageRoute(
+        routeSettings.arguments as AddOrEditAnnouncementArguments? ??
+        const AddOrEditAnnouncementArguments();
+    return AdaptivePageRoute(
       builder: (_) => MultiBlocProvider(
         providers: [
           BlocProvider(
@@ -57,9 +54,9 @@ class AddOrEditAnnouncementScreen extends StatefulWidget {
           ),
         ],
         child: AddOrEditAnnouncementScreen(
-          announcement: arguments['announcement'],
-          subject: arguments['subject'],
-          classSectionDetails: arguments['classSectionDetails'],
+          announcement: arguments.announcement,
+          subject: arguments.subject,
+          classSectionDetails: arguments.classSectionDetails,
         ),
       ),
     );
@@ -123,6 +120,9 @@ class _AddOrEditAnnouncementScreenState
   }
 
   Future<void> addAttachment() async {
+    if (UiUtils.showMobileOnlyNotice(context)) {
+      return;
+    }
     final permission = await Permission.storage.request();
     if (permission.isGranted) {
       final pickedFile = await FilePicker.pickFiles();

@@ -45,9 +45,9 @@
                         <div class="d-flex justify-content-between align-items-center">
                             <h4 class="card-title mb-0">{{ __('class_assignment_configuration') }}</h4>
                             @if (Auth::user()->can('semester-edit'))
-                                <button type="button" class="btn btn-sm btn-theme-soft d-inline-flex align-items-center"
+                                <button type="button" class="btn btn-sm btn-theme-soft"
                                     id="btn-configure-classes">
-                                    <x-icon name="settings" :size="16" class="mr-1" />
+                                    <x-icon name="settings" :size="18" />
                                     {{ __('configure_classes') }}
                                 </button>
                             @endif
@@ -125,7 +125,7 @@
         <div class="modal fade" id="configureClassesModal" tabindex="-1" role="dialog" aria-hidden="true">
             <div class="modal-dialog modal-dialog-centered" role="document">
                 <div class="modal-content">
-                    <div class="modal-header border-bottom remove-bottom-padding">
+                    <div class="modal-header remove-bottom-padding">
                         <div>
                             <h5 class="modal-title">{{ __('configure_class_assignment') }}</h5>
                             <p class="text-muted mb-0 mt-1 small">

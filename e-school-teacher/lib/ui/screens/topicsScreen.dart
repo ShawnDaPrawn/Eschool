@@ -9,15 +9,13 @@ import 'package:eschool_teacher/data/repositories/topicRepository.dart';
 import 'package:eschool_teacher/ui/widgets/classSubjectsDropDownMenu.dart';
 import 'package:eschool_teacher/ui/widgets/customAppbar.dart';
 import 'package:eschool_teacher/ui/widgets/customDropDownMenu.dart';
-import 'package:eschool_teacher/ui/widgets/customFloatingActionButton.dart';
-import 'package:eschool_teacher/ui/widgets/customRefreshIndicator.dart';
+import 'package:eschool_core/eschool_core.dart';
 import 'package:eschool_teacher/ui/widgets/defaultDropDownLabelContainer.dart';
 import 'package:eschool_teacher/ui/widgets/myClassesDropDownMenu.dart';
 import 'package:eschool_teacher/ui/widgets/noDataContainer.dart';
 import 'package:eschool_teacher/ui/widgets/topicsContainer.dart';
 import 'package:eschool_teacher/utils/labelKeys.dart';
 import 'package:eschool_teacher/utils/uiUtils.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -25,7 +23,7 @@ class TopicsScreen extends StatefulWidget {
   const TopicsScreen({super.key});
 
   static Route<dynamic> route(RouteSettings routeSettings) {
-    return CupertinoPageRoute(
+    return AdaptivePageRoute(
       builder: (_) => MultiBlocProvider(
         providers: [
           BlocProvider(create: (context) => LessonsCubit(LessonRepository())),

@@ -60,13 +60,29 @@ jobs:
         run: php artisan config:cache && php artisan route:cache && php artisan view:cache && php artisan optimize:clear
       - run: php artisan test
 
+  openapi:
+    name: OpenAPI contract (lint)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: admin-panel
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      # admin-panel/openapi.yaml is the API v2 contract. redocly.yaml sets the
+      # rules (recommended-strict): any warning fails. The responses are checked
+      # against it by tests/Feature/Contracts in the admin-panel job.
+      - run: npx --yes @redocly/cli@2.57.0 lint openapi.yaml
+
   apps:
     name: Flutter app (${{ matrix.app }})
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
-        app: [e-school, e-school-teacher, packages/eschool_core]
+        app: [e-school, e-school-teacher, packages/eschool_core, packages/eschool_api, packages/eschool_session, packages/eschool_notifications]
     defaults:
       run:
         working-directory: ${{ matrix.app }}
@@ -78,9 +94,124 @@ jobs:
           channel: stable
           cache: true
       - run: flutter pub get --enforce-lockfile
+      # packages/eschool_api is generated from admin-panel/openapi.yaml: regenerate
+      # it and fail if the committed code differs (or files were added or removed).
+      - if: matrix.app == 'packages/eschool_api'
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+      - if: matrix.app == 'packages/eschool_api'
+        name: Generated client matches openapi.yaml
+        run: |
+          tool/generate.sh
+          if [ -n "$(git status --porcelain -- .)" ]; then
+            git status --short -- .
+            git diff -- . | head -200
+            echo "::error::packages/eschool_api is out of date: run packages/eschool_api/tool/generate.sh and commit the result"
+            exit 1
+          fi
       # Style-only "info" lints are reported but don't fail the build; errors and warnings do.
       - run: flutter analyze --no-fatal-infos
       - run: flutter test
+
+  apps-web:
+    name: Flutter web build (${{ matrix.app }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        app: [e-school, e-school-teacher]
+    defaults:
+      run:
+        working-directory: ${{ matrix.app }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.44.9'
+          channel: stable
+          cache: true
+      - run: flutter pub get --enforce-lockfile
+      # The same build the deploy workflow makes, with the staging settings.
+      - run: flutter build web --release --dart-define-from-file=config/staging.json
+
+  # The integration_test/ smoke flows (sign in, land on home, open one screen)
+  # against the fake API in integration_test/support/fixtures.dart: no server.
+  apps-smoke-android:
+    name: Flutter smoke flows on Android (${{ matrix.app }})
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    strategy:
+      fail-fast: false
+      matrix:
+        app: [e-school, e-school-teacher]
+    steps:
+      - uses: actions/checkout@v4
+      # Hardware acceleration for the emulator on GitHub's Linux runners.
+      - name: Enable KVM
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.44.9'
+          channel: stable
+          cache: true
+      - run: flutter pub get --enforce-lockfile
+        working-directory: ${{ matrix.app }}
+      - uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 34
+          arch: x86_64
+          target: google_apis
+          profile: pixel_6
+          disable-animations: true
+          emulator-options: -no-snapshot-save -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim
+          working-directory: ${{ matrix.app }}
+          script: flutter test integration_test
+
+  apps-smoke-chrome:
+    name: Flutter smoke flow in Chrome (${{ matrix.flow }})
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - app: e-school
+            flow: learner_smoke_test.dart
+          - app: e-school
+            flow: parent_smoke_test.dart
+          - app: e-school-teacher
+            flow: teacher_smoke_test.dart
+    defaults:
+      run:
+        working-directory: ${{ matrix.app }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.44.9'
+          channel: stable
+          cache: true
+      - run: flutter pub get --enforce-lockfile
+      # The runner image ships Chrome with a matching chromedriver.
+      - name: Start chromedriver
+        run: |
+          "$CHROMEWEBDRIVER/chromedriver" --port=4444 &
+          sleep 2
+      - run: >-
+          flutter drive
+          --driver=test_driver/integration_test.dart
+          --target=integration_test/${{ matrix.flow }}
+          -d web-server --browser-name=chrome --headless
+          --no-web-resources-cdn
 
   docs:
     name: Documentation build

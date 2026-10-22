@@ -28,6 +28,10 @@
     --btn-hover-elevation: none;
 }
 
+.btn-icon {
+    --btn-content: var(--md-sys-color-on-surface-variant);
+}
+
 .btn-primary,
 .btn-theme,
 .btn-gradient-primary {
@@ -144,6 +148,11 @@
     text-decoration: none;
     vertical-align: middle;
     transition: background-color 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+}
+
+/* With a leading icon, M3 pads the start by 16px. */
+.btn.btn:not(.btn-icon):not(.btn-sm):not(.btn-xs):has(> svg:first-child, > i:first-child) {
+    padding-inline-start: 16px;
 }
 
 /* <input type="submit" class="btn"> can't be a flex box. */
@@ -486,6 +495,12 @@ label.error,
     border-end-end-radius: 0;
     border-start-start-radius: var(--app-radius);
     border-end-start-radius: var(--app-radius);
+}
+
+.input-group>.input-group-append>.input-group-text,
+.input-group>.input-group-prepend>.input-group-text {
+    border-color: var(--md-sys-color-outline);
+    color: var(--md-sys-color-on-surface-variant);
 }
 
 .input-group-text {
@@ -950,6 +965,18 @@ input[type="radio"] {
     background: var(--md-sys-color-primary);
 }
 
+.nav-tabs .nav-item:first-child .nav-link,
+.nav-tabs .nav-item:last-child .nav-link {
+    border-radius: 0;
+}
+
+/* The template boxes the tab panel; M3 tabs sit straight on the surface. */
+.nav-tabs+.tab-content {
+    padding: 24px 0 0;
+    border: 0;
+    text-align: start;
+}
+
 .nav-tabs .nav-link.disabled {
     background: transparent;
     color: color-mix(in srgb, var(--md-sys-color-on-surface) var(--md-sys-state-disabled-content-opacity), transparent);
@@ -1050,6 +1077,7 @@ input[type="radio"] {
 
 .modal .modal-dialog .modal-content .modal-body {
     padding: 0 24px 8px;
+    background-color: transparent;
     color: var(--md-sys-color-on-surface);
     font-size: var(--md-sys-typescale-body-medium-size);
 }

@@ -3,7 +3,7 @@ import 'package:eschool/data/models/parent.dart';
 import 'package:eschool/data/models/student.dart';
 import 'package:eschool/data/repositories/authRepository.dart';
 import 'package:eschool/utils/api.dart';
-import 'package:eschool/utils/notificationUtils/generalNotificationUtility.dart';
+import 'package:eschool_notifications/eschool_notifications.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 abstract class SignInState extends Equatable {}
@@ -62,7 +62,7 @@ class SignInCubit extends Cubit<SignInState> {
           password: password,
         );
         NotificationUtility.subscribeOrUnsubscribeToNotificationTopics(
-          isParent: false,
+          audience: NotificationAudience.students,
           isUnsubscribe: false,
         );
       } else {
@@ -71,7 +71,7 @@ class SignInCubit extends Cubit<SignInState> {
           password: password,
         );
         NotificationUtility.subscribeOrUnsubscribeToNotificationTopics(
-          isParent: true,
+          audience: NotificationAudience.parents,
           isUnsubscribe: false,
         );
       }

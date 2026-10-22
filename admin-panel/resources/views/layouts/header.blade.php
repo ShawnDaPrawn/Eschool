@@ -107,8 +107,8 @@
                 <li class="nav-item d-flex align-items-center">
                     <form action="{{ url('clear') }}" method="POST" class="m-0">
                         @csrf
-                        <button type="submit" class="topbar-action-btn">
-                            <x-icon name="refresh" :size="16" />
+                        <button type="submit" class="btn btn-outline-primary topbar-action-btn">
+                            <x-icon name="refresh" :size="18" />
                             <span>{{ __('cache_clear') }}</span>
                         </button>
                     </form>

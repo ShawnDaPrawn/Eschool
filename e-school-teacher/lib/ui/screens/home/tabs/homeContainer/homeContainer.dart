@@ -17,10 +17,8 @@ import 'package:eschool_teacher/ui/screens/home/tabs/homeContainer/widgets/homeC
 import 'package:eschool_teacher/ui/screens/home/tabs/homeContainer/widgets/homeContainerStudentLeaveRequestContainer.dart';
 import 'package:eschool_teacher/ui/screens/home/tabs/homeContainer/widgets/homeContainerTodaysTimetableContainer.dart';
 import 'package:eschool_teacher/ui/screens/home/tabs/homeContainer/widgets/subjectTeacherClassContainer.dart';
-import 'package:eschool_teacher/ui/widgets/errorContainer.dart';
-import 'package:eschool_teacher/ui/widgets/homeGalleryContainer.dart';
+import 'package:eschool_core/eschool_core.dart';
 import 'package:eschool_teacher/ui/widgets/noDataContainer.dart';
-import 'package:eschool_teacher/utils/animationConfiguration.dart';
 import 'package:eschool_teacher/utils/assets.dart';
 import 'package:eschool_teacher/utils/fixHeightDeligate.dart';
 import 'package:eschool_teacher/utils/labelKeys.dart';

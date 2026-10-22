@@ -13,19 +13,9 @@ import 'package:eschool_teacher/ui/screens/academicCalendar/widgets/changeCalend
 import 'package:eschool_teacher/ui/screens/academicCalendar/widgets/downloadAcademicCalendarContainer.dart';
 import 'package:eschool_teacher/ui/screens/academicCalendar/widgets/holidayContainer.dart';
 import 'package:eschool_teacher/ui/screens/academicCalendar/widgets/listItemForEvents.dart';
-import 'package:eschool_teacher/ui/screens/academicCalendar/widgets/semesterBreakContainer.dart';
-import 'package:eschool_teacher/ui/widgets/customBackButton.dart';
-import 'package:eschool_teacher/ui/widgets/customShimmerContainer.dart';
-import 'package:eschool_teacher/ui/widgets/errorContainer.dart';
 import 'package:eschool_teacher/ui/widgets/noDataContainer.dart';
-import 'package:eschool_teacher/ui/widgets/screenTopBackgroundContainer.dart';
-import 'package:eschool_teacher/ui/widgets/shimmerLoadingContainer.dart';
-import 'package:eschool_teacher/utils/animationConfiguration.dart';
-import 'package:eschool_teacher/utils/constants.dart';
-import 'package:eschool_teacher/utils/extensions.dart';
 import 'package:eschool_teacher/utils/labelKeys.dart';
 import 'package:eschool_teacher/utils/uiUtils.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -46,7 +36,7 @@ class AcademicCalendarScreen extends StatefulWidget {
   }
 
   static Route route(RouteSettings routeSettings) {
-    return CupertinoPageRoute(
+    return AdaptivePageRoute(
       builder: (_) => BlocProvider<AcademicCalendarCubit>(
         create: (context) => AcademicCalendarCubit(
           SystemRepository(),

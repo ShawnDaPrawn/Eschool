@@ -1,5 +1,4 @@
-import 'package:eschool/utils/animationConfiguration.dart';
-import 'package:eschool/utils/labelKeys.dart';
+import 'package:eschool_core/eschool_core.dart';
 import 'package:eschool/utils/uiUtils.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';

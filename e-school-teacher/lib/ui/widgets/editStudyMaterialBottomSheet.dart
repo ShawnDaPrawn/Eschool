@@ -1,9 +1,6 @@
 import 'package:dotted_border/dotted_border.dart';
 import 'package:eschool_teacher/cubits/updateStudyMaterialCubit.dart';
 import 'package:eschool_teacher/data/models/pickedStudyMaterial.dart';
-import 'package:eschool_teacher/data/models/studyMaterial.dart';
-import 'package:eschool_teacher/ui/widgets/bottomSheetTextFieldContainer.dart';
-import 'package:eschool_teacher/ui/widgets/bottomSheetTopBarMenu.dart';
 import 'package:eschool_core/eschool_core.dart';
 import 'package:eschool_teacher/ui/widgets/defaultDropDownLabelContainer.dart';
 import 'package:eschool_teacher/utils/labelKeys.dart';
@@ -207,6 +204,9 @@ class _EditStudyMaterialBottomSheetState
                           )
                         : BottomsheetAddFilesDottedBorderContainer(
                             onTap: () async {
+                              if (UiUtils.showMobileOnlyNotice(context)) {
+                                return;
+                              }
                               try {
                                 final pickedFile = await FilePicker.pickFiles(
                                   type:
@@ -275,6 +275,11 @@ class _EditStudyMaterialBottomSheetState
                                   child:
                                       BottomsheetAddFilesDottedBorderContainer(
                                         onTap: () async {
+                                          if (UiUtils.showMobileOnlyNotice(
+                                            context,
+                                          )) {
+                                            return;
+                                          }
                                           try {
                                             final pickedFile =
                                                 await FilePicker.pickFiles(
