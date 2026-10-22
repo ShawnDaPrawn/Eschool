@@ -4,9 +4,14 @@ declare(strict_types=1);
 
 namespace Tests\Feature;
 
+use App\Models\Parents;
+use App\Models\Platform\School;
 use App\Models\SessionYear;
+use App\Models\Students;
 use App\Models\User;
 use App\Services\Panel\SetupChecklist;
+use App\Services\Platform\Identity\MembershipService;
+use App\Services\Platform\Tenancy\CurrentSchool;
 use Database\Seeders\DemoSchoolSeeder;
 use Database\Seeders\InstallationSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -15,7 +20,7 @@ use Illuminate\Support\Facades\Hash;
 use Tests\TestCase;
 
 /**
- * DemoSchoolSeeder builds one demo school with a user per profile, signs in
+ * DemoSchoolSeeder builds two demo schools with a user per profile, signs in
  * with the documented password, can run any number of times, and never
  * replaces a school year that is still running.
  */
@@ -82,6 +87,37 @@ class DemoSchoolSeederTest extends TestCase
         $this->assertTrue(app(SetupChecklist::class)->forUser($admin)['complete']);
     }
 
+    public function test_it_seeds_a_second_school_and_people_at_both(): void
+    {
+        $this->seed(InstallationSeeder::class);
+        $this->seed(DemoSchoolSeeder::class);
+
+        $schoolB = School::query()->where('slug', DemoSchoolSeeder::SCHOOL_B_SLUG)->sole();
+        $this->assertSame('Baobab Demo High', $schoolB->name);
+        $this->assertSame('NavigateEd Demo School', School::query()->find(1)->name);
+        $current = app(CurrentSchool::class);
+
+        // School B's people belong to School B only.
+        $adminB = $this->user('admin.b');
+        $this->assertFalse($adminB->hasRole('Super Admin'));
+        $current->run($schoolB, function () use ($adminB) {
+            $this->assertTrue($adminB->fresh()->hasRole('Super Admin'));
+            $this->assertSame(6, DB::table('student_sessions')->join('students', 'students.id', '=', 'student_id')
+                ->where('students.school_id', app(CurrentSchool::class)->id())
+                ->where('session_year_id', getSettings('session_year')['session_year'])->count());
+        });
+        $this->assertSame([$schoolB->id], app(MembershipService::class)->active($adminB)->pluck('school_id')->unique()->values()->all());
+        $this->assertNull(Students::query()->where('admission_no', 'DEMO-B-0001')->first(), "School B's learner is not School A's");
+        $this->assertNotNull($current->run($schoolB, fn () => Students::query()->where('admission_no', 'DEMO-B-0001')->first()));
+
+        // The parent with a child at each school, and the admin at both.
+        $both = $this->user('parent.both');
+        $this->assertSame(['Johan'], Students::query()->whereIn('father_id', Parents::query()->where('user_id', $both->id)->pluck('id'))->get()->map(fn (Students $s) => $s->user->first_name)->all());
+        $this->assertSame(['Refilwe'], $current->run($schoolB, fn () => Students::query()->whereIn('father_id', Parents::query()->where('user_id', $both->id)->pluck('id'))->get()->map(fn (Students $s) => $s->user->first_name)->all()));
+        $this->assertSame([1, $schoolB->id], array_map(fn (array $school) => $school['school']->id, app(MembershipService::class)->schools($this->user('admin.both'))));
+        $this->assertTrue($current->run($schoolB, fn () => $this->user('admin.both')->hasRole('Super Admin')));
+    }
+
     public function test_it_can_run_again_without_adding_anything(): void
     {
         $this->seed(InstallationSeeder::class);
@@ -127,6 +163,6 @@ class DemoSchoolSeederTest extends TestCase
 
     private function user(string $login): User
     {
-        return User::where('email', $login.self::DOMAIN)->firstOrFail();
+        return User::acrossSchools()->where('email', $login.self::DOMAIN)->firstOrFail();
     }
 }

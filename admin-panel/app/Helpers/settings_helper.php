@@ -2,25 +2,18 @@
 
 use App\Models\Grade;
 use App\Models\Language;
-use App\Models\Settings;
+use App\Services\Platform\Tenancy\PlatformSettings;
 use Illuminate\Support\Facades\Storage;
 use Intervention\Image\Drivers\Gd\Driver;
 use Intervention\Image\ImageManager;
 
+/**
+ * Settings by type: the current school's rows over the platform's (see
+ * App\Services\Platform\Tenancy\PlatformSettings).
+ */
 function getSettings($type = '')
 {
-
-    $settingList = [];
-    if ($type == '') {
-        $setting = Settings::get();
-    } else {
-        $setting = Settings::where('type', $type)->get();
-    }
-    foreach ($setting as $row) {
-        $settingList[$row->type] = $row->message;
-    }
-
-    return $settingList;
+    return PlatformSettings::read((string) $type);
 }
 
 /**

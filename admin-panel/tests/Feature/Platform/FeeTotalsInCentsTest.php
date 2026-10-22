@@ -9,6 +9,7 @@ use App\Models\FeesPaid;
 use App\Models\PaidInstallmentFee;
 use App\Services\Payment\FeesPaymentService;
 use App\Services\Payment\PaymentService;
+use App\Services\Platform\Tenancy\SchoolTable;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
@@ -39,19 +40,19 @@ class FeeTotalsInCentsTest extends TestCase
         // Fee rows only; the people and classes they point at don't matter here.
         Schema::disableForeignKeyConstraints();
 
-        $this->sessionYearId = DB::table('session_years')->insertGetId([
+        $this->sessionYearId = SchoolTable::query('session_years')->insertGetId([
             'name' => '2026', 'default' => 1, 'start_date' => now()->subMonths(2)->toDateString(), 'end_date' => now()->addMonths(10)->toDateString(),
             'include_fee_installments' => 1, 'fee_due_date' => now()->subDays(5)->toDateString(), 'fee_due_charges' => 7,
         ]);
-        $sectionId = DB::table('class_sections')->insertGetId(['class_id' => self::CLASS_ID, 'section_id' => 1]);
-        DB::table('students')->insert(['id' => self::STUDENT, 'user_id' => 1, 'category_id' => 1, 'admission_no' => 'GR700', 'admission_date' => '2026-01-10']);
-        DB::table('student_sessions')->insert(['student_id' => self::STUDENT, 'class_section_id' => $sectionId, 'session_year_id' => $this->sessionYearId, 'status' => 1, 'result' => 1]);
+        $sectionId = SchoolTable::query('class_sections')->insertGetId(['class_id' => self::CLASS_ID, 'section_id' => 1]);
+        SchoolTable::query('students')->insert(['id' => self::STUDENT, 'user_id' => 1, 'category_id' => 1, 'admission_no' => 'GR700', 'admission_date' => '2026-01-10']);
+        SchoolTable::query('student_sessions')->insert(['student_id' => self::STUDENT, 'class_section_id' => $sectionId, 'session_year_id' => $this->sessionYearId, 'status' => 1, 'result' => 1]);
         // 1000.01 does not split into thirds; the optional fee has odd cents.
         foreach ([[1, 0, 600.01], [2, 0, 400], [3, 1, 333.33]] as [$type, $choiceable, $amount]) {
-            DB::table('fees_classes')->insert(['class_id' => self::CLASS_ID, 'fees_type_id' => $type, 'choiceable' => $choiceable, 'amount' => $amount, 'session_year_id' => $this->sessionYearId]);
+            SchoolTable::query('fees_classes')->insert(['class_id' => self::CLASS_ID, 'fees_type_id' => $type, 'choiceable' => $choiceable, 'amount' => $amount, 'session_year_id' => $this->sessionYearId]);
         }
         foreach ([[-3, 5], [20, 5], [50, 0]] as [$days, $percent]) {
-            $this->installments[] = DB::table('installment_fees')->insertGetId([
+            $this->installments[] = SchoolTable::query('installment_fees')->insertGetId([
                 'name' => 'I'.$days, 'due_date' => now()->addDays($days)->toDateString(), 'due_charges' => $percent, 'session_year_id' => $this->sessionYearId,
             ]);
         }

@@ -41,7 +41,7 @@ Four Flutter jobs in [.github/workflows/ci.yml](https://github.com/ShawnDaPrawn/
 
 | Job | What it runs |
 |---|---|
-| `apps` | A matrix over both apps and the shared packages (`packages/eschool_core`, `eschool_session`, `eschool_notifications`), `fail-fast: false`: `flutter pub get --enforce-lockfile`, `flutter analyze --no-fatal-infos` (info-level lints are reported, warnings and errors fail) and `flutter test` |
+| `apps` | A matrix over both apps and the shared packages (`packages/eschool_core`, `eschool_session`, `eschool_notifications`, `eschool_people`), `fail-fast: false`: `flutter pub get --enforce-lockfile`, `flutter analyze --no-fatal-infos` (info-level lints are reported, warnings and errors fail) and `flutter test` |
 | `apps-web` | `flutter build web --release --dart-define-from-file=config/staging.json` for both apps |
 | `apps-smoke-android` | The [smoke flows](#smoke-flows) on an Android 14 (API 34, x86_64) emulator started by `reactivecircus/android-emulator-runner`, with KVM on |
 | `apps-smoke-chrome` | Each smoke flow in Chrome with `flutter drive` and the runner's chromedriver |

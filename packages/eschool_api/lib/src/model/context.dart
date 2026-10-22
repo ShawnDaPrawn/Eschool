@@ -42,7 +42,7 @@ class Context {
   @JsonKey(name: r'user', required: true, includeIfNull: false)
   final ContextUser user;
 
-  /// Every school the user belongs to, with their roles there (one school until Phase 1).
+  /// Every school the user is an active member of, with their roles there, in school order. An app offers a school switcher when there is more than one and sends the chosen school's `id` as `X-School-Id`.
   @JsonKey(name: r'schools', required: true, includeIfNull: false)
   final List<SchoolMembership> schools;
 

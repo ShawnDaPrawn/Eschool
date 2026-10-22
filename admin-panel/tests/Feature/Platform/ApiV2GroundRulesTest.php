@@ -29,13 +29,13 @@ class ApiV2GroundRulesTest extends TestCase
         $this->seedLikeInstaller();
 
         Route::middleware('api')->prefix('api/v2/_test')->group(function () {
-            Route::middleware(['auth:sanctum', 'staff'])->get('staff', fn () => response()->json(['ok' => true]));
-            Route::middleware(['auth:sanctum', 'role.any'])->get('anyone', fn () => response()->json(['ok' => true]));
+            Route::middleware(['auth:sanctum', 'school.context', 'staff'])->get('staff', fn () => response()->json(['ok' => true]));
+            Route::middleware(['auth:sanctum', 'school.context', 'role.any'])->get('anyone', fn () => response()->json(['ok' => true]));
             Route::post('validate', fn (Request $request) => $request->validate(['name' => 'required', 'age' => 'required|integer']));
             Route::get('broken', fn () => throw new RuntimeException('database password is hunter2'));
             Route::get('thrown', fn () => throw new HttpResponseException(response()->json(['error' => true, 'code' => 105], 200)));
             Route::middleware('throttle:auth')->post('sign-in', fn () => response()->json(['ok' => true]));
-            Route::middleware(['auth:sanctum', 'throttle:money'])->post('pay', fn () => response()->json(['ok' => true]));
+            Route::middleware(['auth:sanctum', 'school.context', 'throttle:money'])->post('pay', fn () => response()->json(['ok' => true]));
         });
     }
 
@@ -44,7 +44,7 @@ class ApiV2GroundRulesTest extends TestCase
         $route = Route::getRoutes()->getByName('api.v2.me.context');
 
         $this->assertSame('api/v2/me/context', $route->uri());
-        $this->assertSame(['api', 'auth:sanctum', 'role.any', 'idempotent'], $route->gatherMiddleware());
+        $this->assertSame(['api', 'auth:sanctum', 'school.context', 'role.any', 'idempotent'], $route->gatherMiddleware());
     }
 
     public function test_the_staff_group_admits_every_role_except_parent_and_student(): void

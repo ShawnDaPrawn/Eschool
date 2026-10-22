@@ -53,26 +53,11 @@
                         </div>
                         {{-- script.js sends it with AJAX (#create-form) after jQuery Validate passes. --}}
                         <form id="create-form" name="create-form" method="POST" action="{{ route('contact_us.store') }}" class="m3-grid site-form-grid">
-                            @include('web.partials.text-field', [
-                                'name' => 'first_name', 'id' => 'first_name', 'label' => __('first_name'), 'required' => true,
-                                'class' => 'm3-col-12 m3-col-medium-6', 'attrs' => ['autocomplete' => 'given-name'],
-                            ])
-                            @include('web.partials.text-field', [
-                                'name' => 'last_name', 'id' => 'last_name', 'label' => __('last_name'), 'required' => true,
-                                'class' => 'm3-col-12 m3-col-medium-6', 'attrs' => ['autocomplete' => 'family-name'],
-                            ])
-                            @include('web.partials.text-field', [
-                                'name' => 'email', 'id' => 'email', 'type' => 'email', 'label' => __('email'), 'required' => true,
-                                'class' => 'm3-col-12 m3-col-medium-6', 'attrs' => ['autocomplete' => 'email'],
-                            ])
-                            @include('web.partials.text-field', [
-                                'name' => 'phone', 'id' => 'phone', 'type' => 'tel', 'label' => __('phone'), 'required' => true,
-                                'class' => 'm3-col-12 m3-col-medium-6', 'attrs' => ['autocomplete' => 'tel'],
-                            ])
-                            @include('web.partials.text-field', [
-                                'name' => 'message', 'id' => 'message', 'type' => 'textarea', 'rows' => 5,
-                                'label' => __('message'), 'required' => true, 'class' => 'm3-col-12',
-                            ])
+                            <x-m3.text-field name="first_name" id="first_name" :label="__('first_name')" required class="m3-col-12 m3-col-medium-6" autocomplete="given-name" />
+                            <x-m3.text-field name="last_name" id="last_name" :label="__('last_name')" required class="m3-col-12 m3-col-medium-6" autocomplete="family-name" />
+                            <x-m3.text-field name="email" id="email" type="email" :label="__('email')" required class="m3-col-12 m3-col-medium-6" autocomplete="email" />
+                            <x-m3.text-field name="phone" id="phone" type="tel" :label="__('phone')" required class="m3-col-12 m3-col-medium-6" autocomplete="tel" />
+                            <x-m3.text-field name="message" id="message" type="textarea" :label="__('message')" rows="5" required class="m3-col-12" />
                             @php
                                 $site_key = DB::table('settings')->where('type', 'recaptcha_site_key')->pluck('message')->first();
                                 $status = DB::table('settings')->where('type', 'recaptcha_status')->pluck('message')->first();

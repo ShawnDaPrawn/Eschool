@@ -138,5 +138,118 @@ void main() {
       await subscription.cancel();
       await coordinator.dispose();
     });
+
+    test('a link that opens before sign-in can be taken on its own', () async {
+      final coordinator = DeepLinkCoordinator(
+        parser: parser,
+        source: FakeDeepLinkSource(
+          Uri.parse('https://app.navigateed.co.za/notices'),
+        ),
+      );
+      await coordinator.start();
+
+      expect(
+        coordinator.takePendingWhere((t) => t.routeName == '/calendar'),
+        isNull,
+      );
+      expect(
+        coordinator.takePendingWhere((t) => t.routeName == '/noticeBoard'),
+        const DeepLinkTarget('/noticeBoard'),
+      );
+      expect(coordinator.takePending(), isNull);
+      await coordinator.dispose();
+    });
   });
+
+  group('a push link', () {
+    test('an app path maps like a portal address', () {
+      expect(
+        parser.parsePath('/notices'),
+        const DeepLinkTarget('/noticeBoard'),
+      );
+      expect(
+        parser.parsePath('/fees/7?x=1'),
+        const DeepLinkTarget('/feesDetails', arguments: 7),
+      );
+      expect(parser.parsePath('/nowhere'), isNull);
+      expect(parser.parsePath(''), isNull);
+      expect(parser.parsePath('https://evil.example/notices'), isNull);
+    });
+
+    test('carries the school it belongs to', () {
+      final PushLink link = PushLink.fromData({
+        'type': 'comms.notice',
+        'link': '/notices',
+        'school_id': '2',
+      }, parser: parser)!;
+
+      expect(link.target, const DeepLinkTarget('/noticeBoard'));
+      expect(link.schoolId, 2);
+      expect(
+        PushLink.fromData({'link': '/notices'}, parser: parser)!.schoolId,
+        isNull,
+      );
+      expect(PushLink.fromData({'type': 'chat'}, parser: parser), isNull);
+      expect(PushLink.fromData({'link': '/nowhere'}, parser: parser), isNull);
+      expect(
+        PushLink.fromData({
+          'link': 'https://app.navigateed.co.za/notices',
+        }, parser: parser)!.target,
+        const DeepLinkTarget('/noticeBoard'),
+      );
+    });
+
+    test(
+      'opens after switching to its school and fetching its context',
+      () async {
+        final InMemorySelectionStore store = InMemorySelectionStore();
+        final SchoolSelectionCubit schools = SchoolSelectionCubit(store: store);
+        await schools.syncWithContext(
+          MeContext.fromJson({
+            'schools': [
+              for (final int id in [1, 2])
+                {
+                  'school': {
+                    'id': id,
+                    'name': 'School $id',
+                    'short_name': null,
+                    'crest_url': null,
+                  },
+                  'roles': ['Parent'],
+                },
+            ],
+          }),
+        );
+        final _CountingContext contexts = _CountingContext();
+        final MeContextCubit meContext = MeContextCubit(
+          repository: contexts,
+          cache: InMemoryMeContextCache(),
+        );
+        final List<String> steps = [];
+
+        await openPushLink(
+          const PushLink(target: DeepLinkTarget('/noticeBoard'), schoolId: 2),
+          schools: schools,
+          meContext: meContext,
+          open: (target) =>
+              steps.add('open ${target.routeName} at ${store.schoolId}'),
+        );
+
+        expect(contexts.calls, 1);
+        expect(steps, ['open /noticeBoard at 2']);
+        await schools.close();
+        await meContext.close();
+      },
+    );
+  });
+}
+
+class _CountingContext implements MeContextRepository {
+  int calls = 0;
+
+  @override
+  Future<MeContext?> fetchContext() async {
+    calls++;
+    return MeContext.fromJson(const {});
+  }
 }

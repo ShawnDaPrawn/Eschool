@@ -14,7 +14,11 @@
       "target": "app",
       "public": "e-school/build/web",
       "ignore": ["**/.*"],
-      "rewrites": [{ "source": "**", "destination": "/index.html" }],
+      "rewrites": [
+        { "source": "/.well-known/assetlinks.json", "destination": "/well-known/assetlinks.json" },
+        { "source": "/.well-known/apple-app-site-association", "destination": "/well-known/apple-app-site-association" },
+        { "source": "**", "destination": "/index.html" }
+      ],
       "headers": [
         {
           "source": "**",
@@ -24,6 +28,10 @@
             { "key": "X-Frame-Options", "value": "DENY" },
             { "key": "Referrer-Policy", "value": "strict-origin-when-cross-origin" }
           ]
+        },
+        {
+          "source": "/.well-known/apple-app-site-association",
+          "headers": [{ "key": "Content-Type", "value": "application/json" }]
         }
       ]
     },
@@ -31,7 +39,11 @@
       "target": "teach",
       "public": "e-school-teacher/build/web",
       "ignore": ["**/.*"],
-      "rewrites": [{ "source": "**", "destination": "/index.html" }],
+      "rewrites": [
+        { "source": "/.well-known/assetlinks.json", "destination": "/well-known/assetlinks.json" },
+        { "source": "/.well-known/apple-app-site-association", "destination": "/well-known/apple-app-site-association" },
+        { "source": "**", "destination": "/index.html" }
+      ],
       "headers": [
         {
           "source": "**",
@@ -41,6 +53,10 @@
             { "key": "X-Frame-Options", "value": "DENY" },
             { "key": "Referrer-Policy", "value": "strict-origin-when-cross-origin" }
           ]
+        },
+        {
+          "source": "/.well-known/apple-app-site-association",
+          "headers": [{ "key": "Content-Type", "value": "application/json" }]
         }
       ]
     }

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Models;
 
 use App\Services\Platform\Audit\Auditable;
+use App\Services\Platform\Tenancy\BelongsToSchool;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -18,7 +19,7 @@ use Illuminate\Support\Facades\Storage;
 
 class Students extends Model
 {
-    use Auditable, HasFactory, SoftDeletes;
+    use Auditable, BelongsToSchool, HasFactory, SoftDeletes;
 
     /**
      * The attributes that are mass assignable.
