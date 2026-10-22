@@ -44,6 +44,24 @@ the API instead. Web push needs a Firebase web app and a VAPID key, and the
 server would have to send to each browser's token, because FCM topics cannot
 be subscribed from a browser.
 
+`context.changed` is a silent push: nothing is shown, and
+`NotificationUtility.onContextChanged` tells the app to fetch `/me/context`
+again; one that arrives in the background is noted in SharedPreferences
+(`contextChanged`) and taken with `NotificationPreferences.takeContextChanged()`
+when the app is back in front.
+
+## Notifications settings
+
+`NotificationSettingsScreen` lists each notification type the server names
+for the user, with a switch per channel it offers (push, email, in-app); a
+channel the school has made mandatory shows a lock and the school's reason.
+It reads and writes through `NotificationSettingsRepository`;
+`ApiNotificationSettingsRepository` calls `GET` and `PUT
+/api/v2/me/notification-preferences` on the app's `ApiClient`, and tests pass a
+fake. `NotificationSettingsButton` is the gear for the Notifications screen's
+header, shown once the server answers the endpoint. The models are written by
+hand until the endpoint is in `openapi.yaml`.
+
 ## Checks
 
 ```sh

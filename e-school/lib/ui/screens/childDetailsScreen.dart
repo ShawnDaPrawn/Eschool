@@ -1,7 +1,7 @@
+import 'package:eschool/app/selectedChild.dart';
 import 'package:eschool/app/routes.dart';
 import 'package:eschool/cubits/studentSubjectsCubit.dart';
 import 'package:eschool/data/models/student.dart';
-import 'package:eschool/data/repositories/parentRepository.dart';
 import 'package:eschool/ui/widgets/borderedProfilePictureContainer.dart';
 import 'package:eschool/ui/widgets/childInformationItemsContainer.dart';
 import 'package:eschool_core/eschool_core.dart';
@@ -20,12 +20,12 @@ class ChildDetailsScreen extends StatefulWidget {
   @override
   State<ChildDetailsScreen> createState() => _ChildDetailsScreenState();
 
+  /// The child picked in the child switcher, with what a parent can open
+  /// about them.
   static Route route(RouteSettings routeSettings) {
-    return AdaptivePageRoute(
-      builder: (_) => BlocProvider<ChildSubjectsCubit>(
-        create: (context) => ChildSubjectsCubit(ParentRepository()),
-        child: ChildDetailsScreen(student: routeSettings.arguments! as Student),
-      ),
+    return childRoute(
+      (context, child) =>
+          withChild(child, (child) => ChildDetailsScreen(student: child)),
     );
   }
 }
@@ -34,7 +34,9 @@ class _ChildDetailsScreenState extends State<ChildDetailsScreen> {
   @override
   void initState() {
     Future.delayed(Duration.zero, () {
-      context.read<ChildSubjectsCubit>().fetchChildSubjects(widget.student.id);
+      if (mounted) {
+        context.read<ChildSubjectsCubit>().ensureFor(widget.student.id);
+      }
     });
     super.initState();
   }

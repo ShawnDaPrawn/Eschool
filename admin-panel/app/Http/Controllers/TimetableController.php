@@ -307,7 +307,11 @@ class TimetableController extends Controller
             'session_year_id' => 'required|integer',
         ]);
 
-        $classId = ClassSection::where('id', $request->class_section_id)->pluck('class_id');
+        $classId = ClassSection::where('id', $request->class_section_id)->value('class_id');
+        if ($classId === null) {
+            // Not a homeroom of this school.
+            return response()->json(['error' => true, 'message' => trans('no_data_found')], 404);
+        }
         $isClassHasSemester = ClassSessionConfig::classHasSemester($classId, $request->session_year_id);
         $currentSemester = Semester::where('session_year_id', $request->session_year_id)
             ->get()

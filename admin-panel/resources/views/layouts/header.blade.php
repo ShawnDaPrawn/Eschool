@@ -1,6 +1,7 @@
 {{--
     Panel header, a Material 3 top app bar: the menu toggle, logo, global
-    search, the always-visible school year switcher, cache clear (Super Admin),
+    search, the school switcher (people at several schools), the
+    always-visible school year switcher, cache clear (Super Admin),
     language and the account menu. Built with the Material 3 library
     (public/assets/m3); menus open with data-m3-menu (m3.js). Styles:
     public/assets/css/panel.css ("Header"); behaviour: panel.js, sidebar.js.
@@ -33,6 +34,7 @@
         @includeWhen(Route::has('search'), 'layouts.partials.search-box')
 
         <div class="panel-topbar__actions">
+            @include('layouts.partials.school-switcher', ['suffix' => ''])
             <div class="panel-year">
                 <label class="m3-text-field m3-text-field--select panel-field--compact panel-year__field">
                     <select id="filter_session_year_global" data-scope="global" data-selected="{{ $panelYear->selectedId() }}"

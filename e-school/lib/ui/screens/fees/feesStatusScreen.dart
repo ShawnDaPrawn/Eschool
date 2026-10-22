@@ -1,3 +1,4 @@
+import 'package:eschool/app/selectedChild.dart';
 import 'package:eschool/app/routeArguments.dart';
 import 'package:eschool/app/routes.dart';
 import 'package:eschool/cubits/appConfigurationCubit.dart';
@@ -18,10 +19,13 @@ class FeesStatusScreen extends StatefulWidget {
   const FeesStatusScreen({required this.studentDetails, super.key});
   final Student studentDetails;
 
+  /// The fees of the child picked in the child switcher.
   static Route route(RouteSettings routeSettings) {
-    return AdaptivePageRoute(
-      builder: (_) =>
-          FeesStatusScreen(studentDetails: routeSettings.arguments! as Student),
+    return childRoute(
+      (context, child) => withChild(
+        child,
+        (child) => FeesStatusScreen(studentDetails: child),
+      ),
     );
   }
 

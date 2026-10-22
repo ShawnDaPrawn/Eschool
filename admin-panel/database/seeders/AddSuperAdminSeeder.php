@@ -2,21 +2,26 @@
 
 namespace Database\Seeders;
 
+use App\Models\Platform\Role;
 use App\Models\SessionYear;
 use App\Models\Settings;
 use App\Models\User;
+use App\Services\Platform\Tenancy\CurrentSchool;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
-use Spatie\Permission\Models\Role;
 
 class AddSuperAdminSeeder extends Seeder
 {
+    /** In the school already chosen, or else the default school (a single-school install). */
+    public function run(): void
+    {
+        app(CurrentSchool::class)->runInSchoolOrDefault(fn () => $this->seedSchool());
+    }
+
     /**
      * Run the database seeds.
-     *
-     * @return void
      */
-    public function run()
+    private function seedSchool(): void
     {
         // Add Super Admin User
         $super_admin_role = Role::where('name', 'Super Admin')->first();
