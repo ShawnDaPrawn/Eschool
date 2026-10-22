@@ -47,8 +47,7 @@ class SubjectController extends Controller
         $mediums = Mediums::orderBy('id', 'ASC')->get();
         $streams = Stream::orderBy('id', 'ASC')->get();
         $semesters = Semester::orderBy('id', 'ASC')->get();
-          $session_years = SessionYear::orderBy('id', 'ASC')->get();
-        
+        $session_years = SessionYear::orderBy('id', 'ASC')->get();
 
         return response(view('class.subject', compact('classes', 'subjects', 'mediums', 'streams', 'semesters', 'session_years')));
     }

@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Http\Middleware\LimitRequestInput;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\RateLimiter;
@@ -82,7 +83,7 @@ class RateLimitTest extends TestCase
     public function test_large_json_bodies_are_refused_before_they_are_parsed(): void
     {
         $body = json_encode(['answers_data' => array_fill(0, 200000, ['question_id' => 1])]);
-        $this->assertGreaterThan(\App\Http\Middleware\LimitRequestInput::MAX_JSON_BYTES, strlen($body));
+        $this->assertGreaterThan(LimitRequestInput::MAX_JSON_BYTES, strlen($body));
 
         $this->call('POST', '/api/_page', [], [], [], ['CONTENT_TYPE' => 'application/json', 'HTTP_ACCEPT' => 'application/json', 'CONTENT_LENGTH' => strlen($body)], $body)
             ->assertStatus(413);

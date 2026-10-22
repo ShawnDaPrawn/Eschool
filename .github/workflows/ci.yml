@@ -52,6 +52,9 @@ jobs:
       - run: cp .env.example .env && php artisan key:generate --force
       - name: Routes load
         run: php artisan route:list > /dev/null
+      # The whole panel is formatted with Pint's laravel preset (pint.json); unformatted code fails.
+      - name: Code style (Pint)
+        run: vendor/bin/pint --test
       # Errors from before static analysis are listed in phpstan-baseline.neon; new ones fail.
       - name: Static analysis (Larastan)
         run: vendor/bin/phpstan analyse --memory-limit=2G --no-progress

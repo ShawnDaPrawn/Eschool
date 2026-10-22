@@ -26,9 +26,8 @@ class ClassTeacherController extends Controller
             return redirect(route('home'))->withErrors($response);
         }
         $class_section = ClassSection::with('class.medium', 'section', 'class.streams')->get();
-         $session_years = SessionYear::orderBy('id', 'ASC')->get();
-        
-        
+        $session_years = SessionYear::orderBy('id', 'ASC')->get();
+
         $class_teacher_ids = ClassTeacher::whereNot('class_teacher_id', null)->pluck('class_teacher_id');
         // $assign_teacher_id = ClassSection::select('class_teacher_id')->whereNotNull('')->get()->pluck('class_teacher_id');
         // $teachers = Teacher::whereNotIn('id', $assign_teacher_id)->with('user')->get();
@@ -165,7 +164,7 @@ class ClassTeacherController extends Controller
         $rows = [];
         $no = 1;
         foreach ($res as $row) {
-            $operate = '<a class="btn btn-xs btn-gradient-primary btn-rounded btn-icon editdata" data-id=' . $row->id . ' title="Edit" data-toggle="modal" data-target="#editModal"><i class="fa fa-edit"></i></a>&nbsp;&nbsp;';
+            $operate = '<a class="btn btn-xs btn-gradient-primary btn-rounded btn-icon editdata" data-id='.$row->id.' title="Edit" data-toggle="modal" data-target="#editModal"><i class="fa fa-edit"></i></a>&nbsp;&nbsp;';
 
             $includesSemesters = $row->class->getIncludeSemestersForSession($session_year_id);
 
@@ -185,7 +184,7 @@ class ClassTeacherController extends Controller
                     $class_teacher_name = [];
                     foreach ($semesterTeachers as $class_teacher) {
                         $class_teacher_ids[] = $class_teacher->pivot->class_teacher_id;
-                        $class_teacher_name[] = $class_teacher->user->first_name . ' ' . $class_teacher->user->last_name ?? '-';
+                        $class_teacher_name[] = $class_teacher->user->first_name.' '.$class_teacher->user->last_name ?? '-';
                     }
 
                     $tempRow = [];
@@ -193,7 +192,7 @@ class ClassTeacherController extends Controller
                     $tempRow['class_id'] = $row->class_id;
                     $tempRow['section_id'] = $row->section_id;
                     $tempRow['no'] = $no++;
-                    $tempRow['class'] = $row->class->name . ' - ' . $row->class->medium->name;
+                    $tempRow['class'] = $row->class->name.' - '.$row->class->medium->name;
                     $tempRow['stream_name'] = $row->class->streams->name ?? '-';
                     $tempRow['section'] = $row->section->name;
                     $tempRow['semester_id'] = $semester->id;
@@ -214,7 +213,7 @@ class ClassTeacherController extends Controller
                 $class_teacher_name = [];
                 foreach ($row->classTeachers as $class_teacher) {
                     $class_teacher_ids[] = $class_teacher->pivot->class_teacher_id;
-                    $class_teacher_name[] = $class_teacher->user->first_name . ' ' . $class_teacher->user->last_name ?? '-';
+                    $class_teacher_name[] = $class_teacher->user->first_name.' '.$class_teacher->user->last_name ?? '-';
                 }
 
                 $tempRow = [];
@@ -222,7 +221,7 @@ class ClassTeacherController extends Controller
                 $tempRow['class_id'] = $row->class_id;
                 $tempRow['section_id'] = $row->section_id;
                 $tempRow['no'] = $no++;
-                $tempRow['class'] = $row->class->name . ' - ' . $row->class->medium->name;
+                $tempRow['class'] = $row->class->name.' - '.$row->class->medium->name;
                 $tempRow['stream_name'] = $row->class->streams->name ?? '-';
                 $tempRow['section'] = $row->section->name;
                 $tempRow['semester_id'] = null;

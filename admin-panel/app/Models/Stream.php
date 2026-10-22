@@ -13,9 +13,7 @@ class Stream extends Model
     use HasFactory;
     use softDeletes;
 
-    protected $fillable=[
-        'name',   
+    protected $fillable = [
+        'name',
     ];
-
-    
 }

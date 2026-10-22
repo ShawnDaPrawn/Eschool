@@ -4,15 +4,15 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers;
 
-use App\Services\Platform\Files\FileNames;
-use App\Services\ResponseService;
 use App\Models\FormField;
 use App\Models\Parents;
 use App\Models\User;
+use App\Services\Platform\Files\FileNames;
 use Illuminate\Http\Request;
+use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Storage;
 // use Intervention\Image\Laravel\Facades\Image; // Removed unused import
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
 use Throwable;
 
@@ -21,7 +21,7 @@ class ParentsController extends Controller
     /**
      * Display a listing of the resource.
      *
-     * @return \Illuminate\Http\Response
+     * @return Response
      */
     public function index()
     {
@@ -41,7 +41,7 @@ class ParentsController extends Controller
      * Display the specified resource.
      *
      * @param  int  $id
-     * @return \Illuminate\Http\Response
+     * @return Response
      */
     public function show()
     {

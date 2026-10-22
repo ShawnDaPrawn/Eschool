@@ -20,6 +20,7 @@ use App\Models\StudentOnlineExamStatus;
 use App\Models\Students;
 use App\Models\Subject;
 use App\Models\SubjectTeacher;
+use App\Services\OnlineExamScoringService;
 use App\Services\Platform\Files\FileNames;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -40,10 +41,7 @@ class OnlineExamController extends Controller
         }
 
         // all session year
-          $session_years = SessionYear::orderBy('id', 'ASC')->get();
-        
-                
-
+        $session_years = SessionYear::orderBy('id', 'ASC')->get();
 
         return response(view('online_exam.index', compact('session_years')));
     }
@@ -403,7 +401,7 @@ class OnlineExamController extends Controller
                 'error' => false,
                 'message' => trans('data_delete_successfully'),
             ]);
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             return response()->json([
                 'error' => true,
                 'message' => trans('error_occurred'),
@@ -526,7 +524,7 @@ class OnlineExamController extends Controller
                 ->get()
                 ->map(function ($cs) use ($session_year_id) {
                     return [
-                        'id'   => $cs->id,
+                        'id' => $cs->id,
                         'name' => $cs->class->name.' '.$cs->section->name.' - '.$cs->class->medium->name.' '.($cs->class->streams->name ?? ''),
                         'include_semesters' => $cs->class->getIncludeSemestersForSession($session_year_id) ?? false,
                     ];
@@ -541,7 +539,7 @@ class OnlineExamController extends Controller
                 ->get()
                 ->map(function ($c) use ($session_year_id) {
                     return [
-                        'id'   => $c->id,
+                        'id' => $c->id,
                         'name' => $c->name.' '.$c->medium->name.' '.($c->streams->name ?? ''),
                         'include_semesters' => $c->getIncludeSemestersForSession($session_year_id) ?? false,
                     ];
@@ -549,14 +547,14 @@ class OnlineExamController extends Controller
 
             return response()->json([
                 'error' => false,
-                'data'  => [
+                'data' => [
                     'class_sections' => $class_sections->values(),
-                    'classes'        => $classes->values(),
+                    'classes' => $classes->values(),
                 ],
             ]);
         } catch (Throwable $e) {
             return response()->json([
-                'error'   => true,
+                'error' => true,
                 'message' => trans('error_occurred'),
             ]);
         }
@@ -1037,7 +1035,7 @@ class OnlineExamController extends Controller
                 'error' => false,
                 'message' => trans('data_delete_successfully'),
             ]);
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             return response()->json([
                 'error' => true,
                 'message' => trans('error_occurred'),
@@ -1170,7 +1168,7 @@ class OnlineExamController extends Controller
             $total_marks = 0;
 
             // a question counts only when exactly its correct options were picked
-            $score = app(\App\Services\OnlineExamScoringService::class)->score((int) $student_attempt->student_id, (int) $student_attempt->online_exam_id);
+            $score = app(OnlineExamScoringService::class)->score((int) $student_attempt->student_id, (int) $student_attempt->online_exam_id);
 
             // get the data of only attempted data
             $total_obtained_marks = OnlineExamQuestionChoice::select(DB::raw('sum(marks)'))->where('online_exam_id', $student_attempt->online_exam_id)->whereIn('id', $score['correct_choice_ids'])->first();

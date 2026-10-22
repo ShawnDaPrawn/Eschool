@@ -5,9 +5,10 @@ declare(strict_types=1);
 namespace App\Http\Controllers;
 
 use App\Models\Section;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 
 class SectionController extends Controller
@@ -15,34 +16,36 @@ class SectionController extends Controller
     /**
      * Display a listing of the resource.
      *
-     * @return \Illuminate\Http\Response
+     * @return Response
      */
     public function index()
     {
-        if (!Auth::user()->can('section-list')) {
-            $response = array(
-                'message' => trans('no_permission_message')
-            );
+        if (! Auth::user()->can('section-list')) {
+            $response = [
+                'message' => trans('no_permission_message'),
+            ];
+
             return redirect(route('home'))->withErrors($response);
 
         }
         $sections = Section::orderBy('id', 'DESC')->get();
+
         return response(view('section.index', compact('sections')));
     }
 
     /**
      * Store a newly created resource in storage.
      *
-     * @param \Illuminate\Http\Request $request
-     * @return \Illuminate\Http\JsonResponse
+     * @return JsonResponse
      */
     public function store(Request $request)
     {
-        if (!Auth::user()->can('section-create')) {
-            $response = array(
+        if (! Auth::user()->can('section-create')) {
+            $response = [
                 'error' => true,
-                'message' => trans('no_permission_message')
-            );
+                'message' => trans('no_permission_message'),
+            ];
+
             return response()->json($response);
         }
         $validator = Validator::make($request->all(), [
@@ -50,44 +53,46 @@ class SectionController extends Controller
         ]);
 
         if ($validator->fails()) {
-            $response = array(
+            $response = [
                 'error' => true,
-                'message' => $validator->errors()->first()
-            );
+                'message' => $validator->errors()->first(),
+            ];
+
             return response()->json($response);
         }
         try {
-            $section = new Section();
+            $section = new Section;
             $section->name = $request->name;
             $section->save();
-            $response = array(
+            $response = [
                 'error' => false,
-                'message' => trans('data_store_successfully')
-            );
+                'message' => trans('data_store_successfully'),
+            ];
 
         } catch (\Throwable $e) {
-            $response = array(
+            $response = [
                 'error' => true,
-                'message' => trans('error_occurred')
-            );
+                'message' => trans('error_occurred'),
+            ];
         }
+
         return response()->json($response);
     }
 
     /**
      * Update the specified resource in storage.
      *
-     * @param \Illuminate\Http\Request $request
-     * @param int $id
-     * @return \Illuminate\Http\JsonResponse
+     * @param  int  $id
+     * @return JsonResponse
      */
     public function update(Request $request, $id)
     {
-        if (!Auth::user()->can('section-edit')) {
-            $response = array(
+        if (! Auth::user()->can('section-edit')) {
+            $response = [
                 'error' => true,
-                'message' => trans('no_permission_message')
-            );
+                'message' => trans('no_permission_message'),
+            ];
+
             return response()->json($response);
         }
         $validator = Validator::make($request->all(), [
@@ -95,66 +100,72 @@ class SectionController extends Controller
         ]);
 
         if ($validator->fails()) {
-            $response = array(
+            $response = [
                 'error' => true,
-                'message' => $validator->errors()->first()
-            );
+                'message' => $validator->errors()->first(),
+            ];
+
             return response()->json($response);
         }
         try {
             $section = Section::find($id);
             $section->name = $request->name;
             $section->save();
-            $response = array(
+            $response = [
                 'error' => false,
                 'message' => trans('data_update_successfully'),
-            );
+            ];
         } catch (\Throwable $e) {
-            $response = array(
+            $response = [
                 'error' => true,
                 'message' => trans('error_occurred'),
-                'data' => $e
-            );
+                'data' => $e,
+            ];
         }
+
         return response()->json($response);
     }
 
     /**
      * Remove the specified resource from storage.
      *
-     * @param int $id
-     * @return \Illuminate\Http\JsonResponse
+     * @param  int  $id
+     * @return JsonResponse
      */
     public function destroy($id)
     {
-        if (!Auth::user()->can('section-delete')) {
-            $response = array(
+        if (! Auth::user()->can('section-delete')) {
+            $response = [
                 'error' => true,
-                'message' => trans('no_permission_message')
-            );
+                'message' => trans('no_permission_message'),
+            ];
+
             return response()->json($response);
         }
         try {
             Section::find($id)->delete();
-            $response = array(
+            $response = [
                 'error' => false,
-                'message' => trans('data_delete_successfully')
-            );
+                'message' => trans('data_delete_successfully'),
+            ];
         } catch (\Throwable $e) {
-            $response = array(
+            $response = [
                 'error' => true,
-                'message' => trans('error_occurred')
-            );
+                'message' => trans('error_occurred'),
+            ];
         }
+
         return response()->json($response);
     }
 
-    public function show() {
-        if (!Auth::user()->can('section-list')) {
-            $response = array(
+    public function show()
+    {
+        if (! Auth::user()->can('section-list')) {
+            $response = [
                 'error' => true,
-                'message' => trans('no_permission_message')
-            );
+                'message' => trans('no_permission_message'),
+            ];
+
             return response()->json($response);
         }
         $offset = 0;
@@ -162,18 +173,22 @@ class SectionController extends Controller
         $sort = 'id';
         $order = 'DESC';
 
-        if (isset($_GET['offset']))
-        $offset = $_GET['offset'];
-        if (isset($_GET['limit']))
-        $limit = $_GET['limit'];
+        if (isset($_GET['offset'])) {
+            $offset = $_GET['offset'];
+        }
+        if (isset($_GET['limit'])) {
+            $limit = $_GET['limit'];
+        }
 
-        if (isset($_GET['sort']))
-        $sort = $_GET['sort'];
-        if (isset($_GET['order']))
-        $order = $_GET['order'];
+        if (isset($_GET['sort'])) {
+            $sort = $_GET['sort'];
+        }
+        if (isset($_GET['order'])) {
+            $order = $_GET['order'];
+        }
 
-        $sql = Section::where('id','!=',0);
-        if (isset($_GET['search']) && !empty($_GET['search'])) {
+        $sql = Section::where('id', '!=', 0);
+        if (isset($_GET['search']) && ! empty($_GET['search'])) {
             $search = $_GET['search'];
             $sql->where(fn ($query) => $query->where('id', 'LIKE', "%$search%")->orwhere('name', 'LIKE', "%$search%"));
         }
@@ -182,14 +197,14 @@ class SectionController extends Controller
         $sql->orderBy($sort, $order)->skip($offset)->take($limit);
         $res = $sql->get();
 
-        $bulkData = array();
+        $bulkData = [];
         $bulkData['total'] = $total;
-        $rows = array();
-        $tempRow = array();
-        $no=1;
+        $rows = [];
+        $tempRow = [];
+        $no = 1;
         foreach ($res as $row) {
-            $operate = '<a href="#" class="btn btn-xs btn-gradient-primary btn-rounded btn-icon edit-data" data-id=' . $row->id . ' title="Edit" data-toggle="modal" data-target="#editModal"><i class="fa fa-edit"></i></a>&nbsp;&nbsp;';
-            $operate .= '<a href='.route('section.destroy',$row->id).' class="btn btn-xs btn-gradient-danger btn-rounded btn-icon delete-form" data-id=' . $row->id . '><i class="fa fa-trash"></i></a>';
+            $operate = '<a href="#" class="btn btn-xs btn-gradient-primary btn-rounded btn-icon edit-data" data-id='.$row->id.' title="Edit" data-toggle="modal" data-target="#editModal"><i class="fa fa-edit"></i></a>&nbsp;&nbsp;';
+            $operate .= '<a href='.route('section.destroy', $row->id).' class="btn btn-xs btn-gradient-danger btn-rounded btn-icon delete-form" data-id='.$row->id.'><i class="fa fa-trash"></i></a>';
 
             $tempRow['id'] = $row->id;
             $tempRow['no'] = $no++;
@@ -201,6 +216,7 @@ class SectionController extends Controller
         }
 
         $bulkData['rows'] = $rows;
+
         return response()->json($bulkData);
     }
 }

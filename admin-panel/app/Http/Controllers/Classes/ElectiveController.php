@@ -230,9 +230,7 @@ class ElectiveController extends Controller
         }
 
         $classes = [];
-         $session_years = SessionYear::orderBy('id', 'ASC')->get();
-       
-        
+        $session_years = SessionYear::orderBy('id', 'ASC')->get();
 
         if (Auth::user()->hasRole('Super Admin')) {
             // Get unique classes, with required relations

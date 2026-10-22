@@ -127,8 +127,8 @@ function getAccessToken()
         $credentials = SecretSettings::fcmCredentials();
         if ($credentials !== null) {
             return Cache::remember('fcm-access-token:'.md5((string) json_encode($credentials)), now()->addMinutes(50), function () use ($credentials) {
-                $client = new \Google\Client();
-                $client->setHttpClient(new \GuzzleHttp\Client(['connect_timeout' => 5, 'timeout' => 10]));
+                $client = new Client;
+                $client->setHttpClient(new GuzzleHttp\Client(['connect_timeout' => 5, 'timeout' => 10]));
                 $client->setAuthConfig($credentials);
                 $client->setScopes(['https://www.googleapis.com/auth/firebase.messaging']);
 

@@ -674,7 +674,7 @@ class WebController extends Controller
                     'message' => trans('error_occurred'),
                 ];
             }
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             $response = [
                 'error' => true,
                 'message' => trans('error_occurred'),

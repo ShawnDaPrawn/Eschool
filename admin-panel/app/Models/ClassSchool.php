@@ -4,20 +4,19 @@ declare(strict_types=1);
 
 namespace App\Models;
 
-use App\Models\Shift;
-use App\Models\EducationalProgram;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 class ClassSchool extends Model
 {
-    use SoftDeletes;
     use HasFactory;
+    use SoftDeletes;
 
     protected $table = 'classes';
-    protected $hidden = ["deleted_at", "created_at", "updated_at"];
+
+    protected $hidden = ['deleted_at', 'created_at', 'updated_at'];
 
     // include_semesters is per session year now; the teacher app still reads it from each class.
     protected $appends = ['full_name', 'include_semesters'];
@@ -81,11 +80,12 @@ class ClassSchool extends Model
     {
         $name = $this->name;
         if ($this->relationLoaded('stream')) {
-            $name .= isset($this->stream->name) ? ' (' . $this->stream->name . ') ' : '';
+            $name .= isset($this->stream->name) ? ' ('.$this->stream->name.') ' : '';
         }
         if ($this->relationLoaded('medium') && $this->medium) {
-            $name .= ' - ' . $this->medium->name;
+            $name .= ' - '.$this->medium->name;
         }
+
         return $name;
     }
 
@@ -106,7 +106,7 @@ class ClassSchool extends Model
         }
 
         return $query->with([
-            'sessionConfigs' => fn($configQuery) => $configQuery->where('session_year_id', $sessionYearId),
+            'sessionConfigs' => fn ($configQuery) => $configQuery->where('session_year_id', $sessionYearId),
         ]);
     }
 
@@ -168,7 +168,6 @@ class ClassSchool extends Model
         // No config for this year means the class has no semesters.
         return $this->getIncludeSemestersForSession($sessionYearId) ? 1 : 0;
     }
-
 
     protected static function booted()
     {

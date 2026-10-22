@@ -11,7 +11,8 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 class OnlineExamStudentAnswer extends Model
 {
     use HasFactory, SoftDeletes;
-    protected $hidden = ["deleted_at", "created_at", "updated_at"];
+
+    protected $hidden = ['deleted_at', 'created_at', 'updated_at'];
 
     public function online_exam()
     {

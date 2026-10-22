@@ -4,59 +4,50 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers;
 
-use App\Services\Platform\Files\FileNames;
-use Carbon\Carbon;
-use App\Models\Faq;
-use App\Models\Media;
 use App\Models\ContactUs;
-use App\Models\MediaFile;
-use App\Models\WebSetting;
-use Illuminate\Http\Request;
 use App\Models\EducationalProgram;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\Mail;
+use App\Models\Faq;
+use App\Models\WebSetting;
 use App\Services\MailService;
+use App\Services\Platform\Files\FileNames;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
-use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Cache;
+
 // use Intervention\Image\Laravel\Facades\Image; // Removed unused import
 
 class WebSettingController extends Controller
 {
     public function content_index()
     {
-        if (!Auth::user()->can('content-create')) {
-            $response = array(
-                'message' => trans('no_permission_message')
-            );
+        if (! Auth::user()->can('content-create')) {
+            $response = [
+                'message' => trans('no_permission_message'),
+            ];
+
             return redirect(route('home'))->withErrors($response);
         }
-        $registration =  null;
-        $about = WebSetting::where('name','about_us')->first();
-        $whoweare = WebSetting::where('name','who_we_are')->first();
-        $teacher = WebSetting::where('name','teacher')->first();
+        $registration = null;
+        $about = WebSetting::where('name', 'about_us')->first();
+        $whoweare = WebSetting::where('name', 'who_we_are')->first();
+        $teacher = WebSetting::where('name', 'teacher')->first();
         $event = WebSetting::where('name', 'events')->first();
         $program = WebSetting::where('name', 'programs')->first();
-        $photo = WebSetting::where('name','photos')->first();
-        $video = WebSetting::where('name','videos')->first();
-        $faq = WebSetting::where('name','faqs')->first();
-        $app = WebSetting::where('name','app')->first();
-        $question = WebSetting::where('name','question')->first();
-        $registration = WebSetting::where('name','registration')->first();
-        
- 
+        $photo = WebSetting::where('name', 'photos')->first();
+        $video = WebSetting::where('name', 'videos')->first();
+        $faq = WebSetting::where('name', 'faqs')->first();
+        $app = WebSetting::where('name', 'app')->first();
+        $question = WebSetting::where('name', 'question')->first();
+        $registration = WebSetting::where('name', 'registration')->first();
 
-
-        return view('web_settings.content_settings',compact('about','whoweare','teacher','event','program','photo','video','faq','app','question','registration'));
+        return view('web_settings.content_settings', compact('about', 'whoweare', 'teacher', 'event', 'program', 'photo', 'video', 'faq', 'app', 'question', 'registration'));
     }
-
 
     public function content_update_bulk(Request $request)
     {
-        if (!Auth::user()->can('content-edit')) {
+        if (! Auth::user()->can('content-edit')) {
             return response()->json([
                 'error' => true,
                 'message' => trans('no_permission_message'),
@@ -65,7 +56,7 @@ class WebSettingController extends Controller
 
         $sections = $request->input('sections', []);
 
-        if (!is_array($sections) || empty($sections)) {
+        if (! is_array($sections) || empty($sections)) {
             return response()->json([
                 'error' => true,
                 'message' => trans('error_occurred'),
@@ -73,11 +64,11 @@ class WebSettingController extends Controller
         }
 
         $validator = Validator::make($sections, [
-            '*.id'      => 'required|integer',
-            '*.tag'     => 'required|string',
+            '*.id' => 'required|integer',
+            '*.tag' => 'required|string',
             '*.heading' => 'required|string',
         ], [
-            '*.tag.required'     => trans('section_title_is_required'),
+            '*.tag.required' => trans('section_title_is_required'),
             '*.heading.required' => trans('heading_is_required'),
         ]);
 
@@ -93,11 +84,11 @@ class WebSettingController extends Controller
 
             foreach ($sections as $key => $data) {
                 $websetting = WebSetting::find($data['id']);
-                if (!$websetting) {
+                if (! $websetting) {
                     continue;
                 }
 
-                $websetting->tag     = $data['tag'];
+                $websetting->tag = $data['tag'];
                 $websetting->heading = $data['heading'];
                 if (array_key_exists('content', $data)) {
                     $websetting->content = $data['content'];
@@ -114,8 +105,8 @@ class WebSettingController extends Controller
                         }
                     }
 
-                    $file_name = time() . '-' . FileNames::forUpload($imageFile);
-                    $file_path = 'websettings/content/' . $file_name;
+                    $file_name = time().'-'.FileNames::forUpload($imageFile);
+                    $file_path = 'websettings/content/'.$file_name;
                     $destinationPath = storage_path('app/public/websettings/content');
                     $imageFile->move($destinationPath, $file_name);
 
@@ -123,14 +114,13 @@ class WebSettingController extends Controller
                 }
 
                 $websetting->save();
-                 
 
             }
 
             DB::commit();
 
             return response()->json([
-                'error'   => false,
+                'error' => false,
                 'message' => trans('data_update_successfully'),
             ]);
         } catch (\Throwable $e) {
@@ -140,37 +130,39 @@ class WebSettingController extends Controller
             if (str_contains($exceptionMessage, 'file') && str_contains($exceptionMessage, 'image')) {
                 $message = trans('please_select_valid_image');
             }
+
             return response()->json([
-                'error'   => true,
+                'error' => true,
                 'message' => $message,
             ]);
         }
     }
 
-
-    public function content_update(Request $request,$id)
+    public function content_update(Request $request, $id)
     {
         // dd($request->all());
-        if (!Auth::user()->can('content-edit')) {
-            $response = array(
-                'message' => trans('no_permission_message')
-            );
+        if (! Auth::user()->can('content-edit')) {
+            $response = [
+                'message' => trans('no_permission_message'),
+            ];
+
             return redirect(route('home'))->withErrors($response);
         }
         $validator = Validator::make($request->all(), [
             'tag' => 'required',
             'heading' => 'required',
-            //'content' => 'required'
+            // 'content' => 'required'
         ], [
-            'tag.required'     => trans('section_title_is_required'),
+            'tag.required' => trans('section_title_is_required'),
             'heading.required' => trans('heading_is_required'),
         ]);
 
         if ($validator->fails()) {
-            $response = array(
+            $response = [
                 'error' => true,
-                'message' => $validator->errors()->first()
-            );
+                'message' => $validator->errors()->first(),
+            ];
+
             return response()->json($response);
         }
         try {
@@ -178,9 +170,9 @@ class WebSettingController extends Controller
             $websetting->tag = $request->tag;
             $websetting->heading = $request->heading;
             $websetting->content = $request->content;
-            $websetting->status =   $request->status;
+            $websetting->status = $request->status;
             if ($request->hasFile('image')) {
-                if($websetting->getRawOriginal('image')){
+                if ($websetting->getRawOriginal('image')) {
                     if (Storage::disk('public')->exists($websetting->getRawOriginal('image'))) {
                         Storage::disk('public')->delete($websetting->getRawOriginal('image'));
                     }
@@ -188,9 +180,9 @@ class WebSettingController extends Controller
 
                 $image = $request->file('image');
 
-                $file_name = time() . '-' . FileNames::forUpload($image);
+                $file_name = time().'-'.FileNames::forUpload($image);
 
-                $file_path = 'websettings/content/' . $file_name;
+                $file_path = 'websettings/content/'.$file_name;
 
                 // resizeImage($image);
 
@@ -200,12 +192,11 @@ class WebSettingController extends Controller
                 $websetting->image = $file_path;
             }
             $websetting->save();
-             
 
-            $response = array(
+            $response = [
                 'error' => false,
                 'message' => trans('data_update_successfully'),
-            );
+            ];
         } catch (\Throwable $e) {
             report($e);
             $message = trans('error_occurred');
@@ -213,52 +204,57 @@ class WebSettingController extends Controller
             if (str_contains($exceptionMessage, 'file') && str_contains($exceptionMessage, 'image')) {
                 $message = trans('please_select_valid_image');
             }
-            $response = array(
+            $response = [
                 'error' => true,
                 'message' => $message,
-            );
+            ];
         }
+
         return response()->json($response);
     }
 
     public function educational_index()
     {
-        if (!Auth::user()->can('program-list')) {
-            $response = array(
-                'message' => trans('no_permission_message')
-            );
+        if (! Auth::user()->can('program-list')) {
+            $response = [
+                'message' => trans('no_permission_message'),
+            ];
+
             return redirect(route('home'))->withErrors($response);
         }
+
         return view('web_settings.educational_program');
     }
 
     public function educational_store(Request $request)
     {
-        if (!Auth::user()->can('program-create')) {
-            $response = array(
-                'message' => trans('no_permission_message')
-            );
+        if (! Auth::user()->can('program-create')) {
+            $response = [
+                'message' => trans('no_permission_message'),
+            ];
+
             return redirect(route('home'))->withErrors($response);
         }
         $validator = Validator::make($request->all(), [
             'title' => 'required',
-            'image' => 'required|image|mimes:png,jpg,svg,jpeg'
+            'image' => 'required|image|mimes:png,jpg,svg,jpeg',
         ]);
 
         if ($validator->fails()) {
-            $response = array(
+            $response = [
                 'error' => true,
-                'message' => $validator->errors()->first()
-            );
+                'message' => $validator->errors()->first(),
+            ];
+
             return response()->json($response);
         }
         try {
-            $program = new EducationalProgram();
+            $program = new EducationalProgram;
             $program->title = $request->title;
             if ($request->hasFile('image')) {
                 $image = $request->file('image');
-                $file_name = time() . '-' . FileNames::forUpload($image);
-                $file_path = 'websettings/educational/' . $file_name;
+                $file_name = time().'-'.FileNames::forUpload($image);
+                $file_path = 'websettings/educational/'.$file_name;
                 resizeImage($image);
                 $destinationPath = storage_path('app/public/websettings/educational');
                 $image->move($destinationPath, $file_name);
@@ -267,26 +263,28 @@ class WebSettingController extends Controller
 
             $program->save();
 
-            $response = array(
+            $response = [
                 'error' => false,
                 'message' => trans('data_store_successfully'),
-            );
+            ];
         } catch (\Throwable $e) {
             report($e);
-            $response = array(
+            $response = [
                 'error' => true,
                 'message' => trans('error_occurred'),
-            );
+            ];
         }
+
         return response()->json($response);
     }
 
     public function educational_show()
     {
-        if (!Auth::user()->can('program-list')) {
-            $response = array(
-                'message' => trans('no_permission_message')
-            );
+        if (! Auth::user()->can('program-list')) {
+            $response = [
+                'message' => trans('no_permission_message'),
+            ];
+
             return response()->json($response);
         }
         $offset = 0;
@@ -294,19 +292,23 @@ class WebSettingController extends Controller
         $sort = 'id';
         $order = 'ASC';
 
-        if (isset($_GET['offset']))
+        if (isset($_GET['offset'])) {
             $offset = $_GET['offset'];
-        if (isset($_GET['limit']))
+        }
+        if (isset($_GET['limit'])) {
             $limit = $_GET['limit'];
+        }
 
-        if (isset($_GET['sort']))
+        if (isset($_GET['sort'])) {
             $sort = $_GET['sort'];
-        if (isset($_GET['order']))
+        }
+        if (isset($_GET['order'])) {
             $order = $_GET['order'];
+        }
 
-        $sql = EducationalProgram::where('id','!=',0);
+        $sql = EducationalProgram::where('id', '!=', 0);
 
-        if (isset($_GET['search']) && !empty($_GET['search'])) {
+        if (isset($_GET['search']) && ! empty($_GET['search'])) {
             $search = $_GET['search'];
             $sql->where(fn ($query) => $query->where('id', 'LIKE', "%$search%")->orwhere('title', 'LIKE', "%$search%"));
         }
@@ -316,14 +318,14 @@ class WebSettingController extends Controller
 
         $res = $sql->get();
 
-        $bulkData = array();
+        $bulkData = [];
         $bulkData['total'] = $total;
-        $rows = array();
-        $tempRow = array();
+        $rows = [];
+        $tempRow = [];
         $no = 1;
         foreach ($res as $row) {
-            $operate = '<a href=' . route('educational.update', $row->id) . ' class="btn btn-xs btn-gradient-primary btn-rounded btn-icon edit-data" data-id=' . $row->id . ' title="Edit" data-toggle="modal" data-target="#editModal"><i class="fa fa-edit"></i></a>&nbsp;&nbsp;';
-            $operate .= '<a href=' . route('educational.delete', $row->id) . ' class="btn btn-xs btn-gradient-danger btn-rounded btn-icon delete-form" data-id=' . $row->id . '><i class="fa fa-trash"></i></a>';
+            $operate = '<a href='.route('educational.update', $row->id).' class="btn btn-xs btn-gradient-primary btn-rounded btn-icon edit-data" data-id='.$row->id.' title="Edit" data-toggle="modal" data-target="#editModal"><i class="fa fa-edit"></i></a>&nbsp;&nbsp;';
+            $operate .= '<a href='.route('educational.delete', $row->id).' class="btn btn-xs btn-gradient-danger btn-rounded btn-icon delete-form" data-id='.$row->id.'><i class="fa fa-trash"></i></a>';
 
             $tempRow['id'] = $row->id;
             $tempRow['no'] = $no++;
@@ -335,27 +337,30 @@ class WebSettingController extends Controller
             $rows[] = $tempRow;
         }
         $bulkData['rows'] = $rows;
+
         return response()->json($bulkData);
     }
 
     public function educational_update(Request $request)
     {
-        if (!Auth::user()->can('program-edit')) {
-            $response = array(
-                'message' => trans('no_permission_message')
-            );
+        if (! Auth::user()->can('program-edit')) {
+            $response = [
+                'message' => trans('no_permission_message'),
+            ];
+
             return redirect(route('home'))->withErrors($response);
         }
         $validator = Validator::make($request->all(), [
             'title' => 'required|string',
-            'image' => 'nullable|image|mimes:png,jpg,svg,jpeg'
+            'image' => 'nullable|image|mimes:png,jpg,svg,jpeg',
         ]);
 
         if ($validator->fails()) {
-            $response = array(
+            $response = [
                 'error' => true,
-                'message' => $validator->errors()->first()
-            );
+                'message' => $validator->errors()->first(),
+            ];
+
             return response()->json($response);
         }
         try {
@@ -366,8 +371,8 @@ class WebSettingController extends Controller
                     Storage::disk('public')->delete($program->getRawOriginal('image'));
                 }
                 $image = $request->file('image');
-                $file_name = time() . '-' . FileNames::forUpload($image);
-                $file_path = 'websettings/educational/' . $file_name;
+                $file_name = time().'-'.FileNames::forUpload($image);
+                $file_path = 'websettings/educational/'.$file_name;
                 resizeImage($image);
                 $destinationPath = storage_path('app/public/websettings/educational');
                 $image->move($destinationPath, $file_name);
@@ -376,111 +381,120 @@ class WebSettingController extends Controller
 
             $program->save();
 
-            $response = array(
+            $response = [
                 'error' => false,
                 'message' => trans('data_update_successfully'),
-            );
+            ];
         } catch (\Throwable $e) {
             report($e);
-            $response = array(
+            $response = [
                 'error' => true,
                 'message' => trans('error_occurred'),
-            );
+            ];
         }
+
         return response()->json($response);
     }
 
     public function educational_delete($id)
     {
-        if (!Auth::user()->can('program-delete')) {
-            $response = array(
-                'message' => trans('no_permission_message')
-            );
+        if (! Auth::user()->can('program-delete')) {
+            $response = [
+                'message' => trans('no_permission_message'),
+            ];
+
             return redirect(route('home'))->withErrors($response);
         }
         try {
-            $program= EducationalProgram::find($id);
+            $program = EducationalProgram::find($id);
             if (Storage::disk('public')->exists($program->getRawOriginal('image'))) {
                 Storage::disk('public')->delete($program->getRawOriginal('image'));
             }
             $program->delete();
-            $response = array(
+            $response = [
                 'error' => false,
-                'message' => trans('data_delete_successfully')
-            );
+                'message' => trans('data_delete_successfully'),
+            ];
         } catch (\Throwable $e) {
-            $response = array(
+            $response = [
                 'error' => true,
-                'message' => trans('error_occurred')
-            );
+                'message' => trans('error_occurred'),
+            ];
         }
+
         return response()->json($response);
     }
 
     public function faq_index()
     {
-        if (!Auth::user()->can('faq-list')) {
-            $response = array(
-                'message' => trans('no_permission_message')
-            );
+        if (! Auth::user()->can('faq-list')) {
+            $response = [
+                'message' => trans('no_permission_message'),
+            ];
+
             return redirect(route('home'))->withErrors($response);
         }
+
         return view('web_settings.faq');
     }
 
     public function faq_store(Request $request)
     {
-        if (!Auth::user()->can('faq-create')) {
-            $response = array(
-                'message' => trans('no_permission_message')
-            );
+        if (! Auth::user()->can('faq-create')) {
+            $response = [
+                'message' => trans('no_permission_message'),
+            ];
+
             return redirect(route('home'))->withErrors($response);
         }
 
         $validator = Validator::make($request->all(), [
-           'question' => 'required|string',
-           'answer' => 'required|string',
-           'status' => 'integer|required'
+            'question' => 'required|string',
+            'answer' => 'required|string',
+            'status' => 'integer|required',
         ], [
             'question.required' => trans('question_is_required'),
-            'answer.required'   => trans('answer_is_required'),
-            'status.required'   => trans('status_is_required'),
+            'answer.required' => trans('answer_is_required'),
+            'status.required' => trans('status_is_required'),
         ]);
 
         if ($validator->fails()) {
-            $response = array(
+            $response = [
                 'error' => true,
-                'message' => $validator->errors()->first()
-            );
+                'message' => $validator->errors()->first(),
+            ];
+
             return response()->json($response);
         }
         try {
-            $faq = new Faq();
+            $faq = new Faq;
             $faq->question = $request->question;
             $faq->answer = $request->answer;
             $faq->status = $request->status;
             $faq->save();
 
-            $response = array(
+            $response = [
                 'error' => false,
                 'message' => trans('data_store_successfully'),
-            );
+            ];
         } catch (\Throwable $e) {
             report($e);
-            $response = array(
+            $response = [
                 'error' => true,
                 'message' => trans('error_occurred'),
-            );
+            ];
         }
+
         return response()->json($response);
     }
 
     public function faq_show()
     {
-        if (!Auth::user()->can('faq-list')) {
-            $response = array(
-                'message' => trans('no_permission_message')
-            );
+        if (! Auth::user()->can('faq-list')) {
+            $response = [
+                'message' => trans('no_permission_message'),
+            ];
+
             return response()->json($response);
         }
         $offset = 0;
@@ -488,19 +502,23 @@ class WebSettingController extends Controller
         $sort = 'id';
         $order = 'ASC';
 
-        if (isset($_GET['offset']))
+        if (isset($_GET['offset'])) {
             $offset = $_GET['offset'];
-        if (isset($_GET['limit']))
+        }
+        if (isset($_GET['limit'])) {
             $limit = $_GET['limit'];
+        }
 
-        if (isset($_GET['sort']))
+        if (isset($_GET['sort'])) {
             $sort = $_GET['sort'];
-        if (isset($_GET['order']))
+        }
+        if (isset($_GET['order'])) {
             $order = $_GET['order'];
+        }
 
-        $sql = Faq::where('id','!=',0);
+        $sql = Faq::where('id', '!=', 0);
 
-        if (isset($_GET['search']) && !empty($_GET['search'])) {
+        if (isset($_GET['search']) && ! empty($_GET['search'])) {
             $search = $_GET['search'];
             $sql->where('id', 'LIKE', "%$search%");
         }
@@ -510,14 +528,14 @@ class WebSettingController extends Controller
 
         $res = $sql->get();
 
-        $bulkData = array();
+        $bulkData = [];
         $bulkData['total'] = $total;
-        $rows = array();
-        $tempRow = array();
+        $rows = [];
+        $tempRow = [];
         $no = 1;
         foreach ($res as $row) {
-            $operate = '<a href=' . route('faq.update', $row->id) . ' class="btn btn-xs btn-gradient-primary btn-rounded btn-icon edit-data" data-id=' . $row->id . ' title="Edit" data-toggle="modal" data-target="#editModal"><i class="fa fa-edit"></i></a>&nbsp;&nbsp;';
-            $operate .= '<a href=' . route('faq.delete', $row->id) . ' class="btn btn-xs btn-gradient-danger btn-rounded btn-icon delete-form" data-id=' . $row->id . '><i class="fa fa-trash"></i></a>';
+            $operate = '<a href='.route('faq.update', $row->id).' class="btn btn-xs btn-gradient-primary btn-rounded btn-icon edit-data" data-id='.$row->id.' title="Edit" data-toggle="modal" data-target="#editModal"><i class="fa fa-edit"></i></a>&nbsp;&nbsp;';
+            $operate .= '<a href='.route('faq.delete', $row->id).' class="btn btn-xs btn-gradient-danger btn-rounded btn-icon delete-form" data-id='.$row->id.'><i class="fa fa-trash"></i></a>';
 
             $tempRow['id'] = $row->id;
             $tempRow['no'] = $no++;
@@ -530,33 +548,36 @@ class WebSettingController extends Controller
             $rows[] = $tempRow;
         }
         $bulkData['rows'] = $rows;
+
         return response()->json($bulkData);
     }
 
     public function faq_update(Request $request)
     {
-        if (!Auth::user()->can('faq-edit')) {
-            $response = array(
-                'message' => trans('no_permission_message')
-            );
+        if (! Auth::user()->can('faq-edit')) {
+            $response = [
+                'message' => trans('no_permission_message'),
+            ];
+
             return redirect(route('home'))->withErrors($response);
         }
 
         $validator = Validator::make($request->all(), [
             'question' => 'required|string',
             'answer' => 'required|string',
-            'status' => 'integer|required'
+            'status' => 'integer|required',
         ], [
             'question.required' => trans('question_is_required'),
-            'answer.required'   => trans('answer_is_required'),
-            'status.required'   => trans('status_is_required'),
+            'answer.required' => trans('answer_is_required'),
+            'status.required' => trans('status_is_required'),
         ]);
 
         if ($validator->fails()) {
-            $response = array(
+            $response = [
                 'error' => true,
-                'message' => $validator->errors()->first()
-            );
+                'message' => $validator->errors()->first(),
+            ];
+
             return response()->json($response);
         }
         try {
@@ -566,63 +587,69 @@ class WebSettingController extends Controller
             $faq->status = $request->status;
             $faq->save();
 
-            $response = array(
+            $response = [
                 'error' => false,
                 'message' => trans('data_update_successfully'),
-            );
+            ];
         } catch (\Throwable $e) {
             report($e);
-            $response = array(
+            $response = [
                 'error' => true,
                 'message' => trans('error_occurred'),
-            );
+            ];
         }
+
         return response()->json($response);
     }
 
     public function faq_delete($id)
     {
-        if (!Auth::user()->can('faq-delete')) {
-            $response = array(
-                'message' => trans('no_permission_message')
-            );
+        if (! Auth::user()->can('faq-delete')) {
+            $response = [
+                'message' => trans('no_permission_message'),
+            ];
+
             return redirect(route('home'))->withErrors($response);
         }
         try {
             $faq = Faq::find($id);
             $faq->delete();
-            $response = array(
+            $response = [
                 'error' => false,
-                'message' => trans('data_delete_successfully')
-            );
+                'message' => trans('data_delete_successfully'),
+            ];
         } catch (\Throwable $e) {
-            $response = array(
+            $response = [
                 'error' => true,
-                'message' => trans('error_occurred')
-            );
+                'message' => trans('error_occurred'),
+            ];
         }
+
         return response()->json($response);
     }
 
     public function contact_us_index()
     {
-        if (!Auth::user()->can('contact-us')) {
-            $response = array(
-                'message' => trans('no_permission_message')
-            );
+        if (! Auth::user()->can('contact-us')) {
+            $response = [
+                'message' => trans('no_permission_message'),
+            ];
+
             return redirect(route('home'))->withErrors($response);
         }
         $school_email = getSettings('school_email');
         $email = $school_email['school_email'];
+
         return view('web_settings.contact_us');
     }
 
     public function contact_us_show()
     {
-        if (!Auth::user()->can('contact-us')) {
-            $response = array(
-                'message' => trans('no_permission_message')
-            );
+        if (! Auth::user()->can('contact-us')) {
+            $response = [
+                'message' => trans('no_permission_message'),
+            ];
+
             return redirect(route('home'))->withErrors($response);
         }
         $offset = 0;
@@ -630,20 +657,24 @@ class WebSettingController extends Controller
         $sort = 'id';
         $order = 'ASC';
 
-        if (isset($_GET['offset']))
+        if (isset($_GET['offset'])) {
             $offset = $_GET['offset'];
-        if (isset($_GET['limit']))
+        }
+        if (isset($_GET['limit'])) {
             $limit = $_GET['limit'];
+        }
 
-        if (isset($_GET['sort']))
+        if (isset($_GET['sort'])) {
             $sort = $_GET['sort'];
-        if (isset($_GET['order']))
+        }
+        if (isset($_GET['order'])) {
             $order = $_GET['order'];
+        }
 
         $data = getSettings('date_formate');
-        $sql = ContactUs::where('id','!=',0);
+        $sql = ContactUs::where('id', '!=', 0);
 
-        if (isset($_GET['search']) && !empty($_GET['search'])) {
+        if (isset($_GET['search']) && ! empty($_GET['search'])) {
             $search = $_GET['search'];
             $sql->where('id', 'LIKE', "%$search%");
         }
@@ -653,15 +684,15 @@ class WebSettingController extends Controller
 
         $res = $sql->get();
 
-        $bulkData = array();
+        $bulkData = [];
         $bulkData['total'] = $total;
-        $rows = array();
-        $tempRow = array();
+        $rows = [];
+        $tempRow = [];
         $no = 1;
         foreach ($res as $row) {
-            $operate = '<a href=' . route('contact_us.reply', $row->id) . ' class="btn btn-xs btn-gradient-primary btn-rounded btn-icon edit-data" data-id=' . $row->id . ' title="Reply" data-toggle="modal" data-target="#replyModal"><i class="fa fa-reply"></i></a>&nbsp;&nbsp;';
-            $operate .= '<a href='.route('leave-status.update',$row->id).' class="btn btn-xs btn-gradient-info btn-rounded btn-icon edit-data" data-id=' . $row->id . ' title="Edit" data-toggle="modal" data-target="#editModal"><i class="fa fa-eye"></i></a>&nbsp;&nbsp;';
-            $operate .= '<a href=' . route('contact_us.delete', $row->id) . ' class="btn btn-xs btn-gradient-danger btn-rounded btn-icon delete-form" data-id=' . $row->id . '  title="Delete"><i class="fa fa-trash"></i></a>';
+            $operate = '<a href='.route('contact_us.reply', $row->id).' class="btn btn-xs btn-gradient-primary btn-rounded btn-icon edit-data" data-id='.$row->id.' title="Reply" data-toggle="modal" data-target="#replyModal"><i class="fa fa-reply"></i></a>&nbsp;&nbsp;';
+            $operate .= '<a href='.route('leave-status.update', $row->id).' class="btn btn-xs btn-gradient-info btn-rounded btn-icon edit-data" data-id='.$row->id.' title="Edit" data-toggle="modal" data-target="#editModal"><i class="fa fa-eye"></i></a>&nbsp;&nbsp;';
+            $operate .= '<a href='.route('contact_us.delete', $row->id).' class="btn btn-xs btn-gradient-danger btn-rounded btn-icon delete-form" data-id='.$row->id.'  title="Delete"><i class="fa fa-trash"></i></a>';
 
             $tempRow['id'] = $row->id;
             $tempRow['no'] = $no++;
@@ -677,15 +708,17 @@ class WebSettingController extends Controller
             $rows[] = $tempRow;
         }
         $bulkData['rows'] = $rows;
+
         return response()->json($bulkData);
     }
 
     public function reply(Request $request)
     {
-        if (!Auth::user()->can('contact-us')) {
-            $response = array(
-                'message' => trans('no_permission_message')
-            );
+        if (! Auth::user()->can('contact-us')) {
+            $response = [
+                'message' => trans('no_permission_message'),
+            ];
+
             return redirect(route('home'))->withErrors($response);
         }
         try {
@@ -699,7 +732,7 @@ class WebSettingController extends Controller
                     $attachments[] = [
                         'path' => $file->getRealPath(),
                         'name' => FileNames::forUpload($file),
-                        'mime' => $file->getMimeType()
+                        'mime' => $file->getMimeType(),
                     ];
                 }
             }
@@ -712,9 +745,8 @@ class WebSettingController extends Controller
                 'query' => $request->message,
                 'reply_message' => $request->reply_message,
                 'school_name' => $school_name,
-                'attachments' => $attachments
+                'attachments' => $attachments,
             ];
-
 
             MailService::sendWithFallback('web_settings.testmail', $data, function ($message) use ($data, $admin_mail, $school_name) {
                 $message->to($data['email'])->subject($data['subject']);
@@ -730,41 +762,44 @@ class WebSettingController extends Controller
                 }
             });
 
-            $response = array(
+            $response = [
                 'error' => false,
                 'message' => trans('email_sent_successfully'),
-            );
+            ];
         } catch (\Throwable $e) {
             report($e);
-            $response = array(
+            $response = [
                 'error' => true,
                 'message' => trans('error_occurred'),
-            );
+            ];
         }
+
         return response()->json($response);
     }
 
     public function contact_us_delete($id)
     {
-        if (!Auth::user()->can('contact-us')) {
-            $response = array(
-                'message' => trans('no_permission_message')
-            );
+        if (! Auth::user()->can('contact-us')) {
+            $response = [
+                'message' => trans('no_permission_message'),
+            ];
+
             return redirect(route('home'))->withErrors($response);
         }
         try {
             $data = ContactUs::find($id);
             $data->delete();
-            $response = array(
+            $response = [
                 'error' => false,
-                'message' => trans('data_delete_successfully')
-            );
+                'message' => trans('data_delete_successfully'),
+            ];
         } catch (\Throwable $e) {
-            $response = array(
+            $response = [
                 'error' => true,
-                'message' => trans('error_occurred')
-            );
+                'message' => trans('error_occurred'),
+            ];
         }
+
         return response()->json($response);
     }
 }

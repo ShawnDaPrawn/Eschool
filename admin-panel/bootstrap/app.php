@@ -1,6 +1,7 @@
 <?php
 
 use App\Exceptions\ApiV2ExceptionRenderer;
+use App\Http\Middleware\AssignRequestId;
 use App\Http\Middleware\Authenticate;
 use App\Http\Middleware\CheckChild;
 use App\Http\Middleware\CheckRole;
@@ -21,6 +22,7 @@ use App\Http\Middleware\RejectDangerousUploads;
 use App\Http\Middleware\RequireParentPolicyAcceptance;
 use App\Http\Middleware\RequirePasswordChange;
 use App\Http\Middleware\SecurityHeaders;
+use App\Providers\ObservabilityServiceProvider;
 use dacoto\LaravelWizardInstaller\LaravelWizardInstallerServiceProvider;
 use dacoto\LaravelWizardInstaller\Middleware\InstallerMiddleware;
 use dacoto\LaravelWizardInstaller\Middleware\ToInstallMiddleware;
@@ -86,7 +88,7 @@ return Application::configure(basePath: dirname(__DIR__))
         ]);
 
         // Outermost, so every response and every log line of the request has its id.
-        $middleware->prepend(\App\Http\Middleware\AssignRequestId::class);
+        $middleware->prepend(AssignRequestId::class);
         $middleware->append(SecurityHeaders::class);
         $middleware->append(LimitRequestInput::class);
 
@@ -165,7 +167,7 @@ return Application::configure(basePath: dirname(__DIR__))
         SanctumServiceProvider::class,
         LaravelWizardInstallerServiceProvider::class,
         // Queue and worker logging, and the /up/worker health route.
-        \App\Providers\ObservabilityServiceProvider::class,
+        ObservabilityServiceProvider::class,
     ])
     ->withExceptions(function (Exceptions $exceptions): void {
         // The apps don't send Accept: application/json. Without this an expired token

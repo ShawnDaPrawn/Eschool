@@ -30,9 +30,7 @@ class IdCardController extends Controller
             return response()->json($response);
         }
         $class_section = collect();
-          $session_years = SessionYear::orderBy('id', 'ASC')->get();
-        
-        
+        $session_years = SessionYear::orderBy('id', 'ASC')->get();
 
         $is_teacher = Auth::user()->hasRole('Teacher');
 
@@ -217,7 +215,7 @@ class IdCardController extends Controller
                 'error' => false,
                 'message' => trans('data_delete_successfully'),
             ];
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             report($e);
             $response = [
                 'error' => true,

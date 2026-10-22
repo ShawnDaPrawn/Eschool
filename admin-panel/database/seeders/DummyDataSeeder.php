@@ -2,29 +2,30 @@
 
 namespace Database\Seeders;
 
-use App\Models\User;
+use App\Models\Category;
+use App\Models\ClassSchool;
+use App\Models\ClassSection;
 use App\Models\Mediums;
 use App\Models\Parents;
 use App\Models\Section;
-use App\Models\Subject;
-use App\Models\Category;
+use App\Models\SessionYear;
 use App\Models\Settings;
 use App\Models\Students;
-use App\Models\ClassSchool;
-use App\Models\SessionYear;
-use App\Models\ClassSection;
-use Illuminate\Support\Carbon;
+use App\Models\Subject;
+use App\Models\User;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 
-class DummyDataSeeder extends Seeder {
+class DummyDataSeeder extends Seeder
+{
     /**
      * Run the database seeds.
      *
      * @return void
      */
-    public function run() {
+    public function run()
+    {
         $medium = [
             ['id' => 1, 'name' => 'Afrikaans'],
             ['id' => 2, 'name' => 'English'],
@@ -76,7 +77,7 @@ class DummyDataSeeder extends Seeder {
         SessionYear::upsert($session_years, ['id'], ['name', 'default', 'start_date', 'end_date']);
 
         $session_year_settings = [
-            ['id' => 9, 'type'   => 'session_year', 'message' => 1],
+            ['id' => 9, 'type' => 'session_year', 'message' => 1],
         ];
         Settings::upsert($session_year_settings, ['id'], ['type', 'message']);
 
@@ -88,8 +89,7 @@ class DummyDataSeeder extends Seeder {
         ];
         Category::upsert($student_categories, ['id'], ['name', 'status']);
 
-
-        //Users
+        // Users
         $user = [
             [
                 'id' => 2,
@@ -101,7 +101,7 @@ class DummyDataSeeder extends Seeder {
                 'mobile' => 1234567890,
                 'gender' => 'Male',
                 'current_address' => 'Pretoria',
-                'permanent_address' => 'Pretoria'
+                'permanent_address' => 'Pretoria',
             ],
             [
                 'id' => 3,
@@ -113,7 +113,7 @@ class DummyDataSeeder extends Seeder {
                 'mobile' => 1234567890,
                 'gender' => 'Female',
                 'current_address' => 'Pretoria',
-                'permanent_address' => 'Pretoria'
+                'permanent_address' => 'Pretoria',
             ],
             [
                 'id' => 4,
@@ -125,13 +125,13 @@ class DummyDataSeeder extends Seeder {
                 'mobile' => 1234567890,
                 'gender' => 'Male',
                 'current_address' => 'Pretoria',
-                'permanent_address' => 'Pretoria'
-            ]
+                'permanent_address' => 'Pretoria',
+            ],
         ];
 
         User::upsert($user, ['id'], ['image', 'password', 'first_name', 'last_name', 'email', 'mobile', 'current_address', 'permanent_address']);
 
-        //Parents
+        // Parents
         $parent = [
             [
                 'id' => 1,
@@ -167,11 +167,11 @@ class DummyDataSeeder extends Seeder {
                 'mobile' => 1234567890,
                 'gender' => 'Male',
 
-            ]
+            ],
         ];
         Parents::upsert($parent, ['id'], ['user_id', 'first_name', 'last_name', 'image', 'occupation', 'email', 'mobile', 'dob', 'gender']);
 
-        //Student
+        // Student
         $student = [
             'id' => 1,
             'user_id' => 4,
@@ -187,8 +187,8 @@ class DummyDataSeeder extends Seeder {
             'father_id' => 1,
             'mother_id' => 2,
             'guardian_id' => 3,
-            'admission_date' => Carbon::create('2022', '04', '01')
+            'admission_date' => Carbon::create('2022', '04', '01'),
         ];
-        Students::upsert($student, ['id'], ['user_id', 'class_section_id', 'category_id', 'admission_no', 'roll_number', 'caste', 'religion', 'admission_date', 'blood_group', 'height', 'weight', 'father_id', 'mother_id', 'guardian_id',]);
+        Students::upsert($student, ['id'], ['user_id', 'class_section_id', 'category_id', 'admission_no', 'roll_number', 'caste', 'religion', 'admission_date', 'blood_group', 'height', 'weight', 'father_id', 'mother_id', 'guardian_id']);
     }
 }

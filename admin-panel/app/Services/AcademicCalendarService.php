@@ -6,12 +6,10 @@ use App\Models\Event;
 use App\Models\ExamTimetable;
 use App\Models\Holiday;
 use App\Models\Semester;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Carbon\Carbon;
 use Illuminate\Support\Collection;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
-use Barryvdh\DomPDF\Facade\Pdf;
-use Throwable;
 
 class AcademicCalendarService
 {
@@ -20,9 +18,9 @@ class AcademicCalendarService
         $sessionYear = $this->getSessionYear();
 
         $semesterBreaks = $this->getSemesterBreaks($sessionYear);
-        $holidays       = $this->getHolidays($sessionYear->id);
-        $events         = $this->getEvents($sessionYear->id);
-        $exams          = $this->getExams($sessionYear, $classIds);
+        $holidays = $this->getHolidays($sessionYear->id);
+        $events = $this->getEvents($sessionYear->id);
+        $exams = $this->getExams($sessionYear, $classIds);
 
         $allItems = $holidays
             ->merge($semesterBreaks)
@@ -47,7 +45,7 @@ class AcademicCalendarService
             ->where('id', $sessionYearId)
             ->first();
 
-        if (!$sessionYear) {
+        if (! $sessionYear) {
             throw new \Exception('Session year not found.');
         }
 
@@ -61,14 +59,14 @@ class AcademicCalendarService
         $semesters = Semester::query()
             ->whereBetween('start_date', [
                 $sessionYear->start_date,
-                $sessionYear->end_date
+                $sessionYear->end_date,
             ])
             ->orderBy('start_date')
             ->get();
 
         for ($i = 0; $i < $semesters->count() - 1; $i++) {
             $current = $semesters[$i];
-            $next    = $semesters[$i + 1];
+            $next = $semesters[$i + 1];
 
             if (
                 $current->end_date &&
@@ -76,15 +74,15 @@ class AcademicCalendarService
                 Carbon::parse($next->start_date)->gt(Carbon::parse($current->end_date))
             ) {
                 $breakStart = Carbon::parse($current->end_date)->addDay();
-                $breakEnd   = Carbon::parse($next->start_date)->subDay();
+                $breakEnd = Carbon::parse($next->start_date)->subDay();
 
                 if (
                     $breakStart->between($sessionYear->start_date, $sessionYear->end_date) &&
                     $breakEnd->between($sessionYear->start_date, $sessionYear->end_date)
                 ) {
-                    $semesterBreaks->push((object)[
-                        'date'  => $breakStart->toDateString(),
-                        'type'  => 'holiday',
+                    $semesterBreaks->push((object) [
+                        'date' => $breakStart->toDateString(),
+                        'type' => 'holiday',
                         'title' => "Semester Break: {$breakStart->format('jS M')} - {$breakEnd->format('jS M')}",
                     ]);
                 }
@@ -99,9 +97,9 @@ class AcademicCalendarService
         return Holiday::where('session_year_id', $sessionYearId)
             ->orderBy('date')
             ->get()
-            ->map(fn($item) => (object)[
-                'date'  => $item->date,
-                'type'  => 'holiday',
+            ->map(fn ($item) => (object) [
+                'date' => $item->date,
+                'type' => 'holiday',
                 'title' => $item->title,
             ])->toBase();
     }
@@ -111,9 +109,9 @@ class AcademicCalendarService
         return Event::where('session_year_id', $sessionYearId)
             ->orderBy('start_date')
             ->get()
-            ->map(fn($item) => (object)[
-                'date'  => $item->start_date,
-                'type'  => 'event',
+            ->map(fn ($item) => (object) [
+                'date' => $item->start_date,
+                'type' => 'event',
                 'title' => $item->title,
             ])->toBase();
     }
@@ -122,14 +120,14 @@ class AcademicCalendarService
     {
         return ExamTimetable::whereBetween('date', [
             $sessionYear->start_date,
-            $sessionYear->end_date
+            $sessionYear->end_date,
         ])
             ->whereIn('class_id', $classIds)
             ->orderBy('date')
             ->get()
-            ->map(fn($item) => (object)[
-                'date'  => $item->date,
-                'type'  => 'exam',
+            ->map(fn ($item) => (object) [
+                'date' => $item->date,
+                'type' => 'exam',
                 'title' => $item->exam_name ?? 'Exam',
             ])->toBase();
     }
@@ -137,11 +135,11 @@ class AcademicCalendarService
     private function generatePdf(string $reportYear, $calendarItemsByMonth): string
     {
         $data = [
-            'report_year'             => $reportYear,
+            'report_year' => $reportYear,
             'calendar_items_by_month' => $calendarItemsByMonth,
-            'school_name'             => config('app.name'),
-            'school_address'          => getSettings('school_address')['school_address'] ?? null,
-            'logo'                    => public_path('/storage/' . schoolSetting('logo2')),
+            'school_name' => config('app.name'),
+            'school_address' => getSettings('school_address')['school_address'] ?? null,
+            'logo' => public_path('/storage/'.schoolSetting('logo2')),
         ];
 
         $pdf = Pdf::loadView('academic_calendar.academic_calendar_pdf', $data);

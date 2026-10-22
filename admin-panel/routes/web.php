@@ -28,7 +28,9 @@ use App\Http\Controllers\MediumController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\OnlineExamController;
 use App\Http\Controllers\OnlineExamQuestionController;
+use App\Http\Controllers\Panel\Academics\NewYearController;
 use App\Http\Controllers\Panel\People\LearnerInvitationController;
+use App\Http\Controllers\Panel\SearchController;
 use App\Http\Controllers\ParentsController;
 use App\Http\Controllers\Platform\CspReportController;
 use App\Http\Controllers\Platform\LearnerSetupController;
@@ -51,6 +53,7 @@ use App\Http\Controllers\WebController;
 use App\Http\Controllers\WebhookController;
 use App\Http\Controllers\Webhooks\MailWebhookController;
 use App\Http\Controllers\WebSettingController;
+use App\Http\Middleware\EnforceReadOnlyYears;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Route;
 
@@ -107,7 +110,7 @@ Route::group(['middleware' => 'language'], function () {
 });
 
 // EnforceReadOnlyYears: a year other than the current one is read-only in the panel.
-Route::group(['middleware' => ['Role', 'auth', \App\Http\Middleware\EnforceReadOnlyYears::class]], function () {
+Route::group(['middleware' => ['Role', 'auth', EnforceReadOnlyYears::class]], function () {
     Route::post('/set-session-year', [SessionYearController::class, 'setSessionYearToSessionStorage'])->name('set.session.year');
     Route::group(['middleware' => 'language'], function () {
         // Route::get('/home', [HomeController::class, 'index']);
@@ -132,13 +135,13 @@ Route::group(['middleware' => ['Role', 'auth', \App\Http\Middleware\EnforceReadO
         Route::get('home/reset_password', [HomeController::class, 'resetPasswordView']);
 
         // Global search: JSON for the header box, a results page otherwise.
-        Route::get('search', \App\Http\Controllers\Panel\SearchController::class)->name('search');
+        Route::get('search', SearchController::class)->name('search');
 
         // New-year wizard: create next year, carry forward, year-end checks, preview, make it current.
-        Route::get('new-year', [\App\Http\Controllers\Panel\Academics\NewYearController::class, 'index'])->name('new-year.index');
-        Route::post('new-year/year', [\App\Http\Controllers\Panel\Academics\NewYearController::class, 'store'])->name('new-year.store');
-        Route::get('new-year/preview', [\App\Http\Controllers\Panel\Academics\NewYearController::class, 'preview'])->name('new-year.preview');
-        Route::post('new-year/make-current', [\App\Http\Controllers\Panel\Academics\NewYearController::class, 'makeCurrent'])->name('new-year.make-current');
+        Route::get('new-year', [NewYearController::class, 'index'])->name('new-year.index');
+        Route::post('new-year/year', [NewYearController::class, 'store'])->name('new-year.store');
+        Route::get('new-year/preview', [NewYearController::class, 'preview'])->name('new-year.preview');
+        Route::post('new-year/make-current', [NewYearController::class, 'makeCurrent'])->name('new-year.make-current');
 
         Route::get('roles-list/{id}', [RoleController::class, 'showList'])->name('roles-list');
         Route::get('roles-data', [RoleController::class, 'show'])->name('roles.data');

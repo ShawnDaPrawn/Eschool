@@ -6,7 +6,8 @@ use App\Models\User;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Support\Facades\DB;
 
-return new class extends Migration {
+return new class extends Migration
+{
     /**
      * Run the migrations.
      *
@@ -17,7 +18,8 @@ return new class extends Migration {
      *
      * @return void
      */
-    public function up() {
+    public function up()
+    {
         DB::table('users')
             ->whereNotNull('deleted_at')
             ->whereNotNull('email')
@@ -55,14 +57,15 @@ return new class extends Migration {
      *
      * @return void
      */
-    public function down() {
+    public function down()
+    {
         DB::table('users')
             ->whereNotNull('deleted_at')
             ->where('email', 'LIKE', '%::deleted-%')
             ->orderBy('id')
             ->chunkById(200, function ($users) {
                 foreach ($users as $user) {
-                    $original = preg_replace('/::deleted-' . $user->id . '-\d+$/', '', $user->email);
+                    $original = preg_replace('/::deleted-'.$user->id.'-\d+$/', '', $user->email);
                     if ($original !== $user->email) {
                         DB::table('users')->where('id', $user->id)->update(['email' => $original]);
                     }
@@ -75,7 +78,7 @@ return new class extends Migration {
             ->orderBy('id')
             ->chunkById(200, function ($parents) {
                 foreach ($parents as $parent) {
-                    $original = preg_replace('/::deleted-' . $parent->id . '-\d+$/', '', $parent->email);
+                    $original = preg_replace('/::deleted-'.$parent->id.'-\d+$/', '', $parent->email);
                     if ($original !== $parent->email) {
                         DB::table('parents')->where('id', $parent->id)->update(['email' => $original]);
                     }

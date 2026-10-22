@@ -1,6 +1,5 @@
 <?php
 
-use Carbon\Carbon;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\DB;
@@ -27,17 +26,18 @@ return new class extends Migration
                     if (empty($semester->start_month) || empty($semester->end_month)) {
                         // log the issue for review
                         logger()->warning("Semester ID {$semester->id} missing month values; skipping conversion.");
+
                         continue;
                     }
 
                     $startDate = sprintf('%04d-%02d-01', $year, $semester->start_month);
-                    $endDate   = sprintf('%04d-%02d-01', $year, $semester->end_month);
+                    $endDate = sprintf('%04d-%02d-01', $year, $semester->end_month);
 
                     DB::table('semesters')
                         ->where('id', $semester->id)
                         ->update([
                             'start_date' => $startDate,
-                            'end_date'   => $endDate,
+                            'end_date' => $endDate,
                         ]);
                 }
             });

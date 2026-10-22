@@ -17,39 +17,44 @@ class MediaController extends Controller
 {
     public function photo_index()
     {
-        if (!Auth::user()->can('media-create')) {
-            $response = array(
-                'message' => trans('no_permission_message')
-            );
+        if (! Auth::user()->can('media-create')) {
+            $response = [
+                'message' => trans('no_permission_message'),
+            ];
+
             return redirect(route('home'))->withErrors($response);
         }
+
         return view('web_settings.photos');
     }
 
     public function video_index()
     {
-        if (!Auth::user()->can('media-create')) {
-            $response = array(
-                'message' => trans('no_permission_message')
-            );
+        if (! Auth::user()->can('media-create')) {
+            $response = [
+                'message' => trans('no_permission_message'),
+            ];
+
             return redirect(route('home'))->withErrors($response);
         }
+
         return view('web_settings.videos');
     }
 
     public function photo_store(Request $request)
     {
-        if (!Auth::user()->can('media-create')) {
-            $response = array(
-                'message' => trans('no_permission_message')
-            );
+        if (! Auth::user()->can('media-create')) {
+            $response = [
+                'message' => trans('no_permission_message'),
+            ];
+
             return redirect(route('home'))->withErrors($response);
         }
         $validator = Validator::make($request->all(), [
             'name' => 'required',
             'thumbnail' => 'required|image|mimes:png,jpg,jpeg',
             'image' => 'required',
-            'image.*' => 'image|mimes:jpeg,png,jpg|max:2048'
+            'image.*' => 'image|mimes:jpeg,png,jpg|max:2048',
         ], [
             'name.required' => trans('name_is_required'),
             'thumbnail.required' => trans('thumbnail_is_required'),
@@ -61,21 +66,22 @@ class MediaController extends Controller
         ]);
 
         if ($validator->fails()) {
-            $response = array(
+            $response = [
                 'error' => true,
-                'message' => $validator->errors()->first()
-            );
+                'message' => $validator->errors()->first(),
+            ];
+
             return response()->json($response);
         }
         try {
-            $media = new Media();
+            $media = new Media;
             $media->name = $request->name;
             $media->type = 1;
 
             if ($request->hasFile('thumbnail')) {
                 $image = $request->file('thumbnail');
                 $file_name = FileNames::forUpload($image);
-                $file_path = 'gallery/' . $file_name;
+                $file_path = 'gallery/'.$file_name;
                 resizeImage($image);
                 $destinationPath = storage_path('app/public/gallery');
                 $image->move($destinationPath, $file_name);
@@ -88,38 +94,40 @@ class MediaController extends Controller
 
                 foreach ($images as $image) {
 
-                    $file = new MediaFile();
+                    $file = new MediaFile;
                     $file->media_id = $media->id;
                     $file_name = FileNames::forUpload($image);
-                    $file_path = 'gallery/' . $file_name;
+                    $file_path = 'gallery/'.$file_name;
                     resizeImage($image);
-                    $destinationPath = storage_path("app/public/gallery/");
+                    $destinationPath = storage_path('app/public/gallery/');
                     $image->move($destinationPath, $file_name);
                     $file->file_url = $file_path;
                     $file->save();
                 }
             }
 
-            $response = array(
+            $response = [
                 'error' => false,
                 'message' => trans('data_store_successfully'),
-            );
+            ];
         } catch (\Throwable $e) {
             report($e);
-            $response = array(
+            $response = [
                 'error' => true,
                 'message' => trans('error_occurred'),
-            );
+            ];
         }
+
         return response()->json($response);
     }
 
     public function photo_show()
     {
-        if (!Auth::user()->can('media-list')) {
-            $response = array(
-                'message' => trans('no_permission_message')
-            );
+        if (! Auth::user()->can('media-list')) {
+            $response = [
+                'message' => trans('no_permission_message'),
+            ];
+
             return redirect(route('home'))->withErrors($response);
         }
         $offset = 0;
@@ -127,19 +135,23 @@ class MediaController extends Controller
         $sort = 'id';
         $order = 'ASC';
 
-        if (isset($_GET['offset']))
+        if (isset($_GET['offset'])) {
             $offset = $_GET['offset'];
-        if (isset($_GET['limit']))
+        }
+        if (isset($_GET['limit'])) {
             $limit = $_GET['limit'];
+        }
 
-        if (isset($_GET['sort']))
+        if (isset($_GET['sort'])) {
             $sort = $_GET['sort'];
-        if (isset($_GET['order']))
+        }
+        if (isset($_GET['order'])) {
             $order = $_GET['order'];
+        }
 
         $sql = Media::with('files')->where('type', 1);
 
-        if (isset($_GET['search']) && !empty($_GET['search'])) {
+        if (isset($_GET['search']) && ! empty($_GET['search'])) {
             $search = $_GET['search'];
             $sql->where(fn ($query) => $query->where('id', 'LIKE', "%$search%")->orwhere('name', 'LIKE', "%$search%"));
         }
@@ -149,14 +161,14 @@ class MediaController extends Controller
 
         $res = $sql->get();
 
-        $bulkData = array();
+        $bulkData = [];
         $bulkData['total'] = $total;
-        $rows = array();
-        $tempRow = array();
+        $rows = [];
+        $tempRow = [];
         $no = 1;
         foreach ($res as $row) {
-            $operate = '<a href=' . route('edit.index', $row->id) . ' class="btn btn-xs btn-gradient-primary btn-rounded btn-icon edit-data" data-id=' . $row->id . '><i class="fa fa-edit"></i></a>&nbsp;&nbsp;';
-            $operate .= '<a href=' . route('photo.delete', $row->id) . ' class="btn btn-xs btn-gradient-danger btn-rounded btn-icon delete-form" data-id=' . $row->id . '><i class="fa fa-trash"></i></a>';
+            $operate = '<a href='.route('edit.index', $row->id).' class="btn btn-xs btn-gradient-primary btn-rounded btn-icon edit-data" data-id='.$row->id.'><i class="fa fa-edit"></i></a>&nbsp;&nbsp;';
+            $operate .= '<a href='.route('photo.delete', $row->id).' class="btn btn-xs btn-gradient-danger btn-rounded btn-icon delete-form" data-id='.$row->id.'><i class="fa fa-trash"></i></a>';
 
             $tempRow['id'] = $row->id;
             $tempRow['no'] = $no++;
@@ -168,28 +180,32 @@ class MediaController extends Controller
             $rows[] = $tempRow;
         }
         $bulkData['rows'] = $rows;
+
         return response()->json($bulkData);
     }
 
     public function edit_index($id)
     {
-        if (!Auth::user()->can('media-create')) {
-            $response = array(
-                'message' => trans('no_permission_message')
-            );
+        if (! Auth::user()->can('media-create')) {
+            $response = [
+                'message' => trans('no_permission_message'),
+            ];
+
             return redirect(route('home'))->withErrors($response);
         }
 
         $media = Media::with('files')->where('id', $id)->first();
+
         return view('web_settings.edit_photos', compact('media'));
     }
 
     public function photo_update(Request $request)
     {
-        if (!Auth::user()->can('media-edit')) {
-            $response = array(
-                'message' => trans('no_permission_message')
-            );
+        if (! Auth::user()->can('media-edit')) {
+            $response = [
+                'message' => trans('no_permission_message'),
+            ];
+
             return redirect(route('home'))->withErrors($response);
         }
 
@@ -203,10 +219,11 @@ class MediaController extends Controller
         ]);
 
         if ($validator->fails()) {
-            $response = array(
+            $response = [
                 'error' => true,
-                'message' => $validator->errors()->first()
-            );
+                'message' => $validator->errors()->first(),
+            ];
+
             return response()->json($response);
         }
         try {
@@ -221,38 +238,40 @@ class MediaController extends Controller
 
                 $image = $request->file('thumbnail');
                 $file_name = FileNames::forUpload($image);
-                $file_path = 'gallery/' . $file_name;
+                $file_path = 'gallery/'.$file_name;
                 resizeImage($image);
                 $destinationPath = storage_path('app/public/gallery');
                 $image->move($destinationPath, $file_name);
                 $media->thumbnail = $file_path;
             }
             $media->save();
-            $response = array(
+            $response = [
                 'error' => false,
                 'message' => trans('data_update_successfully'),
-            );
+            ];
         } catch (\Throwable $e) {
             report($e);
-            $response = array(
+            $response = [
                 'error' => true,
                 'message' => trans('error_occurred'),
-            );
+            ];
         }
+
         return response()->json($response);
     }
 
     public function photo_delete($id)
     {
-        if (!Auth::user()->can('media-delete')) {
-            $response = array(
-                'message' => trans('no_permission_message')
-            );
+        if (! Auth::user()->can('media-delete')) {
+            $response = [
+                'message' => trans('no_permission_message'),
+            ];
+
             return redirect(route('home'))->withErrors($response);
         }
         try {
             $media = Media::find($id);
-            $files  = MediaFile::where('media_id', $id)->get();
+            $files = MediaFile::where('media_id', $id)->get();
             foreach ($files as $file) {
                 if (Storage::disk('public')->exists($file->getRawOriginal('file_url'))) {
                     Storage::disk('public')->delete($file->getRawOriginal('file_url'));
@@ -263,79 +282,84 @@ class MediaController extends Controller
                 Storage::disk('public')->delete($media->getRawOriginal('thumbnail'));
             }
             $media->delete();
-            $response = array(
+            $response = [
                 'error' => false,
-                'message' => trans('data_delete_successfully')
-            );
+                'message' => trans('data_delete_successfully'),
+            ];
         } catch (\Throwable $e) {
-            $response = array(
+            $response = [
                 'error' => true,
-                'message' => trans('error_occurred')
-            );
+                'message' => trans('error_occurred'),
+            ];
         }
+
         return response()->json($response);
     }
 
     public function image_update(Request $request)
     {
-        if (!Auth::user()->can('media-edit')) {
-            $response = array(
-                'message' => trans('no_permission_message')
-            );
+        if (! Auth::user()->can('media-edit')) {
+            $response = [
+                'message' => trans('no_permission_message'),
+            ];
+
             return redirect(route('home'))->withErrors($response);
         }
 
         $validator = Validator::make($request->all(), [
-            'images.*' => 'required|image|mimes:jpeg,png,jpg|max:2048'
+            'images.*' => 'required|image|mimes:jpeg,png,jpg|max:2048',
         ]);
 
         if ($validator->fails()) {
-            $response = array(
+            $response = [
                 'error' => true,
-                'message' => $validator->errors()->first()
-            );
+                'message' => $validator->errors()->first(),
+            ];
+
             return response()->json($response);
         }
         try {
-            $media = new MediaFile();
+            $media = new MediaFile;
 
             if ($request->hasFile('image')) {
                 $images = $request->file('image');
 
                 foreach ($images as $image) {
 
-                    $file = new MediaFile();
+                    $file = new MediaFile;
                     $file->media_id = $request->edit_id;
                     $file_name = FileNames::forUpload($image);
-                    $file_path = 'gallery/' . $file_name;
+                    $file_path = 'gallery/'.$file_name;
                     resizeImage($image);
-                    $destinationPath = storage_path("app/public/gallery/");
+                    $destinationPath = storage_path('app/public/gallery/');
                     $image->move($destinationPath, $file_name);
                     $file->file_url = $file_path;
                     $file->save();
                 }
             }
 
-            $response = array(
+            $response = [
                 'error' => false,
                 'message' => trans('data_store_successfully'),
-            );
+            ];
         } catch (\Throwable $e) {
             report($e);
-            $response = array(
+            $response = [
                 'error' => true,
                 'message' => trans('error_occurred'),
-            );
+            ];
         }
+
         return response()->json($response);
     }
 
     public function image_delete($id)
     {
-        if (!Auth::user()->can('media-delete')) {
-            $response = array(
-                'message' => trans('no_permission_message')
-            );
+        if (! Auth::user()->can('media-delete')) {
+            $response = [
+                'message' => trans('no_permission_message'),
+            ];
+
             return redirect(route('home'))->withErrors($response);
         }
         try {
@@ -344,25 +368,27 @@ class MediaController extends Controller
                 Storage::disk('public')->delete($file->getRawOriginal('file_url'));
             }
             $file->delete();
-            $response = array(
+            $response = [
                 'error' => false,
-                'message' => trans('data_delete_successfully')
-            );
+                'message' => trans('data_delete_successfully'),
+            ];
         } catch (\Throwable $e) {
-            $response = array(
+            $response = [
                 'error' => true,
-                'message' => trans('error_occurred')
-            );
+                'message' => trans('error_occurred'),
+            ];
         }
+
         return response()->json($response);
     }
 
     public function video_store(Request $request)
     {
-        if (!Auth::user()->can('media-create')) {
-            $response = array(
-                'message' => trans('no_permission_message')
-            );
+        if (! Auth::user()->can('media-create')) {
+            $response = [
+                'message' => trans('no_permission_message'),
+            ];
+
             return redirect(route('home'))->withErrors($response);
         }
         $validator = Validator::make($request->all(), [
@@ -372,37 +398,40 @@ class MediaController extends Controller
         ]);
 
         if ($validator->fails()) {
-            $response = array(
+            $response = [
                 'error' => true,
-                'message' => $validator->errors()->first()
-            );
+                'message' => $validator->errors()->first(),
+            ];
+
             return response()->json($response);
         }
         try {
-            $media = new Media();
+            $media = new Media;
             $media->youtube_url = $request->youtube_url;
             $media->type = 2;
             $media->save();
-            $response = array(
+            $response = [
                 'error' => false,
                 'message' => trans('data_store_successfully'),
-            );
+            ];
         } catch (\Throwable $e) {
             report($e);
-            $response = array(
+            $response = [
                 'error' => true,
                 'message' => trans('error_occurred'),
-            );
+            ];
         }
+
         return response()->json($response);
     }
 
     public function video_show()
     {
-        if (!Auth::user()->can('media-list')) {
-            $response = array(
-                'message' => trans('no_permission_message')
-            );
+        if (! Auth::user()->can('media-list')) {
+            $response = [
+                'message' => trans('no_permission_message'),
+            ];
+
             return redirect(route('home'))->withErrors($response);
         }
         $offset = 0;
@@ -410,19 +439,23 @@ class MediaController extends Controller
         $sort = 'id';
         $order = 'ASC';
 
-        if (isset($_GET['offset']))
+        if (isset($_GET['offset'])) {
             $offset = $_GET['offset'];
-        if (isset($_GET['limit']))
+        }
+        if (isset($_GET['limit'])) {
             $limit = $_GET['limit'];
+        }
 
-        if (isset($_GET['sort']))
+        if (isset($_GET['sort'])) {
             $sort = $_GET['sort'];
-        if (isset($_GET['order']))
+        }
+        if (isset($_GET['order'])) {
             $order = $_GET['order'];
+        }
 
         $sql = Media::where('type', 2);
 
-        if (isset($_GET['search']) && !empty($_GET['search'])) {
+        if (isset($_GET['search']) && ! empty($_GET['search'])) {
             $search = $_GET['search'];
             $sql->where(fn ($query) => $query->where('id', 'LIKE', "%$search%")->orwhere('name', 'LIKE', "%$search%"));
         }
@@ -432,18 +465,18 @@ class MediaController extends Controller
 
         $res = $sql->get();
 
-        $bulkData = array();
+        $bulkData = [];
         $bulkData['total'] = $total;
-        $rows = array();
-        $tempRow = array();
+        $rows = [];
+        $tempRow = [];
         $no = 1;
         foreach ($res as $row) {
-            $operate = '<a href=' . route('video.update', $row->id) . ' class="btn btn-xs btn-gradient-primary btn-rounded btn-icon edit-data" data-id=' . $row->id . ' title="Edit" data-toggle="modal" data-target="#editModal"><i class="fa fa-edit"></i></a>&nbsp;&nbsp;';
-            $operate .= '<a href=' . route('video.delete', $row->id) . ' class="btn btn-xs btn-gradient-danger btn-rounded btn-icon delete-form" data-id=' . $row->id . '><i class="fa fa-trash"></i></a>';
+            $operate = '<a href='.route('video.update', $row->id).' class="btn btn-xs btn-gradient-primary btn-rounded btn-icon edit-data" data-id='.$row->id.' title="Edit" data-toggle="modal" data-target="#editModal"><i class="fa fa-edit"></i></a>&nbsp;&nbsp;';
+            $operate .= '<a href='.route('video.delete', $row->id).' class="btn btn-xs btn-gradient-danger btn-rounded btn-icon delete-form" data-id='.$row->id.'><i class="fa fa-trash"></i></a>';
 
             $tempRow['id'] = $row->id;
             $tempRow['no'] = $no++;
-            $tempRow['url'] = "<a data-toggle='lightbox' href='" . $row->embeded_url['embedUrl'] . "'>$row->youtube_url</a>";
+            $tempRow['url'] = "<a data-toggle='lightbox' href='".$row->embeded_url['embedUrl']."'>$row->youtube_url</a>";
             $tempRow['original_url'] = $row->youtube_url;
             $tempRow['created_at'] = convertDateFormat($row->created_at, 'd-m-Y H:i:s');
             $tempRow['updated_at'] = convertDateFormat($row->updated_at, 'd-m-Y H:i:s');
@@ -457,10 +490,11 @@ class MediaController extends Controller
 
     public function video_update(Request $request)
     {
-        if (!Auth::user()->can('media-edit')) {
-            $response = array(
-                'message' => trans('no_permission_message')
-            );
+        if (! Auth::user()->can('media-edit')) {
+            $response = [
+                'message' => trans('no_permission_message'),
+            ];
+
             return redirect(route('home'))->withErrors($response);
         }
         $validator = Validator::make($request->all(), [
@@ -470,10 +504,11 @@ class MediaController extends Controller
         ]);
 
         if ($validator->fails()) {
-            $response = array(
+            $response = [
                 'error' => true,
-                'message' => $validator->errors()->first()
-            );
+                'message' => $validator->errors()->first(),
+            ];
+
             return response()->json($response);
         }
         try {
@@ -481,41 +516,44 @@ class MediaController extends Controller
             $media->youtube_url = $request->youtube_url;
             $media->type = 2;
             $media->save();
-            $response = array(
+            $response = [
                 'error' => false,
                 'message' => trans('data_store_successfully'),
-            );
+            ];
         } catch (\Throwable $e) {
             report($e);
-            $response = array(
+            $response = [
                 'error' => true,
                 'message' => trans('error_occurred'),
-            );
+            ];
         }
+
         return response()->json($response);
     }
 
     public function video_delete($id)
     {
-        if (!Auth::user()->can('media-delete')) {
-            $response = array(
-                'message' => trans('no_permission_message')
-            );
+        if (! Auth::user()->can('media-delete')) {
+            $response = [
+                'message' => trans('no_permission_message'),
+            ];
+
             return redirect(route('home'))->withErrors($response);
         }
         try {
             $media = Media::find($id);
             $media->delete();
-            $response = array(
+            $response = [
                 'error' => false,
-                'message' => trans('data_delete_successfully')
-            );
+                'message' => trans('data_delete_successfully'),
+            ];
         } catch (\Throwable $e) {
-            $response = array(
+            $response = [
                 'error' => true,
-                'message' => trans('error_occurred')
-            );
+                'message' => trans('error_occurred'),
+            ];
         }
+
         return response()->json($response);
     }
 }

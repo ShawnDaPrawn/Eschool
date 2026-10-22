@@ -6,6 +6,8 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Leave extends Model
@@ -31,7 +33,7 @@ class Leave extends Model
     /**
      * Get all of the leave_detail for the Leave
      *
-     * @return \Illuminate\Database\Eloquent\Relations\HasMany
+     * @return HasMany
      */
     public function leave_detail()
     {
@@ -41,7 +43,7 @@ class Leave extends Model
     /**
      * Get the leave_master that owns the Leave
      *
-     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
+     * @return BelongsTo
      */
     public function leave_master()
     {

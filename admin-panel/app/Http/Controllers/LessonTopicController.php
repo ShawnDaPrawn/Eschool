@@ -10,6 +10,7 @@ use App\Models\ClassSection;
 use App\Models\File;
 use App\Models\LessonTopic;
 use App\Services\Platform\Files\FileNames;
+use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
@@ -20,7 +21,7 @@ class LessonTopicController extends Controller
     /**
      * Display a listing of the resource.
      *
-     * @return \Illuminate\Http\Response
+     * @return Response
      */
     public function index()
     {
@@ -66,7 +67,7 @@ class LessonTopicController extends Controller
      * /**
      * Store a newly created resource in storage.
      *
-     * @return \Illuminate\Http\Response
+     * @return Response
      */
     public function store(StoreLessonTopicRequest $request)
     {
@@ -162,8 +163,8 @@ class LessonTopicController extends Controller
     /**
      * Display the specified resource.
      *
-     * @param  \App\Models\LessonTopic  $lessonTopic
-     * @return \Illuminate\Http\Response
+     * @param  LessonTopic  $lessonTopic
+     * @return Response
      */
     public function show()
     {
@@ -272,7 +273,7 @@ class LessonTopicController extends Controller
     /**
      * Update the specified resource in storage.
      *
-     * @return \Illuminate\Http\Response
+     * @return Response
      */
     public function update(UpdateLessonTopicRequest $request, LessonTopic $lessonTopic)
     {
@@ -453,8 +454,8 @@ class LessonTopicController extends Controller
     /**
      * Remove the specified resource from storage.
      *
-     * @param  \App\Models\LessonTopic  $lessonTopic
-     * @return \Illuminate\Http\Response
+     * @param  LessonTopic  $lessonTopic
+     * @return Response
      */
     public function destroy($id)
     {
@@ -480,7 +481,7 @@ class LessonTopicController extends Controller
                 'error' => false,
                 'message' => trans('data_delete_successfully'),
             ];
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             $response = [
                 'error' => true,
                 'message' => trans('error_occurred'),

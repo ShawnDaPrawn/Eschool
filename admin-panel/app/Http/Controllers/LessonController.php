@@ -4,8 +4,6 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers;
 
-use App\Services\Platform\Files\FileNames;
-use App\Services\ResponseService;
 use App\Http\Requests\StoreLessonRequest;
 use App\Http\Requests\UpdateLessonRequest;
 use App\Models\Assignment;
@@ -15,9 +13,13 @@ use App\Models\File;
 use App\Models\Lesson;
 use App\Models\LessonTopic;
 use App\Models\Semester;
+use App\Models\SubjectLesson;
 use App\Models\SubjectTeacher;
 use App\Models\Teacher;
+use App\Services\Platform\Files\FileNames;
+use App\Services\ResponseService;
 use Illuminate\Http\Request;
+use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
@@ -28,7 +30,7 @@ class LessonController extends Controller
     /**
      * Display a listing of the resource.
      *
-     * @return \Illuminate\Http\Response
+     * @return Response
      */
     public function index()
     {
@@ -73,7 +75,7 @@ class LessonController extends Controller
     /**
      * Store a newly created resource in storage.
      *
-     * @return \Illuminate\Http\Response
+     * @return Response
      */
     public function store(StoreLessonRequest $request)
     {
@@ -170,8 +172,8 @@ class LessonController extends Controller
     /**
      * Display the specified resource.
      *
-     * @param  \App\Models\SubjectLesson  $subjectLesson
-     * @return \Illuminate\Http\Response
+     * @param  SubjectLesson  $subjectLesson
+     * @return Response
      */
     public function show()
     {
@@ -296,8 +298,8 @@ class LessonController extends Controller
     /**
      * Update the specified resource in storage.
      *
-     * @param  \App\Models\SubjectLesson  $subjectLesson
-     * @return \Illuminate\Http\Response
+     * @param  SubjectLesson  $subjectLesson
+     * @return Response
      */
     public function update(UpdateLessonRequest $request, $id)
     {
@@ -484,8 +486,8 @@ class LessonController extends Controller
     /**
      * Remove the specified resource from storage.
      *
-     * @param  \App\Models\SubjectLesson  $subjectLesson
-     * @return \Illuminate\Http\Response
+     * @param  SubjectLesson  $subjectLesson
+     * @return Response
      */
     public function destroy($id)
     {
@@ -506,7 +508,7 @@ class LessonController extends Controller
                 'error' => false,
                 'message' => trans('data_delete_successfully'),
             ]);
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             return response()->json([
                 'error' => true,
                 'message' => trans('error_occurred'),
@@ -563,7 +565,7 @@ class LessonController extends Controller
                 'error' => false,
                 'message' => trans('data_delete_successfully'),
             ];
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             $response = [
                 'error' => true,
                 'message' => trans('error_occurred'),

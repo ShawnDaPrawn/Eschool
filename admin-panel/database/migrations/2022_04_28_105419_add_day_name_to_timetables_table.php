@@ -14,7 +14,7 @@ return new class extends Migration
     public function up()
     {
         Schema::table('timetables', function (Blueprint $table) {
-            $table->string('day_name',512)->after('day');
+            $table->string('day_name', 512)->after('day');
         });
     }
 

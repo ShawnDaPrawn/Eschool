@@ -4,17 +4,16 @@ declare(strict_types=1);
 
 namespace App\Models;
 
-use App\Models\Semester;
-use Illuminate\Support\Facades\Auth;
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Facades\Auth;
 
 class ClassSubject extends Model
 {
     use HasFactory, SoftDeletes;
 
-    protected $hidden = ["deleted_at", "created_at", "updated_at"];
+    protected $hidden = ['deleted_at', 'created_at', 'updated_at'];
 
     public function class()
     {
@@ -48,8 +47,10 @@ class ClassSubject extends Model
                 $subjectTeacherQuery->where('semester_id', $semester_id);
             }
             $subjects_ids = $subjectTeacherQuery->pluck('subject_id');
+
             return $query->whereIn('subject_id', $subjects_ids);
         }
+
         return $query;
     }
 

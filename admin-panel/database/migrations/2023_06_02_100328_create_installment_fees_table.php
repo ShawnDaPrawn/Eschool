@@ -25,7 +25,7 @@ return new class extends Migration
             $table->integer('fee_due_charges')->comment('in percentage (%)')->default(0)->after('fee_due_date');
         });
 
-        //Column Fully paid fee status in Fees Paid
+        // Column Fully paid fee status in Fees Paid
         Schema::table('fees_paids', function (Blueprint $table) {
             $table->tinyInteger('is_fully_paid')->comment('0 - no 1 - yes')->after('total_amount')->default(1);
         });
@@ -37,7 +37,7 @@ return new class extends Migration
             $table->date('due_date');
             $table->integer('due_charges')->comment('in percentage (%)');
 
-            //foreign key session year id
+            // foreign key session year id
             $table->bigInteger('session_year_id')->unsigned()->index();
             $table->foreign('session_year_id')->references('id')->on('session_years')->onDelete('cascade');
 
@@ -52,12 +52,12 @@ return new class extends Migration
      */
     public function down()
     {
-        //revert to integer amount
+        // revert to integer amount
         Schema::table('fees_classes', function (Blueprint $table) {
             $table->integer('amount')->change();
         });
 
-        //remove Instllment fee status , due date and due charges for the fees columns
+        // remove Instllment fee status , due date and due charges for the fees columns
         Schema::table('session_years', function (Blueprint $table) {
             $table->dropColumn('include_fee_installments');
             $table->dropColumn('fee_due_date');
@@ -69,7 +69,7 @@ return new class extends Migration
             $table->dropColumn('is_fully_paid');
         });
 
-        //remove the table
+        // remove the table
         Schema::dropIfExists('installment_fees');
 
     }
