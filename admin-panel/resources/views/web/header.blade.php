@@ -1,245 +1,172 @@
-<!DOCTYPE html>
-<html lang="en">
+{{--
+    Site header: a contact bar, then a Material 3 top app bar. From 1024px wide the
+    navigation sits in the bar (Gallery and Language open M3 menus); below that it
+    moves into a modal navigation drawer opened by the menu button.
+    Uses $settings (controller) and the section flags set in web.master.
+--}}
+@php
+    $schoolEmail = isset($settings['school_email']) ? $settings['school_email'] : 'info@tokensoft.tech';
+    $schoolPhone = isset($settings['school_phone']) ? $settings['school_phone'] : '+27 12 345 6789';
+    $currentLanguage = Session::has('language') ? Session::get('language')->name : __('language');
+    $languages = get_language();
+@endphp
 
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    {{-- Material 3 design tokens, generated from the apps' theme (packages/eschool_core). Load first. --}}
-    <link rel="stylesheet" href="{{ asset('/assets/css/m3-tokens.css') }}?v={{ filemtime(public_path('assets/css/m3-tokens.css')) }}">
-    <!-- bootstrap  -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet"
-        integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
-    <link rel="stylesheet" href="{{ asset('/assets/css/vendor.bundle.base.css') }}" async>
-    <link rel="stylesheet" href="{{ asset('/assets/css/flatpickr.min.css') }}">
-    <link rel="stylesheet" href="{{ asset('/assets/css/flatpickr-theme.css') }}">
-    <link rel="stylesheet" href="{{ asset('/assets/jquery-toast-plugin/jquery.toast.min.css') }}">
-    {{-- Typeface (Poppins) and legacy colour variables mapped to the tokens — after the vendor CSS, before the site styles. --}}
-    <link rel="stylesheet" href="{{ asset('/assets/css/m3-base.css') }}?v={{ filemtime(public_path('assets/css/m3-base.css')) }}">
-    <link rel="stylesheet" href="{{ asset('/assets/css/webstyle.css') }}?v={{ filemtime(public_path('assets/css/webstyle.css')) }}">
-    <link rel="stylesheet" href="{{ asset('/assets/css/responsive.css') }}">
-    <link rel="stylesheet"
-        href="https://cdnjs.cloudflare.com/ajax/libs/OwlCarousel2/2.3.4/assets/owl.carousel.min.css" />
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
-    <link rel="stylesheet" href="{{ asset('/assets/css/ekko-lightbox.css') }}">
-</head>
-
-<body>
-
-    <header class="topHeader">
-        <div class="container">
-            <div class="row divWrapper">
-                <div class="col-8 col-sm-8 col-md-8 col-lg-6">
-                    <div class="leftDiv">
-                        <span class="commonSpan">
-                            <i class="fa-solid fa-envelope"></i>
-                            <a
-                                href="mailto:{{ $settings['school_email'] }}">{{ isset($settings['school_email']) ? $settings['school_email'] : 'info@tokensoft.tech' }}</a>
-                        </span>
-                        <span class="commonSpan"><i class="fa-solid fa-phone-volume"></i>
-                            <a
-                                href="tel:{{ $settings['school_phone'] }}">{{ isset($settings['school_phone']) ? $settings['school_phone'] : '+27 12 345 6789' }}</a>
-                        </span>
-                    </div>
-                </div>
-                <div class="col-4 col-sm-4 col-md-4 col-lg-6">
-                    <div class="rightDiv">
-                        <span class="commonSpan">{{ __('follow_us') }}:</span>
-                        {{-- <span class="commonSpan">Follow Us:</span> --}}
-                        <span>
-                            <span class="commonSpan">
-                                <a href="{{ isset($settings['facebook']) ? $settings['facebook'] : '' }}"
-                                    target="_blank">
-                                    <i class="fa-brands fa-facebook-square"></i>
-                                </a>
-                            </span>
-                            <span class="commonSpan">
-                                <a href="{{ isset($settings['linkedin']) ? $settings['linkedin'] : '' }}"
-                                    target="_blank">
-                                    <i class="fa-brands fa-linkedin"></i>
-                                </a>
-                            </span>
-                        </span>
-                    </div>
-                </div>
-            </div>
+<div class="site-topbar">
+    <div class="m3-page site-topbar__inner">
+        <ul class="site-topbar__contact">
+            <li>
+                <a href="mailto:{{ $settings['school_email'] }}">
+                    <x-icon name="mail" class="m3-icon" />{{ $schoolEmail }}
+                </a>
+            </li>
+            <li>
+                <a href="tel:{{ $settings['school_phone'] }}">
+                    <x-icon name="phone" class="m3-icon" /><bdi dir="ltr">{{ $schoolPhone }}</bdi>
+                </a>
+            </li>
+        </ul>
+        <div class="site-topbar__social">
+            <span class="site-topbar__follow">{{ __('follow_us') }}:</span>
+            <a class="m3-icon-button m3-icon-button--small" href="{{ isset($settings['facebook']) ? $settings['facebook'] : '' }}"
+                target="_blank" rel="noopener" aria-label="Facebook">
+                <i class="fa-brands fa-facebook-square" aria-hidden="true"></i>
+            </a>
+            <a class="m3-icon-button m3-icon-button--small" href="{{ isset($settings['linkedin']) ? $settings['linkedin'] : '' }}"
+                target="_blank" rel="noopener" aria-label="LinkedIn">
+                <i class="fa-brands fa-linkedin" aria-hidden="true"></i>
+            </a>
         </div>
-    </header>
-    <!-- topHeader ends here  -->
+    </div>
+</div>
 
-    <header class="navbar">
-        <div class="container">
-            <div class="navbarWrapper">
-                <div class="navLogoWrapper">
-                    <div class="navLogo">
-                        <a href="{{ url('/') }}">
-                            <img src="{{ schoolLogoUrl('logo1') }}"
-                                height="50px" width="150px" alt="logo">
-                        </a>
-                    </div>
-                </div>
-                <div class="menuListWrapper">
-                    <ul class="listItems">
-                        <li>
-                            <a href="{{ url('/') }}">{{ __('home') }}</a>
-                        </li>
-                        @if ($about || $whoweare || $teacher)
-                            <li>
-                                <a href="{{ route('about.us') }}">{{ __('about-us') }}</a>
-                            </li>
-                        @endif
+<header class="m3-top-app-bar m3-top-app-bar--sticky site-app-bar" data-m3-scroll>
+    <div class="m3-page site-app-bar__inner">
+        <a class="site-logo" href="{{ url('/') }}">
+            <img src="{{ schoolLogoUrl('logo1') }}" height="50" width="150" alt="logo">
+        </a>
 
-                        @if ($photo || $video)
-                            <li>
-                                <div class="dropdown">
-                                    <a class="btn btn-secondary dropdown-toggle" href="#" role="button"
-                                        id="dropdownMenuLink" data-bs-toggle="dropdown" aria-expanded="false">
-                                        {{ __('gallery') }}
-                                    </a>
-
-                                    <ul class="dropdown-menu" aria-labelledby="dropdownMenuLink">
-                                        @if ($photo)
-                                            <li><a class="dropdown-item" href="{{ route('photo') }}">
-                                                    {{ __('photos') }}</a></li>
-                                        @endif
-                                        <hr>
-                                        @if ($video)
-                                            <li><a class="dropdown-item" href="{{ route('video') }}">
-                                                    {{ __('videos') }}</a></li>
-                                        @endif
-                                    </ul>
-                                </div>
-                            </li>
-                        @endif
-                        @if ($question)
-                            <li>
-                                <a href="{{ route('contact.us') }}"> {{ __('contact_us') }}</a>
-                            </li>
-                        @endif
-                        @if ($registration)
-                            <li>
-                                <a href="{{ route('student-registration.index') }}"> {{ __('registration') }}</a>
-                            </li>
-                        @endif
-                        <li class="nav-language-switcher">
-                            <div class="dropdown">
-                                <a class="language-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                                    <i class="fa-solid fa-globe"></i>
-                                    <span class="current-lang-name">{{ Session::has('language') ? Session::get('language')->name : __('language') }}</span>
-                                    <i class="fa-solid fa-chevron-down"></i>
-                                </a>
-                                <ul class="dropdown-menu language-dropdown-menu" aria-labelledby="langDropdown">
-                                    @foreach (get_language() as $language)
-                                        <li>
-                                            <a class="dropdown-item {{ app()->getLocale() == $language->code ? 'active' : '' }}"
-                                                href="{{ route('web.set.language', $language->code) }}">
-                                                {{ $language->name }}
-                                            </a>
-                                        </li>
-                                    @endforeach
-                                </ul>
-                            </div>
-                        </li>
-                        <li>
-                            <button type="submit" class="commonBtn mb-3" name="contactbtn"
-                                onclick="window.location='{{ url('login') }}'">
-                                {{ __('login') }}
-                            </button>
-                        </li>
-                    </ul>
-                    <div class="hamburg">
-                        <button type="button" data-bs-toggle="offcanvas" data-bs-target="#offcanvasRight"
-                            aria-controls="offcanvasRight" aria-label="{{ __('menu') }}"><i class="fa-solid fa-bars"
-                                aria-hidden="true"></i></button>
-                    </div>
-                </div>
-            </div>
-
-
-
-            <div class="offcanvas offcanvas-end" tabindex="-1" id="offcanvasRight"
-                aria-labelledby="offcanvasRightLabel">
-                <div class="offcanvas-header">
-                    <div class="navLogoWrapper">
-                        <div class="navLogo">
-                            <img src="{{ schoolLogoUrl('logo1') }}"
-                                height="50px" width="150px" alt="logo">
+        <nav class="site-nav" aria-label="{{ __('menu') }}">
+            <ul class="site-nav__list">
+                <li>
+                    <a class="m3-button m3-button--text site-nav__link" href="{{ url('/') }}"
+                        @if (request()->is('/')) aria-current="page" @endif>{{ __('home') }}</a>
+                </li>
+                @if ($about || $whoweare || $teacher)
+                    <li>
+                        <a class="m3-button m3-button--text site-nav__link" href="{{ route('about.us') }}"
+                            @if (request()->routeIs('about.us')) aria-current="page" @endif>{{ __('about-us') }}</a>
+                    </li>
+                @endif
+                @if ($photo || $video)
+                    <li>
+                        <button type="button" class="m3-button m3-button--text site-nav__link m3-button--icon-trailing"
+                            data-m3-menu="site-gallery-menu" aria-haspopup="menu" aria-expanded="false"
+                            @if (request()->routeIs('photo', 'photo.gallery', 'video')) data-current="true" @endif>
+                            {{ __('gallery') }}
+                            <x-icon name="chevron-down" class="m3-icon" />
+                        </button>
+                        <div class="m3-menu" id="site-gallery-menu" popover role="menu">
+                            @if ($photo)
+                                <a class="m3-menu__item" role="menuitem" href="{{ route('photo') }}"
+                                    @if (request()->routeIs('photo', 'photo.gallery')) aria-current="true" @endif>{{ __('photos') }}</a>
+                            @endif
+                            @if ($photo && $video)
+                                <hr class="m3-menu__divider">
+                            @endif
+                            @if ($video)
+                                <a class="m3-menu__item" role="menuitem" href="{{ route('video') }}"
+                                    @if (request()->routeIs('video')) aria-current="true" @endif>{{ __('videos') }}</a>
+                            @endif
                         </div>
+                    </li>
+                @endif
+                @if ($question)
+                    <li>
+                        <a class="m3-button m3-button--text site-nav__link" href="{{ route('contact.us') }}"
+                            @if (request()->routeIs('contact.us')) aria-current="page" @endif>{{ __('contact_us') }}</a>
+                    </li>
+                @endif
+                @if ($registration)
+                    <li>
+                        <a class="m3-button m3-button--text site-nav__link" href="{{ route('student-registration.index') }}"
+                            @if (request()->routeIs('student-registration.index')) aria-current="page" @endif>{{ __('registration') }}</a>
+                    </li>
+                @endif
+                <li>
+                    <button type="button" class="m3-button m3-button--text site-nav__link m3-button--icon-leading m3-button--icon-trailing"
+                        data-m3-menu="site-language-menu" aria-haspopup="menu" aria-expanded="false">
+                        <x-icon name="globe" class="m3-icon" />
+                        <span class="site-nav__language">{{ $currentLanguage }}</span>
+                        <x-icon name="chevron-down" class="m3-icon" />
+                    </button>
+                    <div class="m3-menu" id="site-language-menu" popover role="menu">
+                        @foreach ($languages as $language)
+                            <a class="m3-menu__item" role="menuitem" href="{{ route('web.set.language', $language->code) }}"
+                                @if (app()->getLocale() == $language->code) aria-current="true" @endif>{{ $language->name }}</a>
+                        @endforeach
                     </div>
-                    <button type="button" class="btn-close text-reset" data-bs-dismiss="offcanvas"
-                        aria-label="Close"></button>
-                </div>
-                <div class="offcanvas-body">
-                    <ul class="listItems">
-                        <li>
-                            <a href="{{ url('/') }}">{{ __('home') }}</a>
-                        </li>
-                        @if ($about || $whoweare || $teacher)
-                            <li>
-                                <a href="{{ route('about.us') }}">{{ __('about-us') }}</a>
-                            </li>
-                        @endif
-                        @if ($photo || $video)
-                            <li>
-                                <div class="dropdown">
-                                    <a class="btn btn-secondary dropdown-toggle" href="#" role="button"
-                                        id="dropdownMenuLink" data-bs-toggle="dropdown" aria-expanded="false">
-                                        Gallery
-                                    </a>
+                </li>
+                <li>
+                    <a class="m3-button m3-button--filled site-nav__login" href="{{ url('login') }}">{{ __('login') }}</a>
+                </li>
+            </ul>
+        </nav>
 
-                                    <ul class="dropdown-menu" aria-labelledby="dropdownMenuLink">
-                                        @if ($photo)
-                                            <li><a class="dropdown-item"
-                                                    href="{{ route('photo') }}">{{ __('photos') }}</a></li>
-                                        @endif
-                                        <hr>
-                                        @if ($video)
-                                            <li><a class="dropdown-item"
-                                                    href="{{ route('video') }}">{{ __('videos') }}</a></li>
-                                        @endif
-                                    </ul>
-                                </div>
-                            </li>
-                        @endif
-                        @if ($registration)
-                            <li>
-                                <a href="{{ route('student-registration.index') }}"> {{ __('registration') }}</a>
-                            </li>
-                        @endif
-                        @if ($question)
-                            <li>
-                                <a href="{{ route('contact.us') }}">{{ __('contact_us') }}</a>
-                            </li>
-                        @endif
-                        <li class="nav-language-switcher">
-                            <div class="dropdown">
-                                <a class="language-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                                    <i class="fa-solid fa-globe"></i>
-                                    <span class="current-lang-name">{{ Session::has('language') ? Session::get('language')->name : __('language') }}</span>
-                                    <i class="fa-solid fa-chevron-down"></i>
-                                </a>
-                                <ul class="dropdown-menu language-dropdown-menu">
-                                    @foreach (get_language() as $language)
-                                        <li>
-                                            <a class="dropdown-item {{ app()->getLocale() == $language->code ? 'active' : '' }}"
-                                                href="{{ route('web.set.language', $language->code) }}">
-                                                {{ $language->name }}
-                                            </a>
-                                        </li>
-                                    @endforeach
-                                </ul>
-                            </div>
-                        </li>
-                        <li>
-                            <button type="submit" class="commonBtn mb-3" name="contactbtn"
-                                onclick="window.location='{{ url('login') }}'">
-                                {{ __('login') }}
-                            </button>
-                        </li>
-                    </ul>
-                </div>
-            </div>
-        </div>
-    </header>
-</body>
+        <button type="button" class="m3-icon-button site-app-bar__menu" data-m3-dialog-open="site-drawer"
+            aria-haspopup="dialog" aria-label="{{ __('menu') }}">
+            <x-icon name="menu" class="m3-icon" />
+        </button>
+    </div>
+</header>
 
-</html>
+{{-- The phone and tablet menu: a modal navigation drawer. --}}
+<dialog class="m3-navigation-drawer site-drawer" id="site-drawer" aria-label="{{ __('menu') }}">
+    <div class="site-drawer__header">
+        <img src="{{ schoolLogoUrl('logo1') }}" height="50" width="150" alt="logo">
+        <button type="button" class="m3-icon-button" data-m3-dialog-close aria-label="{{ __('close') }}">
+            <x-icon name="close" class="m3-icon" />
+        </button>
+    </div>
+    <nav aria-label="{{ __('menu') }}">
+        <a class="m3-navigation-drawer__item" href="{{ url('/') }}"
+            @if (request()->is('/')) aria-current="page" @endif>{{ __('home') }}</a>
+        @if ($about || $whoweare || $teacher)
+            <a class="m3-navigation-drawer__item" href="{{ route('about.us') }}"
+                @if (request()->routeIs('about.us')) aria-current="page" @endif>{{ __('about-us') }}</a>
+        @endif
+        @if ($photo || $video)
+            <details class="site-drawer__group" @if (request()->routeIs('photo', 'photo.gallery', 'video')) open @endif>
+                <summary class="m3-navigation-drawer__item">{{ __('gallery') }}</summary>
+                @if ($photo)
+                    <a class="m3-navigation-drawer__item site-drawer__subitem" href="{{ route('photo') }}"
+                        @if (request()->routeIs('photo', 'photo.gallery')) aria-current="page" @endif>{{ __('photos') }}</a>
+                @endif
+                @if ($video)
+                    <a class="m3-navigation-drawer__item site-drawer__subitem" href="{{ route('video') }}"
+                        @if (request()->routeIs('video')) aria-current="page" @endif>{{ __('videos') }}</a>
+                @endif
+            </details>
+        @endif
+        @if ($registration)
+            <a class="m3-navigation-drawer__item" href="{{ route('student-registration.index') }}"
+                @if (request()->routeIs('student-registration.index')) aria-current="page" @endif>{{ __('registration') }}</a>
+        @endif
+        @if ($question)
+            <a class="m3-navigation-drawer__item" href="{{ route('contact.us') }}"
+                @if (request()->routeIs('contact.us')) aria-current="page" @endif>{{ __('contact_us') }}</a>
+        @endif
+        <hr class="m3-navigation-drawer__divider">
+        <details class="site-drawer__group">
+            <summary class="m3-navigation-drawer__item">
+                <x-icon name="globe" class="m3-icon" />{{ $currentLanguage }}
+            </summary>
+            @foreach ($languages as $language)
+                <a class="m3-navigation-drawer__item site-drawer__subitem" href="{{ route('web.set.language', $language->code) }}"
+                    @if (app()->getLocale() == $language->code) aria-current="true" @endif>{{ $language->name }}</a>
+            @endforeach
+        </details>
+    </nav>
+    <div class="site-drawer__actions">
+        <a class="m3-button m3-button--filled m3-button--block" href="{{ url('login') }}">{{ __('login') }}</a>
+    </div>
+</dialog>

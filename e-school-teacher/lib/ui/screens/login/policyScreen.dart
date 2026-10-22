@@ -3,10 +3,8 @@ import 'package:eschool_teacher/app/routes.dart';
 import 'package:eschool_teacher/cubits/authCubit.dart';
 import 'package:eschool_teacher/data/repositories/authRepository.dart';
 import 'package:eschool_teacher/data/repositories/policyRepository.dart';
-import 'package:eschool_teacher/ui/widgets/errorContainer.dart';
 import 'package:eschool_teacher/utils/labelKeys.dart';
 import 'package:eschool_teacher/utils/uiUtils.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_html/flutter_html.dart';
@@ -17,7 +15,7 @@ class PolicyScreen extends StatefulWidget {
   const PolicyScreen({super.key});
 
   static Route route(RouteSettings routeSettings) {
-    return CupertinoPageRoute(builder: (_) => const PolicyScreen());
+    return AdaptivePageRoute(builder: (_) => const PolicyScreen());
   }
 
   @override

@@ -2,7 +2,7 @@ import 'package:equatable/equatable.dart';
 import 'package:eschool/data/models/parent.dart';
 import 'package:eschool/data/models/student.dart';
 import 'package:eschool/data/repositories/authRepository.dart';
-import 'package:eschool/utils/notificationUtils/generalNotificationUtility.dart';
+import 'package:eschool_notifications/eschool_notifications.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 abstract class AuthState extends Equatable {}
@@ -131,7 +131,9 @@ class AuthCubit extends Cubit<AuthState> {
 
   void signOut() {
     NotificationUtility.subscribeOrUnsubscribeToNotificationTopics(
-      isParent: isParent(),
+      audience: isParent()
+          ? NotificationAudience.parents
+          : NotificationAudience.students,
       isUnsubscribe: true,
     );
     authRepository.signOutUser();

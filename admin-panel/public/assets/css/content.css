@@ -303,7 +303,7 @@
     font-size: inherit;
     font-weight: 600;
     letter-spacing: 0.02em;
-    color: var(--md-sys-color-on-surface-variant);
+    color: var(--md-sys-color-on-surface);
     background: color-mix(in srgb, var(--md-sys-color-primary) 5%, var(--md-sys-color-surface-container-lowest));
     border: 1px solid var(--md-sys-color-outline-variant);
     border-radius: 8px;
@@ -631,25 +631,25 @@ a.badge:focus {
 }
 
 /* ── Note banners / callouts ──────────────────────────────────────────────
-   Opt-in inline notes for page-level cautions, replacing the legacy Bootstrap
-   .alert (Star-Admin pill radius + flat tints). Base sets the layout; a
-   semantic modifier sets the colour. Semantic status hues per DESIGN.md
-   (danger #dc3545 / deep ink #b42318, warning #d97706, info #0e7490) — NOT
-   brand. Pair with a Lucide <x-icon> at the inline start. Icon is top-aligned
-   so multi-line copy wraps cleanly beside it. */
+   Opt-in inline notes for page-level cautions: the M3 alert pattern (as the
+   global .alert) — a tonal container in the status colour, 12px corners, no
+   border, body-medium. A semantic modifier sets the colour. Pair with a
+   Lucide <x-icon> at the inline start; the icon is top-aligned so multi-line
+   copy wraps cleanly beside it. */
 .note-banner {
     display: flex;
     align-items: flex-start;
     gap: 10px;
-    border-radius: 10px;
-    padding: 0.75rem 1rem;
-    font-size: 0.8125rem;
-    line-height: 1.5;
+    border: 0;
+    border-radius: var(--md-sys-shape-corner-medium);
+    padding: 12px 16px;
+    font-size: var(--md-sys-typescale-body-medium-size);
+    line-height: var(--md-sys-typescale-body-medium-line-height);
 }
 
 .note-banner svg {
     flex-shrink: 0;
-    margin-top: 1px;
+    margin-top: 2px;
 }
 
 .note-banner strong {
@@ -658,8 +658,7 @@ a.badge:focus {
 }
 
 .note-banner-danger {
-    background: color-mix(in srgb, var(--md-sys-color-error) 8%, var(--md-sys-color-surface-container-lowest));
-    border: 1px solid color-mix(in srgb, var(--md-sys-color-error) 28%, transparent);
+    background: color-mix(in srgb, var(--md-sys-color-error) 12%, var(--md-sys-color-surface-container-lowest));
     color: var(--md-sys-color-error);
 }
 
@@ -668,23 +667,21 @@ a.badge:focus {
 }
 
 .note-banner-warning {
-    background: color-mix(in srgb, var(--app-status-warning) 14%, var(--md-sys-color-surface-container-lowest));
-    border: 1px solid color-mix(in srgb, var(--app-status-warning) 35%, transparent);
+    background: color-mix(in srgb, var(--app-status-warning) 16%, var(--md-sys-color-surface-container-lowest));
     color: var(--app-status-warning-text);
 }
 
 .note-banner-warning svg {
-    color: var(--app-status-warning);
+    color: var(--app-status-warning-text);
 }
 
 .note-banner-info {
-    background: color-mix(in srgb, var(--app-status-info) 8%, var(--md-sys-color-surface-container-lowest));
-    border: 1px solid color-mix(in srgb, var(--app-status-info) 25%, transparent);
+    background: color-mix(in srgb, var(--app-status-info) 12%, var(--md-sys-color-surface-container-lowest));
     color: var(--app-status-info-text);
 }
 
 .note-banner-info svg {
-    color: var(--app-status-info);
+    color: var(--app-status-info-text);
 }
 
 /* ==========================================================================
@@ -701,7 +698,7 @@ a.badge:focus {
     padding: 12px;
     background-color: var(--md-sys-color-surface-container-lowest);
     border: 1px solid var(--md-sys-color-outline-variant);
-    border-radius: 12px;
+    border-radius: var(--app-radius);
 }
 
 .content-image-preview .content_image {
@@ -710,95 +707,156 @@ a.badge:focus {
     width: auto;
     height: auto;
     object-fit: contain;
-    border-radius: 8px;
+    border-radius: var(--md-sys-shape-corner-small);
+}
+
+/* ==========================================================================
+   Auth pages (login, forgot / reset password — the .auth card)
+   The template squares every field on these pages and shrinks their type
+   (`.auth form .form-group .form-control`, 0,3,1) and pins the submit to
+   50px; put back the M3 field (10px corners, body-large) and labels
+   (body-medium), and let the large button keep its 48px. The password's
+   eye affix joins the field as the global input group does.
+   ========================================================================== */
+.auth form .form-group .form-control {
+    border-radius: var(--app-radius);
+    font-size: var(--md-sys-typescale-body-large-size);
+}
+
+.auth form .form-group .input-group>.form-control:not(:last-child) {
+    border-start-end-radius: 0;
+    border-end-end-radius: 0;
+}
+
+/* The eye affix: the template's `.input-group-append .input-group-text`
+   (0,2,0) greys out its outline and icon; give it the field's outline and
+   the on-surface-variant icon colour. */
+.auth .input-group-append .input-group-text {
+    border-color: var(--md-sys-color-outline);
+    color: var(--md-sys-color-on-surface-variant);
+}
+
+.auth form .form-group label {
+    font-size: var(--md-sys-typescale-body-medium-size);
+}
+
+.auth form .auth-form-btn {
+    height: auto;
+}
+
+.auth .auth-form-light {
+    border-radius: var(--app-radius);
 }
 
 /* ============================================================
    CREATE SESSION YEAR MODAL
    ------------------------------------------------------------
-   Bespoke ID-scoped modal. Lives here (loaded in BOTH bundles
-   after style.css / rtl.css) so it lands in LTR *and* RTL — the
-   legacy copy in style.css only reaches the LTR bundle, leaving
-   RTL unstyled. Direction-dependent properties are flipped via
-   [dir="rtl"] at the end of this block.
+   The dialog itself (container, title, close, padding, actions)
+   is the global M3 dialog (m3-components.css); its fields are the
+   global M3 fields. What follows is the dialog's own content —
+   section headings, the switches, installment cards, the data
+   transfer options. Lives here (loaded in BOTH bundles after
+   style.css / rtl.css) so it lands in LTR *and* RTL. Logical
+   properties, so no [dir="rtl"] flips.
    ============================================================ */
-.create-session-year-modal {
-    background-color: var(--md-sys-color-surface);
-}
-
-.create-session-year-btn {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 12px 18px;
-}
-
 #createSessionYearModal .modal-dialog {
     max-width: 580px;
 }
 
+/* style.css (LTR only) still carries the old id-scoped dialog (12px corners,
+   a white header with a rule, a 20px title, a 32px square close, a grey
+   footer, 40px fields with a glow). The id outranks the global dialog, so
+   the M3 values are restated here at the same specificity. */
 #createSessionYearModal .modal-content {
-    border-radius: 12px;
-    border: none;
-    box-shadow: var(--md-sys-elevation-level5);
+    border-radius: var(--md-sys-shape-corner-extra-large);
+    box-shadow: var(--md-sys-elevation-level3);
 }
 
 #createSessionYearModal .modal-header {
-    padding: 24px 24px 20px;
-    border-bottom: 1px solid var(--md-sys-color-outline-variant);
-    background-color: var(--md-sys-color-surface);
-    border-radius: 12px 12px 0 0;
+    padding: 24px 24px 16px;
+    border-bottom: 0;
+    background-color: transparent;
+    border-radius: 0;
 }
 
 #createSessionYearModal .modal-title {
-    font-size: 20px;
-    font-weight: 600;
+    font-size: var(--md-sys-typescale-headline-small-size);
+    line-height: var(--md-sys-typescale-headline-small-line-height);
+    font-weight: var(--md-sys-typescale-headline-small-weight);
     color: var(--md-sys-color-on-surface);
 }
 
 #createSessionYearModal .close {
-    font-size: 28px;
-    font-weight: 300;
+    width: 40px;
+    height: 40px;
+    margin: -8px -8px -8px auto;
+    border-radius: var(--md-sys-shape-corner-full);
+    font-size: 1.5rem;
+    font-weight: 400;
     color: var(--md-sys-color-on-surface-variant);
-    opacity: 1;
-    padding: 0;
-    margin: 0;
-    width: 32px;
-    height: 32px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border-radius: 6px;
-    transition: all 0.2s ease;
+}
+
+[dir="rtl"] #createSessionYearModal .close {
+    margin: -8px auto -8px -8px;
 }
 
 #createSessionYearModal .close:hover {
-    background-color: var(--md-sys-color-surface-container);
-    color: var(--md-sys-color-on-surface);
+    background-color: color-mix(in srgb, var(--md-sys-color-on-surface-variant) var(--md-sys-state-hover-opacity), transparent);
+    color: var(--md-sys-color-on-surface-variant);
 }
 
 #createSessionYearModal .modal-body {
-    padding: 24px;
+    padding: 0 24px 8px;
     max-height: calc(100vh - 200px);
     overflow-y: auto;
 }
 
-#createSessionYearModal .modal-body::-webkit-scrollbar {
-    width: 6px;
-}
-
 #createSessionYearModal .modal-body::-webkit-scrollbar-track {
-    background: var(--md-sys-color-surface-container);
-    border-radius: 10px;
+    background: transparent;
 }
 
-#createSessionYearModal .modal-body::-webkit-scrollbar-thumb {
-    background: color-mix(in srgb, var(--md-sys-color-outline) 40%, transparent);
-    border-radius: 10px;
-}
-
+#createSessionYearModal .modal-body::-webkit-scrollbar-thumb,
 #createSessionYearModal .modal-body::-webkit-scrollbar-thumb:hover {
-    background: color-mix(in srgb, var(--md-sys-color-outline) 60%, transparent);
+    border-radius: var(--md-sys-shape-corner-full);
+    background: color-mix(in srgb, var(--md-sys-color-on-surface) 24%, transparent);
+}
+
+#createSessionYearModal .modal-footer {
+    padding: 16px 24px 24px;
+    border-top: 0;
+    background-color: transparent;
+    border-radius: 0;
+    gap: 8px;
+}
+
+#createSessionYearModal .form-group label {
+    margin-bottom: 8px;
+    font-size: var(--md-sys-typescale-body-medium-size);
+    color: var(--md-sys-color-on-surface);
+}
+
+#createSessionYearModal .form-control {
+    height: 48px;
+    padding: 0 16px;
+    border: 1px solid var(--md-sys-color-outline);
+    border-radius: var(--app-radius);
+    font-size: var(--md-sys-typescale-body-large-size);
+    color: var(--md-sys-color-on-surface);
+    transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+#createSessionYearModal select.form-control {
+    padding-inline-end: 44px;
+}
+
+#createSessionYearModal .form-control:focus {
+    border-color: var(--md-sys-color-primary);
+    box-shadow: inset 0 0 0 1px var(--md-sys-color-primary);
+}
+
+#createSessionYearModal .form-control::placeholder {
+    color: var(--md-sys-color-on-surface-variant);
+    font-size: inherit;
 }
 
 .section-header {
@@ -806,8 +864,9 @@ a.badge:focus {
     align-items: center;
     gap: 8px;
     margin-bottom: 16px;
-    font-size: 14px;
-    font-weight: 600;
+    font-size: var(--md-sys-typescale-title-small-size);
+    line-height: var(--md-sys-typescale-title-small-line-height);
+    font-weight: var(--md-sys-typescale-title-small-weight);
     color: var(--md-sys-color-on-surface);
 }
 
@@ -821,55 +880,30 @@ a.badge:focus {
 }
 
 .section-badge {
-    margin-left: auto;
-    font-size: 11px;
+    margin-inline-start: auto;
+    font-size: var(--md-sys-typescale-label-medium-size);
     font-weight: 500;
     color: var(--md-sys-color-on-surface-variant);
-    background-color: var(--md-sys-color-surface-container);
-    padding: 4px 10px;
-    border-radius: 12px;
+    background-color: var(--md-sys-color-surface-container-highest);
+    padding: 4px 8px;
+    border-radius: var(--md-sys-shape-corner-small);
 }
 
 #createSessionYearModal .form-group {
     margin-bottom: 16px;
 }
 
-#createSessionYearModal .form-group label {
-    font-size: 13px;
-    font-weight: 500;
-    color: var(--md-sys-color-on-surface);
-    margin-bottom: 6px;
-    display: block;
-}
-
-#createSessionYearModal .form-control {
-    height: 40px;
-    border: 1px solid var(--md-sys-color-outline);
-    border-radius: 6px;
-    font-size: 14px;
-    padding: 8px 12px;
-    color: var(--md-sys-color-on-surface);
-    transition: all 0.2s ease;
-}
-
-#createSessionYearModal .form-control:focus {
-    border-color: var(--md-sys-color-primary);
-    box-shadow: 0 0 0 3px color-mix(in srgb, var(--md-sys-color-primary) 24%, transparent);
-    outline: none;
-}
-
-#createSessionYearModal .form-control::placeholder {
-    color: var(--md-sys-color-on-surface-variant);
-    font-size: 13px;
-}
-
+/* A setting row: label + supporting text, the switch at the end — an M3
+   list item on the dialog surface. */
 .installment-toggle-wrapper {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 16px;
-    background-color: var(--md-sys-color-surface-container-low);
-    border-radius: 8px;
+    gap: 16px;
+    padding: 12px 16px;
+    background-color: var(--md-sys-color-surface-container-lowest);
+    border: 1px solid var(--md-sys-color-outline-variant);
+    border-radius: var(--app-radius);
     margin-bottom: 16px;
 }
 
@@ -880,25 +914,32 @@ a.badge:focus {
 }
 
 .installment-toggle-label span {
-    font-size: 14px;
-    font-weight: 500;
+    font-size: var(--md-sys-typescale-body-large-size);
+    line-height: var(--md-sys-typescale-body-large-line-height);
     color: var(--md-sys-color-on-surface);
 }
 
 .installment-toggle-label small {
-    font-size: 12px;
+    font-size: var(--md-sys-typescale-body-medium-size);
+    line-height: var(--md-sys-typescale-body-medium-line-height);
     color: var(--md-sys-color-on-surface-variant);
 }
 
+/* M3 switch: a 52x32 full-round track. Off: surface-container-highest with
+   a 2px outline border and a 16px outline thumb. On: a primary track and a
+   24px on-primary thumb. Hover adds the thumb's 40px state layer. The thumb
+   sits on the inline-start / -end, so RTL needs no flip. */
 .toggle-switch {
     position: relative;
     display: inline-block;
-    width: 44px;
-    height: 24px;
+    flex-shrink: 0;
+    width: 52px;
+    height: 32px;
     margin: 0;
 }
 
 .toggle-switch input {
+    position: absolute;
     opacity: 0;
     width: 0;
     height: 0;
@@ -907,43 +948,76 @@ a.badge:focus {
 .toggle-slider {
     position: absolute;
     cursor: pointer;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
+    inset: 0;
+    box-sizing: border-box;
     background-color: var(--md-sys-color-surface-container-highest);
-    transition: 0.3s;
-    border-radius: 24px;
+    border: 2px solid var(--md-sys-color-outline);
+    border-radius: var(--md-sys-shape-corner-full);
+    transition: background-color 0.15s ease, border-color 0.15s ease;
 }
 
 .toggle-slider:before {
     position: absolute;
     content: "";
-    height: 18px;
-    width: 18px;
-    left: 3px;
-    bottom: 3px;
-    background-color: var(--md-sys-color-surface-container-lowest);
-    transition: 0.3s;
-    border-radius: 50%;
+    top: 50%;
+    inset-inline-start: 6px;
+    width: 16px;
+    height: 16px;
+    transform: translateY(-50%);
+    background-color: var(--md-sys-color-outline);
+    border-radius: var(--md-sys-shape-corner-full);
+    transition: inset-inline-start 0.15s ease, width 0.15s ease, height 0.15s ease, background-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.toggle-switch:hover .toggle-slider:before {
+    background-color: var(--md-sys-color-on-surface-variant);
+    box-shadow: 0 0 0 12px color-mix(in srgb, var(--md-sys-color-on-surface) var(--md-sys-state-hover-opacity), transparent);
 }
 
 .toggle-switch input:checked+.toggle-slider {
     background-color: var(--md-sys-color-primary);
+    border-color: var(--md-sys-color-primary);
 }
 
 .toggle-switch input:checked+.toggle-slider:before {
-    transform: translateX(20px);
+    inset-inline-start: 22px;
+    width: 24px;
+    height: 24px;
+    transform: translateY(-50%);
+    background-color: var(--md-sys-color-on-primary);
+}
+
+.toggle-switch:hover input:checked+.toggle-slider:before {
+    background-color: var(--md-sys-color-primary-container);
+    box-shadow: 0 0 0 8px color-mix(in srgb, var(--md-sys-color-primary) var(--md-sys-state-hover-opacity), transparent);
+}
+
+.toggle-switch input:focus-visible+.toggle-slider {
+    outline: 3px solid var(--md-sys-color-secondary);
+    outline-offset: 2px;
+}
+
+.toggle-switch input:disabled+.toggle-slider {
+    opacity: 0.38;
+    cursor: default;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .toggle-slider,
+    .toggle-slider:before {
+        transition: none;
+    }
 }
 
 #installmentContent {
     margin-top: 16px;
 }
 
+/* Installment: an M3 outlined card. */
 .installment-item {
-    background-color: var(--md-sys-color-surface-container-low);
+    background-color: var(--md-sys-color-surface-container-lowest);
     border: 1px solid var(--md-sys-color-outline-variant);
-    border-radius: 8px;
+    border-radius: var(--app-radius);
     padding: 16px;
     margin-bottom: 12px;
     position: relative;
@@ -957,95 +1031,83 @@ a.badge:focus {
 }
 
 .installment-header span {
-    font-size: 13px;
-    font-weight: 600;
+    font-size: var(--md-sys-typescale-title-small-size);
+    font-weight: var(--md-sys-typescale-title-small-weight);
     color: var(--md-sys-color-on-surface);
 }
 
+/* Remove installment: an M3 icon button (32px, the small size that fits the
+   card header) in on-surface-variant, error on hover. */
 .btn-remove-installment {
-    background: none;
-    border: none;
-    padding: 4px;
-    cursor: pointer;
-    color: var(--md-sys-color-on-surface-variant);
-    transition: all 0.2s ease;
-    width: 24px;
-    height: 24px;
     display: flex;
     align-items: center;
     justify-content: center;
-    border-radius: 4px;
+    width: 32px;
+    height: 32px;
+    margin: -4px;
+    padding: 0;
+    border: none;
+    border-radius: var(--md-sys-shape-corner-full);
+    background: none;
+    cursor: pointer;
+    color: var(--md-sys-color-on-surface-variant);
+    font-size: 16px;
+    transition: background-color 0.15s ease, color 0.15s ease;
 }
 
 .btn-remove-installment:hover {
-    background-color: color-mix(in srgb, var(--md-sys-color-error) 8%, var(--md-sys-color-surface-container-lowest));
+    background-color: color-mix(in srgb, var(--md-sys-color-error) var(--md-sys-state-hover-opacity), transparent);
     color: var(--md-sys-color-error);
 }
 
-.btn-add-installment {
-    width: 100%;
-    height: 40px;
-    border: 1px dashed var(--md-sys-color-outline);
-    background-color: var(--md-sys-color-surface-container-lowest);
-    border-radius: 6px;
-    color: var(--md-sys-color-primary);
-    font-size: 14px;
-    font-weight: 500;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-    transition: all 0.2s ease;
+.btn-remove-installment:focus {
+    outline: 0;
 }
 
-.btn-add-installment:hover {
-    border-color: var(--md-sys-color-primary);
-    background-color: color-mix(in srgb, var(--md-sys-color-primary) 6%, var(--md-sys-color-surface-container-lowest));
+.btn-remove-installment:focus-visible {
+    outline: 3px solid var(--md-sys-color-secondary);
+    outline-offset: 2px;
 }
+
+/* Add installment: a full-width M3 outlined button (.btn .btn-outline-primary
+   .btn-block in the markup). */
 
 .data-transfer-options {
     display: flex;
     flex-direction: column;
-    gap: 12px;
+    gap: 8px;
 }
 
+/* A data-transfer option: a checkbox list row in an outlined card, the
+   on-surface state layer on hover. The checkbox is native, in primary. */
 .checkbox-option {
     display: flex;
     align-items: center;
-    padding: 12px;
-    background-color: var(--md-sys-color-surface-container-low);
+    gap: 16px;
+    min-height: 48px;
+    padding: 8px 16px;
+    background-color: var(--md-sys-color-surface-container-lowest);
     border: 1px solid var(--md-sys-color-outline-variant);
-    border-radius: 6px;
+    border-radius: var(--app-radius);
     cursor: pointer;
-    transition: all 0.2s ease;
+    transition: background-color 0.15s ease;
     margin: 0;
-    font-size: 13px;
+    font-size: var(--md-sys-typescale-body-medium-size);
     font-weight: 400;
     color: var(--md-sys-color-on-surface);
 }
 
 .checkbox-option:hover {
-    background-color: var(--md-sys-color-surface-container);
-    border-color: var(--md-sys-color-outline);
+    background-color: color-mix(in srgb, var(--md-sys-color-on-surface) var(--md-sys-state-hover-opacity), var(--md-sys-color-surface-container-lowest));
 }
 
 .checkbox-option input[type="checkbox"] {
+    flex-shrink: 0;
     width: 18px;
     height: 18px;
-    margin-right: 12px;
+    margin: 0;
     cursor: pointer;
     accent-color: var(--md-sys-color-primary);
-}
-
-#createSessionYearModal .modal-footer {
-    padding: 16px 24px;
-    border-top: 1px solid var(--md-sys-color-outline-variant);
-    background-color: var(--md-sys-color-surface-container-low);
-    border-radius: 0 0 12px 12px;
-    display: flex;
-    gap: 12px;
-    justify-content: flex-end;
 }
 
 @media (max-width: 576px) {
@@ -1055,7 +1117,7 @@ a.badge:focus {
     }
 
     #createSessionYearModal .modal-body {
-        padding: 16px;
+        padding: 0 24px 8px;
     }
 
     .section-badge {
@@ -1063,79 +1125,56 @@ a.badge:focus {
     }
 }
 
-/* RTL — mirror the direction-dependent properties so the modal matches LTR */
-[dir="rtl"] .section-badge {
-    margin-left: 0;
-    margin-right: auto;
-}
-
-[dir="rtl"] .checkbox-option input[type="checkbox"] {
-    margin-right: 0;
-    margin-left: 12px;
-}
-
-[dir="rtl"] .toggle-slider:before {
-    left: auto;
-    right: 3px;
-}
-
-[dir="rtl"] .toggle-switch input:checked+.toggle-slider:before {
-    transform: translateX(-20px);
-}
-
 /* ============================================================
    DELETE / CLEAR SESSION DATA MODAL  (#deleteSessionModal)
    ------------------------------------------------------------
-   Same cross-bundle rationale as the create modal above: the
-   legacy copy in style.css only reaches the LTR bundle, so the
-   modal was unstyled in RTL. Re-declared here (loaded in BOTH
-   bundles) and SCOPED under .delete-session-modal-content so the
-   generic class names (.btn-light, .section-title, .warning-box…)
-   stay confined to this modal and don't leak onto other pages.
-   RTL flips at the end of the block.
+   The dialog (container, title, padding, actions) is the global
+   M3 dialog. What follows is its own content, SCOPED under
+   .delete-session-modal-content so the generic class names
+   (.section-title, .warning-box…) stay confined to this modal.
+   Loaded in BOTH bundles; logical properties, so LTR and RTL
+   share it.
    ============================================================ */
-.delete-session-modal-content {
-    border-radius: 12px;
-    border: none;
-    box-shadow: var(--md-sys-elevation-level5);
-    background-color: var(--md-sys-color-surface);
-}
-
-.delete-session-modal-content .modal-header {
-    padding: 24px 24px 0;
-}
-
 .delete-session-modal-content .modal-body {
-    padding: 0px 26px !important;
+    /* style.css (LTR) pins 0 26px with !important; restate the dialog's. */
+    padding: 0 24px 8px !important;
     max-height: 60vh;
     overflow-y: auto;
 }
 
-.delete-session-modal-content .modal-footer {
-    padding: 16px 24px 24px;
-}
-
 .delete-session-modal-content .modal-title {
-    font-size: 20px;
-    font-weight: 600;
+    font-size: var(--md-sys-typescale-headline-small-size);
+    line-height: var(--md-sys-typescale-headline-small-line-height);
+    font-weight: var(--md-sys-typescale-headline-small-weight);
     color: var(--md-sys-color-on-surface);
 }
 
+.delete-session-modal-content .modal-body::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.delete-session-modal-content .modal-body::-webkit-scrollbar-thumb,
+.delete-session-modal-content .modal-body::-webkit-scrollbar-thumb:hover {
+    border-radius: var(--md-sys-shape-corner-full);
+    background: color-mix(in srgb, var(--md-sys-color-on-surface) 24%, transparent);
+}
+
 .delete-session-modal-content .session-year-label {
-    font-size: 14px;
+    font-size: var(--md-sys-typescale-body-medium-size);
     color: var(--md-sys-color-on-surface-variant);
 }
 
 .delete-session-modal-content .session-year-value {
-    font-weight: 600;
+    font-weight: 500;
     color: var(--md-sys-color-on-surface);
 }
 
+/* Icon tile beside the title. */
 .delete-session-modal-content .delete-icon-container {
-    width: 44px;
-    height: 44px;
-    background-color: color-mix(in srgb, var(--md-sys-color-error) 8%, var(--md-sys-color-surface-container-lowest));
-    border-radius: 8px;
+    width: 40px;
+    height: 40px;
+    background-color: color-mix(in srgb, var(--md-sys-color-error) 12%, var(--md-sys-color-surface-container-lowest));
+    border-radius: var(--md-sys-shape-corner-full);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -1147,11 +1186,13 @@ a.badge:focus {
     font-size: 20px;
 }
 
+/* Warning: the alert pattern — a tonal error container, 12px corners, no
+   border. */
 .delete-session-modal-content .warning-box {
-    background-color: color-mix(in srgb, var(--md-sys-color-error) 5%, var(--md-sys-color-surface-container-lowest));
-    border-left: 4px solid var(--md-sys-color-error);
-    padding: 16px;
-    border-radius: 4px;
+    background-color: color-mix(in srgb, var(--md-sys-color-error) 12%, var(--md-sys-color-surface-container-lowest));
+    border: 0;
+    padding: 12px 16px;
+    border-radius: var(--md-sys-shape-corner-medium);
 }
 
 .delete-session-modal-content .warning-icon {
@@ -1161,36 +1202,42 @@ a.badge:focus {
 }
 
 .delete-session-modal-content .warning-title {
-    font-weight: 600;
+    font-weight: 500;
     color: var(--md-sys-color-error);
-    font-size: 14px;
+    font-size: var(--md-sys-typescale-title-small-size);
     margin-bottom: 4px;
 }
 
 .delete-session-modal-content .warning-text {
-    font-size: 14px;
+    font-size: var(--md-sys-typescale-body-medium-size);
     color: var(--md-sys-color-on-surface-variant);
-    line-height: 1.5;
+    line-height: var(--md-sys-typescale-body-medium-line-height);
 }
 
+/* Delete vs clear: two selectable outlined cards, each with an M3 radio
+   (20px ring in on-surface-variant; checked = primary ring + 10px dot). The
+   chosen card gets a 2px primary edge (inset, so nothing moves). */
 .delete-session-modal-content .choice-option {
-    border: 2px solid var(--md-sys-color-outline-variant);
-    border-radius: 8px;
-    transition: all 0.2s ease;
+    border: 1px solid var(--md-sys-color-outline-variant);
+    border-radius: var(--app-radius);
+    background-color: var(--md-sys-color-surface-container-lowest);
+    transition: background-color 0.15s ease, border-color 0.15s ease;
 }
 
 .delete-session-modal-content .choice-option:hover {
-    border-color: var(--md-sys-color-outline);
+    background-color: color-mix(in srgb, var(--md-sys-color-on-surface) var(--md-sys-state-hover-opacity), var(--md-sys-color-surface-container-lowest));
 }
 
 .delete-session-modal-content .choice-option:has(input:checked) {
     border-color: var(--md-sys-color-primary);
-    background-color: color-mix(in srgb, var(--md-sys-color-primary) 6%, var(--md-sys-color-surface-container-lowest));
+    box-shadow: inset 0 0 0 1px var(--md-sys-color-primary);
+    background-color: color-mix(in srgb, var(--md-sys-color-primary) 8%, var(--md-sys-color-surface-container-lowest));
 }
 
 .delete-session-modal-content .custom-radio-container {
     display: flex;
     align-items: flex-start;
+    gap: 16px;
     padding: 16px;
     cursor: pointer;
     margin: 0;
@@ -1206,13 +1253,12 @@ a.badge:focus {
 .delete-session-modal-content .radio-checkmark {
     width: 20px;
     height: 20px;
-    border: 2px solid var(--md-sys-color-outline);
+    border: 2px solid var(--md-sys-color-on-surface-variant);
     border-radius: 50%;
-    margin-right: 12px;
     flex-shrink: 0;
     position: relative;
-    transition: all 0.2s ease;
-    margin-top: 2px;
+    transition: border-color 0.15s ease;
+    margin: 2px 0 0;
 }
 
 .delete-session-modal-content .custom-radio-container input:checked~.radio-checkmark {
@@ -1231,19 +1277,25 @@ a.badge:focus {
     transform: translate(-50%, -50%);
 }
 
+.delete-session-modal-content .custom-radio-container input:focus-visible~.radio-checkmark,
+.delete-session-modal-content .custom-checkbox-container input:focus-visible~.checkbox-checkmark {
+    outline: 3px solid var(--md-sys-color-secondary);
+    outline-offset: 2px;
+}
+
 .delete-session-modal-content .radio-content {
     flex-grow: 1;
 }
 
 .delete-session-modal-content .radio-title {
-    font-weight: 600;
-    font-size: 15px;
+    font-weight: 500;
+    font-size: var(--md-sys-typescale-title-small-size);
     color: var(--md-sys-color-on-surface);
     margin-bottom: 4px;
 }
 
 .delete-session-modal-content .radio-description {
-    font-size: 13px;
+    font-size: var(--md-sys-typescale-body-medium-size);
     color: var(--md-sys-color-on-surface-variant);
     line-height: 1.4;
 }
@@ -1254,24 +1306,29 @@ a.badge:focus {
     gap: 8px;
 }
 
+/* What to clear: checkbox rows in outlined cards, each with an M3 checkbox
+   (18px, 2px corners, on-surface-variant; checked = primary fill with the
+   on-primary tick). */
 .delete-session-modal-content .custom-checkbox-container {
     display: flex;
     align-items: flex-start;
-    padding: 14px 16px;
+    gap: 16px;
+    padding: 12px 16px;
     cursor: pointer;
     margin: 0;
     position: relative;
     border: 1px solid var(--md-sys-color-outline-variant);
-    border-radius: 6px;
-    transition: all 0.2s ease;
+    border-radius: var(--app-radius);
+    background-color: var(--md-sys-color-surface-container-lowest);
+    transition: background-color 0.15s ease, border-color 0.15s ease;
 }
 
 .delete-session-modal-content .custom-checkbox-container:hover {
-    background-color: var(--md-sys-color-surface-container);
+    background-color: color-mix(in srgb, var(--md-sys-color-on-surface) var(--md-sys-state-hover-opacity), var(--md-sys-color-surface-container-lowest));
 }
 
 .delete-session-modal-content .custom-checkbox-container:has(input:checked) {
-    background-color: color-mix(in srgb, var(--md-sys-color-primary) 6%, var(--md-sys-color-surface-container-lowest));
+    background-color: color-mix(in srgb, var(--md-sys-color-primary) 8%, var(--md-sys-color-surface-container-lowest));
     border-color: var(--md-sys-color-primary);
 }
 
@@ -1282,15 +1339,14 @@ a.badge:focus {
 }
 
 .delete-session-modal-content .checkbox-checkmark {
-    width: 20px;
-    height: 20px;
-    border: 2px solid var(--md-sys-color-outline);
-    border-radius: 4px;
-    margin-right: 12px;
+    width: 18px;
+    height: 18px;
+    border: 2px solid var(--md-sys-color-on-surface-variant);
+    border-radius: 2px;
     flex-shrink: 0;
     position: relative;
-    transition: all 0.2s ease;
-    margin-top: 2px;
+    transition: background-color 0.15s ease, border-color 0.15s ease;
+    margin: 3px 0 0;
 }
 
 .delete-session-modal-content .custom-checkbox-container input:checked~.checkbox-checkmark {
@@ -1303,7 +1359,7 @@ a.badge:focus {
     font-family: 'FontAwesome';
     position: absolute;
     color: var(--md-sys-color-on-primary);
-    font-size: 12px;
+    font-size: 11px;
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
@@ -1314,27 +1370,27 @@ a.badge:focus {
 }
 
 .delete-session-modal-content .checkbox-title {
-    font-weight: 600;
-    font-size: 14px;
+    font-weight: 500;
+    font-size: var(--md-sys-typescale-body-medium-size);
     color: var(--md-sys-color-on-surface);
     margin-bottom: 3px;
 }
 
 .delete-session-modal-content .checkbox-description {
-    font-size: 13px;
+    font-size: var(--md-sys-typescale-body-small-size);
     color: var(--md-sys-color-on-surface-variant);
     line-height: 1.3;
 }
 
 .delete-session-modal-content .section-title {
-    font-weight: 600;
-    font-size: 15px;
+    font-weight: 500;
+    font-size: var(--md-sys-typescale-title-small-size);
     color: var(--md-sys-color-on-surface);
     margin-bottom: 2px;
 }
 
 .delete-session-modal-content .section-subtitle {
-    font-size: 13px;
+    font-size: var(--md-sys-typescale-body-medium-size);
     color: var(--md-sys-color-on-surface-variant);
 }
 
@@ -1346,9 +1402,9 @@ a.badge:focus {
 
 .delete-session-modal-content .delete-items-list li {
     padding: 8px 0;
-    padding-left: 24px;
+    padding-inline-start: 24px;
     position: relative;
-    font-size: 14px;
+    font-size: var(--md-sys-typescale-body-medium-size);
     color: var(--md-sys-color-on-surface);
     line-height: 1.5;
     display: flex;
@@ -1359,45 +1415,13 @@ a.badge:focus {
 .delete-session-modal-content .delete-items-list li::before {
     content: '•';
     position: absolute;
-    left: 8px;
+    inset-inline-start: 8px;
     color: var(--md-sys-color-error);
     font-weight: bold;
     font-size: 18px;
 }
 
-.delete-session-modal-content .btn-light {
-    background-color: var(--md-sys-color-surface-container-low);
-    border: 1px solid var(--md-sys-color-outline-variant);
-    color: var(--md-sys-color-on-surface-variant);
-    font-weight: 500;
-    padding: 8px 20px;
-    transition: all 0.2s ease;
-}
-
-.delete-session-modal-content .btn-light:hover {
-    background-color: var(--md-sys-color-surface-container);
-    border-color: var(--md-sys-color-outline);
-}
-
-.delete-session-modal-content .select-all-btn {
-    color: var(--md-sys-color-primary);
-    font-weight: 500;
-    font-size: 14px;
-    text-decoration: none;
-    padding: 4px 8px;
-}
-
-.delete-session-modal-content .select-all-btn:hover {
-    color: color-mix(in srgb, var(--md-sys-color-primary) 85%, var(--md-sys-color-on-surface));
-    text-decoration: underline;
-}
-
-.delete-session-modal-content .modal-footer button {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-}
+/* Buttons are the global M3 buttons (Select all is a text button). */
 
 .delete-session-modal-content .modal-step {
     animation: fadeIn 0.3s ease;
@@ -1415,75 +1439,17 @@ a.badge:focus {
     }
 }
 
-.delete-session-modal-content .modal-body::-webkit-scrollbar {
-    width: 6px;
-}
-
-.delete-session-modal-content .modal-body::-webkit-scrollbar-track {
-    background: var(--md-sys-color-surface-container);
-    border-radius: 10px;
-}
-
-.delete-session-modal-content .modal-body::-webkit-scrollbar-thumb {
-    background: color-mix(in srgb, var(--md-sys-color-outline) 40%, transparent);
-    border-radius: 10px;
-}
-
-.delete-session-modal-content .modal-body::-webkit-scrollbar-thumb:hover {
-    background: color-mix(in srgb, var(--md-sys-color-outline) 60%, transparent);
-}
-
-@media (max-width: 576px) {
-
-    .delete-session-modal-content .modal-header,
-    .delete-session-modal-content .modal-body,
-    .delete-session-modal-content .modal-footer {
-        padding-left: 16px;
-        padding-right: 16px;
+@media (prefers-reduced-motion: reduce) {
+    .delete-session-modal-content .modal-step {
+        animation: none;
     }
-
-    .delete-session-modal-content .delete-icon-container {
-        width: 36px;
-        height: 36px;
-    }
-
-    .delete-session-modal-content .delete-icon-container i {
-        font-size: 16px;
-    }
-
-    .delete-session-modal-content .modal-title {
-        font-size: 18px;
-    }
-}
-
-/* RTL — mirror the direction-dependent properties so the modal matches LTR */
-[dir="rtl"] .delete-session-modal-content .warning-box {
-    border-left: 0;
-    border-right: 4px solid var(--md-sys-color-error);
-}
-
-[dir="rtl"] .delete-session-modal-content .radio-checkmark,
-[dir="rtl"] .delete-session-modal-content .checkbox-checkmark {
-    margin-right: 0;
-    margin-left: 12px;
-}
-
-[dir="rtl"] .delete-session-modal-content .delete-items-list li {
-    padding-left: 0;
-    padding-right: 24px;
-}
-
-[dir="rtl"] .delete-session-modal-content .delete-items-list li::before {
-    left: auto;
-    right: 8px;
 }
 
 /* ── Promote Student modal (#promoteModal) ───────────────────────────────────
-   The bespoke promote dialog. Its surface/header/title/close/body all inherit
-   the generic .modal-* redesign above (those rules win over the legacy
-   .promote-* class rules on load order). What follows is the modal's own
-   content — info grid, result/continue toggles, the promote selects, footer
-   actions. Previously these lived ONLY in style.css, so in RTL (rtl.css bundle,
+   The bespoke promote dialog. Its surface/header/title/close/body, its
+   selects (.form-control) and its footer buttons are the global M3 dialog,
+   fields and buttons (m3-components.css). What follows is the modal's own
+   content — info grid and the result/continue segmented toggles. Previously these lived ONLY in style.css, so in RTL (rtl.css bundle,
    no style.css) the whole modal rendered unstyled, and in LTR it used a
    brand-foreign green (#10B981). Moved here so it lands in BOTH bundles, with
    brand tied to var(--md-sys-color-primary) and the pass/fail/leaving states on the same
@@ -1492,6 +1458,16 @@ a.badge:focus {
 
 #promoteModal .modal-dialog {
     max-width: 540px;
+}
+
+/* style.css (LTR) paints the body white and adds a triangle caret beside
+   the select's own chevron; the body is the dialog surface. */
+#promoteModal .promote-modal-body {
+    background: transparent;
+}
+
+#promoteModal .promote-select-wrapper::after {
+    content: none;
 }
 
 #promoteModal .promote-header-text {
@@ -1509,16 +1485,16 @@ a.badge:focus {
     color: var(--md-sys-color-on-surface-variant);
 }
 
-/* Student info panel — neutral tinted surface, hairline border, 10px radius. */
+/* Student info panel — an outlined card (hairline border, 10px radius). */
 #promoteModal .promote-info-grid {
     display: grid;
     grid-template-columns: 1fr 1fr 1fr;
     gap: 16px;
     margin-bottom: 20px;
     padding: 16px;
-    background: var(--md-sys-color-surface-container-low);
+    background: var(--md-sys-color-surface-container-lowest);
     border: 1px solid var(--md-sys-color-outline-variant);
-    border-radius: 10px;
+    border-radius: var(--app-radius);
 }
 
 #promoteModal .promote-info-item {
@@ -1559,146 +1535,56 @@ a.badge:focus {
     color: var(--md-sys-color-on-surface);
 }
 
-/* Promote selects — themed form-field look (10px radius, theme focus glow),
-   appearance:none with a custom inline-end caret so the control is identical in
-   LTR and RTL (the caret auto-flips via inset-inline-end). */
-#promoteModal .promote-select-wrapper {
-    position: relative;
-}
-
-#promoteModal .promote-select {
-    width: 100%;
-    height: 44px;
-    padding-block: 0.625rem;
-    padding-inline: 0.875rem 2.5rem;
-    background: var(--md-sys-color-surface-container-lowest);
-    border: 1px solid var(--md-sys-color-outline);
-    border-radius: 10px;
-    font-size: 0.875rem;
-    line-height: 1.25rem;
-    color: var(--md-sys-color-on-surface);
-    -webkit-appearance: none;
-    -moz-appearance: none;
-    appearance: none;
-    transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
-}
-
-#promoteModal .promote-select:focus {
-    outline: none;
-    border-color: var(--md-sys-color-primary);
-    box-shadow: 0 0 0 0.2rem color-mix(in srgb, var(--md-sys-color-primary) 24%, transparent);
-}
-
-#promoteModal .promote-select-wrapper::after {
-    content: '';
-    position: absolute;
-    inset-inline-end: 1rem;
-    top: 50%;
-    transform: translateY(-50%);
-    width: 0;
-    height: 0;
-    border-left: 5px solid transparent;
-    border-right: 5px solid transparent;
-    border-top: 5px solid var(--md-sys-color-on-surface-variant);
-    pointer-events: none;
-}
-
-/* Result-status / continue toggles — idle is a neutral form-field tile (10px =
-   .btn radius); active states use the fixed semantic palette (success / danger
-   / warning), NOT brand, matching badges and solid buttons. */
+/* Result-status / continue toggles — M3 segmented buttons: 40px, full-round,
+   1px outline border, label-large, the on-surface state layer on hover. The
+   chosen one fills with the tonal status colour (success / error / warning)
+   and its text colour, NOT brand, matching the status labels. */
 #promoteModal .promote-button-group {
     display: grid;
     grid-template-columns: 1fr 1fr;
-    gap: 12px;
+    gap: 8px;
 }
 
 #promoteModal .promote-toggle-btn {
-    padding: 12px 20px;
-    background: var(--md-sys-color-surface-container-lowest);
+    min-height: 40px;
+    padding: 0 16px;
+    background: transparent;
     border: 1px solid var(--md-sys-color-outline);
-    border-radius: 10px;
-    font-weight: 500;
-    font-size: 0.875rem;
-    line-height: 1.25rem;
-    color: var(--md-sys-color-on-surface-variant);
+    border-radius: var(--md-sys-shape-corner-full);
+    font-family: var(--md-ref-typeface-plain);
+    font-size: var(--md-sys-typescale-label-large-size);
+    line-height: var(--md-sys-typescale-label-large-line-height);
+    font-weight: var(--md-sys-typescale-label-large-weight);
+    letter-spacing: var(--md-sys-typescale-label-large-tracking);
+    color: var(--md-sys-color-on-surface);
     cursor: pointer;
     outline: none;
-    transition: all 0.15s ease-in-out;
+    transition: background-color 0.15s ease, color 0.15s ease;
 }
 
 #promoteModal .promote-toggle-btn:hover {
-    border-color: var(--md-sys-color-outline);
-    background: var(--md-sys-color-surface-container);
+    background: color-mix(in srgb, var(--md-sys-color-on-surface) var(--md-sys-state-hover-opacity), transparent);
+}
+
+#promoteModal .promote-toggle-btn:focus-visible {
+    outline: 3px solid var(--md-sys-color-secondary);
+    outline-offset: 2px;
 }
 
 #promoteModal .promote-toggle-pass.active,
 #promoteModal .promote-toggle-yes.active {
-    background: color-mix(in srgb, var(--app-status-success) 12%, transparent);
-    border-color: color-mix(in srgb, var(--app-status-success) 35%, transparent);
+    background: color-mix(in srgb, var(--app-status-success) 16%, var(--md-sys-color-surface-container-lowest));
     color: var(--app-status-success-text);
 }
 
 #promoteModal .promote-toggle-fail.active {
-    background: color-mix(in srgb, var(--app-status-danger) 12%, transparent);
-    border-color: color-mix(in srgb, var(--app-status-danger) 35%, transparent);
+    background: color-mix(in srgb, var(--app-status-danger) 14%, var(--md-sys-color-surface-container-lowest));
     color: var(--app-status-danger-text);
 }
 
 #promoteModal .promote-toggle-no.active {
-    background: color-mix(in srgb, var(--app-status-warning) 12%, transparent);
-    border-color: color-mix(in srgb, var(--app-status-warning) 35%, transparent);
+    background: color-mix(in srgb, var(--app-status-warning) 18%, var(--md-sys-color-surface-container-lowest));
     color: var(--app-status-warning-text);
-}
-
-/* Footer actions — flex row, direction-neutral gap (no per-button margin that
-   would not flip). Cancel is a neutral ghost; Update is the brand CTA. */
-#promoteModal .promote-modal-footer {
-    display: flex;
-    justify-content: flex-end;
-    gap: 12px;
-}
-
-#promoteModal .promote-btn-cancel {
-    margin: 0;
-    padding: 10px 20px;
-    background: var(--md-sys-color-surface-container-lowest);
-    border: 1px solid var(--md-sys-color-outline);
-    border-radius: 10px;
-    font-weight: 500;
-    font-size: 0.875rem;
-    line-height: 1.25rem;
-    color: var(--md-sys-color-on-surface-variant);
-    transition: all 0.2s ease;
-}
-
-#promoteModal .promote-btn-cancel:hover {
-    background: var(--md-sys-color-surface-container);
-    border-color: var(--md-sys-color-outline);
-    color: var(--md-sys-color-on-surface);
-}
-
-#promoteModal .promote-btn-update {
-    padding: 10px 20px;
-    background: var(--md-sys-color-primary);
-    border: 1px solid var(--md-sys-color-primary);
-    border-radius: 10px;
-    font-weight: 500;
-    font-size: 0.875rem;
-    line-height: 1.25rem;
-    color: var(--md-sys-color-on-primary);
-    transition: all 0.2s ease;
-}
-
-#promoteModal .promote-btn-update:hover {
-    background: color-mix(in srgb, var(--md-sys-color-primary) 88%, var(--md-sys-color-on-surface));
-    border-color: color-mix(in srgb, var(--md-sys-color-primary) 88%, var(--md-sys-color-on-surface));
-    color: var(--md-sys-color-on-primary);
-}
-
-#promoteModal .promote-btn-update:disabled {
-    background: color-mix(in srgb, var(--md-sys-color-primary) 45%, var(--md-sys-color-surface-container-lowest));
-    border-color: color-mix(in srgb, var(--md-sys-color-primary) 45%, var(--md-sys-color-surface-container-lowest));
-    cursor: not-allowed;
 }
 
 @media (max-width: 576px) {
@@ -1712,15 +1598,144 @@ a.badge:focus {
         gap: 12px;
         padding: 12px;
     }
+}
 
-    #promoteModal .promote-button-group {
-        gap: 8px;
-    }
+/* ── Assign Elective Subjects modal (#assignModal) ─────────────────────────
+   The dialog, its select (.form-control) and its buttons are the global M3
+   dialog, field and buttons. style.css (LTR only) still paints the body
+   white, adds a caret beside the select's chevron and draws the subject
+   picker in a brand-foreign green; the picker's content is restated here
+   for both bundles: the note is the alert pattern, each subject an outlined
+   card with an M3 checkbox (primary when chosen). Logical properties, so
+   LTR and RTL share it. */
+#assignModal .elective-modal-body {
+    background: transparent;
+}
 
-    #promoteModal .promote-toggle-btn {
-        padding: 10px 16px;
-        font-size: 0.8125rem;
-    }
+#assignModal .elective-select-wrapper::after {
+    content: none;
+}
+
+#assignModal .elective-form-label,
+#assignModal .elective-subjects-label {
+    margin-bottom: 8px;
+    font-size: var(--md-sys-typescale-body-medium-size);
+    line-height: var(--md-sys-typescale-body-medium-line-height);
+    font-weight: 500;
+    color: var(--md-sys-color-on-surface);
+}
+
+#assignModal .elective-info-box {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 20px;
+    padding: 12px 16px;
+    border: 0;
+    border-radius: var(--md-sys-shape-corner-medium);
+    background: color-mix(in srgb, var(--app-status-info) 12%, var(--md-sys-color-surface-container-lowest));
+    color: var(--app-status-info-text);
+    font-size: var(--md-sys-typescale-body-medium-size);
+    line-height: var(--md-sys-typescale-body-medium-line-height);
+}
+
+#assignModal .elective-info-icon {
+    margin: 0;
+    font-size: 20px;
+    color: var(--app-status-info-text);
+}
+
+#assignModal .elective-subjects-container {
+    max-height: 340px;
+    overflow-y: auto;
+    padding-inline-end: 4px;
+}
+
+#assignModal .elective-subject-card {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 8px;
+    padding: 12px 16px;
+    background: var(--md-sys-color-surface-container-lowest);
+    border: 1px solid var(--md-sys-color-outline-variant);
+    border-radius: var(--app-radius);
+    box-shadow: none;
+    cursor: pointer;
+    transition: background-color 0.15s ease, border-color 0.15s ease;
+}
+
+#assignModal .elective-subject-card:hover {
+    border-color: var(--md-sys-color-outline-variant);
+    background: color-mix(in srgb, var(--md-sys-color-on-surface) var(--md-sys-state-hover-opacity), var(--md-sys-color-surface-container-lowest));
+    box-shadow: none;
+}
+
+#assignModal .elective-subject-card.selected,
+#assignModal .elective-subject-card.selected:hover {
+    border-color: var(--md-sys-color-primary);
+    background: color-mix(in srgb, var(--md-sys-color-primary) 8%, var(--md-sys-color-surface-container-lowest));
+}
+
+#assignModal .elective-subject-checkbox {
+    -webkit-appearance: none;
+    appearance: none;
+    position: relative;
+    flex-shrink: 0;
+    width: 18px;
+    height: 18px;
+    margin: 0;
+    border: 2px solid var(--md-sys-color-on-surface-variant);
+    border-radius: 2px;
+    background: transparent;
+    cursor: pointer;
+}
+
+#assignModal .elective-subject-checkbox:checked {
+    background: var(--md-sys-color-primary);
+    border-color: var(--md-sys-color-primary);
+}
+
+#assignModal .elective-subject-checkbox:checked::after {
+    content: '';
+    position: absolute;
+    inset-inline-start: 4px;
+    top: 0;
+    width: 6px;
+    height: 10px;
+    border: solid var(--md-sys-color-on-primary);
+    border-width: 0 2px 2px 0;
+    transform: rotate(45deg);
+}
+
+#assignModal .elective-subject-checkbox:focus {
+    outline: 0;
+}
+
+#assignModal .elective-subject-checkbox:focus-visible {
+    outline: 3px solid var(--md-sys-color-secondary);
+    outline-offset: 2px;
+}
+
+#assignModal .elective-subject-content {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex: 1;
+    min-width: 0;
+}
+
+#assignModal .elective-subject-image {
+    width: 40px;
+    height: 40px;
+    margin: 0;
+    border-radius: var(--md-sys-shape-corner-small);
+    object-fit: contain;
+    flex-shrink: 0;
+}
+
+#assignModal .elective-subject-name {
+    color: var(--md-sys-color-on-surface);
 }
 
 /* ── Student Result modal (#studentResultModal) ──────────────────────────────
@@ -1734,11 +1749,11 @@ a.badge:focus {
    (logical properties), so LTR and RTL are identical. Scoped under the modal id
    so the global badge system is untouched. */
 
-/* Body canvas — soft gray so the white cards inside pop (beats the generic
-   white modal-body rule at 0,4,0 via the id). */
-#studentResultModal .modal-body {
-    padding: 1.5rem;
-    background: var(--md-sys-color-surface-container-low);
+/* The body is the dialog surface (one surface, as M3 dialogs are; style.css
+   paints it grey); the summary tiles and sections are outlined cards on it. */
+#studentResultModal .result-modal-body {
+    padding-bottom: 24px;
+    background: transparent;
 }
 
 /* Header — avatar + meta on the inline-start. */
@@ -1786,7 +1801,7 @@ a.badge:focus {
     color: var(--md-sys-color-outline-variant);
 }
 
-/* Summary cards — white tiles on the gray canvas, card radius/shadow tier. */
+/* Summary cards — M3 outlined cards (no shadow, no hover lift). */
 #studentResultModal .result-summary-grid {
     display: grid;
     grid-template-columns: repeat(4, 1fr);
@@ -1801,13 +1816,7 @@ a.badge:focus {
     padding: 16px;
     background: var(--md-sys-color-surface-container-lowest);
     border: 1px solid var(--md-sys-color-outline-variant);
-    border-radius: 14px;
-    transition: box-shadow 0.25s ease, transform 0.25s ease;
-}
-
-#studentResultModal .result-summary-card:hover {
-    transform: translateY(-2px);
-    box-shadow: var(--md-sys-elevation-level2);
+    border-radius: var(--app-radius);
 }
 
 #studentResultModal .summary-icon {
@@ -1876,7 +1885,7 @@ a.badge:focus {
     padding: 20px;
     background: var(--md-sys-color-surface-container-lowest);
     border: 1px solid var(--md-sys-color-outline-variant);
-    border-radius: 14px;
+    border-radius: var(--app-radius);
 }
 
 #studentResultModal .result-section-title {
@@ -1922,20 +1931,20 @@ a.badge:focus {
 #studentResultModal .exam-history-item {
     padding: 14px;
     border: 1px solid var(--md-sys-color-outline-variant);
-    border-radius: 10px;
+    border-radius: var(--app-radius);
     cursor: pointer;
-    transition: border-color 0.2s ease, background 0.2s ease;
+    transition: border-color 0.15s ease, background-color 0.15s ease;
 }
 
-/* Hover/selected exam = brand selection state. */
+/* Hover: the on-surface state layer; selected exam: secondary-container, as
+   a selected M3 list item / menu item. */
 #studentResultModal .exam-history-item:hover {
-    border-color: color-mix(in srgb, var(--md-sys-color-primary) 45%, transparent);
-    background: var(--md-sys-color-surface-container);
+    background: color-mix(in srgb, var(--md-sys-color-on-surface) var(--md-sys-state-hover-opacity), transparent);
 }
 
 #studentResultModal .exam-history-item.active {
-    border-color: var(--md-sys-color-primary);
-    background: color-mix(in srgb, var(--md-sys-color-primary) 8%, transparent);
+    border-color: transparent;
+    background: var(--md-sys-color-secondary-container);
 }
 
 #studentResultModal .exam-header {
@@ -2054,18 +2063,19 @@ a.badge:focus {
     color: var(--md-sys-color-on-surface-variant);
 }
 
+/* M3 linear progress (the 8px size): secondary-container track, full-round. */
 #studentResultModal .subject-progress-bar {
     position: relative;
     width: 100%;
     height: 8px;
-    background: var(--md-sys-color-surface-container);
-    border-radius: 4px;
+    background: var(--md-sys-color-secondary-container);
+    border-radius: var(--md-sys-shape-corner-full);
     overflow: hidden;
 }
 
 #studentResultModal .subject-progress-fill {
     height: 100%;
-    border-radius: 4px;
+    border-radius: var(--md-sys-shape-corner-full);
     transition: width 0.3s ease;
 }
 

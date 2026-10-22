@@ -8,19 +8,14 @@ import 'package:eschool_teacher/data/models/leave.dart';
 import 'package:eschool_teacher/data/models/sessionYear.dart';
 import 'package:eschool_teacher/data/repositories/studentLeaveRepository.dart';
 import 'package:eschool_teacher/data/repositories/systemInfoRepository.dart';
-import 'package:eschool_teacher/ui/screens/leave/widgets/dropdownButtonContainer.dart';
 import 'package:eschool_teacher/ui/screens/leave/widgets/monthPickerBottomsheetContainer.dart';
 import 'package:eschool_teacher/ui/screens/leave/widgets/sessionYearPickerBottomsheetContainer.dart';
 import 'package:eschool_teacher/ui/screens/studentLeaves/widgets/studentLeaveContainer.dart';
 import 'package:eschool_teacher/ui/widgets/customAppbar.dart';
-import 'package:eschool_teacher/ui/widgets/customShimmerContainer.dart';
-import 'package:eschool_teacher/ui/widgets/errorContainer.dart';
 import 'package:eschool_teacher/ui/widgets/myClassesBottomsheetContainer.dart';
 import 'package:eschool_teacher/ui/widgets/noDataContainer.dart';
-import 'package:eschool_teacher/ui/widgets/shimmerLoadingContainer.dart';
 import 'package:eschool_teacher/utils/labelKeys.dart';
 import 'package:eschool_teacher/utils/uiUtils.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -32,7 +27,7 @@ class ManageStudentLeavesScreen extends StatefulWidget {
       ManageStudentLeavesScreenState();
 
   static Route route(RouteSettings routeSettings) {
-    return CupertinoPageRoute(
+    return AdaptivePageRoute(
       builder: (_) => MultiBlocProvider(
         providers: [
           BlocProvider<GetStudentLeaveCubit>(

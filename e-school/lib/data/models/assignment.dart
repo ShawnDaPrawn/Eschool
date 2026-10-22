@@ -1,4 +1,4 @@
-import 'package:eschool/data/models/studyMaterial.dart';
+import 'package:eschool_core/eschool_core.dart';
 import 'package:eschool/data/models/subject.dart';
 
 class Assignment {

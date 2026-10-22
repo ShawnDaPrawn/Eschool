@@ -1,4 +1,4 @@
-import 'package:eschool_teacher/data/models/dynamicField.dart';
+import 'package:eschool_core/eschool_core.dart';
 
 class Teacher {
   Teacher({

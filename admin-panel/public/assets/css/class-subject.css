@@ -15,7 +15,7 @@
     margin-bottom: 1.75rem;
     background: color-mix(in srgb, var(--md-sys-color-primary) 4%, var(--md-sys-color-surface-container-lowest));
     border: 1px solid color-mix(in srgb, var(--md-sys-color-primary) 10%, var(--md-sys-color-outline-variant));
-    border-radius: 14px;
+    border-radius: var(--app-radius);
 }
 
 .cs-context__item {
@@ -113,6 +113,12 @@
     flex: 0 0 auto;
 }
 
+/* The 40px icon buttons sit centred on the 48px fields they follow. */
+.cs-field--action .btn-icon,
+.cs-electives .add-new-elective-subject {
+    margin-bottom: 4px;
+}
+
 .cs-field__label {
     display: block;
     margin-bottom: 0.4rem;
@@ -145,7 +151,7 @@
     margin-bottom: 1rem;
     background: var(--md-sys-color-surface-container-lowest);
     border: 1px solid var(--md-sys-color-outline-variant);
-    border-radius: 12px;
+    border-radius: var(--app-radius);
 }
 
 .cs-egroup:last-child {
@@ -182,21 +188,23 @@
     font-weight: 500;
 }
 
+/* Remove group: an M3 icon button (40px circle) in the error colour. */
 .cs-group__remove {
     margin-inline-start: auto;
     flex: 0 0 auto;
-    width: 32px;
-    height: 32px;
-    padding: 7px;
+    width: 40px;
+    height: 40px;
+    margin-block: -8px;
+    padding: 11px;
     box-sizing: border-box;
-    border-radius: 8px;
+    border-radius: var(--md-sys-shape-corner-full);
     color: var(--md-sys-color-error);
     cursor: pointer;
-    transition: background-color 0.2s ease;
+    transition: background-color 0.15s ease;
 }
 
 .cs-group__remove:hover {
-    background: color-mix(in srgb, var(--md-sys-color-error) 10%, transparent);
+    background: color-mix(in srgb, var(--md-sys-color-error) var(--md-sys-state-hover-opacity), transparent);
 }
 
 /* Semester + total sit on their own rows — keep them compact, not full-width */
@@ -274,29 +282,12 @@
     max-width: 220px;
 }
 
-/* ---- Dashed "add" affordance (add core / add elective group) ---- */
-.cs-add-section {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 0.5rem;
-    width: 100%;
+/* ---- "Add" buttons (add core subject / add elective group) ----
+   Full-width M3 outlined buttons (.btn .btn-outline-primary .btn-block in the
+   markup); only the spacing and the leading-icon padding are set here. */
+.btn.cs-add-section {
     margin-top: 1rem;
-    padding: 0.8rem 1rem;
-    font-size: 0.875rem;
-    color: var(--md-sys-color-primary);
-    font-family: var(--md-ref-typeface-plain);
-    font-weight: 500;
-    background: color-mix(in srgb, var(--md-sys-color-primary) 3%, var(--md-sys-color-surface-container-lowest));
-    border: 1.5px dashed color-mix(in srgb, var(--md-sys-color-primary) 35%, var(--md-sys-color-outline-variant));
-    border-radius: 12px;
-    cursor: pointer;
-    transition: background-color 0.2s ease, border-color 0.2s ease;
-}
-
-.cs-add-section:hover {
-    background: color-mix(in srgb, var(--md-sys-color-primary) 8%, var(--md-sys-color-surface-container-lowest));
-    border-color: var(--md-sys-color-primary);
+    padding: 0 16px;
 }
 
 /* ---- Section divider + submit footer ---- */

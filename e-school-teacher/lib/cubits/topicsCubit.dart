@@ -1,4 +1,4 @@
-import 'package:eschool_teacher/data/models/topic.dart';
+import 'package:eschool_core/eschool_core.dart';
 import 'package:eschool_teacher/data/repositories/topicRepository.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 

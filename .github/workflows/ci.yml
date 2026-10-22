@@ -60,13 +60,29 @@ jobs:
         run: php artisan config:cache && php artisan route:cache && php artisan view:cache && php artisan optimize:clear
       - run: php artisan test
 
+  openapi:
+    name: OpenAPI contract (lint)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: admin-panel
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      # admin-panel/openapi.yaml is the API v2 contract. redocly.yaml sets the
+      # rules (recommended-strict): any warning fails. The responses are checked
+      # against it by tests/Feature/Contracts in the admin-panel job.
+      - run: npx --yes @redocly/cli@2.57.0 lint openapi.yaml
+
   apps:
     name: Flutter app (${{ matrix.app }})
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
-        app: [e-school, e-school-teacher, packages/eschool_core]
+        app: [e-school, e-school-teacher, packages/eschool_core, packages/eschool_api, packages/eschool_session, packages/eschool_notifications]
     defaults:
       run:
         working-directory: ${{ matrix.app }}
@@ -78,9 +94,124 @@ jobs:
           channel: stable
           cache: true
       - run: flutter pub get --enforce-lockfile
+      # packages/eschool_api is generated from admin-panel/openapi.yaml: regenerate
+      # it and fail if the committed code differs (or files were added or removed).
+      - if: matrix.app == 'packages/eschool_api'
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+      - if: matrix.app == 'packages/eschool_api'
+        name: Generated client matches openapi.yaml
+        run: |
+          tool/generate.sh
+          if [ -n "$(git status --porcelain -- .)" ]; then
+            git status --short -- .
+            git diff -- . | head -200
+            echo "::error::packages/eschool_api is out of date: run packages/eschool_api/tool/generate.sh and commit the result"
+            exit 1
+          fi
       # Style-only "info" lints are reported but don't fail the build; errors and warnings do.
       - run: flutter analyze --no-fatal-infos
       - run: flutter test
+
+  apps-web:
+    name: Flutter web build (${{ matrix.app }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        app: [e-school, e-school-teacher]
+    defaults:
+      run:
+        working-directory: ${{ matrix.app }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.44.9'
+          channel: stable
+          cache: true
+      - run: flutter pub get --enforce-lockfile
+      # The same build the deploy workflow makes, with the staging settings.
+      - run: flutter build web --release --dart-define-from-file=config/staging.json
+
+  # The integration_test/ smoke flows (sign in, land on home, open one screen)
+  # against the fake API in integration_test/support/fixtures.dart: no server.
+  apps-smoke-android:
+    name: Flutter smoke flows on Android (${{ matrix.app }})
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    strategy:
+      fail-fast: false
+      matrix:
+        app: [e-school, e-school-teacher]
+    steps:
+      - uses: actions/checkout@v4
+      # Hardware acceleration for the emulator on GitHub's Linux runners.
+      - name: Enable KVM
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.44.9'
+          channel: stable
+          cache: true
+      - run: flutter pub get --enforce-lockfile
+        working-directory: ${{ matrix.app }}
+      - uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 34
+          arch: x86_64
+          target: google_apis
+          profile: pixel_6
+          disable-animations: true
+          emulator-options: -no-snapshot-save -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim
+          working-directory: ${{ matrix.app }}
+          script: flutter test integration_test
+
+  apps-smoke-chrome:
+    name: Flutter smoke flow in Chrome (${{ matrix.flow }})
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - app: e-school
+            flow: learner_smoke_test.dart
+          - app: e-school
+            flow: parent_smoke_test.dart
+          - app: e-school-teacher
+            flow: teacher_smoke_test.dart
+    defaults:
+      run:
+        working-directory: ${{ matrix.app }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.44.9'
+          channel: stable
+          cache: true
+      - run: flutter pub get --enforce-lockfile
+      # The runner image ships Chrome with a matching chromedriver.
+      - name: Start chromedriver
+        run: |
+          "$CHROMEWEBDRIVER/chromedriver" --port=4444 &
+          sleep 2
+      - run: >-
+          flutter drive
+          --driver=test_driver/integration_test.dart
+          --target=integration_test/${{ matrix.flow }}
+          -d web-server --browser-name=chrome --headless
+          --no-web-resources-cdn
 
   docs:
     name: Documentation build
@@ -111,9 +242,99 @@ jobs:
       - name: PHP packages (fails on any advisory)
         working-directory: admin-panel
         run: composer audit --locked
+      - uses: subosito/flutter-action@1a449444c387b1966244ae4d4f8c696479add0b2 # v2.23.0
+        with:
+          flutter-version: '3.44.9'
+          channel: stable
+          cache: true
+      # Informational (Bible 5.1): lists outdated Dart packages in both apps and
+      # every package; never fails the build. Dependabot opens the update PRs.
+      - name: Dart packages (informational)
+        continue-on-error: true
+        run: |
+          for dir in e-school e-school-teacher packages/*/; do
+            dir="${dir%/}"
+            [ -f "$dir/pubspec.yaml" ] || continue
+            echo "::group::dart pub outdated: $dir"
+            (cd "$dir" && flutter pub get --enforce-lockfile > /dev/null && dart pub outdated) \
+              || echo "::warning::dart pub outdated could not run in $dir"
+            echo "::endgroup::"
+          done
       - uses: actions/setup-node@v4
         with:
           node-version: 22
       - name: Documentation build tools (fails on critical)
         working-directory: documentation
         run: npm audit --audit-level=critical
+
+  playwright:
+    name: Admin panel (Playwright)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: admin-panel
+    services:
+      mariadb:
+        image: mariadb:10.11
+        env:
+          MARIADB_ROOT_PASSWORD: root
+          MARIADB_DATABASE: eschool_e2e
+        ports: ['3306:3306']
+        options: >-
+          --health-cmd="healthcheck.sh --connect --innodb_initialized"
+          --health-interval=5s --health-timeout=5s --health-retries=20
+    env:
+      DB_CONNECTION: mysql
+      DB_HOST: 127.0.0.1
+      DB_PORT: 3306
+      DB_DATABASE: eschool_e2e
+      DB_USERNAME: root
+      DB_PASSWORD: root
+      APP_URL: http://127.0.0.1:8000
+      E2E_BASE_URL: http://127.0.0.1:8000
+    steps:
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          extensions: mbstring, intl, gd, zip, pdo_mysql, bcmath, exif, fileinfo
+          coverage: none
+      - run: composer install --no-interaction --prefer-dist --no-progress
+      - run: cp .env.example .env && php artisan key:generate --force
+      - name: Database with the demo school
+        run: |
+          php artisan migrate --force
+          php artisan db:seed --class=InstallationSeeder --force
+          php artisan db:seed --class=DemoSchoolSeeder --force
+          php artisan storage:link
+      # The array cache keeps the panel's per-account request limits from
+      # throttling the page sweep; four workers serve the parallel browsers.
+      - name: Start the panel
+        run: |
+          PHP_CLI_SERVER_WORKERS=4 CACHE_DRIVER=array nohup php artisan serve --host=127.0.0.1 --port=8000 > storage/logs/serve.log 2>&1 &
+          for i in $(seq 1 30); do curl -sf -o /dev/null http://127.0.0.1:8000/login && exit 0; sleep 1; done
+          cat storage/logs/serve.log
+          exit 1
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: admin-panel/e2e/package-lock.json
+      - name: Install Playwright
+        working-directory: admin-panel/e2e
+        run: |
+          npm ci
+          npx playwright install --with-deps chromium
+      - name: Playwright checks
+        working-directory: admin-panel/e2e
+        run: npx playwright test
+      - name: Upload the report
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: |
+            admin-panel/e2e/playwright-report/
+            admin-panel/e2e/test-results/
+            admin-panel/storage/logs/
+          retention-days: 14

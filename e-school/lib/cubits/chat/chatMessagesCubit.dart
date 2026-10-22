@@ -1,11 +1,10 @@
 import 'dart:async';
 
 import 'package:eschool/cubits/chat/chatUsersCubit.dart';
-import 'package:eschool/data/models/chatMessage.dart';
-import 'package:eschool/data/models/chatNotificationData.dart';
+import 'package:eschool_core/eschool_core.dart';
+import 'package:eschool_notifications/eschool_notifications.dart';
 import 'package:eschool/data/models/chatUser.dart';
 import 'package:eschool/data/repositories/chatRepository.dart';
-import 'package:eschool/utils/notificationUtils/chatNotificationsUtils.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 /*

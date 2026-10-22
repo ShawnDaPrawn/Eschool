@@ -6,7 +6,6 @@ import 'package:eschool_teacher/utils/uiUtils.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:open_filex/open_filex.dart';
 
 class DownloadAcademicCalendarContainer extends StatelessWidget {
   const DownloadAcademicCalendarContainer({super.key});
@@ -19,7 +18,7 @@ class DownloadAcademicCalendarContainer extends StatelessWidget {
     >(
       listener: (context, state) {
         if (state is AcademicCalendarPdfDownloadSuccess) {
-          OpenFilex.open(state.filePath);
+          DeviceFiles.open(state.filePath);
         } else if (state is AcademicCalendarPdfDownloadFailure) {
           UiUtils.showBottomToastOverlay(
             context: context,

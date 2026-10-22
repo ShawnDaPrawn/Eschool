@@ -1,3 +1,5 @@
+import 'package:eschool_core/eschool_core.dart';
+
 class Assets {
   static const _imagePath = 'assets/images';
   static const _brandingImagePath = 'assets/images/branding';
@@ -5,14 +7,13 @@ class Assets {
   // Branding Images
   static const appLogo = '$_brandingImagePath/appLogo.svg';
   static const maintenanceImage = '$_brandingImagePath/maintenance.svg';
-  static const fileNotFoundImage = '$_brandingImagePath/fileNotFound.svg';
-  static const noInternetImage = '$_brandingImagePath/noInternet.svg';
-  static const somethingWentWrongImage =
-      '$_brandingImagePath/somethingWentWrong.svg';
+  static const fileNotFoundImage = SharedAssets.fileNotFoundImage;
+  static const noInternetImage = SharedAssets.noInternetImage;
+  static const somethingWentWrongImage = SharedAssets.somethingWentWrongImage;
 
   // Images
-  static const rtlBackIcon = '$_imagePath/rtl_back_icon.svg';
-  static const backIcon = '$_imagePath/back_icon.svg';
+  static const rtlBackIcon = SharedAssets.rtlBackIcon;
+  static const backIcon = SharedAssets.backIcon;
   static const documentAttach = '$_imagePath/document_attach.svg';
   static const cameraImageAttach = '$_imagePath/camara_image_attach.svg';
   static const galleryImageAttach = '$_imagePath/gallery_image_attach.svg';
@@ -28,17 +29,17 @@ class Assets {
   static const gender = '$_imagePath/gender.svg';
   static const userProAddressIcon = '$_imagePath/user_pro_address_icon.svg';
   static const takeAttendance = '$_imagePath/take_attendance.svg';
-  static const downloadIcon = '$_imagePath/download_icon.svg';
+  static const downloadIcon = SharedAssets.downloadIcon;
   static const chatIcon = '$_imagePath/chat_icon.svg';
   static const logoutIcon = '$_imagePath/logout_icon.svg';
-  static const arrowDownIcon = '$_imagePath/arrow_down_icon.svg';
+  static const arrowDownIcon = SharedAssets.arrowDownIcon;
   static const upperPattern = '$_imagePath/upper_pattern.svg';
   static const lowerPattern = '$_imagePath/lower_pattern.svg';
   static const mailIcon = '$_imagePath/mail_icon.svg';
   static const qualification = '$_imagePath/qualification.svg';
-  static const defaultProfile = '$_imagePath/default_profile.svg';
-  static const hidePasswordIcon = '$_imagePath/hide_password.svg';
-  static const showPasswordIcon = '$_imagePath/show_password.svg';
+  static const defaultProfile = SharedAssets.defaultProfile;
+  static const hidePasswordIcon = SharedAssets.hidePasswordIcon;
+  static const showPasswordIcon = SharedAssets.showPasswordIcon;
 
   // home tab icons
   static const homeTabActiveIcon = '$_imagePath/home_active_icon.svg';
@@ -66,7 +67,6 @@ class Assets {
   static const linkIcon = "$_imagePath/link_icon.svg";
 
   // Animations
-  static const _animationsPath = 'assets/animations';
 
-  static const addFloatingAnimation = '$_animationsPath/add_floating.json';
+  static const addFloatingAnimation = SharedAssets.addFloatingAnimation;
 }

@@ -11,6 +11,7 @@ This page gets every part of the project running on a development machine. Start
 | Flutter | 3.44.9 stable (CI version). Dart SDK `>=3.8.0 <4.0.0` | Mobile apps |
 | Android Studio / Xcode | Current | Mobile app builds |
 | A Firebase project | | Push notifications and Crashlytics. The apps will not build without it |
+| Docker with the Compose plugin | Current | Optional: the whole panel stack in containers ([Option C](#option-c-docker-compose-the-cloud-run-setup-on-your-machine)) |
 
 ## 1. Admin panel (server and API)
 
@@ -49,6 +50,43 @@ The installer package adds `ToInstallMiddleware` to the `web` group. It redirect
 
 `DatabaseSeeder` is empty, so a bare `php artisan db:seed` does nothing. The three seeders above are the same ones the wizard runs, and `tests/TestCase.php` seeds the same set. `DummyDataSeeder` adds optional sample data.
 
+### Option C: Docker Compose (the Cloud Run setup on your machine)
+
+[`docker-compose.yml`](https://github.com/ShawnDaPrawn/Eschool/blob/main/docker-compose.yml) at the repository root runs the same image Cloud Run runs, in its three roles, beside MySQL 8. Use it to try a deploy-time change (the entrypoint, migrations, the queue, the schedule) before it reaches staging. You need Docker with the Compose plugin; PHP and Composer are not needed on the host.
+
+| Service | Role | What it runs |
+|---|---|---|
+| `mysql` | | MySQL 8.0, data in the `mysql` volume, port 3306 on `127.0.0.1` |
+| `web` | `CONTAINER_ROLE=web` | Apache on http://localhost:8080. Migrates the database, seeds the installer data and the admin on first start |
+| `worker` | `CONTAINER_ROLE=worker` | `php artisan queue:work`, restarted when it exits |
+| `scheduler` | `CONTAINER_ROLE=scheduler-loop` | `php artisan schedule:work`, which runs `routes/console.php` every minute |
+
+The three panel containers share the `storage` volume for uploads, as the Cloud Storage bucket is shared on Cloud Run. A commented `converter` service is the placeholder for the Phase 2 content converter.
+
+1. Create `.env` at the repository root (git ignores it) with an app key and a password for the admin:
+   ```bash
+   printf 'APP_KEY=base64:%s\nADMIN_PASSWORD=%s\n' "$(openssl rand -base64 32)" "$(openssl rand -base64 18)" > .env
+   cat .env   # note the password
+   ```
+   Optional keys: `ADMIN_EMAIL` (default `admin@navigateed.local`), `APP_ENV` and `APP_DEBUG` (default `production` and `false`, as on Cloud Run; use `local` and `true` for error pages), `LOG_CHANNEL` (default `json`), `DB_PASSWORD`.
+2. Build and start everything:
+   ```bash
+   docker compose up --build
+   ```
+   The worker and scheduler wait until `web` answers `/up`, so the database is migrated before they start.
+3. Sign in at http://localhost:8080/login with `ADMIN_EMAIL` and `ADMIN_PASSWORD`.
+
+Useful commands:
+
+```bash
+docker compose logs -f web worker scheduler   # JSON log lines (LOG_CHANNEL=json)
+docker compose exec web php artisan tinker    # Artisan inside the web container
+docker compose exec mysql mysql -u navigateed -p navigateed
+docker compose down        # stop; add -v to delete the database and uploads too
+```
+
+The image is built from your working tree, so rebuild (`docker compose up --build`) after changing code. Mail goes to the log (`MAIL_MAILER=log`). The entrypoint and roles are described in [Deployment](Deployment#container-roles).
+
 ### First login
 
 Sign in at `/login` with the super admin account that `AddSuperAdminSeeder` creates:
@@ -70,7 +108,8 @@ Next, set up the school in **Settings**: name, logo, time zone, the current sess
 | `/install` | Web installer (blocked once installation is complete) |
 | `/api/...` | REST API for the apps (see [API Overview](API-Overview)) |
 | `/storage/...` | Uploaded files, served through the `public/storage` symlink |
-| `/webhook/{stripe,razorpay,paystack,flutterwave}` | Payment gateway callbacks (see [Payments](Payments)) |
+| `/webhook/stripe` | Stripe's payment callbacks (see [Payments](Payments)) |
+| `/up`, `/up/worker` | Health checks: the app boots; the queue is being worked |
 
 ## 2. Mobile apps
 
@@ -117,6 +156,9 @@ Run these from the repository root. Each line uses a subshell, so the working di
 # Dependency audits
 (cd admin-panel && composer audit --locked)
 (cd documentation && npm audit --audit-level=critical)
+
+# Secret scan over the whole history (gitleaks 8.x from its GitHub releases), as security.yml runs it
+gitleaks git --log-opts="--all" --config .gitleaks.toml --redact
 ```
 
 [Testing and CI](Testing-and-CI) has the details, including how to create the test database.

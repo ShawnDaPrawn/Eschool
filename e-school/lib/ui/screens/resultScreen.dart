@@ -1,13 +1,9 @@
+import 'package:eschool/app/routeArguments.dart';
 import 'package:eschool/cubits/authCubit.dart';
-import 'package:eschool/data/models/result.dart';
+import 'package:eschool_core/eschool_core.dart';
 import 'package:eschool/data/models/student.dart';
-import 'package:eschool/data/models/subjectMark.dart';
-import 'package:eschool/ui/widgets/screenTopBackgroundContainer.dart';
-import 'package:eschool/ui/widgets/svgButton.dart';
 import 'package:eschool/utils/labelKeys.dart';
 import 'package:eschool/utils/uiUtils.dart';
-import 'package:eschool_core/eschool_core.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -17,12 +13,10 @@ class ResultScreen extends StatelessWidget {
   final int? childId;
 
   static Route route(RouteSettings routeSettings) {
-    final arguments = routeSettings.arguments! as Map<String, dynamic>;
-    return CupertinoPageRoute(
-      builder: (_) => ResultScreen(
-        result: arguments['result'],
-        childId: arguments['childId'],
-      ),
+    final arguments = routeSettings.arguments! as ResultArguments;
+    return AdaptivePageRoute(
+      builder: (_) =>
+          ResultScreen(result: arguments.result, childId: arguments.childId),
     );
   }
 

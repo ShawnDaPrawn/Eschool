@@ -1,0 +1,40 @@
+import 'package:flutter/foundation.dart';
+
+/// Which platform the notification code runs on, without `dart:io` (which a
+/// web build cannot use).
+// ignore: avoid_classes_with_only_static_members
+abstract final class NotificationPlatform {
+  /// Push notifications through FCM and the local notifications that show
+  /// them: Android and iOS. The web portals have none yet (see the wiki's
+  /// Notifications page); they list notifications from the API instead.
+  static bool get isSupported => !kIsWeb && (isAndroid || isIOS);
+
+  static bool get isAndroid =>
+      !kIsWeb && defaultTargetPlatform == TargetPlatform.android;
+
+  static bool get isIOS =>
+      !kIsWeb && defaultTargetPlatform == TargetPlatform.iOS;
+}
+
+/// Who an FCM topic is for. The server sends school-wide notices to these
+/// topics (`sendNotificationToTopic()` in the admin panel).
+enum NotificationAudience {
+  students,
+  parents,
+  teachers;
+
+  /// The topics a device of this audience subscribes to: its own and the
+  /// one for everybody, each for the device's platform (for example
+  /// `parentsAndroid` and `allAndroid`). None off Android and iOS.
+  List<String> get topics {
+    final String? platform = NotificationPlatform.isAndroid
+        ? 'Android'
+        : NotificationPlatform.isIOS
+        ? 'IOS'
+        : null;
+    if (platform == null) {
+      return const [];
+    }
+    return ['$name$platform', 'all$platform'];
+  }
+}

@@ -1,10 +1,10 @@
+import 'package:eschool_core/eschool_core.dart';
 import 'package:eschool_teacher/cubits/examCubit.dart';
 import 'package:eschool_teacher/data/repositories/studentRepository.dart';
 import 'package:eschool_teacher/ui/widgets/customAppbar.dart';
 import 'package:eschool_teacher/ui/widgets/examListContainer.dart';
 import 'package:eschool_teacher/utils/labelKeys.dart';
 import 'package:eschool_teacher/utils/uiUtils.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -14,7 +14,7 @@ class ExamScreen extends StatelessWidget {
   });
 
   static Route route(RouteSettings routeSettings) {
-    return CupertinoPageRoute(
+    return AdaptivePageRoute(
       builder: (_) => BlocProvider<ExamDetailsCubit>(
         create: (context) => ExamDetailsCubit(StudentRepository()),
         child: const ExamScreen(),

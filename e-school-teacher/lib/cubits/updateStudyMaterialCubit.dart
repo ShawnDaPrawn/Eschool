@@ -1,7 +1,6 @@
 import 'package:eschool_teacher/data/models/pickedStudyMaterial.dart';
-import 'package:eschool_teacher/data/models/studyMaterial.dart';
+import 'package:eschool_core/eschool_core.dart';
 import 'package:eschool_teacher/data/repositories/studyMaterialRepositoy.dart';
-import 'package:eschool_teacher/utils/api.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 abstract class UpdateStudyMaterialState {}

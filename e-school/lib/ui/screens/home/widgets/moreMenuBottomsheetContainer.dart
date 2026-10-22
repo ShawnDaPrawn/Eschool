@@ -1,7 +1,7 @@
 import 'dart:math';
 import 'package:eschool/app/routes.dart';
 import 'package:eschool/cubits/authCubit.dart';
-import 'package:eschool/ui/widgets/customUserProfileImageWidget.dart';
+import 'package:eschool_core/eschool_core.dart';
 import 'package:eschool/utils/homeBottomsheetMenu.dart';
 import 'package:eschool/utils/labelKeys.dart';
 import 'package:eschool/utils/uiUtils.dart';

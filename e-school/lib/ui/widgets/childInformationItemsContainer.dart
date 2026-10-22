@@ -1,7 +1,8 @@
+import 'package:eschool/app/routeArguments.dart';
 import 'package:eschool/app/routes.dart';
 import 'package:eschool/data/models/student.dart';
 import 'package:eschool/data/models/subject.dart';
-import 'package:eschool/utils/animationConfiguration.dart';
+import 'package:eschool_core/eschool_core.dart';
 import 'package:eschool/utils/assets.dart';
 import 'package:eschool/utils/labelKeys.dart';
 import 'package:eschool/utils/uiUtils.dart';
@@ -28,10 +29,10 @@ class ChildInformationItemsContainerState
   late final List<MenuContainerDetails> _menuItems = [
     MenuContainerDetails(
       route: Routes.childAssignments,
-      arguments: {
-        'childId': widget.student.id,
-        'subjects': widget.subjectsForFilter,
-      },
+      arguments: ChildSubjectsArguments(
+        childId: widget.student.id,
+        subjects: widget.subjectsForFilter,
+      ),
       iconPath: Assets.assignmentIconParent,
       titleKey: assignmentsKey,
     ),
@@ -55,46 +56,49 @@ class ChildInformationItemsContainerState
     ),
     MenuContainerDetails(
       route: Routes.academicCalendar,
-      arguments: {'hasBack': true, 'childId': widget.student.id},
+      arguments: AcademicCalendarArguments(
+        hasBack: true,
+        childId: widget.student.id,
+      ),
       iconPath: Assets.holidayIcon,
       titleKey: academicCalendarKey,
     ),
     MenuContainerDetails(
       route: Routes.exam,
-      arguments: {
-        'childId': widget.student.id,
-        'subjects': widget.subjectsForFilter,
-      },
+      arguments: ChildSubjectsArguments(
+        childId: widget.student.id,
+        subjects: widget.subjectsForFilter,
+      ),
       iconPath: Assets.examIcon,
       titleKey: examsKey,
     ),
     MenuContainerDetails(
       route: Routes.childResults,
-      arguments: {
-        'childId': widget.student.id,
-        'subjects': widget.subjectsForFilter,
-      },
+      arguments: ChildSubjectsArguments(
+        childId: widget.student.id,
+        subjects: widget.subjectsForFilter,
+      ),
       iconPath: Assets.resultIcon,
       titleKey: resultKey,
     ),
     MenuContainerDetails(
       route: Routes.subjectWiseReport,
-      arguments: {
-        'childId': widget.student.id,
-        'subjects': widget.subjectsForFilter,
-      },
+      arguments: ChildSubjectsArguments(
+        childId: widget.student.id,
+        subjects: widget.subjectsForFilter,
+      ),
       iconPath: Assets.reportsIcon,
       titleKey: reportsKey,
     ),
     MenuContainerDetails(
       route: Routes.childFees,
-      arguments: {'studentDetails': widget.student},
+      arguments: widget.student,
       iconPath: Assets.feesIcon,
       titleKey: feesKey,
     ),
     MenuContainerDetails(
       route: Routes.manageLeaves,
-      arguments: {'studentDetails': widget.student},
+      arguments: widget.student,
       iconPath: Assets.manageLeavesIcon,
       titleKey: manageLeavesKey,
     ),

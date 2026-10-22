@@ -6,6 +6,7 @@ use Illuminate\Support\Facades\File;
 use Tests\Concerns\RunsAppServer;
 use Tests\Support\ApiShape;
 use Tests\Support\DemoSchool;
+use Tests\Support\OpenApiSpec;
 use Tests\TestCase;
 
 /**
@@ -19,6 +20,10 @@ use Tests\TestCase;
  *
  * Set API_RESPONSES_DIR to also save every full response there, e.g. to diff
  * the actual data before and after a refactor.
+ *
+ * API v2 calls (uri v2/...) are snapshotted the same way and also checked
+ * against openapi.yaml, the v2 contract (tests/Feature/Contracts covers every
+ * v2 route and profile).
  */
 class ApiContractTest extends TestCase
 {
@@ -39,6 +44,9 @@ class ApiContractTest extends TestCase
 
         foreach ($this->calls($school) as $name => [$who, $method, $uri, $params]) {
             $response = $this->apiClient($who === null ? null : $school->tokens[$who])->{$method}('/api/'.$uri, $params);
+            if (str_starts_with($uri, 'v2/')) {
+                OpenApiSpec::assertResponseMatches($method, 'api/'.$uri, $response->toPsrResponse());
+            }
             $json = $response->json();
             $actual = [
                 'request' => strtoupper($method).' /api/'.$uri,
@@ -110,6 +118,12 @@ class ApiContractTest extends TestCase
             'common/gallery-images' => ['asha', 'get', 'get-gallery-images', ['album_id' => $id['album']]],
             'common/gallery-videos' => ['asha', 'get', 'get-gallery-videos', []],
             'common/no-token' => [null, 'get', 'student/dashboard', []],
+
+            // API v2: what every app reads on launch
+            'common/v2-me-context-no-token' => [null, 'get', 'v2/me/context', []],
+            'student/v2-me-context' => ['asha', 'get', 'v2/me/context', []],
+            'parent/v2-me-context' => ['farid', 'get', 'v2/me/context', []],
+            'teacher/v2-me-context' => ['tara', 'get', 'v2/me/context', []],
 
             // Chat messages first, so the chat lists below have something to show
             'teacher/send-message' => ['tara', 'post', 'teacher/send-message', ['receiver_id' => $id['farid_user'], 'message' => 'Asha did well today']],

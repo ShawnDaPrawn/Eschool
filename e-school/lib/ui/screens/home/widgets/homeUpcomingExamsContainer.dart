@@ -1,6 +1,5 @@
 import 'package:eschool/data/models/exam.dart';
-import 'package:eschool/ui/widgets/customImageWidget.dart';
-import 'package:eschool/utils/animationConfiguration.dart';
+import 'package:eschool_core/eschool_core.dart';
 import 'package:eschool/utils/labelKeys.dart';
 import 'package:eschool/utils/uiUtils.dart';
 import 'package:flutter/cupertino.dart';

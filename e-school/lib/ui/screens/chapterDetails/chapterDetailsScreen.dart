@@ -1,12 +1,12 @@
+import 'package:eschool/app/routeArguments.dart';
 import 'package:eschool/data/models/lesson.dart';
-import 'package:eschool/data/models/studyMaterial.dart';
+import 'package:eschool_core/eschool_core.dart';
 import 'package:eschool/ui/screens/chapterDetails/widgets/topicsContainer.dart';
 import 'package:eschool/ui/widgets/customAppbar.dart';
 import 'package:eschool/ui/widgets/filesContainer.dart';
 import 'package:eschool/ui/widgets/videosContainer.dart';
 import 'package:eschool/utils/labelKeys.dart';
 import 'package:eschool/utils/uiUtils.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
 class ChapterDetailsScreen extends StatefulWidget {
@@ -19,12 +19,12 @@ class ChapterDetailsScreen extends StatefulWidget {
   State<ChapterDetailsScreen> createState() => _ChapterDetailsScreenState();
 
   static Route route(RouteSettings routeSettings) {
-    final arguments = routeSettings.arguments! as Map<String, dynamic>;
+    final arguments = routeSettings.arguments! as ChapterDetailsArguments;
 
-    return CupertinoPageRoute(
+    return AdaptivePageRoute(
       builder: (_) => ChapterDetailsScreen(
-        lesson: arguments['lesson'],
-        childId: arguments['childId'],
+        lesson: arguments.lesson,
+        childId: arguments.childId,
       ),
     );
   }

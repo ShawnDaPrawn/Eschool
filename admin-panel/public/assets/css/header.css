@@ -25,68 +25,59 @@
     gap: 8px;
 }
 
+/* Session-year select: the M3 outlined field at the compact 40px size (the
+   same as .form-control-sm) — 1px outline, 10px corners, on-surface-variant
+   chevron (#64748b written out: a data URI can't read CSS variables). */
 .session-year-dropdown {
     margin-right: 25px !important;
     overflow-y: auto;
     min-width: 120px;
-    padding: 8px;
-    background-color: var(--md-sys-color-surface-container-lowest);
-    border: 1px solid var(--md-sys-color-outline-variant);
-    border-radius: var(--md-sys-shape-corner-small);
-    font-size: 14px;
-    font-weight: 500;
+    height: 40px;
+    padding: 0 40px 0 12px;
+    background-color: transparent;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2364748b' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 10px center;
+    background-size: 20px 20px;
+    -webkit-appearance: none;
+    appearance: none;
+    border: 1px solid var(--md-sys-color-outline);
+    border-radius: var(--app-radius);
+    font-family: var(--md-ref-typeface-plain);
+    font-size: var(--md-sys-typescale-body-medium-size);
     color: var(--md-sys-color-on-surface);
+    cursor: pointer;
     scrollbar-width: thin;
     scrollbar-color: color-mix(in srgb, var(--md-sys-color-on-surface) 25%, transparent) transparent;
+    transition: border-color 0.15s ease, box-shadow 0.15s ease;
 }
 
 [dir="rtl"] .session-year-dropdown,
 .rtl .session-year-dropdown {
     margin-right: 0 !important;
     margin-left: 25px !important;
+    padding: 0 12px 0 40px;
+    background-position: left 10px center;
 }
 
-/* Session-year select: theme-aware hover/focus so it reads as an interactive
-   field, matching the form-field focus convention (border only, no glow — it's
-   a compact chrome control, not a form input). */
+/* Hover: on-surface outline; focus: 2px primary (inset, nothing moves). */
 .session-year-dropdown:hover {
-    border-color: color-mix(in srgb, var(--md-sys-color-primary) 30%, var(--md-sys-color-outline-variant));
+    border-color: var(--md-sys-color-on-surface);
 }
 
 .session-year-dropdown:focus {
     outline: none;
     border-color: var(--md-sys-color-primary);
+    box-shadow: inset 0 0 0 1px var(--md-sys-color-primary);
 }
 
 /* ---- Topbar action button (cache clear) ----
-   Subtle neutral button that resolves to the theme on hover (was the brand-foreign
-   blue .btn-inverse-info #198ae3 with a fixed 100px width + nested <input>). 10px
-   radius = the .btn scale; icon inherits the button's text color. */
-.navbar .topbar-action-btn {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    height: 36px;
-    padding: 0 14px;
-    font-size: 13px;
-    font-weight: 500;
-    color: var(--md-sys-color-on-surface-variant);
-    background: var(--md-sys-color-surface-container-lowest);
-    border: 1px solid var(--md-sys-color-outline-variant);
-    border-radius: var(--app-radius);
-    font-family: inherit;
+   An M3 outlined button from the global layer (.btn .btn-outline-primary in
+   the markup): 40px, 10px corners, label-large. Only the leading-icon
+   padding is set here; the icon takes the button's colour. */
+.navbar .btn.topbar-action-btn {
+    padding: 0 16px;
     white-space: nowrap;
-    text-decoration: none;
-    cursor: pointer;
-    transition: color 0.2s ease, background-color 0.2s ease, border-color 0.2s ease;
-}
-
-.navbar .topbar-action-btn:hover,
-.navbar .topbar-action-btn:focus {
-    color: var(--md-sys-color-primary);
-    background: color-mix(in srgb, var(--md-sys-color-primary) var(--md-sys-state-hover-opacity), var(--md-sys-color-surface-container-lowest));
-    border-color: color-mix(in srgb, var(--md-sys-color-primary) 30%, transparent);
-    text-decoration: none;
 }
 
 .navbar .topbar-action-btn svg.lc-icon {
@@ -246,17 +237,22 @@
 .navbar .navbar-dropdown .dropdown-item.active,
 .navbar .navbar-dropdown .dropdown-item.active:hover,
 .navbar .navbar-dropdown .dropdown-item.active:focus {
-    background: color-mix(in srgb, var(--md-sys-color-primary) 10%, transparent);
-    color: var(--md-sys-color-primary);
+    background: var(--md-sys-color-secondary-container);
+    color: var(--md-sys-color-on-secondary-container);
     font-weight: 500;
 }
 
-/* ---- Email-config / session-year warning banner ---- */
+.navbar .language-dropdown .language-item.active svg.language-check {
+    color: var(--md-sys-color-on-secondary-container);
+}
+
+/* ---- Email-config / session-year warning banner ----
+   The alert pattern: a tonal error container, 12px corners, no border. */
 .navbar .alert.alert-fill-danger {
-    background-color: color-mix(in srgb, var(--md-sys-color-error) 8%, var(--md-sys-color-surface-container-lowest));
-    border: 1px solid color-mix(in srgb, var(--md-sys-color-error) 30%, transparent);
+    background-color: color-mix(in srgb, var(--md-sys-color-error) 12%, var(--md-sys-color-surface-container-lowest));
+    border: 0;
     color: var(--md-sys-color-error);
-    border-radius: var(--app-radius);
+    border-radius: var(--md-sys-shape-corner-medium);
 }
 
 .navbar .alert.alert-fill-danger .alert-link {
@@ -286,11 +282,12 @@
     transform: translateY(-50%);
     background: var(--md-sys-color-inverse-surface);
     color: var(--md-sys-color-on-inverse-surface);
-    padding: 6px 10px;
+    min-height: 24px;
+    padding: 4px 8px;
     border-radius: var(--md-sys-shape-corner-extra-small);
     white-space: nowrap;
-    font-size: 12px;
-    box-shadow: var(--md-sys-elevation-level2);
+    font-size: var(--md-sys-typescale-body-small-size);
+    line-height: var(--md-sys-typescale-body-small-line-height);
     transition: opacity 0.2s ease;
     z-index: 1000;
 }

@@ -5,11 +5,6 @@
 @endsection
 
 @section('content')
-    <style>
-        .btn-outline-success {
-            padding: 15px;
-        }
-    </style>
     <div class="content-wrapper">
         <div class="page-header">
             <h3 class="page-title">

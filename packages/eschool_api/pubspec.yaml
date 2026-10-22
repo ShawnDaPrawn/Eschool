@@ -1,0 +1,22 @@
+name: eschool_api
+description: Dart models and client for the NavigateEd API v2, generated from admin-panel/openapi.yaml by tool/generate.sh.
+publish_to: 'none'
+version: 0.1.0
+
+environment:
+  sdk: ">=3.8.0 <4.0.0"
+
+# Plain Dart (no Flutter), so it can be used by the apps, the shared packages
+# and command-line tools alike.
+dependencies:
+  dio: ^5.9.2
+  json_annotation: ^4.12.0
+
+# build_runner and json_serializable write lib/src/model/*.g.dart. Their
+# versions are held to a minor release, so regenerating gives the same code
+# until someone moves them on purpose.
+dev_dependencies:
+  build_runner: '>=2.16.1 <2.17.0'
+  json_serializable: '>=6.15.2 <6.16.0'
+  lints: ^6.1.0
+  test: ^1.32.0

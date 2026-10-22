@@ -4,19 +4,14 @@ import 'package:eschool/cubits/leavesCubit.dart';
 import 'package:eschool/data/models/leave.dart';
 import 'package:eschool/data/models/student.dart';
 import 'package:eschool/data/repositories/leaveRepository.dart';
-import 'package:eschool/ui/screens/leave/widgets/dropdownButtonContainer.dart';
+import 'package:eschool_core/eschool_core.dart';
 import 'package:eschool/ui/screens/leave/widgets/leaveContainer.dart';
 import 'package:eschool/ui/screens/leave/widgets/monthPickerBottomsheetContainer.dart';
 import 'package:eschool/ui/widgets/customAppbar.dart';
-import 'package:eschool/ui/widgets/customFloatingActionButton.dart';
-import 'package:eschool/ui/widgets/customShimmerContainer.dart';
-import 'package:eschool/ui/widgets/errorContainer.dart';
 import 'package:eschool/ui/widgets/noDataContainer.dart';
-import 'package:eschool/ui/widgets/shimmerLoadingContainer.dart';
 import 'package:eschool/ui/widgets/swapStatusFilterBottomsheetContainer.dart';
 import 'package:eschool/utils/labelKeys.dart';
 import 'package:eschool/utils/uiUtils.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -28,11 +23,12 @@ class ManageLeavesScreen extends StatefulWidget {
   State<ManageLeavesScreen> createState() => _ManageLeavesScreenState();
 
   static Route route(RouteSettings routeSettings) {
-    final arguments = routeSettings.arguments! as Map<String, dynamic>;
-    return CupertinoPageRoute(
+    return AdaptivePageRoute(
       builder: (_) => BlocProvider<LeaveCubit>(
         create: (context) => LeaveCubit(LeaveRepository()),
-        child: ManageLeavesScreen(studentDetails: arguments['studentDetails']),
+        child: ManageLeavesScreen(
+          studentDetails: routeSettings.arguments! as Student,
+        ),
       ),
     );
   }
@@ -243,7 +239,7 @@ class _ManageLeavesScreenState extends State<ManageLeavesScreen> {
           Navigator.of(context)
               .pushNamed<bool?>(
                 Routes.addLeave,
-                arguments: {'studentDetails': widget.studentDetails},
+                arguments: widget.studentDetails,
               )
               .then((value) {
                 if (value == true) {

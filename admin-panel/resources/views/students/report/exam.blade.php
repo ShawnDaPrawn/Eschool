@@ -28,7 +28,7 @@
         text-transform: uppercase;
         font-size: 0.75rem;
         letter-spacing: 0.03em;
-        color: #6c757d;
+        color: var(--md-sys-color-on-surface-variant);
         font-weight: 600;
         white-space: nowrap;
     }

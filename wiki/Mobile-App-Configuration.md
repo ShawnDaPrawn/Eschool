@@ -4,7 +4,7 @@ This page lists every value a deployer has to set before shipping the two Flutte
 
 | # | Setting | Student/parent app | Teacher app |
 |---|---|---|---|
-| 1 | Admin panel URL | `lib/utils/constants.dart` → `baseUrl` | `lib/utils/constants.dart` → `baseUrl` |
+| 1 | Admin panel URL, environment, flavour | `--dart-define` at build time (`config/production.json`, `config/staging.json`); see [Build settings](#build-settings) | same |
 | 2 | Android app name | `android/app/src/main/AndroidManifest.xml` → `android:label="eSchool"` | same file → `android:label="eschool Teacher"` |
 | 3 | iOS app name | `ios/Runner/Info.plist` → `CFBundleDisplayName` `eSchool`, `CFBundleName` `eSchool`; also `INFOPLIST_KEY_CFBundleDisplayName` in `ios/Runner.xcodeproj/project.pbxproj` | `CFBundleDisplayName` `eSchool Teacher`, `CFBundleName` `eSchool_teacher`; also `INFOPLIST_KEY_CFBundleDisplayName` in `project.pbxproj` |
 | 4 | Android package | `android/app/build.gradle.kts` → `namespace` and `applicationId` = `za.co.example.eschool`; manifest `package`; `android/app/src/main/kotlin/za/co/example/eschool/MainActivity.kt` | `za.co.example.eschool.teacher`; `android/app/src/main/kotlin/za/co/example/eschool/teacher/MainActivity.kt` |
@@ -20,20 +20,44 @@ This page lists every value a deployer has to set before shipping the two Flutte
 | 14 | Version | `version:` in `pubspec.yaml` (and the iOS project values, see [Building-and-Releasing-Apps](Building-and-Releasing-Apps#versioning)) | same |
 | 15 | Server-side | Admin panel App Settings (`app_*` keys), notification settings (Firebase project id and service account) | `teacher_*` keys |
 
-## Server URL
+## Build settings
 
-```dart
-// e-school/lib/utils/constants.dart (identical in e-school-teacher)
-const String baseUrl = 'https://navigateed-admin-972068206844.africa-south1.run.app';
+Both apps read their server address, environment and flavour from `--dart-define` values given when the app is compiled, through `AppConfig` in the shared package ([`packages/eschool_core/lib/src/config/app_config.dart`](https://github.com/ShawnDaPrawn/Eschool/blob/main/packages/eschool_core/lib/src/config/app_config.dart)). Staging and production builds of an app are the same code with different defines.
 
-//please do not change the below 2 values it's for convince of usage in code
-const String databaseUrl = '$baseUrl/api/';
-const String storageUrl = '$baseUrl/storage/';
+| Define | Meaning | Default when not given |
+|---|---|---|
+| `API_BASE_URL` | The admin panel's public URL, with no trailing `/`. Must be `https://` unless `ENV=local`. | `https://navigateed-admin-972068206844.africa-south1.run.app` (the production server every earlier build used) |
+| `ENV` | `production`, `staging` or `local` | `production` |
+| `FLAVOR` | Which shell the build is: `learner` (student and parent app) or `teacher`. `facilitator` and `vendor` are reserved for the teacher app's later flavours. | `learner` in `e-school`, `teacher` in `e-school-teacher` |
+
+Each app has a define file per environment:
+
+| File | `API_BASE_URL` | `ENV` |
+|---|---|---|
+| `config/production.json` | `https://navigateed-admin-972068206844.africa-south1.run.app` | `production` |
+| `config/staging.json` | `https://staging-admin.navigateed.co.za` | `staging` |
+
+```bash
+flutter run                                             # production server, as before
+flutter run --dart-define=API_BASE_URL=http://10.0.2.2:8000 --dart-define=ENV=local   # a local panel from the Android emulator
+flutter build appbundle --release --dart-define-from-file=config/staging.json
+flutter build web --release --dart-define-from-file=config/production.json
 ```
 
-- Set `baseUrl` to the admin panel's public URL, with no trailing `/`. `databaseUrl` and `storageUrl` are derived from it; every endpoint in `lib/utils/api.dart` is `'${databaseUrl}...'`.
+A plain `flutter run` or `flutter build` with no define still talks to the production server, so existing release scripts keep working. A debug build with an unusable value (a trailing `/`, `http://` outside `ENV=local`, an unknown `ENV`) stops at start-up with the reason (`AppConfig.assertValid()` in `initializeApp()`); a release build is never stopped.
+
+`lib/utils/constants.dart` keeps the names the code already uses, now read from `AppConfig`:
+
+```dart
+const String baseUrl = AppConfig.apiBaseUrl;
+const String databaseUrl = AppConfig.apiUrl;      // '$baseUrl/api/'
+const String storageUrl = AppConfig.storageUrl;   // '$baseUrl/storage/'
+String get appFlavor => AppConfig.flavorOr('learner');   // 'teacher' in the teacher app
+```
+
+- Every endpoint in `lib/utils/api.dart` is `'${databaseUrl}...'`.
 - `storageUrl` is used for server files referenced by relative path (notification images, dynamic-field files).
-- The student app also uses `baseUrl` for the "school website" link on the login choice screen and, in `WebViewPaymentScreen`, as the host on which the Paystack/Flutterwave callback pages (`/response/paystack/success`, `/response/flutterwave/success`) are recognised. If the admin panel is served from a different host than `baseUrl`, web payments never complete in the app.
+- The student app also uses `baseUrl` for the "school website" link on the login choice screen and, in `WebViewPaymentScreen`, as the host on which the WebView checkout's callback pages (`/response/paystack/success`, `/response/flutterwave/success`) are recognised. The server offers only Stripe since Phase 0, so that checkout is not reached today; if a hosted-checkout gateway returns, its callback must be on the `API_BASE_URL` host.
 - Docs: https://shawndaprawn.github.io/Eschool/mobile-app/integrate-admin-panel/
 
 ### HTTPS requirement
@@ -44,7 +68,7 @@ const String storageUrl = '$baseUrl/storage/';
 | Teacher app (Android) | no network security config; Android's default for the target SDK applies (cleartext blocked) | no debug override, so plain `http://` is blocked in debug too |
 | Both (iOS) | no `NSAppTransportSecurity` entry in `Info.plist`, so App Transport Security requires HTTPS | same |
 
-Use an `https://` `baseUrl` with a certificate from a public CA for any build you hand out.
+Use an `https://` `API_BASE_URL` with a certificate from a public CA for any build you hand out.
 
 ## App name
 
@@ -83,7 +107,7 @@ These are client configs (an API key restricted to the app id), not the admin pa
 
 Firebase products used: Cloud Messaging (`firebase_messaging`), Crashlytics (`firebase_crashlytics`, Gradle plugin `com.google.firebase.crashlytics` 3.0.2) and the Analytics SDK (declared, not called from Dart). Android uses Firebase BoM `31.0.2`. iOS `AppDelegate.swift` calls `FirebaseApp.configure()` if no app exists yet; `Info.plist` sets `FirebaseAppDelegateProxyEnabled` to `false` and enables the `fetch` and `remote-notification` background modes; `Runner.entitlements` contains `aps-environment` = `development`. APNs must be configured in Firebase for iOS push: https://firebase.flutter.dev/docs/messaging/apple-integration (linked from the docs page).
 
-Android notification small icon: `@drawable/ic_launcher_foreground` (manifest meta-data `com.google.firebase.messaging.default_notification_icon` and `AwesomeNotifications().initialize('resource://drawable/ic_launcher_foreground', ...)`); the PNGs are in `android/app/src/main/res/drawable-*/`.
+Android notification small icon: `@drawable/ic_launcher_foreground` (manifest meta-data `com.google.firebase.messaging.default_notification_icon` and `AwesomeNotifications().initialize('resource://drawable/ic_launcher_foreground', ...)` in `packages/eschool_notifications`; the channels are `basic_channel` and `chat_notifications_channel`); the PNGs are in `android/app/src/main/res/drawable-*/`.
 
 Both apps' notifications are sent by the admin panel through the FCM HTTP v1 API, so the admin panel must point at the same Firebase project: Settings > Notification Settings stores the project id (`project_id`) and the service account JSON (`service_account_file`), read by `admin-panel/app/Helpers/notification_helper.php`. See [Notifications](Notifications) and https://shawndaprawn.github.io/Eschool/admin-panel/notification-settings/.
 
@@ -142,7 +166,7 @@ The font is Poppins, bundled rather than downloaded: `google_fonts/` at the app 
 
 | Setting | File | Default |
 |---|---|---|
-| `isApplicationItemAnimationOn` | `lib/utils/constants.dart` | `true`; `false` turns off all list/item appearance effects in `lib/utils/animationConfiguration.dart` |
+| `isApplicationItemAnimationOn` | `packages/eschool_core/lib/src/utils/animation_configuration.dart` (one switch for both apps) | `true`; `false` turns off all list/item appearance effects in the same file |
 | `listItemAnimationDelayInMilliseconds` | same | `100` (keep values at 10 or more, per the code comment) |
 | `itemFadeAnimationDurationInMilliseconds` | same | `250` |
 | `itemZoomAnimationDurationInMilliseconds` | same | `200` |
@@ -156,7 +180,6 @@ Lottie files in `assets/animations/`: student app `onboarding.json` (login choic
 |---|---|---|
 | `errorMessageDisplayDuration` | 3000 ms | Snack bar duration. |
 | `offsetLimitPaginationAPIDefaultItemFetchLimit` | `15` | `limit` for offset/limit APIs (chat users and messages). |
-| `notificationChannelKey`, `chatNotificationChannelKey` | `basic_channel`, `chat_notifications_channel` | Android notification channels. |
 | `showDefaultCredentials` | `false` | Pre-fills demo logins. Student app: `defaultStudentGRNumber` `student123`, `defaultStudentPassword` `student123`, `defaultParentEmail` `parent@gmail.com`, `defaultParentPassword` `parent123`. Teacher app: `defaultTeacherEmail` `teacher@gmail.com`, `defaultTeacherPassword` `teacher123`. Keep it `false` in production. |
 | `homeMenuBottomSheetAnimationDuration`, `changeSliderDuration`, `numberOfLatestNoticesInHomeScreen` | 300 ms, 5 s, 3 | Student app only. |
 
@@ -186,7 +209,7 @@ iOS signing is configured in Xcode (no `DEVELOPMENT_TEAM` is set in either proje
 
 ## Deep links
 
-Neither app declares deep links: there are no `VIEW` intent filters with custom schemes or `autoVerify` in the Android manifests, no `CFBundleURLTypes` in `Info.plist` and no associated domains in the entitlements. The only extra intent filter is `FLUTTER_NOTIFICATION_CLICK` on `MainActivity` for notification taps. The teacher manifest also has a `<queries>` entry for `VIEW` + `https` (Android package visibility for opening web links).
+Both apps map links to screens in code (`lib/app/deepLinks.dart`, through `DeepLinkParser` and `app_links` from `eschool_session`; see [Mobile-Apps-Overview](Mobile-Apps-Overview#links-into-the-app)). On the web that is the portal address. Neither app declares native deep links yet: there are no `VIEW` intent filters with custom schemes or `autoVerify` in the Android manifests, no `CFBundleURLTypes` in `Info.plist` and no associated domains in the entitlements. Android App Links and iOS universal links for `app.` and `teach.navigateed.co.za` need `assetlinks.json` and `apple-app-site-association` on those hosts and arrive with the child switcher in Phase 1. The only extra intent filter is `FLUTTER_NOTIFICATION_CLICK` on `MainActivity` for notification taps. The teacher manifest also has a `<queries>` entry for `VIEW` + `https` (Android package visibility for opening web links).
 
 ## Server-side settings the apps depend on
 

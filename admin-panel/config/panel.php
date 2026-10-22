@@ -1,0 +1,86 @@
+<?php
+
+/*
+|--------------------------------------------------------------------------
+| Admin panel behaviour
+|--------------------------------------------------------------------------
+|
+| Settings for the admin panel's shell: what stays writable while the panel
+| shows a school year other than the current one. The navigation itself is
+| in config/navigation.php.
+|
+*/
+
+return [
+
+    'read_only_years' => [
+        /*
+         * While the header's year switcher shows a year other than the
+         * school's current one, the EnforceReadOnlyYears middleware refuses
+         * every POST, PUT, PATCH and DELETE in the panel except these
+         * ($request->is() patterns). Deny by default: anything not listed is
+         * treated as year-scoped data. Add a pattern only for a write that
+         * does not depend on the school year.
+         */
+        'allow' => [
+            // Switching the year itself, and signing out.
+            'set-session-year',
+            'logout',
+
+            // The signed-in person's own profile and password.
+            'update-profile',
+            'changePassword',
+            'checkPassword',
+
+            // School years are managed from any year: creating, editing and
+            // making a year current, and the new-year wizard.
+            'session-years',
+            'session-years/*',
+            'remove-installment-data/*',
+            'new-year',
+            'new-year/*',
+
+            // Settings that are the same in every year.
+            'clear',
+            'settings',
+            'app-settings',
+            'setting-update',
+            'email-settings',
+            'verify-email-settings',
+            'notification-setting',
+            'chat-settings-update',
+            'delete-chat-messages',
+            'id-card-settings/update',
+            'remove-image/*',
+            'fees-config/update',
+            'language',
+            'language/*',
+            'email/store',
+            'form-fields',
+            'form-fields/*',
+            'roles',
+            'roles/*',
+            'online-exam/store-terms-conditions',
+
+            // The public website's content and the app banners.
+            'content/*',
+            'content-bulk-update',
+            'educational-program/*',
+            'faq/*',
+            'contact-us/*',
+            'sliders',
+            'sliders/*',
+
+            // POST requests that only read or print: result lists, reports,
+            // exports, certificates and ID cards.
+            'exams/fetch-exam-result-list',
+            'student-result-details',
+            'student/export',
+            'bonafide-certificate',
+            'leaving-certificate',
+            'generate-id-card',
+            'generate-staff-id-card',
+        ],
+    ],
+
+];

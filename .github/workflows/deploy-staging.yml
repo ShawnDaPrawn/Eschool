@@ -1,0 +1,33 @@
+name: Deploy staging
+
+# Every merge to main deploys to staging (Build Bible section 4), once the
+# product owner has provisioned staging (infra/gcp/provision.sh staging) and
+# set the repository variable STAGING_DEPLOY_ENABLED to 'true'. Until then the
+# job is skipped, so this workflow never fails for lack of cloud credentials.
+# Steps: engineering/runbooks/deploy.md.
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: deploy-staging
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    name: Staging
+    if: vars.STAGING_DEPLOY_ENABLED == 'true'
+    uses: ./.github/workflows/deploy-environment.yml
+    permissions:
+      contents: read
+      id-token: write
+    with:
+      environment: staging
+      release: ${{ github.sha }}
+      backup: false
+    secrets: inherit

@@ -101,7 +101,8 @@ Route::group(['middleware' => 'language'], function () {
     Route::get('error-page', [WebController::class, 'errorPage'])->name('error-page');
 });
 
-Route::group(['middleware' => ['Role', 'auth']], function () {
+// EnforceReadOnlyYears: a year other than the current one is read-only in the panel.
+Route::group(['middleware' => ['Role', 'auth', \App\Http\Middleware\EnforceReadOnlyYears::class]], function () {
     Route::post('/set-session-year', [SessionYearController::class, 'setSessionYearToSessionStorage'])->name('set.session.year');
     Route::group(['middleware' => 'language'], function () {
         // Route::get('/home', [HomeController::class, 'index']);
@@ -124,6 +125,15 @@ Route::group(['middleware' => ['Role', 'auth']], function () {
         Route::get('teacher-by-class-subject', [HomeController::class, 'getTeacherByClassSubject'])->name('teacher.by.class.subject');
         // new reset password controller
         Route::get('home/reset_password', [HomeController::class, 'resetPasswordView']);
+
+        // Global search: JSON for the header box, a results page otherwise.
+        Route::get('search', \App\Http\Controllers\Panel\SearchController::class)->name('search');
+
+        // New-year wizard: create next year, carry forward, year-end checks, preview, make it current.
+        Route::get('new-year', [\App\Http\Controllers\Panel\Academics\NewYearController::class, 'index'])->name('new-year.index');
+        Route::post('new-year/year', [\App\Http\Controllers\Panel\Academics\NewYearController::class, 'store'])->name('new-year.store');
+        Route::get('new-year/preview', [\App\Http\Controllers\Panel\Academics\NewYearController::class, 'preview'])->name('new-year.preview');
+        Route::post('new-year/make-current', [\App\Http\Controllers\Panel\Academics\NewYearController::class, 'makeCurrent'])->name('new-year.make-current');
 
         Route::get('roles-list/{id}', [RoleController::class, 'showList'])->name('roles-list');
         Route::get('roles-data', [RoleController::class, 'show'])->name('roles.data');

@@ -10,7 +10,7 @@
         <h3 class="page-title">
             {{ __('online').' '.__('exam').' '.__('result') }}
         </h3>
-        <a class="btn btn-sm btn-theme" href="{{ route('online-exam.index') }}">{{ __('back') }}</a>
+        <a class="btn btn-sm btn-secondary" href="{{ route('online-exam.index') }}">{{ __('back') }}</a>
     </div>
     <div class="row grid-margin">
         <div class="col-lg-12">

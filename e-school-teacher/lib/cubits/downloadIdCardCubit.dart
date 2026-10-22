@@ -1,12 +1,8 @@
 // ignore: depend_on_referenced_packages
-import 'dart:io';
-
-// ignore: depend_on_referenced_packages
 import 'package:bloc/bloc.dart';
 import 'package:eschool_teacher/data/repositories/systemInfoRepository.dart';
 import 'package:eschool_core/eschool_core.dart';
 import 'package:eschool_teacher/utils/labelKeys.dart';
-import 'package:path_provider/path_provider.dart';
 
 abstract class DownloadIdCardState {}
 
@@ -41,17 +37,14 @@ class DownloadIdCardCubit extends Cubit<DownloadIdCardState> {
     _systemRepository
         .downloadIdCardPDF()
         .then((value) async {
-          final path = (await getApplicationDocumentsDirectory()).path;
           final String name = sanitizeFileName(
             teacherName ?? '',
             fallback: 'My',
           );
-          String filePath = '$path/ID_Card/$name ID Card.pdf';
-
-          final File file = File(filePath);
-          await file.create(recursive: true);
-
-          await file.writeAsBytes(value);
+          final String filePath = await DeviceFiles.saveDocument(
+            value,
+            'ID_Card/$name ID Card.pdf',
+          );
           emit(
             DownloadIdCardSuccess(
               successMessageKey: fileDownloadedSuccessfullyKey,
