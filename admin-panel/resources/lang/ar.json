@@ -1369,5 +1369,9 @@
     "api_validation_failed": "تحقق من البيانات التي أدخلتها.",
     "api_too_many_requests": "طلبات كثيرة جدًا. انتظر دقيقة وحاول مرة أخرى.",
     "api_server_error": "حدث خطأ من جانبنا. حاول مرة أخرى لاحقًا.",
-    "api_unavailable": "الخدمة غير متاحة الآن. حاول مرة أخرى لاحقًا."
+    "api_unavailable": "الخدمة غير متاحة الآن. حاول مرة أخرى لاحقًا.",
+    "api_idempotency_key_missing": "يحتاج هذا الطلب إلى ترويسة Idempotency-Key.",
+    "api_idempotency_key_invalid": "يجب أن تتكون ترويسة Idempotency-Key من 1 إلى 255 حرفًا مرئيًا من ASCII.",
+    "api_idempotency_key_reused": "تم استخدام مفتاح Idempotency-Key هذا من قبل لطلب مختلف.",
+    "api_idempotency_key_in_progress": "لا يزال طلب بمفتاح Idempotency-Key هذا قيد المعالجة. حاول مرة أخرى بعد قليل."
 }

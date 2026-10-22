@@ -11,6 +11,7 @@ use App\Http\Middleware\EnsureParentChildrenSessionIsActive;
 use App\Http\Middleware\EnsureStudentSessionIsActive;
 use App\Http\Middleware\EnsureUserHasAnyRole;
 use App\Http\Middleware\EnsureUserIsStaff;
+use App\Http\Middleware\HandleIdempotencyKey;
 use App\Http\Middleware\LanguageManager;
 use App\Http\Middleware\LimitRequestInput;
 use App\Http\Middleware\RedirectIfAuthenticated;
@@ -129,9 +130,10 @@ return Application::configure(basePath: dirname(__DIR__))
             'parent.children.session.active' => EnsureParentChildrenSessionIsActive::class,
             'parent.policy' => RequireParentPolicyAcceptance::class,
             'teacher.policy' => RequireParentPolicyAcceptance::class,
-            // API v2 role groups (routes/api_v2.php).
+            // API v2 role groups and writes (routes/api_v2.php).
             'staff' => EnsureUserIsStaff::class,
             'role.any' => EnsureUserHasAnyRole::class,
+            'idempotent' => HandleIdempotencyKey::class,
             'cache.headers' => SetCacheHeaders::class,
             'can' => Authorize::class,
             'guest' => RedirectIfAuthenticated::class,

@@ -1389,5 +1389,9 @@
     "api_validation_failed": "Check the details you entered.",
     "api_too_many_requests": "Too many requests. Wait a minute and try again.",
     "api_server_error": "Something went wrong on our side. Try again later.",
-    "api_unavailable": "The service is not available right now. Try again later."
+    "api_unavailable": "The service is not available right now. Try again later.",
+    "api_idempotency_key_missing": "This request needs an Idempotency-Key header.",
+    "api_idempotency_key_invalid": "The Idempotency-Key header must be 1 to 255 visible ASCII characters.",
+    "api_idempotency_key_reused": "This Idempotency-Key was already used for a different request.",
+    "api_idempotency_key_in_progress": "A request with this Idempotency-Key is still being handled. Try again shortly."
 }
