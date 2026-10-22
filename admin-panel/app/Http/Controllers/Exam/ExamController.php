@@ -262,6 +262,7 @@ class ExamController extends Controller
                 <a
                     href="'.route('exams.destroy', $row->id).'"
                     class="btn btn-xs btn-gradient-danger btn-rounded btn-icon delete-form"
+                    title="'.e(trans('Delete')).'" aria-label="'.e(trans('Delete')).'"
                     data-id="'.$row->id.'"'
                 .(! empty($relatedData) ? " data-related='".json_encode($relatedData)."'" : '').
                 '>
