@@ -7,6 +7,7 @@ namespace App\Models;
 use App\Services\Platform\Audit\Auditable;
 use App\Services\Platform\Tenancy\CurrentSchool;
 use App\Services\Platform\Tenancy\PlatformSettings;
+use App\Services\Platform\Tenancy\SchoolBranding;
 use App\Services\Platform\Tenancy\SettingsBuilder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -51,6 +52,13 @@ class Settings extends Model
                 $setting->school_id = null;
             } elseif ($setting->school_id === null && ! app(CurrentSchool::class)->isMigrating()) {
                 $setting->school_id = app(CurrentSchool::class)->id();
+            }
+        });
+
+        // The school's row follows its name, crest, timezone and colours.
+        static::saved(function (Settings $setting) {
+            if ($setting->school_id !== null && SchoolBranding::isBrandingKey($setting->type) && ! app(CurrentSchool::class)->isMigrating()) {
+                SchoolBranding::sync((int) $setting->school_id);
             }
         });
     }

@@ -153,6 +153,13 @@ class SchoolScopeTest extends TestCase
         $this->assertSame('9.9.9', schoolSetting('app_version'));
         $this->assertNull(DB::table('settings')->where('type', 'app_version')->value('school_id'));
         $this->assertSame(['Jacaranda Primary'], Settings::query()->where('type', 'school_name')->pluck('message')->all());
+
+        // The schools row follows the school's own name, saved one way or the other.
+        $this->assertSame('Jacaranda Primary', School::query()->find(1)->name);
+        $this->assertSame('Baobab High', School::query()->find(2)->name);
+        Settings::query()->where('type', 'school_name')->update(['message' => 'Jacaranda Primary School']);
+        $this->assertSame('Jacaranda Primary School', School::query()->find(1)->name);
+        $this->assertSame('Baobab High', School::query()->find(2)->name);
     }
 
     public function test_the_school_is_in_every_log_line_and_follows_the_spatie_team(): void

@@ -9,6 +9,7 @@ use App\Http\Middleware\CheckStudent;
 use App\Http\Middleware\DemoMiddleware;
 use App\Http\Middleware\EncryptCookies;
 use App\Http\Middleware\EnforcePasswordChange;
+use App\Http\Middleware\EnsureDefaultSchool;
 use App\Http\Middleware\EnsureParentChildrenSessionIsActive;
 use App\Http\Middleware\EnsureStudentSessionIsActive;
 use App\Http\Middleware\EnsureTeacherActive;
@@ -131,6 +132,8 @@ return Application::configure(basePath: dirname(__DIR__))
             'auth' => Authenticate::class,
             // The school a signed-in request works for (after auth, on every group).
             'school.context' => SetSchoolContext::class,
+            // Pages that change what every school shares: the default school only.
+            'school.default' => EnsureDefaultSchool::class,
             'Role' => CheckRole::class,
             'checkChild' => CheckChild::class,
             'checkStudent' => CheckStudent::class,

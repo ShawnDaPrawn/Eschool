@@ -154,7 +154,7 @@ Route::group(['middleware' => ['Role', 'auth', 'school.context', EnforceReadOnly
         Route::get('settings', [SettingController::class, 'index']);
         Route::post('settings', [SettingController::class, 'update']);
 
-        Route::get('fcm-settings', [SettingController::class, 'fcm_index']);
+        Route::get('fcm-settings', [SettingController::class, 'fcm_index'])->middleware('school.default');
 
         Route::resource('medium', MediumController::class)->except(['create']);
         Route::get('medium_list', [MediumController::class, 'show']);
@@ -338,9 +338,9 @@ Route::group(['middleware' => ['Role', 'auth', 'school.context', EnforceReadOnly
         Route::get('exam/get-subjects/{class_id}', [ExamTimetableController::class, 'getSubjectsByClass'])->name('exams.class-subjects');
         Route::get('exam/get-exams-by-session-year/{session_year_id}', [ExamTimetableController::class, 'getExamsBySessionYear'])->name('exam-timetable.exams-by-session-year');
 
-        Route::get('email-settings', [SettingController::class, 'email_index'])->name('setting.email-config-index');
-        Route::post('email-settings', [SettingController::class, 'email_update']);
-        Route::post('verify-email-settings', [SettingController::class, 'verifyEmailConfigration'])->name('setting.varify-email-config');
+        Route::get('email-settings', [SettingController::class, 'email_index'])->middleware('school.default')->name('setting.email-config-index');
+        Route::post('email-settings', [SettingController::class, 'email_update'])->middleware('school.default');
+        Route::post('verify-email-settings', [SettingController::class, 'verifyEmailConfigration'])->middleware('school.default')->name('setting.varify-email-config');
 
         Route::get('privacy-policy/index', [SettingController::class, 'privacy_policy_index'])->name('privacy.index');
         Route::get('terms-condition', [SettingController::class, 'terms_condition_index']);
@@ -348,7 +348,7 @@ Route::group(['middleware' => ['Role', 'auth', 'school.context', EnforceReadOnly
         Route::get('about-us', [SettingController::class, 'about_us_index']);
 
         Route::post('setting-update', [SettingController::class, 'setting_page_update']);
-        Route::post('notification-setting', [SettingController::class, 'notification_setting']);
+        Route::post('notification-setting', [SettingController::class, 'notification_setting'])->middleware('school.default');
 
         Route::get('reset-password', function () {
             if (! auth()->user()->can('student-reset-password')) {
@@ -372,7 +372,7 @@ Route::group(['middleware' => ['Role', 'auth', 'school.context', EnforceReadOnly
         Route::get('edit-profile', [HomeController::class, 'editProfile'])->name('edit-profile');
         Route::post('update-profile', [HomeController::class, 'updateProfile'])->name('update-profile');
 
-        Route::resource('language', LanguageController::class)->except(['create', 'edit']);
+        Route::resource('language', LanguageController::class)->except(['create', 'edit'])->middleware('school.default');
         Route::get('language-sample', [LanguageController::class, 'language_sample']);
         Route::get('language-list', [LanguageController::class, 'show']);
         Route::get('language-download/{id}', [LanguageController::class, 'download']);
@@ -432,8 +432,8 @@ Route::group(['middleware' => ['Role', 'auth', 'school.context', EnforceReadOnly
         Route::delete('online-exam-question/remove-answer/{id}', [OnlineExamQuestionController::class, 'removeAnswers']);
         // End Online Exam Routes
 
-        Route::get('app-settings', [SettingController::class, 'app_index']);
-        Route::post('app-settings', [SettingController::class, 'app_update']);
+        Route::get('app-settings', [SettingController::class, 'app_index'])->middleware('school.default');
+        Route::post('app-settings', [SettingController::class, 'app_update'])->middleware('school.default');
 
         Route::resource('stream', StreamController::class);
 

@@ -15,6 +15,35 @@ use App\Models\Settings;
  */
 class SettingsBuilder extends SchoolBuilder
 {
+    /**
+     * The panel's settings pages update rows in place
+     * (Settings::where('type', ...)->update()); a school's name, crest,
+     * timezone or colours are then copied to its row in schools.
+     */
+    public function update(array $values)
+    {
+        $updated = parent::update($values);
+
+        $currentSchool = app(CurrentSchool::class);
+        if ($updated > 0 && $currentSchool->isSet() && ! $currentSchool->isMigrating() && $this->touchesBranding()) {
+            SchoolBranding::sync($currentSchool->id());
+        }
+
+        return $updated;
+    }
+
+    private function touchesBranding(): bool
+    {
+        foreach ($this->getQuery()->wheres as $where) {
+            $column = (string) ($where['column'] ?? '');
+            if (($column === 'type' || $column === 'settings.type') && SchoolBranding::isBrandingKey($where['value'] ?? null)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
     protected function withSchool(array $values): array
     {
         if ($values === []) {
