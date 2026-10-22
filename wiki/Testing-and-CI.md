@@ -67,6 +67,18 @@ Runs from the repository root.
 
 `composer audit --locked` reads `composer.lock` without installing anything. The npm audit is limited to critical findings because the remaining advisories are in build tooling; the published site is static HTML (commit [03f9bbb](https://github.com/ShawnDaPrawn/Eschool/commit/03f9bbb)). The Flutter apps have no audit step. The weekly schedule exists mainly for this job: an advisory published against an already-locked version fails the next Monday run even if nobody pushed.
 
+### `playwright`: Admin panel (Playwright)
+
+Runs from `admin-panel/` with its own MariaDB 10.11 service (database `eschool_e2e`) and `APP_URL`/`E2E_BASE_URL` `http://127.0.0.1:8000`.
+
+1. PHP 8.3 with the same extensions, `composer install`, `.env` from `.env.example` and `key:generate`.
+2. `migrate`, `db:seed --class=InstallationSeeder`, `db:seed --class=DemoSchoolSeeder`, `storage:link`.
+3. Starts the panel with `PHP_CLI_SERVER_WORKERS=4 CACHE_DRIVER=array php artisan serve` and waits for `/login`. The array cache keeps the per-account request limits from throttling the sweep; four workers serve the parallel browsers.
+4. Node 22, `npm ci` and `npx playwright install --with-deps chromium` in `admin-panel/e2e`.
+5. `npx playwright test`. On failure the HTML report, traces and `storage/logs` are uploaded as the `playwright-report` artifact (kept 14 days).
+
+See [Playwright (admin panel)](#playwright-admin-panel) for what it checks.
+
 ## Admin panel test setup
 
 ### phpunit.xml
@@ -191,6 +203,74 @@ Each app has two test files. The first is `test/translations_test.dart` ([e-scho
 The second, `test/theme_colors_test.dart`, reads every `.dart` file under `lib/` and fails on any colour written out (`Color(0x...)`, `Color.fromARGB`, `Color.fromRGBO`, or `Colors.<name>` other than `Colors.transparent`), listing each offending line. Colours come from the shared theme instead; see [UI-Standards](UI-Standards). The shared package has the same test, which allows colours only in `lib/src/theme/`, and three more: `theme_test.dart` (Material 3 is on, the brand colours are exact, and text on the main colour pairs meets WCAG AA contrast), `goldens/components_test.dart` (a screenshot of the colour scheme and shared widgets compared with `goldens/components.png`) and `web_tokens_test.dart` (the admin panel's `public/assets/css/m3-tokens.css` matches the theme; `UPDATE_WEB_TOKENS=1` rewrites it).
 
 Both apps list `flutter_test` (SDK) and `flutter_lints ^6.0.0` as dev dependencies. `analysis_options.yaml` in each app includes `package:flutter_lints/flutter.yaml` and ignores `file_names` and `use_build_context_synchronously`; no extra lint rules are enabled. See [Localization](Localization) for how translations are loaded.
+
+## Playwright (admin panel)
+
+Browser checks of the admin panel live in [admin-panel/e2e](https://github.com/ShawnDaPrawn/Eschool/tree/main/admin-panel/e2e): TypeScript, `@playwright/test` 1.56.1 with Chromium and `@axe-core/playwright` 4.14.0, with their own `package.json` and `package-lock.json` (nothing is added to the panel's own `package.json`). They drive a running panel seeded with the demo school.
+
+### Demo school accounts
+
+`database/seeders/DemoSchoolSeeder.php` creates them; every account's password is `NavigateDemo2026` (`DemoSchoolSeeder::PASSWORD`). They are public demo sign-ins: never seed a production database that people use.
+
+| Profile | Signs in with |
+|---|---|
+| Super Admin | `admin.a@demo.navigateed.test` |
+| Teacher (homeroom 5 A, subject teacher) | `teacher.a@demo.navigateed.test` |
+| Second teacher (homeroom 6 A) | `teacher2.a@demo.navigateed.test` |
+| Staff with the custom Finance role (fees only) | `finance.a@demo.navigateed.test` |
+| Parent of two learners (5 A and 6 A) | `parent.a@demo.navigateed.test` |
+| Second parent | `parent2.a@demo.navigateed.test` |
+| Learner (Grade 5 A), in the app | admission number `DEMO-A-0001` |
+
+The seeder is idempotent (run it again and it updates the same rows), runs `InstallationSeeder` first when the roles are missing, and never replaces a running current year. It gives the school last year and this year with different learners in each homeroom, so the year switcher has something to show, and enough data for Home's setup checklist to be complete.
+
+### What runs
+
+`global-setup.ts` signs in the Super Admin (twice, for separate sessions) and the first teacher, and lists the panel's pages into `.cache/panel-pages.json`: every GET route from `php artisan route:list --json` without parameters (leaving out the API, the installer, sign-out, cron URLs and the health check) that opens with the panel layout for the Super Admin. A new page is checked without anyone adding it.
+
+| Project | What it checks |
+|---|---|
+| `pages-1280`, `pages-1024` | Every panel page as the Super Admin at 1280 and 1024 px wide: no console errors and no failed requests to the panel, no horizontal scroll, and no serious or critical axe violation (WCAG 2.0/2.1 A and AA) |
+| `flows` | Navigation finds "Add a learner", "Terms" and "Notices" (and works from the keyboard); search opens a learner; the year switcher shows the banner, the lists follow the year, write buttons are disabled and the server answers 423 (as the second teacher, in a session of its own) |
+| `teacher` | A teacher sees no Money or Settings and no setup checklist, and is refused admin pages (`/settings`, `/roles`, `/staff`, `/fees-type`, `/session-years`, `/new-year`, `/students/create`, `/email-settings`, `/language`) |
+| `removed` | `/system-update`, `/migrate`, `/seeder_install` and `/storage-link` answer 404 (they were removed by stream S1; on a branch without that removal these four fail) |
+| `wizard` | Runs last: creates next year in the new-year wizard, makes it current in under five minutes, then makes this year current again so the suite can run again on the same database |
+
+[allowlist.json](https://github.com/ShawnDaPrawn/Eschool/blob/main/admin-panel/e2e/allowlist.json) lists known problems on legacy pages that the page sweep tolerates, each with the pages it applies to and a reason (for example filter selects without labels, icon-only row buttons, page-specific contrast). It must only shrink: a page rebuilt on the page pattern loses its entries, and a new page never gets one. Console errors and horizontal scroll have no entries.
+
+### Running it locally
+
+```bash
+cd admin-panel
+php artisan migrate:fresh --seed --seeder=InstallationSeeder   # a database of its own, not the PHPUnit one
+php artisan db:seed --class=DemoSchoolSeeder
+php artisan storage:link
+PHP_CLI_SERVER_WORKERS=4 CACHE_DRIVER=array php artisan serve --port=8000 &
+
+cd e2e
+npm ci
+npx playwright install chromium        # once
+E2E_BASE_URL=http://127.0.0.1:8000 npx playwright test
+npm run test:flows                     # only the flows, teacher and wizard projects
+npm run report                         # open the last HTML report
+npm run typecheck
+```
+
+`E2E_BASE_URL` defaults to `http://127.0.0.1:8000` and `E2E_WORKERS` to 2. Point `PLAYWRIGHT_BROWSERS_PATH` at an existing browser download to skip `playwright install`. Stop the server afterwards. CI retries a failed test once; locally there are no retries.
+
+### PHPUnit tests for the panel shell
+
+The server side of the same features has its own feature tests, which run with the rest of `php artisan test`:
+
+| Class | What it checks |
+|---|---|
+| `Panel\NavigationTest` | Every page of the old sidebar is in `config/navigation.php` and still opens; a teacher and a custom staff role see only what their permissions open; every label is in every language file; the current section is open and marked |
+| `Panel\PageComponentsTest` | The page components render with their escaping, labels, CSRF token, draft key and confirm dialog |
+| `Panel\HomeTest` | The setup checklist follows the school's data and is hidden from people who cannot act on it; today's numbers follow the selected year |
+| `Panel\SearchTest` | Happy path, a teacher finds nothing they cannot open, escaping in JSON and on the page, limits, the selected year, guests |
+| `Panel\ReadOnlyYearsTest` | A past year refuses every write (JSON and plain forms), keeps switching back, sign-out, the profile and year-independent settings working, and lists follow the selected year |
+| `Academics\NewYearTest` | Creating next year leaves the current year untouched; the switch runs the chosen transfers once, refuses ended and current years, validates field by field and needs the right permissions |
+| `DemoSchoolSeederTest` | A user per profile on an installed and on an empty database, idempotent, never replaces a running current year |
 
 ## Running the checks locally
 
