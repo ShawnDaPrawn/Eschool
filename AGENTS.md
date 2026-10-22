@@ -1,0 +1,85 @@
+# NavigateEd — instructions for Codex and other AI engineers
+
+This repository is the WRTeam eSchool-derived NavigateEd monorepo. Do not
+re-platform or rewrite it: grow the existing Laravel backend and Flutter apps.
+
+## Primary product specification
+
+The product owner's **NavigateEd Build Bible** (dated 21 October 2026,
+71-page PDF) is the authoritative build plan, phase specification and
+acceptance contract. It was supplied separately to the product owner and is
+**not** included in this public repository. It contains information that
+should not automatically be published. Before doing phase implementation
+work, obtain the full document through the active task or a private workspace
+copy and read the relevant sections. Never imply you have read it if it is
+not actually accessible.
+
+When the Build Bible is available, read in this order:
+1. Sections 1–5: mission, seed, architecture, mandate and standards.
+2. The applicable phase in sections 6–12, including tests and exit gate.
+3. Appendices A and B for data models, module and notification catalogues.
+4. Appendix E Build log for completed work, deferrals and open decisions.
+5. `README.md`, `CONTRIBUTING.md`, `wiki/Contributing.md` and
+   `wiki/UI-Standards.md` for repository-specific procedures.
+
+Precedence: latest explicit product-owner decisions > Build Bible >
+repository guides > legacy implementation conventions. If the Bible is
+not available, limit work to safe repository maintenance or ask for the
+document before claiming compliance with a phase or its acceptance gate.
+Do not put the private Bible or secrets into public issues, PRs or commits.
+
+## Architecture and compatibility
+
+- `admin-panel/`: Laravel 12 / PHP 8.3 / MySQL backend, panel, public pages
+  and API. Extend it rather than create a replacement backend.
+- `e-school/`: existing Flutter learner and parent app.
+- `e-school-teacher/`: existing Flutter teacher app and future flavours.
+- `packages/eschool_core/`: shared app theme, API client and widgets.
+- Keep v1 API routes and response fields functioning for installed apps.
+  Introduce new capabilities through additive, contract-tested v2 APIs.
+- Use services for business rules, policies for authorization, FormRequests
+  for writes, events/outbox for cross-domain work, and queues for async work.
+- Keep the existing Material 3 branding/theme and components; improve
+  navigation and usability without replacing the established visual identity.
+- Design multi-school features for strict tenant isolation, with roles and
+  module availability scoped per school.
+
+## Non-negotiable engineering checks
+
+- Never leak data across schools. Test school isolation on every affected
+  endpoint, including indirect access through IDs, files and notifications.
+- A learner account may not be activated without verified guardian approval.
+  Apply POPIA and safeguarding-by-design principles.
+- Never introduce money floats for postings or balances. Use integer cents,
+  double-entry ledger semantics, transactional writes and idempotency keys.
+- Route model calls through the designated AI gateway, with moderation,
+  metering and controls; never embed provider keys in clients.
+- Avoid breaking existing app/API contracts, installed clients or imports.
+- Every feature requires automated happy-path, wrong-role, wrong-school and
+  wrong-owner tests, plus affected-profile self-testing.
+- Do not treat production release as authorized merely because tests pass.
+  Respect the Build Bible's staging acceptance and production approval gate.
+
+## Workflow for each phase
+
+- Confirm the actual current repo state and completed phases: the Bible
+  describes a seed and a target, not proof that any phase has shipped.
+- Write a phase plan and feature specifications under `engineering/` using
+  the repository's agreed naming conventions.
+- Implement one reviewable feature per branch/PR, with its tests and docs.
+- Follow `wiki/Contributing.md` for PR conventions. Require green CI.
+- Maintain the API contract, documentation, relevant catalogues and Build
+  log; record anything deferred and the reason.
+- Self-test on the applicable client profiles and document evidence before
+  claiming an exit gate has passed.
+
+## Verification commands
+
+- `cd admin-panel && php artisan test`
+- `cd e-school && flutter analyze --no-fatal-infos && flutter test`
+- `cd e-school-teacher && flutter analyze --no-fatal-infos && flutter test`
+- `cd packages/eschool_core && flutter analyze --no-fatal-infos && flutter test`
+- `cd documentation && npm ci && npm run build`
+
+Also run any additional CI, security, browser and integration checks required
+by the phase specification. Never assert that a check passed unless run.
