@@ -33,6 +33,10 @@ ARG APP_RELEASE=dev
 ENV APP_RELEASE=${APP_RELEASE}
 LABEL org.opencontainers.image.revision=${APP_RELEASE}
 
+# Matches no origin until docker/entrypoint.sh sets the web portals' origins
+# for docker/storage-cors.conf (Apache needs the variable to start).
+ENV STORAGE_CORS_ORIGINS="(?!)"
+
 # CONTAINER_ROLE picks what the container runs: web (default), worker or
 # scheduler. See docker/entrypoint.sh.
 EXPOSE 8080
