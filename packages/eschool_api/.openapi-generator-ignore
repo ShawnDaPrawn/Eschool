@@ -1,0 +1,7 @@
+# Written by hand; tool/generate.sh must not overwrite them.
+pubspec.yaml
+analysis_options.yaml
+README.md
+.gitignore
+test/**
+doc/**

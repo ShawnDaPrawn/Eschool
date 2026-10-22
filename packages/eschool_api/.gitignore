@@ -1,0 +1,5 @@
+.dart_tool/
+.packages
+build/
+# Written by the generator's own templates; the package's docs are openapi.yaml.
+doc/

@@ -1357,5 +1357,21 @@
     "installments_paid": "أقساط مدفوعة",
     "secure_billing_ledger": "سجل فواتير آمن",
     "student_not_in_this_class_section": "هذا الطالب ليس في الشعبة المختارة لهذا العام.",
-    "currency_not_supported_by_razorpay": "لا يقبل Razorpay هذه العملة."
+    "currency_not_supported_by_razorpay": "لا يقبل Razorpay هذه العملة.",
+    "api_bad_request": "الطلب غير صالح.",
+    "api_unauthenticated": "سجّل الدخول مرة أخرى للمتابعة.",
+    "api_forbidden": "ليس لديك صلاحية الوصول إلى هذا.",
+    "api_not_found": "لم نتمكن من العثور على ما طلبته.",
+    "api_method_not_allowed": "طريقة الطلب هذه غير مدعومة هنا.",
+    "api_conflict": "يتعارض هذا مع تغيير تم في الوقت نفسه. حاول مرة أخرى.",
+    "api_payload_too_large": "الطلب كبير جدًا.",
+    "api_session_expired": "انتهت جلستك. أعد التحميل وحاول مرة أخرى.",
+    "api_validation_failed": "تحقق من البيانات التي أدخلتها.",
+    "api_too_many_requests": "طلبات كثيرة جدًا. انتظر دقيقة وحاول مرة أخرى.",
+    "api_server_error": "حدث خطأ من جانبنا. حاول مرة أخرى لاحقًا.",
+    "api_unavailable": "الخدمة غير متاحة الآن. حاول مرة أخرى لاحقًا.",
+    "api_idempotency_key_missing": "يحتاج هذا الطلب إلى ترويسة Idempotency-Key.",
+    "api_idempotency_key_invalid": "يجب أن تتكون ترويسة Idempotency-Key من 1 إلى 255 حرفًا مرئيًا من ASCII.",
+    "api_idempotency_key_reused": "تم استخدام مفتاح Idempotency-Key هذا من قبل لطلب مختلف.",
+    "api_idempotency_key_in_progress": "لا يزال طلب بمفتاح Idempotency-Key هذا قيد المعالجة. حاول مرة أخرى بعد قليل."
 }
