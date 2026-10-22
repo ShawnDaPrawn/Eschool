@@ -257,6 +257,13 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "2.1.0"
+  eschool_api:
+    dependency: transitive
+    description:
+      path: "../packages/eschool_api"
+      relative: true
+    source: path
+    version: "0.1.0"
   eschool_core:
     dependency: "direct main"
     description:
@@ -268,6 +275,13 @@ packages:
     dependency: "direct main"
     description:
       path: "../packages/eschool_notifications"
+      relative: true
+    source: path
+    version: "0.1.0"
+  eschool_people:
+    dependency: "direct main"
+    description:
+      path: "../packages/eschool_people"
       relative: true
     source: path
     version: "0.1.0"
@@ -1634,10 +1648,10 @@ packages:
     dependency: "direct overridden"
     description:
       name: webview_flutter_plus
-      sha256: "57ec757eada4e23bfb015f5d5f84a45108cb2c29b1e77e23956768cd5e0c8468"
+      sha256: "43628503cb687c3e02b34cf4c21c67a347b2e27563e006e0789676c8ed8ea65b"
       url: "https://pub.dev"
     source: hosted
-    version: "0.4.7"
+    version: "0.4.20"
   webview_flutter_wkwebview:
     dependency: transitive
     description:

@@ -6,6 +6,7 @@ namespace Tests\Feature;
 
 use App\Http\Middleware\AssignRequestId;
 use App\Models\User;
+use App\Services\Platform\Tenancy\CurrentSchool;
 use App\Services\ResponseService;
 use Illuminate\Database\QueryException;
 use Illuminate\Support\Facades\Log;
@@ -50,6 +51,8 @@ class StructuredLoggingTest extends TestCase
 
     public function test_a_log_line_is_one_json_object_with_the_request_fields(): void
     {
+        // Console work with no school chosen (TestCase chooses school 1).
+        app(CurrentSchool::class)->forget();
         Log::warning('Import finished with skipped rows', ['student_id' => 42, 'skipped' => 3, 'status' => 'partial']);
 
         $entry = $this->onlyEntry();

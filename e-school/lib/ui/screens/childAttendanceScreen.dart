@@ -1,4 +1,4 @@
-import 'package:eschool_core/eschool_core.dart';
+import 'package:eschool/app/selectedChild.dart';
 import 'package:eschool/cubits/attendanceCubit.dart';
 import 'package:eschool/data/repositories/studentRepository.dart';
 import 'package:eschool/ui/widgets/attendanceContainer.dart';
@@ -9,12 +9,14 @@ class ChildAttendanceScreen extends StatelessWidget {
   const ChildAttendanceScreen({required this.childId, super.key});
   final int childId;
 
+  /// The attendance of the child picked in the child switcher.
   static Route route(RouteSettings routeSettings) {
-    return AdaptivePageRoute(
-      builder: (_) => BlocProvider<AttendanceCubit>(
-        create: (context) => AttendanceCubit(StudentRepository()),
-        child: ChildAttendanceScreen(
-          childId: routeSettings.arguments! as int,
+    return childRoute(
+      (context, child) => withChild(
+        child,
+        (child) => BlocProvider<AttendanceCubit>(
+          create: (context) => AttendanceCubit(StudentRepository()),
+          child: ChildAttendanceScreen(childId: child.id),
         ),
       ),
     );

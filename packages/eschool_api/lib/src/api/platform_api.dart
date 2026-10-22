@@ -18,9 +18,10 @@ class PlatformApi {
   const PlatformApi(this._dio);
 
   /// The signed-in user, their schools and the current school
-  /// What an app needs to set itself up: the user and their roles, the schools they belong to, the current school (branding, timezone, year and terms), which modules it has on, its notification rules and feature flags, the sign-in methods it offers and, for a parent, each child with that child&#39;s school. Apps fetch it at start-up, after signing in and when the user changes school, and keep a cached copy. Every profile may call it. Budget: 150 ms at p95.  Phase 0 runs one school (id 1); &#x60;modules&#x60;, &#x60;notification_rules&#x60; and &#x60;feature_flags&#x60; are empty until Phase 1 fills them.
+  /// What an app needs to set itself up: the user and their roles, the schools they belong to, the current school (branding, timezone, year and terms), which modules it has on, its notification rules and feature flags, the sign-in methods it offers and, for a parent, each child with that child&#39;s school. Apps fetch it at start-up, after signing in and when the user changes school, and keep a cached copy. Every profile may call it. Budget: 150 ms at p95.  The answer is for the school the request works in: the one &#x60;X-School-Id&#x60; names (one of the user&#39;s &#x60;schools&#x60;), or else the user&#39;s first school. &#x60;user.roles&#x60; are the roles there; each entry of &#x60;schools&#x60; lists the user&#39;s roles at that school. The answer is composed by contributor classes (&#x60;config/context.php&#x60;); a key or field is only ever added.
   ///
   /// Parameters:
+  /// * [xSchoolId] - The school to work in, one of the signed-in user's schools (`schools` in `/me/context`). Without it the request works in the user's first school. A school the user is not an active member of is refused with 403. Apps send it on every call once a school is chosen.
   /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
   /// * [headers] - Can be used to add additional headers to the request
   /// * [extras] - Can be used to add flags to the request
@@ -31,6 +32,7 @@ class PlatformApi {
   /// Returns a [Future] containing a [Response] with a [ContextResponse] as data
   /// Throws [DioException] if API call or serialization fails
   Future<Response<ContextResponse>> getMeContext({
+    int? xSchoolId,
     CancelToken? cancelToken,
     Map<String, dynamic>? headers,
     Map<String, dynamic>? extra,
@@ -41,7 +43,10 @@ class PlatformApi {
     final _path = r'/me/context';
     final _options = Options(
       method: r'GET',
-      headers: <String, dynamic>{...?headers},
+      headers: <String, dynamic>{
+        if (xSchoolId != null) r'X-School-Id': xSchoolId,
+        ...?headers,
+      },
       extra: <String, dynamic>{
         'secure': <Map<String, String>>[
           {

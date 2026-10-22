@@ -1,10 +1,10 @@
 <?php
 
+use App\Models\Platform\Role;
 use App\Models\User;
 use Illuminate\Contracts\Console\Kernel;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Hash;
-use Spatie\Permission\Models\Role;
 
 require __DIR__.'/../vendor/autoload.php';
 

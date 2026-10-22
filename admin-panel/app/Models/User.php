@@ -4,7 +4,10 @@ declare(strict_types=1);
 
 namespace App\Models;
 
+use App\Models\Platform\RolePivot;
+use App\Models\Platform\SchoolMembership;
 use App\Services\Platform\Audit\Auditable;
+use App\Services\Platform\Tenancy\MemberScope;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
@@ -20,7 +23,10 @@ use Spatie\Permission\Traits\HasRoles;
 
 class User extends Authenticatable
 {
-    use Auditable, HasApiTokens, HasFactory, HasRoles, Notifiable, SoftDeletes;
+    use Auditable, HasApiTokens, HasFactory, Notifiable, SoftDeletes;
+    use HasRoles {
+        roles as spatieRoles;
+    }
 
     protected string $guard_name = 'web';
 
@@ -90,6 +96,9 @@ class User extends Authenticatable
 
     protected static function booted()
     {
+        // Once a school is chosen, only the people who belong to it.
+        static::addGlobalScope(new MemberScope);
+
         // A new password ends a forced change (learners:flag-dob-passwords),
         // unless the same save sets the flag itself.
         static::saving(function (User $user) {
@@ -119,6 +128,26 @@ class User extends Authenticatable
     public function scopeLearners(Builder $query): Builder
     {
         return $query->whereHas('roles', fn (Builder $roles) => $roles->where('name', 'Student'));
+    }
+
+    /**
+     * The user's roles at the current school (Spatie teams). school_id stays
+     * out of the pivot's JSON so v1 answers keep their shape.
+     */
+    public function roles(): BelongsToMany
+    {
+        return $this->spatieRoles()->using(RolePivot::class);
+    }
+
+    public function memberships(): HasMany
+    {
+        return $this->hasMany(SchoolMembership::class);
+    }
+
+    /** Every user, whichever school they belong to: for identity and platform code only. */
+    public static function acrossSchools(): Builder
+    {
+        return static::withoutGlobalScope(MemberScope::class);
     }
 
     public function student(): HasOne

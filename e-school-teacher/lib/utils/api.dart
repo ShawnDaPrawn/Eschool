@@ -23,12 +23,19 @@ class Api {
   @visibleForTesting
   static Dio Function()? debugCreateDio;
 
+  /// The school picked in the school switcher (and, for a parent, the
+  /// school of the child on show): every call says which with
+  /// `X-School-Id`.
+  static final SelectionStore selection = HiveSelectionStore();
+
   static final ApiClient _client = ApiClient(
     authToken: () => session.token,
     onUnauthorized: logoutUser,
-    createDio: () =>
-        debugCreateDio?.call() ??
-        createSessionDio(mode: session.mode, apiBaseUrl: baseUrl),
+    createDio: () => withSchoolHeader(
+      debugCreateDio?.call() ??
+          createSessionDio(mode: session.mode, apiBaseUrl: baseUrl),
+      () => selection.schoolId,
+    ),
     sendsBearerToken: session.mode == AuthMode.bearer,
   );
 

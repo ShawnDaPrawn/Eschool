@@ -9,12 +9,14 @@ use App\Jobs\Platform\SendPush;
 use App\Mail\Platform\TemplateMail;
 use App\Models\EmailTemplate;
 use App\Models\Platform\NotificationDelivery;
+use App\Models\Platform\School;
 use App\Models\Settings;
 use App\Models\User;
 use App\Services\EmailTemplateService;
 use App\Services\MailService;
 use App\Services\Platform\Notifications\DeliveryLog;
 use App\Services\Platform\Notifications\FcmClient;
+use App\Services\Platform\Tenancy\CurrentSchool;
 use Illuminate\Contracts\Queue\ShouldBeEncrypted;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Http;
@@ -230,9 +232,24 @@ class QueuedDeliveryTest extends TestCase
 
         sendNotificationToTopic('Notice', 'School closes early', 'custom', null, 'all');
 
+        // School 1: its own topics, and the names installed apps subscribed to before Phase 1.
+        $messages = Queue::pushed(SendPush::class)->mapWithKeys(fn (SendPush $job) => [$job->message['message']['topic'] => $job->message['message']])->sortKeys();
+        $this->assertSame(['allAndroid', 'allIOS', 'school_1_all_android', 'school_1_all_ios'], $messages->keys()->all());
+        $this->assertArrayNotHasKey('notification', $messages['school_1_all_android']);
+        $this->assertSame('School closes early', $messages['school_1_all_ios']['notification']['body']);
+        $this->assertSame(4, NotificationDelivery::whereNull('recipient_user_id')->where('type', 'push.custom')->count());
+    }
+
+    public function test_another_schools_topic_pushes_go_only_to_its_own_topics(): void
+    {
+        School::query()->forceCreate(['id' => 2, 'name' => 'Baobab High', 'slug' => 'baobab-high', 'timezone' => 'Africa/Johannesburg']);
+        Queue::fake();
+
+        app(CurrentSchool::class)->run(2, fn () => sendNotificationToTopic('Notice', 'Sports day', 'custom', null, 'parents'));
+
         $topics = Queue::pushed(SendPush::class)->map(fn (SendPush $job) => $job->message['message']['topic'])->sort()->values()->all();
-        $this->assertSame(['allAndroid', 'allIOS'], $topics);
-        $this->assertSame(2, NotificationDelivery::whereNull('recipient_user_id')->where('type', 'push.custom')->count());
+        $this->assertSame(['school_2_parents_android', 'school_2_parents_ios'], $topics);
+        $this->assertSame([2, 2], NotificationDelivery::query()->where('type', 'push.custom')->pluck('school_id')->map(fn ($id) => (int) $id)->all());
     }
 
     public function test_a_push_is_sent_to_fcm_and_recorded_with_its_message_id(): void

@@ -23,6 +23,8 @@ dependencies:
     path: ../packages/eschool_core
   eschool_notifications:
     path: ../packages/eschool_notifications
+  eschool_people:
+    path: ../packages/eschool_people
   eschool_session:
     path: ../packages/eschool_session
 
@@ -70,7 +72,7 @@ dependencies:
   fl_chart: ^1.2.0
 
 dependency_overrides:
-  webview_flutter_plus: 0.4.7
+  webview_flutter_plus: 0.4.20
 
 
 dev_dependencies:

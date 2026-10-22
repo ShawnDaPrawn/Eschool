@@ -1,3 +1,5 @@
+import 'package:eschool_session/eschool_session.dart';
+import 'package:eschool_teacher/app/sessionWatcher.dart';
 import 'package:eschool_teacher/app/routes.dart';
 import 'package:eschool_teacher/cubits/authCubit.dart';
 import 'package:eschool_teacher/cubits/chat/chatUsersCubit.dart';
@@ -181,6 +183,10 @@ class HomeContainerAppBarContainer extends StatelessWidget {
                             ),
                           ],
                         ),
+                      ),
+                      //only for a teacher at more than one school
+                      const SchoolSwitcherButton(
+                        onSwitched: returnHomeAfterSchoolSwitch,
                       ),
                       _buildChatIcon(context),
                     ],

@@ -12,6 +12,9 @@ export const accounts = {
   teacher2: 'teacher2.a@demo.navigateed.test',
   finance: 'finance.a@demo.navigateed.test',
   parent: 'parent.a@demo.navigateed.test',
+  // School B (Baobab Demo High) and the people at both schools.
+  adminB: 'admin.b@demo.navigateed.test',
+  adminBoth: 'admin.both@demo.navigateed.test',
 } as const;
 
 /** Signs in through the panel's login form and waits for Home. */

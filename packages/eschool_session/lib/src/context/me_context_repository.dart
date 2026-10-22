@@ -38,10 +38,16 @@ class ApiMeContextRepository implements MeContextRepository {
 }
 
 /// Keeps the last context, so the app has it at start-up before the server
-/// answers, and offline.
+/// answers, and offline, with when it was fetched, so the app knows when it
+/// is worth asking again.
 abstract interface class MeContextCache {
   MeContext? read();
-  Future<void> write(MeContext context);
+
+  /// When the kept context was fetched; `null` when there is none, or it was
+  /// kept by a version of the app that did not record it.
+  DateTime? fetchedAt();
+
+  Future<void> write(MeContext context, {DateTime? fetchedAt});
   Future<void> clear();
 }
 
@@ -69,22 +75,46 @@ class HiveMeContextCache implements MeContextCache {
   }
 
   @override
-  Future<void> write(MeContext context) =>
-      _authBox.put(SessionBoxKeys.meContext, jsonEncode(context.toJson()));
+  DateTime? fetchedAt() {
+    final Object? stored = _authBox.get(SessionBoxKeys.meContextFetchedAt);
+    return stored is int ? DateTime.fromMillisecondsSinceEpoch(stored) : null;
+  }
 
   @override
-  Future<void> clear() => _authBox.delete(SessionBoxKeys.meContext);
+  Future<void> write(MeContext context, {DateTime? fetchedAt}) async {
+    await _authBox.put(SessionBoxKeys.meContext, jsonEncode(context.toJson()));
+    await _authBox.put(
+      SessionBoxKeys.meContextFetchedAt,
+      (fetchedAt ?? DateTime.now()).millisecondsSinceEpoch,
+    );
+  }
+
+  @override
+  Future<void> clear() async {
+    await _authBox.delete(SessionBoxKeys.meContext);
+    await _authBox.delete(SessionBoxKeys.meContextFetchedAt);
+  }
 }
 
 class InMemoryMeContextCache implements MeContextCache {
   MeContext? stored;
+  DateTime? storedAt;
 
   @override
   MeContext? read() => stored;
 
   @override
-  Future<void> write(MeContext context) async => stored = context;
+  DateTime? fetchedAt() => storedAt;
 
   @override
-  Future<void> clear() async => stored = null;
+  Future<void> write(MeContext context, {DateTime? fetchedAt}) async {
+    stored = context;
+    storedAt = fetchedAt ?? DateTime.now();
+  }
+
+  @override
+  Future<void> clear() async {
+    stored = null;
+    storedAt = null;
+  }
 }

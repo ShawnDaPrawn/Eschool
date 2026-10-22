@@ -23,11 +23,8 @@
                         @php
                             $max_files_or_images_in_one_message = ini_get('max_file_uploads');
                             $maxFileSizeStr = ini_get('upload_max_filesize');
-                            $maxFileSizeBytes = return_bytes($maxFileSizeStr);
-                            $maxFileSizeMB = $maxFileSizeBytes / (1024 * 1024); // Convert bytes to megabytes
-                            $max_file_size_in_bytes = round($maxFileSizeMB, 2) . ' MB'; // Round to 2 decimal places for MB
-                            function return_bytes($size_str)
-                            {
+                            // A closure, not a named function: the page may be rendered more than once in a process.
+                            $returnBytes = function ($size_str) {
                                 switch (substr($size_str, -1)) {
                                     case 'M':
                                     case 'm':
@@ -41,7 +38,10 @@
                                     default:
                                         return $size_str;
                                 }
-                            }
+                            };
+                            $maxFileSizeBytes = $returnBytes($maxFileSizeStr);
+                            $maxFileSizeMB = $maxFileSizeBytes / (1024 * 1024); // Convert bytes to megabytes
+                            $max_file_size_in_bytes = round($maxFileSizeMB, 2) . ' MB'; // Round to 2 decimal places for MB
                         @endphp
                         <form id="frmData" class="general-setting" action="{{ route('chat_setting.update') }}"
                             novalidate="novalidate" enctype="multipart/form-data">

@@ -109,8 +109,14 @@ paths:
         child with that child's school. Apps fetch it at start-up, after
         signing in and when the user changes school, and keep a cached copy. Every profile may call it. Budget: 150 ms at p95.
 
-        Phase 0 runs one school (id 1); `modules`, `notification_rules` and
-        `feature_flags` are empty until Phase 1 fills them.
+        The answer is for the school the request works in: the one
+        `X-School-Id` names (one of the user's `schools`), or else the
+        user's first school. `user.roles` are the roles there; each entry
+        of `schools` lists the user's roles at that school. The answer is
+        composed by contributor classes (`config/context.php`); a key or
+        field is only ever added.
+      parameters:
+        - $ref: '#/components/parameters/SchoolId'
       responses:
         '200':
           description: The context.
@@ -146,6 +152,18 @@ components:
         `e_school_session` by default), with the `X-XSRF-TOKEN` header from
         `GET /sanctum/csrf-cookie` on writes.
   parameters:
+    SchoolId:
+      name: X-School-Id
+      in: header
+      required: false
+      description: |
+        The school to work in, one of the signed-in user's schools (`schools`
+        in `/me/context`). Without it the request works in the user's first
+        school. A school the user is not an active member of is refused with
+        403. Apps send it on every call once a school is chosen.
+      schema:
+        type: integer
+        minimum: 1
     Page:
       name: page
       in: query
@@ -364,7 +382,7 @@ components:
           $ref: '#/components/schemas/ContextUser'
         schools:
           type: array
-          description: Every school the user belongs to, with their roles there (one school until Phase 1).
+          description: Every school the user is an active member of, with their roles there, in school order. An app offers a school switcher when there is more than one and sends the chosen school's `id` as `X-School-Id`.
           items:
             $ref: '#/components/schemas/SchoolMembership'
         current_school:
@@ -416,7 +434,7 @@ components:
           description: The profile picture's URL, or null.
         roles:
           type: array
-          description: Role names, for example `Parent`, `Teacher`, `Super Admin` or a role the school created.
+          description: The user's role names at the current school, for example `Parent`, `Teacher`, `Super Admin` or a role the school created.
           items:
             type: string
     SchoolSummary:

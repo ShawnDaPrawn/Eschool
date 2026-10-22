@@ -168,6 +168,15 @@
     width: 200px;
 }
 
+/* The school switcher (people at several schools), beside the year. */
+.panel-school {
+    margin: 0;
+}
+
+.panel-school__field {
+    width: 220px;
+}
+
 .panel-topbar__clear {
     margin: 0;
 }
@@ -282,6 +291,7 @@
 
 @media (max-width: 767px) {
     .panel-year,
+    .panel-topbar__actions > .panel-school,
     .panel-topbar__language {
         display: none;
     }

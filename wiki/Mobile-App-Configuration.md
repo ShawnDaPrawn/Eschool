@@ -212,7 +212,23 @@ iOS signing is configured in Xcode (no `DEVELOPMENT_TEAM` is set in either proje
 
 ## Deep links
 
-Both apps map links to screens in code (`lib/app/deepLinks.dart`, through `DeepLinkParser` and `app_links` from `eschool_session`; see [Mobile-Apps-Overview](Mobile-Apps-Overview#links-into-the-app)). On the web that is the portal address. Neither app declares native deep links yet: there are no `VIEW` intent filters with custom schemes or `autoVerify` in the Android manifests, no `CFBundleURLTypes` in `Info.plist` and no associated domains in the entitlements. Android App Links and iOS universal links for `app.` and `teach.navigateed.co.za` need `assetlinks.json` and `apple-app-site-association` on those hosts and arrive with the child switcher in Phase 1. The only extra intent filter is `FLUTTER_NOTIFICATION_CLICK` on `MainActivity` for notification taps. The teacher manifest also has a `<queries>` entry for `VIEW` + `https` (Android package visibility for opening web links).
+Both apps map links to screens in code (`lib/app/deepLinks.dart`, through `DeepLinkParser` and `app_links` from `eschool_session`; see [Mobile-Apps-Overview](Mobile-Apps-Overview#links-into-the-app)). On the web that is the portal address. On phones, a link to the app's portal host opens the app through Android App Links and iOS universal links:
+
+| | Student/parent app | Teacher app |
+|---|---|---|
+| Hosts | `app.navigateed.co.za`, `staging-app.navigateed.co.za` | `teach.navigateed.co.za`, `staging-teach.navigateed.co.za` |
+| Android | `android/app/src/main/AndroidManifest.xml`: an `intent-filter` with `android:autoVerify="true"`, `VIEW`, `DEFAULT`, `BROWSABLE`, scheme `https` and the two hosts, on `MainActivity` | same, teacher hosts |
+| iOS | `ios/Runner/Runner.entitlements`: `com.apple.developer.associated-domains` with `applinks:<host>` for both hosts | same, teacher hosts |
+| Proof file for Android | `web/well-known/assetlinks.json`: package `tech.tokensoft.navigateed`, fingerprint `RELEASE_SIGNING_SHA256_FINGERPRINT` | package `tech.tokensoft.navigateed.teacher`, same placeholder |
+| Proof file for iOS | `web/well-known/apple-app-site-association`: app id `APPLE_TEAM_ID.tech.tokensoft.navigateed`, every path | `APPLE_TEAM_ID.tech.tokensoft.navigateed.teacher` |
+
+- The proof files ship in each web build and `firebase.json` serves them at `/.well-known/assetlinks.json` and `/.well-known/apple-app-site-association` (the latter as `application/json`). They sit in `web/well-known/` because `flutter build web` leaves out folders whose names start with a dot, and Hosting ignores them too.
+- The placeholders are not secrets. The release runbook ([engineering/runbooks/release.md](https://github.com/ShawnDaPrawn/Eschool/blob/main/engineering/runbooks/release.md), "Before you start") replaces them with the SHA-256 of the key that signs the store build (Play Console, App integrity) and the Apple team id, and turns on Associated Domains for both App IDs. Until then Android opens the links in the browser and iOS ignores the entitlement's hosts. If you change the package name or bundle id, change them in these files too.
+- The apps claim every path on their host; a path the app does not know opens home. `app_links` reads the link, so Flutter's own deep linking is off (`flutter_deeplinking_enabled` `false` in the manifest, `FlutterDeepLinkingEnabled` `false` in `Info.plist`); otherwise a link would also be pushed as a route name.
+- No custom scheme (`navigateed://`) is declared natively, so no other app can register for the invitation links; the parser still reads the scheme if one is ever added.
+- Check on Android, after filling in the fingerprint: `adb shell pm get-app-links tech.tokensoft.navigateed` shows the hosts `verified`, and `adb shell am start -a android.intent.action.VIEW -d https://staging-app.navigateed.co.za/my-school` opens My school.
+
+The other intent filter is `FLUTTER_NOTIFICATION_CLICK` on `MainActivity` for notification taps. The teacher manifest also has a `<queries>` entry for `VIEW` + `https` (Android package visibility for opening web links).
 
 ## Server-side settings the apps depend on
 

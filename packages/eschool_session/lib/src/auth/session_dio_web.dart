@@ -17,11 +17,12 @@ Dio createSessionDio({required AuthMode mode, required String apiBaseUrl}) {
       XsrfInterceptor(
         dio: dio,
         readCookie: _readCookie,
-        fetchCsrfCookie: () => (Dio()
-              ..httpClientAdapter = BrowserHttpClientAdapter(
-                withCredentials: true,
-              ))
-            .get<dynamic>('$apiBaseUrl/sanctum/csrf-cookie'),
+        fetchCsrfCookie: () =>
+            (Dio()
+                  ..httpClientAdapter = BrowserHttpClientAdapter(
+                    withCredentials: true,
+                  ))
+                .get<dynamic>('$apiBaseUrl/sanctum/csrf-cookie'),
       ),
     );
   }
