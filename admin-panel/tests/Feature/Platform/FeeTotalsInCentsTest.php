@@ -74,18 +74,23 @@ class FeeTotalsInCentsTest extends TestCase
 
         $this->assertSame($expected, $plan['total_amount']);
         $this->assertSame((int) round($expected * 100), $plan['total_amount_cents']);
+        // The rows add up to the charged total: the cent lost to rounding comes
+        // off the row where the running total crosses it (16.6668 is stored as 16.66).
         $this->assertSame([
-            ['installment_fee_id' => $this->installments[0], 'amount' => round($share, 2), 'due_charges' => round($overdue, 2)],
+            ['installment_fee_id' => $this->installments[0], 'amount' => round($share, 2), 'due_charges' => 16.66],
             ['installment_fee_id' => $this->installments[1], 'amount' => round($share, 2), 'due_charges' => null],
         ], $plan['installments']);
+        $this->assertEqualsWithDelta(round($overdue, 2), 16.66, 0.011, 'Each row stays within a cent of its own rounding');
 
         $pending = app(FeesPaymentService::class)->createPendingTransaction($plan, 1, PaymentService::STRIPE);
         $this->assertSame($plan['total_amount_cents'], $pending['transaction']->fresh()->money('total_amount')->cents);
         $this->assertSame(68334, $plan['total_amount_cents']);
-        foreach (PaidInstallmentFee::whereIn('id', $pending['installment_ids'])->get() as $row) {
+        $rows = PaidInstallmentFee::whereIn('id', $pending['installment_ids'])->get();
+        foreach ($rows as $row) {
             $this->assertSame(33334, $row->money('amount')->cents);
             $this->assertSame((float) DB::table('paid_installment_fees')->where('id', $row->id)->value('amount'), round($row->money('amount')->cents / 100, 2));
         }
+        $this->assertSame($plan['total_amount_cents'], $rows->sum(fn ($row) => $row->money('amount')->cents + ($row->money('due_charges')?->cents ?? 0)), 'The stored rows add up to what the payment charges');
     }
 
     public function test_a_full_compulsory_payment_with_due_charges_is_recorded_in_cents(): void

@@ -179,15 +179,27 @@ class FeesPaymentService
 
         $total = 0;
         $dueTotal = 0;
+        // Rows are rounded cumulatively (each row is the rounded running total
+        // minus the rounded total before it), so the stored rows always add up
+        // to the charged total, which is rounded once from the exact sum.
+        $running = 0;
+        $runningCents = 0;
+        $rowCents = function (int $exact) use ($denominator, &$running, &$runningCents): int {
+            $running += $exact;
+            $cents = Money::ofFraction($running, $denominator)->cents - $runningCents;
+            $runningCents += $cents;
+
+            return $cents;
+        };
         foreach ($items as $index => $item) {
             [$amount, $due] = $item;
             $due = $withDueCharges[$index] ? $due : 0;
             $total += $amount + $due;
             $dueTotal += $due;
 
-            $amountCents = Money::ofFraction($amount, $denominator)->cents;
+            $amountCents = $rowCents($amount);
+            $dueCents = $due > 0 ? $rowCents($due) : null;
             if ($typeOfFee === self::INSTALLMENTS) {
-                $dueCents = $due > 0 ? Money::ofFraction($due, $denominator)->cents : null;
                 $plan['installments'][] = [
                     'installment_fee_id' => $item[3],
                     'amount' => LegacyAmount::fromCents($amountCents),
