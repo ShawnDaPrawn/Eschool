@@ -33,7 +33,10 @@ class Audit
      */
     public static function record(string $action, ?Model $subject = null, array $before = [], array $after = []): ?AuditLog
     {
-        $user = Auth::user();
+        // Only a user the request has already authenticated: asking the guard to
+        // authenticate here (Auth::user()) would do it as a side effect of a
+        // model write, from whatever request is bound, and cache the result.
+        $user = Auth::hasUser() ? Auth::user() : null;
         $http = RequestContext::inHttpRequest();
 
         try {
