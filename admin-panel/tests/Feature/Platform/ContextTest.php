@@ -11,6 +11,7 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Testing\TestResponse;
 use Spatie\Permission\Models\Role;
 use Tests\Concerns\UsesDemoSchool;
+use Tests\Concerns\ValidatesOpenApiResponses;
 use Tests\TestCase;
 
 /**
@@ -21,6 +22,7 @@ use Tests\TestCase;
 class ContextTest extends TestCase
 {
     use UsesDemoSchool;
+    use ValidatesOpenApiResponses;
 
     protected function setUp(): void
     {
@@ -48,7 +50,8 @@ class ContextTest extends TestCase
             ->assertJsonPath('data.user.image', null)
             ->assertJsonPath('data.user.roles', ['Student'])
             ->assertJsonPath('data.schools', [[
-                'id' => 1, 'name' => schoolSetting('school_name'), 'short_name' => null, 'crest_url' => null, 'roles' => ['Student'],
+                'school' => ['id' => 1, 'name' => schoolSetting('school_name'), 'short_name' => null, 'crest_url' => null],
+                'roles' => ['Student'],
             ]])
             ->assertJsonPath('data.current_school.id', 1)
             ->assertJsonPath('data.current_school.timezone', schoolSetting('time_zone'))

@@ -28,7 +28,7 @@ class ContextResource extends JsonResource
             'user' => new ContextUserResource($context['user'], $context['roles']),
             // One school, with the user's roles there, until Phase 1 adds memberships.
             'schools' => [
-                [...(new SchoolSummaryResource($school))->toArray($request), 'roles' => $context['roles']],
+                ['school' => new SchoolSummaryResource($school), 'roles' => $context['roles']],
             ],
             'current_school' => new CurrentSchoolResource($school, $context['session_year']),
             'modules' => $context['modules'],

@@ -60,6 +60,22 @@ jobs:
         run: php artisan config:cache && php artisan route:cache && php artisan view:cache && php artisan optimize:clear
       - run: php artisan test
 
+  openapi:
+    name: OpenAPI contract (lint)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: admin-panel
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      # admin-panel/openapi.yaml is the API v2 contract. redocly.yaml sets the
+      # rules (recommended-strict): any warning fails. The responses are checked
+      # against it by tests/Feature/Contracts in the admin-panel job.
+      - run: npx --yes @redocly/cli@2.57.0 lint openapi.yaml
+
   apps:
     name: Flutter app (${{ matrix.app }})
     runs-on: ubuntu-latest
