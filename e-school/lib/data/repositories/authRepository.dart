@@ -91,7 +91,7 @@ class AuthRepository {
     );
 
     return {
-      'jwtToken': result['token'],
+      'jwtToken': result['token'] ?? '',
       'student': Student.fromJson(Map.from(result['data'])),
     };
   }
@@ -114,7 +114,7 @@ class AuthRepository {
     );
 
     return {
-      'jwtToken': result['token'],
+      'jwtToken': result['token'] ?? '',
       'parent': Parent.fromJson(Map.from(result['data'])),
     };
   }
