@@ -30,6 +30,7 @@ use App\Http\Controllers\OnlineExamController;
 use App\Http\Controllers\OnlineExamQuestionController;
 use App\Http\Controllers\Panel\People\LearnerInvitationController;
 use App\Http\Controllers\ParentsController;
+use App\Http\Controllers\Platform\CspReportController;
 use App\Http\Controllers\Platform\LearnerSetupController;
 use App\Http\Controllers\RoleController;
 use App\Http\Controllers\SectionController;
@@ -76,6 +77,9 @@ Route::get('password/reset', [ForgotPasswordController::class, 'showLinkRequestF
 Route::post('password/email', [ForgotPasswordController::class, 'sendResetLinkEmail'])->middleware('throttle:login')->name('password.email');
 Route::get('password/reset/{token}', [ResetPasswordController::class, 'showResetForm'])->name('password.reset');
 Route::post('password/reset', [ResetPasswordController::class, 'reset'])->middleware('throttle:login')->name('password.update');
+
+// What the report-only content security policy would have blocked (logged, ids only).
+Route::post('csp-report', CspReportController::class)->middleware('throttle:csp')->name('csp.report');
 
 // A learner's password is chosen here: from a guardian's emailed link (signed,
 // expiring, single use) or with a set-up code the school printed.

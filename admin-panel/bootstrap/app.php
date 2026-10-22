@@ -81,6 +81,8 @@ return Application::configure(basePath: dirname(__DIR__))
 
         $middleware->validateCsrfTokens(except: [
             'webhook/*',
+            // Browsers send content security policy reports without a token.
+            'csp-report',
         ]);
 
         // Outermost, so every response and every log line of the request has its id.
