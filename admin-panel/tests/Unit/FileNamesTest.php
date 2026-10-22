@@ -61,6 +61,8 @@ class FileNamesTest extends TestCase
             'Services/Platform/Files/FileNames.php',
             // Reads the raw name to refuse dangerous ones before anything stores them.
             'Http/Middleware/RejectDangerousUploads.php',
+            // Only hashed into an Idempotency-Key fingerprint; never stored or shown.
+            'Services/Platform/IdempotencyService.php',
         ];
         $root = dirname(__DIR__, 2).'/app/';
         $offenders = [];
