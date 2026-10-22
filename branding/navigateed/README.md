@@ -4,10 +4,10 @@ This is the new default **NavigateEd education identity**, matching Navigate Wea
 
 ## Placement and contrast
 - Site header, navigation drawer, school admin header/login: navy/purple **primary** SVG on light surfaces, **transparent** background.
-- Site footer: white/purple **reversed** SVG for dark surfaces, transparent background.
+- Site footer: navy/purple **primary** SVG because its current design token is a light surface. Use the white/purple **reversed** SVG only if a surface is actually dark. Both wordmarks are transparent.
 - Compact admin navbar: transparent **icon** on light surfaces.
 - Student/parent and teacher in-app logos: navy/purple book/scroll SVG, transparent background.
-- Student/parent phone launcher: book/scroll in white/purple on an opaque deep-violet background.
+- Student/parent phone launcher: book/scroll in white/purple on an fully opaque deep-violet background (no corner transparency; the operating system rounds launcher icons).
 - Teacher launcher: same mark, slightly different violet background, to be recognisable.
 - Favicon: opaque square app icon.
 

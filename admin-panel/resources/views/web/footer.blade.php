@@ -4,7 +4,7 @@
         <div class="m3-grid site-footer__grid">
             <div class="m3-col-12 m3-col-medium-6 m3-col-expanded-3 m3-stack m3-gap-4">
                 <a class="site-logo" href="{{ url('/') }}">
-                    <img src="{{ schoolSetting('logo1') ? schoolLogoUrl('logo1') : asset('assets/navigateed/reversed.svg') }}" height="50" width="150" alt="NavigateEd">
+                    <img src="{{ schoolLogoUrl('logo1') }}" height="50" width="150" alt="NavigateEd">
                 </a>
                 <p class="site-footer__text">
                     {{ isset($settings['school_address']) ? $settings['school_address'] : ' Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor
