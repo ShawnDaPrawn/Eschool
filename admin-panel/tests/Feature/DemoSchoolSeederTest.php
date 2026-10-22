@@ -66,6 +66,18 @@ class DemoSchoolSeederTest extends TestCase
         $this->assertSame(3, DB::table('student_sessions')->where('session_year_id', $past->id)->count());
         $this->assertSame(6, DB::table('student_sessions')->where('session_year_id', $current->id)->count());
 
+        // An exam paper to capture marks for (yesterday, unpublished) with the
+        // demo learner's mark, and an assignment for 5 A.
+        $exam = DB::table('exams')->where('session_year_id', $current->id)->where('name', 'Term 4 test')->first();
+        $this->assertNotNull($exam);
+        $this->assertSame(0, (int) $exam->publish);
+        $paper = DB::table('exam_timetables')->where('exam_id', $exam->id)->where('class_id', $learner->student->class_id)->first();
+        $this->assertNotNull($paper);
+        $this->assertSame(now()->subDay()->toDateString(), $paper->date);
+        $this->assertSame(72, (int) DB::table('exam_marks')->where('exam_timetable_id', $paper->id)->where('student_id', $learner->student->id)->value('obtained_marks'));
+        $this->assertSame(2, DB::table('exam_classes')->where('exam_id', $exam->id)->count());
+        $this->assertSame(1, DB::table('assignments')->where('session_year_id', $current->id)->where('class_section_id', $learner->student->class_section_id)->count());
+
         // Home's setup checklist is complete for the demo school.
         $this->assertTrue(app(SetupChecklist::class)->forUser($admin)['complete']);
     }
@@ -75,7 +87,8 @@ class DemoSchoolSeederTest extends TestCase
         $this->seed(InstallationSeeder::class);
         $this->seed(DemoSchoolSeeder::class);
         $tables = ['users', 'students', 'parents', 'teachers', 'staffs', 'session_years', 'semesters', 'classes', 'class_sections', 'subjects',
-            'class_subjects', 'class_teachers', 'subject_teachers', 'timetables', 'student_sessions', 'fees_classes', 'grades', 'announcements', 'attendances', 'roles'];
+            'class_subjects', 'class_teachers', 'subject_teachers', 'timetables', 'student_sessions', 'fees_classes', 'grades', 'announcements', 'attendances', 'roles',
+            'exams', 'exam_classes', 'exam_timetables', 'exam_marks', 'assignments'];
         $before = array_combine($tables, array_map(fn ($table) => DB::table($table)->count(), $tables));
 
         $this->seed(DemoSchoolSeeder::class);

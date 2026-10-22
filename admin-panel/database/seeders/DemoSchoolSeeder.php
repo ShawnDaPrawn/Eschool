@@ -38,9 +38,11 @@ use Spatie\Permission\Models\Role;
  * The school has this year and last year (four terms each), two grades with a
  * homeroom each, subjects, homeroom and subject teachers, a timetable, six
  * learners (two of them the parent's children), a pending online application,
- * fees, a grading scale, leave settings, notices, a holiday, an event and
- * today's registers, so Home's setup checklist is complete and the year
- * switcher has a past year with different learners.
+ * fees, a grading scale, leave settings, notices, a holiday, an event,
+ * today's registers, an exam (a Mathematics paper yesterday, with the demo
+ * learner's mark) and an assignment, so Home's setup checklist is complete,
+ * the year switcher has a past year with different learners, and marks
+ * capture and the assignments list can be tried from the seed alone.
  *
  * Idempotent: running it again updates the same rows. It needs the roles and
  * permissions from InstallationSeeder and runs it first when they are missing.
@@ -162,6 +164,7 @@ class DemoSchoolSeeder extends Seeder
         $this->learners($k, $past, $current);
         $this->money($current);
         $this->calendar($past, $current);
+        $this->schoolwork($k, $current);
     }
 
     /** The install's school settings (Phase 1 moves them to the school's own settings). */
@@ -375,6 +378,43 @@ class DemoSchoolSeeder extends Seeder
         $this->row('events', ['session_year_id' => $current->id, 'title' => 'Sports day'], [
             'type' => 'single', 'start_date' => "$year-11-14", 'end_date' => "$year-11-14",
             'start_time' => '08:00:00', 'end_time' => '13:00:00', 'description' => 'Athletics on the school field.',
+        ]);
+    }
+
+    /**
+     * An exam with a Mathematics paper for both grades dated yesterday (so the
+     * teacher can capture marks; it stays unpublished) and the demo learner's
+     * mark, and a Mathematics assignment for 5 A due in a week.
+     */
+    private function schoolwork(string $k, SessionYear $current): void
+    {
+        $up = strtoupper($k);
+        $maths = $this->ids["$k.subject.Mathematics"];
+        $exam = $this->row('exams', ['session_year_id' => $current->id, 'name' => 'Term 4 test'], [
+            'description' => 'Mathematics, all of Term 4', 'publish' => 0,
+        ]);
+        $papers = [];
+        foreach (['Grade 5', 'Grade 6'] as $grade) {
+            $class = $this->ids["$k.class.$grade"];
+            $this->row('exam_classes', ['exam_id' => $exam, 'class_id' => $class], ['session_year_id' => $current->id]);
+            $papers[$grade] = $this->row('exam_timetables', ['exam_id' => $exam, 'class_id' => $class, 'subject_id' => $maths], [
+                'total_marks' => 100, 'passing_marks' => 40, 'date' => now()->subDay()->toDateString(),
+                'start_time' => '09:00:00', 'end_time' => '10:00:00', 'session_year_id' => $current->id,
+            ]);
+        }
+
+        $learner = (int) DB::table('students')->where('admission_no', "DEMO-$up-0001")->value('id');
+        $this->row('exam_marks', ['exam_timetable_id' => $papers['Grade 5'], 'student_id' => $learner], [
+            'subject_id' => $maths, 'obtained_marks' => 72, 'passing_status' => 1, 'grade' => '6',
+            'teacher_review' => 'Good work on fractions.', 'session_year_id' => $current->id,
+        ]);
+
+        $this->row('assignments', ['session_year_id' => $current->id, 'class_section_id' => $this->ids["$k.homeroom.Grade 5"], 'name' => 'Fractions worksheet'], [
+            'subject_id' => $maths,
+            'instructions' => 'Complete questions 1 to 10 and show your working.',
+            'due_date' => now()->addWeek()->setTime(23, 59)->toDateTimeString(),
+            'points' => 10,
+            'resubmission' => 0,
         ]);
     }
 
