@@ -41,6 +41,7 @@ final class AppTokens
     /** Revokes the account's earlier tokens for this app and issues a new one. */
     public static function issue(User $user, string $app): string
     {
+        app(ApprovalService::class)->assertAccess($user);
         self::revokeApp($user, $app);
 
         return $user->createToken($app)->plainTextToken;

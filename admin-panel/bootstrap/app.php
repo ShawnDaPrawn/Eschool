@@ -11,6 +11,7 @@ use App\Http\Middleware\EncryptCookies;
 use App\Http\Middleware\EndRefusedPortalSignIn;
 use App\Http\Middleware\EnforcePasswordChange;
 use App\Http\Middleware\EnsureDefaultSchool;
+use App\Http\Middleware\EnsureLearnerApproved;
 use App\Http\Middleware\EnsureParentChildrenSessionIsActive;
 use App\Http\Middleware\EnsureStudentSessionIsActive;
 use App\Http\Middleware\EnsureTeacherActive;
@@ -150,6 +151,7 @@ return Application::configure(basePath: dirname(__DIR__))
             // 'auth' => \App\Http\Middleware\Authenticate::class,
             'auth.basic' => AuthenticateWithBasicAuth::class,
             'student.session.active' => EnsureStudentSessionIsActive::class,
+            'learner.approved' => EnsureLearnerApproved::class,
             'parent.children.session.active' => EnsureParentChildrenSessionIsActive::class,
             'parent.policy' => RequireParentPolicyAcceptance::class,
             'teacher.policy' => RequireParentPolicyAcceptance::class,

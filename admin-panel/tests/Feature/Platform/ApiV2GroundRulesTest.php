@@ -44,7 +44,7 @@ class ApiV2GroundRulesTest extends TestCase
         $route = Route::getRoutes()->getByName('api.v2.me.context');
 
         $this->assertSame('api/v2/me/context', $route->uri());
-        $this->assertSame(['api', 'auth:sanctum', 'school.context', 'role.any', 'idempotent'], $route->gatherMiddleware());
+        $this->assertSame(['api', 'auth:sanctum', 'school.context', 'role.any', 'learner.approved', 'idempotent'], $route->gatherMiddleware());
     }
 
     public function test_the_staff_group_admits_every_role_except_parent_and_student(): void

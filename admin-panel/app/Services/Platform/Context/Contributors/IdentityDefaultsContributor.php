@@ -8,6 +8,7 @@ use App\Http\Resources\Platform\ChildResource;
 use App\Models\Students;
 use App\Services\Platform\Context\ContextContributor;
 use App\Services\Platform\Context\ContextScope;
+use App\Services\Platform\Identity\ApprovalService;
 use Illuminate\Support\Collection;
 
 /**
@@ -24,6 +25,8 @@ class IdentityDefaultsContributor implements ContextContributor
     {
         return [
             'sign_in_methods' => ['password'],
+            'approval' => $scope->user->hasRole('Student') && $scope->user->student !== null
+                ? app(ApprovalService::class)->state($scope->user->student) : null,
             'children' => $this->children($scope)->map(fn (Students $child) => new ChildResource($child, $scope->profile))->values(),
         ];
     }

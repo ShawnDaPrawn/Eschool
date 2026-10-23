@@ -3,6 +3,8 @@
 declare(strict_types=1);
 
 use App\Http\Controllers\Api\V2\Platform\ContextController;
+use App\Http\Controllers\Api\V2\Platform\GuardianApprovalController;
+use App\Http\Controllers\Api\V2\Platform\GuardianInvitationController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -28,7 +30,7 @@ use Illuminate\Support\Facades\Route;
 
 // Every signed-in profile: the user, their schools, the current school and
 // what the apps need on launch.
-Route::middleware(['auth:sanctum', 'school.context', 'role.any', 'idempotent'])->name('api.v2.')->group(function () {
+Route::middleware(['auth:sanctum', 'school.context', 'role.any', 'learner.approved', 'idempotent'])->name('api.v2.')->group(function () {
     Route::get('me/context', [ContextController::class, 'show'])->name('me.context');
 });
 
@@ -42,7 +44,7 @@ Route::prefix('auth')->middleware(['throttle:auth'])->name('api.v2.auth.')->grou
 // Idempotency-Key.
 $money = ['throttle:money', 'idempotent:required'];
 
-Route::prefix('student')->middleware(['auth:sanctum', 'school.context', 'role:Student', 'student.session.active', 'idempotent'])->name('api.v2.student.')->group(function () use ($money) {
+Route::prefix('student')->middleware(['auth:sanctum', 'school.context', 'role:Student', 'learner.approved', 'student.session.active', 'idempotent'])->name('api.v2.student.')->group(function () use ($money) {
     Route::middleware($money)->group(function () {
         //
     });
@@ -64,3 +66,15 @@ Route::prefix('staff')->middleware(['auth:sanctum', 'school.context', 'staff', '
         //
     });
 });
+
+Route::prefix('guardian')->middleware(['auth:sanctum', 'school.context', 'role:Parent', 'idempotent', 'throttle:auth'])->group(function () {
+    Route::get('approvals', [GuardianApprovalController::class, 'index']);
+    Route::post('approvals/{learner}', [GuardianApprovalController::class, 'store'])->whereNumber('learner');
+});
+
+Route::prefix('guardian/invitations')->middleware(['school.context:public', 'throttle:auth'])->group(function () {
+    Route::get('{token}', [GuardianInvitationController::class, 'show']);
+    Route::post('{token}/accept', [GuardianInvitationController::class, 'accept'])->middleware('portal.sign-in');
+});
+Route::post('guardians/{guardian}/invitations', [GuardianInvitationController::class, 'store'])
+    ->whereNumber('guardian')->middleware(['auth:sanctum', 'school.context', 'staff', 'idempotent', 'throttle:auth']);

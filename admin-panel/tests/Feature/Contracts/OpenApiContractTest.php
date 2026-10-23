@@ -50,6 +50,11 @@ class OpenApiContractTest extends TestCase
     public static function scenarios(): array
     {
         return [
+            'unknown invitation' => [null, 'GET', 'api/v2/guardian/invitations/1', [], 404],
+            'unknown invitation accept' => [null, 'POST', 'api/v2/guardian/invitations/1/accept', [], 404],
+            'invitation issue wrong role' => ['farid', 'POST', 'api/v2/guardians/1/invitations', [], 403],
+            'guardian approvals list' => ['farid', 'GET', 'api/v2/guardian/approvals', [], 200],
+            'guardian decision wrong role' => ['tara', 'POST', 'api/v2/guardian/approvals/1', ['decision' => 'approve', 'consent_version' => '2026-10-23'], 403],
             'context as a learner' => ['asha', 'GET', 'api/v2/me/context', [], 200],
             'context as a parent of two' => ['farid', 'GET', 'api/v2/me/context', [], 200],
             'context as a guardian' => ['gina', 'GET', 'api/v2/me/context', [], 200],

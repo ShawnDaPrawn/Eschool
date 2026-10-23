@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Models;
 
+use App\Services\Platform\Identity\GuardianService;
 use App\Services\Platform\Tenancy\BelongsToSchool;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -79,11 +80,7 @@ class Parents extends Model
      */
     public function children()
     {
-        return Students::query()->where(function ($query) {
-            $query->where('father_id', $this->id)
-                ->orWhere('mother_id', $this->id)
-                ->orWhere('guardian_id', $this->id);
-        });
+        return app(GuardianService::class)->childrenFor((int) $this->user_id, (int) $this->id);
     }
 
     /**
@@ -93,13 +90,7 @@ class Parents extends Model
      */
     public function hasChild($studentId): bool
     {
-        return Students::where('id', $studentId)
-            ->where(function ($query) {
-                $query->where('father_id', $this->id)
-                    ->orWhere('mother_id', $this->id)
-                    ->orWhere('guardian_id', $this->id);
-            })
-            ->exists();
+        return $this->children()->whereKey($studentId)->exists();
     }
 
     // Getter Attributes

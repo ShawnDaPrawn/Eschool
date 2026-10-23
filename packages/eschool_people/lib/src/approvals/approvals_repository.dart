@@ -1,20 +1,19 @@
 import 'package:equatable/equatable.dart';
+import 'package:eschool_api/eschool_api.dart' as contract;
 import 'package:eschool_core/eschool_core.dart';
 import 'package:eschool_people/src/common/learner_summary.dart';
 
 // GET /api/v2/guardian/approvals and POST /api/v2/guardian/approvals/{learner}
-// (Phase 1 contract). Hand-written until openapi.yaml has them; then use the
-// generated models and client.
+// Wire models come from the generated API contract; the classes below are UI view models.
 
 /// The text a guardian agrees to when approving, in the version they saw.
 class ApprovalConsent extends Equatable {
   const ApprovalConsent({required this.version, required this.text});
 
-  factory ApprovalConsent.fromJson(Map<String, dynamic> json) =>
-      ApprovalConsent(
-        version: '${json['version'] ?? ''}',
-        text: '${json['text'] ?? ''}',
-      );
+  factory ApprovalConsent.fromJson(Map<String, dynamic> json) {
+    final value = contract.GuardianConsent.fromJson(json);
+    return ApprovalConsent(version: value.version, text: value.text);
+  }
 
   final String version;
   final String text;
@@ -32,21 +31,18 @@ class GuardianApproval extends Equatable {
     this.requestedAt,
   });
 
-  factory GuardianApproval.fromJson(Map<String, dynamic> json) =>
-      GuardianApproval(
-        learner: LearnerSummary.fromJson(
-          json['learner'] is Map
-              ? Map<String, dynamic>.from(json['learner'] as Map)
-              : const {},
-        ),
-        status: '${json['status'] ?? pending}',
-        requestedAt: readDate(json['requested_at']),
-        consent: ApprovalConsent.fromJson(
-          json['consent'] is Map
-              ? Map<String, dynamic>.from(json['consent'] as Map)
-              : const {},
-        ),
-      );
+  factory GuardianApproval.fromJson(Map<String, dynamic> json) {
+    final value = contract.GuardianApproval.fromJson(json);
+    return GuardianApproval(
+      learner: LearnerSummary.fromJson(value.learner.toJson()),
+      status: value.status.value,
+      requestedAt: value.requestedAt,
+      consent: ApprovalConsent(
+        version: value.consent.version,
+        text: value.consent.text,
+      ),
+    );
+  }
 
   static const String pending = 'pending';
   static const String approved = 'approved';

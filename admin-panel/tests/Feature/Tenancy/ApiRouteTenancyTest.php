@@ -48,6 +48,8 @@ class ApiRouteTenancyTest extends TestCase
      * it short: everything else needs a token.
      */
     public const PUBLIC = [
+        'GET api/v2/guardian/invitations/{token}' => 'private expiring invitation token, no unscoped list',
+        'POST api/v2/guardian/invitations/{token}/accept' => 'one-use emailed token verifies the guardian mailbox',
         'POST api/student/login' => 'sign-in',
         'POST api/student/forgot-password' => 'password reset before sign-in',
         'POST api/parent/login' => 'sign-in',

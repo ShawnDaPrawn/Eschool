@@ -64,6 +64,12 @@ Context _$ContextFromJson(Map<String, dynamic> json) => $checkedCreate(
             .map((e) => Child.fromJson(e as Map<String, dynamic>))
             .toList(),
       ),
+      approval: $checkedConvert(
+        'approval',
+        (v) => v == null
+            ? null
+            : ApprovalState.fromJson(v as Map<String, dynamic>),
+      ),
     );
     return val;
   },
@@ -86,4 +92,5 @@ Map<String, dynamic> _$ContextToJson(Context instance) => <String, dynamic>{
   'feature_flags': instance.featureFlags,
   'sign_in_methods': instance.signInMethods,
   'children': instance.children.map((e) => e.toJson()).toList(),
+  'approval': ?instance.approval?.toJson(),
 };

@@ -30,12 +30,14 @@ class TenancyMigrationsTest extends TestCase
         '2026_10_23_100300_create_school_memberships_table',
         '2026_10_23_100400_require_school_id',
         '2026_10_23_100500_add_school_id_to_permission_tables',
+        '2026_10_23_110000_create_guardian_approval_tables',
     ];
 
     protected function setUp(): void
     {
         parent::setUp();
-        Artisan::call('migrate', ['--force' => true]);
+        // Rehearse a single-school upgrade, independent of earlier two-school fixtures.
+        Artisan::call('migrate:fresh', ['--force' => true]);
     }
 
     protected function tearDown(): void

@@ -7,6 +7,10 @@
     "shape": {
         "code": "number",
         "data": {
+            "approval": {
+                "approved_by_count": "number",
+                "status": "string"
+            },
             "children": [],
             "current_school": {
                 "branding": {

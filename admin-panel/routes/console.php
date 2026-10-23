@@ -3,6 +3,9 @@
 use App\Console\Commands\FlagDobPasswords;
 use App\Jobs\Platform\DispatchOutbox;
 use App\Models\Platform\IdempotencyKey;
+use App\Models\Platform\School;
+use App\Services\Platform\Identity\GuardianInvitations;
+use App\Services\Platform\Tenancy\CurrentSchool;
 use Illuminate\Foundation\Inspiring;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Schedule;
@@ -38,3 +41,10 @@ Schedule::call(function () {
     ->dailyAt('03:20')
     ->name('learners-flag-dob-passwords')
     ->when(fn () => ! FlagDobPasswords::completed());
+
+// Invitation links are private and reminders use encrypted queued mail.
+Schedule::call(function () {
+    School::query()->active()->each(function ($school) {
+        app(CurrentSchool::class)->run((int) $school->id, fn () => app(GuardianInvitations::class)->remind());
+    });
+})->dailyAt('08:00')->name('guardian-invitation-reminders')->withoutOverlapping();

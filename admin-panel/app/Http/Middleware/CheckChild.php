@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Middleware;
 
+use App\Models\Platform\GuardianLink;
 use Closure;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -30,6 +31,11 @@ class CheckChild
                 'message' => 'Invalid Child ID Passed.',
                 'code' => 105,
             ]);
+        }
+        if ($request->is('api/parent/*fees*', 'api/parent/*payment*', 'api/parent/*transaction*')) {
+            $link = GuardianLink::query()->where('learner_id', $child->id)
+                ->where('guardian_user_id', $request->user()->id)->first();
+            abort_if($link !== null && ! $link->can_see_fees, 403);
         }
         $request->attributes->set('child', $child);
 

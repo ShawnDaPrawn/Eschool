@@ -74,3 +74,15 @@ If your children are at different schools, pick the school at the top of the scr
 ## Links that open the app
 
 Links from the school to `app.navigateed.co.za` (for example to **My school** or **Notifications**) open the matching screen in the app on your phone, or in the portal in a browser. You may be asked to sign in first. Tapping a notification works the same way, and switches to the right school first when the notice is about another of your schools.
+
+## Approving your child's access
+
+When your school invites you, open the private link in the email. Check the
+school and children shown, then choose a password if asked. The link verifies
+your email and signs you in; it does not approve a child automatically.
+
+Open **Settings → Approvals**, read the consent text and approve the child.
+You can withdraw approval from the same screen. Withdrawal signs the learner
+out. A guardian's access to fees can be managed separately by the school.
+If a link has expired or was already used, ask the school for a new invitation.
+Never forward your invitation link to another person.

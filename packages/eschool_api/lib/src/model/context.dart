@@ -7,6 +7,7 @@ import 'package:eschool_api/src/model/context_user.dart';
 import 'package:eschool_api/src/model/module.dart';
 import 'package:eschool_api/src/model/notification_rule.dart';
 import 'package:eschool_api/src/model/school_membership.dart';
+import 'package:eschool_api/src/model/approval_state.dart';
 import 'package:eschool_api/src/model/child.dart';
 import 'package:eschool_api/src/model/current_school.dart';
 import 'package:json_annotation/json_annotation.dart';
@@ -37,6 +38,8 @@ class Context {
     required this.signInMethods,
 
     required this.children,
+
+    this.approval,
   });
 
   @JsonKey(name: r'user', required: true, includeIfNull: false)
@@ -69,6 +72,10 @@ class Context {
   @JsonKey(name: r'children', required: true, includeIfNull: false)
   final List<Child> children;
 
+  /// Guardian access approval for a learner; null for other profiles.
+  @JsonKey(name: r'approval', required: false, includeIfNull: false)
+  final ApprovalState? approval;
+
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -80,7 +87,8 @@ class Context {
           other.notificationRules == notificationRules &&
           other.featureFlags == featureFlags &&
           other.signInMethods == signInMethods &&
-          other.children == children;
+          other.children == children &&
+          other.approval == approval;
 
   @override
   int get hashCode =>
@@ -91,7 +99,8 @@ class Context {
       notificationRules.hashCode +
       featureFlags.hashCode +
       signInMethods.hashCode +
-      children.hashCode;
+      children.hashCode +
+      (approval == null ? 0 : approval.hashCode);
 
   factory Context.fromJson(Map<String, dynamic> json) =>
       _$ContextFromJson(json);
