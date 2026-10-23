@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Jobs\Platform;
 
+use App\Mail\Platform\ChecksRecipient;
+use App\Mail\Platform\ViewMail;
 use App\Services\Platform\Notifications\DeliveryLog;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldBeEncrypted;
@@ -47,6 +49,15 @@ class SendMail implements ShouldBeEncrypted, ShouldQueue
     public function handle(): void
     {
         $row = DeliveryLog::attempt($this->deliveryKey, $this->attempts());
+        // Old unbound invitation jobs must not disclose learner details after
+        // the upgrade; the school reissues them with recipient authority.
+        $checks = $this->mailable instanceof ChecksRecipient;
+        if (($checks && ! $this->mailable->mayDeliver($row))
+            || (! $checks && $this->mailable instanceof ViewMail && $this->mailable->viewName === 'emails.learner-invitation')) {
+            DeliveryLog::suppressed($row);
+
+            return;
+        }
         $mailer = (string) config('mail.default');
 
         try {

@@ -4,9 +4,12 @@ declare(strict_types=1);
 
 namespace App\Models;
 
+use App\Models\Platform\GuardianInvitation;
+use App\Models\Platform\LearnerInvitation;
 use App\Models\Platform\RolePivot;
 use App\Models\Platform\SchoolMembership;
 use App\Services\Platform\Audit\Auditable;
+use App\Services\Platform\Tenancy\CurrentSchool;
 use App\Services\Platform\Tenancy\MemberScope;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -103,8 +106,20 @@ class User extends Authenticatable
         // A new password ends a forced change (learners:flag-dob-passwords),
         // unless the same save sets the flag itself.
         static::saving(function (User $user) {
+            if ($user->exists && $user->isDirty('email')
+                && strtolower(trim((string) $user->getOriginal('email'))) !== strtolower(trim((string) $user->email))) {
+                $user->email_verified_at = null;
+            }
             if ($user->exists && $user->isDirty('password') && ! $user->isDirty('password_change_required')) {
                 $user->password_change_required = false;
+            }
+        });
+
+        static::updated(function (User $user) {
+            if ($user->wasChanged('email') && ! app(CurrentSchool::class)->isMigrating()) {
+                GuardianInvitation::acrossSchools()->where('guardian_user_id', $user->id)->whereNull('used_at')->update(['used_at' => now()]);
+                LearnerInvitation::query()->where('guardian_user_id', $user->id)->where('channel', LearnerInvitation::LINK)
+                    ->whereNull('used_at')->whereNull('revoked_at')->update(['revoked_at' => now()]);
             }
         });
 

@@ -34,7 +34,7 @@ class LearnerInvitation extends Model
 
     protected $guarded = ['id'];
 
-    protected $hidden = ['token_hash', 'code_hash'];
+    protected $hidden = ['token_hash', 'code_hash', 'email_hash'];
 
     protected function casts(): array
     {
