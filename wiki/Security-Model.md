@@ -417,3 +417,8 @@ address and current school/membership/relationship authority. Editing an email
 clears verification and retires links. Old unbound links require replacement;
 rollback does not reactivate them. Printed one-time codes remain separate.
 See the [specification](https://github.com/ShawnDaPrawn/Eschool/blob/main/engineering/specs/platform/invitation-lifecycle.md).
+
+Legacy parent login/profile child lists use the canonical active guardian
+query, including explicit-link overrides of old parent columns. Current-year
+filters apply to every relationship. Fee-restricted guardians get no fee-due
+signal/paywall flag in those child summaries; academic access stays separate.
