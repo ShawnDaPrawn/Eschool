@@ -10,6 +10,7 @@ use App\Models\User;
 use App\Services\People\Profiles\LegacyProfileBackfill;
 use App\Services\People\Profiles\ProfileForms;
 use App\Services\Platform\Tenancy\CurrentSchool;
+use Illuminate\Database\Events\QueryExecuted;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\DB;
@@ -193,6 +194,65 @@ class LegacyProfileBackfillTest extends TestCase
         $report = $this->runBatch();
         $this->assertSame(2, $report['issue_count']);
         $this->assertSame(2, DB::table('profile_field_values')->count());
+    }
+
+    public function test_actual_legacy_checkbox_maps_are_normalised_to_lists_for_app_contracts(): void
+    {
+        $old = $this->legacy(['name' => 'Options', 'type' => 'checkbox', 'for' => 2, 'default_values' => '["Red","Blue"]']);
+        $this->source([['Options' => ['Red' => 'Red', 'Blue' => 'Blue']]], 'parents', $this->schoolA->ids['farid']);
+        $this->assertSame(0, $this->runBatch(profile: 'parent')['issue_count']);
+        $field = $this->mapped($old);
+        $this->assertSame(['Red', 'Blue'], $this->stored($field, $this->schoolA->ids['farid_user']));
+        $field->update(['hidden' => false]);
+        $this->app['auth']->forgetGuards();
+        $answer = $this->withToken($this->schoolA->tokens['farid'])->getJson('/api/v2/me/profile?profile_type=parent')->assertOk();
+        $value = collect($answer->json('data.categories'))->pluck('fields')->flatten(1)->firstWhere('key', $field->key)['value'];
+        $this->assertSame(['choices' => ['Red', 'Blue']], $value);
+    }
+
+    public function test_a_value_committed_after_the_transaction_snapshot_is_preserved(): void
+    {
+        $old = $this->legacy();
+        $this->runBatch(); // Create mapping while the legacy value is empty.
+        $field = $this->mapped($old);
+        $this->source(['Transport_route' => 'STALE PRIVATE VALUE']);
+        $primary = DB::connection();
+        $isolation = collect($primary->select("SHOW VARIABLES LIKE '%isolation'"))->pluck('Value')->all();
+        $this->assertContains('REPEATABLE-READ', $isolation);
+        config(['database.connections.profile_race' => config('database.connections.mysql')]);
+        $other = DB::connection('profile_race');
+        // Fixtures are inside the test's outer transaction; the second writer
+        // skips FK checks solely to insert a committed competing value against
+        // those uncommitted synthetic IDs. Production FK checks stay enabled.
+        $other->statement('SET FOREIGN_KEY_CHECKS=0');
+        $armed = true;
+        $insertedId = null;
+        DB::listen(function (QueryExecuted $query) use (&$armed, &$insertedId, $other, $field) {
+            if ($armed && $query->connectionName === 'mysql' && str_starts_with($query->sql, 'select * from `students`')) {
+                $armed = false;
+                $insertedId = $other->table('profile_field_values')->insertGetId(['school_id' => 1,
+                    'user_id' => $this->schoolA->ids['asha_user'], 'definition_id' => $field->id, 'value' => null,
+                    'encrypted' => true, 'created_at' => now(), 'updated_at' => now()]);
+            }
+        });
+        // UsesTwoSchools registers its rollback first; remove the independent
+        // committed insert only after that releases the current-read row lock.
+        $this->beforeApplicationDestroyed(function () use ($other, &$insertedId) {
+            if ($insertedId !== null) {
+                $other->table('profile_field_values')->where('id', $insertedId)->delete();
+            }
+            $other->statement('SET FOREIGN_KEY_CHECKS=1');
+            DB::purge('profile_race');
+        });
+        try {
+            $report = $this->runBatch();
+        } finally {
+            $armed = false;
+        }
+        $this->assertNotNull($insertedId);
+        $this->assertSame(0, $report['values_added']);
+        $this->assertSame(1, $report['preserved']);
+        $this->assertSame(0, $report['issue_count']);
     }
 
     public function test_deleted_mappings_are_never_resurrected_and_key_collisions_are_reported(): void

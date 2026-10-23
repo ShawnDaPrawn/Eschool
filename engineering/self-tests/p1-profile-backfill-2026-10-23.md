@@ -14,9 +14,14 @@ numeric validation, precision safety, ambiguous person records, unavailable
 mappings, invalid existing storage, pending private files and command limits.
 
 Run the new class with the existing schema, validation, form, file and panel
-tests: 71 passed, 418 assertions. Pint and Larastan passed for the change. The full backend and required
+tests: 73 passed, 427 assertions. Pint and Larastan passed for the change. The full backend and required
 PR checks must pass before merging; consult the PR for exact-head results.
 No app code, API shape, route or database schema changes in this slice.
+
+Review regressions cover real option-keyed legacy checkbox maps becoming JSON
+lists, and a second MariaDB connection committing an explicit clear after the
+transaction snapshot. The current read preserves that clear; removing the lock
+reproduces a duplicate-insert failure. Both review findings are fixed.
 
 The Security Diff Scan skill was consulted, but its referenced preflight,
 terminal helpers and scan tools are unavailable in this host. No completed

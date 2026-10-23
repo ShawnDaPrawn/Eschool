@@ -10,7 +10,10 @@ including no audit/outbox writes. Apply creates deterministic field mappings via
 the existing legacy_form_field_id FK, validates values with the same rules as
 the shared form, and inserts missing encrypted values. Existing rows, including
 explicit clears, always win. Lock the person before the source row and field,
-matching live profile writes. Re-running or restarting a batch is safe.
+matching live profile writes. Check existing values with a current/locking read
+in apply mode so commits made while waiting for the person lock are visible.
+Normalize validated option-keyed checkbox maps into JSON lists. Re-running or
+restarting a batch is safe.
 
 Imported definitions start hidden, sensitive and encrypted. A school admin
 reviews their roles before publishing them in the existing profile editor.

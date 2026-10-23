@@ -220,6 +220,10 @@ class ProfileForms
             throw ValidationException::withMessages(['values.'.$field->key.'.'.$member => $validator->errors()->all()]);
         }
 
-        return $field->type === 'boolean' && $value !== null ? (bool) $value : $value;
+        return match (true) {
+            $field->type === 'checkbox' && is_array($value) => array_values($value),
+            $field->type === 'boolean' && $value !== null => (bool) $value,
+            default => $value,
+        };
     }
 }

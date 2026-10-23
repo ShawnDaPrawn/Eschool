@@ -207,7 +207,8 @@ class LegacyProfileBackfill
             }
         }
         $existing = $field->exists ? DB::table('profile_field_values')->where('school_id', app(CurrentSchool::class)->id())
-            ->where('user_id', $person->id)->where('definition_id', $field->id)->first(['id', 'encrypted']) : null;
+            ->where('user_id', $person->id)->where('definition_id', $field->id)
+            ->when($apply, fn ($query) => $query->lockForUpdate())->first(['id', 'encrypted']) : null;
         if ($existing !== null) {
             $report['preserved']++;
             if (! $existing->encrypted) {
