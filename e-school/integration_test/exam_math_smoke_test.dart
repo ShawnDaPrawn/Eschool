@@ -9,6 +9,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
 
+import 'support/math_tap.dart'
+    if (dart.library.js_interop) 'support/math_tap_web.dart';
+
 void main() {
   IntegrationTestWidgetsFlutterBinding.ensureInitialized();
 
@@ -66,7 +69,7 @@ void main() {
       isTrue,
       reason: 'The option must have its own renderer',
     );
-    await tester.tap(find.byType(OptionContainer));
+    await tapMathOption(tester, find.byType(OptionContainer), '17');
     await tester.pump();
     expect(submitted, [17]);
     expect(tester.takeException(), isNull);
