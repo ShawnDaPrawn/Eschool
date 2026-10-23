@@ -521,5 +521,9 @@
     "profileType_teacher": "Teacher",
     "profileType_facilitator": "Facilitator",
     "profileType_counsellor": "Counsellor",
-    "profileType_staff": "Staff"
+    "profileType_staff": "Staff",
+  "profileFileUpload": "Upload or replace file",
+  "profileFileView": "View file",
+  "profileFileClear": "Remove file when saving",
+  "profileFileLimit": "PDF, PNG or JPEG, up to 5 MB."
 }

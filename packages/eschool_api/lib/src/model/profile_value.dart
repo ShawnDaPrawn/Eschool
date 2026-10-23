@@ -3,6 +3,7 @@
 //
 
 // ignore_for_file: unused_element
+import 'package:eschool_api/src/model/profile_attachment.dart';
 import 'package:json_annotation/json_annotation.dart';
 
 part 'profile_value.g.dart';
@@ -15,7 +16,7 @@ part 'profile_value.g.dart';
 )
 class ProfileValue {
   /// Returns a new [ProfileValue] instance.
-  ProfileValue({this.text, this.choices, this.flag, this.clear});
+  ProfileValue({this.text, this.choices, this.flag, this.clear, this.file});
 
   @JsonKey(name: r'text', required: false, includeIfNull: false)
   final String? text;
@@ -30,6 +31,10 @@ class ProfileValue {
   @JsonKey(name: r'clear', required: false, includeIfNull: false)
   final bool? clear;
 
+  /// Read-only metadata; uploads use the file action, and clear removes the current reference.
+  @JsonKey(name: r'file', required: false, includeIfNull: false)
+  final ProfileAttachment? file;
+
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -37,11 +42,16 @@ class ProfileValue {
           other.text == text &&
           other.choices == choices &&
           other.flag == flag &&
-          other.clear == clear;
+          other.clear == clear &&
+          other.file == file;
 
   @override
   int get hashCode =>
-      text.hashCode + choices.hashCode + flag.hashCode + clear.hashCode;
+      text.hashCode +
+      choices.hashCode +
+      flag.hashCode +
+      clear.hashCode +
+      file.hashCode;
 
   factory ProfileValue.fromJson(Map<String, dynamic> json) =>
       _$ProfileValueFromJson(json);

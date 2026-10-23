@@ -37,6 +37,7 @@ class TenancyMigrationsTest extends TestCase
         '2026_10_23_150000_create_notification_configuration',
         '2026_10_23_160000_bind_invitations_to_mailboxes',
         '2026_10_23_170000_create_profile_fields',
+        '2026_10_23_180000_create_private_profile_files',
     ];
 
     protected function setUp(): void
@@ -59,6 +60,7 @@ class TenancyMigrationsTest extends TestCase
             $this->down();
 
             $this->assertFalse(Schema::hasTable('schools'));
+            $this->assertFalse(Schema::hasTable('profile_files'));
             $this->assertFalse(Schema::hasColumn('classes', 'school_id'));
             $this->assertFalse(Schema::hasColumn('students', 'school_id'));
             $this->assertFalse(Schema::hasColumn('idempotency_keys', 'school_id'));

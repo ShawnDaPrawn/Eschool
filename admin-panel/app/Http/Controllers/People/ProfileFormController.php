@@ -65,8 +65,8 @@ class ProfileFormController extends Controller
             foreach ($form['categories'] as $category) {
                 foreach ($category['fields'] as $field) {
                     $value = $field['value'];
-                    $text = $value === null ? '' : (isset($value['choices']) ? implode('; ', $value['choices'])
-                        : (isset($value['flag']) ? ($value['flag'] ? 'true' : 'false') : $value['text']));
+                    $text = $value === null ? '' : (isset($value['file']) ? $value['file']['name'] : (isset($value['choices']) ? implode('; ', $value['choices'])
+                        : (isset($value['flag']) ? ($value['flag'] ? 'true' : 'false') : $value['text'])));
                     $cells = array_map(fn ($cell) => preg_match('/^[\s\x00-\x1f]*[=+@-]/u', $cell) ? "'".$cell : $cell,
                         [$category['label'], $field['key'], $field['label'], $text]);
                     fputcsv($output, $cells, escape: '');

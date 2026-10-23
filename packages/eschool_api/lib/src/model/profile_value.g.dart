@@ -16,6 +16,12 @@ ProfileValue _$ProfileValueFromJson(Map<String, dynamic> json) =>
         ),
         flag: $checkedConvert('flag', (v) => v as bool?),
         clear: $checkedConvert('clear', (v) => v as bool?),
+        file: $checkedConvert(
+          'file',
+          (v) => v == null
+              ? null
+              : ProfileAttachment.fromJson(v as Map<String, dynamic>),
+        ),
       );
       return val;
     });
@@ -26,4 +32,5 @@ Map<String, dynamic> _$ProfileValueToJson(ProfileValue instance) =>
       'choices': ?instance.choices,
       'flag': ?instance.flag,
       'clear': ?instance.clear,
+      'file': ?instance.file?.toJson(),
     };

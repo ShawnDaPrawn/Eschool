@@ -66,6 +66,8 @@ return Application::configure(basePath: dirname(__DIR__))
         // API v2: same "api" middleware group as v1, under /api/v2.
         then: function () {
             Route::middleware('api')->prefix('api/v2')->group(__DIR__.'/../routes/api_v2.php');
+            Route::middleware(['api', 'auth:sanctum', 'school.context', 'role.any', 'learner.approved'])
+                ->prefix('protected/profile-files')->name('profile-files.')->group(__DIR__.'/../routes/profile_files.php');
             ModuleRoutes::apply(Route::getRoutes());
         },
     )

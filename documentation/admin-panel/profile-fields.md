@@ -22,5 +22,13 @@ open page. Private entries are not saved as browser drafts; save before leaving.
 fields also require the explicit sensitive-export permission. Staff access to a
 learner profile depends on their assigned learners or profile permissions.
 
-The older extra-field forms and their stored values are being migrated in a
-separate change. File fields are not offered in this editor yet.
+Choose **File** for a private PDF, PNG or JPEG field (up to 5 MB). Uploads save
+separately and keep other unsaved profile edits. Use **Remove file when saving**
+for an optional field, then save the profile. Replacing or removing a file
+invalidates its old link. A copied link still requires the right signed-in
+person, school and field permissions. These files are distinct from public
+school policy PDFs on My school.
+
+The shared app form previews authorised files from memory. Private values and
+files are not stored as app drafts or downloaded into the app's document cache.
+The older extra-field forms and public files are being migrated separately.

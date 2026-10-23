@@ -742,7 +742,7 @@ Authenticated v2 clients can read/write `me/profile` or `people/{person}/profile
 with optional `profile_type` selected from the person's active school roles.
 `profile-fields` and its category/definition CRUD endpoints require the existing
 form-field permissions. Definitions and person values are always school scoped.
-The OpenAPI contract defines all 11 operations and their generated Dart models.
+The OpenAPI contract defines the form/configuration operations, file uploads and their generated Dart models.
 
 Reads return authorised categories/fields and typed value envelopes (`text`,
 `choices` or `flag`). Writes send a partial `values` map with exactly one member
@@ -759,3 +759,19 @@ must match the authenticated request school. Multi-school clients explicitly
 send `X-School-Id` for the school chosen on this screen. Document links are
 published public PDFs; this endpoint is not a private person-file service.
 The response is in the v2 envelope and its DTOs are generated from OpenAPI.
+
+### Private profile files
+
+`POST /api/v2/me/profile/fields/{field}/file` and the corresponding
+`people/{person}` route accept multipart `profile_type` and `document` (PDF,
+PNG or JPEG, up to 5 MB). Success acknowledges with `data: null`. Read the form
+again for authorised `value.file` metadata. Generic profile writes cannot assign
+attachment IDs; optional files can be cleared with `{clear: true}`.
+
+`GET /protected/profile-files/me/{file}` or `people/{person}/{file}` serves bytes
+outside the JSON v2 API. Send the same cookie/bearer authentication and school
+header. Each read checks person/field rights and the current attachment
+reference. Old links stop working after replacement, clearing or field removal.
+Clients construct the known protected asset route; never attach credentials to
+an arbitrary metadata URL. These assets are private/no-store. The legacy public
+file migration remains separate.

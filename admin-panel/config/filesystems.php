@@ -30,6 +30,14 @@ return [
 
     'disks' => [
 
+        'profile_private' => [
+            'driver' => 'local',
+            'root' => storage_path('app/private/profile-files'),
+            'visibility' => 'private',
+            'directory_visibility' => 'private',
+            'throw' => true,
+        ],
+
         'local' => [
             'driver' => 'local',
             'root' => storage_path('app'),

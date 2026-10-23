@@ -5,6 +5,7 @@ declare(strict_types=1);
 use App\Http\Controllers\Api\V2\People\EnrolmentController;
 use App\Http\Controllers\Api\V2\People\ProfileConfigurationController;
 use App\Http\Controllers\Api\V2\People\ProfileController;
+use App\Http\Controllers\Api\V2\People\ProfileFileController;
 use App\Http\Controllers\Api\V2\Platform\ContextController;
 use App\Http\Controllers\Api\V2\Platform\GuardianApprovalController;
 use App\Http\Controllers\Api\V2\Platform\GuardianInvitationController;
@@ -38,6 +39,8 @@ use Illuminate\Support\Facades\Route;
 // what the apps need on launch.
 Route::middleware(['auth:sanctum', 'school.context', 'role.any', 'learner.approved', 'idempotent'])->name('api.v2.')->group(function () {
     Route::get('schools/{school}/my-school', [MySchoolController::class, 'show'])->whereNumber('school')->middleware('cache.headers:private;no_store');
+    Route::post('me/profile/fields/{field}/file', [ProfileFileController::class, 'upload'])->where('field', '[a-z][a-z0-9_]{0,63}');
+    Route::post('people/{person}/profile/fields/{field}/file', [ProfileFileController::class, 'uploadPerson'])->whereNumber('person')->where('field', '[a-z][a-z0-9_]{0,63}');
     Route::get('me/profile', [ProfileController::class, 'show'])->middleware('cache.headers:private;no_store');
     Route::put('me/profile', [ProfileController::class, 'update']);
     Route::get('people/{person}/profile', [ProfileController::class, 'show'])->whereNumber('person')->middleware('cache.headers:private;no_store');

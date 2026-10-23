@@ -50,6 +50,8 @@ class OpenApiContractTest extends TestCase
     public static function scenarios(): array
     {
         return [
+            'profile file upload requires auth' => [null, 'POST', 'api/v2/me/profile/fields/document/file', [], 401],
+            'person file upload requires auth' => [null, 'POST', 'api/v2/people/1/profile/fields/document/file', [], 401],
             'my school as learner' => ['asha', 'GET', 'api/v2/schools/1/my-school', [], 200],
             'my school as guardian' => ['farid', 'GET', 'api/v2/schools/1/my-school', [], 200],
             'my school as teacher' => ['tara', 'GET', 'api/v2/schools/1/my-school', [], 200],

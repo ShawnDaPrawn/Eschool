@@ -96,6 +96,101 @@ class ProfileCubit extends Cubit<ProfileState> {
     );
   }
 
+  void reset(ProfileFormField field) {
+    if (state.busy || !field.editable) return;
+    emit(
+      ProfileState(
+        status: state.status,
+        subject: state.subject,
+        form: state.form,
+        draft: Map.of(state.draft)..remove(field.key),
+        revision: state.revision,
+      ),
+    );
+  }
+
+  Future<bool> upload(
+    ProfileFormField field,
+    ProfileUpload file, {
+    required ProfileSubject subject,
+    required int revision,
+  }) async {
+    if (isClosed ||
+        state.busy ||
+        state.form == null ||
+        !field.editable ||
+        state.subject != subject ||
+        state.revision != revision ||
+        repository is! ProfileFileRepository) {
+      return false;
+    }
+    final kept = state;
+    final request = generation;
+    emit(
+      ProfileState(
+        status: kept.status,
+        subject: kept.subject,
+        form: kept.form,
+        draft: kept.draft,
+        revision: kept.revision,
+        busy: true,
+      ),
+    );
+    bool acknowledged = false;
+    try {
+      await (repository as ProfileFileRepository).upload(
+        subject,
+        kept.form!.profileType,
+        field.key,
+        file,
+      );
+      acknowledged = true;
+      final form = await repository.fetch(
+        subject,
+        profileType: kept.form!.profileType,
+      );
+      if (isClosed || request != generation) return false;
+      emit(
+        ProfileState(
+          status: form == null
+              ? ProfileStatus.unavailable
+              : ProfileStatus.loaded,
+          subject: subject,
+          form: form,
+          draft: Map.of(kept.draft)..remove(field.key),
+          revision: revision,
+          saved: true,
+        ),
+      );
+      return true;
+    } catch (error) {
+      if (!isClosed && request == generation) {
+        // A successful replacement invalidates the old link, even if refreshing fails.
+        final json = kept.form!.toJson();
+        if (acknowledged) {
+          for (final category in json['categories'] as List) {
+            for (final item in category['fields'] as List) {
+              if (item['key'] == field.key) item['value'] = null;
+            }
+          }
+        }
+        emit(
+          ProfileState(
+            status: kept.status,
+            subject: subject,
+            form: ProfileForm.fromJson(json),
+            draft: acknowledged
+                ? (Map.of(kept.draft)..remove(field.key))
+                : kept.draft,
+            revision: revision,
+            error: _error(error),
+          ),
+        );
+      }
+      return false;
+    }
+  }
+
   Future<bool> save() async {
     if (state.busy || state.form == null || state.draft.isEmpty) return false;
     final kept = state;

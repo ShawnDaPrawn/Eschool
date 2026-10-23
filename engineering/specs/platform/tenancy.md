@@ -52,7 +52,7 @@ Read from the real schema (`information_schema`) on the Phase 0 tip. The lists l
 | Fees | `fees_types`, `fees_classes`, `fees_choiceables`, `fees_paids`, `installment_fees`, `paid_installment_fees`, `payment_transactions` |
 | Communication | `announcements`, `notifications`, `user_notifications`, `chat_rooms`, `chat_members`, `chat_messages`, `chat_files`, `read_messages`, `email_tempalates` |
 | Calendar, gallery and website | `events`, `multiple_events`, `medias`, `media_files`, `sliders`, `web_settings`, `faqs`, `contact_us` |
-| Configuration | `form_fields` |
+| Configuration | `form_fields`, `profile_field_categories`, `profile_field_definitions`, `profile_field_values`, `profile_files` |
 
 Child rows (`lesson_topics`, `chat_files`, `media_files`, `online_exam_question_options` and the like) carry `school_id` too, rather than following their parent: a child row looked up by its own id is then refused across schools by the same scope, with no join to remember. `learner_invitations` is the one model without the scope: an invitation is found by its secret token or code on the public set-up page, before anyone knows the school, and is always created with the school set.
 

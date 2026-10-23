@@ -521,5 +521,9 @@
   "profileType_teacher": "Teacher",
   "profileType_facilitator": "Facilitator",
   "profileType_counsellor": "Counsellor",
-  "profileType_staff": "Staff"
+  "profileType_staff": "Staff",
+  "profileFileUpload": "فائل اپ لوڈ یا تبدیل کریں",
+  "profileFileView": "فائل دیکھیں",
+  "profileFileClear": "محفوظ کرتے وقت فائل ہٹائیں",
+  "profileFileLimit": "PDF، PNG یا JPEG، زیادہ سے زیادہ 5 MB۔"
 }

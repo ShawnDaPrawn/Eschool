@@ -128,6 +128,10 @@ const String profileNotProvidedKey = 'profileNotProvided';
 const String profileSaveKey = 'profileSave';
 const String profileSavedKey = 'profileSaved';
 const String profileReloadKey = 'profileReload';
+const String profileFileUploadKey = 'profileFileUpload';
+const String profileFileViewKey = 'profileFileView';
+const String profileFileClearKey = 'profileFileClear';
+const String profileFileLimitKey = 'profileFileLimit';
 const String profileDiscardKey = 'profileDiscard';
 const String profileDiscardHintKey = 'profileDiscardHint';
 
@@ -245,6 +249,10 @@ const List<String> sharedLabelKeys = [
   'profileSave',
   'profileSaved',
   'profileReload',
+  'profileFileUpload',
+  'profileFileView',
+  'profileFileClear',
+  'profileFileLimit',
   'profileDiscard',
   'profileDiscardHint',
   'profileType_learner',

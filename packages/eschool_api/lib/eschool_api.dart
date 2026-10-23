@@ -54,6 +54,7 @@ export 'package:eschool_api/src/model/notification_rule.dart';
 export 'package:eschool_api/src/model/notification_type_preference.dart';
 export 'package:eschool_api/src/model/notification_type_preference_channels.dart';
 export 'package:eschool_api/src/model/pagination.dart';
+export 'package:eschool_api/src/model/profile_attachment.dart';
 export 'package:eschool_api/src/model/profile_category_definition.dart';
 export 'package:eschool_api/src/model/profile_category_response.dart';
 export 'package:eschool_api/src/model/profile_configuration_response.dart';

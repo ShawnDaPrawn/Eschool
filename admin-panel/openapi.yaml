@@ -96,6 +96,104 @@ tags:
   - name: Platform
     description: Who is signed in and the school they work in.
 paths:
+  /me/profile/fields/{field}/file:
+    post:
+      operationId: uploadMyProfileFile
+      tags: [Platform]
+      summary: Upload a private attachment to an editable profile field
+      description: PDF, PNG or JPEG up to 5 MB. The upload is encrypted and returns no private metadata; refresh the profile to read permitted metadata.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - name: field
+        in: path
+        required: true
+        schema:
+          type: string
+          pattern: '^[a-z][a-z0-9_]{0,63}$'
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [profile_type, document]
+              properties:
+                profile_type:
+                  type: string
+                document:
+                  type: string
+                  format: binary
+      responses:
+        '200':
+          description: The encrypted attachment was stored.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProfileSavedResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+  /people/{person}/profile/fields/{field}/file:
+    post:
+      operationId: uploadPersonProfileFile
+      tags: [Platform]
+      summary: Upload a private attachment to an editable profile field
+      description: PDF, PNG or JPEG up to 5 MB. The upload is encrypted and returns no private metadata; refresh the profile to read permitted metadata.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - name: person
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      - name: field
+        in: path
+        required: true
+        schema:
+          type: string
+          pattern: '^[a-z][a-z0-9_]{0,63}$'
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [profile_type, document]
+              properties:
+                profile_type:
+                  type: string
+                document:
+                  type: string
+                  format: binary
+      responses:
+        '200':
+          description: The encrypted attachment was stored.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProfileSavedResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
   /schools/{school}/my-school:
     get:
       operationId: getMySchool
@@ -2107,6 +2205,25 @@ components:
           type: string
         category_label:
           type: string
+    ProfileAttachment:
+      type: object
+      additionalProperties: false
+      required: [id, name, mime, size, url]
+      properties:
+        id:
+          type: string
+          description: Opaque attachment identifier with its extension.
+        name:
+          type: string
+        mime:
+          type: string
+        size:
+          type: integer
+          minimum: 0
+        url:
+          type: string
+          format: uri
+          description: Authenticated asset URL. It requires the same person, field and school rights on every read.
     ProfileValue:
       type: object
       additionalProperties: false
@@ -2123,6 +2240,9 @@ components:
         clear:
           type: boolean
           description: True clears an optional value; omit for other values.
+        file:
+          $ref: '#/components/schemas/ProfileAttachment'
+          description: Read-only metadata; uploads use the file action, and clear removes the current reference.
       minProperties: 1
       maxProperties: 1
       description: Exactly one value member. Numbers and dates use text to preserve precision

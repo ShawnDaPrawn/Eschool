@@ -1819,5 +1819,13 @@
     "Manage term dates": "Manage term dates",
     "School document published.": "School document published.",
     "School document unlisted.": "School document unlisted.",
-    "nav_school_information": "School information"
+    "nav_school_information": "School information",
+    "Upload or replace file": "Upload or replace file",
+    "View file": "View file",
+    "Remove file when saving": "Remove file when saving",
+    "PDF, PNG or JPEG, up to 5 MB.": "PDF, PNG or JPEG, up to 5 MB.",
+    "File saved. Other profile edits are still unsaved.": "File saved. Other profile edits are still unsaved.",
+    "The file could not be saved. Please try again.": "The file could not be saved. Please try again.",
+    "File saved. Refresh the profile to view it.": "File saved. Refresh the profile to view it.",
+    "File": "File"
 }

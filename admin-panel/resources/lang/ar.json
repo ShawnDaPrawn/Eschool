@@ -1712,5 +1712,13 @@
     "My school uses the terms in the current school year.": "تعرض مدرستي الفصول الدراسية للسنة الدراسية الحالية.",
     "Manage term dates": "إدارة مواعيد الفصول الدراسية",
     "School document published.": "تم نشر مستند المدرسة.",
-    "School document unlisted.": "تمت إزالة مستند المدرسة من القائمة."
+    "School document unlisted.": "تمت إزالة مستند المدرسة من القائمة.",
+    "Upload or replace file": "رفع ملف أو استبداله",
+    "View file": "عرض الملف",
+    "Remove file when saving": "إزالة الملف عند الحفظ",
+    "PDF, PNG or JPEG, up to 5 MB.": "PDF أو PNG أو JPEG، حتى 5 ميغابايت.",
+    "File saved. Other profile edits are still unsaved.": "تم حفظ الملف. لم تُحفظ تعديلات الملف الشخصي الأخرى بعد.",
+    "The file could not be saved. Please try again.": "تعذر حفظ الملف. يرجى المحاولة مرة أخرى.",
+    "File saved. Refresh the profile to view it.": "تم حفظ الملف. حدّث الملف الشخصي لعرضه.",
+    "File": "ملف"
 }
