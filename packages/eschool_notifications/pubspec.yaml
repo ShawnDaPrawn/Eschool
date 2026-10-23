@@ -11,6 +11,8 @@ dependencies:
     sdk: flutter
   awesome_notifications: ^0.12.1
   equatable: ^2.0.8
+  eschool_api:
+    path: ../eschool_api
   eschool_core:
     path: ../eschool_core
   eschool_session:

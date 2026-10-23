@@ -68,12 +68,15 @@
                                 </div>
                                 <div class="form-group col-12 col-sm-6">
                                     <label>{{ __('title') }} <span class="text-danger">*</span></label>
-                                    <input name="title" type="text" placeholder="{{ __('title') }}"
+                                    <input name="title" maxlength="128" type="text" placeholder="{{ __('title') }}"
                                         class="form-control" />
                                 </div>
                                 <div class="form-group col-12">
                                     <label>{{ __('message') }} <span class="text-danger">*</span></label>
-                                    <textarea name="message" cols="10" rows="3" placeholder="{{ __('message') }}" class="form-control"></textarea>
+                                    <textarea name="message" maxlength="128" cols="10" rows="3" placeholder="{{ __('message') }}" class="form-control"></textarea>
+                                </div>
+                                <div class="form-group col-12">
+                                    <label><input type="checkbox" name="urgent" value="1"> {{ __('Urgent notice (required for recipients)') }}</label>
                                 </div>
                                 <div class="form-group col-12">
                                     <label>{{ __('image') }}</label>

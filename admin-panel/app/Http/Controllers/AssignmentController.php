@@ -17,9 +17,9 @@ use App\Models\SessionYear;
 use App\Models\Students;
 use App\Models\StudentSubject;
 use App\Models\Subject;
-use App\Models\UserNotification;
 use App\Rules\AfterNow;
 use App\Services\Platform\Files\FileNames;
+use App\Services\Platform\Notifications\Notifier;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
@@ -255,15 +255,9 @@ class AssignmentController extends Controller
             $notification->is_custom = 0;
             $notification->save();
 
-            foreach ($user as $data) {
-                $user_notification = new UserNotification;
-                $user_notification->notification_id = $notification->id;
-                $user_notification->user_id = $data;
-                $user_notification->save();
-            }
+            app(Notifier::class)->assign($notification, $user);
 
             $assignment->save();
-            sendSimpleNotification($user, $title, $body, $type, $image, $userinfo);
 
             if ($request->hasFile('file')) {
                 foreach ($request->file as $file_upload) {
@@ -385,15 +379,9 @@ class AssignmentController extends Controller
             $notification->is_custom = 0;
             $notification->save();
 
-            foreach ($user as $data) {
-                $user_notification = new UserNotification;
-                $user_notification->notification_id = $notification->id;
-                $user_notification->user_id = $data;
-                $user_notification->save();
-            }
+            app(Notifier::class)->assign($notification, $user);
 
             $assignment->save();
-            sendSimpleNotification($user, $title, $body, $type, $image, $userinfo);
 
             if ($request->hasFile('file')) {
                 foreach ($request->file as $file_upload) {
@@ -722,14 +710,8 @@ class AssignmentController extends Controller
             $notification->is_custom = 0;
             $notification->save();
 
-            foreach ($user as $data) {
-                $user_notification = new UserNotification;
-                $user_notification->notification_id = $notification->id;
-                $user_notification->user_id = $data;
-                $user_notification->save();
-            }
+            app(Notifier::class)->assign($notification, $user);
 
-            sendSimpleNotification($user, $title, $body, $type, $image, $userinfo);
             $response = [
                 'error' => false,
                 'message' => trans('data_update_successfully'),

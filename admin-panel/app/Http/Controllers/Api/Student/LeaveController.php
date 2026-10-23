@@ -13,8 +13,8 @@ use App\Models\LeaveDetail;
 use App\Models\Notification;
 use App\Models\StudentSessions;
 use App\Models\Teacher;
-use App\Models\UserNotification;
 use App\Services\Platform\Files\FileNames;
+use App\Services\Platform\Notifications\Notifier;
 use App\Services\ResponseService;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
@@ -121,17 +121,7 @@ class LeaveController extends Controller
             $notification->is_custom = 0;
             $notification->save();
 
-            foreach ($user as $data) {
-                $user_notification = new UserNotification;
-                $user_notification->notification_id = $notification->id;
-                $user_notification->user_id = $data;
-                $user_notification->save();
-            }
-
-            try {
-                sendSimpleNotification($user, $title, $body, $type, $image, $userinfo);
-            } catch (\Exception $e) {
-            }
+            app(Notifier::class)->assign($notification, $user);
 
             return ResponseService::successResponse('Data Stored Successfully', $leave ?? '');
         } catch (\Throwable $e) {

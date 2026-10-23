@@ -599,6 +599,81 @@ paths:
                   enum:
                   - approve
                   - reject
+  /me/notification-preferences:
+    get:
+      operationId: getMyNotificationPreferences
+      tags:
+      - Platform
+      summary: Read your notice preferences and required channels
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      responses:
+        '200':
+          description: The operation succeeded.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NotificationPreferencesResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+    put:
+      operationId: updateMyNotificationPreferences
+      tags:
+      - Platform
+      summary: Change an optional notification channel
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      responses:
+        '200':
+          description: The operation succeeded.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NotificationPreferencesResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              required:
+              - type
+              - channel
+              - enabled
+              properties:
+                type:
+                  type: string
+                channel:
+                  type: string
+                  enum:
+                  - push
+                  - email
+                  - in_app
+                enabled:
+                  type: boolean
 components:
   securitySchemes:
     bearerAuth:
@@ -1281,6 +1356,71 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/GuardianHandleProposal'
+        code:
+          type: integer
+          description: Always 200.
+    NotificationChannelPreference:
+      type: object
+      additionalProperties: false
+      required:
+      - enabled
+      - locked
+      - reason
+      properties:
+        enabled:
+          type: boolean
+        locked:
+          type: boolean
+        reason:
+          type:
+          - string
+          - 'null'
+    NotificationTypePreference:
+      type: object
+      additionalProperties: false
+      required:
+      - type
+      - label
+      - module
+      - channels
+      properties:
+        type:
+          type: string
+        label:
+          type: string
+        module:
+          type:
+          - string
+          - 'null'
+        channels:
+          type: object
+          additionalProperties: false
+          required: []
+          properties:
+            push:
+              $ref: '#/components/schemas/NotificationChannelPreference'
+            email:
+              $ref: '#/components/schemas/NotificationChannelPreference'
+            in_app:
+              $ref: '#/components/schemas/NotificationChannelPreference'
+    NotificationPreferencesResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - data
+      - code
+      properties:
+        error:
+          type: boolean
+          description: Always false.
+        message:
+          type: string
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/NotificationTypePreference'
         code:
           type: integer
           description: Always 200.

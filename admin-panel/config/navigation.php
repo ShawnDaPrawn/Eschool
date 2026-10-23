@@ -332,6 +332,8 @@ return [
                     'items' => [
                         ['key' => 'school-modules', 'label' => 'nav_school_modules', 'route' => 'school-modules.index', 'permissions' => ['setting-create'], 'module' => null,
                             'keywords' => ['features', 'switch', 'package', 'enabled modules']],
+                        ['key' => 'notification-rules', 'label' => 'nav_notification_rules', 'route' => 'notification-rules.index', 'permissions' => ['setting-create'], 'module' => null,
+                            'keywords' => ['mandatory notices', 'email', 'push', 'notification settings']],
                         ['key' => 'school-profile', 'label' => 'nav_school_profile', 'url' => 'settings', 'permissions' => ['setting-create'], 'module' => null,
                             'active' => ['settings'], 'keywords' => ['general settings', 'school name', 'logo', 'address', 'time zone', 'date format', 'school details']],
                         ['key' => 'app-settings', 'label' => 'nav_app_settings', 'url' => 'app-settings', 'permissions' => ['setting-create'], 'module' => null,

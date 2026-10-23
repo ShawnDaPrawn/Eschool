@@ -63,7 +63,7 @@ class ContextTest extends TestCase
                 'start_date' => $this->school->today(-120)->toDateString(), 'end_date' => $this->school->today(60)->toDateString(), 'current' => true,
             ]])
             ->assertJsonPath('data.modules.0.key', 'school')
-            ->assertJsonPath('data.notification_rules', [])
+            ->assertJsonPath('data.notification_rules.0.type', 'account.verify_email')
             ->assertJsonPath('data.sign_in_methods', ['password'])
             ->assertJsonPath('data.children', []);
 
@@ -158,8 +158,8 @@ class ContextTest extends TestCase
 
         $this->assertSame($oneChild, $twoChildren, 'The number of queries grows with the number of children');
         // One additional fixed query loads the school's module switches.
-        $this->assertLessThanOrEqual(12, $twoChildren, "A parent's context takes $twoChildren queries, more than budgeted");
-        $this->assertLessThanOrEqual(9, $teacher, "A teacher's context takes $teacher queries, more than budgeted");
+        $this->assertLessThanOrEqual(13, $twoChildren, "A parent's context takes $twoChildren queries, more than budgeted");
+        $this->assertLessThanOrEqual(10, $teacher, "A teacher's context takes $teacher queries, more than budgeted");
     }
 
     private function queriesFor(string $person): int

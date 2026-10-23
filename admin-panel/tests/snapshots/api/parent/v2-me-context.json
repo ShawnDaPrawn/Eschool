@@ -63,7 +63,13 @@
                     "read_only": "bool"
                 }
             ],
-            "notification_rules": [],
+            "notification_rules": [
+                {
+                    "channel": "string",
+                    "mode": "string",
+                    "type": "string"
+                }
+            ],
             "schools": [
                 {
                     "roles": [

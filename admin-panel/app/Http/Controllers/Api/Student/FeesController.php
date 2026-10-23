@@ -17,12 +17,13 @@ use App\Models\PaymentTransaction;
 use App\Models\SessionYear;
 use App\Models\StudentSessions;
 use App\Models\User;
-use App\Models\UserNotification;
 use App\Services\Payment\FeesPaymentService;
 use App\Services\Payment\PaymentService;
+use App\Services\Platform\Identity\GuardianService;
 use App\Services\Platform\Ledger\CentsColumns;
 use App\Services\Platform\Ledger\LegacyAmount;
 use App\Services\Platform\Ledger\Money;
+use App\Services\Platform\Notifications\Notifier;
 use App\Services\ResponseService;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Carbon\Carbon;
@@ -435,14 +436,7 @@ class FeesController extends Controller
             $notification->date = Carbon::now();
             $notification->is_custom = 0;
             $notification->save();
-            foreach ($user as $data) {
-                $user_notification = new UserNotification;
-                $user_notification->notification_id = $notification->id;
-                $user_notification->user_id = $data;
-                $user_notification->save();
-            }
-
-            sendSimpleNotification($user, 'Payment Failed', $body, $type, $image, $userinfo);
+            app(Notifier::class)->assign($notification, $user);
 
             return ResponseService::successResponse('Data Updated Successfully');
         } catch (Throwable $e) {
@@ -461,7 +455,7 @@ class FeesController extends Controller
                 $student->guardian_id ?? '',
             ];
 
-            $user = Parents::whereIn('id', $parent)->pluck('user_id');
+            $user = app(GuardianService::class)->guardianUserIds($student, true);
 
             $title = 'Fees are dues';
             $body = $student->user->first_name.' '.$student->user->last_name.' '.'wants to keep learning! Please pay the overdue fees as soon as possible.';
@@ -480,9 +474,9 @@ class FeesController extends Controller
             $notification->type = $type;
             $notification->date = Carbon::now();
             $notification->is_custom = 0;
+            $notification->delivery_payload = ['child_id' => (string) $student->id];
             $notification->save();
-
-            sendSimpleNotification($user, $title, $body, $type, $image, $userinfo);
+            app(Notifier::class)->assign($notification, $user);
 
             return ResponseService::successResponse('Notification Send Successfully', null);
         } catch (Throwable $e) {

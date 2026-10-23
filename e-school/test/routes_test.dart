@@ -98,6 +98,16 @@ void main() {
     expect(open(Routes.academicCalendar), isA<PageRoute<dynamic>>());
   });
 
+  test('notification actions resolve to guarded feature routes', () {
+    final parser = DeepLinkParser(routes: deepLinkRoutes);
+    expect(parser.parsePath('/handles'), const DeepLinkTarget(Routes.handles));
+    expect(
+      parser.parsePath('/chat'),
+      const DeepLinkTarget(Routes.chatUserPage),
+    );
+    expect(open(Routes.chatUserPage), isA<PageRoute<dynamic>>());
+  });
+
   group('deep links', () {
     final parser = DeepLinkParser(routes: deepLinkRoutes);
 

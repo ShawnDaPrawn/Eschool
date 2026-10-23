@@ -4,19 +4,23 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Platform;
 
+use App\Jobs\Platform\FanoutNotification;
 use App\Jobs\Platform\SendMail;
 use App\Jobs\Platform\SendPush;
 use App\Mail\Platform\TemplateMail;
 use App\Models\EmailTemplate;
 use App\Models\Platform\NotificationDelivery;
 use App\Models\Platform\School;
+use App\Models\SessionYear;
 use App\Models\Settings;
 use App\Models\User;
 use App\Services\EmailTemplateService;
 use App\Services\MailService;
+use App\Services\Platform\Events\Outbox;
 use App\Services\Platform\Notifications\DeliveryLog;
 use App\Services\Platform\Notifications\FcmClient;
 use App\Services\Platform\Tenancy\CurrentSchool;
+use App\Services\Platform\Tenancy\SchoolRoles;
 use Illuminate\Contracts\Queue\ShouldBeEncrypted;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Http;
@@ -205,16 +209,19 @@ class QueuedDeliveryTest extends TestCase
 
         sendSimpleNotification([$android->id, $ios->id, $none->id], 'New message', 'Hello', 'chat', null, ['id' => 7]);
 
+        $this->deliverFanout();
+
         $data = [
             'click_action' => 'FLUTTER_NOTIFICATION_CLICK',
             'title' => 'New message',
             'body' => 'Hello',
             'type' => 'chat',
-            'image' => null,
+            'image' => '',
+            'school_id' => '1', 'link' => '/chat', 'notice_type' => 'comms.message',
             'sender_info' => json_encode(['id' => 7]),
         ];
         $messages = Queue::pushed(SendPush::class)->map->message->sortBy(fn ($m) => $m['message']['token'])->values()->all();
-        $this->assertSame([
+        $this->assertEquals([
             ['message' => ['token' => 'token-android', 'data' => $data]],
             ['message' => ['token' => 'token-ios', 'notification' => ['title' => 'New message', 'body' => 'Hello'], 'data' => $data]],
         ], $messages);
@@ -226,30 +233,39 @@ class QueuedDeliveryTest extends TestCase
         $this->assertStringNotContainsString('token-android', json_encode($rows->toArray()));
     }
 
-    public function test_topic_pushes_queue_one_job_per_topic(): void
+    public function test_broadcast_content_uses_active_recipients_instead_of_unfilterable_topics(): void
     {
         Queue::fake();
-
+        $parent = $this->userWithDevice('android', 'only-this-parent');
         sendNotificationToTopic('Notice', 'School closes early', 'custom', null, 'all');
+        $this->deliverFanout();
 
-        // School 1: its own topics, and the names installed apps subscribed to before Phase 1.
-        $messages = Queue::pushed(SendPush::class)->mapWithKeys(fn (SendPush $job) => [$job->message['message']['topic'] => $job->message['message']])->sortKeys();
-        $this->assertSame(['allAndroid', 'allIOS', 'school_1_all_android', 'school_1_all_ios'], $messages->keys()->all());
-        $this->assertArrayNotHasKey('notification', $messages['school_1_all_android']);
-        $this->assertSame('School closes early', $messages['school_1_all_ios']['notification']['body']);
-        $this->assertSame(4, NotificationDelivery::whereNull('recipient_user_id')->where('type', 'push.custom')->count());
+        Queue::assertPushed(SendPush::class, 1);
+        Queue::assertPushed(SendPush::class, fn ($job) => ($job->message['message']['token'] ?? null) === 'only-this-parent'
+            && ! isset($job->message['message']['topic']));
+        $this->assertSame([$parent->id], NotificationDelivery::where('type', 'push.custom')->pluck('recipient_user_id')->all());
     }
 
-    public function test_another_schools_topic_pushes_go_only_to_its_own_topics(): void
+    public function test_another_school_broadcast_never_reaches_the_default_school_devices(): void
     {
         School::query()->forceCreate(['id' => 2, 'name' => 'Baobab High', 'slug' => 'baobab-high', 'timezone' => 'Africa/Johannesburg']);
+        app(SchoolRoles::class)->seed(2);
+        $this->userWithDevice('android', 'school-one');
+        $parent = app(CurrentSchool::class)->run(2, function () {
+            $year = SessionYear::forceCreate(['name' => 'School B year', 'default' => 1, 'start_date' => '2026-01-01', 'end_date' => '2026-12-31']);
+            Settings::forceCreate(['type' => 'session_year', 'message' => $year->id]);
+
+            return $this->userWithDevice('ios', 'school-two');
+        });
         Queue::fake();
-
         app(CurrentSchool::class)->run(2, fn () => sendNotificationToTopic('Notice', 'Sports day', 'custom', null, 'parents'));
+        $this->deliverFanout();
 
-        $topics = Queue::pushed(SendPush::class)->map(fn (SendPush $job) => $job->message['message']['topic'])->sort()->values()->all();
-        $this->assertSame(['school_2_parents_android', 'school_2_parents_ios'], $topics);
-        $this->assertSame([2, 2], NotificationDelivery::query()->where('type', 'push.custom')->pluck('school_id')->map(fn ($id) => (int) $id)->all());
+        Queue::assertPushed(SendPush::class, 1);
+        Queue::assertPushed(SendPush::class, fn ($job) => $job->message['message']['token'] === 'school-two'
+            && $job->message['message']['data']['school_id'] === '2');
+        $this->assertSame([$parent->id], NotificationDelivery::where('type', 'push.custom')->pluck('recipient_user_id')->all());
+        $this->assertSame([2], NotificationDelivery::where('type', 'push.custom')->pluck('school_id')->all());
     }
 
     public function test_a_push_is_sent_to_fcm_and_recorded_with_its_message_id(): void
@@ -264,7 +280,7 @@ class QueuedDeliveryTest extends TestCase
             && $request->hasHeader('Authorization', 'Bearer test-access-token')
             && $request['message']['token'] === 'token-android'
             && $request['message']['data']['type'] === 'attendance');
-        $row = NotificationDelivery::sole();
+        $row = NotificationDelivery::where('channel', 'push')->sole();
         $this->assertSame('sent', $row->status);
         $this->assertSame('fcm', $row->provider);
         $this->assertSame('projects/demo/messages/0:123', $row->provider_message_id);
@@ -359,7 +375,7 @@ class QueuedDeliveryTest extends TestCase
         static $n = 0;
         $n++;
 
-        return User::create([
+        $user = User::create([
             'first_name' => 'Device',
             'last_name' => 'User'.$n,
             'email' => "device{$n}@example.org",
@@ -371,6 +387,17 @@ class QueuedDeliveryTest extends TestCase
             'device_type' => $deviceType,
             'status' => 1,
         ]);
+        $user->assignRole('Parent');
+
+        return $user;
+    }
+
+    private function deliverFanout(): void
+    {
+        Outbox::dispatchPending();
+        foreach (Queue::pushed(FanoutNotification::class) as $job) {
+            app()->call([$job, 'handle']);
+        }
     }
 
     private function fakeFcmCredentials(): void

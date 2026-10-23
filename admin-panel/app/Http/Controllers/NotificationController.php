@@ -6,11 +6,15 @@ namespace App\Http\Controllers;
 
 use App\Models\Notification;
 use App\Models\User;
-use App\Models\UserNotification;
 use App\Services\Platform\Files\FileNames;
+use App\Services\Platform\Notifications\Notifier;
+use App\Services\Platform\Tenancy\CurrentSchool;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\File;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
 use Throwable;
 
@@ -119,8 +123,10 @@ class NotificationController extends Controller
         $validator = Validator::make($request->all(), [
             'send_to' => 'required|array|min:1',
             'send_to.*' => 'integer|in:1,3,4,5',
-            'title' => 'required',
-            'message' => 'required',
+            'title' => 'required|string|max:128',
+            'message' => 'required|string|max:128',
+            'urgent' => 'sometimes|boolean',
+            'image' => 'nullable|image|mimes:jpg,jpeg,png,webp|max:5120',
             'user_id' => 'array',
             'user_id.*' => 'integer',
         ]);
@@ -147,9 +153,11 @@ class NotificationController extends Controller
                 ]);
             }
 
-            $type = 'custom';
-            $image = null;
-            $userinfo = $isBroadcast ? 'all' : 'specific';
+            if (! $isBroadcast && User::query()->whereIn('id', $userIds)->count() !== count($userIds)) {
+                return response()->json(['error' => true, 'message' => trans('no_permission_message')]);
+            }
+
+            $type = $request->boolean('urgent') ? 'comms.urgent' : 'custom';
 
             $notification = new Notification;
             $notification->send_to = $isBroadcast ? 1 : 2;
@@ -165,38 +173,21 @@ class NotificationController extends Controller
                 // made file name with combination of current time
                 $file_name = time().'-'.FileNames::forUpload($notification_image);
                 // made file path to store in database
-                $file_path = 'notifications/'.$file_name;
+                $file_path = app(CurrentSchool::class)->storagePath('notifications/'.$file_name);
                 // resized image
                 resizeImage($notification_image);
                 // stored image to storage/public/parents folder
-                $destinationPath = storage_path('app/public/notifications');
+                $destinationPath = Storage::disk('public')->path(app(CurrentSchool::class)->storagePath('notifications'));
+                File::ensureDirectoryExists($destinationPath);
                 $notification_image->move($destinationPath, $file_name);
                 // saved file path to database
                 $notification->image = $file_path;
-                $image = asset('storage/'.$file_path);
             }
 
-            $title = $request->title;
-            $body = $request->message;
-            $type = $type;
-            $notification->save();
-
-            // Only save individual user notifications for specific users
-            if (! $isBroadcast) {
-                foreach ($userIds as $data) {
-                    $user_notification = new UserNotification;
-                    $user_notification->notification_id = $notification->id;
-                    $user_notification->user_id = $data;
-                    $user_notification->save();
-                }
-            }
-
-            // Selected users got the list entry but never a push.
-            if ($isBroadcast) {
-                sendNotificationToTopic($title, $body, $type, $image, $userinfo);
-            } else {
-                sendSimpleNotification($userIds, $title, $body, $type, $image, $userinfo);
-            }
+            DB::transaction(function () use ($notification, $isBroadcast, $userIds) {
+                $notification->save();
+                app(Notifier::class)->assign($notification, $isBroadcast ? null : $userIds);
+            });
 
             $response = [
                 'error' => false,

@@ -42,11 +42,16 @@ lib/src/model/handle_proposal.dart
 lib/src/model/handle_state.dart
 lib/src/model/handle_state_response.dart
 lib/src/model/module.dart
+lib/src/model/notification_channel_preference.dart
+lib/src/model/notification_preferences_response.dart
 lib/src/model/notification_rule.dart
+lib/src/model/notification_type_preference.dart
+lib/src/model/notification_type_preference_channels.dart
 lib/src/model/pagination.dart
 lib/src/model/school_membership.dart
 lib/src/model/school_summary.dart
 lib/src/model/session_year.dart
 lib/src/model/set_my_handle_request.dart
 lib/src/model/term.dart
+lib/src/model/update_my_notification_preferences_request.dart
 lib/src/model/validation_errors.dart

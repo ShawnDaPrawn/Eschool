@@ -91,6 +91,14 @@ class DeliveryLog
         }
     }
 
+    public static function suppressed(?NotificationDelivery $row): void
+    {
+        if ($row) {
+            $row->forceFill(['status' => 'suppressed', 'error_summary' => 'Recipient access, destination or notification choice changed.'])->save();
+            self::metric($row);
+        }
+    }
+
     public static function sent(?NotificationDelivery $row, string $provider, ?string $providerMessageId): void
     {
         if (! $row) {

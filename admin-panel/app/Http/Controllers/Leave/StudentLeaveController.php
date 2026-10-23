@@ -17,7 +17,7 @@ use App\Models\SessionYear;
 use App\Models\Staff;
 use App\Models\Students;
 use App\Models\Teacher;
-use App\Models\UserNotification;
+use App\Services\Platform\Notifications\Notifier;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -449,13 +449,8 @@ class StudentLeaveController extends Controller
                 $notification->is_custom = 0;
                 $notification->save();
 
-                foreach ($user as $data) {
-                    $user_notification = new UserNotification;
-                    $user_notification->notification_id = $notification->id;
-                    $user_notification->user_id = $data;
-                    $user_notification->save();
-                }
-                sendSimpleNotification($user, $title, $body, $type, $image, $userinfo);
+                app(Notifier::class)->assign($notification, $user);
+
             } elseif ($request->status == 2) {
                 if ($request->reason) {
                     $leave->reason_of_rejection = $request->reason;
@@ -474,13 +469,8 @@ class StudentLeaveController extends Controller
                 $notification->is_custom = 0;
                 $notification->save();
 
-                foreach ($user as $data) {
-                    $user_notification = new UserNotification;
-                    $user_notification->notification_id = $notification->id;
-                    $user_notification->user_id = $data;
-                    $user_notification->save();
-                }
-                sendSimpleNotification($user, $title, $body, $type, $image, $userinfo);
+                app(Notifier::class)->assign($notification, $user);
+
             }
 
             $leave->save();

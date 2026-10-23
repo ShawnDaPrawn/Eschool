@@ -1,6 +1,6 @@
 # Appendix B: module and notification catalogues
 
-The modules and notification types NavigateEd's registries hold, phase by phase. The registries in code will be `admin-panel/config/modules.php` and `admin-panel/config/notification_types.php`, both arriving in Phase 1. This page lists only what exists in the code; the planned catalogues are kept in the private Build Bible (Appendix B) and entries are added here when a phase builds them.
+The modules and notification types NavigateEd's registries hold, phase by phase. The registries in code will be `admin-panel/config/modules.php` and `admin-panel/config/notification_types.php`, introduced in Phase 1. This page lists only what exists in the code; the planned catalogues are kept in the private Build Bible (Appendix B) and entries are added here when a phase builds them.
 
 ## Phase 1 module registry
 
@@ -9,9 +9,24 @@ Implemented entries: `school`, `people`, `academics`, `communication` (required)
 and `web_teacher`. Chat, online exams and portals default on. Explicitly
 packaged new schools start fees, cards and intake off; upgraded schools keep
 their seed features. Fees with retained records become read-only when disabled.
-Package entitlement is separate from a school's switch. The notification-type
-registry remains outstanding.
+Package entitlement is separate from a school's switch. The notification registry and delivery path are described below.
 
 ## Phase 0
 
 Phase 0 added no module and no notification type: `config/modules.php` and `config/notification_types.php` arrive in Phase 1. The web builds of both apps shipped without a switch; `web_<portal>` (one switch per portal, default on) is the first entry of Phase 1's module registry. The queued mail and push jobs of Phase 0 (`SendMail`, `SendPush`) carry the existing notifications unchanged and record each attempt in `notification_deliveries`; the notification types and their rules attach to them in Phase 1.
+
+## Phase 1 notification registry
+
+Account verification, password reset, invitation and sign-in links require
+email. New-device notices, learner and handle approval requests, consent
+requests and urgent school notices require their offered channels. Parents'
+absence alerts are required. Optional school notices and direct messages
+default push/in-app on and email off; assignment, submission, content, marks
+and reports use the same defaults on their offered portals. Fees invoices,
+reminders and receipts default email on as well. Future safeguarding alerts
+remain unavailable until their module and permission are implemented.
+
+The registry is `config/notification_types.php`. Schools control optional
+portal/channel modes, humans control their optional choices, and `Notifier`
+enforces module availability, current access and precedence before delivery.
+The [specification](../specs/platform/notification-rules.md) records semantics.
