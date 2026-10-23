@@ -2,8 +2,11 @@
 
 use App\Console\Commands\FlagDobPasswords;
 use App\Jobs\Platform\DispatchOutbox;
+use App\Models\People\Enrolment;
 use App\Models\Platform\IdempotencyKey;
 use App\Models\Platform\School;
+use App\Models\Settings;
+use App\Services\People\EnrolmentService;
 use App\Services\Platform\Identity\GuardianInvitations;
 use App\Services\Platform\Tenancy\CurrentSchool;
 use Illuminate\Foundation\Inspiring;
@@ -48,3 +51,19 @@ Schedule::call(function () {
         app(CurrentSchool::class)->run((int) $school->id, fn () => app(GuardianInvitations::class)->remind());
     });
 })->dailyAt('08:00')->name('guardian-invitation-reminders')->withoutOverlapping();
+
+// One daily refresh per school's timezone, triggered every minute so a
+// school's midnight does not depend on the scheduler's own timezone.
+Schedule::call(function () {
+    School::query()->active()->each(function ($school) {
+        app(CurrentSchool::class)->run((int) $school->id, function () use ($school) {
+            $today = now($school->timezone)->toDateString();
+            if (schoolSetting('enrolment_projection_date') === $today) {
+                return;
+            }
+            Enrolment::query()->select(['learner_id', 'session_year_id'])->distinct()->get()
+                ->each(fn ($entry) => app(EnrolmentService::class)->syncProjection((int) $entry->learner_id, (int) $entry->session_year_id));
+            Settings::query()->updateOrCreate(['type' => 'enrolment_projection_date'], ['message' => $today]);
+        });
+    });
+})->everyMinute()->name('enrolment-projections')->withoutOverlapping();

@@ -11,6 +11,16 @@ use Illuminate\Auth\Access\Response;
 
 class LearnerAccessPolicy
 {
+    public function viewEnrolments(User $user, Students $learner): bool
+    {
+        return $user->hasRole('Super Admin') || (! $user->hasAnyRole(['Student', 'Parent', 'Teacher']) && $user->can('student-list'));
+    }
+
+    public function manageEnrolments(User $user, Students $learner): bool
+    {
+        return $user->hasRole('Super Admin') || (! $user->hasAnyRole(['Student', 'Parent', 'Teacher']) && $user->can('student-edit'));
+    }
+
     public function approveAccess(User $user, Students $learner): Response
     {
         if (! $user->hasRole('Parent') || (int) $user->status !== 1 || $user->email_verified_at === null) {

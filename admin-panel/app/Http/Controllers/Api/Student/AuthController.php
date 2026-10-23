@@ -17,6 +17,7 @@ use App\Models\User;
 use App\Services\Platform\Identity\AppTokens;
 use App\Services\Platform\Identity\DateOfBirthPasswords;
 use App\Services\Platform\Identity\PortalSession;
+use App\Services\Platform\Identity\StudentNumbers;
 use App\Services\ResponseService;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
@@ -57,7 +58,8 @@ class AuthController extends Controller
 
         $current_date = Carbon::now()->toDateString();
 
-        if (Auth::attempt(['email' => $request->gr_number, 'password' => $request->password])) {
+        $identity = app(StudentNumbers::class)->resolveLogin((string) $request->gr_number);
+        if ($identity !== null && Auth::attempt(['id' => $identity->id, 'password' => $request->password])) {
             //        if (Auth::attempt(['email' => $request->email, 'password' => $request->password])) {
             // Here Email Field is referenced as a GR Number for Student
             $auth = Auth::user();

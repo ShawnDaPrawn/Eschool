@@ -134,18 +134,14 @@ class MeChild extends Equatable {
     this.homeroom,
   });
 
-  /// [child] decoded with the generated model. The Phase 1 additions are
-  /// read by hand until `openapi.yaml` describes them (then: use the
-  /// generated fields).
+  /// Decode the additive identity fields through the generated contract.
   factory MeChild.fromJson(Map<String, dynamic> json) {
-    final Object? approved = json['approved'];
-    final Object? studentNumber = json['student_number'];
-    final Object? homeroom = json['homeroom'];
+    final child = Child.fromJson(json);
     return MeChild(
-      child: Child.fromJson(json),
-      studentNumber: studentNumber is String ? studentNumber : null,
-      approved: approved is bool ? approved : null,
-      homeroom: homeroom is String ? homeroom : null,
+      child: child,
+      studentNumber: child.studentNumber,
+      approved: child.approved,
+      homeroom: child.homeroom,
     );
   }
 
@@ -170,6 +166,8 @@ class MeChild extends Equatable {
         lastName: names.skip(1).join(' '),
         name: name,
         image: image == null || image.isEmpty ? null : image,
+        homeroom: homeroom == null || homeroom.isEmpty ? null : homeroom,
+        studentNumber: studentNumber,
         school: SchoolSummary(
           id: schoolId,
           name: schoolName,

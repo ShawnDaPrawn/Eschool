@@ -17,8 +17,13 @@ lib/src/model/child.dart
 lib/src/model/context.dart
 lib/src/model/context_response.dart
 lib/src/model/context_user.dart
+lib/src/model/create_learner_enrolment_request.dart
 lib/src/model/current_school.dart
 lib/src/model/decide_guardian_approval_request.dart
+lib/src/model/enrolment.dart
+lib/src/model/enrolment_list_response.dart
+lib/src/model/enrolment_list_response_data.dart
+lib/src/model/enrolment_response.dart
 lib/src/model/error_code.dart
 lib/src/model/error_response.dart
 lib/src/model/guardian_approval.dart

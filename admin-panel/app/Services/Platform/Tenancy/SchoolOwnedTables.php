@@ -21,7 +21,7 @@ final class SchoolOwnedTables
      * and the model (where there is one) uses BelongsToSchool.
      */
     public const REQUIRED = [
-        'guardian_links', 'learner_approvals', 'guardian_invitations',
+        'enrolments', 'guardian_links', 'learner_approvals', 'guardian_invitations',
         'academic_calendars', 'announcements', 'assignment_submissions', 'assignments', 'attendances',
         'categories', 'chat_files', 'chat_members', 'chat_messages', 'chat_rooms',
         'class_sections', 'class_session_configs', 'class_subjects', 'class_teachers', 'classes',
@@ -66,6 +66,8 @@ final class SchoolOwnedTables
 
     /** Tables that belong to no one school, each with the reason. */
     public const GLOBAL = [
+        'learner_identifiers' => 'one immutable student number per human across schools; accessed by user id under a lock',
+        'platform_counters' => 'platform-wide sequence allocation under a row lock',
         'schools' => 'the schools themselves',
         'school_memberships' => 'the link between a person and a school: carries school_id (not null, foreign key) but is read across schools for one user',
         'users' => 'one row per human across schools; a user belongs to a school through school_memberships',

@@ -56,6 +56,8 @@ class AcademicAuthorizationTest extends TestCase
             ->assertJson(['error' => false]);
 
         $this->assertNull(Students::withTrashed()->find($student->id));
+        $this->assertTrue(User::withTrashed()->findOrFail($student->user_id)->trashed());
+        $this->assertDatabaseHas('learner_identifiers', ['user_id' => $student->user_id, 'student_number' => $student->student_number]);
     }
 
     public function test_teacher_cannot_approve_an_online_registration(): void

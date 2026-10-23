@@ -29,6 +29,12 @@ class Child {
 
     required this.image,
 
+    this.studentNumber,
+
+    this.approved,
+
+    this.homeroom,
+
     required this.school,
   });
 
@@ -51,6 +57,15 @@ class Child {
   @JsonKey(name: r'image', required: true, includeIfNull: true)
   final String? image;
 
+  @JsonKey(name: r'student_number', required: false, includeIfNull: false)
+  final String? studentNumber;
+
+  @JsonKey(name: r'approved', required: false, includeIfNull: false)
+  final bool? approved;
+
+  @JsonKey(name: r'homeroom', required: false, includeIfNull: false)
+  final String? homeroom;
+
   @JsonKey(name: r'school', required: true, includeIfNull: false)
   final SchoolSummary school;
 
@@ -64,6 +79,9 @@ class Child {
           other.lastName == lastName &&
           other.name == name &&
           other.image == image &&
+          other.studentNumber == studentNumber &&
+          other.approved == approved &&
+          other.homeroom == homeroom &&
           other.school == school;
 
   @override
@@ -74,6 +92,9 @@ class Child {
       lastName.hashCode +
       name.hashCode +
       (image == null ? 0 : image.hashCode) +
+      (studentNumber == null ? 0 : studentNumber.hashCode) +
+      approved.hashCode +
+      (homeroom == null ? 0 : homeroom.hashCode) +
       school.hashCode;
 
   factory Child.fromJson(Map<String, dynamic> json) => _$ChildFromJson(json);

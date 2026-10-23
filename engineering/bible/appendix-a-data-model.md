@@ -35,3 +35,12 @@ Not built in Phase 0, by design: a `currency` column per money row (one currency
 
 All three have required indexed school foreign keys and timestamps. The
 migration rolls back before the tenancy migrations in the upgrade rehearsal.
+
+## Phase 1: enrolments and student numbers
+
+| Table or column | Purpose |
+| --- | --- |
+| `enrolments` | School-scoped dated learner/homeroom/year history, reason, previous entry and legacy-date provenance |
+| `learner_identifiers` | Global human-to-number allocation, unique user and student number, first enrolment date; retained after account archiving |
+| `platform_counters` | Locked global sequence allocation; numbers are never reused |
+| `students.student_number` | Nullable indexed compatibility projection; hidden from v1 model output |

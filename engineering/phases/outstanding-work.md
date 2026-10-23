@@ -8,9 +8,9 @@ work. A checked-in feature is not proof of staging verification or acceptance.
 | Phase 0 foundations | Merged | Dependency integration checks passed before merge | Pending | Reconcile remaining operational evidence |
 | Learner Android smoke on main | Emulator job failed after merge | Fresh main retry passed; pinned-host PR checks passed | Not applicable | Merged in PR #66 |
 | Tenancy and memberships | Merged | Existing two-school tests | Pending | Extend for each new domain |
-| Guardian approval and invitations | Implemented; rollout disabled pending family transition | Local backend, tenancy, contract and package tests | Pending | Review and merge feature PR; verify real email onboarding |
-| Enrolment history, numbers, handles and modern sign-in | Pending | Pending | Pending | Continue remaining identity work |
-| Enrolment history and student numbers | Pending | Pending | Pending | Add additive history and compatibility projection |
+| Guardian approval and invitations | Merged in PR #67; rollout disabled pending family transition | All PR CI checks passed | Pending | Verify real email onboarding and family transition |
+| Handles and modern sign-in | Pending | Pending | Pending | Continue remaining identity work |
+| Enrolment history and student numbers | Implemented on feature branch | Local date, tenant, legacy-login and deletion tests passed; CI pending | Pending | Review and merge; rehearse backfill on isolated staging |
 | School configuration and notifications | Pending | Pending | Pending | Connect registries, services and app contracts |
 | SaaS onboarding, imports and privacy | Pending | Pending | Pending | Build platform tools and restricted support access |
 | Modern sign-in | Pending | Pending | Provider/device checks pending | Add passkeys, verified-domain OAuth and parent links |

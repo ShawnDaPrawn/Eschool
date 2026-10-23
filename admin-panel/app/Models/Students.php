@@ -6,7 +6,9 @@ namespace App\Models;
 
 use App\Services\Platform\Audit\Auditable;
 use App\Services\Platform\Identity\GuardianService;
+use App\Services\Platform\Identity\StudentNumbers;
 use App\Services\Platform\Tenancy\BelongsToSchool;
+use App\Services\Platform\Tenancy\CurrentSchool;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -54,7 +56,7 @@ class Students extends Model
      *
      * @var array<int, string>
      */
-    protected $hidden = ['deleted_at', 'created_at', 'updated_at'];
+    protected $hidden = ['deleted_at', 'created_at', 'updated_at', 'student_number'];
 
     /**
      * Get the attributes that should be cast.
@@ -379,6 +381,12 @@ class Students extends Model
      */
     protected static function booted()
     {
+        static::created(function (Students $student) {
+            if (! app(CurrentSchool::class)->isMigrating()) {
+                app(StudentNumbers::class)->assign($student);
+            }
+        });
+
         static::saved(fn (Students $student) => app(GuardianService::class)->syncLegacy($student));
 
         static::deleting(function (Students $student) {

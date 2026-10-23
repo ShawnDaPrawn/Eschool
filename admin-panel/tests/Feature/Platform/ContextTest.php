@@ -83,6 +83,9 @@ class ContextTest extends TestCase
             'last_name' => 'Demo',
             'name' => 'Asha Demo',
             'image' => null,
+            'student_number' => null,
+            'approved' => false,
+            'homeroom' => 'Grade 5 A',
             'school' => ['id' => 1, 'name' => schoolSetting('school_name'), 'short_name' => null, 'crest_url' => null],
         ], $children[0]);
     }

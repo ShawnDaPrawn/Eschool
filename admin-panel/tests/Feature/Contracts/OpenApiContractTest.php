@@ -50,6 +50,8 @@ class OpenApiContractTest extends TestCase
     public static function scenarios(): array
     {
         return [
+            'enrolment list wrong role' => ['farid', 'GET', 'api/v2/staff/learners/1/enrolments', [], 403],
+            'enrolment write wrong role' => ['farid', 'POST', 'api/v2/staff/learners/1/enrolments', [], 403],
             'unknown invitation' => [null, 'GET', 'api/v2/guardian/invitations/1', [], 404],
             'unknown invitation accept' => [null, 'POST', 'api/v2/guardian/invitations/1/accept', [], 404],
             'invitation issue wrong role' => ['farid', 'POST', 'api/v2/guardians/1/invitations', [], 403],
