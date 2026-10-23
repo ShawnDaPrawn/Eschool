@@ -3,9 +3,9 @@
 use App\Services\Platform\Context\Contributors\ConfigurationDefaultsContributor;
 use App\Services\Platform\Context\Contributors\CurrentSchoolContributor;
 use App\Services\Platform\Context\Contributors\IdentityDefaultsContributor;
+use App\Services\Platform\Context\Contributors\ProfileFieldsContributor;
 use App\Services\Platform\Context\Contributors\SchoolsContributor;
 use App\Services\Platform\Context\Contributors\UserContributor;
-use App\Services\Platform\Context\Contributors\ProfileFieldsContributor;
 
 /*
 |--------------------------------------------------------------------------

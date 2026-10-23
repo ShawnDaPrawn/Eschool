@@ -31,7 +31,7 @@ class Audit
      * @param  array<string, mixed>  $before
      * @param  array<string, mixed>  $after
      */
-    public static function record(string $action, ?Model $subject = null, array $before = [], array $after = []): ?AuditLog
+    public static function record(string $action, ?Model $subject = null, array $before = [], array $after = [], ?int $schoolId = null): ?AuditLog
     {
         // Only a user the request has already authenticated: asking the guard to
         // authenticate here (Auth::user()) would do it as a side effect of a
@@ -41,7 +41,7 @@ class Audit
 
         try {
             return AuditLog::create([
-                'school_id' => self::schoolId($subject),
+                'school_id' => $schoolId ?? self::schoolId($subject),
                 'actor_id' => $user?->getAuthIdentifier(),
                 'actor_type' => $user ? 'user' : ($http ? 'guest' : 'system'),
                 'action' => Str::limit($action, 100, ''),

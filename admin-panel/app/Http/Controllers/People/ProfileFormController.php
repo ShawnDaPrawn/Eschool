@@ -10,6 +10,7 @@ use App\Models\User;
 use App\Policies\People\ProfilePolicy;
 use App\Services\People\Profiles\ProfileForms;
 use App\Services\Platform\Audit\Audit;
+use App\Services\Platform\Tenancy\CurrentSchool;
 use App\Services\ResponseService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Response;
@@ -55,7 +56,8 @@ class ProfileFormController extends Controller
         Gate::authorize('profile.view', [$subject, $type]);
         $form = $forms->schema($request->user(), $subject, $type, forExport: true);
         $fields = collect($form['categories'])->pluck('fields')->flatten(1);
-        Audit::record('profile.exported', $subject, [], ['profile_type' => $type, 'field_keys' => $fields->pluck('key')->all()]);
+        Audit::record('profile.exported', $subject, [], ['profile_type' => $type, 'field_keys' => $fields->pluck('key')->all()],
+            schoolId: app(CurrentSchool::class)->id());
 
         return response()->streamDownload(function () use ($form) {
             $output = fopen('php://output', 'w');

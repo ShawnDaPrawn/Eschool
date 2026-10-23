@@ -11,6 +11,7 @@ use App\Models\Students;
 use App\Models\User;
 use App\Services\People\Profiles\ProfileForms;
 use App\Services\Platform\Identity\GuardianService;
+use App\Services\Platform\Tenancy\CurrentSchool;
 use Illuminate\Support\Facades\DB;
 use Tests\Concerns\UsesTwoSchools;
 use Tests\TestCase;
@@ -54,6 +55,20 @@ class ProfilePanelTest extends TestCase
         $csv = $this->get('/people-profiles/'.$this->learner()->id.'/export?profile_type=learner')->assertOk()->streamedContent();
         $this->assertStringContainsString('Transport route', $csv);
         $this->assertStringContainsString('Route 12', $csv);
+        $this->assertSame(1, (int) DB::table('audit_log')->where('action', 'profile.exported')->sole()->school_id);
+        $this->assertSame(1, (int) DB::table('audit_log')->where('action', 'profile.updated')->sole()->school_id);
+    }
+
+    public function test_exports_of_a_global_person_are_audited_in_the_school_that_was_exported(): void
+    {
+        $admin = $this->superAdmin();
+        app(CurrentSchool::class)->run(2, fn () => $admin->assignRole('Super Admin'));
+        $this->actingAs($admin)->get('/people-profiles/'.$admin->id.'/export?profile_type=staff')->assertOk();
+        $this->withHeader('X-School-Id', '2')->get('/people-profiles/'.$admin->id.'/export?profile_type=staff')->assertOk();
+
+        $rows = DB::table('audit_log')->where('action', 'profile.exported')->orderBy('id')->get();
+        $this->assertSame([1, 2], $rows->pluck('school_id')->map(fn ($id) => (int) $id)->all());
+        $this->assertSame([$admin->id, $admin->id], $rows->pluck('subject_id')->all());
     }
 
     public function test_panel_errors_never_flash_private_values_into_the_session(): void

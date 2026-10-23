@@ -40,3 +40,18 @@ The first full backend run exposed old navigation/search expectations that
 excluded all teacher Settings entries. They now permit only the new self
 profile destination while continuing to exclude school configuration. Both
 panel navigation labels are present in English and Arabic.
+
+The full local backend run passed 900 tests and reported four obsolete
+navigation/search assertions. After updating those expectations and the Arabic
+navigation labels, the focused navigation/search/profile-panel run passes
+25 tests with 579 assertions, including the new missing-date-setting and
+expired-admin export regressions. Exact-head CI supplies the final full-suite
+result. The first PR PHP job also identified two formatting omissions in the
+context registry and web routes; both are formatted before the final run.
+
+Review found global-person export audits lacked a school. Profile updates and
+exports now supply the authenticated school explicitly to Audit. Nine panel
+regressions pass with 45 assertions, including exporting the same global person
+at two schools and recording separate school IDs. Existing audit subject IDs
+and field-key-only payloads remain intact. All 753 PHP files pass Pint, and
+configuration, route and Blade caches build and clear successfully.

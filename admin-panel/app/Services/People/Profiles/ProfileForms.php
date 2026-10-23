@@ -134,7 +134,8 @@ class ProfileForms
                 }
             }
             $person->save();
-            Audit::record('profile.updated', $person, [], ['profile_type' => $definitions->first()?->profile_type, 'field_keys' => array_keys($values)]);
+            Audit::record('profile.updated', $person, [], ['profile_type' => $definitions->first()?->profile_type, 'field_keys' => array_keys($values)],
+                schoolId: app(CurrentSchool::class)->id());
             Outbox::record(new ContextChanged(app(CurrentSchool::class)->id(), 'profile.values'));
         });
 
