@@ -489,5 +489,19 @@
     "avatarBoys": "Garçons",
     "avatarGirls": "Filles",
     "avatarMen": "Hommes",
-    "avatarWomen": "Femmes"
+    "avatarWomen": "Femmes",
+    "handleLabel": "Identifiant",
+    "handleSettings": "Identifiant et demandes",
+    "emailOrHandle": "E-mail ou identifiant",
+    "learnerLogin": "Numéro étudiant, matricule ou identifiant",
+    "handleRules": "Utilisez 3 à 20 lettres minuscules, chiffres, points ou tirets bas, en commençant par une lettre. Évitez votre nom, numéro étudiant et date de naissance. Avant 18 ans, un responsable doit approuver.",
+    "handlePending": "En attente de validation du responsable",
+    "handleSaved": "Enregistré",
+    "handleChangeAfter": "Prochain changement après le",
+    "handleChoose": "Choisir un identifiant",
+    "handleRequests": "Demandes des enfants",
+    "handleNoRequests": "Aucune demande en attente",
+    "handleApprove": "Approuver",
+    "handleReject": "Refuser",
+    "handleVerifyEmail": "Vérifiez votre e-mail pour examiner les demandes."
 }

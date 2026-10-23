@@ -83,6 +83,7 @@
             "user": {
                 "email": "string",
                 "first_name": "string",
+                "handle": "null",
                 "id": "number",
                 "image": "null",
                 "last_name": "string",

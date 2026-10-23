@@ -17,7 +17,7 @@ void main() {
 
     final Finder asParent = find.text('Login as Parent');
     await tapWhenReady(tester, asParent);
-    await pumpUntilFound(tester, find.text('Email'));
+    await pumpUntilFound(tester, find.text('Email or handle'));
 
     await enterField(tester, 0, parentEmail);
     await enterField(tester, 1, password);

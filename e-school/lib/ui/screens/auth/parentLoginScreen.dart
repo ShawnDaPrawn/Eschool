@@ -86,7 +86,7 @@ class _ParentLoginScreenState extends State<ParentLoginScreen>
     if (_emailTextEditingController.text.trim().isEmpty) {
       UiUtils.showCustomSnackBar(
         context: context,
-        errorMessage: UiUtils.getTranslatedLabel(context, pleaseEnterEmailKey),
+        errorMessage: UiUtils.getTranslatedLabel(context, emailOrHandleKey),
         backgroundColor: Theme.of(context).colorScheme.error,
       );
       return;
@@ -226,7 +226,7 @@ class _ParentLoginScreenState extends State<ParentLoginScreen>
                       const SizedBox(height: 30),
                       CustomTextFieldContainer(
                         hideText: false,
-                        hintTextKey: emailKey,
+                        hintTextKey: emailOrHandleKey,
                         bottomPadding: 0,
                         textEditingController: _emailTextEditingController,
                         keyboardType: TextInputType.emailAddress,
@@ -283,9 +283,9 @@ class _ParentLoginScreenState extends State<ParentLoginScreen>
                                       context,
                                       state.exception,
                                     ),
-                                backgroundColor: Theme.of(
-                                  context,
-                                ).colorScheme.error,
+                                backgroundColor: Theme.of(context)
+                                    .colorScheme
+                                    .error,
                               );
                             }
                           },
@@ -299,16 +299,15 @@ class _ParentLoginScreenState extends State<ParentLoginScreen>
                                 _signInParent();
                               },
                               widthPercentage: 0.8,
-                              backgroundColor: UiUtils.getColorScheme(
-                                context,
-                              ).primary,
+                              backgroundColor: UiUtils.getColorScheme(context)
+                                  .primary,
                               buttonTitle: UiUtils.getTranslatedLabel(
                                 context,
                                 signInKey,
                               ),
-                              titleColor: Theme.of(
-                                context,
-                              ).colorScheme.onPrimary,
+                              titleColor: Theme.of(context)
+                                  .colorScheme
+                                  .onPrimary,
                               showBorder: false,
                               child: state is SignInInProgress
                                   ? const CustomCircularProgressIndicator(
@@ -329,9 +328,8 @@ class _ParentLoginScreenState extends State<ParentLoginScreen>
                                 if (state is SignInInProgress) {
                                   return;
                                 }
-                                Navigator.of(
-                                  context,
-                                ).pushReplacementNamed(Routes.studentLogin);
+                                Navigator.of(context)
+                                    .pushReplacementNamed(Routes.studentLogin);
                               },
                               child: RichText(
                                 text: TextSpan(
@@ -339,9 +337,8 @@ class _ParentLoginScreenState extends State<ParentLoginScreen>
                                     TextSpan(
                                       style: TextStyle(
                                         fontSize: 16,
-                                        color: UiUtils.getColorScheme(
-                                          context,
-                                        ).primary,
+                                        color: UiUtils.getColorScheme(context)
+                                            .primary,
                                       ),
                                       text: UiUtils.getTranslatedLabel(
                                         context,
@@ -353,9 +350,8 @@ class _ParentLoginScreenState extends State<ParentLoginScreen>
                                       style: TextStyle(
                                         fontWeight: FontWeight.w500,
                                         fontSize: 16,
-                                        color: UiUtils.getColorScheme(
-                                          context,
-                                        ).onSurface,
+                                        color: UiUtils.getColorScheme(context)
+                                            .onSurface,
                                       ),
                                       text:
                                           '${UiUtils.getTranslatedLabel(context, studentKey)}?',
@@ -386,8 +382,7 @@ class _ParentLoginScreenState extends State<ParentLoginScreen>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      resizeToAvoidBottomInset:
-          false, //to avoid the lower pattern from hiding login form when keyboard is open
+      resizeToAvoidBottomInset: false, //to avoid the lower pattern from hiding login form when keyboard is open
       body: Stack(
         children: [
           _buildUpperPattern(),

@@ -21,7 +21,7 @@ final class SchoolOwnedTables
      * and the model (where there is one) uses BelongsToSchool.
      */
     public const REQUIRED = [
-        'school_modules', 'enrolments', 'guardian_links', 'learner_approvals', 'guardian_invitations',
+        'handle_proposals', 'school_modules', 'enrolments', 'guardian_links', 'learner_approvals', 'guardian_invitations',
         'academic_calendars', 'announcements', 'assignment_submissions', 'assignments', 'attendances',
         'categories', 'chat_files', 'chat_members', 'chat_messages', 'chat_rooms',
         'class_sections', 'class_session_configs', 'class_subjects', 'class_teachers', 'classes',
@@ -66,6 +66,8 @@ final class SchoolOwnedTables
 
     /** Tables that belong to no one school, each with the reason. */
     public const GLOBAL = [
+        'handle_claims' => 'global unique handles and temporary reservations; locked by handle and accessed only through the identity service',
+        'handle_changes' => 'one human identity across schools; change limit and history queried only by the authenticated or authorised learner user id',
         'learner_identifiers' => 'one immutable student number per human across schools; accessed by user id under a lock',
         'platform_counters' => 'platform-wide sequence allocation under a row lock',
         'schools' => 'the schools themselves',

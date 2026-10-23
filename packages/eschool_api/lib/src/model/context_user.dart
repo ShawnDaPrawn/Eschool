@@ -28,6 +28,8 @@ class ContextUser {
 
     required this.image,
 
+    this.handle,
+
     required this.roles,
   });
 
@@ -52,6 +54,10 @@ class ContextUser {
   @JsonKey(name: r'image', required: true, includeIfNull: true)
   final String? image;
 
+  /// Your platform handle, when chosen and approved.
+  @JsonKey(name: r'handle', required: false, includeIfNull: false)
+  final String? handle;
+
   /// The user's role names at the current school, for example `Parent`, `Teacher`, `Super Admin` or a role the school created.
   @JsonKey(name: r'roles', required: true, includeIfNull: false)
   final List<String> roles;
@@ -66,6 +72,7 @@ class ContextUser {
           other.name == name &&
           other.email == email &&
           other.image == image &&
+          other.handle == handle &&
           other.roles == roles;
 
   @override
@@ -76,6 +83,7 @@ class ContextUser {
       name.hashCode +
       email.hashCode +
       (image == null ? 0 : image.hashCode) +
+      (handle == null ? 0 : handle.hashCode) +
       roles.hashCode;
 
   factory ContextUser.fromJson(Map<String, dynamic> json) =>

@@ -489,5 +489,19 @@
   "avatarBoys": "Niños",
   "avatarGirls": "Niñas",
   "avatarMen": "Hombres",
-  "avatarWomen": "Mujeres"
+  "avatarWomen": "Mujeres",
+  "handleLabel": "Alias",
+  "handleSettings": "Alias y solicitudes",
+  "emailOrHandle": "Correo o alias",
+  "learnerLogin": "Número de estudiante, matrícula o alias",
+  "handleRules": "Usa de 3 a 20 letras minúsculas, números, puntos o guiones bajos, empezando por una letra. Evita tu apellido, número de estudiante y fecha de nacimiento. Los menores de 18 necesitan aprobación del tutor.",
+  "handlePending": "Esperando aprobación del tutor",
+  "handleSaved": "Guardado",
+  "handleChangeAfter": "Próximo cambio después de",
+  "handleChoose": "Elegir alias",
+  "handleRequests": "Solicitudes de alias de los hijos",
+  "handleNoRequests": "No hay solicitudes pendientes",
+  "handleApprove": "Aprobar",
+  "handleReject": "Rechazar",
+  "handleVerifyEmail": "Verifica tu correo para revisar solicitudes de alias."
 }

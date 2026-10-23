@@ -28,6 +28,14 @@ Route<dynamic> mySchoolRoute() => AdaptivePageRoute(
   ),
 );
 
+Route<dynamic> handlesRoute() => AdaptivePageRoute(
+  builder: (context) => HandlesScreen.withRepository(
+    ApiHandlesRepository(Api.client),
+    guardian: false,
+    onChanged: () => context.read<MeContextCubit>().load(),
+  ),
+);
+
 Route<dynamic> profilePictureRoute() => AdaptivePageRoute(
   builder: (context) {
     final Teacher teacher = context.read<AuthCubit>().getTeacherDetails();
@@ -73,6 +81,15 @@ List<Widget> sharedScreenEntries(
   String label(String key) => SharedUiUtils.getTranslatedLabel(context, key);
   void open(String route) => Navigator.of(context).pushNamed(route);
   return [
+    AvailableOnly(
+      featureKey: handlesFeature,
+      probe: () => handlesDeployed(ApiHandlesRepository(Api.client)),
+      child: tile(
+        title: label(handleSettingsKey),
+        icon: Icons.alternate_email,
+        onTap: () => open(Routes.handles),
+      ),
+    ),
     AvailableOnly(
       featureKey: notificationSettingsFeature,
       probe: () => notificationSettingsDeployed(

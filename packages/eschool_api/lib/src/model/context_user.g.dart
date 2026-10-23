@@ -27,6 +27,7 @@ ContextUser _$ContextUserFromJson(Map<String, dynamic> json) =>
         name: $checkedConvert('name', (v) => v as String),
         email: $checkedConvert('email', (v) => v as String),
         image: $checkedConvert('image', (v) => v as String?),
+        handle: $checkedConvert('handle', (v) => v as String?),
         roles: $checkedConvert(
           'roles',
           (v) => (v as List<dynamic>).map((e) => e as String).toList(),
@@ -43,5 +44,6 @@ Map<String, dynamic> _$ContextUserToJson(ContextUser instance) =>
       'name': instance.name,
       'email': instance.email,
       'image': instance.image,
+      'handle': ?instance.handle,
       'roles': instance.roles,
     };

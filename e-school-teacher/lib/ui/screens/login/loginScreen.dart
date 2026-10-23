@@ -87,7 +87,7 @@ class _LoginScreenState extends State<LoginScreen>
     if (_emailTextEditingController.text.trim().isEmpty) {
       UiUtils.showBottomToastOverlay(
         context: context,
-        errorMessage: UiUtils.getTranslatedLabel(context, pleaseEnterEmailKey),
+        errorMessage: UiUtils.getTranslatedLabel(context, emailOrHandleKey),
         backgroundColor: Theme.of(context).colorScheme.error,
       );
       return;
@@ -234,9 +234,8 @@ class _LoginScreenState extends State<LoginScreen>
         children: [
           Expanded(
             child: DottedLine(
-              dashColor: UiUtils.getColorScheme(
-                context,
-              ).onSurface.withAlpha(80),
+              dashColor: UiUtils.getColorScheme(context).onSurface
+                  .withAlpha(80),
               dashGapLength: 2,
               dashLength: 3,
             ),
@@ -251,9 +250,8 @@ class _LoginScreenState extends State<LoginScreen>
           ),
           Expanded(
             child: DottedLine(
-              dashColor: UiUtils.getColorScheme(
-                context,
-              ).onSurface.withAlpha(80),
+              dashColor: UiUtils.getColorScheme(context).onSurface
+                  .withAlpha(80),
               dashGapLength: 2,
               dashLength: 3,
             ),
@@ -306,7 +304,10 @@ class _LoginScreenState extends State<LoginScreen>
                     textAlignVertical: TextAlignVertical.center,
                     keyboardType: TextInputType.emailAddress,
                     decoration: _fieldDecoration(
-                      hintText: UiUtils.getTranslatedLabel(context, emailKey),
+                      hintText: UiUtils.getTranslatedLabel(
+                        context,
+                        emailOrHandleKey,
+                      ),
                       suffixIcon: Padding(
                         padding: const EdgeInsets.all(12),
                         child: SvgPicture.asset(
@@ -351,9 +352,8 @@ class _LoginScreenState extends State<LoginScreen>
                           );
                           //somehow user logs out, the login will set count to 0
                           SettingsRepository().setNotificationCount(0);
-                          Navigator.of(
-                            context,
-                          ).pushReplacementNamed(Routes.policies);
+                          Navigator.of(context)
+                              .pushReplacementNamed(Routes.policies);
                         } else if (state is SignInFailure) {
                           UiUtils.showBottomToastOverlay(
                             context: context,
@@ -361,9 +361,9 @@ class _LoginScreenState extends State<LoginScreen>
                               context,
                               state.exception,
                             ),
-                            backgroundColor: Theme.of(
-                              context,
-                            ).colorScheme.error,
+                            backgroundColor: Theme.of(context)
+                                .colorScheme
+                                .error,
                           );
                         }
                       },
@@ -378,9 +378,8 @@ class _LoginScreenState extends State<LoginScreen>
                             _signInTeacher();
                           },
                           widthPercentage: 0.85,
-                          backgroundColor: UiUtils.getColorScheme(
-                            context,
-                          ).primary,
+                          backgroundColor: UiUtils.getColorScheme(context)
+                              .primary,
                           buttonTitle: UiUtils.getTranslatedLabel(
                             context,
                             signInKey,
@@ -433,8 +432,7 @@ class _LoginScreenState extends State<LoginScreen>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      resizeToAvoidBottomInset:
-          false, //to avoid the lower pattern from hiding login form when keyboard is open
+      resizeToAvoidBottomInset: false, //to avoid the lower pattern from hiding login form when keyboard is open
       body: Stack(
         children: [
           _buildUpperPattern(),

@@ -14,9 +14,15 @@ The admin panel serves a JSON REST API under `/api` that both Flutter apps use. 
 | Server time | `app.timezone`, which `SettingsConfigService::apply()` (called from `AppServiceProvider`) sets from the `time_zone` setting on every boot, falling back to `TIMEZONE` in `.env` (default `UTC`). Exam windows, due dates and "today" in the API use it, except where the code asks for UTC explicitly. |
 | Response | JSON object with `error`, `message`, `data`, `code` (see [Response envelope](#response-envelope)) |
 | Route count | 159: 1 logout, 49 student, 43 parent, 53 teacher, 13 general |
-| API v2 | `/api/v2/...` from `routes/api_v2.php`, contract `admin-panel/openapi.yaml`, Dart client `packages/eschool_api`; 1 route so far (`GET /api/v2/me/context`). See [API v2](#api-v2) |
+| API v2 | `/api/v2/...` from `routes/api_v2.php`, contract `admin-panel/openapi.yaml`, Dart client `packages/eschool_api`; additive context, guardian invitation/approval, enrolment and handle endpoints. See [API v2](#api-v2) |
 
 ## Base URL and how the apps build it
+
+Handle identity adds `GET/PUT /api/v2/me/handle` and guardian handle-proposal
+listing/decisions. Only a verified authorised guardian can activate an under-18
+learner's proposal. Global allocation, term limits and old-name reservations
+are enforced by the identity service. `ContextUser.handle` is optional; v1
+user fields are unchanged. See the [handle spec](https://github.com/ShawnDaPrawn/Eschool/blob/main/engineering/specs/platform/handles.md).
 
 Phase 1 module availability is additive in `/api/v2/me/context`: `modules`
 contains `{key, read_only}` and `feature_flags.module_switches` marks configured
