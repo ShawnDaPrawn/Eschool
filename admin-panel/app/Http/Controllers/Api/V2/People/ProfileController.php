@@ -15,16 +15,6 @@ use Illuminate\Support\Facades\Gate;
 
 class ProfileController extends Controller
 {
-    public function __construct()
-    {
-        $this->middleware(function ($request, $next) {
-            $response = $next($request);
-            $response->headers->set('Cache-Control', 'private, no-store');
-
-            return $response;
-        });
-    }
-
     public function show(ProfileRequest $request, ProfileForms $forms, ?int $person = null): JsonResponse
     {
         $subject = $person === null ? $request->user() : User::query()->findOrFail($person);
