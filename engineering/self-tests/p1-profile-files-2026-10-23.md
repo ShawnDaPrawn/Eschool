@@ -52,3 +52,9 @@ Final panel review made browser downloads explicit through Content-Disposition
 and fixed repeated input/help IDs on profiles with multiple file fields. All five
 browser flows passed again, including downloaded filename/bytes; all 12 private
 file backend tests passed again (162 assertions), and TypeScript passes.
+
+The first native run passed the new authenticated image and in-memory PDF
+scenario. The following parent scenario failed because standalone preparation
+was not sharing the helper's once-only platform startup. Both scenarios now use
+`prepareSmokeApp`; the native TeX server starts once per test isolate. The final
+CI run must pass all scenarios before merge.

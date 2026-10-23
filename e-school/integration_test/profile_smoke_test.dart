@@ -2,8 +2,6 @@ import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:dio/dio.dart';
-import 'package:eschool/app/app.dart';
-import 'package:eschool_notifications/eschool_notifications.dart';
 import 'package:eschool/ui/screens/parentHomeScreen.dart';
 import 'package:eschool_core/eschool_core.dart';
 import 'package:eschool_people/eschool_people.dart';
@@ -138,8 +136,7 @@ void main() {
   testWidgets(
     'private file upload preserves profile drafts and previews authenticated bytes',
     (tester) async {
-      NotificationUtility.enabled = false;
-      await prepareApp(useFirebase: false);
+      await prepareSmokeApp();
       final api = _ProfileFilesApi();
       final client = ApiClient(
         authToken: () => 'smoke-token',

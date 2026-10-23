@@ -136,3 +136,8 @@ profile values. Focused contract/access/rollback tests, shared app tests and the
 panel browser flow accompany the change. Legacy public-file migration,
 retention and external acceptance remain separate work; final regression and
 PR checks are recorded in the feature self-test.
+
+PR #77 merged My school contacts, branding, publications and term dates after
+all 27 checks passed, including 924 backend tests and both Android suites.
+Private files are tracked in #78; legacy migration, pictures and the remaining
+Phase 1 closeout items remain separate implementation work.
