@@ -180,6 +180,10 @@ class InstallationSeeder extends Seeder
             ['id' => 127, 'name' => 'shift-edit'],
             ['id' => 128, 'name' => 'shift-delete'],
 
+            ['name' => 'profile-person-view'],
+            ['name' => 'profile-person-edit'],
+            ['name' => 'profile-sensitive-view'],
+            ['name' => 'profile-sensitive-export'],
             ['id' => 129, 'name' => 'form-field-list'],
             ['id' => 130, 'name' => 'form-field-create'],
             ['id' => 131, 'name' => 'form-field-edit'],

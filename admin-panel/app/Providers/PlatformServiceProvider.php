@@ -6,6 +6,7 @@ namespace App\Providers;
 
 use App\Models\Platform\Role;
 use App\Models\User;
+use App\Policies\People\ProfilePolicy;
 use App\Services\Platform\Identity\MembershipService;
 use App\Services\Platform\Modules\ModuleGate;
 use App\Services\Platform\Notifications\NotificationRules;
@@ -19,6 +20,7 @@ use Illuminate\Log\Context\Repository as ContextRepository;
 use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\Facades\Context;
 use Illuminate\Support\Facades\Event;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\ServiceProvider;
 use Spatie\Permission\Events\RoleAttachedEvent;
@@ -46,6 +48,8 @@ class PlatformServiceProvider extends ServiceProvider
 
     public function boot(): void
     {
+        Gate::define('profile.view', [ProfilePolicy::class, 'view']);
+        Gate::define('profile.update', [ProfilePolicy::class, 'update']);
         Blade::if('module', fn (string $key) => app(ModuleGate::class)->allows($key));
         // SNS posts bounce, complaint and delivery notices from many addresses;
         // a burst after a bulk send stays well under this.

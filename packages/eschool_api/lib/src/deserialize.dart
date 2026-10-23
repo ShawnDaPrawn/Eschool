@@ -8,6 +8,8 @@ import 'package:eschool_api/src/model/context.dart';
 import 'package:eschool_api/src/model/context_response.dart';
 import 'package:eschool_api/src/model/context_user.dart';
 import 'package:eschool_api/src/model/create_learner_enrolment_request.dart';
+import 'package:eschool_api/src/model/create_profile_category_request.dart';
+import 'package:eschool_api/src/model/create_profile_field_request.dart';
 import 'package:eschool_api/src/model/current_school.dart';
 import 'package:eschool_api/src/model/decide_guardian_approval_request.dart';
 import 'package:eschool_api/src/model/decide_guardian_handle_proposal_request.dart';
@@ -37,12 +39,28 @@ import 'package:eschool_api/src/model/notification_rule.dart';
 import 'package:eschool_api/src/model/notification_type_preference.dart';
 import 'package:eschool_api/src/model/notification_type_preference_channels.dart';
 import 'package:eschool_api/src/model/pagination.dart';
+import 'package:eschool_api/src/model/profile_category_definition.dart';
+import 'package:eschool_api/src/model/profile_category_response.dart';
+import 'package:eschool_api/src/model/profile_configuration_response.dart';
+import 'package:eschool_api/src/model/profile_definition.dart';
+import 'package:eschool_api/src/model/profile_definition_response.dart';
+import 'package:eschool_api/src/model/profile_form.dart';
+import 'package:eschool_api/src/model/profile_form_category.dart';
+import 'package:eschool_api/src/model/profile_form_field.dart';
+import 'package:eschool_api/src/model/profile_form_response.dart';
+import 'package:eschool_api/src/model/profile_saved_response.dart';
+import 'package:eschool_api/src/model/profile_validation_rules.dart';
+import 'package:eschool_api/src/model/profile_value.dart';
 import 'package:eschool_api/src/model/school_membership.dart';
 import 'package:eschool_api/src/model/school_summary.dart';
 import 'package:eschool_api/src/model/session_year.dart';
 import 'package:eschool_api/src/model/set_my_handle_request.dart';
 import 'package:eschool_api/src/model/term.dart';
 import 'package:eschool_api/src/model/update_my_notification_preferences_request.dart';
+import 'package:eschool_api/src/model/update_my_profile_request.dart';
+import 'package:eschool_api/src/model/update_person_profile_request.dart';
+import 'package:eschool_api/src/model/update_profile_category_request.dart';
+import 'package:eschool_api/src/model/update_profile_field_request.dart';
 import 'package:eschool_api/src/model/validation_errors.dart';
 
 final _regList = RegExp(r'^List<(.*)>$');
@@ -96,6 +114,14 @@ ReturnType deserialize<ReturnType, BaseType>(
       return CreateLearnerEnrolmentRequest.fromJson(
             value as Map<String, dynamic>,
           )
+          as ReturnType;
+    case 'CreateProfileCategoryRequest':
+      return CreateProfileCategoryRequest.fromJson(
+            value as Map<String, dynamic>,
+          )
+          as ReturnType;
+    case 'CreateProfileFieldRequest':
+      return CreateProfileFieldRequest.fromJson(value as Map<String, dynamic>)
           as ReturnType;
     case 'CurrentSchool':
       return CurrentSchool.fromJson(value as Map<String, dynamic>)
@@ -201,6 +227,42 @@ ReturnType deserialize<ReturnType, BaseType>(
           as ReturnType;
     case 'Pagination':
       return Pagination.fromJson(value as Map<String, dynamic>) as ReturnType;
+    case 'ProfileCategoryDefinition':
+      return ProfileCategoryDefinition.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'ProfileCategoryResponse':
+      return ProfileCategoryResponse.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'ProfileConfigurationResponse':
+      return ProfileConfigurationResponse.fromJson(
+            value as Map<String, dynamic>,
+          )
+          as ReturnType;
+    case 'ProfileDefinition':
+      return ProfileDefinition.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'ProfileDefinitionResponse':
+      return ProfileDefinitionResponse.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'ProfileForm':
+      return ProfileForm.fromJson(value as Map<String, dynamic>) as ReturnType;
+    case 'ProfileFormCategory':
+      return ProfileFormCategory.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'ProfileFormField':
+      return ProfileFormField.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'ProfileFormResponse':
+      return ProfileFormResponse.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'ProfileSavedResponse':
+      return ProfileSavedResponse.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'ProfileValidationRules':
+      return ProfileValidationRules.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'ProfileValue':
+      return ProfileValue.fromJson(value as Map<String, dynamic>) as ReturnType;
     case 'SchoolMembership':
       return SchoolMembership.fromJson(value as Map<String, dynamic>)
           as ReturnType;
@@ -218,6 +280,20 @@ ReturnType deserialize<ReturnType, BaseType>(
       return UpdateMyNotificationPreferencesRequest.fromJson(
             value as Map<String, dynamic>,
           )
+          as ReturnType;
+    case 'UpdateMyProfileRequest':
+      return UpdateMyProfileRequest.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'UpdatePersonProfileRequest':
+      return UpdatePersonProfileRequest.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'UpdateProfileCategoryRequest':
+      return UpdateProfileCategoryRequest.fromJson(
+            value as Map<String, dynamic>,
+          )
+          as ReturnType;
+    case 'UpdateProfileFieldRequest':
+      return UpdateProfileFieldRequest.fromJson(value as Map<String, dynamic>)
           as ReturnType;
     case 'ValidationErrors':
       return ValidationErrors.fromJson(value as Map<String, dynamic>)

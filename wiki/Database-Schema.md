@@ -403,3 +403,15 @@ the issued address. Unbound legacy email links are retired by migration
 `2026_10_23_160000`; printed learner codes remain valid. The hash is not a new
 consent record, and password setup still does not grant learner approval.
 
+
+## Configurable profiles
+
+`profile_field_categories`, `profile_field_definitions` and `profile_field_values`
+are school-owned tables with school foreign keys. Categories/definitions have
+soft deletes and immutable per-profile keys. Values are unique per school,
+person and definition; custom values use application encryption and are hidden
+from model/audit serialization. Core names/contact fields still use their
+existing canonical user columns. The additive migration preserves legacy
+`form_fields`, dynamic JSON and caste/religion columns pending the separate
+compatibility migration. Rolling back the new tables requires a value backup
+once they hold real data.

@@ -674,6 +674,566 @@ paths:
                   - in_app
                 enabled:
                   type: boolean
+  /me/profile:
+    get:
+      operationId: getMyProfile
+      tags:
+      - Platform
+      summary: Read your authorised profile form
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - name: profile_type
+        in: query
+        required: false
+        description: The person profile at the current school; defaults to the first
+          active profile.
+        schema:
+          type: string
+      responses:
+        '200':
+          description: The operation succeeded.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProfileFormResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+    put:
+      operationId: updateMyProfile
+      tags:
+      - Platform
+      summary: Save your editable profile fields
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      responses:
+        '200':
+          description: The operation succeeded.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProfileSavedResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              required:
+              - values
+              properties:
+                profile_type:
+                  type: string
+                values:
+                  type: object
+                  minProperties: 1
+                  maxProperties: 100
+                  additionalProperties:
+                    $ref: '#/components/schemas/ProfileValue'
+  /people/{person}/profile:
+    get:
+      operationId: getPersonProfile
+      tags:
+      - Platform
+      summary: Read an authorised person profile
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - name: person
+        in: path
+        required: true
+        description: The authorised current-school record.
+        schema:
+          type: integer
+          minimum: 1
+      - name: profile_type
+        in: query
+        required: false
+        description: The person profile at the current school; defaults to the first
+          active profile.
+        schema:
+          type: string
+      responses:
+        '200':
+          description: The operation succeeded.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProfileFormResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+    put:
+      operationId: updatePersonProfile
+      tags:
+      - Platform
+      summary: Save an authorised person profile
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - name: person
+        in: path
+        required: true
+        description: The authorised current-school record.
+        schema:
+          type: integer
+          minimum: 1
+      responses:
+        '200':
+          description: The operation succeeded.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProfileSavedResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              required:
+              - values
+              properties:
+                profile_type:
+                  type: string
+                values:
+                  type: object
+                  minProperties: 1
+                  maxProperties: 100
+                  additionalProperties:
+                    $ref: '#/components/schemas/ProfileValue'
+  /profile-fields:
+    get:
+      operationId: getProfileConfiguration
+      tags:
+      - Platform
+      summary: Read current-school profile field configuration
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - name: profile_type
+        in: query
+        required: false
+        description: The person profile at the current school; defaults to the first
+          active profile.
+        schema:
+          type: string
+      responses:
+        '200':
+          description: The operation succeeded.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProfileConfigurationResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+  /profile-fields/categories:
+    post:
+      operationId: createProfileCategory
+      tags:
+      - Platform
+      summary: Create a school profile category
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      responses:
+        '200':
+          description: The operation succeeded.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProfileCategoryResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              required:
+              - profile_type
+              - key
+              - label
+              properties:
+                profile_type:
+                  type: string
+                key:
+                  type: string
+                  pattern: ^[a-z][a-z0-9_]{0,63}$
+                label:
+                  type: string
+                  maxLength: 120
+                sort_order:
+                  type: integer
+                  minimum: 0
+                  maximum: 100000
+  /profile-fields/categories/{category}:
+    put:
+      operationId: updateProfileCategory
+      tags:
+      - Platform
+      summary: Update a school profile category
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - name: category
+        in: path
+        required: true
+        description: The authorised current-school record.
+        schema:
+          type: integer
+          minimum: 1
+      responses:
+        '200':
+          description: The operation succeeded.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProfileCategoryResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              required:
+              - profile_type
+              - key
+              - label
+              properties:
+                profile_type:
+                  type: string
+                key:
+                  type: string
+                  pattern: ^[a-z][a-z0-9_]{0,63}$
+                label:
+                  type: string
+                  maxLength: 120
+                sort_order:
+                  type: integer
+                  minimum: 0
+                  maximum: 100000
+    delete:
+      operationId: deleteProfileCategory
+      tags:
+      - Platform
+      summary: Remove an empty school profile category
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - name: category
+        in: path
+        required: true
+        description: The authorised current-school record.
+        schema:
+          type: integer
+          minimum: 1
+      responses:
+        '200':
+          description: The operation succeeded.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProfileSavedResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+  /profile-fields/definitions:
+    post:
+      operationId: createProfileField
+      tags:
+      - Platform
+      summary: Create a school profile field
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      responses:
+        '200':
+          description: The operation succeeded.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProfileDefinitionResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              required:
+              - category_id
+              - key
+              - label
+              - type
+              - visible_to
+              - editable_by
+              properties:
+                category_id:
+                  type: integer
+                key:
+                  type: string
+                  pattern: ^[a-z][a-z0-9_]{0,63}$
+                label:
+                  type: string
+                  maxLength: 120
+                type:
+                  type: string
+                validation:
+                  $ref: '#/components/schemas/ProfileValidationRules'
+                options:
+                  type: array
+                  items:
+                    type: string
+                visible_to:
+                  type: array
+                  items:
+                    type: string
+                editable_by:
+                  type: array
+                  items:
+                    type: string
+                required:
+                  type: boolean
+                sensitive:
+                  type: boolean
+                encrypted:
+                  type: boolean
+                hidden:
+                  type: boolean
+                sort_order:
+                  type: integer
+  /profile-fields/definitions/{definition}:
+    put:
+      operationId: updateProfileField
+      tags:
+      - Platform
+      summary: Update a school profile field
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - name: definition
+        in: path
+        required: true
+        description: The authorised current-school record.
+        schema:
+          type: integer
+          minimum: 1
+      responses:
+        '200':
+          description: The operation succeeded.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProfileDefinitionResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              required:
+              - category_id
+              - key
+              - label
+              - type
+              - visible_to
+              - editable_by
+              properties:
+                category_id:
+                  type: integer
+                key:
+                  type: string
+                  pattern: ^[a-z][a-z0-9_]{0,63}$
+                label:
+                  type: string
+                  maxLength: 120
+                type:
+                  type: string
+                validation:
+                  $ref: '#/components/schemas/ProfileValidationRules'
+                options:
+                  type: array
+                  items:
+                    type: string
+                visible_to:
+                  type: array
+                  items:
+                    type: string
+                editable_by:
+                  type: array
+                  items:
+                    type: string
+                required:
+                  type: boolean
+                sensitive:
+                  type: boolean
+                encrypted:
+                  type: boolean
+                hidden:
+                  type: boolean
+                sort_order:
+                  type: integer
+    delete:
+      operationId: deleteProfileField
+      tags:
+      - Platform
+      summary: Remove an unlocked school profile field
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - name: definition
+        in: path
+        required: true
+        description: The authorised current-school record.
+        schema:
+          type: integer
+          minimum: 1
+      responses:
+        '200':
+          description: The operation succeeded.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProfileSavedResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
 components:
   securitySchemes:
     bearerAuth:
@@ -1421,6 +1981,303 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/NotificationTypePreference'
+        code:
+          type: integer
+          description: Always 200.
+    ProfileValue:
+      type: object
+      additionalProperties: false
+      required: []
+      properties:
+        text:
+          type: string
+        choices:
+          type: array
+          items:
+            type: string
+        flag:
+          type: boolean
+        clear:
+          type: boolean
+          description: True clears an optional value; omit for other values.
+      minProperties: 1
+      maxProperties: 1
+      description: Exactly one value member. Numbers and dates use text to preserve precision
+        and formatting.
+    ProfileValidationRules:
+      type: object
+      additionalProperties: false
+      required: []
+      properties:
+        min:
+          type: integer
+        max:
+          type: integer
+        email:
+          type: boolean
+        past:
+          type: boolean
+    ProfileFormField:
+      type: object
+      additionalProperties: false
+      required:
+      - id
+      - key
+      - label
+      - type
+      - validation
+      - options
+      - required
+      - locked
+      - editable
+      - sensitive
+      - value
+      properties:
+        id:
+          type: integer
+        key:
+          type: string
+        label:
+          type: string
+        type:
+          type: string
+        validation:
+          $ref: '#/components/schemas/ProfileValidationRules'
+        options:
+          type: array
+          items:
+            type: string
+        required:
+          type: boolean
+        locked:
+          type: boolean
+        editable:
+          type: boolean
+        sensitive:
+          type: boolean
+        value:
+          oneOf:
+          - $ref: '#/components/schemas/ProfileValue'
+          - type: 'null'
+    ProfileFormCategory:
+      type: object
+      additionalProperties: false
+      required:
+      - id
+      - key
+      - label
+      - fields
+      properties:
+        id:
+          type: integer
+        key:
+          type: string
+        label:
+          type: string
+        fields:
+          type: array
+          items:
+            $ref: '#/components/schemas/ProfileFormField'
+    ProfileForm:
+      type: object
+      additionalProperties: false
+      required:
+      - person_id
+      - profile_type
+      - available_profiles
+      - categories
+      properties:
+        person_id:
+          type: integer
+        profile_type:
+          type: string
+        available_profiles:
+          type: array
+          items:
+            type: string
+        categories:
+          type: array
+          items:
+            $ref: '#/components/schemas/ProfileFormCategory'
+    ProfileDefinition:
+      type: object
+      additionalProperties: false
+      required:
+      - id
+      - category_id
+      - key
+      - label
+      - type
+      - validation
+      - options
+      - visible_to
+      - editable_by
+      - required
+      - locked
+      - sensitive
+      - encrypted
+      - hidden
+      - sort_order
+      properties:
+        id:
+          type: integer
+        category_id:
+          type: integer
+        key:
+          type: string
+        label:
+          type: string
+        type:
+          type: string
+        validation:
+          $ref: '#/components/schemas/ProfileValidationRules'
+        options:
+          type: array
+          items:
+            type: string
+        visible_to:
+          type: array
+          items:
+            type: string
+        editable_by:
+          type: array
+          items:
+            type: string
+        required:
+          type: boolean
+        locked:
+          type: boolean
+        sensitive:
+          type: boolean
+        encrypted:
+          type: boolean
+        hidden:
+          type: boolean
+        sort_order:
+          type: integer
+    ProfileCategoryDefinition:
+      type: object
+      additionalProperties: false
+      required:
+      - id
+      - profile_type
+      - key
+      - label
+      - sort_order
+      - fields
+      properties:
+        id:
+          type: integer
+        profile_type:
+          type: string
+        key:
+          type: string
+        label:
+          type: string
+        sort_order:
+          type: integer
+        fields:
+          type: array
+          items:
+            $ref: '#/components/schemas/ProfileDefinition'
+    ProfileFormResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - data
+      - code
+      properties:
+        error:
+          type: boolean
+          description: Always false.
+        message:
+          type: string
+        data:
+          $ref: '#/components/schemas/ProfileForm'
+        code:
+          type: integer
+          description: Always 200.
+    ProfileConfigurationResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - data
+      - code
+      properties:
+        error:
+          type: boolean
+          description: Always false.
+        message:
+          type: string
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/ProfileCategoryDefinition'
+        code:
+          type: integer
+          description: Always 200.
+    ProfileCategoryResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - data
+      - code
+      properties:
+        error:
+          type: boolean
+          description: Always false.
+        message:
+          type: string
+        data:
+          $ref: '#/components/schemas/ProfileCategoryDefinition'
+        code:
+          type: integer
+          description: Always 200.
+    ProfileDefinitionResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - data
+      - code
+      properties:
+        error:
+          type: boolean
+          description: Always false.
+        message:
+          type: string
+        data:
+          $ref: '#/components/schemas/ProfileDefinition'
+        code:
+          type: integer
+          description: Always 200.
+    ProfileSavedResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - data
+      - code
+      properties:
+        error:
+          type: boolean
+          description: Always false.
+        message:
+          type: string
+        data:
+          type:
+          - object
+          - 'null'
+          additionalProperties: true
+          description: Always null; writes acknowledge without returning private values.
         code:
           type: integer
           description: Always 200.

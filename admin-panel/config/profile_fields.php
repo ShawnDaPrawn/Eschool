@@ -19,12 +19,12 @@ $staff = [
 return [
     'types' => ['learner', 'parent', 'teacher', 'facilitator', 'counsellor', 'staff'],
     'roles' => ['owner', 'guardian', 'school_admin', 'teacher', 'facilitator', 'counsellor'],
-    'field_types' => ['text', 'number', 'date', 'dropdown', 'radio', 'checkbox', 'textarea', 'boolean', 'file'],
+    'field_types' => ['text', 'number', 'date', 'dropdown', 'radio', 'checkbox', 'textarea', 'boolean'],
     'defaults' => [
         'learner' => [
             'identity' => ['label' => 'Identity', 'fields' => $identity + [
                 'dob' => ['label' => 'Date of birth', 'type' => 'date', 'source' => 'user.dob', 'required' => true, 'locked' => true],
-                'gender' => ['label' => 'Gender', 'type' => 'dropdown', 'source' => 'user.gender', 'options' => ['Male', 'Female', 'Other', 'Prefer not to say'], 'locked' => true],
+                'gender' => ['label' => 'Gender', 'type' => 'dropdown', 'source' => 'user.gender', 'options' => ['Male', 'Female', 'Other', 'Not specified'], 'locked' => true],
                 'identity_number' => ['label' => 'Identity or passport number', 'type' => 'text', 'locked' => true, 'sensitive' => true],
                 'religion' => ['label' => 'Religion', 'type' => 'text', 'hidden' => true, 'sensitive' => true],
             ]],

@@ -417,3 +417,16 @@ address and current school/membership/relationship authority. Editing an email
 clears verification and retires links. Old unbound links require replacement;
 rollback does not reactivate them. Printed one-time codes remain separate.
 See the [specification](https://github.com/ShawnDaPrawn/Eschool/blob/main/engineering/specs/platform/invitation-lifecycle.md).
+
+## Configurable profile values
+
+Profile services resolve active school membership and person relationships before
+loading values, then enforce field visibility and edit roles. Teachers need an
+assigned learner relationship; general learner-list permission does not grant
+whole-school profile access. Separate `profile-person-view/edit` and
+`profile-sensitive-view/export` permissions are seeded for school admins.
+Verified approving guardians may edit offered learner fields. Learners cannot
+change their age through this API. Support impersonation excludes sensitive
+fields from reads and writes. New custom values are encrypted, write responses
+contain no values, and audit records contain field keys only. Legacy storage
+retirement and sensitive export enforcement remain separate implementation work.

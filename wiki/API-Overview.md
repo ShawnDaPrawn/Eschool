@@ -735,3 +735,18 @@ Authenticated GET/PUT `/api/v2/me/notification-preferences` read or change only
 the caller's preferences in the authorised current school. PUT takes `type`,
 `channel` (`push`, `email`, `in_app`) and boolean `enabled`; locked or unavailable
 channels return 422. OpenAPI DTOs and contract scenarios cover both endpoints.
+
+## Configurable profile API
+
+Authenticated v2 clients can read/write `me/profile` or `people/{person}/profile`,
+with optional `profile_type` selected from the person's active school roles.
+`profile-fields` and its category/definition CRUD endpoints require the existing
+form-field permissions. Definitions and person values are always school scoped.
+The OpenAPI contract defines all 11 operations and their generated Dart models.
+
+Reads return authorised categories/fields and typed value envelopes (`text`,
+`choices` or `flag`). Writes send a partial `values` map with exactly one member
+per value; `{clear: true}` explicitly clears an optional value. A successful
+write returns `data: null`, keeping private values out of idempotency response
+storage. Fetch the authorised form again to read updated values. Profile lists
+and legacy forms are not automatically migrated by this API slice.
