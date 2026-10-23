@@ -28,3 +28,15 @@ profile smoke passes, checking the chosen child's school header and a partial
 write from Settings through save and refresh. The documentation build and
 Playwright TypeScript check pass. Browser testing also found an unset school
 date-format setting breaking the learner list; the list now uses a fallback.
+
+All three new panel Playwright flows pass: the complete Transport path at 1024
+and 1280 pixels, and teacher self access with configuration refusal. Both new
+pages pass serious/critical axe checks without an allowlist entry, have no
+horizontal overflow, and the complete successful flow has no console/HTTP
+errors. Browser storage contains no typed profile value. Shared core tests
+pass 105 tests. Larastan passes after the list fallback fix.
+
+The first full backend run exposed old navigation/search expectations that
+excluded all teacher Settings entries. They now permit only the new self
+profile destination while continuing to exclude school configuration. Both
+panel navigation labels are present in English and Arabic.

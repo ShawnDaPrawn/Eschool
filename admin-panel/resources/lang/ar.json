@@ -1680,5 +1680,7 @@
     "school_switched": "أنت تعمل الآن في :school.",
     "update_app_to_sign_in": "يرجى تحديث التطبيق لتسجيل الدخول. هذا الإصدار لا يستطيع عرض إشعارات مدرستك.",
     "nav_school_modules": "وحدات المدرسة",
-    "nav_notification_rules": "قواعد الإشعارات"
+    "nav_notification_rules": "قواعد الإشعارات",
+    "nav_profile_fields": "حقول الملف الشخصي",
+    "nav_person_profile": "ملفي الشخصي"
 }
