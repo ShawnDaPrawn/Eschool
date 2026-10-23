@@ -7,6 +7,7 @@ import 'package:eschool_api/src/auth/api_key_auth.dart';
 import 'package:eschool_api/src/auth/basic_auth.dart';
 import 'package:eschool_api/src/auth/bearer_auth.dart';
 import 'package:eschool_api/src/auth/oauth.dart';
+import 'package:eschool_api/src/api/academics_api.dart';
 import 'package:eschool_api/src/api/platform_api.dart';
 
 class EschoolApi {
@@ -130,6 +131,12 @@ class EschoolApi {
           .apiKeys
           .remove(name);
     }
+  }
+
+  /// Get AcademicsApi instance, base route and serializer can be overridden by a given but be careful,
+  /// by doing that all interceptors will not be executed
+  AcademicsApi getAcademicsApi() {
+    return AcademicsApi(dio);
   }
 
   /// Get PlatformApi instance, base route and serializer can be overridden by a given but be careful,

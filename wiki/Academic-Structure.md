@@ -281,3 +281,16 @@ In order:
 - [API Parent](API-Parent)
 - [Admin-Panel-Overview](Admin-Panel-Overview)
 - [Glossary](Glossary)
+
+## Phase 2 academic reference foundation
+
+The new grade catalogue covers R–12 and Foundation, Intermediate, Senior and FET
+phases. It is separate from the legacy school-specific `grades` table used by
+existing result calculations. A seven-point reference stores thresholds in integer
+basis points (100 = 1 percent); it does not recalculate existing learner marks.
+
+Existing classes start with no grade mapping. An authorized administrator selects
+a shared grade explicitly through the v2 API; no class name is guessed. Reads
+require class-list or class-edit; writes require class-edit in the selected school.
+Mappings can be cleared with explicit null, and changes are audited. A panel/app
+editor, terms/semester transition and subject/assessment rules follow separately.

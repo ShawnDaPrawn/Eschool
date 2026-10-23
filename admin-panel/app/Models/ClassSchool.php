@@ -4,10 +4,12 @@ declare(strict_types=1);
 
 namespace App\Models;
 
+use App\Models\Academics\GradeLevel;
 use App\Services\Platform\Tenancy\BelongsToSchool;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 class ClassSchool extends Model
@@ -17,10 +19,20 @@ class ClassSchool extends Model
 
     protected $table = 'classes';
 
-    protected $hidden = ['deleted_at', 'created_at', 'updated_at'];
+    protected $hidden = ['deleted_at', 'created_at', 'updated_at', 'grade_level_id'];
 
     // include_semesters is per session year now; the teacher app still reads it from each class.
     protected $appends = ['full_name', 'include_semesters'];
+
+    protected function casts(): array
+    {
+        return ['grade_level_id' => 'integer'];
+    }
+
+    public function gradeLevel(): BelongsTo
+    {
+        return $this->belongsTo(GradeLevel::class);
+    }
 
     public function announcement()
     {

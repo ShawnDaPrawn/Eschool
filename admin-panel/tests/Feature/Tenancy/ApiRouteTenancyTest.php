@@ -239,7 +239,9 @@ class ApiRouteTenancyTest extends TestCase
         $this->flushHeaders();
         $request = $asker === null ? $this : $this->withToken($asker);
         $request = $request->withHeaders($headers);
-        $path = $route->path();
+        $path = str_contains($route->uri, '{class}')
+            ? str_replace('{class}', (string) ($params['class'] ?? 1), '/'.$route->uri)
+            : $route->path();
 
         return $route->method === 'GET'
             ? $request->getJson($path.'?'.http_build_query($params))
@@ -277,6 +279,7 @@ class ApiRouteTenancyTest extends TestCase
             'receiver_id' => $b['tara_user'],
             'class_section_id' => $b['section_a'],
             'class_id' => $b['class_a'],
+            'class' => $b['class_a'],
             'subject_id' => $b['maths'],
             'session_year_id' => $b['session_year'],
             'semester_id' => $b['semester'],

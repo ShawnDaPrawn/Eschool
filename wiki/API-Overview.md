@@ -775,3 +775,17 @@ reference. Old links stop working after replacement, clearing or field removal.
 Clients construct the known protected asset route; never attach credentials to
 an arbitrary metadata URL. These assets are private/no-store. The legacy public
 file migration remains separate.
+
+## Academic reference API
+
+`GET /api/v2/academics/reference` provides shared R–12 grades, school phases and
+seven-point rating thresholds to active school members. Rating thresholds use
+integer basis points from 0 to 10000. They do not change existing mark results.
+
+`GET /api/v2/academics/classes/{class}/grade-level` requires class-list or class-edit
+in the selected school. `PUT` requires class-edit and accepts
+`{"grade_level_id": <reference id>}` or `{"grade_level_id": null}` to clear it.
+The response contains class_id, grade_level_id and nullable grade_level. Foreign or
+deleted classes are inaccessible; only the grade mapping is written. The routes
+use the academics module, v2 envelope and no-store headers; writes accept an
+Idempotency-Key. OpenAPI and the generated SDK describe the complete contract.

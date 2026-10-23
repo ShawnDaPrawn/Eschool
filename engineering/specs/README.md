@@ -61,3 +61,4 @@ Keep the headings even when a section is "None", so a reviewer can see it was co
 | [platform/environments.md](platform/environments.md): staging and production, deploy workflows, worker and scheduler, backups, logs, runbooks | 0, 0.12 | S4 |
 | [platform/test-infrastructure.md](platform/test-infrastructure.md): `DemoSchoolSeeder`, tenancy scaffold, role matrix, contract suite, Playwright, integration smoke, k6 | 0, 0.13 | S7, S2, S3 |
 | [platform/profile-files.md](platform/profile-files.md): encrypted person attachments and authenticated panel/app previews | 1, profile fields | Identity |
+| [academics/academic-references.md](academics/academic-references.md): shared grades/phases, seven-point reference and explicit class mapping | 2, foundation of 2.2 | Academics |

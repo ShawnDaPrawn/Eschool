@@ -178,4 +178,89 @@ void main() {
       },
     );
   });
+
+  group('Academic references', () {
+    test(
+      'an explicit clear reaches the API as null with school and retry headers',
+      () async {
+        final server = _FakeServer(
+          200,
+          jsonEncode({
+            'error': false,
+            'message': 'Saved',
+            'code': 200,
+            'data': {
+              'class_id': 21,
+              'grade_level_id': null,
+              'grade_level': null,
+            },
+          }),
+        );
+        final api = EschoolApi(
+          basePathOverride: 'https://admin.example.com/api/v2',
+        );
+        api.dio.httpClientAdapter = server;
+        final answer = await api.getAcademicsApi().updateClassGradeLevel(
+          class_: 21,
+          xSchoolId: 2,
+          idempotencyKey: 'clear-grade',
+          classGradeWrite: ClassGradeWrite(gradeLevelId: null),
+        );
+        expect(server.request!.path, '/academics/classes/21/grade-level');
+        expect(server.request!.method, 'PUT');
+        expect(server.request!.headers['X-School-Id'], 2);
+        expect(server.request!.headers['Idempotency-Key'], 'clear-grade');
+        expect(jsonDecode(server.request!.data as String), {
+          'grade_level_id': null,
+        });
+        expect(answer.data!.data.gradeLevelId, isNull);
+        expect(answer.data!.data.gradeLevel, isNull);
+      },
+    );
+
+    test('reference thresholds remain integers and Grade R remains a code', () {
+      final reference = AcademicReference.fromJson({
+        'grades': [
+          {
+            'id': 1,
+            'code': 'R',
+            'name': 'Grade R',
+            'phase': 'Foundation',
+            'sort_order': 0,
+          },
+        ],
+        'rating_scale': [
+          {
+            'level': 7,
+            'name': 'Outstanding achievement',
+            'min_basis_points': 8000,
+            'max_basis_points': 10000,
+          },
+        ],
+      });
+      expect(reference.grades.single.code, 'R');
+      expect(reference.ratingScale.single.minBasisPoints, 8000);
+      expect(reference.ratingScale.single.maxBasisPoints, 10000);
+    });
+
+    test(
+      'a mapped grade decodes without depending on legacy class payloads',
+      () {
+        final mapping = ClassGradeMapping.fromJson({
+          'class_id': 21,
+          'grade_level_id': 8,
+          'grade_level': {
+            'id': 8,
+            'code': '7',
+            'name': 'Grade 7',
+            'phase': 'Senior',
+            'sort_order': 7,
+          },
+        });
+        expect(mapping.gradeLevelId, 8);
+        expect(mapping.gradeLevel!.code, '7');
+        expect(mapping.toJson()['grade_level_id'], 8);
+      },
+    );
+  });
 }

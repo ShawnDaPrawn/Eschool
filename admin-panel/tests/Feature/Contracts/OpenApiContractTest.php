@@ -50,6 +50,22 @@ class OpenApiContractTest extends TestCase
     public static function scenarios(): array
     {
         return [
+            'academic reference as learner' => ['asha', 'GET', 'api/v2/academics/reference', [], 200],
+            'academic reference as parent' => ['farid', 'GET', 'api/v2/academics/reference', [], 200],
+            'academic reference as teacher' => ['tara', 'GET', 'api/v2/academics/reference', [], 200],
+            'academic reference as admin' => ['superadmin', 'GET', 'api/v2/academics/reference', [], 200],
+            'academic reference requires auth' => [null, 'GET', 'api/v2/academics/reference', [], 401],
+            'academic reference requires membership' => ['norole', 'GET', 'api/v2/academics/reference', [], 403],
+            'class grade as admin' => ['superadmin', 'GET', 'api/v2/academics/classes/1/grade-level', [], 200],
+            'class grade mapped' => ['superadmin', 'PUT', 'api/v2/academics/classes/1/grade-level', ['grade_level_id' => 1], 200],
+            'class grade cleared' => ['superadmin', 'PUT', 'api/v2/academics/classes/1/grade-level', ['grade_level_id' => null], 200],
+            'class grade invalid' => ['superadmin', 'PUT', 'api/v2/academics/classes/1/grade-level', ['grade_level_id' => 999999], 422],
+            'class grade unknown' => ['superadmin', 'GET', 'api/v2/academics/classes/999999/grade-level', [], 404],
+            'class grade teacher denied' => ['tara', 'PUT', 'api/v2/academics/classes/1/grade-level', ['grade_level_id' => 1], 403],
+            'class grade parent denied' => ['farid', 'PUT', 'api/v2/academics/classes/1/grade-level', ['grade_level_id' => 1], 403],
+            'class grade learner denied' => ['asha', 'GET', 'api/v2/academics/classes/1/grade-level', [], 403],
+            'class grade read requires auth' => [null, 'GET', 'api/v2/academics/classes/1/grade-level', [], 401],
+            'class grade write requires auth' => [null, 'PUT', 'api/v2/academics/classes/1/grade-level', ['grade_level_id' => 1], 401],
             'profile file upload requires auth' => [null, 'POST', 'api/v2/me/profile/fields/document/file', [], 401],
             'person file upload requires auth' => [null, 'POST', 'api/v2/people/1/profile/fields/document/file', [], 401],
             'my school as learner' => ['asha', 'GET', 'api/v2/schools/1/my-school', [], 200],
