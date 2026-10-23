@@ -331,10 +331,12 @@ void main() {
         find.text('Thandi Mokoena — Second School').last,
       );
       await pumpUntilFound(tester, find.text('Thandi'));
-      await tester.enterText(
-        find.byKey(const ValueKey('profile-field-route')),
-        'Blue bus',
-      );
+      final routeField = find.byKey(const ValueKey('profile-field-route'));
+      // Opening the native keyboard can echo its initial editing value. Finish
+      // that platform transition before injecting the user's new text.
+      await tester.showKeyboard(routeField);
+      await tester.pump(const Duration(milliseconds: 600));
+      await tester.enterText(routeField, 'Blue bus');
       // Let the edit reach the rebuilt form and native text-input connection
       // before hiding the keyboard; an immediate unfocus can replay old IME text.
       await tester.pump();
