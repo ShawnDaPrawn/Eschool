@@ -66,6 +66,8 @@ void main() {
       final info = await ApiMySchoolRepository(clientFor(adapter)).fetch(1);
 
       expect(adapter.requests.single.uri.path, '/api/v2/schools/1/my-school');
+      expect(adapter.requests.single.headers['X-School-Id'], '1');
+      expect(adapter.requests.single.headers['Authorization'], 'Bearer token');
       expect(info!.school!.name, 'Northcliff High');
       expect(info.phone, '011 555 0101');
       expect(info.documents.first.kind, 'fee_schedule');
@@ -137,7 +139,7 @@ void main() {
       expect(find.byType(ChoiceChip), findsNWidgets(2));
       expect(find.text('011 555 0101'), findsOneWidget);
 
-      await tester.tap(find.text('RP'));
+      await tester.tap(find.widgetWithText(ChoiceChip, 'RP'));
       await tester.pumpAndSettle();
 
       expect(find.text('Riverside Primary'), findsOneWidget);
@@ -156,6 +158,43 @@ void main() {
         findsOneWidget,
       );
     });
+
+    testWidgets(
+      'a partial older school uses context branding and keeps its contacts',
+      (tester) async {
+        repository.answers[1] = MySchoolInfo.fromJson({
+          ...mySchoolJson(1, 'Legacy name'),
+          'school': {'id': 1, 'name': 'Legacy name'},
+        });
+        await pumpScreen(tester, screen([northcliff]));
+        expect(find.text('Northcliff High'), findsOneWidget);
+        expect(find.text('011 555 0101'), findsOneWidget);
+        expect(tester.takeException(), isNull);
+      },
+    );
+
+    testWidgets(
+      'unsafe and malformed web links fail without launching or crashing',
+      (tester) async {
+        repository.answers[1] = MySchoolInfo.fromJson({
+          ...mySchoolJson(1, 'Northcliff High'),
+          'website': 'javascript:alert(1)',
+          'documents': [
+            {'title': 'Malformed document', 'kind': null, 'url': 'https://['},
+          ],
+        });
+        await pumpScreen(tester, screen([northcliff]));
+        await tester.scrollUntilVisible(find.text('javascript:alert(1)'), 100);
+        await tester.tap(find.text('javascript:alert(1)'));
+        await tester.pumpAndSettle();
+        expect(opened, isEmpty);
+        await tester.scrollUntilVisible(find.text('Malformed document'), 100);
+        await tester.tap(find.text('Malformed document'));
+        await tester.pumpAndSettle();
+        expect(opened, isEmpty);
+        expect(tester.takeException(), isNull);
+      },
+    );
 
     testWidgets('contacts say what a tap does', (tester) async {
       final SemanticsHandle semantics = tester.ensureSemantics();

@@ -117,7 +117,8 @@ class _SchoolDetails extends StatelessWidget {
   final LinkOpener openLink;
 
   Future<void> _open(BuildContext context, Uri uri) async {
-    if (!await openLink(uri) && context.mounted) {
+    final supported = ['http', 'https', 'tel', 'mailto'].contains(uri.scheme);
+    if ((!supported || !await openLink(uri)) && context.mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
@@ -126,6 +127,19 @@ class _SchoolDetails extends StatelessWidget {
         ),
       );
     }
+  }
+
+  Future<void> _openWebLink(BuildContext context, String value) async {
+    final uri = Uri.tryParse(value);
+    // A malformed or unsafe link gets the same recoverable message.
+    return _open(
+      context,
+      uri != null &&
+              ['http', 'https'].contains(uri.scheme) &&
+              uri.host.isNotEmpty
+          ? uri
+          : Uri(scheme: 'unsupported'),
+    );
   }
 
   @override
@@ -192,7 +206,7 @@ class _SchoolDetails extends StatelessWidget {
                     icon: Icons.language,
                     title: info.website!,
                     action: label(schoolWebsiteKey),
-                    onTap: () => _open(context, Uri.parse(info.website!)),
+                    onTap: () => _openWebLink(context, info.website!),
                   ),
                 if (info.address != null)
                   ListTile(
@@ -214,7 +228,7 @@ class _SchoolDetails extends StatelessWidget {
                   _LinkTile(
                     icon: Icons.description_outlined,
                     title: document.title,
-                    onTap: () => _open(context, Uri.parse(document.url)),
+                    onTap: () => _openWebLink(context, document.url),
                   ),
               ],
             ),

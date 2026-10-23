@@ -10,6 +10,7 @@ use App\Http\Controllers\Api\V2\Platform\GuardianApprovalController;
 use App\Http\Controllers\Api\V2\Platform\GuardianInvitationController;
 use App\Http\Controllers\Api\V2\Platform\HandleController;
 use App\Http\Controllers\Api\V2\Platform\NotificationPreferenceController;
+use App\Http\Controllers\Api\V2\School\MySchoolController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -36,6 +37,7 @@ use Illuminate\Support\Facades\Route;
 // Every signed-in profile: the user, their schools, the current school and
 // what the apps need on launch.
 Route::middleware(['auth:sanctum', 'school.context', 'role.any', 'learner.approved', 'idempotent'])->name('api.v2.')->group(function () {
+    Route::get('schools/{school}/my-school', [MySchoolController::class, 'show'])->whereNumber('school')->middleware('cache.headers:private;no_store');
     Route::get('me/profile', [ProfileController::class, 'show'])->middleware('cache.headers:private;no_store');
     Route::put('me/profile', [ProfileController::class, 'update']);
     Route::get('people/{person}/profile', [ProfileController::class, 'show'])->whereNumber('person')->middleware('cache.headers:private;no_store');

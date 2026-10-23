@@ -750,3 +750,12 @@ per value; `{clear: true}` explicitly clears an optional value. A successful
 write returns `data: null`, keeping private values out of idempotency response
 storage. Fetch the authorised form again to read updated values. Profile lists
 and legacy forms are not automatically migrated by this API slice.
+
+### My school
+
+`GET /api/v2/schools/{school}/my-school` returns the current school's public
+contacts, published policy documents and current-year term dates. The URL school
+must match the authenticated request school. Multi-school clients explicitly
+send `X-School-Id` for the school chosen on this screen. Document links are
+published public PDFs; this endpoint is not a private person-file service.
+The response is in the v2 envelope and its DTOs are generated from OpenAPI.

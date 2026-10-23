@@ -1,49 +1,12 @@
 import 'package:equatable/equatable.dart';
-import 'package:eschool_api/eschool_api.dart';
+import 'package:eschool_api/eschool_api.dart' as api;
+import 'package:eschool_api/eschool_api.dart'
+    show SchoolSummary, SchoolDocument, TermDates;
+
 import 'package:eschool_core/eschool_core.dart';
 import 'package:eschool_people/src/common/learner_summary.dart';
 
-// GET /api/v2/schools/{school}/my-school (Phase 1 contract). Hand-written
-// until openapi.yaml has it; then use the generated models and client.
-
-/// A document the school publishes (code of conduct, fee schedule, ...).
-class SchoolDocument extends Equatable {
-  const SchoolDocument({required this.title, required this.url, this.kind});
-
-  factory SchoolDocument.fromJson(Map<String, dynamic> json) => SchoolDocument(
-    title: '${json['title'] ?? ''}',
-    kind: readString(json['kind']),
-    url: '${json['url'] ?? ''}',
-  );
-
-  final String title;
-
-  /// What sort of document, as the school filed it (`code_of_conduct`,
-  /// `fee_schedule`, ...); `null` when not given.
-  final String? kind;
-  final String url;
-
-  @override
-  List<Object?> get props => [title, kind, url];
-}
-
-/// One term of the school year.
-class TermDates extends Equatable {
-  const TermDates({required this.name, this.startsOn, this.endsOn});
-
-  factory TermDates.fromJson(Map<String, dynamic> json) => TermDates(
-    name: '${json['name'] ?? ''}',
-    startsOn: readDate(json['starts_on']),
-    endsOn: readDate(json['ends_on']),
-  );
-
-  final String name;
-  final DateTime? startsOn;
-  final DateTime? endsOn;
-
-  @override
-  List<Object?> get props => [name, startsOn, endsOn];
-}
+export 'package:eschool_api/eschool_api.dart' show SchoolDocument, TermDates;
 
 /// What My school shows about one school.
 class MySchoolInfo extends Equatable {
@@ -57,24 +20,49 @@ class MySchoolInfo extends Equatable {
     this.termDates = const [],
   });
 
-  factory MySchoolInfo.fromJson(Map<String, dynamic> json) => MySchoolInfo(
-    school: readSchool(json['school']),
-    website: readString(json['website']),
-    phone: readString(json['phone']),
-    email: readString(json['email']),
-    address: readString(json['address']),
-    documents: [
-      if (json['documents'] is List)
-        for (final Object? item in json['documents'] as List)
-          if (item is Map)
-            SchoolDocument.fromJson(Map<String, dynamic>.from(item)),
-    ],
-    termDates: [
-      if (json['term_dates'] is List)
-        for (final Object? item in json['term_dates'] as List)
-          if (item is Map) TermDates.fromJson(Map<String, dynamic>.from(item)),
-    ],
-  );
+  /// Decode with generated DTOs, filling absent optional sections for older
+  /// partial answers. The equatable view model keeps the screen API stable.
+  factory MySchoolInfo.fromJson(Map<String, dynamic> json) {
+    final payload = api.MySchoolInfo.fromJson({
+      ...json,
+      'school': readSchool(json['school'])?.toJson(),
+      'website': readString(json['website']),
+      'phone': readString(json['phone']),
+      'email': readString(json['email']),
+      'address': readString(json['address']),
+      'documents': [
+        if (json['documents'] is List)
+          for (final item in json['documents'] as List)
+            if (item is Map)
+              <String, dynamic>{
+                'title': '',
+                'kind': null,
+                'url': '',
+                ...Map<String, dynamic>.from(item),
+              },
+      ],
+      'term_dates': [
+        if (json['term_dates'] is List)
+          for (final item in json['term_dates'] as List)
+            if (item is Map)
+              <String, dynamic>{
+                'name': '',
+                'starts_on': null,
+                'ends_on': null,
+                ...Map<String, dynamic>.from(item),
+              },
+      ],
+    });
+    return MySchoolInfo(
+      school: payload.school,
+      website: payload.website,
+      phone: payload.phone,
+      email: payload.email,
+      address: payload.address,
+      documents: payload.documents,
+      termDates: payload.termDates,
+    );
+  }
 
   final SchoolSummary? school;
   final String? website;
@@ -113,6 +101,7 @@ class ApiMySchoolRepository implements MySchoolRepository {
     final Map<String, dynamic>? result = await _client.send(
       method: 'GET',
       url: '$baseUrl/$schoolId/my-school',
+      schoolId: schoolId > 0 ? schoolId : null,
       notFoundAsNull: true,
     );
     return result == null ? null : MySchoolInfo.fromJson(dataMap(result));

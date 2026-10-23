@@ -115,3 +115,16 @@ subject selection and clearing stale private values. Browser, full regression
 and exact-head CI evidence is recorded with this feature. Legacy storage
 backfill, compatibility writes, secure files and caste/religion retirement
 remain implementation work; no staging or production acceptance is claimed.
+
+The My school backend/editor connects the existing shared app screen to scoped
+contacts, branding, published policies and current term dates. Generated DTOs
+replace handwritten document/date decoding, while older partial answers remain
+supported. Permission, school isolation and publishing tests accompany the
+feature. Published school PDFs are explicitly public; private person files
+remain part of the profile migration work. Staging acceptance remains separate.
+
+PR #76 merged the configurable profile editor/forms, metadata context and
+permitted export after all 26 checks passed. The final backend job passed
+906 tests with 11,667 assertions; both Android suites, browser/accessibility
+and Chrome flows passed. Profile audits explicitly record the selected school.
+Legacy migration/files and broader Phase 1 implementation remain outstanding.

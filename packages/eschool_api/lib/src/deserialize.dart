@@ -33,6 +33,8 @@ import 'package:eschool_api/src/model/handle_proposal.dart';
 import 'package:eschool_api/src/model/handle_state.dart';
 import 'package:eschool_api/src/model/handle_state_response.dart';
 import 'package:eschool_api/src/model/module.dart';
+import 'package:eschool_api/src/model/my_school_info.dart';
+import 'package:eschool_api/src/model/my_school_response.dart';
 import 'package:eschool_api/src/model/notification_channel_preference.dart';
 import 'package:eschool_api/src/model/notification_preferences_response.dart';
 import 'package:eschool_api/src/model/notification_rule.dart';
@@ -52,11 +54,13 @@ import 'package:eschool_api/src/model/profile_form_response.dart';
 import 'package:eschool_api/src/model/profile_saved_response.dart';
 import 'package:eschool_api/src/model/profile_validation_rules.dart';
 import 'package:eschool_api/src/model/profile_value.dart';
+import 'package:eschool_api/src/model/school_document.dart';
 import 'package:eschool_api/src/model/school_membership.dart';
 import 'package:eschool_api/src/model/school_summary.dart';
 import 'package:eschool_api/src/model/session_year.dart';
 import 'package:eschool_api/src/model/set_my_handle_request.dart';
 import 'package:eschool_api/src/model/term.dart';
+import 'package:eschool_api/src/model/term_dates.dart';
 import 'package:eschool_api/src/model/update_my_notification_preferences_request.dart';
 import 'package:eschool_api/src/model/update_my_profile_request.dart';
 import 'package:eschool_api/src/model/update_person_profile_request.dart';
@@ -205,6 +209,11 @@ ReturnType deserialize<ReturnType, BaseType>(
           as ReturnType;
     case 'Module':
       return Module.fromJson(value as Map<String, dynamic>) as ReturnType;
+    case 'MySchoolInfo':
+      return MySchoolInfo.fromJson(value as Map<String, dynamic>) as ReturnType;
+    case 'MySchoolResponse':
+      return MySchoolResponse.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
     case 'NotificationChannelPreference':
       return NotificationChannelPreference.fromJson(
             value as Map<String, dynamic>,
@@ -267,6 +276,9 @@ ReturnType deserialize<ReturnType, BaseType>(
           as ReturnType;
     case 'ProfileValue':
       return ProfileValue.fromJson(value as Map<String, dynamic>) as ReturnType;
+    case 'SchoolDocument':
+      return SchoolDocument.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
     case 'SchoolMembership':
       return SchoolMembership.fromJson(value as Map<String, dynamic>)
           as ReturnType;
@@ -280,6 +292,8 @@ ReturnType deserialize<ReturnType, BaseType>(
           as ReturnType;
     case 'Term':
       return Term.fromJson(value as Map<String, dynamic>) as ReturnType;
+    case 'TermDates':
+      return TermDates.fromJson(value as Map<String, dynamic>) as ReturnType;
     case 'UpdateMyNotificationPreferencesRequest':
       return UpdateMyNotificationPreferencesRequest.fromJson(
             value as Map<String, dynamic>,

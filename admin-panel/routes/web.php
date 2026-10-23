@@ -40,6 +40,7 @@ use App\Http\Controllers\Platform\LearnerSetupController;
 use App\Http\Controllers\Platform\ModuleController;
 use App\Http\Controllers\Platform\NotificationRuleController;
 use App\Http\Controllers\RoleController;
+use App\Http\Controllers\School\SchoolInformationController;
 use App\Http\Controllers\SectionController;
 use App\Http\Controllers\SemesterController;
 use App\Http\Controllers\SessionYearController;
@@ -610,6 +611,10 @@ Route::group(['prefix' => 'common'], static function () {
 
 // Module settings use their FormRequest's office-role check.
 Route::middleware(['auth', 'school.context', EnforceReadOnlyYears::class])->group(function () {
+    Route::get('/school-information', [SchoolInformationController::class, 'index'])->name('school-information.index');
+    Route::put('/school-information', [SchoolInformationController::class, 'update'])->name('school-information.update');
+    Route::post('/school-information/documents', [SchoolInformationController::class, 'publish'])->name('school-information.documents.store');
+    Route::delete('/school-information/documents/{document}', [SchoolInformationController::class, 'unpublish'])->whereUuid('document')->name('school-information.documents.destroy');
     Route::get('/profile-configuration', [ProfileFieldController::class, 'index'])->name('profile-configuration.index');
     Route::post('/profile-configuration/categories', [ProfileFieldController::class, 'category'])->name('profile-configuration.categories.store');
     Route::put('/profile-configuration/categories/{category}', [ProfileFieldController::class, 'category'])->whereNumber('category')->name('profile-configuration.categories.update');

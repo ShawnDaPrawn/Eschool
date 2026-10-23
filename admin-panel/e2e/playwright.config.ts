@@ -49,7 +49,7 @@ export default defineConfig({
     },
     {
       name: 'flows',
-      testMatch: /(navigation|search|year-switcher|school-switcher|modules|notification-rules|profile-fields)\.spec\.ts/,
+      testMatch: /(navigation|search|year-switcher|school-switcher|modules|notification-rules|profile-fields|school-information)\.spec\.ts/,
       use: { ...desktop, viewport: { width: 1280, height: 800 } },
     },
     {

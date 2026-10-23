@@ -26,6 +26,7 @@ import 'package:eschool_api/src/model/guardian_invitation_accepted_response.dart
 import 'package:eschool_api/src/model/guardian_invitation_issued_response.dart';
 import 'package:eschool_api/src/model/guardian_invitation_preview_response.dart';
 import 'package:eschool_api/src/model/handle_state_response.dart';
+import 'package:eschool_api/src/model/my_school_response.dart';
 import 'package:eschool_api/src/model/notification_preferences_response.dart';
 import 'package:eschool_api/src/model/profile_category_response.dart';
 import 'package:eschool_api/src/model/profile_configuration_response.dart';
@@ -1554,6 +1555,99 @@ class PlatformApi {
     }
 
     return Response<ProfileFormResponse>(
+      data: _responseData,
+      headers: _response.headers,
+      isRedirect: _response.isRedirect,
+      requestOptions: _response.requestOptions,
+      redirects: _response.redirects,
+      statusCode: _response.statusCode,
+      statusMessage: _response.statusMessage,
+      extra: _response.extra,
+    );
+  }
+
+  /// Published contacts, documents and current term dates for a school
+  /// Requires active membership and the same school in X-School-Id. Document links are public school publications, not private person files.
+  ///
+  /// Parameters:
+  /// * [school]
+  /// * [xSchoolId] - The school to work in, one of the signed-in user's schools (`schools` in `/me/context`). Without it the request works in the user's first school. A school the user is not an active member of is refused with 403. Apps send it on every call once a school is chosen.
+  /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
+  /// * [headers] - Can be used to add additional headers to the request
+  /// * [extras] - Can be used to add flags to the request
+  /// * [validateStatus] - A [ValidateStatus] callback that can be used to determine request success based on the HTTP status of the response
+  /// * [onSendProgress] - A [ProgressCallback] that can be used to get the send progress
+  /// * [onReceiveProgress] - A [ProgressCallback] that can be used to get the receive progress
+  ///
+  /// Returns a [Future] containing a [Response] with a [MySchoolResponse] as data
+  /// Throws [DioException] if API call or serialization fails
+  Future<Response<MySchoolResponse>> getMySchool({
+    required int school,
+    int? xSchoolId,
+    CancelToken? cancelToken,
+    Map<String, dynamic>? headers,
+    Map<String, dynamic>? extra,
+    ValidateStatus? validateStatus,
+    ProgressCallback? onSendProgress,
+    ProgressCallback? onReceiveProgress,
+  }) async {
+    final _path = r'/schools/{school}/my-school'.replaceAll(
+      '{'
+      r'school'
+      '}',
+      school.toString(),
+    );
+    final _options = Options(
+      method: r'GET',
+      headers: <String, dynamic>{
+        if (xSchoolId != null) r'X-School-Id': xSchoolId,
+        ...?headers,
+      },
+      extra: <String, dynamic>{
+        'secure': <Map<String, String>>[
+          {
+            'type': 'apiKey',
+            'name': 'cookieAuth',
+            'keyName': 'e_school_session',
+            'where': '',
+          },
+          {'type': 'http', 'scheme': 'bearer', 'name': 'bearerAuth'},
+        ],
+        ...?extra,
+      },
+      validateStatus: validateStatus,
+    );
+
+    final _response = await _dio.request<Object>(
+      _path,
+      options: _options,
+      cancelToken: cancelToken,
+      onSendProgress: onSendProgress,
+      onReceiveProgress: onReceiveProgress,
+    );
+
+    MySchoolResponse? _responseData;
+
+    try {
+      final rawData = _response.data;
+      _responseData = rawData == null
+          ? null
+          : deserialize<MySchoolResponse, MySchoolResponse>(
+              rawData,
+              'MySchoolResponse',
+              growable: true,
+            );
+    } catch (error, stackTrace) {
+      throw DioException(
+        requestOptions: _response.requestOptions,
+        response: _response,
+        type: DioExceptionType.unknown,
+        error: error,
+        stackTrace: stackTrace,
+      );
+    }
+
+    return Response<MySchoolResponse>(
       data: _responseData,
       headers: _response.headers,
       isRedirect: _response.isRedirect,
