@@ -430,3 +430,8 @@ change their age through this API. Support impersonation excludes sensitive
 fields from reads and writes. New custom values are encrypted, write responses
 contain no values, and audit records contain field keys only. Legacy storage
 retirement and sensitive export enforcement remain separate implementation work.
+
+Legacy parent login/profile child lists use the canonical active guardian
+query, including explicit-link overrides of old parent columns. Current-year
+filters apply to every relationship. Fee-restricted guardians get no fee-due
+signal/paywall flag in those child summaries; academic access stays separate.

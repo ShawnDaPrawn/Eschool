@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Api\Parent\Concerns;
 
+use App\Models\Platform\GuardianLink;
 use App\Models\Students;
 use App\Services\ResponseService;
 use Illuminate\Http\Exceptions\HttpResponseException;
@@ -57,5 +58,12 @@ trait ParentAccess
         $parent = $request->user()?->parent;
 
         return $parent ? $parent->children()->pluck('id')->map(fn ($id) => (int) $id)->all() : [];
+    }
+
+    /** Fee visibility is independent of the guardian's academic child access. */
+    private function feeRestrictedChildIds(int $guardianUserId): array
+    {
+        return GuardianLink::query()->where('guardian_user_id', $guardianUserId)->where('status', 'active')
+            ->where('can_see_fees', false)->pluck('learner_id')->map(fn ($id) => (int) $id)->all();
     }
 }

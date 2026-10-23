@@ -11,7 +11,6 @@ use App\Models\InstallmentFee;
 use App\Models\PaidInstallmentFee;
 use App\Models\SessionYear;
 use App\Models\Shift;
-use App\Models\Students;
 use App\Models\StudentSessions;
 use App\Services\IdCardService;
 use App\Services\ResponseService;
@@ -47,13 +46,14 @@ class ProfileController extends Controller
             $current_date = Carbon::now()->toDateString();
 
             $user = Auth::user();
-            $children = Students::where('father_id', $user->parent->id)->orWhere('mother_id', $user->parent->id)->orWhere('guardian_id', $user->parent->id)->with('class_section')
+            $children = $user->parent->children()->with('class_section')
                 ->whereHas('studentSessions', function ($query) use ($session_year_id) {
                     $query->where('session_year_id', $session_year_id);
                 })->get();
 
             $parentDynamicField = null;
             $dynamicField = $user->parent->dynamic_fields;
+            $restrictedFeeChildIds = $this->feeRestrictedChildIds((int) Auth::id());
             $user = flattenMyModel($user);
 
             $data1 = ! empty($dynamicField) ? json_decode($dynamicField, true) : null;
@@ -80,7 +80,7 @@ class ProfileController extends Controller
                 $studentSession = StudentSessions::where('session_year_id', $session_year_id)->where('student_id', $child->id)->first();
                 $class_id = $studentSession ? $studentSession->class_section->class_id : $child->class_section->class_id;
 
-                if ($compulsory_fees_mode == 1) {
+                if ($compulsory_fees_mode == 1 && ! in_array((int) $child->id, $restrictedFeeChildIds, true)) {
                     if (isset($free_app_use_date)) {
                         if ($current_date >= $free_app_use_date) {
                             $fees_paid = FeesPaid::where('student_id', $child->id)->where('session_year_id', $session_year_id)->first();

@@ -403,7 +403,6 @@ the issued address. Unbound legacy email links are retired by migration
 `2026_10_23_160000`; printed learner codes remain valid. The hash is not a new
 consent record, and password setup still does not grant learner approval.
 
-
 ## Configurable profiles
 
 `profile_field_categories`, `profile_field_definitions` and `profile_field_values`
