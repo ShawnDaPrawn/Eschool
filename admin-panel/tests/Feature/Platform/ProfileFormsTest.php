@@ -137,4 +137,17 @@ class ProfileFormsTest extends TestCase
             app(ProfileDefinitions::class)->category($admin, ['profile_type' => 'learner', 'key' => 'foreign', 'label' => 'No']);
         });
     }
+
+    public function test_an_expired_admin_role_cannot_grant_profile_access_through_an_active_teacher_membership(): void
+    {
+        $admin = $this->superAdmin();
+        $admin->assignRole('Teacher');
+        DB::table('school_memberships')->where('school_id', 1)->where('user_id', $admin->id)->where('role', 'Super Admin')
+            ->update(['ends_on' => now()->subDay()->toDateString()]);
+        $this->actingAs($admin)->getJson('/api/v2/profile-fields')->assertForbidden();
+        $this->getJson('/api/v2/people/'.$this->schoolA->ids['asha_user'].'/profile?profile_type=learner')->assertNotFound();
+        $this->postJson('/api/v2/profile-fields/categories', ['profile_type' => 'learner', 'key' => 'expired_admin', 'label' => 'No'])
+            ->assertForbidden();
+    }
+
 }
