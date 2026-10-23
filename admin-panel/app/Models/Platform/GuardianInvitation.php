@@ -14,7 +14,7 @@ class GuardianInvitation extends Model
 
     protected $guarded = ['id'];
 
-    protected $hidden = ['token_hash', 'encrypted_token'];
+    protected $hidden = ['token_hash', 'encrypted_token', 'email_hash'];
 
     protected function casts(): array
     {

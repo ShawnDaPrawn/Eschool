@@ -41,3 +41,9 @@ The existing shared approval screen now decodes the generated wire models;
 its UI view models and the shared API transport remain in place. New
 invitation endpoints use the app's existing contract. Staging delivery, email
 provider verification and a real-device onboarding run remain pending.
+
+Mailbox binding and queued authority checks are specified in
+[invitation lifecycle](invitation-lifecycle.md). Changing a guardian email clears
+its verification and retires existing email links. Legacy unbound email links
+require reissue after the binding migration; printed codes keep their existing
+expiry and purpose. Password setup never grants learner-access consent.

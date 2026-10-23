@@ -35,6 +35,7 @@ class TenancyMigrationsTest extends TestCase
         '2026_10_23_130000_create_school_modules',
         '2026_10_23_140000_create_identity_handles',
         '2026_10_23_150000_create_notification_configuration',
+        '2026_10_23_160000_bind_invitations_to_mailboxes',
     ];
 
     protected function setUp(): void

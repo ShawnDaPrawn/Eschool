@@ -395,3 +395,11 @@ each notice/person/channel once for retry deduplication. Notifications add hidde
 Historical notices retain legacy visibility; new ones require recipient links.
 Delivery status also includes `suppressed` when worker checks reject changed
 access, destination or optional choices. See [Notifications](Notifications).
+
+## Invitation mailbox binding
+
+Guardian and learner email invitations add a hidden nullable `email_hash` of
+the issued address. Unbound legacy email links are retired by migration
+`2026_10_23_160000`; printed learner codes remain valid. The hash is not a new
+consent record, and password setup still does not grant learner approval.
+

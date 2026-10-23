@@ -103,6 +103,26 @@ class GuardianInvitationTest extends TestCase
         $this->assertSame(0, $service->remind());
     }
 
+    public function test_old_mailbox_link_cannot_verify_a_replacement_email_address(): void
+    {
+        $invitation = $this->issue();
+        $guardian = User::findOrFail($this->schoolA->ids['farid_user']);
+        $guardian->forceFill(['email' => 'replacement@example.org'])->save();
+        $path = '/api/v2/guardian/invitations/'.$invitation->encrypted_token;
+        $this->getJson($path)->assertNotFound();
+        $this->postJson($path.'/accept', ['password' => 'SafeInvitationPassword123'])->assertNotFound();
+        $this->assertNull($guardian->fresh()->email_verified_at);
+    }
+
+    public function test_a_bulk_email_change_does_not_rebind_an_existing_secret(): void
+    {
+        $invitation = $this->issue();
+        DB::table('users')->where('id', $this->schoolA->ids['farid_user'])->update(['email' => 'replacement@example.org']);
+        $path = '/api/v2/guardian/invitations/'.$invitation->encrypted_token;
+        $this->getJson($path)->assertNotFound();
+        $this->postJson($path.'/accept', ['password' => 'SafeInvitationPassword123'])->assertNotFound();
+    }
+
     private function issue(): GuardianInvitation
     {
         return app(GuardianInvitations::class)->issue(User::findOrFail($this->schoolA->ids['farid_user']), $this->superAdmin());
