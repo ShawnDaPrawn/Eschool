@@ -25,6 +25,7 @@ class MySchoolInfo extends Equatable {
   factory MySchoolInfo.fromJson(Map<String, dynamic> json) {
     final payload = api.MySchoolInfo.fromJson({
       ...json,
+      'school': readSchool(json['school'])?.toJson(),
       'website': readString(json['website']),
       'phone': readString(json['phone']),
       'email': readString(json['email']),

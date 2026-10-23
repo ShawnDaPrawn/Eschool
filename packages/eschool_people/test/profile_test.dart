@@ -188,6 +188,7 @@ void main() {
           find.byKey(const ValueKey('profile-field-route')),
           'Blue bus',
         );
+        FocusManager.instance.primaryFocus?.unfocus();
         await tester.pump();
         await tester.ensureVisible(find.text(testLabels[profileSaveKey]!));
         await tester.tap(find.text(testLabels[profileSaveKey]!));

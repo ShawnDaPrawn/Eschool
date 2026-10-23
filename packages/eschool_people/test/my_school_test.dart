@@ -160,6 +160,20 @@ void main() {
     });
 
     testWidgets(
+      'a partial older school uses context branding and keeps its contacts',
+      (tester) async {
+        repository.answers[1] = MySchoolInfo.fromJson({
+          ...mySchoolJson(1, 'Legacy name'),
+          'school': {'id': 1, 'name': 'Legacy name'},
+        });
+        await pumpScreen(tester, screen([northcliff]));
+        expect(find.text('Northcliff High'), findsOneWidget);
+        expect(find.text('011 555 0101'), findsOneWidget);
+        expect(tester.takeException(), isNull);
+      },
+    );
+
+    testWidgets(
       'unsafe and malformed web links fail without launching or crashing',
       (tester) async {
         repository.answers[1] = MySchoolInfo.fromJson({

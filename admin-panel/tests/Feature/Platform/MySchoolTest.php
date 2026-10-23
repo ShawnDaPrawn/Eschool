@@ -32,6 +32,13 @@ class MySchoolTest extends TestCase
         return UploadedFile::fake()->createWithContent($name, "%PDF-1.4\n1 0 obj\n<< /Type /Catalog >>\nendobj\n%%EOF");
     }
 
+    public function test_the_school_editor_renders_its_controls_in_arabic(): void
+    {
+        $this->actingAs($this->superAdmin(), 'web')->withSession(['locale' => 'ar', 'language' => (object) ['code' => 'ar', 'is_rtl' => 1]])
+            ->get('/school-information')->assertOk()->assertSee('بيانات الاتصال وهوية المدرسة')
+            ->assertSee('نشر المستند')->assertSee('مواعيد الفصول الدراسية');
+    }
+
     public function test_admin_edits_contacts_and_branding_using_the_existing_scoped_settings(): void
     {
         $this->actingAs($this->superAdmin(), 'web')->get('/school-information')->assertOk()->assertSee('School contacts and branding');

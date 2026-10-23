@@ -4,6 +4,7 @@ import 'package:eschool_core/eschool_core.dart';
 import 'package:eschool_people/eschool_people.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:integration_test/integration_test.dart';
 
 import 'support/fixtures.dart';
@@ -122,6 +123,16 @@ void main() {
         find.byKey(const ValueKey('profile-field-route')),
         'Blue bus',
       );
+      // Let the edit reach the rebuilt form and native text-input connection
+      // before hiding the keyboard; an immediate unfocus can replay old IME text.
+      await tester.pump();
+      final editor = tester
+          .element(find.byKey(const ValueKey('profile-field-route')))
+          .read<ProfileCubit>();
+      expect(editor.state.draft['route']?.text, 'Blue bus');
+      FocusManager.instance.primaryFocus?.unfocus();
+      await tester.pump(const Duration(milliseconds: 300));
+      expect(editor.state.draft['route']?.text, 'Blue bus');
       await tapWhenReady(tester, find.text('Save profile'));
       await pumpUntilFound(tester, find.text('Profile saved'));
       final write = api.requests
