@@ -69,7 +69,7 @@ The tenancy rehearsal includes this migration in reverse/forward order.
 
 ## Screens
 
-The panel renders a private file link plus optional clear control. Separate
+The panel renders a private download link plus optional clear control. Separate
 upload forms use the v2 API and refresh metadata without discarding typed edits.
 The shared app form uses the system picker; previews load authorised bytes in
 memory and show loading/error/retry states. Cancelled/stale pickers do not write

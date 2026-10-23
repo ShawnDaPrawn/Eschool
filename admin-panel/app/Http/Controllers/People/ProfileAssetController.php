@@ -28,7 +28,7 @@ class ProfileAssetController extends Controller
         $content = $files->read($request->user(), $subject, $file);
 
         return response($content['bytes'], 200, ['Content-Type' => $content['mime'],
-            'Content-Disposition' => 'inline; filename="'.$content['token'].'"; filename*=UTF-8\'\''.rawurlencode($content['name']),
+            'Content-Disposition' => 'attachment; filename="'.$content['token'].'"; filename*=UTF-8\'\''.rawurlencode($content['name']),
             'Cache-Control' => 'private, no-store', 'X-Content-Type-Options' => 'nosniff', 'Content-Security-Policy' => 'sandbox']);
     }
 }

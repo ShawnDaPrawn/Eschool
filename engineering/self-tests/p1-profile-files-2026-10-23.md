@@ -23,7 +23,7 @@ real devices, owner acceptance and production release remain pending.
   selection/auth and handle 401 through the existing sign-out path.
 - Generated API package: **10 tests passed**. SDK regenerated from OpenAPI.
 - Panel Playwright: **5 flows passed**, including both 1024/1280 layouts,
-  accessibility, upload → cookie-authenticated PDF → save another draft → clear
+  accessibility, unique file-input IDs, authenticated PDF download → save another draft → clear
   → old-link refusal, plus teacher refusal and existing profile/export flows.
 - Real Chrome shared profile smoke passed with authenticated image and PDF
   previews, explicit school scope and a retained unrelated draft. Native CI is
@@ -47,3 +47,8 @@ replaced/unreferenced ciphertext stays private pending the general retention job
 
 Legacy public files, dynamic-field migration, caste/religion storage retirement,
 general retention, operational staging and acceptance remain separate work.
+
+Final panel review made browser downloads explicit through Content-Disposition
+and fixed repeated input/help IDs on profiles with multiple file fields. All five
+browser flows passed again, including downloaded filename/bytes; all 12 private
+file backend tests passed again (162 assertions), and TypeScript passes.

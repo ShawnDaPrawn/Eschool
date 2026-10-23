@@ -25,8 +25,8 @@ learner profile depends on their assigned learners or profile permissions.
 Choose **File** for a private PDF, PNG or JPEG field (up to 5 MB). Uploads save
 separately and keep other unsaved profile edits. Use **Remove file when saving**
 for an optional field, then save the profile. Replacing or removing a file
-invalidates its old link. A copied link still requires the right signed-in
-person, school and field permissions. These files are distinct from public
+invalidates its old link. The panel link downloads the file. A copied link still
+requires the right signed-in person, school and field permissions. These files are distinct from public
 school policy PDFs on My school.
 
 The shared app form previews authorised files from memory. Private values and

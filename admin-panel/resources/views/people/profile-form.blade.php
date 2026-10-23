@@ -70,7 +70,7 @@
                               data-refresh="{{ __('File saved. Refresh the profile to view it.') }}">
                             @csrf
                             <input type="hidden" name="profile_type" value="{{ $form['profile_type'] }}">
-                            <x-page.field name="document" type="file" :label="$field['label']" accept="application/pdf,image/png,image/jpeg" required :help="__('PDF, PNG or JPEG, up to 5 MB.')" />
+                            <x-page.field name="document" :id="'profile-document-'.$field['key']" type="file" :label="$field['label']" accept="application/pdf,image/png,image/jpeg" required :help="__('PDF, PNG or JPEG, up to 5 MB.')" />
                             <button class="m3-button m3-button--outlined" type="submit">{{ __('Upload or replace file') }}</button>
                             <p role="status" aria-live="polite" data-file-status></p>
                         </form>

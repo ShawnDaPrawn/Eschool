@@ -90,6 +90,8 @@ for (const width of [1024, 1280]) {
     const input = page.getByRole('textbox', { name: `route ${key}`, exact: true });
     await input.fill('Private unsaved route');
     const upload = page.locator(`[data-profile-file-upload="${key}_letter"]`);
+    const documentIds = await page.locator('[data-profile-file-upload] input[type=file]').evaluateAll(inputs => inputs.map(input => input.id));
+    expect(new Set(documentIds).size).toBe(documentIds.length);
     const pdf = Buffer.from('%PDF-1.4\nPRIVATE DOCUMENT BODY\n%%EOF');
     await upload.locator('input[type=file]').setInputFiles({ name: 'Private-letter.pdf', mimeType: 'application/pdf', buffer: pdf });
     await upload.getByRole('button', { name: 'Upload or replace file' }).click();
@@ -103,6 +105,14 @@ for (const width of [1024, 1280]) {
     expect(response.status()).toBe(200);
     expect(response.headers()['cache-control']).toContain('no-store');
     expect(await response.body()).toEqual(pdf);
+    const downloaded = page.waitForEvent('download');
+    await current.getByRole('link', { name: 'Private-letter.pdf' }).click();
+    const savedFile = await downloaded;
+    expect(savedFile.suggestedFilename()).toBe('Private-letter.pdf');
+    const stream = await savedFile.createReadStream();
+    const chunks: Buffer[] = [];
+    for await (const chunk of stream!) chunks.push(Buffer.from(chunk));
+    expect(Buffer.concat(chunks)).toEqual(pdf);
     expect(await seriousViolations(page)).toEqual([]);
     expect(await horizontalOverflow(page)).toBeLessThanOrEqual(1);
     expect(await page.evaluate(() => Object.values(sessionStorage).join(' '))).not.toContain('Private unsaved route');
