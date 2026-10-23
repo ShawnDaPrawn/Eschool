@@ -159,6 +159,29 @@ void main() {
       );
     });
 
+    testWidgets(
+      'unsafe and malformed web links fail without launching or crashing',
+      (tester) async {
+        repository.answers[1] = MySchoolInfo.fromJson({
+          ...mySchoolJson(1, 'Northcliff High'),
+          'website': 'javascript:alert(1)',
+          'documents': [
+            {'title': 'Malformed document', 'kind': null, 'url': 'https://['},
+          ],
+        });
+        await pumpScreen(tester, screen([northcliff]));
+        await tester.scrollUntilVisible(find.text('javascript:alert(1)'), 100);
+        await tester.tap(find.text('javascript:alert(1)'));
+        await tester.pumpAndSettle();
+        expect(opened, isEmpty);
+        await tester.scrollUntilVisible(find.text('Malformed document'), 100);
+        await tester.tap(find.text('Malformed document'));
+        await tester.pumpAndSettle();
+        expect(opened, isEmpty);
+        expect(tester.takeException(), isNull);
+      },
+    );
+
     testWidgets('contacts say what a tap does', (tester) async {
       final SemanticsHandle semantics = tester.ensureSemantics();
       await pumpScreen(tester, screen([northcliff, riverside]));

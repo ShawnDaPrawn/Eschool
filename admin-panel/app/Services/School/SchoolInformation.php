@@ -89,12 +89,17 @@ class SchoolInformation
         $profile = SchoolProfile::current($school);
         $settings = $this->settings();
         $value = fn ($key) => trim((string) ($settings[$key] ?? '')) === '' ? null : $settings[$key];
+        $website = $value('school_website');
+        if ($website !== null && (! filter_var($website, FILTER_VALIDATE_URL)
+            || ! in_array(strtolower((string) parse_url($website, PHP_URL_SCHEME)), ['http', 'https'], true))) {
+            $website = null; // Older settings writers did not validate this key.
+        }
         $terms = $profile->sessionYearId === null ? collect() : Semester::query()->where('session_year_id', $profile->sessionYearId)
             ->orderBy('start_date')->orderBy('id')->get();
 
         return [
             'school' => ['id' => $profile->id, 'name' => $profile->name, 'short_name' => $profile->shortName, 'crest_url' => $profile->crestUrl],
-            'website' => $value('school_website'), 'phone' => $value('school_phone'), 'email' => $value('school_email'), 'address' => $value('school_address'),
+            'website' => $website, 'phone' => $value('school_phone'), 'email' => $value('school_email'), 'address' => $value('school_address'),
             'documents' => array_map(fn ($document) => [
                 'id' => $document['id'], 'title' => $document['title'], 'kind' => $document['kind'],
                 'url' => url(Storage::disk('public')->url($document['path'])),

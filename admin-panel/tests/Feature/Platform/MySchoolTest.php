@@ -8,6 +8,7 @@ use App\Models\Platform\SchoolMembership;
 use App\Models\Settings;
 use App\Models\User;
 use App\Services\Platform\Tenancy\CurrentSchool;
+use App\Services\School\SchoolInformation;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
@@ -137,5 +138,11 @@ class MySchoolTest extends TestCase
         $this->assertStringStartsWith('schools/1/school-branding/', $path);
         Storage::disk('public')->assertExists($path);
         $this->getJson('/api/v2/schools/1/my-school')->assertOk()->assertJsonPath('data.school.crest_url', url(Storage::disk('public')->url($path)));
+    }
+
+    public function test_unsafe_legacy_website_values_are_not_published(): void
+    {
+        Settings::query()->updateOrCreate(['type' => 'school_website'], ['message' => 'javascript:alert(1)']);
+        $this->actingAs($this->superAdmin(), 'web')->getJson('/api/v2/schools/1/my-school')->assertOk()->assertJsonPath('data.website', null);
     }
 }
