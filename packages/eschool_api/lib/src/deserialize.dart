@@ -1,9 +1,17 @@
+import 'package:eschool_api/src/model/academic_grade_level.dart';
+import 'package:eschool_api/src/model/academic_rating_level.dart';
+import 'package:eschool_api/src/model/academic_reference.dart';
+import 'package:eschool_api/src/model/academic_reference_response.dart';
 import 'package:eschool_api/src/model/accept_guardian_invitation_request.dart';
 import 'package:eschool_api/src/model/approval_learner.dart';
 import 'package:eschool_api/src/model/approval_state.dart';
 import 'package:eschool_api/src/model/approval_state_response.dart';
 import 'package:eschool_api/src/model/branding.dart';
 import 'package:eschool_api/src/model/child.dart';
+import 'package:eschool_api/src/model/class_grade_mapping.dart';
+import 'package:eschool_api/src/model/class_grade_mapping_grade_level.dart';
+import 'package:eschool_api/src/model/class_grade_response.dart';
+import 'package:eschool_api/src/model/class_grade_write.dart';
 import 'package:eschool_api/src/model/context.dart';
 import 'package:eschool_api/src/model/context_response.dart';
 import 'package:eschool_api/src/model/context_user.dart';
@@ -91,6 +99,18 @@ ReturnType deserialize<ReturnType, BaseType>(
       return (valueString == 'true' || valueString == '1') as ReturnType;
     case 'double':
       return (value is double ? value : double.parse('$value')) as ReturnType;
+    case 'AcademicGradeLevel':
+      return AcademicGradeLevel.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'AcademicRatingLevel':
+      return AcademicRatingLevel.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'AcademicReference':
+      return AcademicReference.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'AcademicReferenceResponse':
+      return AcademicReferenceResponse.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
     case 'AcceptGuardianInvitationRequest':
       return AcceptGuardianInvitationRequest.fromJson(
             value as Map<String, dynamic>,
@@ -109,6 +129,18 @@ ReturnType deserialize<ReturnType, BaseType>(
       return Branding.fromJson(value as Map<String, dynamic>) as ReturnType;
     case 'Child':
       return Child.fromJson(value as Map<String, dynamic>) as ReturnType;
+    case 'ClassGradeMapping':
+      return ClassGradeMapping.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'ClassGradeMappingGradeLevel':
+      return ClassGradeMappingGradeLevel.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'ClassGradeResponse':
+      return ClassGradeResponse.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'ClassGradeWrite':
+      return ClassGradeWrite.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
     case 'Context':
       return Context.fromJson(value as Map<String, dynamic>) as ReturnType;
     case 'ContextResponse':

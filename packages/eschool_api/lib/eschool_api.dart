@@ -8,14 +8,23 @@ export 'package:eschool_api/src/auth/basic_auth.dart';
 export 'package:eschool_api/src/auth/bearer_auth.dart';
 export 'package:eschool_api/src/auth/oauth.dart';
 
+export 'package:eschool_api/src/api/academics_api.dart';
 export 'package:eschool_api/src/api/platform_api.dart';
 
+export 'package:eschool_api/src/model/academic_grade_level.dart';
+export 'package:eschool_api/src/model/academic_rating_level.dart';
+export 'package:eschool_api/src/model/academic_reference.dart';
+export 'package:eschool_api/src/model/academic_reference_response.dart';
 export 'package:eschool_api/src/model/accept_guardian_invitation_request.dart';
 export 'package:eschool_api/src/model/approval_learner.dart';
 export 'package:eschool_api/src/model/approval_state.dart';
 export 'package:eschool_api/src/model/approval_state_response.dart';
 export 'package:eschool_api/src/model/branding.dart';
 export 'package:eschool_api/src/model/child.dart';
+export 'package:eschool_api/src/model/class_grade_mapping.dart';
+export 'package:eschool_api/src/model/class_grade_mapping_grade_level.dart';
+export 'package:eschool_api/src/model/class_grade_response.dart';
+export 'package:eschool_api/src/model/class_grade_write.dart';
 export 'package:eschool_api/src/model/context.dart';
 export 'package:eschool_api/src/model/context_response.dart';
 export 'package:eschool_api/src/model/context_user.dart';

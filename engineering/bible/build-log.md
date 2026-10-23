@@ -159,3 +159,18 @@ the existing encrypted private-file service. Hidden field review, protected
 reads, retries and outer-transaction cleanup have dedicated synthetic tests.
 Public-file retirement and compatibility writes remain separate work. No
 live data migration or external acceptance is claimed.
+
+## 23 October 2026: start Phase 2 with academic references
+
+Begin independent Phase 2 work while Phase 0/1 remaining implementation and
+external acceptance stay open. The first bounded slice provides global read-only
+R–12 grade/phase and seven-point basis-point references, plus an explicit audited
+school-scoped mapping of existing classes. Existing class names, legacy grades,
+marks, semester contracts and result calculations are preserved; unmapped classes
+remain valid. No assessment ratio, promotion or pilot result is invented.
+
+The phase plan, pending decisions, feature spec and self-test record distinguish
+automated verification from staging, full-term pilot acceptance and production
+release. Terms, subject standards, assessment/mark engine, teaching groups,
+timetable, attendance, reports, content, messages and pilot remain future slices.
+No staging resources, live data migration or production release are performed.

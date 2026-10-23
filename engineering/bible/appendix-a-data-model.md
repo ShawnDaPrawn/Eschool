@@ -61,3 +61,16 @@ actor/approving guardian and term boundary. These are accessed through the
 authenticated or explicitly authorised human identity. School-scoped
 `handle_proposals` links a learner to a seven-day pending name and its eventual
 decision. All have timestamps; proposals carry a required school foreign key.
+
+## Phase 2: academic references
+
+| Table or column | Purpose |
+| --- | --- |
+| `grade_levels` | Global immutable API reference: R to 12, Foundation/Intermediate/Senior/FET phase, unique code and order, timestamps |
+| `academic_rating_levels` | Global read-only seven-point reference: level, label and inclusive integer basis-point thresholds (0 to 10000), timestamps |
+| `classes.grade_level_id` | Nullable indexed foreign key to the shared grade reference; explicitly mapped and audited within the class's school, hidden from v1 serialization |
+
+These references contain no learner marks or school/person data. Existing
+school-owned `grades`, exam results and semester consumers retain their current
+behaviour. Mapping is opt-in; no automatic class-name inference or mark conversion.
+The migration reverses the foreign key/column before dropping reference tables.

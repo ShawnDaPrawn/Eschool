@@ -93,9 +93,110 @@ security:
   - bearerAuth: []
   - cookieAuth: []
 tags:
+  - name: Academics
+    description: Academic references and explicit school class mapping.
   - name: Platform
     description: Who is signed in and the school they work in.
 paths:
+  /academics/reference:
+    get:
+      operationId: getAcademicReference
+      tags: [Academics]
+      summary: Shared grades, school phases and seven-point rating thresholds
+      description: Read-only reference for active school members. Thresholds are integer basis points, not new calculations of existing learner marks.
+      parameters:
+        - $ref: '#/components/parameters/SchoolId'
+      responses:
+        '200':
+          description: Academic reference catalogue.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AcademicReferenceResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+  /academics/classes/{class}/grade-level:
+    get:
+      operationId: getClassGradeLevel
+      tags: [Academics]
+      summary: Read an explicitly mapped class grade
+      description: Requires class-list or class-edit in the current school. Foreign or deleted classes return 404.
+      parameters:
+        - $ref: '#/components/parameters/SchoolId'
+        - name: class
+          in: path
+          required: true
+          schema:
+            type: integer
+            minimum: 1
+      responses:
+        '200':
+          description: Class grade mapping; null until explicitly set.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ClassGradeResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+    put:
+      operationId: updateClassGradeLevel
+      tags: [Academics]
+      summary: Explicitly set or clear a class grade reference
+      description: Requires class-edit in the current school. Does not change class names, legacy marks or reports. Repeated identical mappings produce no additional audit entry.
+      parameters:
+        - $ref: '#/components/parameters/SchoolId'
+        - $ref: '#/components/parameters/IdempotencyKey'
+        - name: class
+          in: path
+          required: true
+          schema:
+            type: integer
+            minimum: 1
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ClassGradeWrite'
+      responses:
+        '200':
+          description: Updated class grade mapping.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ClassGradeResponse'
+        '400':
+          $ref: '#/components/responses/IdempotencyKeyProblem'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
   /me/profile/fields/{field}/file:
     post:
       operationId: uploadMyProfileFile
@@ -1510,6 +1611,116 @@ components:
           schema:
             $ref: '#/components/schemas/ErrorResponse'
   schemas:
+    AcademicReferenceResponse:
+      type: object
+      additionalProperties: false
+      required: [error, message, data, code]
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        code:
+          type: integer
+        data:
+          $ref: '#/components/schemas/AcademicReference'
+    AcademicReference:
+      type: object
+      additionalProperties: false
+      required: [grades, rating_scale]
+      properties:
+        grades:
+          type: array
+          items:
+            $ref: '#/components/schemas/AcademicGradeLevel'
+        rating_scale:
+          type: array
+          items:
+            $ref: '#/components/schemas/AcademicRatingLevel'
+    AcademicGradeLevel:
+      type: object
+      additionalProperties: false
+      required: [id, code, name, phase, sort_order]
+      properties:
+        id:
+          type: integer
+        code:
+          type: string
+        name:
+          type: string
+        phase:
+          type: string
+          enum: [Foundation, Intermediate, Senior, FET]
+        sort_order:
+          type: integer
+          minimum: 0
+          maximum: 12
+    AcademicRatingLevel:
+      type: object
+      additionalProperties: false
+      required: [level, name, min_basis_points, max_basis_points]
+      properties:
+        level:
+          type: integer
+          minimum: 1
+          maximum: 7
+        name:
+          type: string
+        min_basis_points:
+          type: integer
+          minimum: 0
+          maximum: 10000
+        max_basis_points:
+          type: integer
+          minimum: 0
+          maximum: 10000
+    ClassGradeWrite:
+      type: object
+      required: [grade_level_id]
+      properties:
+        grade_level_id:
+          type: [integer, 'null']
+          description: Reference ID, or explicit null to clear the mapping.
+    ClassGradeResponse:
+      type: object
+      additionalProperties: false
+      required: [error, message, data, code]
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        code:
+          type: integer
+        data:
+          $ref: '#/components/schemas/ClassGradeMapping'
+    ClassGradeMapping:
+      type: object
+      additionalProperties: false
+      required: [class_id, grade_level_id, grade_level]
+      properties:
+        class_id:
+          type: integer
+        grade_level_id:
+          type: [integer, 'null']
+        grade_level:
+          type: [object, 'null']
+          description: The selected grade reference, or null when unmapped.
+          required: [id, code, name, phase, sort_order]
+          properties:
+            id:
+              type: integer
+            code:
+              type: string
+            name:
+              type: string
+            phase:
+              type: string
+              enum: [Foundation, Intermediate, Senior, FET]
+            sort_order:
+              type: integer
+              minimum: 0
+              maximum: 12
     MySchoolResponse:
       type: object
       additionalProperties: false

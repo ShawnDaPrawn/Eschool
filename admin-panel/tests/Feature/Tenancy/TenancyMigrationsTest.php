@@ -38,6 +38,7 @@ class TenancyMigrationsTest extends TestCase
         '2026_10_23_160000_bind_invitations_to_mailboxes',
         '2026_10_23_170000_create_profile_fields',
         '2026_10_23_180000_create_private_profile_files',
+        '2026_10_23_190000_create_academic_references',
     ];
 
     protected function setUp(): void
@@ -61,6 +62,9 @@ class TenancyMigrationsTest extends TestCase
 
             $this->assertFalse(Schema::hasTable('schools'));
             $this->assertFalse(Schema::hasTable('profile_files'));
+            $this->assertFalse(Schema::hasTable('grade_levels'));
+            $this->assertFalse(Schema::hasTable('academic_rating_levels'));
+            $this->assertFalse(Schema::hasColumn('classes', 'grade_level_id'));
             $this->assertFalse(Schema::hasColumn('classes', 'school_id'));
             $this->assertFalse(Schema::hasColumn('students', 'school_id'));
             $this->assertFalse(Schema::hasColumn('idempotency_keys', 'school_id'));
@@ -82,6 +86,10 @@ class TenancyMigrationsTest extends TestCase
             $this->assertSame('jacaranda-primary', $school->slug);
             $this->assertSame('Africa/Johannesburg', $school->timezone);
             $this->assertSame('logo/crest.png', $school->crest_path);
+            $this->assertSame(13, DB::table('grade_levels')->count());
+            $this->assertSame(7, DB::table('academic_rating_levels')->count());
+            $this->assertTrue(Schema::hasColumn('classes', 'grade_level_id'));
+            $this->assertSame(0, DB::table('classes')->whereNotNull('grade_level_id')->count());
 
             $this->assertSame([1], DB::table('mediums')->whereIn('id', $rows['mediums'])->pluck('school_id')->map(fn ($id) => (int) $id)->all());
             $this->assertSame([1], DB::table('session_years')->whereIn('id', $rows['session_years'])->pluck('school_id')->map(fn ($id) => (int) $id)->all());
