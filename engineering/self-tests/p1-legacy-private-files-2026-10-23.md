@@ -12,7 +12,7 @@ and ciphertext, hidden fields, authorised protected reads, wrong school/person/
 role, all three profile folders, School 1 pre-tenancy paths, traversal/URL/
 encoded-path/symlink refusals, MIME/extension/size/disk checks, images, retries,
 clears and cleanup after an outer record transaction fails. Existing profile
-backfill and schema/form/file/panel regressions pass with it: 81 tests, 494
+backfill and schema/form/file/panel regressions pass with it: 83 tests, 503
 assertions. Pint and Larastan also pass. Exact-head PR CI
 must pass before merge; consult its checks for the final results.
 
