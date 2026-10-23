@@ -9,6 +9,10 @@ Earlier history is kept where it was written and is not repeated here:
 
 ## Unreleased
 
+### Developers
+
+- Integrate dependency PRs #48, #49, #50, #53, #55, #56, #57, #59 and #60, including their compatibility migrations. Pin Flutter CI and deployment builds to 3.47.7 / Dart 3.13.5 for Google Fonts 9; preserve the Material type scale and refresh all affected lockfiles. File Picker 13 supports both apps' attachments and single-file uploads. TeX 5 starts its renderer, keeps question and answer views independent, and loads its bundled browser bridge; release phones allow its device-local asset server. Image 4 supports all legacy image helpers as well as tenant uploads. Add regression checks for image encoding, school role revocation, checkout setup/cancellation, typography and rendered exam maths.
+
 ### Security
 
 - Pin the shared web, worker and scheduler image and PHP CI jobs to PHP 8.3.36 for CVE-2026-109618 and CVE-2026-109619 (PHP2Shell). CI now verifies the built runtime and Apache configuration. **Deploy:** rebuild and replace all three roles; existing containers remain vulnerable until updated. See `engineering/runbooks/deploy.md`.

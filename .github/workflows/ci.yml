@@ -113,7 +113,7 @@ jobs:
       - uses: actions/checkout@v7
       - uses: subosito/flutter-action@v2
         with:
-          flutter-version: '3.44.9'
+          flutter-version: '3.47.7'
           channel: stable
           cache: true
       - run: flutter pub get --enforce-lockfile
@@ -152,7 +152,7 @@ jobs:
       - uses: actions/checkout@v7
       - uses: subosito/flutter-action@v2
         with:
-          flutter-version: '3.44.9'
+          flutter-version: '3.47.7'
           channel: stable
           cache: true
       - run: flutter pub get --enforce-lockfile
@@ -183,7 +183,7 @@ jobs:
           java-version: '17'
       - uses: subosito/flutter-action@v2
         with:
-          flutter-version: '3.44.9'
+          flutter-version: '3.47.7'
           channel: stable
           cache: true
       - run: flutter pub get --enforce-lockfile
@@ -215,6 +215,8 @@ jobs:
             flow: child_switch_smoke_test.dart
           - app: e-school
             flow: notification_settings_smoke_test.dart
+          - app: e-school
+            flow: exam_math_smoke_test.dart
           - app: e-school-teacher
             flow: teacher_smoke_test.dart
     defaults:
@@ -224,7 +226,7 @@ jobs:
       - uses: actions/checkout@v7
       - uses: subosito/flutter-action@v2
         with:
-          flutter-version: '3.44.9'
+          flutter-version: '3.47.7'
           channel: stable
           cache: true
       - run: flutter pub get --enforce-lockfile
@@ -271,7 +273,7 @@ jobs:
         run: composer audit --locked
       - uses: subosito/flutter-action@1a449444c387b1966244ae4d4f8c696479add0b2 # v2.23.0
         with:
-          flutter-version: '3.44.9'
+          flutter-version: '3.47.7'
           channel: stable
           cache: true
       # Informational (Bible 5.1): lists outdated Dart packages in both apps and
@@ -354,7 +356,7 @@ jobs:
           npx playwright install --with-deps chromium
       - name: Playwright checks
         working-directory: admin-panel/e2e
-        run: npx playwright test
+        run: npm run typecheck && npx playwright test
       - name: Upload the report
         if: failure()
         uses: actions/upload-artifact@v7

@@ -147,12 +147,10 @@ class _AddAssignmentScreenState extends State<AddAssignmentScreen> {
       : [];
 
   Future<void> _pickFiles() async {
-    final FilePickerResult? result = await FilePicker.pickFiles(
-      allowMultiple: true,
-    );
+    final List<PlatformFile> result = await FilePicker.pickFiles();
 
-    if (result != null) {
-      uploadedFiles.addAll(result.files);
+    if (result.isNotEmpty) {
+      uploadedFiles.addAll(result);
       setState(() {});
     }
   }
@@ -194,9 +192,8 @@ class _AddAssignmentScreenState extends State<AddAssignmentScreen> {
             options: RoundedRectDottedBorderOptions(
               dashPattern: const [10, 10],
               radius: const Radius.circular(10),
-              color: Theme.of(
-                context,
-              ).colorScheme.onSurfaceVariant.withValues(alpha: 0.3),
+              color: Theme.of(context).colorScheme.onSurfaceVariant
+                  .withValues(alpha: 0.3),
             ),
 
             child: LayoutBuilder(
@@ -248,9 +245,8 @@ class _AddAssignmentScreenState extends State<AddAssignmentScreen> {
             options: RoundedRectDottedBorderOptions(
               dashPattern: const [10, 10],
               radius: const Radius.circular(10),
-              color: Theme.of(
-                context,
-              ).colorScheme.onSurfaceVariant.withValues(alpha: 0.3),
+              color: Theme.of(context).colorScheme.onSurfaceVariant
+                  .withValues(alpha: 0.3),
             ),
             child: LayoutBuilder(
               builder: (context, boxConstraints) {
@@ -531,9 +527,8 @@ class _AddAssignmentScreenState extends State<AddAssignmentScreen> {
                     color: Theme.of(context).colorScheme.surfaceContainerLow,
                     borderRadius: BorderRadius.circular(10),
                     border: Border.all(
-                      color: Theme.of(
-                        context,
-                      ).colorScheme.onSurfaceVariant.withValues(alpha: 0.5),
+                      color: Theme.of(context).colorScheme.onSurfaceVariant
+                          .withValues(alpha: 0.5),
                     ),
                   ),
                   width: boxConstraints.maxWidth * 0.475,
@@ -564,9 +559,8 @@ class _AddAssignmentScreenState extends State<AddAssignmentScreen> {
                     color: Theme.of(context).colorScheme.surfaceContainerLow,
                     borderRadius: BorderRadius.circular(10),
                     border: Border.all(
-                      color: Theme.of(
-                        context,
-                      ).colorScheme.onSurfaceVariant.withValues(alpha: 0.5),
+                      color: Theme.of(context).colorScheme.onSurfaceVariant
+                          .withValues(alpha: 0.5),
                     ),
                   ),
                   width: boxConstraints.maxWidth * 0.475,
@@ -603,9 +597,8 @@ class _AddAssignmentScreenState extends State<AddAssignmentScreen> {
               color: Theme.of(context).colorScheme.surfaceContainerLow,
               borderRadius: BorderRadius.circular(10),
               border: Border.all(
-                color: Theme.of(
-                  context,
-                ).colorScheme.onSurfaceVariant.withValues(alpha: 0.5),
+                color: Theme.of(context).colorScheme.onSurfaceVariant
+                    .withValues(alpha: 0.5),
               ),
             ),
             child: Row(

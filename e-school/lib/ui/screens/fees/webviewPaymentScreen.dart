@@ -7,7 +7,6 @@ import 'package:flutter/material.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 
 class WebViewPaymentScreen extends StatefulWidget {
-
   const WebViewPaymentScreen({required this.paymentUrl, super.key});
   final String paymentUrl;
 
@@ -16,10 +15,9 @@ class WebViewPaymentScreen extends StatefulWidget {
 
   static Route route(RouteSettings routeSettings) {
     return AdaptivePageRoute(
-      builder: (_) =>
-          WebViewPaymentScreen(
-            paymentUrl: routeSettings.arguments as String? ?? '',
-          ),
+      builder: (_) => WebViewPaymentScreen(
+        paymentUrl: routeSettings.arguments as String? ?? '',
+      ),
     );
   }
 }
@@ -77,8 +75,7 @@ class _WebViewPaymentScreenState extends State<WebViewPaymentScreen> {
     }
 
     if (uri.path.endsWith(_flutterwaveCallbackPath)) {
-      final String status = (uri.queryParameters['status'] ?? '')
-          .toLowerCase();
+      final String status = (uri.queryParameters['status'] ?? '').toLowerCase();
       if (status == 'successful') {
         _finishPayment(true);
       } else if (status == 'cancelled' || status == 'failed') {
@@ -152,61 +149,56 @@ class _WebViewPaymentScreenState extends State<WebViewPaymentScreen> {
   }
 
   @override
-  Widget build(final BuildContext context) => PopScope(
-        canPop: false,
-        onPopInvokedWithResult: (didPop, dynamic result) {
-          if (didPop) {
-            return;
-          } else {
-            final now = DateTime.now();
-            if (currentBackPressTime == null ||
-                now.difference(currentBackPressTime!) >
-                    const Duration(seconds: 2)) {
-              currentBackPressTime = now;
-              UiUtils.showCustomSnackBar(
+  Widget build(BuildContext context) => PopScope(
+    canPop: false,
+    onPopInvokedWithResult: (didPop, dynamic result) {
+      if (didPop) {
+        return;
+      } else {
+        final now = DateTime.now();
+        if (currentBackPressTime == null ||
+            now.difference(currentBackPressTime!) >
+                const Duration(seconds: 2)) {
+          currentBackPressTime = now;
+          UiUtils.showCustomSnackBar(
+            context: context,
+            errorMessage: UiUtils.getTranslatedLabel(
+              context,
+              doNotPressBackWhilePaymentAndDoubleTapBackButtonToExitKey,
+            ),
+            backgroundColor: UiUtils.getColorScheme(context).error,
+          );
+          return;
+        }
+        Navigator.pop(context, false);
+      }
+    },
+    child: Scaffold(
+      body: Stack(
+        children: [
+          Padding(
+            padding: EdgeInsets.only(
+              top: UiUtils.getScrollViewTopPadding(
                 context: context,
-                errorMessage: UiUtils.getTranslatedLabel(
-                  context,
-                  doNotPressBackWhilePaymentAndDoubleTapBackButtonToExitKey,
-                ),
-                backgroundColor: UiUtils.getColorScheme(context).error,
-              );
-              return;
-            }
-            Navigator.pop(context, false);
-          }
-        },
-        child: Scaffold(
-          body: Stack(
-            children: [
-              Padding(
-                padding: EdgeInsets.only(
-                  top: UiUtils.getScrollViewTopPadding(
-                    context: context,
-                    appBarHeightPercentage:
-                        UiUtils.appBarSmallerHeightPercentage,
-                    keepExtraSpace: false,
-                  ),
-                ),
-                child: Stack(
-                  children: [
-                    AnimatedOpacity(
-                      duration: const Duration(seconds: 1),
-                      opacity: opacity,
-                      child: WebViewWidget(
-                        controller: _controller,
-                      ),
-                    ),
-                    if (opacity != 1)
-                      const Center(
-                        child: CircularProgressIndicator(),
-                      ),
-                  ],
-                ),
+                appBarHeightPercentage: UiUtils.appBarSmallerHeightPercentage,
+                keepExtraSpace: false,
               ),
-              _buildAppBar(),
-            ],
+            ),
+            child: Stack(
+              children: [
+                AnimatedOpacity(
+                  duration: const Duration(seconds: 1),
+                  opacity: opacity,
+                  child: WebViewWidget(controller: _controller),
+                ),
+                if (opacity != 1)
+                  const Center(child: CircularProgressIndicator()),
+              ],
+            ),
           ),
-        ),
-      );
+          _buildAppBar(),
+        ],
+      ),
+    ),
+  );
 }

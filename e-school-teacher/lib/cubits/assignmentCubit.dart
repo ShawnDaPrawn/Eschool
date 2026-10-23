@@ -22,11 +22,11 @@ class AssignmentsFetchSuccess extends AssignmentState {
   final bool moreAssignmentsFetchError;
   final bool fetchMoreAssignmentsInProgress;
   AssignmentsFetchSuccess copywith({
-    final List<Assignment>? newAssignment,
-    final int? newTotalPage,
-    final int? newCurrentPage,
-    final bool? newMoreAssignmentsFetchError,
-    final bool? newFetchMoreAssignmentsInProgress,
+    List<Assignment>? newAssignment,
+    int? newTotalPage,
+    int? newCurrentPage,
+    bool? newMoreAssignmentsFetchError,
+    bool? newFetchMoreAssignmentsInProgress,
   }) {
     return AssignmentsFetchSuccess(
       assignment: newAssignment ?? assignment,
@@ -46,7 +46,6 @@ class AssignmentFetchFailure extends AssignmentState {
 }
 
 class AssignmentCubit extends Cubit<AssignmentState> {
-
   AssignmentCubit(this._assignmentRepository) : super(AssignmentInitial());
   final AssignmentRepository _assignmentRepository;
 
@@ -78,9 +77,7 @@ class AssignmentCubit extends Cubit<AssignmentState> {
           )
           .catchError((e) {});
     } catch (e) {
-      return emit(
-        AssignmentFetchFailure(e.toString()),
-      );
+      return emit(AssignmentFetchFailure(e.toString()));
     }
   }
 
@@ -103,8 +100,9 @@ class AssignmentCubit extends Cubit<AssignmentState> {
   }) async {
     try {
       emit(
-        (state as AssignmentsFetchSuccess)
-            .copywith(newFetchMoreAssignmentsInProgress: true),
+        (state as AssignmentsFetchSuccess).copywith(
+          newFetchMoreAssignmentsInProgress: true,
+        ),
       );
 
       final fetchMoreAssignment = await _assignmentRepository.fetchAssignment(
@@ -140,9 +138,7 @@ class AssignmentCubit extends Cubit<AssignmentState> {
     }
   }
 
-  Future<void> deleteAssignment(
-    int assignmentId,
-  ) async {
+  Future<void> deleteAssignment(int assignmentId) async {
     if (state is AssignmentsFetchSuccess) {
       final List<Assignment> listOfAssignments =
           (state as AssignmentsFetchSuccess).assignment;

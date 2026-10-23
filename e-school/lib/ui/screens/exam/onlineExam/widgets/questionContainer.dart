@@ -14,12 +14,14 @@ class QuestionContainer extends StatelessWidget {
     this.questionColor,
     this.questionNumber,
     this.note,
+    this.onMathRendered,
   });
   final Question? question;
   final Color? questionColor;
   final int? questionNumber;
   final bool isMathQuestion;
   final String? note;
+  final ValueChanged<double>? onMathRendered;
 
   @override
   Widget build(BuildContext context) {
@@ -36,6 +38,7 @@ class QuestionContainer extends StatelessWidget {
                 ),
                 child: isMathQuestion
                     ? TeXView(
+                        onRenderFinished: onMathRendered,
                         child: TeXViewDocument(
                           questionNumber == null
                               ? '${question!.question}'

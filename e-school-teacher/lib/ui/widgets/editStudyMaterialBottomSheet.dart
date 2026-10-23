@@ -89,9 +89,8 @@ class _EditStudyMaterialBottomSheetState
           options: RoundedRectDottedBorderOptions(
             dashPattern: const [10, 10],
             radius: const Radius.circular(10),
-            color: Theme.of(
-              context,
-            ).colorScheme.onSurfaceVariant.withValues(alpha: 0.3),
+            color: Theme.of(context).colorScheme.onSurfaceVariant
+                .withValues(alpha: 0.3),
           ),
           child: Padding(
             padding: const EdgeInsetsDirectional.only(start: 10),
@@ -146,9 +145,9 @@ class _EditStudyMaterialBottomSheetState
                       children: [
                         CircleAvatar(
                           radius: 2.5,
-                          backgroundColor: Theme.of(
-                            context,
-                          ).colorScheme.onSurfaceVariant,
+                          backgroundColor: Theme.of(context)
+                              .colorScheme
+                              .onSurfaceVariant,
                         ),
                         const SizedBox(width: 10),
                         Text(
@@ -208,7 +207,7 @@ class _EditStudyMaterialBottomSheetState
                                 return;
                               }
                               try {
-                                final pickedFile = await FilePicker.pickFiles(
+                                final pickedFile = await FilePicker.pickFile(
                                   type:
                                       widget.studyMaterial.studyMaterialType ==
                                           StudyMaterialType.file
@@ -221,10 +220,9 @@ class _EditStudyMaterialBottomSheetState
                                   //if current selected study material type is file
                                   if (widget.studyMaterial.studyMaterialType ==
                                       StudyMaterialType.file) {
-                                    addedFile = pickedFile.files.first;
+                                    addedFile = pickedFile;
                                   } else {
-                                    addedVideoThumbnailFile =
-                                        pickedFile.files.first;
+                                    addedVideoThumbnailFile = pickedFile;
                                   }
 
                                   setState(() {});
@@ -282,13 +280,12 @@ class _EditStudyMaterialBottomSheetState
                                           }
                                           try {
                                             final pickedFile =
-                                                await FilePicker.pickFiles(
+                                                await FilePicker.pickFile(
                                                   type: FileType.video,
                                                 );
 
                                             if (pickedFile != null) {
-                                              addedVideoFile =
-                                                  pickedFile.files.first;
+                                              addedVideoFile = pickedFile;
                                               setState(() {});
                                             }
                                           } on Exception {

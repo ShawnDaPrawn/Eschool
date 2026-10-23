@@ -149,8 +149,8 @@ function findExamGrade($session_year_id, $percentage)
 function resizeImage($image)
 {
     $manager = new ImageManager(new Driver);
-    $img = $manager->read($image);
-    $img->save($image->getPathname(), 50);
+    $img = $manager->decodeSplFileInfo($image);
+    $img->encodeUsingMediaType($img->origin()->mediaType(), quality: 50)->save($image->getPathname());
 
     return $img;
 }

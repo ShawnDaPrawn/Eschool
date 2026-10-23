@@ -1,4 +1,5 @@
 import 'dart:io';
+
 import 'package:eschool/cubits/appConfigurationCubit.dart';
 import 'package:eschool_core/eschool_core.dart';
 import 'package:eschool/utils/assets.dart';
@@ -48,11 +49,9 @@ class _AttachmentDialogWidgetState extends State<AttachmentDialogWidget> {
       List<String> tempPaths = [];
       if (selectionType == AttachmentFileSelectionType.document) {
         //document picking logic
-        final FilePickerResult? result = await FilePicker.pickFiles(
-          allowMultiple: true,
-        );
-        if (result != null) {
-          tempPaths = result.files.map((e) => e.path ?? '').toList();
+        final List<PlatformFile> result = await FilePicker.pickFiles();
+        if (result.isNotEmpty) {
+          tempPaths = result.map((e) => e.path ?? '').toList();
         }
       } else if (selectionType == AttachmentFileSelectionType.gallery) {
         //gallery picking logic
@@ -200,9 +199,9 @@ class _AttachmentDialogWidgetState extends State<AttachmentDialogWidget> {
                                     width: 60,
                                     height: 60,
                                     decoration: BoxDecoration(
-                                      color: Theme.of(
-                                        context,
-                                      ).colorScheme.primary,
+                                      color: Theme.of(context)
+                                          .colorScheme
+                                          .primary,
                                       borderRadius: BorderRadius.circular(12),
                                     ),
                                     padding: const EdgeInsets.all(15),
@@ -291,9 +290,9 @@ class _AttachmentDialogWidgetState extends State<AttachmentDialogWidget> {
                                     Container(
                                       decoration: BoxDecoration(
                                         borderRadius: BorderRadius.circular(12),
-                                        color: Theme.of(
-                                          context,
-                                        ).colorScheme.primary,
+                                        color: Theme.of(context)
+                                            .colorScheme
+                                            .primary,
                                       ),
                                       padding: const EdgeInsets.all(5),
                                       height: 100,
@@ -307,9 +306,9 @@ class _AttachmentDialogWidgetState extends State<AttachmentDialogWidget> {
                                             width: 25,
                                             height: 25,
                                             colorFilter: ColorFilter.mode(
-                                              Theme.of(
-                                                context,
-                                              ).colorScheme.onPrimary,
+                                              Theme.of(context)
+                                                  .colorScheme
+                                                  .onPrimary,
                                               BlendMode.srcIn,
                                             ),
                                           ),
@@ -319,9 +318,9 @@ class _AttachmentDialogWidgetState extends State<AttachmentDialogWidget> {
                                                 .split('/')
                                                 .last,
                                             style: TextStyle(
-                                              color: Theme.of(
-                                                context,
-                                              ).colorScheme.onPrimary,
+                                              color: Theme.of(context)
+                                                  .colorScheme
+                                                  .onPrimary,
                                               fontWeight: FontWeight.bold,
                                               fontSize: 12,
                                             ),
@@ -351,9 +350,9 @@ class _AttachmentDialogWidgetState extends State<AttachmentDialogWidget> {
                                           },
                                           child: Icon(
                                             Icons.close_rounded,
-                                            color: Theme.of(
-                                              context,
-                                            ).colorScheme.error,
+                                            color: Theme.of(context)
+                                                .colorScheme
+                                                .error,
                                             size: 18,
                                           ),
                                         ),
@@ -376,9 +375,9 @@ class _AttachmentDialogWidgetState extends State<AttachmentDialogWidget> {
                                     Container(
                                       decoration: BoxDecoration(
                                         borderRadius: BorderRadius.circular(12),
-                                        color: Theme.of(
-                                          context,
-                                        ).colorScheme.primary,
+                                        color: Theme.of(context)
+                                            .colorScheme
+                                            .primary,
                                       ),
                                       height: 100,
                                       width: 130,
@@ -407,9 +406,9 @@ class _AttachmentDialogWidgetState extends State<AttachmentDialogWidget> {
                                           },
                                           child: Icon(
                                             Icons.close_rounded,
-                                            color: Theme.of(
-                                              context,
-                                            ).colorScheme.error,
+                                            color: Theme.of(context)
+                                                .colorScheme
+                                                .error,
                                             size: 18,
                                           ),
                                         ),
@@ -454,9 +453,8 @@ class _AttachmentDialogWidgetState extends State<AttachmentDialogWidget> {
                           widthPercentage: 0.3,
                           height: 40,
                           textAlign: TextAlign.center,
-                          backgroundColor: UiUtils.getColorScheme(
-                            context,
-                          ).primary,
+                          backgroundColor: UiUtils.getColorScheme(context)
+                              .primary,
                           buttonTitle: UiUtils.getTranslatedLabel(
                             context,
                             sendKey,

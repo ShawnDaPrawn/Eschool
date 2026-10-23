@@ -38,11 +38,9 @@ class _UploadAssignmentBottomsheetContainerState
   }
 
   Future<void> _pickFiles() async {
-    final FilePickerResult? result = await FilePicker.pickFiles(
-      allowMultiple: true,
-    );
-    if (result != null) {
-      uploadedFiles.addAll(result.files);
+    final List<PlatformFile> result = await FilePicker.pickFiles();
+    if (result.isNotEmpty) {
+      uploadedFiles.addAll(result);
       setState(() {});
     }
   }
@@ -183,9 +181,8 @@ class _UploadAssignmentBottomsheetContainerState
                   options: RoundedRectDottedBorderOptions(
                     dashPattern: const [10, 10],
                     radius: const Radius.circular(15),
-                    color: Theme.of(
-                      context,
-                    ).colorScheme.onSurfaceVariant.withValues(alpha: 0.3),
+                    color: Theme.of(context).colorScheme.onSurfaceVariant
+                        .withValues(alpha: 0.3),
                   ),
                   child: Container(
                     alignment: Alignment.center,
@@ -202,9 +199,8 @@ class _UploadAssignmentBottomsheetContainerState
                               BoxShadow(
                                 blurRadius: 15,
                                 offset: const Offset(0, 1.5),
-                                color: Theme.of(
-                                  context,
-                                ).colorScheme.primary.withValues(alpha: 0.3),
+                                color: Theme.of(context).colorScheme.primary
+                                    .withValues(alpha: 0.3),
                               ),
                             ],
                           ),
@@ -248,9 +244,8 @@ class _UploadAssignmentBottomsheetContainerState
                       'assignmentSubmission': state.assignmentSubmission,
                     });
                   } else if (state is UploadAssignmentFailure) {
-                    Navigator.of(
-                      context,
-                    ).pop({'error': true, 'message': state.errorMessage});
+                    Navigator.of(context)
+                        .pop({'error': true, 'message': state.errorMessage});
                   }
                 },
                 builder: (context, state) {

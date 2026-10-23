@@ -147,7 +147,10 @@ class _MyAppState extends State<MyApp> {
               },
               child: MaterialApp(
                 navigatorKey: UiUtils.rootNavigatorKey,
-                theme: AppTheme.light(font: GoogleFonts.poppinsTextTheme),
+                theme: AppTheme.light(
+                  font: (theme) =>
+                      AppTheme.applyFont(theme, GoogleFonts.poppins),
+                ),
                 builder: (context, widget) {
                   return AppShell(
                     errorMessageKeyFromCode:
@@ -164,9 +167,9 @@ class _MyAppState extends State<MyApp> {
                           statusBarIconBrightness: Brightness.light,
                           statusBarBrightness: Brightness.dark,
                           systemNavigationBarContrastEnforced: false,
-                          systemNavigationBarColor: Theme.of(
-                            context,
-                          ).colorScheme.surface,
+                          systemNavigationBarColor: Theme.of(context)
+                              .colorScheme
+                              .surface,
                           systemNavigationBarIconBrightness: Brightness.dark,
                         ),
                         child: ColoredBox(

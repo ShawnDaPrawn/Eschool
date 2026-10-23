@@ -43,6 +43,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:flutter_tex/flutter_tex.dart';
 import 'package:flutter_web_plugins/url_strategy.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:hive_flutter/hive_flutter.dart';
@@ -59,6 +60,11 @@ Future<void> initializeApp() async {
 /// Firebase project.
 Future<void> prepareApp({bool useFirebase = true}) async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  // TeX 5 needs a running local renderer. Exam questions and answers have
+  // separate views so their content and tap callbacks cannot overwrite one another.
+  TeXRenderingServer.multiTeXView = true;
+  await TeXRenderingServer.start();
 
   //a debug build with a mistyped --dart-define stops here and says why
   AppConfig.assertValid();
@@ -202,7 +208,9 @@ class _MyAppState extends State<MyApp> {
 
             return MaterialApp(
               navigatorKey: UiUtils.rootNavigatorKey,
-              theme: AppTheme.light(font: GoogleFonts.poppinsTextTheme),
+              theme: AppTheme.light(
+                font: (theme) => AppTheme.applyFont(theme, GoogleFonts.poppins),
+              ),
               builder: (context, widget) {
                 return AppShell(
                   errorMessageKeyFromCode:
@@ -219,9 +227,9 @@ class _MyAppState extends State<MyApp> {
                         statusBarBrightness: Brightness.dark,
                         statusBarIconBrightness: Brightness.light,
                         systemNavigationBarContrastEnforced: false,
-                        systemNavigationBarColor: Theme.of(
-                          context,
-                        ).colorScheme.surface,
+                        systemNavigationBarColor: Theme.of(context)
+                            .colorScheme
+                            .surface,
                         systemNavigationBarIconBrightness: Brightness.dark,
                       ),
                       child: ColoredBox(

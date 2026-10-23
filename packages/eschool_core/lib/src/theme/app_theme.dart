@@ -62,8 +62,31 @@ abstract final class AppTheme {
     dynamicSchemeVariant: DynamicSchemeVariant.fidelity,
   );
 
+  /// Apply a font to Flutter's type scale without depending on the separate
+  /// material_ui TextTheme returned by Google Fonts 9's text-theme helpers.
+  static TextTheme applyFont(
+    TextTheme theme,
+    TextStyle Function({TextStyle? textStyle}) font,
+  ) => TextTheme(
+    displayLarge: font(textStyle: theme.displayLarge),
+    displayMedium: font(textStyle: theme.displayMedium),
+    displaySmall: font(textStyle: theme.displaySmall),
+    headlineLarge: font(textStyle: theme.headlineLarge),
+    headlineMedium: font(textStyle: theme.headlineMedium),
+    headlineSmall: font(textStyle: theme.headlineSmall),
+    titleLarge: font(textStyle: theme.titleLarge),
+    titleMedium: font(textStyle: theme.titleMedium),
+    titleSmall: font(textStyle: theme.titleSmall),
+    bodyLarge: font(textStyle: theme.bodyLarge),
+    bodyMedium: font(textStyle: theme.bodyMedium),
+    bodySmall: font(textStyle: theme.bodySmall),
+    labelLarge: font(textStyle: theme.labelLarge),
+    labelMedium: font(textStyle: theme.labelMedium),
+    labelSmall: font(textStyle: theme.labelSmall),
+  );
+
   /// [font] applies the apps' typeface to the Material 3 type scale, for
-  /// example `GoogleFonts.poppinsTextTheme`. Tests leave it out.
+  /// example `(theme) => applyFont(theme, GoogleFonts.poppins)`. Tests leave it out.
   static ThemeData light({TextTheme Function(TextTheme textTheme)? font}) {
     final colorScheme = lightColorScheme();
     final base = ThemeData(colorScheme: colorScheme);

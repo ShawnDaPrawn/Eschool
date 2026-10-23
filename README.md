@@ -38,9 +38,9 @@ flowchart LR
 | Directory | What it is | Stack |
 | --- | --- | --- |
 | [`admin-panel/`](admin-panel) | Admin panel, public website, and API | Laravel 12, PHP 8.3 |
-| [`e-school/`](e-school) | Student and parent app. Dart package `eschool`. The name on the phone is NavigateEd. | Flutter 3.44.9 |
-| [`e-school-teacher/`](e-school-teacher) | Teacher app. Dart package `eschool_teacher`. The name on the phone is NavigateEd Teacher. | Flutter 3.44.9 |
-| [`packages/`](packages) | Dart packages both apps use: [`eschool_core`](packages/eschool_core) (shared widgets, theme, layout, build settings), [`eschool_session`](packages/eschool_session) (sign-in, `/me/context`, force update, deep links), [`eschool_notifications`](packages/eschool_notifications) (push and local notifications), [`eschool_api`](packages/eschool_api) (client generated from `admin-panel/openapi.yaml`) | Flutter 3.44.9 |
+| [`e-school/`](e-school) | Student and parent app. Dart package `eschool`. The name on the phone is NavigateEd. | Flutter 3.47.7 |
+| [`e-school-teacher/`](e-school-teacher) | Teacher app. Dart package `eschool_teacher`. The name on the phone is NavigateEd Teacher. | Flutter 3.47.7 |
+| [`packages/`](packages) | Dart packages both apps use: [`eschool_core`](packages/eschool_core) (shared widgets, theme, layout, build settings), [`eschool_session`](packages/eschool_session) (sign-in, `/me/context`, force update, deep links), [`eschool_notifications`](packages/eschool_notifications) (push and local notifications), [`eschool_api`](packages/eschool_api) (client generated from `admin-panel/openapi.yaml`) | Flutter 3.47.7 |
 | Web portals | Both apps built for the browser (`flutter build web`): the learner and parent portal from `e-school/`, the teacher portal from `e-school-teacher/`, deployed to Firebase Hosting ([`firebase.json`](firebase.json)) | Flutter web |
 | [`documentation/`](documentation) | End-user guides, published to GitHub Pages and Firebase Hosting | Docusaurus 3 |
 | [`wiki/`](wiki) | Developer wiki. The Wiki tab is published from this folder. | Markdown |
@@ -77,7 +77,7 @@ Set the database credentials in `.env`, then run `php artisan migrate`. Details 
 
 Or run the whole stack (MySQL, panel, worker and scheduler) with Docker: `docker compose up` from the repository root.
 
-**Mobile apps and web portals.** Flutter 3.44.9. The server address is a build setting; with none, the apps talk to the production server.
+**Mobile apps and web portals.** Flutter 3.47.7. The server address is a build setting; with none, the apps talk to the production server.
 
 ```bash
 cd e-school

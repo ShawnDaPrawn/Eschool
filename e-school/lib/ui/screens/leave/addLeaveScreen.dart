@@ -281,7 +281,6 @@ class _AddLeaveScreenState extends State<AddLeaveScreen> {
               final permission = await Permission.storage.request();
               if (permission.isGranted) {
                 final pickedFile = await FilePicker.pickFiles(
-                  allowMultiple: true,
                   type: FileType.custom,
                   allowedExtensions: [
                     // images
@@ -292,14 +291,13 @@ class _AddLeaveScreenState extends State<AddLeaveScreen> {
                     'docx',
                   ],
                 );
-                if (pickedFile != null) {
-                  pickedAttachements.addAll(pickedFile.files);
+                if (pickedFile.isNotEmpty) {
+                  pickedAttachements.addAll(pickedFile);
                   setState(() {});
                 }
               } else {
                 try {
                   final pickedFile = await FilePicker.pickFiles(
-                    allowMultiple: true,
                     type: FileType.custom,
                     allowedExtensions: [
                       // images
@@ -310,8 +308,8 @@ class _AddLeaveScreenState extends State<AddLeaveScreen> {
                       'docx',
                     ],
                   );
-                  if (pickedFile != null) {
-                    pickedAttachements.addAll(pickedFile.files);
+                  if (pickedFile.isNotEmpty) {
+                    pickedAttachements.addAll(pickedFile);
                     setState(() {});
                   }
                 } on Exception {
@@ -359,9 +357,8 @@ class _AddLeaveScreenState extends State<AddLeaveScreen> {
                       },
                       child: Icon(
                         Icons.delete_outline,
-                        color: Theme.of(
-                          context,
-                        ).colorScheme.error.withValues(alpha: 0.7),
+                        color: Theme.of(context).colorScheme.error
+                            .withValues(alpha: 0.7),
                       ),
                     ),
                   ],

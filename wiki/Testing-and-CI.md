@@ -15,7 +15,7 @@ flowchart LR
     T["push to main / pull request / weekly / manual"] --> A["admin-panel: PHP 8.3 + MariaDB 10.11<br/>Larastan, caches, PHPUnit"]
     T --> P["playwright: panel in Chromium<br/>demo school, every page, axe"]
     T --> O["openapi: Redocly lint of openapi.yaml"]
-    T --> B["apps: Flutter 3.44.9 analyze + test<br/>both apps and the four packages"]
+    T --> B["apps: Flutter 3.47.7 analyze + test<br/>both apps and the four packages"]
     T --> W["apps-web: flutter build web<br/>both apps, staging settings"]
     T --> SA["apps-smoke-android: integration_test<br/>on an Android 14 emulator"]
     T --> SC["apps-smoke-chrome: learner, parent and<br/>teacher flows in headless Chrome"]
@@ -54,8 +54,8 @@ Runs in `admin-panel/` with Node 22: `npx --yes @redocly/cli@2.57.0 lint openapi
 
 A matrix over `app: [e-school, e-school-teacher, packages/eschool_core, packages/eschool_api, packages/eschool_session, packages/eschool_notifications, packages/eschool_people]` with `fail-fast: false`, so a failure in one leg does not cancel the others. `eschool_core` is the shared code both apps depend on (see [Repository-Layout](Repository-Layout#packageseschool_core)); `eschool_api` is the Dart client generated from `admin-panel/openapi.yaml`; `eschool_session` holds sign-in, `/me/context`, the child and school switchers, force update and deep links; `eschool_notifications` holds push and local notifications and the Notifications settings screen; `eschool_people` holds the Approvals, Invitation, My school and Profile picture screens. Each leg runs in its own folder:
 
-1. `subosito/flutter-action@v2` with `flutter-version: '3.44.9'`, `channel: stable`, `cache: true`.
-2. `flutter pub get --enforce-lockfile` – fails if `pubspec.lock` does not match `pubspec.yaml`. The apps and the shared package commit their `pubspec.lock` (commit [dd3df94](https://github.com/ShawnDaPrawn/Eschool/commit/dd3df94)), pinned to what was resolved and analysed with Flutter 3.44.9.
+1. `subosito/flutter-action@v2` with `flutter-version: '3.47.7'`, `channel: stable`, `cache: true`.
+2. `flutter pub get --enforce-lockfile` – fails if `pubspec.lock` does not match `pubspec.yaml`. The apps and the shared package commit their `pubspec.lock` (commit [dd3df94](https://github.com/ShawnDaPrawn/Eschool/commit/dd3df94)), pinned to what was resolved and analysed with Flutter 3.47.7.
 3. `packages/eschool_api` only: `actions/setup-java@v4` (Temurin 21), then **Generated client matches openapi.yaml**: `tool/generate.sh` regenerates the package and the step fails if `git status --porcelain` shows any change, so a spec change without the regenerated client (or a hand edit to `lib/`) fails.
 4. `flutter analyze --no-fatal-infos` – errors and warnings fail the job; style-only "info" lints are reported but do not.
 5. `flutter test` – the tests in each app's `test/` folder.
@@ -390,7 +390,7 @@ The tests that use `RunsAppServer` start `php -S` on a random free port on 127.0
 
 ### Flutter apps
 
-With Flutter 3.44.9 (stable) installed:
+With Flutter 3.47.7 (stable) installed:
 
 ```bash
 cd e-school            # or e-school-teacher, packages/eschool_core, packages/eschool_api

@@ -6,17 +6,18 @@ namespace App\Services;
 
 use Illuminate\Support\Facades\Storage;
 use Intervention\Image\Drivers\Gd\Driver;
+use Intervention\Image\Format;
 use Intervention\Image\ImageManager;
 
 class ImageService
 {
     public static function compression($requestImage, $folder)
     {
-        $file_name = uniqid('', true).time().'.'.$requestImage->getClientOriginalExtension();
+        $file_name = uniqid('', true).time().'.jpg';
         $manager = new ImageManager(new Driver);
-        $image = $manager->read($requestImage);
-        $encodedImage = $image->toJpeg(60);
-        Storage::disk('public')->put($folder.'/'.$file_name, $encodedImage);
+        $image = $manager->decodeSplFileInfo($requestImage);
+        $encodedImage = $image->encodeUsingFormat(Format::JPEG, quality: 60);
+        Storage::disk('public')->put($folder.'/'.$file_name, (string) $encodedImage);
 
         return $folder.'/'.$file_name;
     }
