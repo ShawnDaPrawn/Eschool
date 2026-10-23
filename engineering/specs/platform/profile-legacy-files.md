@@ -10,7 +10,10 @@ remain hidden for school review.
 
 Only local public-disk objects in the selected school's exact
 `schools/{id}/{students|parents|teachers}/` directory may be copied. The folder
-must match the selected profile. School 1 may also import pre-tenancy objects in
+must match the selected profile, except the parent editor's historical
+`students/` folder: that alias requires an exact source claim by the selected
+parent and no claim by another person or school. Ownership checks include
+archived references and apply to every imported path. School 1 may also import pre-tenancy objects in
 its unprefixed profile folder. Refuse foreign school prefixes, URLs, absolute
 paths, traversal, empty path segments, control/encoded characters, symlinks,
 missing files, unsupported disks, oversize/empty files and MIME/extension

@@ -11,6 +11,7 @@ use App\Services\Platform\Files\FileNames;
 use App\Services\Platform\Tenancy\CurrentSchool;
 use finfo;
 use Illuminate\Support\Facades\Crypt;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use RuntimeException;
@@ -20,7 +21,7 @@ use Throwable;
 class LegacyProfileFiles
 {
     /** Returns a fixed issue code or validated bytes and metadata. */
-    public function prepare(mixed $path, string $profile): array|string
+    public function prepare(mixed $path, string $profile, ?int $ownerId = null): array|string
     {
         $folder = ['learner' => 'students', 'parent' => 'parents', 'teacher' => 'teachers'][$profile] ?? null;
         if (! is_string($path) || $folder === null || $path === '' || strlen($path) > 1024
@@ -32,9 +33,22 @@ class LegacyProfileFiles
             return 'invalid_legacy_file_path';
         }
         $schoolId = app(CurrentSchool::class)->id();
-        $prefix = 'schools/'.$schoolId.'/'.$folder.'/';
-        if (! str_starts_with($path, $prefix) && ! ($schoolId === 1 && str_starts_with($path, $folder.'/'))) {
+        // ParentsController historically stored parent documents in students/.
+        // Permit that alias only with a verified source owner, never as a
+        // general relaxation of the profile-folder boundary.
+        $folders = $profile === 'parent' && $ownerId !== null ? [$folder, 'students'] : [$folder];
+        $matched = false;
+        foreach ($folders as $candidateFolder) {
+            if (str_starts_with($path, 'schools/'.$schoolId.'/'.$candidateFolder.'/')
+                || ($schoolId === 1 && str_starts_with($path, $candidateFolder.'/'))) {
+                $matched = true;
+            }
+        }
+        if (! $matched) {
             return 'legacy_file_school_mismatch';
+        }
+        if ($ownerId !== null && ! $this->unambiguousOwner($path, $profile, $ownerId, $schoolId)) {
+            return 'legacy_file_owner_ambiguous';
         }
         if (config('filesystems.disks.public.driver') !== 'local') {
             return 'legacy_file_disk_unsupported';
@@ -83,6 +97,29 @@ class LegacyProfileFiles
 
         return ['bytes' => $bytes, 'mime' => $mime, 'extension' => $extension === 'jpeg' ? 'jpg' : $extension,
             'name' => FileNames::sanitize(basename($path)), 'size' => strlen($bytes)];
+    }
+
+    /** Confirm the exact source claim; refuse another person/school's claim. */
+    private function unambiguousOwner(string $path, string $profile, int $ownerId, int $schoolId): bool
+    {
+        $table = ['learner' => 'students', 'parent' => 'parents', 'teacher' => 'teachers'][$profile];
+        // JSON_SEARCH handles both flat and nested legacy maps and escaped
+        // slashes. '=' escapes wildcard characters for an exact value match.
+        $search = str_replace(['=', '_', '%'], ['==', '=_', '=%'], $path);
+        $predicate = "JSON_SEARCH(IF(JSON_VALID(dynamic_fields), dynamic_fields, '[]'), 'one', ?, '=') IS NOT NULL";
+        if (! DB::table($table)->where('school_id', $schoolId)->where('user_id', $ownerId)->whereRaw($predicate, [$search])->exists()) {
+            return false;
+        }
+        // Deliberately inspect reference existence across schools, not values
+        // or people. Archived claims count too: they must not be reassigned.
+        foreach (['students', 'parents', 'teachers'] as $sourceTable) {
+            if (DB::table($sourceTable)->where(fn ($query) => $query->where('school_id', '!=', $schoolId)->orWhere('user_id', '!=', $ownerId)->orWhereNull('user_id'))
+                ->whereRaw($predicate, [$search])->exists()) {
+                return false;
+            }
+        }
+
+        return true;
     }
 
     /** Caller holds the person/definition locks and owns the outer transaction. */

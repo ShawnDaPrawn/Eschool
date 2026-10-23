@@ -112,6 +112,41 @@ class LegacyProfileFilesTest extends TestCase
         });
     }
 
+    public function test_actual_parent_documents_in_the_legacy_students_folder_require_a_verified_owner(): void
+    {
+        $this->source('students/PRIVATE_parent.pdf', 'parent');
+        Storage::disk('public')->put('students/PRIVATE_parent.pdf', self::PDF);
+        $service = app(LegacyProfileFiles::class);
+        $this->assertSame('legacy_file_school_mismatch', $service->prepare('students/PRIVATE_parent.pdf', 'parent'));
+        $this->assertSame('legacy_file_owner_ambiguous', $service->prepare('students/PRIVATE_parent.pdf', 'parent', $this->schoolA->ids['gina_user']));
+        $report = $this->batch(profile: 'parent');
+        $this->assertSame(0, $report['issue_count']);
+        $this->assertSame(1, $report['files_added']);
+        $this->assertSame($this->schoolA->ids['farid_user'], (int) ProfileFile::query()->sole()->user_id);
+        Storage::disk('public')->assertExists('students/PRIVATE_parent.pdf');
+        $this->source('schools/2/students/PRIVATE_parent.pdf', 'parent', 2);
+        Storage::disk('public')->put('schools/2/students/PRIVATE_parent.pdf', self::PDF);
+        $report = $this->batch(profile: 'parent', schoolId: 2);
+        $this->assertSame(0, $report['issue_count']);
+        $this->assertSame(1, $report['files_added']);
+    }
+
+    public function test_references_claimed_by_another_person_school_or_archived_record_are_not_reassigned(): void
+    {
+        $path = 'schools/1/students/PRIVATE_shared.pdf';
+        $this->source($path, 'parent');
+        Storage::disk('public')->put($path, self::PDF);
+        foreach ([$this->schoolA->ids['ben'], $this->schoolB->ids['ben']] as $otherStudent) {
+            DB::table('students')->where('id', $otherStudent)->update(['dynamic_fields' => json_encode([['Other_file' => $path]]), 'deleted_at' => now()]);
+            $report = $this->batch(profile: 'parent');
+            $this->assertSame('legacy_file_owner_ambiguous', $report['issues'][0]['code']);
+            $this->assertSame(0, $report['files_added']);
+            DB::table('students')->where('id', $otherStudent)->update(['dynamic_fields' => '[]']);
+        }
+        $this->assertSame(0, ProfileFile::query()->count());
+        $this->assertSame([], Storage::disk(ProfileFiles::DISK)->allFiles());
+    }
+
     public function test_urls_traversal_encoded_paths_and_missing_objects_are_refused_without_private_reports(): void
     {
         $service = app(LegacyProfileFiles::class);

@@ -233,7 +233,7 @@ class LegacyProfileBackfill
 
                 return 0;
             }
-            $prepared = app(LegacyProfileFiles::class)->prepare($value, $field->profile_type);
+            $prepared = app(LegacyProfileFiles::class)->prepare($value, $field->profile_type, (int) $person->id);
             if (is_string($prepared)) {
                 $this->issue($report, $prepared, $recordId, (int) $field->legacy_form_field_id);
 
