@@ -37,7 +37,7 @@ class ProfileForms
     {
         $context = $this->policy->resolve($actor, $person, $profile);
         $fields = $this->definitions($profile)->filter(fn ($field) => $this->policy->field($context, $field)
-            && (! $forExport || ! $field->sensitive || $context['actor']->can('profile-sensitive-export')));
+            && (! $forExport || ! $field->sensitive || $this->policy->permission($context['actor'], 'profile-sensitive-export')));
         $values = ProfileFieldValue::query()->where('user_id', $person->id)->whereIn('definition_id', $fields->pluck('id'))->get()->keyBy('definition_id');
         $categories = [];
         foreach ($fields->groupBy('category_id')->sortBy(fn ($group) => $group->first()->category->sort_order) as $group) {

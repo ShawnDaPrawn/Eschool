@@ -80,8 +80,20 @@ class ProfileDefinitions
                 ->when($id !== null, fn ($query) => $query->whereKeyNot($id))->exists()) {
                 throw ValidationException::withMessages(['key' => 'This field key is already in use.']);
             }
-            if ($field->exists && $field->type !== $data['type'] && ProfileFieldValue::query()->where('definition_id', $field->id)->exists()) {
+            // Locking reads see values committed while this definition lock waited,
+            // without loading or decrypting anyone's private value.
+            $hasValues = $field->exists && ProfileFieldValue::query()->where('definition_id', $field->id)
+                ->whereNotNull('value')->lockForUpdate()->first(['id']) !== null;
+            if ($field->exists && $field->type !== $data['type'] && $hasValues) {
                 throw ValidationException::withMessages(['type' => 'Move existing values before changing this field type.']);
+            }
+            $removedOptions = $field->exists ? array_diff($field->options ?? [], $data['options'] ?? $field->options ?? []) : [];
+            if ($removedOptions !== [] && in_array($field->type, ['dropdown', 'radio', 'checkbox'], true)) {
+                $canonicalSelection = $field->source === 'user.gender' && User::query()->whereIn('gender', array_values($removedOptions))
+                    ->lockForUpdate()->first(['id']) !== null;
+                if ($hasValues || $canonicalSelection) {
+                    throw ValidationException::withMessages(['options' => 'Move or clear existing values before removing choices.']);
+                }
             }
             if (in_array($data['type'], ['dropdown', 'radio', 'checkbox'], true) && ($data['options'] ?? []) === []) {
                 throw ValidationException::withMessages(['options' => 'Add at least one option.']);

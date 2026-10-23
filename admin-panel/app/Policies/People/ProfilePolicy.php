@@ -52,6 +52,21 @@ class ProfilePolicy
         };
     }
 
+    /** The actor is freshly loaded by resolve/manageDefinitions before this check. */
+    public function permission(User $actor, string $permission): bool
+    {
+        $roles = $this->roles($actor);
+        if ($roles === []) {
+            return false;
+        }
+        if ($actor->getDirectPermissions()->contains('name', $permission)) {
+            return true;
+        }
+
+        return $actor->roles()->whereIn('roles.name', $roles)
+            ->whereHas('permissions', fn ($query) => $query->where('name', $permission))->exists();
+    }
+
     /** @return array{actor: User, person: User, role: string, write: bool, sensitive: bool} */
     public function resolve(User $actor, User $person, string $profile): array
     {
@@ -65,13 +80,13 @@ class ProfilePolicy
             $role = 'owner';
             $write = true;
             $sensitive = true;
-        } elseif ($actor->can('profile-person-view') || $actor->can('profile-person-edit')) {
+        } elseif ($this->permission($actor, 'profile-person-view') || $this->permission($actor, 'profile-person-edit')) {
             $actorRoles = $this->roles($actor);
             $role = in_array('Super Admin', $actorRoles, true) ? 'school_admin'
                 : (in_array('Counsellor', $actorRoles, true) ? 'counsellor'
                     : (in_array('Facilitator', $actorRoles, true) ? 'facilitator' : 'school_admin'));
-            $write = $actor->can('profile-person-edit');
-            $sensitive = $actor->can('profile-sensitive-view');
+            $write = $this->permission($actor, 'profile-person-edit');
+            $sensitive = $this->permission($actor, 'profile-sensitive-view');
         } elseif ($profile === 'learner') {
             $learner = Students::query()->where('user_id', $person->id)->firstOrFail();
             if (in_array('Parent', $this->roles($actor), true)) {
@@ -87,7 +102,7 @@ class ProfilePolicy
             if ($role === null && in_array('Teacher', $this->roles($actor), true) && $this->teaches($actor, $learner)) {
                 $role = 'teacher';
                 $write = true; // Each field must also explicitly permit teachers.
-                $sensitive = $actor->can('profile-sensitive-view');
+                $sensitive = $this->permission($actor, 'profile-sensitive-view');
             }
         }
         abort_unless($role !== null, 404);
@@ -111,7 +126,7 @@ class ProfilePolicy
     public function manageDefinitions(User $actor, string $operation): User
     {
         $actor = $this->actor($actor);
-        abort_unless($actor->can('form-field-'.$operation), 403);
+        abort_unless($this->permission($actor, 'form-field-'.$operation), 403);
 
         return $actor;
     }

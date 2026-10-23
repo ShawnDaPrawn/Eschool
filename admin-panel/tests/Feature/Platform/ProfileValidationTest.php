@@ -159,4 +159,35 @@ class ProfileValidationTest extends TestCase
         $this->actingAs($this->superAdmin())->deleteJson('/api/v2/profile-fields/definitions/'.$locked->id)->assertUnprocessable();
         $this->assertNotNull($locked->fresh());
     }
+
+    public static function choiceTypes(): array
+    {
+        return [['dropdown'], ['radio'], ['checkbox']];
+    }
+
+    #[DataProvider('choiceTypes')]
+    public function test_populated_choices_cannot_be_removed_but_additions_and_reordering_remain_available(string $type): void
+    {
+        $field = $this->definition(['type' => $type, 'options' => ['Bus', 'Walk']]);
+        $this->save(['custom_route' => $type === 'checkbox' ? ['Bus'] : 'Bus']);
+        try {
+            app(ProfileDefinitions::class)->field($this->superAdmin(), ['options' => ['Walk']] + $field->toArray(), $field->id);
+            $this->fail('Removing choices must preserve existing encrypted selections.');
+        } catch (ValidationException) {
+            $this->assertSame(['Bus', 'Walk'], $field->fresh()->options);
+        }
+        $field = app(ProfileDefinitions::class)->field($this->superAdmin(), ['options' => ['Walk', 'Bus', 'Train']] + $field->toArray(), $field->id);
+        $this->assertSame(['Walk', 'Bus', 'Train'], $field->options);
+        $this->save(['custom_route' => null]);
+        $field = app(ProfileDefinitions::class)->field($this->superAdmin(), ['options' => ['Walk', 'Train']] + $field->toArray(), $field->id);
+        $this->assertSame(['Walk', 'Train'], $field->options);
+    }
+
+    public function test_canonical_gender_selections_are_also_protected_when_choices_change(): void
+    {
+        User::findOrFail($this->schoolA->ids['asha_user'])->forceFill(['gender' => 'Female'])->save();
+        $field = ProfileFieldDefinition::query()->where('profile_type', 'learner')->where('key', 'gender')->firstOrFail();
+        $this->expectException(ValidationException::class);
+        app(ProfileDefinitions::class)->field($this->superAdmin(), ['options' => ['Male', 'Other', 'Not specified']] + $field->toArray(), $field->id);
+    }
 }
