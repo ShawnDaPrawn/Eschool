@@ -16,7 +16,9 @@ student numbers) work from the default school context without changing School A
 credentials; the caller's school context returns afterwards. Retirement keeps
 printed codes and rollback does not reactivate old emailed secrets.
 
-Static analysis passed before final integration. Combined-main verification
-and PR CI follow before merge. All mail used fakes or Laravel's array transport.
+After merging main (including notification PR #71), 144 affected tests passed
+with 1,350 assertions, including notification delivery, handles, portal sign-in
+and the v1/v2 response snapshots. Pint, Larastan and the documentation build
+passed. PR CI must pass on the final head before merge. All mail used fakes or Laravel's array transport.
 No production migration or live email was run. Staging mailbox/provider checks,
 owner review and the family transition remain separate acceptance work.

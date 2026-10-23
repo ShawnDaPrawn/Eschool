@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Jobs\Platform;
 
-use App\Mail\Platform\NotificationMail;
 use App\Mail\Platform\ChecksRecipient;
+use App\Mail\Platform\NotificationMail;
 use App\Mail\Platform\ViewMail;
 use App\Models\Platform\NotificationDelivery;
 use App\Models\User;
