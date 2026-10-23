@@ -117,6 +117,16 @@ void main() {
     }
   });
 
+  test('notification actions resolve to guarded feature routes', () {
+    final parser = DeepLinkParser(routes: deepLinkRoutes);
+    expect(parser.parsePath('/handles'), const DeepLinkTarget(Routes.handles));
+    expect(
+      parser.parsePath('/chat'),
+      const DeepLinkTarget(Routes.chatUserPage),
+    );
+    expect(open(Routes.chatUserPage), isA<PageRoute<dynamic>>());
+  });
+
   test('every link opens a route the app has', () {
     final parser = DeepLinkParser(routes: deepLinkRoutes);
     for (final route in deepLinkRoutes) {

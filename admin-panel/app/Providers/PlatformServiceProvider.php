@@ -8,6 +8,7 @@ use App\Models\Platform\Role;
 use App\Models\User;
 use App\Services\Platform\Identity\MembershipService;
 use App\Services\Platform\Modules\ModuleGate;
+use App\Services\Platform\Notifications\NotificationRules;
 use App\Services\Platform\Tenancy\CurrentSchool;
 use App\Services\Platform\Tenancy\SchoolAwarePresenceVerifier;
 use Illuminate\Cache\RateLimiting\Limit;
@@ -36,6 +37,8 @@ class PlatformServiceProvider extends ServiceProvider
         // between jobs, and ResetSchoolContext starts every request afresh.
         $this->app->scoped(CurrentSchool::class);
         $this->app->scoped(MembershipService::class);
+        $this->app->scoped(ModuleGate::class);
+        $this->app->scoped(NotificationRules::class);
 
         // exists: and unique: rules see only the current school's rows.
         $this->app->extend('validation.presence', fn ($verifier, $app) => new SchoolAwarePresenceVerifier($app['db']));

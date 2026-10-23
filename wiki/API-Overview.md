@@ -728,3 +728,10 @@ Deployment: `LEARNER_APPROVAL_ENFORCED=true` activates the new learner access
 checks at sign-in and on requests, after existing families have been onboarded.
 Keep it disabled until that transition is verified; no consent is fabricated by
 the relationship migration. `LEARNER_PORTAL_URL` selects invitation links.
+
+### Personal notification preferences
+
+Authenticated GET/PUT `/api/v2/me/notification-preferences` read or change only
+the caller's preferences in the authorised current school. PUT takes `type`,
+`channel` (`push`, `email`, `in_app`) and boolean `enabled`; locked or unavailable
+channels return 422. OpenAPI DTOs and contract scenarios cover both endpoints.

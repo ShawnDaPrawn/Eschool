@@ -32,6 +32,8 @@ const List<DeepLinkRoute> deepLinkRoutes = [
   DeepLinkRoute(Routes.notificationSettings, Routes.notificationSettings),
   DeepLinkRoute(Routes.mySchool, Routes.mySchool),
   DeepLinkRoute(Routes.profilePicture, Routes.profilePicture),
+  DeepLinkRoute(Routes.handles, Routes.handles),
+  DeepLinkRoute('/chat', Routes.chatUserPage),
 ];
 
 /// Links that opened the app or arrive while it runs. A web build also

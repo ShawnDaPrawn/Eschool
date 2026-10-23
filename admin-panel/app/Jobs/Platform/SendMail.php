@@ -4,9 +4,14 @@ declare(strict_types=1);
 
 namespace App\Jobs\Platform;
 
+use App\Mail\Platform\NotificationMail;
 use App\Mail\Platform\ChecksRecipient;
 use App\Mail\Platform\ViewMail;
+use App\Models\Platform\NotificationDelivery;
+use App\Models\User;
+use App\Services\Platform\Notifications\DeliveryGuard;
 use App\Services\Platform\Notifications\DeliveryLog;
+use App\Services\Platform\Tenancy\CurrentSchool;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldBeEncrypted;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -49,6 +54,15 @@ class SendMail implements ShouldBeEncrypted, ShouldQueue
     public function handle(): void
     {
         $row = DeliveryLog::attempt($this->deliveryKey, $this->attempts());
+        if ($row?->school_id) {
+            app(CurrentSchool::class)->run($row->school_id, fn () => $this->deliver($row));
+        } else {
+            $this->deliver($row);
+        }
+    }
+
+    private function deliver(?NotificationDelivery $row): void
+    {
         // Old unbound invitation jobs must not disclose learner details after
         // the upgrade; the school reissues them with recipient authority.
         $checks = $this->mailable instanceof ChecksRecipient;
@@ -59,6 +73,17 @@ class SendMail implements ShouldBeEncrypted, ShouldQueue
             return;
         }
         $mailer = (string) config('mail.default');
+        if ($this->mailable instanceof NotificationMail) {
+            if (! app(DeliveryGuard::class)->allows($row, $this->mailable->notificationType, 'email', $this->mailable->to[0]['address'] ?? '', $this->mailable->deliveryContext)) {
+                DeliveryLog::suppressed($row);
+
+                return;
+            }
+            if (User::acrossSchools()->whereKey($row->recipient_user_id)->value('email_verified_at') === null) {
+                $this->mailable->noticeTitle = __('School notification');
+                $this->mailable->noticeBody = __('Open NavigateEd to view this notice.');
+            }
+        }
 
         try {
             $sent = Mail::mailer()->send($this->mailable);

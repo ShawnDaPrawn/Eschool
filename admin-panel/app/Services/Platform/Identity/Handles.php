@@ -12,6 +12,7 @@ use App\Models\Students;
 use App\Models\User;
 use App\Services\Platform\Audit\Audit;
 use App\Services\Platform\Events\ContextChanged;
+use App\Services\Platform\Events\HandleProposed;
 use App\Services\Platform\Events\Outbox;
 use App\Services\Platform\Tenancy\CurrentSchool;
 use Carbon\CarbonImmutable;
@@ -58,11 +59,12 @@ class Handles
                 if ($learner === null) {
                     throw ValidationException::withMessages(['handle' => 'Choose your learner school to request guardian approval.']);
                 }
-                HandleProposal::query()->create([
+                $proposal = HandleProposal::query()->create([
                     'user_id' => $user->id, 'learner_id' => $learner->id, 'handle' => $handle,
                     'expires_at' => now()->addDays(7),
                 ]);
                 Outbox::record(new ContextChanged(app(CurrentSchool::class)->id(), 'handle.proposed'));
+                Outbox::record(new HandleProposed(app(CurrentSchool::class)->id(), (int) $proposal->id));
             } else {
                 $this->activate($user, $handle, $actor, null);
             }

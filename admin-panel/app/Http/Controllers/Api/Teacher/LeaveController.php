@@ -19,8 +19,8 @@ use App\Models\Semester;
 use App\Models\Students;
 use App\Models\StudentSessions;
 use App\Models\Teacher;
-use App\Models\UserNotification;
 use App\Services\Platform\Files\FileNames;
+use App\Services\Platform\Notifications\Notifier;
 use App\Services\ResponseService;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
@@ -432,9 +432,7 @@ class LeaveController extends Controller
                 'user_id' => $id,
             ])->toArray();
 
-            UserNotification::insert($rows);
-
-            sendSimpleNotification($parentUserIds, $title, $body, $type, $image, $userinfo);
+            app(Notifier::class)->assignRows($rows);
 
             return ResponseService::successResponse('data_update_successfully');
         } catch (\Throwable $e) {

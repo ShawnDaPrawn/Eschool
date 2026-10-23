@@ -385,7 +385,21 @@ Because the database rarely cascades, deleting a parent record relies on these l
 - [Installation Wizard](Installation-Wizard)
 - [Glossary](Glossary)
 
+## Notification rules and preferences
+
+`notification_rules` stores school/portal/type/channel modes and the audited
+actor. `notification_preferences` is global per human/type/channel; mandatory
+school rules override it. `notification_dispatches` is school-owned and claims
+each notice/person/channel once for retry deduplication. Notifications add hidden
+`preferences_enforced`, `delivery_payload` and optional school-unique `source_key`.
+Historical notices retain legacy visibility; new ones require recipient links.
+Delivery status also includes `suppressed` when worker checks reject changed
+access, destination or optional choices. See [Notifications](Notifications).
+
+## Invitation mailbox binding
+
 Guardian and learner email invitations add a hidden nullable `email_hash` of
 the issued address. Unbound legacy email links are retired by migration
 `2026_10_23_160000`; printed learner codes remain valid. The hash is not a new
 consent record, and password setup still does not grant learner approval.
+

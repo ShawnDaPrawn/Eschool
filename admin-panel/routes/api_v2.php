@@ -7,6 +7,7 @@ use App\Http\Controllers\Api\V2\Platform\ContextController;
 use App\Http\Controllers\Api\V2\Platform\GuardianApprovalController;
 use App\Http\Controllers\Api\V2\Platform\GuardianInvitationController;
 use App\Http\Controllers\Api\V2\Platform\HandleController;
+use App\Http\Controllers\Api\V2\Platform\NotificationPreferenceController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -34,6 +35,8 @@ use Illuminate\Support\Facades\Route;
 // what the apps need on launch.
 Route::middleware(['auth:sanctum', 'school.context', 'role.any', 'learner.approved', 'idempotent'])->name('api.v2.')->group(function () {
     Route::get('me/context', [ContextController::class, 'show'])->name('me.context');
+    Route::get('me/notification-preferences', [NotificationPreferenceController::class, 'index']);
+    Route::put('me/notification-preferences', [NotificationPreferenceController::class, 'update']);
     Route::get('me/handle', [HandleController::class, 'show']);
     Route::put('me/handle', [HandleController::class, 'update'])->middleware('throttle:auth');
 });

@@ -32,8 +32,9 @@ Each app describes what differs in a top-level `NotificationConfig` in
 
 Topics are named by audience (`NotificationAudience.students`, `parents`,
 `teachers`): a device subscribes to `<audience><Platform>` and
-`all<Platform>`, for example `parentsAndroid` and `allAndroid`, the names the
-admin panel's `sendNotificationToTopic()` uses. The badge count
+`all<Platform>`, for example `parentsAndroid` and `allAndroid`, legacy subscriptions retained for installed clients. Content notices now go to
+individual devices after preferences and current membership are checked;
+school topics carry only silent context invalidation. The badge count
 (`notificationCount`) and chat messages that arrived in the background
 (`chatNotificationsBackgroundItem`) stay in SharedPreferences under the same
 keys as before; `NotificationUtility.unreadCount` is the badge.
@@ -59,8 +60,9 @@ It reads and writes through `NotificationSettingsRepository`;
 `ApiNotificationSettingsRepository` calls `GET` and `PUT
 /api/v2/me/notification-preferences` on the app's `ApiClient`, and tests pass a
 fake. `NotificationSettingsButton` is the gear for the Notifications screen's
-header, shown once the server answers the endpoint. The models are written by
-hand until the endpoint is in `openapi.yaml`.
+header, shown once the server answers the endpoint. Transport DTOs come from
+`eschool_api`, generated from `openapi.yaml`; small immutable view models keep
+the existing screen and Cubit interface stable.
 
 ## Checks
 

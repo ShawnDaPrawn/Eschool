@@ -1,10 +1,6 @@
 import 'package:equatable/equatable.dart';
+import 'package:eschool_api/eschool_api.dart' as contract;
 import 'package:eschool_core/eschool_core.dart';
-
-// GET and PUT /api/v2/me/notification-preferences (the Phase 1 contract,
-// engineering/phases/phase-1.md). The models below are written by hand until
-// the endpoint is in admin-panel/openapi.yaml; then replace them with the
-// generated eschool_api models and client.
 
 /// The channels a notification can come by, in the order the screen shows
 /// them.
@@ -25,14 +21,17 @@ class ChannelPreference extends Equatable {
   });
 
   factory ChannelPreference.fromJson(Map<String, dynamic> json) =>
-      ChannelPreference(
-        enabled: json['enabled'] == true,
-        locked: json['locked'] == true,
-        reason:
-            json['reason'] is String && (json['reason'] as String).isNotEmpty
-            ? json['reason'] as String
-            : null,
+      ChannelPreference.fromContract(
+        contract.NotificationChannelPreference.fromJson(json),
       );
+
+  factory ChannelPreference.fromContract(
+    contract.NotificationChannelPreference value,
+  ) => ChannelPreference(
+    enabled: value.enabled,
+    locked: value.locked,
+    reason: value.reason,
+  );
 
   final bool enabled;
 
@@ -62,22 +61,32 @@ class NotificationTypePreference extends Equatable {
     this.module,
   });
 
-  factory NotificationTypePreference.fromJson(Map<String, dynamic> json) {
-    final Object? channels = json['channels'];
-    return NotificationTypePreference(
-      type: '${json['type'] ?? ''}',
-      label: '${json['label'] ?? json['type'] ?? ''}',
-      module: json['module'] is String ? json['module'] as String : null,
-      channels: {
-        if (channels is Map)
-          for (final String channel in NotificationChannels.all)
-            if (channels[channel] is Map)
-              channel: ChannelPreference.fromJson(
-                Map<String, dynamic>.from(channels[channel] as Map),
-              ),
-      },
-    );
-  }
+  factory NotificationTypePreference.fromJson(Map<String, dynamic> json) =>
+      NotificationTypePreference.fromContract(
+        contract.NotificationTypePreference.fromJson(json),
+      );
+
+  factory NotificationTypePreference.fromContract(
+    contract.NotificationTypePreference value,
+  ) => NotificationTypePreference(
+    type: value.type,
+    label: value.label,
+    module: value.module,
+    channels: {
+      if (value.channels.push != null)
+        NotificationChannels.push: ChannelPreference.fromContract(
+          value.channels.push!,
+        ),
+      if (value.channels.email != null)
+        NotificationChannels.email: ChannelPreference.fromContract(
+          value.channels.email!,
+        ),
+      if (value.channels.inApp != null)
+        NotificationChannels.inApp: ChannelPreference.fromContract(
+          value.channels.inApp!,
+        ),
+    },
+  );
 
   /// The type's key, such as `comms.notice`.
   final String type;
@@ -152,15 +161,9 @@ class ApiNotificationSettingsRepository
     if (result == null) {
       return null;
     }
-    final Object? data = result['data'];
-    return [
-      if (data is List)
-        for (final Object? item in data)
-          if (item is Map)
-            NotificationTypePreference.fromJson(
-              Map<String, dynamic>.from(item),
-            ),
-    ];
+    return contract.NotificationPreferencesResponse.fromJson(
+      result,
+    ).data.map(NotificationTypePreference.fromContract).toList();
   }
 
   @override
@@ -172,7 +175,14 @@ class ApiNotificationSettingsRepository
     await _client.send(
       method: 'PUT',
       url: url,
-      data: {'type': type, 'channel': channel, 'enabled': enabled},
+      data: contract.UpdateMyNotificationPreferencesRequest(
+        type: type,
+        channel: contract
+            .UpdateMyNotificationPreferencesRequestChannelEnum
+            .values
+            .firstWhere((value) => value.value == channel),
+        enabled: enabled,
+      ).toJson(),
     );
   }
 }

@@ -5,9 +5,9 @@ namespace App\Http\Controllers;
 use App\Models\Notification;
 use App\Models\Parents;
 use App\Models\PaymentTransaction;
-use App\Models\UserNotification;
 use App\Services\Payment\FeesPaymentService;
 use App\Services\Payment\PaymentService;
+use App\Services\Platform\Notifications\Notifier;
 use App\Services\Platform\Tenancy\CurrentSchool;
 use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
@@ -147,14 +147,8 @@ class WebhookController extends Controller
             $notification->is_custom = 0;
             $notification->save();
 
-            foreach ($user as $user_id) {
-                $user_notification = new UserNotification;
-                $user_notification->notification_id = $notification->id;
-                $user_notification->user_id = $user_id;
-                $user_notification->save();
-            }
+            app(Notifier::class)->assign($notification, $user);
 
-            sendSimpleNotification($user, $title, $body, $type, null, null);
         } catch (Throwable $e) {
             // The payment is recorded; a failed notification must not undo that.
             Log::error('Payment notification failed: '.$e->getMessage());

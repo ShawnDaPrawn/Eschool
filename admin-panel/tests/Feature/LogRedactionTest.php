@@ -30,7 +30,8 @@ class LogRedactionTest extends TestCase
 
         $this->assertFalse($sent);
         $logged = $this->logged('info');
-        $this->assertStringContainsString('parent@example.org', $logged);
+        $this->assertStringNotContainsString('parent@example.org', $logged);
+        $this->assertStringNotContainsString('Welcome', $logged);
         foreach (['Parent#Secret1', 'Child#Secret2'] as $secret) {
             $this->assertStringNotContainsString($secret, $logged);
         }

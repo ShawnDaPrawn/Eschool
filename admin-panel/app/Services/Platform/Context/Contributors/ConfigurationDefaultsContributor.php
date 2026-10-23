@@ -7,6 +7,7 @@ namespace App\Services\Platform\Context\Contributors;
 use App\Services\Platform\Context\ContextContributor;
 use App\Services\Platform\Context\ContextScope;
 use App\Services\Platform\Modules\ModuleGate;
+use App\Services\Platform\Notifications\NotificationRules;
 
 /**
  * School module availability and configuration capabilities. Notification
@@ -18,7 +19,7 @@ class ConfigurationDefaultsContributor implements ContextContributor
     {
         return [
             'modules' => app(ModuleGate::class)->context(),
-            'notification_rules' => [],
+            'notification_rules' => app(NotificationRules::class)->context($scope->user),
             'feature_flags' => (object) ['module_switches' => true],
         ];
     }

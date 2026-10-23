@@ -1,9 +1,10 @@
 <?php
 
+use App\Models\Platform\SchoolMembership;
 use App\Models\Settings;
 use App\Models\User;
-use App\Services\Platform\Notifications\PushQueue;
-use App\Services\Platform\Notifications\PushTopics;
+use App\Services\Platform\Notifications\NotificationTypes;
+use App\Services\Platform\Notifications\Notifier;
 use App\Services\Platform\Secrets\SecretSettings;
 use App\Services\Platform\Tenancy\CurrentSchool;
 use Google\Client;
@@ -52,69 +53,31 @@ function sendSimpleNotification($user, $title, $body, $type, $image, $userinfo)
         ];
     }
 
-    // The users' current device tokens; users on neither platform get nothing.
-    $devices = User::where('fcm_id', '!=', '')->whereIn('id', $user)->whereIn('device_type', ['android', 'ios'])->get(['id', 'fcm_id', 'device_type']);
-
-    foreach ($devices as $device) {
-        if ($device->device_type === 'android') {
-            $message = [
-                'message' => [
-                    'token' => $device->fcm_id,
-                    'data' => $notification_data,
-                ],
-            ];
-        } else {
-            $message = [
-                'message' => [
-                    'token' => $device->fcm_id,
-                    'notification' => [
-                        'title' => $title,
-                        'body' => $body,
-                    ],
-                    'data' => $notification_data,
-                ],
-            ];
-        }
-
-        PushQueue::toDevice((string) $type, (int) $device->id, (string) $device->fcm_id, $message);
+    $recipients = User::query()->whereIn('id', collect($user)->unique()->all())->get();
+    if ($recipients->isEmpty()) {
+        return;
     }
+    $notifier = app(Notifier::class);
+    $canonical = NotificationTypes::legacy((string) $type);
+    $link = NotificationTypes::link($canonical);
+    $notice = $notifier->makeNotice((string) $type, (string) $title, (string) $body, $link);
+    $notice->forceFill(['delivery_payload' => $notification_data])->save();
+    $notifier->assign($notice, $recipients->pluck('id')->all());
 }
 
+/** Kept for installed callers; recipient preferences require per-person delivery. */
 function sendNotificationToTopic($title, $body, $type, $image, $userinfo)
 {
-    $notification_data = [
-        'click_action' => 'FLUTTER_NOTIFICATION_CLICK',
-        'title' => $title,
-        'body' => $body,
-        'type' => $type,
-        'image' => $image,
-    ];
-
-    // The current school's topics (school_{id}_{audience}_{platform}); school 1
-    // also keeps the pre-Phase 1 names installed apps subscribe to.
-    foreach (PushTopics::for(app(CurrentSchool::class)->id(), (string) $userinfo) as ['topic' => $topic, 'platform' => $platform]) {
-        if ($platform === 'android') {
-            $message = [
-                'message' => [
-                    'topic' => $topic,
-                    'data' => $notification_data,
-                ],
-            ];
-        } else {
-            $message = [
-                'message' => [
-                    'topic' => $topic,
-                    'notification' => [
-                        'title' => $title,
-                        'body' => $body,
-                    ],
-                    'data' => $notification_data,
-                ],
-            ];
-        }
-
-        PushQueue::toTopic((string) $type, $topic, $message);
-    }
+    $role = match ((string) $userinfo) {
+        'all' => null,
+        'students' => 'Student',
+        'parents' => 'Parent',
+        'teachers' => 'Teacher',
+        default => throw new InvalidArgumentException('Unknown notification audience'),
+    };
+    $members = SchoolMembership::query()->active()
+        ->where('school_id', app(CurrentSchool::class)->id())->when($role !== null, fn ($query) => $query->where('role', $role))->pluck('user_id');
+    sendSimpleNotification($members, $title, $body, $type, $image, null);
 }
 
 function getAccessToken()

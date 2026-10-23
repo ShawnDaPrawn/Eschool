@@ -6,6 +6,7 @@ namespace App\Services;
 
 use App\Jobs\Platform\SendMail;
 use App\Mail\Platform\MessageRecorder;
+use App\Mail\Platform\NotificationMail;
 use App\Mail\Platform\TemplateMail;
 use App\Mail\Platform\ViewMail;
 use App\Services\Platform\Notifications\DeliveryLog;
@@ -51,7 +52,7 @@ class MailService
     }
 
     /**
-     * Same as send(), and logs the mail's (redacted) data when it fails.
+     * Same as send(), with failure metadata that contains no mail body or recipient.
      */
     public static function sendWithFallback($view, $data, $callback)
     {
@@ -60,7 +61,6 @@ class MailService
         if (! $sent) {
             Log::info('Email logged instead of sent', [
                 'view' => $view,
-                'data' => self::loggableData($data),
                 'timestamp' => now(),
             ]);
         }
@@ -101,7 +101,11 @@ class MailService
         $mail->metadata('delivery_key', $key);
 
         try {
-            SendMail::dispatch($mail, $key);
+            $job = new SendMail($mail, $key);
+            if (config('queue.connections.'.config('queue.default').'.driver') === 'database') {
+                $job->beforeCommit();
+            }
+            dispatch($job);
         } catch (Throwable $e) {
             // Only with the sync queue, where the job runs inside dispatch().
             self::logFailure($view, $data, $e);
@@ -147,36 +151,18 @@ class MailService
     {
         return match (true) {
             $mail instanceof TemplateMail, $mail instanceof ViewMail => $mail->deliveryType(),
+            $mail instanceof NotificationMail => 'mail.'.$mail->notificationType,
             default => 'mail.'.class_basename($mail),
         };
     }
 
     private static function logFailure($view, $data, Throwable $e): void
     {
-        Log::error('Email sending failed: '.$e->getMessage());
-
-        // Log the email content for debugging
-        Log::info('Failed email details', [
+        // Transport errors can contain addresses or rendered private text.
+        Log::error('Email sending failed', [
             'view' => $view,
-            'data' => self::loggableData($data),
-            'error' => $e->getMessage(),
+            'exception' => get_class($e),
         ]);
-    }
-
-    /**
-     * Welcome emails carry the new login's password, both in its own fields and
-     * inside the rendered body, so neither is written to the log.
-     */
-    private static function loggableData($data): array
-    {
-        if (! is_array($data)) {
-            return [];
-        }
-        if (array_key_exists('body', $data)) {
-            $data['body'] = '[redacted]';
-        }
-
-        return ResponseService::loggable($data);
     }
 
     /**

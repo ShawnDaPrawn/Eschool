@@ -13,6 +13,7 @@ import 'package:eschool/ui/screens/chapterDetails/chapterDetailsScreen.dart';
 import 'package:eschool/ui/screens/chat/chatMessagesScreen.dart';
 import 'package:eschool/ui/screens/chat/chatUserProfileScreen.dart';
 import 'package:eschool/ui/screens/chat/chatUserSearchScreen.dart';
+import 'package:eschool/ui/screens/chat/chatUsersScreen.dart';
 import 'package:eschool/ui/screens/childAssignmentsScreen.dart';
 import 'package:eschool/ui/screens/childAttendanceScreen.dart';
 import 'package:eschool/ui/screens/childDetailsScreen.dart';
@@ -130,6 +131,7 @@ class Routes {
   static const String imageFileView = '/imageFileView';
 
   static const String chatMessages = '/chatMessages';
+  static const String chatUserPage = '/chatUserPage';
   static const String chatUserProfile = '/chatUserProfile';
   static const String chatUserSearch = '/chatUserSearch';
 
@@ -157,7 +159,10 @@ class Routes {
   static Route<dynamic> onGenerateRouted(RouteSettings routeSettings) {
     final route = _buildRoute(routeSettings);
     final module = switch (routeSettings.name) {
-      chatMessages || chatUserProfile || chatUserSearch => 'chat',
+      chatUserPage ||
+      chatMessages ||
+      chatUserProfile ||
+      chatUserSearch => 'chat',
       examOnline || resultOnline => 'online_exams',
       childFees ||
       feesDetails ||
@@ -311,6 +316,11 @@ class Routes {
       case examOnline:
         return ExamOnlineScreen.route(routeSettings);
 
+      case chatUserPage:
+        return AdaptivePageRoute(
+          settings: routeSettings,
+          builder: (_) => const ChatUsersScreen(hasBack: true),
+        );
       case chatMessages:
         return ChatMessagesScreen.route(routeSettings);
       case chatUserProfile:

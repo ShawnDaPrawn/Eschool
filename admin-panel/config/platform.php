@@ -1,5 +1,7 @@
 <?php
 
+use App\Listeners\Platform\NotifyHandleGuardians;
+use App\Listeners\Platform\QueueNotificationFanout;
 use App\Listeners\Platform\RefreshAppContext;
 
 /*
@@ -30,6 +32,8 @@ return [
         // App\Services\Platform\Events\OutboxListener and receives the stored
         // event. Listeners for one event run in one database transaction.
         'listeners' => [
+            'notification.requested' => [QueueNotificationFanout::class],
+            'handle.proposed' => [NotifyHandleGuardians::class],
             'context.changed' => [RefreshAppContext::class],
             // 'fees.payment_recorded' => [App\Listeners\Money\UpdateLedger::class],
         ],
