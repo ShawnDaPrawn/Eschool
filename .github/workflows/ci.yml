@@ -218,6 +218,8 @@ jobs:
           - app: e-school
             flow: notification_settings_smoke_test.dart
           - app: e-school
+            flow: my_school_smoke_test.dart
+          - app: e-school
             flow: profile_smoke_test.dart
           - app: e-school
             flow: handles_smoke_test.dart

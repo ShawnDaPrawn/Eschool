@@ -96,6 +96,37 @@ tags:
   - name: Platform
     description: Who is signed in and the school they work in.
 paths:
+  /schools/{school}/my-school:
+    get:
+      operationId: getMySchool
+      tags: [Platform]
+      summary: Published contacts, documents and current term dates for a school
+      description: Requires active membership and the same school in X-School-Id. Document links are public school publications, not private person files.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - name: school
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      responses:
+        '200':
+          description: The school's published information.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MySchoolResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
   /me/context:
     get:
       operationId: getMeContext
@@ -1381,6 +1412,72 @@ components:
           schema:
             $ref: '#/components/schemas/ErrorResponse'
   schemas:
+    MySchoolResponse:
+      type: object
+      additionalProperties: false
+      required: [error, message, data, code]
+      properties:
+        error:
+          type: boolean
+          description: Always false.
+        message:
+          type: string
+        data:
+          $ref: '#/components/schemas/MySchoolInfo'
+        code:
+          type: integer
+          description: Always 200.
+    MySchoolInfo:
+      type: object
+      additionalProperties: false
+      required: [website, phone, email, address, documents, term_dates]
+      properties:
+        school:
+          $ref: '#/components/schemas/SchoolSummary'
+        website:
+          type: [string, 'null']
+        phone:
+          type: [string, 'null']
+        email:
+          type: [string, 'null']
+        address:
+          type: [string, 'null']
+        documents:
+          type: array
+          items:
+            $ref: '#/components/schemas/SchoolDocument'
+        term_dates:
+          type: array
+          items:
+            $ref: '#/components/schemas/TermDates'
+    SchoolDocument:
+      type: object
+      additionalProperties: false
+      required: [title, kind, url]
+      properties:
+        id:
+          type: string
+          format: uuid
+        title:
+          type: string
+        kind:
+          type: [string, 'null']
+        url:
+          type: string
+          format: uri
+    TermDates:
+      type: object
+      additionalProperties: false
+      required: [name, starts_on, ends_on]
+      properties:
+        name:
+          type: string
+        starts_on:
+          type: [string, 'null']
+          format: date
+        ends_on:
+          type: [string, 'null']
+          format: date
     ErrorCode:
       type: string
       description: What went wrong (see the table in the description). Clients must accept codes they do not know.

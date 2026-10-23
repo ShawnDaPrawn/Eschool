@@ -66,6 +66,8 @@ void main() {
       final info = await ApiMySchoolRepository(clientFor(adapter)).fetch(1);
 
       expect(adapter.requests.single.uri.path, '/api/v2/schools/1/my-school');
+      expect(adapter.requests.single.headers['X-School-Id'], '1');
+      expect(adapter.requests.single.headers['Authorization'], 'Bearer token');
       expect(info!.school!.name, 'Northcliff High');
       expect(info.phone, '011 555 0101');
       expect(info.documents.first.kind, 'fee_schedule');
@@ -137,7 +139,7 @@ void main() {
       expect(find.byType(ChoiceChip), findsNWidgets(2));
       expect(find.text('011 555 0101'), findsOneWidget);
 
-      await tester.tap(find.text('RP'));
+      await tester.tap(find.widgetWithText(ChoiceChip, 'RP'));
       await tester.pumpAndSettle();
 
       expect(find.text('Riverside Primary'), findsOneWidget);

@@ -439,3 +439,13 @@ Legacy parent login/profile child lists use the canonical active guardian
 query, including explicit-link overrides of old parent columns. Current-year
 filters apply to every relationship. Fee-restricted guardians get no fee-due
 signal/paywall flag in those child summaries; academic access stays separate.
+
+
+## School publications
+
+My school reads require active membership and the same school in the request
+scope and URL. Editing/publishing rechecks active settings authority inside the
+write transaction. School policy PDFs are explicitly published public files
+with random school-prefixed paths; unlisting removes the listing and preserves
+shared URLs. This publishing boundary must not be reused for private person
+files. The API never accepts a storage path or arbitrary document URL.

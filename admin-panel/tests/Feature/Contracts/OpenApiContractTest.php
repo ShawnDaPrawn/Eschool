@@ -50,6 +50,12 @@ class OpenApiContractTest extends TestCase
     public static function scenarios(): array
     {
         return [
+            'my school as learner' => ['asha', 'GET', 'api/v2/schools/1/my-school', [], 200],
+            'my school as guardian' => ['farid', 'GET', 'api/v2/schools/1/my-school', [], 200],
+            'my school as teacher' => ['tara', 'GET', 'api/v2/schools/1/my-school', [], 200],
+            'my school as admin' => ['superadmin', 'GET', 'api/v2/schools/1/my-school', [], 200],
+            'my school requires auth' => [null, 'GET', 'api/v2/schools/1/my-school', [], 401],
+            'my school wrong scope' => ['farid', 'GET', 'api/v2/schools/999999/my-school', [], 404],
             'read learner profile' => ['asha', 'GET', 'api/v2/me/profile', [], 200],
             'read guardian profile' => ['farid', 'GET', 'api/v2/me/profile', [], 200],
             'read teacher profile' => ['tara', 'GET', 'api/v2/me/profile', [], 200],
