@@ -149,5 +149,4 @@ class ProfileFormsTest extends TestCase
         $this->postJson('/api/v2/profile-fields/categories', ['profile_type' => 'learner', 'key' => 'expired_admin', 'label' => 'No'])
             ->assertForbidden();
     }
-
 }
