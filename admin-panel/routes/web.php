@@ -33,6 +33,8 @@ use App\Http\Controllers\Panel\People\LearnerInvitationController;
 use App\Http\Controllers\Panel\Platform\SchoolSwitchController;
 use App\Http\Controllers\Panel\SearchController;
 use App\Http\Controllers\ParentsController;
+use App\Http\Controllers\People\ProfileFieldController;
+use App\Http\Controllers\People\ProfileFormController;
 use App\Http\Controllers\Platform\CspReportController;
 use App\Http\Controllers\Platform\LearnerSetupController;
 use App\Http\Controllers\Platform\ModuleController;
@@ -608,6 +610,16 @@ Route::group(['prefix' => 'common'], static function () {
 
 // Module settings use their FormRequest's office-role check.
 Route::middleware(['auth', 'school.context', EnforceReadOnlyYears::class])->group(function () {
+    Route::get('/profile-configuration', [ProfileFieldController::class, 'index'])->name('profile-configuration.index');
+    Route::post('/profile-configuration/categories', [ProfileFieldController::class, 'category'])->name('profile-configuration.categories.store');
+    Route::put('/profile-configuration/categories/{category}', [ProfileFieldController::class, 'category'])->whereNumber('category')->name('profile-configuration.categories.update');
+    Route::delete('/profile-configuration/categories/{category}', [ProfileFieldController::class, 'removeCategory'])->whereNumber('category')->name('profile-configuration.categories.destroy');
+    Route::post('/profile-configuration/definitions', [ProfileFieldController::class, 'field'])->name('profile-configuration.definitions.store');
+    Route::put('/profile-configuration/definitions/{definition}', [ProfileFieldController::class, 'field'])->whereNumber('definition')->name('profile-configuration.definitions.update');
+    Route::delete('/profile-configuration/definitions/{definition}', [ProfileFieldController::class, 'removeField'])->whereNumber('definition')->name('profile-configuration.definitions.destroy');
+    Route::get('/people-profiles/{person}/export', [ProfileFormController::class, 'export'])->whereNumber('person')->name('people-profiles.export');
+    Route::get('/people-profiles/{person?}', [ProfileFormController::class, 'index'])->whereNumber('person')->name('people-profiles.index');
+    Route::put('/people-profiles/{person?}', [ProfileFormController::class, 'update'])->whereNumber('person')->name('people-profiles.update');
     Route::get('/notification-rules', [NotificationRuleController::class, 'index'])->name('notification-rules.index');
     Route::post('/notification-rules', [NotificationRuleController::class, 'update'])->name('notification-rules.update');
     Route::get('/school-modules', [ModuleController::class, 'index'])->name('school-modules.index');

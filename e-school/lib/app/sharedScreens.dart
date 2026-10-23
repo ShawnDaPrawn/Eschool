@@ -47,6 +47,42 @@ Route<dynamic> invitationRoute(String token) => AdaptivePageRoute(
   ),
 );
 
+Route<dynamic> profileDetailsRoute() => AdaptivePageRoute(
+  builder: (context) {
+    final me = context.read<MeContextCubit>().context;
+    String label(String key) => SharedUiUtils.getTranslatedLabel(context, key);
+    final subjects = <ProfileSubject>[
+      if (me == null || me.schools.isEmpty) const ProfileSubject(),
+      if (me != null)
+        for (final membership in me.schools)
+          ProfileSubject(
+            schoolId: membership.school.id,
+            label: '${label(profileMyDetailsKey)} — ${membership.school.name}',
+          ),
+      if (context.read<AuthCubit>().isParent())
+        for (final child in context.read<ChildSelectionCubit>().state.children)
+          if (child.userId > 0)
+            ProfileSubject(
+              personId: child.userId,
+              schoolId: child.schoolId > 0 ? child.schoolId : null,
+              profileType: 'learner',
+              label: '${child.child.name} — ${child.child.school.name}',
+            ),
+    ];
+    // The current school is first for the person's own details.
+    final schoolId = me?.currentSchoolId;
+    subjects.sort(
+      (a, b) => (a.personId == null && a.schoolId == schoolId ? 0 : 1)
+          .compareTo(b.personId == null && b.schoolId == schoolId ? 0 : 1),
+    );
+    return ProfileScreen.withRepository(
+      ApiProfileRepository(Api.client),
+      subjects: subjects,
+      onSaved: () => context.read<MeContextCubit>().load(),
+    );
+  },
+);
+
 Route<dynamic> handlesRoute() => AdaptivePageRoute(
   builder: (context) => HandlesScreen.withRepository(
     ApiHandlesRepository(Api.client),
@@ -141,6 +177,15 @@ List<Widget> sharedScreenEntries(
   String label(String key) => SharedUiUtils.getTranslatedLabel(context, key);
   void open(String route) => Navigator.of(context).pushNamed(route);
   return [
+    AvailableOnly(
+      featureKey: profileFieldsFeature,
+      probe: () => profilesDeployed(ApiProfileRepository(Api.client)),
+      child: tile(
+        title: label(profileDetailsKey),
+        icon: Icons.person_outline,
+        onTap: () => open(Routes.profileDetails),
+      ),
+    ),
     AvailableOnly(
       featureKey: handlesFeature,
       probe: () => handlesDeployed(ApiHandlesRepository(Api.client)),

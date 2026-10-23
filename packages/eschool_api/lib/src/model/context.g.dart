@@ -50,6 +50,14 @@ Context _$ContextFromJson(Map<String, dynamic> json) => $checkedCreate(
             .map((e) => NotificationRule.fromJson(e as Map<String, dynamic>))
             .toList(),
       ),
+      profileFields: $checkedConvert(
+        'profile_fields',
+        (v) => (v as List<dynamic>?)
+            ?.map(
+              (e) => ProfileFieldSummary.fromJson(e as Map<String, dynamic>),
+            )
+            .toList(),
+      ),
       featureFlags: $checkedConvert(
         'feature_flags',
         (v) => Map<String, bool>.from(v as Map),
@@ -76,6 +84,7 @@ Context _$ContextFromJson(Map<String, dynamic> json) => $checkedCreate(
   fieldKeyMap: const {
     'currentSchool': 'current_school',
     'notificationRules': 'notification_rules',
+    'profileFields': 'profile_fields',
     'featureFlags': 'feature_flags',
     'signInMethods': 'sign_in_methods',
   },
@@ -89,6 +98,7 @@ Map<String, dynamic> _$ContextToJson(Context instance) => <String, dynamic>{
   'notification_rules': instance.notificationRules
       .map((e) => e.toJson())
       .toList(),
+  'profile_fields': ?instance.profileFields?.map((e) => e.toJson()).toList(),
   'feature_flags': instance.featureFlags,
   'sign_in_methods': instance.signInMethods,
   'children': instance.children.map((e) => e.toJson()).toList(),

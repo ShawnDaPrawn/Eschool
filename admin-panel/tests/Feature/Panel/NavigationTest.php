@@ -153,14 +153,14 @@ class NavigationTest extends TestCase
         $teacher = $this->user('Teacher');
         $keys = array_column($navigation->items($teacher), 'key');
 
-        foreach (['home', 'learners', 'take-attendance', 'notices', 'lessons', 'capture-marks', 'apply-leave'] as $key) {
+        foreach (['home', 'learners', 'take-attendance', 'notices', 'lessons', 'capture-marks', 'apply-leave', 'person-profile'] as $key) {
             $this->assertContains($key, $keys, "A teacher should see $key");
         }
         foreach (['add-learner', 'import-learners', 'school-profile', 'roles', 'fee-types', 'staff', 'school-years', 'parents'] as $key) {
             $this->assertNotContains($key, $keys, "A teacher must not see $key");
         }
         $sections = array_column($navigation->sections($teacher), 'key');
-        $this->assertNotContains('settings', $sections);
+        $this->assertContains('settings', $sections);
         $this->assertNotContains('money', $sections);
     }
 
@@ -169,9 +169,9 @@ class NavigationTest extends TestCase
         Role::create(['name' => 'Finance', 'custom_role' => 1])->syncPermissions(['fees-type', 'fees-classes', 'fees-paid']);
         $finance = $this->user('Finance');
 
-        $this->assertSame(['home', 'money'], array_column(app(Navigation::class)->sections($finance), 'key'));
+        $this->assertSame(['home', 'money', 'settings'], array_column(app(Navigation::class)->sections($finance), 'key'));
         $this->assertSame(
-            ['home', 'fee-types', 'grade-fees', 'fees-paid', 'payment-log'],
+            ['home', 'fee-types', 'grade-fees', 'fees-paid', 'payment-log', 'person-profile'],
             array_column(app(Navigation::class)->items($finance), 'key')
         );
     }

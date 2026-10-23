@@ -55,6 +55,7 @@ lib/src/model/profile_category_response.dart
 lib/src/model/profile_configuration_response.dart
 lib/src/model/profile_definition.dart
 lib/src/model/profile_definition_response.dart
+lib/src/model/profile_field_summary.dart
 lib/src/model/profile_form.dart
 lib/src/model/profile_form_category.dart
 lib/src/model/profile_form_field.dart

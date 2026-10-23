@@ -38,14 +38,18 @@ class ProfilePolicy
     {
         $types = [];
         foreach ($this->roles($person) as $role) {
-            $type = match ($role) {
-                'Student' => 'learner', 'Parent' => 'parent', 'Teacher' => 'teacher',
-                'Facilitator' => 'facilitator', 'Counsellor' => 'counsellor', default => 'staff',
-            };
-            $types[] = $type;
+            $types[] = self::typeForRole($role);
         }
 
         return array_values(array_unique($types));
+    }
+
+    public static function typeForRole(string $role): string
+    {
+        return match ($role) {
+            'Student' => 'learner', 'Parent' => 'parent', 'Teacher' => 'teacher',
+            'Facilitator' => 'facilitator', 'Counsellor' => 'counsellor', default => 'staff',
+        };
     }
 
     /** The actor is freshly loaded by resolve/manageDefinitions before this check. */

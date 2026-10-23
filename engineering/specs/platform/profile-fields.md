@@ -51,11 +51,18 @@ Staging/owner/participant evidence remains separate and does not freeze code.
 The schema and API slice adds seeded school-specific definitions, encrypted
 custom values, person/field policies, partial validation, configuration APIs and
 the generated client. Supported types in this slice are text, textarea, number,
-date, dropdown, radio, checkbox and boolean. There is no new panel/app entry
-point yet; old forms and old data remain in place.
+date, dropdown, radio, checkbox and boolean. This API slice merged in PR #75 with all 25 checks passing. Old forms and old
+data remain in place.
 
-The next slice connects the M3 editor and shared app form, metadata-only context
-and permitted export. Resumable legacy migration, compatibility writes, file
+The editor/form slice connects the M3 categories/definitions editor, shared
+learner/guardian/staff app form, metadata-only context and permitted CSV export.
+Partial writes send changed keys only. Private panel forms disable browser
+drafts and validation input flashing; app drafts remain in screen memory and
+are cleared before changing subjects. Explicit per-request school scope keeps
+guardian edits bound to the selected child without changing global selection.
+Export rights use active membership roles and filter sensitive definitions
+before querying or decrypting their values. CSV cells neutralise spreadsheet
+formulas, and exports audit field keys only. Resumable legacy migration, compatibility writes, file
 fields and retirement of old caste/religion storage follow before this feature
 is complete. No legacy sensitive plaintext is claimed to have been removed.
 

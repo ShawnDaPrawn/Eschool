@@ -820,7 +820,7 @@ class StudentController extends Controller
 
         $rows = [];
         $no = 1;
-        $data = getSettings('date_formate');
+        $data = ['date_formate' => schoolSetting('date_formate', 'd-m-Y')];
 
         // Batch load related data existence to avoid N+1 queries
         $studentIds = $res->pluck('student_id')->unique()->toArray();
@@ -842,6 +842,9 @@ class StudentController extends Controller
             }
             $operate = '';
             if (! $hideActions) {
+                if (Auth::user()->can('profile-person-view') || Auth::user()->hasRole('Teacher')) {
+                    $operate .= '<a class="m3-button m3-button--text" href="'.e(route('people-profiles.index', ['person' => $student->user_id, 'profile_type' => 'learner'])).'">'.e(__('Person profile')).'</a>';
+                }
                 if (Auth::user()->can('student-edit')) {
                     $operate .= '<a class="btn btn-xs btn-gradient-primary btn-rounded btn-icon editdata"
             data-id='.$student->id.'

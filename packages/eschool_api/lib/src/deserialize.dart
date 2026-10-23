@@ -44,6 +44,7 @@ import 'package:eschool_api/src/model/profile_category_response.dart';
 import 'package:eschool_api/src/model/profile_configuration_response.dart';
 import 'package:eschool_api/src/model/profile_definition.dart';
 import 'package:eschool_api/src/model/profile_definition_response.dart';
+import 'package:eschool_api/src/model/profile_field_summary.dart';
 import 'package:eschool_api/src/model/profile_form.dart';
 import 'package:eschool_api/src/model/profile_form_category.dart';
 import 'package:eschool_api/src/model/profile_form_field.dart';
@@ -243,6 +244,9 @@ ReturnType deserialize<ReturnType, BaseType>(
           as ReturnType;
     case 'ProfileDefinitionResponse':
       return ProfileDefinitionResponse.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'ProfileFieldSummary':
+      return ProfileFieldSummary.fromJson(value as Map<String, dynamic>)
           as ReturnType;
     case 'ProfileForm':
       return ProfileForm.fromJson(value as Map<String, dynamic>) as ReturnType;

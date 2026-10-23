@@ -149,6 +149,7 @@ class Routes {
   static const String approvals = '/approvals';
   static const String invitation = '/invite';
   static const String profilePicture = '/profile-picture';
+  static const String profileDetails = '/profile-details';
   static const String handles = '/handles';
 
   static const String gallery = SharedRoutes.gallery;
@@ -361,6 +362,9 @@ class Routes {
 
       case invitation:
         return invitationRoute(routeSettings.arguments as String? ?? '');
+
+      case profileDetails:
+        return profileDetailsRoute();
 
       case handles:
         return handlesRoute();

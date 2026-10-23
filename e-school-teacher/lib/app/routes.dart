@@ -122,6 +122,7 @@ class Routes {
   static const String notificationSettings = '/notifications/settings';
   static const String mySchool = '/my-school';
   static const String profilePicture = '/profile-picture';
+  static const String profileDetails = '/profile-details';
   static const String handles = '/handles';
 
   static const String gallery = SharedRoutes.gallery;
@@ -306,6 +307,9 @@ class Routes {
 
       case mySchool:
         return mySchoolRoute();
+
+      case profileDetails:
+        return profileDetailsRoute();
 
       case handles:
         return handlesRoute();

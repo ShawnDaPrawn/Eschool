@@ -52,6 +52,18 @@
                     "type": "string"
                 }
             ],
+            "profile_fields": [
+                {
+                    "category_key": "string",
+                    "category_label": "string",
+                    "key": "string",
+                    "label": "string",
+                    "locked": "bool",
+                    "profile_type": "string",
+                    "required": "bool",
+                    "type": "string"
+                }
+            ],
             "schools": [
                 {
                     "roles": [
