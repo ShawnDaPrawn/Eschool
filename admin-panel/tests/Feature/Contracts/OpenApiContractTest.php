@@ -50,6 +50,20 @@ class OpenApiContractTest extends TestCase
     public static function scenarios(): array
     {
         return [
+            'read learner profile' => ['asha', 'GET', 'api/v2/me/profile', [], 200],
+            'read guardian profile' => ['farid', 'GET', 'api/v2/me/profile', [], 200],
+            'read teacher profile' => ['tara', 'GET', 'api/v2/me/profile', [], 200],
+            'profile write acknowledgement' => ['farid', 'PUT', 'api/v2/me/profile', ['values' => ['first_name' => ['text' => 'Farid']]], 200],
+            'profile write requires auth' => [null, 'PUT', 'api/v2/me/profile', ['values' => ['first_name' => ['text' => 'No']]], 401],
+            'person profile wrong role' => ['gina', 'GET', 'api/v2/people/999999/profile', [], 404],
+            'person profile write requires auth' => [null, 'PUT', 'api/v2/people/1/profile', ['values' => ['first_name' => ['text' => 'No']]], 401],
+            'profile configuration list' => ['superadmin', 'GET', 'api/v2/profile-fields', [], 200],
+            'profile category create' => ['superadmin', 'POST', 'api/v2/profile-fields/categories', ['profile_type' => 'learner', 'key' => 'contract_transport', 'label' => 'Transport'], 200],
+            'profile category update' => ['superadmin', 'PUT', 'api/v2/profile-fields/categories/1', ['profile_type' => 'learner', 'key' => 'identity', 'label' => 'Identity', 'sort_order' => 20], 200],
+            'profile category removal protected' => ['superadmin', 'DELETE', 'api/v2/profile-fields/categories/1', [], 422],
+            'profile field create' => ['superadmin', 'POST', 'api/v2/profile-fields/definitions', ['category_id' => 1, 'key' => 'contract_route', 'label' => 'Route', 'type' => 'text', 'visible_to' => ['owner', 'school_admin'], 'editable_by' => ['school_admin']], 200],
+            'profile field update unknown' => ['superadmin', 'PUT', 'api/v2/profile-fields/definitions/999999', ['category_id' => 1, 'key' => 'contract_route', 'label' => 'Route', 'type' => 'text', 'visible_to' => ['owner'], 'editable_by' => []], 404],
+            'profile field removal protected' => ['superadmin', 'DELETE', 'api/v2/profile-fields/definitions/1', [], 422],
             'read own notification preferences' => ['farid', 'GET', 'api/v2/me/notification-preferences', [], 200],
             'locked notice preference' => ['farid', 'PUT', 'api/v2/me/notification-preferences', ['type' => 'attendance.absence', 'channel' => 'email', 'enabled' => false], 422],
             'read own handle' => ['asha', 'GET', 'api/v2/me/handle', [], 200],

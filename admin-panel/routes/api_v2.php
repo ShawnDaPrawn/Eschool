@@ -3,6 +3,8 @@
 declare(strict_types=1);
 
 use App\Http\Controllers\Api\V2\People\EnrolmentController;
+use App\Http\Controllers\Api\V2\People\ProfileConfigurationController;
+use App\Http\Controllers\Api\V2\People\ProfileController;
 use App\Http\Controllers\Api\V2\Platform\ContextController;
 use App\Http\Controllers\Api\V2\Platform\GuardianApprovalController;
 use App\Http\Controllers\Api\V2\Platform\GuardianInvitationController;
@@ -34,6 +36,17 @@ use Illuminate\Support\Facades\Route;
 // Every signed-in profile: the user, their schools, the current school and
 // what the apps need on launch.
 Route::middleware(['auth:sanctum', 'school.context', 'role.any', 'learner.approved', 'idempotent'])->name('api.v2.')->group(function () {
+    Route::get('me/profile', [ProfileController::class, 'show'])->middleware('cache.headers:private;no_store');
+    Route::put('me/profile', [ProfileController::class, 'update']);
+    Route::get('people/{person}/profile', [ProfileController::class, 'show'])->whereNumber('person')->middleware('cache.headers:private;no_store');
+    Route::put('people/{person}/profile', [ProfileController::class, 'update'])->whereNumber('person');
+    Route::get('profile-fields', [ProfileConfigurationController::class, 'index']);
+    Route::post('profile-fields/categories', [ProfileConfigurationController::class, 'category']);
+    Route::put('profile-fields/categories/{category}', [ProfileConfigurationController::class, 'category'])->whereNumber('category');
+    Route::delete('profile-fields/categories/{category}', [ProfileConfigurationController::class, 'removeCategory'])->whereNumber('category');
+    Route::post('profile-fields/definitions', [ProfileConfigurationController::class, 'field']);
+    Route::put('profile-fields/definitions/{definition}', [ProfileConfigurationController::class, 'field'])->whereNumber('definition');
+    Route::delete('profile-fields/definitions/{definition}', [ProfileConfigurationController::class, 'removeField'])->whereNumber('definition');
     Route::get('me/context', [ContextController::class, 'show'])->name('me.context');
     Route::get('me/notification-preferences', [NotificationPreferenceController::class, 'index']);
     Route::put('me/notification-preferences', [NotificationPreferenceController::class, 'update']);

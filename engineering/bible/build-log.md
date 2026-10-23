@@ -99,3 +99,10 @@ stop semantics, queued intent cleanup and cost boundaries. Shell examples parse
 and the sanitisation SQL passed nine assertions on a separate local MariaDB
 transaction, preserving people and academic rows. No cloud restore or acceptance
 is claimed; credentials and a feasible capped staging plan are still required.
+
+PRs #72–#74 merged invitation mailbox binding, the corrected restore quarantine
+procedure and legacy parent child-response ownership after all 25 checks passed
+on each PR. The configurable profile schema/API slice adds scoped defaults,
+encrypted custom values, field policies and typed forms/configuration. Local
+contract and security tests pass; the panel/app/export flow and legacy storage
+bridge remain in progress. Staging acceptance remains separate.

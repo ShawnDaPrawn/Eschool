@@ -7,5 +7,6 @@
 | Invitation replay and privacy | Random token, hash lookup, encrypted reminder secret, atomic consume, expiry and replacement | Implemented and tested |
 | Legacy guardian rights | Ended links override legacy parent fields; fee visibility separate from academic access | Regression coverage added |
 | Production rollout | Approval enforcement stays disabled until existing-family onboarding is verified | Not enabled; no consent back-filled |
-| Modern sign-in, profile encryption, support access and retention | Remaining implementation work | Pending |
+| Configurable profile API | Encrypted custom values, person/field policy, tenant/owner checks, guardian verification and impersonation denial | Local automated coverage; legacy migration, UI and exports pending |
+| Modern sign-in, support access and retention | Remaining implementation work | Pending |
 | Staging security and rate/load tests | Requires funded infrastructure and configured access | Pending; does not freeze other implementation |
