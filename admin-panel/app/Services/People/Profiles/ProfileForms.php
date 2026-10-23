@@ -167,7 +167,8 @@ class ProfileForms
         return $validation;
     }
 
-    private function validateValue(User $person, ProfileFieldDefinition $field, mixed $value): mixed
+    /** Validation only; callers still own authorization and transactional writes. */
+    public function validateValue(User $person, ProfileFieldDefinition $field, mixed $value): mixed
     {
         $validation = $this->validationFor($field);
         $rules = [$field->required ? 'required' : 'nullable'];

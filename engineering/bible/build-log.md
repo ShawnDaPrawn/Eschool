@@ -141,3 +141,13 @@ PR #77 merged My school contacts, branding, publications and term dates after
 all 27 checks passed, including 924 backend tests and both Android suites.
 Private files are tracked in #78; legacy migration, pictures and the remaining
 Phase 1 closeout items remain separate implementation work.
+
+PR #78 merged encrypted private profile files after all 27 checks passed,
+including 940 backend tests and native image/PDF previews. A separate bounded
+legacy backfill adds school/profile-specific dry runs, deterministic field
+mapping, shared value validation and insert-only encrypted values. Imported
+fields start hidden for review; existing edits and explicit clears win. The
+command reports malformed/ambiguous rows and pending files without private
+contents. Compatibility writes, archived records, public-file migration and
+legacy caste/religion storage retirement remain implementation work. No live
+migration, staging acceptance or production release is claimed.
