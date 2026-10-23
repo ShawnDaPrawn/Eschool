@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Models;
 
 use App\Services\Platform\Audit\Auditable;
+use App\Services\Platform\Identity\GuardianService;
 use App\Services\Platform\Tenancy\BelongsToSchool;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -378,6 +379,8 @@ class Students extends Model
      */
     protected static function booted()
     {
+        static::saved(fn (Students $student) => app(GuardianService::class)->syncLegacy($student));
+
         static::deleting(function (Students $student) {
 
             if ($student->isForceDeleting()) {

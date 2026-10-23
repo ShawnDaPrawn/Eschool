@@ -24,3 +24,14 @@ Every table below is additive, with a tested `down()`. The new kernel tables car
 | `users.password_change_required` | boolean | Flags the date-of-birth passwords of existing learners for a change at the next sign-in | S6 |
 
 Not built in Phase 0, by design: a `currency` column per money row (one currency, ZAR, until the ledger work in a later phase); `school_id` on the seed's tables (Phase 1).
+
+## Phase 1: guardian access
+
+| Table | Purpose |
+| --- | --- |
+| `guardian_links` | School-scoped learner/guardian relationship, approval and fee visibility rights, active/ended status |
+| `learner_approvals` | Versioned consent evidence and withdrawal timestamps; no automatic approval during back-fill |
+| `guardian_invitations` | School-scoped one-use invitation, hashed token, encrypted reminder secret, expiry and reminder claims |
+
+All three have required indexed school foreign keys and timestamps. The
+migration rolls back before the tenancy migrations in the upgrade rehearsal.

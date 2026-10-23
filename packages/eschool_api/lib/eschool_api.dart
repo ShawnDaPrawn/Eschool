@@ -10,14 +10,28 @@ export 'package:eschool_api/src/auth/oauth.dart';
 
 export 'package:eschool_api/src/api/platform_api.dart';
 
+export 'package:eschool_api/src/model/accept_guardian_invitation_request.dart';
+export 'package:eschool_api/src/model/approval_learner.dart';
+export 'package:eschool_api/src/model/approval_state.dart';
+export 'package:eschool_api/src/model/approval_state_response.dart';
 export 'package:eschool_api/src/model/branding.dart';
 export 'package:eschool_api/src/model/child.dart';
 export 'package:eschool_api/src/model/context.dart';
 export 'package:eschool_api/src/model/context_response.dart';
 export 'package:eschool_api/src/model/context_user.dart';
 export 'package:eschool_api/src/model/current_school.dart';
+export 'package:eschool_api/src/model/decide_guardian_approval_request.dart';
 export 'package:eschool_api/src/model/error_code.dart';
 export 'package:eschool_api/src/model/error_response.dart';
+export 'package:eschool_api/src/model/guardian_approval.dart';
+export 'package:eschool_api/src/model/guardian_approvals_response.dart';
+export 'package:eschool_api/src/model/guardian_consent.dart';
+export 'package:eschool_api/src/model/guardian_invitation_accepted_response.dart';
+export 'package:eschool_api/src/model/guardian_invitation_issued.dart';
+export 'package:eschool_api/src/model/guardian_invitation_issued_response.dart';
+export 'package:eschool_api/src/model/guardian_invitation_preview.dart';
+export 'package:eschool_api/src/model/guardian_invitation_preview_learners_inner.dart';
+export 'package:eschool_api/src/model/guardian_invitation_preview_response.dart';
 export 'package:eschool_api/src/model/module.dart';
 export 'package:eschool_api/src/model/notification_rule.dart';
 export 'package:eschool_api/src/model/pagination.dart';

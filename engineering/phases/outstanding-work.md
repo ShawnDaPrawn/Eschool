@@ -6,9 +6,10 @@ work. A checked-in feature is not proof of staging verification or acceptance.
 | Work | Implementation | Automated verification | Staging / acceptance | Next action |
 | --- | --- | --- | --- | --- |
 | Phase 0 foundations | Merged | Dependency integration checks passed before merge | Pending | Reconcile remaining operational evidence |
-| Learner Android smoke on main | Emulator job failed after merge | Fresh retry requested; host pinned to Ubuntu 24.04 | Not applicable | Inspect fresh run and fix any remaining cause |
+| Learner Android smoke on main | Emulator job failed after merge | Fresh main retry passed; pinned-host PR checks passed | Not applicable | Merged in PR #66 |
 | Tenancy and memberships | Merged | Existing two-school tests | Pending | Extend for each new domain |
-| Guardian approval, invitations, identity | Pending | Pending | Pending | Add services, migrations and enforcement |
+| Guardian approval and invitations | Implemented; rollout disabled pending family transition | Local backend, tenancy, contract and package tests | Pending | Review and merge feature PR; verify real email onboarding |
+| Enrolment history, numbers, handles and modern sign-in | Pending | Pending | Pending | Continue remaining identity work |
 | Enrolment history and student numbers | Pending | Pending | Pending | Add additive history and compatibility projection |
 | School configuration and notifications | Pending | Pending | Pending | Connect registries, services and app contracts |
 | SaaS onboarding, imports and privacy | Pending | Pending | Pending | Build platform tools and restricted support access |

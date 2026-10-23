@@ -45,6 +45,8 @@ final class PortalSession
      */
     public static function signIn(Request $request, User $user, string $app): string
     {
+        app(ApprovalService::class)->assertAccess($user);
+
         if (! self::isPortal($request)) {
             return AppTokens::issue($user, $app);
         }

@@ -690,3 +690,28 @@ Several "read" endpoints are `POST` (`get-user-message`, `get-leave-list`, `get-
 - [Chat](Chat) and [Notifications](Notifications)
 - [Testing-and-CI](Testing-and-CI)
 - [Troubleshooting-and-FAQ](Troubleshooting-and-FAQ)
+
+### Guardian onboarding and approval
+
+The additive v2 endpoints now serve the shared people screens:
+
+| Method | Path | Access |
+| --- | --- | --- |
+| GET | `/guardian/approvals` | Parent; own linked learners at the selected school |
+| POST | `/guardian/approvals/{learner}` | Verified parent with an active approval right |
+| GET | `/guardian/invitations/{token}` | Private expiring invitation secret |
+| POST | `/guardian/invitations/{token}/accept` | Consumes the invitation once; verifies mailbox and signs in |
+| POST | `/guardians/{guardian}/invitations` | Staff with learner-create permission; linked guardian at this school |
+
+The staff issue response never contains the invitation secret. Tokens are
+hashed for lookup and encrypted at rest and in the delivery queue. Invitations
+do not constitute learner consent. `approval` in `/me/context` is additive.
+Expired, replaced and used invitations return 404. Guardian approval requires
+the current consent version; withdrawal revokes learner tokens and sessions.
+Explicit ended guardian links override legacy family columns. `can_see_fees`
+is enforced separately from academic child access.
+
+Deployment: `LEARNER_APPROVAL_ENFORCED=true` activates the new learner access
+checks at sign-in and on requests, after existing families have been onboarded.
+Keep it disabled until that transition is verified; no consent is fabricated by
+the relationship migration. `LEARNER_PORTAL_URL` selects invitation links.

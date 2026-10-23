@@ -137,6 +137,198 @@ paths:
           $ref: '#/components/responses/TooManyRequests'
         '500':
           $ref: '#/components/responses/ServerError'
+  /guardian/approvals:
+    get:
+      operationId: getGuardianApprovals
+      tags:
+      - Platform
+      summary: List linked learners and current consent
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      responses:
+        '200':
+          description: The operation succeeded.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GuardianApprovalsResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+  /guardian/approvals/{learner}:
+    post:
+      operationId: decideGuardianApproval
+      tags:
+      - Platform
+      summary: Approve or withdraw learner access
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - name: learner
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+              - decision
+              - consent_version
+              properties:
+                decision:
+                  type: string
+                  enum:
+                  - approve
+                  - withdraw
+                consent_version:
+                  type: string
+                  maxLength: 32
+      responses:
+        '200':
+          description: The operation succeeded.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApprovalStateResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+  /guardian/invitations/{token}:
+    get:
+      operationId: getGuardianInvitation
+      tags:
+      - Platform
+      summary: Read a private guardian invitation
+      security: []
+      parameters:
+      - &id001
+        name: token
+        in: path
+        required: true
+        schema:
+          type: string
+        description: Private one-use invitation token from the emailed link.
+      responses:
+        '200':
+          description: The operation succeeded.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GuardianInvitationPreviewResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+  /guardian/invitations/{token}/accept:
+    post:
+      operationId: acceptGuardianInvitation
+      tags:
+      - Platform
+      summary: Verify the invited mailbox and sign in once
+      security: []
+      parameters:
+      - *id001
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                password:
+                  type: string
+                  minLength: 10
+                device_type:
+                  type: string
+                  enum:
+                  - android
+                  - ios
+                  - web
+                fcm_id:
+                  type: string
+                  maxLength: 4096
+      responses:
+        '200':
+          description: The operation succeeded.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GuardianInvitationAcceptedResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+  /guardians/{guardian}/invitations:
+    post:
+      operationId: issueGuardianInvitation
+      tags:
+      - Platform
+      summary: Email an invitation to an existing linked guardian
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - name: guardian
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      responses:
+        '200':
+          description: The operation succeeded.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GuardianInvitationIssuedResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
 components:
   securitySchemes:
     bearerAuth:
@@ -373,6 +565,222 @@ components:
         code:
           type: integer
           description: Always 200.
+    ApprovalState:
+      type: object
+      additionalProperties: false
+      required:
+      - status
+      - approved_by_count
+      properties:
+        status:
+          type: string
+          enum:
+          - pending
+          - approved
+          - withdrawn
+        approved_by_count:
+          type: integer
+          minimum: 0
+    ApprovalLearner:
+      type: object
+      additionalProperties: false
+      required:
+      - id
+      - name
+      - image
+      - student_number
+      - school
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        image:
+          type:
+          - string
+          - 'null'
+        student_number:
+          type:
+          - string
+          - 'null'
+        school:
+          $ref: '#/components/schemas/SchoolSummary'
+    GuardianConsent:
+      type: object
+      additionalProperties: false
+      required:
+      - version
+      - text
+      properties:
+        version:
+          type: string
+        text:
+          type: string
+    GuardianApproval:
+      type: object
+      additionalProperties: false
+      required:
+      - learner
+      - status
+      - requested_at
+      - consent
+      properties:
+        learner:
+          $ref: '#/components/schemas/ApprovalLearner'
+        status:
+          type: string
+          enum:
+          - pending
+          - approved
+          - withdrawn
+        requested_at:
+          type:
+          - string
+          - 'null'
+          format: date-time
+        consent:
+          $ref: '#/components/schemas/GuardianConsent'
+    GuardianApprovalsResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - data
+      - code
+      properties:
+        error:
+          type: boolean
+          description: Always false.
+        message:
+          type: string
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/GuardianApproval'
+        code:
+          type: integer
+          description: Always 200.
+    ApprovalStateResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - data
+      - code
+      properties:
+        error:
+          type: boolean
+          description: Always false.
+        message:
+          type: string
+        data:
+          $ref: '#/components/schemas/ApprovalState'
+        code:
+          type: integer
+          description: Always 200.
+    GuardianInvitationPreview:
+      type: object
+      additionalProperties: false
+      required:
+      - school
+      - email
+      - learners
+      - expires_at
+      - needs_password
+      properties:
+        school:
+          $ref: '#/components/schemas/SchoolSummary'
+        email:
+          type: string
+          format: email
+        learners:
+          type: array
+          items:
+            type: object
+            required:
+            - id
+            - name
+            additionalProperties: false
+            properties:
+              id:
+                type: integer
+              name:
+                type: string
+        expires_at:
+          type: string
+          format: date-time
+        needs_password:
+          type: boolean
+    GuardianInvitationIssued:
+      type: object
+      additionalProperties: false
+      required:
+      - id
+      - expires_at
+      properties:
+        id:
+          type: integer
+        expires_at:
+          type: string
+          format: date-time
+    GuardianInvitationPreviewResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - data
+      - code
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        data:
+          $ref: '#/components/schemas/GuardianInvitationPreview'
+        code:
+          type: integer
+    GuardianInvitationIssuedResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - data
+      - code
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        data:
+          $ref: '#/components/schemas/GuardianInvitationIssued'
+        code:
+          type: integer
+    GuardianInvitationAcceptedResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - data
+      - code
+      - token
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        data:
+          type: object
+          additionalProperties: true
+        code:
+          type: integer
+        token:
+          type: string
+          description: Native bearer token; empty for a cookie-authenticated portal.
     Context:
       type: object
       additionalProperties: false
@@ -412,6 +820,11 @@ components:
           description: A parent's children (as father, mother or guardian); empty for everyone else.
           items:
             $ref: '#/components/schemas/Child'
+        approval:
+          description: Guardian access approval for a learner; null for other profiles.
+          oneOf:
+          - $ref: '#/components/schemas/ApprovalState'
+          - type: 'null'
     ContextUser:
       type: object
       additionalProperties: false

@@ -18,7 +18,15 @@ class EndRefusedPortalSignIn
 {
     public function handle(Request $request, Closure $next): Response
     {
-        $response = $next($request);
+        try {
+            $response = $next($request);
+        } catch (\Throwable $exception) {
+            // Policy/approval checks may throw after Auth::attempt has already
+            // logged the web guard in. A refused sign-in must leave no session.
+            PortalSession::endIfRefused($request, false);
+
+            throw $exception;
+        }
 
         PortalSession::endIfRefused($request, $response->isSuccessful());
 

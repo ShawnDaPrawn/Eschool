@@ -40,6 +40,7 @@ Route::group(['prefix' => 'student'], function () {
             'auth:sanctum',
             'school.context',
             'role:Student',
+            'learner.approved',
             'student.session.active',
             'password.change',
         ],

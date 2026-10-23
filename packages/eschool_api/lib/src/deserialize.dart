@@ -1,10 +1,24 @@
+import 'package:eschool_api/src/model/accept_guardian_invitation_request.dart';
+import 'package:eschool_api/src/model/approval_learner.dart';
+import 'package:eschool_api/src/model/approval_state.dart';
+import 'package:eschool_api/src/model/approval_state_response.dart';
 import 'package:eschool_api/src/model/branding.dart';
 import 'package:eschool_api/src/model/child.dart';
 import 'package:eschool_api/src/model/context.dart';
 import 'package:eschool_api/src/model/context_response.dart';
 import 'package:eschool_api/src/model/context_user.dart';
 import 'package:eschool_api/src/model/current_school.dart';
+import 'package:eschool_api/src/model/decide_guardian_approval_request.dart';
 import 'package:eschool_api/src/model/error_response.dart';
+import 'package:eschool_api/src/model/guardian_approval.dart';
+import 'package:eschool_api/src/model/guardian_approvals_response.dart';
+import 'package:eschool_api/src/model/guardian_consent.dart';
+import 'package:eschool_api/src/model/guardian_invitation_accepted_response.dart';
+import 'package:eschool_api/src/model/guardian_invitation_issued.dart';
+import 'package:eschool_api/src/model/guardian_invitation_issued_response.dart';
+import 'package:eschool_api/src/model/guardian_invitation_preview.dart';
+import 'package:eschool_api/src/model/guardian_invitation_preview_learners_inner.dart';
+import 'package:eschool_api/src/model/guardian_invitation_preview_response.dart';
 import 'package:eschool_api/src/model/module.dart';
 import 'package:eschool_api/src/model/notification_rule.dart';
 import 'package:eschool_api/src/model/pagination.dart';
@@ -36,6 +50,20 @@ ReturnType deserialize<ReturnType, BaseType>(
       return (valueString == 'true' || valueString == '1') as ReturnType;
     case 'double':
       return (value is double ? value : double.parse('$value')) as ReturnType;
+    case 'AcceptGuardianInvitationRequest':
+      return AcceptGuardianInvitationRequest.fromJson(
+            value as Map<String, dynamic>,
+          )
+          as ReturnType;
+    case 'ApprovalLearner':
+      return ApprovalLearner.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'ApprovalState':
+      return ApprovalState.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'ApprovalStateResponse':
+      return ApprovalStateResponse.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
     case 'Branding':
       return Branding.fromJson(value as Map<String, dynamic>) as ReturnType;
     case 'Child':
@@ -50,9 +78,49 @@ ReturnType deserialize<ReturnType, BaseType>(
     case 'CurrentSchool':
       return CurrentSchool.fromJson(value as Map<String, dynamic>)
           as ReturnType;
+    case 'DecideGuardianApprovalRequest':
+      return DecideGuardianApprovalRequest.fromJson(
+            value as Map<String, dynamic>,
+          )
+          as ReturnType;
     case 'ErrorCode':
     case 'ErrorResponse':
       return ErrorResponse.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'GuardianApproval':
+      return GuardianApproval.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'GuardianApprovalsResponse':
+      return GuardianApprovalsResponse.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'GuardianConsent':
+      return GuardianConsent.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'GuardianInvitationAcceptedResponse':
+      return GuardianInvitationAcceptedResponse.fromJson(
+            value as Map<String, dynamic>,
+          )
+          as ReturnType;
+    case 'GuardianInvitationIssued':
+      return GuardianInvitationIssued.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'GuardianInvitationIssuedResponse':
+      return GuardianInvitationIssuedResponse.fromJson(
+            value as Map<String, dynamic>,
+          )
+          as ReturnType;
+    case 'GuardianInvitationPreview':
+      return GuardianInvitationPreview.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'GuardianInvitationPreviewLearnersInner':
+      return GuardianInvitationPreviewLearnersInner.fromJson(
+            value as Map<String, dynamic>,
+          )
+          as ReturnType;
+    case 'GuardianInvitationPreviewResponse':
+      return GuardianInvitationPreviewResponse.fromJson(
+            value as Map<String, dynamic>,
+          )
           as ReturnType;
     case 'Module':
       return Module.fromJson(value as Map<String, dynamic>) as ReturnType;
