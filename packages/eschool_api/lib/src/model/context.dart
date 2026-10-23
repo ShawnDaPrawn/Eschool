@@ -8,6 +8,7 @@ import 'package:eschool_api/src/model/module.dart';
 import 'package:eschool_api/src/model/notification_rule.dart';
 import 'package:eschool_api/src/model/school_membership.dart';
 import 'package:eschool_api/src/model/approval_state.dart';
+import 'package:eschool_api/src/model/profile_field_summary.dart';
 import 'package:eschool_api/src/model/child.dart';
 import 'package:eschool_api/src/model/current_school.dart';
 import 'package:json_annotation/json_annotation.dart';
@@ -32,6 +33,8 @@ class Context {
     required this.modules,
 
     required this.notificationRules,
+
+    this.profileFields,
 
     required this.featureFlags,
 
@@ -60,6 +63,10 @@ class Context {
   @JsonKey(name: r'notification_rules', required: true, includeIfNull: false)
   final List<NotificationRule> notificationRules;
 
+  /// School-specific metadata for the user's profiles; never contains person values. Missing on older servers.
+  @JsonKey(name: r'profile_fields', required: false, includeIfNull: false)
+  final List<ProfileFieldSummary>? profileFields;
+
   /// Feature switches by key (empty until Phase 1).
   @JsonKey(name: r'feature_flags', required: true, includeIfNull: false)
   final Map<String, bool> featureFlags;
@@ -85,6 +92,7 @@ class Context {
           other.currentSchool == currentSchool &&
           other.modules == modules &&
           other.notificationRules == notificationRules &&
+          other.profileFields == profileFields &&
           other.featureFlags == featureFlags &&
           other.signInMethods == signInMethods &&
           other.children == children &&
@@ -97,6 +105,7 @@ class Context {
       currentSchool.hashCode +
       modules.hashCode +
       notificationRules.hashCode +
+      profileFields.hashCode +
       featureFlags.hashCode +
       signInMethods.hashCode +
       children.hashCode +

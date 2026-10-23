@@ -842,6 +842,9 @@ class StudentController extends Controller
             }
             $operate = '';
             if (! $hideActions) {
+                if (Auth::user()->can('profile-person-view') || Auth::user()->hasRole('Teacher')) {
+                    $operate .= '<a class="m3-button m3-button--text" href="'.e(route('people-profiles.index', ['person' => $student->user_id, 'profile_type' => 'learner'])).'">'.e(__('Person profile')).'</a>';
+                }
                 if (Auth::user()->can('student-edit')) {
                     $operate .= '<a class="btn btn-xs btn-gradient-primary btn-rounded btn-icon editdata"
             data-id='.$student->id.'

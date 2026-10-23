@@ -1793,6 +1793,11 @@ components:
           description: The current school's notification rules for this profile (empty until Phase 1).
           items:
             $ref: '#/components/schemas/NotificationRule'
+        profile_fields:
+          type: array
+          description: School-specific metadata for the user's profiles; never contains person values. Missing on older servers.
+          items:
+            $ref: '#/components/schemas/ProfileFieldSummary'
         feature_flags:
           type: object
           description: Feature switches by key (empty until Phase 1).
@@ -1984,6 +1989,27 @@ components:
         code:
           type: integer
           description: Always 200.
+    ProfileFieldSummary:
+      type: object
+      additionalProperties: false
+      required: [profile_type, key, label, type, required, locked, category_key, category_label]
+      properties:
+        profile_type:
+          type: string
+        key:
+          type: string
+        label:
+          type: string
+        type:
+          type: string
+        required:
+          type: boolean
+        locked:
+          type: boolean
+        category_key:
+          type: string
+        category_label:
+          type: string
     ProfileValue:
       type: object
       additionalProperties: false

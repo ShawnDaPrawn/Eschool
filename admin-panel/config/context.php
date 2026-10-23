@@ -5,6 +5,7 @@ use App\Services\Platform\Context\Contributors\CurrentSchoolContributor;
 use App\Services\Platform\Context\Contributors\IdentityDefaultsContributor;
 use App\Services\Platform\Context\Contributors\SchoolsContributor;
 use App\Services\Platform\Context\Contributors\UserContributor;
+use App\Services\Platform\Context\Contributors\ProfileFieldsContributor;
 
 /*
 |--------------------------------------------------------------------------
@@ -30,6 +31,7 @@ return [
         // its line with its own contributors.
         IdentityDefaultsContributor::class,      // T2: sign_in_methods, children (approval)
         ConfigurationDefaultsContributor::class, // T3: modules, notification_rules, feature_flags
+        ProfileFieldsContributor::class,         // T3: metadata only; private values are fetched separately.
     ],
 
 ];

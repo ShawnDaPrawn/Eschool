@@ -57,6 +57,7 @@ export 'package:eschool_api/src/model/profile_category_response.dart';
 export 'package:eschool_api/src/model/profile_configuration_response.dart';
 export 'package:eschool_api/src/model/profile_definition.dart';
 export 'package:eschool_api/src/model/profile_definition_response.dart';
+export 'package:eschool_api/src/model/profile_field_summary.dart';
 export 'package:eschool_api/src/model/profile_form.dart';
 export 'package:eschool_api/src/model/profile_form_category.dart';
 export 'package:eschool_api/src/model/profile_form_field.dart';

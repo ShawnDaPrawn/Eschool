@@ -33,10 +33,11 @@ class ProfileForms
             ->orderBy('sort_order')->orderBy('id')->get();
     }
 
-    public function schema(User $actor, User $person, string $profile): array
+    public function schema(User $actor, User $person, string $profile, bool $forExport = false): array
     {
         $context = $this->policy->resolve($actor, $person, $profile);
-        $fields = $this->definitions($profile)->filter(fn ($field) => $this->policy->field($context, $field));
+        $fields = $this->definitions($profile)->filter(fn ($field) => $this->policy->field($context, $field)
+            && (! $forExport || ! $field->sensitive || $context['actor']->can('profile-sensitive-export')));
         $values = ProfileFieldValue::query()->where('user_id', $person->id)->whereIn('definition_id', $fields->pluck('id'))->get()->keyBy('definition_id');
         $categories = [];
         foreach ($fields->groupBy('category_id')->sortBy(fn ($group) => $group->first()->category->sort_order) as $group) {
@@ -201,7 +202,13 @@ class ProfileForms
         if ($field->source === 'user.email') {
             $rules[] = Rule::unique('users', 'email')->ignore($person->id);
         }
-        Validator::make(['value' => $value], ['value' => $rules] + ($extra ?? []))->validate();
+        $validator = Validator::make(['value' => $value], ['value' => $rules] + ($extra ?? []), attributes: ['value' => __($field->label)]);
+        if ($validator->fails()) {
+            $member = match ($field->type) {
+                'checkbox' => 'choices', 'boolean' => 'flag', default => 'text',
+            };
+            throw ValidationException::withMessages(['values.'.$field->key.'.'.$member => $validator->errors()->all()]);
+        }
 
         return $field->type === 'boolean' && $value !== null ? (bool) $value : $value;
     }
