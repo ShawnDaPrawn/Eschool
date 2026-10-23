@@ -1,3 +1,4 @@
+import 'package:eschool_session/eschool_session.dart';
 import 'package:eschool/app/selectedChild.dart';
 import 'package:eschool/cubits/authCubit.dart';
 import 'package:eschool/data/models/subject.dart';
@@ -122,7 +123,11 @@ class ReportsScreenState extends State<ReportsScreen> {
         .getAppConfiguration()
         .canStudentPayTheirFees;
 
-    if (!isStudent || canPayFees) {
+    if ((!isStudent || canPayFees) &&
+        allowsSchoolModule(
+          context.watch<MeContextCubit>().state.context,
+          'fees',
+        )) {
       tabs.add(UiUtils.getTranslatedLabel(context, feesKey));
     }
 

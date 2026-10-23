@@ -44,3 +44,10 @@ migration rolls back before the tenancy migrations in the upgrade rehearsal.
 | `learner_identifiers` | Global human-to-number allocation, unique user and student number, first enrolment date; retained after account archiving |
 | `platform_counters` | Locked global sequence allocation; numbers are never reused |
 | `students.student_number` | Nullable indexed compatibility projection; hidden from v1 model output |
+
+## Phase 1: school module configuration
+
+`school_modules` has a required school foreign key and unique (school, module)
+pair, package entitlement, enabled/read-only state, changed-by user and time,
+and ordinary timestamps. Model changes are audited. Module invalidations are
+recorded in the existing transactional outbox.

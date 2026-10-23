@@ -36,8 +36,15 @@
                 "tagline": "null",
                 "timezone": "string"
             },
-            "feature_flags": [],
-            "modules": [],
+            "feature_flags": {
+                "module_switches": "bool"
+            },
+            "modules": [
+                {
+                    "key": "string",
+                    "read_only": "bool"
+                }
+            ],
             "notification_rules": [],
             "schools": [
                 {

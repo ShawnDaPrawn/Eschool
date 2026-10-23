@@ -11,6 +11,8 @@ Earlier history is kept where it was written and is not repeated here:
 
 ### Added
 
+- School admins can control included features under Settings → School modules. Disabled features disappear from navigation and app context, and their routes refuse access. Required features stay on; fees with retained records become read-only. Existing schools retain their seed features, while new explicitly packaged schools start fees off. Native apps refresh on a queued school-specific context change.
+
 - Lifelong student numbers work alongside existing learner logins. School staff can append dated homeroom moves through API v2, while installed clients keep their existing session fields. Parent context includes each authorised child's school, approval, number and homeroom. **Deploy:** rehearse `people:backfill-identities --queue` on isolated staging before production acceptance; historical dates imported from the old session table are marked as legacy-derived. Permanent cleanup preserves numbers and other schools' accounts, and refuses learners with dated enrolment history.
 
 - Guardian access approvals and one-use emailed invitations, including email verification, withdrawal, separate fee access and versioned consent. Existing family relationships are migrated without inventing approval. The shared approval screen uses generated API models.

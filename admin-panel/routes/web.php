@@ -35,6 +35,7 @@ use App\Http\Controllers\Panel\SearchController;
 use App\Http\Controllers\ParentsController;
 use App\Http\Controllers\Platform\CspReportController;
 use App\Http\Controllers\Platform\LearnerSetupController;
+use App\Http\Controllers\Platform\ModuleController;
 use App\Http\Controllers\RoleController;
 use App\Http\Controllers\SectionController;
 use App\Http\Controllers\SemesterController;
@@ -602,4 +603,10 @@ Route::post('clear', function () {
 
 Route::group(['prefix' => 'common'], static function () {
     Route::get('/js/lang', [Controller::class, 'readLanguageFile'])->name('common.language.read');
+});
+
+// Module settings use their FormRequest's office-role check.
+Route::middleware(['auth', 'school.context', EnforceReadOnlyYears::class])->group(function () {
+    Route::get('/school-modules', [ModuleController::class, 'index'])->name('school-modules.index');
+    Route::put('/school-modules/{module}', [ModuleController::class, 'update'])->name('school-modules.update');
 });

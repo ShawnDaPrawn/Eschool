@@ -18,6 +18,13 @@ The admin panel serves a JSON REST API under `/api` that both Flutter apps use. 
 
 ## Base URL and how the apps build it
 
+Phase 1 module availability is additive in `/api/v2/me/context`: `modules`
+contains `{key, read_only}` and `feature_flags.module_switches` marks configured
+availability. Legacy v1 routes retain their response fields, with module checks
+on direct feature routes. Disabled features return 404; retained financial
+history remains readable and writes return 403. School-specific silent
+`context.changed` pushes ask current apps to refresh their context.
+
 The API is part of the same Laravel application as the admin panel and the public website, so it lives on the same host. Both [`bootstrap/app.php`](https://github.com/ShawnDaPrawn/Eschool/blob/main/admin-panel/bootstrap/app.php) (`withRouting(api: ...)`) and [`app/Providers/RouteServiceProvider.php`](https://github.com/ShawnDaPrawn/Eschool/blob/main/admin-panel/app/Providers/RouteServiceProvider.php) (`Route::prefix('api')->middleware('api')`) register `routes/api.php` under the `api` prefix; both produce the same URLs.
 
 The Flutter apps hard-code the server address in one constant each:

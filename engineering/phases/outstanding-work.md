@@ -10,8 +10,9 @@ work. A checked-in feature is not proof of staging verification or acceptance.
 | Tenancy and memberships | Merged | Existing two-school tests | Pending | Extend for each new domain |
 | Guardian approval and invitations | Merged in PR #67; rollout disabled pending family transition | All PR CI checks passed | Pending | Verify real email onboarding and family transition |
 | Handles and modern sign-in | Pending | Pending | Pending | Continue remaining identity work |
-| Enrolment history and student numbers | Implemented on feature branch | Local date, tenant, legacy-login and deletion tests passed; CI pending | Pending | Review and merge; rehearse backfill on isolated staging |
-| School configuration and notifications | Pending | Pending | Pending | Connect registries, services and app contracts |
+| Enrolment history and student numbers | Merged in PR #68 | 731 backend tests and all 24 PR checks passed | Pending | Rehearse backfill on isolated staging; continue dated report consumers and staff allocation history |
+| School module controls | Implemented on feature branch | Focused backend and Flutter checks passed; full CI pending | Pending | Review and merge module controls |
+| Other school configuration and notifications | Pending | Pending | Pending | Build notification rules, profile fields and school documents |
 | SaaS onboarding, imports and privacy | Pending | Pending | Pending | Build platform tools and restricted support access |
 | Modern sign-in | Pending | Pending | Provider/device checks pending | Add passkeys, verified-domain OAuth and parent links |
 | Staging infrastructure and mail | Definitions exist | Dry-run evidence only | Blocked: credentials and cost feasibility | Inventory resources and credits; do not exceed US$10/month |

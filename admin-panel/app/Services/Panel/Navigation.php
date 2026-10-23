@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Services\Panel;
 
 use App\Models\User;
+use App\Services\Platform\Modules\ModuleGate;
 use Illuminate\Support\Facades\Route;
 
 /**
@@ -12,7 +13,7 @@ use Illuminate\Support\Facades\Route;
  *
  * Items appear only when their route exists and the person has one of the
  * item's permissions (and role, where one is named). Each item names the module
- * switch Phase 1 will check; until then every module counts as on. The sidebar,
+ * switch enforced by ModuleGate. The sidebar,
  * the global search's page results and page headers all read from here.
  */
 class Navigation
@@ -123,12 +124,11 @@ class Navigation
     }
 
     /**
-     * Phase 1 switches modules per school (config/modules.php, school_modules).
-     * Until then every module is on.
+     * School-specific module availability, also used by routes and app context.
      */
     public function moduleEnabled(?string $module): bool
     {
-        return true;
+        return $module === null || app(ModuleGate::class)->allows($module);
     }
 
     /** @param array<string, mixed> $item */

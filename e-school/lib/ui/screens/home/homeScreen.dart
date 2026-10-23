@@ -1,3 +1,4 @@
+import 'package:eschool_session/eschool_session.dart';
 import 'package:eschool_core/eschool_core.dart';
 import 'package:eschool/cubits/academicCalendarCubit.dart';
 import 'package:eschool/cubits/appConfigurationCubit.dart';
@@ -329,9 +330,8 @@ class HomeScreenState extends State<HomeScreen>
           decoration: BoxDecoration(
             boxShadow: [
               BoxShadow(
-                color: UiUtils.getColorScheme(
-                  context,
-                ).shadow.withValues(alpha: 0.15),
+                color: UiUtils.getColorScheme(context).shadow
+                    .withValues(alpha: 0.15),
                 offset: const Offset(2.5, 2.5),
                 blurRadius: 20,
               ),
@@ -349,24 +349,34 @@ class HomeScreenState extends State<HomeScreen>
                 builder: (context, boxConstraints) {
                   return Row(
                     mainAxisAlignment: MainAxisAlignment.spaceAround,
-                    children: _bottomNavItems.map((bottomNavItem) {
-                      final int index = _bottomNavItems.indexWhere(
-                        (e) => e.title == bottomNavItem.title,
-                      );
-                      return BottomNavItemContainer(
-                        onTap: changeBottomNavItem,
-                        boxConstraints: boxConstraints,
-                        currentIndex: _currentSelectedBottomNavIndex,
-                        bottomNavItem: _bottomNavItems[index],
-                        animationController:
-                            _bottomNavItemTitlesAnimationController[index],
-                        index: index,
-                        notificationCount:
-                            (index == 1 && state is ChatUsersFetchSuccess)
-                            ? state.totalUnreadUsers
-                            : null,
-                      );
-                    }).toList(),
+                    children: _bottomNavItems
+                        .where(
+                          (item) =>
+                              item.title != chatKey ||
+                              allowsSchoolModule(
+                                context.watch<MeContextCubit>().state.context,
+                                'chat',
+                              ),
+                        )
+                        .map((bottomNavItem) {
+                          final int index = _bottomNavItems.indexWhere(
+                            (e) => e.title == bottomNavItem.title,
+                          );
+                          return BottomNavItemContainer(
+                            onTap: changeBottomNavItem,
+                            boxConstraints: boxConstraints,
+                            currentIndex: _currentSelectedBottomNavIndex,
+                            bottomNavItem: _bottomNavItems[index],
+                            animationController:
+                                _bottomNavItemTitlesAnimationController[index],
+                            index: index,
+                            notificationCount:
+                                (index == 1 && state is ChatUsersFetchSuccess)
+                                ? state.totalUnreadUsers
+                                : null,
+                          );
+                        })
+                        .toList(),
                   );
                 },
               );
@@ -448,6 +458,12 @@ class HomeScreenState extends State<HomeScreen>
 
   @override
   Widget build(BuildContext context) {
+    final currentContext = context.watch<MeContextCubit>().state.context;
+    final chatOn = allowsSchoolModule(currentContext, 'chat');
+    if (!chatOn && _currentSelectedStackItemIndex == 1) {
+      _currentSelectedStackItemIndex = 0;
+      _currentSelectedBottomNavIndex = 0;
+    }
     return PopScope(
       canPop: canPopScreen(),
       onPopInvokedWithResult: (value, dynamic result) {
@@ -464,8 +480,11 @@ class HomeScreenState extends State<HomeScreen>
         body: context.read<AppConfigurationCubit>().appUnderMaintenance()
             ? const AppUnderMaintenanceContainer()
             : AdaptiveScaffold(
-                selectedIndex: _currentSelectedBottomNavIndex,
-                onDestinationSelected: changeBottomNavItem,
+                selectedIndex: _visibleNavIndices
+                    .indexOf(_currentSelectedBottomNavIndex)
+                    .clamp(0, _visibleNavIndices.length - 1),
+                onDestinationSelected: (index) =>
+                    changeBottomNavItem(_visibleNavIndices[index]),
                 destinations: _buildRailDestinations(),
                 body: Stack(
                   children: [
@@ -473,7 +492,10 @@ class HomeScreenState extends State<HomeScreen>
                       index: _currentSelectedStackItemIndex,
                       children: [
                         const HomeContainer(),
-                        const ChatUsersScreen(),
+                        ModuleAccessPage(
+                          module: 'chat',
+                          builder: (_) => const ChatUsersScreen(),
+                        ),
                         const AssignmentsContainer(),
                         _currentlyOpenMenuIndex != -1
                             ? _buildMenuItemContainer()
@@ -526,6 +548,17 @@ class HomeScreenState extends State<HomeScreen>
     );
   }
 
+  List<int> get _visibleNavIndices => [
+    0,
+    if (allowsSchoolModule(
+      context.read<MeContextCubit>().state.context,
+      'chat',
+    ))
+      1,
+    2,
+    3,
+  ];
+
   /// The bottom bar's items as a navigation rail, for tablets and desktops.
   List<AdaptiveDestination> _buildRailDestinations() {
     //phones draw the bottom bar, which follows the chat count itself
@@ -534,7 +567,7 @@ class HomeScreenState extends State<HomeScreen>
     }
     final chatState = context.watch<ChatUsersCubit>().state;
     return [
-      for (int index = 0; index < _bottomNavItems.length; index++)
+      for (final index in _visibleNavIndices)
         AdaptiveDestination(
           icon: SvgPicture.asset(_bottomNavItems[index].disableImageUrl),
           selectedIcon: SvgPicture.asset(_bottomNavItems[index].activeImageUrl),

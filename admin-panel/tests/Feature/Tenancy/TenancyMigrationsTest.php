@@ -32,6 +32,7 @@ class TenancyMigrationsTest extends TestCase
         '2026_10_23_100500_add_school_id_to_permission_tables',
         '2026_10_23_110000_create_guardian_approval_tables',
         '2026_10_23_120000_create_enrolment_history',
+        '2026_10_23_130000_create_school_modules',
     ];
 
     protected function setUp(): void

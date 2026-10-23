@@ -7,6 +7,7 @@ namespace App\Providers;
 use App\Models\Platform\Role;
 use App\Models\User;
 use App\Services\Platform\Identity\MembershipService;
+use App\Services\Platform\Modules\ModuleGate;
 use App\Services\Platform\Tenancy\CurrentSchool;
 use App\Services\Platform\Tenancy\SchoolAwarePresenceVerifier;
 use Illuminate\Cache\RateLimiting\Limit;
@@ -14,6 +15,7 @@ use Illuminate\Database\Events\MigrationsEnded;
 use Illuminate\Database\Events\MigrationsStarted;
 use Illuminate\Http\Request;
 use Illuminate\Log\Context\Repository as ContextRepository;
+use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\Facades\Context;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\RateLimiter;
@@ -41,6 +43,7 @@ class PlatformServiceProvider extends ServiceProvider
 
     public function boot(): void
     {
+        Blade::if('module', fn (string $key) => app(ModuleGate::class)->allows($key));
         // SNS posts bounce, complaint and delivery notices from many addresses;
         // a burst after a bulk send stays well under this.
         RateLimiter::for('mail-webhook', fn (Request $request) => Limit::perMinute(600)->by('mail-webhook:'.$request->ip()));

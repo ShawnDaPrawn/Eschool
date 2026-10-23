@@ -2,6 +2,13 @@ This page documents authorization in the admin panel and the REST API: the spati
 
 ## Setup
 
+School module settings add an availability check alongside permissions. School
+admins can toggle included features at `/school-modules`; other office staff
+need `setting-create`. Parent, learner and teacher roles cannot manage switches.
+Package entitlements are platform-owned, required features stay enabled, and
+disabled feature routes return 404. Retained fees become read-only (writes 403).
+See [module controls](https://github.com/ShawnDaPrawn/Eschool/blob/main/engineering/specs/platform/modules.md).
+
 - Package: `spatie/laravel-permission` `^6.0` (`composer.json`), provider registered in [`bootstrap/app.php`](https://github.com/ShawnDaPrawn/Eschool/blob/main/admin-panel/bootstrap/app.php).
 - Config: [`config/permission.php`](https://github.com/ShawnDaPrawn/Eschool/blob/main/admin-panel/config/permission.php) uses `App\Models\Platform\Role` and `App\Models\Platform\Permission` and the default table names (`roles`, `permissions`, `model_has_roles`, `model_has_permissions`, `role_has_permissions`). `teams` is `true` with `team_foreign_key` `school_id` (see [Teams and memberships](#teams-and-memberships)), `events_enabled` is `true` (memberships follow role grants), `enable_wildcard_permission` is `false`, and the permission cache key is `spatie.permission.cache` with a 24 hour expiry on the default cache store.
 - `App\Models\User` uses the `HasRoles` trait with `$guard_name = 'web'`. Every role and permission is on the `web` guard, and the same user model is used for Sanctum API tokens, so role checks behave the same in the panel and the API.
