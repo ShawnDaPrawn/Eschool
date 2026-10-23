@@ -28,13 +28,21 @@ gcloud sql backups list --instance=navigateed-mysql --project=navigateed-d8c06 -
 
 Only with the product owner's go-ahead. Everything written after the restore point is lost.
 
-1. Stop writes. Close the panel to the internet for the duration (users and apps get an error until step 4), pause the scheduler and stop the worker:
+1. Save the service configurations and traffic/tag state first. Stop writes for
+   the duration (users and apps get an error until step 4), pause the scheduler
+   and disable the panel and worker:
    ```bash
    P=navigateed-d8c06
-   gcloud run services update navigateed-admin --ingress=internal --region=africa-south1 --project=$P
    gcloud scheduler jobs pause navigateed-scheduler-every-minute --location=africa-south1 --project=$P
-   gcloud run services update navigateed-worker --min-instances=0 --region=africa-south1 --project=$P
+   gcloud run services update-traffic navigateed-admin --clear-tags --region=africa-south1 --project=$P
+   gcloud run services update-traffic navigateed-worker --clear-tags --region=africa-south1 --project=$P
+   gcloud run services update navigateed-admin --scaling=0 --region=africa-south1 --project=$P
+   gcloud run services update navigateed-worker --scaling=0 --region=africa-south1 --project=$P
    ```
+   Cancel running scheduler-job executions and wait for in-flight work and SQL
+   sessions to finish. A minimum instance count of zero does not stop a worker.
+   Tagged revisions can remain active under manual zero scaling, so clear their
+   tags as shown and verify no instances or database consumers remain.
 2. Take an on-demand backup of the current (bad) state, so nothing is lost for good:
    `gcloud sql backups create --instance=navigateed-mysql --project=navigateed-d8c06 --description="Before restore"`
 3. Restore, either a backup:
@@ -46,7 +54,10 @@ Only with the product owner's go-ahead. Everything written after the restore poi
    gcloud sql instances clone navigateed-mysql navigateed-mysql-restored --point-in-time='2026-11-02T08:15:00Z' --project=navigateed-d8c06
    ```
    then point the services at it (`SQL_INSTANCE` in `infra/gcp/env/production.env`, re-run `provision.sh`).
-4. Bring everything back: `gcloud run services update navigateed-admin --ingress=all --region=africa-south1 --project=$P`, the worker's minimum instances (re-run `provision.sh`, or `--min-instances=1`), and `gcloud scheduler jobs resume navigateed-scheduler-every-minute --location=africa-south1 --project=$P`.
+4. Restore the recorded service configurations, including scaling mode and
+   traffic/tag assignments. For the configured automatic mode use `--scaling=auto`
+   on both services; restoring only `--min-instances` leaves manual zero scaling
+   in place. Verify the panel and worker, then resume the scheduler trigger.
 5. Smoke test, then tell the schools what period of data was lost.
 
 ## Restore an uploaded file
@@ -60,72 +71,172 @@ A deleted object without versioning can be restored for 7 days: `gcloud storage 
 
 ## Restore production into staging (the drill, and migration rehearsals)
 
-This copies real learners' and parents' data into staging. While it is there, staging is treated like production: only the people who may access production use it, and it must not be able to e-mail, push to or charge real people. Put staging back afterwards.
+This temporarily copies production personal data. Only operators already
+permitted to read production may access the destination. Keep automatic staging
+deployments paused throughout the window, including rollback: a new deployment
+must not restart a consumer on the copied data. Never copy production secrets,
+uploads or `.env` files into staging.
 
-1. **Stop staging's background work and take its own backup**, so it can be put back:
-   ```bash
-   S=navigateed-staging
-   gcloud scheduler jobs pause navigateed-scheduler-every-minute --location=africa-south1 --project=$S
-   gcloud run services update navigateed-worker --min-instances=0 --region=africa-south1 --project=$S
-   gcloud sql backups create --instance=navigateed-mysql --project=$S --description="Before restore drill"
-   ```
-2. **Pick yesterday's production backup** (the latest successful automated one):
-   ```bash
-   gcloud sql backups list --instance=navigateed-mysql --project=navigateed-d8c06 \
-     --filter="type=AUTOMATED AND status=SUCCESSFUL" --limit=2 --format='table(id,windowStartTime)'
-   ```
-   Staging's disk must be at least as large as production's; if not, `gcloud sql instances patch navigateed-mysql --storage-size=<GB> --project=$S` first.
-3. **Restore it into staging's instance** (replaces every database and user on staging's instance):
-   ```bash
-   gcloud sql backups restore <BACKUP_ID> --restore-instance=navigateed-mysql \
-     --backup-instance=navigateed-mysql --backup-project=navigateed-d8c06 --project=$S
-   ```
-4. **Give staging's database user its staging password back** (the restore brought production's users):
-   ```bash
-   gcloud sql users set-password <DB_USER> --host=% --instance=navigateed-mysql --project=$S \
-     --password="$(gcloud secrets versions access latest --secret=navigateed-db-password --project=$S)"
-   ```
-   If production uses a different database user name from staging, create staging's user instead (`gcloud sql users create`).
-5. **Cut staging off from real people.** In Cloud SQL Studio (Cloud Console > SQL > `navigateed-mysql` in `navigateed-staging` > Cloud SQL Studio, database `navigateed`), run:
-   ```sql
-   UPDATE settings SET message = 'log' WHERE type = 'mail_mailer';
-   UPDATE settings SET message = '' WHERE type IN (
-     'mail_host', 'mail_username', 'mail_password', 'project_id', 'sender_id', 'service_account_file',
-     'stripe_secret_key', 'stripe_publishable_key', 'stripe_webhook_secret',
-     'razorpay_api_key', 'razorpay_secret_key', 'razorpay_webhook_secret',
-     'paystack_public_key', 'paystack_secret_key',
-     'flutterwave_public_key', 'flutterwave_secret_key', 'flutterwave_hash_key', 'recaptcha_secret_key');
-   UPDATE settings SET message = '0' WHERE type IN ('online_payment', 'stripe_status', 'razorpay_status', 'paystack_status', 'flutterwave_status');
-   UPDATE users SET fcm_id = NULL;
-   DELETE FROM personal_access_tokens;
-   DELETE FROM sessions;
-   ```
-   (After work stream S6 moves these keys into Secret Manager, the staging project's secrets are already staging's own and the `settings` lines that no longer exist simply change nothing.)
-6. **Let staging's admin sign in without production's password.** Point the entrypoint's admin provisioning at production's admin account and let it set staging's admin password on it:
-   ```bash
-   gcloud run services update navigateed-admin --update-env-vars=ADMIN_EMAIL=<production admin e-mail> --region=africa-south1 --project=$S
-   gcloud storage rm gs://navigateed-staging-admin/.admin-provisioned
-   ```
-   The update starts a new revision; its entrypoint finds the account, sets the password from staging's `navigateed-admin-password` secret and writes the marker again.
-7. **Check**: open the staging panel, sign in with that e-mail and `gcloud secrets versions access latest --secret=navigateed-admin-password --project=$S`, open Home and a learner's page, and note the counts look like production's. Run `infra/deploy/smoke.sh <staging panel>`. Uploaded files are not copied, so photos and documents show as missing; that is expected.
+The additional staging/email ceiling is **US$10/month**, excluding the existing
+production bill. Inventory current resources and remaining spend before the
+window. Include temporary disk increases, backups, network and instance time in
+the estimate. Do not create resources, enlarge disks or resume an always-on
+worker without a verified plan within that ceiling. If there is no feasible
+isolated destination, record the drill as pending and continue independent
+implementation and tests. Do not reduce isolation to fit the price.
 
-### Afterwards: put staging back
+### 1. Quarantine staging before copying any production data
+
+Save the current service configuration, image, scaling mode, ingress, IAM,
+traffic/tag assignments and deployment/scheduler state in a private operator
+workspace outside the repository. Use `umask 077`; exports can contain sensitive
+environment values. Record how to restore them before changing anything.
+
+Pause the staging deployment workflow and any other automatic deployers. Pause
+the trigger, remove revision tags and disable both database-connected services:
 
 ```bash
-gcloud sql backups list --instance=navigateed-mysql --project=$S --filter="description='Before restore drill'" --limit=1
-gcloud sql backups restore <THAT_BACKUP_ID> --restore-instance=navigateed-mysql --project=$S
-gcloud run services update navigateed-admin --update-env-vars=ADMIN_EMAIL=<staging ADMIN_EMAIL from env/staging.env> --region=africa-south1 --project=$S
-gcloud run services update navigateed-worker --min-instances=1 --region=africa-south1 --project=$S
-gcloud scheduler jobs resume navigateed-scheduler-every-minute --location=africa-south1 --project=$S
+S=navigateed-staging
+gcloud scheduler jobs pause navigateed-scheduler-every-minute --location=africa-south1 --project=$S
+gcloud run services update-traffic navigateed-admin --clear-tags --region=africa-south1 --project=$S
+gcloud run services update-traffic navigateed-worker --clear-tags --region=africa-south1 --project=$S
+gcloud run services update navigateed-admin --scaling=0 --region=africa-south1 --project=$S
+gcloud run services update navigateed-worker --scaling=0 --region=africa-south1 --project=$S
+gcloud run jobs executions list --job=navigateed-scheduler --region=africa-south1 --project=$S
 ```
 
-Then confirm the staging panel signs in with staging's own admin and the smoke test passes. Delete the on-demand backups that hold production data only when the product owner agrees they are no longer needed.
+Cancel each running scheduler execution with `gcloud run jobs executions cancel
+<EXECUTION> --region=africa-south1 --project=$S`, then verify it has stopped. Check
+for other consumers from the inventory, including manual jobs and tagged
+revisions. Confirm zero active application/worker instances and no application
+SQL sessions before continuing. Restrict destination access to authorised
+operators for the whole window.
+
+`--min-instances=0` is a lower bound, not a stop. Cloud Run manual zero scaling
+disables the service, but tagged revisions can remain accessible independently;
+clear tags and verify the actual state. See [Google's service-disable guidance](https://docs.cloud.google.com/run/docs/configuring/services/manual-scaling#disable-service).
+Do not start a replacement worker, scheduler or web revision until sanitisation
+is complete. Keep the scheduler and worker disabled during the inspection too.
+
+### 2. Back up staging, then choose and restore the production backup
+
+Confirm the target project is `navigateed-staging` and differs from the source
+`navigateed-d8c06`. Confirm the captured configurations, paused deployments,
+stopped executions and zero consumers. These checks protect this data-copy
+operation; they do not block other development.
+
+```bash
+gcloud sql backups create --instance=navigateed-mysql --project=$S --description="Before restore drill"
+gcloud sql backups list --instance=navigateed-mysql --project=navigateed-d8c06 \
+  --filter="type=AUTOMATED AND status=SUCCESSFUL" --limit=2 --format='table(id,windowStartTime)'
+```
+
+Record the staging backup id and yesterday's successful production backup id.
+The destination must have enough capacity; a resize needs its own cost check
+against the same US$10 ceiling. Leave the drill pending if it cannot fit.
+
+Only after the quarantine evidence exists, restore into the staging instance:
+
+```bash
+gcloud sql backups restore <PRODUCTION_BACKUP_ID> --restore-instance=navigateed-mysql \
+  --backup-instance=navigateed-mysql --backup-project=navigateed-d8c06 --project=$S
+```
+
+This replaces staging's databases and users. Restore the staging database user's
+staging credential through the secure operator procedure or Cloud SQL console;
+do not print secrets, place their values in command history or use production's
+application credential. The services remain disabled.
+
+### 3. Sanitise delivery and credentials while all consumers remain stopped
+
+Use an operator connection to the staging database. Check the schema first:
+Phase 0 and Phase 1 versions may differ. Remove operational delivery intent from
+the copy before starting application code. Retain the source backup unchanged.
+
+```sql
+UPDATE settings SET message = 'array' WHERE type = 'mail_mailer';
+UPDATE settings SET message = '' WHERE type IN (
+  'mail_host', 'mail_username', 'mail_password', 'project_id', 'sender_id', 'service_account_file',
+  'stripe_secret_key', 'stripe_publishable_key', 'stripe_webhook_secret',
+  'razorpay_api_key', 'razorpay_secret_key', 'razorpay_webhook_secret',
+  'paystack_public_key', 'paystack_secret_key',
+  'flutterwave_public_key', 'flutterwave_secret_key', 'flutterwave_hash_key', 'recaptcha_secret_key');
+UPDATE settings SET message = '0' WHERE type IN
+  ('online_payment', 'stripe_status', 'razorpay_status', 'paystack_status', 'flutterwave_status');
+UPDATE users SET fcm_id = NULL, remember_token = NULL;
+DELETE FROM jobs;
+DELETE FROM failed_jobs;
+DELETE FROM job_batches;
+DELETE FROM domain_events WHERE dispatched_at IS NULL;
+DELETE FROM personal_access_tokens;
+DELETE FROM sessions;
+DELETE FROM password_resets;
+DELETE FROM password_reset_tokens;
+UPDATE learner_invitations SET revoked_at = CURRENT_TIMESTAMP
+  WHERE used_at IS NULL AND revoked_at IS NULL;
+UPDATE guardian_invitations SET used_at = CURRENT_TIMESTAMP WHERE used_at IS NULL;
+```
+
+Apply the invitation-table statements only when those tables exist in the
+restored version. Both password-reset tables exist in the current schema; check
+older versions rather than skipping failed statements. Confirm each statement
+succeeded and no pending queue/outbox work remains. Do not run a worker to drain
+copied production jobs: they contain production recipients and authority.
+
+The `array` mailer discards messages in memory. The `log` mailer writes private
+message bodies and invitation links into logs and is unsuitable for this copy.
+Verify environment/Secret Manager overrides too: staging must have no production
+SES, FCM, payment or OAuth credentials. Disable external provider access for the
+inspection. A cleaned settings row alone cannot neutralise an environment secret.
+No production uploads are copied; missing photos/documents are expected.
+
+### 4. Inspect with only the private web service enabled
+
+Prepare the private web configuration from the captured image/configuration.
+Keep ingress restricted to authorised operators, keep revision tags removed,
+force `MAIL_MAILER=array`, and remove provider credential mounts for this window.
+Use staging's app key, database password and admin password. Clear cached
+configuration by starting a fresh revision after sanitisation. Do not restore
+normal public ingress or the original full configuration yet.
+
+For the copy only, set `ADMIN_EMAIL` to the authorised production admin account
+being inspected and remove staging's `.admin-provisioned` marker. The entrypoint
+then sets staging's admin password on that copied account. This does not change
+the production account. Keep the password in Secret Manager; do not paste it into
+logs or the drill record.
+
+Enable only that prepared web service with `--scaling=1`. Leave the worker at
+manual zero, scheduler trigger paused and deployments disabled. Verify the
+mailer/credentials and access restrictions before opening the panel. Sign in,
+open Home and a learner page, compare counts and rehearse migrations. Record
+results without personal information. Worker smoke/observation is a separate
+check on demo data; it is intentionally not part of this copied-data inspection.
+
+### 5. Put staging back before normal services resume
+
+Disable the inspection web service with `--scaling=0`, wait for its instances
+and SQL sessions to stop, and leave the worker/scheduler disabled. Restore the
+recorded **staging** backup into the **staging** instance. Verify its database
+credential and demo data before restoring the captured service configurations,
+scaling mode, ingress and traffic/tag assignments. Manual zero scaling must be
+cleared explicitly (`--scaling=auto` for the configured automatic mode).
+
+Check staging's own admin sign-in and smoke test on the restored demo data, then
+resume its trigger and deployments. Resume the worker only if its ongoing cost
+fits the remaining monthly ceiling. If any step fails, leave the destination
+quarantined and record the next action; do not reopen services on the copied data.
+
+Record the copied-data window and cleanup of temporary credentials/logs and
+recovery artifacts. Dispose of staging copies holding production data according
+to the agreed drill cleanup/retention authorisation; preserve the production
+source backup and its retention policy. No production data is deleted by these
+staging instructions.
 
 ## Drill record
 
 | Date | Production backup id (taken) | Restored into | Panel signed in | Time taken | Run by | Notes |
 | --- | --- | --- | --- | --- | --- | --- |
-| Not yet run | | | | | | Needs staging (environments.md steps 1 to 5) |
+| Not yet run | | | | | | Needs credentials, a feasible US$10 plan, pre-copy quarantine evidence and staging |
 
 ## See also
 

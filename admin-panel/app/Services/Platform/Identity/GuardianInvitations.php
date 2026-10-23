@@ -9,6 +9,7 @@ use App\Mail\Platform\GuardianInvitationMail;
 use App\Models\Platform\GuardianInvitation;
 use App\Models\Platform\GuardianLink;
 use App\Models\Platform\School;
+use App\Models\Platform\SchoolMembership;
 use App\Models\Students;
 use App\Models\User;
 use App\Services\MailService;
@@ -34,6 +35,7 @@ class GuardianInvitations
             $invitation = GuardianInvitation::query()->create([
                 'guardian_user_id' => $guardian->id, 'created_by' => $actor->id,
                 'token_hash' => hash('sha256', $token), 'encrypted_token' => $token,
+                'email_hash' => hash('sha256', strtolower(trim($guardian->email))),
                 'expires_at' => now()->addDays((int) config('identity.invitation_days', 7)),
             ]);
             // afterCommit avoids sending a link whose creation rolled back.
@@ -50,7 +52,9 @@ class GuardianInvitations
         return app(CurrentSchool::class)->run((int) $invitation->school_id, function () use ($invitation, $request) {
             $school = School::query()->active()->findOrFail($invitation->school_id);
             $guardian = User::query()->where('status', 1)->findOrFail($invitation->guardian_user_id);
+            abort_unless($this->boundTo($invitation, $guardian), 404);
             $ids = GuardianLink::query()->where('guardian_user_id', $guardian->id)->where('status', 'active')->pluck('learner_id');
+            abort_if($ids->isEmpty(), 404);
             $learners = Students::query()->with('user')->whereIn('id', $ids)->get();
 
             return [
@@ -71,6 +75,7 @@ class GuardianInvitations
             return app(CurrentSchool::class)->run((int) $invitation->school_id, function () use ($invitation, $password, $request) {
                 School::query()->active()->findOrFail($invitation->school_id);
                 $guardian = User::query()->where('status', 1)->lockForUpdate()->findOrFail($invitation->guardian_user_id);
+                abort_unless($this->boundTo($invitation, $guardian), 404);
                 abort_unless(GuardianLink::query()->where('guardian_user_id', $guardian->id)->where('status', 'active')->exists(), 404);
                 if ($guardian->email_verified_at === null && $password === null) {
                     throw ValidationException::withMessages(['password' => 'Choose a password to accept your invitation.']);
@@ -109,8 +114,7 @@ class GuardianInvitations
             // A concurrent scheduler claims the reminder only once.
             $claimed = GuardianInvitation::query()->whereKey($invitation->id)->whereNull($field)->update([$field => now()]);
             if ($claimed) {
-                $this->send($invitation);
-                $sent++;
+                $sent += (int) $this->send($invitation);
             }
         });
 
@@ -127,13 +131,35 @@ class GuardianInvitations
             ->when($lock, fn ($query) => $query->lockForUpdate())->firstOrFail();
     }
 
-    private function send(GuardianInvitation $invitation): void
+    private function send(GuardianInvitation $invitation): bool
     {
-        app(CurrentSchool::class)->run((int) $invitation->school_id, function () use ($invitation) {
+        return app(CurrentSchool::class)->run((int) $invitation->school_id, function () use ($invitation) {
+            if (! $this->canDeliver($invitation)) {
+                return false;
+            }
             $guardian = User::query()->findOrFail($invitation->guardian_user_id);
             $school = School::query()->findOrFail($invitation->school_id);
             $portal = rtrim((string) config('identity.portal_url'), '/');
-            MailService::queue(new GuardianInvitationMail($guardian->email, $portal.'/invite/'.$invitation->encrypted_token, $school->name), (int) $guardian->id);
+
+            return MailService::queue(new GuardianInvitationMail($guardian->email, $portal.'/invite/'.$invitation->encrypted_token, $school->name, (int) $invitation->id), (int) $guardian->id);
         });
+    }
+
+    public function canDeliver(GuardianInvitation $invitation): bool
+    {
+        return app(CurrentSchool::class)->run((int) $invitation->school_id, function () use ($invitation) {
+            $current = GuardianInvitation::query()->whereNull('used_at')->where('expires_at', '>', now())->find($invitation->id);
+            $guardian = User::query()->where('status', 1)->find($invitation->guardian_user_id);
+
+            return $current !== null && $guardian !== null && School::query()->active()->whereKey($invitation->school_id)->exists()
+                && $this->boundTo($current, $guardian)
+                && GuardianLink::query()->where('guardian_user_id', $guardian->id)->where('status', 'active')->exists();
+        });
+    }
+
+    private function boundTo(GuardianInvitation $invitation, User $guardian): bool
+    {
+        return is_string($invitation->email_hash) && hash_equals($invitation->email_hash, hash('sha256', strtolower(trim($guardian->email))))
+            && SchoolMembership::query()->active()->where('school_id', $invitation->school_id)->where('user_id', $guardian->id)->where('role', 'Parent')->exists();
     }
 }

@@ -408,3 +408,12 @@ Code outside `config/` reads configuration through `config()`, secrets through `
 - [Testing-and-CI](Testing-and-CI)
 - [Release-History](Release-History)
 - [Contributing](Contributing)
+
+## Invitation lifecycle binding
+
+Emailed guardian and learner-setup invitations carry a hidden hash of their
+issued mailbox. Preview, acceptance, reminders and queued mail recheck that
+address and current school/membership/relationship authority. Editing an email
+clears verification and retires links. Old unbound links require replacement;
+rollback does not reactivate them. Printed one-time codes remain separate.
+See the [specification](https://github.com/ShawnDaPrawn/Eschool/blob/main/engineering/specs/platform/invitation-lifecycle.md).

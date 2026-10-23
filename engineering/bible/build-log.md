@@ -92,3 +92,10 @@ branch: per-portal school settings, shared app choices, durable recipient
 fanout, encrypted jobs, delivery-time access checks and guardian handle
 requests. Local and CI verification is recorded with that feature; real mail,
 push, phone and owner acceptance remain separate staging work.
+
+PR #71 merged notification settings and durable delivery after all 25 checks
+passed. A Phase 0 restore procedure review corrects quarantine ordering, worker
+stop semantics, queued intent cleanup and cost boundaries. Shell examples parse
+and the sanitisation SQL passed nine assertions on a separate local MariaDB
+transaction, preserving people and academic rows. No cloud restore or acceptance
+is claimed; credentials and a feasible capped staging plan are still required.

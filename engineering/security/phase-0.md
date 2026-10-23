@@ -67,3 +67,20 @@ A further search of every commit's changes for private keys, service-account JSO
 
 - [threat-model.md](threat-model.md)
 - [Spec: environments and operations](../specs/platform/environments.md)
+
+## Restore procedure review — 23 October 2026
+
+The old drill cut off outbound delivery after copying production data and used
+`--min-instances=0` as if it stopped a worker. The corrected procedure requires
+pre-copy quarantine: paused deployments/triggers, no running scheduler jobs,
+removed revision tags, manual zero scaling on both services, and verification
+that no instances or SQL consumers remain. Google documents manual zero scaling
+and the independent tagged-revision exception. Restoration only resumes on demo
+data after the copied-data inspection. The additional US$10/month cap applies
+to disk changes and recovery artifacts as well as ongoing staging/mail.
+
+Sanitisation clears queued/failed jobs, pending outbox intent, device/session
+credentials and invitation authority before a private web-only inspection. The
+array mailer discards bodies; the log mailer could expose them. Environment secret
+overrides need independent checking. The cloud drill remains unrun: this is a
+procedure correction, not evidence of runtime isolation or successful recovery.
