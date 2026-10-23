@@ -24,5 +24,5 @@ Evidence collected locally:
 This proves syntax and local sanitisation behaviour. It does not prove Cloud Run
 shutdown, access restrictions, cloud backup restoration, provider isolation,
 worker observation, cost feasibility or owner acceptance. Those remain pending
-cloud credentials and an approved operation within the existing spend ceiling.
+cloud credentials and verified isolation and costs within the existing spend ceiling.
 Development and unrelated safe merges continue meanwhile.

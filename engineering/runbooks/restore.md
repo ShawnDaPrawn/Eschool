@@ -28,7 +28,9 @@ gcloud sql backups list --instance=navigateed-mysql --project=navigateed-d8c06 -
 
 Only with the product owner's go-ahead. Everything written after the restore point is lost.
 
-1. Stop writes. Close the panel to the internet for the duration (users and apps get an error until step 4), pause the scheduler and stop the worker:
+1. Save the service configurations and traffic/tag state first. Stop writes for
+   the duration (users and apps get an error until step 4), pause the scheduler
+   and disable the panel and worker:
    ```bash
    P=navigateed-d8c06
    gcloud scheduler jobs pause navigateed-scheduler-every-minute --location=africa-south1 --project=$P
@@ -37,7 +39,6 @@ Only with the product owner's go-ahead. Everything written after the restore poi
    gcloud run services update navigateed-admin --scaling=0 --region=africa-south1 --project=$P
    gcloud run services update navigateed-worker --scaling=0 --region=africa-south1 --project=$P
    ```
-   Save the service configurations and traffic/tag state before changing them.
    Cancel running scheduler-job executions and wait for in-flight work and SQL
    sessions to finish. A minimum instance count of zero does not stop a worker.
    Tagged revisions can remain active under manual zero scaling, so clear their
