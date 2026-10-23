@@ -8,7 +8,7 @@ version: 3.5.0+39
 
 
 environment:
-  sdk: ">=3.8.0 <4.0.0"
+  sdk: ">=3.13.0 <4.0.0"
 
 
 dependencies:
@@ -31,9 +31,9 @@ dependencies:
   cupertino_icons: ^1.0.9
   flutter_bloc: ^9.1.1
   flutter_svg: ^2.2.4
-  google_fonts: ^8.1.0
+  google_fonts: ^9.0.0
   dotted_border: ^3.1.0
-  table_calendar: ^3.2.0
+  table_calendar: ^3.3.0
   dio: ^5.9.2
   lottie: ^3.3.3
   hive: ^2.2.3
@@ -44,18 +44,18 @@ dependencies:
   path_provider: ^2.1.5
   url_launcher: ^6.3.2
   video_player: ^2.11.1
-  file_picker: 12.0.0-beta.7
+  file_picker: 13.1.0
   permission_handler: ^12.0.1
   timeago: ^3.7.1
   firebase_messaging: ^16.2.0
   firebase_core: ^4.7.0
-  awesome_notifications: ^0.11.0
+  awesome_notifications: ^0.12.1
   carousel_slider: ^5.1.2
   flutter_html: ^3.0.0
   package_info_plus: ^10.1.0
-  flutter_stripe: ^12.6.0
-  flutter_tex: 4.0.9
-  wakelock_plus: ^1.5.2
+  flutter_stripe: ^14.2.0
+  flutter_tex: 5.3.0
+  wakelock_plus: ^1.8.1
   external_path: ^3.0.0
   flutter_animate: ^4.5.2
   shared_preferences: ^2.5.5
@@ -72,7 +72,7 @@ dependencies:
   fl_chart: ^1.2.0
 
 dependency_overrides:
-  webview_flutter_plus: 0.4.7
+  webview_flutter_plus: 0.4.20
 
 
 dev_dependencies:

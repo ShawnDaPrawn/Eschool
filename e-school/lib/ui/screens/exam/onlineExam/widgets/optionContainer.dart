@@ -14,6 +14,7 @@ class OptionContainer extends StatefulWidget {
     required this.submitAnswer,
     required this.submittedAnswerId,
     required this.totalAnswers,
+    this.onMathRendered,
     super.key,
   });
   final Function submitAnswer;
@@ -22,6 +23,7 @@ class OptionContainer extends StatefulWidget {
   String submittedAnswerId;
   final int totalAnswers;
   final int quizType;
+  final ValueChanged<double>? onMathRendered;
 
   @override
   State<OptionContainer> createState() => _OptionContainerState();
@@ -157,6 +159,7 @@ class _OptionContainerState extends State<OptionContainer>
                 alignment: AlignmentDirectional.centerStart,
                 child: widget.quizType == 1
                     ? TeXView(
+                        onRenderFinished: widget.onMathRendered,
                         child: TeXViewInkWell(
                           rippleEffect: false,
                           onTap: (_) {
@@ -172,7 +175,6 @@ class _OptionContainerState extends State<OptionContainer>
                           textAlign: TeXViewTextAlign.left,
                           fontStyle: TeXViewFontStyle(fontSize: 16),
                         ),
-                        renderingEngine: const TeXViewRenderingEngine.katex(),
                       )
                     : Container(
                         padding: EdgeInsets.symmetric(

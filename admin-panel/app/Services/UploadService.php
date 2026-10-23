@@ -10,6 +10,7 @@ use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Intervention\Image\Drivers\Gd\Driver;
+use Intervention\Image\Format;
 use Intervention\Image\ImageManager;
 
 /**
@@ -33,8 +34,8 @@ class UploadService
 
         if (in_array($extension, self::COMPRESSED, true)) {
             $file_name = self::randomName('jpg');
-            $image = (new ImageManager(new Driver))->read($requestFile);
-            Storage::disk('public')->put($folder.'/'.$file_name, (string) $image->toJpeg(60));
+            $image = (new ImageManager(new Driver))->decodeSplFileInfo($requestFile);
+            Storage::disk('public')->put($folder.'/'.$file_name, (string) $image->encodeUsingFormat(Format::JPEG, quality: 60));
         } else {
             $file_name = self::randomName($extension);
             $requestFile->storeAs($folder, $file_name, 'public');

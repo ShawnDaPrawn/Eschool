@@ -8,7 +8,7 @@ This page gets every part of the project running on a development machine. Start
 | Composer | 2.x | Admin panel |
 | MySQL or MariaDB | MariaDB 10.11 is what CI tests against | Admin panel |
 | Node.js | 22 (CI version) | Docs site, and the panel's optional Vite build |
-| Flutter | 3.44.9 stable (CI version). Dart SDK `>=3.8.0 <4.0.0` | Mobile apps |
+| Flutter | 3.47.7 stable (CI version). Dart SDK `>=3.13.0 <4.0.0` | Mobile apps |
 | Android Studio / Xcode | Current | Mobile app builds |
 | A Firebase project | | Push notifications and Crashlytics. The apps will not build without it |
 | Docker with the Compose plugin | Current | Optional: the whole panel stack in containers ([Option C](#option-c-docker-compose-the-cloud-run-setup-on-your-machine)) |

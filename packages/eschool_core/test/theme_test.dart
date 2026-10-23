@@ -9,6 +9,32 @@ void main() {
     expect(theme.useMaterial3, isTrue);
   });
 
+  test(
+    'a font adapter preserves the Material type scale in both text themes',
+    () {
+      final branded = AppTheme.light(
+        font: (textTheme) => AppTheme.applyFont(
+          textTheme,
+          ({textStyle}) => textStyle!.copyWith(fontFamily: 'TestFamily'),
+        ),
+      );
+      for (final pair in [
+        (theme.textTheme.displayLarge!, branded.textTheme.displayLarge!),
+        (theme.textTheme.bodyMedium!, branded.textTheme.bodyMedium!),
+        (theme.textTheme.labelSmall!, branded.textTheme.labelSmall!),
+        (
+          theme.primaryTextTheme.titleLarge!,
+          branded.primaryTextTheme.titleLarge!,
+        ),
+      ]) {
+        expect(pair.$2.fontFamily, 'TestFamily');
+        expect(pair.$2.fontSize, pair.$1.fontSize);
+        expect(pair.$2.fontWeight, pair.$1.fontWeight);
+        expect(pair.$2.color, pair.$1.color);
+      }
+    },
+  );
+
   test('uses the design system colours exactly', () {
     expect(scheme.primary, BrandColors.primary);
     expect(scheme.tertiaryContainer, BrandColors.accent);

@@ -30,6 +30,10 @@
           ]
         },
         {
+          "source": "/assets/packages/flutter_tex/**",
+          "headers": [{ "key": "X-Frame-Options", "value": "SAMEORIGIN" }]
+        },
+        {
           "source": "/.well-known/apple-app-site-association",
           "headers": [{ "key": "Content-Type", "value": "application/json" }]
         }

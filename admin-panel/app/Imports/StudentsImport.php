@@ -119,7 +119,7 @@ class StudentsImport extends DefaultValueBinder implements SkipsEmptyRows, ToCol
         ];
     }
 
-    public function collection(Collection $rows)
+    public function collection(Collection $rows): void
     {
         $rows = $rows->map(function ($row) {
             $date_columns = ['dob', 'father_dob', 'mother_dob', 'guardian_dob', 'admission_date'];

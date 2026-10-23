@@ -286,7 +286,7 @@ Each component's file starts with a comment showing how to use it. The common ru
 
 ## Screenshot tests
 
-`packages/eschool_core/test/goldens/components_test.dart` draws the colour scheme, the status colours, the Material components and the shared widgets, and compares the picture with `components.png` pixel for pixel. Text is drawn in Flutter's test font (blocks) and shadows as solid outlines, so the picture checks colour, shape and size rather than typography. CI runs it on Linux with Flutter 3.44.9. Regenerate the image on the same setup, or the comparison fails on font rendering differences.
+`packages/eschool_core/test/goldens/components_test.dart` draws the colour scheme, the status colours, the Material components and the shared widgets, and compares the picture with `components.png` pixel for pixel. Text is drawn in Flutter's test font (blocks) and shadows as solid outlines, so the picture checks colour, shape and size rather than typography. CI runs it on Linux with Flutter 3.47.7. Regenerate the image on the same setup, or the comparison fails on font rendering differences.
 
 ## See also
 

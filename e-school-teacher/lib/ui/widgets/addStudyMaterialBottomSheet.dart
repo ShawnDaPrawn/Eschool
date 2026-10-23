@@ -193,9 +193,9 @@ class _AddStudyMaterialBottomsheetState
                             }
                           },
                           textStyle: TextStyle(
-                            color: Theme.of(
-                              context,
-                            ).colorScheme.onSurfaceVariant,
+                            color: Theme.of(context)
+                                .colorScheme
+                                .onSurfaceVariant,
                             fontSize: UiUtils.textFieldFontSize,
                           ),
                           borderRadius: 10,
@@ -256,7 +256,7 @@ class _AddStudyMaterialBottomsheetState
                                 return;
                               }
                               try {
-                                final pickedFile = await FilePicker.pickFiles(
+                                final pickedFile = await FilePicker.pickFile(
                                   type:
                                       currentSelectedStudyMaterialType.title ==
                                           UiUtils.getTranslatedLabel(
@@ -277,10 +277,9 @@ class _AddStudyMaterialBottomsheetState
                                             context,
                                             fileUploadKey,
                                           )) {
-                                    addedFile = pickedFile.files.first;
+                                    addedFile = pickedFile;
                                   } else {
-                                    addedVideoThumbnailFile =
-                                        pickedFile.files.first;
+                                    addedVideoThumbnailFile = pickedFile;
                                   }
 
                                   setState(() {});
@@ -340,12 +339,12 @@ class _AddStudyMaterialBottomsheetState
                                     }
                                     try {
                                       final pickedFile =
-                                          await FilePicker.pickFiles(
+                                          await FilePicker.pickFile(
                                             type: FileType.video,
                                           );
 
                                       if (pickedFile != null) {
-                                        addedVideoFile = pickedFile.files.first;
+                                        addedVideoFile = pickedFile;
                                         setState(() {});
                                       }
                                     } on Exception {

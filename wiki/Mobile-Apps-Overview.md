@@ -9,7 +9,7 @@ This page describes the architecture the two Flutter apps share: the student/par
 | `version` | `3.5.0+39` | `3.5.0+32` |
 | Dart SDK constraint (`environment.sdk`) | `>=3.8.0 <4.0.0` | `>=3.8.0 <4.0.0` |
 | SDK floor recorded in `pubspec.lock` | `dart: >=3.12.0 <4.0.0`, `flutter: >=3.44.0` | same |
-| Flutter used by CI | 3.44.9 (stable) | 3.44.9 (stable) |
+| Flutter used by CI | 3.47.7 (stable) | 3.47.7 (stable) |
 | Entry point | `lib/main.dart` → `initializeApp()` in `lib/app/app.dart` | same |
 | Android `applicationId` | `tech.tokensoft.navigateed` | `tech.tokensoft.navigateed.teacher` |
 | iOS bundle id | `tech.tokensoft.navigateed` | `tech.tokensoft.navigateed.teacher` |

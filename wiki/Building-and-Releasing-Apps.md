@@ -4,7 +4,7 @@ This page explains how to run, check and build the two Flutter apps (`e-school/`
 
 | Item | Value | Source |
 |---|---|---|
-| Flutter | 3.44.9, stable channel | `.github/workflows/ci.yml` (`subosito/flutter-action@v2`) |
+| Flutter | 3.47.7, stable channel | `.github/workflows/ci.yml` (`subosito/flutter-action@v2`) |
 | Minimum Flutter / Dart from the lockfile | `flutter: >=3.44.0`, `dart: >=3.12.0 <4.0.0` | `pubspec.lock` `sdks:` |
 | Dart constraint in `pubspec.yaml` | `>=3.8.0 <4.0.0` | `environment.sdk` |
 | Android Gradle Plugin | `com.android.application` 9.0.1 | `android/settings.gradle.kts` |

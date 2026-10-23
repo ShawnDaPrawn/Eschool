@@ -125,16 +125,16 @@ class _AddOrEditAnnouncementScreenState
     }
     final permission = await Permission.storage.request();
     if (permission.isGranted) {
-      final pickedFile = await FilePicker.pickFiles();
+      final pickedFile = await FilePicker.pickFile();
       if (pickedFile != null) {
-        _addedAttatchments.add(pickedFile.files.first);
+        _addedAttatchments.add(pickedFile);
         setState(() {});
       }
     } else {
       try {
-        final pickedFile = await FilePicker.pickFiles();
+        final pickedFile = await FilePicker.pickFile();
         if (pickedFile != null) {
-          _addedAttatchments.add(pickedFile.files.first);
+          _addedAttatchments.add(pickedFile);
           setState(() {});
         }
       } on Exception {

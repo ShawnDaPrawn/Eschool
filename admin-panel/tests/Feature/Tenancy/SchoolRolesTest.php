@@ -71,6 +71,17 @@ class SchoolRolesTest extends TestCase
             ->where('model_id', $user->id)->orderBy('model_has_roles.school_id')->get(['model_has_roles.school_id', 'roles.name'])
             ->map(fn ($row) => [(int) $row->school_id, $row->name])->all());
         $this->assertSame([1, 2], array_map(fn ($school) => $school['school']->id, app(MembershipService::class)->schools($user)));
+
+        // Permission 8 renamed these events. Detaching must end only the
+        // current school's membership and invalidate the cached school list.
+        $user->removeRole('Teacher');
+        $this->assertSame([2], array_map(fn ($school) => $school['school']->id, app(MembershipService::class)->schools($user)));
+        $this->current->run(2, function () use ($user) {
+            $this->assertTrue($user->fresh()->hasRole('Super Admin'));
+            $this->assertTrue($user->fresh()->can('role-create'));
+        });
+        $user->assignRole('Teacher');
+        $this->assertSame([1, 2], array_map(fn ($school) => $school['school']->id, app(MembershipService::class)->schools($user)));
     }
 
     public function test_the_roles_page_lists_and_opens_only_the_current_schools_roles(): void

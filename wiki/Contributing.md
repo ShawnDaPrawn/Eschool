@@ -39,7 +39,7 @@ The fork's commits follow one style (see `git log`):
 
 | Topic | Convention |
 |---|---|
-| Flutter / Dart | CI pins Flutter `3.44.9` (stable); `pubspec.yaml` requires Dart `>=3.8.0 <4.0.0` |
+| Flutter / Dart | CI pins Flutter `3.47.7` (stable); `pubspec.yaml` requires Dart `>=3.13.0 <4.0.0` |
 | Lints | `analysis_options.yaml` (same in both apps) includes `package:flutter_lints/flutter.yaml` (`flutter_lints ^6.0.0`) and sets `file_names: ignore` and `use_build_context_synchronously: ignore` under `analyzer.errors`; no extra rules are enabled. File names are lowerCamelCase (`webviewPaymentScreen.dart`), which is why `file_names` is ignored |
 | Gate | `flutter analyze --no-fatal-infos` must report no errors or warnings; info-level lints are tolerated |
 | Lock files | `pubspec.lock` is committed; CI runs `flutter pub get --enforce-lockfile`. If you change dependencies, commit the updated lock file |

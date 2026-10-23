@@ -116,8 +116,8 @@ return [
 
     /*
      * Events will fire when a role or permission is assigned/unassigned:
-     * \Spatie\Permission\Events\RoleAttached
-     * \Spatie\Permission\Events\RoleDetached
+     * \Spatie\Permission\Events\RoleAttachedEvent
+     * \Spatie\Permission\Events\RoleDetachedEvent
      * \Spatie\Permission\Events\PermissionAttached
      * \Spatie\Permission\Events\PermissionDetached
      *

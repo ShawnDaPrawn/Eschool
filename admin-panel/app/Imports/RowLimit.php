@@ -23,7 +23,7 @@ class RowLimit implements IReadFilter
 
     private int $rows = 0;
 
-    public function readCell($columnAddress, $row, $worksheetName = '')
+    public function readCell($columnAddress, $row, $worksheetName = ''): bool
     {
         $last = $this->lastRows[$worksheetName] ?? 0;
         if ($row > $last) {
