@@ -13,7 +13,7 @@ work. A checked-in feature is not proof of staging verification or acceptance.
 | Enrolment history and student numbers | Merged in PR #68 | 731 backend tests and all 24 PR checks passed | Pending | Rehearse backfill on isolated staging; continue dated report consumers and staff allocation history |
 | School module controls | Merged in PR #69 | All 24 PR checks passed, including the browser settings flow and Android | Pending | Verify live push and portal behaviour on staging |
 | Notification rules and delivery | Merged in PR #71 | All 25 PR checks passed, including Android and browser flows | Pending | Verify real mail/push |
-| Configurable profiles | Schema, policies, encrypted values and typed API on feature branch | Focused contracts and security cases pass; full suite/PR CI pending | Pending | Merge API slice; connect panel/app, context/export and legacy bridge |
+| Configurable profiles | Schema/API merged in PR #75; panel/app editor, metadata context and permitted export on feature branch | API passed all 25 PR checks; editor/form local regression and CI recorded with its PR | Pending | Merge editor/form slice; continue legacy bridge and authenticated file fields |
 | Other school configuration | Pending | Pending | Pending | Build school branding and documents |
 | SaaS onboarding, imports and privacy | Pending | Pending | Pending | Build platform tools and restricted support access |
 | Modern sign-in | Pending | Pending | Provider/device checks pending | Add passkeys, verified-domain OAuth and parent links |

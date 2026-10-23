@@ -118,6 +118,19 @@ const String handleRejectKey = 'handleReject';
 const String handleVerifyEmailKey = 'handleVerifyEmail';
 
 /// Every key above, for the apps' tests.
+const String profileDetailsKey = 'profileDetails';
+const String profilePersonKey = 'profilePerson';
+const String profileMyDetailsKey = 'profileMyDetails';
+const String profileTypeKey = 'profileType';
+const String profileRequiredKey = 'profileRequired';
+const String profileInvalidKey = 'profileInvalid';
+const String profileNotProvidedKey = 'profileNotProvided';
+const String profileSaveKey = 'profileSave';
+const String profileSavedKey = 'profileSaved';
+const String profileReloadKey = 'profileReload';
+const String profileDiscardKey = 'profileDiscard';
+const String profileDiscardHintKey = 'profileDiscardHint';
+
 const List<String> sharedLabelKeys = [
   handleLabelKey,
   handleSettingsKey,
@@ -222,4 +235,22 @@ const List<String> sharedLabelKeys = [
   avatarGirlsKey,
   avatarMenKey,
   avatarWomenKey,
+  'profileDetails',
+  'profilePerson',
+  'profileMyDetails',
+  'profileType',
+  'profileRequired',
+  'profileInvalid',
+  'profileNotProvided',
+  'profileSave',
+  'profileSaved',
+  'profileReload',
+  'profileDiscard',
+  'profileDiscardHint',
+  'profileType_learner',
+  'profileType_parent',
+  'profileType_teacher',
+  'profileType_facilitator',
+  'profileType_counsellor',
+  'profileType_staff',
 ];

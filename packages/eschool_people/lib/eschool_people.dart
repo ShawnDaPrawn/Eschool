@@ -20,3 +20,6 @@ export 'src/invitation/invitation_screen.dart';
 export 'src/my_school/my_school_cubit.dart';
 export 'src/my_school/my_school_repository.dart';
 export 'src/my_school/my_school_screen.dart';
+export 'src/profile/profile_repository.dart';
+export 'src/profile/profile_cubit.dart';
+export 'src/profile/profile_screen.dart';

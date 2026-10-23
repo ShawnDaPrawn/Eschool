@@ -11,7 +11,7 @@ Earlier history is kept where it was written and is not repeated here:
 
 ### Added
 
-- Add school-specific person profile categories, protected defaults, encrypted custom values and authorised API v2 forms/configuration. Partial edits validate supplied fields without blocking on unrelated incomplete fields. Panel/app integration and legacy migration remain in progress. **Deploy:** preserve APP_KEY; rehearse the additive profile migration and back up profile values before rolling it back.
+- Add school-specific person profile categories, protected defaults, encrypted custom values and authorised API v2 forms/configuration. Partial edits validate supplied fields without blocking on unrelated incomplete fields. School admins can arrange fields in Settings, and authorised people use the same form metadata in the panel and both apps. Saves update changed fields only. Permitted CSV exports filter sensitive values before decryption; private drafts stay out of browser/session storage. Legacy migration and file fields remain in progress. **Deploy:** preserve APP_KEY; rehearse the additive profile migration and back up profile values before rolling it back.
 
 - People can choose a global handle in the shared app settings. Learners under 18 need a verified guardian to approve the proposal; adults choose directly. Handles avoid personal identifiers, changes are limited per term, and old names remain reserved for 90 days. Approved handles work alongside existing sign-in names. Existing app/API responses remain compatible.
 

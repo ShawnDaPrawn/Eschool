@@ -106,3 +106,12 @@ on each PR. The configurable profile schema/API slice adds scoped defaults,
 encrypted custom values, field policies and typed forms/configuration. Local
 contract and security tests pass; the panel/app/export flow and legacy storage
 bridge remain in progress. Staging acceptance remains separate.
+
+PR #75 merged the protected profile schema/API after all 25 checks passed,
+including 897 backend tests. The editor/form slice adds the M3 field editor,
+shared app profile form, metadata-only context and permitted export. Local
+phone/desktop tests cover partial edits, failed-save retention, cross-school
+subject selection and clearing stale private values. Browser, full regression
+and exact-head CI evidence is recorded with this feature. Legacy storage
+backfill, compatibility writes, secure files and caste/religion retirement
+remain implementation work; no staging or production acceptance is claimed.

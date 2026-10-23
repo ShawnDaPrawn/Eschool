@@ -820,7 +820,7 @@ class StudentController extends Controller
 
         $rows = [];
         $no = 1;
-        $data = getSettings('date_formate');
+        $data = ['date_formate' => schoolSetting('date_formate', 'd-m-Y')];
 
         // Batch load related data existence to avoid N+1 queries
         $studentIds = $res->pluck('student_id')->unique()->toArray();

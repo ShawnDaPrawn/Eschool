@@ -429,7 +429,11 @@ Verified approving guardians may edit offered learner fields. Learners cannot
 change their age through this API. Support impersonation excludes sensitive
 fields from reads and writes. New custom values are encrypted, write responses
 contain no values, and audit records contain field keys only. Legacy storage
-retirement and sensitive export enforcement remain separate implementation work.
+retirement remains separate implementation work. Exports require active-role
+sensitive-export authority before querying or decrypting protected values.
+Panel forms disable browser drafts and private validation input flashing; app
+drafts remain only in screen memory. CSV values are neutralised against
+spreadsheet formulas. Context carries field metadata only, never values.
 
 Legacy parent login/profile child lists use the canonical active guardian
 query, including explicit-link overrides of old parent columns. Current-year

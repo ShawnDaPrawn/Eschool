@@ -145,6 +145,7 @@ class ApiClient {
     Map<String, dynamic>? queryParameters,
     bool useAuthToken = true,
     bool notFoundAsNull = false,
+    int? schoolId,
   }) async {
     try {
       final Dio dio = _createDio();
@@ -158,7 +159,7 @@ class ApiClient {
         options: Options(
           method: method,
           headers: useAuthToken
-              ? headers()
+              ? {...headers(), if (schoolId != null) 'X-School-Id': '$schoolId'}
               : const {'Accept': 'application/json'},
           contentType: data is FormData ? null : Headers.jsonContentType,
         ),

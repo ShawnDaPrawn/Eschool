@@ -9,7 +9,6 @@ use App\Models\Platform\ProfileFieldDefinition;
 use App\Models\Platform\ProfileFieldValue;
 use App\Models\Students;
 use App\Models\User;
-use App\Services\People\Profiles\ProfileDefinitions;
 use App\Services\People\Profiles\ProfileForms;
 use App\Services\Platform\Identity\GuardianService;
 use Illuminate\Support\Facades\DB;
@@ -30,6 +29,14 @@ class ProfilePanelTest extends TestCase
     private function learner(): User
     {
         return User::findOrFail($this->schoolA->ids['asha_user']);
+    }
+
+    public function test_learner_list_can_open_profiles_before_a_school_sets_its_date_format(): void
+    {
+        DB::table('settings')->where('school_id', 1)->where('type', 'date_formate')->delete();
+        $response = $this->actingAs($this->superAdmin())->getJson('/students-list-data?session_year_id='.$this->schoolA->ids['session_year'])->assertOk();
+        $this->assertGreaterThan(0, $response->json('total'));
+        $this->assertStringContainsString('people-profiles', $response->json('rows.0.operate'));
     }
 
     public function test_school_admin_adds_a_transport_field_and_it_appears_in_the_panel_form_and_export(): void
@@ -77,6 +84,19 @@ class ProfilePanelTest extends TestCase
         $response = $this->actingAs($this->superAdmin())->get('/people-profiles/'.$this->learner()->id.'/export?profile_type=learner')->assertOk();
         $this->assertStringContainsString("'=1+1", $response->streamedContent());
         $this->assertStringNotContainsString('=1+1', json_encode(DB::table('audit_log')->get()));
+    }
+
+    public function test_expired_admin_export_rights_cannot_decrypt_sensitive_values_on_an_active_teacher_profile(): void
+    {
+        $admin = $this->superAdmin();
+        $admin->assignRole('Teacher');
+        $field = ProfileFieldDefinition::query()->where('profile_type', 'teacher')->where('key', 'identity_number')->firstOrFail();
+        ProfileFieldValue::query()->create(['user_id' => $admin->id, 'definition_id' => $field->id, 'value' => 'not-valid-ciphertext', 'encrypted' => true]);
+        DB::table('school_memberships')->where('school_id', 1)->where('user_id', $admin->id)->where('role', 'Super Admin')
+            ->update(['ends_on' => now()->subDay()->toDateString()]);
+
+        $response = $this->actingAs($admin)->get('/people-profiles/'.$admin->id.'/export?profile_type=teacher')->assertOk();
+        $this->assertStringNotContainsString('identity_number', $response->streamedContent());
     }
 
     public function test_wrong_school_owner_and_role_cannot_use_panel_configuration_or_forms(): void
