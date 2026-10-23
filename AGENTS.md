@@ -60,6 +60,24 @@ Do not put the private Bible or secrets into public issues, PRs or commits.
 - Do not treat production release as authorized merely because tests pass.
   Respect the Build Bible's staging acceptance and production approval gate.
 
+## Product-owner delivery decisions (23 October 2026)
+
+- Phase acceptance is a progress checkpoint, not a development freeze.
+  Continue independent implementation, tests and safe merges while staging,
+  observation periods, devices, testers or acceptance remain pending.
+- Track implementation, automated verification, staging verification,
+  acceptance and production release separately. Never report an unrun check
+  as passed. Record outstanding checks with impact and the next action.
+- Known data-loss, cross-school exposure, authentication or unusable-build
+  risks block the affected change; they do not stop unrelated development.
+- Run relevant tests for each change. An unrelated failing check needs a
+  documented impact assessment, not a blanket exception or a frozen queue.
+- Retain the recorded Phase 0/1 product defaults. Additional staging and
+  email spend has a hard ceiling of US$10/month, excluding the existing
+  production bill. Do not provision above it or weaken isolation to fit it.
+- The owner reviews staging initially; first-time-user evidence remains
+  pending until testers are available. Production still needs acceptance.
+
 ## Workflow for each phase
 
 - Confirm the actual current repo state and completed phases: the Bible

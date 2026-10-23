@@ -58,3 +58,15 @@ Follow-ups found in Phase 0, carried into Phase 1's plan (the defects found at t
 - **Tests:** the tenancy suite asserts only that each route exists until Phase 1 brings a second school.
 
 Product-owner decisions are in the private Build Bible; the defaults engineering takes until the product owner answers are in each phase's questions file.
+
+## Delivery update — 23 October 2026
+
+The product owner confirmed the Phase 0/1 product defaults and authorised
+continued development irrespective of pending phase checkpoints. Implementation,
+automated verification, staging verification, acceptance and release are tracked
+separately in [the delivery register](../phases/outstanding-work.md). Additional
+staging/email spending is capped at US$10/month. Staging access and first-time UX
+participants are unavailable; this does not block independent implementation.
+The previously listed Dependabot activation is evidenced by the dependency PRs
+already merged. The old tenancy-scaffold-only note is superseded by the merged
+two-school route suite. Production acceptance remains separate.

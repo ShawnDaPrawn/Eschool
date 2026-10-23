@@ -2,13 +2,13 @@
 
 How a phase (or a hot fix) gets to production. The ten steps below run in order: tag the release, build the image, back up production, prove the release on staging, rehearse the migrations against a copy of production data, deploy, check every profile, watch for an hour, and tell people. The Build Bible, Appendix D, is the outline we follow.
 
-**Who.** The Release role runs it; the product owner approves the production deployment in GitHub. Production gets a phase only once its gate has passed and the product owner has signed it off on staging (the Build Bible, section 4). A hot fix for something broken in production skips the gate, but not the steps, and the product owner hears about it the same day.
+**Who.** The Release role runs it; the product owner approves the production deployment in GitHub. Production requires the product owner's acceptance on staging and a review of the release's outstanding risks. The owner's 23 October 2026 decision makes phase gates progress checkpoints: pending observations or first-time UX testing do not freeze independent development or safe merges. A hot fix for something broken in production skips the gate, but not the steps, and the product owner hears about it the same day.
 
 **Status.** Not yet executed: no release has gone through this runbook. The first one is Phase 0's (`v0.1.0`), after [environments.md](environments.md) step 7.
 
 ## Before you start
 
-- [ ] The phase gate is closed in the build log: the phase plan's features delivered or deferred with a reason, the security record (`engineering/security/phase-N.md`) and the self-test record complete with nothing failing, the UX scripts run, the k6 smoke (`k6-smoke.yml`) within budget on staging, and the demo and the product owner's sign-off recorded.
+- [ ] The release's delivered features, verification evidence and outstanding checks are recorded. Known security, authentication and data-integrity defects affecting the release are resolved. Record the product owner's staging acceptance; do not represent pending observations, UX or load checks as passed.
 - [ ] `CHANGELOG.md`: the Unreleased section becomes `## vX.Y.Z (YYYY-MM-DD)`, with a fresh empty Unreleased above it.
 - [ ] Appendices A, B and E, the wiki and the user docs updated.
 - [ ] `main` is green and staging runs the commit you will tag.

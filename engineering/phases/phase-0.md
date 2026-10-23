@@ -40,3 +40,17 @@ The phase runs as parallel work streams, each on its own branch and merged into 
 ## Exit gate
 
 The gate is in the Build Bible, section 6. Our status against it is kept in the [build log](../bible/build-log.md), with the evidence in the [self-test record](../self-tests/phase-0.md) and the [security record](../security/phase-0.md). What needs the cloud project (staging, a week of the worker and scheduler, the restore drill) or people (UX scripts with new users, the product owner's acceptance) stays open there until it has happened.
+
+## Delivery policy (product-owner decision, 23 October 2026)
+
+Acceptance checkpoints do not freeze development. Independent features and
+later-phase preparation continue while operational observations, staging,
+devices or UX participants are unavailable. Each feature records implementation,
+local/CI verification, staging verification, acceptance and release separately.
+Known security or data-integrity failures block only the affected action.
+Production releases still require the owner's staging acceptance.
+
+The existing product defaults are confirmed. Additional staging and email
+spending is capped at US$10/month, excluding the existing production bill.
+No cloud resources may be provisioned above that cap; cloud evidence remains
+pending when compliant infrastructure cannot be funded.
