@@ -37,6 +37,7 @@ class ContextUserResource extends JsonResource
             'last_name' => (string) $user->last_name,
             'name' => trim($user->first_name.' '.$user->last_name),
             'email' => $user->email,
+            'handle' => $user->handle,
             'image' => self::imageUrl($user),
             'roles' => $this->roles,
         ];

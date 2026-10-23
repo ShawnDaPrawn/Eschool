@@ -489,5 +489,19 @@
   "avatarBoys": "أولاد",
   "avatarGirls": "بنات",
   "avatarMen": "رجال",
-  "avatarWomen": "نساء"
+  "avatarWomen": "نساء",
+  "handleLabel": "المعرّف",
+  "handleSettings": "المعرّف والطلبات",
+  "emailOrHandle": "البريد الإلكتروني أو المعرّف",
+  "learnerLogin": "رقم الطالب أو رقم التسجيل أو المعرّف",
+  "handleRules": "استخدم 3–20 حرفاً لاتينياً صغيراً أو رقماً أو نقطة أو شرطة سفلية، وابدأ بحرف. تجنّب اسم العائلة ورقم الطالب وتاريخ الميلاد. من هم دون 18 عاماً يحتاجون موافقة ولي الأمر.",
+  "handlePending": "بانتظار موافقة ولي الأمر",
+  "handleSaved": "تم الحفظ",
+  "handleChangeAfter": "التغيير التالي بعد",
+  "handleChoose": "اختيار المعرّف",
+  "handleRequests": "طلبات معرّفات الأبناء",
+  "handleNoRequests": "لا توجد طلبات معلّقة",
+  "handleApprove": "موافقة",
+  "handleReject": "رفض",
+  "handleVerifyEmail": "تحقّق من بريدك الإلكتروني لمراجعة طلبات المعرّفات."
 }

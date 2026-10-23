@@ -64,6 +64,7 @@ class User extends Authenticatable
      * @var array<int, string>
      */
     protected $hidden = [
+        'handle', // Additive v2 identity field; preserve every v1 user shape.
         'password',
         'remember_token',
         // Sent as its own field at sign-in, not inside every user object.

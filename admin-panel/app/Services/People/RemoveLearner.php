@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Services\People;
 
 use App\Models\People\Enrolment;
+use App\Models\Platform\HandleProposal;
 use App\Models\Platform\SchoolMembership;
 use App\Models\Students;
 use App\Models\User;
@@ -24,6 +25,9 @@ class RemoveLearner
             $learner = Students::query()->lockForUpdate()->findOrFail($learner->id);
             if (Enrolment::query()->where('learner_id', $learner->id)->exists()) {
                 throw ValidationException::withMessages(['learner' => 'This learner has enrolment history. Archive the learner instead; retained records require the retention process.']);
+            }
+            if (HandleProposal::query()->where('learner_id', $learner->id)->exists()) {
+                throw ValidationException::withMessages(['learner' => 'This learner has handle request history. Archive the learner instead; retained records require the retention process.']);
             }
             $learner->forceDelete();
             $user->removeRole('Student');

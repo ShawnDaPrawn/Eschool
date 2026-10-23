@@ -16,7 +16,7 @@ void main() {
   ) async {
     final api = await startSmokeApp(tester, teacherRoutes());
 
-    await pumpUntilFound(tester, find.text('Email'));
+    await pumpUntilFound(tester, find.text('Email or handle'));
     await enterField(tester, 0, teacherEmail);
     await enterField(tester, 1, password);
     await tapWhenReady(

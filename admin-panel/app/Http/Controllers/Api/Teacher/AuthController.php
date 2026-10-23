@@ -12,6 +12,7 @@ use App\Services\IdCardService;
 use App\Services\Platform\Identity\AppTokens;
 use App\Services\Platform\Identity\DateOfBirthPasswords;
 use App\Services\Platform\Identity\PortalSession;
+use App\Services\Platform\Identity\StudentNumbers;
 use App\Services\ResponseService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -35,7 +36,8 @@ class AuthController extends Controller
             return ResponseService::validationError($validator->errors()->first());
         }
 
-        if (Auth::attempt(['email' => $request->email, 'password' => $request->password])) {
+        $identity = app(StudentNumbers::class)->resolveLogin((string) $request->email);
+        if ($identity !== null && Auth::attempt(['id' => $identity->id, 'password' => $request->password])) {
             $auth = Auth::user();
 
             if (! $auth->hasRole('Teacher')) {

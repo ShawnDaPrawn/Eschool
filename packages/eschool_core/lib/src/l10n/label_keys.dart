@@ -102,8 +102,38 @@ const String avatarGirlsKey = 'avatarGirls';
 const String avatarMenKey = 'avatarMen';
 const String avatarWomenKey = 'avatarWomen';
 
+const String handleLabelKey = 'handleLabel';
+const String handleSettingsKey = 'handleSettings';
+const String emailOrHandleKey = 'emailOrHandle';
+const String learnerLoginKey = 'learnerLogin';
+const String handleRulesKey = 'handleRules';
+const String handlePendingKey = 'handlePending';
+const String handleSavedKey = 'handleSaved';
+const String handleChangeAfterKey = 'handleChangeAfter';
+const String handleChooseKey = 'handleChoose';
+const String handleRequestsKey = 'handleRequests';
+const String handleNoRequestsKey = 'handleNoRequests';
+const String handleApproveKey = 'handleApprove';
+const String handleRejectKey = 'handleReject';
+const String handleVerifyEmailKey = 'handleVerifyEmail';
+
 /// Every key above, for the apps' tests.
 const List<String> sharedLabelKeys = [
+  handleLabelKey,
+  handleSettingsKey,
+  emailOrHandleKey,
+  learnerLoginKey,
+  handleRulesKey,
+  handlePendingKey,
+  handleSavedKey,
+  handleChangeAfterKey,
+  handleChooseKey,
+  handleRequestsKey,
+  handleNoRequestsKey,
+  handleApproveKey,
+  handleRejectKey,
+  handleVerifyEmailKey,
+
   addMoreCharactorsToSearchKey,
   availableInMobileAppKey,
   cancelKey,

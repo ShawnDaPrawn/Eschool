@@ -47,6 +47,14 @@ Route<dynamic> invitationRoute(String token) => AdaptivePageRoute(
   ),
 );
 
+Route<dynamic> handlesRoute() => AdaptivePageRoute(
+  builder: (context) => HandlesScreen.withRepository(
+    ApiHandlesRepository(Api.client),
+    guardian: context.read<AuthCubit>().isParent(),
+    onChanged: () => context.read<MeContextCubit>().load(),
+  ),
+);
+
 Route<dynamic> profilePictureRoute() => AdaptivePageRoute(
   builder: (context) {
     final AuthCubit auth = context.read<AuthCubit>();
@@ -75,9 +83,8 @@ void _signInFromInvitation(BuildContext context, Map<String, dynamic> signIn) {
     student: Student.fromJson({}),
   );
   SettingsRepository().setNotificationCount(0);
-  Navigator.of(
-    context,
-  ).pushNamedAndRemoveUntil(Routes.parentPolicies, (_) => false);
+  Navigator.of(context)
+      .pushNamedAndRemoveUntil(Routes.parentPolicies, (_) => false);
 }
 
 /// The schools My school offers: a parent's children's schools (the child
@@ -134,6 +141,15 @@ List<Widget> sharedScreenEntries(
   String label(String key) => SharedUiUtils.getTranslatedLabel(context, key);
   void open(String route) => Navigator.of(context).pushNamed(route);
   return [
+    AvailableOnly(
+      featureKey: handlesFeature,
+      probe: () => handlesDeployed(ApiHandlesRepository(Api.client)),
+      child: tile(
+        title: label(handleSettingsKey),
+        icon: Icons.alternate_email,
+        onTap: () => open(Routes.handles),
+      ),
+    ),
     AvailableOnly(
       featureKey: notificationSettingsFeature,
       probe: () => notificationSettingsDeployed(

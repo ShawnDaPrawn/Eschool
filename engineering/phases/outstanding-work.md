@@ -9,9 +9,9 @@ work. A checked-in feature is not proof of staging verification or acceptance.
 | Learner Android smoke on main | Emulator job failed after merge | Fresh main retry passed; pinned-host PR checks passed | Not applicable | Merged in PR #66 |
 | Tenancy and memberships | Merged | Existing two-school tests | Pending | Extend for each new domain |
 | Guardian approval and invitations | Merged in PR #67; rollout disabled pending family transition | All PR CI checks passed | Pending | Verify real email onboarding and family transition |
-| Handles and modern sign-in | Pending | Pending | Pending | Continue remaining identity work |
+| Handles | Implemented on feature branch | Full backend run: 775 passed; final identity/deletion regressions: 53 passed; shared UI and browser flow passed; CI pending | Pending | Review and merge; verify guardian workflow on staging |
 | Enrolment history and student numbers | Merged in PR #68 | 731 backend tests and all 24 PR checks passed | Pending | Rehearse backfill on isolated staging; continue dated report consumers and staff allocation history |
-| School module controls | Implemented on feature branch | Focused backend and Flutter checks passed; full CI pending | Pending | Review and merge module controls |
+| School module controls | Merged in PR #69 | All 24 PR checks passed, including the browser settings flow and Android | Pending | Verify live push and portal behaviour on staging |
 | Other school configuration and notifications | Pending | Pending | Pending | Build notification rules, profile fields and school documents |
 | SaaS onboarding, imports and privacy | Pending | Pending | Pending | Build platform tools and restricted support access |
 | Modern sign-in | Pending | Pending | Provider/device checks pending | Add passkeys, verified-domain OAuth and parent links |

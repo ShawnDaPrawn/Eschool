@@ -17,7 +17,7 @@ void main() {
     final api = await startSmokeApp(tester, parentOfTwoRoutes());
 
     await tapWhenReady(tester, find.text('Login as Parent'));
-    await pumpUntilFound(tester, find.text('Email'));
+    await pumpUntilFound(tester, find.text('Email or handle'));
     await enterField(tester, 0, parentEmail);
     await enterField(tester, 1, password);
     await tapWhenReady(

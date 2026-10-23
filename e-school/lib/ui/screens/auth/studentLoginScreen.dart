@@ -234,7 +234,7 @@ class _StudentLoginScreenState extends State<StudentLoginScreen>
                     const SizedBox(height: 30),
                     CustomTextFieldContainer(
                       hideText: false,
-                      hintTextKey: grNumberKey,
+                      hintTextKey: learnerLoginKey,
                       bottomPadding: 0,
                       textEditingController: _grNumberTextEditingController,
                       suffixWidget: Padding(
@@ -302,9 +302,9 @@ class _StudentLoginScreenState extends State<StudentLoginScreen>
                                     context,
                                     state.exception,
                                   ),
-                              backgroundColor: Theme.of(
-                                context,
-                              ).colorScheme.error,
+                              backgroundColor: Theme.of(context)
+                                  .colorScheme
+                                  .error,
                             );
                           }
                         },
@@ -319,9 +319,8 @@ class _StudentLoginScreenState extends State<StudentLoginScreen>
                               _signInStudent();
                             },
                             widthPercentage: 0.8,
-                            backgroundColor: UiUtils.getColorScheme(
-                              context,
-                            ).primary,
+                            backgroundColor: UiUtils.getColorScheme(context)
+                                .primary,
                             buttonTitle: UiUtils.getTranslatedLabel(
                               context,
                               signInKey,
@@ -347,9 +346,8 @@ class _StudentLoginScreenState extends State<StudentLoginScreen>
                               if (state is SignInInProgress) {
                                 return;
                               }
-                              Navigator.of(
-                                context,
-                              ).pushReplacementNamed(Routes.parentLogin);
+                              Navigator.of(context)
+                                  .pushReplacementNamed(Routes.parentLogin);
                             },
                             child: RichText(
                               text: TextSpan(
@@ -357,9 +355,8 @@ class _StudentLoginScreenState extends State<StudentLoginScreen>
                                   TextSpan(
                                     style: TextStyle(
                                       fontSize: 16,
-                                      color: UiUtils.getColorScheme(
-                                        context,
-                                      ).primary,
+                                      color: UiUtils.getColorScheme(context)
+                                          .primary,
                                     ),
                                     text: UiUtils.getTranslatedLabel(
                                       context,
@@ -371,9 +368,8 @@ class _StudentLoginScreenState extends State<StudentLoginScreen>
                                     style: TextStyle(
                                       fontWeight: FontWeight.w500,
                                       fontSize: 16,
-                                      color: UiUtils.getColorScheme(
-                                        context,
-                                      ).onSurface,
+                                      color: UiUtils.getColorScheme(context)
+                                          .onSurface,
                                     ),
                                     text:
                                         '${UiUtils.getTranslatedLabel(context, parentKey)}?',
@@ -401,8 +397,7 @@ class _StudentLoginScreenState extends State<StudentLoginScreen>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      resizeToAvoidBottomInset:
-          false, //to avoid the lower pattern from hiding login form when keyboard is open
+      resizeToAvoidBottomInset: false, //to avoid the lower pattern from hiding login form when keyboard is open
       body: Stack(
         children: [
           _buildLowerPattern(),

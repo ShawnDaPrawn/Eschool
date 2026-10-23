@@ -425,6 +425,180 @@ paths:
           $ref: '#/components/responses/TooManyRequests'
         '500':
           $ref: '#/components/responses/ServerError'
+  /me/handle:
+    get:
+      operationId: getMyHandle
+      tags:
+      - Platform
+      summary: Read your handle and pending proposal
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      responses:
+        '200':
+          description: The operation succeeded.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HandleStateResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+        '410':
+          description: The proposal has expired.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+    put:
+      operationId: setMyHandle
+      tags:
+      - Platform
+      summary: Choose a handle or request guardian approval
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      responses:
+        '200':
+          description: The operation succeeded.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HandleStateResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+        '410':
+          description: The proposal has expired.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              required:
+              - handle
+              properties:
+                handle:
+                  type: string
+                  minLength: 3
+                  maxLength: 20
+  /guardian/handle-proposals:
+    get:
+      operationId: getGuardianHandleProposals
+      tags:
+      - Platform
+      summary: Read your linked learners pending handle requests
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      responses:
+        '200':
+          description: The operation succeeded.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GuardianHandleProposalsResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+        '410':
+          description: The proposal has expired.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /guardian/handle-proposals/{proposal}:
+    post:
+      operationId: decideGuardianHandleProposal
+      tags:
+      - Platform
+      summary: Approve or reject a linked learners handle
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - name: proposal
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      responses:
+        '200':
+          description: The operation succeeded.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HandleStateResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+        '410':
+          description: The proposal has expired.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              required:
+              - decision
+              properties:
+                decision:
+                  type: string
+                  enum:
+                  - approve
+                  - reject
 components:
   securitySchemes:
     bearerAuth:
@@ -1004,6 +1178,112 @@ components:
           oneOf:
           - $ref: '#/components/schemas/ApprovalState'
           - type: 'null'
+    HandleProposal:
+      type: object
+      additionalProperties: false
+      required:
+      - id
+      - handle
+      - status
+      - expires_at
+      properties:
+        id:
+          type: integer
+        handle:
+          type: string
+        status:
+          type: string
+        expires_at:
+          type: string
+          format: date-time
+    HandleState:
+      type: object
+      additionalProperties: false
+      required:
+      - handle
+      - proposal
+      - can_change_after
+      properties:
+        handle:
+          type:
+          - string
+          - 'null'
+        proposal:
+          oneOf:
+          - $ref: '#/components/schemas/HandleProposal'
+          - type: 'null'
+        can_change_after:
+          type:
+          - string
+          - 'null'
+          format: date
+    HandleStateResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - data
+      - code
+      properties:
+        error:
+          type: boolean
+          description: Always false.
+        message:
+          type: string
+        data:
+          $ref: '#/components/schemas/HandleState'
+        code:
+          type: integer
+          description: Always 200.
+    GuardianHandleProposal:
+      type: object
+      additionalProperties: false
+      required:
+      - id
+      - handle
+      - expires_at
+      - learner
+      properties:
+        id:
+          type: integer
+        handle:
+          type: string
+        expires_at:
+          type: string
+          format: date-time
+        learner:
+          type: object
+          additionalProperties: false
+          required:
+          - id
+          - name
+          properties:
+            id:
+              type: integer
+            name:
+              type: string
+    GuardianHandleProposalsResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - data
+      - code
+      properties:
+        error:
+          type: boolean
+          description: Always false.
+        message:
+          type: string
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/GuardianHandleProposal'
+        code:
+          type: integer
+          description: Always 200.
     ContextUser:
       type: object
       additionalProperties: false
@@ -1024,6 +1304,9 @@ components:
         image:
           type: [string, 'null']
           description: The profile picture's URL, or null.
+        handle:
+          type: [string, 'null']
+          description: Your platform handle, when chosen and approved.
         roles:
           type: array
           description: The user's role names at the current school, for example `Parent`, `Teacher`, `Super Admin` or a role the school created.

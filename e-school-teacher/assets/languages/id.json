@@ -489,5 +489,19 @@
   "avatarBoys": "Anak laki-laki",
   "avatarGirls": "Anak perempuan",
   "avatarMen": "Pria",
-  "avatarWomen": "Wanita"
+  "avatarWomen": "Wanita",
+  "handleLabel": "Nama pengguna",
+  "handleSettings": "Nama pengguna dan permintaan",
+  "emailOrHandle": "Email atau nama pengguna",
+  "learnerLogin": "Nomor siswa, nomor induk, atau nama pengguna",
+  "handleRules": "Gunakan 3–20 huruf kecil, angka, titik, atau garis bawah, diawali huruf. Hindari nama keluarga, nomor siswa, dan tanggal lahir. Usia di bawah 18 tahun memerlukan persetujuan wali.",
+  "handlePending": "Menunggu persetujuan wali",
+  "handleSaved": "Tersimpan",
+  "handleChangeAfter": "Perubahan berikutnya setelah",
+  "handleChoose": "Pilih nama pengguna",
+  "handleRequests": "Permintaan nama pengguna anak",
+  "handleNoRequests": "Tidak ada permintaan tertunda",
+  "handleApprove": "Setujui",
+  "handleReject": "Tolak",
+  "handleVerifyEmail": "Verifikasi email Anda untuk meninjau permintaan."
 }

@@ -18,7 +18,10 @@ void main() {
 
     final Finder asStudent = find.text('Login as Student');
     await tapWhenReady(tester, asStudent);
-    await pumpUntilFound(tester, find.text('GR Number'));
+    await pumpUntilFound(
+      tester,
+      find.text('Student number, GR number or handle'),
+    );
 
     await enterField(tester, 0, grNumber);
     await enterField(tester, 1, password);

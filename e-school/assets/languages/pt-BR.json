@@ -489,5 +489,19 @@
   "avatarBoys": "Meninos",
   "avatarGirls": "Meninas",
   "avatarMen": "Homens",
-  "avatarWomen": "Mulheres"
+  "avatarWomen": "Mulheres",
+  "handleLabel": "Nome de usuário",
+  "handleSettings": "Nome de usuário e solicitações",
+  "emailOrHandle": "E-mail ou nome de usuário",
+  "learnerLogin": "Número do aluno, matrícula ou nome de usuário",
+  "handleRules": "Use de 3 a 20 letras minúsculas, números, pontos ou sublinhados, começando por uma letra. Evite sobrenome, número do aluno e data de nascimento. Menores de 18 anos precisam da aprovação do responsável.",
+  "handlePending": "Aguardando aprovação do responsável",
+  "handleSaved": "Salvo",
+  "handleChangeAfter": "Próxima alteração após",
+  "handleChoose": "Escolher nome de usuário",
+  "handleRequests": "Solicitações dos filhos",
+  "handleNoRequests": "Nenhuma solicitação pendente",
+  "handleApprove": "Aprovar",
+  "handleReject": "Recusar",
+  "handleVerifyEmail": "Verifique seu e-mail para analisar as solicitações."
 }

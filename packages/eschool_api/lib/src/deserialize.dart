@@ -10,6 +10,7 @@ import 'package:eschool_api/src/model/context_user.dart';
 import 'package:eschool_api/src/model/create_learner_enrolment_request.dart';
 import 'package:eschool_api/src/model/current_school.dart';
 import 'package:eschool_api/src/model/decide_guardian_approval_request.dart';
+import 'package:eschool_api/src/model/decide_guardian_handle_proposal_request.dart';
 import 'package:eschool_api/src/model/enrolment.dart';
 import 'package:eschool_api/src/model/enrolment_list_response.dart';
 import 'package:eschool_api/src/model/enrolment_list_response_data.dart';
@@ -18,18 +19,24 @@ import 'package:eschool_api/src/model/error_response.dart';
 import 'package:eschool_api/src/model/guardian_approval.dart';
 import 'package:eschool_api/src/model/guardian_approvals_response.dart';
 import 'package:eschool_api/src/model/guardian_consent.dart';
+import 'package:eschool_api/src/model/guardian_handle_proposal.dart';
+import 'package:eschool_api/src/model/guardian_handle_proposals_response.dart';
 import 'package:eschool_api/src/model/guardian_invitation_accepted_response.dart';
 import 'package:eschool_api/src/model/guardian_invitation_issued.dart';
 import 'package:eschool_api/src/model/guardian_invitation_issued_response.dart';
 import 'package:eschool_api/src/model/guardian_invitation_preview.dart';
 import 'package:eschool_api/src/model/guardian_invitation_preview_learners_inner.dart';
 import 'package:eschool_api/src/model/guardian_invitation_preview_response.dart';
+import 'package:eschool_api/src/model/handle_proposal.dart';
+import 'package:eschool_api/src/model/handle_state.dart';
+import 'package:eschool_api/src/model/handle_state_response.dart';
 import 'package:eschool_api/src/model/module.dart';
 import 'package:eschool_api/src/model/notification_rule.dart';
 import 'package:eschool_api/src/model/pagination.dart';
 import 'package:eschool_api/src/model/school_membership.dart';
 import 'package:eschool_api/src/model/school_summary.dart';
 import 'package:eschool_api/src/model/session_year.dart';
+import 'package:eschool_api/src/model/set_my_handle_request.dart';
 import 'package:eschool_api/src/model/term.dart';
 import 'package:eschool_api/src/model/validation_errors.dart';
 
@@ -93,6 +100,11 @@ ReturnType deserialize<ReturnType, BaseType>(
             value as Map<String, dynamic>,
           )
           as ReturnType;
+    case 'DecideGuardianHandleProposalRequest':
+      return DecideGuardianHandleProposalRequest.fromJson(
+            value as Map<String, dynamic>,
+          )
+          as ReturnType;
     case 'Enrolment':
       return Enrolment.fromJson(value as Map<String, dynamic>) as ReturnType;
     case 'EnrolmentListResponse':
@@ -116,6 +128,14 @@ ReturnType deserialize<ReturnType, BaseType>(
           as ReturnType;
     case 'GuardianConsent':
       return GuardianConsent.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'GuardianHandleProposal':
+      return GuardianHandleProposal.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'GuardianHandleProposalsResponse':
+      return GuardianHandleProposalsResponse.fromJson(
+            value as Map<String, dynamic>,
+          )
           as ReturnType;
     case 'GuardianInvitationAcceptedResponse':
       return GuardianInvitationAcceptedResponse.fromJson(
@@ -143,6 +163,14 @@ ReturnType deserialize<ReturnType, BaseType>(
             value as Map<String, dynamic>,
           )
           as ReturnType;
+    case 'HandleProposal':
+      return HandleProposal.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'HandleState':
+      return HandleState.fromJson(value as Map<String, dynamic>) as ReturnType;
+    case 'HandleStateResponse':
+      return HandleStateResponse.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
     case 'Module':
       return Module.fromJson(value as Map<String, dynamic>) as ReturnType;
     case 'NotificationRule':
@@ -158,6 +186,9 @@ ReturnType deserialize<ReturnType, BaseType>(
           as ReturnType;
     case 'SessionYear':
       return SessionYear.fromJson(value as Map<String, dynamic>) as ReturnType;
+    case 'SetMyHandleRequest':
+      return SetMyHandleRequest.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
     case 'Term':
       return Term.fromJson(value as Map<String, dynamic>) as ReturnType;
     case 'ValidationErrors':

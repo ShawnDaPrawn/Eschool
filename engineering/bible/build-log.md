@@ -77,3 +77,11 @@ transition verification. Dated enrolments and lifelong student numbers are
 implemented on their next feature branch, including a resumable backfill,
 legacy projections and school-safe cleanup; staging migration rehearsal and
 production acceptance remain outstanding.
+
+PR #68 merged dated enrolments and student numbers after all 24 checks passed;
+PR #69 merged school module controls after all 24 checks passed, including the
+browser settings flow and Android. Handles, their guardian review and shared
+app settings are implemented on the next feature branch. Local backend,
+identity/deletion, package and browser checks pass; feature PR CI precedes
+merge. These merges do not claim staging acceptance or enable production
+approval enforcement.

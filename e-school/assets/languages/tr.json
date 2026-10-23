@@ -489,5 +489,19 @@
   "avatarBoys": "Erkek çocuklar",
   "avatarGirls": "Kız çocuklar",
   "avatarMen": "Erkekler",
-  "avatarWomen": "Kadınlar"
+  "avatarWomen": "Kadınlar",
+  "handleLabel": "Kullanıcı adı",
+  "handleSettings": "Kullanıcı adı ve istekler",
+  "emailOrHandle": "E-posta veya kullanıcı adı",
+  "learnerLogin": "Öğrenci numarası, kayıt numarası veya kullanıcı adı",
+  "handleRules": "Harfle başlayan 3–20 küçük harf, rakam, nokta veya alt çizgi kullanın. Soyadınızı, öğrenci numaranızı ve doğum tarihinizi kullanmayın. 18 yaşından küçükler için veli onayı gerekir.",
+  "handlePending": "Veli onayı bekleniyor",
+  "handleSaved": "Kaydedildi",
+  "handleChangeAfter": "Sonraki değişiklik tarihi",
+  "handleChoose": "Kullanıcı adı seç",
+  "handleRequests": "Çocukların kullanıcı adı istekleri",
+  "handleNoRequests": "Bekleyen istek yok",
+  "handleApprove": "Onayla",
+  "handleReject": "Reddet",
+  "handleVerifyEmail": "İstekleri incelemek için e-postanızı doğrulayın."
 }

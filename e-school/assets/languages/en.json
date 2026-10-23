@@ -489,5 +489,19 @@
   "avatarBoys": "Boys",
   "avatarGirls": "Girls",
   "avatarMen": "Men",
-  "avatarWomen": "Women"
+  "avatarWomen": "Women",
+  "handleLabel": "Handle",
+  "handleSettings": "Handle and requests",
+  "emailOrHandle": "Email or handle",
+  "learnerLogin": "Student number, GR number or handle",
+  "handleRules": "Use 3–20 letters, digits, dots or underscores, starting with a letter. Avoid your surname, student number and birth date. Under 18 needs guardian approval.",
+  "handlePending": "Waiting for guardian approval",
+  "handleSaved": "Saved",
+  "handleChangeAfter": "Next change after",
+  "handleChoose": "Choose handle",
+  "handleRequests": "Children’s handle requests",
+  "handleNoRequests": "No pending requests",
+  "handleApprove": "Approve",
+  "handleReject": "Reject",
+  "handleVerifyEmail": "Verify your email to review handle requests."
 }

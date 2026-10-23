@@ -6,6 +6,7 @@ use App\Http\Controllers\Api\V2\People\EnrolmentController;
 use App\Http\Controllers\Api\V2\Platform\ContextController;
 use App\Http\Controllers\Api\V2\Platform\GuardianApprovalController;
 use App\Http\Controllers\Api\V2\Platform\GuardianInvitationController;
+use App\Http\Controllers\Api\V2\Platform\HandleController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -33,6 +34,8 @@ use Illuminate\Support\Facades\Route;
 // what the apps need on launch.
 Route::middleware(['auth:sanctum', 'school.context', 'role.any', 'learner.approved', 'idempotent'])->name('api.v2.')->group(function () {
     Route::get('me/context', [ContextController::class, 'show'])->name('me.context');
+    Route::get('me/handle', [HandleController::class, 'show']);
+    Route::put('me/handle', [HandleController::class, 'update'])->middleware('throttle:auth');
 });
 
 // Sign-in, one-time codes and password resets (Phase 1): 5 a minute per account.
@@ -69,6 +72,8 @@ Route::prefix('staff')->middleware(['auth:sanctum', 'school.context', 'staff', '
 });
 
 Route::prefix('guardian')->middleware(['auth:sanctum', 'school.context', 'role:Parent', 'idempotent', 'throttle:auth'])->group(function () {
+    Route::get('handle-proposals', [HandleController::class, 'proposals']);
+    Route::post('handle-proposals/{proposal}', [HandleController::class, 'decide'])->whereNumber('proposal');
     Route::get('approvals', [GuardianApprovalController::class, 'index']);
     Route::post('approvals/{learner}', [GuardianApprovalController::class, 'store'])->whereNumber('learner');
 });

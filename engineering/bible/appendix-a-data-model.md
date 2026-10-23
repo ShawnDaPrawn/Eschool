@@ -51,3 +51,13 @@ migration rolls back before the tenancy migrations in the upgrade rehearsal.
 pair, package entitlement, enabled/read-only state, changed-by user and time,
 and ordinary timestamps. Model changes are audited. Module invalidations are
 recorded in the existing transactional outbox.
+
+## Phase 1: handles
+
+`users.handle` is globally unique and nullable, and hidden from v1 model
+serialization. Global `handle_claims` holds active names and expiring
+reservations; global `handle_changes` records the human, old/new name,
+actor/approving guardian and term boundary. These are accessed through the
+authenticated or explicitly authorised human identity. School-scoped
+`handle_proposals` links a learner to a seven-day pending name and its eventual
+decision. All have timestamps; proposals carry a required school foreign key.

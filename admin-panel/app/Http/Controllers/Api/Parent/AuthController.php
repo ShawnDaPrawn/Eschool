@@ -16,6 +16,7 @@ use App\Models\StudentSessions;
 use App\Services\Platform\Identity\AppTokens;
 use App\Services\Platform\Identity\DateOfBirthPasswords;
 use App\Services\Platform\Identity\PortalSession;
+use App\Services\Platform\Identity\StudentNumbers;
 use App\Services\ResponseService;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
@@ -55,7 +56,8 @@ class AuthController extends Controller
 
         $current_date = Carbon::now()->toDateString();
 
-        if (Auth::attempt(['email' => $request->email, 'password' => $request->password])) {
+        $identity = app(StudentNumbers::class)->resolveLogin((string) $request->email);
+        if ($identity !== null && Auth::attempt(['id' => $identity->id, 'password' => $request->password])) {
             $auth = Auth::user();
             if (! $auth->hasRole('Parent')) {
                 return ResponseService::errorResponse('Invalid Login Credentials', null, 101);

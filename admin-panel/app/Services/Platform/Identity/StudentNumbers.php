@@ -18,6 +18,10 @@ class StudentNumbers
         if ($user !== null) {
             return $user;
         }
+        $user = User::acrossSchools()->where('handle', strtolower(trim($login)))->first();
+        if ($user !== null) {
+            return $user;
+        }
         $userId = DB::table('learner_identifiers')->where('student_number', trim($login))->value('user_id');
 
         return $userId === null ? null : User::acrossSchools()->find($userId);
