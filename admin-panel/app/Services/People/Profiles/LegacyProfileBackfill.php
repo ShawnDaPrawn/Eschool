@@ -15,10 +15,12 @@ use App\Services\Platform\Events\Outbox;
 use App\Services\Platform\Tenancy\CurrentSchool;
 use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\ValidationException;
 use InvalidArgumentException;
 use JsonException;
+use Throwable;
 
 /** Additive transition only: never erase legacy data or replace a live edit. */
 class LegacyProfileBackfill
@@ -29,16 +31,16 @@ class LegacyProfileBackfill
         'teacher' => ['teachers', 3, 'Teacher'],
     ];
 
-    public function run(int $schoolId, string $profile, int $after = 0, int $limit = 500, bool $apply = false): array
+    public function run(int $schoolId, string $profile, int $after = 0, int $limit = 500, bool $apply = false, bool $files = false): array
     {
         if (! isset(self::PROFILES[$profile]) || $schoolId < 1 || $after < 0 || $limit < 1 || $limit > 1000) {
             throw new InvalidArgumentException('Invalid legacy profile batch.');
         }
         School::query()->findOrFail($schoolId);
 
-        return app(CurrentSchool::class)->run($schoolId, function () use ($schoolId, $profile, $after, $limit, $apply) {
+        return app(CurrentSchool::class)->run($schoolId, function () use ($schoolId, $profile, $after, $limit, $apply, $files) {
             $report = ['school_id' => $schoolId, 'profile' => $profile, 'mode' => $apply ? 'apply' : 'dry_run',
-                'scanned' => 0, 'definitions_added' => 0, 'values_added' => 0, 'preserved' => 0,
+                'scanned' => 0, 'definitions_added' => 0, 'values_added' => 0, 'files_added' => 0, 'preserved' => 0,
                 'next_after' => $after, 'has_more' => false, 'issue_count' => 0, 'issues' => []];
             $fields = DB::transaction(function () use ($schoolId, $profile, $apply, &$report) {
                 // Serialize competing mapping creation without updating existing metadata.
@@ -53,9 +55,17 @@ class LegacyProfileBackfill
                 ->orderBy('id')->limit($limit + 1)->pluck('id');
             $report['has_more'] = $ids->count() > $limit;
             foreach ($ids->take($limit) as $id) {
-                DB::transaction(function () use ($table, $id, $schoolId, $profile, $fields, $apply, &$report) {
-                    $this->person($table, (int) $id, $schoolId, $profile, $fields, $apply, $report);
-                });
+                $createdPaths = [];
+                try {
+                    DB::transaction(function () use ($table, $id, $schoolId, $profile, $fields, $apply, $files, &$report, &$createdPaths) {
+                        $this->person($table, (int) $id, $schoolId, $profile, $fields, $apply, $files, $report, $createdPaths);
+                    });
+                } catch (Throwable $error) {
+                    foreach ($createdPaths as $path) {
+                        Storage::disk(ProfileFiles::DISK)->delete($path);
+                    }
+                    throw $error;
+                }
                 $report['scanned']++;
                 $report['next_after'] = (int) $id;
             }
@@ -135,7 +145,7 @@ class LegacyProfileBackfill
         return $fields;
     }
 
-    private function person(string $table, int $id, int $schoolId, string $profile, array $fields, bool $apply, array &$report): void
+    private function person(string $table, int $id, int $schoolId, string $profile, array $fields, bool $apply, bool $files, array &$report, array &$createdPaths): void
     {
         $source = DB::table($table)->where('school_id', $schoolId)->whereNull('deleted_at')->where('id', $id)->first();
         if ($source === null) {
@@ -178,7 +188,7 @@ class LegacyProfileBackfill
 
                 continue;
             }
-            $added += $this->value($person, $fields[$name], $value, $id, $apply, $report);
+            $added += $this->value($person, $fields[$name], $value, $id, $apply, $files, $report, $createdPaths);
         }
         if ($profile === 'learner' && $source->religion !== null && $source->religion !== '') {
             $religion = ProfileFieldDefinition::query()->where('profile_type', 'learner')->where('key', 'religion')
@@ -186,7 +196,7 @@ class LegacyProfileBackfill
             if ($religion === null) {
                 $this->issue($report, 'religion_definition_unavailable', $id);
             } else {
-                $added += $this->value($person, $religion, $source->religion, $id, $apply, $report);
+                $added += $this->value($person, $religion, $source->religion, $id, $apply, $files, $report, $createdPaths);
             }
         }
         if ($apply && $added > 0) {
@@ -195,7 +205,7 @@ class LegacyProfileBackfill
         }
     }
 
-    private function value(User $person, ProfileFieldDefinition $mapped, mixed $value, int $recordId, bool $apply, array &$report): int
+    private function value(User $person, ProfileFieldDefinition $mapped, mixed $value, int $recordId, bool $apply, bool $files, array &$report, array &$createdPaths): int
     {
         $field = $mapped;
         if ($mapped->exists && $apply) {
@@ -217,15 +227,31 @@ class LegacyProfileBackfill
             return 0;
         }
         if ($field->type === 'file') {
-            $this->issue($report, 'private_file_migration_pending', $recordId, (int) $field->legacy_form_field_id);
+            if (! $files) {
+                $this->issue($report, 'private_file_migration_pending', $recordId, (int) $field->legacy_form_field_id);
 
-            return 0;
+                return 0;
+            }
+            $prepared = app(LegacyProfileFiles::class)->prepare($value, $field->profile_type);
+            if (is_string($prepared)) {
+                $this->issue($report, $prepared, $recordId, (int) $field->legacy_form_field_id);
+
+                return 0;
+            }
+            if ($apply) {
+                $file = app(LegacyProfileFiles::class)->copy($person, $field, $prepared);
+                $createdPaths[] = $file->path;
+                $value = $file->id;
+            }
+            $report['files_added']++;
         }
         if (in_array($field->type, ['text', 'textarea', 'number', 'dropdown', 'radio', 'date'], true) && is_int($value)) {
             $value = (string) $value;
         }
         try {
-            $value = app(ProfileForms::class)->validateValue($person, $field, $value);
+            if ($field->type !== 'file') {
+                $value = app(ProfileForms::class)->validateValue($person, $field, $value);
+            }
         } catch (ValidationException) {
             $this->issue($report, 'invalid_value', $recordId, (int) $field->legacy_form_field_id);
 

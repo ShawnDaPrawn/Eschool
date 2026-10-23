@@ -17,7 +17,8 @@ reviews their roles before publishing them in the existing profile editor.
 Never revive deleted categories/definitions or overwrite later schema edits.
 Religion copies only into its optional hidden encrypted default. Do not copy
 the students.caste column, executable HTML attributes, applicant fields, or arbitrary file paths.
-Files remain explicitly reported for the private-file migration; old public
+With --files, supported local attachments can be validated and copied into
+private storage; without it, files remain explicitly reported as pending. Old public
 objects and legacy JSON/columns remain intact until compatibility writes and
 installed-client validation allow their separate retirement.
 
@@ -45,4 +46,6 @@ isolated copy first. Run `php artisan profiles:backfill-legacy --school=1
 `--apply` only for the reviewed batch. Continue with `--after=<next_after>` for
 the same profile; repeat for parent and teacher. Keep reports with the migration
 record, repair all unresolved rows, review field visibility in Settings, then
-exercise old-client and new-form workflows before any storage retirement.
+exercise old-client and new-form workflows before any storage retirement. Add `--files` to validate/copy legacy attachments
+using the [private-file migration rules](profile-legacy-files.md). Public source
+objects remain in place pending the separate compatibility/retirement transition.
