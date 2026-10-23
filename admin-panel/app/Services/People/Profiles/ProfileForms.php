@@ -47,7 +47,7 @@ class ProfileForms
                 $rows[] = ['id' => (int) $field->id, 'key' => $field->key, 'label' => __($field->label), 'type' => $field->type,
                     'validation' => (object) $this->validationFor($field), 'options' => $field->options, 'required' => $field->required, 'locked' => $field->platform_locked,
                     'editable' => $this->policy->field($context, $field, write: true), 'sensitive' => $field->sensitive,
-                    'value' => $this->wireValue($field->type, $this->read($context['person'], $field, $values->get($field->id)))];
+                    'value' => $this->wireValue($field, $this->read($context['person'], $field, $values->get($field->id)), $context['person'])];
             }
             $categories[] = ['id' => (int) $category->id, 'key' => $category->key, 'label' => __($category->label), 'fields' => $rows];
         }
@@ -55,13 +55,17 @@ class ProfileForms
         return ['person_id' => (int) $person->id, 'profile_type' => $profile, 'available_profiles' => $this->policy->types($context['person']), 'categories' => $categories];
     }
 
-    private function wireValue(string $type, mixed $value): ?array
+    private function wireValue(ProfileFieldDefinition $field, mixed $value, User $person): ?array
     {
         if ($value === null) {
             return null;
         }
 
-        return match ($type) {
+        if ($field->type === 'file') {
+            return ['file' => app(ProfileFiles::class)->metadata($person, $field, (string) $value)];
+        }
+
+        return match ($field->type) {
             'boolean' => ['flag' => (bool) $value],
             'checkbox' => ['choices' => $value],
             default => ['text' => (string) $value],
@@ -167,7 +171,11 @@ class ProfileForms
     {
         $validation = $this->validationFor($field);
         $rules = [$field->required ? 'required' : 'nullable'];
-        if ($field->type === 'checkbox') {
+        if ($field->type === 'file') {
+            if ($value !== null) {
+                throw ValidationException::withMessages(['values.'.$field->key => 'Upload this file through the authorised file action.']);
+            }
+        } elseif ($field->type === 'checkbox') {
             $rules = array_merge($rules, ['array', 'max:100']);
             $extra = ['value.*' => ['string', 'distinct', Rule::in($field->options)]];
         } elseif ($field->type === 'boolean') {
@@ -206,7 +214,7 @@ class ProfileForms
         $validator = Validator::make(['value' => $value], ['value' => $rules] + ($extra ?? []), attributes: ['value' => __($field->label)]);
         if ($validator->fails()) {
             $member = match ($field->type) {
-                'checkbox' => 'choices', 'boolean' => 'flag', default => 'text',
+                'checkbox' => 'choices', 'boolean' => 'flag', 'file' => 'clear', default => 'text',
             };
             throw ValidationException::withMessages(['values.'.$field->key.'.'.$member => $validator->errors()->all()]);
         }

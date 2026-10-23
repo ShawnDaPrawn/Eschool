@@ -52,6 +52,7 @@ lib/src/model/notification_rule.dart
 lib/src/model/notification_type_preference.dart
 lib/src/model/notification_type_preference_channels.dart
 lib/src/model/pagination.dart
+lib/src/model/profile_attachment.dart
 lib/src/model/profile_category_definition.dart
 lib/src/model/profile_category_response.dart
 lib/src/model/profile_configuration_response.dart

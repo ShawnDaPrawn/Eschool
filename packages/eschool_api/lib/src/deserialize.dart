@@ -41,6 +41,7 @@ import 'package:eschool_api/src/model/notification_rule.dart';
 import 'package:eschool_api/src/model/notification_type_preference.dart';
 import 'package:eschool_api/src/model/notification_type_preference_channels.dart';
 import 'package:eschool_api/src/model/pagination.dart';
+import 'package:eschool_api/src/model/profile_attachment.dart';
 import 'package:eschool_api/src/model/profile_category_definition.dart';
 import 'package:eschool_api/src/model/profile_category_response.dart';
 import 'package:eschool_api/src/model/profile_configuration_response.dart';
@@ -237,6 +238,9 @@ ReturnType deserialize<ReturnType, BaseType>(
           as ReturnType;
     case 'Pagination':
       return Pagination.fromJson(value as Map<String, dynamic>) as ReturnType;
+    case 'ProfileAttachment':
+      return ProfileAttachment.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
     case 'ProfileCategoryDefinition':
       return ProfileCategoryDefinition.fromJson(value as Map<String, dynamic>)
           as ReturnType;

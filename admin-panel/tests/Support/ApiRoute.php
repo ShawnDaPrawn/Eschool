@@ -91,10 +91,10 @@ final readonly class ApiRoute
         return str_starts_with($this->uri, 'api/v2/');
     }
 
-    /** A path to request: route parameters filled with 1. */
+    /** Numeric IDs use 1; profile field keys must also satisfy their route constraint. */
     public function path(): string
     {
-        return '/'.preg_replace('/\{[^}]+\}/', '1', $this->uri);
+        return '/'.preg_replace('/\{[^}]+\}/', '1', str_replace('{field}', 'test_field', $this->uri));
     }
 
     public function requiresAuthentication(): bool

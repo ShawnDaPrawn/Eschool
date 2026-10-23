@@ -73,6 +73,40 @@ void main() {
     });
   });
 
+  test(
+    'authenticated asset bytes preserve school scope and unauthorized handling',
+    () async {
+      useServer(
+        (_) async => ResponseBody.fromBytes(
+          [37, 80, 68, 70],
+          200,
+          headers: {
+            Headers.contentTypeHeader: ['application/pdf'],
+          },
+        ),
+      );
+      expect(
+        await client.getBytes(
+          url: 'https://school.test/protected/file',
+          schoolId: 2,
+        ),
+        [37, 80, 68, 70],
+      );
+      expect(adapter.requests.single.headers['X-School-Id'], '2');
+      expect(
+        adapter.requests.single.headers['Authorization'],
+        'Bearer secret-token',
+      );
+      useServer(
+        (_) async => _json({'message': 'Unauthenticated'}, status: 401),
+      );
+      await failure(
+        client.getBytes(url: 'https://school.test/protected/file', schoolId: 2),
+      );
+      expect(unauthorizedCalls, 1);
+    },
+  );
+
   group('post', () {
     test(
       'returns the response and sends the token only when asked to',

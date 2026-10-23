@@ -190,6 +190,32 @@ class ApiClient {
     }
   }
 
+  /// Reads an authenticated asset into memory, with explicit school scope.
+  Future<Uint8List> getBytes({required String url, int? schoolId}) async {
+    try {
+      final response = await _createDio().get<List<int>>(
+        url,
+        options: Options(
+          responseType: ResponseType.bytes,
+          headers: {
+            ...headers(),
+            if (schoolId != null) 'X-School-Id': '$schoolId',
+          },
+        ),
+      );
+      if (response.data == null) {
+        throw ApiException(ApiErrorCodes.defaultErrorMessageKey);
+      }
+      return Uint8List.fromList(response.data!);
+    } on DioException catch (error) {
+      throw _fromDioException(error);
+    } on ApiException {
+      rethrow;
+    } catch (_) {
+      throw ApiException(ApiErrorCodes.defaultErrorMessageKey);
+    }
+  }
+
   Future<void> download({
     required String url,
     required CancelToken cancelToken,

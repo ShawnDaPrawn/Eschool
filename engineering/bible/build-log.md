@@ -128,3 +128,16 @@ permitted export after all 26 checks passed. The final backend job passed
 906 tests with 11,667 assertions; both Android suites, browser/accessibility
 and Chrome flows passed. Profile audits explicitly record the selected school.
 Legacy migration/files and broader Phase 1 implementation remain outstanding.
+
+Private profile-file fields extend the same form metadata with encrypted
+PDF/PNG/JPEG storage, per-read person/field authority, stale-link revocation and
+authenticated in-memory app previews. Panel uploads preserve other unsaved
+profile values. Focused contract/access/rollback tests, shared app tests and the
+panel browser flow accompany the change. Legacy public-file migration,
+retention and external acceptance remain separate work; final regression and
+PR checks are recorded in the feature self-test.
+
+PR #77 merged My school contacts, branding, publications and term dates after
+all 27 checks passed, including 924 backend tests and both Android suites.
+Private files are tracked in #78; legacy migration, pictures and the remaining
+Phase 1 closeout items remain separate implementation work.

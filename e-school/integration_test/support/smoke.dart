@@ -10,6 +10,16 @@ import 'package:hive_flutter/hive_flutter.dart';
 
 bool _prepared = false;
 
+/// Share platform setup between standalone screen and full-app scenarios in
+/// this test isolate. The native TeX localhost server must only start once.
+Future<void> prepareSmokeApp() async {
+  NotificationUtility.enabled = false;
+  if (!_prepared) {
+    await prepareApp(useFirebase: false);
+    _prepared = true;
+  }
+}
+
 /// Starts the app signed out, against a [FakeApi] answering from [routes]:
 /// no server, no Firebase, no push. Works on a phone and in Chrome.
 Future<FakeApi> startSmokeApp(
@@ -18,11 +28,7 @@ Future<FakeApi> startSmokeApp(
 ) async {
   final FakeApi api = FakeApi(routes: routes);
   Api.debugCreateDio = () => Dio()..httpClientAdapter = api;
-  NotificationUtility.enabled = false;
-  if (!_prepared) {
-    await prepareApp(useFirebase: false);
-    _prepared = true;
-  }
+  await prepareSmokeApp();
   // Whatever an earlier flow left on this device: start signed out.
   for (final String box in [authBoxKey, settingsBoxKey, showCaseBoxKey]) {
     await Hive.box(box).clear();

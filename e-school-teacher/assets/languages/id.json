@@ -521,5 +521,9 @@
   "profileType_teacher": "Teacher",
   "profileType_facilitator": "Facilitator",
   "profileType_counsellor": "Counsellor",
-  "profileType_staff": "Staff"
+  "profileType_staff": "Staff",
+  "profileFileUpload": "Unggah atau ganti berkas",
+  "profileFileView": "Lihat berkas",
+  "profileFileClear": "Hapus berkas saat menyimpan",
+  "profileFileLimit": "PDF, PNG atau JPEG, hingga 5 MB."
 }

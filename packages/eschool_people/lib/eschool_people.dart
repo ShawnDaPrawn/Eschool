@@ -23,3 +23,5 @@ export 'src/my_school/my_school_screen.dart';
 export 'src/profile/profile_repository.dart';
 export 'src/profile/profile_cubit.dart';
 export 'src/profile/profile_screen.dart';
+
+export 'src/profile/profile_file_field.dart' show ProfileFilePicker;

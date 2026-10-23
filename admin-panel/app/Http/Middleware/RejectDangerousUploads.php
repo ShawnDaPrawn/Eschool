@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Middleware;
 
+use App\Exceptions\ApiV2ExceptionRenderer;
 use App\Services\Platform\Files\FileNames;
 use Closure;
 use enshrined\svgSanitize\Sanitizer;
@@ -65,6 +66,9 @@ class RejectDangerousUploads
             };
 
             if ($message !== null) {
+                if ($request->is('api/v2/*')) {
+                    return ApiV2ExceptionRenderer::envelope(422, $message);
+                }
                 if ($request->is('api/*') || $request->expectsJson() || $request->ajax()) {
                     return response()->json(['error' => true, 'message' => $message, 'code' => 102], 422);
                 }

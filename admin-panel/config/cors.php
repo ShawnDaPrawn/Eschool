@@ -44,7 +44,7 @@ if ($configured !== '') {
 
 return [
 
-    'paths' => ['api/*', 'sanctum/csrf-cookie'],
+    'paths' => ['api/*', 'sanctum/csrf-cookie', 'protected/profile-files/*'],
 
     'allowed_methods' => ['*'],
 

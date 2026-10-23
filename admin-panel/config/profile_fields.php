@@ -19,7 +19,7 @@ $staff = [
 return [
     'types' => ['learner', 'parent', 'teacher', 'facilitator', 'counsellor', 'staff'],
     'roles' => ['owner', 'guardian', 'school_admin', 'teacher', 'facilitator', 'counsellor'],
-    'field_types' => ['text', 'number', 'date', 'dropdown', 'radio', 'checkbox', 'textarea', 'boolean'],
+    'field_types' => ['text', 'number', 'date', 'dropdown', 'radio', 'checkbox', 'textarea', 'boolean', 'file'],
     'defaults' => [
         'learner' => [
             'identity' => ['label' => 'Identity', 'fields' => $identity + [

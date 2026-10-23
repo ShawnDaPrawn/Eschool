@@ -1,6 +1,7 @@
 import 'package:eschool_core/eschool_core.dart';
 import 'package:eschool_people/src/common/people_widgets.dart';
 import 'package:eschool_people/src/profile/profile_cubit.dart';
+import 'package:eschool_people/src/profile/profile_file_field.dart';
 import 'package:eschool_people/src/profile/profile_repository.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -9,18 +10,25 @@ class ProfileScreen extends StatelessWidget {
   const ProfileScreen({
     this.subjects = const [ProfileSubject()],
     this.onSaved,
+    this.pickFile = pickProfileFile,
     super.key,
   });
   final List<ProfileSubject> subjects;
   final VoidCallback? onSaved;
+  final ProfileFilePicker pickFile;
 
   static Widget withRepository(
     ProfileRepository repository, {
     List<ProfileSubject> subjects = const [ProfileSubject()],
     VoidCallback? onSaved,
+    ProfileFilePicker pickFile = pickProfileFile,
   }) => BlocProvider(
     create: (_) => ProfileCubit(repository)..load(subjects.first),
-    child: ProfileScreen(subjects: subjects, onSaved: onSaved),
+    child: ProfileScreen(
+      subjects: subjects,
+      onSaved: onSaved,
+      pickFile: pickFile,
+    ),
   );
 
   Future<bool> discard(BuildContext context, ProfileState state) async {
@@ -153,7 +161,11 @@ class ProfileScreen extends StatelessWidget {
                   ),
                 ),
               if (state.form != null)
-                _ProfileFields(key: ValueKey(state.revision), state: state),
+                _ProfileFields(
+                  key: ValueKey(state.revision),
+                  state: state,
+                  pickFile: pickFile,
+                ),
             ],
           );
         },
@@ -163,7 +175,12 @@ class ProfileScreen extends StatelessWidget {
 }
 
 class _ProfileFields extends StatefulWidget {
-  const _ProfileFields({required this.state, super.key});
+  const _ProfileFields({
+    required this.state,
+    required this.pickFile,
+    super.key,
+  });
+  final ProfileFilePicker pickFile;
   final ProfileState state;
   @override
   State<_ProfileFields> createState() => _ProfileFieldsState();
@@ -210,6 +227,14 @@ class _ProfileFieldsState extends State<_ProfileFields> {
   }
 
   Widget field(ProfileFormField field) {
+    if (field.type == 'file') {
+      return ProfileFileField(
+        field: field,
+        state: widget.state,
+        cubit: context.read<ProfileCubit>(),
+        pickFile: widget.pickFile,
+      );
+    }
     final current = value(field);
     if (!field.editable ||
         ![

@@ -449,3 +449,16 @@ write transaction. School policy PDFs are explicitly published public files
 with random school-prefixed paths; unlisting removes the listing and preserves
 shared URLs. This publishing boundary must not be reused for private person
 files. The API never accepts a storage path or arbitrary document URL.
+
+## Private profile attachments
+
+Profile files use the existing private storage mount, with encrypted bytes and
+encrypted original names. The database stores school, person, definition and
+opaque identity; audits omit names, paths and contents. Protected asset routes
+recheck active school/person/field authority and the current value reference.
+Changing a path or file ID in a write cannot grant access. Sensitive files stay
+unavailable during support impersonation. Replaced/cleared/hidden/deleted field
+links are refused. Responses use private/no-store, no-sniff and sandbox headers.
+The shared viewer reads authenticated bytes in memory and evicts its image when
+closed. Retain APP_KEY with metadata and ciphertext backups. This addition does
+not migrate old public profile files or claim general retention is complete.

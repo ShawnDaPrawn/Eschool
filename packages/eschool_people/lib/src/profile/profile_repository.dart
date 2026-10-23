@@ -1,10 +1,12 @@
+import 'dart:typed_data';
+import 'package:dio/dio.dart';
 import 'package:eschool_api/eschool_api.dart';
 import 'package:eschool_core/eschool_core.dart';
 import 'package:equatable/equatable.dart';
 import 'package:eschool_people/src/common/learner_summary.dart';
 
 export 'package:eschool_api/eschool_api.dart'
-    show ProfileForm, ProfileFormField, ProfileValue;
+    show ProfileForm, ProfileFormField, ProfileValue, ProfileAttachment;
 
 class ProfileSubject extends Equatable {
   const ProfileSubject({
@@ -30,7 +32,23 @@ abstract interface class ProfileRepository {
   );
 }
 
-class ApiProfileRepository implements ProfileRepository {
+class ProfileUpload {
+  const ProfileUpload(this.name, this.bytes);
+  final String name;
+  final Uint8List bytes;
+}
+
+abstract interface class ProfileFileRepository {
+  Future<void> upload(
+    ProfileSubject subject,
+    String profileType,
+    String field,
+    ProfileUpload file,
+  );
+  Future<Uint8List> readFile(ProfileSubject subject, ProfileAttachment file);
+}
+
+class ApiProfileRepository implements ProfileRepository, ProfileFileRepository {
   ApiProfileRepository(this.client);
   final ApiClient client;
   String url(ProfileSubject subject) =>
@@ -68,6 +86,42 @@ class ApiProfileRepository implements ProfileRepository {
         'profile_type': profileType,
         'values': values.map((key, value) => MapEntry(key, value.toJson())),
       },
+    );
+  }
+
+  @override
+  Future<void> upload(
+    ProfileSubject subject,
+    String profileType,
+    String field,
+    ProfileUpload file,
+  ) async {
+    if (!RegExp(r'^[a-z][a-z0-9_]*$').hasMatch(field)) {
+      throw ApiException(ApiErrorCodes.defaultErrorMessageKey);
+    }
+    await client.send(
+      method: 'POST',
+      url: '${url(subject)}/fields/$field/file',
+      schoolId: subject.schoolId,
+      data: FormData.fromMap({
+        'profile_type': profileType,
+        'document': MultipartFile.fromBytes(file.bytes, filename: file.name),
+      }),
+    );
+  }
+
+  @override
+  Future<Uint8List> readFile(ProfileSubject subject, ProfileAttachment file) {
+    // Never attach credentials to a URL supplied by profile metadata.
+    if (!RegExp(r'^[0-9a-f-]{36}\.(pdf|png|jpg)$').hasMatch(file.id)) {
+      throw ApiException(ApiErrorCodes.defaultErrorMessageKey);
+    }
+    final person = subject.personId == null
+        ? 'me'
+        : 'people/${subject.personId}';
+    return client.getBytes(
+      url: '${AppConfig.apiBaseUrl}/protected/profile-files/$person/${file.id}',
+      schoolId: subject.schoolId,
     );
   }
 }
