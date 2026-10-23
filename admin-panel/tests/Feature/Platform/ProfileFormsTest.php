@@ -52,7 +52,7 @@ class ProfileFormsTest extends TestCase
     public function test_a_new_transport_field_immediately_appears_in_the_authorised_form(): void
     {
         $this->customField();
-        $answer = $this->ownProfile()->assertOk();
+        $answer = $this->ownProfile()->assertOk()->assertHeader('Cache-Control', 'no-store, private');
         $fields = collect($answer->json('data.categories'))->pluck('fields')->flatten(1);
         $this->assertSame('Transport route', $fields->firstWhere('key', 'transport_route')['label']);
         $this->assertNull($fields->firstWhere('key', 'transport_route')['value']);

@@ -21,7 +21,8 @@ class ProfileController extends Controller
         $type = $request->validated('profile_type') ?? (app(ProfilePolicy::class)->types($subject)[0] ?? 'staff');
         Gate::authorize('profile.view', [$subject, $type]);
 
-        return ResponseService::successResponse('data_fetch_successfully', $forms->schema($request->user(), $subject, $type));
+        return ResponseService::successResponse('data_fetch_successfully', $forms->schema($request->user(), $subject, $type))
+            ->header('Cache-Control', 'private, no-store');
     }
 
     public function update(ProfileRequest $request, ProfileForms $forms, ?int $person = null): JsonResponse
