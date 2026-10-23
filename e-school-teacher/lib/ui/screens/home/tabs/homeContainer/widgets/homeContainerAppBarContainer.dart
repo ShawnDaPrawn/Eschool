@@ -94,9 +94,8 @@ class HomeContainerAppBarContainer extends StatelessWidget {
                   padding: const EdgeInsets.only(right: 20, bottom: 20),
                   decoration: BoxDecoration(
                     border: Border.all(
-                      color: Theme.of(
-                        context,
-                      ).colorScheme.onInverseSurface.withValues(alpha: 0.1),
+                      color: Theme.of(context).colorScheme.onInverseSurface
+                          .withValues(alpha: 0.1),
                     ),
                     shape: BoxShape.circle,
                   ),
@@ -105,9 +104,8 @@ class HomeContainerAppBarContainer extends StatelessWidget {
                   child: Container(
                     decoration: BoxDecoration(
                       border: Border.all(
-                        color: Theme.of(
-                          context,
-                        ).colorScheme.onInverseSurface.withValues(alpha: 0.1),
+                        color: Theme.of(context).colorScheme.onInverseSurface
+                            .withValues(alpha: 0.1),
                       ),
                       shape: BoxShape.circle,
                     ),
@@ -121,9 +119,8 @@ class HomeContainerAppBarContainer extends StatelessWidget {
                 end: MediaQuery.sizeOf(context).width * (-0.15),
                 child: Container(
                   decoration: BoxDecoration(
-                    color: Theme.of(
-                      context,
-                    ).colorScheme.onInverseSurface.withValues(alpha: 0.1),
+                    color: Theme.of(context).colorScheme.onInverseSurface
+                        .withValues(alpha: 0.1),
                     shape: BoxShape.circle,
                   ),
                   width: MediaQuery.sizeOf(context).width * 0.4,
@@ -146,9 +143,9 @@ class HomeContainerAppBarContainer extends StatelessWidget {
                           shape: BoxShape.circle,
                           border: Border.all(
                             width: 2,
-                            color: Theme.of(
-                              context,
-                            ).colorScheme.onInverseSurface,
+                            color: Theme.of(context)
+                                .colorScheme
+                                .onInverseSurface,
                           ),
                         ),
                         width: boxConstraints.maxWidth * 0.175,
@@ -176,9 +173,9 @@ class HomeContainerAppBarContainer extends StatelessWidget {
                               style: TextStyle(
                                 fontSize: 18,
                                 fontWeight: FontWeight.w500,
-                                color: Theme.of(
-                                  context,
-                                ).colorScheme.onInverseSurface,
+                                color: Theme.of(context)
+                                    .colorScheme
+                                    .onInverseSurface,
                               ),
                             ),
                           ],
@@ -188,7 +185,10 @@ class HomeContainerAppBarContainer extends StatelessWidget {
                       const SchoolSwitcherButton(
                         onSwitched: returnHomeAfterSchoolSwitch,
                       ),
-                      _buildChatIcon(context),
+                      ModuleVisibility(
+                        module: 'chat',
+                        child: _buildChatIcon(context),
+                      ),
                     ],
                   ),
                 ),

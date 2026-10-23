@@ -1,3 +1,4 @@
+import 'package:eschool_session/eschool_session.dart';
 import 'package:eschool/app/routeArguments.dart';
 import 'package:eschool/app/routes.dart';
 import 'package:eschool/cubits/appConfigurationCubit.dart';
@@ -180,9 +181,8 @@ class FeesDetailsScreenState extends State<FeesDetailsScreen> {
                       ),
                       child: InkWell(
                         onTap: () {
-                          Navigator.of(
-                            context,
-                          ).pushNamed(Routes.feesTransaction);
+                          Navigator.of(context)
+                              .pushNamed(Routes.feesTransaction);
                         },
                         child: Icon(
                           Icons.history,
@@ -773,9 +773,8 @@ class FeesDetailsScreenState extends State<FeesDetailsScreen> {
             switch (selectedPayment) {
               case 'stripe':
                 paymentWithStripe(
-                  amountToPay: double.parse(
-                    amount.toStringAsFixed(2),
-                  ).toString(),
+                  amountToPay: double.parse(amount.toStringAsFixed(2))
+                      .toString(),
                   clientSecret: clientSecret,
                   paymentIntentId: paymentIntentId,
                 );
@@ -1009,7 +1008,12 @@ class FeesDetailsScreenState extends State<FeesDetailsScreen> {
               isCheckboxRequired: false,
               id: 0,
             ),
-          if (!(allFeesPaid || thereAreNoFees)) setPayNowBtn(childFees),
+          if (!(allFeesPaid || thereAreNoFees))
+            ModuleVisibility(
+              module: 'fees',
+              write: true,
+              child: setPayNowBtn(childFees),
+            ),
           if (((isPayAsInstallment && totalPaidInstallments > 0) ||
                   isCompulsoryFullyPaid) &&
               widget.isStudentPaying &&

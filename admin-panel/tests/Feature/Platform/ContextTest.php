@@ -62,13 +62,13 @@ class ContextTest extends TestCase
                 'id' => $this->school->ids['semester'], 'name' => 'Term 1',
                 'start_date' => $this->school->today(-120)->toDateString(), 'end_date' => $this->school->today(60)->toDateString(), 'current' => true,
             ]])
-            ->assertJsonPath('data.modules', [])
+            ->assertJsonPath('data.modules.0.key', 'school')
             ->assertJsonPath('data.notification_rules', [])
             ->assertJsonPath('data.sign_in_methods', ['password'])
             ->assertJsonPath('data.children', []);
 
         // An object, not a list, even when there are no flags.
-        $this->assertStringContainsString('"feature_flags":{}', $response->getContent());
+        $response->assertJsonPath('data.feature_flags.module_switches', true);
     }
 
     public function test_a_parent_gets_their_own_children_each_with_their_school(): void
@@ -157,8 +157,9 @@ class ContextTest extends TestCase
         $teacher = $this->queriesFor('tara');
 
         $this->assertSame($oneChild, $twoChildren, 'The number of queries grows with the number of children');
-        $this->assertLessThanOrEqual(11, $twoChildren, "A parent's context takes $twoChildren queries, more than budgeted");
-        $this->assertLessThanOrEqual(8, $teacher, "A teacher's context takes $teacher queries, more than budgeted");
+        // One additional fixed query loads the school's module switches.
+        $this->assertLessThanOrEqual(12, $twoChildren, "A parent's context takes $twoChildren queries, more than budgeted");
+        $this->assertLessThanOrEqual(9, $teacher, "A teacher's context takes $teacher queries, more than budgeted");
     }
 
     private function queriesFor(string $person): int

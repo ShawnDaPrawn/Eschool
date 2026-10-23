@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Services\Platform\Identity;
 
 use App\Models\User;
+use App\Services\Platform\Modules\ModuleGate;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Laravel\Sanctum\Http\Middleware\EnsureFrontendRequestsAreStateful;
@@ -50,6 +51,13 @@ final class PortalSession
         if (! self::isPortal($request)) {
             return AppTokens::issue($user, $app);
         }
+
+        $portal = match ($app) {
+            AppTokens::PARENT => 'parent',
+            AppTokens::TEACHER => 'teacher',
+            default => 'learner',
+        };
+        abort_unless(app(ModuleGate::class)->allows('web_'.$portal), 403, 'Web access is unavailable at this school.');
 
         Auth::guard('web')->login($user);
         $request->session()->regenerate();

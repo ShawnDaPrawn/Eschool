@@ -21,6 +21,7 @@ export 'src/context/me_context.dart';
 export 'src/context/me_context_cubit.dart';
 export 'src/context/me_context_refresher.dart';
 export 'src/context/me_context_repository.dart';
+export 'src/modules/module_access.dart';
 export 'src/deep_links/deep_link_coordinator.dart';
 export 'src/deep_links/deep_link_parser.dart';
 export 'src/deep_links/push_link.dart';

@@ -126,9 +126,8 @@ class _ParentHomeScreenState extends State<ParentHomeScreen>
                     ),
                     decoration: BoxDecoration(
                       border: Border.all(
-                        color: Theme.of(
-                          context,
-                        ).colorScheme.onInverseSurface.withValues(alpha: 0.1),
+                        color: Theme.of(context).colorScheme.onInverseSurface
+                            .withValues(alpha: 0.1),
                       ),
                       shape: BoxShape.circle,
                     ),
@@ -137,9 +136,8 @@ class _ParentHomeScreenState extends State<ParentHomeScreen>
                     child: Container(
                       decoration: BoxDecoration(
                         border: Border.all(
-                          color: Theme.of(
-                            context,
-                          ).colorScheme.onInverseSurface.withValues(alpha: 0.1),
+                          color: Theme.of(context).colorScheme.onInverseSurface
+                              .withValues(alpha: 0.1),
                         ),
                         shape: BoxShape.circle,
                       ),
@@ -153,9 +151,8 @@ class _ParentHomeScreenState extends State<ParentHomeScreen>
                   end: MediaQuery.sizeOf(context).width * (-0.15),
                   child: Container(
                     decoration: BoxDecoration(
-                      color: Theme.of(
-                        context,
-                      ).colorScheme.onInverseSurface.withValues(alpha: 0.1),
+                      color: Theme.of(context).colorScheme.onInverseSurface
+                          .withValues(alpha: 0.1),
                       shape: BoxShape.circle,
                     ),
                     width: MediaQuery.sizeOf(context).width * 0.4,
@@ -174,9 +171,8 @@ class _ParentHomeScreenState extends State<ParentHomeScreen>
                       children: [
                         BorderedProfilePictureContainer(
                           onTap: () {
-                            Navigator.of(
-                              context,
-                            ).pushNamed(Routes.parentProfile);
+                            Navigator.of(context)
+                                .pushNamed(Routes.parentProfile);
                           },
                           boxConstraints: boxConstraints,
                           imageUrl: context
@@ -203,9 +199,9 @@ class _ParentHomeScreenState extends State<ParentHomeScreen>
                                     style: TextStyle(
                                       fontSize: 18,
                                       fontWeight: FontWeight.w500,
-                                      color: Theme.of(
-                                        context,
-                                      ).colorScheme.onInverseSurface,
+                                      color: Theme.of(context)
+                                          .colorScheme
+                                          .onInverseSurface,
                                     ),
                                   ),
                                   Text(
@@ -218,9 +214,9 @@ class _ParentHomeScreenState extends State<ParentHomeScreen>
                                     style: TextStyle(
                                       fontSize: 12,
                                       fontWeight: FontWeight.w400,
-                                      color: Theme.of(
-                                        context,
-                                      ).colorScheme.onInverseSurface,
+                                      color: Theme.of(context)
+                                          .colorScheme
+                                          .onInverseSurface,
                                     ),
                                   ),
                                 ],
@@ -259,7 +255,12 @@ class _ParentHomeScreenState extends State<ParentHomeScreen>
   }) {
     final bool isCompulsoryFeePaymentAndDuePayment =
         context.read<AppConfigurationCubit>().isCompulsoryFeePaymentMode() &&
-        student.isFeePaymentDue;
+        student.isFeePaymentDue &&
+        allowsSchoolModule(
+          context.watch<MeContextCubit>().state.context,
+          'fees',
+          write: true,
+        );
     //each child's school, when the server says (children at two schools)
     final String schoolName = context
         .watch<ChildSelectionCubit>()
@@ -319,9 +320,9 @@ class _ParentHomeScreenState extends State<ParentHomeScreen>
                               heightAndWidthPercentage: 0.35,
                               boxConstraints: boxConstraints,
                               imageUrl: student.image,
-                              borderColor: Theme.of(
-                                context,
-                              ).colorScheme.onPrimary,
+                              borderColor: Theme.of(context)
+                                  .colorScheme
+                                  .onPrimary,
                             ),
                           ),
                           const SizedBox(height: 5),
@@ -374,9 +375,9 @@ class _ParentHomeScreenState extends State<ParentHomeScreen>
                               style: TextStyle(
                                 color: Theme.of(context).colorScheme.onPrimary,
                                 decoration: TextDecoration.underline,
-                                decorationColor: Theme.of(
-                                  context,
-                                ).colorScheme.onPrimary,
+                                decorationColor: Theme.of(context)
+                                    .colorScheme
+                                    .onPrimary,
                                 fontWeight: FontWeight.w600,
                                 fontSize: 12,
                               ),
@@ -397,9 +398,8 @@ class _ParentHomeScreenState extends State<ParentHomeScreen>
                       decoration: BoxDecoration(
                         boxShadow: [
                           BoxShadow(
-                            color: Theme.of(
-                              context,
-                            ).colorScheme.shadow.withValues(alpha: 0.3),
+                            color: Theme.of(context).colorScheme.shadow
+                                .withValues(alpha: 0.3),
                             offset: const Offset(0, 5),
                             blurRadius: 20,
                           ),
@@ -543,9 +543,8 @@ class _ParentHomeScreenState extends State<ParentHomeScreen>
     return FloatingActionButton(
       backgroundColor: Theme.of(context).colorScheme.primary,
       onPressed: () {
-        Navigator.of(
-          context,
-        ).push(AdaptivePageRoute(builder: (_) => const ChatUsersScreen()));
+        Navigator.of(context)
+            .push(AdaptivePageRoute(builder: (_) => const ChatUsersScreen()));
       },
       child: BlocBuilder<ChatUsersCubit, ChatUsersState>(
         builder: (context, state) {
@@ -659,12 +658,18 @@ class _ParentHomeScreenState extends State<ParentHomeScreen>
                 if (snaphsot.hasData) {
                   return (snaphsot.data ?? false)
                       ? const SizedBox()
-                      : _buildChatFloatingActionButton();
+                      : ModuleVisibility(
+                          module: 'chat',
+                          child: _buildChatFloatingActionButton(),
+                        );
                 }
                 return const SizedBox();
               },
             )
-          : _buildChatFloatingActionButton(),
+          : ModuleVisibility(
+              module: 'chat',
+              child: _buildChatFloatingActionButton(),
+            ),
       body: context.read<AppConfigurationCubit>().appUnderMaintenance()
           ? const AppUnderMaintenanceContainer()
           : BlocListener<UserProfileCubit, UserProfileState>(

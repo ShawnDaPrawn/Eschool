@@ -12,6 +12,7 @@ use App\Http\Middleware\EndRefusedPortalSignIn;
 use App\Http\Middleware\EnforcePasswordChange;
 use App\Http\Middleware\EnsureDefaultSchool;
 use App\Http\Middleware\EnsureLearnerApproved;
+use App\Http\Middleware\EnsureModuleEnabled;
 use App\Http\Middleware\EnsureParentChildrenSessionIsActive;
 use App\Http\Middleware\EnsureStudentSessionIsActive;
 use App\Http\Middleware\EnsureTeacherActive;
@@ -29,6 +30,7 @@ use App\Http\Middleware\ResetSchoolContext;
 use App\Http\Middleware\SecurityHeaders;
 use App\Http\Middleware\SetSchoolContext;
 use App\Providers\ObservabilityServiceProvider;
+use App\Services\Platform\Modules\ModuleRoutes;
 use dacoto\LaravelWizardInstaller\LaravelWizardInstallerServiceProvider;
 use dacoto\LaravelWizardInstaller\Middleware\InstallerMiddleware;
 use dacoto\LaravelWizardInstaller\Middleware\ToInstallMiddleware;
@@ -62,7 +64,10 @@ return Application::configure(basePath: dirname(__DIR__))
         commands: __DIR__.'/../routes/console.php',
         health: '/up',
         // API v2: same "api" middleware group as v1, under /api/v2.
-        then: fn () => Route::middleware('api')->prefix('api/v2')->group(__DIR__.'/../routes/api_v2.php'),
+        then: function () {
+            Route::middleware('api')->prefix('api/v2')->group(__DIR__.'/../routes/api_v2.php');
+            ModuleRoutes::apply(Route::getRoutes());
+        },
     )
     ->withMiddleware(function (Middleware $middleware): void {
 
@@ -99,6 +104,7 @@ return Application::configure(basePath: dirname(__DIR__))
         // The school is chosen right after authentication, before route model
         // binding or anything else reads school-owned rows.
         $middleware->prependToPriorityList(before: SubstituteBindings::class, prepend: SetSchoolContext::class);
+        $middleware->appendToPriorityList(after: SetSchoolContext::class, append: EnsureModuleEnabled::class);
         $middleware->append(SecurityHeaders::class);
         $middleware->append(LimitRequestInput::class);
 
@@ -152,6 +158,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'auth.basic' => AuthenticateWithBasicAuth::class,
             'student.session.active' => EnsureStudentSessionIsActive::class,
             'learner.approved' => EnsureLearnerApproved::class,
+            'module' => EnsureModuleEnabled::class,
             'parent.children.session.active' => EnsureParentChildrenSessionIsActive::class,
             'parent.policy' => RequireParentPolicyAcceptance::class,
             'teacher.policy' => RequireParentPolicyAcceptance::class,

@@ -1,3 +1,4 @@
+import 'package:eschool_session/eschool_session.dart';
 import 'package:eschool/cubits/appConfigurationCubit.dart';
 import 'package:eschool/cubits/authCubit.dart';
 import 'package:eschool/cubits/examTabSelectionCubit.dart';
@@ -137,16 +138,19 @@ class _ExamContainerState extends State<ExamContainer> {
                 },
                 titleKey: offlineKey,
               ),
-              CustomTabBarContainer(
-                boxConstraints: boxConstraints,
-                alignment: AlignmentDirectional.centerEnd,
-                isSelected: currentState.examFilterTabTitle == onlineKey,
-                onTap: () {
-                  context
-                      .read<ExamTabSelectionCubit>()
-                      .changeExamFilterTabTitle(onlineKey);
-                },
-                titleKey: onlineKey,
+              ModuleVisibility(
+                module: 'online_exams',
+                child: CustomTabBarContainer(
+                  boxConstraints: boxConstraints,
+                  alignment: AlignmentDirectional.centerEnd,
+                  isSelected: currentState.examFilterTabTitle == onlineKey,
+                  onTap: () {
+                    context
+                        .read<ExamTabSelectionCubit>()
+                        .changeExamFilterTabTitle(onlineKey);
+                  },
+                  titleKey: onlineKey,
+                ),
               ),
             ],
           );
@@ -161,7 +165,11 @@ class _ExamContainerState extends State<ExamContainer> {
       builder: (context, state) {
         return Stack(
           children: [
-            context.read<ExamTabSelectionCubit>().isExamOnline()
+            context.read<ExamTabSelectionCubit>().isExamOnline() &&
+                    allowsSchoolModule(
+                      context.watch<MeContextCubit>().state.context,
+                      'online_exams',
+                    )
                 ? ExamOnlineListContainer(
                     childId: widget.childId,
                     subjects: widget.subjects,

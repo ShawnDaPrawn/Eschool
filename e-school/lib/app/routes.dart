@@ -1,3 +1,4 @@
+import 'package:eschool_session/eschool_session.dart';
 import 'package:eschool_core/eschool_core.dart';
 import 'package:eschool/app/deepLinks.dart';
 import 'package:eschool/app/sharedScreens.dart';
@@ -153,6 +154,28 @@ class Routes {
   static String currentRoute = splash;
 
   static Route<dynamic> onGenerateRouted(RouteSettings routeSettings) {
+    final route = _buildRoute(routeSettings);
+    final module = switch (routeSettings.name) {
+      chatMessages || chatUserProfile || chatUserSearch => 'chat',
+      examOnline || resultOnline => 'online_exams',
+      childFees ||
+      feesDetails ||
+      feesTransaction ||
+      paymentVerify ||
+      studentFeePaymentDueScreen ||
+      webViewPaymentScreen => 'fees',
+      _ => null,
+    };
+    return module == null
+        ? route
+        : guardModuleRoute(
+            route,
+            module,
+            write: routeSettings.name == webViewPaymentScreen,
+          );
+  }
+
+  static Route<dynamic> _buildRoute(RouteSettings routeSettings) {
     currentRoute = routeSettings.name ?? '';
 
     //a link that opened the app, or came before sign-in, opens over home

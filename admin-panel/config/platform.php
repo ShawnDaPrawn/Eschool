@@ -1,5 +1,7 @@
 <?php
 
+use App\Listeners\Platform\RefreshAppContext;
+
 /*
 |--------------------------------------------------------------------------
 | Platform kernel
@@ -28,6 +30,7 @@ return [
         // App\Services\Platform\Events\OutboxListener and receives the stored
         // event. Listeners for one event run in one database transaction.
         'listeners' => [
+            'context.changed' => [RefreshAppContext::class],
             // 'fees.payment_recorded' => [App\Listeners\Money\UpdateLedger::class],
         ],
 
