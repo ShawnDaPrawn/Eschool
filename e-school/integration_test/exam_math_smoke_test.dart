@@ -70,7 +70,12 @@ void main() {
       reason: 'The option must have its own renderer',
     );
     await tapMathOption(tester, find.byType(OptionContainer), '17');
-    await tester.pump();
+    // A native WebView delivers its JavaScript tap through a platform channel.
+    // One frame is not a guarantee that the callback has reached Dart yet.
+    final tapDeadline = DateTime.now().add(const Duration(seconds: 10));
+    while (submitted.isEmpty && DateTime.now().isBefore(tapDeadline)) {
+      await tester.pump(const Duration(milliseconds: 100));
+    }
     expect(submitted, [17]);
     expect(tester.takeException(), isNull);
   });
