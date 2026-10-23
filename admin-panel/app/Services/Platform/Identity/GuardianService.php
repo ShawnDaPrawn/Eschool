@@ -9,9 +9,25 @@ use App\Models\Platform\GuardianLink;
 use App\Models\Students;
 use App\Services\Platform\Tenancy\CurrentSchool;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Collection;
 
 class GuardianService
 {
+    /** Current relationship rights, including ended-link overrides of v1 fields. */
+    public function guardianUserIds(Students $learner, bool $fees = false): Collection
+    {
+        abort_unless((int) $learner->school_id === app(CurrentSchool::class)->id(), 404);
+        $parentIds = array_filter([$learner->father_id, $learner->mother_id, $learner->guardian_id]);
+        $legacy = Parents::query()->whereIn('id', $parentIds)->whereNotExists(function ($query) use ($learner) {
+            $query->selectRaw('1')->from('guardian_links')->where('guardian_links.school_id', $learner->school_id)
+                ->where('guardian_links.learner_id', $learner->id)->whereColumn('guardian_links.guardian_user_id', 'parents.user_id');
+        })->pluck('user_id');
+        $linked = GuardianLink::query()->where('learner_id', $learner->id)->where('status', 'active')
+            ->when($fees, fn ($query) => $query->where('can_see_fees', true))->pluck('guardian_user_id');
+
+        return $legacy->merge($linked)->filter()->map(fn ($id) => (int) $id)->unique()->values();
+    }
+
     /** Explicit links override legacy relationships, including an ended link. */
     public function childrenFor(int $guardianUserId, int $legacyParentId): Builder
     {

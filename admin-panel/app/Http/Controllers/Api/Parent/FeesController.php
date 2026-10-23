@@ -16,12 +16,12 @@ use App\Models\Parents;
 use App\Models\PaymentTransaction;
 use App\Models\SessionYear;
 use App\Models\StudentSessions;
-use App\Models\UserNotification;
 use App\Services\Payment\FeesPaymentService;
 use App\Services\Payment\PaymentService;
 use App\Services\Platform\Ledger\CentsColumns;
 use App\Services\Platform\Ledger\LegacyAmount;
 use App\Services\Platform\Ledger\Money;
+use App\Services\Platform\Notifications\Notifier;
 use App\Services\ResponseService;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Carbon\Carbon;
@@ -457,14 +457,7 @@ class FeesController extends Controller
             $notification->date = Carbon::now();
             $notification->is_custom = 0;
             $notification->save();
-            foreach ($user as $data) {
-                $user_notification = new UserNotification;
-                $user_notification->notification_id = $notification->id;
-                $user_notification->user_id = $data;
-                $user_notification->save();
-            }
-
-            sendSimpleNotification($user, 'Payment Failed', $body, $type, $image, $userinfo);
+            app(Notifier::class)->assign($notification, $user);
 
             return ResponseService::successResponse('Data Updated Successfully', null, [], 200);
         } catch (Throwable $e) {

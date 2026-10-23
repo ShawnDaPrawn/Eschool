@@ -194,7 +194,7 @@ packages:
     source: hosted
     version: "2.1.0"
   eschool_api:
-    dependency: transitive
+    dependency: "direct main"
     description:
       path: "../eschool_api"
       relative: true

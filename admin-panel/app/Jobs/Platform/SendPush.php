@@ -4,9 +4,14 @@ declare(strict_types=1);
 
 namespace App\Jobs\Platform;
 
+use App\Models\Platform\NotificationDelivery;
+use App\Models\User;
+use App\Services\Platform\Notifications\DeliveryGuard;
 use App\Services\Platform\Notifications\DeliveryLog;
 use App\Services\Platform\Notifications\FcmClient;
+use App\Services\Platform\Tenancy\CurrentSchool;
 use Illuminate\Bus\Queueable;
+use Illuminate\Contracts\Queue\ShouldBeEncrypted;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
@@ -22,7 +27,7 @@ use Throwable;
  * Queue it through PushQueue, which builds nothing new: the message is the
  * one notification_helper.php always sent.
  */
-class SendPush implements ShouldQueue
+class SendPush implements ShouldBeEncrypted, ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable;
 
@@ -48,6 +53,21 @@ class SendPush implements ShouldQueue
     public function handle(FcmClient $fcm): void
     {
         $row = DeliveryLog::attempt($this->deliveryKey, $this->attempts());
+        if ($row?->school_id) {
+            app(CurrentSchool::class)->run($row->school_id, fn () => $this->deliver($fcm, $row));
+        } else {
+            $this->deliver($fcm, $row);
+        }
+    }
+
+    private function deliver(FcmClient $fcm, ?NotificationDelivery $row): void
+    {
+        $type = $this->message['message']['data']['notice_type'] ?? null;
+        if ($type !== null && ! app(DeliveryGuard::class)->allows($row, $type, 'push', $this->message['message']['token'] ?? '', $this->message['message']['data'] ?? [])) {
+            DeliveryLog::suppressed($row);
+
+            return;
+        }
 
         try {
             $result = $fcm->send($this->message);
@@ -64,6 +84,10 @@ class SendPush implements ShouldQueue
         }
 
         DeliveryLog::failed($row, 'fcm', $result['error'] ?? $result['status']);
+        if (str_contains($result['error'] ?? '', 'UNREGISTERED') && $row?->recipient_user_id && isset($this->message['message']['token'])) {
+            // Do not clear a newer token installed while this job waited.
+            User::acrossSchools()->whereKey($row->recipient_user_id)->where('fcm_id', $this->message['message']['token'])->update(['fcm_id' => null]);
+        }
     }
 
     /**

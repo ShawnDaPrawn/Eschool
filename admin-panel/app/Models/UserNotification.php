@@ -12,6 +12,8 @@ class UserNotification extends Model
 {
     use BelongsToSchool, HasFactory;
 
+    protected $fillable = ['notification_id', 'user_id'];
+
     public function notification()
     {
         return $this->belongsTo(Notification::class, 'notification_id');

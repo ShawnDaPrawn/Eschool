@@ -1729,5 +1729,6 @@
     "switch_school": "Switch school",
     "school_switched": "You are now working in :school.",
     "update_app_to_sign_in": "Please update the app to sign in. This version cannot show your school’s notices.",
-    "nav_school_modules": "School modules"
+    "nav_school_modules": "School modules",
+    "nav_notification_rules": "Notification rules"
 }

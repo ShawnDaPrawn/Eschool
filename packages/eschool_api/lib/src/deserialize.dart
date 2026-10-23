@@ -31,13 +31,18 @@ import 'package:eschool_api/src/model/handle_proposal.dart';
 import 'package:eschool_api/src/model/handle_state.dart';
 import 'package:eschool_api/src/model/handle_state_response.dart';
 import 'package:eschool_api/src/model/module.dart';
+import 'package:eschool_api/src/model/notification_channel_preference.dart';
+import 'package:eschool_api/src/model/notification_preferences_response.dart';
 import 'package:eschool_api/src/model/notification_rule.dart';
+import 'package:eschool_api/src/model/notification_type_preference.dart';
+import 'package:eschool_api/src/model/notification_type_preference_channels.dart';
 import 'package:eschool_api/src/model/pagination.dart';
 import 'package:eschool_api/src/model/school_membership.dart';
 import 'package:eschool_api/src/model/school_summary.dart';
 import 'package:eschool_api/src/model/session_year.dart';
 import 'package:eschool_api/src/model/set_my_handle_request.dart';
 import 'package:eschool_api/src/model/term.dart';
+import 'package:eschool_api/src/model/update_my_notification_preferences_request.dart';
 import 'package:eschool_api/src/model/validation_errors.dart';
 
 final _regList = RegExp(r'^List<(.*)>$');
@@ -173,8 +178,26 @@ ReturnType deserialize<ReturnType, BaseType>(
           as ReturnType;
     case 'Module':
       return Module.fromJson(value as Map<String, dynamic>) as ReturnType;
+    case 'NotificationChannelPreference':
+      return NotificationChannelPreference.fromJson(
+            value as Map<String, dynamic>,
+          )
+          as ReturnType;
+    case 'NotificationPreferencesResponse':
+      return NotificationPreferencesResponse.fromJson(
+            value as Map<String, dynamic>,
+          )
+          as ReturnType;
     case 'NotificationRule':
       return NotificationRule.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'NotificationTypePreference':
+      return NotificationTypePreference.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'NotificationTypePreferenceChannels':
+      return NotificationTypePreferenceChannels.fromJson(
+            value as Map<String, dynamic>,
+          )
           as ReturnType;
     case 'Pagination':
       return Pagination.fromJson(value as Map<String, dynamic>) as ReturnType;
@@ -191,6 +214,11 @@ ReturnType deserialize<ReturnType, BaseType>(
           as ReturnType;
     case 'Term':
       return Term.fromJson(value as Map<String, dynamic>) as ReturnType;
+    case 'UpdateMyNotificationPreferencesRequest':
+      return UpdateMyNotificationPreferencesRequest.fromJson(
+            value as Map<String, dynamic>,
+          )
+          as ReturnType;
     case 'ValidationErrors':
       return ValidationErrors.fromJson(value as Map<String, dynamic>)
           as ReturnType;

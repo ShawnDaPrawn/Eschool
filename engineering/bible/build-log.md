@@ -85,3 +85,10 @@ app settings are implemented on the next feature branch. Local backend,
 identity/deletion, package and browser checks pass; feature PR CI precedes
 merge. These merges do not claim staging acceptance or enable production
 approval enforcement.
+
+PR #70 merged global handles and guardian review after all 25 checks passed.
+Notification rules and preferences are implemented on their next feature
+branch: per-portal school settings, shared app choices, durable recipient
+fanout, encrypted jobs, delivery-time access checks and guardian handle
+requests. Local and CI verification is recorded with that feature; real mail,
+push, phone and owner acceptance remain separate staging work.

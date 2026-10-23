@@ -1,5 +1,25 @@
 This page covers how the admin panel notifies people: push notifications to the Flutter apps through Firebase Cloud Messaging (FCM HTTP v1), the in-app notification list stored in the database, and email (Amazon SES or SMTP through Laravel's mailer, with editable templates). Since Phase 0 mail and pushes are sent by queued jobs on the worker, not inside the web request, and every attempt is recorded in `notification_deliveries`; SES reports bounces, complaints and deliveries back through a webhook. It lists every event in the code that sends a notification and who receives it.
 
+## School and personal choices
+
+Settings → Notification rules provides a per-portal channel grid. Registered
+platform safety requirements stay locked; optional channels support mandatory,
+default on, default off and not offered. The shared app screen reads/writes
+`/api/v2/me/notification-preferences`, and context contains effective school rules.
+The [delivery specification](https://github.com/ShawnDaPrawn/Eschool/blob/main/engineering/specs/platform/notification-rules.md) describes precedence and migration.
+
+Business producers use a transactional outbox and per-recipient fanout. Content
+no longer goes to audience topics: individual preferences and current membership
+are checked for inbox, push and email. Topics retain silent context invalidation.
+New inbox entries need explicit recipient access; historical broadcasts remain
+readable. Push/mail queue payloads are encrypted. Workers recheck rules, access
+and destination before transport; suppressed jobs contact no provider.
+
+Under-18 handle requests notify verified approving guardians through the same
+mandatory rules and link to `/handles`. Both apps recognise `/handles` and `/chat`.
+Real provider/device verification remains pending staging acceptance.
+
+
 Click-by-click setup is in the Docusaurus pages [Notification Settings](https://shawndaprawn.github.io/Eschool/admin-panel/notification-settings/), [Email Configuration](https://shawndaprawn.github.io/Eschool/admin-panel/email-config/), [Custom Notifications](https://shawndaprawn.github.io/Eschool/features/custom-notifications/) and, for the app side, [Integrate Firebase](https://shawndaprawn.github.io/Eschool/mobile-app/integrate-firebase/).
 
 ## Push notifications (FCM)

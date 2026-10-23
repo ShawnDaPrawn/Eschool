@@ -12,9 +12,9 @@ use App\Models\PaidInstallmentFee;
 use App\Models\Parents;
 use App\Models\PaymentTransaction;
 use App\Models\Students;
-use App\Models\UserNotification;
 use App\Services\Platform\Ledger\LegacyAmount;
 use App\Services\Platform\Ledger\Money;
+use App\Services\Platform\Notifications\Notifier;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -138,16 +138,10 @@ class PaymentController extends Controller
             $notification->date = Carbon::now();
             $notification->is_custom = 0;
             $notification->save();
-            foreach ($user as $data) {
-                $user_notification = new UserNotification;
-                $user_notification->notification_id = $notification->id;
-                $user_notification->user_id = $data;
-                $user_notification->save();
-            }
+            app(Notifier::class)->assign($notification, $user);
 
             // Saved before the push, so a push failure can't undo the payment.
             DB::commit();
-            sendSimpleNotification($user, 'Payment Success', $body, $type, $image, $userinfo);
 
             $response = [
                 'error' => false,
@@ -408,16 +402,10 @@ class PaymentController extends Controller
             $notification->date = Carbon::now();
             $notification->is_custom = 0;
             $notification->save();
-            foreach ($user as $data) {
-                $user_notification = new UserNotification;
-                $user_notification->notification_id = $notification->id;
-                $user_notification->user_id = $data;
-                $user_notification->save();
-            }
+            app(Notifier::class)->assign($notification, $user);
 
             // Saved before the push, so a push failure can't undo the payment.
             DB::commit();
-            sendSimpleNotification($user, 'Payment Success', $body, $type, $image, $userinfo);
 
             $response = [
                 'error' => false,

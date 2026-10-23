@@ -32,8 +32,14 @@ const List<DeepLinkRoute> deepLinkRoutes = [
   DeepLinkRoute(Routes.notificationSettings, Routes.notificationSettings),
   DeepLinkRoute(Routes.mySchool, Routes.mySchool),
   DeepLinkRoute(Routes.approvals, Routes.approvals),
-  DeepLinkRoute('/invite/:token', Routes.invitation, arguments: _invitationToken),
+  DeepLinkRoute(
+    '/invite/:token',
+    Routes.invitation,
+    arguments: _invitationToken,
+  ),
   DeepLinkRoute(Routes.profilePicture, Routes.profilePicture),
+  DeepLinkRoute(Routes.handles, Routes.handles),
+  DeepLinkRoute('/chat', Routes.chatUserPage),
 ];
 
 Object? _invitationToken(

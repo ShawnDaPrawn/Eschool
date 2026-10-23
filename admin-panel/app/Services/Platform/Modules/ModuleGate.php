@@ -9,28 +9,35 @@ use App\Models\Platform\SchoolModule;
 use App\Models\User;
 use App\Services\Platform\Events\ContextChanged;
 use App\Services\Platform\Events\Outbox;
+use App\Services\Platform\RequestContext;
 use App\Services\Platform\Tenancy\CurrentSchool;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
 class ModuleGate
 {
+    private array $jobRows = [];
+
     /** Cache on the HTTP request, never on a long-lived worker or global singleton. */
     private function rows(): array
     {
         $id = app(CurrentSchool::class)->id();
         $cacheKey = 'modules.school.'.$id;
-        if (request()->attributes->has($cacheKey)) {
+        if (RequestContext::inHttpRequest() && request()->attributes->has($cacheKey)) {
             return request()->attributes->get($cacheKey);
+        }
+        if (! RequestContext::inHttpRequest() && isset($this->jobRows[$id])) {
+            return $this->jobRows[$id];
         }
         $rows = SchoolModule::query()->where('school_id', $id)->get()->keyBy('module')->all();
         request()->attributes->set($cacheKey, $rows);
 
-        return $rows;
+        return $this->jobRows[$id] = $rows;
     }
 
     public function forget(): void
     {
+        unset($this->jobRows[app(CurrentSchool::class)->id()]);
         request()->attributes->remove('modules.school.'.app(CurrentSchool::class)->id());
     }
 

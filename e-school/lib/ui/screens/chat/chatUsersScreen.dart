@@ -11,7 +11,9 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 class ChatUsersScreen extends StatefulWidget {
-  const ChatUsersScreen({super.key});
+  const ChatUsersScreen({super.key, this.hasBack = false});
+
+  final bool hasBack;
 
   @override
   State<ChatUsersScreen> createState() => _ChatUsersScreenState();
@@ -36,7 +38,7 @@ class _ChatUsersScreenState extends State<ChatUsersScreen> {
   void initState() {
     Future.delayed(Duration.zero, () {
       //don't fetch if it's parent, as parent's are fetched in home page itself
-      if (!context.read<AuthCubit>().isParent()) {
+      if (widget.hasBack || !context.read<AuthCubit>().isParent()) {
         fetchChatUsers();
       }
     });
@@ -62,7 +64,8 @@ class _ChatUsersScreenState extends State<ChatUsersScreen> {
       child: Stack(
         clipBehavior: Clip.none,
         children: [
-          if (context.read<AuthCubit>().isParent()) const CustomBackButton(),
+          if (widget.hasBack || context.read<AuthCubit>().isParent())
+            const CustomBackButton(),
           Align(
             alignment: Alignment.topCenter,
             child: Text(

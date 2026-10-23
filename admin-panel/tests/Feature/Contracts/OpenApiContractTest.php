@@ -50,6 +50,8 @@ class OpenApiContractTest extends TestCase
     public static function scenarios(): array
     {
         return [
+            'read own notification preferences' => ['farid', 'GET', 'api/v2/me/notification-preferences', [], 200],
+            'locked notice preference' => ['farid', 'PUT', 'api/v2/me/notification-preferences', ['type' => 'attendance.absence', 'channel' => 'email', 'enabled' => false], 422],
             'read own handle' => ['asha', 'GET', 'api/v2/me/handle', [], 200],
             'handle write requires auth' => [null, 'PUT', 'api/v2/me/handle', ['handle' => 'orbit'], 401],
             'unverified guardian handle list' => ['farid', 'GET', 'api/v2/guardian/handle-proposals', [], 403],
