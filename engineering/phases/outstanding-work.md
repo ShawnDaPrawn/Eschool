@@ -12,12 +12,12 @@ work. A checked-in feature is not proof of staging verification or acceptance.
 | Handles | Merged in PR #70 | All 25 PR checks passed, including guardian browser flow and Android | Pending | Verify guardian workflow and notifications on staging |
 | Enrolment history and student numbers | Merged in PR #68 | 731 backend tests and all 24 PR checks passed | Pending | Rehearse backfill on isolated staging; continue dated report consumers and staff allocation history |
 | School module controls | Merged in PR #69 | All 24 PR checks passed, including the browser settings flow and Android | Pending | Verify live push and portal behaviour on staging |
-| Notification rules and delivery | Implemented on feature branch | 129 focused backend tests, shared UI/app suites, Chromium settings flow and Playwright grid/accessibility passed; CI pending | Pending | Merge after CI; verify real mail/push |
+| Notification rules and delivery | Merged in PR #71 | All 25 PR checks passed, including Android and browser flows | Pending | Verify real mail/push |
 | Other school configuration | Pending | Pending | Pending | Build profile fields and school documents |
 | SaaS onboarding, imports and privacy | Pending | Pending | Pending | Build platform tools and restricted support access |
 | Modern sign-in | Pending | Pending | Provider/device checks pending | Add passkeys, verified-domain OAuth and parent links |
 | Staging infrastructure and mail | Definitions exist | Dry-run evidence only | Blocked: credentials and cost feasibility | Inventory resources and credits; do not exceed US$10/month |
-| Restore drill and worker observation | Runbooks exist | Not run in cloud | Pending | Isolate restore destination before copying data; observe worker seven days |
+| Restore drill and worker observation | Restore quarantine procedure corrected on feature branch | Shell examples parsed; sanitisation SQL passed 9 assertions on separate local MariaDB; cloud drill not run | Pending | Verify budget and quarantine in cloud; rehearse restore and observe worker seven days |
 | UX and owner acceptance | Local Phase 0 evidence exists | Does not substitute for UX participants | Owner review first; first-time testers unavailable | Record review separately and schedule testers when available |
 
 Existing product defaults are confirmed. Phase 1 implementation may proceed
