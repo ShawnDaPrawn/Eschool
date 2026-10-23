@@ -151,3 +151,11 @@ command reports malformed/ambiguous rows and pending files without private
 contents. Compatibility writes, archived records, public-file migration and
 legacy caste/religion storage retirement remain implementation work. No live
 migration, staging acceptance or production release is claimed.
+
+The bounded backfill gains explicit --files for local legacy PDF/PNG/JPEG
+private copies, preserving source objects and v1 paths. Path/folder/school,
+symlink, size and MIME checks precede bounded reads; names and contents use
+the existing encrypted private-file service. Hidden field review, protected
+reads, retries and outer-transaction cleanup have dedicated synthetic tests.
+Public-file retirement and compatibility writes remain separate work. No
+live data migration or external acceptance is claimed.

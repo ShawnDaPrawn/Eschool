@@ -35,7 +35,7 @@ No cloud resource, live message, production migration or release is implied.
 | Learner identity | Lifelong numbers, dated enrolments and compatibility projection merged in #68 | Finish dated staff assignments and consumers that must answer historical dates |
 | Guardian authority | Verified approval, invitation lifecycle and canonical child ownership merged in #67/#72/#74 | Rehearse existing-family transition; approval enforcement remains deliberately disabled until that rollout is safe |
 | Handles | Global names, guardian review and app flow merged in #70 | Real delivery/device evidence |
-| Configurable profiles | Protected schema/API merged in #75; panel/app/context/export merged in #76; private file fields merged in #78; bounded legacy dry-run/backfill command implemented | Finish private legacy-file migration, compatibility validation/writes, archived-record migration and old caste/religion storage retirement |
+| Configurable profiles | Protected schema/API merged in #75; panel/app/context/export merged in #76; private file fields merged in #78; bounded legacy dry-run/backfill and opt-in private file copies implemented | Finish compatibility validation/writes, archived-record migration, public-file retirement and old caste/religion storage retirement |
 | Modules | School/package switches, route/navigation/context effects and money read-only merged in #69 | Staging exercise |
 | Notifications | Registry, rules/preferences, durable delivery and app/settings flows merged in #71 | Real email/push exercise |
 | App context and selection | Shared school/child selection, additive context and refresh paths merged | Register each remaining backend capability and verify its deep links |
