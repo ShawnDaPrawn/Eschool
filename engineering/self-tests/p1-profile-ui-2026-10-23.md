@@ -55,3 +55,8 @@ regressions pass with 45 assertions, including exporting the same global person
 at two schools and recording separate school IDs. Existing audit subject IDs
 and field-key-only payloads remain intact. All 753 PHP files pass Pint, and
 configuration, route and Blade caches build and clear successfully.
+
+The full PR backend job passed 906 tests with 11,667 assertions. The browser
+sweep's remaining old teacher-menu assumption is updated too: the teacher sees
+My profile, but no school configuration links, and all ten admin destinations
+still refuse access. The focused teacher browser project passes 11 checks.

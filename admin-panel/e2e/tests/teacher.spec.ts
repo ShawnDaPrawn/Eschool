@@ -5,13 +5,16 @@ import { expect, test } from '@playwright/test';
  * pages when they type the address (a redirect to Home with the "no permission"
  * message, or 403).
  */
-const ADMIN_ONLY = ['/settings', '/roles', '/staff', '/fees-type', '/session-years', '/new-year', '/students/create', '/email-settings', '/language'];
+const ADMIN_ONLY = ['/settings', '/roles', '/staff', '/fees-type', '/session-years', '/new-year', '/students/create', '/email-settings', '/language', '/profile-configuration'];
 
 test('the navigation leaves out what a teacher cannot open', async ({ page }) => {
   await page.goto('/home');
   const menu = page.getByRole('navigation', { name: 'Main menu' });
   await expect(menu.getByRole('button', { name: 'Academics', exact: true })).toBeVisible();
-  await expect(menu.getByRole('button', { name: 'Settings', exact: true })).toHaveCount(0);
+  await menu.getByRole('button', { name: 'Settings', exact: true }).click();
+  await expect(menu.getByRole('link', { name: 'My profile', exact: true })).toBeVisible();
+  await expect(menu.getByRole('link', { name: 'Profile fields', exact: true })).toHaveCount(0);
+  await expect(menu.getByRole('link', { name: 'School profile and settings', exact: true })).toHaveCount(0);
   await expect(menu.getByRole('button', { name: 'Money', exact: true })).toHaveCount(0);
   await expect(page.locator('[data-setup-checklist]')).toHaveCount(0);
 });
