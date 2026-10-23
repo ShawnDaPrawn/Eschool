@@ -32,3 +32,9 @@ school policy PDFs on My school.
 The shared app form previews authorised files from memory. Private values and
 files are not stored as app drafts or downloaded into the app's document cache.
 The older extra-field forms and public files are being migrated separately.
+
+After an operator rehearses and applies a legacy backfill, imported definitions
+appear under **Imported fields**. They start hidden and sensitive. Review each
+field's roles in the editor before showing it. Existing saved values and
+deliberate clears take priority over a backfill. This review does not move old
+public attachments; those need the separate private-file migration.

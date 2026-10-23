@@ -167,7 +167,8 @@ class ProfileForms
         return $validation;
     }
 
-    private function validateValue(User $person, ProfileFieldDefinition $field, mixed $value): mixed
+    /** Validation only; callers still own authorization and transactional writes. */
+    public function validateValue(User $person, ProfileFieldDefinition $field, mixed $value): mixed
     {
         $validation = $this->validationFor($field);
         $rules = [$field->required ? 'required' : 'nullable'];
@@ -219,6 +220,10 @@ class ProfileForms
             throw ValidationException::withMessages(['values.'.$field->key.'.'.$member => $validator->errors()->all()]);
         }
 
-        return $field->type === 'boolean' && $value !== null ? (bool) $value : $value;
+        return match (true) {
+            $field->type === 'checkbox' && is_array($value) => array_values($value),
+            $field->type === 'boolean' && $value !== null => (bool) $value,
+            default => $value,
+        };
     }
 }
