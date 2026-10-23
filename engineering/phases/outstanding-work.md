@@ -17,7 +17,7 @@ work. A checked-in feature is not proof of staging verification or acceptance.
 | SaaS onboarding, imports and privacy | Pending | Pending | Pending | Build platform tools and restricted support access |
 | Modern sign-in | Pending | Pending | Provider/device checks pending | Add passkeys, verified-domain OAuth and parent links |
 | Staging infrastructure and mail | Definitions exist | Dry-run evidence only | Blocked: credentials and cost feasibility | Inventory resources and credits; do not exceed US$10/month |
-| Restore drill and worker observation | Runbooks exist | Not run in cloud | Pending | Isolate restore destination before copying data; observe worker seven days |
+| Restore drill and worker observation | Restore quarantine procedure corrected on feature branch | Shell examples parsed; sanitisation SQL passed 9 assertions on separate local MariaDB; cloud drill not run | Pending | Verify budget and quarantine in cloud; rehearse restore and observe worker seven days |
 | UX and owner acceptance | Local Phase 0 evidence exists | Does not substitute for UX participants | Owner review first; first-time testers unavailable | Record review separately and schedule testers when available |
 
 Existing product defaults are confirmed. Phase 1 implementation may proceed
