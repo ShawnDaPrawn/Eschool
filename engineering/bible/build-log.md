@@ -70,3 +70,10 @@ participants are unavailable; this does not block independent implementation.
 The previously listed Dependabot activation is evidenced by the dependency PRs
 already merged. The old tenancy-scaffold-only note is superseded by the merged
 two-school route suite. Production acceptance remains separate.
+
+Guardian approval and invitation work merged as PR #67 after all CI checks
+passed. The approval enforcement rollout remains disabled pending family
+transition verification. Dated enrolments and lifelong student numbers are
+implemented on their next feature branch, including a resumable backfill,
+legacy projections and school-safe cleanup; staging migration rehearsal and
+production acceptance remain outstanding.

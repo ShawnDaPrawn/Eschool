@@ -329,6 +329,102 @@ paths:
           $ref: '#/components/responses/TooManyRequests'
         '500':
           $ref: '#/components/responses/ServerError'
+  /staff/learners/{learner}/enrolments:
+    get:
+      operationId: getLearnerEnrolments
+      tags:
+      - Platform
+      summary: Read a learners dated enrolment history
+      parameters:
+      - &id001
+        $ref: '#/components/parameters/SchoolId'
+      - &id002
+        name: learner
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      - name: date
+        in: query
+        schema:
+          type: string
+          format: date
+      - $ref: '#/components/parameters/Page'
+      - $ref: '#/components/parameters/PerPage'
+      responses:
+        '200':
+          description: The operation succeeded.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EnrolmentListResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+    post:
+      operationId: createLearnerEnrolment
+      tags:
+      - Platform
+      summary: Append a dated homeroom assignment
+      parameters:
+      - *id001
+      - *id002
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+              - class_section_id
+              - session_year_id
+              - starts_on
+              - reason
+              properties:
+                class_section_id:
+                  type: integer
+                session_year_id:
+                  type: integer
+                starts_on:
+                  type: string
+                  format: date
+                reason:
+                  type: string
+                  minLength: 3
+                  maxLength: 255
+      responses:
+        '200':
+          description: The operation succeeded.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EnrolmentResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
 components:
   securitySchemes:
     bearerAuth:
@@ -781,6 +877,89 @@ components:
         token:
           type: string
           description: Native bearer token; empty for a cookie-authenticated portal.
+    Enrolment:
+      type: object
+      additionalProperties: false
+      required:
+      - id
+      - learner_id
+      - class_section_id
+      - session_year_id
+      - starts_on
+      - ends_on
+      - reason
+      - legacy_dates
+      - previous_enrolment_id
+      properties:
+        id:
+          type: integer
+        learner_id:
+          type: integer
+        class_section_id:
+          type: integer
+        session_year_id:
+          type: integer
+        starts_on:
+          type: string
+          format: date
+        ends_on:
+          type:
+          - string
+          - 'null'
+          format: date
+        reason:
+          type: string
+        legacy_dates:
+          type: boolean
+        previous_enrolment_id:
+          type:
+          - integer
+          - 'null'
+    EnrolmentResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - data
+      - code
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        data:
+          $ref: '#/components/schemas/Enrolment'
+        code:
+          type: integer
+    EnrolmentListResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - data
+      - code
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        data:
+          type: object
+          additionalProperties: false
+          required:
+          - items
+          - pagination
+          properties:
+            items:
+              type: array
+              items:
+                $ref: '#/components/schemas/Enrolment'
+            pagination:
+              $ref: '#/components/schemas/Pagination'
+        code:
+          type: integer
     Context:
       type: object
       additionalProperties: false
@@ -992,5 +1171,15 @@ components:
           type: string
         image:
           type: [string, 'null']
+        student_number:
+          type:
+          - string
+          - 'null'
+        approved:
+          type: boolean
+        homeroom:
+          type:
+          - string
+          - 'null'
         school:
           $ref: '#/components/schemas/SchoolSummary'

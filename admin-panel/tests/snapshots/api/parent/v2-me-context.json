@@ -10,7 +10,9 @@
             "approval": "null",
             "children": [
                 {
+                    "approved": "bool",
                     "first_name": "string",
+                    "homeroom": "string",
                     "id": "number",
                     "image": "null",
                     "last_name": "string",
@@ -21,6 +23,7 @@
                         "name": "string",
                         "short_name": "null"
                     },
+                    "student_number": "null",
                     "user_id": "number"
                 }
             ],

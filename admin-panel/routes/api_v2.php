@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use App\Http\Controllers\Api\V2\People\EnrolmentController;
 use App\Http\Controllers\Api\V2\Platform\ContextController;
 use App\Http\Controllers\Api\V2\Platform\GuardianApprovalController;
 use App\Http\Controllers\Api\V2\Platform\GuardianInvitationController;
@@ -78,3 +79,8 @@ Route::prefix('guardian/invitations')->middleware(['school.context:public', 'thr
 });
 Route::post('guardians/{guardian}/invitations', [GuardianInvitationController::class, 'store'])
     ->whereNumber('guardian')->middleware(['auth:sanctum', 'school.context', 'staff', 'idempotent', 'throttle:auth']);
+
+Route::prefix('staff/learners/{learner}')->whereNumber('learner')->middleware(['auth:sanctum', 'school.context', 'staff', 'idempotent'])->group(function () {
+    Route::get('enrolments', [EnrolmentController::class, 'index']);
+    Route::post('enrolments', [EnrolmentController::class, 'store']);
+});

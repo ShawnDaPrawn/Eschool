@@ -36,7 +36,10 @@ class ChildResource extends JsonResource
             'last_name' => (string) $user->last_name,
             'name' => trim($user->first_name.' '.$user->last_name),
             'image' => ContextUserResource::imageUrl($user),
-            // Every child is at the current school until Phase 1 adds memberships.
+            'student_number' => $child->getAttribute('student_number'),
+            'approved' => (bool) $child->getAttribute('context_approved'),
+            'homeroom' => $child->getAttribute('context_homeroom'),
+            // The child's school, including the guardian's other schools.
             'school' => new SchoolSummaryResource($this->school),
         ];
     }

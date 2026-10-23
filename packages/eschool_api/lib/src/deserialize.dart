@@ -7,8 +7,13 @@ import 'package:eschool_api/src/model/child.dart';
 import 'package:eschool_api/src/model/context.dart';
 import 'package:eschool_api/src/model/context_response.dart';
 import 'package:eschool_api/src/model/context_user.dart';
+import 'package:eschool_api/src/model/create_learner_enrolment_request.dart';
 import 'package:eschool_api/src/model/current_school.dart';
 import 'package:eschool_api/src/model/decide_guardian_approval_request.dart';
+import 'package:eschool_api/src/model/enrolment.dart';
+import 'package:eschool_api/src/model/enrolment_list_response.dart';
+import 'package:eschool_api/src/model/enrolment_list_response_data.dart';
+import 'package:eschool_api/src/model/enrolment_response.dart';
 import 'package:eschool_api/src/model/error_response.dart';
 import 'package:eschool_api/src/model/guardian_approval.dart';
 import 'package:eschool_api/src/model/guardian_approvals_response.dart';
@@ -75,6 +80,11 @@ ReturnType deserialize<ReturnType, BaseType>(
           as ReturnType;
     case 'ContextUser':
       return ContextUser.fromJson(value as Map<String, dynamic>) as ReturnType;
+    case 'CreateLearnerEnrolmentRequest':
+      return CreateLearnerEnrolmentRequest.fromJson(
+            value as Map<String, dynamic>,
+          )
+          as ReturnType;
     case 'CurrentSchool':
       return CurrentSchool.fromJson(value as Map<String, dynamic>)
           as ReturnType;
@@ -82,6 +92,17 @@ ReturnType deserialize<ReturnType, BaseType>(
       return DecideGuardianApprovalRequest.fromJson(
             value as Map<String, dynamic>,
           )
+          as ReturnType;
+    case 'Enrolment':
+      return Enrolment.fromJson(value as Map<String, dynamic>) as ReturnType;
+    case 'EnrolmentListResponse':
+      return EnrolmentListResponse.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'EnrolmentListResponseData':
+      return EnrolmentListResponseData.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'EnrolmentResponse':
+      return EnrolmentResponse.fromJson(value as Map<String, dynamic>)
           as ReturnType;
     case 'ErrorCode':
     case 'ErrorResponse':

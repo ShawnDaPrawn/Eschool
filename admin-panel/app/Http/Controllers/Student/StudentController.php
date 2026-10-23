@@ -27,6 +27,7 @@ use App\Models\StudentSubject;
 use App\Models\Subject;
 use App\Models\User;
 use App\Services\MailService;
+use App\Services\People\RemoveLearner;
 use App\Services\Platform\Files\FileNames;
 use App\Services\Platform\Identity\LearnerInvitations;
 use App\Services\ResponseService;
@@ -1302,7 +1303,7 @@ class StudentController extends Controller
             StudentSessions::where('student_id', $student->id)
                 ->where('session_year_id', getSettings('session_year')['session_year'])
                 ->whereNotNull('class_section_id')
-                ->update(['class_section_id' => $student->class_section_id]);
+                ->get()->each(fn (StudentSessions $session) => $session->update(['class_section_id' => $student->class_section_id]));
 
             $response = [
                 'error' => false,
@@ -1428,17 +1429,15 @@ class StudentController extends Controller
             $student = Students::with('user')->where('id', $id)->first();
 
             if ($student) {
-
-                if ($student->user) {
-                    $student->user->forceDelete();
-                }
-                $student->forceDelete();
+                app(RemoveLearner::class)->permanently($student);
             }
 
             $response = [
                 'error' => false,
                 'message' => trans('user_delete_successfully'),
             ];
+        } catch (ValidationException $e) {
+            return response()->json(['error' => true, 'message' => $e->validator->errors()->first()]);
         } catch (Throwable $e) {
             report($e);
             $response = [

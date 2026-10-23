@@ -7,6 +7,7 @@ namespace App\Http\Middleware;
 use App\Models\Platform\School;
 use App\Models\User;
 use App\Services\Platform\Identity\MembershipService;
+use App\Services\Platform\Identity\StudentNumbers;
 use App\Services\Platform\Tenancy\CurrentSchool;
 use Closure;
 use Illuminate\Http\Request;
@@ -97,7 +98,7 @@ class SetSchoolContext
         if (! is_string($login) || trim($login) === '') {
             return null;
         }
-        $user = User::query()->where('email', trim($login))->first();
+        $user = app(StudentNumbers::class)->resolveLogin($login);
         if ($user === null) {
             return null;
         }
