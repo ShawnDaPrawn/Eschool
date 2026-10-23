@@ -4,10 +4,13 @@ declare(strict_types=1);
 
 namespace App\Models\Platform;
 
+use App\Services\People\Profiles\ProfileDefaults;
 use App\Services\Platform\Audit\Auditable;
+use App\Services\Platform\Tenancy\CurrentSchool;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Storage;
 
 /**
@@ -40,6 +43,15 @@ class School extends Model
     public const ARCHIVED = 'archived';
 
     protected $guarded = ['id'];
+
+    protected static function booted(): void
+    {
+        static::created(function (School $school) {
+            if (! app(CurrentSchool::class)->isMigrating() && Schema::hasTable('profile_field_categories')) {
+                ProfileDefaults::seed((int) $school->id);
+            }
+        });
+    }
 
     public function scopeActive(Builder $query): Builder
     {
