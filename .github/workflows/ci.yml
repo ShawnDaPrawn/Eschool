@@ -163,7 +163,9 @@ jobs:
   # against the fake API in integration_test/support/fixtures.dart: no server.
   apps-smoke-android:
     name: Flutter smoke flows on Android (${{ matrix.app }})
-    runs-on: ubuntu-latest
+    # Pin the emulator host while ubuntu-latest migrates to Ubuntu 26.
+    # Android SDK and KVM availability must not change under a release.
+    runs-on: ubuntu-24.04
     timeout-minutes: 45
     strategy:
       fail-fast: false

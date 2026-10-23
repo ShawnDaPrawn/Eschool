@@ -39,3 +39,17 @@ Fixed up front so streams can work in parallel:
 ## Exit gate
 
 Our checklist (the Build Bible, section 7, has the gate itself): no API route hands one school's records to another school (it answers 403 or 404); no learner signs in before a guardian approves; a new school goes from the platform admin, through a spreadsheet import, to parents approving their children, end to end; apps installed before Phase 1 keep working; the phase's UX and security checks pass; and the product owner sees a recorded demo. Status is kept in the [build log](../bible/build-log.md); the self-test and security records (`engineering/self-tests/phase-1.md`, `engineering/security/phase-1.md`) are written at the close.
+
+## Delivery policy (product-owner decision, 23 October 2026)
+
+Acceptance checkpoints do not freeze development. Independent features and
+later-phase preparation continue while operational observations, staging,
+devices or UX participants are unavailable. Each feature records implementation,
+local/CI verification, staging verification, acceptance and release separately.
+Known security or data-integrity failures block only the affected action.
+Production releases still require the owner's staging acceptance.
+
+The existing product defaults are confirmed. Additional staging and email
+spending is capped at US$10/month, excluding the existing production bill.
+No cloud resources may be provisioned above that cap; cloud evidence remains
+pending when compliant infrastructure cannot be funded.
