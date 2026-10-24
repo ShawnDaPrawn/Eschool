@@ -581,4 +581,24 @@ class MarkEngineTest extends TestCase
         $this->postJson($path, $input)->assertOk()->assertJsonPath('data.marks.0.mark', '15.00')->assertJsonPath('data.marks.0.revision', 2);
         $this->assertSame([500, 1000], AssessmentMark::query()->sole()->questions->pluck('mark_units')->all());
     }
+
+    public function test_capture_capabilities_and_released_periods_are_scoped_to_fresh_profiles(): void
+    {
+        $path = '/api/v2/academics/marks/groups/'.$this->group.'?term_id='.$this->term;
+        $this->api($this->teacher())->getJson($path)->assertOk()->assertJsonPath('data.capabilities.capture', true)->assertJsonPath('data.capabilities.release', false);
+        $this->api($this->superAdmin())->getJson($path)->assertOk()->assertJsonPath('data.capabilities.capture', false)->assertJsonPath('data.capabilities.release', true);
+        $periods = '/api/v2/academics/marks/learners/'.$this->schoolA->ids['asha'].'/periods';
+        $parent = User::findOrFail($this->schoolA->ids['farid_user']);
+        $this->api($parent)->getJson($periods)->assertOk()->assertJsonPath('data.periods', []);
+        $this->capture($this->input());
+        $this->release($this->releaseInput());
+        $this->api($parent)->getJson($periods)->assertOk()->assertJsonPath('data.periods.0.term_id', $this->term);
+        $this->getJson('/api/v2/academics/marks/learners/'.$this->schoolB->ids['asha'].'/periods')->assertNotFound();
+        $this->api($this->teacher())->getJson($periods)->assertNotFound();
+        $this->api($parent)->getJson('/api/v2/academics/marks/learners/'.$this->schoolA->ids['asha'].'?session_year_id='.$this->year.'&term_id='.$this->term)->assertOk()->assertJsonPath('data.results.0.subject_name', 'Maths');
+        DB::table('terms')->where('id', $this->term)->update(['deleted_at' => now()]);
+        DB::table('session_years')->where('id', $this->year)->update(['deleted_at' => now()]);
+        $this->getJson($periods)->assertOk()->assertJsonPath('data.periods.0.term_id', $this->term);
+        $this->getJson('/api/v2/academics/marks/learners/'.$this->schoolA->ids['asha'].'?session_year_id='.$this->year.'&term_id='.$this->term)->assertOk()->assertJsonPath('data.results.0.subject_name', 'Maths');
+    }
 }

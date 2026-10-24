@@ -525,5 +525,6 @@
   "profileFileUpload": "Ajouter ou remplacer le fichier",
   "profileFileView": "Voir le fichier",
   "profileFileClear": "Supprimer le fichier lors de l’enregistrement",
-  "profileFileLimit": "PDF, PNG ou JPEG, jusqu’à 5 Mo."
+  "profileFileLimit": "PDF, PNG ou JPEG, jusqu’à 5 Mo.",
+  "assessmentMarks": "Assessment marks"
 }

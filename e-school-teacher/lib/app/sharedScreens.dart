@@ -1,3 +1,4 @@
+import 'package:eschool_academics/eschool_academics.dart';
 import 'package:eschool_core/eschool_core.dart';
 import 'package:eschool_notifications/eschool_notifications.dart';
 import 'package:eschool_people/eschool_people.dart';
@@ -108,6 +109,15 @@ List<Widget> sharedScreenEntries(
   String label(String key) => SharedUiUtils.getTranslatedLabel(context, key);
   void open(String route) => Navigator.of(context).pushNamed(route);
   return [
+    if (context.watch<MeContextCubit>().context?.isFeatureOn(
+          'academic_marks',
+        ) ==
+        true)
+      tile(
+        title: label('assessmentMarks'),
+        icon: Icons.grid_on_outlined,
+        onTap: () => open(Routes.academicMarks),
+      ),
     AvailableOnly(
       featureKey: profileFieldsFeature,
       probe: () => profilesDeployed(ApiProfileRepository(Api.client)),
@@ -164,3 +174,27 @@ List<Widget> sharedScreenEntries(
     ),
   ];
 }
+
+Route<dynamic> academicMarksRoute() => AdaptivePageRoute(
+  builder: (context) {
+    final me = context.read<MeContextCubit>().context;
+    final school = me?.currentSchool;
+    if (school == null || me?.isFeatureOn('academic_marks') != true) {
+      return ScreenScaffold(
+        title: SharedUiUtils.getTranslatedLabel(context, 'assessmentMarks'),
+        body: Center(
+          child: Text(
+            SharedUiUtils.getTranslatedLabel(context, 'notAvailableYet'),
+          ),
+        ),
+      );
+    }
+    return AcademicContextBoundary(
+      schoolId: school.id,
+      child: MarkGroupsScreen(
+        repository: ApiMarksRepository(Api.client, schoolId: school.id),
+        schoolName: school.name,
+      ),
+    );
+  },
+);

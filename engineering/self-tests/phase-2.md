@@ -185,3 +185,27 @@ fixture then passed23 mark checks (209 assertions) and the existing teacher
 Dart decoder test. Fractional percentages remain exact without changing any
 installed int-only score field. The source review and final CI continue on this
 updated commit; earlier green checks alone do not authorize merging a changed head.
+
+
+## Shared mark capture and released-result clients
+
+Implemented the shared academics package, teacher Home/Settings entry points and
+family Settings entry point behind the server feature flag. School/child changes
+clear private screens, server capabilities govern actions and conflict responses
+retain drafts. Families discover only authorized released periods, including
+archived calendars, and never request a staff matrix.
+
+Local verification: 22 package tests passed, including exact bounded paste, late
+loads/previews, failed/revoked saves, school/child switches, release preview/CAS
+conflicts, 390/1024/1280px layouts, larger text and keyboard traversal across 35
+virtual learners on phone and desktop. Package analysis reports no issues. The
+new teacher and parent Chrome integration flows both passed against fake HTTP
+responses through actual app routes. Teacher full suite:28 passed. Backend:
+147 mark/API/contract checks passed (1,159 assertions); a strengthened archived-
+calendar regression then passed all24 marks tests (254 assertions). Strict
+OpenAPI, Pint, Larastan and workflow syntax checks passed. Context snapshots add
+only the intentional academic_marks capability flag.
+
+These are synthetic local checks. Classroom capture timing, physical devices,
+staging performance, real pilot sheets and independent review remain pending.
+No production deployment or Phase2 acceptance is claimed.

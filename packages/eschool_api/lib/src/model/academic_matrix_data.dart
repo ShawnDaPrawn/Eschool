@@ -4,6 +4,7 @@
 
 // ignore_for_file: unused_element
 import 'package:eschool_api/src/model/academic_matrix_task.dart';
+import 'package:eschool_api/src/model/academic_mark_capabilities.dart';
 import 'package:eschool_api/src/model/academic_matrix_learner.dart';
 import 'package:json_annotation/json_annotation.dart';
 
@@ -18,6 +19,8 @@ part 'academic_matrix_data.g.dart';
 class AcademicMatrixData {
   /// Returns a new [AcademicMatrixData] instance.
   AcademicMatrixData({
+    required this.capabilities,
+
     required this.groupId,
 
     required this.subjectId,
@@ -46,6 +49,9 @@ class AcademicMatrixData {
 
     required this.learners,
   });
+
+  @JsonKey(name: r'capabilities', required: true, includeIfNull: false)
+  final AcademicMarkCapabilities capabilities;
 
   // minimum: 1
   @JsonKey(name: r'group_id', required: true, includeIfNull: false)
@@ -103,6 +109,7 @@ class AcademicMatrixData {
   bool operator ==(Object other) =>
       identical(this, other) ||
       other is AcademicMatrixData &&
+          other.capabilities == capabilities &&
           other.groupId == groupId &&
           other.subjectId == subjectId &&
           other.gradeLevelId == gradeLevelId &&
@@ -120,6 +127,7 @@ class AcademicMatrixData {
 
   @override
   int get hashCode =>
+      capabilities.hashCode +
       groupId.hashCode +
       subjectId.hashCode +
       gradeLevelId.hashCode +

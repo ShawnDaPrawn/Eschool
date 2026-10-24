@@ -29,6 +29,8 @@ AcademicReleasedResult _$AcademicReleasedResultFromJson(
       ],
     );
     final val = AcademicReleasedResult(
+      subjectName: $checkedConvert('subject_name', (v) => v as String?),
+      gradeName: $checkedConvert('grade_name', (v) => v as String?),
       releaseId: $checkedConvert('release_id', (v) => (v as num).toInt()),
       subjectId: $checkedConvert('subject_id', (v) => (v as num).toInt()),
       gradeLevelId: $checkedConvert(
@@ -53,6 +55,8 @@ AcademicReleasedResult _$AcademicReleasedResultFromJson(
     return val;
   },
   fieldKeyMap: const {
+    'subjectName': 'subject_name',
+    'gradeName': 'grade_name',
     'releaseId': 'release_id',
     'subjectId': 'subject_id',
     'gradeLevelId': 'grade_level_id',
@@ -68,6 +72,8 @@ AcademicReleasedResult _$AcademicReleasedResultFromJson(
 Map<String, dynamic> _$AcademicReleasedResultToJson(
   AcademicReleasedResult instance,
 ) => <String, dynamic>{
+  'subject_name': ?instance.subjectName,
+  'grade_name': ?instance.gradeName,
   'release_id': instance.releaseId,
   'subject_id': instance.subjectId,
   'grade_level_id': instance.gradeLevelId,

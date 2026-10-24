@@ -3219,6 +3219,46 @@ paths:
           $ref: '#/components/responses/TooManyRequests'
         '500':
           $ref: '#/components/responses/ServerError'
+  /academics/marks/learners/{learner}/periods:
+    get:
+      operationId: getReleasedMarkPeriods
+      tags:
+      - Academics
+      summary: List released periods for this learner
+      description: Fresh own-learner or current guardian access only. At most 200 distinct
+        released year/term periods, newest release first, with school-scoped labels.
+        No unpublished periods or scores are disclosed.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - name: learner
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      responses:
+        '200':
+          description: School-scoped academic result.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AcademicReleasePeriodsResponse'
+        '400':
+          $ref: '#/components/responses/IdempotencyKeyProblem'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
 components:
   securitySchemes:
     bearerAuth:
@@ -3410,6 +3450,8 @@ components:
       - active
       - revision
       properties:
+        year_name:
+          type: string
         id:
           type: integer
           minimum: 1
@@ -6451,6 +6493,7 @@ components:
     AcademicMatrixData:
       type: object
       required:
+      - capabilities
       - group_id
       - subject_id
       - grade_level_id
@@ -6466,6 +6509,8 @@ components:
       - tasks
       - learners
       properties:
+        capabilities:
+          $ref: '#/components/schemas/AcademicMarkCapabilities'
         group_id:
           type: integer
           minimum: 1
@@ -6723,6 +6768,8 @@ components:
       - coverage_bp
       - released_at
       properties:
+        subject_name: {type: string}
+        grade_name: {type: string}
         release_id:
           type: integer
           minimum: 1
@@ -6874,4 +6921,43 @@ components:
           type: integer
         data:
           $ref: '#/components/schemas/AcademicReleasedData'
+      additionalProperties: false
+
+    AcademicMarkCapabilities:
+      type: object
+      required: [capture, correct, moderate, release]
+      properties:
+        capture: {type: boolean}
+        correct: {type: boolean}
+        moderate: {type: boolean}
+        release: {type: boolean}
+      additionalProperties: false
+
+    AcademicReleasePeriod:
+      type: object
+      required: [session_year_id, year_name, term_id, term_name, released_at]
+      properties:
+        session_year_id: {type: integer, minimum: 1}
+        year_name: {type: string}
+        term_id: {type: [integer, 'null']}
+        term_name: {type: [string, 'null']}
+        released_at: {type: string}
+      additionalProperties: false
+    AcademicReleasePeriodsData:
+      type: object
+      required: [learner_id, periods]
+      properties:
+        learner_id: {type: integer, minimum: 1}
+        periods:
+          type: array
+          items: {$ref: '#/components/schemas/AcademicReleasePeriod'}
+      additionalProperties: false
+    AcademicReleasePeriodsResponse:
+      type: object
+      required: [error, message, code, data]
+      properties:
+        error: {type: boolean}
+        message: {type: string}
+        code: {type: integer}
+        data: {$ref: '#/components/schemas/AcademicReleasePeriodsData'}
       additionalProperties: false

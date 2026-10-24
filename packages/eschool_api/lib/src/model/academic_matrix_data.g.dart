@@ -15,6 +15,7 @@ AcademicMatrixData _$AcademicMatrixDataFromJson(
     $checkKeys(
       json,
       requiredKeys: const [
+        'capabilities',
         'group_id',
         'subject_id',
         'grade_level_id',
@@ -32,6 +33,10 @@ AcademicMatrixData _$AcademicMatrixDataFromJson(
       ],
     );
     final val = AcademicMatrixData(
+      capabilities: $checkedConvert(
+        'capabilities',
+        (v) => AcademicMarkCapabilities.fromJson(v as Map<String, dynamic>),
+      ),
       groupId: $checkedConvert('group_id', (v) => (v as num).toInt()),
       subjectId: $checkedConvert('subject_id', (v) => (v as num).toInt()),
       gradeLevelId: $checkedConvert(
@@ -85,6 +90,7 @@ AcademicMatrixData _$AcademicMatrixDataFromJson(
 
 Map<String, dynamic> _$AcademicMatrixDataToJson(AcademicMatrixData instance) =>
     <String, dynamic>{
+      'capabilities': instance.capabilities.toJson(),
       'group_id': instance.groupId,
       'subject_id': instance.subjectId,
       'grade_level_id': instance.gradeLevelId,

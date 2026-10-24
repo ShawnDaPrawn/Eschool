@@ -525,5 +525,6 @@
   "profileFileUpload": "فائل اپ لوڈ یا تبدیل کریں",
   "profileFileView": "فائل دیکھیں",
   "profileFileClear": "محفوظ کرتے وقت فائل ہٹائیں",
-  "profileFileLimit": "PDF، PNG یا JPEG، زیادہ سے زیادہ 5 MB۔"
+  "profileFileLimit": "PDF، PNG یا JPEG، زیادہ سے زیادہ 5 MB۔",
+  "assessmentMarks": "Assessment marks"
 }

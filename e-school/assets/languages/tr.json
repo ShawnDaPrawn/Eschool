@@ -525,5 +525,6 @@
   "profileFileUpload": "Dosya yükle veya değiştir",
   "profileFileView": "Dosyayı görüntüle",
   "profileFileClear": "Kaydederken dosyayı kaldır",
-  "profileFileLimit": "PDF, PNG veya JPEG, en fazla 5 MB."
+  "profileFileLimit": "PDF, PNG veya JPEG, en fazla 5 MB.",
+  "assessmentMarks": "Assessment marks"
 }
