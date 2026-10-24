@@ -163,11 +163,12 @@ class ContentQueries
         $v = app(ContentPolicy::class)->reader($actor, $learner, $id);
         $metadata = $v->metadata;
         $topics = CurriculumTopic::withTrashed()->whereIn('id', $metadata['topic_ids'])->get()->keyBy('id');
+        $instant = now();
 
         return ['id' => $id, 'content_item_id' => (int) $v->content_item_id, 'learner_id' => $learner, 'school_id' => app(CurrentSchool::class)->id(), 'reader_id' => (int) $actor->id,
             'title' => $metadata['title'], 'summary' => $metadata['summary'], 'markdown' => $v->markdown, 'body_sha256' => hash('sha256', $v->markdown), 'published_at' => $v->published_at->toISOString(),
             'topics' => array_values(array_map(fn ($topic) => ['id' => $topic, 'name' => $topics->get($topic)?->name ?? __('Archived topic')], $metadata['topic_ids'])),
-            'server_time' => now()->toISOString(), 'offline_until' => now()->addHours((int) config('academic_content.offline_lease_hours'))->toISOString()];
+            'server_time' => $instant->toISOString(), 'offline_until' => $instant->copy()->addHours((int) config('academic_content.offline_lease_hours'))->toISOString()];
     }
 
     public function read(User $actor, int $learner, int $id): array

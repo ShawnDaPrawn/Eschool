@@ -45,6 +45,7 @@ use App\Services\Platform\Tenancy\CurrentSchool;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\Client\Factory;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Queue;
@@ -636,6 +637,25 @@ class ContentEngineTest extends TestCase
         app(ContentFlow::class)->archive($this->teacher(), (int) $v->content_item_id, ['item_revision' => $v->item->fresh()->revision, 'operation_id' => (string) Str::uuid(), 'reason' => 'Material withdrawn for review']);
         $this->assertSame([], $queries->library($user, $this->schoolA->ids['asha'])['items']);
         $this->denied(404, fn () => $queries->reader($user, $this->schoolA->ids['asha'], (int) $v->id));
+    }
+
+    public function test_reader_lease_uses_one_instant_even_when_the_clock_advances_between_calls(): void
+    {
+        $v = $this->converted();
+        $this->publish($v);
+        $base = now();
+        $ticks = 0;
+        Carbon::setTestNow(static function () use ($base, &$ticks) {
+            return $base->copy()->addMicroseconds(++$ticks);
+        });
+        try {
+            $this->actingAs(User::findOrFail($this->schoolA->ids['asha_user']));
+            $response = $this->getJson('/api/v2/academics/content/learners/'.$this->schoolA->ids['asha'].'/versions/'.$v->id)->assertOk();
+            $reader = $response->json('data');
+            $this->assertSame(86400000000, (int) Carbon::parse($reader['server_time'])->diffInMicroseconds(Carbon::parse($reader['offline_until'])));
+        } finally {
+            Carbon::setTestNow($base);
+        }
     }
 
     public function test_unreviewed_publication_and_leadership_without_a_reason_are_refused(): void
