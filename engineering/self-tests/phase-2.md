@@ -135,3 +135,53 @@ dates. Incompatible memberships close in the enrolment transaction with audit.
 
 The existing parent/teacher API security suites passed 15 tests and 162 assertions
 after the dated-assignment term consumer and enrolment reconciliation changes.
+
+
+## Exact marks backend and release
+
+Implemented canonical task/question recording, exact rational calculation,
+audited revision/moderation/lock rules, immutable queued snapshots, selected
+release previews/pins, family reads, protected existing-exam projections and a
+bounded weekly reconciliation command. The shared adaptive capture grid follows
+as a separate client feature; this backend adds no new panel page.
+
+Local verification so far:164 calculator/mark/API-contract/audit checks
+(1,011 assertions),139 mark/contract/migration checks (1,008 assertions), and47
+existing API/authorization/tenancy checks (422 assertions) passed in separate
+cohorts. SDK regeneration and28 Dart tests, analysis with no errors/warnings
+(130 generator style infos), strict OpenAPI lint, Larastan, changed-file Pint,
+whitespace checks and documentation build passed. The entire backend suite and
+final profile additions are running/pending; final CI evidence belongs on the PR.
+
+Covered profiles include allocated teacher, unallocated teacher, school releaser,
+grade head, learner/family authorization and ended guardian relationships.
+Synthetic reconciliation covers exact matches/differences/duplicate refusal and
+foreign-school terms. No real school sheet, full-term pilot, staging performance,
+independent security review, device timing or production acceptance is claimed.
+
+
+The full local backend run passed1,185 tests but failed two portal-cookie
+fixture checks (24,490 assertions). This worktree's intentionally blank ignored
+.env left APP_NAME at Laravel's default, so the session store was initialized
+with a different cookie name before those fixtures changed configuration.
+Restoring the repository example's APP_NAME=e-School locally, without changing
+application code or credentials, made all31 final mark/profile/portal checks
+pass (313 assertions), including principal expiry and grade-head correction.
+The original full run is not reported as wholly passing; the final CI full suite
+remains required. The failure is recorded rather than waived.
+
+
+Compatibility review caught the installed teacher model's int-only obtained_marks
+fields. Removed floating accessors before merge. Official projections now use
+integer basis-point scores out of10,000, so all legacy numeric score fields remain
+whole numbers and percentages stay exact. Hidden hundredth columns retain exact
+inputs; legacy whole-score presentation rounds once. Targeted projection,
+recording, snapshot and client-decoder regressions must pass on the updated head.
+
+
+The integer-projection regression passed36 calculator/mark checks
+(257 assertions). The strengthened real parent-v1 response/shared teacher-model
+fixture then passed23 mark checks (209 assertions) and the existing teacher
+Dart decoder test. Fractional percentages remain exact without changing any
+installed int-only score field. The source review and final CI continue on this
+updated commit; earlier green checks alone do not authorize merging a changed head.

@@ -1,0 +1,13 @@
+{
+  "marks": {
+    "total_marks": 10000,
+    "obtained_marks": 7505,
+    "grade": "6"
+  },
+  "result": {
+    "total_marks": 10000,
+    "obtained_marks": 7505,
+    "percentage": 75.05,
+    "grade": "6"
+  }
+}

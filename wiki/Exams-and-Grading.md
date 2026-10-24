@@ -240,3 +240,29 @@ When a class has terms enabled for the session year (`class_session_configs.incl
 - [API Teacher](API-Teacher)
 - [API Parent](API-Parent)
 - [Glossary](Glossary)
+
+
+## Canonical assessment marks (Phase 2)
+
+Published curriculum tasks now drive exact task/question marks through
+`MarkRecording` and the rational `MarkCalculator`. Capture uses current dated
+teaching authority and optimistic revisions; grade heads moderate and correct
+with reasons. School-timezone lock dates refuse writes with409. Partial, missing,
+absent, excused and catch-up values remain distinct. Term and annual weights are
+independent; complete term results do not wait for future annual definitions.
+
+`mark_snapshots` append immutable inputs/results through the queue. A release
+previews selected learners and requires its unchanged fingerprint. Official mode
+requires complete selected results; explicit running mode is provisional. Family
+reads only released evidence under current guardian/learner rights, without fees.
+Later corrections never rewrite a release. Official snapshots project the v1
+exam fields through the same service. Official projection scores use integer basis points out of10,000 so older
+clients retain their whole-number contracts and exact percentage values; new projections have nullable passing fields
+because a seven-point rating alone is not a promotion rule. Legacy exams retain
+their configured grade bands and pass thresholds. Older exam editors cannot
+change protected projections.
+
+`php artisan marks:reconcile <school> <term> --sheet=<private.csv> --refresh`
+compares current snapshots with a weekly school sheet. See the marks runbook
+under `engineering/runbooks/academic-marks.md`. The shared capture grid follows
+these backend contracts; this backend slice alone does not certify a real pilot.

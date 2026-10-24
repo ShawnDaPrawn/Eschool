@@ -17,6 +17,8 @@ use App\Models\Term;
 use App\Models\User;
 use App\Policies\Academics\CurriculumPolicy;
 use App\Services\Platform\Audit\Audit;
+use App\Services\Platform\Events\AcademicAssessmentPublished;
+use App\Services\Platform\Events\Outbox;
 use App\Services\Platform\Tenancy\CurrentSchool;
 use Carbon\CarbonImmutable;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
@@ -328,6 +330,7 @@ class CurriculumPlans
         app(CurriculumPolicy::class)->authorise($actor, 'publish');
 
         return DB::transaction(function () use ($actor, $planId, $assessmentId, $revision) {
+            School::query()->lockForUpdate()->findOrFail(app(CurrentSchool::class)->id());
             $plan = CurriculumPlan::query()->lockForUpdate()->findOrFail($planId);
             app(CurriculumPolicy::class)->authorise($actor, 'publish', $plan);
             $assessment = $plan->assessments()->with('tasks.questions', 'term')->lockForUpdate()->findOrFail($assessmentId);
@@ -336,7 +339,7 @@ class CurriculumPlans
             }
             abort_if((int) $plan->revision !== $revision, 409, __('This plan changed. Reload it before saving.'));
             $grade = GradeLevel::query()->findOrFail($plan->grade_level_id);
-            $term = Term::query()->where('session_year_id', $plan->session_year_id)->forGrade((int) $grade->sort_order)->findOrFail($assessment->term_id);
+            $term = Term::query()->where('session_year_id', $plan->session_year_id)->forGrade((int) $grade->sort_order)->lockForUpdate()->findOrFail($assessment->term_id);
             $today = CarbonImmutable::now(app(CurrentSchool::class)->school()?->timezone ?? 'Africa/Johannesburg')->toDateString();
             abort_if($term->marks_lock_on !== null && $today >= $term->marks_lock_on->toDateString(), 409, __('This term is locked. Review its lock date before publishing new assessment definitions.'));
             $components = $this->weights($assessment->components, 'components', true);
@@ -359,6 +362,17 @@ class CurriculumPlans
                     throw ValidationException::withMessages(['tasks' => __('Task weights must total 100% within each included component.')]);
                 }
             }
+            $recorded = DB::table('assessment_marks as protected_mark')
+                ->join('assessment_tasks as protected_task', 'protected_task.id', '=', 'protected_mark.assessment_task_id')
+                ->join('assessment_plans as protected_assessment', 'protected_assessment.id', '=', 'protected_task.assessment_plan_id')
+                ->join('curriculum_plans as protected_curriculum', 'protected_curriculum.id', '=', 'protected_assessment.curriculum_plan_id')
+                ->where('protected_mark.school_id', $plan->school_id)->where('protected_task.school_id', $plan->school_id)
+                ->where('protected_assessment.school_id', $plan->school_id)->where('protected_curriculum.school_id', $plan->school_id)
+                ->where('protected_curriculum.subject_id', $plan->subject_id)->where('protected_curriculum.grade_level_id', $plan->grade_level_id)
+                ->where('protected_curriculum.session_year_id', $plan->session_year_id)->where('protected_assessment.term_id', $assessment->term_id)
+                ->whereNull('protected_mark.deleted_at')->distinct()->pluck('protected_mark.assessment_task_id')->map(fn ($id) => (int) $id)->all();
+            $retained = $assessment->tasks->map(fn ($t) => (int) ($t->source_task_id ?? $t->id))->all();
+            abort_if(array_diff($recorded, $retained) !== [], 409, __('Retain recorded tasks in the revision. Their weights can be changed explicitly without losing mark history.'));
             $assessment->state = 'published';
             $assessment->published_by = $actor->id;
             $assessment->published_at = now();
@@ -366,6 +380,7 @@ class CurriculumPlans
             $plan->state = 'published';
             $plan->revision++;
             $plan->save();
+            Outbox::record(new AcademicAssessmentPublished((int) $plan->school_id, (int) $plan->subject_id, (int) $plan->grade_level_id, (int) $plan->session_year_id, (int) $assessment->term_id));
             Audit::record('academics.assessment_plan_published', $assessment, ['state' => 'draft'], ['state' => 'published', 'curriculum_plan_id' => $planId, 'version' => $plan->version]);
 
             return $plan->load('topics', 'assessments.tasks.questions');

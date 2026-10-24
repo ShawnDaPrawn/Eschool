@@ -116,3 +116,17 @@ not create whole-class v1 subject assignments. Bound homeroom assignments keep
 stable v1 projections, and term-filtered teacher/chat consumers explicitly accept
 current dated assignments. Enrolment changes end incompatible group memberships
 with an audit; moving grade never projects access into the new grade's homeroom.
+
+
+## Phase 2: exact assessment marks
+
+assessment_marks store one year-specific canonical task/learner score, capture
+group provenance, disposition, revision and moderation evidence; question_marks
+store exact hundredth units against canonical question IDs. Immutable
+mark_snapshots retain definition/input fingerprints, exact formula inputs,
+coverage, provisional/official percentages and seven-point ratings per learner /
+subject / grade / year / period. mark_releases and mark_release_entries pin
+selected immutable snapshots. academic_exam_links identify protected v1 exam
+projections. Existing exam marks/results have hidden exact-unit columns; their whole-number obtained_marks fields retain installed-client types.
+Official projections use integer scores out of10,000, preserving exact percentages. Canonical projections
+have no inferred promotion/pass decision (nullable passing fields).

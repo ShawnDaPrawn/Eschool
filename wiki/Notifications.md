@@ -230,3 +230,12 @@ Hard bounces and complaints are also suppressed by SES's account-level suppressi
 - [API-Overview](API-Overview)
 - [Admin-Panel-Overview](Admin-Panel-Overview)
 - [Troubleshooting-and-FAQ](Troubleshooting-and-FAQ)
+
+
+Academic result release records a transactional `academics.marks_released` event.
+Its scoped listener creates one generic notice per release/learner and resolves
+current guardian IDs, then calls Notifier. Retries reuse the notice source key;
+Notifier enforces membership, modules, preferences and per-channel delivery claims.
+Notification bodies contain no scores or child names; opening the marks link
+requires current own-child authorization. Draft, capture and recompute events
+do not publish results or send family notices.

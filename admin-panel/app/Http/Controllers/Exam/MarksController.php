@@ -9,15 +9,14 @@ use App\Models\ClassSection;
 use App\Models\ClassSubject;
 use App\Models\ClassTeacher;
 use App\Models\Exam;
-use App\Models\ExamClass;
 use App\Models\ExamMarks;
-use App\Models\ExamResult;
 use App\Models\ExamTimetable;
 use App\Models\Students;
 use App\Models\StudentSessions;
 use App\Models\StudentSubject;
 use App\Models\Subject;
 use App\Models\SubjectTeacher;
+use App\Services\Academics\MarkRecording;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
@@ -259,30 +258,8 @@ class MarksController extends Controller
                 }
             }
 
-            foreach ($request->exam_marks as $exam_marks) {
-                $passing_marks = $exam_timetable->passing_marks;
-                if ($exam_marks['obtained_marks'] >= $passing_marks) {
-                    $status = 1;
-                } else {
-                    $status = 0;
-                }
-                $marks_percentage = ($exam_marks['obtained_marks'] / $exam_marks['total_marks']) * 100;
-                $exam_grade = findExamGrade($exam_timetable->session_year_id, $marks_percentage);
-
-                if ($exam_grade == null) {
-                    $response = [
-                        'error' => true,
-                        'message' => trans('grades_data_does_not_exists'),
-                    ];
-
-                    return response()->json($response);
-                }
-
-                ExamMarks::updateOrInsert(
-                    ['id' => isset($exam_marks['exam_marks_id']) ? $exam_marks['exam_marks_id'] : null],
-                    ['exam_timetable_id' => $exam_timetable->id, 'student_id' => $exam_marks['student_id'], 'subject_id' => $request->subject_id, 'obtained_marks' => $exam_marks['obtained_marks'], 'passing_status' => $status, 'session_year_id' => $exam_timetable->session_year_id, 'grade' => $exam_grade]
-                );
-            }
+            $rows = collect($request->exam_marks)->map(fn ($mark) => ['timetable_id' => $exam_timetable->id, 'learner_id' => $mark['student_id'], 'mark' => $mark['obtained_marks']])->all();
+            app(MarkRecording::class)->legacy($request->user(), $rows);
             $response = [
                 'error' => false,
                 'message' => trans('data_store_successfully'),
@@ -337,71 +314,13 @@ class MarksController extends Controller
                 }
             }
 
-            foreach ($request->edit as $data) {
-                $class_id = ExamClass::where('exam_id', $data['exam_id'])->pluck('class_id')->first();
-                $marks_db = ExamMarks::find($data['marks_id']);
-                $marks_db->obtained_marks = $data['obtained_marks'];
+            $rows = collect($request->edit)->map(function ($data) {
+                $mark = ExamMarks::findOrFail($data['marks_id']);
 
-                $passing_marks = $data['passing_marks'];
-                if ($data['obtained_marks'] >= $passing_marks) {
-                    $marks_db->passing_status = 1;
-                } else {
-                    $marks_db->passing_status = 0;
-                }
-
-                $marks_percentage = ($data['obtained_marks'] / $data['total_marks']) * 100;
-                $results = ExamResult::where('exam_id', $data['exam_id'])
-                    ->where('student_id', $data['student_id'])
-                    ->get(['id', 'session_year_id']);
-
-                $exam_result_id = $results->pluck('id');
-                $session_year_id = $results->pluck('session_year_id')->first();
-
-                $grade = findExamGrade($session_year_id, $marks_percentage);
-                if ($grade == null) {
-                    $response = [
-                        'error' => true,
-                        'message' => trans('grades_data_does_not_exists'),
-                    ];
-
-                    return response()->json($response);
-                }
-                $marks_db->grade = $grade;
-                $marks_db->save();
-
-                // $exam_result_id = ExamResult::where(['' => $data[''], 'student_id' => $data['student_id']])->pluck('id');
-
-                $exam = Exam::with(['marks' => function ($query) use ($data) {
-                    $query->with('student:id,class_section_id')->selectRaw('SUM(obtained_marks) as total_obtained_marks,student_id')->where('student_id', $data['student_id'])->groupBy('student_id');
-                }, 'timetable' => function ($query) use ($data, $class_id) {
-                    $query->selectRaw(',SUM(total_marks) as total_marks')->where(['exam_id' => $data['exam_id'], 'class_id' => $class_id]);
-                }])->where('id', $data['exam_id'])->first();
-
-                foreach ($exam->marks as $exam_marks) {
-                    $percentage = ($exam_marks['total_obtained_marks'] * 100) / $exam->timetable[0]['total_marks'];
-
-                    $grade = findExamGrade($exam->session_year_id, $percentage);
-                    if ($grade == null) {
-                        $response = [
-                            'error' => true,
-                            'message' => trans('grades_data_does_not_exists'),
-                        ];
-
-                        return response()->json($response);
-                    }
-
-                    $exam_result_db = ExamResult::find($exam_result_id)->first();
-                    $exam_result_db->obtained_marks = $exam_marks['total_obtained_marks'];
-                    $exam_result_db->percentage = round($percentage, 2);
-                    $exam_result_db->grade = $grade;
-                    $exam_result_db->save();
-
-                    $response = [
-                        'error' => false,
-                        'message' => trans('data_update_successfully'),
-                    ];
-                }
-            }
+                return ['timetable_id' => $mark->exam_timetable_id, 'learner_id' => $mark->student_id, 'mark' => $data['obtained_marks']];
+            })->all();
+            app(MarkRecording::class)->legacy($request->user(), $rows, true);
+            $response = ['error' => false, 'message' => trans('data_update_successfully')];
         } catch (Throwable $e) {
             $response = [
                 'error' => true,

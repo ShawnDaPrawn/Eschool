@@ -226,3 +226,17 @@ fresh date checks and preserve historical IDs. Allocated teachers can plan futur
 curricula; actual capture needs a current grant. No marks are created or copied
 by assignment. Software verification continues separately from the genuine
 staging, source-policy, pilot-term and independent review evidence.
+
+
+## 24 October 2026: exact marks and release evidence
+
+Implemented rational task/component calculations with final-only rounding,
+question capture, optimistic corrections, scoped moderation, school-timezone
+locks, queued immutable snapshots and selected-learner release previews/pins.
+Compatible same-year definitions retain marks; publication cannot discard
+recorded tasks. Incomplete future annual definitions do not block ready terms.
+Existing exam writers share exact recording/lock/audit rules, and official
+releases project protected existing-app results without inventing promotion
+thresholds. Added generated v2 client models and a bounded weekly CSV comparison.
+The adaptive capture client is the next feature. Synthetic tests are software
+evidence only; real pilot/staging/security/UX/production acceptance stays open.
