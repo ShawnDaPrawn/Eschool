@@ -53,3 +53,10 @@ generic API key because its manifest key contains "token". The downloaded public
 artifact was rehashed and matches the manifest. A path-and-exact-digest exception
 was added; all other values, files and default rules remain scanned. This does
 not exempt provider tokens, model directories or conversion code.
+
+Review also aligned the draft-save JSON envelope allowance with the 2 MiB UTF-8
+Markdown limit (sixfold worst-case escaping plus a 64 KiB envelope margin, scoped
+only to the canonical draft PUT path). Actual body length is checked as well as
+the declared header; every other JSON route/method retains 1 MiB. ContentRequest
+and the sanitizer retain their text limits. Regression checks include nested
+ordered material and stable inline/fenced code whitespace across repeated saves.

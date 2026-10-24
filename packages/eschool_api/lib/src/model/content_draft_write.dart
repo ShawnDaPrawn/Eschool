@@ -42,6 +42,7 @@ class ContentDraftWrite {
   @JsonKey(name: r'selection', required: true, includeIfNull: false)
   final ContentSelection selection;
 
+  /// At most 2 MiB of UTF-8 text before JSON escaping.
   @JsonKey(name: r'markdown', required: true, includeIfNull: false)
   final String markdown;
 

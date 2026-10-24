@@ -115,12 +115,17 @@ class ContentMarkdown
         if ($node instanceof Code) {
             $f = $this->fence($node->getLiteral(), 1);
 
-            return $f.' '.$node->getLiteral().' '.$f;
+            $literal = $node->getLiteral();
+            $padding = str_starts_with($literal, '`') || str_ends_with($literal, '`') || (str_starts_with($literal, ' ') && str_ends_with($literal, ' ') && trim($literal, ' ') !== '') ? ' ' : '';
+
+            return $f.$padding.$literal.$padding.$f;
         }
         if ($node instanceof FencedCode || $node instanceof IndentedCode) {
             $f = $this->fence($node->getLiteral(), 3);
 
-            return $f."\n".$node->getLiteral()."\n".$f."\n\n";
+            $literal = $node->getLiteral();
+
+            return $f."\n".$literal.(str_ends_with($literal, "\n") ? '' : "\n").$f."\n\n";
         }
         if ($node instanceof Strong) {
             return '**'.$this->children($node).'**';
@@ -148,7 +153,7 @@ class ContentMarkdown
             $index = $node->getListData()->start ?? 1;
             foreach ($node->children() as $item) {
                 $prefix = $node->getListData()->type === ListBlock::TYPE_ORDERED ? $index++.'. ' : '- ';
-                $output .= $prefix.str_replace("\n", "\n  ", trim($this->children($item)))."\n";
+                $output .= $prefix.str_replace("\n", "\n".str_repeat(' ', strlen($prefix)), trim($this->children($item)))."\n";
             }
 
             return $output."\n";

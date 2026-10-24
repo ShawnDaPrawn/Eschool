@@ -217,6 +217,18 @@ class ContentEngineTest extends TestCase
         $this->postJson($publish, $body)->assertForbidden();
     }
 
+    public function test_json_api_saves_an_allowed_markdown_draft_larger_than_one_mebibyte(): void
+    {
+        $v = $this->converted();
+        $this->bearer($this->teacher());
+        $body = "# Large reviewed lesson\n\n".str_repeat('Half "quoted" and two quarters. ', 36000);
+        $this->assertGreaterThan(1024 * 1024, strlen($body));
+        $this->assertLessThan(2 * 1024 * 1024, strlen($body));
+        $input = $this->write($v, ['selection' => $this->selection(), 'markdown' => $body]);
+        $this->putJson('/api/v2/academics/content/versions/'.$v->id, $input)->assertOk();
+        $this->assertStringContainsString('Large reviewed lesson', $v->fresh()->markdown);
+    }
+
     public function test_every_staff_content_route_rejects_wrong_profile_owner_and_school_before_validation(): void
     {
         $v = $this->converted();

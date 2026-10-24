@@ -532,3 +532,14 @@ including both resolved review findings, native Android and full backend checks.
   run/merge evidence is recorded after the PR completes. Physical-device,
   end-to-end staging latency, language accuracy and independent security/pilot
   acceptance remain separate. Shared app screens are the next content slice.
+
+
+PR #98 review follow-up: **31 tests passed, 408 assertions**, covering nested
+numbered lists/paragraphs/code and stable code whitespace across repeated saves,
+a real v2 save above 1 MiB, worst-case JSON escaping at the 2 MiB text bound,
+unchanged limits on other routes/methods and understated length-header refusal.
+Larastan and strict OpenAPI lint pass; the 673-file SDK was regenerated.
+CI run 40111629362 verified the real ClamAV/EICAR step and actual PDF, Word,
+slides, spreadsheet, audio and video inside the read-only offline runtime.
+Security run 40111956196 passes after the exact public-checksum exception;
+93769303 is superseded by the review fixes, so final-head CI is still required.

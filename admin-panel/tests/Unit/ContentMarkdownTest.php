@@ -36,4 +36,35 @@ class ContentMarkdownTest extends TestCase
         $this->assertStringNotContainsString('<script>', $html);
         $this->assertStringContainsString('Equivalent fractions', $html);
     }
+
+    public function test_ordered_items_keep_nested_lists_paragraphs_and_code_inside_the_item(): void
+    {
+        $service = app(ContentMarkdown::class);
+        $raw = "10. Question about halves\n\n    - A nested fraction\n    - Another fraction\n\n    Explain the answer.\n\n    ```text\n    half = two quarters\n    ```\n\n11. Next question\n";
+        $clean = $service->clean($raw);
+        $html = $service->html($clean);
+        $document = new \DOMDocument;
+        $document->loadHTML($html);
+        $xpath = new \DOMXPath($document);
+        $this->assertSame(1, $xpath->query('/html/body/ol')->length);
+        $this->assertSame('10', $xpath->query('/html/body/ol')->item(0)->getAttribute('start'));
+        $this->assertSame(2, $xpath->query('/html/body/ol/li')->length);
+        $this->assertSame(2, $xpath->query('/html/body/ol/li[1]/ul/li')->length);
+        $this->assertSame(1, $xpath->query('/html/body/ol/li[1]/pre/code')->length);
+        $this->assertStringContainsString('Explain the answer.', $xpath->query('/html/body/ol/li[1]')->item(0)->textContent);
+        $this->assertSame($html, $service->html($service->clean($clean)));
+    }
+
+    public function test_inline_code_preserves_literal_spaces_and_backticks_across_saves(): void
+    {
+        $service = app(ContentMarkdown::class);
+        foreach (['`  `' => '  ', '`` `x` ``' => '`x`', '`  x  `' => ' x '] as $raw => $literal) {
+            $clean = $service->clean('Example '.$raw.'.');
+            $html = $service->html($clean);
+            $document = new \DOMDocument;
+            $document->loadHTML($html);
+            $this->assertSame($literal, $document->getElementsByTagName('code')->item(0)->textContent);
+            $this->assertSame($html, $service->html($service->clean($clean)));
+        }
+    }
 }

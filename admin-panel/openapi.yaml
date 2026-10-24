@@ -6206,6 +6206,12 @@ paths:
           $ref: '#/components/responses/NotFound'
         '409':
           $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '413':
+          description: JSON draft envelope exceeds the bounded escaped-Markdown allowance.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
         '422':
           $ref: '#/components/responses/ValidationFailed'
         '429':
@@ -14715,6 +14721,7 @@ components:
         selection:
           $ref: '#/components/schemas/ContentSelection'
         markdown:
+          description: At most 2 MiB of UTF-8 text before JSON escaping.
           type: string
           maxLength: 2097152
     ContentPublishWrite:
