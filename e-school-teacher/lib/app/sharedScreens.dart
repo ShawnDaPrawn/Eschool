@@ -110,6 +110,15 @@ List<Widget> sharedScreenEntries(
   void open(String route) => Navigator.of(context).pushNamed(route);
   return [
     if (context.watch<MeContextCubit>().context?.isFeatureOn(
+          'academic_registers',
+        ) ==
+        true)
+      tile(
+        title: label('academicRegisters'),
+        icon: Icons.fact_check_outlined,
+        onTap: () => open(Routes.academicRegisters),
+      ),
+    if (context.watch<MeContextCubit>().context?.isFeatureOn(
           'academic_timetable',
         ) ==
         true)
@@ -247,3 +256,26 @@ class AcademicNextPeriod extends StatelessWidget {
     );
   }
 }
+
+Route<dynamic> academicRegistersRoute() => AdaptivePageRoute(
+  builder: (context) {
+    final me = context.read<MeContextCubit>().context;
+    final school = me?.currentSchool;
+    final owner = context.read<AuthCubit>().getTeacherDetails().userId;
+    if (school == null ||
+        owner <= 0 ||
+        me?.isFeatureOn('academic_registers') != true) {
+      return const ScreenScaffold(
+        title: 'Academic registers',
+        body: Center(child: Text('Not available yet')),
+      );
+    }
+    return AcademicContextBoundary(
+      schoolId: school.id,
+      child: RegisterHubScreen(
+        repository: ApiRegisterRepository(Api.client, schoolId: school.id),
+        store: () => SecureRegisterStore.open(owner),
+      ),
+    );
+  },
+);

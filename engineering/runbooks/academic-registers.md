@@ -60,3 +60,16 @@ Existing half-day/holiday rows remain readable; corrections adopt their original
 attendance IDs and keep fractional v1 reports. Physical enrolment drives staff
 registers independently of app activation; disabled/left accounts remain in
 historical dated rosters. Capturing attendance never activates an account.
+
+The shared teacher client stores its queue in a dedicated encrypted box with a
+platform-held random key. The key and owner marker are erased on logout/account
+replacement; cleanup attempts key deletion even if file removal fails. Never
+copy that box between accounts or clear an unacknowledged queue as a retry step.
+Use explicit conflict review, or ask the grade head to handle an earlier day.
+Chrome uses the browser's native barcode detector when available; keyboard QR and
+tap capture remain available. No externally hosted scanner script is loaded.
+
+The panel lists missing entries separately from captured absences. Large-class
+capture sends one bounded JSON field; without JavaScript, native fields have a
+count guard so PHP input truncation fails the complete write. A 409 comparison
+page requires explicit preparation of a new draft and a subsequent Save.

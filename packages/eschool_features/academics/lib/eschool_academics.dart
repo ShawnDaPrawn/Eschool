@@ -13,3 +13,11 @@ export 'src/timetable/timetable_repository.dart';
 export 'src/timetable/timetable_cubit.dart';
 export 'src/timetable/timetable_screen.dart';
 export 'src/timetable/next_period_card.dart';
+
+export 'src/registers/register_repository.dart';
+export 'src/registers/register_store.dart';
+export 'src/registers/register_cubit.dart';
+export 'src/registers/register_screen.dart';
+export 'src/registers/register_hub_screen.dart';
+export 'src/registers/family_attendance_screen.dart';
+export 'src/registers/today_attendance_card.dart';

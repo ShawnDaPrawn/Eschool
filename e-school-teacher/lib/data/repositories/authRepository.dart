@@ -1,3 +1,4 @@
+import 'package:eschool_academics/eschool_academics.dart';
 import 'package:eschool_teacher/data/models/teacher.dart';
 import 'package:eschool_teacher/utils/api.dart';
 import 'package:eschool_teacher/utils/hiveBoxKeys.dart';
@@ -45,6 +46,11 @@ class AuthRepository {
       Api.post(body: {}, url: Api.logout, useAuthToken: true);
     } catch (e) {
       null;
+    }
+    try {
+      await SecureRegisterStore.purge();
+    } catch (_) {
+      /* A closed encrypted cache cannot be read by another account. */
     }
     setIsLogIn(false);
     setJwtToken('');

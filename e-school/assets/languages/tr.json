@@ -527,5 +527,7 @@
   "profileFileClear": "Kaydederken dosyayı kaldır",
   "profileFileLimit": "PDF, PNG veya JPEG, en fazla 5 MB.",
   "assessmentMarks": "Assessment marks",
-  "academicTimetable": "Academic timetable"
+  "academicTimetable": "Academic timetable",
+  "academicRegisters": "Academic registers",
+  "attendanceAndQr": "Attendance and QR"
 }

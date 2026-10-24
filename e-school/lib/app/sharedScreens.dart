@@ -179,6 +179,15 @@ List<Widget> sharedScreenEntries(
   void open(String route) => Navigator.of(context).pushNamed(route);
   return [
     if (context.watch<MeContextCubit>().context?.isFeatureOn(
+          'academic_registers',
+        ) ==
+        true)
+      tile(
+        title: label('attendanceAndQr'),
+        icon: Icons.fact_check_outlined,
+        onTap: () => open(Routes.academicAttendance),
+      ),
+    if (context.watch<MeContextCubit>().context?.isFeatureOn(
           'academic_timetable',
         ) ==
         true)
@@ -357,6 +366,71 @@ class AcademicNextPeriod extends StatelessWidget {
         learnerName: child?.child.name,
         repository: ApiTimetableRepository(Api.client, schoolId: school),
         onOpen: () => Navigator.of(context).pushNamed(Routes.academicTimetable),
+      ),
+    );
+  }
+}
+
+Route<dynamic> academicAttendanceRoute() => AdaptivePageRoute(
+  builder: (context) {
+    final me = context.read<MeContextCubit>().context;
+    final auth = context.read<AuthCubit>();
+    final child = auth.isParent()
+        ? context.read<ChildSelectionCubit>().selected
+        : null;
+    final learner = auth.isParent() ? child?.id : auth.getStudentDetails().id;
+    final school = auth.isParent() ? child?.schoolId : me?.currentSchoolId;
+    if (learner == null ||
+        learner <= 0 ||
+        school == null ||
+        school <= 0 ||
+        me?.isFeatureOn('academic_registers') != true) {
+      return const ScreenScaffold(
+        title: 'Attendance',
+        body: Center(child: Text('Not available yet')),
+      );
+    }
+    return AcademicContextBoundary(
+      schoolId: context.read<SchoolSelectionCubit>().state.selectedId ?? school,
+      childId: auth.isParent() ? learner : null,
+      child: FamilyAttendanceScreen(
+        repository: ApiRegisterRepository(Api.client, schoolId: school),
+        learner: learner,
+        learnerName:
+            child?.child.name ?? auth.getStudentDetails().getFullName(),
+      ),
+    );
+  },
+);
+
+class AcademicTodayAttendance extends StatelessWidget {
+  const AcademicTodayAttendance({super.key});
+  @override
+  Widget build(BuildContext context) {
+    final me = context.watch<MeContextCubit>().context;
+    final auth = context.read<AuthCubit>();
+    final child = auth.isParent()
+        ? context.watch<ChildSelectionCubit>().selected
+        : null;
+    final learner = auth.isParent() ? child?.id : auth.getStudentDetails().id;
+    final school = auth.isParent() ? child?.schoolId : me?.currentSchoolId;
+    if (learner == null ||
+        learner <= 0 ||
+        school == null ||
+        school <= 0 ||
+        me?.isFeatureOn('academic_registers') != true)
+      return const SizedBox.shrink();
+    final scope = 'family:$school:$learner';
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      child: TodayAttendanceCard(
+        key: ValueKey(scope),
+        scope: scope,
+        learner: learner,
+        learnerName: child?.child.name,
+        repository: ApiRegisterRepository(Api.client, schoolId: school),
+        onOpen: () =>
+            Navigator.of(context).pushNamed(Routes.academicAttendance),
       ),
     );
   }

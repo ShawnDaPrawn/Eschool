@@ -452,4 +452,59 @@ class RegisterEngineTest extends TestCase
         }
         Mail::assertNothingSent();
     }
+
+    public function test_panel_captures_native_and_json_registers_and_requires_explicit_conflict_review(): void
+    {
+        $matrix = $this->open();
+        $this->actingAs($this->tara)->get(route('academic-registers.index', ['register' => $matrix['register_id']]))
+            ->assertOk()->assertSee('Capture register')->assertSee('Mark remaining present')->assertHeader('Cache-Control', 'no-store, private');
+        $body = $this->write($matrix) + ['register_id' => $matrix['register_id'], 'expected_row_count' => '1', 'records' => [
+            $this->schoolA->ids['asha'] => ['state' => 'present', 'expected_revision' => 0],
+        ]];
+        unset($body['rows']);
+        $this->post(route('academic-registers.sync'), $body)->assertRedirect(route('academic-registers.index', ['register' => $matrix['register_id']]));
+        $this->assertSame('present', AttendanceEntry::firstOrFail()->state);
+        $body['operation_id'] = (string) Str::uuid();
+        $body['records'][$this->schoolA->ids['asha']]['state'] = 'absent';
+        $this->post(route('academic-registers.sync'), $body)->assertStatus(409)->assertSee('Prepare reviewed draft')->assertSee('Your entry');
+        $this->assertSame('present', AttendanceEntry::firstOrFail()->state);
+        $review = ['register_id' => $matrix['register_id'], 'expected_row_count' => 1, 'payload' => json_encode([['learner_id' => $this->schoolA->ids['asha'], 'state' => 'absent']]), 'reason' => 'Verified late correction'];
+        $this->post(route('academic-registers.review'), $review)->assertOk()->assertSee('Reviewed entries are a draft');
+        $this->assertSame('present', AttendanceEntry::firstOrFail()->state);
+        $fresh = app(Registers::class)->matrix($this->tara, $matrix['register_id']);
+        $write = $this->write($fresh, 'absent', ['reason' => 'Verified late correction']);
+        $this->post(route('academic-registers.sync'), $write + ['register_id' => $matrix['register_id'], 'expected_row_count' => 1, 'payload' => json_encode($write['rows'])])->assertRedirect();
+        $this->assertSame('absent', AttendanceEntry::firstOrFail()->state);
+    }
+
+    public function test_panel_rejects_truncated_native_batches_without_partial_writes_and_does_not_guess_absence(): void
+    {
+        $matrix = $this->open();
+        $body = $this->write($matrix) + ['register_id' => $matrix['register_id'], 'expected_row_count' => 2, 'records' => [
+            $this->schoolA->ids['asha'] => ['state' => 'present', 'expected_revision' => 0],
+        ]];
+        unset($body['rows']);
+        $this->actingAs($this->tara)->postJson(route('academic-registers.sync'), $body)->assertUnprocessable()->assertJsonValidationErrors('received_row_count');
+        $this->assertSame(0, AttendanceEntry::count());
+        $body['expected_row_count'] = 1;
+        $body['records'][$this->schoolA->ids['asha']]['state'] = 'unmarked';
+        $this->postJson(route('academic-registers.sync'), $body)->assertUnprocessable()->assertJsonValidationErrors('rows');
+        $this->assertSame(0, AttendanceEntry::count());
+        $this->get(route('academic-registers.index', ['register' => $matrix['register_id']]))->assertOk()->assertSee('Unmarked');
+    }
+
+    public function test_panel_checks_school_role_owner_and_fresh_correction_rights(): void
+    {
+        $matrix = $this->open();
+        $this->actingAs($this->tara)->postJson(route('academic-registers.settings'), ['absence_cutoff' => '11:00', 'teaching_days' => [1]])->assertForbidden();
+        $foreign = User::withoutGlobalScopes()->findOrFail($this->schoolB->ids['tara_user']);
+        $this->actingAs($foreign)->getJson(route('academic-registers.index', ['register' => $matrix['register_id']]))->assertStatus(404);
+        $this->actingAs(User::withoutGlobalScopes()->findOrFail($this->schoolA->ids['asha_user']))->getJson(route('academic-registers.index'))->assertRedirect()->assertSessionHasErrors();
+        $this->actingAs($this->tara);
+        HomeroomAllocation::query()->delete();
+        $body = $this->write($matrix) + ['register_id' => $matrix['register_id'], 'expected_row_count' => 1, 'payload' => json_encode($this->write($matrix)['rows'])];
+        $this->postJson(route('academic-registers.sync'), $body)->assertForbidden();
+        $this->getJson(route('academic-registers.index', ['register' => $matrix['register_id']]))->assertForbidden();
+        $this->assertSame(0, AttendanceEntry::count());
+    }
 }

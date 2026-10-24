@@ -527,5 +527,7 @@
   "profileFileClear": "Supprimer le fichier lors de l’enregistrement",
   "profileFileLimit": "PDF, PNG ou JPEG, jusqu’à 5 Mo.",
   "assessmentMarks": "Assessment marks",
-  "academicTimetable": "Academic timetable"
+  "academicTimetable": "Academic timetable",
+  "academicRegisters": "Academic registers",
+  "attendanceAndQr": "Attendance and QR"
 }

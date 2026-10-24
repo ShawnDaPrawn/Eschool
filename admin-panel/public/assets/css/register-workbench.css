@@ -1,0 +1,12 @@
+.register-workbench { overflow-wrap: anywhere; }
+.register-fields { display: flex; flex-wrap: wrap; align-items: end; gap: 16px; margin-block: 16px; }
+.register-fields > * { min-width: 0; }
+.register-overview { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 240px), 1fr)); gap: 12px; }
+.register-table { overflow-x: auto; max-width: 100%; margin-block: 16px; }
+.register-table table { min-width: 520px; }
+.register-table td, .register-table th { vertical-align: middle; }
+.register-workbench fieldset { min-width: 0; }
+.register-workbench select { min-height: 48px; }
+.register-workbench input[data-register-qr] { max-width: 100%; min-height: 48px; }
+.register-workbench button { margin-block: 8px; }
+.register-workbench details > summary { padding-block: 16px; cursor: pointer; }

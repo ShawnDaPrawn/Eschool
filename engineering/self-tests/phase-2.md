@@ -315,3 +315,26 @@ mail/push after correction and later leave approval with no transport call.
 Larastan is clean. Existing half-day rows remain visible, preserve IDs on
 correction, and retain fractional reports. App account activation does not drive
 physical/historical rosters; no account is activated by capture.
+
+### Attendance clients — implementation verification in progress
+
+Shared register tests: 55 passing, including 35-learner tap capture at 390/1024/1280,
+offline duplicate/order/conflict/revocation, persistence failure, encrypted disk
+reopen/account purge, QR duplicate/foreign matching, large text/read-only dates,
+family-only requests and late child-response suppression. Both app analyses have
+zero errors/warnings (existing informational lints remain). Panel and Chrome
+integration evidence is being collected before this feature is published.
+Physical camera/device and classroom timing acceptance remain pending.
+
+Attendance client results (24 October 2026): shared academics 55 tests passed and
+analysis clean; teacher app 28 tests and family app 45 tests passed; both app
+analyses have no errors/warnings. Teacher Chrome sign-in → Home → allocated
+35-learner register → explicit capture → sync passed. Parent Chrome Home → own
+child attendance/QR passed, with every request pinned to that child/school and no
+staff roster request. Panel Playwright passed three flows: capture, QR,
+concurrent-tab conflict review/correction at 1024 and 1280; teacher earlier-day
+read-only register. Axe serious/critical violations and page overflow checks pass
+at both widths. Native/JSON row-count mismatch was found in browser rehearsal,
+fixed, and both widths rerun successfully. Documentation build passed; PHP style
+passed 933 files; Larastan clean. These are local/synthetic results, not physical
+camera, real classroom timing, staging or full-term pilot acceptance.

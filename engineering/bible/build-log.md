@@ -282,3 +282,10 @@ tenancy/migration, old API and notification checks are recorded in the Phase2
 self-test file. SDK generated from the additive contract. Shared register clients
 and panel overview remain a separate slice; actual device timing, staging
 cutoff delivery and full-term school evidence remain pending.
+
+Attendance clients/workbench: shared adaptive teacher register with account-owned
+encrypted offline operations, ordered retries and explicit conflict review; own-child
+Home attendance/QR, panel counts/corrections/cutoff, and bounded atomic form capture.
+Local shared/app tests and teacher/parent Chrome flows pass; panel capture/conflict
+and read-only flows pass at both desktop widths with accessibility/overflow checks.
+Staging, real classroom/device timings and full-term pilot evidence remain open.

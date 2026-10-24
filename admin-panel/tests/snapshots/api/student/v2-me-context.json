@@ -45,6 +45,7 @@
             },
             "feature_flags": {
                 "academic_marks": "bool",
+                "academic_registers": "bool",
                 "academic_timetable": "bool",
                 "module_switches": "bool"
             },

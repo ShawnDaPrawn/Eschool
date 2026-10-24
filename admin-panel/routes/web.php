@@ -30,6 +30,7 @@ use App\Http\Controllers\OnlineExamController;
 use App\Http\Controllers\OnlineExamQuestionController;
 use App\Http\Controllers\Panel\Academics\CurriculumController;
 use App\Http\Controllers\Panel\Academics\NewYearController;
+use App\Http\Controllers\Panel\Academics\RegisterPanelController;
 use App\Http\Controllers\Panel\Academics\SubjectStandardController;
 use App\Http\Controllers\Panel\Academics\TeachingGroupController;
 use App\Http\Controllers\Panel\Academics\TimetableWorkbenchController;
@@ -208,6 +209,13 @@ Route::group(['middleware' => ['Role', 'auth', 'school.context', EnforceReadOnly
         Route::get('class-teacher-list', [ClassTeacherController::class, 'show']);
         Route::post('remove-class-teacher/{id}/{class_teacher_id}', [ClassTeacherController::class, 'removeClassTeacher']);
 
+        Route::prefix('academic-registers')->name('academic-registers.')->middleware('cache.headers:private;no_store')->group(function () {
+            $controller = RegisterPanelController::class;
+            Route::get('/', [$controller, 'index'])->name('index');
+            foreach (['open', 'sync', 'review', 'settings'] as $action) {
+                Route::post($action, [$controller, $action])->name($action);
+            }
+        });
         Route::get('academic-timetable', [TimetableWorkbenchController::class, 'index'])->name('academic-timetable.index');
         foreach (['room' => 'room', 'bells' => 'bells', 'preview' => 'preview', 'commit' => 'commit', 'import-map' => 'mapImport', 'import-preview' => 'previewImport'] as $path => $action) {
             Route::post('academic-timetable/'.$path, [TimetableWorkbenchController::class, $action])->name('academic-timetable.'.$path);
