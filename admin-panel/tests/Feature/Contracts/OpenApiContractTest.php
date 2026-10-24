@@ -62,6 +62,7 @@ class OpenApiContractTest extends TestCase
             'timetable commit validation' => ['superadmin', 'POST', 'api/v2/academics/timetable/commit', [], 422],
             'timetable import validation' => ['superadmin', 'POST', 'api/v2/academics/timetable/import', [], 422],
             'timetable parent management denied' => ['farid', 'POST', 'api/v2/academics/timetable/rooms', [], 403],
+            'released mark periods unknown' => ['farid', 'GET', 'api/v2/academics/marks/learners/999999/periods', [], 404],
             'mark matrix requires auth' => [null, 'GET', 'api/v2/academics/marks/groups/999999', [], 401],
             'mark matrix unknown' => ['superadmin', 'GET', 'api/v2/academics/marks/groups/999999', [], 404],
             'mark preview unknown' => ['superadmin', 'POST', 'api/v2/academics/marks/groups/999999/tasks/999999/preview', [], 404],

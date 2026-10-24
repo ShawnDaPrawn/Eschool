@@ -525,5 +525,6 @@
   "profileFileUpload": "رفع ملف أو استبداله",
   "profileFileView": "عرض الملف",
   "profileFileClear": "إزالة الملف عند الحفظ",
-  "profileFileLimit": "PDF أو PNG أو JPEG، حتى 5 ميغابايت."
+  "profileFileLimit": "PDF أو PNG أو JPEG، حتى 5 ميغابايت.",
+  "assessmentMarks": "Assessment marks"
 }

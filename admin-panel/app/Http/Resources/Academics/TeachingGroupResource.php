@@ -12,6 +12,6 @@ class TeachingGroupResource extends JsonResource
 {
     public function toArray(Request $request): array
     {
-        return app(TeachingGroups::class)->groupData($this->resource);
+        return app(TeachingGroups::class)->groupData($this->resource) + ['year_name' => $this->resource->year->name];
     }
 }

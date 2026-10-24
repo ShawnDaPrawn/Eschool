@@ -251,3 +251,12 @@ week and next-period reads use dated rights. Protected v1 projections retain
 field types and stable IDs; additive room labels update the five affected API
 snapshots. The panel/shared app editor and home card follow as a client slice.
 Real vendor exports, staging, device timing and pilot acceptance remain separate.
+### Adaptive academic mark clients — 24 October 2026
+
+Added the shared academics package, keyboard/Excel/question capture, server
+running previews, conflict comparison, explicit moderation/release preview and
+family released-result views. Both apps retain their existing phone exam flows;
+new entry points require the server capability. Context changes clear private
+academic screens. Package, backend and real-app Chrome fixtures verify the
+flows; classroom UX, staging, real full-term evidence and production approval
+remain separate. See the mark-client runbook and Phase2 self-test record.

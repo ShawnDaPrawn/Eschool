@@ -273,6 +273,13 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "2.1.0"
+  eschool_academics:
+    dependency: "direct main"
+    description:
+      path: "../packages/eschool_features/academics"
+      relative: true
+    source: path
+    version: "0.1.0"
   eschool_api:
     dependency: transitive
     description:

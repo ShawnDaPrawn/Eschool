@@ -180,7 +180,7 @@ class ApiClient {
           body is Map &&
           body['message'] is String &&
           (body['message'] as String).isNotEmpty) {
-        throw ApiException(body['message'] as String, isApiMessage: true);
+        throw ApiException(body['message'] as String, isApiMessage: true, statusCode: status);
       }
       throw _fromDioException(e);
     } on ApiException {

@@ -77,7 +77,7 @@ class TimetableQueries
             ->where('session_year_id', $year)->where('active', true)->whereDate('starts_on', '<=', $end->toDateString())->whereDate('ends_on', '>=', $start->toDateString())->get();
         $rows = [];
         foreach ($lessons as $lesson) {
-            if (($lesson->teaching_group_id !== null && $lesson->group?->active !== true) || ($lesson->class_section_id !== null && $lesson->homeroom === null)) {
+            if (! $manager && (($lesson->teaching_group_id !== null && $lesson->group?->active !== true) || ($lesson->class_section_id !== null && $lesson->homeroom === null))) {
                 continue;
             }
             foreach ($engine->dates($lesson->getAttributes()) as $date) {
@@ -97,7 +97,7 @@ class TimetableQueries
                 // Cancelled allocations never survive in a stale stored lesson.
                 $allocation = $lesson->teaching_group_id !== null ? TeachingAllocation::where('teaching_group_id', $lesson->teaching_group_id)
                     : HomeroomAllocation::where('class_section_id', $lesson->class_section_id)->where('session_year_id', $year);
-                if (! $allocation->where('teacher_id', $lesson->teacher_id)->whereDate('starts_on', '<=', $date)->whereDate('ends_on', '>=', $date)->exists()) {
+                if (! $manager && ! $allocation->where('teacher_id', $lesson->teacher_id)->whereDate('starts_on', '<=', $date)->whereDate('ends_on', '>=', $date)->exists()) {
                     continue;
                 }
                 $rows[] = $this->data($lesson, $date);
@@ -113,15 +113,19 @@ class TimetableQueries
         app(TimetablePolicy::class)->authorise($actor, 'read', $learner);
         $zone = app(CurrentSchool::class)->school()?->timezone ?? 'Africa/Johannesburg';
         $now = CarbonImmutable::now($zone);
-        $year = SessionYear::whereDate('start_date', '<=', $now->toDateString())->whereDate('end_date', '>=', $now->toDateString())->orderByDesc('id')->first();
-        if ($year === null) {
-            return ['lesson' => null];
-        }
-        $week = $this->week($actor, (int) $year->id, $now->toDateString(), $learner);
-        foreach ($week['lessons'] as $lesson) {
-            if (CarbonImmutable::parse($lesson['date'].' '.$lesson['starts_at'], $zone) >= $now) {
-                return ['lesson' => $lesson];
+        $years = SessionYear::whereDate('start_date', '<=', $now->addDays(6)->toDateString())->whereDate('end_date', '>=', $now->toDateString())->orderBy('id')->get();
+        $upcoming = [];
+        foreach ($years as $year) {
+            $week = $this->week($actor, (int) $year->id, $now->toDateString(), $learner);
+            foreach ($week['lessons'] as $lesson) {
+                if (CarbonImmutable::parse($lesson['date'].' '.$lesson['starts_at'], $zone) >= $now) {
+                    $upcoming[] = $lesson;
+                }
             }
+        }
+        usort($upcoming, fn ($a, $b) => [$a['date'], $a['starts_at'], $a['id']] <=> [$b['date'], $b['starts_at'], $b['id']]);
+        if ($upcoming !== []) {
+            return ['lesson' => $upcoming[0]];
         }
 
         return ['lesson' => null];

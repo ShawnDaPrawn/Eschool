@@ -266,3 +266,14 @@ change protected projections.
 compares current snapshots with a weekly school sheet. See the marks runbook
 under `engineering/runbooks/academic-marks.md`. The shared capture grid follows
 these backend contracts; this backend slice alone does not certify a real pilot.
+
+
+## Shared mark screens
+
+Both apps now use the shared academics package for task marks. Teachers open
+Assessment marks from Home or Settings, select a group/year/term and capture
+questions with keyboard navigation or bounded Excel paste. Server previews drive
+running marks. Revision conflicts retain drafts and require comparison/reload;
+moderation and release use explicit server capabilities. Families see only
+authorized released periods, with provisional results labelled. The operational
+guide is `engineering/runbooks/academic-mark-clients.md`.

@@ -16,6 +16,8 @@ part 'teaching_group.g.dart';
 class TeachingGroup {
   /// Returns a new [TeachingGroup] instance.
   TeachingGroup({
+    this.yearName,
+
     required this.id,
 
     required this.name,
@@ -32,6 +34,9 @@ class TeachingGroup {
 
     required this.revision,
   });
+
+  @JsonKey(name: r'year_name', required: false, includeIfNull: false)
+  final String? yearName;
 
   // minimum: 1
   @JsonKey(name: r'id', required: true, includeIfNull: false)
@@ -67,6 +72,7 @@ class TeachingGroup {
   bool operator ==(Object other) =>
       identical(this, other) ||
       other is TeachingGroup &&
+          other.yearName == yearName &&
           other.id == id &&
           other.name == name &&
           other.subjectId == subjectId &&
@@ -78,6 +84,7 @@ class TeachingGroup {
 
   @override
   int get hashCode =>
+      yearName.hashCode +
       id.hashCode +
       name.hashCode +
       subjectId.hashCode +

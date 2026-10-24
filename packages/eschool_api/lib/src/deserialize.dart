@@ -15,6 +15,7 @@ import 'package:eschool_api/src/model/academic_grade_level.dart';
 import 'package:eschool_api/src/model/academic_learner_preview.dart';
 import 'package:eschool_api/src/model/academic_lesson_write.dart';
 import 'package:eschool_api/src/model/academic_mark.dart';
+import 'package:eschool_api/src/model/academic_mark_capabilities.dart';
 import 'package:eschool_api/src/model/academic_mark_result.dart';
 import 'package:eschool_api/src/model/academic_mark_row.dart';
 import 'package:eschool_api/src/model/academic_mark_write.dart';
@@ -33,6 +34,9 @@ import 'package:eschool_api/src/model/academic_reference_response.dart';
 import 'package:eschool_api/src/model/academic_release_commit_write.dart';
 import 'package:eschool_api/src/model/academic_release_data.dart';
 import 'package:eschool_api/src/model/academic_release_learner.dart';
+import 'package:eschool_api/src/model/academic_release_period.dart';
+import 'package:eschool_api/src/model/academic_release_periods_data.dart';
+import 'package:eschool_api/src/model/academic_release_periods_response.dart';
 import 'package:eschool_api/src/model/academic_release_preview_data.dart';
 import 'package:eschool_api/src/model/academic_release_preview_response.dart';
 import 'package:eschool_api/src/model/academic_release_response.dart';
@@ -255,6 +259,9 @@ ReturnType deserialize<ReturnType, BaseType>(
           as ReturnType;
     case 'AcademicMark':
       return AcademicMark.fromJson(value as Map<String, dynamic>) as ReturnType;
+    case 'AcademicMarkCapabilities':
+      return AcademicMarkCapabilities.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
     case 'AcademicMarkResult':
       return AcademicMarkResult.fromJson(value as Map<String, dynamic>)
           as ReturnType;
@@ -308,6 +315,17 @@ ReturnType deserialize<ReturnType, BaseType>(
           as ReturnType;
     case 'AcademicReleaseLearner':
       return AcademicReleaseLearner.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'AcademicReleasePeriod':
+      return AcademicReleasePeriod.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'AcademicReleasePeriodsData':
+      return AcademicReleasePeriodsData.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'AcademicReleasePeriodsResponse':
+      return AcademicReleasePeriodsResponse.fromJson(
+            value as Map<String, dynamic>,
+          )
           as ReturnType;
     case 'AcademicReleasePreviewData':
       return AcademicReleasePreviewData.fromJson(value as Map<String, dynamic>)

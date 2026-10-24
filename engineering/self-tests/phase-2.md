@@ -210,3 +210,36 @@ generated Dart was never edited by hand.
 
 Full final CI, staging, real vendor export rehearsal, classroom timing, physical
 devices, independent review and pilot acceptance remain unclaimed here.
+## Shared mark capture and released-result clients
+
+Implemented the shared academics package, teacher Home/Settings entry points and
+family Settings entry point behind the server feature flag. School/child changes
+clear private screens, server capabilities govern actions and conflict responses
+retain drafts. Families discover only authorized released periods, including
+archived calendars, and never request a staff matrix.
+
+Local verification: 22 package tests passed, including exact bounded paste, late
+loads/previews, failed/revoked saves, school/child switches, release preview/CAS
+conflicts, 390/1024/1280px layouts, larger text and keyboard traversal across 35
+virtual learners on phone and desktop. Package analysis reports no issues. The
+new teacher and parent Chrome integration flows both passed against fake HTTP
+responses through actual app routes. Teacher full suite:28 passed. Backend:
+147 mark/API/contract checks passed (1,159 assertions); a strengthened archived-
+calendar regression then passed all24 marks tests (254 assertions). Strict
+OpenAPI, Pint, Larastan and workflow syntax checks passed. Context snapshots add
+only the intentional academic_marks capability flag.
+
+These are synthetic local checks. Classroom capture timing, physical devices,
+staging performance, real pilot sheets and independent review remain pending.
+No production deployment or Phase2 acceptance is claimed.
+
+
+Timetable follow-up: the first full backend run passed1,226 tests (24,924
+assertions). Four review findings then received fixes: current-term projection
+for year-wide lessons, exact-provenance cancellation after teacher/group changes,
+a school lock covering the entire projection refresh, and earliest authorized
+next-period reads across overlapping calendars. Managers retain visibility of
+obsolete placements to cancel them; family reads stay scoped. All19 focused
+review checks passed (217 assertions), including both real installed-family API
+paths and a competing second MySQL connection that times out while refresh
+holds its lock. The final combined tree includes the marks clients merged in#90.

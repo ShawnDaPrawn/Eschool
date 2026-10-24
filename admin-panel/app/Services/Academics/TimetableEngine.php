@@ -140,6 +140,25 @@ class TimetableEngine
         if (($data['teaching_group_id'] === null) === ($data['class_section_id'] === null) || ($data['id'] !== null && $data['revision'] === null)) {
             throw ValidationException::withMessages(['lesson' => __('Choose exactly one teaching group or homeroom, and include the revision when editing.')]);
         }
+        if (! $data['active']) {
+            abort_if($data['id'] === null, 422, __('Cancel an existing lesson rather than creating an inactive placement.'));
+            $existing = TimetableLesson::findOrFail($data['id']);
+            abort_if($existing->revision !== $data['revision'], 409, __('A lesson changed. Reload before cancelling.'));
+            // Cancellation retains exact identity/provenance even when a teacher,
+            // group, room, term or year has since been disabled or archived.
+            foreach ($data as $key => $value) {
+                if (in_array($key, ['id', 'revision', 'active'], true)) {
+                    continue;
+                }
+                $before = $existing->getRawOriginal($key);
+                if (($before === null) !== ($value === null) || ($before !== null && (string) $before !== (string) $value)) {
+                    throw ValidationException::withMessages(['lesson' => __('Cancel the saved lesson without changing its placement fields.')]);
+                }
+            }
+            ksort($data);
+
+            return $data;
+        }
         $year = SessionYear::findOrFail($data['session_year_id']);
         if ($data['starts_on'] < $year->start_date || $data['ends_on'] > $year->end_date || CarbonImmutable::parse($data['starts_on'])->diffInDays($data['ends_on']) > 400) {
             throw ValidationException::withMessages(['starts_on' => __('The lesson must fit within its school year (at most 400 days).')]);

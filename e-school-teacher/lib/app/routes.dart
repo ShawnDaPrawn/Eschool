@@ -121,6 +121,7 @@ class Routes {
   //the screens built once in the shared packages (sharedScreens.dart)
   static const String notificationSettings = '/notifications/settings';
   static const String mySchool = '/my-school';
+  static const String academicMarks = '/academics/marks';
   static const String profilePicture = '/profile-picture';
   static const String profileDetails = '/profile-details';
   static const String handles = '/handles';
@@ -305,6 +306,8 @@ class Routes {
       case notificationSettings:
         return notificationSettingsRoute();
 
+      case academicMarks:
+        return academicMarksRoute();
       case mySchool:
         return mySchoolRoute();
 

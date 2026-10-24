@@ -12,6 +12,7 @@ use App\Models\Academics\TeachingAllocation;
 use App\Models\Academics\TeachingGroup;
 use App\Models\Academics\TimetableLesson;
 use App\Models\ClassSchool;
+use App\Models\ClassSessionConfig;
 use App\Models\People\Enrolment;
 use App\Models\Platform\GuardianLink;
 use App\Models\Platform\Role;
@@ -29,6 +30,7 @@ use App\Services\Academics\TimetableProjection;
 use App\Services\Academics\TimetableQueries;
 use App\Services\Platform\Tenancy\CurrentSchool;
 use Carbon\CarbonImmutable;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 use Symfony\Component\HttpKernel\Exception\HttpException;
 use Tests\Concerns\UsesTwoSchools;
@@ -367,6 +369,39 @@ class TimetableEngineTest extends TestCase
         } catch (HttpException $error) {
             $this->assertSame(409, $error->getStatusCode());
         }
+    }
+
+    public function test_a_year_wide_lesson_remains_visible_in_both_installed_family_timetables_when_terms_are_enabled(): void
+    {
+        ClassSessionConfig::where('class_id', $this->schoolA->ids['class_a'])->where('session_year_id', $this->year)->update(['include_terms' => 1]);
+        DB::table('class_subjects')->where('school_id', 1)->where('class_id', $this->schoolA->ids['class_a'])->where('session_year_id', $this->year)->update(['term_id' => $this->schoolA->ids['term']]);
+        $this->save([$this->row(['term_id' => null])]);
+        $projection = Timetable::whereNotNull('timetable_lesson_id')->sole();
+        $this->assertSame($this->schoolA->ids['term'], (int) $projection->term_id);
+        $parent = $this->api(User::findOrFail($this->schoolA->ids['farid_user']))->getJson('/api/parent/timetable?child_id='.$this->schoolA->ids['asha'])->assertOk()->assertJsonPath('error', false)->json('data');
+        $this->assertContains('Room 1', array_column($parent, 'room_name'));
+        $learner = $this->api(User::findOrFail($this->schoolA->ids['asha_user']))->getJson('/api/student/timetable')->assertOk()->assertJsonPath('error', false)->json('data');
+        $this->assertContains('Room 1', array_column($learner, 'room_name'));
+    }
+
+    public function test_obsolete_lessons_can_be_cancelled_without_reactivating_their_teacher_or_group(): void
+    {
+        $lesson = $this->save([$this->row()])['lessons'][0];
+        User::whereKey($this->schoolA->ids['tara_user'])->update(['status' => 0]);
+        TeachingGroup::whereKey($this->group)->update(['active' => false]);
+        $this->assertCount(1, app(TimetableQueries::class)->week($this->superAdmin(), $this->year, '2026-02-09')['lessons']);
+        $input = $this->row(['id' => $lesson['id'], 'revision' => 1, 'active' => false]);
+        $this->save([$input]);
+        $this->assertFalse(TimetableLesson::query()->sole()->active);
+        $this->assertSame(2, TimetableLesson::query()->sole()->revision);
+    }
+
+    public function test_next_period_searches_authorized_lessons_across_overlapping_calendars(): void
+    {
+        $this->save([$this->row()]);
+        SessionYear::create(['name' => 'Another section calendar', 'start_date' => '2026-01-01', 'end_date' => '2026-12-31']);
+        $parent = User::findOrFail($this->schoolA->ids['farid_user']);
+        $this->assertSame('Room 1', app(TimetableQueries::class)->next($parent, $this->schoolA->ids['asha'])['lesson']['room_name']);
     }
 
     private function api(User $user): self

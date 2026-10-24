@@ -7,12 +7,17 @@ namespace App\Services\Academics;
 use App\Models\Academics\BellPeriod;
 use App\Models\Academics\TeachingGroup;
 use App\Models\Academics\TimetableLesson;
+use App\Models\ClassSection;
+use App\Models\ClassSessionConfig;
+use App\Models\Platform\School;
 use App\Models\SessionYear;
 use App\Models\Term;
 use App\Models\Timetable;
+use App\Services\Platform\Tenancy\CurrentSchool;
 use App\Services\Platform\Tenancy\SchoolTable;
 use Carbon\CarbonImmutable;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\DB;
 
 /** Current-week v1 rows retain existing field types and stable projection IDs. */
 class TimetableProjection
@@ -22,6 +27,14 @@ class TimetableProjection
     private array $legacyTerms = [];
 
     public function refresh(): void
+    {
+        DB::transaction(function () {
+            School::query()->lockForUpdate()->findOrFail(app(CurrentSchool::class)->id());
+            $this->refreshLocked();
+        }, 3);
+    }
+
+    private function refreshLocked(): void
     {
         app(AcademicProjections::class)->refresh();
         $monday = CarbonImmutable::parse(app(AcademicAuthority::class)->today())->startOfWeek()->toDateString();
@@ -39,8 +52,15 @@ class TimetableProjection
             if ($subject === null) {
                 continue;
             }
+            $term = $lesson->term_id;
+            if ($term === null) {
+                $classId = ClassSection::findOrFail($lesson->group->class_section_id)->class_id;
+                if (ClassSessionConfig::classHasTerm((int) $classId, (int) $lesson->session_year_id)) {
+                    $term = Term::currentForClass((int) $lesson->session_year_id, (int) $classId)?->id;
+                }
+            }
             $values = ['class_section_id' => $lesson->group->class_section_id, 'subject_teacher_id' => $subject,
-                'session_year_id' => $lesson->session_year_id, 'term_id' => $lesson->term_id, 'room_id' => $lesson->room_id, 'room_name' => $lesson->room->name,
+                'session_year_id' => $lesson->session_year_id, 'term_id' => $term, 'room_id' => $lesson->room_id, 'room_name' => $lesson->room->name,
                 'day' => $lesson->weekday, 'day_name' => strtolower(CarbonImmutable::parse(array_values($dates)[0])->format('l')),
                 'start_time' => substr($lesson->period->starts_at, 0, 5), 'end_time' => substr($lesson->period->ends_at, 0, 5), 'deleted_at' => null, 'updated_at' => now()];
             $id = SchoolTable::query('timetables')->where('timetable_lesson_id', $lesson->id)->value('id');
