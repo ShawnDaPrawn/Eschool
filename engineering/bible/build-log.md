@@ -260,3 +260,15 @@ new entry points require the server capability. Context changes clear private
 academic screens. Package, backend and real-app Chrome fixtures verify the
 flows; classroom UX, staging, real full-term evidence and production approval
 remain separate. See the mark-client runbook and Phase2 self-test record.
+
+
+### Phase 2 timetable clients (24 October 2026)
+
+Backend#91 is merged after31 green checks. The shared adaptive week/editor and
+room/teacher home card are wired into both apps. The panel configures rooms and
+bells, previews placements and explicitly maps CSV/TSV exports. Revisions, stale
+responses, context changes, school timezone and overlapping calendars are covered.
+Teacher/parent Chrome and1024/1280 panel flows pass; package35, SDK32, teacher28,
+family45 tests pass. Local combined PHP ran1,240 tests;1,238 passed and two
+presentation checks were fixed and verified with35 targeted checks. Client
+exact-head CI and real staging/classroom/pilot acceptance remain separate.

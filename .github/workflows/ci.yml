@@ -231,6 +231,10 @@ jobs:
             flow: teacher_academic_marks_smoke_test.dart
           - app: e-school
             flow: family_academic_marks_smoke_test.dart
+          - app: e-school-teacher
+            flow: teacher_timetable_smoke_test.dart
+          - app: e-school
+            flow: family_timetable_smoke_test.dart
     defaults:
       run:
         working-directory: ${{ matrix.app }}

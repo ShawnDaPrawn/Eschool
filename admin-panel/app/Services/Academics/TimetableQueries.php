@@ -26,7 +26,7 @@ class TimetableQueries
         SessionYear::findOrFail($year);
         $staff = SchoolMembership::query()->active()->where('school_id', app(CurrentSchool::class)->id())->whereNotIn('role', ['Student', 'Parent'])->pluck('user_id');
 
-        return ['rooms' => Room::orderBy('name')->get()->map(fn ($room) => $this->room($room))->all(),
+        return ['school_years' => SessionYear::orderByDesc('start_date')->get()->map(fn ($year) => ['id' => (int) $year->id, 'name' => $year->name])->all(), 'rooms' => Room::orderBy('name')->get()->map(fn ($room) => $this->room($room))->all(),
             'bell_schedules' => BellSchedule::with('periods')->where('session_year_id', $year)->orderBy('name')->get()->map(fn ($schedule) => $this->bells($schedule))->all(),
             'teachers' => Teacher::with('user')->whereIn('user_id', $staff)->whereHas('user', fn ($q) => $q->where('status', 1))->get()->map(fn ($teacher) => ['id' => (int) $teacher->id, 'name' => trim($teacher->user->first_name.' '.$teacher->user->last_name)])->all(),
             'homerooms' => ClassSection::with('class', 'section')->get()->map(fn ($room) => ['id' => (int) $room->id, 'name' => trim($room->class->name.' '.$room->section->name)])->all()];

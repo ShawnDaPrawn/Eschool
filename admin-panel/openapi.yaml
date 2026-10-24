@@ -3308,7 +3308,8 @@ paths:
       tags:
       - Academics
       summary: getTimetableWeek
-      description: Fresh current-school rights precede idempotent replay. Managers configure
+      description: Omit starts_on for the current school-local week and omit session_year_id for its school calendar.
+      x-scope-notes: Fresh current-school rights precede idempotent replay. Managers configure
         and preview placements; commits require an unchanged fingerprint and no teacher,
         room, group, homeroom or dated-learner time clash. A 409 requires a fresh preview.
         Family reads resolve only the learner or a current guardian’s selected child.
@@ -3318,13 +3319,13 @@ paths:
       - $ref: '#/components/parameters/SchoolId'
       - name: session_year_id
         in: query
-        required: true
+        required: false
         schema:
           type: integer
           minimum: 1
       - name: starts_on
         in: query
-        required: true
+        required: false
         schema:
           type: string
           pattern: ^\d{4}-\d{2}-\d{2}$
@@ -7926,6 +7927,11 @@ components:
       - teachers
       - homerooms
       properties:
+        school_years:
+          type: array
+          description: Calendars available to managers for explicit week editing.
+          items:
+            $ref: '#/components/schemas/AcademicTimetableChoice'
         rooms:
           type: array
           items:

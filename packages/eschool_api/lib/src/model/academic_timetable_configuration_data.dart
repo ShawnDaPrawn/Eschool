@@ -19,6 +19,8 @@ part 'academic_timetable_configuration_data.g.dart';
 class AcademicTimetableConfigurationData {
   /// Returns a new [AcademicTimetableConfigurationData] instance.
   AcademicTimetableConfigurationData({
+    this.schoolYears,
+
     required this.rooms,
 
     required this.bellSchedules,
@@ -27,6 +29,10 @@ class AcademicTimetableConfigurationData {
 
     required this.homerooms,
   });
+
+  /// Calendars available to managers for explicit week editing.
+  @JsonKey(name: r'school_years', required: false, includeIfNull: false)
+  final List<AcademicTimetableChoice>? schoolYears;
 
   @JsonKey(name: r'rooms', required: true, includeIfNull: false)
   final List<AcademicRoom> rooms;
@@ -44,6 +50,7 @@ class AcademicTimetableConfigurationData {
   bool operator ==(Object other) =>
       identical(this, other) ||
       other is AcademicTimetableConfigurationData &&
+          other.schoolYears == schoolYears &&
           other.rooms == rooms &&
           other.bellSchedules == bellSchedules &&
           other.teachers == teachers &&
@@ -51,6 +58,7 @@ class AcademicTimetableConfigurationData {
 
   @override
   int get hashCode =>
+      schoolYears.hashCode +
       rooms.hashCode +
       bellSchedules.hashCode +
       teachers.hashCode +

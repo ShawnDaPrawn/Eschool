@@ -526,5 +526,6 @@
   "profileFileView": "عرض الملف",
   "profileFileClear": "إزالة الملف عند الحفظ",
   "profileFileLimit": "PDF أو PNG أو JPEG، حتى 5 ميغابايت.",
-  "assessmentMarks": "Assessment marks"
+  "assessmentMarks": "Assessment marks",
+  "academicTimetable": "Academic timetable"
 }

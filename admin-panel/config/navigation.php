@@ -137,6 +137,8 @@ return [
                             'keywords' => ['classes', 'class sections', 'homerooms', 'add a grade']],
                         ['key' => 'homeroom-names', 'label' => 'nav_homeroom_names', 'route' => 'section.index', 'permissions' => ['section-create'], 'module' => null,
                             'keywords' => ['sections', 'divisions', 'a b c']],
+                        ['key' => 'academic-timetable', 'label' => 'Academic timetable', 'route' => 'academic-timetable.index', 'permissions' => ['academic-structure-manage'], 'module' => 'academics',
+                            'keywords' => ['rooms', 'bells', 'lesson clashes', 'week editor', 'timetable import']],
                         ['key' => 'teaching-groups', 'label' => 'Teaching groups', 'route' => 'teaching-groups.index', 'permissions' => ['curriculum-read', 'academic-structure-manage'], 'module' => 'academics',
                             'keywords' => ['learners', 'allocations', 'subject groups', 'dated membership']],
                         ['key' => 'academic-allocations', 'label' => 'Academic allocations', 'route' => 'academic-allocations.index', 'permissions' => ['academic-structure-manage'], 'module' => 'academics',

@@ -110,6 +110,15 @@ List<Widget> sharedScreenEntries(
   void open(String route) => Navigator.of(context).pushNamed(route);
   return [
     if (context.watch<MeContextCubit>().context?.isFeatureOn(
+          'academic_timetable',
+        ) ==
+        true)
+      tile(
+        title: label('academicTimetable'),
+        icon: Icons.calendar_view_week_outlined,
+        onTap: () => open(Routes.academicTimetable),
+      ),
+    if (context.watch<MeContextCubit>().context?.isFeatureOn(
           'academic_marks',
         ) ==
         true)
@@ -198,3 +207,43 @@ Route<dynamic> academicMarksRoute() => AdaptivePageRoute(
     );
   },
 );
+
+Route<dynamic> academicTimetableRoute() => AdaptivePageRoute(
+  builder: (context) {
+    final me = context.read<MeContextCubit>().context;
+    final school = me?.currentSchool;
+    if (school == null || me?.isFeatureOn('academic_timetable') != true) {
+      return const ScreenScaffold(
+        title: 'Academic timetable',
+        body: Center(child: Text('Not available yet')),
+      );
+    }
+    return AcademicContextBoundary(
+      schoolId: school.id,
+      child: TimetableScreen.withRepository(
+        ApiTimetableRepository(Api.client, schoolId: school.id),
+        title: school.name,
+      ),
+    );
+  },
+);
+
+class AcademicNextPeriod extends StatelessWidget {
+  const AcademicNextPeriod({super.key});
+  @override
+  Widget build(BuildContext context) {
+    final me = context.watch<MeContextCubit>().context;
+    final school = me?.currentSchool;
+    if (school == null || me?.isFeatureOn('academic_timetable') != true)
+      return const SizedBox.shrink();
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      child: NextPeriodCard(
+        key: ValueKey('teacher:${school.id}'),
+        scope: 'teacher:${school.id}',
+        repository: ApiTimetableRepository(Api.client, schoolId: school.id),
+        onOpen: () => Navigator.of(context).pushNamed(Routes.academicTimetable),
+      ),
+    );
+  }
+}

@@ -234,6 +234,27 @@ staging performance, real pilot sheets and independent review remain pending.
 No production deployment or Phase2 acceptance is claimed.
 
 
+### Timetable workbench and clients — implementation verification in progress
+
+Shared adaptive phone/week layouts, manager preview/commit editor, original
+revisions and context boundaries are implemented. Both apps expose the week from
+Settings and a room/teacher next-period home card. The panel configures rooms,
+bells, lessons and explicitly mapped CSV/TSV imports using the same services.
+Initial school week/calendar selection is server-controlled; read-only calendars
+aggregate only authorized lessons. School/child changes clear previous data.
+
+Local evidence: 35 shared academics tests pass; 24 panel/context/timetable tests
+(287 assertions) pass; API contract regeneration/review adds only the timetable
+capability to the three v2 context snapshots; 180 contract assertions pass.
+Teacher Chrome next-period-to-week flow passed. Panel Playwright passed all
+three flows: 1024px and 1280px room/bell setup, placement/clash, mapped import,
+axe/overflow/console checks and teacher refusal. SDK32, teacher28 and family45
+tests pass. OpenAPI, workflow lint and docs build pass. Family Chrome passed on a separate run after an initial browser-tab crash.
+Pint passed908 files and Larastan found no errors. The combined local suite ran
+1,240 tests:1,238 passed; design-token and Arabic navigation-label checks found
+two presentation issues, corrected with targeted verification below. Exact-head
+CI remains required before merge. No physical room walk, 20-minute editor UX trial,
+staging performance or owner acceptance is implied by synthetic fixtures.
 Timetable follow-up: the first full backend run passed1,226 tests (24,924
 assertions). Four review findings then received fixes: current-term projection
 for year-wide lessons, exact-provenance cancellation after teacher/group changes,
@@ -243,3 +264,7 @@ obsolete placements to cancel them; family reads stay scoped. All19 focused
 review checks passed (217 assertions), including both real installed-family API
 paths and a competing second MySQL connection that times out while refresh
 holds its lock. The final combined tree includes the marks clients merged in#90.
+
+Targeted verification after the two presentation fixes:35 tests passed
+(816 assertions), including navigation, design tokens, all timetable/context
+regressions. The timetable backend merged as#91 after31 exact-head checks passed.

@@ -1,0 +1,11 @@
+.timetable-workbench { overflow-wrap: anywhere; }
+.timetable-fields { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 1fr)); gap: 16px; align-items: end; margin-block: 16px; }
+.timetable-fields > *, .timetable-week > * { min-width: 0; }
+.timetable-week { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 230px), 1fr)); gap: 12px; }
+.timetable-lesson { border-top: 1px solid var(--md-sys-color-outline-variant); margin-top: 12px; padding-top: 12px; }
+.timetable-links { display: flex; flex-wrap: wrap; gap: 16px; margin-block: 20px; }
+.timetable-period { border: 1px solid var(--md-sys-color-outline-variant); padding: 12px; margin-block: 12px; min-width: 0; }
+.timetable-workbench details > summary { cursor: pointer; padding: 20px; font-weight: 600; }
+.timetable-workbench textarea { max-width: 100%; }
+.timetable-import-map { display: grid; gap: 12px; }
+.timetable-workbench button { margin-block: 6px; }

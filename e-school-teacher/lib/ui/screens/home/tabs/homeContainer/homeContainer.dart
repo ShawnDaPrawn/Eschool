@@ -1,3 +1,4 @@
+import 'package:eschool_teacher/app/sharedScreens.dart';
 import 'package:eschool_session/eschool_session.dart';
 import 'package:eschool_teacher/app/routes.dart';
 import 'package:eschool_teacher/cubits/dashboardCubit.dart';
@@ -351,6 +352,8 @@ class _HomeContainerState extends State<HomeContainer> {
                           mainAxisSize: MainAxisSize.min,
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
+                            const AcademicNextPeriod(),
+
                             ///[Class Teacher]
                             if (state.primaryClass?.isNotEmpty ?? false) ...[
                               _buildTitleText(classTeacherKey),

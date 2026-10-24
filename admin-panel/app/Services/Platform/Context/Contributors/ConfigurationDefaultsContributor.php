@@ -20,7 +20,7 @@ class ConfigurationDefaultsContributor implements ContextContributor
         return [
             'modules' => app(ModuleGate::class)->context(),
             'notification_rules' => app(NotificationRules::class)->context($scope->user),
-            'feature_flags' => (object) ['module_switches' => true, 'academic_marks' => true],
+            'feature_flags' => (object) ['module_switches' => true, 'academic_marks' => true, 'academic_timetable' => true],
         ];
     }
 }

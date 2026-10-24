@@ -46,9 +46,13 @@ adapter handles a spreadsheet whose headers differ. Each mapped column and
 value must exist. Unmapped or malformed rows reject the whole preview, without
 creating lessons. Commit uses the same placement fingerprint and atomic service.
 
-This backend slice provides configuration, preview/commit/import and private
-week/next-period reads. The panel workbench, shared adaptive editor and home card
-are the following client slice; this is not complete Phase2 acceptance.
+The panel Academic timetable workbench and shared adaptive apps use the same
+configuration, preview/commit/import and private week/next-period services.
+The capability flag `academic_timetable` advertises the app entry points after
+these endpoints are available. The home card refreshes on resume and every
+minute. Initial weeks use the school timezone; managers select an editing
+calendar and read-only users aggregate authorized overlapping calendars.
+This implementation alone is not complete Phase 2 acceptance.
 
 ## Access and operations
 
