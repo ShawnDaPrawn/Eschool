@@ -33,6 +33,7 @@ class SchoolRoles
     ];
 
     private const SUPER_ADMIN_PERMISSIONS = [
+        'marks-view-all', 'marks-release',
         'academic-structure-manage',
         'curriculum-read', 'curriculum-manage', 'curriculum-publish',
         'profile-person-view', 'profile-person-edit', 'profile-sensitive-view', 'profile-sensitive-export',

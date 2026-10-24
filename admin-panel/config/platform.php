@@ -1,5 +1,8 @@
 <?php
 
+use App\Listeners\Academics\NotifyMarksReleased;
+use App\Listeners\Academics\QueueAssessmentRecompute;
+use App\Listeners\Academics\QueueMarkRecompute;
 use App\Listeners\Platform\NotifyHandleGuardians;
 use App\Listeners\Platform\QueueNotificationFanout;
 use App\Listeners\Platform\RefreshAppContext;
@@ -32,6 +35,10 @@ return [
         // App\Services\Platform\Events\OutboxListener and receives the stored
         // event. Listeners for one event run in one database transaction.
         'listeners' => [
+            'academics.assessment_published' => [QueueAssessmentRecompute::class],
+            'academics.marks_released' => [NotifyMarksReleased::class],
+            'academics.marks_changed' => [QueueMarkRecompute::class],
+            'academics.assignment_changed' => [QueueMarkRecompute::class],
             'notification.requested' => [QueueNotificationFanout::class],
             'handle.proposed' => [NotifyHandleGuardians::class],
             'context.changed' => [RefreshAppContext::class],

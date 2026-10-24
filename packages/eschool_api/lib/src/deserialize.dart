@@ -3,10 +3,40 @@ import 'package:eschool_api/src/model/academic_assignment_response.dart';
 import 'package:eschool_api/src/model/academic_assignment_write.dart';
 import 'package:eschool_api/src/model/academic_assignments_response.dart';
 import 'package:eschool_api/src/model/academic_assignments_response_data.dart';
+import 'package:eschool_api/src/model/academic_capture_data.dart';
+import 'package:eschool_api/src/model/academic_capture_response.dart';
+import 'package:eschool_api/src/model/academic_component_result.dart';
 import 'package:eschool_api/src/model/academic_grade_level.dart';
+import 'package:eschool_api/src/model/academic_learner_preview.dart';
+import 'package:eschool_api/src/model/academic_mark.dart';
+import 'package:eschool_api/src/model/academic_mark_result.dart';
+import 'package:eschool_api/src/model/academic_mark_row.dart';
+import 'package:eschool_api/src/model/academic_mark_write.dart';
+import 'package:eschool_api/src/model/academic_matrix_data.dart';
+import 'package:eschool_api/src/model/academic_matrix_learner.dart';
+import 'package:eschool_api/src/model/academic_matrix_response.dart';
+import 'package:eschool_api/src/model/academic_matrix_task.dart';
+import 'package:eschool_api/src/model/academic_moderation_row.dart';
+import 'package:eschool_api/src/model/academic_moderation_write.dart';
+import 'package:eschool_api/src/model/academic_preview_data.dart';
+import 'package:eschool_api/src/model/academic_preview_response.dart';
+import 'package:eschool_api/src/model/academic_question_score.dart';
 import 'package:eschool_api/src/model/academic_rating_level.dart';
 import 'package:eschool_api/src/model/academic_reference.dart';
 import 'package:eschool_api/src/model/academic_reference_response.dart';
+import 'package:eschool_api/src/model/academic_release_commit_write.dart';
+import 'package:eschool_api/src/model/academic_release_data.dart';
+import 'package:eschool_api/src/model/academic_release_learner.dart';
+import 'package:eschool_api/src/model/academic_release_preview_data.dart';
+import 'package:eschool_api/src/model/academic_release_preview_response.dart';
+import 'package:eschool_api/src/model/academic_release_response.dart';
+import 'package:eschool_api/src/model/academic_release_write.dart';
+import 'package:eschool_api/src/model/academic_released_data.dart';
+import 'package:eschool_api/src/model/academic_released_response.dart';
+import 'package:eschool_api/src/model/academic_released_result.dart';
+import 'package:eschool_api/src/model/academic_stored_question.dart';
+import 'package:eschool_api/src/model/academic_task_question.dart';
+import 'package:eschool_api/src/model/academic_task_result.dart';
 import 'package:eschool_api/src/model/accept_guardian_invitation_request.dart';
 import 'package:eschool_api/src/model/approval_learner.dart';
 import 'package:eschool_api/src/model/approval_state.dart';
@@ -164,8 +194,58 @@ ReturnType deserialize<ReturnType, BaseType>(
             value as Map<String, dynamic>,
           )
           as ReturnType;
+    case 'AcademicCaptureData':
+      return AcademicCaptureData.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'AcademicCaptureResponse':
+      return AcademicCaptureResponse.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'AcademicComponentResult':
+      return AcademicComponentResult.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
     case 'AcademicGradeLevel':
       return AcademicGradeLevel.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'AcademicLearnerPreview':
+      return AcademicLearnerPreview.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'AcademicMark':
+      return AcademicMark.fromJson(value as Map<String, dynamic>) as ReturnType;
+    case 'AcademicMarkResult':
+      return AcademicMarkResult.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'AcademicMarkRow':
+      return AcademicMarkRow.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'AcademicMarkWrite':
+      return AcademicMarkWrite.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'AcademicMatrixData':
+      return AcademicMatrixData.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'AcademicMatrixLearner':
+      return AcademicMatrixLearner.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'AcademicMatrixResponse':
+      return AcademicMatrixResponse.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'AcademicMatrixTask':
+      return AcademicMatrixTask.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'AcademicModerationRow':
+      return AcademicModerationRow.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'AcademicModerationWrite':
+      return AcademicModerationWrite.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'AcademicPreviewData':
+      return AcademicPreviewData.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'AcademicPreviewResponse':
+      return AcademicPreviewResponse.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'AcademicQuestionScore':
+      return AcademicQuestionScore.fromJson(value as Map<String, dynamic>)
           as ReturnType;
     case 'AcademicRatingLevel':
       return AcademicRatingLevel.fromJson(value as Map<String, dynamic>)
@@ -175,6 +255,47 @@ ReturnType deserialize<ReturnType, BaseType>(
           as ReturnType;
     case 'AcademicReferenceResponse':
       return AcademicReferenceResponse.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'AcademicReleaseCommitWrite':
+      return AcademicReleaseCommitWrite.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'AcademicReleaseData':
+      return AcademicReleaseData.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'AcademicReleaseLearner':
+      return AcademicReleaseLearner.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'AcademicReleasePreviewData':
+      return AcademicReleasePreviewData.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'AcademicReleasePreviewResponse':
+      return AcademicReleasePreviewResponse.fromJson(
+            value as Map<String, dynamic>,
+          )
+          as ReturnType;
+    case 'AcademicReleaseResponse':
+      return AcademicReleaseResponse.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'AcademicReleaseWrite':
+      return AcademicReleaseWrite.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'AcademicReleasedData':
+      return AcademicReleasedData.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'AcademicReleasedResponse':
+      return AcademicReleasedResponse.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'AcademicReleasedResult':
+      return AcademicReleasedResult.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'AcademicStoredQuestion':
+      return AcademicStoredQuestion.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'AcademicTaskQuestion':
+      return AcademicTaskQuestion.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'AcademicTaskResult':
+      return AcademicTaskResult.fromJson(value as Map<String, dynamic>)
           as ReturnType;
     case 'AcceptGuardianInvitationRequest':
       return AcceptGuardianInvitationRequest.fromJson(

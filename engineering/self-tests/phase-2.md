@@ -135,3 +135,26 @@ dates. Incompatible memberships close in the enrolment transaction with audit.
 
 The existing parent/teacher API security suites passed 15 tests and 162 assertions
 after the dated-assignment term consumer and enrolment reconciliation changes.
+
+
+## Exact marks backend and release
+
+Implemented canonical task/question recording, exact rational calculation,
+audited revision/moderation/lock rules, immutable queued snapshots, selected
+release previews/pins, family reads, protected existing-exam projections and a
+bounded weekly reconciliation command. The shared adaptive capture grid follows
+as a separate client feature; this backend adds no new panel page.
+
+Local verification so far:164 calculator/mark/API-contract/audit checks
+(1,011 assertions),139 mark/contract/migration checks (1,008 assertions), and47
+existing API/authorization/tenancy checks (422 assertions) passed in separate
+cohorts. SDK regeneration and28 Dart tests, analysis with no errors/warnings
+(130 generator style infos), strict OpenAPI lint, Larastan, changed-file Pint,
+whitespace checks and documentation build passed. The entire backend suite and
+final profile additions are running/pending; final CI evidence belongs on the PR.
+
+Covered profiles include allocated teacher, unallocated teacher, school releaser,
+grade head, learner/family authorization and ended guardian relationships.
+Synthetic reconciliation covers exact matches/differences/duplicate refusal and
+foreign-school terms. No real school sheet, full-term pilot, staging performance,
+independent security review, device timing or production acceptance is claimed.

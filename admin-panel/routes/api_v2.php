@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use App\Http\Controllers\Api\V2\Academics\AcademicReferenceController;
 use App\Http\Controllers\Api\V2\Academics\CurriculumController;
+use App\Http\Controllers\Api\V2\Academics\MarkController;
 use App\Http\Controllers\Api\V2\Academics\SubjectStandardController;
 use App\Http\Controllers\Api\V2\Academics\TeachingGroupController;
 use App\Http\Controllers\Api\V2\Academics\TermCalendarController;
@@ -19,6 +20,7 @@ use App\Http\Controllers\Api\V2\Platform\NotificationPreferenceController;
 use App\Http\Controllers\Api\V2\School\MySchoolController;
 use App\Http\Middleware\AuthorizeClassGrade;
 use App\Http\Middleware\AuthorizeCurriculum;
+use App\Http\Middleware\AuthorizeMarks;
 use App\Http\Middleware\AuthorizeSubjectStandard;
 use App\Http\Middleware\AuthorizeTeachingGroup;
 use App\Http\Middleware\AuthorizeTermCalendar;
@@ -47,6 +49,18 @@ use Illuminate\Support\Facades\Route;
 
 // Keep fresh class permissions ahead of idempotent replay as well as validation.
 Route::prefix('academics')->middleware(['auth:sanctum', 'school.context', 'role.any', 'learner.approved', 'module:academics', 'cache.headers:private;no_store'])->name('api.v2.academics.')->group(function () {
+    Route::prefix('marks')->name('marks.')->group(function () {
+        $controller = MarkController::class;
+        $policy = AuthorizeMarks::class;
+        Route::get('learners/{learner}', [$controller, 'family'])->whereNumber('learner')->middleware($policy.':family')->name('family');
+        Route::get('groups/{group}', [$controller, 'matrix'])->whereNumber('group')->middleware($policy.':read')->name('matrix');
+        foreach (['preview', 'capture', 'correct', 'moderate'] as $action) {
+            Route::post('groups/{group}/tasks/{task}/'.$action, [$controller, $action])->whereNumber('group')->whereNumber('task')
+                ->middleware([$policy.':'.$action, 'idempotent'])->name($action);
+        }
+        Route::post('groups/{group}/release-preview', [$controller, 'releasePreview'])->whereNumber('group')->middleware([$policy.':release', 'idempotent'])->name('release-preview');
+        Route::post('groups/{group}/release', [$controller, 'release'])->whereNumber('group')->middleware([$policy.':release', 'idempotent'])->name('release');
+    });
     Route::prefix('teaching-groups')->name('teaching-groups.')->middleware(AuthorizeTeachingGroup::class)->group(function () {
         Route::get('/', [TeachingGroupController::class, 'index'])->name('index');
         Route::post('/', [TeachingGroupController::class, 'store'])->middleware('idempotent')->name('store');

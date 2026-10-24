@@ -49,3 +49,16 @@ academics.assignment_changed is a transactional outbox event carrying record IDs
 and kind only, ready for academic consumers. It sends no family notification on
 its own. The per-minute projection refresh is a convenience; canonical date
 checks remain authoritative when it is delayed.
+
+
+## Phase 2: marks permissions and events
+
+marks-view-all and marks-release are explicit school permissions, separate from
+structure administration. Current allocated teachers capture; dated grade heads
+moderate/correct their grade with reasons; scoped grade heads/principals or school
+releasers release selected results. academics.marks_changed and
+academics.assessment_published queue school-scoped recomputation; assignment
+changes recompute affected histories. academics.marks_released queues generic
+family notices through Notifier with current guardian relationships and the
+existing academics.marks_released preference rules. No score/person details enter
+notification event payloads. The family API resolves current own-child rights.

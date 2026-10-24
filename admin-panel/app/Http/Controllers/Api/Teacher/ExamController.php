@@ -6,6 +6,7 @@ namespace App\Http\Controllers\Api\Teacher;
 
 use App\Http\Controllers\Api\Teacher\Concerns\TeacherAccess;
 use App\Http\Controllers\Controller;
+use App\Models\Academics\AcademicExamLink;
 use App\Models\ClassSection;
 use App\Models\ClassSessionConfig;
 use App\Models\ClassTeacher;
@@ -21,6 +22,7 @@ use App\Models\SubjectTeacher;
 use App\Models\Teacher;
 use App\Models\Term;
 use App\Models\Timetable;
+use App\Services\Academics\MarkRecording;
 use App\Services\ResponseService;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Carbon\Carbon;
@@ -347,53 +349,12 @@ class ExamController extends Controller
                         return ResponseService::errorResponse('Obtained marks must be between 0 and the total marks.', null, 400);
                     }
                 }
-                // Every row needs a grade, found before anything is written so that one row
-                // without a grade band can't leave the rows before it saved.
-                $exam_grades = [];
-                foreach ($request->marks_data as $index => $marks) {
-                    $marks_percentage = ($marks['obtained_marks'] / $exam_timetable['total_marks']) * 100;
-
-                    $exam_grades[$index] = findExamGrade($exam_timetable->session_year_id, $marks_percentage);
-                    if ($exam_grades[$index] == null) {
-                        return ResponseService::errorResponse('grades_data_does_not_exists', null, 400);
-                    }
-                }
-                foreach ($request->marks_data as $index => $marks) {
-                    $passing_marks = $exam_timetable->passing_marks;
-                    if ($marks['obtained_marks'] >= $passing_marks) {
-                        $status = 1;
-                    } else {
-                        $status = 0;
-                    }
-                    $exam_grade = $exam_grades[$index];
-
-                    $exam_marks = ExamMarks::where(['exam_timetable_id' => $exam_timetable->id, 'subject_id' => $request->subject_id, 'student_id' => $marks['student_id']])->first();
-                    if ($exam_marks) {
-                        $exam_marks_db = ExamMarks::find($exam_marks->id);
-                        $exam_marks_db->obtained_marks = $marks['obtained_marks'];
-                        $exam_marks_db->passing_status = $status;
-                        $exam_marks_db->grade = $exam_grade;
-                        $exam_marks_db->save();
-                        $updated = true;
-                    } else {
-                        $exam_result_marks[] = [
-                            'exam_timetable_id' => $exam_timetable->id,
-                            'student_id' => $marks['student_id'],
-                            'subject_id' => $request->subject_id,
-                            'obtained_marks' => $marks['obtained_marks'],
-                            'passing_status' => $status,
-                            'session_year_id' => $exam_timetable->session_year_id,
-                            'grade' => $exam_grade,
-                        ];
-                    }
-                }
-                if (isset($exam_result_marks)) {
-                    ExamMarks::insert($exam_result_marks);
-                }
+                $rows = collect($request->marks_data)->map(fn ($marks) => ['timetable_id' => $exam_timetable->id, 'learner_id' => $marks['student_id'], 'mark' => $marks['obtained_marks']])->all();
+                $updated = app(MarkRecording::class)->legacy($request->user(), $rows);
 
                 // Respond once every row is saved: replying (which exits) on the first
                 // existing row used to drop the marks of every student after it.
-                return ResponseService::successResponse(isset($updated) ? 'data_update_successfully' : 'data_store_successfully');
+                return ResponseService::successResponse($updated ? 'data_update_successfully' : 'data_store_successfully');
             }
         } catch (\Exception $e) {
             return ResponseService::errorResponse('error_occurred', null, 103, $e);
@@ -464,56 +425,12 @@ class ExamController extends Controller
                     }
                 }
 
-                // Every row needs a grade, found before anything is written so that one row
-                // without a grade band can't leave the rows before it saved.
-                $exam_grades = [];
-                foreach ($request->marks_data as $index => $marks) {
-                    $exam_timetable = $exam_timetables[$marks['subject_id']];
-                    $marks_percentage = ($marks['obtained_marks'] / $exam_timetable->total_marks) * 100;
-
-                    $exam_grades[$index] = findExamGrade($exam_timetable->session_year_id, $marks_percentage);
-                    if ($exam_grades[$index] == null) {
-                        return ResponseService::errorResponse('grades_data_does_not_exists', null, 400);
-                    }
-                }
-
-                foreach ($request->marks_data as $index => $marks) {
-                    $exam_timetable = $exam_timetables[$marks['subject_id']];
-                    $passing_marks = $exam_timetable->passing_marks;
-                    if ($marks['obtained_marks'] >= $passing_marks) {
-                        $status = 1;
-                    } else {
-                        $status = 0;
-                    }
-                    $exam_grade = $exam_grades[$index];
-
-                    $exam_marks = ExamMarks::where(['exam_timetable_id' => $exam_timetable->id, 'student_id' => $request->student_id, 'subject_id' => $marks['subject_id']])->first();
-                    if ($exam_marks) {
-                        $exam_marks_db = ExamMarks::find($exam_marks->id);
-                        $exam_marks_db->obtained_marks = $marks['obtained_marks'];
-                        $exam_marks_db->passing_status = $status;
-                        $exam_marks_db->grade = $exam_grade;
-                        $exam_marks_db->save();
-                        $updated = true;
-                    } else {
-                        $exam_result_marks[] = [
-                            'exam_timetable_id' => $exam_timetable->id,
-                            'student_id' => $request->student_id,
-                            'subject_id' => $marks['subject_id'],
-                            'obtained_marks' => $marks['obtained_marks'],
-                            'passing_status' => $status,
-                            'session_year_id' => $exam_timetable->session_year_id,
-                            'grade' => $exam_grade,
-                        ];
-                    }
-                }
-                if (isset($exam_result_marks)) {
-                    ExamMarks::insert($exam_result_marks);
-                }
+                $rows = collect($request->marks_data)->map(fn ($marks) => ['timetable_id' => $exam_timetables[$marks['subject_id']]->id, 'learner_id' => $request->student_id, 'mark' => $marks['obtained_marks']])->all();
+                $updated = app(MarkRecording::class)->legacy($request->user(), $rows);
 
                 // Respond once every row is saved: replying (which exits) on the first
                 // existing row used to drop the marks of every student after it.
-                return ResponseService::successResponse(isset($updated) ? 'data_update_successfully' : 'data_store_successfully');
+                return ResponseService::successResponse($updated ? 'data_update_successfully' : 'data_store_successfully');
             }
         } catch (\Exception $e) {
             return ResponseService::errorResponse('error_occurred', null, 103, $e);
@@ -756,6 +673,7 @@ class ExamController extends Controller
                 }])
                 ->where('session_year_id', $settings['session_year'])
                 ->where('publish', 1)
+                ->whereNotIn('id', AcademicExamLink::select('exam_id'))
                 ->whereHas('timetable', function ($q) use ($class_id, $subject_id) {
                     $q->where('class_id', $class_id)->whereIn('subject_id', $subject_id);
                 })->get();

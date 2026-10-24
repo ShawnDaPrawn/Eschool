@@ -10,6 +10,7 @@ use App\Models\Exam;
 use App\Models\ExamClass;
 use App\Models\ExamTimetable;
 use App\Models\SessionYear;
+use App\Services\Academics\MarkExamProjection;
 use App\Services\ResponseService;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
@@ -94,6 +95,7 @@ class ExamTimetableController extends Controller
             return response()->json($response);
         }
         try {
+            app(MarkExamProjection::class)->assertManual((int) $request->exam_id);
             $session_year_id = Exam::with('session_year')->where('id', $request->exam_id)->pluck('session_year_id')->first();
 
             foreach ($request->timetable as $timetable) {
@@ -426,6 +428,7 @@ class ExamTimetableController extends Controller
             return response()->json($response);
         }
         try {
+            app(MarkExamProjection::class)->assertManual((int) $request->exam_id);
             if ($request->edit_timetable !== null) {
                 foreach ($request->edit_timetable as $timetable) {
                     if (isset($timetable['timetable_id']) && $timetable['timetable_id'] != null) {

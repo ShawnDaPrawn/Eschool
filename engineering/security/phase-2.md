@@ -66,3 +66,21 @@ Only bound homeroom groups project class authority, with grade/homeroom checks
 at refresh and read time. Grade/homeroom moves close incompatible memberships
 in the enrolment transaction and retain history. Dated whole-year assignments
 are recognized explicitly by term-filtered family teacher/chat consumers.
+
+
+## Exact marks and result release
+
+Fresh school membership, current subject allocations, dated grade leadership and
+explicit marks permissions are checked before cached write replay and again in
+transactions. School/task/question/learner/context IDs resolve under tenant scopes.
+Canonical marks are per learner/task across supporting groups; only the chosen
+group roster is exposed in a paged matrix. Decimal writes reject floats, exponent
+notation and out-of-range totals. CAS revisions prevent lost edits; moderation
+corrections need reasons and reset moderation. School-local lock dates return409.
+
+Immutable snapshots/releases preserve evidence. Preview fingerprints refuse a
+stale release; incomplete learners can progress independently through an explicit
+provisional mode. Family reads use fresh own-child rights, including ended-link
+overrides, and never consult fees. Released legacy projections reject older model
+edits, deletes, bulk timetable inserts and publication bypasses. Outbox listeners
+select their event's school explicitly. No independent security review is claimed.

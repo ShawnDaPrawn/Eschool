@@ -50,6 +50,15 @@ class OpenApiContractTest extends TestCase
     public static function scenarios(): array
     {
         return [
+            'mark matrix requires auth' => [null, 'GET', 'api/v2/academics/marks/groups/999999', [], 401],
+            'mark matrix unknown' => ['superadmin', 'GET', 'api/v2/academics/marks/groups/999999', [], 404],
+            'mark preview unknown' => ['superadmin', 'POST', 'api/v2/academics/marks/groups/999999/tasks/999999/preview', [], 404],
+            'mark capture unknown' => ['superadmin', 'POST', 'api/v2/academics/marks/groups/999999/tasks/999999/capture', [], 404],
+            'mark correct unknown' => ['superadmin', 'POST', 'api/v2/academics/marks/groups/999999/tasks/999999/correct', [], 404],
+            'mark moderate unknown' => ['superadmin', 'POST', 'api/v2/academics/marks/groups/999999/tasks/999999/moderate', [], 404],
+            'mark release preview unknown' => ['superadmin', 'POST', 'api/v2/academics/marks/groups/999999/release-preview', [], 404],
+            'mark release unknown' => ['superadmin', 'POST', 'api/v2/academics/marks/groups/999999/release', [], 404],
+            'released marks unknown' => ['farid', 'GET', 'api/v2/academics/marks/learners/999999', [], 404],
             'teaching group list teacher' => ['tara', 'GET', 'api/v2/academics/teaching-groups', [], 200],
             'teaching group list parent denied' => ['farid', 'GET', 'api/v2/academics/teaching-groups', [], 403],
             'teaching group list auth' => [null, 'GET', 'api/v2/academics/teaching-groups', [], 401],

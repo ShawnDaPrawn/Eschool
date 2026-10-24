@@ -2767,6 +2767,458 @@ paths:
           $ref: '#/components/responses/TooManyRequests'
         '500':
           $ref: '#/components/responses/ServerError'
+  /academics/marks/groups/{group}:
+    get:
+      operationId: getMarkMatrix
+      tags:
+      - Academics
+      summary: getMarkMatrix
+      description: Fresh current school authority is checked before idempotent replay.
+        Scores are exact decimal strings with up to two decimal places. Percentages
+        are integer basis points; incomplete results remain provisional. Corrections
+        require expected_revision; locked terms return 409. Active task IDs map to a
+        year-specific canonical task; copied definitions never duplicate marks. No fee
+        condition gates academic results.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - name: group
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      - name: term_id
+        in: query
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      - name: page
+        in: query
+        required: false
+        schema:
+          type: integer
+          minimum: 1
+      - name: per_page
+        in: query
+        required: false
+        schema:
+          type: integer
+          minimum: 1
+      responses:
+        '200':
+          description: School-scoped academic result.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AcademicMatrixResponse'
+        '400':
+          $ref: '#/components/responses/IdempotencyKeyProblem'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+  /academics/marks/groups/{group}/tasks/{task}/preview:
+    post:
+      operationId: previewAcademicMarks
+      tags:
+      - Academics
+      summary: previewAcademicMarks
+      description: Fresh current school authority is checked before idempotent replay.
+        Scores are exact decimal strings with up to two decimal places. Percentages
+        are integer basis points; incomplete results remain provisional. Corrections
+        require expected_revision; locked terms return 409. Active task IDs map to a
+        year-specific canonical task; copied definitions never duplicate marks. No fee
+        condition gates academic results. Capture needs a current subject allocation.
+        Only the grade head corrects moderated marks, with a reason, and moderates.
+        Preview never saves marks.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - name: group
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      - name: task
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      - $ref: '#/components/parameters/IdempotencyKey'
+      responses:
+        '200':
+          description: School-scoped academic result.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AcademicPreviewResponse'
+        '400':
+          $ref: '#/components/responses/IdempotencyKeyProblem'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AcademicMarkWrite'
+  /academics/marks/groups/{group}/tasks/{task}/capture:
+    post:
+      operationId: captureAcademicMarks
+      tags:
+      - Academics
+      summary: captureAcademicMarks
+      description: Fresh current school authority is checked before idempotent replay.
+        Scores are exact decimal strings with up to two decimal places. Percentages
+        are integer basis points; incomplete results remain provisional. Corrections
+        require expected_revision; locked terms return 409. Active task IDs map to a
+        year-specific canonical task; copied definitions never duplicate marks. No fee
+        condition gates academic results. Capture needs a current subject allocation.
+        Only the grade head corrects moderated marks, with a reason, and moderates.
+        Preview never saves marks.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - name: group
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      - name: task
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      - $ref: '#/components/parameters/IdempotencyKey'
+      responses:
+        '200':
+          description: School-scoped academic result.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AcademicCaptureResponse'
+        '400':
+          $ref: '#/components/responses/IdempotencyKeyProblem'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AcademicMarkWrite'
+  /academics/marks/groups/{group}/tasks/{task}/correct:
+    post:
+      operationId: correctAcademicMarks
+      tags:
+      - Academics
+      summary: correctAcademicMarks
+      description: Fresh current school authority is checked before idempotent replay.
+        Scores are exact decimal strings with up to two decimal places. Percentages
+        are integer basis points; incomplete results remain provisional. Corrections
+        require expected_revision; locked terms return 409. Active task IDs map to a
+        year-specific canonical task; copied definitions never duplicate marks. No fee
+        condition gates academic results. Capture needs a current subject allocation.
+        Only the grade head corrects moderated marks, with a reason, and moderates.
+        Preview never saves marks.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - name: group
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      - name: task
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      - $ref: '#/components/parameters/IdempotencyKey'
+      responses:
+        '200':
+          description: School-scoped academic result.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AcademicCaptureResponse'
+        '400':
+          $ref: '#/components/responses/IdempotencyKeyProblem'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AcademicMarkWrite'
+  /academics/marks/groups/{group}/tasks/{task}/moderate:
+    post:
+      operationId: moderateAcademicMarks
+      tags:
+      - Academics
+      summary: moderateAcademicMarks
+      description: Fresh current school authority is checked before idempotent replay.
+        Scores are exact decimal strings with up to two decimal places. Percentages
+        are integer basis points; incomplete results remain provisional. Corrections
+        require expected_revision; locked terms return 409. Active task IDs map to a
+        year-specific canonical task; copied definitions never duplicate marks. No fee
+        condition gates academic results. Capture needs a current subject allocation.
+        Only the grade head corrects moderated marks, with a reason, and moderates.
+        Preview never saves marks.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - name: group
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      - name: task
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      - $ref: '#/components/parameters/IdempotencyKey'
+      responses:
+        '200':
+          description: School-scoped academic result.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AcademicCaptureResponse'
+        '400':
+          $ref: '#/components/responses/IdempotencyKeyProblem'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AcademicModerationWrite'
+  /academics/marks/groups/{group}/release-preview:
+    post:
+      operationId: ReleasepreviewAcademicMarks
+      tags:
+      - Academics
+      summary: ReleasepreviewAcademicMarks
+      description: Fresh current school authority is checked before idempotent replay.
+        Scores are exact decimal strings with up to two decimal places. Percentages
+        are integer basis points; incomplete results remain provisional. Corrections
+        require expected_revision; locked terms return 409. Active task IDs map to a
+        year-specific canonical task; copied definitions never duplicate marks. No fee
+        condition gates academic results. Release needs a grade head, principal or explicit
+        marks-release permission. Release requires the fingerprint returned by release-preview
+        and pins immutable snapshots. Official mode requires complete selected learners;
+        running mode is explicitly provisional. Other learners may continue independently.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - name: group
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      - $ref: '#/components/parameters/IdempotencyKey'
+      responses:
+        '200':
+          description: School-scoped academic result.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AcademicReleasePreviewResponse'
+        '400':
+          $ref: '#/components/responses/IdempotencyKeyProblem'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AcademicReleaseWrite'
+  /academics/marks/groups/{group}/release:
+    post:
+      operationId: ReleaseAcademicMarks
+      tags:
+      - Academics
+      summary: ReleaseAcademicMarks
+      description: Fresh current school authority is checked before idempotent replay.
+        Scores are exact decimal strings with up to two decimal places. Percentages
+        are integer basis points; incomplete results remain provisional. Corrections
+        require expected_revision; locked terms return 409. Active task IDs map to a
+        year-specific canonical task; copied definitions never duplicate marks. No fee
+        condition gates academic results. Release needs a grade head, principal or explicit
+        marks-release permission. Release requires the fingerprint returned by release-preview
+        and pins immutable snapshots. Official mode requires complete selected learners;
+        running mode is explicitly provisional. Other learners may continue independently.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - name: group
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      - $ref: '#/components/parameters/IdempotencyKey'
+      responses:
+        '200':
+          description: School-scoped academic result.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AcademicReleaseResponse'
+        '400':
+          $ref: '#/components/responses/IdempotencyKeyProblem'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AcademicReleaseCommitWrite'
+  /academics/marks/learners/{learner}:
+    get:
+      operationId: getReleasedMarks
+      tags:
+      - Academics
+      summary: getReleasedMarks
+      description: Only the learner or a currently linked guardian may read. Ended guardian
+        links override older relationships. Results contain only explicitly released
+        evidence; omit term_id for year results. Staff use the scoped matrix. No fee
+        condition applies.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - name: learner
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      - name: session_year_id
+        in: query
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      - name: term_id
+        in: query
+        required: false
+        schema:
+          type: integer
+          minimum: 1
+      responses:
+        '200':
+          description: School-scoped academic result.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AcademicReleasedResponse'
+        '400':
+          $ref: '#/components/responses/IdempotencyKeyProblem'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
 components:
   securitySchemes:
     bearerAuth:
@@ -5621,3 +6073,805 @@ components:
           - 'null'
         school:
           $ref: '#/components/schemas/SchoolSummary'
+
+    AcademicMarkRow:
+      type: object
+      required:
+      - learner_id
+      - expected_revision
+      - disposition
+      - mark
+      - question_marks
+      properties:
+        learner_id:
+          type: integer
+          minimum: 1
+        expected_revision:
+          type: integer
+          minimum: 0
+        disposition:
+          type: string
+          enum:
+          - recorded
+          - missing
+          - absent
+          - excused
+          - catch_up
+        mark:
+          type:
+          - string
+          - 'null'
+          pattern: ^\d+(\.\d{1,2})?$
+          maxLength: 12
+        note:
+          type:
+          - string
+          - 'null'
+          maxLength: 500
+        question_marks:
+          type: array
+          items:
+            $ref: '#/components/schemas/AcademicQuestionScore'
+      additionalProperties: false
+    AcademicQuestionScore:
+      type: object
+      required:
+      - question_id
+      - mark
+      properties:
+        question_id:
+          type: integer
+          minimum: 1
+        mark:
+          type:
+          - string
+          - 'null'
+          pattern: ^\d+(\.\d{1,2})?$
+          maxLength: 12
+      additionalProperties: false
+    AcademicMarkWrite:
+      type: object
+      required:
+      - rows
+      properties:
+        rows:
+          type: array
+          items:
+            $ref: '#/components/schemas/AcademicMarkRow'
+          minItems: 1
+          maxItems: 1000
+      additionalProperties: false
+    AcademicMark:
+      type: object
+      required:
+      - id
+      - canonical_task_id
+      - learner_id
+      - teaching_group_id
+      - mark
+      - status
+      - disposition
+      - revision
+      - note
+      - captured_by
+      - moderated_by
+      - moderated_at
+      - question_marks
+      properties:
+        id:
+          type: integer
+          minimum: 1
+        canonical_task_id:
+          type: integer
+          minimum: 1
+        learner_id:
+          type: integer
+          minimum: 1
+        teaching_group_id:
+          type: integer
+          minimum: 1
+        mark:
+          type:
+          - string
+          - 'null'
+          pattern: ^\d+(\.\d{1,2})?$
+          maxLength: 12
+        status:
+          type: string
+          enum:
+          - captured
+          - moderated
+          - locked
+        disposition:
+          type: string
+        revision:
+          type: integer
+          minimum: 1
+        note:
+          type:
+          - string
+          - 'null'
+        captured_by:
+          type: integer
+          minimum: 1
+        moderated_by:
+          type:
+          - integer
+          - 'null'
+          minimum: 0
+        moderated_at:
+          type:
+          - string
+          - 'null'
+        question_marks:
+          type: array
+          items:
+            $ref: '#/components/schemas/AcademicStoredQuestion'
+      additionalProperties: false
+    AcademicStoredQuestion:
+      type: object
+      required:
+      - canonical_question_id
+      - mark
+      properties:
+        canonical_question_id:
+          type: integer
+          minimum: 1
+        mark:
+          type:
+          - string
+          - 'null'
+          pattern: ^\d+(\.\d{1,2})?$
+          maxLength: 12
+      additionalProperties: false
+    AcademicComponentResult:
+      type: object
+      required:
+      - weight_bp
+      - declared_task_weight_bp
+      - excused_task_weight_bp
+      - known_task_weight_bp
+      - running_bp
+      - percentage_bp
+      - complete
+      properties:
+        weight_bp:
+          type: integer
+        declared_task_weight_bp:
+          type: integer
+        excused_task_weight_bp:
+          type: integer
+        known_task_weight_bp:
+          type: integer
+        running_bp:
+          type:
+          - integer
+          - 'null'
+          minimum: 0
+        percentage_bp:
+          type:
+          - integer
+          - 'null'
+          minimum: 0
+        complete:
+          type: boolean
+      additionalProperties: false
+    AcademicTaskResult:
+      type: object
+      required:
+      - task_id
+      - percentage_bp
+      - disposition
+      - complete
+      - weight_bp
+      properties:
+        task_id:
+          type: integer
+          minimum: 1
+        percentage_bp:
+          type:
+          - integer
+          - 'null'
+          minimum: 0
+        disposition:
+          type: string
+        complete:
+          type: boolean
+        weight_bp:
+          type: integer
+      additionalProperties: false
+    AcademicMarkResult:
+      type: object
+      required:
+      - percentage_bp
+      - running_bp
+      - coverage_bp
+      - rating_level
+      - running_rating_level
+      - complete
+      - provisional
+      - components
+      - tasks
+      - warnings
+      - rounding
+      - absent_policy
+      properties:
+        percentage_bp:
+          type:
+          - integer
+          - 'null'
+          minimum: 0
+        running_bp:
+          type:
+          - integer
+          - 'null'
+          minimum: 0
+        coverage_bp:
+          type: integer
+        rating_level:
+          type:
+          - integer
+          - 'null'
+          minimum: 0
+        running_rating_level:
+          type:
+          - integer
+          - 'null'
+          minimum: 0
+        complete:
+          type: boolean
+        provisional:
+          type: boolean
+        components:
+          type: object
+          additionalProperties:
+            $ref: '#/components/schemas/AcademicComponentResult'
+        tasks:
+          type: array
+          items:
+            $ref: '#/components/schemas/AcademicTaskResult'
+        warnings:
+          type: array
+          items:
+            type: string
+        rounding:
+          type: string
+        absent_policy:
+          type: string
+      additionalProperties: false
+    AcademicCaptureData:
+      type: object
+      required:
+      - marks
+      - recompute_pending
+      properties:
+        marks:
+          type: array
+          items:
+            $ref: '#/components/schemas/AcademicMark'
+        recompute_pending:
+          type: boolean
+      additionalProperties: false
+    AcademicPreviewData:
+      type: object
+      required:
+      - previews
+      properties:
+        previews:
+          type: array
+          items:
+            $ref: '#/components/schemas/AcademicLearnerPreview'
+      additionalProperties: false
+    AcademicLearnerPreview:
+      type: object
+      required:
+      - learner_id
+      - result
+      properties:
+        learner_id:
+          type: integer
+          minimum: 1
+        result:
+          $ref: '#/components/schemas/AcademicMarkResult'
+      additionalProperties: false
+    AcademicTaskQuestion:
+      type: object
+      required:
+      - id
+      - canonical_question_id
+      - number
+      - max_mark
+      properties:
+        id:
+          type: integer
+          minimum: 1
+        canonical_question_id:
+          type: integer
+          minimum: 1
+        number:
+          type: string
+        max_mark:
+          type: string
+      additionalProperties: false
+    AcademicMatrixTask:
+      type: object
+      required:
+      - id
+      - canonical_task_id
+      - name
+      - max_mark
+      - component
+      - weight_bp
+      - questions
+      properties:
+        id:
+          type: integer
+          minimum: 1
+        canonical_task_id:
+          type: integer
+          minimum: 1
+        name:
+          type: string
+        max_mark:
+          type: string
+        component:
+          type: string
+        weight_bp:
+          type: integer
+        questions:
+          type: array
+          items:
+            $ref: '#/components/schemas/AcademicTaskQuestion'
+      additionalProperties: false
+    AcademicMatrixLearner:
+      type: object
+      required:
+      - learner_id
+      - student_number
+      - display_name
+      - marks
+      - result
+      properties:
+        learner_id:
+          type: integer
+          minimum: 1
+        student_number:
+          type:
+          - string
+          - 'null'
+        display_name:
+          type: string
+        marks:
+          type: array
+          items:
+            $ref: '#/components/schemas/AcademicMark'
+        result:
+          $ref: '#/components/schemas/AcademicMarkResult'
+      additionalProperties: false
+    AcademicMatrixData:
+      type: object
+      required:
+      - group_id
+      - subject_id
+      - grade_level_id
+      - session_year_id
+      - term_id
+      - assessment_plan_id
+      - version
+      - current_page
+      - last_page
+      - total
+      - locked
+      - marks_lock_on
+      - tasks
+      - learners
+      properties:
+        group_id:
+          type: integer
+          minimum: 1
+        subject_id:
+          type: integer
+          minimum: 1
+        grade_level_id:
+          type: integer
+          minimum: 1
+        session_year_id:
+          type: integer
+          minimum: 1
+        term_id:
+          type: integer
+          minimum: 1
+        assessment_plan_id:
+          type: integer
+          minimum: 1
+        version:
+          type: integer
+          minimum: 1
+        current_page:
+          type: integer
+          minimum: 1
+        last_page:
+          type: integer
+          minimum: 1
+        total:
+          type: integer
+          minimum: 0
+        locked:
+          type: boolean
+        marks_lock_on:
+          type:
+          - string
+          - 'null'
+        tasks:
+          type: array
+          items:
+            $ref: '#/components/schemas/AcademicMatrixTask'
+        learners:
+          type: array
+          items:
+            $ref: '#/components/schemas/AcademicMatrixLearner'
+      additionalProperties: false
+    AcademicModerationWrite:
+      type: object
+      required:
+      - reason
+      - rows
+      properties:
+        reason:
+          type: string
+          minLength: 1
+          maxLength: 500
+        rows:
+          type: array
+          items:
+            $ref: '#/components/schemas/AcademicModerationRow'
+          minItems: 1
+          maxItems: 1000
+      additionalProperties: false
+    AcademicModerationRow:
+      type: object
+      required:
+      - learner_id
+      - expected_revision
+      properties:
+        learner_id:
+          type: integer
+          minimum: 1
+        expected_revision:
+          type: integer
+          minimum: 1
+      additionalProperties: false
+    AcademicReleaseWrite:
+      type: object
+      required:
+      - term_id
+      - mode
+      - learner_ids
+      properties:
+        term_id:
+          type:
+          - integer
+          - 'null'
+          minimum: 1
+        mode:
+          type: string
+          enum:
+          - official
+          - running
+        learner_ids:
+          type: array
+          items:
+            type: integer
+            minimum: 1
+          minItems: 1
+          maxItems: 1000
+          uniqueItems: true
+        fingerprint:
+          type: string
+          pattern: ^[a-f0-9]{64}$
+      additionalProperties: false
+    AcademicReleaseCommitWrite:
+      type: object
+      required:
+      - term_id
+      - mode
+      - learner_ids
+      - fingerprint
+      properties:
+        term_id:
+          type:
+          - integer
+          - 'null'
+          minimum: 1
+        mode:
+          type: string
+          enum:
+          - official
+          - running
+        learner_ids:
+          type: array
+          items:
+            type: integer
+            minimum: 1
+          minItems: 1
+          maxItems: 1000
+          uniqueItems: true
+        fingerprint:
+          type: string
+          pattern: ^[a-f0-9]{64}$
+      additionalProperties: false
+    AcademicReleaseLearner:
+      type: object
+      required:
+      - learner_id
+      - snapshot_id
+      - fingerprint
+      - percentage_bp
+      - rating_level
+      - coverage_bp
+      - complete
+      - ready
+      properties:
+        learner_id:
+          type: integer
+          minimum: 1
+        snapshot_id:
+          type: integer
+          minimum: 1
+        fingerprint:
+          type: string
+        percentage_bp:
+          type:
+          - integer
+          - 'null'
+          minimum: 0
+        rating_level:
+          type:
+          - integer
+          - 'null'
+          minimum: 0
+        coverage_bp:
+          type: integer
+        complete:
+          type: boolean
+        ready:
+          type: boolean
+      additionalProperties: false
+    AcademicReleasePreviewData:
+      type: object
+      required:
+      - mode
+      - provisional
+      - fingerprint
+      - can_release
+      - learners
+      properties:
+        mode:
+          type: string
+        provisional:
+          type: boolean
+        fingerprint:
+          type: string
+        can_release:
+          type: boolean
+        learners:
+          type: array
+          items:
+            $ref: '#/components/schemas/AcademicReleaseLearner'
+      additionalProperties: false
+    AcademicReleaseData:
+      type: object
+      required:
+      - id
+      - subject_id
+      - grade_level_id
+      - session_year_id
+      - term_id
+      - mode
+      - provisional
+      - version
+      - fingerprint
+      - released_at
+      - learner_ids
+      properties:
+        id:
+          type: integer
+          minimum: 1
+        subject_id:
+          type: integer
+          minimum: 1
+        grade_level_id:
+          type: integer
+          minimum: 1
+        session_year_id:
+          type: integer
+          minimum: 1
+        term_id:
+          type:
+          - integer
+          - 'null'
+          minimum: 0
+        mode:
+          type: string
+        provisional:
+          type: boolean
+        version:
+          type: integer
+          minimum: 1
+        fingerprint:
+          type: string
+        released_at:
+          type: string
+        learner_ids:
+          type: array
+          items:
+            type: integer
+            minimum: 1
+      additionalProperties: false
+    AcademicReleasedResult:
+      type: object
+      required:
+      - release_id
+      - subject_id
+      - grade_level_id
+      - session_year_id
+      - term_id
+      - mode
+      - provisional
+      - percentage_bp
+      - rating_level
+      - coverage_bp
+      - released_at
+      properties:
+        release_id:
+          type: integer
+          minimum: 1
+        subject_id:
+          type: integer
+          minimum: 1
+        grade_level_id:
+          type: integer
+          minimum: 1
+        session_year_id:
+          type: integer
+          minimum: 1
+        term_id:
+          type:
+          - integer
+          - 'null'
+          minimum: 0
+        mode:
+          type: string
+        provisional:
+          type: boolean
+        percentage_bp:
+          type:
+          - integer
+          - 'null'
+          minimum: 0
+        rating_level:
+          type:
+          - integer
+          - 'null'
+          minimum: 0
+        coverage_bp:
+          type: integer
+        released_at:
+          type: string
+      additionalProperties: false
+    AcademicReleasedData:
+      type: object
+      required:
+      - learner_id
+      - results
+      properties:
+        learner_id:
+          type: integer
+          minimum: 1
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/AcademicReleasedResult'
+      additionalProperties: false
+    AcademicCaptureResponse:
+      type: object
+      required:
+      - error
+      - message
+      - code
+      - data
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        code:
+          type: integer
+        data:
+          $ref: '#/components/schemas/AcademicCaptureData'
+      additionalProperties: false
+    AcademicPreviewResponse:
+      type: object
+      required:
+      - error
+      - message
+      - code
+      - data
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        code:
+          type: integer
+        data:
+          $ref: '#/components/schemas/AcademicPreviewData'
+      additionalProperties: false
+    AcademicMatrixResponse:
+      type: object
+      required:
+      - error
+      - message
+      - code
+      - data
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        code:
+          type: integer
+        data:
+          $ref: '#/components/schemas/AcademicMatrixData'
+      additionalProperties: false
+    AcademicReleasePreviewResponse:
+      type: object
+      required:
+      - error
+      - message
+      - code
+      - data
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        code:
+          type: integer
+        data:
+          $ref: '#/components/schemas/AcademicReleasePreviewData'
+      additionalProperties: false
+    AcademicReleaseResponse:
+      type: object
+      required:
+      - error
+      - message
+      - code
+      - data
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        code:
+          type: integer
+        data:
+          $ref: '#/components/schemas/AcademicReleaseData'
+      additionalProperties: false
+    AcademicReleasedResponse:
+      type: object
+      required:
+      - error
+      - message
+      - code
+      - data
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        code:
+          type: integer
+        data:
+          $ref: '#/components/schemas/AcademicReleasedData'
+      additionalProperties: false
