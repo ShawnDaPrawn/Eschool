@@ -92,3 +92,9 @@ passed. Final regression, browser and CI outcomes are recorded on the feature PR
 Browser setup initially needed explicit labels for dynamic selects and the
 isolated demo's public avatar symlink. Runtime access/CSRF rules were preserved.
 Staging, device and real-school policy/pilot verification remain pending.
+
+Final curriculum checks passed: 180 academic/contract/ownership/migration tests
+(12,202 assertions), 22 targeted route/tenancy tests (187 assertions), two browser
+flows covering question entry/publication/copy and teacher controls, axe and
+1024/1280 overflow, plus documentation build and E2E TypeScript checking.
+The browser checks used an isolated synthetic school database.
