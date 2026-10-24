@@ -158,3 +158,14 @@ grade head, learner/family authorization and ended guardian relationships.
 Synthetic reconciliation covers exact matches/differences/duplicate refusal and
 foreign-school terms. No real school sheet, full-term pilot, staging performance,
 independent security review, device timing or production acceptance is claimed.
+
+
+The full local backend run passed1,185 tests but failed two portal-cookie
+fixture checks (24,490 assertions). This worktree's intentionally blank ignored
+.env left APP_NAME at Laravel's default, so the session store was initialized
+with a different cookie name before those fixtures changed configuration.
+Restoring the repository example's APP_NAME=e-School locally, without changing
+application code or credentials, made all31 final mark/profile/portal checks
+pass (313 assertions), including principal expiry and grade-head correction.
+The original full run is not reported as wholly passing; the final CI full suite
+remains required. The failure is recorded rather than waived.

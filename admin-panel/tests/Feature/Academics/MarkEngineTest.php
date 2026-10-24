@@ -7,6 +7,7 @@ namespace Tests\Feature\Academics;
 use App\Jobs\Academics\RecomputeMarkSnapshots;
 use App\Listeners\Academics\NotifyMarksReleased;
 use App\Models\Academics\AcademicExamLink;
+use App\Models\Academics\AcademicLeadership;
 use App\Models\Academics\AssessmentMark;
 use App\Models\Academics\CurriculumPlan;
 use App\Models\Academics\GradeLevel;
@@ -49,11 +50,12 @@ use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 use Symfony\Component\HttpKernel\Exception\HttpException;
 use Tests\Concerns\UsesTwoSchools;
+use Tests\Concerns\ValidatesOpenApiResponses;
 use Tests\TestCase;
 
 class MarkEngineTest extends TestCase
 {
-    use \Tests\Concerns\ValidatesOpenApiResponses, UsesTwoSchools;
+    use UsesTwoSchools, ValidatesOpenApiResponses;
 
     private int $group;
 
@@ -551,7 +553,7 @@ class MarkEngineTest extends TestCase
         $this->api($principal)->getJson($path.'?term_id='.$this->term)->assertOk();
         $this->postJson($path.'/release-preview', $this->releaseInput())->assertOk()->assertJsonPath('data.can_release', true);
         $this->postJson($path.'/tasks/'.$this->task.'/correct', $this->input('5.00', '10.00', 1))->assertForbidden();
-        \App\Models\Academics\AcademicLeadership::where('user_id', $principal->id)->update(['ends_on' => '2026-02-09']);
+        AcademicLeadership::where('user_id', $principal->id)->update(['ends_on' => '2026-02-09']);
         $this->postJson($path.'/release-preview', $this->releaseInput())->assertForbidden();
     }
 
