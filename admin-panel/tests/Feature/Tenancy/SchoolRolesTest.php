@@ -37,7 +37,7 @@ class SchoolRolesTest extends TestCase
     public function test_a_new_school_gets_its_own_system_roles_with_their_permissions(): void
     {
         $roles = Role::acrossSchoolsQuery()->where('school_id', 2)->orderBy('name')->pluck('name')->all();
-        $this->assertSame(['Parent', 'Student', 'Super Admin', 'Teacher'], $roles);
+        $this->assertSame(['Counsellor', 'Facilitator', 'Parent', 'Safeguarding', 'Student', 'Super Admin', 'Teacher'], $roles);
 
         $schoolOne = Role::query()->where('name', 'Super Admin')->sole();
         $schoolTwo = $this->current->run(2, fn () => Role::query()->where('name', 'Super Admin')->sole());
@@ -47,7 +47,7 @@ class SchoolRolesTest extends TestCase
 
         // Seeding again changes nothing.
         app(SchoolRoles::class)->seedEverySchool();
-        $this->assertSame(8, Role::acrossSchoolsQuery()->whereIn('school_id', [1, 2])->count());
+        $this->assertSame(14, Role::acrossSchoolsQuery()->whereIn('school_id', [1, 2])->count());
     }
 
     public function test_a_role_is_granted_at_one_school(): void

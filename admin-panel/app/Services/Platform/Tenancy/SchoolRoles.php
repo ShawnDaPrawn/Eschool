@@ -24,17 +24,26 @@ class SchoolRoles
 
     public const STUDENT = 'Student';
 
+    public const FACILITATOR = 'Facilitator';
+
+    public const COUNSELLOR = 'Counsellor';
+
+    public const SAFEGUARDING = 'Safeguarding';
+
     /** The system roles and their permissions. */
     public const PERMISSIONS = [
         self::SUPER_ADMIN => self::SUPER_ADMIN_PERMISSIONS,
         self::TEACHER => self::TEACHER_PERMISSIONS,
         self::PARENT => [],
         self::STUDENT => [],
+        self::FACILITATOR => [],
+        self::COUNSELLOR => ['pastoral-sensitive-access'],
+        self::SAFEGUARDING => ['pastoral-sensitive-access'],
     ];
 
     private const SUPER_ADMIN_PERMISSIONS = [
         'marks-view-all', 'marks-release',
-        'academic-structure-manage', 'communication-manage',
+        'academic-structure-manage', 'communication-manage', 'activity-groups-manage',
         'curriculum-read', 'curriculum-manage', 'curriculum-publish',
         'profile-person-view', 'profile-person-edit', 'profile-sensitive-view', 'profile-sensitive-export',
         'attendance-staff', 'medium-list', 'medium-create', 'medium-edit', 'medium-delete',
@@ -94,6 +103,9 @@ class SchoolRoles
         $this->currentSchool->run($school, function () {
             foreach (self::PERMISSIONS as $name => $permissions) {
                 $role = Role::query()->firstOrCreate(['name' => $name, 'guard_name' => 'web']);
+                if ((int) $role->custom_role === 1) {
+                    continue;
+                }
                 $role->syncPermissions($permissions);
             }
         });
