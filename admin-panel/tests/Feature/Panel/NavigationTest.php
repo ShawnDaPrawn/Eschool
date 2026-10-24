@@ -32,7 +32,7 @@ class NavigationTest extends TestCase
     private const OLD_SIDEBAR = [
         'home',
         // Academics
-        'medium.index', 'section.index', 'stream.index', 'shifts.index', 'subject.index', 'semester.index', 'class.index',
+        'medium.index', 'section.index', 'stream.index', 'shifts.index', 'subject.index', 'term.index', 'class.index',
         'class.subject', 'class.select-elective-subjects', 'class.teacher', 'subject-teachers.index', 'students.assign-class',
         'promote-student.index',
         // Students

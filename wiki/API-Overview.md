@@ -199,7 +199,7 @@ The numeric `code` values used by the API controllers and middleware:
 | `106` | 200 | Online exam not started yet; invalid subject id; invalid child id in parent announcements | student online exam, `student/announcements`, `Parent\AnnouncementController::getAnnouncements` |
 | `110` | 200 | Assignment submission cannot be deleted (already reviewed) | `student/delete-assignment-submission` |
 | `113` | 200 | No `student_sessions` row for the requested session year | report and fee endpoints (student and parent) |
-| `400` | 200 | Bad request in teacher exam/marks flows (`exam_published`, `exam_not_completed_yet`, marks out of range, `grades_data_does_not_exists`, `Semester id required.`) | `Teacher\ExamController` |
+| `400` | 200 | Bad request in teacher exam/marks flows (`exam_published`, `exam_not_completed_yet`, marks out of range, `grades_data_does_not_exists`, `Term id required.`) | `Teacher\ExamController` |
 | `403` | 200 or 403 | No permission or not assigned to the class/subject (teacher, HTTP 200); inactive or non-student account (`student.session.active`, HTTP 403) | the `Teacher\` controllers, `EnsureStudentSessionIsActive` |
 | `422` | 200 | `album_id is required` | `get-gallery-images` |
 | `null` | 200 | Any `validationError()` or `errorResponse()` without a code; the message is meant to be shown as is | everywhere |
@@ -332,8 +332,8 @@ For any type other than `app_settings`, `data` is the raw settings value with th
 | `holiday_days` | `leave_masters.holiday_days` for the current session |
 | `payment_options` | `currency_code`, `currency_symbol`, optional `fees_due_date` / `fees_due_charges`, and, when Stripe is enabled, `stripe` with only its public key (`stripe_publishable_key`), its status and currency code. `razorpay`, `paystack` and `flutterwave` were removed in Phase 0 and are always left out, as a disabled gateway is |
 | `online_exam_terms_condition` | HTML-decoded text |
-| `current_semester` | the semester whose `current` attribute is true, or `null` |
-| `semester_breaks` | list of `{start, end}` gaps between consecutive semesters inside the session year, or `null` |
+| `current_term` | the term whose `current` attribute is true, or `null` |
+| `term_breaks` | list of `{start, end}` gaps between consecutive terms inside the session year, or `null` |
 
 Secret keys and webhook secrets are never included. Until commit `839c9eb` this public endpoint returned the Razorpay webhook secret; installs that ran older code should rotate it (see [Payments](Payments)). The admin UI for these values: https://shawndaprawn.github.io/Eschool/admin-panel/app-settings/ and https://shawndaprawn.github.io/Eschool/admin-panel/chat-settings/ .
 
@@ -345,7 +345,7 @@ Secret keys and webhook secrets are never included. Until commit `839c9eb` this 
 | `GET /api/sliders` | none | `sliders` rows with `type` 1 (app) or 3 (both) |
 | `GET /api/current-session-year` | none | the `session_years` row named by the `session_year` setting |
 | `GET /api/get-session-year` | none | all session years except id 0, newest first |
-| `GET /api/get-semesters` | none | semesters of the current session year, by `start_date` |
+| `GET /api/get-terms` | none | terms of the current session year, by `start_date` |
 | `GET /api/get-events-list` | none | events of the current session year (`id`, `title`, `type`, `start_date`, `end_date`, `start_time`, `end_time`, `image`, `description`, `has_day_schedule`) followed by each per-day schedule row (`id`, `event_id`, `title`, `date`, `start_time`, `end_time`, `description`, `has_day_schedule: 0`) |
 | `GET` or `POST /api/get-events-details` | `event_id` (required, integer) | the `multiple_events` rows of that event. Both apps use `GET`; the route accepted only `POST` until `c38b7da`. |
 | `GET /api/get-gallery-albums` | `per_page`, `page` | albums (`id`, `title`, `thumbnail_url`) |
@@ -411,7 +411,7 @@ Apps fetch it when they start, after signing in and when the user changes school
 | --- | --- |
 | `user` | `id`, `first_name`, `last_name`, `name`, `email` (a learner's GR number), `image` (URL or null), `roles` |
 | `schools` | `[{school: {id, name, short_name, crest_url}, roles}]`: one school (id 1) until Phase 1 adds memberships |
-| `current_school` | `id`, `name`, `short_name` (setting `school_short_name`), `crest_url` (setting `logo1`, null when none), `tagline`, `branding` (`theme_color`, `secondary_color` as stored), `timezone` (setting `time_zone`), `session_year` (the `session_year` setting's year with its `terms`: the semesters, each with `current`), or null when no year is set |
+| `current_school` | `id`, `name`, `short_name` (setting `school_short_name`), `crest_url` (setting `logo1`, null when none), `tagline`, `branding` (`theme_color`, `secondary_color` as stored), `timezone` (setting `time_zone`), `session_year` (the `session_year` setting's year with its `terms`: the terms, each with `current`), or null when no year is set |
 | `modules`, `notification_rules` | `[]` until Phase 1 |
 | `feature_flags` | `{}` until Phase 1 (always an object) |
 | `sign_in_methods` | `["password"]`; passkeys, Google, Microsoft and email links arrive in Phase 1 |
@@ -670,7 +670,7 @@ Controller names are shortened: `Api` = `ApiController`, `Student\Area`, `Parent
 | GET | `get-events-list` | `Api@getEvents` | none |
 | GET, POST | `get-events-details` | `Api@getEventsDetails` | none |
 | GET | `get-session-year` | `Api@getSessionYear` | none |
-| GET | `get-semesters` | `Api@getSemesters` | none |
+| GET | `get-terms` | `Api@getTerms` | none |
 | GET | `get-gallery-albums` | `Api@getGalleryAlbums` | none |
 | GET | `get-gallery-images` | `Api@getGalleryImages` | none |
 | GET | `get-gallery-videos` | `Api@getGalleryVideos` | none |
@@ -775,3 +775,17 @@ reference. Old links stop working after replacement, clearing or field removal.
 Clients construct the known protected asset route; never attach credentials to
 an arbitrary metadata URL. These assets are private/no-store. The legacy public
 file migration remains separate.
+
+## Academic reference API
+
+`GET /api/v2/academics/reference` provides shared R–12 grades, school phases and
+seven-point rating thresholds to active school members. Rating thresholds use
+integer basis points from 0 to 10000. They do not change existing mark results.
+
+`GET /api/v2/academics/classes/{class}/grade-level` requires class-list or class-edit
+in the selected school. `PUT` requires class-edit and accepts
+`{"grade_level_id": <reference id>}` or `{"grade_level_id": null}` to clear it.
+The response contains class_id, grade_level_id and nullable grade_level. Foreign or
+deleted classes are inaccessible; only the grade mapping is written. The routes
+use the academics module, v2 envelope and no-store headers; writes accept an
+Idempotency-Key. OpenAPI and the generated SDK describe the complete contract.

@@ -232,8 +232,9 @@ class ManageStudentLeavesScreenState extends State<ManageStudentLeavesScreen> {
           if (state is DashboardFetchSuccess) {
             currentSelectedClass ??= state.primaryClass!.first;
             return CustomDropdownButtonContainer(
-              selectedValue: currentSelectedClass!
-                  .getClassSectionNameWithSemester(context: context),
+              selectedValue: currentSelectedClass!.getClassSectionNameWithTerm(
+                context: context,
+              ),
               onTap: () async {
                 final ClassSectionDetails? selectedClass =
                     await UiUtils.showBottomSheet(
@@ -313,9 +314,9 @@ class ManageStudentLeavesScreenState extends State<ManageStudentLeavesScreen> {
                     children: [
                       Container(
                         decoration: BoxDecoration(
-                          color: Theme.of(
-                            context,
-                          ).colorScheme.surfaceContainerLow,
+                          color: Theme.of(context)
+                              .colorScheme
+                              .surfaceContainerLow,
                           borderRadius: BorderRadius.circular(4),
                         ),
                         padding: const EdgeInsets.symmetric(vertical: 10),

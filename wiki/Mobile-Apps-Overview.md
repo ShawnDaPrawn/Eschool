@@ -60,7 +60,7 @@ Files that were the same in both apps live once in [`packages/eschool_core`](htt
 | `l10n/` | `AppLocalization` and `AppLocalizationDelegate` (each app passes its own `appLanguages`), the shared label keys |
 | `models/` | `StudyMaterial`, `Announcement`, `Topic`, `SubjectMark`, `Result`, `ChatMessage`, `DynamicField`, the leave day types (`LeaveType`, `LeaveDateWithType`), plus the earlier gallery, calendar, chat-settings and event models |
 | `cubits/` | `GalleryAlbumCubit`, `GalleryVideosCubit`, `GalleryAlbumPhotosCubit`, `EventDetailsCubit`, `AppSettingsCubit`, each taking an interface from `repositories/` (`GalleryRepository`, `EventScheduleRepository`, `AppSettingsRepository`) that the app's `SystemRepository` implements |
-| `widgets/` | 21 of the 30 widget files the apps had in common (error container, shimmer loaders, back button, image and gallery widgets, bottom sheet parts, search field, refresh indicator, ...) and four screen parts (semester break, gallery videos tab, leave day picker, drop-down) |
+| `widgets/` | 21 of the 30 widget files the apps had in common (error container, shimmer loaders, back button, image and gallery widgets, bottom sheet parts, search field, refresh indicator, ...) and four screen parts (term break, gallery videos tab, leave day picker, drop-down) |
 | `ui/` | `SharedUiUtils` (the sizes and helpers both `UiUtils` had), `SharedAssets` (paths of the images the shared widgets draw, which each app ships), `SharedRoutes` |
 | `utils/` | `extensions.dart` and the list animations with their switches (`isApplicationItemAnimationOn` and the durations) |
 | `shell/` | `AppShell`, which each app puts above its navigator in `MaterialApp.builder` |
@@ -239,7 +239,7 @@ A notification tap opens the push's `link` when it has one and the app understan
 | `force_app_update` (`teacher_force_app_update`) | `'1'` enables the force-update check. | both |
 | `app_maintenance` (`teacher_app_maintenance`) | `'1'` replaces the home screen with `AppUnderMaintenanceContainer`. | both |
 | `school_name`, `school_tagline` | Login screen text, Stripe merchant name. | both |
-| `session_year`, `current_semester`, `semester_breaks`, `holiday_days` | Calendars, leave forms, filters. | both |
+| `session_year`, `current_term`, `term_breaks`, `holiday_days` | Calendars, leave forms, filters. | both |
 | `chat_settings` | `max_files_or_images_in_one_message` (default 10), `max_file_size_in_bytes` (default 10000000), `max_characters_in_text_message` (default 500), `automatically_messages_removed_days`. | both |
 | `is_demo` | Value of the server's `DEMO_MODE` env; `UiUtils.isDemoVersionEnable()` is checked on the login screens and before changing the password. | both |
 | `online_payment` | `'1'` shows the "pay" buttons. | student |

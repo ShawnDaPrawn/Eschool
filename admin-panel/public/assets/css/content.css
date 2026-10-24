@@ -369,7 +369,7 @@
  * self-style via Bootstrap utilities (all !important) and keep working unchanged;
  * the bespoke component badges (.section-badge, .chip-badge, .role-permissions__
  * badge, .overall-grade-badge, .idc-preview-badge, .exam-grade-badge, .exam-badge,
- * .badge-semester-class, .recipients-tab-badge) have their own designs and don't
+ * .badge-term-class, .recipients-tab-badge) have their own designs and don't
  * use the .badge-{variant} system; and the dompdf-inline .badge-holiday/-exam/
  * -event in academic_calendar_pdf.blade.php (dompdf can't do color-mix). */
 

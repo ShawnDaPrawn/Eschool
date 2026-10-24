@@ -93,9 +93,392 @@ security:
   - bearerAuth: []
   - cookieAuth: []
 tags:
+  - name: Academics
+    description: Academic references and explicit school class mapping.
   - name: Platform
     description: Who is signed in and the school they work in.
 paths:
+  /academics/terms:
+    get:
+      operationId: getSchoolTerms
+      tags:
+      - Academics
+      summary: Read school-year terms and grade ranges
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - name: session_year_id
+        in: query
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      - name: grade
+        in: query
+        schema:
+          type: integer
+          minimum: 0
+          maximum: 12
+        description: Grade R is 0; omit to read every grade range.
+      responses:
+        '200':
+          description: Calendar result.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SchoolTermsResponse'
+        '400':
+          $ref: '#/components/responses/IdempotencyKeyProblem'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+    post:
+      operationId: createSchoolTerm
+      tags:
+      - Academics
+      summary: Create a term in the current school
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/IdempotencyKey'
+      responses:
+        '200':
+          description: Calendar result.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SchoolTermResponse'
+        '400':
+          $ref: '#/components/responses/IdempotencyKeyProblem'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SchoolTermWrite'
+      description: Requires term-create. Dates must fit the year; date overlaps are refused when grade ranges intersect. Marks-lock/report dates are optional metadata
+        for the future assessment engine.
+  /academics/terms/{term}:
+    put:
+      operationId: updateSchoolTerm
+      tags:
+      - Academics
+      summary: Update school term dates and grade range
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - name: term
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      - $ref: '#/components/parameters/IdempotencyKey'
+      responses:
+        '200':
+          description: Calendar result.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SchoolTermResponse'
+        '400':
+          $ref: '#/components/responses/IdempotencyKeyProblem'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SchoolTermWrite'
+      description: Requires term-edit. The year cannot be changed. Every write repeats fresh school permission checks.
+    delete:
+      operationId: removeSchoolTerm
+      tags:
+      - Academics
+      summary: Remove an unused school term
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - name: term
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      - $ref: '#/components/parameters/IdempotencyKey'
+      responses:
+        '200':
+          description: Calendar result.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CalendarRemovedResponse'
+        '400':
+          $ref: '#/components/responses/IdempotencyKeyProblem'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+      description: Requires term-delete. References, including archived academic records, prevent removal.
+  /academics/term-templates:
+    get:
+      operationId: getTermTemplates
+      tags:
+      - Academics
+      summary: List this school's calendar templates
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      responses:
+        '200':
+          description: Calendar result.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TermTemplatesResponse'
+        '400':
+          $ref: '#/components/responses/IdempotencyKeyProblem'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+      description: Requires term-list. Templates contain calendar metadata only.
+    post:
+      operationId: saveTermTemplate
+      tags:
+      - Academics
+      summary: Save a school-year calendar as a template
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/IdempotencyKey'
+      responses:
+        '200':
+          description: Calendar result.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TermTemplateResponse'
+        '400':
+          $ref: '#/components/responses/IdempotencyKeyProblem'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TermTemplateWrite'
+      description: Requires term-create. Snapshots validated dates and grade bands from a year in the current school.
+  /academics/term-templates/{template}/apply:
+    post:
+      operationId: applyTermTemplate
+      tags:
+      - Academics
+      summary: Preview or apply a school calendar template
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - name: template
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      - $ref: '#/components/parameters/IdempotencyKey'
+      responses:
+        '200':
+          description: Calendar result.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TermTemplateApplyResponse'
+        '400':
+          $ref: '#/components/responses/IdempotencyKeyProblem'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TermTemplateApplyWrite'
+      description: Preview is the default and changes no calendar records; requires term-list. Set apply=true with term-create to add missing terms atomically. Existing
+        dates are never overwritten; exact matches are skipped and overlaps or invalid leap-day dates are refused.
+  /academics/reference:
+    get:
+      operationId: getAcademicReference
+      tags: [Academics]
+      summary: Shared grades, school phases and seven-point rating thresholds
+      description: Read-only reference for active school members. Thresholds are integer basis points, not new calculations of existing learner marks.
+      parameters:
+        - $ref: '#/components/parameters/SchoolId'
+      responses:
+        '200':
+          description: Academic reference catalogue.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AcademicReferenceResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+  /academics/classes/{class}/grade-level:
+    get:
+      operationId: getClassGradeLevel
+      tags: [Academics]
+      summary: Read an explicitly mapped class grade
+      description: Requires class-list or class-edit in the current school. Foreign or deleted classes return 404.
+      parameters:
+        - $ref: '#/components/parameters/SchoolId'
+        - name: class
+          in: path
+          required: true
+          schema:
+            type: integer
+            minimum: 1
+      responses:
+        '200':
+          description: Class grade mapping; null until explicitly set.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ClassGradeResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+    put:
+      operationId: updateClassGradeLevel
+      tags: [Academics]
+      summary: Explicitly set or clear a class grade reference
+      description: Requires class-edit in the current school. Does not change class names, legacy marks or reports. Repeated identical mappings produce no additional audit entry.
+      parameters:
+        - $ref: '#/components/parameters/SchoolId'
+        - $ref: '#/components/parameters/IdempotencyKey'
+        - name: class
+          in: path
+          required: true
+          schema:
+            type: integer
+            minimum: 1
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ClassGradeWrite'
+      responses:
+        '200':
+          description: Updated class grade mapping.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ClassGradeResponse'
+        '400':
+          $ref: '#/components/responses/IdempotencyKeyProblem'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
   /me/profile/fields/{field}/file:
     post:
       operationId: uploadMyProfileFile
@@ -1510,6 +1893,450 @@ components:
           schema:
             $ref: '#/components/schemas/ErrorResponse'
   schemas:
+    SchoolTermDraft:
+      type: object
+      required:
+      - name
+      - starts_on
+      - ends_on
+      - grade_from
+      - grade_to
+      - marks_lock_on
+      - reports_on
+      properties:
+        name:
+          type: string
+          maxLength: 191
+        starts_on:
+          type: string
+          format: date
+        ends_on:
+          type: string
+          format: date
+        grade_from:
+          type: integer
+          minimum: 0
+          maximum: 12
+        grade_to:
+          type: integer
+          minimum: 0
+          maximum: 12
+        marks_lock_on:
+          type:
+          - string
+          - 'null'
+          format: date
+        reports_on:
+          type:
+          - string
+          - 'null'
+          format: date
+      additionalProperties: false
+    SchoolTerm:
+      type: object
+      required:
+      - id
+      - session_year_id
+      - name
+      - starts_on
+      - ends_on
+      - grade_from
+      - grade_to
+      - marks_lock_on
+      - reports_on
+      - current
+      - needs_review
+      properties:
+        id:
+          type: integer
+          minimum: 1
+        session_year_id:
+          type: integer
+          minimum: 1
+        name:
+          type: string
+          maxLength: 191
+        starts_on:
+          type:
+          - string
+          - 'null'
+          format: date
+        ends_on:
+          type:
+          - string
+          - 'null'
+          format: date
+        grade_from:
+          type: integer
+          minimum: 0
+          maximum: 12
+        grade_to:
+          type: integer
+          minimum: 0
+          maximum: 12
+        marks_lock_on:
+          type:
+          - string
+          - 'null'
+          format: date
+        reports_on:
+          type:
+          - string
+          - 'null'
+          format: date
+        current:
+          type: boolean
+        needs_review:
+          type: boolean
+      additionalProperties: false
+    SchoolTermWrite:
+      type: object
+      required:
+      - session_year_id
+      - name
+      - starts_on
+      - ends_on
+      - marks_lock_on
+      - reports_on
+      properties:
+        session_year_id:
+          type: integer
+          minimum: 1
+        name:
+          type: string
+          maxLength: 191
+        starts_on:
+          type: string
+          pattern: ^\d{4}-\d{2}-\d{2}$
+          description: Local calendar date as YYYY-MM-DD, without a time or timezone.
+        ends_on:
+          type: string
+          pattern: ^\d{4}-\d{2}-\d{2}$
+          description: Local calendar date as YYYY-MM-DD, without a time or timezone.
+        grade_from:
+          type: integer
+          minimum: 0
+          maximum: 12
+        grade_to:
+          type: integer
+          minimum: 0
+          maximum: 12
+        marks_lock_on:
+          type:
+          - string
+          - 'null'
+          pattern: ^\d{4}-\d{2}-\d{2}$
+          description: Local calendar date as YYYY-MM-DD, without a time or timezone.
+        reports_on:
+          type:
+          - string
+          - 'null'
+          pattern: ^\d{4}-\d{2}-\d{2}$
+          description: Local calendar date as YYYY-MM-DD, without a time or timezone.
+    TermTemplate:
+      type: object
+      required:
+      - id
+      - name
+      - base_year
+      - term_count
+      properties:
+        id:
+          type: integer
+          minimum: 1
+        name:
+          type: string
+        base_year:
+          type: integer
+        term_count:
+          type: integer
+      additionalProperties: false
+    TermTemplateWrite:
+      type: object
+      required:
+      - session_year_id
+      - name
+      properties:
+        session_year_id:
+          type: integer
+          minimum: 1
+        name:
+          type: string
+          maxLength: 120
+    TermTemplateApplyWrite:
+      type: object
+      required:
+      - session_year_id
+      properties:
+        session_year_id:
+          type: integer
+          minimum: 1
+        apply:
+          type: boolean
+          default: false
+    SchoolTermsResponse:
+      type: object
+      required:
+      - error
+      - message
+      - code
+      - data
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        code:
+          type: integer
+        data:
+          type: object
+          required:
+          - session_year_id
+          - terms
+          properties:
+            session_year_id:
+              type: integer
+              minimum: 1
+            terms:
+              type: array
+              items:
+                $ref: '#/components/schemas/SchoolTerm'
+          additionalProperties: false
+      additionalProperties: false
+    SchoolTermResponse:
+      type: object
+      required:
+      - error
+      - message
+      - code
+      - data
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        code:
+          type: integer
+        data:
+          $ref: '#/components/schemas/SchoolTerm'
+      additionalProperties: false
+    CalendarRemovedResponse:
+      type: object
+      required:
+      - error
+      - message
+      - code
+      - data
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        code:
+          type: integer
+        data:
+          type:
+          - object
+          - 'null'
+          description: Null on removal.
+      additionalProperties: false
+    TermTemplatesResponse:
+      type: object
+      required:
+      - error
+      - message
+      - code
+      - data
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        code:
+          type: integer
+        data:
+          type: object
+          required:
+          - templates
+          properties:
+            templates:
+              type: array
+              items:
+                $ref: '#/components/schemas/TermTemplate'
+          additionalProperties: false
+      additionalProperties: false
+    TermTemplateResponse:
+      type: object
+      required:
+      - error
+      - message
+      - code
+      - data
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        code:
+          type: integer
+        data:
+          $ref: '#/components/schemas/TermTemplate'
+      additionalProperties: false
+    TermTemplateApplyResponse:
+      type: object
+      required:
+      - error
+      - message
+      - code
+      - data
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        code:
+          type: integer
+        data:
+          type: object
+          required:
+          - applied
+          - session_year_id
+          - template_id
+          - created_count
+          - would_create_count
+          - skipped_count
+          - terms
+          properties:
+            applied:
+              type: boolean
+            session_year_id:
+              type: integer
+              minimum: 1
+            template_id:
+              type: integer
+              minimum: 1
+            created_count:
+              type: integer
+            would_create_count:
+              type: integer
+            skipped_count:
+              type: integer
+            terms:
+              type: array
+              items:
+                $ref: '#/components/schemas/SchoolTermDraft'
+          additionalProperties: false
+      additionalProperties: false
+    AcademicReferenceResponse:
+      type: object
+      additionalProperties: false
+      required: [error, message, data, code]
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        code:
+          type: integer
+        data:
+          $ref: '#/components/schemas/AcademicReference'
+    AcademicReference:
+      type: object
+      additionalProperties: false
+      required: [grades, rating_scale]
+      properties:
+        grades:
+          type: array
+          items:
+            $ref: '#/components/schemas/AcademicGradeLevel'
+        rating_scale:
+          type: array
+          items:
+            $ref: '#/components/schemas/AcademicRatingLevel'
+    AcademicGradeLevel:
+      type: object
+      additionalProperties: false
+      required: [id, code, name, phase, sort_order]
+      properties:
+        id:
+          type: integer
+        code:
+          type: string
+        name:
+          type: string
+        phase:
+          type: string
+          enum: [Foundation, Intermediate, Senior, FET]
+        sort_order:
+          type: integer
+          minimum: 0
+          maximum: 12
+    AcademicRatingLevel:
+      type: object
+      additionalProperties: false
+      required: [level, name, min_basis_points, max_basis_points]
+      properties:
+        level:
+          type: integer
+          minimum: 1
+          maximum: 7
+        name:
+          type: string
+        min_basis_points:
+          type: integer
+          minimum: 0
+          maximum: 10000
+        max_basis_points:
+          type: integer
+          minimum: 0
+          maximum: 10000
+    ClassGradeWrite:
+      type: object
+      required: [grade_level_id]
+      properties:
+        grade_level_id:
+          type: [integer, 'null']
+          description: Reference ID, or explicit null to clear the mapping.
+    ClassGradeResponse:
+      type: object
+      additionalProperties: false
+      required: [error, message, data, code]
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        code:
+          type: integer
+        data:
+          $ref: '#/components/schemas/ClassGradeMapping'
+    ClassGradeMapping:
+      type: object
+      additionalProperties: false
+      required: [class_id, grade_level_id, grade_level]
+      properties:
+        class_id:
+          type: integer
+        grade_level_id:
+          type: [integer, 'null']
+        grade_level:
+          type: [object, 'null']
+          description: The selected grade reference, or null when unmapped.
+          required: [id, code, name, phase, sort_order]
+          properties:
+            id:
+              type: integer
+            code:
+              type: string
+            name:
+              type: string
+            phase:
+              type: string
+              enum: [Foundation, Intermediate, Senior, FET]
+            sort_order:
+              type: integer
+              minimum: 0
+              maximum: 12
     MySchoolResponse:
       type: object
       additionalProperties: false
@@ -1576,6 +2403,15 @@ components:
         ends_on:
           type: [string, 'null']
           format: date
+        grade_from:
+          type: integer
+          minimum: 0
+          maximum: 12
+        grade_to:
+          type: integer
+          minimum: 0
+          maximum: 12
+
     ErrorCode:
       type: string
       description: What went wrong (see the table in the description). Clients must accept codes they do not know.
@@ -2649,6 +3485,21 @@ components:
         current:
           type: boolean
           description: Whether today, in the school's timezone, falls in this term.
+        grade_from:
+          type: integer
+          minimum: 0
+          maximum: 12
+        grade_to:
+          type: integer
+          minimum: 0
+          maximum: 12
+        marks_lock_on:
+          type: [string, 'null']
+          format: date
+        reports_on:
+          type: [string, 'null']
+          format: date
+
     Module:
       type: object
       description: A module switched on at the school (Phase 1).

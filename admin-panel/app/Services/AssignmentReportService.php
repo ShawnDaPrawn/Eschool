@@ -6,8 +6,8 @@ namespace App\Services;
 
 use App\Models\Assignment;
 use App\Models\ClassSessionConfig;
-use App\Models\Semester;
 use App\Models\StudentSessions;
+use App\Models\Term;
 use Carbon\Carbon;
 
 class AssignmentReportService
@@ -52,16 +52,14 @@ class AssignmentReportService
         }
         $subject_ids = array_merge($core_subjects, $elective_subjects);
 
-        $currentSemester = Semester::where('session_year_id', $session_year_id)
-            ->get()
-            ->first(fn ($s) => $s->current);
-        $isClassHaveSemester = ClassSessionConfig::classHasSemester($class_id, $session_year_id);
+        $currentTerm = Term::currentForClass((int) $session_year_id, (int) $class_id);
+        $isClassHaveTerm = ClassSessionConfig::classHasTerm($class_id, $session_year_id);
 
         $assignments = Assignment::where('class_section_id', $class_section_id)
             ->where('session_year_id', $session_year_id)
             ->whereIn('subject_id', $subject_ids)
-            ->when($isClassHaveSemester && $currentSemester, function ($query) use ($currentSemester) {
-                $query->where('semester_id', $currentSemester->id);
+            ->when($isClassHaveTerm && $currentTerm, function ($query) use ($currentTerm) {
+                $query->where('term_id', $currentTerm->id);
             })
             ->when($subject_id, function ($query) use ($subject_id) {
                 $query->where('subject_id', $subject_id);

@@ -81,9 +81,9 @@ class Student {
       dynamicField: json['dynamic_fields'] ?? {},
     );
     feePaymentDue = json['is_fee_payment_due']?.toString() ?? '0';
-    isClassSemesterOn = json['is_semester_on_in_class'] is bool
-        ? (json['is_semester_on_in_class'] ?? false)
-        : json['is_semester_on_in_class']?.toString() == '1';
+    isClassTermOn = json['is_term_on_in_class'] is bool
+        ? (json['is_term_on_in_class'] ?? false)
+        : json['is_term_on_in_class']?.toString() == '1';
   }
 
   late final int id;
@@ -114,7 +114,7 @@ class Student {
   late final int guardianId;
   late final int isNewAdmission;
   late final String classSectionName;
-  late final bool isClassSemesterOn;
+  late final bool isClassTermOn;
   late final String mediumName;
   late final String categoryName;
   late final Shift? shift;
@@ -124,18 +124,18 @@ class Student {
 
   bool get isFeePaymentDue => feePaymentDue == '1';
 
-  bool get isSemesterOn => isClassSemesterOn;
+  bool get isTermOn => isClassTermOn;
 
-  //this getter uses context to get system's current semester name, any context can be passed as it's global cubit
-  String classSectionNameWithSemester({required BuildContext context}) {
-    return isSemesterOn &&
+  //this getter uses context to get system's current term name, any context can be passed as it's global cubit
+  String classSectionNameWithTerm({required BuildContext context}) {
+    return isTermOn &&
             context
                     .read<AppConfigurationCubit>()
                     .getAppConfiguration()
-                    .currentSemester
+                    .currentTerm
                     ?.name !=
                 null
-        ? '$classSectionName - ${context.read<AppConfigurationCubit>().getAppConfiguration().currentSemester?.name}'
+        ? '$classSectionName - ${context.read<AppConfigurationCubit>().getAppConfiguration().currentTerm?.displayName}'
         : classSectionName;
   }
 
@@ -178,7 +178,7 @@ class Student {
     data['shift'] = shift?.toJson();
     data['dynamic_fields'] = apiDynamicFields;
     data['is_fee_payment_due'] = feePaymentDue;
-    data['is_semester_on_in_class'] = isClassSemesterOn;
+    data['is_term_on_in_class'] = isClassTermOn;
     return data;
   }
 }

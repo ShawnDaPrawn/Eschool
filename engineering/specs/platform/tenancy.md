@@ -144,3 +144,11 @@ None: tenancy is always on.
 4. Sign in as `admin.both@...`: the switcher lists both schools; switch and check that the lists, the year and the school name follow.
 5. With a token for `parent.both@...`, call `/api/v2/me/context` with and without `X-School-Id: <Baobab's id>`: two schools; each child only in its own school.
 6. Send a notice to all from each school and check the topics in `notification_deliveries`.
+
+## Phase 2 reference tables
+
+`grade_levels` and `academic_rating_levels` are deliberately global, read-only
+reference data with no school or person values. Their global classification is
+registered in SchoolOwnedTables. The nullable `classes.grade_level_id` points to
+that shared catalogue; classes remain school-owned and every mapping lookup and
+write is scoped to CurrentSchool. No class or learner data is stored globally.

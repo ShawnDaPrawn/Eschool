@@ -9,15 +9,15 @@ use App\Models\Event;
 use App\Models\Holiday;
 use App\Models\LeaveMaster;
 use App\Models\MultipleEvent;
-use App\Models\Semester;
 use App\Models\SessionYear;
 use App\Models\Slider;
+use App\Models\Term;
 use App\Models\User;
+use App\Services\Academics\TermBreaks;
 use App\Services\GalleryService;
 use App\Services\Platform\Identity\AppTokens;
 use App\Services\Platform\Identity\PortalSession;
 use App\Services\ResponseService;
-use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
@@ -118,48 +118,12 @@ class ApiController extends Controller
             $settings = getSettings();
             $sessionYearData = SessionYear::find($settings['session_year'] ?? '');
 
-            $currentSemester = Semester::get()->first(function ($semester) {
-                return $semester->current;
+            $currentTerm = Term::where('session_year_id', $sessionYearData?->id)->forGrade(null)->get()->first(function ($term) {
+                return $term->current;
             });
 
-            // Initialize array
-            $semester_breaks = null;
-
-            // Get all semesters within the session year, sorted by start date
-            $semesters = Semester::query()
-                ->whereBetween('start_date', [
-                    $sessionYearData->start_date,
-                    $sessionYearData->end_date,
-                ])
-                ->orderBy('start_date', 'asc')
-                ->get();
-
-            // Loop through semesters to find all breaks
-            for ($i = 0; $i < $semesters->count() - 1; $i++) {
-                $current = $semesters[$i];
-                $next = $semesters[$i + 1];
-
-                // Ensure both dates exist and that the next semester starts after the current ends
-                if (
-                    $current->end_date &&
-                    $next->start_date &&
-                    Carbon::parse($next->start_date)->gt(Carbon::parse($current->end_date))
-                ) {
-                    $breakStart = Carbon::parse($current->end_date)->addDay();
-                    $breakEnd = Carbon::parse($next->start_date)->subDay();
-
-                    // Only include breaks that are within the session year
-                    if (
-                        $breakStart->between($sessionYearData->start_date, $sessionYearData->end_date)
-                        && $breakEnd->between($sessionYearData->start_date, $sessionYearData->end_date)
-                    ) {
-                        $semester_breaks[] = [
-                            'start' => $breakStart->toDateString(),
-                            'end' => $breakEnd->toDateString(),
-                        ];
-                    }
-                }
-            }
+            $term_breaks = $sessionYearData === null ? [] : app(TermBreaks::class)->forYear($sessionYearData->id);
+            $term_breaks = $term_breaks === [] ? null : $term_breaks;
 
             if ($request->type == 'app_settings') {
                 $session_year = $settings['session_year'] ?? '';
@@ -226,8 +190,8 @@ class ApiController extends Controller
                     $data['online_exam_terms_condition'] = '';
                 }
 
-                $data['current_semester'] = $currentSemester ?? null;
-                $data['semester_breaks'] = $semester_breaks;
+                $data['current_term'] = $currentTerm ?? null;
+                $data['term_breaks'] = $term_breaks;
             } else {
                 $data = $settings[$request->type] ?? '';
             }
@@ -495,15 +459,15 @@ class ApiController extends Controller
         }
     }
 
-    public function getSemesters()
+    public function getTerms()
     {
         try {
             $session_year_id = getSettings('session_year')['session_year'];
-            $semesters = Semester::where('session_year_id', $session_year_id)
+            $terms = Term::where('session_year_id', $session_year_id)
                 ->orderBy('start_date', 'asc')
                 ->get();
 
-            return ResponseService::successResponse('Semesters Fetched Successfully.', $semesters);
+            return ResponseService::successResponse('Terms Fetched Successfully.', $terms);
         } catch (Throwable $e) {
             return ResponseService::errorResponse('error_occurred', null, 103, $e);
         }

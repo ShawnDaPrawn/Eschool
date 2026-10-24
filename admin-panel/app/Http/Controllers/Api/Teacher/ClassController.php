@@ -12,13 +12,13 @@ use App\Models\ClassSessionConfig;
 use App\Models\ClassSubject;
 use App\Models\ClassTeacher;
 use App\Models\Parents;
-use App\Models\Semester;
 use App\Models\Students;
 use App\Models\StudentSessions;
 use App\Models\StudentSubject;
 use App\Models\Subject;
 use App\Models\SubjectTeacher;
 use App\Models\Teacher;
+use App\Models\Term;
 use App\Services\ResponseService;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Collection;
@@ -57,7 +57,7 @@ class ClassController extends Controller
     public function subjects(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'filter_by_semester' => 'nullable|boolean',
+            'filter_by_term' => 'nullable|boolean',
             'class_section_id' => 'nullable|numeric',
             'subject_id' => 'nullable|numeric',
         ]);
@@ -68,7 +68,7 @@ class ClassController extends Controller
         try {
             $session_year = getSettings('session_year');
             $session_year_id = $session_year['session_year'];
-            $filter_by_semester = $request->filter_by_semester ? $request->filter_by_semester : null;
+            $filter_by_term = $request->filter_by_term ? $request->filter_by_term : null;
 
             $user = $request->user();
             $teacher = $user->teacher;
@@ -76,21 +76,21 @@ class ClassController extends Controller
                 ->where('session_year_id', $session_year_id)
                 ->with([
                     'subject',
-                    'semester:id,name,session_year_id,start_date,end_date',
+                    'term:id,name,session_year_id,start_date,end_date',
                 ]);
 
             if ($request->class_section_id) {
-                // if ($filter_by_semester) {
+                // if ($filter_by_term) {
                 //     $class_id = ClassSection::where('id', $request->class_section_id)->pluck('class_id');
-                //     $isClassHaveSemester = ClassSessionConfig::classHasSemester($class_id, $session_year_id);
+                //     $isClassHaveTerm = ClassSessionConfig::classHasTerm($class_id, $session_year_id);
 
-                //     $currentSemester = Semester::where('session_year_id', $session_year_id)
+                //     $currentTerm = Term::where('session_year_id', $session_year_id)
                 //         ->get()
                 //         ->first(fn($s) => $s->current);
 
                 //     $subjects = $subjects->where('class_section_id', $request->class_section_id)
-                //         ->when($isClassHaveSemester && $currentSemester, function ($query) use ($currentSemester) {
-                //             $query->where('semester_id', $currentSemester->id);
+                //         ->when($isClassHaveTerm && $currentTerm, function ($query) use ($currentTerms) {
+                //             $query->whereIn('term_id', $currentTerms);
                 //         });
                 // }
                 $subjects = $subjects->where('class_section_id', $request->class_section_id);
@@ -102,9 +102,9 @@ class ClassController extends Controller
 
             $subjects = $subjects->with('subject')->get()->map(function ($item) {
                 $subject = clone $item->subject;
-                $subject->setRelation('semester', $item->semester);
+                $subject->setRelation('term', $item->term);
                 $item->setRelation('subject', $subject);
-                $item->unsetRelation('semester');
+                $item->unsetRelation('term');
 
                 return $item;
             });
@@ -120,7 +120,7 @@ class ClassController extends Controller
         $validator = Validator::make($request->all(), [
             'class_section_id' => 'required|numeric',
             'subject_id' => 'nullable',
-            'semester_id' => 'nullable|integer',
+            'term_id' => 'nullable|integer',
         ]);
         if ($validator->fails()) {
             return ResponseService::validationError($validator->errors()->first());
@@ -129,18 +129,18 @@ class ClassController extends Controller
 
             $user = Auth::user()->teacher;
             $class_section_id = $request->class_section_id;
-            $semester_id = $request->semester_id;
+            $term_id = $request->term_id;
             $session_year = getSettings('session_year');
             $session_year_id = $session_year['session_year'];
             $class_id = ClassSection::where('id', $class_section_id)->value('class_id');
 
-            $isClassHaveSemester = ClassSessionConfig::classHasSemester($class_id, $session_year_id);
+            $isClassHaveTerm = ClassSessionConfig::classHasTerm($class_id, $session_year_id);
 
             // Verify that the teacher is assigned to this specific class section
             $isTeacherAssigned = ClassTeacher::where('class_section_id', $class_section_id)
                 ->where('class_teacher_id', $user->id)
                 ->where('session_year_id', $session_year_id)
-                // ->when($isClassHaveSemester && $semester_id, fn ($q) => $q->where('semester_id', $semester_id)->orWhereNull('semester_id'))
+                // ->when($isClassHaveTerm && $term_id, fn ($q) => $q->where('term_id', $term_id)->orWhereNull('term_id'))
                 ->exists();
 
             if (! $isTeacherAssigned) {
@@ -160,7 +160,7 @@ class ClassController extends Controller
             if (isset($request->subject_id)) {
                 $class_id = ClassSection::where('id', $class_section_id)->pluck('class_id');
                 $class_subject = ClassSubject::where('subject_id', $request->subject_id)
-                    ->where('semester_id', $semester_id)
+                    ->where('term_id', $term_id)
                     ->where('session_year_id', $session_year_id)
                     ->where('class_id', $class_id)->first();
 
@@ -170,7 +170,7 @@ class ClassController extends Controller
                     }
                     $student_subject = StudentSubject::whereIn('student_id', $student_id)
                         ->where('subject_id', $request->subject_id)
-                        ->where('semester_id', $semester_id)
+                        ->where('term_id', $term_id)
                         ->where('session_year_id', $session_year_id)
                         ->where('class_section_id', $class_section_id)->pluck('student_id');
 
@@ -259,23 +259,21 @@ class ClassController extends Controller
 
     /**
      * Returns [$classTeacherSections, $otherClassSections] for the given teacher
-     * and session year, filtered to the current semester where applicable.
+     * and session year, filtered to the current term where applicable.
      *
      * @return array{0: Collection, 1: Collection}
      */
     private function getTeacherClassSections($teacher, $sessionYearId): array
     {
-        $currentSemester = Semester::where('session_year_id', $sessionYearId)
-            ->get()
-            ->first(fn ($s) => $s->current);
+        $currentTerms = Term::query()->where('session_year_id', $sessionYearId)->get()->filter(fn ($term) => $term->current)->pluck('id');
 
         $classSectionsWith = ['class.medium', 'section', 'class.streams', 'class.shifts'];
 
         // Class Teacher Sections
         $classTeacherRecords = ClassTeacher::when(
-            $currentSemester,
-            fn ($q) => $q->where(fn ($q) => $q->where('semester_id', $currentSemester->id)
-                ->orWhereNull('semester_id'))
+            $currentTerms->isNotEmpty(),
+            fn ($q) => $q->where(fn ($q) => $q->whereIn('term_id', $currentTerms)
+                ->orWhereNull('term_id'))
         )
             ->where('session_year_id', $sessionYearId)
             ->where('class_teacher_id', $teacher->id)
@@ -293,9 +291,9 @@ class ClassController extends Controller
 
         // Subject Teacher Sections (excluding class teacher ones)
         $subjectSectionIds = SubjectTeacher::when(
-            $currentSemester,
-            fn ($q) => $q->where(fn ($q) => $q->where('semester_id', $currentSemester->id)
-                ->orWhereNull('semester_id'))
+            $currentTerms->isNotEmpty(),
+            fn ($q) => $q->where(fn ($q) => $q->whereIn('term_id', $currentTerms)
+                ->orWhereNull('term_id'))
         )
             ->where('session_year_id', $sessionYearId)
             ->where('teacher_id', $teacher->id)

@@ -20,6 +20,7 @@ use App\Models\LeaveMaster;
 use App\Models\SessionYear;
 use App\Models\StudentSessions;
 use App\Models\SubjectTeacher;
+use App\Models\TermTemplate;
 use App\Models\Timetable;
 use App\Models\User;
 use App\Services\SessionYearService;
@@ -99,8 +100,10 @@ class NewYearService
             $feeDue = Carbon::parse($start)->addMonth()->toDateString();
         }
 
-        $terms = $current->semesters()->orderBy('start_date')->get()
-            ->map(fn ($term) => ['name' => $term->name, 'start_date' => $move($term->start_date), 'end_date' => $move($term->end_date)])
+        $terms = $current->terms()->orderBy('start_date')->get()
+            ->map(fn ($term) => ['name' => $term->name, 'start_date' => $move($term->start_date), 'end_date' => $move($term->end_date),
+                'grade_from' => $term->grade_from, 'grade_to' => $term->grade_to,
+                'marks_lock_on' => $move($term->marks_lock_on), 'reports_on' => $move($term->reports_on)])
             ->all();
         if ($terms === []) {
             $terms = array_map(fn ($n) => ['name' => __('new_year_term_name', ['number' => $n]), 'start_date' => '', 'end_date' => ''], range(1, 4));
@@ -126,20 +129,30 @@ class NewYearService
         $dmy = fn (string $date) => Carbon::parse($date)->format('d-m-Y');
         $terms = array_values(array_filter($data['terms'] ?? [], fn ($term) => ! empty($term['start_date']) && ! empty($term['end_date'])));
 
-        return $this->years->store([
-            'name' => $data['name'],
-            'start_date' => $dmy($data['start_date']),
-            'end_date' => $dmy($data['end_date']),
-            'fees_due_date' => $dmy($data['fee_due_date']),
-            'fees_due_charges' => $data['fee_due_charges'],
-            'fees_installment' => '0',
-            'set_as_current' => '0',
-            'semester_data' => array_map(fn ($term) => [
-                'name' => $term['name'],
-                'start_date' => $dmy($term['start_date']),
-                'end_date' => $dmy($term['end_date']),
-            ], $terms),
-        ]);
+        return DB::transaction(function () use ($data, $dmy, $terms) {
+            $year = $this->years->store([
+                'name' => $data['name'],
+                'start_date' => $dmy($data['start_date']),
+                'end_date' => $dmy($data['end_date']),
+                'fees_due_date' => $dmy($data['fee_due_date']),
+                'fees_due_charges' => $data['fee_due_charges'],
+                'fees_installment' => '0',
+                'set_as_current' => '0',
+                'term_data' => empty($data['term_template_id']) ? array_map(fn ($term) => [
+                    'name' => $term['name'],
+                    'start_date' => $dmy($term['start_date']),
+                    'end_date' => $dmy($term['end_date']),
+                    'grade_from' => $term['grade_from'] ?? 0, 'grade_to' => $term['grade_to'] ?? 12,
+                    'marks_lock_on' => $term['marks_lock_on'] ?? null, 'reports_on' => $term['reports_on'] ?? null,
+                ], $terms) : [],
+            ]);
+            if (! empty($data['term_template_id'])) {
+                $template = TermTemplate::query()->findOrFail($data['term_template_id']);
+                app(TermCalendar::class)->initialise($year, app(TermTemplates::class)->rows($template, $year));
+            }
+
+            return $year;
+        });
     }
 
     /**

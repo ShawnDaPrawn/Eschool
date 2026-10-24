@@ -29,4 +29,4 @@
         <input required type="hidden" name="day" id="day" class="day">
         <input required type="hidden" name="session_year_id" id="session_year_id">
         <input required type="hidden" name="class_section_id" id="class_section_id">
-        <input type="hidden" name="semester_id" id="semester_id">
+        <input type="hidden" name="term_id" id="term_id">

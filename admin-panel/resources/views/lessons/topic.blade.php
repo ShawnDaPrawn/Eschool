@@ -162,8 +162,8 @@
                                         {{ __('description') }}</th>
                                     <th scope="col" data-field="class_section_name" data-sortable="true">
                                         {{ __('class_section') }}</th>
-                                    <th scope="col" data-field="semester_name" data-sortable="true">
-                                        {{ __('semester') }}</th>
+                                    <th scope="col" data-field="term_name" data-sortable="true">
+                                        {{ __('term') }}</th>
                                     <th scope="col" data-field="subject_name" data-sortable="true">
                                         {{ __('subject') }}</th>
                                     <th scope="col" data-field="lesson_name" data-sortable="true">

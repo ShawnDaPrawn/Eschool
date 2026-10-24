@@ -9,7 +9,6 @@ use App\Models\ClassSubject;
 use App\Models\Exam;
 use App\Models\ExamClass;
 use App\Models\ExamTimetable;
-use App\Models\Semester;
 use App\Models\SessionYear;
 use App\Services\ResponseService;
 use Illuminate\Http\Request;
@@ -162,9 +161,6 @@ class ExamTimetableController extends Controller
             $order = $_GET['order'];
         }
 
-        $currentSemester = Semester::get()->first(function ($semester) {
-            return $semester->current;
-        });
         $sql = ExamClass::whereHas('exam', function ($q) use ($session_year_id) {
             $q->where('session_year_id', $session_year_id);
         })
@@ -221,10 +217,10 @@ class ExamTimetableController extends Controller
 
             $class_subjects = '';
 
-            $examSemesterId = $row->exam->semester_id ?? null;
+            $examTermId = $row->exam->term_id ?? null;
 
-            if ($class && $class->getIncludeSemestersForSession($session_year_id) && $examSemesterId) {
-                $class_subjects = ClassSubject::where('session_year_id', $session_year_id)->with('subject')->where('class_id', $row->class_id)->where('semester_id', $examSemesterId)->get();
+            if ($class && $class->getIncludeTermsForSession($session_year_id) && $examTermId) {
+                $class_subjects = ClassSubject::where('session_year_id', $session_year_id)->with('subject')->where('class_id', $row->class_id)->where('term_id', $examTermId)->get();
             } else {
                 $class_subjects = ClassSubject::where('session_year_id', $session_year_id)->with('subject')->where('class_id', $row->class_id)->get();
             }
@@ -368,11 +364,11 @@ class ExamTimetableController extends Controller
             $session_year_id = $session_year['session_year'];
 
             $class = ClassSchool::withSessionConfigFor($session_year_id)->where('id', $class_id)->first();
-            $semester_id = $request->input('semester_id');
+            $term_id = $request->input('term_id');
 
-            if ($semester_id) {
+            if ($term_id) {
                 $exam_subjects = ClassSubject::where('session_year_id', $session_year_id)
-                    ->where('semester_id', $semester_id)
+                    ->where('term_id', $term_id)
                     ->where('class_id', $class_id)
                     ->with('subject')
                     ->get();

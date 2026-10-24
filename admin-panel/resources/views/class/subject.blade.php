@@ -39,9 +39,9 @@
                             data-fixed-columns="true" data-trim-on-search="false" data-mobile-responsive="true"
                             data-sort-name="id" data-sort-order="desc" data-maintain-selected="true"
                             data-export-types='["txt","excel"]' data-query-params="AssignclassQueryParams"
-                            data-detail-view="true" data-detail-view-icon="true" data-detail-formatter="subjectSemesterDetailFormatter"
-                            data-detail-filter="subjectSemesterDetailFilter"
-                            data-semester-details-url="{{ url('class/subject/semester-details') }}"
+                            data-detail-view="true" data-detail-view-icon="true" data-detail-formatter="subjectTermDetailFormatter"
+                            data-detail-filter="subjectTermDetailFilter"
+                            data-term-details-url="{{ url('class/subject/term-details') }}"
                             data-export-options='{ "fileName": "class-list-<?= date(' d-m-y') ?>" ,"ignoreColumn":
                             ["operate"]}'
                             data-show-export="true" data-escape="true">
@@ -57,8 +57,8 @@
                                     </th>
                                     <th scope="col" data-field="section_names" data-sortable="false">{{ __('section') }}
                                     </th>
-                                    <th scope="col" data-field="include_semesters" data-formatter="semesterFormatter"
-                                        data-sortable="false">{{ __('semester') }}</th>
+                                    <th scope="col" data-field="include_terms" data-formatter="termFormatter"
+                                        data-sortable="false">{{ __('term') }}</th>
                                     {{-- <th scope="col" data-field="core_subject" data-sortable="false"
                                         data-formatter="coreSubjectFormatter">{{ __('core_subject') }}</th>
                                     <th scope="col" data-field="elective_subject" data-sortable="false"

@@ -1,4 +1,5 @@
 import 'dart:math';
+
 import 'package:eschool/app/routes.dart';
 import 'package:eschool/cubits/authCubit.dart';
 import 'package:eschool_core/eschool_core.dart';
@@ -37,13 +38,11 @@ class MoreMenuBottomsheetContainer extends StatelessWidget {
             Container(
               decoration: BoxDecoration(
                 border: Border.all(
-                  color: Theme.of(
-                    context,
-                  ).colorScheme.onSurfaceVariant.withValues(alpha: 0.5),
+                  color: Theme.of(context).colorScheme.onSurfaceVariant
+                      .withValues(alpha: 0.5),
                 ),
-                color: Theme.of(
-                  context,
-                ).colorScheme.tertiaryContainer.withValues(alpha: 0.2),
+                color: Theme.of(context).colorScheme.tertiaryContainer
+                    .withValues(alpha: 0.2),
                 borderRadius: BorderRadius.circular(15),
               ),
               margin: EdgeInsets.symmetric(
@@ -139,15 +138,15 @@ class MoreMenuBottomsheetContainer extends StatelessWidget {
                               Flexible(
                                 flex: 2,
                                 child: Text(
-                                  '${UiUtils.getTranslatedLabel(context, classKey)}: ${context.read<AuthCubit>().getStudentDetails().classSectionNameWithSemester(context: context)}',
+                                  '${UiUtils.getTranslatedLabel(context, classKey)}: ${context.read<AuthCubit>().getStudentDetails().classSectionNameWithTerm(context: context)}',
                                   maxLines: 1,
                                   overflow: TextOverflow.ellipsis,
                                   style: TextStyle(
                                     fontSize: 12,
                                     fontWeight: FontWeight.w400,
-                                    color: Theme.of(
-                                      context,
-                                    ).colorScheme.onSurfaceVariant,
+                                    color: Theme.of(context)
+                                        .colorScheme
+                                        .onSurfaceVariant,
                                   ),
                                 ),
                               ),
@@ -155,9 +154,9 @@ class MoreMenuBottomsheetContainer extends StatelessWidget {
                               Container(
                                 width: 1.5,
                                 height: 12,
-                                color: Theme.of(
-                                  context,
-                                ).colorScheme.onSurfaceVariant,
+                                color: Theme.of(context)
+                                    .colorScheme
+                                    .onSurfaceVariant,
                               ),
                               const SizedBox(width: 10),
                               Flexible(
@@ -168,9 +167,9 @@ class MoreMenuBottomsheetContainer extends StatelessWidget {
                                   style: TextStyle(
                                     fontSize: 12,
                                     fontWeight: FontWeight.w400,
-                                    color: Theme.of(
-                                      context,
-                                    ).colorScheme.onSurfaceVariant,
+                                    color: Theme.of(context)
+                                        .colorScheme
+                                        .onSurfaceVariant,
                                   ),
                                 ),
                               ),

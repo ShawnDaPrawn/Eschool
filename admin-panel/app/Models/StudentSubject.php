@@ -17,7 +17,7 @@ class StudentSubject extends Model
         'student_id',
         'subject_id',
         'class_section_id',
-        'semester_id',
+        'term_id',
         'session_year_id',
     ];
 

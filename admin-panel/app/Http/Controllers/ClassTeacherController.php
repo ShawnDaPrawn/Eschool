@@ -7,9 +7,9 @@ namespace App\Http\Controllers;
 use App\Models\ClassSchool;
 use App\Models\ClassSection;
 use App\Models\ClassTeacher;
-use App\Models\Semester;
 use App\Models\SessionYear;
 use App\Models\Teacher;
+use App\Models\Term;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Throwable;
@@ -51,7 +51,7 @@ class ClassTeacherController extends Controller
             'class_section_id' => 'required|integer',
             'teacher_id' => 'required|integer',
             'session_year_id' => 'required|integer',
-            'semester_id' => 'nullable|integer',
+            'term_id' => 'nullable|integer',
         ]);
 
         $session_year_id = $request->session_year_id;
@@ -63,7 +63,7 @@ class ClassTeacherController extends Controller
                     'class_section_id' => $request->class_section_id,
                     'class_teacher_id' => $request->teacher_id,
                     'session_year_id' => $session_year_id,
-                    'semester_id' => $request->semester_id ?: null,
+                    'term_id' => $request->term_id ?: null,
                 ]
             );
 
@@ -156,9 +156,9 @@ class ClassTeacherController extends Controller
         // display values, not columns on class_sections, so the real sort is applied in PHP below.
         $res = $sql->orderBy('id', 'asc')->get();
 
-        // Fetch semesters for the selected session year
-        $semesters = Semester::where('session_year_id', $session_year_id)->orderBy('id', 'ASC')->get();
-        $filter_semester_id = $_GET['semester_id'] ?? null;
+        // Fetch terms for the selected session year
+        $terms = Term::where('session_year_id', $session_year_id)->orderBy('id', 'ASC')->get();
+        $filter_term_id = $_GET['term_id'] ?? null;
 
         $bulkData = [];
         $rows = [];
@@ -166,23 +166,23 @@ class ClassTeacherController extends Controller
         foreach ($res as $row) {
             $operate = '<a class="btn btn-xs btn-gradient-primary btn-rounded btn-icon editdata" data-id='.$row->id.' title="Edit" data-toggle="modal" data-target="#editModal"><i class="fa fa-edit"></i></a>&nbsp;&nbsp;';
 
-            $includesSemesters = $row->class->getIncludeSemestersForSession($session_year_id);
+            $includesTerms = $row->class->getIncludeTermsForSession($session_year_id);
 
-            if ($includesSemesters && $semesters->isNotEmpty()) {
-                // Filter to specific semester if selected, otherwise show all
-                $semestersToShow = $filter_semester_id
-                    ? $semesters->where('id', $filter_semester_id)
-                    : $semesters;
+            if ($includesTerms && $terms->isNotEmpty()) {
+                // Filter to specific term if selected, otherwise show all
+                $termsToShow = $filter_term_id
+                    ? $terms->where('id', $filter_term_id)
+                    : $terms;
 
-                foreach ($semestersToShow as $semester) {
-                    // Filter teachers for this specific semester
-                    $semesterTeachers = $row->classTeachers->filter(function ($teacher) use ($semester) {
-                        return $teacher->pivot->semester_id == $semester->id;
+                foreach ($termsToShow as $term) {
+                    // Filter teachers for this specific term
+                    $termTeachers = $row->classTeachers->filter(function ($teacher) use ($term) {
+                        return $teacher->pivot->term_id == $term->id;
                     });
 
                     $class_teacher_ids = [];
                     $class_teacher_name = [];
-                    foreach ($semesterTeachers as $class_teacher) {
+                    foreach ($termTeachers as $class_teacher) {
                         $class_teacher_ids[] = $class_teacher->pivot->class_teacher_id;
                         $class_teacher_name[] = $class_teacher->user->first_name.' '.$class_teacher->user->last_name ?? '-';
                     }
@@ -195,20 +195,20 @@ class ClassTeacherController extends Controller
                     $tempRow['class'] = $row->class->name.' - '.$row->class->medium->name;
                     $tempRow['stream_name'] = $row->class->streams->name ?? '-';
                     $tempRow['section'] = $row->section->name;
-                    $tempRow['semester_id'] = $semester->id;
-                    $tempRow['semester_name'] = $semester->name;
+                    $tempRow['term_id'] = $term->id;
+                    $tempRow['term_name'] = $term->name;
                     $tempRow['teacher_id'] = $class_teacher_ids ?? '-';
                     $tempRow['teachers'] = $class_teacher_name ?? '-';
                     $tempRow['operate'] = $operate;
                     $rows[] = $tempRow;
                 }
             } else {
-                // No semesters — skip if a specific semester filter is applied
-                if ($filter_semester_id) {
+                // No terms — skip if a specific term filter is applied
+                if ($filter_term_id) {
                     continue;
                 }
 
-                // Teachers without semester (null semester_id)
+                // Teachers without term (null term_id)
                 $class_teacher_ids = [];
                 $class_teacher_name = [];
                 foreach ($row->classTeachers as $class_teacher) {
@@ -224,8 +224,8 @@ class ClassTeacherController extends Controller
                 $tempRow['class'] = $row->class->name.' - '.$row->class->medium->name;
                 $tempRow['stream_name'] = $row->class->streams->name ?? '-';
                 $tempRow['section'] = $row->section->name;
-                $tempRow['semester_id'] = null;
-                $tempRow['semester_name'] = '-';
+                $tempRow['term_id'] = null;
+                $tempRow['term_name'] = '-';
                 $tempRow['teacher_id'] = $class_teacher_ids ?? '-';
                 $tempRow['teachers'] = $class_teacher_name ?? '-';
                 $tempRow['operate'] = $operate;
@@ -235,10 +235,10 @@ class ClassTeacherController extends Controller
 
         $total = count($rows);
 
-        // Sort the assembled (semester-expanded) rows by the requested column. These are derived
+        // Sort the assembled (term-expanded) rows by the requested column. These are derived
         // display values (class, stream_name, section, ...), not real columns on class_sections,
         // so they can't be ordered via the query — sort them here in PHP before paginating.
-        $sortableFields = ['id', 'class', 'stream_name', 'section', 'semester_name'];
+        $sortableFields = ['id', 'class', 'stream_name', 'section', 'term_name'];
         $sortKey = in_array($sort, $sortableFields, true) ? $sort : 'id';
         $direction = strtolower((string) $order) === 'asc' ? 1 : -1;
         usort($rows, function ($a, $b) use ($sortKey, $direction) {
@@ -251,7 +251,7 @@ class ClassTeacherController extends Controller
             return strnatcasecmp((string) $valueA, (string) $valueB) * $direction;
         });
 
-        // Apply pagination AFTER generating semester rows
+        // Apply pagination AFTER generating term rows
         $rows = array_slice($rows, $offset, $limit);
 
         // Renumber the visible rows so the "no." column stays sequential after sorting/paging.
@@ -276,13 +276,13 @@ class ClassTeacherController extends Controller
             return response()->json($response);
         }
         try {
-            $semester_id = $request->input('semester_id');
+            $term_id = $request->input('term_id');
 
             $query = ClassTeacher::where('class_section_id', $id)
                 ->where('class_teacher_id', $class_teacher_id);
 
-            if (! is_null($semester_id)) {
-                $query->where('semester_id', $semester_id);
+            if (! is_null($term_id)) {
+                $query->where('term_id', $term_id);
             }
 
             $class_teacher = $query->first();
@@ -330,14 +330,14 @@ class ClassTeacherController extends Controller
         if (! Auth::user()->can('class-teacher-list')) {
             return response()->json(['error' => true, 'message' => trans('no_permission_message')]);
         }
-        $semester_id = request('semester_id');
-        $response = Teacher::with('user')->orWhereHas('classTeachers', function ($q) use ($class_section_id, $session_year_id, $semester_id) {
+        $term_id = request('term_id');
+        $response = Teacher::with('user')->orWhereHas('classTeachers', function ($q) use ($class_section_id, $session_year_id, $term_id) {
             $q->where('class_section_id', $class_section_id);
             $q->where('session_year_id', $session_year_id);
-            if ($semester_id) {
-                $q->where('semester_id', $semester_id);
+            if ($term_id) {
+                $q->where('term_id', $term_id);
             } else {
-                $q->whereNull('semester_id');
+                $q->whereNull('term_id');
             }
         })->get();
 
@@ -349,14 +349,14 @@ class ClassTeacherController extends Controller
         if (! Auth::user()->can('class-teacher-list')) {
             return response()->json(['error' => true, 'message' => trans('no_permission_message')]);
         }
-        $semester_id = request('semester_id');
-        $response = Teacher::with('user')->whereDoesntHave('classTeachers', function ($q) use ($class_section_id, $session_year_id, $semester_id) {
+        $term_id = request('term_id');
+        $response = Teacher::with('user')->whereDoesntHave('classTeachers', function ($q) use ($class_section_id, $session_year_id, $term_id) {
             $q->where('class_section_id', $class_section_id);
             $q->where('session_year_id', $session_year_id);
-            if ($semester_id) {
-                $q->where('semester_id', $semester_id);
+            if ($term_id) {
+                $q->where('term_id', $term_id);
             } else {
-                $q->whereNull('semester_id');
+                $q->whereNull('term_id');
             }
         })->get();
 

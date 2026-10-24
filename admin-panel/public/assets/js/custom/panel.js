@@ -286,7 +286,7 @@
         ".delete-form",
         ".deletedata",
         ".deletepermanentdata",
-        ".delete-semester",
+        ".delete-term",
         ".delete-question-form",
         ".delete-clear-btn",
         ".restore-data",

@@ -160,6 +160,33 @@ reads, retries and outer-transaction cleanup have dedicated synthetic tests.
 Public-file retirement and compatibility writes remain separate work. No
 live data migration or external acceptance is claimed.
 
+## 23 October 2026: start Phase 2 with academic references
+
+Begin independent Phase 2 work while Phase 0/1 remaining implementation and
+external acceptance stay open. The first bounded slice provides global read-only
+R–12 grade/phase and seven-point basis-point references, plus an explicit audited
+school-scoped mapping of existing classes. Existing class names, legacy grades,
+marks, semester contracts and result calculations are preserved; unmapped classes
+remain valid. No assessment ratio, promotion or pilot result is invented.
+
+The phase plan, pending decisions, feature spec and self-test record distinguish
+automated verification from staging, full-term pilot acceptance and production
+release. Terms, subject standards, assessment/mark engine, teaching groups,
+timetable, attendance, reports, content, messages and pilot remain future slices.
+No staging resources, live data migration or production release are performed.
+
+## 23 October 2026: school terms and semester retirement
+
+The owner confirmed no installed clients use semesters and authorized retirement
+rather than a compatibility bridge. A coordinated in-place rename preserves IDs,
+academic foreign-key links and permission grants; bundled consumers use terms.
+Grade-aware calendars, optional lock/report dates, school templates, a Material 3
+management page and new-year template seeding share validated scoped services.
+Template preview does not mutate calendars; apply adds missing rows atomically,
+retains existing dates and rejects overlap or invalid leap-day conversion.
+Staging, independent assessment/pilot acceptance and production release remain
+separate; no live migration or cloud resources are part of this implementation.
+
 On 24 October 2026 the product owner confirmed there are no legacy clients
 and removed legacy-storage retirement from Phase 1 closeout. Compatibility
 writes for those clients and archived legacy profile migration are likewise

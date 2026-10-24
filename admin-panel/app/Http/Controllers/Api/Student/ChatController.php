@@ -12,12 +12,12 @@ use App\Models\ClassSessionConfig;
 use App\Models\ClassTeacher;
 use App\Models\File;
 use App\Models\ReadMessage;
-use App\Models\Semester;
 use App\Models\Students;
 use App\Models\StudentSessions;
 use App\Models\Subject;
 use App\Models\SubjectTeacher;
 use App\Models\Teacher;
+use App\Models\Term;
 use App\Services\Platform\Files\FileNames;
 use App\Services\ResponseService;
 use Carbon\Carbon;
@@ -394,7 +394,7 @@ class ChatController extends Controller
 
     /**
      * The teachers a student may chat with: the class teachers and the
-     * teachers of their subjects in their current class section (semester aware).
+     * teachers of their subjects in their current class section (term aware).
      *
      * @return list<int> teacher ids
      */
@@ -403,27 +403,25 @@ class ChatController extends Controller
         $class_section_id = $studentSession->class_section_id;
         $subject_id = $this->studentSubjectIds($student);
 
-        $currentSemester = Semester::get()->first(function ($semester) {
-            return $semester->current;
-        });
+        $currentTerm = Term::currentForClass((int) $session_year_id, (int) $studentSession->class_section->class_id);
 
-        $isClassHaveSemester = ClassSessionConfig::classHasSemester(
+        $isClassHaveTerm = ClassSessionConfig::classHasTerm(
             $studentSession->class_section->class_id,
             $session_year_id
         );
 
         $class_teachers_id = ClassTeacher::where('class_section_id', $class_section_id)
             ->where('session_year_id', $session_year_id)
-            ->when($isClassHaveSemester && $currentSemester, function ($query) use ($currentSemester) {
-                $query->where('semester_id', $currentSemester->id);
+            ->when($isClassHaveTerm && $currentTerm, function ($query) use ($currentTerm) {
+                $query->where('term_id', $currentTerm?->id);
             })
             ->pluck('class_teacher_id')
             ->toArray();
 
         $subject_teacher_id = SubjectTeacher::where('class_section_id', $class_section_id)
             ->where('session_year_id', $session_year_id)
-            ->when($isClassHaveSemester && $currentSemester, function ($query) use ($currentSemester) {
-                $query->where('semester_id', $currentSemester->id);
+            ->when($isClassHaveTerm && $currentTerm, function ($query) use ($currentTerm) {
+                $query->where('term_id', $currentTerm?->id);
             })
             ->whereIn('subject_id', $subject_id)
             ->pluck('teacher_id')

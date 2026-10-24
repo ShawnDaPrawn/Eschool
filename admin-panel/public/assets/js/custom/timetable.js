@@ -116,10 +116,10 @@
         // update hidden input in active tab form
         $("#" + tabName + ' input[name="session_year_id"]').val(session_year_id);
 
-        loadClassSectionsWithSemesters();
+        loadClassSectionsWithTerms();
     });
 
-    function loadClassSectionsWithSemesters() {
+    function loadClassSectionsWithTerms() {
         var session_year_id = $("#session_year").val();
 
         if (!session_year_id) {
@@ -139,7 +139,7 @@
                     html +=
                         '<option value="' + response[i].class_section_id + '"' +
                         ' data-class="' + response[i].class_id + '"' +
-                        ' data-semester="' + (response[i].semester_id || "") + '"' +
+                        ' data-term="' + (response[i].term_id || "") + '"' +
                         ">" + response[i].label + "</option>";
                 }
                 $("#timetable_class_section").html(html);
@@ -161,20 +161,20 @@
 
         $("#" + tabName + ' input[name="class_section_id"]').val($("#timetable_class_section").val());
         $("#" + tabName + ' input[name="session_year_id"]').val($("#session_year").val());
-        $("#" + tabName + ' input[name="semester_id"]').val(
-            $("#timetable_class_section").find(":selected").attr("data-semester") || ""
+        $("#" + tabName + ' input[name="term_id"]').val(
+            $("#timetable_class_section").find(":selected").attr("data-term") || ""
         );
 
         var class_id = $("#timetable_class_section").find(":selected").attr("data-class");
         var session_year_id = $("#session_year").val();
-        var semester_id = $("#timetable_class_section").find(":selected").attr("data-semester") || "";
+        var term_id = $("#timetable_class_section").find(":selected").attr("data-term") || "";
         $.ajax({
             url: urls.subjects,
             type: "GET",
             data: {
                 class_id: class_id,
                 session_year_id: session_year_id,
-                semester_id: semester_id,
+                term_id: term_id,
             },
             success: function (response) {
                 var html = "";
@@ -200,8 +200,8 @@
         $("#" + tab + ' input[name="day"]').val(tab);
         $("#" + tab + ' input[name="class_section_id"]').val($("#timetable_class_section").val());
         $("#" + tab + ' input[name="session_year_id"]').val($("#session_year").val());
-        $("#" + tab + ' input[name="semester_id"]').val(
-            $("#timetable_class_section").find(":selected").attr("data-semester") || ""
+        $("#" + tab + ' input[name="term_id"]').val(
+            $("#timetable_class_section").find(":selected").attr("data-term") || ""
         );
 
         $("#active_tab").val(tab);
@@ -219,8 +219,8 @@
         $("#" + tab + ' input[name="day"]').val(tab);
         $("#" + tab + ' input[name="class_section_id"]').val($("#timetable_class_section").val());
         $("#" + tab + ' input[name="session_year_id"]').val($("#session_year").val());
-        $("#" + tab + ' input[name="semester_id"]').val(
-            $("#timetable_class_section").find(":selected").attr("data-semester") || ""
+        $("#" + tab + ' input[name="term_id"]').val(
+            $("#timetable_class_section").find(":selected").attr("data-term") || ""
         );
 
         $("#active_tab").val(tab);
@@ -286,7 +286,7 @@
         var day = dayIndex[day_name] || "";
         var class_section_id = $("#timetable_class_section").val();
         var session_year_id = $("#session_year").val();
-        var semester_id = $("#timetable_class_section").find(":selected").attr("data-semester") || "";
+        var term_id = $("#timetable_class_section").find(":selected").attr("data-term") || "";
 
         // nothing selected yet -> keep the timetable section hidden, skip the request
         if (class_section_id === "" || session_year_id === "") {
@@ -303,7 +303,7 @@
             data: {
                 class_section_id: class_section_id,
                 session_year_id: session_year_id,
-                semester_id: semester_id,
+                term_id: term_id,
                 day: day,
             },
             success: function (response) {

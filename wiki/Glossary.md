@@ -2,7 +2,7 @@ Short definitions of the domain terms used in the admin panel code, the API and 
 
 | Term | Meaning | Model / table |
 |---|---|---|
-| Academic calendar | A PDF, generated on request, listing the current session year's holidays, events, exam dates and semester breaks by month (`AcademicCalendarService`). The old `academic_calendars` table is not used | none (built from `holidays`, `events`, `exam_timetables`, `semesters`) |
+| Academic calendar | A PDF, generated on request, listing the current session year's holidays, events, exam dates and term breaks by month (`AcademicCalendarService`). The old `academic_calendars` table is not used | none (built from `holidays`, `events`, `exam_timetables`, `terms`) |
 | Admission number | The student's school number, generated as the current session year's name followed by the next student id. Also stored in the student's `users.email`, because students log in with it. Called "GR number" (`gr_number`, `gr_no`) in the app and on PDFs | `students.admission_no` |
 | Announcement | A message from the school or a teacher, attached through a polymorphic `table_type`/`table_id` to a class, a class section or a subject-teacher assignment, with optional files | `Announcement` / `announcements` |
 | Application type | `offline` for students added by staff, `online` for students who applied through the public registration form and await approval | `students.application_type` |
@@ -13,9 +13,9 @@ Short definitions of the domain terms used in the admin panel code, the API and 
 | Choiceable fee | A fee that is optional for the student (`choiceable = 1`); compulsory fees have `choiceable = 0`. Optional fees a student pays are recorded in `fees_choiceables` | `fees_classes.choiceable`, `FeesChoiceable` / `fees_choiceables` |
 | Class | A grade or year group, belonging to one medium and optionally a stream, shift and educational program. Class names may contain only letters, digits and underscores | `ClassSchool` / `classes` |
 | Class section | A class combined with a section (for example "10 A"). Students, timetables, attendance, lessons and assignments attach to class sections | `ClassSection` / `class_sections` |
-| Class session config | Whether a class uses semesters in a given session year (`include_semesters`) | `ClassSessionConfig` / `class_session_configs` |
-| Class subject | A subject offered by a class in a session year (and semester), either core (`Compulsory`) or `Elective` | `ClassSubject` / `class_subjects` |
-| Class teacher | The teacher responsible for a class section in a session year (and semester). Takes attendance, enters marks for the whole section and approves its student leaves; gets the direct permissions `class-teacher` and `student-leave-approve` | `ClassTeacher` / `class_teachers` |
+| Class session config | Whether a class uses terms in a given session year (`include_terms`) | `ClassSessionConfig` / `class_session_configs` |
+| Class subject | A subject offered by a class in a session year (and term), either core (`Compulsory`) or `Elective` | `ClassSubject` / `class_subjects` |
+| Class teacher | The teacher responsible for a class section in a session year (and term). Takes attendance, enters marks for the whole section and approves its student leaves; gets the direct permissions `class-teacher` and `student-leave-approve` | `ClassTeacher` / `class_teachers` |
 | Compulsory fee payment mode | Setting that, when 1, makes the apps report `is_fee_payment_due` from the fee due date or the next unpaid installment, after the free app use date | `settings` row `compulsory_fee_payment_mode` |
 | Core subject | A class subject every student of the class takes (`type = 'Compulsory'`) | `class_subjects` |
 | Current session year | The session year the apps and most screens use, stored as a setting; `session_years.default` mirrors it | `settings` row `session_year` |
@@ -57,7 +57,7 @@ Short definitions of the domain terms used in the admin panel code, the API and 
 | Reset request | Flag set when a student asks for a password reset from the app; cleared when an admin resets it | `users.reset_request` |
 | Roll number | The student's number within a class section; assigned as the section's highest roll number plus one and can be renumbered | `students.roll_number` |
 | Section | A section label such as A or B, combined with classes into class sections | `Section` / `sections` |
-| Semester | A term inside a session year with start and end dates; only affects classes that have semesters switched on | `Semester` / `semesters` |
+| Term | A term inside a session year with start and end dates; only affects classes that have terms switched on | `Term` / `terms` |
 | Session year | An academic year with start and end dates, fee due date and charges | `SessionYear` / `session_years` |
 | Shift | A school shift (for example morning or afternoon) with times, assigned to classes | `Shift` / `shifts` |
 | Slider | A banner image for the app, the website or both (`type` 1, 2, 3) | `Slider` / `sliders` |
@@ -66,7 +66,7 @@ Short definitions of the domain terms used in the admin panel code, the API and 
 | Student session | A student's placement for one session year: class section, status (continuing or left) and result (pass or fail) | `StudentSessions` / `student_sessions` |
 | Student subject | An elective subject picked by a student | `StudentSubject` / `student_subjects` |
 | Subject | A subject in the catalogue of a medium; `type` is `Theory` or `Practical` | `Subject` / `subjects` |
-| Subject teacher | The teacher of a subject in a class section for a session year (and semester) | `SubjectTeacher` / `subject_teachers` |
+| Subject teacher | The teacher of a subject in a class section for a session year (and term) | `SubjectTeacher` / `subject_teachers` |
 | Teacher | A teaching user with the `Teacher` role and a teacher profile | `Teacher` / `teachers` |
 | Timetable | The weekly schedule of a class section; each period points at a subject-teacher row | `Timetable` / `timetables` |
 | Topic | A sub-part of a lesson with its own files | `LessonTopic` / `lesson_topics` |

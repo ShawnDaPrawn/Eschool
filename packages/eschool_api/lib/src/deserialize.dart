@@ -1,9 +1,18 @@
+import 'package:eschool_api/src/model/academic_grade_level.dart';
+import 'package:eschool_api/src/model/academic_rating_level.dart';
+import 'package:eschool_api/src/model/academic_reference.dart';
+import 'package:eschool_api/src/model/academic_reference_response.dart';
 import 'package:eschool_api/src/model/accept_guardian_invitation_request.dart';
 import 'package:eschool_api/src/model/approval_learner.dart';
 import 'package:eschool_api/src/model/approval_state.dart';
 import 'package:eschool_api/src/model/approval_state_response.dart';
 import 'package:eschool_api/src/model/branding.dart';
+import 'package:eschool_api/src/model/calendar_removed_response.dart';
 import 'package:eschool_api/src/model/child.dart';
+import 'package:eschool_api/src/model/class_grade_mapping.dart';
+import 'package:eschool_api/src/model/class_grade_mapping_grade_level.dart';
+import 'package:eschool_api/src/model/class_grade_response.dart';
+import 'package:eschool_api/src/model/class_grade_write.dart';
 import 'package:eschool_api/src/model/context.dart';
 import 'package:eschool_api/src/model/context_response.dart';
 import 'package:eschool_api/src/model/context_user.dart';
@@ -58,10 +67,24 @@ import 'package:eschool_api/src/model/profile_value.dart';
 import 'package:eschool_api/src/model/school_document.dart';
 import 'package:eschool_api/src/model/school_membership.dart';
 import 'package:eschool_api/src/model/school_summary.dart';
+import 'package:eschool_api/src/model/school_term.dart';
+import 'package:eschool_api/src/model/school_term_draft.dart';
+import 'package:eschool_api/src/model/school_term_response.dart';
+import 'package:eschool_api/src/model/school_term_write.dart';
+import 'package:eschool_api/src/model/school_terms_response.dart';
+import 'package:eschool_api/src/model/school_terms_response_data.dart';
 import 'package:eschool_api/src/model/session_year.dart';
 import 'package:eschool_api/src/model/set_my_handle_request.dart';
 import 'package:eschool_api/src/model/term.dart';
 import 'package:eschool_api/src/model/term_dates.dart';
+import 'package:eschool_api/src/model/term_template.dart';
+import 'package:eschool_api/src/model/term_template_apply_response.dart';
+import 'package:eschool_api/src/model/term_template_apply_response_data.dart';
+import 'package:eschool_api/src/model/term_template_apply_write.dart';
+import 'package:eschool_api/src/model/term_template_response.dart';
+import 'package:eschool_api/src/model/term_template_write.dart';
+import 'package:eschool_api/src/model/term_templates_response.dart';
+import 'package:eschool_api/src/model/term_templates_response_data.dart';
 import 'package:eschool_api/src/model/update_my_notification_preferences_request.dart';
 import 'package:eschool_api/src/model/update_my_profile_request.dart';
 import 'package:eschool_api/src/model/update_person_profile_request.dart';
@@ -91,6 +114,18 @@ ReturnType deserialize<ReturnType, BaseType>(
       return (valueString == 'true' || valueString == '1') as ReturnType;
     case 'double':
       return (value is double ? value : double.parse('$value')) as ReturnType;
+    case 'AcademicGradeLevel':
+      return AcademicGradeLevel.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'AcademicRatingLevel':
+      return AcademicRatingLevel.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'AcademicReference':
+      return AcademicReference.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'AcademicReferenceResponse':
+      return AcademicReferenceResponse.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
     case 'AcceptGuardianInvitationRequest':
       return AcceptGuardianInvitationRequest.fromJson(
             value as Map<String, dynamic>,
@@ -107,8 +142,23 @@ ReturnType deserialize<ReturnType, BaseType>(
           as ReturnType;
     case 'Branding':
       return Branding.fromJson(value as Map<String, dynamic>) as ReturnType;
+    case 'CalendarRemovedResponse':
+      return CalendarRemovedResponse.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
     case 'Child':
       return Child.fromJson(value as Map<String, dynamic>) as ReturnType;
+    case 'ClassGradeMapping':
+      return ClassGradeMapping.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'ClassGradeMappingGradeLevel':
+      return ClassGradeMappingGradeLevel.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'ClassGradeResponse':
+      return ClassGradeResponse.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'ClassGradeWrite':
+      return ClassGradeWrite.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
     case 'Context':
       return Context.fromJson(value as Map<String, dynamic>) as ReturnType;
     case 'ContextResponse':
@@ -289,6 +339,23 @@ ReturnType deserialize<ReturnType, BaseType>(
     case 'SchoolSummary':
       return SchoolSummary.fromJson(value as Map<String, dynamic>)
           as ReturnType;
+    case 'SchoolTerm':
+      return SchoolTerm.fromJson(value as Map<String, dynamic>) as ReturnType;
+    case 'SchoolTermDraft':
+      return SchoolTermDraft.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'SchoolTermResponse':
+      return SchoolTermResponse.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'SchoolTermWrite':
+      return SchoolTermWrite.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'SchoolTermsResponse':
+      return SchoolTermsResponse.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'SchoolTermsResponseData':
+      return SchoolTermsResponseData.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
     case 'SessionYear':
       return SessionYear.fromJson(value as Map<String, dynamic>) as ReturnType;
     case 'SetMyHandleRequest':
@@ -298,6 +365,31 @@ ReturnType deserialize<ReturnType, BaseType>(
       return Term.fromJson(value as Map<String, dynamic>) as ReturnType;
     case 'TermDates':
       return TermDates.fromJson(value as Map<String, dynamic>) as ReturnType;
+    case 'TermTemplate':
+      return TermTemplate.fromJson(value as Map<String, dynamic>) as ReturnType;
+    case 'TermTemplateApplyResponse':
+      return TermTemplateApplyResponse.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'TermTemplateApplyResponseData':
+      return TermTemplateApplyResponseData.fromJson(
+            value as Map<String, dynamic>,
+          )
+          as ReturnType;
+    case 'TermTemplateApplyWrite':
+      return TermTemplateApplyWrite.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'TermTemplateResponse':
+      return TermTemplateResponse.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'TermTemplateWrite':
+      return TermTemplateWrite.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'TermTemplatesResponse':
+      return TermTemplatesResponse.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'TermTemplatesResponseData':
+      return TermTemplatesResponseData.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
     case 'UpdateMyNotificationPreferencesRequest':
       return UpdateMyNotificationPreferencesRequest.fromJson(
             value as Map<String, dynamic>,

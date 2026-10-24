@@ -54,7 +54,7 @@ class _AssignmentsScreenState extends State<AssignmentsScreen> {
             .getSubjectDetails(currentSelectedSubject.index);
         context.read<AssignmentCubit>().fetchMoreAssignment(
           subjectId: subject.id,
-          semesterId: subject.semester?.id,
+          termId: subject.term?.id,
           classSectionId: context
               .read<DashboardCubit>()
               .getClassSectionDetails(index: currentSelectedClassSection.index)
@@ -79,7 +79,7 @@ class _AssignmentsScreenState extends State<AssignmentsScreen> {
               .getClassSectionDetails(index: currentSelectedClassSection.index)
               .id,
           subjectId: subject.id,
-          semesterId: subject.semester?.id,
+          termId: subject.term?.id,
         );
       }
     }

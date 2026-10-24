@@ -13,9 +13,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 class ExamOfflineListContainer extends StatefulWidget {
-  const ExamOfflineListContainer({super.key, this.childId, this.semesterId});
+  const ExamOfflineListContainer({super.key, this.childId, this.termId});
   final int? childId;
-  final String? semesterId;
+  final String? termId;
 
   @override
   State<ExamOfflineListContainer> createState() =>
@@ -39,7 +39,7 @@ class _ExamOfflineListContainerState extends State<ExamOfflineListContainer> {
         useParentApi: context.read<AuthCubit>().isParent(),
         childId: widget.childId,
         examStatus: 0,
-        semesterId: widget.semesterId,
+        termId: widget.termId,
       );
     });
   }
@@ -162,7 +162,7 @@ class _ExamOfflineListContainerState extends State<ExamOfflineListContainer> {
           examStatus: examStatus,
           useParentApi: context.read<AuthCubit>().isParent(),
           childId: widget.childId,
-          semesterId: widget.semesterId,
+          termId: widget.termId,
         );
       },
       child: SizedBox(
@@ -189,7 +189,7 @@ class _ExamOfflineListContainerState extends State<ExamOfflineListContainer> {
                     examStatus: examFilters.indexOf(
                       examFilters[examFilterIndex],
                     ),
-                    semesterId: widget.semesterId,
+                    termId: widget.termId,
                   );
 
                   setState(() {
@@ -229,7 +229,7 @@ class _ExamOfflineListContainerState extends State<ExamOfflineListContainer> {
                           examStatus: examFilters.indexOf(
                             _currentlySelectedExamFilter,
                           ),
-                          semesterId: widget.semesterId,
+                          termId: widget.termId,
                         );
                       },
                     );

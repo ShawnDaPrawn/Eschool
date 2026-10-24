@@ -31,7 +31,7 @@ trait SignInFixtures
         $category = $this->fixtureRow('categories', ['name' => 'General', 'status' => 1]);
         $class = $this->fixtureRow('classes', ['name' => 'Grade 5', 'medium_id' => $medium]);
         $section = $this->fixtureRow('class_sections', ['class_id' => $class, 'section_id' => $this->fixtureRow('sections', ['name' => 'A'])]);
-        $this->fixtureRow('class_session_configs', ['class_id' => $class, 'session_year_id' => 1, 'include_semesters' => 0]);
+        $this->fixtureRow('class_session_configs', ['class_id' => $class, 'session_year_id' => 1, 'include_terms' => 0]);
 
         $teacher = $this->fixtureUser('tom', 'Teacher', $password, ['email' => 'tom@example.com', 'dob' => '1990-04-12']);
         $this->fixtureRow('teachers', ['user_id' => $teacher->id, 'qualification' => 'B.Ed']);

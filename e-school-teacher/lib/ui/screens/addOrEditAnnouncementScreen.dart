@@ -79,7 +79,7 @@ class _AddOrEditAnnouncementScreenState
   late CustomDropDownItem currentSelectedSubject = widget.subject != null
       ? CustomDropDownItem(
           index: 0,
-          title: widget.subject!.subjectNameWithTypeAndSemester,
+          title: widget.subject!.subjectNameWithTypeAndTerm,
         )
       : CustomDropDownItem(
           index: 0,
@@ -203,7 +203,7 @@ class _AddOrEditAnnouncementScreenState
                 )
                 .id,
       subjectId: selectedSubject.id,
-      semesterId: selectedSubject.semester?.id,
+      termId: selectedSubject.term?.id,
     );
   }
 
@@ -227,7 +227,7 @@ class _AddOrEditAnnouncementScreenState
       attachments: _addedAttatchments,
       classSectionId: widget.classSectionDetails!.id,
       subjectId: widget.subject!.id,
-      semesterId: widget.subject!.semester?.id,
+      termId: widget.subject!.term?.id,
     );
   }
 

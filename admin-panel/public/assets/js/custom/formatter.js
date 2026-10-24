@@ -560,16 +560,16 @@ function classTeacherFormatter(value, row) {
 
 function coreSubjectFormatter(value, row) {
     console.log(row.core_subjects);
-    if (row.include_semesters == 1) {
+    if (row.include_terms == 1) {
         let core_subject_count = 1;
         let html = "<div style='line-height: 20px;'>";
         let previous_sem_id = null;
 
         $.each(row.core_subjects, function (key, value) {
-            if (value.semester_id !== previous_sem_id) {
-                // Add the semester name only if it's different from the previous one
-                html += `<br><strong>${escapeHtml(value?.semester?.name ?? "")}</strong><br>`;
-                previous_sem_id = value.semester_id; // Update the previous_sem_id
+            if (value.term_id !== previous_sem_id) {
+                // Add the term name only if it's different from the previous one
+                html += `<br><strong>${escapeHtml(value?.term?.name ?? "")}</strong><br>`;
+                previous_sem_id = value.term_id; // Update the previous_sem_id
                 core_subject_count = 1;
             }
 
@@ -614,35 +614,35 @@ function electiveSubjectFormatter(value, row) {
     let html = "<div style='line-height: 20px;'>";
     let previous_sem_id = null;
 
-    if (row.include_semesters == 1) {
-        let semesterGroupCounts = {};
+    if (row.include_terms == 1) {
+        let termGroupCounts = {};
         let previous_sem_id = null;
 
         $.each(row.elective_subject_groups, function (key, group) {
             let elective_subject_count = 1;
 
             $.each(group.elective_subjects, function (key, elective_subject) {
-                let semester_name =
-                    elective_subject && elective_subject.semester
-                        ? elective_subject.semester.name
+                let term_name =
+                    elective_subject && elective_subject.term
+                        ? elective_subject.term.name
                         : "";
 
-                if (!semesterGroupCounts[semester_name]) {
-                    semesterGroupCounts[semester_name] = 0;
+                if (!termGroupCounts[term_name]) {
+                    termGroupCounts[term_name] = 0;
                 }
 
                 if (
-                    elective_subject.semester_id !== previous_sem_id ||
+                    elective_subject.term_id !== previous_sem_id ||
                     key === 0
                 ) {
-                    semesterGroupCounts[semester_name]++;
+                    termGroupCounts[term_name]++;
                     html +=
                         "<br><strong>" +
-                        escapeHtml(semester_name) +
+                        escapeHtml(term_name) +
                         "</strong> (<b>Group " +
-                        semesterGroupCounts[semester_name] +
+                        termGroupCounts[term_name] +
                         "</b>)<br>";
-                    previous_sem_id = elective_subject.semester_id;
+                    previous_sem_id = elective_subject.term_id;
                     elective_subject_count = 1;
                 }
 
@@ -699,14 +699,14 @@ function electiveSubjectFormatter(value, row) {
     }
 }
 
-// Show the detail-view expand (+/-) icon only for classes that have semesters enabled.
-function subjectSemesterDetailFilter(index, row) {
-    return row.include_semesters == 1;
+// Show the detail-view expand (+/-) icon only for classes that have terms enabled.
+function subjectTermDetailFilter(index, row) {
+    return row.include_terms == 1;
 }
 
-// Renders the semester-wise subject breakdown when a class row is expanded.
+// Renders the term-wise subject breakdown when a class row is expanded.
 // Content is loaded over AJAX using the row's class id and the selected session year.
-function subjectSemesterDetailFormatter(index, row, $detail) {
+function subjectTermDetailFormatter(index, row, $detail) {
     var escapeHtml = function (value) {
         return $("<div>")
             .text(value == null ? "" : value)
@@ -714,7 +714,7 @@ function subjectSemesterDetailFormatter(index, row, $detail) {
     };
 
     var $table = $("#table_list");
-    var baseUrl = $table.data("semester-details-url");
+    var baseUrl = $table.data("term-details-url");
     var sessionYearId =
         $(".filter_session_year").val() ||
         $("#filter_session_year_global").val();
@@ -739,8 +739,8 @@ function subjectSemesterDetailFormatter(index, row, $detail) {
             var $wrap = $detail.find(".cs-detail-wrap");
             if (
                 response.error ||
-                !response.semesters ||
-                !response.semesters.length
+                !response.terms ||
+                !response.terms.length
             ) {
                 $wrap.html(
                     '<div class="cs-detail-state cs-detail-empty">' +
@@ -750,15 +750,15 @@ function subjectSemesterDetailFormatter(index, row, $detail) {
                 return;
             }
 
-            var html = '<div class="cs-semester-grid">';
+            var html = '<div class="cs-term-grid">';
 
-            $.each(response.semesters, function (sKey, semester) {
-                html += '<div class="cs-semester-card">';
+            $.each(response.terms, function (sKey, term) {
+                html += '<div class="cs-term-card">';
                 html +=
-                    '<div class="cs-semester-head"><span class="cs-semester-name">' +
-                    escapeHtml(semester.name) +
+                    '<div class="cs-term-head"><span class="cs-term-name">' +
+                    escapeHtml(term.name) +
                     "</span></div>";
-                html += '<div class="cs-semester-body">';
+                html += '<div class="cs-term-body">';
 
                 // Core subjects section
                 html += '<div class="cs-section">';
@@ -766,9 +766,9 @@ function subjectSemesterDetailFormatter(index, row, $detail) {
                     '<div class="cs-section-title">' +
                     trans("core_subject") +
                     "</div>";
-                if (semester.core_subjects && semester.core_subjects.length) {
+                if (term.core_subjects && term.core_subjects.length) {
                     html += '<ol class="cs-subject-list">';
-                    $.each(semester.core_subjects, function (cKey, subject) {
+                    $.each(term.core_subjects, function (cKey, subject) {
                         html +=
                             '<li><span class="cs-subject-name">' +
                             escapeHtml(subject.name) +
@@ -793,11 +793,11 @@ function subjectSemesterDetailFormatter(index, row, $detail) {
                     trans("elective_subject") +
                     "</div>";
                 if (
-                    semester.elective_groups &&
-                    semester.elective_groups.length
+                    term.elective_groups &&
+                    term.elective_groups.length
                 ) {
                     html += '<div class="cs-elective-groups">';
-                    $.each(semester.elective_groups, function (gKey, group) {
+                    $.each(term.elective_groups, function (gKey, group) {
                         html += '<div class="cs-elective-group">';
                         html +=
                             '<div class="cs-group-head">' +
@@ -842,8 +842,8 @@ function subjectSemesterDetailFormatter(index, row, $detail) {
                 }
                 html += "</div>";
 
-                html += "</div>"; // .cs-semester-body
-                html += "</div>"; // .cs-semester-card
+                html += "</div>"; // .cs-term-body
+                html += "</div>"; // .cs-term-card
             });
 
             html += "</div>";
@@ -1169,20 +1169,20 @@ function endMonthFormatter(value, row) {
     }
 }
 
-function semesterStatusFormatter(value, row) {
+function termStatusFormatter(value, row) {
     // return `<span class="alert alert-${row.status ? "success" : "danger"}">${trans(row.status ? "yes" : "NO")}</span>`;
 
     return `<span class="alert alert-${row.status ? "success" : "danger"}">${row.status ? trans("YES") : trans("NO")}</span>`;
 }
 
-function semesterFormatter(value, row) {
-    if (row.include_semesters === null) {
+function termFormatter(value, row) {
+    if (row.include_terms === null) {
         return (
             "<span class='badge badge-warning'>" +
             trans("Not Configured") +
             "</span>"
         );
-    } else if (row.include_semesters) {
+    } else if (row.include_terms) {
         return "<span class='badge badge-success'>" + trans("YES") + "</span>";
     } else {
         return "<span class='badge badge-danger'>" + trans("NO") + "</span>";

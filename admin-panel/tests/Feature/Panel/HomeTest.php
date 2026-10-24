@@ -44,7 +44,7 @@ class HomeTest extends TestCase
             $this->assertMatchesRegularExpression('/data-checklist-item="'.$step.'"\s+data-done="false"/', $page->getContent());
         }
         $page->assertSee(url('settings'), false);
-        $page->assertSee(route('semester.index'), false);
+        $page->assertSee(route('term.index'), false);
         $page->assertSee(route('class.index'), false);
         $page->assertSee(route('subject.index'), false);
         $page->assertSee(route('teachers.index'), false);
@@ -137,7 +137,7 @@ class HomeTest extends TestCase
             DB::table('settings')->updateOrInsert(['type' => $type], ['message' => $message]);
         }
         $now = ['created_at' => now(), 'updated_at' => now()];
-        SchoolTable::query('semesters')->insert(['name' => 'Term 1', 'start_date' => $this->year->start_date, 'end_date' => $this->year->end_date, 'session_year_id' => $this->year->id] + $now);
+        SchoolTable::query('terms')->insert(['name' => 'Term 1', 'start_date' => $this->year->start_date, 'end_date' => $this->year->end_date, 'session_year_id' => $this->year->id] + $now);
         $medium = SchoolTable::query('mediums')->insertGetId(['name' => 'English'] + $now);
         $class = SchoolTable::query('classes')->insertGetId(['name' => 'Grade 5', 'medium_id' => $medium] + $now);
         $section = SchoolTable::query('sections')->insertGetId(['name' => 'A'] + $now);

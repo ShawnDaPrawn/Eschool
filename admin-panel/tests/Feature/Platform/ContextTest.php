@@ -59,8 +59,9 @@ class ContextTest extends TestCase
             ->assertJsonPath('data.current_school.session_year.name', 'Current year')
             ->assertJsonPath('data.current_school.session_year.start_date', $this->school->today(-120)->toDateString())
             ->assertJsonPath('data.current_school.session_year.terms', [[
-                'id' => $this->school->ids['semester'], 'name' => 'Term 1',
-                'start_date' => $this->school->today(-120)->toDateString(), 'end_date' => $this->school->today(60)->toDateString(), 'current' => true,
+                'id' => $this->school->ids['term'], 'name' => 'Term 1',
+                'start_date' => $this->school->today(-120)->toDateString(), 'end_date' => $this->school->today(60)->toDateString(),
+                'grade_from' => 0, 'grade_to' => 12, 'marks_lock_on' => null, 'reports_on' => null, 'current' => true,
             ]])
             ->assertJsonPath('data.modules.0.key', 'school')
             ->assertJsonPath('data.notification_rules.0.type', 'account.verify_email')

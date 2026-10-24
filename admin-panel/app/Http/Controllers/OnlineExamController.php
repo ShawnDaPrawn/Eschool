@@ -13,13 +13,13 @@ use App\Models\OnlineExamQuestionAnswer;
 use App\Models\OnlineExamQuestionChoice;
 use App\Models\OnlineExamQuestionOption;
 use App\Models\OnlineExamStudentAnswer;
-use App\Models\Semester;
 use App\Models\SessionYear;
 use App\Models\Settings;
 use App\Models\StudentOnlineExamStatus;
 use App\Models\Students;
 use App\Models\Subject;
 use App\Models\SubjectTeacher;
+use App\Models\Term;
 use App\Services\OnlineExamScoringService;
 use App\Services\Platform\Files\FileNames;
 use Illuminate\Http\Request;
@@ -120,7 +120,7 @@ class OnlineExamController extends Controller
                 $online_exam_create->start_date = $request->start_date_class_section;
                 $online_exam_create->end_date = $request->end_date_class_section;
                 $online_exam_create->session_year_id = $session_year_id;
-                $online_exam_create->semester_id = $request->semester_id;
+                $online_exam_create->term_id = $request->term_id;
                 $online_exam_create->save();
             } else {
                 // store class based online exam
@@ -133,7 +133,7 @@ class OnlineExamController extends Controller
                 $online_exam_create->start_date = $request->start_date_class;
                 $online_exam_create->end_date = $request->end_date_class;
                 $online_exam_create->session_year_id = $session_year_id;
-                $online_exam_create->semester_id = $request->semester_id;
+                $online_exam_create->term_id = $request->term_id;
                 $online_exam_create->save();
             }
 
@@ -234,9 +234,9 @@ class OnlineExamController extends Controller
                 $query->where('subject_id', request('subject_id'))
                     ->whereIn('subject_id', $assigned_subjects);
             })
-            // semester data filter
-            ->when(request('semester_id') != null, function ($query) {
-                $query->where('semester_id', request('semester_id'));
+            // term data filter
+            ->when(request('term_id') != null, function ($query) {
+                $query->where('term_id', request('term_id'));
             });
 
         // Get total before applying pagination
@@ -315,8 +315,8 @@ class OnlineExamController extends Controller
             }
             $tempRow['subject_id'] = $row->subject_id;
             $tempRow['subject_name'] = $row->subject->name.' - '.$row->subject->type;
-            $tempRow['semester_id'] = $row->semester_id;
-            $tempRow['semester_name'] = $row->semester->name ?? ' - ';
+            $tempRow['term_id'] = $row->term_id;
+            $tempRow['term_name'] = $row->term->name ?? ' - ';
             $tempRow['title'] = safe_htmlspecialchars_decode($row->title);
             $tempRow['exam_key'] = $row->exam_key;
             $tempRow['duration'] = $row->duration;
@@ -365,7 +365,7 @@ class OnlineExamController extends Controller
             $update_online_exam->duration = $request->edit_duration;
             $update_online_exam->start_date = $request->edit_start_date;
             $update_online_exam->end_date = $request->edit_end_date;
-            $update_online_exam->semester_id = $request->semester_id;
+            $update_online_exam->term_id = $request->term_id;
             $update_online_exam->save();
 
             $response = [
@@ -430,7 +430,7 @@ class OnlineExamController extends Controller
                     return [
                         'id' => $cs->id,
                         'name' => $cs->class->name.' '.$cs->section->name.' - '.$cs->class->medium->name.' '.($cs->class->streams->name ?? ''),
-                        'include_semesters' => $cs->class->getIncludeSemestersForSession($session_year_id) ?? false,
+                        'include_terms' => $cs->class->getIncludeTermsForSession($session_year_id) ?? false,
                     ];
                 });
 
@@ -445,7 +445,7 @@ class OnlineExamController extends Controller
                     return [
                         'id' => $c->id,
                         'name' => $c->name.' '.$c->medium->name.' '.($c->streams->name ?? ''),
-                        'include_semesters' => $c->getIncludeSemestersForSession($session_year_id) ?? false,
+                        'include_terms' => $c->getIncludeTermsForSession($session_year_id) ?? false,
                     ];
                 });
 
@@ -460,8 +460,8 @@ class OnlineExamController extends Controller
                 ];
             });
 
-            // Get semesters
-            $semesters = Semester::where('session_year_id', $session_year_id)->get()->map(function ($s) {
+            // Get terms
+            $terms = Term::where('session_year_id', $session_year_id)->get()->map(function ($s) {
                 return [
                     'id' => $s->id,
                     'name' => $s->name,
@@ -474,7 +474,7 @@ class OnlineExamController extends Controller
                     'class_sections' => $class_sections->values(),
                     'classes' => $classes->values(),
                     'subjects' => $subjects->values(),
-                    'semesters' => $semesters->values(),
+                    'terms' => $terms->values(),
                 ],
             ]);
         } catch (Throwable $e) {
@@ -487,31 +487,31 @@ class OnlineExamController extends Controller
 
     /**
      * Return only the classes / class-sections where the teacher has a subject
-     * assigned for the given session year + semester combination.
+     * assigned for the given session year + term combination.
      *
-     * When semester_id is empty the query is restricted to SubjectTeacher rows
-     * whose semester_id IS NULL (non-semester classes).
-     * When semester_id is provided the query is restricted to that semester.
+     * When term_id is empty the query is restricted to SubjectTeacher rows
+     * whose term_id IS NULL (non-term classes).
+     * When term_id is provided the query is restricted to that term.
      *
-     * GET /get-class-sections-by-semester?session_year_id=&semester_id=
+     * GET /get-class-sections-by-term?session_year_id=&term_id=
      */
-    public function getClassSectionsBySemester(Request $request)
+    public function getClassSectionsByTerm(Request $request)
     {
         try {
             $teacher_id = Auth::user()->teacher->id;
             $session_year_id = $request->session_year_id;
-            $semester_id = $request->semester_id; // may be null / empty string
+            $term_id = $request->term_id; // may be null / empty string
 
             // Build the base SubjectTeacher query for this teacher + session year
             $stQuery = SubjectTeacher::where('teacher_id', $teacher_id)
                 ->where('session_year_id', $session_year_id);
 
-            if ($semester_id) {
-                // Teacher must have a subject in this specific semester
-                $stQuery->where('semester_id', $semester_id);
+            if ($term_id) {
+                // Teacher must have a subject in this specific term
+                $stQuery->where('term_id', $term_id);
             } else {
-                // Teacher must have a subject with no semester (non-semester class)
-                $stQuery->whereNull('semester_id');
+                // Teacher must have a subject with no term (non-term class)
+                $stQuery->whereNull('term_id');
             }
 
             $class_section_ids = $stQuery->pluck('class_section_id')->unique();
@@ -526,7 +526,7 @@ class OnlineExamController extends Controller
                     return [
                         'id' => $cs->id,
                         'name' => $cs->class->name.' '.$cs->section->name.' - '.$cs->class->medium->name.' '.($cs->class->streams->name ?? ''),
-                        'include_semesters' => $cs->class->getIncludeSemestersForSession($session_year_id) ?? false,
+                        'include_terms' => $cs->class->getIncludeTermsForSession($session_year_id) ?? false,
                     ];
                 });
 
@@ -541,7 +541,7 @@ class OnlineExamController extends Controller
                     return [
                         'id' => $c->id,
                         'name' => $c->name.' '.$c->medium->name.' '.($c->streams->name ?? ''),
-                        'include_semesters' => $c->getIncludeSemestersForSession($session_year_id) ?? false,
+                        'include_terms' => $c->getIncludeTermsForSession($session_year_id) ?? false,
                     ];
                 });
 
@@ -566,13 +566,13 @@ class OnlineExamController extends Controller
             $teacher_id = Auth::user()->teacher->id;
             $subjects = [];
             $session_year_id = $request->session_year_id;
-            $semester_id = $request->semester_id;
+            $term_id = $request->term_id;
             if ($request->based_on) {
                 // return the subjects based on class section
                 $query = SubjectTeacher::where(['class_section_id' => $request->class_section_id, 'teacher_id' => $teacher_id])
                     ->where('session_year_id', $session_year_id);
-                if ($semester_id) {
-                    $query = $query->where('semester_id', $semester_id);
+                if ($term_id) {
+                    $query = $query->where('term_id', $term_id);
                 }
                 $subject_id = $query->pluck('subject_id');
                 $subjects = Subject::whereIn('id', $subject_id)->get();
@@ -582,8 +582,8 @@ class OnlineExamController extends Controller
                 $query = SubjectTeacher::whereIn('class_section_id', $class_section_id)
                     ->where('session_year_id', $session_year_id)
                     ->where('teacher_id', $teacher_id);
-                if ($semester_id) {
-                    $query = $query->where('semester_id', $semester_id);
+                if ($term_id) {
+                    $query = $query->where('term_id', $term_id);
                 }
                 $subject_id = $query->pluck('subject_id');
                 $subjects = Subject::whereIn('id', $subject_id)->get();

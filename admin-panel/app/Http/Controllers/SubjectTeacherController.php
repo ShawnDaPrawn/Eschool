@@ -69,7 +69,7 @@ class SubjectTeacherController extends Controller
                 $exists = SubjectTeacher::where('session_year_id', $request->session_year_id)
                     ->where('subject_id', $request->subject_id)
                     ->where('class_section_id', $request->class_section_id)
-                    ->where('semester_id', $request->semester_id ?: null)
+                    ->where('term_id', $request->term_id ?: null)
                     ->when(isset($request->id) && $request->id != '', function ($q) use ($request) {
                         $q->where('id', '!=', $request->id);
                     })
@@ -93,7 +93,7 @@ class SubjectTeacherController extends Controller
                 $subject_teacher->subject_id = $request->subject_id;
                 $subject_teacher->teacher_id = $teacher_id;
                 $subject_teacher->session_year_id = $request->session_year_id;
-                $subject_teacher->semester_id = $request->semester_id ?: null;
+                $subject_teacher->term_id = $request->term_id ?: null;
                 $subject_teacher->save();
             }
             $response = [
@@ -187,7 +187,7 @@ class SubjectTeacherController extends Controller
             $order = $_GET['order'];
         }
 
-        $sql = SubjectTeacher::SubjectTeacher()->with('class_section', 'subject', 'teacher', 'semester')
+        $sql = SubjectTeacher::SubjectTeacher()->with('class_section', 'subject', 'teacher', 'term')
             ->where('session_year_id', $session_year_id);
         if (isset($_GET['search']) && ! empty($_GET['search'])) {
             $search = $_GET['search'];
@@ -220,9 +220,9 @@ class SubjectTeacherController extends Controller
         if (! empty($_GET['subject_id'])) {
             $sql = $sql->where('subject_id', $_GET['subject_id']);
         }
-        if (! empty($_GET['semester_id'])) {
-            $semester_id = $_GET['semester_id'];
-            $sql = $sql->where('semester_id', $semester_id)
+        if (! empty($_GET['term_id'])) {
+            $term_id = $_GET['term_id'];
+            $sql = $sql->where('term_id', $term_id)
                 ->whereIn('subject_id', function ($subQuery) {
                     $subQuery->select('subject_id')
                         ->from('class_subjects')
@@ -271,8 +271,8 @@ class SubjectTeacherController extends Controller
             $tempRow['subject_name'] = $row->subject->name.' ( '.trans($row->subject->type).' ) ';
             $tempRow['teacher_id'] = $row->teacher_id;
             $tempRow['teacher_name'] = ($row->teacher) ? ($row->teacher->user->first_name.' '.$row->teacher->user->last_name) : '';
-            $tempRow['semester_id'] = $row->semester_id ?? '';
-            $tempRow['semester_name'] = $row->semester->name ?? '-';
+            $tempRow['term_id'] = $row->term_id ?? '';
+            $tempRow['term_name'] = $row->term->name ?? '-';
             $tempRow['operate'] = $operate;
             $rows[] = $tempRow;
         }

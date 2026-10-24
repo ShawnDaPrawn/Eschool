@@ -190,7 +190,7 @@ function AssignTeacherQueryParams(p) {
         offset: p.offset,
         search: p.search,
         class_id: $("#filter_class_id").val(),
-        semester_id: $("#filter_semester_id").val(),
+        term_id: $("#filter_term_id").val(),
         session_year_id: $("#filter_session_year_global").val(),
     };
 }
@@ -206,8 +206,8 @@ function AssignSubjectTeacherQueryParams(p) {
         teacher_id: $("#filter_teacher_id").val(),
         subject_id: $("#filter_subject_id").val(),
         session_year_id: $("#filter_session_year_global").val(),
-        semester_id:
-            $("#filter_class_section_id option:selected").data("semester") ||
+        term_id:
+            $("#filter_class_section_id option:selected").data("term") ||
             "",
     };
 }
@@ -232,7 +232,7 @@ function AssignmentSubmissionQueryParams(p) {
         search: p.search,
         subject_id: $("#filter_subject_id").val(),
         session_year_id: $("#filter_session_year_global").val(),
-        semester_id: $("#filter_semester_id").val(),
+        term_id: $("#filter_term_id").val(),
     };
 }
 
@@ -258,8 +258,8 @@ function CreateAssignmentSubmissionQueryParams(p) {
         subject_id: $("#filter_subject_id").val(),
         class_id: $("#filter_class_section_id").val(),
         session_year_id: $("#filter_session_year_global").val(),
-        semester_id:
-            $("#filter_class_section_id option:selected").data("semester") ||
+        term_id:
+            $("#filter_class_section_id option:selected").data("term") ||
             "",
     };
 }
@@ -273,8 +273,8 @@ function CreateLessionQueryParams(p) {
         search: p.search,
         subject_id: $("#filter_subject_id").val(),
         class_id: $("#filter_class_section_id").val(),
-        semester_id:
-            $("#filter_subject_id option:selected").data("semester") || "",
+        term_id:
+            $("#filter_subject_id option:selected").data("term") || "",
         lesson_id: $("#filter_lesson_id").val(),
     };
 }
@@ -288,8 +288,8 @@ function CreateTopicQueryParams(p) {
         search: p.search,
         subject_id: $("#filter_subject_id").val(),
         class_id: $("#filter_class_section_id").val(),
-        semester_id:
-            $("#filter_subject_id option:selected").data("semester") || "",
+        term_id:
+            $("#filter_subject_id option:selected").data("term") || "",
         lesson_id: $("#filter_lesson_id").val(),
     };
 }
@@ -390,7 +390,7 @@ function onlineExamQueryParams(p) {
         offset: p.offset,
         search: p.search,
         session_year_id: $("#filter_session_year_global").val(),
-        semester_id: $("#filter-semester-id").val(),
+        term_id: $("#filter-term-id").val(),
         class_id: $("#filter-online-exam-class-id").val(),
         subject_id: $("#filter-online-exam-subject-id").val(),
     };
@@ -436,7 +436,7 @@ function studentDetailsqueryParams(p) {
         search: p.search,
         class_id: $("#filter_class_section_id").val(),
         session_year_id: $("#filter_session_year_global").val(),
-        semester_id: $("#filter_semester").val(),
+        term_id: $("#filter_term").val(),
         filter_elective_subject: $("#filter_elective_subject").val(),
         filter_status: $("#filter_status").val(),
     };
@@ -494,7 +494,7 @@ function leaveQueryParams(p) {
     };
 }
 
-function semesterQueryParams(p) {
+function termQueryParams(p) {
     return {
         limit: p.limit,
         sort: p.sort,

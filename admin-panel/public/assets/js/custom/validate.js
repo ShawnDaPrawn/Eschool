@@ -1,28 +1,28 @@
 "use strict";
 
 /**
- * Gets the semester ID associated with a subject select element.
- * For core subjects, the semester select is in the same row.
- * For elective subjects, the semester select is at the group level.
- * Returns empty string if semesters are not enabled or not selected.
+ * Gets the term ID associated with a subject select element.
+ * For core subjects, the term select is in the same row.
+ * For elective subjects, the term select is at the group level.
+ * Returns empty string if terms are not enabled or not selected.
  */
-function getSemesterForSubject(element) {
+function getTermForSubject(element) {
     var $el = $(element);
-    var semesterSelect;
+    var termSelect;
 
     
     var groupDiv = $el.closest('.edit-elective-subject-group-div, .elective-subject-group-div');
     if (groupDiv.length) {
-        semesterSelect = groupDiv.find('select[name*="[semester_id]"]');
-        if (semesterSelect.length) {
-            return semesterSelect.val() || '';
+        termSelect = groupDiv.find('select[name*="[term_id]"]');
+        if (termSelect.length) {
+            return termSelect.val() || '';
         }
     }
 
     
-    semesterSelect = $el.closest('.cs-subject-row').find('select[name*="[semester_id]"]');
-    if (semesterSelect.length) {
-        return semesterSelect.val() || '';
+    termSelect = $el.closest('.cs-subject-row').find('select[name*="[term_id]"]');
+    if (termSelect.length) {
+        return termSelect.val() || '';
     }
 
     return '';
@@ -48,14 +48,14 @@ $.validator.addMethod("noDuplicateValues", function (value, element, options) {
 
         components.each(function (index, el) {
             if ($(el).val() !== "" && $(el).attr('name') !== $(element).attr('name')) {
-                // Create a composite key of subject_id + semester_id
-                let elSemester = getSemesterForSubject(el);
-                arrayValues.push($(el).val() + '_' + elSemester);
+                // Create a composite key of subject_id + term_id
+                let elTerm = getTermForSubject(el);
+                arrayValues.push($(el).val() + '_' + elTerm);
             }
         })
 
-        let currentSemester = getSemesterForSubject(element);
-        let currentKey = value + '_' + currentSemester;
+        let currentTerm = getTermForSubject(element);
+        let currentKey = value + '_' + currentTerm;
         return !arrayValues.includes(currentKey);
     }
     return false;
@@ -117,9 +117,9 @@ $.validator.addMethod("uniqueSubjectIds", function (value, element) {
     $('.subject').each(function () {
         let subjectId = $(this).val();
         if (subjectId !== "") {
-            // Create a composite key of subject_id + semester_id
-            let semesterId = getSemesterForSubject(this);
-            let key = subjectId + '_' + semesterId;
+            // Create a composite key of subject_id + term_id
+            let termId = getTermForSubject(this);
+            let key = subjectId + '_' + termId;
             if (subjectKeys[key]) {
                 isValid = false;
                 $(this).addClass('has-danger');

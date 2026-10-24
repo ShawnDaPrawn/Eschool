@@ -3,7 +3,7 @@ import 'dart:convert';
 import 'package:eschool/data/models/event.dart';
 import 'package:eschool_core/eschool_core.dart';
 import 'package:eschool/data/models/holiday.dart';
-import 'package:eschool/data/models/semester.dart';
+import 'package:eschool/data/models/term.dart';
 import 'package:eschool/data/models/sessionYear.dart';
 import 'package:eschool/data/models/sliderDetails.dart';
 import 'package:eschool/utils/api.dart';
@@ -167,12 +167,12 @@ class SystemRepository
     }
   }
 
-  Future<List<Semester>> fetchSemesters() async {
+  Future<List<Term>> fetchTerms() async {
     try {
-      final result = await Api.get(url: Api.semesters, useAuthToken: true);
+      final result = await Api.get(url: Api.terms, useAuthToken: true);
 
       return ((result['data'] ?? []) as List)
-          .map((item) => Semester.fromJson(Map.from(item)))
+          .map((item) => Term.fromJson(Map.from(item)))
           .toList();
     } catch (e) {
       throw ApiException(e.toString());

@@ -98,7 +98,7 @@ class _ExamTimeTableState extends State<ExamTimeTableScreen> {
                           SizedBox(
                             width: boxConstraints.maxWidth * 0.51,
                             child: Text(
-                              subjectDetails.subjectNameWithTypeAndSemester,
+                              subjectDetails.subjectNameWithTypeAndTerm,
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
                               style: TextStyle(
@@ -123,9 +123,9 @@ class _ExamTimeTableState extends State<ExamTimeTableScreen> {
                               overflow: TextOverflow.ellipsis,
                               style: TextStyle(
                                 fontSize: 10.75,
-                                color: Theme.of(
-                                  context,
-                                ).colorScheme.onSurfaceVariant,
+                                color: Theme.of(context)
+                                    .colorScheme
+                                    .onSurfaceVariant,
                               ),
                             ),
                           ),
@@ -137,9 +137,9 @@ class _ExamTimeTableState extends State<ExamTimeTableScreen> {
                         Text(
                           subjectDetails.type,
                           style: TextStyle(
-                            color: Theme.of(
-                              context,
-                            ).colorScheme.onSurfaceVariant,
+                            color: Theme.of(context)
+                                .colorScheme
+                                .onSurfaceVariant,
                             fontWeight: FontWeight.w400,
                             fontSize: 10.5,
                           ),
@@ -168,9 +168,9 @@ class _ExamTimeTableState extends State<ExamTimeTableScreen> {
                         Text(
                           '${UiUtils.formatTime(examTimeTable.startingTime!)} - ${UiUtils.formatTime(examTimeTable.endingTime!)}',
                           style: TextStyle(
-                            color: Theme.of(
-                              context,
-                            ).colorScheme.onSurfaceVariant,
+                            color: Theme.of(context)
+                                .colorScheme
+                                .onSurfaceVariant,
                             fontWeight: FontWeight.w400,
                             fontSize: 10.5,
                           ),
@@ -272,9 +272,8 @@ class _ExamTimeTableState extends State<ExamTimeTableScreen> {
                       Navigator.of(context).pop();
                     },
                     svgIconUrl: UiUtils.getBackButtonPath(context),
-                    tooltip: MaterialLocalizations.of(
-                      context,
-                    ).backButtonTooltip,
+                    tooltip: MaterialLocalizations.of(context)
+                        .backButtonTooltip,
                   ),
                 ),
               ),
@@ -320,9 +319,8 @@ class _ExamTimeTableState extends State<ExamTimeTableScreen> {
                     borderRadius: BorderRadius.circular(10),
                     boxShadow: [
                       BoxShadow(
-                        color: Theme.of(
-                          context,
-                        ).colorScheme.shadow.withValues(alpha: 0.075),
+                        color: Theme.of(context).colorScheme.shadow
+                            .withValues(alpha: 0.075),
                         offset: const Offset(2.5, 2.5),
                         blurRadius: 5,
                       ),

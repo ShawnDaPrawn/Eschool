@@ -8,9 +8,9 @@ use App\Http\Controllers\Api\Student\Concerns\StudentAccess;
 use App\Http\Controllers\Controller;
 use App\Models\ClassSchool;
 use App\Models\ElectiveSubjectGroup;
-use App\Models\Semester;
 use App\Models\Settings;
 use App\Models\StudentSubject;
+use App\Models\Term;
 use App\Services\ResponseService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
@@ -65,26 +65,27 @@ class SubjectController extends Controller
         }
         try {
 
-            $currentSemester = Semester::get()->first(function ($semester) {
-                return $semester->current;
-            });
-            $semester_id = null;
+            $term_id = null;
             $student = $request->user()->student;
             $class_section = $student->class_section;
             $class_id = $class_section->class->id;
             $session_year_id = Settings::select('message')->where('type', 'session_year')->pluck('message')->first();
             $class = ClassSchool::withSessionConfigFor((int) $session_year_id)->where('id', $class_id)->first();
 
-            $include_semester = $class?->getIncludeSemestersForSession((int) $session_year_id);
-            if ($include_semester == 1) {
-                $semester_id = $currentSemester->id;
+            $currentTerm = Term::currentForClass((int) $session_year_id, (int) $class_id);
+            $include_term = $class?->getIncludeTermsForSession((int) $session_year_id);
+            if ($include_term == 1) {
+                if ($currentTerm === null) {
+                    return ResponseService::validationError('No current term is configured for this grade.');
+                }
+                $term_id = $currentTerm->id;
             }
 
-            // The elective groups the class offers this session (and semester),
+            // The elective groups the class offers this session (and term),
             // as classSubjects() lists them to the app.
             $elective_groups = ElectiveSubjectGroup::where('class_id', $class_id)
                 ->where('session_year_id', $session_year_id)
-                ->when($semester_id, fn ($q) => $q->where('semester_id', $semester_id))
+                ->when($term_id, fn ($q) => $q->where('term_id', $term_id))
                 ->with('electiveSubjects')
                 ->get()
                 ->keyBy('id');
@@ -107,7 +108,7 @@ class SubjectController extends Controller
                 // no more than the group allows.
                 $already_selected = StudentSubject::where([
                     'student_id' => $student->id,
-                    'semester_id' => $semester_id ?? null,
+                    'term_id' => $term_id ?? null,
                     'class_section_id' => $class_section->id,
                     'session_year_id' => intval($session_year_id),
                 ])->whereIn('subject_id', $group_subject_ids)->pluck('subject_id')->map(fn ($id) => (int) $id)->all();
@@ -124,7 +125,7 @@ class SubjectController extends Controller
                     $if_subject_already_selected = StudentSubject::where([
                         'student_id' => $student->id,
                         'subject_id' => $subject_id,
-                        'semester_id' => $semester_id ?? null,
+                        'term_id' => $term_id ?? null,
                         'class_section_id' => $class_section->id,
                         'session_year_id' => intval($session_year_id),
                     ])->first();
@@ -133,7 +134,7 @@ class SubjectController extends Controller
                         $student_subject[] = [
                             'student_id' => $student->id,
                             'subject_id' => $subject_id,
-                            'semester_id' => $semester_id ?? null,
+                            'term_id' => $term_id ?? null,
                             'class_section_id' => $class_section->id,
                             'session_year_id' => intval($session_year_id),
                         ];

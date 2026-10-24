@@ -2,7 +2,6 @@
 
 namespace App\Services;
 
-use App\Actions\ResetLessonSemesters;
 use App\Actions\Transfers\TransferClassFeeType;
 use App\Actions\Transfers\TransferClassSessionConfig;
 use App\Actions\Transfers\TransferClassSubject;
@@ -22,13 +21,14 @@ use App\Models\InstallmentFee;
 use App\Models\Leave;
 use App\Models\LeaveDetail;
 use App\Models\OnlineExam;
-use App\Models\Semester;
 use App\Models\SessionYear;
 use App\Models\Settings;
 use App\Models\Students;
 use App\Models\StudentSessions;
 use App\Models\SubjectTeacher;
+use App\Models\Term;
 use App\Models\User;
+use App\Services\Academics\TermCalendar;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 
@@ -69,18 +69,18 @@ class SessionYearService
                 );
             }
 
-            if (! empty($data['semester_data'])) {
-                $this->storeSemesters(
+            if (! empty($data['term_data'])) {
+                $this->storeTerms(
                     $sessionYear->id,
-                    $data['semester_data'],
+                    $data['term_data'],
                     $startDate,
                     $endDate
                 );
             } else {
                 /*
-                    No semesters created for this session year — seed a
+                    No terms created for this session year — seed a
                     ClassSessionConfig row for every class so the table stays
-                    authoritative (each class explicitly has no semesters).
+                    authoritative (each class explicitly has no terms).
                 */
                 $this->initialiseClassSessionConfigs($sessionYear->id);
             }
@@ -111,8 +111,6 @@ class SessionYearService
             Settings::updateOrCreate(['type' => 'session_year'], ['message' => (string) $sessionYear->id]);
 
             if ($changed) {
-                // Lessons point at the old year's semesters.
-                (new ResetLessonSemesters)->execute();
                 $this->applyPromotions($sessionYear->id);
             }
         });
@@ -172,45 +170,32 @@ class SessionYearService
         }
     }
 
-    protected function storeSemesters(
+    protected function storeTerms(
         int $sessionYearId,
-        array $semesters,
+        array $terms,
         string $startDate,
         string $endDate
     ): void {
+        $year = SessionYear::query()->lockForUpdate()->findOrFail($sessionYearId);
         $rows = [];
-
-        foreach ($semesters as $semester) {
-            $semStart = Carbon::createFromFormat('d-m-Y', $semester['start_date'])->toDateString();
-            $semEnd = Carbon::createFromFormat('d-m-Y', $semester['end_date'])->toDateString();
-
-            if ($semStart < $startDate || $semEnd > $endDate) {
-                throw new \DomainException(
-                    trans('semester_dates_must_be_within_session_dates')
-                );
-            }
-
+        foreach ($terms as $term) {
             $rows[] = [
-                'name' => $semester['name'],
-                'start_date' => $semStart,
-                'end_date' => $semEnd,
-                'session_year_id' => $sessionYearId,
-                'created_at' => now(),
-                'updated_at' => now(),
+                'name' => $term['name'],
+                'starts_on' => Carbon::createFromFormat('d-m-Y', $term['start_date'])->toDateString(),
+                'ends_on' => Carbon::createFromFormat('d-m-Y', $term['end_date'])->toDateString(),
+                'grade_from' => $term['grade_from'] ?? 0, 'grade_to' => $term['grade_to'] ?? 12,
+                'marks_lock_on' => $term['marks_lock_on'] ?? null, 'reports_on' => $term['reports_on'] ?? null,
             ];
         }
-
-        if (! empty($rows)) {
-            Semester::insert($rows);
-        }
+        app(TermCalendar::class)->initialise($year, $rows);
     }
 
     /**
-     * Seed a "no semesters" ClassSessionConfig row for every class.
+     * Seed a "no terms" ClassSessionConfig row for every class.
      *
-     * Used when a session year is created without semester data, so
-     * semester-aware features can rely on an explicit
-     * include_semesters = false per class instead of a missing row.
+     * Used when a session year is created without term data, so
+     * term-aware features can rely on an explicit
+     * include_terms = false per class instead of a missing row.
      */
     protected function initialiseClassSessionConfigs(int $sessionYearId): void
     {
@@ -225,7 +210,7 @@ class SessionYearService
         $rows = array_map(static fn (int $classId): array => [
             'class_id' => $classId,
             'session_year_id' => $sessionYearId,
-            'include_semesters' => false,
+            'include_terms' => false,
             'created_at' => $now,
             'updated_at' => $now,
         ], $classIds);
@@ -235,7 +220,7 @@ class SessionYearService
         ClassSessionConfig::upsert(
             $rows,
             ['class_id', 'session_year_id'],
-            ['include_semesters', 'updated_at']
+            ['include_terms', 'updated_at']
         );
     }
 
@@ -246,7 +231,7 @@ class SessionYearService
             ? (int) $data['source_session_year_id']
             : getSettings('session_year')['session_year'];
 
-        if (! empty($data['semester_data'])) {
+        if (! empty($data['term_data'])) {
             app(TransferClassSessionConfig::class)
                 ->execute($currentSessionId, $newSessionId);
         }
@@ -281,7 +266,7 @@ class SessionYearService
                 ->execute($currentSessionId, $newSessionId);
         }
 
-        // Note: semester transfer is handled via storeSemesters() using semester_data
+        // Note: term transfer is handled via storeTerms() using term_data
     }
 
     // Clear Data of Session Year

@@ -6,17 +6,17 @@
 
 @section('content')
     @php
-        $includeSemestersForSession = $class->getIncludeSemestersForSession($sessionYearId);
+        $includeTermsForSession = $class->getIncludeTermsForSession($sessionYearId);
         $classLabel = trim($class->name . ' - ' . $class->medium->name . ' ' . ($class->streams->name ?? ''));
-        if ($includeSemestersForSession === null) {
-            $semesterLabel = 'Not Configured';
-            $semesterVariant = 'secondary';
-        } elseif ($includeSemestersForSession) {
-            $semesterLabel = __('yes');
-            $semesterVariant = 'success';
+        if ($includeTermsForSession === null) {
+            $termLabel = 'Not Configured';
+            $termVariant = 'secondary';
+        } elseif ($includeTermsForSession) {
+            $termLabel = __('yes');
+            $termVariant = 'success';
         } else {
-            $semesterLabel = __('no');
-            $semesterVariant = 'light';
+            $termLabel = __('no');
+            $termVariant = 'light';
         }
     @endphp
     <div class="content-wrapper">
@@ -69,9 +69,9 @@
                                         <x-icon name="session-year" :size="20" />
                                     </span>
                                     <div>
-                                        <span class="cs-context__label">{{ __('include_semesters') }}</span>
+                                        <span class="cs-context__label">{{ __('include_terms') }}</span>
                                         <span class="cs-context__value">
-                                            <span class="badge badge-{{ $semesterVariant }}">{{ $semesterLabel }}</span>
+                                            <span class="badge badge-{{ $termVariant }}">{{ $termLabel }}</span>
                                         </span>
                                     </div>
                                 </div>
@@ -86,15 +86,15 @@
 
                                 {{-- Template for old core subject --}}
                                 <div class="cs-subject-row edit-core-subject-div" style="display: none;">
-                                    @if ($includeSemestersForSession)
-                                        <div class="cs-field cs-field--semester semester-div">
-                                            <label class="cs-field__label">{{ __('semester') }}</label>
-                                            <select name="edit_core_subject[0][semester_id]"
-                                                class="form-control edit-core-subject-semester-id" required
+                                    @if ($includeTermsForSession)
+                                        <div class="cs-field cs-field--term term-div">
+                                            <label class="cs-field__label">{{ __('term') }}</label>
+                                            <select name="edit_core_subject[0][term_id]"
+                                                class="form-control edit-core-subject-term-id" required
                                                 disabled="true">
-                                                <option value="" hidden="">-- {{ __('Select Semester') }} --</option>
-                                                @foreach ($semesters as $semester)
-                                                    <option value="{{ $semester->id }}">{{ $semester->name }}</option>
+                                                <option value="" hidden="">-- {{ __('Select Term') }} --</option>
+                                                @foreach ($terms as $term)
+                                                    <option value="{{ $term->id }}">{{ $term->name }}</option>
                                                 @endforeach
                                             </select>
                                         </div>
@@ -127,14 +127,14 @@
 
                                 {{-- Template for New Core Subject --}}
                                 <div class="cs-subject-row core-subject-div" style="display: none;">
-                                    @if ($includeSemestersForSession)
-                                        <div class="cs-field cs-field--semester">
-                                            <label class="cs-field__label">{{ __('semester') }}</label>
-                                            <select name="core_subjects[0][semester_id]" class="form-control select2"
+                                    @if ($includeTermsForSession)
+                                        <div class="cs-field cs-field--term">
+                                            <label class="cs-field__label">{{ __('term') }}</label>
+                                            <select name="core_subjects[0][term_id]" class="form-control select2"
                                                 disabled="true" required>
-                                                <option value="" hidden="">-- {{ __('Select Semester') }} --</option>
-                                                @foreach ($semesters as $semester)
-                                                    <option value="{{ $semester->id }}">{{ $semester->name }}</option>
+                                                <option value="" hidden="">-- {{ __('Select Term') }} --</option>
+                                                @foreach ($terms as $term)
+                                                    <option value="{{ $term->id }}">{{ $term->name }}</option>
                                                 @endforeach
                                             </select>
                                         </div>
@@ -191,15 +191,15 @@
                                             class="cs-group__remove remove-elective-subject-group" />
                                     </div>
 
-                                    @if ($includeSemestersForSession)
-                                        <div class="cs-field cs-field--semester mb-3">
-                                            <label class="cs-field__label">{{ __('semester') }}</label>
-                                            <select name="edit_elective_subjects[0][semester_id]"
-                                                class="form-control select2 edit-elective-subject-semester-id"
+                                    @if ($includeTermsForSession)
+                                        <div class="cs-field cs-field--term mb-3">
+                                            <label class="cs-field__label">{{ __('term') }}</label>
+                                            <select name="edit_elective_subjects[0][term_id]"
+                                                class="form-control select2 edit-elective-subject-term-id"
                                                 disabled="true" required>
-                                                <option value="" hidden="">-- {{ __('Select Semester') }} --</option>
-                                                @foreach ($semesters as $semester)
-                                                    <option value="{{ $semester->id }}">{{ $semester->name }}</option>
+                                                <option value="" hidden="">-- {{ __('Select Term') }} --</option>
+                                                @foreach ($terms as $term)
+                                                    <option value="{{ $term->id }}">{{ $term->name }}</option>
                                                 @endforeach
                                             </select>
                                         </div>
@@ -277,14 +277,14 @@
                                             ]' />
                                     </div>
 
-                                    @if ($includeSemestersForSession)
-                                        <div class="cs-field cs-field--semester mb-3">
-                                            <label class="cs-field__label">{{ __('semester') }}</label>
-                                            <select name="elective_subjects[0][semester_id]"
-                                                class="form-control select2 semesters" disabled="true" required>
-                                                <option value="" hidden="">-- {{ __('Select Semester') }} --</option>
-                                                @foreach ($semesters as $semester)
-                                                    <option value="{{ $semester->id }}">{{ $semester->name }}</option>
+                                    @if ($includeTermsForSession)
+                                        <div class="cs-field cs-field--term mb-3">
+                                            <label class="cs-field__label">{{ __('term') }}</label>
+                                            <select name="elective_subjects[0][term_id]"
+                                                class="form-control select2 terms" disabled="true" required>
+                                                <option value="" hidden="">-- {{ __('Select Term') }} --</option>
+                                                @foreach ($terms as $term)
+                                                    <option value="{{ $term->id }}">{{ $term->name }}</option>
                                                 @endforeach
                                             </select>
                                         </div>
@@ -381,8 +381,8 @@
                     core_subject.find('.edit-core-subject-id').val(coreSubject.subject_id).prop('disabled',
                         false);
 
-                    if (coreSubject.semester_id) {
-                        core_subject.find('.edit-core-subject-semester-id').val(coreSubject.semester_id)
+                    if (coreSubject.term_id) {
+                        core_subject.find('.edit-core-subject-term-id').val(coreSubject.term_id)
                             .prop('disabled', false);
                     }
                     $('.edit-extra-core-subjects').append(core_subject);
@@ -402,9 +402,9 @@
                         .attr('max', group.total_subjects - 1);
                     subjectGroup.find('.remove-elective-subject-group').attr('data-id', group.id);
 
-                    // Set Group ID and Semester ID
+                    // Set Group ID and Term ID
                     subjectGroup.find('.edit-elective-subject-group-id').val(group.id);
-                    subjectGroup.find('.edit-elective-subject-semester-id').val(group.semester_id);
+                    subjectGroup.find('.edit-elective-subject-term-id').val(group.term_id);
 
                     var electiveSubjects = group.elective_subjects;
 
@@ -453,7 +453,7 @@
                 });
             @endif
 
-            $('.semesters').trigger('change');
+            $('.terms').trigger('change');
 
         });
     </script>

@@ -25,7 +25,7 @@ class EditAssignmentCubit extends Cubit<EditAssignmentState> {
     required int assignmentId,
     required int classSelectionId,
     required int subjectId,
-    String? semesterId,
+    String? termId,
     required String name,
     required String dateTime,
     required String instruction,
@@ -42,7 +42,7 @@ class EditAssignmentCubit extends Cubit<EditAssignmentState> {
         dateTime: dateTime,
         name: name,
         subjectId: subjectId,
-        semesterId: semesterId,
+        termId: termId,
         extraDayForResubmission: int.parse(
           extraDayForResubmission.isEmpty ? '0' : extraDayForResubmission,
         ),

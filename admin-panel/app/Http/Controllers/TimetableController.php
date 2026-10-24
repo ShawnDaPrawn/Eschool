@@ -9,11 +9,11 @@ use App\Models\ClassSection;
 use App\Models\ClassSessionConfig;
 use App\Models\ClassSubject;
 use App\Models\ClassTeacher;
-use App\Models\Semester;
 use App\Models\SessionYear;
 use App\Models\Subject;
 use App\Models\SubjectTeacher;
 use App\Models\Teacher;
+use App\Models\Term;
 use App\Models\Timetable;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
@@ -64,7 +64,7 @@ class TimetableController extends Controller
             'day' => 'required',
             'class_section_id' => 'required',
             'session_year_id' => 'required|integer',
-            'semester_id' => 'nullable|integer',
+            'term_id' => 'nullable|integer',
         ]);
 
         try {
@@ -96,20 +96,18 @@ class TimetableController extends Controller
                     $timetable = new Timetable;
                 }
 
-                $class_id = ClassSection::where('id', $class_section_id)->pluck('class_id');
+                $class_id = ClassSection::where('id', $class_section_id)->value('class_id');
                 $session_year_id = getSettings('session_year')['session_year'];
 
-                $currentSemester = Semester::where('session_year_id', $session_year_id)
-                    ->get()
-                    ->first(fn ($s) => $s->current);
+                $currentTerm = Term::currentForClass((int) $session_year_id, (int) $class_id);
 
-                $isClassHaveSemester = ClassSessionConfig::classHasSemester($class_id, $session_year_id);
+                $isClassHaveTerm = ClassSessionConfig::classHasTerm($class_id, $session_year_id);
 
                 $subject_teacher_id = SubjectTeacher::select('id')->where('subject_id', $data['subject_id'])
                     ->where('teacher_id', $data['teacher_id'])
-                    ->when($isClassHaveSemester, function ($q) use ($currentSemester) {
-                        if ($currentSemester) {
-                            $q->where('semester_id', $currentSemester->id);
+                    ->when($isClassHaveTerm, function ($q) use ($currentTerm) {
+                        if ($currentTerm) {
+                            $q->where('term_id', $currentTerm->id);
                         }
                     })
                     ->pluck('id')->first();
@@ -117,7 +115,7 @@ class TimetableController extends Controller
                 $timetable->subject_teacher_id = ($subject_teacher_id) ? ($subject_teacher_id) : 0;
                 $timetable->class_section_id = $class_section_id;
                 $timetable->session_year_id = $request->session_year_id;
-                $timetable->semester_id = $request->semester_id ?? null;
+                $timetable->term_id = $request->term_id ?? null;
                 $timetable->start_time = $data['start_time'];
                 $timetable->end_time = $data['end_time'];
                 $timetable->day = $day;
@@ -143,11 +141,11 @@ class TimetableController extends Controller
             ->where('id', $request->class_id)
             ->first();
 
-        if ($class && $class->getIncludeSemestersForSession($request->session_year_id) && $request->semester_id) {
+        if ($class && $class->getIncludeTermsForSession($request->session_year_id) && $request->term_id) {
             $subjects = ClassSubject::SubjectTeacher()
                 ->where('class_id', $request->class_id)
                 ->where('session_year_id', $request->session_year_id)
-                ->where('semester_id', $request->semester_id)
+                ->where('term_id', $request->term_id)
                 ->with('subject')
                 ->get();
         } else {
@@ -161,7 +159,7 @@ class TimetableController extends Controller
         return response($subjects);
     }
 
-    public function getClassSemesters(Request $request)
+    public function getClassTerms(Request $request)
     {
         if (! Auth::user()->can('timetable-list')) {
             return $this->noPermissionJson();
@@ -170,23 +168,23 @@ class TimetableController extends Controller
             ->where('id', $request->class_id)
             ->first();
 
-        $hasSemesters = $class && $class->getIncludeSemestersForSession($request->session_year_id);
+        $hasTerms = $class && $class->getIncludeTermsForSession($request->session_year_id);
 
-        if ($hasSemesters) {
-            $semesters = Semester::where('session_year_id', $request->session_year_id)
+        if ($hasTerms) {
+            $terms = Term::where('session_year_id', $request->session_year_id)->forClass((int) $class->id)
                 ->orderBy('id', 'ASC')
                 ->get();
         } else {
-            $semesters = collect();
+            $terms = collect();
         }
 
         return response()->json([
-            'has_semesters' => $hasSemesters,
-            'semesters' => $semesters,
+            'has_terms' => $hasTerms,
+            'terms' => $terms,
         ]);
     }
 
-    public function getClassSectionsWithSemesters(Request $request)
+    public function getClassSectionsWithTerms(Request $request)
     {
         $sessionYearId = $request->session_year_id;
         $user = Auth::user();
@@ -217,63 +215,63 @@ class TimetableController extends Controller
                 ->where('id', $section->class->id)
                 ->first();
 
-            $hasSemesters = $class && $class->getIncludeSemestersForSession($sessionYearId);
+            $hasTerms = $class && $class->getIncludeTermsForSession($sessionYearId);
 
-            if ($hasSemesters) {
-                // For class-teacher scope, show semesters from class_teachers assignments
+            if ($hasTerms) {
+                // For class-teacher scope, show terms from class_teachers assignments
                 if ($isClassTeacherScope) {
-                    $semesterIds = ClassTeacher::where('class_section_id', $section->id)
+                    $termIds = ClassTeacher::where('class_section_id', $section->id)
                         ->where('class_teacher_id', $user->teacher->id)
                         ->where('session_year_id', $sessionYearId)
-                        ->whereNotNull('semester_id')
-                        ->pluck('semester_id')
+                        ->whereNotNull('term_id')
+                        ->pluck('term_id')
                         ->unique()
                         ->values();
 
-                    $semesters = Semester::where('session_year_id', $sessionYearId)
-                        ->whereIn('id', $semesterIds)
+                    $terms = Term::where('session_year_id', $sessionYearId)->forClass((int) $class->id)
+                        ->whereIn('id', $termIds)
                         ->orderBy('id', 'ASC')
                         ->get();
                 } elseif ($isTeacher) {
-                    // For subject-teacher scope, only show semesters they are assigned to
-                    $semesters = Semester::where('session_year_id', $sessionYearId)
+                    // For subject-teacher scope, only show terms they are assigned to
+                    $terms = Term::where('session_year_id', $sessionYearId)->forClass((int) $class->id)
                         ->whereIn('id', function ($q) use ($section, $sessionYearId, $user) {
-                            $q->select('semester_id')
+                            $q->select('term_id')
                                 ->from('subject_teachers')
                                 ->where('class_section_id', $section->id)
                                 ->where('session_year_id', $sessionYearId)
                                 ->where('teacher_id', $user->teacher->id)
-                                ->whereNotNull('semester_id')
+                                ->whereNotNull('term_id')
                                 ->whereNull('deleted_at');
                         })
                         ->orderBy('id', 'ASC')
                         ->get();
                 } else {
-                    $semesters = Semester::where('session_year_id', $sessionYearId)
+                    $terms = Term::where('session_year_id', $sessionYearId)->forClass((int) $class->id)
                         ->orderBy('id', 'ASC')
                         ->get();
                 }
 
-                foreach ($semesters as $semester) {
-                    $semesterStartDate = is_string($semester->start_date)
-                        ? date('d-m-Y', strtotime($semester->start_date))
-                        : $semester->start_date->format('d-m-Y');
+                foreach ($terms as $term) {
+                    $termStartDate = is_string($term->start_date)
+                        ? date('d-m-Y', strtotime($term->start_date))
+                        : $term->start_date->format('d-m-Y');
 
-                    $semesterEndDate = is_string($semester->end_date)
-                        ? date('d-m-Y', strtotime($semester->end_date))
-                        : $semester->end_date->format('d-m-Y');
+                    $termEndDate = is_string($term->end_date)
+                        ? date('d-m-Y', strtotime($term->end_date))
+                        : $term->end_date->format('d-m-Y');
 
                     $label = $section->class->name.' '.$section->section->name
                         .' - '.$section->class->medium->name
                         .($section->class->streams->name ?? '')
-                        .' - '.$semester->name;
+                        .' - '.$term->name;
 
                     $result[] = [
                         'class_section_id' => $section->id,
                         'class_id' => $section->class->id,
-                        'semester_id' => $semester->id,
-                        'semester_start_date' => $semesterStartDate,
-                        'semester_end_date' => $semesterEndDate,
+                        'term_id' => $term->id,
+                        'term_start_date' => $termStartDate,
+                        'term_end_date' => $termEndDate,
                         'label' => $label,
                     ];
                 }
@@ -285,9 +283,9 @@ class TimetableController extends Controller
                 $result[] = [
                     'class_section_id' => $section->id,
                     'class_id' => $section->class->id,
-                    'semester_id' => null,
-                    'semester_start_date' => null,
-                    'semester_end_date' => null,
+                    'term_id' => null,
+                    'term_start_date' => null,
+                    'term_end_date' => null,
                     'label' => $label,
                 ];
             }
@@ -312,10 +310,8 @@ class TimetableController extends Controller
             // Not a homeroom of this school.
             return response()->json(['error' => true, 'message' => trans('no_data_found')], 404);
         }
-        $isClassHasSemester = ClassSessionConfig::classHasSemester($classId, $request->session_year_id);
-        $currentSemester = Semester::where('session_year_id', $request->session_year_id)
-            ->get()
-            ->first(fn ($s) => $s->current);
+        $isClassHasTerm = ClassSessionConfig::classHasTerm($classId, $request->session_year_id);
+        $currentTerm = Term::currentForClass((int) $request->session_year_id, (int) $classId);
 
         $teacher = SubjectTeacher::where([
             'class_section_id' => $request->class_section_id,
@@ -323,8 +319,8 @@ class TimetableController extends Controller
             'session_year_id' => $request->session_year_id,
         ])
             ->with('teacher')
-            ->when($isClassHasSemester && $currentSemester, function ($query) use ($currentSemester) {
-                $query->where('semester_id', $currentSemester->id);
+            ->when($isClassHasTerm && $currentTerm, function ($query) use ($currentTerm) {
+                $query->where('term_id', $currentTerm->id);
             })
             ->get();
 
@@ -344,8 +340,8 @@ class TimetableController extends Controller
             'day' => $request->day,
         ]);
 
-        if ($request->semester_id) {
-            $query->where('semester_id', $request->semester_id);
+        if ($request->term_id) {
+            $query->where('term_id', $request->term_id);
         }
 
         return response($query->get());
@@ -418,8 +414,8 @@ class TimetableController extends Controller
         $query = Timetable::where('class_section_id', $request->class_section_id)
             ->where('session_year_id', $request->session_year_id);
 
-        if ($request->semester_id) {
-            $query->where('semester_id', $request->semester_id);
+        if ($request->term_id) {
+            $query->where('term_id', $request->term_id);
         }
 
         $timetable = (clone $query)->with('subject_teacher')
@@ -473,7 +469,7 @@ class TimetableController extends Controller
         $timetable = [];
         $day = [];
         for ($i = 0; $i < count($subject_teacher); $i++) {
-            $timetable[] = Timetable::with('subject_teacher', 'class_section', 'semester')
+            $timetable[] = Timetable::with('subject_teacher', 'class_section', 'term')
                 ->where('session_year_id', $request->session_year_id)
                 ->where('subject_teacher_id', $subject_teacher[$i])
                 ->get();
@@ -505,11 +501,11 @@ class TimetableController extends Controller
                 ->where('session_year_id', $request->session_year_id)
                 ->where('class_section_id', $request->class_section_id);
 
-            if ($request->semester_id) {
-                $timetableQuery->where('semester_id', $request->semester_id);
+            if ($request->term_id) {
+                $timetableQuery->where('term_id', $request->term_id);
             }
 
-            $timetable = (clone $timetableQuery)->with('subject_teacher', 'class_section', 'semester')
+            $timetable = (clone $timetableQuery)->with('subject_teacher', 'class_section', 'term')
                 ->orderBy('day', 'asc')->get();
 
             $day = (clone $timetableQuery)->select('day', 'day_name')
@@ -518,7 +514,7 @@ class TimetableController extends Controller
             $timetableQuery = Timetable::whereIn('subject_teacher_id', $subject_teacher_id)
                 ->where('session_year_id', $request->session_year_id);
 
-            $timetable = (clone $timetableQuery)->with('subject_teacher', 'class_section', 'semester')
+            $timetable = (clone $timetableQuery)->with('subject_teacher', 'class_section', 'term')
                 ->orderBy('day', 'asc')->get();
 
             $day = (clone $timetableQuery)->select('day', 'day_name')

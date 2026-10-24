@@ -1,4 +1,4 @@
-This page explains the two exam systems in the admin panel: **offline exams** (papers sat in school, marks typed in by teachers, results published with grades and printed as report cards) and **online exams** (multiple-choice tests taken in the student app and scored automatically). It covers the tables, the computations, publishing, PDF generation, the 2026 anti-cheating changes and how semesters affect both. For the admin screens step by step, see [Online and Offline Exams](https://shawndaprawn.github.io/Eschool/features/exams/) in the end-user docs.
+This page explains the two exam systems in the admin panel: **offline exams** (papers sat in school, marks typed in by teachers, results published with grades and printed as report cards) and **online exams** (multiple-choice tests taken in the student app and scored automatically). It covers the tables, the computations, publishing, PDF generation, the 2026 anti-cheating changes and how terms affect both. For the admin screens step by step, see [Online and Offline Exams](https://shawndaprawn.github.io/Eschool/features/exams/) in the end-user docs.
 
 ## At a glance
 
@@ -47,7 +47,7 @@ It returns an empty string when the year has no bands and `null` when no band co
 
 ### 2. Creating the exam
 
-`Exam\ExamController::store` (permission `exam-create`) takes `name`, `description`, `session_year_id`, optional `semester_id` and `class_id[]`, creates the `exams` row (`publish = 0`) and one `exam_classes` row per class. `update` changes the name, description and semester and adds or removes exam classes; `destroy` soft-deletes the exam, and `Exam::booted()` cascades to its marks, timetables, results and exam classes. `deleteExamClass($exam_id, $class_id)` removes a single class.
+`Exam\ExamController::store` (permission `exam-create`) takes `name`, `description`, `session_year_id`, optional `term_id` and `class_id[]`, creates the `exams` row (`publish = 0`) and one `exam_classes` row per class. `update` changes the name, description and term and adds or removes exam classes; `destroy` soft-deletes the exam, and `Exam::booted()` cascades to its marks, timetables, results and exam classes. `deleteExamClass($exam_id, $class_id)` removes a single class.
 
 All offline-exam admin actions, including publishing, check `exam-create`; the seeded `exam-list`, `exam-edit` and `exam-delete` permissions are not used.
 
@@ -134,8 +134,8 @@ PDFs are rendered with dompdf (`barryvdh/laravel-dompdf` `^3.1`, facade `PDF`/`P
 
 | Generator | Access | Template | Content |
 |---|---|---|---|
-| `Student\ResultController::generateResult($id)` | `generate-result` | `students.result_template` | All **published** exams of the current session year that have papers in the student's subjects (core plus electives, semester filter ignored). Per subject: marks per exam, totals and a grade; overall total, percentage, grade and Passed/Failed. Streamed as `result.pdf` |
-| `Student\ResultController::generateExamResult($id)` | `view-exam-result` | `students.exam_result_template` | One published exam. Query string `exam_id` (required), `session_year_id` (defaults to current), `semester_id` (optional filter on the exam). Only subjects that are in both the student's subject list and the exam timetable |
+| `Student\ResultController::generateResult($id)` | `generate-result` | `students.result_template` | All **published** exams of the current session year that have papers in the student's subjects (core plus electives, term filter ignored). Per subject: marks per exam, totals and a grade; overall total, percentage, grade and Passed/Failed. Streamed as `result.pdf` |
+| `Student\ResultController::generateExamResult($id)` | `view-exam-result` | `students.exam_result_template` | One published exam. Query string `exam_id` (required), `session_year_id` (defaults to current), `term_id` (optional filter on the exam). Only subjects that are in both the student's subject list and the exam timetable |
 | `Teacher\ExamController::getStudentResultPdf` (`GET /api/teacher/get-student-result-pdf`) | Teacher who teaches the student | `students.result_template` | Same report as `generateResult`, returned base64-encoded in the JSON `pdf` field |
 
 The grades printed in these PDFs are looked up directly with `Grade::where('starting_range', '<=', $p)->where('ending_range', '>=', $p)` on the **rounded** percentage, without a session-year filter, so the first matching band of any year is used. `findExamGrade()` (used when saving marks and publishing) filters by session year and uses `floor()`. The two can disagree when bands differ between years.
@@ -162,7 +162,7 @@ The grades printed in these PDFs are looked up directly with `Grade::where('star
 | Step | Table | Created by |
 |---|---|---|
 | Question bank | `online_exam_questions` (`class_subject_id`, `question_type` 0 simple / 1 equation based, `question`, `image_url`, `note`, `session_year_id`) with `online_exam_question_options` and `online_exam_question_answers` (one row per correct option) | `OnlineExamQuestionController::store` / `update`, or CSV import (`storeBulkData`) |
-| Exam | `online_exams` (`model_type`/`model_id`, `subject_id`, `title`, `exam_key`, `duration` minutes, `start_date`, `end_date`, `session_year_id`, `semester_id`) | `OnlineExamController::store` |
+| Exam | `online_exams` (`model_type`/`model_id`, `subject_id`, `title`, `exam_key`, `duration` minutes, `start_date`, `end_date`, `session_year_id`, `term_id`) | `OnlineExamController::store` |
 | Questions placed in the exam | `online_exam_question_choices` (`online_exam_id`, `question_id`, `marks`) | `OnlineExamController::storeQuestionsChoices` |
 | Attempt | `student_online_exam_statuses` (`status` 1 in progress, 2 completed) | Student API, when questions are fetched |
 | Answers | `online_exam_student_answers` (one row per selected option; `question_id` holds the **choice** id) | Student API, on submit |
@@ -179,9 +179,9 @@ Details:
 
 All routes are in the `/api/student` group (`auth:sanctum`, `role:Student`, `student.session.active`).
 
-1. **`GET get-online-exam-list`** returns exams for the student's class section or class in the current session year whose `end_date` has not passed, that have at least one question, that the student has not attempted, and whose subject is one of the student's subjects (or the given `subject_id`). When the class uses semesters and a semester is current, only exams with that `semester_id` are listed. The `exam_key` is **not** included.
+1. **`GET get-online-exam-list`** returns exams for the student's class section or class in the current session year whose `end_date` has not passed, that have at least one question, that the student has not attempted, and whose subject is one of the student's subjects (or the given `subject_id`). When the class uses terms and a term is current, only exams with that `term_id` are listed. The `exam_key` is **not** included.
 2. **`GET get-online-exam-questions`** (`exam_id`, `exam_key`):
-   - The exam is looked up with `findStudentOnlineExam()`: same session year, the student's subjects, the student's class or section, and the current semester when applicable. Someone else's exam gives "Invalid Exam Key".
+   - The exam is looked up with `findStudentOnlineExam()`: same session year, the student's subjects, the student's class or section, and the current term when applicable. Someone else's exam gives "Invalid Exam Key".
    - Refused before `start_date` (`exam_not_started_yet`, 106) or after `end_date`. These come before the key check, so keys can't be guessed for an exam that isn't open.
    - The key is compared with `hash_equals()`; a wrong key gives "Invalid Exam Key" (103). After 5 wrong keys for one exam, the student is refused (code 429) for 10 minutes even with the right key; the right key clears the count.
    - Refused if an attempt row already exists (`student_already_attempted_exam`, code 105).
@@ -220,16 +220,16 @@ Before this commit the questions endpoint sent the correct answers, the exam lis
 - Submitted options must belong to the right questions.
 - All scoring goes through the exact-set rule above.
 
-## Semesters and exams
+## Terms and exams
 
-When a class has semesters enabled for the session year (`class_session_configs.include_semesters`):
+When a class has terms enabled for the session year (`class_session_configs.include_terms`):
 
-- `exams.semester_id` and `online_exams.semester_id` can be set when the exam is created (both nullable).
-- `GET /api/student/get-exam-list` accepts `semester_id`; without it the current semester is used. The filter is applied only when the class has semesters and a semester was found.
-- The online exam list and `findStudentOnlineExam()` restrict to the current semester's exams, so a semester-tagged exam is not reachable once its semester is over.
-- `Student\ResultController::generateExamResult` accepts a `semester_id` filter; `generateResult` reports the whole year and ignores semesters.
-- Migration `2026_04_28_165603_semester_id_backfill` set `semester_id` on existing exams from the earliest paper date, and on online exams from the start date, where the date fell inside a semester of the same session year.
-- Switching a class's semester setting with `ClassSessionConfigService::saveConfig()`, or deleting the last semester of a year, **force-deletes** that class's offline exams (with timetables, marks and results) and online exams for the session year. See [Academic Structure](Academic-Structure#classsessionconfigservice).
+- `exams.term_id` and `online_exams.term_id` can be set when the exam is created (both nullable).
+- `GET /api/student/get-exam-list` accepts `term_id`; without it the current term is used. The filter is applied only when the class has terms and a term was found.
+- The online exam list and `findStudentOnlineExam()` restrict to the current term's exams, so a term-tagged exam is not reachable once its term is over.
+- `Student\ResultController::generateExamResult` accepts a `term_id` filter; `generateResult` reports the whole year and ignores terms.
+- Migration `2026_04_28_165603_term_id_backfill` set `term_id` on existing exams from the earliest paper date, and on online exams from the start date, where the date fell inside a term of the same session year.
+- Switching a class's term setting with `ClassSessionConfigService::saveConfig()`, or deleting the last term of a year, **force-deletes** that class's offline exams (with timetables, marks and results) and online exams for the session year. See [Academic Structure](Academic-Structure#classsessionconfigservice).
 
 ## See also
 

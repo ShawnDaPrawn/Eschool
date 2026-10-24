@@ -11,7 +11,7 @@ class TransferClassSessionConfig
     public function execute(int $currentSessionId, int $newSessionId): void
     {
         $previousConfigs = ClassSessionConfig::where('session_year_id', $currentSessionId)
-            ->get(['class_id', 'include_semesters']);
+            ->get(['class_id', 'include_terms']);
 
         if ($previousConfigs->isEmpty()) {
             return;
@@ -28,7 +28,7 @@ class TransferClassSessionConfig
             ->map(fn ($config) => [
                 'class_id' => $config->class_id,
                 'session_year_id' => $newSessionId,
-                'include_semesters' => $config->include_semesters,
+                'include_terms' => $config->include_terms,
                 'created_at' => $now,
                 'updated_at' => $now,
             ])

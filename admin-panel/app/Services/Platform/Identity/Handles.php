@@ -7,8 +7,8 @@ namespace App\Services\Platform\Identity;
 use App\Models\Platform\HandleProposal;
 use App\Models\Platform\School;
 use App\Models\Platform\SchoolMembership;
-use App\Models\Semester;
 use App\Models\Students;
+use App\Models\Term;
 use App\Models\User;
 use App\Services\Platform\Audit\Audit;
 use App\Services\Platform\Events\ContextChanged;
@@ -152,7 +152,7 @@ class Handles
             return null;
         }
         $schoolIds = SchoolMembership::query()->active()->where('user_id', $user->id)->select('school_id');
-        $overlappingTerm = Semester::acrossSchools()->whereIn('school_id', $schoolIds)
+        $overlappingTerm = Term::acrossSchools()->whereIn('school_id', $schoolIds)
             ->whereDate('start_date', '<=', CarbonImmutable::parse($last->created_at)->toDateString())
             ->whereDate('end_date', '>=', now()->toDateString())->max('end_date');
 
@@ -187,7 +187,7 @@ class Handles
         // Use the latest end among overlapping terms at this human's schools;
         // switching schools cannot bypass the once-per-term limit.
         $schoolIds = SchoolMembership::query()->active()->where('user_id', $user->id)->select('school_id');
-        $termEnd = Semester::acrossSchools()->whereIn('school_id', $schoolIds)->whereDate('start_date', '<=', now()->toDateString())
+        $termEnd = Term::acrossSchools()->whereIn('school_id', $schoolIds)->whereDate('start_date', '<=', now()->toDateString())
             ->whereDate('end_date', '>=', now()->toDateString())->max('end_date');
         $termEnd ??= CarbonImmutable::now()->endOfQuarter()->toDateString();
         $user->forceFill(['handle' => $handle])->save();

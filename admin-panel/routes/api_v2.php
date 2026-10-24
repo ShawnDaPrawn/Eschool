@@ -2,6 +2,8 @@
 
 declare(strict_types=1);
 
+use App\Http\Controllers\Api\V2\Academics\AcademicReferenceController;
+use App\Http\Controllers\Api\V2\Academics\TermCalendarController;
 use App\Http\Controllers\Api\V2\People\EnrolmentController;
 use App\Http\Controllers\Api\V2\People\ProfileConfigurationController;
 use App\Http\Controllers\Api\V2\People\ProfileController;
@@ -12,6 +14,8 @@ use App\Http\Controllers\Api\V2\Platform\GuardianInvitationController;
 use App\Http\Controllers\Api\V2\Platform\HandleController;
 use App\Http\Controllers\Api\V2\Platform\NotificationPreferenceController;
 use App\Http\Controllers\Api\V2\School\MySchoolController;
+use App\Http\Middleware\AuthorizeClassGrade;
+use App\Http\Middleware\AuthorizeTermCalendar;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -34,6 +38,22 @@ use Illuminate\Support\Facades\Route;
 | New endpoints follow the domain recipe: a thin controller in
 | Api/V2/<Domain>, a FormRequest, a service and a JSON Resource.
 */
+
+// Keep fresh class permissions ahead of idempotent replay as well as validation.
+Route::prefix('academics')->middleware(['auth:sanctum', 'school.context', 'role.any', 'learner.approved', 'module:academics', 'cache.headers:private;no_store'])->name('api.v2.academics.')->group(function () {
+    Route::get('terms', [TermCalendarController::class, 'index'])->name('terms.index');
+    Route::post('terms', [TermCalendarController::class, 'store'])->middleware([AuthorizeTermCalendar::class.':create', 'idempotent'])->name('terms.store');
+    Route::put('terms/{term}', [TermCalendarController::class, 'update'])->whereNumber('term')->middleware([AuthorizeTermCalendar::class.':edit', 'idempotent'])->name('terms.update');
+    Route::delete('terms/{term}', [TermCalendarController::class, 'destroy'])->whereNumber('term')->middleware([AuthorizeTermCalendar::class.':delete', 'idempotent'])->name('terms.destroy');
+    Route::get('term-templates', [TermCalendarController::class, 'templates'])->middleware(AuthorizeTermCalendar::class.':list')->name('term-templates.index');
+    Route::post('term-templates', [TermCalendarController::class, 'saveTemplate'])->middleware([AuthorizeTermCalendar::class.':create', 'idempotent'])->name('term-templates.store');
+    Route::post('term-templates/{template}/apply', [TermCalendarController::class, 'applyTemplate'])->whereNumber('template')->middleware([AuthorizeTermCalendar::class.':apply', 'idempotent'])->name('term-templates.apply');
+    Route::get('reference', [AcademicReferenceController::class, 'index'])->name('reference');
+    Route::middleware([AuthorizeClassGrade::class, 'idempotent'])->group(function () {
+        Route::get('classes/{class}/grade-level', [AcademicReferenceController::class, 'show'])->whereNumber('class')->name('class-grade.show');
+        Route::put('classes/{class}/grade-level', [AcademicReferenceController::class, 'update'])->whereNumber('class')->name('class-grade.update');
+    });
+});
 
 // Every signed-in profile: the user, their schools, the current school and
 // what the apps need on launch.

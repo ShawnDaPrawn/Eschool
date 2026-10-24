@@ -13,8 +13,8 @@ use App\Models\ExamClass;
 use App\Models\ExamMarks;
 use App\Models\ExamResult;
 use App\Models\ExamTimetable;
-use App\Models\Semester;
 use App\Models\StudentSessions;
+use App\Models\Term;
 use App\Services\ResponseService;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
@@ -35,7 +35,7 @@ class ExamController extends Controller
             'child_id' => 'required|nullable',
             'status' => 'nullable:digits:0,1,2,3',
             'get_timetable' => 'nullable',
-            'semester_id' => 'nullable|numeric|exists:semesters,id',
+            'term_id' => 'nullable|numeric|exists:terms,id',
         ]);
         if ($validator->fails()) {
             return ResponseService::validationError($validator->errors()->first());
@@ -61,21 +61,19 @@ class ExamController extends Controller
 
             $subject_id = array_merge($core_subjects, $elective_subjects);
 
-            if ($request->filled('semester_id')) {
-                $semester_id = Semester::where('id', $request->semester_id)
-                    // ->where('session_year_id', $session_year_id) //not needed because semester id is unique across all session years
+            if ($request->filled('term_id')) {
+                $term_id = Term::where('id', $request->term_id)
+                    // ->where('session_year_id', $session_year_id) //not needed because term id is unique across all session years
                     ->first();
 
-                if (! $semester_id) {
-                    return ResponseService::validationError('Invalid semester id.');
+                if (! $term_id) {
+                    return ResponseService::validationError('Invalid term id.');
                 }
             } else {
-                $semester_id = Semester::where('session_year_id', $session_year_id)
-                    ->get()
-                    ->first(fn ($s) => $s->current);
+                $term_id = Term::currentForClass((int) $session_year_id, (int) $class_id);
             }
 
-            $isClassHaveSemester = ClassSessionConfig::classHasSemester(
+            $isClassHaveTerm = ClassSessionConfig::classHasTerm(
                 $class_id,
                 $session_year_id
             );
@@ -85,9 +83,9 @@ class ExamController extends Controller
                 ->whereHas('exam.timetable', function ($query) use ($subject_id) {
                     $query->whereIn('subject_id', $subject_id);
                 })
-                ->when($isClassHaveSemester, function ($query) use ($semester_id) {
-                    $query->whereHas('exam', function ($q) use ($semester_id) {
-                        $q->where('semester_id', $semester_id->id);
+                ->when($isClassHaveTerm, function ($query) use ($term_id) {
+                    $query->whereHas('exam', function ($q) use ($term_id) {
+                        $q->where('term_id', $term_id->id);
                     });
                 })
                 ->get();
@@ -276,11 +274,9 @@ class ExamController extends Controller
 
             $class_id = StudentSessions::where('student_id', $student->id)->where('session_year_id', $session_year_id)->with('class_section')->first()->class_section->class_id;
 
-            $currentSemester = Semester::get()->first(function ($semester) {
-                return $semester->current;
-            });
+            $currentTerm = Term::currentForClass((int) $session_year_id, (int) $class_id);
 
-            $isClassHaveSemester = ClassSessionConfig::classHasSemester(
+            $isClassHaveTerm = ClassSessionConfig::classHasTerm(
                 $class_id,
                 $session_year_id
             );
@@ -297,8 +293,8 @@ class ExamController extends Controller
                 },
             ])
                 ->where('id', $request->exam_id)
-                ->when($isClassHaveSemester, function ($query) use ($currentSemester) {
-                    $query->where('semester_id', $currentSemester->id);
+                ->when($isClassHaveTerm, function ($query) use ($currentTerm) {
+                    $query->where('term_id', $currentTerm?->id);
                 })
                 ->first();
 
@@ -314,7 +310,7 @@ class ExamController extends Controller
     {
         $validator = Validator::make($request->all(), [
             'child_id' => 'required|numeric|exists:students,id',
-            'semester_id' => 'nullable|numeric|exists:semesters,id',
+            'term_id' => 'nullable|numeric|exists:terms,id',
             'session_year_id' => 'nullable|integer',
         ]);
         if ($validator->fails()) {
@@ -336,30 +332,28 @@ class ExamController extends Controller
             }
 
             $class_id = $studentSession->class_section->class_id;
-            $isClassHaveSemester = ClassSessionConfig::classHasSemester($class_id, $session_year_id);
+            $isClassHaveTerm = ClassSessionConfig::classHasTerm($class_id, $session_year_id);
 
-            $semesterId = null;
-            if ($isClassHaveSemester) {
-                if ($request->filled('semester_id')) {
-                    $semester = Semester::where('id', $request->semester_id)
+            $termId = null;
+            if ($isClassHaveTerm) {
+                if ($request->filled('term_id')) {
+                    $term = Term::where('id', $request->term_id)
                         ->where('session_year_id', $session_year_id)
                         ->first();
 
-                    if (! $semester) {
-                        return ResponseService::validationError('Invalid semester_id for current session year.');
+                    if (! $term) {
+                        return ResponseService::validationError('Invalid term_id for current session year.');
                     }
 
-                    $semesterId = $semester->id;
+                    $termId = $term->id;
                 } elseif (! $request->filled('session_year_id')) {
-                    $currentSemester = Semester::where('session_year_id', $session_year_id)
-                        ->get()
-                        ->first(fn ($semester) => $semester->current);
+                    $currentTerm = Term::currentForClass((int) $session_year_id, (int) $class_id);
 
-                    if (! $currentSemester) {
-                        return ResponseService::validationError('Current semester not found for current session year.');
+                    if (! $currentTerm) {
+                        return ResponseService::validationError('Current term not found for current session year.');
                     }
 
-                    $semesterId = $currentSemester->id;
+                    $termId = $currentTerm?->id;
                 }
             }
 
@@ -367,9 +361,9 @@ class ExamController extends Controller
                 $q->select('id', 'user_id', 'roll_number')->with('user:id,first_name,last_name');
             }])->with('exam', 'session_year:id,name')->where('student_id', $child->id)
                 ->where('session_year_id', $session_year_id)
-                ->when($isClassHaveSemester && $semesterId, function ($query) use ($semesterId) {
-                    $query->whereHas('exam', function ($q) use ($semesterId) {
-                        $q->where('semester_id', $semesterId);
+                ->when($isClassHaveTerm && $termId, function ($query) use ($termId) {
+                    $query->whereHas('exam', function ($q) use ($termId) {
+                        $q->where('term_id', $termId);
                     });
                 })
                 ->get();

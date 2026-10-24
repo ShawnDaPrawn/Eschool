@@ -28,10 +28,10 @@
 
                         <div class="row align-items-end mt-3">
                             <div class="form-group col-sm-12 col-md-2">
-                                <label for="filter_semester_id" class="form-label text-nowrap">
-                                    {{ __('semester') }}
+                                <label for="filter_term_id" class="form-label text-nowrap">
+                                    {{ __('term') }}
                                 </label>
-                                <select name="filter_semester_id" id="filter_semester_id" class="form-control">
+                                <select name="filter_term_id" id="filter_term_id" class="form-control">
                                     <option value="">{{ __('all') }}</option>
                                 </select>
                             </div>
@@ -289,34 +289,34 @@
         }
 
        
-        function loadSemesters() {
+        function loadTerms() {
             let session_year_id = $('#filter_session_year_global').val();
-            let $semesterSelect = $('#filter_semester_id');
-            $semesterSelect.html('<option value="">{{ __('all') }}</option>');
+            let $termSelect = $('#filter_term_id');
+            $termSelect.html('<option value="">{{ __('all') }}</option>');
             if (!session_year_id) return;
 
-            let semUrl = baseUrl + '/session-year/' + session_year_id + '/semesters';
+            let semUrl = baseUrl + '/session-year/' + session_year_id + '/terms';
             ajaxRequest('GET', semUrl, null, null, function(response) {
-                var semesters = response.data || [];
+                var terms = response.data || [];
                 var html = '<option value="">{{ __('all') }}</option>';
-                $.each(semesters, function(i, sem) {
+                $.each(terms, function(i, sem) {
                     html += '<option value="' + sem.id + '">' + sem.name + '</option>';
                 });
-                $semesterSelect.html(html);
+                $termSelect.html(html);
             });
         }
 
         $('#filter_session_year_global').on('change', function() {
-            loadSemesters();
+            loadTerms();
             $('#table_list').bootstrapTable('refresh');
         });
 
-        $('#filter_semester_id').on('change', function() {
+        $('#filter_term_id').on('change', function() {
             $('#table_list').bootstrapTable('refresh');
         });
 
         $(document).ready(function() {
-            loadSemesters();
+            loadTerms();
         });
     </script>
 @endsection

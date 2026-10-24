@@ -1,7 +1,7 @@
 <?php
 
-use App\Models\Semester;
 use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Query\Builder;
 use Illuminate\Support\Facades\DB;
 
 return new class extends Migration
@@ -18,13 +18,20 @@ return new class extends Migration
         $currentSessionYearId = $settings['session_year'];
 
         // Guard 2: Skip if no semesters exist at all
-        if (! Semester::exists()) {
+        if (! $this->semesters()->exists()) {
             return;
         }
 
         // Guard 3: Skip if no active semester exists for current session year
-        $currentSemester = Semester::where('session_year_id', $currentSessionYearId)->get()->first(function ($semester) {
-            return $semester->current;
+        $currentSemester = $this->semesters()->where('session_year_id', $currentSessionYearId)->get()->first(function ($semester) {
+            $now = now()->startOfDay();
+            if (! $semester->start_date || ! $semester->end_date) {
+                return false;
+            }
+
+            return $semester->start_date > $semester->end_date
+                ? $now->gte($semester->start_date) || $now->lte($semester->end_date)
+                : $now->between($semester->start_date, $semester->end_date);
         });
 
         if (! $currentSemester) {
@@ -72,7 +79,7 @@ return new class extends Migration
             ->update(['semester_id' => $currentSemester->id]);
 
         // 5. CLASS TEACHERS → assign to ALL semesters of the current session year
-        $allSemesters = Semester::where('session_year_id', $currentSessionYearId)->get();
+        $allSemesters = $this->semesters()->where('session_year_id', $currentSessionYearId)->get();
 
         foreach ($allSemesters as $semester) {
             if ($semester->id === $currentSemester->id) {
@@ -107,5 +114,11 @@ return new class extends Migration
     public function down(): void
     {
         // Not safely reversible
+    }
+
+    // Frozen pre-terms schema: do not load a current application model here.
+    private function semesters(): Builder
+    {
+        return DB::table('semesters')->whereNull('deleted_at');
     }
 };

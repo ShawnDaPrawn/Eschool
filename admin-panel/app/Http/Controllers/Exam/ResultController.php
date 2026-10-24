@@ -33,7 +33,7 @@ class ResultController extends Controller
         $currentSessionYearId = session('session_year', $systemDefaultSessionYearId);
         $session_years = SessionYear::orderBy('id', 'ASC')->get();
 
-        $allowedSemesterMap = [];
+        $allowedTermMap = [];
 
         if (Auth::user()->hasRole('Super Admin')) {
             $classes = ClassSection::with([
@@ -43,15 +43,15 @@ class ResultController extends Controller
                 'class.streams',
                 'streams',
                 'class.allSubjects' => fn ($q) => $q
-                    ->select('id', 'class_id', 'semester_id', 'session_year_id')
-                    ->whereNotNull('semester_id')
+                    ->select('id', 'class_id', 'term_id', 'session_year_id')
+                    ->whereNotNull('term_id')
                     ->when($currentSessionYearId, fn ($q) => $q->where('session_year_id', $currentSessionYearId)),
-                'class.allSubjects.semester:id,name',
+                'class.allSubjects.term:id,name',
             ])->get();
 
-            $allowedSemesterMap = $classes->mapWithKeys(fn ($cs) => [
+            $allowedTermMap = $classes->mapWithKeys(fn ($cs) => [
                 $cs->id => $cs->class->allSubjects
-                    ->pluck('semester')
+                    ->pluck('term')
                     ->filter()
                     ->unique('id')
                     ->map(fn ($s) => ['id' => $s->id, 'name' => $s->name])
@@ -61,7 +61,7 @@ class ResultController extends Controller
         } else {
             $teacher_id = Auth::user()->teacher->id;
 
-            $classTeacherRecords = ClassTeacher::with('semester:id,name')
+            $classTeacherRecords = ClassTeacher::with('term:id,name')
                 ->where('class_teacher_id', $teacher_id)
                 ->where('session_year_id', $currentSessionYearId)
                 ->get();
@@ -70,12 +70,12 @@ class ResultController extends Controller
                 ->whereIn('id', $classTeacherRecords->pluck('class_section_id')->unique())
                 ->get();
 
-            $allowedSemesterMap = $classTeacherRecords
-                ->filter(fn ($r) => ! is_null($r->semester_id) && $r->semester)
+            $allowedTermMap = $classTeacherRecords
+                ->filter(fn ($r) => ! is_null($r->term_id) && $r->term)
                 ->groupBy('class_section_id')
                 ->map(
                     fn ($group) => $group
-                        ->map(fn ($r) => ['id' => $r->semester_id, 'name' => $r->semester->name])
+                        ->map(fn ($r) => ['id' => $r->term_id, 'name' => $r->term->name])
                         ->unique('id')
                         ->values()
                         ->toArray()
@@ -97,7 +97,7 @@ class ResultController extends Controller
             'classes',
             'session_years',
             'currentSessionYearId',
-            'allowedSemesterMap',
+            'allowedTermMap',
             'classOptions'
         ));
     }
@@ -139,7 +139,7 @@ class ResultController extends Controller
             'exam_id' => 'required|exists:exams,id',
             'class_section_id' => 'required|exists:class_sections,id',
             'session_year_id' => 'required|numeric',
-            'semester_id' => 'nullable|integer',
+            'term_id' => 'nullable|integer',
         ]);
 
         if ($validator->fails()) {
@@ -164,9 +164,9 @@ class ResultController extends Controller
                     'class_section_id' => $request->class_section_id,
                     'session_year_id' => $request->session_year_id,
                 ])
-                ->when($request->semester_id, function ($query) use ($request) {
+                ->when($request->term_id, function ($query) use ($request) {
                     $query->whereHas('exam', function ($q) use ($request) {
-                        $q->where('semester_id', $request->semester_id);
+                        $q->where('term_id', $request->term_id);
                     });
                 })
                 ->get()
@@ -221,7 +221,7 @@ class ResultController extends Controller
                 if (Auth::user()->can('generate-result')) {
                     $operate = '<a href="'.route('generate.exam.result', [
                         'id' => $student->id,
-                        'semester_id' => $request->semester_id,
+                        'term_id' => $request->term_id,
                         'exam_id' => $request->exam_id,
                         'session_year_id' => $request->session_year_id,
                     ]).'" 

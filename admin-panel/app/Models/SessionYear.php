@@ -28,9 +28,9 @@ class SessionYear extends Model
      | Core Academic Data
      ====================== */
 
-    public function semesters()
+    public function terms()
     {
-        return $this->hasMany(Semester::class, 'session_year_id');
+        return $this->hasMany(Term::class, 'session_year_id');
     }
 
     public function exams()
@@ -151,7 +151,7 @@ class SessionYear extends Model
 
             $relations = [
                 // Core Academic
-                'semesters',
+                'terms',
                 'exams',
                 'assignments',
                 'attendances',

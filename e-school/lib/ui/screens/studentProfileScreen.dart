@@ -49,9 +49,8 @@ class _StudentProfileScreenState extends State<StudentProfileScreen> {
             decoration: BoxDecoration(
               boxShadow: [
                 BoxShadow(
-                  color: Theme.of(
-                    context,
-                  ).colorScheme.shadow.withValues(alpha: 0.1),
+                  color: Theme.of(context).colorScheme.shadow
+                      .withValues(alpha: 0.1),
                   offset: const Offset(0, 10),
                   blurRadius: 16,
                 ),
@@ -120,9 +119,8 @@ class _StudentProfileScreenState extends State<StudentProfileScreen> {
           borderRadius: BorderRadius.circular(16),
           boxShadow: [
             BoxShadow(
-              color: Theme.of(
-                context,
-              ).colorScheme.shadow.withValues(alpha: 0.2),
+              color: Theme.of(context).colorScheme.shadow
+                  .withValues(alpha: 0.2),
               blurRadius: 12,
             ),
           ],
@@ -163,9 +161,8 @@ class _StudentProfileScreenState extends State<StudentProfileScreen> {
             ),
             const SizedBox(height: 8),
             Divider(
-              color: Theme.of(
-                context,
-              ).colorScheme.onSurfaceVariant.withValues(alpha: 0.1),
+              color: Theme.of(context).colorScheme.onSurfaceVariant
+                  .withValues(alpha: 0.1),
             ),
             const SizedBox(height: 8),
             _buildFourItemsGrid(),
@@ -279,9 +276,8 @@ class _StudentProfileScreenState extends State<StudentProfileScreen> {
                   horizontal: MediaQuery.sizeOf(context).width * 0.075,
                 ),
                 child: Divider(
-                  color: Theme.of(
-                    context,
-                  ).colorScheme.onSurfaceVariant.withValues(alpha: 0.75),
+                  color: Theme.of(context).colorScheme.onSurfaceVariant
+                      .withValues(alpha: 0.75),
                 ),
               ),
             if (widget.studentDetails.dynamicFields?.isNotEmpty ?? false) ...[
@@ -305,9 +301,8 @@ class _StudentProfileScreenState extends State<StudentProfileScreen> {
   Widget _buildInfoCard({required String title, required String subtitle}) {
     return DecoratedBox(
       decoration: BoxDecoration(
-        color: Theme.of(
-          context,
-        ).colorScheme.onSurfaceVariant.withValues(alpha: 0.05),
+        color: Theme.of(context).colorScheme.onSurfaceVariant
+            .withValues(alpha: 0.05),
         borderRadius: BorderRadius.circular(8),
       ),
       child: Padding(
@@ -331,9 +326,8 @@ class _StudentProfileScreenState extends State<StudentProfileScreen> {
             Text(
               subtitle,
               style: TextStyle(
-                color: Theme.of(
-                  context,
-                ).colorScheme.onSurfaceVariant.withValues(alpha: 0.5),
+                color: Theme.of(context).colorScheme.onSurfaceVariant
+                    .withValues(alpha: 0.5),
                 fontWeight: FontWeight.w400,
                 fontSize: 12,
               ),
@@ -362,7 +356,7 @@ class _StudentProfileScreenState extends State<StudentProfileScreen> {
             Expanded(
               child: _buildInfoCard(
                 title: UiUtils.formatEmptyValue(
-                  widget.studentDetails.classSectionNameWithSemester(
+                  widget.studentDetails.classSectionNameWithTerm(
                     context: context,
                   ),
                 ),

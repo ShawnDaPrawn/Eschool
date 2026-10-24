@@ -27,7 +27,7 @@
                                     class="form-control select2">
                                     <option value="">{{ __('select_class') }}</option>
                                 </select>
-                                <input type="hidden" name="semester_id" id="semester_id">
+                                <input type="hidden" name="term_id" id="term_id">
                                 <input type="hidden" name="class_section_id" id="class_section_id_hidden">
                             </div>
 
@@ -114,7 +114,7 @@
 <script>
     // Server-rendered initial data
     const initialClasses = @json($classOptions);
-    const initialSemesterMap = @json($allowedSemesterMap);
+    const initialTermMap = @json($allowedTermMap);
 
     // Attach filters to bootstrap-table API request
     function getExamResult(params) {
@@ -122,7 +122,7 @@
             session_year_id: $('#filter_session_year_global').val(),
             class_section_id: $('#class_section_id_hidden').val() || $('#class_section_id').val(),
             exam_id: $('#exam_id').val(),
-            semester_id: $('#semester_id').val(),
+            term_id: $('#term_id').val(),
             limit: params.limit,
             offset: params.offset,
             search: params.search,
@@ -133,18 +133,18 @@
 
         // ── Helpers ──────────────────────────────────────────────────────────
 
-        function buildClassDropdown(classes, semesterMap) {
+        function buildClassDropdown(classes, termMap) {
             let html = `<option value="">{{ __('select_class') }}</option>`;
 
             classes.forEach(opt => {
-                const semesters = semesterMap[opt.id] || [];
+                const terms = termMap[opt.id] || [];
 
-                if (semesters.length) {
-                    semesters.forEach(sem => {
+                if (terms.length) {
+                    terms.forEach(sem => {
                         html += `<option value="${opt.id}|${sem.id}"
                             data-class-section-id="${opt.id}"
                             data-class="${opt.class_id}"
-                            data-semester="${sem.id}">
+                            data-term="${sem.id}">
                             ${opt.label} - ${sem.name}
                         </option>`;
                     });
@@ -158,7 +158,7 @@
             });
 
             $('#class_section_id').html(html).trigger('change.select2');
-            $('#semester_id').val('');
+            $('#term_id').val('');
             $('#class_section_id_hidden').val('');
         }
 
@@ -171,7 +171,7 @@
                 },
                 null,
                 function(response) {
-                    buildClassDropdown(response.classes, response.allowedSemesterMap);
+                    buildClassDropdown(response.classes, response.allowedTermMap);
                 },
                 null, null, true
             );
@@ -181,18 +181,18 @@
 
         // ── Events ───────────────────────────────────────────────────────────
 
-        // Sync hidden fields when class/semester option is selected
+        // Sync hidden fields when class/term option is selected
         $('#class_section_id').on('change', function() {
             const selected = $(this).find(':selected');
             let value = selected.val() || '';
-            let semester = selected.data('semester') || '';
+            let term = selected.data('term') || '';
             let classSectionId = value;
 
             if (value.includes('|')) {
-                [classSectionId, semester] = value.split('|');
+                [classSectionId, term] = value.split('|');
             }
 
-            $('#semester_id').val(semester);
+            $('#term_id').val(term);
             $('#class_section_id_hidden').val(classSectionId);
         });
 
@@ -238,7 +238,7 @@
         });
 
         // ── Initial render (no AJAX on first load) ───────────────────────────
-        buildClassDropdown(initialClasses, initialSemesterMap);
+        buildClassDropdown(initialClasses, initialTermMap);
 
     });
 </script>

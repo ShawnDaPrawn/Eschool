@@ -42,7 +42,6 @@ use App\Http\Controllers\Platform\NotificationRuleController;
 use App\Http\Controllers\RoleController;
 use App\Http\Controllers\School\SchoolInformationController;
 use App\Http\Controllers\SectionController;
-use App\Http\Controllers\SemesterController;
 use App\Http\Controllers\SessionYearController;
 use App\Http\Controllers\SettingController;
 use App\Http\Controllers\ShiftController;
@@ -54,6 +53,7 @@ use App\Http\Controllers\StudentSessionController;
 use App\Http\Controllers\SubjectController;
 use App\Http\Controllers\SubjectTeacherController;
 use App\Http\Controllers\TeacherController;
+use App\Http\Controllers\TermController;
 use App\Http\Controllers\TimetableController;
 use App\Http\Controllers\WebController;
 use App\Http\Controllers\WebhookController;
@@ -193,7 +193,7 @@ Route::group(['middleware' => ['Role', 'auth', 'school.context', EnforceReadOnly
         Route::delete('class/subject/{class_subject_id}', [Classes\SubjectController::class, 'subject_destroy'])->name('class.subject.delete');
         Route::delete('class/subject-group/{group_id}', [Classes\SubjectController::class, 'subject_group_destroy'])->name('class.subject-group.delete');
         Route::get('class/subject/list', [Classes\SubjectController::class, 'subject_list'])->name('class.subject.list');
-        Route::get('class/subject/semester-details/{class_id}', [Classes\SubjectController::class, 'subjectSemesterDetails'])->name('class.subject.semester-details');
+        Route::get('class/subject/term-details/{class_id}', [Classes\SubjectController::class, 'subjectTermDetails'])->name('class.subject.term-details');
         Route::get('class-list', [Classes\ClassController::class, 'show']);
         Route::resource('class', Classes\ClassController::class)->except(['create', 'edit']);
 
@@ -216,7 +216,7 @@ Route::group(['middleware' => ['Role', 'auth', 'school.context', EnforceReadOnly
         Route::post('session-years/{id}/make-current', [SessionYearController::class, 'makeCurrent'])->whereNumber('id')->name('session-years.make-current');
         Route::get('session_years_list', [SessionYearController::class, 'show']);
         Route::get('session-year/details/{id}', [SessionYearController::class, 'details']);
-        Route::get('session-year/{id}/semesters', [SessionYearController::class, 'semesters']);
+        Route::get('session-year/{id}/terms', [SessionYearController::class, 'terms']);
         Route::delete('remove-installment-data/{id}', [SessionYearController::class, 'deleteInstallmentData']);
 
         Route::get('attendance-monthly', [AttendanceController::class, 'monthlyView'])->name('attendance.monthly');
@@ -264,8 +264,8 @@ Route::group(['middleware' => ['Role', 'auth', 'school.context', EnforceReadOnly
         Route::get('checkTimetable', [TimetableController::class, 'checkTimetable']);
 
         Route::get('get-subject-by-class-section', [TimetableController::class, 'getSubjectByClassSection']);
-        Route::get('get-class-semesters', [TimetableController::class, 'getClassSemesters']);
-        Route::get('get-class-sections-with-semesters', [TimetableController::class, 'getClassSectionsWithSemesters']);
+        Route::get('get-class-terms', [TimetableController::class, 'getClassTerms']);
+        Route::get('get-class-sections-with-terms', [TimetableController::class, 'getClassSectionsWithTerms']);
         Route::get('getteacherbysubject', [TimetableController::class, 'getteacherbysubject']);
 
         Route::get('gettimetablebyclass', [TimetableController::class, 'gettimetablebyclass'])->name('get.timetable.class');
@@ -289,7 +289,7 @@ Route::group(['middleware' => ['Role', 'auth', 'school.context', EnforceReadOnly
         Route::resource('lesson', LessonController::class)->except(['create', 'edit']);
         Route::get('search-lesson', [LessonController::class, 'search']);
         Route::delete('file/delete/{id}', [LessonController::class, 'deleteFile'])->name('file.delete');
-        Route::get('teacher-semester-subjects', [LessonController::class, 'getTeacherSemesterSubjects'])->name('teacher.semester.subjects');
+        Route::get('teacher-term-subjects', [LessonController::class, 'getTeacherTermSubjects'])->name('teacher.term.subjects');
         Route::resource('lesson-topic', LessonTopicController::class)->except(['create', 'edit']);
 
         Route::resource('announcement', AnnouncementController::class)->except(['create', 'edit']);
@@ -425,7 +425,7 @@ Route::group(['middleware' => ['Role', 'auth', 'school.context', EnforceReadOnly
         Route::get('online-exam/get-class-subject-questions/{online_exam_id}', [OnlineExamController::class, 'getClassSubjectQuestions'])->name('online-exam-question.get-class-subject-questions');
         Route::get('get-subject-online-exam', [OnlineExamController::class, 'getSubjects']);
         Route::get('get-class-sections-by-session-year', [OnlineExamController::class, 'getClassSectionsBySessionYear']);
-        Route::get('get-class-sections-by-semester', [OnlineExamController::class, 'getClassSectionsBySemester']);
+        Route::get('get-class-sections-by-term', [OnlineExamController::class, 'getClassSectionsByTerm']);
         Route::get('get-exam-question-index', [OnlineExamController::class, 'examQuestionsIndex'])->name('exam.questions.index');
         Route::post('online-exam/store-questions-choices', [OnlineExamController::class, 'storeQuestionsChoices'])->name('online-exam.store-choice-question');
         Route::delete('online-exam/remove-choiced-question/{id}', [OnlineExamController::class, 'removeQuestionsChoices'])->name('online-exam.remove-choice-question');
@@ -553,10 +553,11 @@ Route::group(['middleware' => ['Role', 'auth', 'school.context', EnforceReadOnly
         Route::delete('permanent-delete/{id}', [Student\StudentController::class, 'permanentDelete'])->name('permanent-delete');
         Route::post('update-active-status', [Student\OnlineRegistrationController::class, 'updateStatus'])->name('update-active-status');
         Route::get('get-class-section-by-class/{class_id}', [Student\ClassAssignmentController::class, 'getClassSectionByClass']);
-        Route::get('semester/class-config', [SemesterController::class, 'getClassConfig']);
-        Route::post('semester/class-config', [SemesterController::class, 'saveClassConfig']);
-        Route::get('semester/show', [SemesterController::class, 'show']);
-        Route::resource('semester', SemesterController::class)->except(['create', 'edit']);
+        Route::get('term/classes', [TermController::class, 'classSettings'])->name('term.classes.index');
+        Route::post('term/classes/enable', [TermController::class, 'enableClass'])->name('term.classes.enable');
+        Route::post('term-templates', [TermController::class, 'saveTemplate'])->name('term.templates.store');
+        Route::post('term-templates/apply', [TermController::class, 'applyTemplate'])->name('term.templates.apply');
+        Route::resource('term', TermController::class)->except(['create', 'edit', 'show']);
 
         Route::get('class-subject-edit/{id}', [Classes\SubjectController::class, 'classSubjectsEdit'])->name('class-subject-edit.index');
         Route::get('student-leave-request', [Leave\StudentLeaveController::class, 'studentLeaveRequestIndex'])->name('student-leave-request.index');

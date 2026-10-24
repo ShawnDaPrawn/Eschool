@@ -24,7 +24,13 @@ Map<String, Object?> mySchoolJson(int id, String name) => {
     },
   ],
   'term_dates': [
-    {'name': 'Term 4', 'starts_on': '2026-10-06', 'ends_on': '2026-12-09'},
+    {
+      'name': 'Term 4',
+      'starts_on': '2026-10-06',
+      'ends_on': '2026-12-09',
+      'grade_from': 0,
+      'grade_to': 3,
+    },
   ],
 };
 
@@ -72,6 +78,8 @@ void main() {
       expect(info.phone, '011 555 0101');
       expect(info.documents.first.kind, 'fee_schedule');
       expect(info.termDates.single.endsOn, DateTime(2026, 12, 9));
+      expect(info.termDates.single.gradeFrom, 0);
+      expect(info.termDates.single.gradeTo, 3);
     });
 
     test('answers null before the endpoint is deployed', () async {
@@ -109,8 +117,8 @@ void main() {
         expect(find.text('Northcliff High'), findsOneWidget);
         expect(find.text('011 555 0101'), findsOneWidget);
         expect(find.text('Fee schedule 2026'), findsOneWidget);
-        await tester.scrollUntilVisible(find.text('Term 4'), 100);
-        expect(find.text('Term 4'), findsOneWidget);
+        await tester.scrollUntilVisible(find.text('Term 4 · Grade R–3'), 100);
+        expect(find.text('Term 4 · Grade R–3'), findsOneWidget);
         expect(find.text('6 Oct 2026 – 9 Dec 2026'), findsOneWidget);
         expect(find.byType(ChoiceChip), findsNothing);
         expect(tester.takeException(), isNull);

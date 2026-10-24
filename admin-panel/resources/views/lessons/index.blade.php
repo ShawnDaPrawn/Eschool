@@ -20,7 +20,7 @@
                         </h4>
                         <form class="pt-3 add-lesson-form" id="create-form" action="{{ route('lesson.store') }}"
                             method="POST" novalidate="novalidate">
-                            <input type="hidden" name="semester_id" id="semester_id" value="" />
+                            <input type="hidden" name="term_id" id="term_id" value="" />
                             <div class="row">
                                 <div class="form-group col-sm-12 col-md-6">
                                     <label>{{ __('class') . ' ' . __('section') }} <span
@@ -156,8 +156,8 @@
                                         {{ __('description') }}</th>
                                     <th scope="col" data-field="class_section_name" data-sortable="true">
                                         {{ __('class_section') }}</th>
-                                    <th scope="col" data-field="semester_name" data-sortable="true">
-                                        {{ __('semester') }}</th>
+                                    <th scope="col" data-field="term_name" data-sortable="true">
+                                        {{ __('term') }}</th>
                                     <th scope="col" data-field="subject_name" data-sortable="true">
                                         {{ __('subject') }}</th>
                                     <th scope="col" data-field="file" data-formatter="fileFormatter"
@@ -216,12 +216,12 @@
                                         </select>
                                     </div>
 
-                                    {{-- Shown only when the lesson's class has semesters for the selected
-                                         session year; lists only the semesters that contain the subject. --}}
-                                    <div class="form-group col-sm-12 col-md-6" id="edit_semester_div"
+                                    {{-- Shown only when the lesson's class has terms for the selected
+                                         session year; lists only the terms that contain the subject. --}}
+                                    <div class="form-group col-sm-12 col-md-6" id="edit_term_div"
                                         style="display: none;">
-                                        <label>{{ __('semester') }} <span class="text-danger">*</span></label>
-                                        <select name="semester_id" id="edit_semester_id" class="form-control">
+                                        <label>{{ __('term') }} <span class="text-danger">*</span></label>
+                                        <select name="term_id" id="edit_term_id" class="form-control">
                                             <option value="">--{{ __('select') }}--</option>
                                         </select>
                                     </div>

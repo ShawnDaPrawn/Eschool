@@ -5,7 +5,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 class ClassSectionDetails {
-
   ClassSectionDetails({
     required this.id,
     required this.classDetails,
@@ -15,14 +14,14 @@ class ClassSectionDetails {
   final ClassDetails classDetails;
   final SectionDetails sectionDetails;
 
-  String getClassSectionNameWithSemester({required BuildContext context}) {
+  String getClassSectionNameWithTerm({required BuildContext context}) {
     if (context
                 .read<AppConfigurationCubit>()
                 .getAppConfiguration()
-                .currentSemester !=
+                .currentTerm !=
             null &&
-        classDetails.includesSemester) {
-      return '${classDetails.name} ${sectionDetails.name} - ${context.read<AppConfigurationCubit>().getAppConfiguration().currentSemester!.name}';
+        classDetails.includesTerm) {
+      return '${classDetails.name} ${sectionDetails.name} - ${context.read<AppConfigurationCubit>().getAppConfiguration().currentTerm!.name}';
     }
     return '${classDetails.name} - ${sectionDetails.name}';
   }
@@ -30,10 +29,8 @@ class ClassSectionDetails {
   String get classSectionName =>
       '${classDetails.name} - ${sectionDetails.name}';
 
-  String getClassSectionNameWithMediumAndSemester({
-    required BuildContext context,
-  }) {
-    return '${getClassSectionNameWithSemester(context: context)} (${classDetails.medium.name})';
+  String getClassSectionNameWithMediumAndTerm({required BuildContext context}) {
+    return '${getClassSectionNameWithTerm(context: context)} (${classDetails.medium.name})';
   }
 
   String getClassSectionNameWithMedium() {

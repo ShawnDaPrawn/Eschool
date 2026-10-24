@@ -134,9 +134,9 @@ class LessonsContainer extends StatelessWidget {
                                 chapterNameKey,
                               ),
                               style: TextStyle(
-                                color: Theme.of(
-                                  context,
-                                ).colorScheme.onSurfaceVariant,
+                                color: Theme.of(context)
+                                    .colorScheme
+                                    .onSurfaceVariant,
                                 fontWeight: FontWeight.w400,
                                 fontSize: 12,
                               ),
@@ -167,8 +167,7 @@ class LessonsContainer extends StatelessWidget {
                                                 classSectionId:
                                                     classSectionDetails.id,
                                                 subjectId: subject.id,
-                                                semesterId:
-                                                    subject.semester?.id,
+                                                termId: subject.term?.id,
                                               );
                                         }
                                       }
@@ -214,9 +213,9 @@ class LessonsContainer extends StatelessWidget {
                             chapterDescriptionKey,
                           ),
                           style: TextStyle(
-                            color: Theme.of(
-                              context,
-                            ).colorScheme.onSurfaceVariant,
+                            color: Theme.of(context)
+                                .colorScheme
+                                .onSurfaceVariant,
                             fontWeight: FontWeight.w400,
                             fontSize: 12,
                           ),
@@ -279,8 +278,7 @@ class LessonsContainer extends StatelessWidget {
                                                 classSectionId:
                                                     classSectionDetails.id,
                                                 subjectId: subject.id,
-                                                semesterId:
-                                                    subject.semester?.id,
+                                                termId: subject.term?.id,
                                               );
                                         }
                                       }
@@ -337,7 +335,7 @@ class LessonsContainer extends StatelessWidget {
                 context.read<LessonsCubit>().fetchLessons(
                   classSectionId: classSectionDetails.id,
                   subjectId: subject.id,
-                  semesterId: subject.semester?.id,
+                  termId: subject.term?.id,
                 );
               },
             ),

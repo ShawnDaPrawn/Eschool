@@ -14,10 +14,10 @@
                     "description": "string",
                     "file": [],
                     "id": "number",
-                    "semester_id": "null",
                     "session_year_id": "number",
                     "table_id": "number",
                     "table_type": "string",
+                    "term_id": "null",
                     "title": "string"
                 }
             ],

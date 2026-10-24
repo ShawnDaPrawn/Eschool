@@ -8,9 +8,9 @@ use App\Http\Controllers\Api\Student\Concerns\StudentAccess;
 use App\Http\Controllers\Controller;
 use App\Models\Announcement;
 use App\Models\ClassSessionConfig;
-use App\Models\Semester;
 use App\Models\StudentSessions;
 use App\Models\SubjectTeacher;
+use App\Models\Term;
 use App\Services\ResponseService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
@@ -81,14 +81,12 @@ class AnnouncementController extends Controller
             }
 
             if (isset($request->type) && $request->type == 'subject') {
-                $isClassHaveSemester = ClassSessionConfig::classHasSemester($class_id, $session_year_id);
+                $isClassHaveTerm = ClassSessionConfig::classHasTerm($class_id, $session_year_id);
                 $data = $data->where('table_type', "App\Models\SubjectTeacher")->whereIn('table_id', $table);
-                if ($isClassHaveSemester) {
-                    $currentSemester = Semester::where('session_year_id', $session_year_id)
-                        ->get()
-                        ->first(fn ($s) => $s->current);
+                if ($isClassHaveTerm) {
+                    $currentTerm = Term::currentForClass((int) $session_year_id, (int) $class_id);
 
-                    $data->where('semester_id', $currentSemester->id);
+                    $data->where('term_id', $currentTerm?->id);
                 }
             }
 

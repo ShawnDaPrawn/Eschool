@@ -72,7 +72,7 @@ class ProfileController extends Controller
             } else {
                 $user->class_section_name = $classSectionName;
             }
-            $user->is_semester_on_in_class = $studentSession->class_section->class->getIncludeSemestersForSession($session_year_id);
+            $user->is_term_on_in_class = $studentSession->class_section->class->getIncludeTermsForSession($session_year_id);
             // Set Medium name
             $user->medium_name = $studentSession->class_section->class->medium->name;
 

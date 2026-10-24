@@ -13,10 +13,10 @@ use App\Models\ClassSessionConfig;
 use App\Models\ClassSubject;
 use App\Models\File;
 use App\Models\Notification;
-use App\Models\Semester;
 use App\Models\Students;
 use App\Models\StudentSubject;
 use App\Models\Subject;
+use App\Models\Term;
 use App\Services\Platform\Files\FileNames;
 use App\Services\Platform\Notifications\Notifier;
 use App\Services\ResponseService;
@@ -40,7 +40,7 @@ class AssignmentController extends Controller
         $validator = Validator::make($request->all(), [
             'class_section_id' => 'nullable|numeric',
             'subject_id' => 'nullable|numeric',
-            'semester_id' => 'nullable|numeric',
+            'term_id' => 'nullable|numeric',
         ]);
 
         if ($validator->fails()) {
@@ -52,12 +52,12 @@ class AssignmentController extends Controller
 
             $query = Assignment::assignmentteachers()
                 ->where('session_year_id', $sessionYearId)
-                ->with('class_section', 'file', 'subject', 'semester');
+                ->with('class_section', 'file', 'subject', 'term');
 
             if ($request->filled('class_section_id')) {
                 $query->where('class_section_id', $request->class_section_id);
-                if ($request->semester_id) {
-                    $this->applySemesterFilter($query, $request->class_section_id, $sessionYearId, $request->semester_id);
+                if ($request->term_id) {
+                    $this->applyTermFilter($query, $request->class_section_id, $sessionYearId, $request->term_id);
                 }
             }
 
@@ -68,8 +68,8 @@ class AssignmentController extends Controller
             $data = $query->orderByDesc('id')->paginate();
 
             $data->getCollection()->transform(function ($item) {
-                $item->subject->semester = $item->semester;
-                unset($item->semester);
+                $item->subject->term = $item->term;
+                unset($item->term);
 
                 return $item;
             });
@@ -87,7 +87,7 @@ class AssignmentController extends Controller
         $validator = Validator::make($request->all(), [
             'class_section_id' => 'required|numeric|exists:class_sections,id',
             'subject_id' => 'required|numeric|exists:subjects,id',
-            'semester_id' => 'nullable|numeric|exists:semesters,id',
+            'term_id' => 'nullable|numeric|exists:terms,id',
             'name' => 'required|string|max:255',
             'instructions' => 'nullable|string',
             'due_date' => 'required|date_format:d-m-Y H:i',
@@ -107,16 +107,16 @@ class AssignmentController extends Controller
         try {
             $session_year_id = getSettings('session_year')['session_year'];
 
-            // Semester
+            // Term
             $classId = ClassSection::where('id', $request->class_section_id)->value('class_id');
-            $isClassHaveSemester = ClassSessionConfig::classHasSemester($classId, $session_year_id);
-            $semesterId = $isClassHaveSemester ? $request->semester_id : null;
+            $isClassHaveTerm = ClassSessionConfig::classHasTerm($classId, $session_year_id);
+            $termId = $isClassHaveTerm ? $request->term_id : null;
 
-            if ($isClassHaveSemester && ! $semesterId) {
-                return ResponseService::errorResponse('Semester id required.', null, 400);
+            if ($isClassHaveTerm && ! $termId) {
+                return ResponseService::errorResponse('Term id required.', null, 400);
             }
 
-            if (! $this->teachesSubject($request->class_section_id, $request->subject_id, $semesterId)) {
+            if (! $this->teachesSubject($request->class_section_id, $request->subject_id, $termId)) {
                 return ResponseService::errorResponse('You are not assigned to this class section and subject combination.', null, 403);
             }
 
@@ -125,7 +125,7 @@ class AssignmentController extends Controller
             $assignment = new Assignment;
             $assignment->class_section_id = $request->class_section_id;
             $assignment->subject_id = $request->subject_id;
-            $assignment->semester_id = $semesterId;
+            $assignment->term_id = $termId;
             $assignment->name = trim($request->name);
             $assignment->instructions = trim($request->instructions);
             $assignment->due_date = $due_date->format('Y-m-d H:i:s');

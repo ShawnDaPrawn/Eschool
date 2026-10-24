@@ -13,10 +13,10 @@
                     "description": "string",
                     "file": [],
                     "id": "number",
-                    "semester_id": "null",
                     "session_year_id": "number",
                     "table_id": "null",
                     "table_type": "string",
+                    "term_id": "null",
                     "title": "string"
                 }
             ],
@@ -91,8 +91,6 @@
                         "class_id": "number",
                         "elective_subject_group_id": "null",
                         "id": "number",
-                        "semester": "null",
-                        "semester_id": "null",
                         "session_year_id": "number",
                         "subject": {
                             "bg_color": "string",
@@ -104,6 +102,8 @@
                             "type": "string"
                         },
                         "subject_id": "number",
+                        "term": "null",
+                        "term_id": "null",
                         "type": "string"
                     }
                 ],

@@ -111,7 +111,7 @@ class ApiContractTest extends TestCase
             'common/holidays' => ['asha', 'get', 'holidays', []],
             'common/session-years' => ['asha', 'get', 'get-session-year', []],
             'common/current-session-year' => ['asha', 'get', 'current-session-year', []],
-            'common/semesters' => ['asha', 'get', 'get-semesters', []],
+            'common/terms' => ['asha', 'get', 'get-terms', []],
             'common/events' => ['asha', 'get', 'get-events-list', []],
             'common/event-details' => ['asha', 'post', 'get-events-details', ['event_id' => $id['event']]],
             'common/gallery-albums' => ['asha', 'get', 'get-gallery-albums', []],

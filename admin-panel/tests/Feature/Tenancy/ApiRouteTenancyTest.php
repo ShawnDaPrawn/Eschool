@@ -8,6 +8,7 @@ use App\Http\Middleware\CheckChild;
 use App\Http\Middleware\CheckStudent;
 use App\Models\Parents;
 use App\Models\Students;
+use App\Models\TermTemplate;
 use App\Models\User;
 use App\Services\Platform\Tenancy\CurrentSchool;
 use Illuminate\Support\Facades\Mail;
@@ -60,7 +61,7 @@ class ApiRouteTenancyTest extends TestCase
         'GET api/sliders' => 'public home-screen images',
         'GET api/current-session-year' => 'public school year',
         'GET api/get-session-year' => 'public school years',
-        'GET api/get-semesters' => 'public terms',
+        'GET api/get-terms' => 'public terms',
         'GET api/get-events-list' => 'public school events',
         'GET api/get-events-details' => 'public school events',
         'POST api/get-events-details' => 'public school events (older clients)',
@@ -239,7 +240,8 @@ class ApiRouteTenancyTest extends TestCase
         $this->flushHeaders();
         $request = $asker === null ? $this : $this->withToken($asker);
         $request = $request->withHeaders($headers);
-        $path = $route->path();
+        $path = '/'.preg_replace_callback('/\{([^}]+)\}/',
+            fn ($match) => (string) ($params[$match[1]] ?? ($match[1] === 'field' ? 'test_field' : 1)), $route->uri);
 
         return $route->method === 'GET'
             ? $request->getJson($path.'?'.http_build_query($params))
@@ -268,6 +270,7 @@ class ApiRouteTenancyTest extends TestCase
     private function schoolBParams(): array
     {
         $b = $this->schoolB->ids;
+        $template = app(CurrentSchool::class)->run(2, fn () => TermTemplate::query()->firstOrCreate(['name' => 'Baobab calendar'], ['base_year' => 2026, 'terms' => []]));
 
         return [
             'id' => $b['lesson'],
@@ -277,9 +280,12 @@ class ApiRouteTenancyTest extends TestCase
             'receiver_id' => $b['tara_user'],
             'class_section_id' => $b['section_a'],
             'class_id' => $b['class_a'],
+            'class' => $b['class_a'],
+            'term' => $b['term'],
+            'template' => $template->id,
             'subject_id' => $b['maths'],
             'session_year_id' => $b['session_year'],
-            'semester_id' => $b['semester'],
+            'term_id' => $b['term'],
             'lesson_id' => $b['lesson'],
             'topic_id' => $b['topic'],
             'file_id' => $b['lesson_file'],
