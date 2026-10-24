@@ -90,4 +90,74 @@ jobs:
                   "images": [c.get("image") for c in state.get("containers", [])],
                   "labels": state.get("labels", {}),
               }, indent=2))
+          print("Backend build references:")
+          print(json.dumps({
+              "created": service.get("createTime"),
+              "updated": service.get("updateTime"),
+              "sourceLocation": service.get("buildConfig", {}).get("sourceLocation"),
+              "baseImage": service.get("buildConfig", {}).get("baseImage"),
+              "cloudSqlInstances": [
+                  name for volume in service.get("template", {}).get("volumes", [])
+                  for name in volume.get("cloudSqlInstance", {}).get("instances", [])],
+          }, indent=2))
+          print("Services in the deployment region:")
+          for item in request(base + "/services").get("services", []):
+              print(json.dumps({
+                  "name": item.get("name"),
+                  "images": [c.get("image") for c in item.get("template", {}).get("containers", [])],
+                  "runtimeServiceAccount": item.get("template", {}).get("serviceAccount"),
+              }))
+          print("Scheduled jobs in the deployment region:")
+          for item in request(base + "/jobs").get("jobs", []):
+              task = item.get("template", {}).get("template", {})
+              print(json.dumps({
+                  "name": item.get("name"),
+                  "images": [c.get("image") for c in task.get("containers", [])],
+                  "runtimeServiceAccount": task.get("serviceAccount"),
+              }))
+          repository = ("https://artifactregistry.googleapis.com/v1/projects/" + project
+                        + "/locations/" + region + "/repositories/cloud-run-source-deploy")
+          repository_permissions = request(repository + ":testIamPermissions", {
+              "permissions": ["artifactregistry.repositories.downloadArtifacts",
+                              "artifactregistry.repositories.uploadArtifacts"]}).get("permissions", [])
+          print("Repository permissions: " + json.dumps(repository_permissions))
+          account = snapshot["runtimeServiceAccount"]
+          account_permissions = request(
+              "https://iam.googleapis.com/v1/projects/-/serviceAccounts/" + account
+              + ":testIamPermissions", {"permissions": ["iam.serviceAccounts.actAs"]}).get("permissions", [])
+          print("Runtime account permissions: " + json.dumps(account_permissions))
+          if "artifactregistry.repositories.downloadArtifacts" in repository_permissions:
+              image = snapshot["images"][0]
+              subprocess.run(["gcloud", "auth", "configure-docker", region + "-docker.pkg.dev",
+                              "--quiet"], check=True, stdout=subprocess.DEVNULL)
+              subprocess.run(["docker", "pull", image], check=True)
+              config = json.loads(subprocess.check_output(
+                  ["docker", "image", "inspect", image], text=True))[0]["Config"]
+              labels = config.get("Labels") or {}
+              metadata = json.loads(labels.get("io.buildpacks.build.metadata", "{}"))
+              lifecycle = json.loads(labels.get("io.buildpacks.lifecycle.metadata", "{}"))
+              print("Image build details (no environment values):")
+              print(json.dumps({
+                  "workingDir": config.get("WorkingDir"),
+                  "entrypointBinary": (config.get("Entrypoint") or [None])[0],
+                  "source": labels.get("org.opencontainers.image.source"),
+                  "revision": labels.get("org.opencontainers.image.revision"),
+                  "buildpacks": metadata.get("buildpacks"),
+                  "runImage": lifecycle.get("runImage"),
+              }, indent=2))
+              probe = ["docker", "run", "--rm", "--network", "none", "--read-only",
+                       "--cap-drop", "ALL", "--security-opt", "no-new-privileges",
+                       "--entrypoint", "php", image, "-r",
+                       'echo "PHP_VERSION=", PHP_VERSION, PHP_EOL; echo "EXTENSIONS=", implode(",", get_loaded_extensions()), PHP_EOL;']
+              result = subprocess.run(probe, capture_output=True, text=True)
+              if result.returncode and config.get("Entrypoint", [""])[0] == "/cnb/lifecycle/launcher":
+                  probe[probe.index("php")] = "/cnb/lifecycle/launcher"
+                  probe.insert(probe.index("-r"), "php")
+                  result = subprocess.run(probe, capture_output=True, text=True)
+              if result.returncode:
+                  print("::warning::PHP version probe unavailable; image inspection requires follow-up.")
+              else:
+                  print(result.stdout)
+          else:
+              print("Image inspection awaits repository download permission.")
           PY
