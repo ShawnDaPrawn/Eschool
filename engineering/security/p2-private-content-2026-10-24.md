@@ -47,3 +47,9 @@ Python cohorts and dependency audit, plus two-width panel browser checks.
 See the phase-2 self-test record for exact counts and pending container/AV CI.
 Independent security testing, full-term pilot/device/staging evidence and human
 translation/ASR review remain open. No deployment/production acceptance is implied.
+
+The first PR secret scan identified the pinned tokenizer's public SHA-256 as a
+generic API key because its manifest key contains "token". The downloaded public
+artifact was rehashed and matches the manifest. A path-and-exact-digest exception
+was added; all other values, files and default rules remain scanned. This does
+not exempt provider tokens, model directories or conversion code.

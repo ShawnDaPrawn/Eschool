@@ -47,3 +47,16 @@ condition = "AND"
 paths = ['''^admin-panel/tests/Feature/.*Test\.php$''']
 regexTarget = "match"
 regexes = ['''(?i)password[a-z_]*'\s*=>''']
+
+[[allowlists]]
+description = "Verified public SHA-256 of the pinned offline Whisper tokenizer"
+# generic-api-key matches the tokenizer filename and this high-entropy artifact
+# checksum. The downloader verifies this exact SHA-256 against tokenizer.json at
+# Systran/faster-whisper-base revision ebe41f70d5b6dfa9166e2c581c45c9c0cfc57b66.
+# It is a public file digest, not a bearer/provider credential. Keep the exception
+# tied to this exact value and manifest path; model upgrades need fresh review.
+targetRules = ["generic-api-key"]
+condition = "AND"
+paths = ['''^services/converter/transcription-model\.json$''']
+regexTarget = "secret"
+regexes = ['''^fb7b63191e9bb045082c79fd742a3106a12c99513ab30df4a0d47fa6cb6fd0ab$''']
