@@ -695,3 +695,11 @@ finding a tappable button, then selected a button removed by a route transition.
 Both shells now tap a freshly checked target without that extra frame delay.
 The CI panel server explicitly disables reload so Laravel honors its configured
 four workers. Final-head browser/Android verification remains required.
+
+CI run 355: the configured panel workers remain healthy; **267 browser tests
+passed**. The remaining year-switch test exposed concurrent old-session child
+filter requests overwriting a newly selected year. Global changes now skip
+legacy filter reloads and stop delegated child handlers until the year is saved.
+The strengthened real Chrome year-switch flow **passes**, asserting no premature
+filter requests, correct banner/list, a 423 write refusal and switching back.
+JavaScript syntax and diff checks pass; final full CI is still required.
