@@ -37,7 +37,6 @@ jobs:
       GCLOUD_PROJECT: navigateed-d8c06
       DOCS_BASE_URL: /
       DOCS_URL: https://navigateed-d8c06.web.app
-      DOCS_UI_EVIDENCE: ${{ runner.temp }}/docs-ui-evidence
     steps:
       - uses: actions/checkout@v4
       - name: Restrict live deployments to main
@@ -74,6 +73,8 @@ jobs:
           python -m pip install playwright==1.56.0
           python -m playwright install --with-deps chromium
       - name: Verify the built documentation
+        env:
+          DOCS_UI_EVIDENCE: ${{ runner.temp }}/docs-ui-evidence
         run: |
           npm --prefix documentation run serve -- --host 127.0.0.1 --port 3010 --no-open > "$RUNNER_TEMP/docs-serve.log" 2>&1 &
           server_pid=$!
