@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace App\Services\Academics\Reports;
 
 use App\Models\Academics\HomeroomAllocation;
-use App\Models\Academics\ReportBatch;
 use App\Models\Academics\ReportCard;
 use App\Models\Academics\ReportComment;
 use App\Models\Academics\ReportCommentBank;
@@ -59,8 +58,9 @@ class ReportQueries
 
     public function batches(User $actor, int $year, int $page = 1): array
     {
-        $config = $this->configuration($actor, $year);
-        $batches = ReportBatch::where('session_year_id', $year)->whereIn('class_section_id', array_column($config['homerooms'], 'id'))->orderByDesc('id')->paginate(50, ['*'], 'page', $page);
+        app(AcademicAuthority::class)->staff($actor);
+        SessionYear::findOrFail($year);
+        $batches = app(ReportPolicy::class)->visibleBatches($actor)->where('session_year_id', $year)->orderByDesc('id')->paginate(50, ['*'], 'page', $page);
 
         return ['session_year_id' => $year, 'page' => $batches->currentPage(), 'last_page' => $batches->lastPage(), 'batches' => $batches->getCollection()->map(fn ($b) => ['id' => (int) $b->id, 'state' => $b->state, 'mode' => $b->mode, 'class_section_id' => (int) $b->class_section_id,
             'term_id' => $b->term_id === null ? null : (int) $b->term_id, 'learner_count' => count($b->selection['learner_ids']), 'created_at' => $b->created_at->toISOString(), 'released_at' => $b->released_at?->toISOString()])->all()];

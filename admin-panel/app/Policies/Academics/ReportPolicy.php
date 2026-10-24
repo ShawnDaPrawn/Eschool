@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Policies\Academics;
 
+use App\Models\Academics\AcademicLeadership;
 use App\Models\Academics\HomeroomAllocation;
 use App\Models\Academics\ReportBatch;
 use App\Models\Academics\ReportCard;
@@ -13,6 +14,7 @@ use App\Models\SessionYear;
 use App\Models\User;
 use App\Services\Academics\AcademicAuthority;
 use App\Services\Academics\ReleasedMarks;
+use Illuminate\Database\Eloquent\Builder;
 
 class ReportPolicy
 {
@@ -35,13 +37,27 @@ class ReportPolicy
         return $room;
     }
 
+    /** History follows the grade saved on the report, never a later room mapping. */
+    public function visibleBatches(User $actor): Builder
+    {
+        $authority = app(AcademicAuthority::class);
+        $fresh = $authority->staff($actor);
+        $query = ReportBatch::query();
+        if ($authority->manages($fresh) || $this->leads($fresh, 'principal', 0)) {
+            return $query;
+        }
+        $grades = AcademicLeadership::where('user_id', $fresh->id)->where('kind', 'grade_head')
+            ->whereDate('starts_on', '<=', $authority->today())->whereDate('ends_on', '>=', $authority->today())->select('grade_level_id');
+
+        return $query->whereIn('grade_level_id', $grades);
+    }
+
     public function batch(User $actor, int $id): ReportBatch
     {
         $authority = app(AcademicAuthority::class);
         $authority->staff($actor);
         $batch = ReportBatch::findOrFail($id);
-        abort_unless($authority->manages($actor) || $this->leads($actor, 'grade_head', (int) $batch->grade_level_id)
-            || $this->leads($actor, 'principal', (int) $batch->grade_level_id), 403);
+        abort_unless($this->visibleBatches($actor)->whereKey($id)->exists(), 403);
 
         return $batch;
     }

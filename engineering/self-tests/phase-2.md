@@ -362,3 +362,9 @@ style passes after the follow-ups. Extracted synthetic PDF text contains 75.00%,
 rating 6 and escaped literal markup. Final Larastan, route-cache and complete CI
 results belong to this feature's final head. Report clients/panel are a separate
 slice. No staging, real parent delivery, device or pilot acceptance is claimed.
+
+Report review follow-up: history lists now use the saved report grade, matching
+detail access after a homeroom remap. The old grade head retains report history;
+the new grade head cannot see its summaries; expired appointments lose access.
+All 181 report/API contract checks pass (1,164 assertions), with clean Larastan
+and changed-file formatting. Exact updated CI must pass before merge.

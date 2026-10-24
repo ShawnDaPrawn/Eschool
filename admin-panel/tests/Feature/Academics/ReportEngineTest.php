@@ -592,6 +592,15 @@ class ReportEngineTest extends TestCase
         $this->denied(409, fn () => $service->approve($head, $draft['id'], 'grade_head', $draft));
         $this->assertSame(0, MarkSnapshot::where('grade_level_id', $otherGrade)->count());
         $this->assertSame($this->grade, ReportCard::firstOrFail()->payload['grade_level_id']);
+        $this->assertSame([$draft['id']], array_column(app(ReportQueries::class)->batches($head, $this->year)['batches'], 'id'));
+        $newHead = $this->teacher();
+        AcademicLeadership::create(['user_id' => $newHead->id, 'kind' => 'grade_head', 'grade_level_id' => $otherGrade, 'session_year_id' => $this->year,
+            'starts_on' => '2026-01-01', 'ends_on' => '2026-12-31', 'reason' => 'New grade head']);
+        $this->assertSame([], app(ReportQueries::class)->batches($newHead, $this->year)['batches']);
+        $this->denied(403, fn () => app(ReportQueries::class)->show($newHead, $draft['id']));
+        AcademicLeadership::where('user_id', $head->id)->update(['ends_on' => '2026-02-09']);
+        $this->assertSame([], app(ReportQueries::class)->batches($head, $this->year)['batches']);
+
     }
 
     public function test_explicit_provisional_report_can_explain_excused_or_ungraded_results_without_inventing_a_score(): void
