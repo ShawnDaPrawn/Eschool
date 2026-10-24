@@ -43,7 +43,7 @@
                                         class="class_section_id_in_assignment form-control">
                                         <option value="">--{{ __('select_class_section') }}--</option>
                                     </select>
-                                    <input type="hidden" name="semester_id" id="semester_id" value="">
+                                    <input type="hidden" name="term_id" id="term_id" value="">
                                 </div>
 
                                 <div class="form-group col-sm-12 col-md-4">
@@ -200,7 +200,7 @@
                         <form class="pt-3 edit-assignment-form" id="edit-form" action="{{ url('assignment') }}"
                             novalidate="novalidate">
                             <input type="hidden" name="edit_id" id="edit_id" value="" />
-                            <input type="hidden" name="semester_id" id="edit_semester_id" value="" />
+                            <input type="hidden" name="term_id" id="edit_term_id" value="" />
                             <div class="modal-body">
                                 <div class="row">
                                     <div class="form-group col-sm-12 col-md-6">

@@ -70,7 +70,7 @@ Roles and what each one may do are covered in [Roles and Permissions](Roles-and-
 
 | Area | Admin panel | Apps | Wiki page |
 |---|---|---|---|
-| Academic setup: session years, mediums, classes, sections, streams, shifts, semesters, subjects | Yes | Read-only | [Academic Structure](Academic-Structure) |
+| Academic setup: session years, mediums, classes, sections, streams, shifts, terms, subjects | Yes | Read-only | [Academic Structure](Academic-Structure) |
 | Students, parents, teachers, staff, ID cards, promotion | Yes | Profiles | [Admin Panel Overview](Admin-Panel-Overview) |
 | Attendance: students and staff | Yes | Teachers mark; students and parents view | [API Teacher](API-Teacher) |
 | Timetable, lessons, topics, study material | Yes | Yes | [Admin Panel Overview](Admin-Panel-Overview) |

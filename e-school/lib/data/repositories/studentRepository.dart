@@ -92,13 +92,13 @@ class StudentRepository {
     required bool useParentApi,
     required int childId,
     int? page,
-    String? semesterId,
+    String? termId,
     int? sessionYearId,
   }) async {
     try {
       final Map<String, dynamic> queryParameters = {
         'page': page ?? 0,
-        if (semesterId != null) 'semester_id': semesterId,
+        if (termId != null) 'term_id': termId,
         if (sessionYearId != null) 'session_year_id': sessionYearId,
       };
       if (queryParameters['page'] == 0) {
@@ -212,7 +212,7 @@ class StudentRepository {
     required int childId,
     required int examStatus,
     bool getTimetable = false,
-    String? semesterId,
+    String? termId,
   }) async {
     try {
       final result = await Api.get(
@@ -223,12 +223,12 @@ class StudentRepository {
                 'child_id': childId,
                 'status': examStatus,
                 if (getTimetable) 'get_timetable': '1',
-                if (semesterId != null) 'semester_id': semesterId,
+                if (termId != null) 'term_id': termId,
               }
             : {
                 'status': examStatus,
                 if (getTimetable) 'get_timetable': '1',
-                if (semesterId != null) 'semester_id': semesterId,
+                if (termId != null) 'term_id': termId,
               },
       );
 
@@ -359,10 +359,7 @@ class StudentRepository {
     return result['payment_gateway_details'];
   }
 
-  Future<void> storeFees({
-    required String transactionId,
-    int? childId,
-  }) async {
+  Future<void> storeFees({required String transactionId, int? childId}) async {
     try {
       //if child id is not provided, it assumes that the student/child himself is paying the fees
       await Api.post(

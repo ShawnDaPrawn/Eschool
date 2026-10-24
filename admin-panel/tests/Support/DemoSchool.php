@@ -96,8 +96,8 @@ class DemoSchool
         ] as $type => $message) {
             Settings::query()->updateOrCreate(['type' => $type], ['message' => $message]);
         }
-        // The classes don't use semesters, but the school has one running.
-        $this->ids['semester'] = $this->insert('semesters', ['name' => $this->t('Term 1'), 'start_date' => $this->day(-120), 'end_date' => $this->day(60), 'session_year_id' => $this->year]);
+        // The classes don't use terms, but the school has one running.
+        $this->ids['term'] = $this->insert('terms', ['name' => $this->t('Term 1'), 'start_date' => $this->day(-120), 'end_date' => $this->day(60), 'session_year_id' => $this->year]);
     }
 
     private function classes(): void
@@ -115,7 +115,7 @@ class DemoSchool
             $class = $this->ids["class_$key"] = $this->insert('classes', ['name' => $className, 'medium_id' => $medium]);
             $section = $this->insert('sections', ['name' => strtoupper($key)]);
             $this->ids["section_$key"] = $this->insert('class_sections', ['class_id' => $class, 'section_id' => $section]);
-            $this->insert('class_session_configs', ['class_id' => $class, 'session_year_id' => $this->year, 'include_semesters' => 0]);
+            $this->insert('class_session_configs', ['class_id' => $class, 'session_year_id' => $this->year, 'include_terms' => 0]);
             foreach (['maths', 'science'] as $subject) {
                 $this->ids["class_subject_{$key}_$subject"] = $this->insert('class_subjects', [
                     'class_id' => $class, 'subject_id' => $this->ids[$subject], 'type' => 'Compulsory', 'session_year_id' => $this->year,

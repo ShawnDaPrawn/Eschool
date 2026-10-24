@@ -99,7 +99,7 @@ class Api {
   static String holidays = '${databaseUrl}holidays';
   static String events = '${databaseUrl}get-events-list';
   static String eventDetails = '${databaseUrl}get-events-details';
-  static String semesters = '${databaseUrl}get-semesters';
+  static String terms = '${databaseUrl}get-terms';
   static String sessionYears = '${databaseUrl}get-session-year';
   static String changePassword = '${databaseUrl}change-password';
 
@@ -289,10 +289,10 @@ class Api {
 
     NotificationUtility.removeListener();
     context?.read<AuthCubit>().signOut();
-    Navigator.of(
-      context!,
-    ).pushNamedAndRemoveUntil(Routes.auth, (_) => false).then((_) {
-      isLoggingOut = false;
-    });
+    Navigator.of(context!)
+        .pushNamedAndRemoveUntil(Routes.auth, (_) => false)
+        .then((_) {
+          isLoggingOut = false;
+        });
   }
 }

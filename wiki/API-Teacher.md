@@ -6,21 +6,21 @@ A teacher is linked to classes through two tables. Nearly every scope check in t
 
 | Table | Columns that matter | Meaning |
 |---|---|---|
-| `class_teachers` | `class_section_id`, `class_teacher_id` (a `teachers.id`), `session_year_id`, `semester_id` (nullable), soft deletes | The teacher is **class teacher** of that section |
-| `subject_teachers` | `class_section_id`, `subject_id`, `teacher_id`, `session_year_id`, `semester_id` (nullable), soft deletes | The teacher is **subject teacher** of that subject in that section |
+| `class_teachers` | `class_section_id`, `class_teacher_id` (a `teachers.id`), `session_year_id`, `term_id` (nullable), soft deletes | The teacher is **class teacher** of that section |
+| `subject_teachers` | `class_section_id`, `subject_id`, `teacher_id`, `session_year_id`, `term_id` (nullable), soft deletes | The teacher is **subject teacher** of that subject in that section |
 
-"Current session year" always means `getSettings('session_year')['session_year']`, the session year selected in the admin panel's settings. A `semester_id` of `NULL` on either table means "all semesters". When it runs on an install that has a current semester, the `2026_04_28_165603_semester_id_backfill` migration pins the current session year's `NULL` rows to semesters (subject teachers to the current semester, class teachers to every semester). See [Academic-Structure](Academic-Structure) for sessions, semesters and class sections.
+"Current session year" always means `getSettings('session_year')['session_year']`, the session year selected in the admin panel's settings. A `term_id` of `NULL` on either table means "all terms". When it runs on an install that has a current term, the `2026_04_28_165603_term_id_backfill` migration pins the current session year's `NULL` rows to terms (subject teachers to the current term, class teachers to every term). See [Academic-Structure](Academic-Structure) for sessions, terms and class sections.
 
 ### Controller helpers
 
-These private methods hold the scope rules. The shared ones (`currentTeacher()` through `applySemesterFilter()`) are in the `Teacher\Concerns\TeacherAccess` trait that every `Teacher\` controller uses; `canManageFile()` is in `LessonController`, `canChatWith()` in `ChatController`, and `obtainedMarksOutOfRange()` in `ExamController`. They were added in commit `77fe8ed` ("Limit teacher API actions to the teacher's own classes and subjects"). Before that commit, most endpoints accepted any `class_section_id`, `student_id` or record id.
+These private methods hold the scope rules. The shared ones (`currentTeacher()` through `applyTermFilter()`) are in the `Teacher\Concerns\TeacherAccess` trait that every `Teacher\` controller uses; `canManageFile()` is in `LessonController`, `canChatWith()` in `ChatController`, and `obtainedMarksOutOfRange()` in `ExamController`. They were added in commit `77fe8ed` ("Limit teacher API actions to the teacher's own classes and subjects"). Before that commit, most endpoints accepted any `class_section_id`, `student_id` or record id.
 
 | Helper | Rule |
 |---|---|
 | `currentTeacher()` | Returns `Auth::user()->teacher`. A Teacher-role user without a `teachers` row is refused with `no_permission_message` and code 403, rather than continuing with `null`. |
 | `currentSessionYearId()` | The current session year from settings. |
-| `isClassTeacherOf($classSectionId, $sessionYearId = null)` | A `class_teachers` row exists for this teacher, section and session year (current by default). Semester is not checked. |
-| `teachesSubject($classSectionId, $subjectId, $semesterId = null)` | A `subject_teachers` row exists for this teacher and this exact section and subject in the current session year. When `$semesterId` is given, the row's `semester_id` must equal it or be `NULL`. |
+| `isClassTeacherOf($classSectionId, $sessionYearId = null)` | A `class_teachers` row exists for this teacher, section and session year (current by default). Term is not checked. |
+| `teachesSubject($classSectionId, $subjectId, $termId = null)` | A `subject_teachers` row exists for this teacher and this exact section and subject in the current session year. When `$termId` is given, the row's `term_id` must equal it or be `NULL`. |
 | `teacherClassSectionIds()` | Union of sections where the teacher is class teacher or subject teacher in the current session year. |
 | `studentClassSectionIds($student, $sessionYearId = null)` | The student's `students.class_section_id` plus every `student_sessions.class_section_id` for the session year. |
 | `teachesStudent($studentId)` | The student's sections (above) intersect `teacherClassSectionIds()`. Class teachers and subject teachers both pass. |
@@ -29,10 +29,10 @@ These private methods hold the scope rules. The shared ones (`currentTeacher()` 
 | `ownsAnnouncement($announcement)` | `announcements.table_type` is `App\Models\SubjectTeacher` and the `table_id` row belongs to this teacher (any session year). |
 | `canManageFile($file)` | Decided by what the `files` row is attached to (`modal_type`): own lesson, own lesson's topic, assignment visible through `Assignment::assignmentTeachers()`, own announcement, or a `Leave` whose `user_id` is the signed-in user. Anything else is refused. |
 | `canChatWith($userId)` | The user has already sent this teacher a message, or is a student in one of `teacherClassSectionIds()` with a `student_sessions` row for the current session year, or is the father, mother or guardian of such a student. |
-| `teacherTimetableQuery($teacher)` | `timetables` rows whose `subject_teacher_id` is one of the teacher's `subject_teachers` rows for the current semester (or `NULL` semester), in the current session year. |
-| `getTeacherClassSections($teacher, $sessionYearId)` | Returns `[class teacher sections, other sections]` for the `classes` endpoint, filtered to the current semester when one is running. |
+| `teacherTimetableQuery($teacher)` | `timetables` rows whose `subject_teacher_id` is one of the teacher's `subject_teachers` rows for the current term (or `NULL` term), in the current session year. |
+| `getTeacherClassSections($teacher, $sessionYearId)` | Returns `[class teacher sections, other sections]` for the `classes` endpoint, filtered to the current term when one is running. |
 | `obtainedMarksOutOfRange($obtained, $total)` | Marks must be numeric and between 0 and the exam timetable's `total_marks`. |
-| `applySemesterFilter($query, $classSectionId, $sessionYearId, $semesterId)` | Adds `where semester_id = ...` only when the class has semesters enabled (`ClassSessionConfig::classHasSemester`). |
+| `applyTermFilter($query, $classSectionId, $sessionYearId, $termId)` | Adds `where term_id = ...` only when the class has terms enabled (`ClassSessionConfig::classHasTerm`). |
 
 ### Model scopes
 
@@ -40,7 +40,7 @@ List and update queries also go through Eloquent scopes. Each scope returns ever
 
 | Scope | Rule for a Teacher |
 |---|---|
-| [`Assignment::scopeAssignmentTeachers`](https://github.com/ShawnDaPrawn/Eschool/blob/main/admin-panel/app/Models/Assignment.php) | A `subject_teachers` row for this teacher with the assignment's exact `class_section_id` and `subject_id`. If the class has semesters for the assignment's session year, the row's `semester_id` must equal the assignment's `semester_id`. No teacher record means no rows (`whereRaw('1 = 0')`). |
+| [`Assignment::scopeAssignmentTeachers`](https://github.com/ShawnDaPrawn/Eschool/blob/main/admin-panel/app/Models/Assignment.php) | A `subject_teachers` row for this teacher with the assignment's exact `class_section_id` and `subject_id`. If the class has terms for the assignment's session year, the row's `term_id` must equal the assignment's `term_id`. No teacher record means no rows (`whereRaw('1 = 0')`). |
 | [`AssignmentSubmission::scopeAssignmentSubmissionTeachers`](https://github.com/ShawnDaPrawn/Eschool/blob/main/admin-panel/app/Models/AssignmentSubmission.php) | The submission's assignment passes `assignmentTeachers()`. |
 | [`Lesson::scopeLessonTeachers`](https://github.com/ShawnDaPrawn/Eschool/blob/main/admin-panel/app/Models/Lesson.php) | A non-deleted `subject_teachers` row with the lesson's exact `class_section_id` and `subject_id` pair (any session year). |
 | [`LessonTopic::scopeLessonTopicTeachers`](https://github.com/ShawnDaPrawn/Eschool/blob/main/admin-panel/app/Models/LessonTopic.php) | The topic's lesson passes `lessonTeachers()`. |
@@ -100,9 +100,9 @@ flowchart TD
     E -->|"allowed"| G["Handler reads or writes"]
 ```
 
-### Semesters
+### Terms
 
-When a semester is running (`Semester::current`), `classes`, `teacher_timetable` and `update-timetable-link` only use `subject_teachers` / `class_teachers` rows for that semester or with a `NULL` semester. `teacherTimetableQuery` uses `where semester_id = <current id> or semester_id is null`. Between semesters there is no current semester, so it only matches rows with a `NULL` semester. A teacher whose rows are all pinned to semesters then sees an empty timetable. `create-assignment` requires `semester_id` when the class has semesters, while `create-lesson` and `send-announcement` accept it but do not require it.
+When a term is running (`Term::current`), `classes`, `teacher_timetable` and `update-timetable-link` only use `subject_teachers` / `class_teachers` rows for that term or with a `NULL` term. `teacherTimetableQuery` uses `where term_id = <current id> or term_id is null`. Between terms there is no current term, so it only matches rows with a `NULL` term. A teacher whose rows are all pinned to terms then sees an empty timetable. `create-assignment` requires `term_id` when the class has terms, while `create-lesson` and `send-announcement` accept it but do not require it.
 
 ## Conventions
 
@@ -205,7 +205,7 @@ No parameters. Calls `IdCardService::buildStaffPdf([user id])` and returns the P
 No parameters. Uses `getTeacherClassSections()`.
 
 - **Response:** `data.class_teacher`, the class sections where the teacher is class teacher, or `{}` when there are none. `data.other`, the sections where they only teach subjects. Each section loads `class.medium`, `section`, `class.streams` and `class.shifts`.
-- Every serialized class (here and in `dashboard`, `student-list`, `get-assignment` and `teacher_timetable`) carries `full_name` and `include_semesters`, appended by `ClassSchool`. `include_semesters` is `1` or `0` for the current session year (`class_session_configs`), `0` when the class has no row for that year. The app compares it with `'1'` (and, since this change, also accepts `true`).
+- Every serialized class (here and in `dashboard`, `student-list`, `get-assignment` and `teacher_timetable`) carries `full_name` and `include_terms`, appended by `ClassSchool`. `include_terms` is `1` or `0` for the current session year (`class_session_configs`), `0` when the class has no row for that year. The app compares it with `'1'` (and, since this change, also accepts `true`).
 - Does not use `currentTeacher()`, so a Teacher-role user without a teacher record gets code 103 instead of a 403.
 
 #### GET subjects
@@ -214,9 +214,9 @@ No parameters. Uses `getTeacherClassSections()`.
 |---|---|---|---|
 | `class_section_id` | numeric | no | Filter |
 | `subject_id` | numeric | no | Filter |
-| `filter_by_semester` | boolean | no | Validated but ignored (the code that used it is commented out) |
+| `filter_by_term` | boolean | no | Validated but ignored (the code that used it is commented out) |
 
-- **Response:** the teacher's `subject_teachers` rows for the current session year. Each has `subject`, and the row's `semester` (id, name, session_year_id, start_date, end_date) is moved inside `subject` as `subject.semester`. Rows from every semester are returned.
+- **Response:** the teacher's `subject_teachers` rows for the current session year. Each has `subject`, and the row's `term` (id, name, session_year_id, start_date, end_date) is moved inside `subject` as `subject.term`. Rows from every term are returned.
 
 #### GET dashboard
 
@@ -229,9 +229,9 @@ No parameters. Uses `getTeacherClassSections()`.
 
 | Key | Content |
 |---|---|
-| `class_teacher` | Sections from the teacher's `class_teachers` rows in the current session year (no semester filter) |
+| `class_teacher` | Sections from the teacher's `class_teachers` rows in the current session year (no term filter) |
 | `other_classes` | Sections from `subject_teachers` rows in the session year, minus the class-teacher ones |
-| `student_leave_request` | Pending (`status = 0`) leaves in the session year with `to_date >= today`, each with `leave_detail`, `user.student.class_section`, `file` and a computed `total_days` (Full = 1, anything else = 0.5). For each `class_teachers` row it matches students currently in that section. A row with a semester also requires `from_date` between the semester start and the day before the next semester starts (or the semester end for the last semester). |
+| `student_leave_request` | Pending (`status = 0`) leaves in the session year with `to_date >= today`, each with `leave_detail`, `user.student.class_section`, `file` and a computed `total_days` (Full = 1, anything else = 0.5). For each `class_teachers` row it matches students currently in that section. A row with a term also requires `from_date` between the term start and the day before the next term starts (or the term end for the last term). |
 | `timetable` | Today's `timetables` rows (`day_name` equals the current weekday name) for the teacher's `subject_teachers` rows, with `class_section` and `subject`, ordered by `start_time` |
 | `upcoming_exams` | Exams for class-teacher classes whose timetable has not started yet (`exam_status` `0`), sorted by start date, each with `exam_timetable` |
 | `staff_leaves` | Approved leaves of other non-student users with `to_date >= today`, grouped into `today`, `tomorrow` and `upcoming` (dates after tomorrow). Each entry has `user_name`, `image`, `date` (d-m-Y), `role`, `type`. No permission is checked. |
@@ -246,7 +246,7 @@ No parameters. Uses `getTeacherClassSections()`.
 |---|---|---|---|
 | `class_section_id` | numeric | yes | |
 | `subject_id` | any | no | When the class subject is `Elective`, only students with a matching `student_subjects` row are returned |
-| `semester_id` | integer | no | Used with `subject_id` to find the `class_subjects` and `student_subjects` rows |
+| `term_id` | integer | no | Used with `subject_id` to find the `class_subjects` and `student_subjects` rows |
 
 - **Scope:** class teacher of the section in the current session year (`class_teachers` row). Subject teachers get `You are not assigned to this class section` (403).
 - **Response:** students with a `student_sessions` row for the section and session year, with `user` (id, first_name, last_name, image, gender, dob, current_address, permanent_address) and `class_section`, ordered by `roll_number` (by `id` after the elective filter).
@@ -309,7 +309,7 @@ The teacher's own staff attendance, not a class report.
 
 #### GET teacher_timetable
 
-The path uses an underscore. No parameters. Returns `teacherTimetableQuery()` rows (current session year, current or `NULL` semester) with `class_section` and `subject`. See [Semesters](#semesters) for the semester-break behaviour.
+The path uses an underscore. No parameters. Returns `teacherTimetableQuery()` rows (current session year, current or `NULL` term) with `class_section` and `subject`. See [Terms](#terms) for the term-break behaviour.
 
 #### POST update-timetable-link
 
@@ -324,7 +324,7 @@ The path uses an underscore. No parameters. Returns `teacherTimetableQuery()` ro
 
 #### GET academic-calendar-pdf
 
-No parameters. Collects the `class_id` of every section in the teacher's `class_teachers` rows (not filtered by session year) and passes them to `AcademicCalendarService::generate()`. The service merges holidays, semester breaks, events and those classes' exams for the current session year and returns a base64 PDF in the extra key `pdf`. A teacher with no class-teacher rows gets `Error occurred while generating academic calendar PDF` (code 103).
+No parameters. Collects the `class_id` of every section in the teacher's `class_teachers` rows (not filtered by session year) and passes them to `AcademicCalendarService::generate()`. The service merges holidays, term breaks, events and those classes' exams for the current session year and returns a base64 PDF in the extra key `pdf`. A teacher with no class-teacher rows gets `Error occurred while generating academic calendar PDF` (code 103).
 
 ## Lessons, topics and study material
 
@@ -347,9 +347,9 @@ Uploads are stored on the `public` disk under `lessons/`.
 | Parameter | Type | Required | Notes |
 |---|---|---|---|
 | `lesson_id` | numeric | no | |
-| `class_section_id` | numeric | no | Also applies the semester filter |
+| `class_section_id` | numeric | no | Also applies the term filter |
 | `subject_id` | numeric | no | |
-| `semester_id` | numeric | no | Only used with `class_section_id` when the class has semesters |
+| `term_id` | numeric | no | Only used with `class_section_id` when the class has terms |
 
 - **Scope:** `Lesson::lessonTeachers()`.
 - **Response:** lessons (not paginated, newest first) with `file` and `topic_count`.
@@ -362,10 +362,10 @@ Uploads are stored on the `public` disk under `lessons/`.
 | `description` | string | yes | |
 | `class_section_id` | numeric, exists | yes | |
 | `subject_id` | numeric, exists | yes | |
-| `semester_id` | numeric, exists | no | Stored only when the class has semesters |
+| `term_id` | numeric, exists | no | Stored only when the class has terms |
 | `file[]` | array | no | See the table above |
 
-- **Scope:** `teachesSubject(class_section_id, subject_id, semesterId)`. Otherwise 403 `You are not assigned to this class section and subject combination.`
+- **Scope:** `teachesSubject(class_section_id, subject_id, termId)`. Otherwise 403 `You are not assigned to this class section and subject combination.`
 - No notification is sent.
 
 #### POST update-lesson
@@ -450,10 +450,10 @@ See the [assignments docs](https://shawndaprawn.github.io/Eschool/features/assig
 |---|---|---|---|
 | `class_section_id` | numeric | no | |
 | `subject_id` | numeric | no | |
-| `semester_id` | numeric | no | Applied only together with `class_section_id`, and only if the class has semesters |
+| `term_id` | numeric | no | Applied only together with `class_section_id`, and only if the class has terms |
 
 - **Scope:** `Assignment::assignmentTeachers()`, current session year.
-- **Response:** Laravel paginator (15 per page, newest first). Each assignment has `class_section` (with `class`, `section`), `file`, and `subject`. The assignment's `semester` is moved to `subject.semester`.
+- **Response:** Laravel paginator (15 per page, newest first). Each assignment has `class_section` (with `class`, `section`), `file`, and `subject`. The assignment's `term` is moved to `subject.term`.
 
 #### POST create-assignment
 
@@ -461,7 +461,7 @@ See the [assignments docs](https://shawndaprawn.github.io/Eschool/features/assig
 |---|---|---|---|
 | `class_section_id` | numeric, exists | yes | |
 | `subject_id` | numeric, exists | yes | |
-| `semester_id` | numeric, exists | when the class has semesters | Otherwise `Semester id required.` (400) |
+| `term_id` | numeric, exists | when the class has terms | Otherwise `Term id required.` (400) |
 | `name` | string, max 255 | yes | |
 | `instructions` | string | no | |
 | `due_date` | `d-m-Y H:i` | yes | For example `07-08-2025 15:45` |
@@ -470,7 +470,7 @@ See the [assignments docs](https://shawndaprawn.github.io/Eschool/features/assig
 | `extra_days_for_resubmission` | numeric, min 0 | no | Stored only when `resubmission` is set |
 | `file[]` | uploads | no | Stored under `assignment/`, `files.type = 1` |
 
-- **Scope:** `teachesSubject(class_section_id, subject_id, semesterId)` (403 otherwise).
+- **Scope:** `teachesSubject(class_section_id, subject_id, termId)` (403 otherwise).
 - **Side effects:** a `notifications` row (`type = assignment`, `send_to = 3`, title `New assignment added in <subject>`), `user_notifications` rows and an FCM push to the students. If the subject is `Elective` in `class_subjects`, only students with a `student_subjects` row for it this session year are notified, otherwise every student whose `class_section_id` is the section.
 
 #### POST update-assignment
@@ -487,7 +487,7 @@ See the [assignments docs](https://shawndaprawn.github.io/Eschool/features/assig
 | `extra_days_for_resubmission` | numeric | no | |
 | `file[]` | uploads | no | Appended, not replaced |
 
-- **Scope:** found through `assignmentTeachers()`, and the target pair must pass `teachesSubject()`. `semester_id` is not changed.
+- **Scope:** found through `assignmentTeachers()`, and the target pair must pass `teachesSubject()`. `term_id` is not changed.
 - **Side effects:** notification `Update assignment in <subject>` to every student in the section (no elective filter), stored and pushed.
 
 #### POST delete-assignment
@@ -520,7 +520,7 @@ Teacher announcements are `announcements` rows whose morph `table` is a `Subject
 |---|---|---|---|
 | `class_section_id` | numeric | no | |
 | `subject_id` | numeric | no | |
-| `semester_id` | numeric | no | Filters the `subject_teachers` rows, only with `class_section_id` |
+| `term_id` | numeric | no | Filters the `subject_teachers` rows, only with `class_section_id` |
 
 Returns a paginator (15 per page, newest first) of announcements on the teacher's `subject_teachers` rows, with `table.subject` and `file`. Neither query filters by session year.
 
@@ -530,12 +530,12 @@ Returns a paginator (15 per page, newest first) of announcements on the teacher'
 |---|---|---|---|
 | `class_section_id` | numeric, exists | yes | |
 | `subject_id` | numeric, exists | yes | |
-| `semester_id` | numeric, exists | no | Used only when the class has semesters |
+| `term_id` | numeric, exists | no | Used only when the class has terms |
 | `title` | string, max 255 | yes | |
 | `description` | string | no | |
 | `file` / `file[]` | uploads: pdf, doc, docx, xls, xlsx, ppt, pptx, jpg, jpeg, png, gif | no | Stored under `announcement/` |
 
-- **Scope:** a `subject_teachers` row for the teacher, section and subject (semester-aware when the class has semesters). Otherwise 403.
+- **Scope:** a `subject_teachers` row for the teacher, section and subject (term-aware when the class has terms). Otherwise 403.
 - **Side effects:** FCM push `New announcement in <subject>` (`type = class_section`) to students whose `class_section_id` is the section. No `notifications` row is written.
 
 #### POST update-announcement
@@ -567,7 +567,7 @@ Exam status is computed from `exam_timetables` dates for the class: 0 upcoming (
 | `class_section_id` | any | no | Must be a section the teacher is class teacher of (otherwise `no_permission_message`) |
 | `get_timetable` | `1` | no | Adds `exam_timetable` to each item |
 
-- **Scope:** only classes where the teacher has a `class_teachers` row in the current session year. If any of those classes uses semesters, exams are limited to the semesters of the teacher's class-teacher rows.
+- **Scope:** only classes where the teacher has a `class_teachers` row in the current session year. If any of those classes uses terms, exams are limited to the terms of the teacher's class-teacher rows.
 - **Response:** `[{id, name, description, publish, session_year, exam_starting_date, exam_ending_date, exam_status, class_id, class_name, class_streams, exam_timetable?}]`. Each `exam_timetable` row has `start_time`/`end_time` and the copies `starting_time`/`ending_time` that the app reads (appended by `ExamTimetable`).
 
 #### GET get-exam-details
@@ -578,7 +578,7 @@ Exam status is computed from `exam_timetables` dates for the class: 0 upcoming (
 | `class_id` | integer | yes |
 
 - **Scope:** some section of `class_id` must be in `teacherClassSectionIds()` (403 otherwise).
-- **Response:** `data` is a one-element list holding the exam (current session year) with `timetable` for that class. The exam's `semester` is copied into each `timetable[].subject.semester`, and each `timetable` row carries `starting_time`/`ending_time` as well as `start_time`/`end_time`. Extra keys: `class_id`, `class_section_id` (the first section of the class), `class_name`, `stream_name`, and `code` 200.
+- **Response:** `data` is a one-element list holding the exam (current session year) with `timetable` for that class. The exam's `term` is copied into each `timetable[].subject.term`, and each `timetable` row carries `starting_time`/`ending_time` as well as `start_time`/`end_time`. Extra keys: `class_id`, `class_section_id` (the first section of the class), `class_name`, `stream_name`, and `code` 200.
 
 #### POST submit-exam-marks/subject
 
@@ -661,7 +661,7 @@ Leaves are `leaves` rows (`user_id`, `reason`, `from_date`, `to_date`, `leave_ma
 | `month` | integer 1-12 | no |
 
 - **Scope:** `isClassTeacherOf(class_section_id, session_year_id)` (403 otherwise).
-- Lists leaves of users with the `Student` role who have a `student_sessions` row for that section and session year. If the class has semesters and the teacher's class-teacher rows name semesters, only leaves whose `from_date` falls inside one of those semesters are returned.
+- Lists leaves of users with the `Student` role who have a `student_sessions` row for that section and session year. If the class has terms and the teacher's class-teacher rows name terms, only leaves whose `from_date` falls inside one of those terms are returned.
 - **Response:** `total_leave_requests` and `leave_details` (each with `leave_detail`, `user.student` with `class_section_id` set from the session row, `file`, and `total_days`).
 
 #### POST student-leave-status-update
@@ -764,6 +764,6 @@ The scope rules are covered by [`TeacherApiSecurityTest.php`](https://github.com
 - [API-Student](API-Student) and [API-Parent](API-Parent): the other app APIs
 - [Teacher-App](Teacher-App): the Flutter client for this API
 - [Roles-and-Permissions](Roles-and-Permissions): the Teacher role and its permissions
-- [Academic-Structure](Academic-Structure): session years, semesters, class sections, class and subject teachers
+- [Academic-Structure](Academic-Structure): session years, terms, class sections, class and subject teachers
 - [Exams-and-Grading](Exams-and-Grading), [Notifications](Notifications), [Chat](Chat)
 - [Security-Model](Security-Model): how the app APIs are scoped

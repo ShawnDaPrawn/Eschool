@@ -39,7 +39,7 @@
                                             <option value="">--{{ __('select') }}--</option>
                                             @foreach ($exams as $exam)
                                                 <option value="{{ $exam->id }}"
-                                                    data-semester-id="{{ $exam->semester_id ?? '' }}">{{ $exam->name }}
+                                                    data-term-id="{{ $exam->term_id ?? '' }}">{{ $exam->name }}
                                                 </option>
                                             @endforeach
                                         </select>

@@ -14,10 +14,10 @@ use App\Models\Event;
 use App\Models\Exam;
 use App\Models\ExamTimetable;
 use App\Models\MultipleEvent;
-use App\Models\Semester;
 use App\Models\Slider;
 use App\Models\Student;
 use App\Models\StudentSessions;
+use App\Models\Term;
 use App\Models\Timetable;
 use App\Services\GalleryService;
 use App\Services\ResponseService;
@@ -54,13 +54,11 @@ class DashboardController extends Controller
             $class_id = $studentSession->class_section->class_id;
             $class_section_id = $studentSession->class_section_id;
 
-            // Get current semester (if any) for this session year
-            $currentSemester = Semester::where('session_year_id', $session_year_id)
-                ->get()
-                ->first(fn ($semester) => $semester->current);
+            // Get current term (if any) for this session year
+            $currentTerm = Term::currentForClass((int) $session_year_id, (int) $class_id);
 
-            // Check if this class uses semesters
-            $isClassHaveSemester = ClassSessionConfig::classHasSemester($class_id, $session_year_id);
+            // Check if this class uses terms
+            $isClassHaveTerm = ClassSessionConfig::classHasTerm($class_id, $session_year_id);
 
             $sliders = Slider::where('type', 1)->orWhere('type', 3)->get()->toArray();
             $subjects = $student->subjects();
@@ -98,9 +96,9 @@ class DashboardController extends Controller
                 ->orderBy('due_date', 'asc')
                 ->limit(2);
 
-            // Filter by semester_id when the class has a semester
-            if ($isClassHaveSemester && $currentSemester) {
-                $assignmentsQuery->where('semester_id', $currentSemester->id);
+            // Filter by term_id when the class has a term
+            if ($isClassHaveTerm && $currentTerm) {
+                $assignmentsQuery->where('term_id', $currentTerm?->id);
             }
 
             $assignments = $assignmentsQuery->get();
@@ -114,9 +112,9 @@ class DashboardController extends Controller
                 })
                 ->orderBy('start_time', 'asc');
 
-            // Filter by semester_id when the class has a semester
-            if ($isClassHaveSemester && $currentSemester) {
-                $timetableQuery->where('semester_id', $currentSemester->id);
+            // Filter by term_id when the class has a term
+            if ($isClassHaveTerm && $currentTerm) {
+                $timetableQuery->where('term_id', $currentTerm?->id);
             }
 
             $timetables = $timetableQuery->get();
@@ -129,9 +127,9 @@ class DashboardController extends Controller
                     ->orderBy('date');
             }])->limit(10);
 
-            // Filter exams by semester_id when the class has a semester
-            if ($isClassHaveSemester && $currentSemester) {
-                $examQuery->where('semester_id', $currentSemester->id);
+            // Filter exams by term_id when the class has a term
+            if ($isClassHaveTerm && $currentTerm) {
+                $examQuery->where('term_id', $currentTerm?->id);
             }
 
             $exam_data_db = $examQuery->get();

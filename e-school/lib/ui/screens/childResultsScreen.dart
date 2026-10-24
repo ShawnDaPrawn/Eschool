@@ -1,6 +1,6 @@
 import 'package:eschool/app/selectedChild.dart';
 import 'package:eschool/cubits/resultsCubit.dart';
-import 'package:eschool/cubits/semestersCubit.dart';
+import 'package:eschool/cubits/termsCubit.dart';
 import 'package:eschool/data/models/subject.dart';
 import 'package:eschool/data/repositories/studentRepository.dart';
 import 'package:eschool/ui/widgets/resultsContainer.dart';
@@ -26,7 +26,7 @@ class ChildResultsScreen extends StatelessWidget {
             BlocProvider<ResultsCubit>(
               create: (context) => ResultsCubit(StudentRepository()),
             ),
-            BlocProvider<SemestersCubit>(create: (context) => SemestersCubit()),
+            BlocProvider<TermsCubit>(create: (context) => TermsCubit()),
           ],
           child: ChildSubjectsBuilder(
             childId: child.id,

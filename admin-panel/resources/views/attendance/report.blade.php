@@ -88,11 +88,11 @@
                 search: p.search,
                 'session_year_id': $('#filter_session_year_global').val(),
                 'class_section_id': $('#filter_class_section_id').val(),
-                'semester_id': $('#filter_class_section_id').find('option:selected').attr('data-semester') || '',
+                'term_id': $('#filter_class_section_id').find('option:selected').attr('data-term') || '',
             };
         }
 
-        function loadAttendanceReportClassSectionsWithSemesters() {
+        function loadAttendanceReportClassSectionsWithTerms() {
             var session_year_id = $('#filter_session_year_global').val();
             var isTeacher = {{ Auth::user()->hasRole('Teacher') ? 'true' : 'false' }};
 
@@ -111,7 +111,7 @@
             }
 
             $.ajax({
-                url: "{{ url('get-class-sections-with-semesters') }}",
+                url: "{{ url('get-class-sections-with-terms') }}",
                 type: "GET",
                 data: requestData,
                 success: function(response) {
@@ -125,7 +125,7 @@
 
                         html += '<option value="' + response[i].class_section_id + '"' +
                             ' data-class="' + response[i].class_id + '"' +
-                            ' data-semester="' + (response[i].semester_id || '') + '"' +
+                            ' data-term="' + (response[i].term_id || '') + '"' +
                             '>' + label + '</option>';
                     }
 
@@ -135,7 +135,7 @@
         }
 
         $('#filter_session_year_global').on('change', function() {
-            loadAttendanceReportClassSectionsWithSemesters();
+            loadAttendanceReportClassSectionsWithTerms();
             $('#table_list').bootstrapTable('refresh', {
                 silent: true
             });
@@ -148,7 +148,7 @@
         });
 
         $(document).ready(function() {
-            loadAttendanceReportClassSectionsWithSemesters();
+            loadAttendanceReportClassSectionsWithTerms();
         });
     </script>
 @endsection

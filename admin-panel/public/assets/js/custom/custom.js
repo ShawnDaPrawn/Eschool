@@ -1107,17 +1107,17 @@ $(document).on("click", ".remove-lesson-file", function (e) {
 
 //     let url = baseUrl + '/subject-by-class-section';
 //     const session_year_id = $('.session_year_id').val();
-//     let data = { class_section_id: class_section_id, session_year_id: session_year_id, all_semesters: 1 };
+//     let data = { class_section_id: class_section_id, session_year_id: session_year_id, all_terms: 1 };
 
 //     function successCallback(response) {
 //         if (response.length > 0) {
 //             let html = '<option value="">--' + trans('select_subject') + '--</option>';
 //             $.each(response, function (key, value) {
 //                 let label = value.subject.name + ' - ' + value.subject.type;
-//                 if (value.semester) {
-//                     label += ' - ' + value.semester.name;
+//                 if (value.term) {
+//                     label += ' - ' + value.term.name;
 //                 }
-//                 html += '<option value="' + value.subject_id + '" data-semester="' + (value.semester_id || '') + '">' + label + '</option>';
+//                 html += '<option value="' + value.subject_id + '" data-term="' + (value.term_id || '') + '">' + label + '</option>';
 //             });
 //             $('#topic_subject_id').html(html);
 //         } else {
@@ -1133,7 +1133,7 @@ $("#topic_subject_id").on("change", function () {
     let data = {
         subject_id: $(this).val(),
         class_section_id: $("#topic_class_section_id").val(),
-        semester_id: $(this).find(":selected").data("semester") || "",
+        term_id: $(this).find(":selected").data("term") || "",
     };
 
     function successCallback(response) {
@@ -1195,7 +1195,7 @@ $("#edit_topic_class_section_id").on("change", function (e, subject_id) {
     let data = {
         class_section_id: class_section_id,
         session_year_id: session_year_id,
-        all_semesters: 1,
+        all_terms: 1,
     };
 
     function successCallback(response) {
@@ -1203,14 +1203,14 @@ $("#edit_topic_class_section_id").on("change", function (e, subject_id) {
             let optHtml = "";
             $.each(response, function (key, value) {
                 let label = value.subject.name + " - " + value.subject.type;
-                if (value.semester) {
-                    label += " - " + value.semester.name;
+                if (value.term) {
+                    label += " - " + value.term.name;
                 }
                 optHtml +=
                     '<option value="' +
                     value.subject_id +
-                    '" data-semester="' +
-                    (value.semester_id || "") +
+                    '" data-term="' +
+                    (value.term_id || "") +
                     '">' +
                     label +
                     "</option>";
@@ -1234,7 +1234,7 @@ $("#edit_topic_subject_id").on("change", function () {
     let data = {
         subject_id: $(this).val(),
         class_section_id: $("#edit_topic_class_section_id").val(),
-        semester_id: $(this).find(":selected").data("semester") || "",
+        term_id: $(this).find(":selected").data("term") || "",
     };
 
     function successCallback(response) {
@@ -1506,10 +1506,10 @@ $("#class_section_id").on("change", function () {
     let selectedOption = $(this).find(":selected");
     let rawValue = selectedOption.val();
     let class_section_id = rawValue;
-    let semester_id = selectedOption.data("semester") || "";
+    let term_id = selectedOption.data("term") || "";
 
     if (rawValue && rawValue.includes("|")) {
-        [class_section_id, semester_id] = rawValue.split("|");
+        [class_section_id, term_id] = rawValue.split("|");
     }
 
     if (!class_section_id || class_section_id === "") {
@@ -1522,8 +1522,8 @@ $("#class_section_id").on("change", function () {
     let url = baseUrl + "/exams/get-publish-exam/" + class_section_id;
     let data = {};
 
-    if (semester_id) {
-        data.semester_id = semester_id;
+    if (term_id) {
+        data.term_id = term_id;
     }
 
     $("#exam_id").html('<option value="">' + trans("loading") + "</option>");
@@ -1986,8 +1986,8 @@ function loadAssignmentClassSections(
                     value.id +
                     '" data-class="' +
                     value.class_id +
-                    '" data-semester="' +
-                    (value.semester_id || "") +
+                    '" data-term="' +
+                    (value.term_id || "") +
                     '">' +
                     value.name +
                     "</option>";
@@ -2034,21 +2034,21 @@ $("#filter_class_section_id").on("change", function () {
         let data = {
             class_section_id: class_section_id,
             session_year_id: session_year_id,
-            all_semesters: 1,
+            all_terms: 1,
         };
         function successCallback(response) {
             let html = '<option value="">' + trans("all") + "</option>";
             if (response.length > 0) {
                 $.each(response, function (key, value) {
                     let label = value.subject.name + " - " + value.subject.type;
-                    if (value.semester) {
-                        label += " - " + value.semester.name;
+                    if (value.term) {
+                        label += " - " + value.term.name;
                     }
                     html +=
                         '<option value="' +
                         value.subject_id +
-                        '" data-semester="' +
-                        (value.semester_id || "") +
+                        '" data-term="' +
+                        (value.term_id || "") +
                         '">' +
                         label +
                         "</option>";
@@ -2088,15 +2088,15 @@ $(document).ready(function () {
 
 $(".class_section_id_in_assignment").on("change", function () {
     let class_section_id = $(this).val();
-    let semester_id = $(this).find(":selected").data("semester") || "";
-    $("#semester_id").val(semester_id);
+    let term_id = $(this).find(":selected").data("term") || "";
+    $("#term_id").val(term_id);
     let url = baseUrl + "/subject-by-class-section";
     const session_year_id = $("#session_year").val();
 
     let data = {
         class_section_id: class_section_id,
         session_year_id: session_year_id,
-        semester_id: semester_id,
+        term_id: term_id,
     };
     function successCallback(response) {
         if (response.length > 0) {
@@ -2106,8 +2106,8 @@ $(".class_section_id_in_assignment").on("change", function () {
                 html +=
                     '<option value="' +
                     value.subject_id +
-                    '" data-semester="' +
-                    (value.semester_id || "") +
+                    '" data-term="' +
+                    (value.term_id || "") +
                     '">' +
                     value.subject.name +
                     " - " +
@@ -2127,7 +2127,7 @@ $(".class_section_id_in_assignment").on("change", function () {
 
 $(".class_section_id").on("change", function () {
     let class_section_id = $(this).val();
-    $("#semester_id").val("");
+    $("#term_id").val("");
 
     let url = baseUrl + "/subject-by-class-section";
 
@@ -2135,7 +2135,7 @@ $(".class_section_id").on("change", function () {
     let data = {
         class_section_id: class_section_id,
         session_year_id: session_year_id,
-        all_semesters: 1,
+        all_terms: 1,
     };
     function successCallback(response) {
         if (response.length > 0) {
@@ -2143,14 +2143,14 @@ $(".class_section_id").on("change", function () {
             html += "<option value=\"\">" + trans("select_subject") + "</option>";
             $.each(response, function (key, value) {
                 let label = value.subject.name + " - " + value.subject.type;
-                if (value.semester) {
-                    label += " - " + value.semester.name;
+                if (value.term) {
+                    label += " - " + value.term.name;
                 }
                 html +=
                     '<option value="' +
                     value.subject_id +
-                    '" data-semester="' +
-                    (value.semester_id || "") +
+                    '" data-term="' +
+                    (value.term_id || "") +
                     '">' +
                     label +
                     "</option>";
@@ -2168,15 +2168,15 @@ $(".class_section_id").on("change", function () {
 
 $(".lessons_class_section_id").on("change", function () {
     let class_section_id = $(this).val();
-    $("#semester_id").val("");
+    $("#term_id").val("");
 
-    let url = baseUrl + "/teacher-semester-subjects";
+    let url = baseUrl + "/teacher-term-subjects";
 
     const session_year_id = $(".session_year_id").val();
     let data = {
         class_section_id: class_section_id,
         session_year_id: session_year_id,
-        all_semesters: 1,
+        all_terms: 1,
     };
     function successCallback(response) {
         if (response.length > 0) {
@@ -2184,14 +2184,14 @@ $(".lessons_class_section_id").on("change", function () {
             html += "<option value=\"\">" + trans("select_subject") + "</option>";
             $.each(response, function (key, value) {
                 let label = value.subject.name + " - " + value.subject.type;
-                if (value.semester) {
-                    label += " - " + value.semester.name;
+                if (value.term) {
+                    label += " - " + value.term.name;
                 }
                 html +=
                     '<option value="' +
                     value.subject_id +
-                    '" data-semester="' +
-                    (value.semester_id || "") +
+                    '" data-term="' +
+                    (value.term_id || "") +
                     '">' +
                     label +
                     "</option>";
@@ -2207,15 +2207,15 @@ $(".lessons_class_section_id").on("change", function () {
     ajaxRequest("GET", url, data, null, successCallback, null, null, true);
 });
 
-// Set semester_id when subject is selected (create form)
+// Set term_id when subject is selected (create form)
 $("#subject_id").on("change", function () {
-    let semester_id = $(this).find(":selected").data("semester") || "";
-    $("#semester_id").val(semester_id);
+    let term_id = $(this).find(":selected").data("term") || "";
+    $("#term_id").val(term_id);
 });
 
 $("#edit_class_section_id").on("change", function (e, subject_id) {
     let class_section_id = $(this).val();
-    $("#edit_semester_id").val("");
+    $("#edit_term_id").val("");
 
     if (!class_section_id) {
         $("#edit_subject_id").html(
@@ -2230,7 +2230,7 @@ $("#edit_class_section_id").on("change", function (e, subject_id) {
     let data = {
         class_section_id: class_section_id,
         session_year_id: session_year_id,
-        all_semesters: 1,
+        all_terms: 1,
     };
 
     function successCallback(response) {
@@ -2238,14 +2238,14 @@ $("#edit_class_section_id").on("change", function (e, subject_id) {
             let html = "";
             $.each(response, function (key, value) {
                 let label = value.subject.name + " - " + value.subject.type;
-                if (value.semester) {
-                    label += " - " + value.semester.name;
+                if (value.term) {
+                    label += " - " + value.term.name;
                 }
                 html +=
                     '<option value="' +
                     value.subject_id +
-                    '" data-semester="' +
-                    (value.semester_id || "") +
+                    '" data-term="' +
+                    (value.term_id || "") +
                     '">' +
                     label +
                     "</option>";
@@ -2253,8 +2253,8 @@ $("#edit_class_section_id").on("change", function (e, subject_id) {
             $("#edit_subject_id").html(html);
             if (subject_id) {
                 $("#edit_subject_id").val(subject_id);
-                $("#edit_semester_id").val(
-                    $("#edit_subject_id").find(":selected").data("semester") ||
+                $("#edit_term_id").val(
+                    $("#edit_subject_id").find(":selected").data("term") ||
                         "",
                 );
             }
@@ -2268,22 +2268,22 @@ $("#edit_class_section_id").on("change", function (e, subject_id) {
     ajaxRequest("GET", url, data, null, successCallback, null, null, true);
 });
 
-// Set semester_id when subject is selected (edit form)
+// Set term_id when subject is selected (edit form)
 $("#edit_subject_id").on("change", function () {
-    let semester_id = $(this).find(":selected").data("semester") || "";
-    $("#edit_semester_id").val(semester_id);
+    let term_id = $(this).find(":selected").data("term") || "";
+    $("#edit_term_id").val(term_id);
 });
 
-// Populate the semester dropdown in the lesson edit modal. The dropdown is
-// only shown when the lesson's class has semesters for the selected session
-// year, and lists only the semesters that contain the lesson's (locked)
+// Populate the term dropdown in the lesson edit modal. The dropdown is
+// only shown when the lesson's class has terms for the selected session
+// year, and lists only the terms that contain the lesson's (locked)
 // subject. Called from lessonEvents when the edit modal opens.
-function loadLessonEditSemester(row) {
-    let $div = $("#edit_semester_div");
-    let $select = $("#edit_semester_id");
+function loadLessonEditTerm(row) {
+    let $div = $("#edit_term_div");
+    let $select = $("#edit_term_id");
 
-    // Default: hidden and empty (so a blank semester_id is submitted for
-    // non-semester classes, which the controller stores as null).
+    // Default: hidden and empty (so a blank term_id is submitted for
+    // non-term classes, which the controller stores as null).
     $div.hide();
     $select
         .html('<option value="">--' + trans("select") + "--</option>")
@@ -2297,7 +2297,7 @@ function loadLessonEditSemester(row) {
     let data = {
         class_section_id: row.class_section_id,
         session_year_id: sessionStorage.getItem("session_year_id_table"),
-        all_semesters: 1,
+        all_terms: 1,
     };
 
     function successCallback(response) {
@@ -2305,29 +2305,29 @@ function loadLessonEditSemester(row) {
         let seen = {};
         let count = 0;
         $.each(response, function (key, value) {
-            // Keep only the semesters that hold the lesson's selected subject.
+            // Keep only the terms that hold the lesson's selected subject.
             if (String(value.subject_id) !== String(row.subject_id)) {
                 return;
             }
             if (
-                !value.semester ||
-                !value.semester_id ||
-                seen[value.semester_id]
+                !value.term ||
+                !value.term_id ||
+                seen[value.term_id]
             ) {
                 return;
             }
-            seen[value.semester_id] = true;
+            seen[value.term_id] = true;
             html +=
                 '<option value="' +
-                value.semester_id +
+                value.term_id +
                 '">' +
-                value.semester.name +
+                value.term.name +
                 "</option>";
             count++;
         });
 
         if (count > 0) {
-            $select.html(html).val(row.semester_id || "");
+            $select.html(html).val(row.term_id || "");
             $div.show();
         }
     }
@@ -2416,8 +2416,8 @@ $(document).on("change", "#select_session_year", function () {
                         html +=
                             '<option value="' +
                             exam.id +
-                            '" data-semester-id="' +
-                            (exam.semester_id || "") +
+                            '" data-term-id="' +
+                            (exam.term_id || "") +
                             '">' +
                             exam.name +
                             "</option>";
@@ -2465,12 +2465,12 @@ $("#exam_options").on("change", function () {
 // get Subjects on Drop down classes changes
 $("#exam_classes_options").on("change", function () {
     let class_id = $(this).val();
-    let semester_id =
-        $("#exam_options").find(":selected").data("semester-id") || "";
+    let term_id =
+        $("#exam_options").find(":selected").data("term-id") || "";
     let url = baseUrl + "/exam/get-subjects/" + class_id;
     let data = {};
-    if (semester_id) {
-        data.semester_id = semester_id;
+    if (term_id) {
+        data.term_id = term_id;
     }
     $.ajax({
         type: "get",
@@ -3337,7 +3337,7 @@ function loadClassTimetableClassSections(session_year_id) {
     }
 
     $.ajax({
-        url: baseUrl + "/get-class-sections-with-semesters",
+        url: baseUrl + "/get-class-sections-with-terms",
         type: "GET",
         data: { session_year_id: session_year_id, scope: scope },
         success: function (response) {
@@ -3350,8 +3350,8 @@ function loadClassTimetableClassSections(session_year_id) {
                     ' data-class="' +
                     response[i].class_id +
                     '"' +
-                    ' data-semester="' +
-                    (response[i].semester_id || "") +
+                    ' data-term="' +
+                    (response[i].term_id || "") +
                     '"' +
                     ">" +
                     response[i].label +
@@ -3378,7 +3378,7 @@ $("#class_timetable_class_section").on("change", function (e) {
     $(".list_buttons").show(200);
     var class_section_id = $(this).val();
     var session_year_id = $("#filter_session_year_global").val();
-    var semester_id = $(this).find(":selected").attr("data-semester") || "";
+    var term_id = $(this).find(":selected").attr("data-term") || "";
     function titleCase(s) {
         return s ? s.charAt(0).toUpperCase() + s.slice(1) : s;
     }
@@ -3390,7 +3390,7 @@ $("#class_timetable_class_section").on("change", function (e) {
         data: {
             class_section_id: class_section_id,
             session_year_id: session_year_id,
-            semester_id: semester_id,
+            term_id: term_id,
         },
         success: function (response) {
             var html = "";
@@ -3478,7 +3478,7 @@ function loadTeacherTimetableClassSections(session_year_id) {
     if (!session_year_id) return;
 
     $.ajax({
-        url: baseUrl + "/get-class-sections-with-semesters",
+        url: baseUrl + "/get-class-sections-with-terms",
         type: "GET",
         data: { session_year_id: session_year_id, scope: scope },
         success: function (response) {
@@ -3491,8 +3491,8 @@ function loadTeacherTimetableClassSections(session_year_id) {
                     ' data-class="' +
                     response[i].class_id +
                     '"' +
-                    ' data-semester="' +
-                    (response[i].semester_id || "") +
+                    ' data-term="' +
+                    (response[i].term_id || "") +
                     '"' +
                     ">" +
                     response[i].label +
@@ -3523,14 +3523,14 @@ $(document).ready(function () {
 $("#teacher_timetable_class_section").on("change", function (e) {
     var class_section_id = $(this).val();
     var session_year_id = $("#filter_session_year_global").val();
-    var semester_id = $(this).find(":selected").attr("data-semester") || "";
+    var term_id = $(this).find(":selected").attr("data-term") || "";
 
     if (!session_year_id) return;
 
-    loadTeacherTimetable(session_year_id, class_section_id, semester_id);
+    loadTeacherTimetable(session_year_id, class_section_id, term_id);
 });
 
-function loadTeacherTimetable(session_year_id, class_section_id, semester_id) {
+function loadTeacherTimetable(session_year_id, class_section_id, term_id) {
     $(".set_timetable").html("");
     $.ajax({
         url: baseUrl + "/get-timetable-by-subject-teacher-class",
@@ -3538,7 +3538,7 @@ function loadTeacherTimetable(session_year_id, class_section_id, semester_id) {
         data: {
             class_section_id: class_section_id,
             session_year_id: session_year_id,
-            semester_id: semester_id,
+            term_id: term_id,
         },
         success: function (response) {
             if (response["days"].length) {
@@ -3565,8 +3565,8 @@ function loadTeacherTimetable(session_year_id, class_section_id, semester_id) {
                                 typeKey.indexOf("practical") !== -1
                                     ? "badge-soft-warning"
                                     : "badge-soft-info";
-                            var semesterName = tt["semester"]
-                                ? tt["semester"]["name"]
+                            var termName = tt["term"]
+                                ? tt["term"]["name"]
                                 : "";
                             periods +=
                                 '<div class="timetable-period">' +
@@ -3589,9 +3589,9 @@ function loadTeacherTimetable(session_year_id, class_section_id, semester_id) {
                                       escapeHtml(trans(subject["type"])) +
                                       "</span>"
                                     : "") +
-                                (semesterName
+                                (termName
                                     ? ' <span class="badge badge-soft-secondary">' +
-                                      escapeHtml(semesterName) +
+                                      escapeHtml(termName) +
                                       "</span>"
                                     : "") +
                                 "</div>";
@@ -3691,8 +3691,8 @@ $("#teacher_timetable_teacher_id").on("change", function (e) {
                                         typeKey.indexOf("practical") !== -1
                                             ? "badge-soft-warning"
                                             : "badge-soft-info";
-                                    var semesterName = tt["semester"]
-                                        ? tt["semester"]["name"]
+                                    var termName = tt["term"]
+                                        ? tt["term"]["name"]
                                         : "";
                                     periods +=
                                         '<div class="timetable-period">' +
@@ -3715,9 +3715,9 @@ $("#teacher_timetable_teacher_id").on("change", function (e) {
                                               escapeHtml(trans(subject["type"])) +
                                               "</span>"
                                             : "") +
-                                        (semesterName
+                                        (termName
                                             ? ' <span class="badge badge-soft-secondary">' +
-                                              escapeHtml(semesterName) +
+                                              escapeHtml(termName) +
                                               "</span>"
                                             : "") +
                                         "</div>" +
@@ -3794,7 +3794,7 @@ $(".online-exam-class-section-id").on("change", function (e) {
         based_on: 1,
         class_section_id: $(this).val(),
         session_year_id: $("#session_year_id").val(),
-        semester_id: $("#semester_id").val(),
+        term_id: $("#term_id").val(),
     };
 
     function successCallback(response) {
@@ -4468,7 +4468,7 @@ $(".online-exam-class-id").on("change", function (e) {
         based_on: 0,
         class_id: $(this).val(),
         session_year_id: $("#session_year_id").val(),
-        semester_id: $("#semester_id").val(),
+        term_id: $("#term_id").val(),
     };
 
     function successCallback(response) {
@@ -6337,12 +6337,12 @@ document.addEventListener("DOMContentLoaded", function () {
                         "#filter_elective_subject",
                     ).val(),
                     session_year_id: $("#filter_session_year_global").val(),
-                    semester_id: $("#filter_semester").val(),
+                    term_id: $("#filter_term").val(),
                 };
             };
 
             $(
-                "#filter_class_section_id, #filter_status, #filter_semester,#filter_elective_subject",
+                "#filter_class_section_id, #filter_status, #filter_term,#filter_elective_subject",
             ).on("change", function () {
                 refreshStudentTable();
             });
@@ -6444,12 +6444,12 @@ document.addEventListener("DOMContentLoaded", function () {
                         "#filter_elective_subject",
                     ).val(),
                     session_year_id: $("#filter_session_year_global").val(),
-                    semester_id: $("#filter_semester").val(),
+                    term_id: $("#filter_term").val(),
                 };
             };
 
             $(
-                "#filter_class_section_id, #filter_status, #filter_semester, #filter_elective_subject",
+                "#filter_class_section_id, #filter_status, #filter_term, #filter_elective_subject",
             ).on("change", function () {
                 $("#table_list").bootstrapTable("refresh");
             });
@@ -6525,7 +6525,7 @@ $(document).ready(function () {
             data: {
                 class_id: classId,
                 session_year_id: $("#filter_session_year_global").val(),
-                semester_id: $("#filter_semester").val() || "",
+                term_id: $("#filter_term").val() || "",
             },
             success: function (response) {
                 $select
@@ -6586,7 +6586,7 @@ $(document).ready(function () {
             data: {
                 student_id: studentId,
                 session_year_id: $("#filter_session_year_global").val(),
-                semester_id: $("#filter_semester").val() || "",
+                term_id: $("#filter_term").val() || "",
             },
             success: function (response) {
                 assignedSubjectIds = response.assigned_subjects || [];
@@ -6917,9 +6917,9 @@ $(document).ready(function () {
         formData.push({ name: "is_bulk", value: isBulk ? 1 : 0 });
         formData.push({ name: "session_year_id", value: session_year_id });
 
-        const semester_id = $("#filter_semester").val();
-        if (semester_id) {
-            formData.push({ name: "semester_id", value: semester_id });
+        const term_id = $("#filter_term").val();
+        if (term_id) {
+            formData.push({ name: "term_id", value: term_id });
         }
 
         if (isBulk && selectedStudentIds.length > 0) {
@@ -7748,24 +7748,24 @@ $(document).ready(function () {
         initializeDatepickers();
     });
 
-    // Class Subject depends on Semester — auto-check Semester when Class Subject is checked
+    // Class Subject depends on Term — auto-check Term when Class Subject is checked
     $(document).on(
         "change",
         'input[name="transfer_class_subject"]',
         function () {
             if (
                 $(this).is(":checked") &&
-                !$("#transferSemesterCheckbox").is(":checked")
+                !$("#transferTermCheckbox").is(":checked")
             ) {
-                $("#transferSemesterCheckbox")
+                $("#transferTermCheckbox")
                     .prop("checked", true)
                     .trigger("change");
             }
         },
     );
 
-    // If Semester is unchecked, also uncheck Class Subject (and its dependents cascade via trigger)
-    $("#transferSemesterCheckbox").on("change.dependency", function () {
+    // If Term is unchecked, also uncheck Class Subject (and its dependents cascade via trigger)
+    $("#transferTermCheckbox").on("change.dependency", function () {
         if (
             !$(this).is(":checked") &&
             $('input[name="transfer_class_subject"]').is(":checked")
@@ -7776,15 +7776,15 @@ $(document).ready(function () {
         }
     });
 
-    // Re-fetch semesters when source session year changes (if semester checkbox is checked)
+    // Re-fetch terms when source session year changes (if term checkbox is checked)
     $(document).on("change", "#sourceSessionYear", function () {
         const sessionYearId = $(this).val();
-        if ($("#transferSemesterCheckbox").is(":checked")) {
+        if ($("#transferTermCheckbox").is(":checked")) {
             if (sessionYearId) {
-                fetchAndRenderSemesters(sessionYearId);
+                fetchAndRenderTerms(sessionYearId);
             } else {
-                $("#semesterTransferList").empty();
-                // $('#semesterEmptyMsg').text('Please select a session year above first.').show();
+                $("#termTransferList").empty();
+                // $('#termEmptyMsg').text('Please select a session year above first.').show();
             }
         }
     });
@@ -7888,42 +7888,42 @@ $(document).ready(function () {
         });
     }
 
-    // ---- Semester transfer: API-driven flow ----
-    // When the semester checkbox is toggled, show/hide semester section and fetch if needed
-    $("#transferSemesterCheckbox").on("change", function () {
+    // ---- Term transfer: API-driven flow ----
+    // When the term checkbox is toggled, show/hide term section and fetch if needed
+    $("#transferTermCheckbox").on("change", function () {
         if ($(this).is(":checked")) {
             const sessionYearId = $("#sourceSessionYear").val();
             if (sessionYearId) {
-                fetchAndRenderSemesters(sessionYearId);
+                fetchAndRenderTerms(sessionYearId);
             } else {
-                $("#semesterTransferList").empty();
-                $("#semesterEmptyMsg").hide();
-                $("#semesterTransferContent").slideDown(300);
+                $("#termTransferList").empty();
+                $("#termEmptyMsg").hide();
+                $("#termTransferContent").slideDown(300);
                 // Show a hint that they need to select a session year first
-                // $('#semesterEmptyMsg').text('Please select a session year above first.').show();
+                // $('#termEmptyMsg').text('Please select a session year above first.').show();
             }
         } else {
-            $("#semesterTransferContent").slideUp(300);
-            $("#semesterTransferList").empty();
-            $("#semesterEmptyMsg").hide();
-            // Remove required from any semester date fields
-            $("#semesterTransferContent").find("input").prop("required", false);
+            $("#termTransferContent").slideUp(300);
+            $("#termTransferList").empty();
+            $("#termEmptyMsg").hide();
+            // Remove required from any term date fields
+            $("#termTransferContent").find("input").prop("required", false);
         }
     });
 
-    // Fetch semesters from API and render fixed rows (name readonly, dates editable)
-    function fetchAndRenderSemesters(sessionYearId) {
-        const $list = $("#semesterTransferList");
-        const $empty = $("#semesterEmptyMsg");
-        const $loading = $("#semesterLoadingMsg");
+    // Fetch terms from API and render fixed rows (name readonly, dates editable)
+    function fetchAndRenderTerms(sessionYearId) {
+        const $list = $("#termTransferList");
+        const $empty = $("#termEmptyMsg");
+        const $loading = $("#termLoadingMsg");
 
         $list.empty();
         $empty.hide();
         $loading.show();
-        $("#semesterTransferContent").slideDown(300);
+        $("#termTransferContent").slideDown(300);
 
         $.ajax({
-            url: baseUrl + "/session-year/" + sessionYearId + "/semesters",
+            url: baseUrl + "/session-year/" + sessionYearId + "/terms",
             method: "GET",
             dataType: "json",
             success: function (response) {
@@ -7934,19 +7934,19 @@ $(document).ready(function () {
                     !response.data ||
                     response.data.length === 0
                 ) {
-                    $empty.text(trans("no_semesters_found")).show();
+                    $empty.text(trans("no_terms_found")).show();
                     return;
                 }
 
                 $empty.hide();
-                $.each(response.data, function (idx, semester) {
+                $.each(response.data, function (idx, term) {
                     const num = idx + 1;
-                    const semesterHTML = `
-                        <div class="installment-item semester-transfer-item" data-semester-index="${num}">
+                    const termHTML = `
+                        <div class="installment-item term-transfer-item" data-term-index="${num}">
                             <div class="form-group">
-                                <label>${trans("semester_name")}</label>
-                                <input type="text" class="form-control" name="semester_data[${num}][name]"
-                                    value="${$("<span>").text(semester.name).html()}" readonly
+                                <label>${trans("term_name")}</label>
+                                <input type="text" class="form-control" name="term_data[${num}][name]"
+                                    value="${$("<span>").text(term.name).html()}" readonly
                                     style="background-color: #e9ecef; cursor: not-allowed;">
                             </div>
                             <div class="row">
@@ -7954,7 +7954,7 @@ $(document).ready(function () {
                                     <div class="form-group">
                                         <label>${trans("start_date")} <span class="text-danger">*</span></label>
                                         <input type="text" class="form-control datepicker-popup"
-                                            name="semester_data[${num}][start_date]"
+                                            name="term_data[${num}][start_date]"
                                             placeholder="${trans("select_start_date")}" required>
                                     </div>
                                 </div>
@@ -7962,21 +7962,21 @@ $(document).ready(function () {
                                     <div class="form-group">
                                         <label>${trans("end_date")} <span class="text-danger">*</span></label>
                                         <input type="text" class="form-control datepicker-popup"
-                                            name="semester_data[${num}][end_date]"
+                                            name="term_data[${num}][end_date]"
                                             placeholder="${trans("select_end_date")}" required>
                                     </div>
                                 </div>
                             </div>
                         </div>
                     `;
-                    $list.append(semesterHTML);
+                    $list.append(termHTML);
                 });
 
                 initializeDatepickers();
             },
             error: function () {
                 $loading.hide();
-                $empty.text(trans("failed_to_load_semesters")).show();
+                $empty.text(trans("failed_to_load_terms")).show();
             },
         });
     }
@@ -8006,12 +8006,12 @@ $(document).ready(function () {
         // Reset source session year picker
         $("#sourceSessionYear").prop("required", false).val("");
 
-        // Reset semester transfer
-        $("#semesterTransferContent").hide();
-        $("#transferSemesterCheckbox").prop("checked", false);
-        $("#semesterTransferList").empty();
-        $("#semesterEmptyMsg").hide();
-        $("#semesterLoadingMsg").hide();
+        // Reset term transfer
+        $("#termTransferContent").hide();
+        $("#transferTermCheckbox").prop("checked", false);
+        $("#termTransferList").empty();
+        $("#termEmptyMsg").hide();
+        $("#termLoadingMsg").hide();
     });
 
     // Form submission
@@ -8025,26 +8025,26 @@ $(document).ready(function () {
             $("#installmentContent").find("input").prop("required", false);
         }
 
-        // Remove required from semester fields if semester transfer is unchecked
-        if (!$("#transferSemesterCheckbox").is(":checked")) {
-            $("#semesterTransferContent").find("input").prop("required", false);
+        // Remove required from term fields if term transfer is unchecked
+        if (!$("#transferTermCheckbox").is(":checked")) {
+            $("#termTransferContent").find("input").prop("required", false);
         }
 
-        // Validate: if semester checkbox is checked, ensure session year is selected and semesters loaded
+        // Validate: if term checkbox is checked, ensure session year is selected and terms loaded
         if (
-            $("#transferSemesterCheckbox").is(":checked") &&
-            $(".semester-transfer-item").length === 0
+            $("#transferTermCheckbox").is(":checked") &&
+            $(".term-transfer-item").length === 0
         ) {
             if (!$("#sourceSessionYear").val()) {
                 $("#sourceSessionYear")[0].setCustomValidity(
                     trans(
-                        "please_select_source_session_year_to_load_semesters",
+                        "please_select_source_session_year_to_load_terms",
                     ),
                 );
                 form.reportValidity();
                 $("#sourceSessionYear")[0].setCustomValidity("");
             } else {
-                showErrorToast(trans("no_semesters_uncheck_option"));
+                showErrorToast(trans("no_terms_uncheck_option"));
             }
             return;
         }

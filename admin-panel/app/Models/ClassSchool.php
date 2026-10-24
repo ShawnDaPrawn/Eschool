@@ -21,8 +21,8 @@ class ClassSchool extends Model
 
     protected $hidden = ['deleted_at', 'created_at', 'updated_at', 'grade_level_id'];
 
-    // include_semesters is per session year now; the teacher app still reads it from each class.
-    protected $appends = ['full_name', 'include_semesters'];
+    // include_terms is per session year now; the teacher app still reads it from each class.
+    protected $appends = ['full_name', 'include_terms'];
 
     protected function casts(): array
     {
@@ -66,7 +66,7 @@ class ClassSchool extends Model
 
     public function coreSubject()
     {
-        return $this->hasMany(ClassSubject::class, 'class_id')->where('type', 'Compulsory')->with('subject', 'semester');
+        return $this->hasMany(ClassSubject::class, 'class_id')->where('type', 'Compulsory')->with('subject', 'term');
     }
 
     public function electiveSubject()
@@ -123,18 +123,18 @@ class ClassSchool extends Model
         ]);
     }
 
-    public function scopeWhereIncludeSemestersForSession(Builder $query, $sessionYearId, bool $enabled = true): Builder
+    public function scopeWhereIncludeTermsForSession(Builder $query, $sessionYearId, bool $enabled = true): Builder
     {
         $expectedValue = $enabled ? 1 : 0;
 
         return $query->join('class_session_configs as csc', function ($join) use ($sessionYearId) {
             $join->on('classes.id', '=', 'csc.class_id')
                 ->where('csc.session_year_id', '=', $sessionYearId);
-        })->where('csc.include_semesters', $expectedValue)
+        })->where('csc.include_terms', $expectedValue)
             ->select('classes.*');
     }
 
-    public function getIncludeSemestersForSession($sessionYearId)
+    public function getIncludeTermsForSession($sessionYearId)
     {
         if (empty($sessionYearId)) {
             $sessionYearId = session('session_year') ?: (getSettings('session_year')['session_year'] ?? null);
@@ -152,10 +152,10 @@ class ClassSchool extends Model
             return null;
         }
 
-        return (bool) $config->include_semesters;
+        return (bool) $config->include_terms;
     }
 
-    public function syncIncludeSemestersForSession($sessionYearId, bool $includeSemesters): void
+    public function syncIncludeTermsForSession($sessionYearId, bool $includeTerms): void
     {
         if (empty($sessionYearId)) {
             return;
@@ -163,12 +163,12 @@ class ClassSchool extends Model
 
         $this->sessionConfigs()->updateOrCreate(
             ['session_year_id' => $sessionYearId],
-            ['include_semesters' => $includeSemesters]
+            ['include_terms' => $includeTerms]
         );
     }
 
     /** 1 or 0: the teacher app compares it with '1'. */
-    public function getIncludeSemestersAttribute($value): int
+    public function getIncludeTermsAttribute($value): int
     {
         $sessionYearId = app()->bound('current_session_id')
             ? app('current_session_id')
@@ -178,8 +178,8 @@ class ClassSchool extends Model
             return 0;
         }
 
-        // No config for this year means the class has no semesters.
-        return $this->getIncludeSemestersForSession($sessionYearId) ? 1 : 0;
+        // No config for this year means the class has no terms.
+        return $this->getIncludeTermsForSession($sessionYearId) ? 1 : 0;
     }
 
     protected static function booted()

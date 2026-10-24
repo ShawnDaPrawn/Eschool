@@ -46,9 +46,9 @@ class Lesson extends Model
         return $this->hasMany(LessonTopic::class);
     }
 
-    public function semester()
+    public function term()
     {
-        return $this->belongsTo(Semester::class);
+        return $this->belongsTo(Term::class);
     }
 
     /**

@@ -6,8 +6,8 @@ namespace Tests\Feature\Platform;
 
 use App\Models\Platform\GuardianLink;
 use App\Models\Platform\HandleProposal;
-use App\Models\Semester;
 use App\Models\Students;
+use App\Models\Term;
 use App\Models\User;
 use App\Services\Platform\Identity\GuardianService;
 use App\Services\Platform\Identity\Handles;
@@ -159,7 +159,7 @@ class HandlesTest extends TestCase
         app(Handles::class)->request($user, 'first.orbit');
         app(CurrentSchool::class)->run(2, function () use ($user) {
             $user->assignRole('Teacher');
-            Semester::query()->update(['end_date' => now()->addDays(120)->toDateString()]);
+            Term::query()->update(['end_date' => now()->addDays(120)->toDateString()]);
         });
         $this->travel(70)->days();
         $this->expectException(ValidationException::class);
@@ -175,7 +175,7 @@ class HandlesTest extends TestCase
         $user = User::findOrFail($first->user_id);
         $service->decide($guardian, $first->id, 'approve');
         $this->travel(70)->days();
-        Semester::query()->forceCreate(['name' => 'Short term', 'session_year_id' => $this->schoolA->ids['session_year'], 'start_date' => now()->toDateString(), 'end_date' => now()->addDays(10)->toDateString()]);
+        Term::query()->forceCreate(['name' => 'Short term', 'session_year_id' => $this->schoolA->ids['session_year'], 'start_date' => now()->toDateString(), 'end_date' => now()->addDays(10)->toDateString()]);
         $second = $service->request($user, 'second.orbit');
         $service->decide($guardian, $second['proposal']['id'], 'approve');
         $expected = DB::table('handle_claims')->where('handle', 'orbit')->value('reserved_until');

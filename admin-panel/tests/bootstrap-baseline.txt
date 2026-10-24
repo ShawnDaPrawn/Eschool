@@ -35,7 +35,6 @@ app/Http/Controllers/OnlineExamQuestionController.php
 app/Http/Controllers/ParentsController.php
 app/Http/Controllers/RoleController.php
 app/Http/Controllers/SectionController.php
-app/Http/Controllers/SemesterController.php
 app/Http/Controllers/SessionYearController.php
 app/Http/Controllers/ShiftController.php
 app/Http/Controllers/SliderController.php
@@ -144,7 +143,6 @@ resources/views/roles/index.blade.php
 resources/views/roles/show.blade.php
 resources/views/section/index.blade.php
 resources/views/select_elective_subjects/index.blade.php
-resources/views/semester/index.blade.php
 resources/views/session_years/create-modal.blade.php
 resources/views/session_years/delete-clear-modal.blade.php
 resources/views/session_years/edit-modal.blade.php

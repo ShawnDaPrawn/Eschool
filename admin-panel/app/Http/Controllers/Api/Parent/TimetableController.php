@@ -9,8 +9,8 @@ use App\Http\Controllers\Controller;
 use App\Http\Resources\TimetableCollection;
 use App\Models\ClassSection;
 use App\Models\ClassSessionConfig;
-use App\Models\Semester;
 use App\Models\StudentSessions;
+use App\Models\Term;
 use App\Models\Timetable;
 use App\Services\ResponseService;
 use Illuminate\Http\Request;
@@ -52,21 +52,19 @@ class TimetableController extends Controller
                 ->where('session_year_id', $session_year_id)
                 ->first()
                 ->class_section_id;
-            $class_id = ClassSection::where('id', $class_section_id)->pluck('class_id');
+            $class_id = ClassSection::where('id', $class_section_id)->value('class_id');
 
-            $currentSemester = Semester::get()->first(function ($semester) {
-                return $semester->current;
-            });
+            $currentTerm = Term::currentForClass((int) $session_year_id, (int) $class_id);
 
-            $isClassHaveSemester = ClassSessionConfig::classHasSemester(
+            $isClassHaveTerm = ClassSessionConfig::classHasTerm(
                 $class_id,
                 $session_year_id
             );
 
             $timetables = Timetable::where('class_section_id', $class_section_id)
                 ->where('session_year_id', $session_year_id)
-                ->when($isClassHaveSemester, function ($query) use ($currentSemester) {
-                    $query->where('semester_id', $currentSemester->id);
+                ->when($isClassHaveTerm, function ($query) use ($currentTerm) {
+                    $query->where('term_id', $currentTerm->id);
                 })
                 ->with(['subject_teacher' => function ($q) use ($subject_id) {
                     $q->whereIn('subject_id', $subject_id);

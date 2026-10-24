@@ -278,7 +278,7 @@ Other keys:
 
 | Key | Purpose |
 |---|---|
-| `session_year` | Id of the current `session_years` row. Read in about 150 places (`getSettings('session_year')['session_year']`), including the student and parent session-active middleware. Written by `SessionYearService::makeCurrent()` (General Settings, **Make current** on the Session Years page, or a new year created with "Make this the current session year"), which also flips `session_years.default` and, if it changed, runs `ResetLessonSemesters`. See [Academic-Structure](Academic-Structure). |
+| `session_year` | Id of the current `session_years` row. Read in about 150 places (`getSettings('session_year')['session_year']`), including the student and parent session-active middleware. Written by `SessionYearService::makeCurrent()` (General Settings, **Make current** on the Session Years page, or a new year created with "Make this the current session year"), which also flips `session_years.default` and, if it changed, runs `ResetLessonTerms`. See [Academic-Structure](Academic-Structure). |
 | `system_version` | Installed version (`3.5.0` from `InstallationSeeder`). The in-panel System Update that used to raise it was removed in Phase 0; releases are deployed images. |
 | `update_warning_modal` | Read by `after-update-note-modal.blade.php` to decide whether to show the post-update notice. `HomeController@updateWarningModal` (`GET /update-warning-modal`) does not change it. |
 | `fees_due_date`, `fees_due_charges` | Read by `GET /api/settings?type=app_settings` if present; no admin screen writes them (the due date and charges are stored per session year in `session_years.fee_due_date` and `fee_due_charges`). |

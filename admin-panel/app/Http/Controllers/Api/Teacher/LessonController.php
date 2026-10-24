@@ -39,7 +39,7 @@ class LessonController extends Controller
             'lesson_id' => 'nullable|numeric',
             'class_section_id' => 'nullable|numeric',
             'subject_id' => 'nullable|numeric',
-            'semester_id' => 'nullable|numeric',
+            'term_id' => 'nullable|numeric',
         ]);
 
         if ($validator->fails()) {
@@ -59,7 +59,7 @@ class LessonController extends Controller
 
             if ($request->filled('class_section_id')) {
                 $query->where('class_section_id', $request->class_section_id);
-                $this->applySemesterFilter($query, $request->class_section_id, $sessionYearId, $request->semester_id);
+                $this->applyTermFilter($query, $request->class_section_id, $sessionYearId, $request->term_id);
             }
 
             if ($request->filled('subject_id')) {
@@ -85,7 +85,7 @@ class LessonController extends Controller
                 'description' => 'required',
                 'class_section_id' => 'required|numeric|exists:class_sections,id',
                 'subject_id' => 'required|numeric|exists:subjects,id',
-                'semester_id' => 'nullable|numeric|exists:semesters,id',
+                'term_id' => 'nullable|numeric|exists:terms,id',
 
                 'file' => 'nullable|array',
                 'file.*.type' => 'nullable|in:1,2,3,4',
@@ -114,12 +114,12 @@ class LessonController extends Controller
         try {
             $session_year_id = getSettings('session_year')['session_year'];
 
-            // Semester (conditional)
+            // Term (conditional)
             $classId = ClassSection::where('id', $request->class_section_id)->value('class_id');
-            $isClassHaveSemester = ClassSessionConfig::classHasSemester($classId, $session_year_id);
-            $semesterId = $isClassHaveSemester ? $request->semester_id : null;
+            $isClassHaveTerm = ClassSessionConfig::classHasTerm($classId, $session_year_id);
+            $termId = $isClassHaveTerm ? $request->term_id : null;
 
-            if (! $this->teachesSubject($request->class_section_id, $request->subject_id, $semesterId)) {
+            if (! $this->teachesSubject($request->class_section_id, $request->subject_id, $termId)) {
                 return ResponseService::errorResponse('You are not assigned to this class section and subject combination.', null, 403);
             }
 
@@ -128,7 +128,7 @@ class LessonController extends Controller
             $lesson->description = $request->description;
             $lesson->class_section_id = $request->class_section_id;
             $lesson->subject_id = $request->subject_id;
-            $lesson->semester_id = $semesterId;
+            $lesson->term_id = $termId;
             $lesson->save();
 
             if ($request->file) {

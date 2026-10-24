@@ -1,25 +1,22 @@
-import 'package:eschool/cubits/semestersCubit.dart';
-import 'package:eschool/data/models/semester.dart';
+import 'package:eschool/cubits/termsCubit.dart';
+import 'package:eschool/data/models/term.dart';
 import 'package:eschool_core/eschool_core.dart';
 import 'package:eschool/utils/labelKeys.dart';
 import 'package:eschool/utils/uiUtils.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-class SemesterFilterBottomsheetContainer extends StatefulWidget {
-  final Semester selectedSemester;
-  const SemesterFilterBottomsheetContainer({
-    super.key,
-    required this.selectedSemester,
-  });
+class TermFilterBottomsheetContainer extends StatefulWidget {
+  final Term selectedTerm;
+  const TermFilterBottomsheetContainer({super.key, required this.selectedTerm});
 
   @override
-  State<SemesterFilterBottomsheetContainer> createState() =>
-      _SemesterFilterBottomsheetContainerState();
+  State<TermFilterBottomsheetContainer> createState() =>
+      _TermFilterBottomsheetContainerState();
 }
 
-class _SemesterFilterBottomsheetContainerState
-    extends State<SemesterFilterBottomsheetContainer> {
+class _TermFilterBottomsheetContainerState
+    extends State<TermFilterBottomsheetContainer> {
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -53,40 +50,40 @@ class _SemesterFilterBottomsheetContainerState
               color: Theme.of(context).colorScheme.onSurfaceVariant,
             ),
           ),
-          BlocBuilder<SemestersCubit, SemesterState>(
+          BlocBuilder<TermsCubit, TermState>(
             builder: (context, state) {
-              if (state is SemesterFetchSuccess) {
-                return RadioGroup<Semester>(
-                  groupValue: widget.selectedSemester,
+              if (state is TermFetchSuccess) {
+                return RadioGroup<Term>(
+                  groupValue: widget.selectedTerm,
                   onChanged: (value) {
                     Navigator.pop(context, value);
                   },
                   child: ListView.builder(
                     shrinkWrap: true,
-                    itemCount: state.semesters.length,
+                    itemCount: state.terms.length,
                     padding: EdgeInsets.zero,
                     itemBuilder: (context, index) {
-                      final semester = state.semesters[index];
-                      return RadioListTile<Semester>(
+                      final term = state.terms[index];
+                      return RadioListTile<Term>(
                         title: Text(
-                          semester.name ?? "",
+                          term.displayName,
                           style: TextStyle(
                             color: Theme.of(context).colorScheme.onSurface,
                             fontSize: 16,
                           ),
                         ),
-                        value: semester,
+                        value: term,
                         controlAffinity: ListTileControlAffinity.trailing,
                       );
                     },
                   ),
                 );
-              } else if (state is SemesterFetchFailure) {
+              } else if (state is TermFetchFailure) {
                 return Center(
                   child: ErrorContainer(
                     errorMessageCode: state.errorMessage,
                     onTapRetry: () {
-                      context.read<SemestersCubit>().fetchSemesters();
+                      context.read<TermsCubit>().fetchTerms();
                     },
                   ),
                 );

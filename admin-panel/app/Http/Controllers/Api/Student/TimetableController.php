@@ -8,8 +8,8 @@ use App\Http\Controllers\Api\Student\Concerns\StudentAccess;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\TimetableCollection;
 use App\Models\ClassSessionConfig;
-use App\Models\Semester;
 use App\Models\StudentSessions;
+use App\Models\Term;
 use App\Models\Timetable;
 use App\Services\ResponseService;
 use Illuminate\Http\Request;
@@ -45,17 +45,15 @@ class TimetableController extends Controller
 
             $subject_ids = array_merge($core_subjects, $elective_subjects);
 
-            $currentSemester = Semester::where('session_year_id', $session_year_id)
-                ->get()
-                ->first(fn ($s) => $s->current);
+            $currentTerm = Term::currentForClass((int) $session_year_id, (int) $class_id);
 
-            $isClassHaveSemester = ClassSessionConfig::classHasSemester($class_id, $session_year_id);
+            $isClassHaveTerm = ClassSessionConfig::classHasTerm($class_id, $session_year_id);
 
             $timetables = Timetable::where('class_section_id', $class_section_id)
                 ->where('session_year_id', $session_year_id)
                 ->when(
-                    $isClassHaveSemester && $currentSemester,
-                    fn ($q) => $q->where('semester_id', $currentSemester->id)
+                    $isClassHaveTerm && $currentTerm,
+                    fn ($q) => $q->where('term_id', $currentTerm?->id)
                 )
                 ->with(['subject_teacher' => fn ($q) => $q->whereIn('subject_id', $subject_ids)])
                 ->orderBy('day', 'asc')

@@ -67,10 +67,10 @@ class _ClassScreenState extends State<ClassScreen> {
           context.read<StudentsByClassSectionCubit>().fetchStudents(
             classSectionId: widget.classSection.id,
             subjectId: null,
-            semesterId: context
+            termId: context
                 .read<AppConfigurationCubit>()
                 .getAppConfiguration()
-                .currentSemester
+                .currentTerm
                 ?.id,
           );
         }
@@ -128,7 +128,7 @@ class _ClassScreenState extends State<ClassScreen> {
                       AppBarTitleContainer(
                         boxConstraints: boxConstraints,
                         title:
-                            '${UiUtils.getTranslatedLabel(context, classKey)} ${widget.classSection.getClassSectionNameWithMediumAndSemester(context: context)}',
+                            '${UiUtils.getTranslatedLabel(context, classKey)} ${widget.classSection.getClassSectionNameWithMediumAndTerm(context: context)}',
                       ),
                       AnimatedAlign(
                         curve: UiUtils.tabBackgroundContainerAnimationCurve,
@@ -174,7 +174,7 @@ class _ClassScreenState extends State<ClassScreen> {
             child: CustomAppBar(
               subTitle: UiUtils.getTranslatedLabel(context, subjectsKey),
               title:
-                  '${UiUtils.getTranslatedLabel(context, classKey)} ${widget.classSection.getClassSectionNameWithMediumAndSemester(context: context)}',
+                  '${UiUtils.getTranslatedLabel(context, classKey)} ${widget.classSection.getClassSectionNameWithMediumAndTerm(context: context)}',
             ),
           );
   }

@@ -164,21 +164,21 @@
                         </div>
 
                         <label class="checkbox-option">
-                            <input type="checkbox" name="transfer_semester" value="1" class="transfer-checkbox"
-                                id="transferSemesterCheckbox">
-                            <span>{{ __('semester') }}</span>
+                            <input type="checkbox" name="transfer_term" value="1" class="transfer-checkbox"
+                                id="transferTermCheckbox">
+                            <span>{{ __('term') }}</span>
                         </label>
 
-                        <!-- Semester list (auto-populated from selected session year) -->
-                        <div id="semesterTransferContent" style="display: none;">
-                            <div id="semesterTransferList">
+                        <!-- Term list (auto-populated from selected session year) -->
+                        <div id="termTransferContent" style="display: none;">
+                            <div id="termTransferList">
                                 {{-- Populated dynamically via AJAX --}}
                             </div>
-                            <p id="semesterEmptyMsg" class="text-muted small m-0" style="display: none;">
-                                {{-- No semesters found for the selected session year. --}}
+                            <p id="termEmptyMsg" class="text-muted small m-0" style="display: none;">
+                                {{-- No terms found for the selected session year. --}}
                             </p>
-                            <p id="semesterLoadingMsg" class="text-muted small" style="display: none;">
-                                <i class="fa fa-spinner fa-spin"></i> {{ __('loading_semesters') }}
+                            <p id="termLoadingMsg" class="text-muted small" style="display: none;">
+                                <i class="fa fa-spinner fa-spin"></i> {{ __('loading_terms') }}
                             </p>
                         </div>
 

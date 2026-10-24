@@ -74,3 +74,12 @@ These references contain no learner marks or school/person data. Existing
 school-owned `grades`, exam results and semester consumers retain their current
 behaviour. Mapping is opt-in; no automatic class-name inference or mark conversion.
 The migration reverses the foreign key/column before dropping reference tables.
+
+## Phase 2: school terms
+
+`terms` replaces `semesters` in place, preserving IDs, dates, school/year ownership
+and academic links. Referencing columns are `term_id`; per-year class allocation
+configuration uses `include_terms`. Grade bounds (0 = R through 12) default to the
+whole school; optional `marks_lock_on` and `reports_on` prepare future workflows.
+`term_templates` is school-owned and holds a named, validated calendar snapshot
+and base year for preview/seeding. No semester projection or dual writes remain.

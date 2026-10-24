@@ -243,7 +243,13 @@ class _SchoolDetails extends StatelessWidget {
                 for (final TermDates term in info.termDates)
                   ListTile(
                     leading: const Icon(Icons.event_outlined),
-                    title: Text(term.name),
+                    title: Text(
+                      term.gradeFrom != null &&
+                              term.gradeTo != null &&
+                              (term.gradeFrom != 0 || term.gradeTo != 12)
+                          ? '${term.name} · ${label(gradeKey)} ${term.gradeFrom == 0 ? 'R' : term.gradeFrom}–${term.gradeTo}'
+                          : term.name,
+                    ),
                     subtitle: Text(
                       [
                         if (term.startsOn != null) formatDay(term.startsOn!),

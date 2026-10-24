@@ -1,5 +1,5 @@
 import 'package:eschool_core/eschool_core.dart';
-import 'package:eschool_teacher/data/models/semester.dart';
+import 'package:eschool_teacher/data/models/term.dart';
 import 'package:eschool_teacher/data/models/sessionYear.dart';
 
 class AppConfiguration {
@@ -12,8 +12,8 @@ class AppConfiguration {
     required this.appMaintenance,
     required this.isDemo,
     required this.holidayDays,
-    required this.currentSemester,
-    required this.semesterBreaks,
+    required this.currentTerm,
+    required this.termBreaks,
   });
 
   AppConfiguration.fromJson(Map<String, dynamic> json) {
@@ -30,13 +30,13 @@ class AppConfiguration {
     chatSettings = ChatSettings.fromJson(json['chat_settings'] ?? {});
     holidayDays =
         json['holiday_days']?.toString().toLowerCase().split(',') ?? [];
-    currentSemester = json['current_semester']?.isEmpty ?? true
+    currentTerm = json['current_term']?.isEmpty ?? true
         ? null
-        : Semester.fromJson(json['current_semester'] ?? {});
-    semesterBreaks = json['semester_breaks'] != null
-        ? List<SemesterBreak>.from(
-            (json['semester_breaks'] as List).map(
-              (x) => SemesterBreak.fromJson(Map<String, dynamic>.from(x)),
+        : Term.fromJson(json['current_term'] ?? {});
+    termBreaks = json['term_breaks'] != null
+        ? List<TermBreak>.from(
+            (json['term_breaks'] as List).map(
+              (x) => TermBreak.fromJson(Map<String, dynamic>.from(x)),
             ),
           )
         : null;
@@ -51,8 +51,8 @@ class AppConfiguration {
   late final SessionYear sessionYear;
   late final String schoolName;
   late final String schoolTagline;
-  late final Semester? currentSemester;
+  late final Term? currentTerm;
   late final ChatSettings chatSettings;
   late final List<String> holidayDays;
-  late final List<SemesterBreak>? semesterBreaks;
+  late final List<TermBreak>? termBreaks;
 }

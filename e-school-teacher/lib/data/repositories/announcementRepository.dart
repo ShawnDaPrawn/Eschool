@@ -7,7 +7,7 @@ class AnnouncementRepository {
   Future<Map<String, dynamic>> fetchAnnouncements({
     required int subjectId,
     required int classSectionId,
-    String? semesterId,
+    String? termId,
     int? page,
   }) async {
     try {
@@ -15,7 +15,7 @@ class AnnouncementRepository {
         'page': page ?? 0,
         'subject_id': subjectId,
         'class_section_id': classSectionId,
-        if (semesterId != null) 'semester_id': semesterId,
+        if (termId != null) 'term_id': termId,
       };
       if (queryParameters['page'] == 0) {
         queryParameters.remove('page');
@@ -45,7 +45,7 @@ class AnnouncementRepository {
     required List<PlatformFile> attachments,
     required int classSectionId,
     required int subjectId,
-    String? semesterId,
+    String? termId,
   }) async {
     final List<MultipartFile> files = [];
     for (final file in attachments) {
@@ -54,7 +54,7 @@ class AnnouncementRepository {
     final Map<String, dynamic> body = {
       'class_section_id': classSectionId,
       'subject_id': subjectId,
-      if (semesterId != null) 'semester_id': semesterId,
+      if (termId != null) 'term_id': termId,
       'title': title,
       'description': description,
       'file': files,
@@ -75,7 +75,7 @@ class AnnouncementRepository {
     required List<PlatformFile> attachments,
     required int classSectionId,
     required int subjectId,
-    String? semesterId,
+    String? termId,
     required int announcementId,
   }) async {
     final List<MultipartFile> files = [];
@@ -86,7 +86,7 @@ class AnnouncementRepository {
       'announcement_id': announcementId,
       'class_section_id': classSectionId,
       'subject_id': subjectId,
-      if (semesterId != null) 'semester_id': semesterId,
+      if (termId != null) 'term_id': termId,
       'title': title,
       'description': description,
       'file': files,

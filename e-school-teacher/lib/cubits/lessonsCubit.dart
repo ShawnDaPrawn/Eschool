@@ -9,26 +9,23 @@ class LessonsInitial extends LessonsState {}
 class LessonsFetchInProgress extends LessonsState {}
 
 class LessonsFetchSuccess extends LessonsState {
-
   LessonsFetchSuccess(this.lessons);
   final List<Lesson> lessons;
 }
 
 class LessonsFetchFailure extends LessonsState {
-
   LessonsFetchFailure(this.errorMessage);
   final String errorMessage;
 }
 
 class LessonsCubit extends Cubit<LessonsState> {
-
   LessonsCubit(this._lessonRepository) : super(LessonsInitial());
   final LessonRepository _lessonRepository;
 
   Future<void> fetchLessons({
     required int classSectionId,
     required int subjectId,
-    String? semesterId,
+    String? termId,
   }) async {
     emit(LessonsFetchInProgress());
     try {
@@ -37,7 +34,7 @@ class LessonsCubit extends Cubit<LessonsState> {
           await _lessonRepository.getLessons(
             classSectionId: classSectionId,
             subjectId: subjectId,
-            semesterId: semesterId,
+            termId: termId,
           ),
         ),
       );

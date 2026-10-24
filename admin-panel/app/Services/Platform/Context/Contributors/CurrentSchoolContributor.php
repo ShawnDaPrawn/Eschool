@@ -19,7 +19,7 @@ class CurrentSchoolContributor implements ContextContributor
     public function contribute(ContextScope $scope): array
     {
         $sessionYear = $scope->profile->sessionYearId === null ? null : SessionYear::query()
-            ->with(['semesters' => fn ($query) => $query->orderBy('start_date')->orderBy('id')])
+            ->with(['terms' => fn ($query) => $query->orderBy('start_date')->orderBy('id')])
             ->find($scope->profile->sessionYearId);
 
         return [

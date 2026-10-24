@@ -31,8 +31,8 @@ class Timetable extends Model
         return $this->belongsTo(SubjectTeacher::class, 'subject_teacher_id')->with('subject')->withTrashed();
     }
 
-    public function semester()
+    public function term()
     {
-        return $this->belongsTo(Semester::class);
+        return $this->belongsTo(Term::class);
     }
 }

@@ -52,7 +52,7 @@ class AssignmentCubit extends Cubit<AssignmentState> {
   Future<void> fetchAssignment({
     required int classSectionId,
     required int subjectId,
-    String? semesterId,
+    String? termId,
     int? page,
   }) async {
     try {
@@ -61,7 +61,7 @@ class AssignmentCubit extends Cubit<AssignmentState> {
           .fetchAssignment(
             classSectionId: classSectionId,
             subjectId: subjectId,
-            semesterId: semesterId,
+            termId: termId,
             page: page,
           )
           .then(
@@ -96,7 +96,7 @@ class AssignmentCubit extends Cubit<AssignmentState> {
   Future<void> fetchMoreAssignment({
     required int classSectionId,
     required int subjectId,
-    String? semesterId,
+    String? termId,
   }) async {
     try {
       emit(
@@ -108,7 +108,7 @@ class AssignmentCubit extends Cubit<AssignmentState> {
       final fetchMoreAssignment = await _assignmentRepository.fetchAssignment(
         classSectionId: classSectionId,
         subjectId: subjectId,
-        semesterId: semesterId,
+        termId: termId,
         page: (state as AssignmentsFetchSuccess).currentPage + 1,
       );
 

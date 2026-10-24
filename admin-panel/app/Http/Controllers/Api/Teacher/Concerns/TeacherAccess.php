@@ -9,11 +9,11 @@ use App\Models\ClassSection;
 use App\Models\ClassSessionConfig;
 use App\Models\ClassTeacher;
 use App\Models\Lesson;
-use App\Models\Semester;
 use App\Models\Students;
 use App\Models\StudentSessions;
 use App\Models\SubjectTeacher;
 use App\Models\Teacher;
+use App\Models\Term;
 use App\Services\ResponseService;
 use Illuminate\Http\Exceptions\HttpResponseException;
 use Illuminate\Support\Facades\Auth;
@@ -57,16 +57,16 @@ trait TeacherAccess
 
     /**
      * Whether the teacher teaches the subject in the class section this session year
-     * (in the given semester, when one is given - same rule as sendAnnouncement).
+     * (in the given term, when one is given - same rule as sendAnnouncement).
      */
-    private function teachesSubject($classSectionId, $subjectId, $semesterId = null): bool
+    private function teachesSubject($classSectionId, $subjectId, $termId = null): bool
     {
         return SubjectTeacher::where('teacher_id', $this->currentTeacher()->id)
             ->where('class_section_id', $classSectionId)
             ->where('subject_id', $subjectId)
             ->where('session_year_id', $this->currentSessionYearId())
-            ->when($semesterId, fn ($q) => $q->where(
-                fn ($q) => $q->where('semester_id', $semesterId)->orWhereNull('semester_id')
+            ->when($termId, fn ($q) => $q->where(
+                fn ($q) => $q->where('term_id', $termId)->orWhereNull('term_id')
             ))
             ->exists();
     }
@@ -150,21 +150,21 @@ trait TeacherAccess
                 ->exists();
     }
 
-    private function applySemesterFilter($query, $classSectionId, $sessionYearId, $semesterId = null): void
+    private function applyTermFilter($query, $classSectionId, $sessionYearId, $termId = null): void
     {
         $classId = ClassSection::where('id', $classSectionId)->value('class_id');
-        $isClassHaveSemester = ClassSessionConfig::classHasSemester($classId, $sessionYearId);
+        $isClassHaveTerm = ClassSessionConfig::classHasTerm($classId, $sessionYearId);
 
-        if (! $isClassHaveSemester) {
+        if (! $isClassHaveTerm) {
             return;
         }
-        if (! $semesterId) {
-            // This session year's current semester (its id, not the model).
-            $semesterId = Semester::where('session_year_id', $sessionYearId)->get()->first(fn ($s) => $s->current)?->id;
+        if (! $termId) {
+            // This session year's current term (its id, not the model).
+            $termId = Term::currentForClass((int) $sessionYearId, $classId === null ? null : (int) $classId)?->id;
         }
 
-        if ($semesterId) {
-            $query->where('semester_id', $semesterId);
+        if ($termId) {
+            $query->where('term_id', $termId);
         }
     }
 }

@@ -84,11 +84,11 @@
                             </div>
                             {{-- <div class="row">
                                 <div class="form-group col-sm-12 col-md-6">
-                                    @if (count($semesters) > 0)
+                                    @if (count($terms) > 0)
                                         <div class="form-check">
                                             <label class="form-check-label">
-                                                <input type="checkbox" class="form-check-input" name="include_semesters"
-                                                    value="1">{{ __('include_semesters') }}
+                                                <input type="checkbox" class="form-check-input" name="include_terms"
+                                                    value="1">{{ __('include_terms') }}
                                                 <i class="input-helper"></i>
                         </label>
                 </div>
@@ -177,8 +177,8 @@
                                     <th scope="col" data-field="section_name" data-sortable="true">
                                         {{ __('section') }}
                                     </th>
-                                    {{-- <th scope="col" data-field="include_semesters" data-formatter="semesterFormatter"
-                                        data-sortable="true">{{ __('semester') }}</th> --}}
+                                    {{-- <th scope="col" data-field="include_terms" data-formatter="termFormatter"
+                                        data-sortable="true">{{ __('term') }}</th> --}}
                                     <th scope="col" data-field="created_at" data-sortable="true"
                                         data-visible="false">{{ __('created_at') }}</th>
                                     <th scope="col" data-field="updated_at" data-sortable="true"
@@ -277,19 +277,19 @@
                         </div>
                         {{-- <div class="row">
                                         <div class="form-group col-sm-12 col-md-12">
-                                            @if (count($semesters) > 0)
+                                            @if (count($terms) > 0)
                                                 <div class="form-check">
                                                     <label class="form-check-label">
                                                         <input type="checkbox" class="form-check-input"
-                                                            id="edit_include_semesters" name="include_semesters"
-                                                            value="1">{{ __('Include Semesters') }}
+                                                            id="edit_include_terms" name="include_terms"
+                                                            value="1">{{ __('Include Terms') }}
                                                         <i class="input-helper"></i>
                         </label>
                     </div>
                     @endif
                     <br>
                     <small class="text-danger">*
-                        {{ __('By Changing this Semester setting, your existing data related to this class will be Auto Deleted') }}</small>
+                        {{ __('By Changing this Term setting, your existing data related to this class will be Auto Deleted') }}</small>
                     <ol class="text-danger">
                         <li>{{ __('Class Subject') }}</li>
                         <li>{{ __('timetable') }}</li>

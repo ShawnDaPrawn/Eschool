@@ -120,8 +120,8 @@ return [
                     'items' => [
                         ['key' => 'school-years', 'label' => 'nav_school_years', 'route' => 'session-years.index', 'permissions' => ['session-year-create'], 'module' => null,
                             'keywords' => ['session year', 'academic year', 'year dates']],
-                        ['key' => 'terms', 'label' => 'nav_terms', 'route' => 'semester.index', 'permissions' => ['semester-create'], 'module' => null,
-                            'keywords' => ['set up terms', 'term dates', 'semesters', 'quarters']],
+                        ['key' => 'terms', 'label' => 'nav_terms', 'route' => 'term.index', 'permissions' => ['term-list'], 'module' => null,
+                            'keywords' => ['set up terms', 'term dates', 'terms', 'quarters']],
                         ['key' => 'new-year', 'label' => 'nav_new_year', 'route' => 'new-year.index', 'permissions' => ['session-year-create'], 'module' => null,
                             'keywords' => ['year end', 'rollover', 'next year', 'new school year', 'wizard', 'carry forward']],
                         ['key' => 'promote-learners', 'label' => 'nav_promote_learners', 'route' => 'promote-student.index', 'permissions' => ['promote-student-list'], 'module' => null,

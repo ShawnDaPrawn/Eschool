@@ -59,7 +59,7 @@ class SearchTest extends TestCase
         $this->assertSame('Mathematics', $this->group($admin->getJson('/search?q=math')->json('groups'), 'subjects')[0]['title']);
 
         $pages = $this->group($admin->getJson('/search?q=terms')->json('groups'), 'pages');
-        $this->assertSame(route('semester.index'), $pages[0]['url']);
+        $this->assertSame(route('term.index'), $pages[0]['url']);
         $notice = $this->group($admin->getJson('/search?q=send+a+notice')->json('groups'), 'pages');
         $this->assertSame(route('announcement.index'), $notice[0]['url']);
         $settings = $this->group($admin->getJson('/search?q=school+profile')->json('groups'), 'pages');

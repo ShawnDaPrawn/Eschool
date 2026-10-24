@@ -61,10 +61,9 @@ class MyClassesBottomsheetContainer extends StatelessWidget {
                         children: [
                           Expanded(
                             child: Text(
-                              classesList[index]
-                                  .getClassSectionNameWithSemester(
-                                    context: context,
-                                  ),
+                              classesList[index].getClassSectionNameWithTerm(
+                                context: context,
+                              ),
                               textAlign: TextAlign.start,
                               style: TextStyle(
                                 fontSize: 16,

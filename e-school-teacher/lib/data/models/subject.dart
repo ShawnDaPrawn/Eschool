@@ -1,4 +1,4 @@
-import 'package:eschool_teacher/data/models/semester.dart';
+import 'package:eschool_teacher/data/models/term.dart';
 
 class Subject {
   Subject({
@@ -9,7 +9,7 @@ class Subject {
     required this.image,
     required this.mediumId,
     required this.type,
-    this.semester,
+    this.term,
   });
 
   Subject.fromJson(Map<String, dynamic> json) {
@@ -23,10 +23,10 @@ class Subject {
     final imageUrlParts = image.split('.');
     isSubjectImageSvg = imageUrlParts.last.toLowerCase() == 'svg';
 
-    if (json['semester'] != null) {
-      semester = Semester.fromJson(Map.from(json['semester']));
+    if (json['term'] != null) {
+      term = Term.fromJson(Map.from(json['term']));
     } else {
-      semester = null;
+      term = null;
     }
   }
   late final int id;
@@ -37,12 +37,12 @@ class Subject {
   late final int mediumId;
   late final String type;
   late final bool isSubjectImageSvg;
-  late final Semester? semester;
+  late final Term? term;
 
-  String get subjectNameWithTypeAndSemester => semester != null
+  String get subjectNameWithTypeAndTerm => term != null
       ? type == 'Practical'
-            ? '$name ($type) - ${semester?.name}'
-            : '$name - ${semester?.name}'
+            ? '$name ($type) - ${term?.displayName}'
+            : '$name - ${term?.displayName}'
       : type == 'Practical'
       ? '$name ($type)'
       : name;
@@ -56,8 +56,8 @@ class Subject {
     data['image'] = image;
     data['medium_id'] = mediumId;
     data['type'] = type;
-    if (semester != null) {
-      data['semester'] = semester!.toJson();
+    if (term != null) {
+      data['term'] = term!.toJson();
     }
     return data;
   }

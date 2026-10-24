@@ -29,8 +29,12 @@
                         {
                             "current": "bool",
                             "end_date": "string",
+                            "grade_from": "number",
+                            "grade_to": "number",
                             "id": "number",
+                            "marks_lock_on": "null",
                             "name": "string",
+                            "reports_on": "null",
                             "start_date": "string"
                         }
                     ]

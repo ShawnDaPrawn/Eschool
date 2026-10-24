@@ -24,3 +24,21 @@ installed clients. No staging, pilot or production check is claimed as passed.
 Phase acceptance: pending the remaining academic core, operational/security/UX
 checks and a full term of reconciled pilot evidence. Starting this foundation does
 not complete Phase 0, Phase 1 or Phase 2. Production release remains unapproved.
+
+## School terms and templates
+
+Feature spec: ../specs/academics/school-terms.md. Owner-authorized semester
+retirement replaces the earlier bridge plan. Local verification passed: 26 term /
+year tests (437 assertions), 278 API/tenancy/authorization regression tests
+(3,780 assertions), migration down/up with 51 identity/link/grant assertions,
+and two isolated browser flows (admin and teacher, including accessibility and
+1024/1280 overflow checks). Both app unit suites and core/people/SDK package
+suites passed; SDK date-only writes and explicit null clears are covered.
+App analysis had no errors/warnings; OpenAPI strict lint, documentation build,
+Larastan and changed-file formatting passed. Initial full-suite regressions were
+fixed and their affected tests rerun; final full-suite/native/security CI results
+are recorded on the feature PR and must pass before merge.
+
+The panel flow covers grade calendars, template preview/apply, teacher refusal,
+accessibility and overflow at 1024/1280 pixels. Staging, real devices and pilot
+acceptance remain pending. No assessment-lock or report-release engine is claimed.

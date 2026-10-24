@@ -25,7 +25,7 @@ const String retryKey = 'retry';
 const String saturdayKey = 'saturday';
 const String searchHintKey = 'searchHint';
 const String secondHalfKey = 'secondHalf';
-const String semesterBreakKey = 'semesterBreak';
+const String termBreakKey = 'termBreak';
 const String sundayKey = 'sunday';
 const String thursdayKey = 'thursday';
 const String toKey = 'to';
@@ -173,7 +173,7 @@ const List<String> sharedLabelKeys = [
   saturdayKey,
   searchHintKey,
   secondHalfKey,
-  semesterBreakKey,
+  termBreakKey,
   sundayKey,
   thursdayKey,
   toKey,

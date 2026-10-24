@@ -339,7 +339,7 @@ class _ParentHomeScreenState extends State<ParentHomeScreen>
                           ),
                           const SizedBox(height: 2.5),
                           Text(
-                            '${UiUtils.getTranslatedLabel(context, classKey)} - ${student.classSectionNameWithSemester(context: context)}',
+                            '${UiUtils.getTranslatedLabel(context, classKey)} - ${student.classSectionNameWithTerm(context: context)}',
                             textAlign: TextAlign.center,
                             maxLines: 2,
                             overflow: TextOverflow.ellipsis,

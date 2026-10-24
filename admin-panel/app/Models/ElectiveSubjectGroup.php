@@ -20,18 +20,18 @@ class ElectiveSubjectGroup extends Model
         'total_subjects',
         'total_selectable_subjects',
         'class_id',
-        'semester_id',
+        'term_id',
     ];
 
     public function electiveSubjects()
     {
         // return $this->belongsToMany(Subject::class, ClassSubject::class, 'elective_subject_group_id', 'subject_id')->wherePivot('type', 'Elective')->withPivot('id as subject_id')->where('class_subjects.deleted_at',null)->withTrashed();
-        return $this->hasMany(ClassSubject::class, 'elective_subject_group_id')->with('semester');
+        return $this->hasMany(ClassSubject::class, 'elective_subject_group_id')->with('term');
     }
 
-    public function semester()
+    public function term()
     {
-        return $this->belongsTo(Semester::class);
+        return $this->belongsTo(Term::class);
     }
 
     protected static function booted()

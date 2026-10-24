@@ -37,7 +37,7 @@ class ClassSection extends Model
 
     public function classTeachers()
     {
-        return $this->belongsToMany(Teacher::class, 'class_teachers', 'class_section_id', 'class_teacher_id')->withPivot('semester_id');
+        return $this->belongsToMany(Teacher::class, 'class_teachers', 'class_section_id', 'class_teacher_id')->withPivot('term_id');
     }
 
     public function class_teachers()

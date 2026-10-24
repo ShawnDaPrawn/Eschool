@@ -37,7 +37,7 @@
             "image": "string",
             "is_fee_payment_due": "number",
             "is_new_admission": "number",
-            "is_semester_on_in_class": "bool",
+            "is_term_on_in_class": "bool",
             "last_name": "string",
             "medium_name": "string",
             "mobile": "string",

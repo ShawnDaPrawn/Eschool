@@ -11,11 +11,11 @@ use App\Models\ClassTeacher;
 use App\Models\FeesClass;
 use App\Models\FeesType;
 use App\Models\Parents;
-use App\Models\Semester;
 use App\Models\SessionYear;
 use App\Models\StudentSessions;
 use App\Models\Subject;
 use App\Models\Teacher;
+use App\Models\Term;
 use App\Models\User;
 use Illuminate\Support\Facades\Route;
 
@@ -76,7 +76,7 @@ class SetupChecklist
     private function yearAndTerms(User $user, ?SessionYear $year): array
     {
         $running = $year && $year->end_date >= now()->toDateString();
-        $terms = $year ? Semester::where('session_year_id', $year->id)->count() : 0;
+        $terms = $year ? Term::where('session_year_id', $year->id)->count() : 0;
         $newYearUrl = Route::has('new-year.index') ? route('new-year.index') : route('session-years.index');
 
         if (! $running) {
@@ -87,7 +87,7 @@ class SetupChecklist
 
         return $this->item($user, 'year_terms', $terms > 0,
             $terms > 0 ? trans_choice('checklist_year_terms_done', $terms, ['year' => $year->name, 'count' => $terms]) : __('checklist_no_terms', ['year' => $year->name]),
-            route('semester.index'), ['semester-create']);
+            route('term.index'), ['term-create']);
     }
 
     private function gradesAndHomerooms(User $user): array

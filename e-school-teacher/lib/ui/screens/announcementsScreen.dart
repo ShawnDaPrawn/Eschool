@@ -63,7 +63,7 @@ class _AnnouncementsScreenState extends State<AnnouncementsScreen> {
             .getSubjectDetails(currentSelectedSubject.index);
         context.read<AnnouncementsCubit>().fetchMoreAnnouncements(
           subjectId: subject.id,
-          semesterId: subject.semester?.id,
+          termId: subject.term?.id,
           classSectionId: context
               .read<DashboardCubit>()
               .getClassSectionDetails(index: currentSelectedClassSection.index)
@@ -103,7 +103,7 @@ class _AnnouncementsScreenState extends State<AnnouncementsScreen> {
               .getClassSectionDetails(index: currentSelectedClassSection.index)
               .id,
           subjectId: subjectId,
-          semesterId: subject.semester?.id,
+          termId: subject.term?.id,
         );
       }
     }
@@ -168,13 +168,13 @@ class _AnnouncementsScreenState extends State<AnnouncementsScreen> {
     return Scaffold(
       floatingActionButton: FloatingActionAddButton(
         onTap: () {
-          Navigator.of(
-            context,
-          ).pushNamed<bool?>(Routes.addOrEditAnnouncement).then((value) {
-            if (value != null && value) {
-              fetchAnnouncements();
-            }
-          });
+          Navigator.of(context)
+              .pushNamed<bool?>(Routes.addOrEditAnnouncement)
+              .then((value) {
+                if (value != null && value) {
+                  fetchAnnouncements();
+                }
+              });
         },
       ),
       body: Stack(

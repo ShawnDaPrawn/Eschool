@@ -42,7 +42,7 @@ The receiver check runs on every `send-message`; the lists use the same rules (c
 
 | Sender | Allowed receivers | Code |
 |---|---|---|
-| Student | Class teachers of the student's class section and subject teachers of the student's subjects (core subjects plus chosen electives) in that class section, for the current session year. If the class uses semesters this session year (`ClassSessionConfig::classHasSemester`) and a semester is current, only that semester's assignments count. | `Student\ChatController::chatTeacherIds()` |
+| Student | Class teachers of the student's class section and subject teachers of the student's subjects (core subjects plus chosen electives) in that class section, for the current session year. If the class uses terms this session year (`ClassSessionConfig::classHasTerm`) and a term is current, only that term's assignments count. | `Student\ChatController::chatTeacherIds()` |
 | Parent | The same set, for every child with a session in the current session year | `Parent\ChatController::chatTeacherScope()`, `chatAllowedUserIds()` |
 | Teacher | Anyone who has already messaged the teacher; students with a session this year in a class section where the teacher is class teacher or subject teacher this session year; parents (father, mother or guardian) of those students | `Teacher\ChatController::canChatWith()`, `teacherClassSectionIds()` |
 

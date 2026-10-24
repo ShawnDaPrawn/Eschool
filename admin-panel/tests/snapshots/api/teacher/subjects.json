@@ -10,7 +10,6 @@
             {
                 "class_section_id": "number",
                 "id": "number",
-                "semester_id": "null",
                 "session_year_id": "number",
                 "subject": {
                     "bg_color": "string",
@@ -19,11 +18,12 @@
                     "image": "string",
                     "medium_id": "number",
                     "name": "string",
-                    "semester": "null",
+                    "term": "null",
                     "type": "string"
                 },
                 "subject_id": "number",
-                "teacher_id": "number"
+                "teacher_id": "number",
+                "term_id": "null"
             }
         ],
         "error": "bool",

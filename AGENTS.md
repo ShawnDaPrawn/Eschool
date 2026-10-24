@@ -101,3 +101,11 @@ Do not put the private Bible or secrets into public issues, PRs or commits.
 
 Also run any additional CI, security, browser and integration checks required
 by the phase specification. Never assert that a check passed unless run.
+
+## Semester retirement decision (23 October 2026)
+
+The owner confirmed that no installed clients use semesters and authorized
+replacing that implementation with school terms instead of maintaining semester
+compatibility. Migrate stored IDs/references safely and update the bundled apps
+and consumers together; do not create a duplicate semester projection or bridge.
+This exception is specific to semesters, not authorization to break other APIs.

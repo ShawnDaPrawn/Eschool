@@ -35,8 +35,8 @@ class Announcement extends Model
         return $this->morphMany(File::class, 'modal');
     }
 
-    public function semester()
+    public function term()
     {
-        return $this->belongsTo(Semester::class);
+        return $this->belongsTo(Term::class);
     }
 }

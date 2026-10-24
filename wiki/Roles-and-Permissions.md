@@ -68,7 +68,7 @@ Columns: **SA** = granted to Super Admin, **T** = granted to Teacher. "Checked i
 | Permission | SA | T | Checked in |
 |---|---|---|---|
 | `medium-*`, `section-*`, `class-*`, `subject-*`, `stream-*`, `shift-*` (each `-list`, `-create`, `-edit`, `-delete`) | Yes | | The matching controllers |
-| `semester-list`, `semester-create`, `semester-edit`, `semester-delete` | Yes | | `SemesterController` (`semester-edit` also saves the per-class semester switch) |
+| `term-list`, `term-create`, `term-edit`, `term-delete` | Yes | | `TermController` and the scoped `TermPolicy` / calendar services |
 | `session-year-list`, `session-year-create`, `session-year-edit`, `session-year-delete` | Yes | | `SessionYearController`, `StoreSessionYearRequest::authorize()`; `-delete` also clears data and installments |
 | `assign-class-subject` | Yes | | Class subject pages in `Classes\SubjectController` |
 | `assign-elective-subjects` | Yes | | Elective assignment in `Classes\ElectiveController` |
@@ -181,7 +181,7 @@ Other forms in use:
 | Form | Where |
 |---|---|
 | `$this->middleware('permission:role-list\|role-create\|...', ['only' => [...]])` | `RoleController` constructor |
-| `Auth::user()->canAny([...])` | `MediumController`, `SliderController`, `FormFieldController`, `EventController`, `StaffController` (ID cards), `SemesterController::getClassConfig` |
+| `Auth::user()->canAny([...])` | `MediumController`, `SliderController`, `FormFieldController`, `EventController`, `StaffController` (ID cards) |
 | `ResponseService::noPermissionThenSendJson('perm')` | Teacher API (assignments, lessons, topics, announcements, attendance), the `Classes\` controllers, `HomeController` widgets. Throws the JSON error (an `HttpResponseException`), which ends the request |
 | `ResponseService::noPermissionThenRedirect('perm')` | Redirects to `home` with `no_permission_message` and `send()`s immediately |
 | `ResponseService::noAnyPermissionThenSendJson([...])` | Teacher API `submitAttendance` (`attendance-create` or `attendance-edit`) |
@@ -231,7 +231,7 @@ All authenticated API groups use Sanctum tokens (`auth:sanctum`) plus spatie's `
 | `POST /api/teacher/login` | `throttle:login` | Refuses non-teachers and deactivated teachers |
 | `/api/teacher/*` | `auth:sanctum`, `role:Teacher`, `teacher.active`, `password.change` | Permission checks (`noPermissionThenSendJson`) plus ownership helpers; `get-student-result` and `get-student-marks` add `CheckStudent` |
 | `POST /api/logout`, `POST /api/change-password` | `auth:sanctum` | |
-| Public: `holidays`, `sliders`, `current-session-year`, `settings`, `get-events-list`, `get-events-details`, `get-session-year`, `get-semesters`, gallery endpoints, `forgot-password` | none (`forgot-password` is throttled) | |
+| Public: `holidays`, `sliders`, `current-session-year`, `settings`, `get-events-list`, `get-events-details`, `get-session-year`, `get-terms`, gallery endpoints, `forgot-password` | none (`forgot-password` is throttled) | |
 
 The API group also has the default `throttle:api` limiter: 60 requests a minute per user or IP.
 
@@ -247,7 +247,7 @@ The API group also has the default `throttle:api` limiter: 60 requests a minute 
 
 Permissions say what kind of action a teacher may take; ownership rules say on which records.
 
-- **Teacher API** (`Teacher\Concerns\TeacherAccess` trait, used by the `Teacher\` controllers): `currentTeacher()` refuses a Teacher-role user with no `teachers` row (JSON error with `code` 403). `isClassTeacherOf($classSectionId)` and `teachesSubject($classSectionId, $subjectId, $semesterId)` check the current session year. `teacherClassSectionIds()` is the union of class-teacher and subject-teacher sections; `teachesStudent($studentId)` intersects it with the student's sections. Rules applied with them: student details, guardian contacts and result PDFs only for students the teacher teaches; attendance only as class teacher of that section; marks only as class teacher or subject teacher, for students in the section, within 0 and the paper's total, and not after the exam is published; student leave approval only as the student's class teacher and with `student-leave-approve`; lessons, topics, assignments, submissions and announcements through the model ownership scopes; files only when attached to the teacher's own lessons, topics, assignments, announcements or leaves (`canManageFile()`); live-class links only on the teacher's own periods; chat only with the teacher's students, their parents or people who already wrote to them (`canChatWith()`).
+- **Teacher API** (`Teacher\Concerns\TeacherAccess` trait, used by the `Teacher\` controllers): `currentTeacher()` refuses a Teacher-role user with no `teachers` row (JSON error with `code` 403). `isClassTeacherOf($classSectionId)` and `teachesSubject($classSectionId, $subjectId, $termId)` check the current session year. `teacherClassSectionIds()` is the union of class-teacher and subject-teacher sections; `teachesStudent($studentId)` intersects it with the student's sections. Rules applied with them: student details, guardian contacts and result PDFs only for students the teacher teaches; attendance only as class teacher of that section; marks only as class teacher or subject teacher, for students in the section, within 0 and the paper's total, and not after the exam is published; student leave approval only as the student's class teacher and with `student-leave-approve`; lessons, topics, assignments, submissions and announcements through the model ownership scopes; files only when attached to the teacher's own lessons, topics, assignments, announcements or leaves (`canManageFile()`); live-class links only on the teacher's own periods; chat only with the teacher's students, their parents or people who already wrote to them (`canChatWith()`).
 - **Admin panel**: model scopes such as `Lesson::lessonTeachers`, `Assignment::assignmentTeachers`, `ClassSection::subjectTeacher` and `SubjectTeacher::subjectTeacher` (listed on [Database Schema](Database-Schema#scoping-summary)) narrow lists for Teacher-role users. `Exam\MarksController::teacherMarksClassSectionIds()` limits marks entry and correction to sections the teacher class-teaches or teaches the subject in, and existing marks rows can only be overwritten for the same timetable and student.
 - **Parent API**: every endpoint resolves the child through the parent's own children; fee receipts, payment status, failing a transaction and paying fees only work on the parent's own children's transactions; chat only with the child's teachers; online exam results and lesson topics are limited to the child's classes.
 

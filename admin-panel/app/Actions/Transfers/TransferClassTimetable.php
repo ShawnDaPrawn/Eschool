@@ -15,21 +15,21 @@ class TransferClassTimetable
      */
     public function execute(int $fromSessionId, int $toSessionId): void
     {
-        $semesters = YearIdMap::semesters($fromSessionId, $toSessionId);
-        $subjectTeachers = YearIdMap::subjectTeachers($fromSessionId, $toSessionId, $semesters);
+        $terms = YearIdMap::terms($fromSessionId, $toSessionId);
+        $subjectTeachers = YearIdMap::subjectTeachers($fromSessionId, $toSessionId, $terms);
 
         Timetable::where('session_year_id', $fromSessionId)
-            ->chunkById(500, function ($rows) use ($toSessionId, $semesters, $subjectTeachers) {
+            ->chunkById(500, function ($rows) use ($toSessionId, $terms, $subjectTeachers) {
                 $data = $rows
                     ->filter(fn ($row) => $row->subject_teacher_id === null || isset($subjectTeachers[$row->subject_teacher_id]))
-                    ->map(function ($row) use ($toSessionId, $semesters, $subjectTeachers) {
+                    ->map(function ($row) use ($toSessionId, $terms, $subjectTeachers) {
                         return array_merge(
                             collect($row->getAttributes())
                                 ->except(['id', 'created_at', 'updated_at'])
                                 ->toArray(),
                             [
                                 'session_year_id' => $toSessionId,
-                                'semester_id' => YearIdMap::semester($row->semester_id, $semesters),
+                                'term_id' => YearIdMap::term($row->term_id, $terms),
                                 'subject_teacher_id' => $row->subject_teacher_id === null ? null : $subjectTeachers[$row->subject_teacher_id],
                                 'created_at' => now(),
                                 'updated_at' => now(),

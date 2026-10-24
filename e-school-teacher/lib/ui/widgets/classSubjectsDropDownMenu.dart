@@ -47,7 +47,7 @@ class ClassSubjectsDropDownMenu extends StatelessWidget {
                         }
                       },
                       menu: state.subjects
-                          .map((e) => e.subjectNameWithTypeAndSemester)
+                          .map((e) => e.subjectNameWithTypeAndTerm)
                           .toList(),
                       currentSelectedItem: currentSelectedItem,
                     )

@@ -9,8 +9,8 @@ use App\Http\Controllers\Controller;
 use App\Models\ClassSessionConfig;
 use App\Models\Lesson;
 use App\Models\LessonTopic;
-use App\Models\Semester;
 use App\Models\StudentSessions;
+use App\Models\Term;
 use App\Services\ResponseService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
@@ -45,18 +45,16 @@ class LessonController extends Controller
                 ->where('student_id', $student->id)
                 ->with('class_section')
                 ->first();
-            $currentSemester = Semester::get()->first(function ($semester) {
-                return $semester->current;
-            });
+            $currentTerm = Term::currentForClass((int) $session_year_id, (int) $studentSession->class_section->class_id);
 
-            $isClassHaveSemester = ClassSessionConfig::classHasSemester($studentSession->class_section->class_id, $session_year_id);
+            $isClassHaveTerm = ClassSessionConfig::classHasTerm($studentSession->class_section->class_id, $session_year_id);
 
             $data = Lesson::where('class_section_id', $studentSession->class_section->id)
                 ->where('subject_id', $request->subject_id)->with('topic', 'file');
 
-            if ($isClassHaveSemester && $currentSemester) {
-                $data->where(function ($query) use ($currentSemester) {
-                    $query->where('semester_id', $currentSemester->id);
+            if ($isClassHaveTerm && $currentTerm) {
+                $data->where(function ($query) use ($currentTerm) {
+                    $query->where('term_id', $currentTerm?->id);
                 });
             }
 
@@ -105,11 +103,9 @@ class LessonController extends Controller
                 return ResponseService::errorResponse('Student session not found');
             }
 
-            $currentSemester = Semester::where('session_year_id', $session_year_id)
-                ->get()
-                ->first(fn ($s) => $s->current);
+            $currentTerm = Term::currentForClass((int) $session_year_id, (int) $studentSession->class_section->class_id);
 
-            $isClassHaveSemester = ClassSessionConfig::classHasSemester(
+            $isClassHaveTerm = ClassSessionConfig::classHasTerm(
                 $studentSession->class_section->class_id,
                 $session_year_id
             );
@@ -121,12 +117,12 @@ class LessonController extends Controller
                     $q->where('class_section_id', $studentSession->class_section_id);
                 });
 
-            // Semester filter via lesson relation
-            if ($isClassHaveSemester && $currentSemester) {
-                $query->whereHas('lesson', function ($q) use ($currentSemester) {
-                    $q->where(function ($subQuery) use ($currentSemester) {
-                        $subQuery->where('semester_id', $currentSemester->id)
-                            ->orWhereNull('semester_id');
+            // Term filter via lesson relation
+            if ($isClassHaveTerm && $currentTerm) {
+                $query->whereHas('lesson', function ($q) use ($currentTerm) {
+                    $q->where(function ($subQuery) use ($currentTerm) {
+                        $subQuery->where('term_id', $currentTerm?->id)
+                            ->orWhereNull('term_id');
                     });
                 });
             }

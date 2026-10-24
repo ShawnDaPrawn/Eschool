@@ -13,7 +13,6 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 class StudentsContainer extends StatelessWidget {
-
   const StudentsContainer({required this.classSectionDetails, super.key});
   final ClassSectionDetails classSectionDetails;
 
@@ -31,9 +30,7 @@ class StudentsContainer extends StatelessWidget {
                   borderRadius: 10,
                 ),
               ),
-              SizedBox(
-                width: boxConstraints.maxWidth * 0.05,
-              ),
+              SizedBox(width: boxConstraints.maxWidth * 0.05),
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -43,9 +40,7 @@ class StudentsContainer extends StatelessWidget {
                       borderRadius: 10,
                     ),
                   ),
-                  const SizedBox(
-                    height: 10,
-                  ),
+                  const SizedBox(height: 10),
                   ShimmerLoadingContainer(
                     child: CustomShimmerContainer(
                       width: boxConstraints.maxWidth * 0.35,
@@ -63,8 +58,10 @@ class StudentsContainer extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BlocBuilder<StudentsByClassSectionCubit,
-        StudentsByClassSectionState>(
+    return BlocBuilder<
+      StudentsByClassSectionCubit,
+      StudentsByClassSectionState
+    >(
       builder: (context, state) {
         if (state is StudentsByClassSectionFetchSuccess) {
           return state.students.isEmpty
@@ -89,14 +86,14 @@ class StudentsContainer extends StatelessWidget {
             errorMessageCode: state.errorMessage,
             onTapRetry: () {
               context.read<StudentsByClassSectionCubit>().fetchStudents(
-                    classSectionId: classSectionDetails.id,
-                    subjectId: null,
-                    semesterId: context
-                        .read<AppConfigurationCubit>()
-                        .getAppConfiguration()
-                        .currentSemester
-                        ?.id,
-                  );
+                classSectionId: classSectionDetails.id,
+                subjectId: null,
+                termId: context
+                    .read<AppConfigurationCubit>()
+                    .getAppConfiguration()
+                    .currentTerm
+                    ?.id,
+              );
             },
           );
         }

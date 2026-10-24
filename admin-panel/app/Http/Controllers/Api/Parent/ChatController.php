@@ -14,12 +14,12 @@ use App\Models\ClassTeacher;
 use App\Models\File;
 use App\Models\Parents;
 use App\Models\ReadMessage;
-use App\Models\Semester;
 use App\Models\Students;
 use App\Models\StudentSessions;
 use App\Models\Subject;
 use App\Models\SubjectTeacher;
 use App\Models\Teacher;
+use App\Models\Term;
 use App\Services\Platform\Files\FileNames;
 use App\Services\ResponseService;
 use Carbon\Carbon;
@@ -56,16 +56,11 @@ class ChatController extends Controller
             $user = $request->user();
             $parent = $user->parent;
 
-            // Get current semester (once, shared across all children)
-            $currentSemester = Semester::get()->first(function ($semester) {
-                return $semester->current;
-            });
-
             // The same teacher set sendMessage() allows as receivers.
-            $scope = $this->chatTeacherScope($parent, $session_year_id, $currentSemester);
+            $scope = $this->chatTeacherScope($parent, $session_year_id);
             $childrens = $scope['childrens'];
-            $semesterClassSectionIds = $scope['semester_class_section_ids'];
-            $nonSemesterClassSectionIds = $scope['non_semester_class_section_ids'];
+            $termClassSectionIds = $scope['term_class_section_ids'];
+            $nonTermClassSectionIds = $scope['non_term_class_section_ids'];
             $teacher_ids = $scope['teacher_ids'];
 
             // --- Teacher query (unchanged) ---
@@ -91,42 +86,42 @@ class ChatController extends Controller
                 $unreadCount = 0;
                 $subjectData = [];
 
-                // --- Semester-aware class teacher section lookup ---
+                // --- Term-aware class teacher section lookup ---
                 $class_teacher_section_ids = [];
 
-                foreach ($semesterClassSectionIds as $csi => $semId) {
+                foreach ($termClassSectionIds as $csi => $semId) {
                     $ids = ClassTeacher::where('class_teacher_id', $teacher->id)
                         ->where('session_year_id', $session_year_id)
-                        ->where('semester_id', $semId)
+                        ->where('term_id', $semId)
                         ->where('class_section_id', $csi)
                         ->pluck('class_section_id')->toArray();
                     $class_teacher_section_ids = array_merge($class_teacher_section_ids, $ids);
                 }
 
-                if (! empty($nonSemesterClassSectionIds)) {
+                if (! empty($nonTermClassSectionIds)) {
                     $ids = ClassTeacher::where('class_teacher_id', $teacher->id)
                         ->where('session_year_id', $session_year_id)
-                        ->whereIn('class_section_id', $nonSemesterClassSectionIds)
+                        ->whereIn('class_section_id', $nonTermClassSectionIds)
                         ->pluck('class_section_id')->toArray();
                     $class_teacher_section_ids = array_merge($class_teacher_section_ids, $ids);
                 }
 
-                // --- Semester-aware subject teacher section lookup ---
+                // --- Term-aware subject teacher section lookup ---
                 $subject_teacher_class_section_ids = [];
 
-                foreach ($semesterClassSectionIds as $csi => $semId) {
+                foreach ($termClassSectionIds as $csi => $semId) {
                     $ids = SubjectTeacher::where('teacher_id', $teacher->id)
                         ->where('session_year_id', $session_year_id)
-                        ->where('semester_id', $semId)
+                        ->where('term_id', $semId)
                         ->where('class_section_id', $csi)
                         ->pluck('class_section_id')->toArray();
                     $subject_teacher_class_section_ids = array_merge($subject_teacher_class_section_ids, $ids);
                 }
 
-                if (! empty($nonSemesterClassSectionIds)) {
+                if (! empty($nonTermClassSectionIds)) {
                     $ids = SubjectTeacher::where('teacher_id', $teacher->id)
                         ->where('session_year_id', $session_year_id)
-                        ->whereIn('class_section_id', $nonSemesterClassSectionIds)
+                        ->whereIn('class_section_id', $nonTermClassSectionIds)
                         ->pluck('class_section_id')->toArray();
                     $subject_teacher_class_section_ids = array_merge($subject_teacher_class_section_ids, $ids);
                 }
@@ -467,12 +462,12 @@ class ChatController extends Controller
 
     /**
      * The teachers a parent may chat with: the class teachers and subject teachers
-     * of their children's current class sections (semester aware). Also returns the
+     * of their children's current class sections (term aware). Also returns the
      * intermediate data getChatUserList shows alongside each teacher.
      *
-     * @return array{teacher_ids: list<int>, childrens: Collection, semester_class_section_ids: array<int, int>, non_semester_class_section_ids: list<int>}
+     * @return array{teacher_ids: list<int>, childrens: Collection, term_class_section_ids: array<int, int>, non_term_class_section_ids: list<int>}
      */
-    private function chatTeacherScope(Parents $parent, $session_year_id, ?Semester $currentSemester): array
+    private function chatTeacherScope(Parents $parent, $session_year_id): array
     {
         $childrens = $parent->children()
             ->whereHas('studentSessions', function ($q) use ($session_year_id) {
@@ -482,9 +477,9 @@ class ChatController extends Controller
         $class_section_ids = [];
         $subject_id = [];
 
-        // Track which class_section_ids require semester filtering and which don't
-        $semesterClassSectionIds = []; // class_section_id => semester_id
-        $nonSemesterClassSectionIds = []; // plain array
+        // Track which class_section_ids require term filtering and which don't
+        $termClassSectionIds = []; // class_section_id => term_id
+        $nonTermClassSectionIds = []; // plain array
 
         foreach ($childrens as $children) {
             $studentSession = StudentSessions::where('session_year_id', $session_year_id)
@@ -500,14 +495,15 @@ class ChatController extends Controller
             $classSection = ClassSection::find($sectionId);
             $class_id = $classSection ? $classSection->class_id : null;
 
-            $isClassHaveSemester = $class_id
-                ? ClassSessionConfig::classHasSemester($class_id, $session_year_id)
+            $isClassHaveTerm = $class_id
+                ? ClassSessionConfig::classHasTerm($class_id, $session_year_id)
                 : false;
 
-            if ($isClassHaveSemester && $currentSemester) {
-                $semesterClassSectionIds[$sectionId] = $currentSemester->id;
+            $currentTerm = Term::currentForClass((int) $session_year_id, $class_id === null ? null : (int) $class_id);
+            if ($isClassHaveTerm && $currentTerm) {
+                $termClassSectionIds[$sectionId] = $currentTerm->id;
             } else {
-                $nonSemesterClassSectionIds[] = $sectionId;
+                $nonTermClassSectionIds[] = $sectionId;
             }
 
             $student_subject = $children->subjects();
@@ -522,34 +518,34 @@ class ChatController extends Controller
 
         $subject_id = array_unique($subject_id);
 
-        // --- Class teacher IDs with semester awareness ---
+        // --- Class teacher IDs with term awareness ---
         $class_teachers_id = [];
-        foreach ($semesterClassSectionIds as $csi => $semId) {
+        foreach ($termClassSectionIds as $csi => $semId) {
             $ids = ClassTeacher::where('class_section_id', $csi)
                 ->where('session_year_id', $session_year_id)
-                ->where('semester_id', $semId)
+                ->where('term_id', $semId)
                 ->pluck('class_teacher_id')->toArray();
             $class_teachers_id = array_merge($class_teachers_id, $ids);
         }
-        if (! empty($nonSemesterClassSectionIds)) {
-            $ids = ClassTeacher::whereIn('class_section_id', $nonSemesterClassSectionIds)
+        if (! empty($nonTermClassSectionIds)) {
+            $ids = ClassTeacher::whereIn('class_section_id', $nonTermClassSectionIds)
                 ->where('session_year_id', $session_year_id)
                 ->pluck('class_teacher_id')->toArray();
             $class_teachers_id = array_merge($class_teachers_id, $ids);
         }
 
-        // --- Subject teacher IDs with semester awareness ---
+        // --- Subject teacher IDs with term awareness ---
         $subject_teacher_id = [];
-        foreach ($semesterClassSectionIds as $csi => $semId) {
+        foreach ($termClassSectionIds as $csi => $semId) {
             $ids = SubjectTeacher::where('class_section_id', $csi)
                 ->where('session_year_id', $session_year_id)
                 ->whereIn('subject_id', $subject_id)
-                ->where('semester_id', $semId)
+                ->where('term_id', $semId)
                 ->pluck('teacher_id')->toArray();
             $subject_teacher_id = array_merge($subject_teacher_id, $ids);
         }
-        if (! empty($nonSemesterClassSectionIds)) {
-            $ids = SubjectTeacher::whereIn('class_section_id', $nonSemesterClassSectionIds)
+        if (! empty($nonTermClassSectionIds)) {
+            $ids = SubjectTeacher::whereIn('class_section_id', $nonTermClassSectionIds)
                 ->where('session_year_id', $session_year_id)
                 ->whereIn('subject_id', $subject_id)
                 ->pluck('teacher_id')->toArray();
@@ -559,8 +555,8 @@ class ChatController extends Controller
         return [
             'teacher_ids' => array_values(array_unique(array_merge($class_teachers_id, $subject_teacher_id))),
             'childrens' => $childrens,
-            'semester_class_section_ids' => $semesterClassSectionIds,
-            'non_semester_class_section_ids' => $nonSemesterClassSectionIds,
+            'term_class_section_ids' => $termClassSectionIds,
+            'non_term_class_section_ids' => $nonTermClassSectionIds,
         ];
     }
 
@@ -578,8 +574,7 @@ class ChatController extends Controller
         }
 
         $session_year_id = getSettings('session_year')['session_year'];
-        $currentSemester = Semester::where('session_year_id', $session_year_id)->get()->first(fn ($semester) => $semester->current);
-        $teacherIds = $this->chatTeacherScope($parent, $session_year_id, $currentSemester)['teacher_ids'];
+        $teacherIds = $this->chatTeacherScope($parent, $session_year_id)['teacher_ids'];
 
         return Teacher::whereIn('id', $teacherIds)->pluck('user_id')->map(fn ($id) => (int) $id)->all();
     }

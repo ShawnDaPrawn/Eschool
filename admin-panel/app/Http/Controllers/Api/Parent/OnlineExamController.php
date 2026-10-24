@@ -13,9 +13,9 @@ use App\Models\Exam;
 use App\Models\OnlineExam;
 use App\Models\OnlineExamQuestionChoice;
 use App\Models\OnlineExamStudentAnswer;
-use App\Models\Semester;
 use App\Models\StudentSessions;
 use App\Models\Subject;
+use App\Models\Term;
 use App\Services\OnlineExamScoringService;
 use App\Services\ResponseService;
 use Carbon\Carbon;
@@ -65,11 +65,9 @@ class OnlineExamController extends Controller
             $time_data = Carbon::now()->toArray();
             $current_date_time = $time_data['formatted'];
 
-            $currentSemester = Semester::get()->first(function ($semester) {
-                return $semester->current;
-            });
+            $currentTerm = Term::currentForClass((int) $session_year_id, (int) $class_id);
 
-            $isClassHaveSemester = ClassSessionConfig::classHasSemester(
+            $isClassHaveTerm = ClassSessionConfig::classHasTerm(
                 $class_id,
                 $session_year_id
             );
@@ -78,18 +76,18 @@ class OnlineExamController extends Controller
             // query meets the condition for both class section and class
             if (isset($request->subject_id) && ! empty($request->subject_id)) {
                 $exam_data_db = OnlineExam::where(['model_type' => 'App\Models\ClassSection', 'model_id' => $class_section_id, 'subject_id' => $request->subject_id, 'session_year_id' => $session_year_id,  ['end_date', '>=', $current_date_time]])
-                    ->when($isClassHaveSemester, function ($q) use ($currentSemester) {
-                        if ($currentSemester) {
-                            $q->where('semester_id', $currentSemester->id);
+                    ->when($isClassHaveTerm, function ($q) use ($currentTerm) {
+                        if ($currentTerm) {
+                            $q->where('term_id', $currentTerm?->id);
                         }
                     })
                     ->has('question_choice')->with('subject')->whereDoesntHave('student_attempt', function ($q) use ($student) {
                         $q->where('student_id', $student->id);
-                    })->orWhere(function ($query) use ($class_id, $session_year_id, $current_date_time, $student, $request, $isClassHaveSemester, $currentSemester) {
+                    })->orWhere(function ($query) use ($class_id, $session_year_id, $current_date_time, $student, $request, $isClassHaveTerm, $currentTerm) {
                         $query->where(['model_type' => 'App\Models\ClassSchool', 'model_id' => $class_id, 'subject_id' => $request->subject_id, 'session_year_id' => $session_year_id,  ['end_date', '>=', $current_date_time]])
-                            ->when($isClassHaveSemester, function ($q) use ($currentSemester) {
-                                if ($currentSemester) {
-                                    $q->where('semester_id', $currentSemester->id);
+                            ->when($isClassHaveTerm, function ($q) use ($currentTerm) {
+                                if ($currentTerm) {
+                                    $q->where('term_id', $currentTerm?->id);
                                 }
                             })
                             ->with('subject')->whereDoesntHave('student_attempt', function ($q) use ($student) {
@@ -98,18 +96,18 @@ class OnlineExamController extends Controller
                     })->orderby('start_date')->paginate(15)->toArray();
             } else {
                 $exam_data_db = OnlineExam::where(['model_type' => 'App\Models\ClassSection', 'model_id' => $class_section_id, 'session_year_id' => $session_year_id,  ['end_date', '>=', $current_date_time]])->whereIn('subject_id', $subject_id)
-                    ->when($isClassHaveSemester, function ($q) use ($currentSemester) {
-                        if ($currentSemester) {
-                            $q->where('semester_id', $currentSemester->id);
+                    ->when($isClassHaveTerm, function ($q) use ($currentTerm) {
+                        if ($currentTerm) {
+                            $q->where('term_id', $currentTerm?->id);
                         }
                     })
                     ->has('question_choice')->with('subject')->whereDoesntHave('student_attempt', function ($q) use ($student) {
                         $q->where('student_id', $student->id);
-                    })->orWhere(function ($query) use ($class_id, $subject_id, $session_year_id, $current_date_time, $student, $isClassHaveSemester, $currentSemester) {
+                    })->orWhere(function ($query) use ($class_id, $subject_id, $session_year_id, $current_date_time, $student, $isClassHaveTerm, $currentTerm) {
                         $query->where(['model_type' => 'App\Models\ClassSchool', 'model_id' => $class_id, 'session_year_id' => $session_year_id,  ['end_date', '>=', $current_date_time]])->whereIn('subject_id', $subject_id)
-                            ->when($isClassHaveSemester, function ($q) use ($currentSemester) {
-                                if ($currentSemester) {
-                                    $q->where('semester_id', $currentSemester->id);
+                            ->when($isClassHaveTerm, function ($q) use ($currentTerm) {
+                                if ($currentTerm) {
+                                    $q->where('term_id', $currentTerm?->id);
                                 }
                             })
                             ->with('subject')->whereDoesntHave('student_attempt', function ($q) use ($student) {
@@ -204,11 +202,9 @@ class OnlineExamController extends Controller
             $class_section_id = $studentSession->class_section_id;
             $class_id = $studentSession->class_section->class_id;
 
-            $currentSemester = Semester::get()->first(function ($semester) {
-                return $semester->current;
-            });
+            $currentTerm = Term::currentForClass((int) $session_year_id, (int) $class_id);
 
-            $isClassHaveSemester = ClassSessionConfig::classHasSemester(
+            $isClassHaveTerm = ClassSessionConfig::classHasTerm(
                 $class_id,
                 $session_year_id
             );
@@ -227,9 +223,9 @@ class OnlineExamController extends Controller
                     $query->where(['model_type' => 'App\Models\ClassSchool', 'model_id' => $class_id, 'session_year_id' => $session_year_id, 'subject_id' => $request->subject_id])->with('subject')->whereHas('student_attempt', function ($q) use ($student) {
                         $q->where('student_id', $student->id);
                     });
-                })->when($isClassHaveSemester, function ($q) use ($currentSemester) {
-                    if ($currentSemester) {
-                        $q->where('semester_id', $currentSemester->id);
+                })->when($isClassHaveTerm, function ($q) use ($currentTerm) {
+                    if ($currentTerm) {
+                        $q->where('term_id', $currentTerm?->id);
                     }
                 })->with('subject')->paginate(10)->toArray();
             } else {
@@ -239,9 +235,9 @@ class OnlineExamController extends Controller
                     $query->where(['model_type' => 'App\Models\ClassSchool', 'model_id' => $class_id, 'session_year_id' => $session_year_id])->with('subject')->whereHas('student_attempt', function ($q) use ($student) {
                         $q->where('student_id', $student->id);
                     });
-                })->when($isClassHaveSemester, function ($q) use ($currentSemester) {
-                    if ($currentSemester) {
-                        $q->where('semester_id', $currentSemester->id);
+                })->when($isClassHaveTerm, function ($q) use ($currentTerm) {
+                    if ($currentTerm) {
+                        $q->where('term_id', $currentTerm?->id);
                     }
                 })->with('subject')->paginate(10)->toArray();
             }

@@ -8,6 +8,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Academics\CreateNextYearRequest;
 use App\Http\Requests\Academics\SwitchToNewYearRequest;
 use App\Models\SessionYear;
+use App\Models\TermTemplate;
 use App\Services\Academics\NewYearService;
 use App\Services\Panel\SessionYearContext;
 use Illuminate\Contracts\View\View;
@@ -42,7 +43,8 @@ class NewYearController extends Controller
         return view('academics.new-year', [
             'current' => $current,
             'next' => $next,
-            'nextTerms' => $next?->semesters()->orderBy('start_date')->get() ?? collect(),
+            'nextTerms' => $next?->terms()->orderBy('start_date')->get() ?? collect(),
+            'termTemplates' => TermTemplate::query()->orderBy('name')->pluck('name', 'id')->all(),
             'suggestion' => $this->newYear->suggestion($current),
             'carry' => $this->newYear->carryOptions($current, $next, $chosen),
             'checklist' => $this->newYear->yearEndChecklist($current, $next, $request->user()),

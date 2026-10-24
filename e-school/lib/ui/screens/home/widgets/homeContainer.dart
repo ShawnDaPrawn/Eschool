@@ -67,9 +67,8 @@ class _HomeContainerState extends State<HomeContainer> {
                   ),
                   decoration: BoxDecoration(
                     border: Border.all(
-                      color: Theme.of(
-                        context,
-                      ).colorScheme.onInverseSurface.withValues(alpha: 0.1),
+                      color: Theme.of(context).colorScheme.onInverseSurface
+                          .withValues(alpha: 0.1),
                     ),
                     shape: BoxShape.circle,
                   ),
@@ -78,9 +77,8 @@ class _HomeContainerState extends State<HomeContainer> {
                   child: Container(
                     decoration: BoxDecoration(
                       border: Border.all(
-                        color: Theme.of(
-                          context,
-                        ).colorScheme.onInverseSurface.withValues(alpha: 0.1),
+                        color: Theme.of(context).colorScheme.onInverseSurface
+                            .withValues(alpha: 0.1),
                       ),
                       shape: BoxShape.circle,
                     ),
@@ -94,9 +92,8 @@ class _HomeContainerState extends State<HomeContainer> {
                 end: MediaQuery.sizeOf(context).width * (-0.15),
                 child: Container(
                   decoration: BoxDecoration(
-                    color: Theme.of(
-                      context,
-                    ).colorScheme.onInverseSurface.withValues(alpha: 0.1),
+                    color: Theme.of(context).colorScheme.onInverseSurface
+                        .withValues(alpha: 0.1),
                     shape: BoxShape.circle,
                   ),
                   width: MediaQuery.sizeOf(context).width * 0.35,
@@ -145,9 +142,9 @@ class _HomeContainerState extends State<HomeContainer> {
                               style: TextStyle(
                                 fontSize: 18,
                                 fontWeight: FontWeight.w500,
-                                color: Theme.of(
-                                  context,
-                                ).colorScheme.onInverseSurface,
+                                color: Theme.of(context)
+                                    .colorScheme
+                                    .onInverseSurface,
                               ),
                             ),
                             Row(
@@ -155,15 +152,15 @@ class _HomeContainerState extends State<HomeContainer> {
                                 Flexible(
                                   flex: 2,
                                   child: Text(
-                                    '${UiUtils.getTranslatedLabel(context, classKey)}: ${context.read<AuthCubit>().getStudentDetails().classSectionNameWithSemester(context: context)}',
+                                    '${UiUtils.getTranslatedLabel(context, classKey)}: ${context.read<AuthCubit>().getStudentDetails().classSectionNameWithTerm(context: context)}',
                                     maxLines: 1,
                                     overflow: TextOverflow.ellipsis,
                                     style: TextStyle(
                                       fontSize: 12,
                                       fontWeight: FontWeight.w400,
-                                      color: Theme.of(
-                                        context,
-                                      ).colorScheme.onInverseSurface,
+                                      color: Theme.of(context)
+                                          .colorScheme
+                                          .onInverseSurface,
                                     ),
                                   ),
                                 ),
@@ -171,9 +168,9 @@ class _HomeContainerState extends State<HomeContainer> {
                                 Container(
                                   width: 1.5,
                                   height: 12,
-                                  color: Theme.of(
-                                    context,
-                                  ).colorScheme.onInverseSurface,
+                                  color: Theme.of(context)
+                                      .colorScheme
+                                      .onInverseSurface,
                                 ),
                                 const SizedBox(width: 10),
                                 Flexible(
@@ -184,9 +181,9 @@ class _HomeContainerState extends State<HomeContainer> {
                                     style: TextStyle(
                                       fontSize: 12,
                                       fontWeight: FontWeight.w400,
-                                      color: Theme.of(
-                                        context,
-                                      ).colorScheme.onInverseSurface,
+                                      color: Theme.of(context)
+                                          .colorScheme
+                                          .onInverseSurface,
                                     ),
                                   ),
                                 ),

@@ -13,7 +13,7 @@ class AssignmentRepository {
   Future<Map<String, dynamic>> fetchAssignment({
     required int classSectionId,
     required int subjectId,
-    String? semesterId,
+    String? termId,
     int? page,
   }) async {
     try {
@@ -23,7 +23,7 @@ class AssignmentRepository {
         queryParameters: {
           'class_section_id': classSectionId,
           'subject_id': subjectId,
-          if (semesterId != null) 'semester_id': semesterId,
+          if (termId != null) 'term_id': termId,
           'page': page ?? 0,
         },
       );
@@ -54,7 +54,7 @@ class AssignmentRepository {
     required int assignmentId,
     required int classSelectionId,
     required int subjectId,
-    String? semesterId,
+    String? termId,
     required String name,
     required String dateTime,
     required String instruction,
@@ -72,7 +72,7 @@ class AssignmentRepository {
       'class_section_id': classSelectionId,
       'assignment_id': assignmentId,
       'subject_id': subjectId,
-      if (semesterId != null) 'semester_id': semesterId,
+      if (termId != null) 'term_id': termId,
       'name': name,
       'instructions': instruction,
       'due_date': dateTime,
@@ -99,7 +99,7 @@ class AssignmentRepository {
   Future<void> createAssignment({
     required int classId,
     required int subjectId,
-    String? semesterId,
+    String? termId,
     required String name,
     required String instruction,
     required String datetime,
@@ -115,7 +115,7 @@ class AssignmentRepository {
     final body = {
       'class_section_id': classId,
       'subject_id': subjectId,
-      if (semesterId != null) 'semester_id': semesterId,
+      if (termId != null) 'term_id': termId,
       'name': name,
       'instructions': instruction,
       'due_date': datetime,

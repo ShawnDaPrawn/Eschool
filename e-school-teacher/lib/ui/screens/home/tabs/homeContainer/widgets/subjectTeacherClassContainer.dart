@@ -58,7 +58,7 @@ class SubjectTeacherClassContainer extends StatelessWidget {
                     const SizedBox(width: 6),
                     Flexible(
                       child: Text(
-                        classDetails.getClassSectionNameWithSemester(
+                        classDetails.getClassSectionNameWithTerm(
                           context: context,
                         ),
                         maxLines: 1,
@@ -81,9 +81,8 @@ class SubjectTeacherClassContainer extends StatelessWidget {
                   overflow: TextOverflow.ellipsis,
                   textAlign: TextAlign.start,
                   style: TextStyle(
-                    color: Theme.of(
-                      context,
-                    ).colorScheme.onSurface.withValues(alpha: 0.8),
+                    color: Theme.of(context).colorScheme.onSurface
+                        .withValues(alpha: 0.8),
                     fontSize: 14,
                   ),
                 ),
