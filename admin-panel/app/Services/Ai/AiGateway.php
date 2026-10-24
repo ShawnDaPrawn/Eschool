@@ -14,15 +14,34 @@ use App\Policies\Academics\ContentPolicy;
 use App\Services\Academics\Content\ContentProcessingFailure;
 use App\Services\Academics\Content\ContentSettings;
 use App\Services\Academics\Content\ConverterClient;
+use App\Services\Ai\Inference\Capability;
+use App\Services\Ai\Inference\InferenceGateway;
+use App\Services\Ai\Inference\InferenceRequest;
+use App\Services\Ai\Inference\ProviderResponse;
 use App\Services\Platform\Audit\Audit;
 use App\Services\Platform\Tenancy\CurrentSchool;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Throwable;
 
-/** Phase 2 transcription only; no external inference provider is configured. */
+/** All model calls share this boundary; external inference remains disabled by default. */
 class AiGateway
 {
+    public function complete(User $actor, InferenceRequest $request): ProviderResponse
+    {
+        return app(InferenceGateway::class)->run($actor, Capability::Complete, $request);
+    }
+
+    public function vision(User $actor, InferenceRequest $request): ProviderResponse
+    {
+        return app(InferenceGateway::class)->run($actor, Capability::Vision, $request);
+    }
+
+    public function embed(User $actor, InferenceRequest $request): ProviderResponse
+    {
+        return app(InferenceGateway::class)->run($actor, Capability::Embed, $request);
+    }
+
     private const FEATURE = 'content_transcription';
 
     private function reserve(User $actor, ContentVersion $version, array $source): AiUsage

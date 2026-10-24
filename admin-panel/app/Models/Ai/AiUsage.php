@@ -15,10 +15,10 @@ class AiUsage extends Model
 
     protected $guarded = ['id', 'school_id'];
 
-    protected $hidden = ['request_hash'];
+    protected $hidden = ['request_hash', 'inference_output', 'inference_sources'];
 
     protected function casts(): array
     {
-        return ['reserved_units' => 'integer', 'used_units' => 'integer', 'cost_cents' => 'integer', 'completed_at' => 'datetime'];
+        return ['reserved_units' => 'integer', 'used_units' => 'integer', 'cost_cents' => 'integer', 'reserved_cost_cents' => 'integer', 'inference_output' => 'encrypted:array', 'inference_sources' => 'encrypted:array', 'completed_at' => 'datetime'];
     }
 }
