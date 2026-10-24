@@ -190,6 +190,39 @@ import 'package:eschool_api/src/model/class_grade_mapping.dart';
 import 'package:eschool_api/src/model/class_grade_mapping_grade_level.dart';
 import 'package:eschool_api/src/model/class_grade_response.dart';
 import 'package:eschool_api/src/model/class_grade_write.dart';
+import 'package:eschool_api/src/model/content_archive_write.dart';
+import 'package:eschool_api/src/model/content_configuration.dart';
+import 'package:eschool_api/src/model/content_configuration_response.dart';
+import 'package:eschool_api/src/model/content_draft_write.dart';
+import 'package:eschool_api/src/model/content_group.dart';
+import 'package:eschool_api/src/model/content_history.dart';
+import 'package:eschool_api/src/model/content_item.dart';
+import 'package:eschool_api/src/model/content_item_response.dart';
+import 'package:eschool_api/src/model/content_library.dart';
+import 'package:eschool_api/src/model/content_library_item.dart';
+import 'package:eschool_api/src/model/content_library_response.dart';
+import 'package:eschool_api/src/model/content_list.dart';
+import 'package:eschool_api/src/model/content_list_item.dart';
+import 'package:eschool_api/src/model/content_list_response.dart';
+import 'package:eschool_api/src/model/content_preview.dart';
+import 'package:eschool_api/src/model/content_preview_response.dart';
+import 'package:eschool_api/src/model/content_publish_write.dart';
+import 'package:eschool_api/src/model/content_read_receipt.dart';
+import 'package:eschool_api/src/model/content_read_receipt_response.dart';
+import 'package:eschool_api/src/model/content_reader.dart';
+import 'package:eschool_api/src/model/content_reader_response.dart';
+import 'package:eschool_api/src/model/content_receipt.dart';
+import 'package:eschool_api/src/model/content_receipt_response.dart';
+import 'package:eschool_api/src/model/content_revision_write.dart';
+import 'package:eschool_api/src/model/content_selection.dart';
+import 'package:eschool_api/src/model/content_settings.dart';
+import 'package:eschool_api/src/model/content_settings_response.dart';
+import 'package:eschool_api/src/model/content_source.dart';
+import 'package:eschool_api/src/model/content_topic.dart';
+import 'package:eschool_api/src/model/content_topic_choice.dart';
+import 'package:eschool_api/src/model/content_version.dart';
+import 'package:eschool_api/src/model/content_version_response.dart';
+import 'package:eschool_api/src/model/content_year.dart';
 import 'package:eschool_api/src/model/context.dart';
 import 'package:eschool_api/src/model/context_response.dart';
 import 'package:eschool_api/src/model/context_user.dart';
@@ -1001,6 +1034,102 @@ ReturnType deserialize<ReturnType, BaseType>(
     case 'ClassGradeWrite':
       return ClassGradeWrite.fromJson(value as Map<String, dynamic>)
           as ReturnType;
+    case 'ContentArchiveWrite':
+      return ContentArchiveWrite.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'ContentConfiguration':
+      return ContentConfiguration.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'ContentConfigurationResponse':
+      return ContentConfigurationResponse.fromJson(
+            value as Map<String, dynamic>,
+          )
+          as ReturnType;
+    case 'ContentDraftWrite':
+      return ContentDraftWrite.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'ContentGroup':
+      return ContentGroup.fromJson(value as Map<String, dynamic>) as ReturnType;
+    case 'ContentHistory':
+      return ContentHistory.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'ContentItem':
+      return ContentItem.fromJson(value as Map<String, dynamic>) as ReturnType;
+    case 'ContentItemResponse':
+      return ContentItemResponse.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'ContentLibrary':
+      return ContentLibrary.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'ContentLibraryItem':
+      return ContentLibraryItem.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'ContentLibraryResponse':
+      return ContentLibraryResponse.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'ContentList':
+      return ContentList.fromJson(value as Map<String, dynamic>) as ReturnType;
+    case 'ContentListItem':
+      return ContentListItem.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'ContentListResponse':
+      return ContentListResponse.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'ContentPreview':
+      return ContentPreview.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'ContentPreviewResponse':
+      return ContentPreviewResponse.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'ContentPublishWrite':
+      return ContentPublishWrite.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'ContentReadReceipt':
+      return ContentReadReceipt.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'ContentReadReceiptResponse':
+      return ContentReadReceiptResponse.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'ContentReader':
+      return ContentReader.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'ContentReaderResponse':
+      return ContentReaderResponse.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'ContentReceipt':
+      return ContentReceipt.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'ContentReceiptResponse':
+      return ContentReceiptResponse.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'ContentRevisionWrite':
+      return ContentRevisionWrite.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'ContentSelection':
+      return ContentSelection.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'ContentSettings':
+      return ContentSettings.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'ContentSettingsResponse':
+      return ContentSettingsResponse.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'ContentSource':
+      return ContentSource.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'ContentTopic':
+      return ContentTopic.fromJson(value as Map<String, dynamic>) as ReturnType;
+    case 'ContentTopicChoice':
+      return ContentTopicChoice.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'ContentVersion':
+      return ContentVersion.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'ContentVersionResponse':
+      return ContentVersionResponse.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'ContentYear':
+      return ContentYear.fromJson(value as Map<String, dynamic>) as ReturnType;
     case 'Context':
       return Context.fromJson(value as Map<String, dynamic>) as ReturnType;
     case 'ContextResponse':

@@ -28,6 +28,7 @@ use App\Http\Controllers\MediumController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\OnlineExamController;
 use App\Http\Controllers\OnlineExamQuestionController;
+use App\Http\Controllers\Panel\Academics\ContentWorkbenchController;
 use App\Http\Controllers\Panel\Academics\CurriculumController;
 use App\Http\Controllers\Panel\Academics\NewYearController;
 use App\Http\Controllers\Panel\Academics\RegisterPanelController;
@@ -67,6 +68,7 @@ use App\Http\Controllers\WebhookController;
 use App\Http\Controllers\Webhooks\MailWebhookController;
 use App\Http\Controllers\WebSettingController;
 use App\Http\Middleware\EnforceReadOnlyYears;
+use App\Http\Middleware\PrivateAcademicContent;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Route;
 
@@ -84,6 +86,7 @@ use Illuminate\Support\Facades\Route;
 
 // Pages anyone may open work in the default school (or the signed-in
 // user's): school.context:public.
+
 Route::middleware('school.context:public')->group(function () {
     Route::get('login', [LoginController::class, 'showLoginForm'])->middleware('guest')->name('login');
     Route::post('login', [LoginController::class, 'login'])->middleware(['guest', 'throttle:login', 'school.context:sign-in']);
@@ -211,6 +214,17 @@ Route::group(['middleware' => ['Role', 'auth', 'school.context', EnforceReadOnly
         Route::get('class-teacher-list', [ClassTeacherController::class, 'show']);
         Route::post('remove-class-teacher/{id}/{class_teacher_id}', [ClassTeacherController::class, 'removeClassTeacher']);
 
+        Route::prefix('academic-content')->name('academic-content.')->middleware(['module:academics', PrivateAcademicContent::class])->group(function () {
+            $controller = ContentWorkbenchController::class;
+            Route::get('/', [$controller, 'index'])->name('index');
+            Route::post('items', [$controller, 'create'])->name('create');
+            Route::post('items/{item}/source', [$controller, 'upload'])->whereNumber('item')->name('upload');
+            Route::post('items/{item}/archive', [$controller, 'archive'])->whereNumber('item')->name('archive');
+            foreach (['save', 'retry', 'publish'] as $action) {
+                Route::post('versions/{version}/'.$action, [$controller, $action])->whereNumber('version')->name($action);
+            }
+            Route::post('settings', [$controller, 'settings'])->name('settings');
+        });
         Route::prefix('academic-transitions')->name('academic-transitions.')->middleware(['module:academics', 'cache.headers:private;no_store'])->group(function () {
             $controller = TransitionWorkbenchController::class;
             Route::get('/', [$controller, 'index'])->name('index');

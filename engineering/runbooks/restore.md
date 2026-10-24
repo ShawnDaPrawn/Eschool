@@ -108,7 +108,10 @@ gcloud run jobs executions list --job=navigateed-scheduler --region=africa-south
 Cancel each running scheduler execution with `gcloud run jobs executions cancel
 <EXECUTION> --region=africa-south1 --project=$S`, then verify it has stopped. Check
 for other consumers from the inventory, including manual jobs and tagged
-revisions. Confirm zero active application/worker instances and no application
+revisions. If private academic content is provisioned, include its dedicated
+content-worker service and converter in the captured/stopped inventory; clear
+revision tags and verify zero active instances. Do not assume that stopping the
+ordinary short-job worker stops the separate content queue. Confirm zero active application/worker instances and no application
 SQL sessions before continuing. Restrict destination access to authorised
 operators for the whole window.
 
@@ -189,6 +192,16 @@ Verify environment/Secret Manager overrides too: staging must have no production
 SES, FCM, payment or OAuth credentials. Disable external provider access for the
 inspection. A cleaned settings row alone cannot neutralise an environment secret.
 No production uploads are copied; missing photos/documents are expected.
+Remove CONTENT_CONVERTER_TOKEN and any converter IAM invocation binding from
+the inspection caller, and keep the private converter/content worker disabled.
+Do not copy content-sources files, model request scratch or production encryption
+keys. The nine private-content/AI tables are retained as educational evidence,
+but copied queued/scanning/converting states are inert with jobs/pending outbox
+removed and all consumers stopped; do not retry them on this copied database.
+Encrypted content, sources and report artifacts may be unreadable with the
+staging key. Inspect schema/counts only; never import the production key to make
+these pages readable. Verify content_recipients and notification delivery intent
+are not acted on, and keep production transcript bodies out of drill evidence.
 
 ### 4. Inspect with only the private web service enabled
 

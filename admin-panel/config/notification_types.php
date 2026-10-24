@@ -24,6 +24,7 @@ return [
     'academics.submission' => ['label' => 'Assignment submission', 'module' => 'academics', 'portals' => ['teacher', 'admin'], 'channels' => $on],
     'academics.content_published' => ['label' => 'Lesson content', 'module' => 'academics', 'portals' => ['learner', 'parent'], 'channels' => $on],
     'academics.marks_released' => ['label' => 'Marks released', 'module' => 'academics', 'portals' => ['learner', 'parent'], 'channels' => $on],
+    'academics.content_published' => ['label' => 'Learning content published', 'module' => 'academics', 'portals' => ['learner', 'parent'], 'channels' => $on],
     'academics.report_published' => ['label' => 'Report published', 'module' => 'academics', 'portals' => ['learner', 'parent'], 'channels' => $on],
     'academics.register_amended' => ['label' => 'Register amended', 'module' => 'academics', 'portals' => $all, 'channels' => $on],
     'attendance.absence' => ['label' => 'Absence alert', 'module' => 'academics', 'portals' => $all, 'channels' => $on, 'locked' => ['parent'], 'mandatory_channels' => ['push', 'email', 'in_app']],

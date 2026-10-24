@@ -31,6 +31,11 @@ return [
     */
 
     'connections' => [
+        // Long conversions cannot hold or delay urgent notification jobs.
+        'academic_content' => [
+            'driver' => 'database', 'table' => 'jobs', 'queue' => 'content',
+            'retry_after' => 420, 'after_commit' => false,
+        ],
 
         'sync' => [
             'driver' => 'sync',

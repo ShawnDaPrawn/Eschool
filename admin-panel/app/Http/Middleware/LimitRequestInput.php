@@ -11,7 +11,7 @@ use Symfony\Component\HttpFoundation\InputBag;
 /**
  * Keeps a single request from costing far more than a normal one:
  *
- * - JSON bodies are limited to 1 MB. Only payment webhooks and two small admin
+ * - JSON bodies are limited to 1 MB, except the bounded Markdown draft save. Only payment webhooks and two small admin
  *   fetches send JSON (the apps and forms send form data, whose field count PHP
  *   caps with max_input_vars), and a large JSON array makes validation run out
  *   of memory before any controller code runs.
@@ -30,7 +30,7 @@ class LimitRequestInput
 
     public function handle(Request $request, Closure $next)
     {
-        if ($request->isJson() && (int) $request->header('Content-Length') > self::MAX_JSON_BYTES) {
+        if ($request->isJson() && ((int) $request->header('Content-Length') > $this->jsonLimit($request) || strlen($request->getContent()) > $this->jsonLimit($request))) {
             return response()->json(['error' => true, 'message' => trans('The request is too large.'), 'code' => 102], 413);
         }
 
@@ -43,6 +43,18 @@ class LimitRequestInput
         }
 
         return $next($request);
+    }
+
+    private function jsonLimit(Request $request): int
+    {
+        if ($request->isMethod('PUT') && preg_match('#^api/v2/academics/content/versions/[1-9][0-9]*$#D', $request->path())) {
+            // A 2 MiB UTF-8 Markdown value can occupy six times as many bytes
+            // after JSON escapes. Selection/revision fields have a bounded margin;
+            // ContentRequest and ContentMarkdown still enforce their own limits.
+            return (int) config('academic_content.maximum_markdown_bytes') * 6 + 65536;
+        }
+
+        return self::MAX_JSON_BYTES;
     }
 
     /** A number is clamped to the range; anything else (e.g. an array) is removed. */

@@ -160,3 +160,19 @@ report_comments encrypt per-scope text with author/revision. report_recipients
 retain notification claims and per-recipient read state. All tables require
 indexed school ownership. Released batches/cards/comments reject model mutation;
 new versions retain prior releases. Fees and learner activation are not gates.
+
+
+## Phase 2: private content and local transcription
+
+Nine school-owned tables are added by the private-content migration:
+`content_items` (author/context/current draft and publication/revision),
+`content_sources` (immutable encrypted private source and checksum/scan result),
+`content_versions` (encrypted selection/Markdown, attempt/generation/lease/review,
+immutable after publication), `content_item_groups` (published audience),
+`content_operations` (actor/UUID/hash/encrypted minimal receipt),
+`content_recipients` (version/learner/user read and notification claim),
+`content_settings` (transcription switch and school daily seconds), `ai_usage`
+(school-local usage date, reservation/used seconds, output hash, zero cents),
+`ai_flags` (guard codes only). Private files use the existing encrypted
+`academic_private` disk; no public storage URL is introduced. Rollback refuses
+populated educational-content/usage history rather than silently dropping it.

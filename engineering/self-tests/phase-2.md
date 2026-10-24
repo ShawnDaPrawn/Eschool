@@ -474,3 +474,79 @@ rights and preserves retained-record access after the only child departs, includ
 a later year without a session. Ended links and unrelated manual deactivation still
 refuse access. Join fingerprints include year dates and the reviewed membership
 end. All 35 mid-year/parent security/policy checks pass (359 assertions).
+
+Mid-year final delivery: all CI, Security and Firebase workflows passed on
+e263e53f67c73dcea36f30b9049225406feb221f. PR #97 merged to main as 5924d20,
+including both resolved review findings, native Android and full backend checks.
+
+
+### Private content backend/service — local evidence, 24 October 2026
+
+- 21 content-engine tests passed, 334 assertions: upload/replay; scan refusal and
+  outage; retry/generation races; review/publication immutability; draft/published
+  audience separation; wrong role/school/author/child; current guardian delivery;
+  curriculum publication tags; source capability/tampering/expiry; queued
+  identifier-only outbox; interrupted lease/quota recovery; actual-duration
+  metering and safeguarding quarantine. Positive v2 responses are contract checked.
+- Converter: 42 tests passed after version-ID protocol alignment, including a real
+  30-page PDF, Word/slides/spreadsheet and pinned-model audio/video; malicious
+  archives/source URLs, scratch removal, offline/resource controls and duration
+  refusal. Python production dependency audit: no known vulnerabilities found.
+- Generated Dart SDK: 673 files; 40 existing tests and four new content contract
+  tests passed; analysis has no errors/warnings (existing style infos remain).
+  OpenAPI strict lint and actionlint passed. Larastan reported no errors.
+- Full PHP regression/cache checks and actual real-clamd/image CI are tracked
+  separately below when complete. The local daemon test is intentionally skipped
+  without a real private clamd; it is not recorded as passed.
+- Security Diff Scan's referenced preflight/helpers are unavailable in this host.
+  A manual change review and normal CI checks proceed; no completed plugin scan
+  or independent security acceptance is claimed. Panel/app profile and browser
+  evidence will be recorded with their separate feature slice.
+
+
+### Private content ready-to-review checks, 24 October 2026
+
+- Final focused backend/guard/sanitizer/style cohort: **32 passed, 395 assertions**;
+  all 1,034 PHP files pass Pint and Larastan reports no errors. This includes
+  the native panel's upload/edit/conflict/preview/publish flow, school suspension,
+  role/owner/school boundaries, bounded/resumable notification fanout and leases.
+- The broad local regression ran before the final panel changes: 1,453 passed,
+  one daemon integration skip, one response-return guard failure. The handler was
+  corrected and that guard passes in the final cohort; the exact PR-head full CI
+  suite remains the required final regression evidence. No broad local all-pass
+  claim is made from that earlier run.
+- Playwright **3 passed**: complete teacher upload, draft edit, human publication,
+  immutable replacement draft/history and withdrawal at 1,024/1,280 px; another
+  teacher's private-item refusal. Both widths pass serious/critical axe checks,
+  horizontal overflow and own-origin console/error checks. Demo data and a fake
+  converter/scanner isolate UI rehearsal from service/AV integration evidence.
+- Browser checks caught and fixed legacy jQuery MIME validation blocking valid
+  filename-extension accept lists. Native multipart forms keep browser constraints
+  and server FormRequests; other legacy file forms retain their old behaviour.
+- Generated SDK: **44 tests passed**, including multipart selection/source/school,
+  human-review booleans, null queued/publication state and scoped reader leases.
+  Python: **42 passed**. TypeScript, OpenAPI strict lint, actionlint, route/view/
+  config cache creation and cleanup pass.
+- Optional local compose/worker wiring, current-definition real clamd/EICAR and
+  six-format read-only offline image smoke are committed CI checks. Their actual
+  run/merge evidence is recorded after the PR completes. Physical-device,
+  end-to-end staging latency, language accuracy and independent security/pilot
+  acceptance remain separate. Shared app screens are the next content slice.
+
+
+PR #98 review follow-up: **31 tests passed, 408 assertions**, covering nested
+numbered lists/paragraphs/code and stable code whitespace across repeated saves,
+a real v2 save above 1 MiB, worst-case JSON escaping at the 2 MiB text bound,
+unchanged limits on other routes/methods and understated length-header refusal.
+Larastan and strict OpenAPI lint pass; the 673-file SDK was regenerated.
+CI run 40111629362 verified the real ClamAV/EICAR step and actual PDF, Word,
+slides, spreadsheet, audio and video inside the read-only offline runtime.
+Security run 40111956196 passes after the exact public-checksum exception;
+93769303 is superseded by the review fixes, so final-head CI is still required.
+
+Final #98 CI regression found one missing panel navigation label (1,461 passed,
+one daemon integration skip). Added the Learning content key to every panel
+language file; **6 focused navigation/translation/reader tests pass, 4,008
+assertions**. Also brought forward the actual reader clock regression from #99:
+server/expiry timestamps share one instant. The advancing-clock v2 response test
+passes. Final-head CI must complete before merge.

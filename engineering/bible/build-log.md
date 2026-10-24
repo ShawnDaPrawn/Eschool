@@ -320,3 +320,16 @@ approach allows joins before subject allocations and leaves from unmapped legacy
 homerooms. Added explicit copy retention without inventing an educational-record
 deletion schedule. Verification and merge evidence are recorded in Phase 2 self-tests;
 production and external pilot acceptance are separate.
+
+
+### 24 October 2026 — private content service and contracts
+
+Implemented encrypted quarantine sources, fail-closed ClamAV scanning, a private
+Python/MarkItDown service with bounded offline audio/video transcription, queued
+conversion/recovery, explicit draft review/publication, immutable versions and
+dated group-only family reads. Added school transcription controls/duration
+reservations, notification delivery guards, additive v2 contracts and generated
+Dart types. The broader Phase 3 AI kernel is not represented as finished.
+Native panel workflows are included; shared app workflows follow in a separate slice; no content capability is yet
+advertised in app context. Local verification is recorded in Phase 2 self-tests;
+container/real-daemon CI and external acceptance remain separate evidence.

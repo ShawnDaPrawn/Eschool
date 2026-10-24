@@ -46,6 +46,8 @@ return [
             'academic-reports/*',
             // Dated learner changes carry an explicit school year and preview fingerprint.
             'academic-transitions/*',
+            'academic-content',
+            'academic-content/*',
 
             // Settings that are the same in every year.
             'clear',

@@ -48,6 +48,7 @@ class TenancyMigrationsTest extends TestCase
         '2026_10_24_060000_create_academic_registers',
         '2026_10_24_070000_create_report_cards',
         '2026_10_24_080000_create_academic_transitions',
+        '2026_10_24_090000_create_private_academic_content',
     ];
 
     protected function setUp(): void

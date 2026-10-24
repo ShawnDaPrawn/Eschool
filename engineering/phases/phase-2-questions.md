@@ -63,3 +63,15 @@ score. Pro-rata is an opt-in request flag for the later billing phase. Leave mea
 last attended date (inclusive). Exit copies default to seven days, configurable
 1-30, with ten-minute requester-bound links. Educational history is retained until
 an approved school/platform retention schedule exists; no deletion is guessed.
+
+
+Private content defaults: school/group-scoped drafts require explicit teacher review
+before publication. Audio/video use offline local transcription through a limited
+AiGateway boundary with moderation and duration caps, brought forward solely to
+meet Phase 2 media conversion; no paid provider or external media disclosure.
+Unavailable scanning/conversion blocks the affected item, never unrelated work.
+
+Offline content copies are explicit and scoped to school/account/learner, with a
+server lease no longer than one day. Online/resumed readers recheck rights; local
+expiry and account/school replacement clear copies. Immediate revocation while a
+device is disconnected is not claimed. Source uploads never enter this cache.

@@ -21,6 +21,7 @@ final class SchoolOwnedTables
      * and the model (where there is one) uses BelongsToSchool.
      */
     public const REQUIRED = [
+        'content_operations', 'content_settings', 'content_items', 'content_sources', 'content_versions', 'content_item_groups', 'content_recipients', 'ai_usage', 'ai_flags',
         'academic_transition_policies', 'academic_transitions', 'academic_exit_packages', 'retention_rules',
         'report_templates', 'report_comment_banks', 'report_batches', 'report_cards', 'report_comments', 'report_recipients',
         'attendance_registers', 'attendance_entries', 'attendance_operations', 'attendance_notices',

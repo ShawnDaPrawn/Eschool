@@ -50,6 +50,21 @@ class OpenApiContractTest extends TestCase
     public static function scenarios(): array
     {
         return [
+            'getAcademicContentConfiguration' => ['superadmin', 'GET', 'api/v2/academics/content/configuration', [], 200],
+            'listAcademicContent' => ['superadmin', 'GET', 'api/v2/academics/content/items', [], 200],
+            'uploadAcademicContent' => ['superadmin', 'POST', 'api/v2/academics/content/items', [], 422],
+            'getAcademicContent' => ['superadmin', 'GET', 'api/v2/academics/content/items/999999', [], 404],
+            'replaceAcademicContentSource' => ['superadmin', 'POST', 'api/v2/academics/content/items/999999/source', [], 404],
+            'archiveAcademicContent' => ['superadmin', 'POST', 'api/v2/academics/content/items/999999/archive', [], 404],
+            'saveAcademicContentSettings' => ['superadmin', 'PUT', 'api/v2/academics/content/settings', [], 422],
+            'getAcademicContentVersion' => ['superadmin', 'GET', 'api/v2/academics/content/versions/999999', [], 404],
+            'saveAcademicContentDraft' => ['superadmin', 'PUT', 'api/v2/academics/content/versions/999999', [], 404],
+            'previewAcademicContentPublication' => ['superadmin', 'GET', 'api/v2/academics/content/versions/999999/preview', [], 404],
+            'retryAcademicContentConversion' => ['superadmin', 'POST', 'api/v2/academics/content/versions/999999/retry', [], 404],
+            'publishAcademicContent' => ['superadmin', 'POST', 'api/v2/academics/content/versions/999999/publish', [], 404],
+            'listLearnerContent' => ['farid', 'GET', 'api/v2/academics/content/learners/1', [], 200],
+            'readLearnerContent' => ['farid', 'GET', 'api/v2/academics/content/learners/1/versions/999999', [], 404],
+            'markLearnerContentRead' => ['farid', 'POST', 'api/v2/academics/content/learners/1/versions/999999/read', [], 404],
             'getAcademicTransitionConfiguration' => ['superadmin', 'GET', 'api/v2/academics/transitions/configuration', [], 200],
             'searchAcademicTransitionLearners' => ['superadmin', 'GET', 'api/v2/academics/transitions/learners', [], 200],
             'getAcademicTransitionLearner' => ['superadmin', 'GET', 'api/v2/academics/transitions/learners/999999', [], 404],

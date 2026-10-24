@@ -789,3 +789,18 @@ The response contains class_id, grade_level_id and nullable grade_level. Foreign
 deleted classes are inaccessible; only the grade mapping is written. The routes
 use the academics module, v2 envelope and no-store headers; writes accept an
 Idempotency-Key. OpenAPI and the generated SDK describe the complete contract.
+
+
+## Private academic content (v2)
+
+`/api/v2/academics/content` adds allocated staff configuration/items/history,
+multipart source upload/replacement, draft editing/retry, fingerprinted human
+publication, withdrawal and school transcription controls. Multipart uploads use
+a JSON-encoded `selection`, binary `source` and operation UUID; replacement also
+pins item/version revisions. Learner paths require an explicit learner ID and
+return only the current published group body. School, current roles, author and
+dated membership/enrolment/guardian rights are rechecked, including operation
+replays. Responses are private/no-store. Reader data binds school/account/learner,
+body checksum, server time and an offline lease of at most one day; source
+capabilities never enter the client contract. See openapi.yaml for the complete
+types and statuses. The generated client is updated through tool/generate.sh.

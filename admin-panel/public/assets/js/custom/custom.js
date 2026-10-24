@@ -4528,6 +4528,9 @@ $(".online-exam-session-year").on("change", function (e) {
     ajaxRequest("GET", url, data, null, successCallback, null, null, true);
 });
 $('input[type="file"]').on("change", function (e) {
+    // Native multipart forms use browser constraints and server FormRequests.
+    // The legacy validator interprets HTML extension accept lists as MIME types.
+    if (this.closest('form[data-native-file-upload]')) return;
     $(this).closest("form").valid();
 });
 
