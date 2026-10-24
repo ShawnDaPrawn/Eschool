@@ -2015,6 +2015,7 @@ $(".assignment_session_year").on("change", function () {
 
 // Filter toolbar: session year change (assignment listing)
 $("#filter_session_year_global").on("change", function () {
+    if (String(this.value) !== String(this.getAttribute("data-selected"))) return;
     if ($("#class_section_id_in_assignment").length) {
         loadAssignmentClassSections(
             $(this).val(),
@@ -2574,6 +2575,7 @@ function loadExamsForTimetableFilter(session_year_id) {
 }
 
 $("#filter_session_year_global").on("change", function () {
+    if (String(this.value) !== String(this.getAttribute("data-selected"))) return;
     if ($("#filter_exam_name").length) {
         loadExamsForTimetableFilter($(this).val());
     }
@@ -3363,6 +3365,7 @@ function loadClassTimetableClassSections(session_year_id) {
 }
 
 $("#filter_session_year_global").on("change", function () {
+    if (String(this.value) !== String(this.getAttribute("data-selected"))) return;
     if ($("#class_timetable_class_section").length) {
         loadClassTimetableClassSections($(this).val());
     }
@@ -3507,6 +3510,7 @@ function loadTeacherTimetableClassSections(session_year_id) {
 }
 
 $("#filter_session_year_global").on("change", function () {
+    if (String(this.value) !== String(this.getAttribute("data-selected"))) return;
     if ($("#teacher_timetable_class_section").length) {
         loadTeacherTimetableClassSections($(this).val());
     }
@@ -3637,6 +3641,7 @@ function loadTeacherTimetable(session_year_id, class_section_id, term_id) {
     });
 }
 $("#filter_session_year_global").on("change", function () {
+    if (String(this.value) !== String(this.getAttribute("data-selected"))) return;
     if (!$("#teacher_timetable_teacher_id").length) return;
     var teacher_id = $("#teacher_timetable_teacher_id").val();
     if (teacher_id !== "") {
@@ -7647,7 +7652,7 @@ function getCsrfToken() {
     return tokenMeta ? tokenMeta.getAttribute("content") : "";
 }
 
-$("#filter_session_year_global").on("change", function () {
+$("#filter_session_year_global").on("change", function (event) {
     const value = $(this).val() || 1;
 
     // Some pages trigger "change" on load to fill their own filters; only a
@@ -7655,6 +7660,10 @@ $("#filter_session_year_global").on("change", function () {
     if (String(value) === String(this.getAttribute("data-selected"))) {
         return;
     }
+
+    // Child filters run after bubbling; they must wait for the new session
+    // year, rather than racing this write with a request using the old session.
+    event.stopImmediatePropagation();
 
     sessionStorage.setItem("session_year_id_global", value);
     sessionStorage.setItem("session_year_id_table", value);
