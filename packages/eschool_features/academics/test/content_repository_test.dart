@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:typed_data';
 import 'package:dio/dio.dart';
 import 'package:eschool_academics/eschool_academics.dart';
@@ -5,6 +6,18 @@ import 'package:eschool_academics/testing.dart';
 import 'package:eschool_core/eschool_core.dart';
 import 'package:eschool_core/testing.dart';
 import 'package:flutter_test/flutter_test.dart';
+
+class _StalledContentAdapter implements HttpClientAdapter {
+  final pending = Completer<ResponseBody>();
+  @override
+  Future<ResponseBody> fetch(
+    RequestOptions options,
+    Stream<Uint8List>? requestStream,
+    Future<void>? cancelFuture,
+  ) => pending.future;
+  @override
+  void close({bool force = false}) {}
+}
 
 void main() {
   Object ok(Object value) => {'error': false, 'data': value};
@@ -22,6 +35,50 @@ void main() {
     readerId: 12,
     contextActive: active ?? () => true,
   );
+  testWidgets(
+    'stalled fresh access and reader calls show saved copies after twenty seconds',
+    (tester) async {
+      final adapter = _StalledContentAdapter();
+      final repo = ApiAcademicContentRepository(
+        ApiClient(
+          authToken: () => 'synthetic',
+          onUnauthorized: () {},
+          createDio: () => Dio()..httpClientAdapter = adapter,
+        ),
+        schoolId: 1,
+        readerId: 12,
+        contextActive: () => true,
+      );
+      final time = DateTime.utc(2026, 10, 24, 9), store = MemoryContentStore();
+      final cache = ContentReaderCache(
+        repo,
+        store: () async => store,
+        clock: () => time,
+      );
+      final reader = ContentReader.fromJson(contentReaderFixture());
+      await cache.save(reader, requestedAt: time);
+      final library = ContentLibraryCubit(repo, 11, cache: cache);
+      final loading = library.load();
+      await tester.pump();
+      expect(library.state.busy, isTrue);
+      await tester.pump(const Duration(seconds: 20));
+      await loading;
+      expect(library.state.offline, isTrue);
+      expect(library.state.items.single.versionId, 11);
+      final reading = ContentReaderCubit(repo, learner: 11, version: 11, cache: cache);
+      final opening = reading.load();
+      await tester.pump();
+      await tester.pump(const Duration(seconds: 20));
+      await opening;
+      expect(reading.state.offline, isTrue);
+      expect(reading.state.reader?.markdown, reader.markdown);
+      await reading.close();
+      await library.close();
+      cache.close();
+      adapter.pending.complete(ResponseBody.fromString('{}', 200));
+    },
+  );
+
   test(
     'a source write hidden by the server clears previously loaded private state',
     () async {

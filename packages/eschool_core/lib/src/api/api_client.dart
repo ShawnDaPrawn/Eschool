@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 
 import 'package:dio/dio.dart';
@@ -138,6 +139,8 @@ class ApiClient {
   /// endpoint not deployed yet). A refusal the server explains (a 4xx with a
   /// `message`, such as 422 for a locked setting) becomes an [ApiException]
   /// carrying that message to show as it is; the rest fail like [get].
+  /// [requestTimeout] bounds the whole call and cancels its transport. Only
+  /// expiry without an HTTP response is classified as a transport failure.
   Future<Map<String, dynamic>?> send({
     required String method,
     required String url,
@@ -147,7 +150,16 @@ class ApiClient {
     bool notFoundAsNull = false,
     int? schoolId,
     String? idempotencyKey,
+    Duration? requestTimeout,
   }) async {
+    final cancellation = requestTimeout == null ? null : CancelToken();
+    var deadlineElapsed = false;
+    final deadline = requestTimeout == null
+        ? null
+        : Timer(requestTimeout, () {
+            deadlineElapsed = true;
+            cancellation!.cancel('The request deadline elapsed.');
+          });
     try {
       final Dio dio = _createDio();
 
@@ -157,6 +169,7 @@ class ApiClient {
         url,
         data: data,
         queryParameters: queryParameters,
+        cancelToken: cancellation,
         options: Options(
           method: method,
           headers: useAuthToken
@@ -172,6 +185,16 @@ class ApiClient {
 
       return _checked(response);
     } on DioException catch (e) {
+      if (deadlineElapsed &&
+          e.type == DioExceptionType.cancel &&
+          e.response == null) {
+        throw _fromDioException(
+          DioException(
+            requestOptions: e.requestOptions,
+            type: DioExceptionType.receiveTimeout,
+          ),
+        );
+      }
       final int? status = e.response?.statusCode;
       if (status == 404 && notFoundAsNull) {
         return null;
@@ -196,6 +219,8 @@ class ApiClient {
       rethrow;
     } catch (e) {
       throw ApiException(ApiErrorCodes.defaultErrorMessageKey);
+    } finally {
+      deadline?.cancel();
     }
   }
 

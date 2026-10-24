@@ -625,3 +625,10 @@ Offline sign-out regression: both shells pass the targeted disconnected logout
 test after immediately invalidating local session values and handling the failed
 remote logout asynchronously. Shared/core analyzers and SDK analysis report no
 errors or warnings; documentation build passes.
+
+PR #100 review: bounded content library, reader and fresh-access calls to 20 seconds.
+The shared API cancels the stalled transport at the whole-request deadline; only
+no-response expiry permits offline fallback. HTTP refusals retain their status.
+27 core API tests and 24 content/offline tests pass, including a stalled
+fresh-access/library and reader flow with the actual 20-second deadline.
+Core analysis has zero errors/warnings (one existing style info).

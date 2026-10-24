@@ -79,6 +79,7 @@ class ApiAcademicContentRepository implements AcademicContentRepository {
     String method = 'GET',
     Object? data,
     Map<String, dynamic>? query,
+    Duration? requestTimeout,
   }) async {
     _guard();
     final result = await client.send(
@@ -87,6 +88,7 @@ class ApiAcademicContentRepository implements AcademicContentRepository {
       data: data,
       queryParameters: query,
       schoolId: schoolId,
+      requestTimeout: requestTimeout,
     );
     _guard();
     final body = result?['data'];
@@ -215,7 +217,11 @@ class ApiAcademicContentRepository implements AcademicContentRepository {
   @override
   Future<ContentLibrary> library(int learner, {int page = 1}) async {
     final data = ContentLibrary.fromJson(
-      await _send('learners/$learner', query: {'page': page}),
+      await _send(
+        'learners/$learner',
+        query: {'page': page},
+        requestTimeout: const Duration(seconds: 20),
+      ),
     );
     if (data.learnerId != learner || data.page != page) {
       throw ApiException(ApiErrorCodes.defaultErrorMessageKey);
@@ -226,7 +232,10 @@ class ApiAcademicContentRepository implements AcademicContentRepository {
   @override
   Future<ContentReader> reader(int learner, int version) async {
     final data = ContentReader.fromJson(
-      await _send('learners/$learner/versions/$version'),
+      await _send(
+        'learners/$learner/versions/$version',
+        requestTimeout: const Duration(seconds: 20),
+      ),
     );
     if (data.id != version ||
         data.learnerId != learner ||
@@ -251,6 +260,7 @@ class ApiAcademicContentRepository implements AcademicContentRepository {
       'learners/$learner/saved-access',
       method: 'POST',
       data: {'version_ids': versions.toList()},
+      requestTimeout: const Duration(seconds: 20),
     ),
   );
 
