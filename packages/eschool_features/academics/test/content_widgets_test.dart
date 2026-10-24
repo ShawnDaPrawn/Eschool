@@ -71,6 +71,66 @@ void main() {
     });
   }
   testWidgets(
+    'dirty draft cannot withdraw or preview and refresh requires comparison',
+    (tester) async {
+      final repo = FakeContentRepository();
+      await frame(
+        tester,
+        ContentEditorScreen(
+          repository: repo,
+          configuration: ContentConfiguration.fromJson(
+            contentConfigurationFixture(),
+          ),
+          itemId: 10,
+        ),
+        1024,
+      );
+      final field = find.byWidgetPredicate(
+        (w) => w is TextField && w.decoration?.labelText == 'Markdown draft',
+      );
+      await tester.ensureVisible(field);
+      await tester.enterText(field, '# Unsaved private revision');
+      await tester.pumpAndSettle();
+      final withdrawal = tester.widget<OutlinedButton>(
+        find.widgetWithText(OutlinedButton, 'Withdraw published material'),
+      );
+      expect(withdrawal.onPressed, isNull);
+      expect(
+        tester
+            .widget<OutlinedButton>(
+              find.widgetWithText(OutlinedButton, 'Preview publication'),
+            )
+            .onPressed,
+        isNull,
+      );
+      repo.revision = 3;
+      await tap(tester, find.byTooltip('Refresh content status'));
+      expect(
+        find.text(
+          'Content changed. Your submitted draft is kept for comparison.',
+        ),
+        findsOneWidget,
+      );
+      expect(
+        tester.widget<TextField>(field).controller!.text,
+        '# Unsaved private revision',
+      );
+      expect(
+        tester
+            .widget<FilledButton>(
+              find.widgetWithText(FilledButton, 'Save reviewed draft'),
+            )
+            .onPressed,
+        isNull,
+      );
+      await tap(tester, find.text('Keep my draft and use current revisions'));
+      await tap(tester, find.text('Save reviewed draft'));
+      expect(repo.drafts.single.itemRevision, 3);
+      expect(repo.drafts.single.markdown, '# Unsaved private revision');
+    },
+  );
+
+  testWidgets(
     'reader clears on pause and access loss instead of retaining old body or title',
     (tester) async {
       final repo = FakeContentRepository();

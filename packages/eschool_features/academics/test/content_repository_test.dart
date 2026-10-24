@@ -23,6 +23,29 @@ void main() {
     contextActive: active ?? () => true,
   );
   test(
+    'a source write hidden by the server clears previously loaded private state',
+    () async {
+      final api = FakeApi(
+        routes: {
+          'GET v2/academics/content/items/10': ok(contentItemFixture()),
+          'PUT v2/academics/content/versions/11': const FakeResponse.notFound(),
+        },
+      );
+      final editor = ContentEditorCubit(repository(api), itemId: 10);
+      addTearDown(editor.close);
+      await editor.load();
+      expect(editor.state.version, isNotNull);
+      await editor.save(
+        ContentSelection.fromJson(contentSelectionFixture()),
+        '# Local draft',
+      );
+      expect(editor.state.item, isNull);
+      expect(editor.state.writable, isFalse);
+      expect(editor.state.uncertain, isFalse);
+    },
+  );
+
+  test(
     'source upload pins school and immutable selection, draft writes retain revision and UUID',
     () async {
       final writes = <RequestOptions>[];

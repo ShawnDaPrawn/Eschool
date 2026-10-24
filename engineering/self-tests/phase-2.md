@@ -574,3 +574,11 @@ Security run 40111956196 passes after the exact public-checksum exception;
 Extended parent Chrome flow: **passed**, including refusal of an unauthorized
 learner target without any request for it, and opening another authorized child
 while the prior library/reader is still in the navigation stack.
+
+PR #99 review: **21 client repository/widget tests** and **24 core API tests**
+pass after preserving HTTP status for access-loss clearing and refusing
+withdrawal/preview while local edits are unsaved. Refresh/resume with local
+edits requires comparison before writing against fresh revisions. The real
+v2 reader response passes an advancing-microsecond-clock regression: its two
+lease timestamps now use one instant (**2 backend tests, 19 assertions**).
+Pint and Larastan pass. These fixes address both inline review findings.

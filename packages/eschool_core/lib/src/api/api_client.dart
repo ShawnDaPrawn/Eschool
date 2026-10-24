@@ -313,15 +313,19 @@ class ApiClient {
   ApiException _fromDioException(DioException e) {
     if (e.response?.statusCode == 401) {
       onUnauthorized();
-      return ApiException(ApiErrorCodes.unauthorizedAccess);
+      return ApiException(ApiErrorCodes.unauthorizedAccess, statusCode: 401);
     }
     if (e.response?.statusCode == 503 || e.response?.statusCode == 500) {
-      return ApiException(ApiErrorCodes.internetServerError);
+      return ApiException(
+        ApiErrorCodes.internetServerError,
+        statusCode: e.response?.statusCode,
+      );
     }
     return ApiException(
       e.error is SocketException
           ? ApiErrorCodes.noInternet
           : ApiErrorCodes.defaultError,
+      statusCode: e.response?.statusCode,
     );
   }
 }

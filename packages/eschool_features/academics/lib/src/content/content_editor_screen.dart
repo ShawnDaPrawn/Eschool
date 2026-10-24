@@ -64,7 +64,7 @@ class _ContentEditorScreenState extends State<ContentEditorScreen>
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state == AppLifecycleState.resumed) {
       _foreground = true;
-      _cubit.load();
+      _cubit.load(keepConflict: _dirty && !_cubit.state.uncertain);
     } else if (state == AppLifecycleState.inactive ||
         state == AppLifecycleState.hidden ||
         state == AppLifecycleState.paused) {
@@ -701,7 +701,7 @@ class _ContentEditorScreenState extends State<ContentEditorScreen>
                         tooltip: label('Refresh content status'),
                         onPressed: state.busy || state.uncertain
                             ? null
-                            : () => _cubit.load(),
+                            : () => _cubit.load(keepConflict: _dirty),
                         icon: const Icon(Icons.refresh),
                       ),
                     ],
@@ -890,7 +890,7 @@ class _ContentEditorScreenState extends State<ContentEditorScreen>
                     ),
                     if (state.item!.active)
                       OutlinedButton(
-                        onPressed: enabled ? _withdraw : null,
+                        onPressed: enabled && !_dirty ? _withdraw : null,
                         child: Text(label('Withdraw published material')),
                       ),
                   ],
