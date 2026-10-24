@@ -159,3 +159,14 @@ the existing encrypted private-file service. Hidden field review, protected
 reads, retries and outer-transaction cleanup have dedicated synthetic tests.
 Public-file retirement and compatibility writes remain separate work. No
 live data migration or external acceptance is claimed.
+
+On 24 October 2026 the product owner confirmed there are no legacy clients
+and removed legacy-storage retirement from Phase 1 closeout. Compatibility
+writes for those clients and archived legacy profile migration are likewise
+outside that closeout path. Existing data and public objects remain in place;
+privacy retention and access controls still apply. Phase 0 staging evidence
+and the other Phase 1 implementation and acceptance work remain open.
+
+The managed cloud environment reported no outbound identity, secret or runtime
+variable bindings on 24 October 2026. Staging resources and spend were not
+inventoried or changed; real mail, restore and worker observation remain pending.
