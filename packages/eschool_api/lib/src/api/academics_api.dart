@@ -9,6 +9,9 @@ import 'dart:convert';
 import 'package:eschool_api/src/deserialize.dart';
 import 'package:dio/dio.dart';
 
+import 'package:eschool_api/src/model/academic_assignment_response.dart';
+import 'package:eschool_api/src/model/academic_assignment_write.dart';
+import 'package:eschool_api/src/model/academic_assignments_response.dart';
 import 'package:eschool_api/src/model/academic_reference_response.dart';
 import 'package:eschool_api/src/model/calendar_removed_response.dart';
 import 'package:eschool_api/src/model/class_grade_response.dart';
@@ -26,6 +29,9 @@ import 'package:eschool_api/src/model/school_term_response.dart';
 import 'package:eschool_api/src/model/school_term_write.dart';
 import 'package:eschool_api/src/model/school_terms_response.dart';
 import 'package:eschool_api/src/model/subject_standards_response.dart';
+import 'package:eschool_api/src/model/teaching_group_response.dart';
+import 'package:eschool_api/src/model/teaching_group_write.dart';
+import 'package:eschool_api/src/model/teaching_groups_response.dart';
 import 'package:eschool_api/src/model/term_template_apply_response.dart';
 import 'package:eschool_api/src/model/term_template_apply_write.dart';
 import 'package:eschool_api/src/model/term_template_response.dart';
@@ -260,6 +266,116 @@ class AcademicsApi {
     );
   }
 
+  /// createAcademicAllocation
+  /// Academic structure management requires explicit school permission. Teachers read only allocated groups. Kind memberships requires learner_id and mark_rule; teachers requires teacher_id; homerooms requires teacher_id, class_section_id and session_year_id; leadership requires user_id, session_year_id and kind, with grade_level_id required for grade heads and omitted or null for principals. Date intervals stay within the year. Updates require revision and all context fields; history is audited. Weights and marks are not changed by an allocation.
+  ///
+  /// Parameters:
+  /// * [kind]
+  /// * [academicAssignmentWrite]
+  /// * [xSchoolId] - The school to work in, one of the signed-in user's schools (`schools` in `/me/context`). Without it the request works in the user's first school. A school the user is not an active member of is refused with 403. Apps send it on every call once a school is chosen.
+  /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
+  /// * [headers] - Can be used to add additional headers to the request
+  /// * [extras] - Can be used to add flags to the request
+  /// * [validateStatus] - A [ValidateStatus] callback that can be used to determine request success based on the HTTP status of the response
+  /// * [onSendProgress] - A [ProgressCallback] that can be used to get the send progress
+  /// * [onReceiveProgress] - A [ProgressCallback] that can be used to get the receive progress
+  ///
+  /// Returns a [Future] containing a [Response] with a [AcademicAssignmentResponse] as data
+  /// Throws [DioException] if API call or serialization fails
+  Future<Response<AcademicAssignmentResponse>> createAcademicAllocation({
+    required String kind,
+    required AcademicAssignmentWrite academicAssignmentWrite,
+    int? xSchoolId,
+    CancelToken? cancelToken,
+    Map<String, dynamic>? headers,
+    Map<String, dynamic>? extra,
+    ValidateStatus? validateStatus,
+    ProgressCallback? onSendProgress,
+    ProgressCallback? onReceiveProgress,
+  }) async {
+    final _path = r'/academics/allocations/{kind}'.replaceAll(
+      '{'
+      r'kind'
+      '}',
+      kind.toString(),
+    );
+    final _options = Options(
+      method: r'POST',
+      headers: <String, dynamic>{
+        if (xSchoolId != null) r'X-School-Id': xSchoolId,
+        ...?headers,
+      },
+      extra: <String, dynamic>{
+        'secure': <Map<String, String>>[
+          {
+            'type': 'apiKey',
+            'name': 'cookieAuth',
+            'keyName': 'e_school_session',
+            'where': '',
+          },
+          {'type': 'http', 'scheme': 'bearer', 'name': 'bearerAuth'},
+        ],
+        ...?extra,
+      },
+      contentType: 'application/json',
+      validateStatus: validateStatus,
+    );
+
+    dynamic _bodyData;
+
+    try {
+      _bodyData = jsonEncode(academicAssignmentWrite);
+    } catch (error, stackTrace) {
+      throw DioException(
+        requestOptions: _options.compose(_dio.options, _path),
+        type: DioExceptionType.unknown,
+        error: error,
+        stackTrace: stackTrace,
+      );
+    }
+
+    final _response = await _dio.request<Object>(
+      _path,
+      data: _bodyData,
+      options: _options,
+      cancelToken: cancelToken,
+      onSendProgress: onSendProgress,
+      onReceiveProgress: onReceiveProgress,
+    );
+
+    AcademicAssignmentResponse? _responseData;
+
+    try {
+      final rawData = _response.data;
+      _responseData = rawData == null
+          ? null
+          : deserialize<AcademicAssignmentResponse, AcademicAssignmentResponse>(
+              rawData,
+              'AcademicAssignmentResponse',
+              growable: true,
+            );
+    } catch (error, stackTrace) {
+      throw DioException(
+        requestOptions: _response.requestOptions,
+        response: _response,
+        type: DioExceptionType.unknown,
+        error: error,
+        stackTrace: stackTrace,
+      );
+    }
+
+    return Response<AcademicAssignmentResponse>(
+      data: _responseData,
+      headers: _response.headers,
+      isRedirect: _response.isRedirect,
+      requestOptions: _response.requestOptions,
+      redirects: _response.redirects,
+      statusCode: _response.statusCode,
+      statusMessage: _response.statusMessage,
+      extra: _response.extra,
+    );
+  }
+
   /// Save a new curriculum draft
   /// Published headers and term plans are immutable. Use a copy for a new version. Drafts may be incomplete; publication validates the affected term. Decimal marks are strings; weights are integer basis points (10000 &#x3D; 100%).
   ///
@@ -352,6 +468,125 @@ class AcademicsApi {
     }
 
     return Response<CurriculumPlanResponse>(
+      data: _responseData,
+      headers: _response.headers,
+      isRedirect: _response.isRedirect,
+      requestOptions: _response.requestOptions,
+      redirects: _response.redirects,
+      statusCode: _response.statusCode,
+      statusMessage: _response.statusMessage,
+      extra: _response.extra,
+    );
+  }
+
+  /// createGroupAssignment
+  /// Academic structure management requires explicit school permission. Teachers read only allocated groups. Kind memberships requires learner_id and mark_rule; teachers requires teacher_id; homerooms requires teacher_id, class_section_id and session_year_id; leadership requires user_id, session_year_id and kind, with grade_level_id required for grade heads and omitted or null for principals. Date intervals stay within the year. Updates require revision and all context fields; history is audited. Weights and marks are not changed by an allocation.
+  ///
+  /// Parameters:
+  /// * [group]
+  /// * [kind]
+  /// * [academicAssignmentWrite]
+  /// * [xSchoolId] - The school to work in, one of the signed-in user's schools (`schools` in `/me/context`). Without it the request works in the user's first school. A school the user is not an active member of is refused with 403. Apps send it on every call once a school is chosen.
+  /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
+  /// * [headers] - Can be used to add additional headers to the request
+  /// * [extras] - Can be used to add flags to the request
+  /// * [validateStatus] - A [ValidateStatus] callback that can be used to determine request success based on the HTTP status of the response
+  /// * [onSendProgress] - A [ProgressCallback] that can be used to get the send progress
+  /// * [onReceiveProgress] - A [ProgressCallback] that can be used to get the receive progress
+  ///
+  /// Returns a [Future] containing a [Response] with a [AcademicAssignmentResponse] as data
+  /// Throws [DioException] if API call or serialization fails
+  Future<Response<AcademicAssignmentResponse>> createGroupAssignment({
+    required int group,
+    required String kind,
+    required AcademicAssignmentWrite academicAssignmentWrite,
+    int? xSchoolId,
+    CancelToken? cancelToken,
+    Map<String, dynamic>? headers,
+    Map<String, dynamic>? extra,
+    ValidateStatus? validateStatus,
+    ProgressCallback? onSendProgress,
+    ProgressCallback? onReceiveProgress,
+  }) async {
+    final _path = r'/academics/teaching-groups/{group}/{kind}'
+        .replaceAll(
+          '{'
+          r'group'
+          '}',
+          group.toString(),
+        )
+        .replaceAll(
+          '{'
+          r'kind'
+          '}',
+          kind.toString(),
+        );
+    final _options = Options(
+      method: r'POST',
+      headers: <String, dynamic>{
+        if (xSchoolId != null) r'X-School-Id': xSchoolId,
+        ...?headers,
+      },
+      extra: <String, dynamic>{
+        'secure': <Map<String, String>>[
+          {
+            'type': 'apiKey',
+            'name': 'cookieAuth',
+            'keyName': 'e_school_session',
+            'where': '',
+          },
+          {'type': 'http', 'scheme': 'bearer', 'name': 'bearerAuth'},
+        ],
+        ...?extra,
+      },
+      contentType: 'application/json',
+      validateStatus: validateStatus,
+    );
+
+    dynamic _bodyData;
+
+    try {
+      _bodyData = jsonEncode(academicAssignmentWrite);
+    } catch (error, stackTrace) {
+      throw DioException(
+        requestOptions: _options.compose(_dio.options, _path),
+        type: DioExceptionType.unknown,
+        error: error,
+        stackTrace: stackTrace,
+      );
+    }
+
+    final _response = await _dio.request<Object>(
+      _path,
+      data: _bodyData,
+      options: _options,
+      cancelToken: cancelToken,
+      onSendProgress: onSendProgress,
+      onReceiveProgress: onReceiveProgress,
+    );
+
+    AcademicAssignmentResponse? _responseData;
+
+    try {
+      final rawData = _response.data;
+      _responseData = rawData == null
+          ? null
+          : deserialize<AcademicAssignmentResponse, AcademicAssignmentResponse>(
+              rawData,
+              'AcademicAssignmentResponse',
+              growable: true,
+            );
+    } catch (error, stackTrace) {
+      throw DioException(
+        requestOptions: _response.requestOptions,
+        response: _response,
+        type: DioExceptionType.unknown,
+        error: error,
+        stackTrace: stackTrace,
+      );
+    }
+
+    return Response<AcademicAssignmentResponse>(
       data: _responseData,
       headers: _response.headers,
       isRedirect: _response.isRedirect,
@@ -564,6 +799,223 @@ class AcademicsApi {
     }
 
     return Response<SchoolTermResponse>(
+      data: _responseData,
+      headers: _response.headers,
+      isRedirect: _response.isRedirect,
+      requestOptions: _response.requestOptions,
+      redirects: _response.redirects,
+      statusCode: _response.statusCode,
+      statusMessage: _response.statusMessage,
+      extra: _response.extra,
+    );
+  }
+
+  /// createTeachingGroup
+  /// Academic structure management requires explicit school permission. Teachers read only allocated groups. Kind memberships requires learner_id and mark_rule; teachers requires teacher_id; homerooms requires teacher_id, class_section_id and session_year_id; leadership requires user_id, session_year_id and kind, with grade_level_id required for grade heads and omitted or null for principals. Date intervals stay within the year. Updates require revision and all context fields; history is audited. Weights and marks are not changed by an allocation.
+  ///
+  /// Parameters:
+  /// * [teachingGroupWrite]
+  /// * [xSchoolId] - The school to work in, one of the signed-in user's schools (`schools` in `/me/context`). Without it the request works in the user's first school. A school the user is not an active member of is refused with 403. Apps send it on every call once a school is chosen.
+  /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
+  /// * [headers] - Can be used to add additional headers to the request
+  /// * [extras] - Can be used to add flags to the request
+  /// * [validateStatus] - A [ValidateStatus] callback that can be used to determine request success based on the HTTP status of the response
+  /// * [onSendProgress] - A [ProgressCallback] that can be used to get the send progress
+  /// * [onReceiveProgress] - A [ProgressCallback] that can be used to get the receive progress
+  ///
+  /// Returns a [Future] containing a [Response] with a [TeachingGroupResponse] as data
+  /// Throws [DioException] if API call or serialization fails
+  Future<Response<TeachingGroupResponse>> createTeachingGroup({
+    required TeachingGroupWrite teachingGroupWrite,
+    int? xSchoolId,
+    CancelToken? cancelToken,
+    Map<String, dynamic>? headers,
+    Map<String, dynamic>? extra,
+    ValidateStatus? validateStatus,
+    ProgressCallback? onSendProgress,
+    ProgressCallback? onReceiveProgress,
+  }) async {
+    final _path = r'/academics/teaching-groups';
+    final _options = Options(
+      method: r'POST',
+      headers: <String, dynamic>{
+        if (xSchoolId != null) r'X-School-Id': xSchoolId,
+        ...?headers,
+      },
+      extra: <String, dynamic>{
+        'secure': <Map<String, String>>[
+          {
+            'type': 'apiKey',
+            'name': 'cookieAuth',
+            'keyName': 'e_school_session',
+            'where': '',
+          },
+          {'type': 'http', 'scheme': 'bearer', 'name': 'bearerAuth'},
+        ],
+        ...?extra,
+      },
+      contentType: 'application/json',
+      validateStatus: validateStatus,
+    );
+
+    dynamic _bodyData;
+
+    try {
+      _bodyData = jsonEncode(teachingGroupWrite);
+    } catch (error, stackTrace) {
+      throw DioException(
+        requestOptions: _options.compose(_dio.options, _path),
+        type: DioExceptionType.unknown,
+        error: error,
+        stackTrace: stackTrace,
+      );
+    }
+
+    final _response = await _dio.request<Object>(
+      _path,
+      data: _bodyData,
+      options: _options,
+      cancelToken: cancelToken,
+      onSendProgress: onSendProgress,
+      onReceiveProgress: onReceiveProgress,
+    );
+
+    TeachingGroupResponse? _responseData;
+
+    try {
+      final rawData = _response.data;
+      _responseData = rawData == null
+          ? null
+          : deserialize<TeachingGroupResponse, TeachingGroupResponse>(
+              rawData,
+              'TeachingGroupResponse',
+              growable: true,
+            );
+    } catch (error, stackTrace) {
+      throw DioException(
+        requestOptions: _response.requestOptions,
+        response: _response,
+        type: DioExceptionType.unknown,
+        error: error,
+        stackTrace: stackTrace,
+      );
+    }
+
+    return Response<TeachingGroupResponse>(
+      data: _responseData,
+      headers: _response.headers,
+      isRedirect: _response.isRedirect,
+      requestOptions: _response.requestOptions,
+      redirects: _response.redirects,
+      statusCode: _response.statusCode,
+      statusMessage: _response.statusMessage,
+      extra: _response.extra,
+    );
+  }
+
+  /// getAcademicAllocations
+  /// Academic structure management requires explicit school permission. Teachers read only allocated groups. Kind memberships requires learner_id and mark_rule; teachers requires teacher_id; homerooms requires teacher_id, class_section_id and session_year_id; leadership requires user_id, session_year_id and kind, with grade_level_id required for grade heads and omitted or null for principals. Date intervals stay within the year. Updates require revision and all context fields; history is audited. Weights and marks are not changed by an allocation.
+  ///
+  /// Parameters:
+  /// * [kind]
+  /// * [xSchoolId] - The school to work in, one of the signed-in user's schools (`schools` in `/me/context`). Without it the request works in the user's first school. A school the user is not an active member of is refused with 403. Apps send it on every call once a school is chosen.
+  /// * [sessionYearId]
+  /// * [subjectId]
+  /// * [gradeLevelId]
+  /// * [on_]
+  /// * [page]
+  /// * [perPage]
+  /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
+  /// * [headers] - Can be used to add additional headers to the request
+  /// * [extras] - Can be used to add flags to the request
+  /// * [validateStatus] - A [ValidateStatus] callback that can be used to determine request success based on the HTTP status of the response
+  /// * [onSendProgress] - A [ProgressCallback] that can be used to get the send progress
+  /// * [onReceiveProgress] - A [ProgressCallback] that can be used to get the receive progress
+  ///
+  /// Returns a [Future] containing a [Response] with a [AcademicAssignmentsResponse] as data
+  /// Throws [DioException] if API call or serialization fails
+  Future<Response<AcademicAssignmentsResponse>> getAcademicAllocations({
+    required String kind,
+    int? xSchoolId,
+    int? sessionYearId,
+    int? subjectId,
+    int? gradeLevelId,
+    String? on_,
+    int? page,
+    int? perPage,
+    CancelToken? cancelToken,
+    Map<String, dynamic>? headers,
+    Map<String, dynamic>? extra,
+    ValidateStatus? validateStatus,
+    ProgressCallback? onSendProgress,
+    ProgressCallback? onReceiveProgress,
+  }) async {
+    final _path = r'/academics/allocations/{kind}'.replaceAll(
+      '{'
+      r'kind'
+      '}',
+      kind.toString(),
+    );
+    final _options = Options(
+      method: r'GET',
+      headers: <String, dynamic>{
+        if (xSchoolId != null) r'X-School-Id': xSchoolId,
+        ...?headers,
+      },
+      extra: <String, dynamic>{
+        'secure': <Map<String, String>>[
+          {
+            'type': 'apiKey',
+            'name': 'cookieAuth',
+            'keyName': 'e_school_session',
+            'where': '',
+          },
+          {'type': 'http', 'scheme': 'bearer', 'name': 'bearerAuth'},
+        ],
+        ...?extra,
+      },
+      validateStatus: validateStatus,
+    );
+
+    final _queryParameters = <String, dynamic>{
+      if (sessionYearId != null) r'session_year_id': sessionYearId,
+      if (subjectId != null) r'subject_id': subjectId,
+      if (gradeLevelId != null) r'grade_level_id': gradeLevelId,
+      if (on_ != null) r'on': on_,
+      if (page != null) r'page': page,
+      if (perPage != null) r'per_page': perPage,
+    };
+
+    final _response = await _dio.request<Object>(
+      _path,
+      options: _options,
+      queryParameters: _queryParameters,
+      cancelToken: cancelToken,
+      onSendProgress: onSendProgress,
+      onReceiveProgress: onReceiveProgress,
+    );
+
+    AcademicAssignmentsResponse? _responseData;
+
+    try {
+      final rawData = _response.data;
+      _responseData = rawData == null
+          ? null
+          : deserialize<
+              AcademicAssignmentsResponse,
+              AcademicAssignmentsResponse
+            >(rawData, 'AcademicAssignmentsResponse', growable: true);
+    } catch (error, stackTrace) {
+      throw DioException(
+        requestOptions: _response.requestOptions,
+        response: _response,
+        type: DioExceptionType.unknown,
+        error: error,
+        stackTrace: stackTrace,
+      );
+    }
+
+    return Response<AcademicAssignmentsResponse>(
       data: _responseData,
       headers: _response.headers,
       isRedirect: _response.isRedirect,
@@ -955,6 +1407,129 @@ class AcademicsApi {
     );
   }
 
+  /// getGroupAssignments
+  /// Academic structure management requires explicit school permission. Teachers read only allocated groups. Kind memberships requires learner_id and mark_rule; teachers requires teacher_id; homerooms requires teacher_id, class_section_id and session_year_id; leadership requires user_id, session_year_id and kind, with grade_level_id required for grade heads and omitted or null for principals. Date intervals stay within the year. Updates require revision and all context fields; history is audited. Weights and marks are not changed by an allocation.
+  ///
+  /// Parameters:
+  /// * [group]
+  /// * [kind]
+  /// * [xSchoolId] - The school to work in, one of the signed-in user's schools (`schools` in `/me/context`). Without it the request works in the user's first school. A school the user is not an active member of is refused with 403. Apps send it on every call once a school is chosen.
+  /// * [sessionYearId]
+  /// * [subjectId]
+  /// * [gradeLevelId]
+  /// * [on_]
+  /// * [page]
+  /// * [perPage]
+  /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
+  /// * [headers] - Can be used to add additional headers to the request
+  /// * [extras] - Can be used to add flags to the request
+  /// * [validateStatus] - A [ValidateStatus] callback that can be used to determine request success based on the HTTP status of the response
+  /// * [onSendProgress] - A [ProgressCallback] that can be used to get the send progress
+  /// * [onReceiveProgress] - A [ProgressCallback] that can be used to get the receive progress
+  ///
+  /// Returns a [Future] containing a [Response] with a [AcademicAssignmentsResponse] as data
+  /// Throws [DioException] if API call or serialization fails
+  Future<Response<AcademicAssignmentsResponse>> getGroupAssignments({
+    required int group,
+    required String kind,
+    int? xSchoolId,
+    int? sessionYearId,
+    int? subjectId,
+    int? gradeLevelId,
+    String? on_,
+    int? page,
+    int? perPage,
+    CancelToken? cancelToken,
+    Map<String, dynamic>? headers,
+    Map<String, dynamic>? extra,
+    ValidateStatus? validateStatus,
+    ProgressCallback? onSendProgress,
+    ProgressCallback? onReceiveProgress,
+  }) async {
+    final _path = r'/academics/teaching-groups/{group}/{kind}'
+        .replaceAll(
+          '{'
+          r'group'
+          '}',
+          group.toString(),
+        )
+        .replaceAll(
+          '{'
+          r'kind'
+          '}',
+          kind.toString(),
+        );
+    final _options = Options(
+      method: r'GET',
+      headers: <String, dynamic>{
+        if (xSchoolId != null) r'X-School-Id': xSchoolId,
+        ...?headers,
+      },
+      extra: <String, dynamic>{
+        'secure': <Map<String, String>>[
+          {
+            'type': 'apiKey',
+            'name': 'cookieAuth',
+            'keyName': 'e_school_session',
+            'where': '',
+          },
+          {'type': 'http', 'scheme': 'bearer', 'name': 'bearerAuth'},
+        ],
+        ...?extra,
+      },
+      validateStatus: validateStatus,
+    );
+
+    final _queryParameters = <String, dynamic>{
+      if (sessionYearId != null) r'session_year_id': sessionYearId,
+      if (subjectId != null) r'subject_id': subjectId,
+      if (gradeLevelId != null) r'grade_level_id': gradeLevelId,
+      if (on_ != null) r'on': on_,
+      if (page != null) r'page': page,
+      if (perPage != null) r'per_page': perPage,
+    };
+
+    final _response = await _dio.request<Object>(
+      _path,
+      options: _options,
+      queryParameters: _queryParameters,
+      cancelToken: cancelToken,
+      onSendProgress: onSendProgress,
+      onReceiveProgress: onReceiveProgress,
+    );
+
+    AcademicAssignmentsResponse? _responseData;
+
+    try {
+      final rawData = _response.data;
+      _responseData = rawData == null
+          ? null
+          : deserialize<
+              AcademicAssignmentsResponse,
+              AcademicAssignmentsResponse
+            >(rawData, 'AcademicAssignmentsResponse', growable: true);
+    } catch (error, stackTrace) {
+      throw DioException(
+        requestOptions: _response.requestOptions,
+        response: _response,
+        type: DioExceptionType.unknown,
+        error: error,
+        stackTrace: stackTrace,
+      );
+    }
+
+    return Response<AcademicAssignmentsResponse>(
+      data: _responseData,
+      headers: _response.headers,
+      isRedirect: _response.isRedirect,
+      requestOptions: _response.requestOptions,
+      redirects: _response.redirects,
+      statusCode: _response.statusCode,
+      statusMessage: _response.statusMessage,
+      extra: _response.extra,
+    );
+  }
+
   /// Read a school subject mapping with subject-list permission
   ///
   ///
@@ -1237,6 +1812,229 @@ class AcademicsApi {
     }
 
     return Response<SubjectStandardsResponse>(
+      data: _responseData,
+      headers: _response.headers,
+      isRedirect: _response.isRedirect,
+      requestOptions: _response.requestOptions,
+      redirects: _response.redirects,
+      statusCode: _response.statusCode,
+      statusMessage: _response.statusMessage,
+      extra: _response.extra,
+    );
+  }
+
+  /// getTeachingGroup
+  /// Academic structure management requires explicit school permission. Teachers read only allocated groups. Kind memberships requires learner_id and mark_rule; teachers requires teacher_id; homerooms requires teacher_id, class_section_id and session_year_id; leadership requires user_id, session_year_id and kind, with grade_level_id required for grade heads and omitted or null for principals. Date intervals stay within the year. Updates require revision and all context fields; history is audited. Weights and marks are not changed by an allocation.
+  ///
+  /// Parameters:
+  /// * [group]
+  /// * [xSchoolId] - The school to work in, one of the signed-in user's schools (`schools` in `/me/context`). Without it the request works in the user's first school. A school the user is not an active member of is refused with 403. Apps send it on every call once a school is chosen.
+  /// * [sessionYearId]
+  /// * [subjectId]
+  /// * [gradeLevelId]
+  /// * [on_]
+  /// * [page]
+  /// * [perPage]
+  /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
+  /// * [headers] - Can be used to add additional headers to the request
+  /// * [extras] - Can be used to add flags to the request
+  /// * [validateStatus] - A [ValidateStatus] callback that can be used to determine request success based on the HTTP status of the response
+  /// * [onSendProgress] - A [ProgressCallback] that can be used to get the send progress
+  /// * [onReceiveProgress] - A [ProgressCallback] that can be used to get the receive progress
+  ///
+  /// Returns a [Future] containing a [Response] with a [TeachingGroupResponse] as data
+  /// Throws [DioException] if API call or serialization fails
+  Future<Response<TeachingGroupResponse>> getTeachingGroup({
+    required int group,
+    int? xSchoolId,
+    int? sessionYearId,
+    int? subjectId,
+    int? gradeLevelId,
+    String? on_,
+    int? page,
+    int? perPage,
+    CancelToken? cancelToken,
+    Map<String, dynamic>? headers,
+    Map<String, dynamic>? extra,
+    ValidateStatus? validateStatus,
+    ProgressCallback? onSendProgress,
+    ProgressCallback? onReceiveProgress,
+  }) async {
+    final _path = r'/academics/teaching-groups/{group}'.replaceAll(
+      '{'
+      r'group'
+      '}',
+      group.toString(),
+    );
+    final _options = Options(
+      method: r'GET',
+      headers: <String, dynamic>{
+        if (xSchoolId != null) r'X-School-Id': xSchoolId,
+        ...?headers,
+      },
+      extra: <String, dynamic>{
+        'secure': <Map<String, String>>[
+          {
+            'type': 'apiKey',
+            'name': 'cookieAuth',
+            'keyName': 'e_school_session',
+            'where': '',
+          },
+          {'type': 'http', 'scheme': 'bearer', 'name': 'bearerAuth'},
+        ],
+        ...?extra,
+      },
+      validateStatus: validateStatus,
+    );
+
+    final _queryParameters = <String, dynamic>{
+      if (sessionYearId != null) r'session_year_id': sessionYearId,
+      if (subjectId != null) r'subject_id': subjectId,
+      if (gradeLevelId != null) r'grade_level_id': gradeLevelId,
+      if (on_ != null) r'on': on_,
+      if (page != null) r'page': page,
+      if (perPage != null) r'per_page': perPage,
+    };
+
+    final _response = await _dio.request<Object>(
+      _path,
+      options: _options,
+      queryParameters: _queryParameters,
+      cancelToken: cancelToken,
+      onSendProgress: onSendProgress,
+      onReceiveProgress: onReceiveProgress,
+    );
+
+    TeachingGroupResponse? _responseData;
+
+    try {
+      final rawData = _response.data;
+      _responseData = rawData == null
+          ? null
+          : deserialize<TeachingGroupResponse, TeachingGroupResponse>(
+              rawData,
+              'TeachingGroupResponse',
+              growable: true,
+            );
+    } catch (error, stackTrace) {
+      throw DioException(
+        requestOptions: _response.requestOptions,
+        response: _response,
+        type: DioExceptionType.unknown,
+        error: error,
+        stackTrace: stackTrace,
+      );
+    }
+
+    return Response<TeachingGroupResponse>(
+      data: _responseData,
+      headers: _response.headers,
+      isRedirect: _response.isRedirect,
+      requestOptions: _response.requestOptions,
+      redirects: _response.redirects,
+      statusCode: _response.statusCode,
+      statusMessage: _response.statusMessage,
+      extra: _response.extra,
+    );
+  }
+
+  /// getTeachingGroups
+  /// Academic structure management requires explicit school permission. Teachers read only allocated groups. Kind memberships requires learner_id and mark_rule; teachers requires teacher_id; homerooms requires teacher_id, class_section_id and session_year_id; leadership requires user_id, session_year_id and kind, with grade_level_id required for grade heads and omitted or null for principals. Date intervals stay within the year. Updates require revision and all context fields; history is audited. Weights and marks are not changed by an allocation.
+  ///
+  /// Parameters:
+  /// * [xSchoolId] - The school to work in, one of the signed-in user's schools (`schools` in `/me/context`). Without it the request works in the user's first school. A school the user is not an active member of is refused with 403. Apps send it on every call once a school is chosen.
+  /// * [sessionYearId]
+  /// * [subjectId]
+  /// * [gradeLevelId]
+  /// * [on_]
+  /// * [page]
+  /// * [perPage]
+  /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
+  /// * [headers] - Can be used to add additional headers to the request
+  /// * [extras] - Can be used to add flags to the request
+  /// * [validateStatus] - A [ValidateStatus] callback that can be used to determine request success based on the HTTP status of the response
+  /// * [onSendProgress] - A [ProgressCallback] that can be used to get the send progress
+  /// * [onReceiveProgress] - A [ProgressCallback] that can be used to get the receive progress
+  ///
+  /// Returns a [Future] containing a [Response] with a [TeachingGroupsResponse] as data
+  /// Throws [DioException] if API call or serialization fails
+  Future<Response<TeachingGroupsResponse>> getTeachingGroups({
+    int? xSchoolId,
+    int? sessionYearId,
+    int? subjectId,
+    int? gradeLevelId,
+    String? on_,
+    int? page,
+    int? perPage,
+    CancelToken? cancelToken,
+    Map<String, dynamic>? headers,
+    Map<String, dynamic>? extra,
+    ValidateStatus? validateStatus,
+    ProgressCallback? onSendProgress,
+    ProgressCallback? onReceiveProgress,
+  }) async {
+    final _path = r'/academics/teaching-groups';
+    final _options = Options(
+      method: r'GET',
+      headers: <String, dynamic>{
+        if (xSchoolId != null) r'X-School-Id': xSchoolId,
+        ...?headers,
+      },
+      extra: <String, dynamic>{
+        'secure': <Map<String, String>>[
+          {
+            'type': 'apiKey',
+            'name': 'cookieAuth',
+            'keyName': 'e_school_session',
+            'where': '',
+          },
+          {'type': 'http', 'scheme': 'bearer', 'name': 'bearerAuth'},
+        ],
+        ...?extra,
+      },
+      validateStatus: validateStatus,
+    );
+
+    final _queryParameters = <String, dynamic>{
+      if (sessionYearId != null) r'session_year_id': sessionYearId,
+      if (subjectId != null) r'subject_id': subjectId,
+      if (gradeLevelId != null) r'grade_level_id': gradeLevelId,
+      if (on_ != null) r'on': on_,
+      if (page != null) r'page': page,
+      if (perPage != null) r'per_page': perPage,
+    };
+
+    final _response = await _dio.request<Object>(
+      _path,
+      options: _options,
+      queryParameters: _queryParameters,
+      cancelToken: cancelToken,
+      onSendProgress: onSendProgress,
+      onReceiveProgress: onReceiveProgress,
+    );
+
+    TeachingGroupsResponse? _responseData;
+
+    try {
+      final rawData = _response.data;
+      _responseData = rawData == null
+          ? null
+          : deserialize<TeachingGroupsResponse, TeachingGroupsResponse>(
+              rawData,
+              'TeachingGroupsResponse',
+              growable: true,
+            );
+    } catch (error, stackTrace) {
+      throw DioException(
+        requestOptions: _response.requestOptions,
+        response: _response,
+        type: DioExceptionType.unknown,
+        error: error,
+        stackTrace: stackTrace,
+      );
+    }
+
+    return Response<TeachingGroupsResponse>(
       data: _responseData,
       headers: _response.headers,
       isRedirect: _response.isRedirect,
@@ -1768,6 +2566,125 @@ class AcademicsApi {
     );
   }
 
+  /// updateAcademicAllocation
+  /// Academic structure management requires explicit school permission. Teachers read only allocated groups. Kind memberships requires learner_id and mark_rule; teachers requires teacher_id; homerooms requires teacher_id, class_section_id and session_year_id; leadership requires user_id, session_year_id and kind, with grade_level_id required for grade heads and omitted or null for principals. Date intervals stay within the year. Updates require revision and all context fields; history is audited. Weights and marks are not changed by an allocation.
+  ///
+  /// Parameters:
+  /// * [kind]
+  /// * [entry]
+  /// * [academicAssignmentWrite]
+  /// * [xSchoolId] - The school to work in, one of the signed-in user's schools (`schools` in `/me/context`). Without it the request works in the user's first school. A school the user is not an active member of is refused with 403. Apps send it on every call once a school is chosen.
+  /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
+  /// * [headers] - Can be used to add additional headers to the request
+  /// * [extras] - Can be used to add flags to the request
+  /// * [validateStatus] - A [ValidateStatus] callback that can be used to determine request success based on the HTTP status of the response
+  /// * [onSendProgress] - A [ProgressCallback] that can be used to get the send progress
+  /// * [onReceiveProgress] - A [ProgressCallback] that can be used to get the receive progress
+  ///
+  /// Returns a [Future] containing a [Response] with a [AcademicAssignmentResponse] as data
+  /// Throws [DioException] if API call or serialization fails
+  Future<Response<AcademicAssignmentResponse>> updateAcademicAllocation({
+    required String kind,
+    required int entry,
+    required AcademicAssignmentWrite academicAssignmentWrite,
+    int? xSchoolId,
+    CancelToken? cancelToken,
+    Map<String, dynamic>? headers,
+    Map<String, dynamic>? extra,
+    ValidateStatus? validateStatus,
+    ProgressCallback? onSendProgress,
+    ProgressCallback? onReceiveProgress,
+  }) async {
+    final _path = r'/academics/allocations/{kind}/{entry}'
+        .replaceAll(
+          '{'
+          r'kind'
+          '}',
+          kind.toString(),
+        )
+        .replaceAll(
+          '{'
+          r'entry'
+          '}',
+          entry.toString(),
+        );
+    final _options = Options(
+      method: r'PUT',
+      headers: <String, dynamic>{
+        if (xSchoolId != null) r'X-School-Id': xSchoolId,
+        ...?headers,
+      },
+      extra: <String, dynamic>{
+        'secure': <Map<String, String>>[
+          {
+            'type': 'apiKey',
+            'name': 'cookieAuth',
+            'keyName': 'e_school_session',
+            'where': '',
+          },
+          {'type': 'http', 'scheme': 'bearer', 'name': 'bearerAuth'},
+        ],
+        ...?extra,
+      },
+      contentType: 'application/json',
+      validateStatus: validateStatus,
+    );
+
+    dynamic _bodyData;
+
+    try {
+      _bodyData = jsonEncode(academicAssignmentWrite);
+    } catch (error, stackTrace) {
+      throw DioException(
+        requestOptions: _options.compose(_dio.options, _path),
+        type: DioExceptionType.unknown,
+        error: error,
+        stackTrace: stackTrace,
+      );
+    }
+
+    final _response = await _dio.request<Object>(
+      _path,
+      data: _bodyData,
+      options: _options,
+      cancelToken: cancelToken,
+      onSendProgress: onSendProgress,
+      onReceiveProgress: onReceiveProgress,
+    );
+
+    AcademicAssignmentResponse? _responseData;
+
+    try {
+      final rawData = _response.data;
+      _responseData = rawData == null
+          ? null
+          : deserialize<AcademicAssignmentResponse, AcademicAssignmentResponse>(
+              rawData,
+              'AcademicAssignmentResponse',
+              growable: true,
+            );
+    } catch (error, stackTrace) {
+      throw DioException(
+        requestOptions: _response.requestOptions,
+        response: _response,
+        type: DioExceptionType.unknown,
+        error: error,
+        stackTrace: stackTrace,
+      );
+    }
+
+    return Response<AcademicAssignmentResponse>(
+      data: _responseData,
+      headers: _response.headers,
+      isRedirect: _response.isRedirect,
+      requestOptions: _response.requestOptions,
+      redirects: _response.redirects,
+      statusCode: _response.statusCode,
+      statusMessage: _response.statusMessage,
+      extra: _response.extra,
+    );
+  }
+
   /// Explicitly set or clear a class grade reference
   /// Requires class-edit in the current school. Does not change class names, legacy marks or reports. Repeated identical mappings produce no additional audit entry.
   ///
@@ -1991,6 +2908,133 @@ class AcademicsApi {
     );
   }
 
+  /// updateGroupAssignment
+  /// Academic structure management requires explicit school permission. Teachers read only allocated groups. Kind memberships requires learner_id and mark_rule; teachers requires teacher_id; homerooms requires teacher_id, class_section_id and session_year_id; leadership requires user_id, session_year_id and kind, with grade_level_id required for grade heads and omitted or null for principals. Date intervals stay within the year. Updates require revision and all context fields; history is audited. Weights and marks are not changed by an allocation.
+  ///
+  /// Parameters:
+  /// * [group]
+  /// * [kind]
+  /// * [entry]
+  /// * [academicAssignmentWrite]
+  /// * [xSchoolId] - The school to work in, one of the signed-in user's schools (`schools` in `/me/context`). Without it the request works in the user's first school. A school the user is not an active member of is refused with 403. Apps send it on every call once a school is chosen.
+  /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
+  /// * [headers] - Can be used to add additional headers to the request
+  /// * [extras] - Can be used to add flags to the request
+  /// * [validateStatus] - A [ValidateStatus] callback that can be used to determine request success based on the HTTP status of the response
+  /// * [onSendProgress] - A [ProgressCallback] that can be used to get the send progress
+  /// * [onReceiveProgress] - A [ProgressCallback] that can be used to get the receive progress
+  ///
+  /// Returns a [Future] containing a [Response] with a [AcademicAssignmentResponse] as data
+  /// Throws [DioException] if API call or serialization fails
+  Future<Response<AcademicAssignmentResponse>> updateGroupAssignment({
+    required int group,
+    required String kind,
+    required int entry,
+    required AcademicAssignmentWrite academicAssignmentWrite,
+    int? xSchoolId,
+    CancelToken? cancelToken,
+    Map<String, dynamic>? headers,
+    Map<String, dynamic>? extra,
+    ValidateStatus? validateStatus,
+    ProgressCallback? onSendProgress,
+    ProgressCallback? onReceiveProgress,
+  }) async {
+    final _path = r'/academics/teaching-groups/{group}/{kind}/{entry}'
+        .replaceAll(
+          '{'
+          r'group'
+          '}',
+          group.toString(),
+        )
+        .replaceAll(
+          '{'
+          r'kind'
+          '}',
+          kind.toString(),
+        )
+        .replaceAll(
+          '{'
+          r'entry'
+          '}',
+          entry.toString(),
+        );
+    final _options = Options(
+      method: r'PUT',
+      headers: <String, dynamic>{
+        if (xSchoolId != null) r'X-School-Id': xSchoolId,
+        ...?headers,
+      },
+      extra: <String, dynamic>{
+        'secure': <Map<String, String>>[
+          {
+            'type': 'apiKey',
+            'name': 'cookieAuth',
+            'keyName': 'e_school_session',
+            'where': '',
+          },
+          {'type': 'http', 'scheme': 'bearer', 'name': 'bearerAuth'},
+        ],
+        ...?extra,
+      },
+      contentType: 'application/json',
+      validateStatus: validateStatus,
+    );
+
+    dynamic _bodyData;
+
+    try {
+      _bodyData = jsonEncode(academicAssignmentWrite);
+    } catch (error, stackTrace) {
+      throw DioException(
+        requestOptions: _options.compose(_dio.options, _path),
+        type: DioExceptionType.unknown,
+        error: error,
+        stackTrace: stackTrace,
+      );
+    }
+
+    final _response = await _dio.request<Object>(
+      _path,
+      data: _bodyData,
+      options: _options,
+      cancelToken: cancelToken,
+      onSendProgress: onSendProgress,
+      onReceiveProgress: onReceiveProgress,
+    );
+
+    AcademicAssignmentResponse? _responseData;
+
+    try {
+      final rawData = _response.data;
+      _responseData = rawData == null
+          ? null
+          : deserialize<AcademicAssignmentResponse, AcademicAssignmentResponse>(
+              rawData,
+              'AcademicAssignmentResponse',
+              growable: true,
+            );
+    } catch (error, stackTrace) {
+      throw DioException(
+        requestOptions: _response.requestOptions,
+        response: _response,
+        type: DioExceptionType.unknown,
+        error: error,
+        stackTrace: stackTrace,
+      );
+    }
+
+    return Response<AcademicAssignmentResponse>(
+      data: _responseData,
+      headers: _response.headers,
+      isRedirect: _response.isRedirect,
+      requestOptions: _response.requestOptions,
+      redirects: _response.redirects,
+      statusCode: _response.statusCode,
+      statusMessage: _response.statusMessage,
+      extra: _response.extra,
+    );
+  }
+
   /// Update school term dates and grade range
   /// Requires term-edit. The year cannot be changed. Every write repeats fresh school permission checks.
   ///
@@ -2093,6 +3137,116 @@ class AcademicsApi {
     }
 
     return Response<SchoolTermResponse>(
+      data: _responseData,
+      headers: _response.headers,
+      isRedirect: _response.isRedirect,
+      requestOptions: _response.requestOptions,
+      redirects: _response.redirects,
+      statusCode: _response.statusCode,
+      statusMessage: _response.statusMessage,
+      extra: _response.extra,
+    );
+  }
+
+  /// updateTeachingGroup
+  /// Academic structure management requires explicit school permission. Teachers read only allocated groups. Kind memberships requires learner_id and mark_rule; teachers requires teacher_id; homerooms requires teacher_id, class_section_id and session_year_id; leadership requires user_id, session_year_id and kind, with grade_level_id required for grade heads and omitted or null for principals. Date intervals stay within the year. Updates require revision and all context fields; history is audited. Weights and marks are not changed by an allocation.
+  ///
+  /// Parameters:
+  /// * [group]
+  /// * [teachingGroupWrite]
+  /// * [xSchoolId] - The school to work in, one of the signed-in user's schools (`schools` in `/me/context`). Without it the request works in the user's first school. A school the user is not an active member of is refused with 403. Apps send it on every call once a school is chosen.
+  /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
+  /// * [headers] - Can be used to add additional headers to the request
+  /// * [extras] - Can be used to add flags to the request
+  /// * [validateStatus] - A [ValidateStatus] callback that can be used to determine request success based on the HTTP status of the response
+  /// * [onSendProgress] - A [ProgressCallback] that can be used to get the send progress
+  /// * [onReceiveProgress] - A [ProgressCallback] that can be used to get the receive progress
+  ///
+  /// Returns a [Future] containing a [Response] with a [TeachingGroupResponse] as data
+  /// Throws [DioException] if API call or serialization fails
+  Future<Response<TeachingGroupResponse>> updateTeachingGroup({
+    required int group,
+    required TeachingGroupWrite teachingGroupWrite,
+    int? xSchoolId,
+    CancelToken? cancelToken,
+    Map<String, dynamic>? headers,
+    Map<String, dynamic>? extra,
+    ValidateStatus? validateStatus,
+    ProgressCallback? onSendProgress,
+    ProgressCallback? onReceiveProgress,
+  }) async {
+    final _path = r'/academics/teaching-groups/{group}'.replaceAll(
+      '{'
+      r'group'
+      '}',
+      group.toString(),
+    );
+    final _options = Options(
+      method: r'PUT',
+      headers: <String, dynamic>{
+        if (xSchoolId != null) r'X-School-Id': xSchoolId,
+        ...?headers,
+      },
+      extra: <String, dynamic>{
+        'secure': <Map<String, String>>[
+          {
+            'type': 'apiKey',
+            'name': 'cookieAuth',
+            'keyName': 'e_school_session',
+            'where': '',
+          },
+          {'type': 'http', 'scheme': 'bearer', 'name': 'bearerAuth'},
+        ],
+        ...?extra,
+      },
+      contentType: 'application/json',
+      validateStatus: validateStatus,
+    );
+
+    dynamic _bodyData;
+
+    try {
+      _bodyData = jsonEncode(teachingGroupWrite);
+    } catch (error, stackTrace) {
+      throw DioException(
+        requestOptions: _options.compose(_dio.options, _path),
+        type: DioExceptionType.unknown,
+        error: error,
+        stackTrace: stackTrace,
+      );
+    }
+
+    final _response = await _dio.request<Object>(
+      _path,
+      data: _bodyData,
+      options: _options,
+      cancelToken: cancelToken,
+      onSendProgress: onSendProgress,
+      onReceiveProgress: onReceiveProgress,
+    );
+
+    TeachingGroupResponse? _responseData;
+
+    try {
+      final rawData = _response.data;
+      _responseData = rawData == null
+          ? null
+          : deserialize<TeachingGroupResponse, TeachingGroupResponse>(
+              rawData,
+              'TeachingGroupResponse',
+              growable: true,
+            );
+    } catch (error, stackTrace) {
+      throw DioException(
+        requestOptions: _response.requestOptions,
+        response: _response,
+        type: DioExceptionType.unknown,
+        error: error,
+        stackTrace: stackTrace,
+      );
+    }
+
+    return Response<TeachingGroupResponse>(
       data: _responseData,
       headers: _response.headers,
       isRedirect: _response.isRedirect,

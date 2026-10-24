@@ -38,3 +38,14 @@ manage all contexts; teacher read/manage also requires an explicit subject,
 grade-mapped homeroom and year allocation. Fresh access checks precede cached
 write replay. Plan saves, copies and publication create audit records. No new
 family notification is emitted for draft definitions.
+
+## Phase 2: structure authority and events
+
+academic-structure-manage permits school-scoped group/membership/allocation and
+leadership administration. Teaching capture requires a current canonical
+allocation; future assignments permit curriculum planning. Dated grade heads and
+principals have explicit grade/year authority for subsequent academic flows.
+academics.assignment_changed is a transactional outbox event carrying record IDs
+and kind only, ready for academic consumers. It sends no family notification on
+its own. The per-minute projection refresh is a convenience; canonical date
+checks remain authoritative when it is delayed.

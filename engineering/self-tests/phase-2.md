@@ -102,3 +102,27 @@ The browser checks used an isolated synthetic school database.
 Curriculum review follow-up: all three browser flows passed, including reopening
 empty term/annual component maps, adding percentages and saving them intact.
 The editor normalizes empty PHP arrays into JSON objects before editing.
+
+## Teaching groups and dated allocations
+
+Implemented groups, effective memberships and teacher/homeroom/leadership records,
+class mapping forms, scoped API contracts, projection refresh and canonical date
+authority. Local API/contract cohort passed 123 tests (841 assertions); panel and
+navigation passed 21 tests (676 assertions). After a workspace disk-full incident,
+96 academic/schema/authorization checks passed again (11,770 assertions). Generated
+SDK regeneration and 24 Dart tests passed; analysis has only generator style infos.
+Strict OpenAPI, Larastan and documentation build passed. Final browser/route/CI
+outcomes are recorded with the feature PR. No external staging/pilot result is
+claimed from synthetic fixtures.
+
+The disk incident stopped the disposable test database; that regression run was
+invalidated. Completed local preview servers were stopped, 875 MiB of ignored
+generated caches in clean, already-merged worktrees were removed, and the synthetic
+database was restarted before rerunning. Source files and live data were retained.
+
+Final allocation follow-up: 124 API/contract tests (852 assertions), 14 focused
+service tests (164 assertions), all eight role-matrix checks and 11 targeted
+tenancy-route checks passed. Two browser flows passed for admin mapping/group/
+membership/teacher allocation and teacher roster/refusal, with axe and overflow
+at 1024/1280. Projection reuse adopts exact legacy IDs and flattens matching
+coexisting group grants without duplicate app assignments.

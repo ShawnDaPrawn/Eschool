@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Models;
 
+use App\Services\Academics\DatedAcademicProjection;
 use App\Services\Platform\Tenancy\BelongsToSchool;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -12,6 +13,15 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 class ClassTeacher extends Model
 {
     use BelongsToSchool, HasFactory, SoftDeletes;
+
+    protected $hidden = ['homeroom_allocation_id'];
+
+    protected static function booted(): void
+    {
+        static::addGlobalScope(new DatedAcademicProjection('homeroom'));
+        static::updating(fn ($row) => abort_if($row->getRawOriginal('homeroom_allocation_id') !== null, 409, __('Edit the dated homeroom allocation instead.')));
+        static::deleting(fn ($row) => abort_if($row->homeroom_allocation_id !== null, 409, __('Edit the dated homeroom allocation instead.')));
+    }
 
     protected $fillable = [
         'class_section_id',

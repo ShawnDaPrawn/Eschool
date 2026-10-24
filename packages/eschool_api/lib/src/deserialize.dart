@@ -1,3 +1,8 @@
+import 'package:eschool_api/src/model/academic_assignment.dart';
+import 'package:eschool_api/src/model/academic_assignment_response.dart';
+import 'package:eschool_api/src/model/academic_assignment_write.dart';
+import 'package:eschool_api/src/model/academic_assignments_response.dart';
+import 'package:eschool_api/src/model/academic_assignments_response_data.dart';
 import 'package:eschool_api/src/model/academic_grade_level.dart';
 import 'package:eschool_api/src/model/academic_rating_level.dart';
 import 'package:eschool_api/src/model/academic_reference.dart';
@@ -98,6 +103,11 @@ import 'package:eschool_api/src/model/set_my_handle_request.dart';
 import 'package:eschool_api/src/model/subject_standard.dart';
 import 'package:eschool_api/src/model/subject_standards_response.dart';
 import 'package:eschool_api/src/model/subject_standards_response_data.dart';
+import 'package:eschool_api/src/model/teaching_group.dart';
+import 'package:eschool_api/src/model/teaching_group_response.dart';
+import 'package:eschool_api/src/model/teaching_group_write.dart';
+import 'package:eschool_api/src/model/teaching_groups_response.dart';
+import 'package:eschool_api/src/model/teaching_groups_response_data.dart';
 import 'package:eschool_api/src/model/term.dart';
 import 'package:eschool_api/src/model/term_dates.dart';
 import 'package:eschool_api/src/model/term_template.dart';
@@ -137,6 +147,23 @@ ReturnType deserialize<ReturnType, BaseType>(
       return (valueString == 'true' || valueString == '1') as ReturnType;
     case 'double':
       return (value is double ? value : double.parse('$value')) as ReturnType;
+    case 'AcademicAssignment':
+      return AcademicAssignment.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'AcademicAssignmentResponse':
+      return AcademicAssignmentResponse.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'AcademicAssignmentWrite':
+      return AcademicAssignmentWrite.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'AcademicAssignmentsResponse':
+      return AcademicAssignmentsResponse.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'AcademicAssignmentsResponseData':
+      return AcademicAssignmentsResponseData.fromJson(
+            value as Map<String, dynamic>,
+          )
+          as ReturnType;
     case 'AcademicGradeLevel':
       return AcademicGradeLevel.fromJson(value as Map<String, dynamic>)
           as ReturnType;
@@ -458,6 +485,21 @@ ReturnType deserialize<ReturnType, BaseType>(
       return SubjectStandardsResponseData.fromJson(
             value as Map<String, dynamic>,
           )
+          as ReturnType;
+    case 'TeachingGroup':
+      return TeachingGroup.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'TeachingGroupResponse':
+      return TeachingGroupResponse.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'TeachingGroupWrite':
+      return TeachingGroupWrite.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'TeachingGroupsResponse':
+      return TeachingGroupsResponse.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'TeachingGroupsResponseData':
+      return TeachingGroupsResponseData.fromJson(value as Map<String, dynamic>)
           as ReturnType;
     case 'Term':
       return Term.fromJson(value as Map<String, dynamic>) as ReturnType;

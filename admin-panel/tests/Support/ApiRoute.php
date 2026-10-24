@@ -91,10 +91,19 @@ final readonly class ApiRoute
         return str_starts_with($this->uri, 'api/v2/');
     }
 
-    /** Numeric IDs use 1; profile field keys must also satisfy their route constraint. */
-    public function path(): string
+    /** Numeric IDs and finite route dimensions must make a reachable URL. */
+    public function path(array $parameters = []): string
     {
-        return '/'.preg_replace('/\{[^}]+\}/', '1', str_replace('{field}', 'test_field', $this->uri));
+        return '/'.preg_replace_callback('/\{([^}]+)\}/', fn ($m) => (string) ($parameters[$m[1]] ?? $this->sampleParameter($m[1])), $this->uri);
+    }
+
+    public function sampleParameter(string $name): string
+    {
+        return match ($name) {
+            'field' => 'test_field',
+            'kind' => str_contains($this->uri, '/academics/allocations/') ? 'homerooms' : 'memberships',
+            default => '1',
+        };
     }
 
     public function requiresAuthentication(): bool

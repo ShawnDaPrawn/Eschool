@@ -31,6 +31,7 @@ use App\Http\Controllers\OnlineExamQuestionController;
 use App\Http\Controllers\Panel\Academics\CurriculumController;
 use App\Http\Controllers\Panel\Academics\NewYearController;
 use App\Http\Controllers\Panel\Academics\SubjectStandardController;
+use App\Http\Controllers\Panel\Academics\TeachingGroupController;
 use App\Http\Controllers\Panel\People\LearnerInvitationController;
 use App\Http\Controllers\Panel\Platform\SchoolSwitchController;
 use App\Http\Controllers\Panel\SearchController;
@@ -206,6 +207,18 @@ Route::group(['middleware' => ['Role', 'auth', 'school.context', EnforceReadOnly
         Route::get('class-teacher-list', [ClassTeacherController::class, 'show']);
         Route::post('remove-class-teacher/{id}/{class_teacher_id}', [ClassTeacherController::class, 'removeClassTeacher']);
 
+        Route::get('teaching-groups', [TeachingGroupController::class, 'index'])->name('teaching-groups.index');
+        Route::get('teaching-groups/new', [TeachingGroupController::class, 'edit'])->name('teaching-groups.create');
+        Route::post('teaching-groups', [TeachingGroupController::class, 'save'])->name('teaching-groups.store');
+        Route::get('teaching-groups/{group}', [TeachingGroupController::class, 'show'])->whereNumber('group')->name('teaching-groups.show');
+        Route::get('teaching-groups/{group}/edit', [TeachingGroupController::class, 'edit'])->whereNumber('group')->name('teaching-groups.edit');
+        Route::put('teaching-groups/{group}', [TeachingGroupController::class, 'save'])->whereNumber('group')->name('teaching-groups.update');
+        Route::post('teaching-groups/{group}/{kind}', [TeachingGroupController::class, 'row'])->whereNumber('group')->whereIn('kind', ['memberships', 'teachers'])->name('teaching-groups.rows.store');
+        Route::put('teaching-groups/{group}/{kind}/{entry}', [TeachingGroupController::class, 'row'])->whereNumber('group')->whereNumber('entry')->whereIn('kind', ['memberships', 'teachers'])->name('teaching-groups.rows.update');
+        Route::get('academic-allocations', [TeachingGroupController::class, 'allocations'])->name('academic-allocations.index');
+        Route::post('academic-allocations/{kind}', [TeachingGroupController::class, 'row'])->whereIn('kind', ['homerooms', 'leadership'])->name('academic-allocations.store');
+        Route::put('academic-allocations/{kind}/{entry}', [TeachingGroupController::class, 'row'])->whereNumber('entry')->whereIn('kind', ['homerooms', 'leadership'])->name('academic-allocations.update');
+        Route::put('academic-structure/classes/{class}', [TeachingGroupController::class, 'map'])->whereNumber('class')->name('academic-structure.map');
         Route::get('curriculum-plans', [CurriculumController::class, 'index'])->name('curriculum.index');
         Route::get('curriculum-plans/new', [CurriculumController::class, 'edit'])->name('curriculum.create');
         Route::post('curriculum-plans', [CurriculumController::class, 'store'])->name('curriculum.store');

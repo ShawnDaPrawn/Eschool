@@ -9,6 +9,11 @@ lib/src/auth/basic_auth.dart
 lib/src/auth/bearer_auth.dart
 lib/src/auth/oauth.dart
 lib/src/deserialize.dart
+lib/src/model/academic_assignment.dart
+lib/src/model/academic_assignment_response.dart
+lib/src/model/academic_assignment_write.dart
+lib/src/model/academic_assignments_response.dart
+lib/src/model/academic_assignments_response_data.dart
 lib/src/model/academic_grade_level.dart
 lib/src/model/academic_rating_level.dart
 lib/src/model/academic_reference.dart
@@ -110,6 +115,11 @@ lib/src/model/set_my_handle_request.dart
 lib/src/model/subject_standard.dart
 lib/src/model/subject_standards_response.dart
 lib/src/model/subject_standards_response_data.dart
+lib/src/model/teaching_group.dart
+lib/src/model/teaching_group_response.dart
+lib/src/model/teaching_group_write.dart
+lib/src/model/teaching_groups_response.dart
+lib/src/model/teaching_groups_response_data.dart
 lib/src/model/term.dart
 lib/src/model/term_dates.dart
 lib/src/model/term_template.dart
