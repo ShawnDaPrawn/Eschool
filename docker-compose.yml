@@ -45,6 +45,13 @@ x-panel: &panel
     LOG_CHANNEL: ${LOG_CHANNEL:-json}
     LOG_LEVEL: ${LOG_LEVEL:-info}
     MAIL_MAILER: log
+    # Only used by the explicit optional content profile; no public converter port.
+    CONTENT_CONVERTER_URL: http://converter:8080
+    CONTENT_CONVERTER_TOKEN: ${CONTENT_CONVERTER_TOKEN:-}
+    CONTENT_SOURCE_ORIGIN: http://web:8080
+    CONTENT_ALLOW_HTTP: "true"
+    CONTENT_CLAMAV_HOST: content-scanner
+    TRUSTED_HOSTS: web
 
 services:
   mysql:
@@ -105,17 +112,52 @@ services:
       web:
         condition: service_healthy
 
-  # Phase 2: the content converter (Python, MarkItDown), called by a queued job.
-  # converter:
-  #   build:
-  #     context: ./converter
-  #   image: navigateed-converter:local
-  #   restart: unless-stopped
-  #   environment:
-  #     PORT: "8090"
-  #   ports:
-  #     - "127.0.0.1:8090:8090"
+  # Opt in with docker compose --profile content up --build. The token must be
+  # a separate random value of at least 32 bytes in the local .env.
+  content-worker:
+    <<: *panel
+    profiles: [content]
+    environment:
+      <<: *panel-env
+      CONTAINER_ROLE: content-worker
+    depends_on:
+      web:
+        condition: service_healthy
+      converter:
+        condition: service_healthy
+      content-scanner:
+        condition: service_healthy
+
+  converter:
+    profiles: [content]
+    build:
+      context: ./services/converter
+    image: navigateed-converter:local
+    restart: unless-stopped
+    read_only: true
+    tmpfs:
+      - /tmp:rw,noexec,nosuid,size=192m,mode=1777
+    environment:
+      CONVERTER_SERVICE_TOKEN: ${CONTENT_CONVERTER_TOKEN:-}
+      CONVERTER_SOURCE_ORIGIN: http://web:8080
+      CONVERTER_ALLOW_HTTP_SOURCE: "true"
+    # No ports are published. The authenticated service is container-network only.
+    mem_limit: 4g
+    cpus: 2
+    pids_limit: 128
+
+  content-scanner:
+    profiles: [content]
+    # Official stable ClamAV 1.5 Debian runtime, pinned from Docker Hub.
+    image: clamav/clamav@sha256:d7ede3cefeaf3b8a72ebcdee849d13f504bbca3f3b3cfade5bc7b6ee06a4f62c
+    restart: unless-stopped
+    volumes:
+      - content-signatures:/var/lib/clamav
+    # Freshclam updates signatures; clamd is never exposed on a host port.
+    mem_limit: 3g
+
 
 volumes:
   mysql:
   storage:
+  content-signatures:

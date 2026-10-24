@@ -38,4 +38,10 @@ Teachers can be assigned as class teachers for one or more classes. The class te
 
 ## Assign Subject Teacher
 
-Subject teachers can be assigned to specific subjects in different classes. This allows for specialized teaching and ensures that each subject is taught by a qualified teacher. The subject teacher can use features like attendance to take attendance of students in their subject class and giving marks offline exam to the students in their subject class who has given offline exam for their subject. 
+Subject teachers can be assigned to specific subjects in different classes. This allows for specialized teaching and ensures that each subject is taught by a qualified teacher. The subject teacher can use features like attendance to take attendance of students in their subject class and giving marks offline exam to the students in their subject class who has given offline exam for their subject.
+
+## Private learning material
+
+Teachers can scan, convert, review and publish private material for their current
+teaching groups. See [Learning content](learning-content.md) for upload formats,
+review, replacement drafts and withdrawal.

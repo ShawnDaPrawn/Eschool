@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use App\Http\Controllers\Api\V2\Academics\AcademicReferenceController;
+use App\Http\Controllers\Api\V2\Academics\ContentController;
 use App\Http\Controllers\Api\V2\Academics\CurriculumController;
 use App\Http\Controllers\Api\V2\Academics\MarkController;
 use App\Http\Controllers\Api\V2\Academics\RegisterController;
@@ -31,6 +32,7 @@ use App\Http\Middleware\AuthorizeSubjectStandard;
 use App\Http\Middleware\AuthorizeTeachingGroup;
 use App\Http\Middleware\AuthorizeTermCalendar;
 use App\Http\Middleware\AuthorizeTimetable;
+use App\Http\Middleware\PrivateAcademicContent;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -56,6 +58,25 @@ use Illuminate\Support\Facades\Route;
 
 // Keep fresh class permissions ahead of idempotent replay as well as validation.
 Route::prefix('academics')->middleware(['auth:sanctum', 'school.context', 'role.any', 'learner.approved', 'module:academics', 'cache.headers:private;no_store'])->name('api.v2.academics.')->group(function () {
+    Route::prefix('content')->middleware(PrivateAcademicContent::class)->name('content.')->group(function () {
+        $controller = ContentController::class;
+        Route::get('configuration', [$controller, 'configuration'])->name('configuration');
+        Route::get('items', [$controller, 'index'])->name('index');
+        Route::post('items', [$controller, 'create'])->name('create');
+        Route::get('items/{item}', [$controller, 'show'])->whereNumber('item')->name('show');
+        Route::post('items/{item}/source', [$controller, 'upload'])->whereNumber('item')->name('upload');
+        Route::post('items/{item}/archive', [$controller, 'archive'])->whereNumber('item')->name('archive');
+        Route::put('settings', [$controller, 'settings'])->name('settings');
+        Route::get('versions/{version}', [$controller, 'version'])->whereNumber('version')->name('version');
+        Route::put('versions/{version}', [$controller, 'save'])->whereNumber('version')->name('save');
+        Route::get('versions/{version}/preview', [$controller, 'preview'])->whereNumber('version')->name('preview');
+        foreach (['retry', 'publish'] as $action) {
+            Route::post('versions/{version}/'.$action, [$controller, $action])->whereNumber('version')->name($action);
+        }
+        Route::get('learners/{learner}', [$controller, 'library'])->whereNumber('learner')->name('library');
+        Route::get('learners/{learner}/versions/{version}', [$controller, 'reader'])->whereNumber('learner')->whereNumber('version')->name('reader');
+        Route::post('learners/{learner}/versions/{version}/read', [$controller, 'read'])->whereNumber('learner')->whereNumber('version')->name('read');
+    });
     Route::prefix('transitions')->name('transitions.')->group(function () {
         $controller = TransitionController::class;
         Route::get('configuration', [$controller, 'configuration'])->name('configuration');

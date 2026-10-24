@@ -93,3 +93,19 @@ encrypted source/manifest and private artifact receipts; `retention_rules` store
 explicit copy expiry and source-record retention. Enrolments gain additive soft
 cancellation/history state. No new public notification type is required: generic
 context-change events refresh projections, never send private transition reasons.
+
+
+## Phase 2: content publication
+
+`academics.content_published` uses the academics module and the standard school
+notification rules/preferences. Recipients are the current learner and verified
+current guardians of each currently enrolled published-group member. The generic
+notice contains no title/source/transcript; the delivery payload contains only
+the version/learner IDs and app path. Delivery rechecks access, destination and
+preferences; obsolete publications, ended guardians and withdrawn material are
+suppressed. Each version/learner/user has one notification claim and separate
+read state. Content upload/publication use ID-only transactional outbox events.
+
+Publication fanout is ID-only queued work in batches of at most 100 learners.
+A durable cursor on the current published item resumes after each batch; new
+publication resets it, and obsolete/withdrawn publications stop before sending.

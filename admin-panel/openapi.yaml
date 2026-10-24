@@ -5804,6 +5804,679 @@ paths:
           $ref: '#/components/responses/TooManyRequests'
         '500':
           $ref: '#/components/responses/ServerError'
+  /academics/content/configuration:
+    get:
+      operationId: getAcademicContentConfiguration
+      tags:
+      - Academics
+      summary: Read allocated groups, curriculum topics and content controls
+      description: Private, no-store. Fresh school, role, author and dated group access are checked before each
+        operation and operation-UUID replay. Converted drafts require a current clean scan and explicit human
+        review to publish. Published versions are immutable. Source capabilities are never returned to app clients.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - name: session_year_id
+        in: query
+        required: false
+        schema:
+          type: integer
+          minimum: 1
+      responses:
+        '200':
+          description: Current-school authorized private content result.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ContentConfigurationResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+  /academics/content/items:
+    get:
+      operationId: listAcademicContent
+      tags:
+      - Academics
+      summary: List authorized private authored material
+      description: Private, no-store. Fresh school, role, author and dated group access are checked before each
+        operation and operation-UUID replay. Converted drafts require a current clean scan and explicit human
+        review to publish. Published versions are immutable. Source capabilities are never returned to app clients.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - name: session_year_id
+        in: query
+        required: false
+        schema:
+          type: integer
+          minimum: 1
+      - name: page
+        in: query
+        required: false
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 10000
+      responses:
+        '200':
+          description: Current-school authorized private content result.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ContentListResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+    post:
+      operationId: uploadAcademicContent
+      tags:
+      - Academics
+      summary: Upload a private source into quarantine
+      description: Private, no-store. Fresh school, role, author and dated group access are checked before each
+        operation and operation-UUID replay. Converted drafts require a current clean scan and explicit human
+        review to publish. Published versions are immutable. Source capabilities are never returned to app clients.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      responses:
+        '200':
+          description: Current-school authorized private content result.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ContentReceiptResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              additionalProperties: false
+              required:
+              - selection
+              - source
+              - operation_id
+              properties:
+                selection:
+                  type: string
+                  description: JSON-encoded ContentSelection object; source is a separate binary part.
+                  maxLength: 32768
+                source:
+                  type: string
+                  format: binary
+                  description: Private PDF, DOCX, PPTX, XLSX, text, Markdown, audio or video, at most 25 MiB.
+                operation_id:
+                  type: string
+                  format: uuid
+  /academics/content/items/{item}:
+    get:
+      operationId: getAcademicContent
+      tags:
+      - Academics
+      summary: Read current draft, publication and private version history
+      description: Private, no-store. Fresh school, role, author and dated group access are checked before each
+        operation and operation-UUID replay. Converted drafts require a current clean scan and explicit human
+        review to publish. Published versions are immutable. Source capabilities are never returned to app clients.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - name: item
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      - name: page
+        in: query
+        required: false
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 10000
+      responses:
+        '200':
+          description: Current-school authorized private content result.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ContentItemResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+  /academics/content/items/{item}/source:
+    post:
+      operationId: replaceAcademicContentSource
+      tags:
+      - Academics
+      summary: Replace a source with an isolated queued draft
+      description: Private, no-store. Fresh school, role, author and dated group access are checked before each
+        operation and operation-UUID replay. Converted drafts require a current clean scan and explicit human
+        review to publish. Published versions are immutable. Source capabilities are never returned to app clients.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - name: item
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      responses:
+        '200':
+          description: Current-school authorized private content result.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ContentReceiptResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              additionalProperties: false
+              required:
+              - selection
+              - source
+              - operation_id
+              - item_revision
+              - version_revision
+              properties:
+                selection:
+                  type: string
+                  description: JSON-encoded ContentSelection object; source is a separate binary part.
+                  maxLength: 32768
+                source:
+                  type: string
+                  format: binary
+                  description: Private PDF, DOCX, PPTX, XLSX, text, Markdown, audio or video, at most 25 MiB.
+                operation_id:
+                  type: string
+                  format: uuid
+                item_revision:
+                  type: integer
+                  minimum: 1
+                version_revision:
+                  type: integer
+                  minimum: 1
+  /academics/content/items/{item}/archive:
+    post:
+      operationId: archiveAcademicContent
+      tags:
+      - Academics
+      summary: Withdraw content from learner libraries
+      description: Private, no-store. Fresh school, role, author and dated group access are checked before each
+        operation and operation-UUID replay. Converted drafts require a current clean scan and explicit human
+        review to publish. Published versions are immutable. Source capabilities are never returned to app clients.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - name: item
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      responses:
+        '200':
+          description: Current-school authorized private content result.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ContentReceiptResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ContentArchiveWrite'
+  /academics/content/settings:
+    put:
+      operationId: saveAcademicContentSettings
+      tags:
+      - Academics
+      summary: Control local transcription and the school daily allowance
+      description: Private, no-store. Fresh school, role, author and dated group access are checked before each
+        operation and operation-UUID replay. Converted drafts require a current clean scan and explicit human
+        review to publish. Published versions are immutable. Source capabilities are never returned to app clients.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      responses:
+        '200':
+          description: Current-school authorized private content result.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ContentSettingsResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ContentSettings'
+  /academics/content/versions/{version}:
+    get:
+      operationId: getAcademicContentVersion
+      tags:
+      - Academics
+      summary: Read an authorized private historical version
+      description: Private, no-store. Fresh school, role, author and dated group access are checked before each
+        operation and operation-UUID replay. Converted drafts require a current clean scan and explicit human
+        review to publish. Published versions are immutable. Source capabilities are never returned to app clients.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - name: version
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      responses:
+        '200':
+          description: Current-school authorized private content result.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ContentVersionResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+    put:
+      operationId: saveAcademicContentDraft
+      tags:
+      - Academics
+      summary: Save reviewed Markdown and topic selection
+      description: Private, no-store. Fresh school, role, author and dated group access are checked before each
+        operation and operation-UUID replay. Converted drafts require a current clean scan and explicit human
+        review to publish. Published versions are immutable. Source capabilities are never returned to app clients.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - name: version
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      responses:
+        '200':
+          description: Current-school authorized private content result.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ContentReceiptResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ContentDraftWrite'
+  /academics/content/versions/{version}/preview:
+    get:
+      operationId: previewAcademicContentPublication
+      tags:
+      - Academics
+      summary: Pin the reviewed body and group audience before publication
+      description: Private, no-store. Fresh school, role, author and dated group access are checked before each
+        operation and operation-UUID replay. Converted drafts require a current clean scan and explicit human
+        review to publish. Published versions are immutable. Source capabilities are never returned to app clients.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - name: version
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      responses:
+        '200':
+          description: Current-school authorized private content result.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ContentPreviewResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+  /academics/content/versions/{version}/retry:
+    post:
+      operationId: retryAcademicContentConversion
+      tags:
+      - Academics
+      summary: Retry failed scanning or conversion with a fresh generation
+      description: Private, no-store. Fresh school, role, author and dated group access are checked before each
+        operation and operation-UUID replay. Converted drafts require a current clean scan and explicit human
+        review to publish. Published versions are immutable. Source capabilities are never returned to app clients.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - name: version
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      responses:
+        '200':
+          description: Current-school authorized private content result.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ContentReceiptResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ContentRevisionWrite'
+  /academics/content/versions/{version}/publish:
+    post:
+      operationId: publishAcademicContent
+      tags:
+      - Academics
+      summary: Publish an explicitly human-reviewed immutable version
+      description: Private, no-store. Fresh school, role, author and dated group access are checked before each
+        operation and operation-UUID replay. Converted drafts require a current clean scan and explicit human
+        review to publish. Published versions are immutable. Source capabilities are never returned to app clients.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - name: version
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      responses:
+        '200':
+          description: Current-school authorized private content result.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ContentReceiptResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ContentPublishWrite'
+  /academics/content/learners/{learner}:
+    get:
+      operationId: listLearnerContent
+      tags:
+      - Academics
+      summary: Read the learner current-group published library
+      description: Private, no-store. Fresh school, role, author and dated group access are checked before each
+        operation and operation-UUID replay. Converted drafts require a current clean scan and explicit human
+        review to publish. Published versions are immutable. Source capabilities are never returned to app clients.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - name: learner
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      - name: page
+        in: query
+        required: false
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 10000
+      responses:
+        '200':
+          description: Current-school authorized private content result.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ContentLibraryResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+  /academics/content/learners/{learner}/versions/{version}:
+    get:
+      operationId: readLearnerContent
+      tags:
+      - Academics
+      summary: Read published Markdown and its bounded offline lease
+      description: Private, no-store. Fresh school, role, author and dated group access are checked before each
+        operation and operation-UUID replay. Converted drafts require a current clean scan and explicit human
+        review to publish. Published versions are immutable. Source capabilities are never returned to app clients.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - name: learner
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      - name: version
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      responses:
+        '200':
+          description: Current-school authorized private content result.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ContentReaderResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+  /academics/content/learners/{learner}/versions/{version}/read:
+    post:
+      operationId: markLearnerContentRead
+      tags:
+      - Academics
+      summary: Acknowledge a currently authorized published version
+      description: Private, no-store. Fresh school, role, author and dated group access are checked before each
+        operation and operation-UUID replay. Converted drafts require a current clean scan and explicit human
+        review to publish. Published versions are immutable. Source capabilities are never returned to app clients.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - name: learner
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      - name: version
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      responses:
+        '200':
+          description: Current-school authorized private content result.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ContentReadReceiptResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
 components:
   securitySchemes:
     bearerAuth:
@@ -13415,3 +14088,850 @@ components:
           type: integer
         data:
           $ref: '#/components/schemas/AcademicExitPackage'
+    ContentSelection:
+      type: object
+      additionalProperties: false
+      required:
+      - subject_id
+      - grade_level_id
+      - session_year_id
+      - title
+      - summary
+      - group_ids
+      - topic_ids
+      properties:
+        subject_id:
+          type: integer
+          minimum: 1
+        grade_level_id:
+          type: integer
+          minimum: 1
+        session_year_id:
+          type: integer
+          minimum: 1
+        title:
+          type: string
+          minLength: 3
+          maxLength: 191
+        summary:
+          type:
+          - string
+          - 'null'
+          maxLength: 2000
+        group_ids:
+          type: array
+          items:
+            type: integer
+            minimum: 1
+          minItems: 1
+          maxItems: 30
+          uniqueItems: true
+        topic_ids:
+          type: array
+          items:
+            type: integer
+            minimum: 1
+          maxItems: 50
+          uniqueItems: true
+    ContentSettings:
+      type: object
+      additionalProperties: false
+      required:
+      - transcription_enabled
+      - daily_transcription_seconds
+      - revision
+      properties:
+        transcription_enabled:
+          type: boolean
+        daily_transcription_seconds:
+          type: integer
+          minimum: 600
+          maximum: 28800
+        revision:
+          type: integer
+          minimum: 0
+    ContentYear:
+      type: object
+      additionalProperties: false
+      required:
+      - id
+      - name
+      properties:
+        id:
+          type: integer
+          minimum: 1
+        name:
+          type: string
+    ContentGroup:
+      type: object
+      additionalProperties: false
+      required:
+      - id
+      - name
+      - subject_id
+      - subject_name
+      - grade_level_id
+      - grade_name
+      properties:
+        id:
+          type: integer
+          minimum: 1
+        name:
+          type: string
+        subject_id:
+          type: integer
+          minimum: 1
+        subject_name:
+          type: string
+        grade_level_id:
+          type: integer
+          minimum: 1
+        grade_name:
+          type: string
+    ContentTopicChoice:
+      type: object
+      additionalProperties: false
+      required:
+      - id
+      - name
+      - subject_id
+      - grade_level_id
+      - curriculum_version
+      properties:
+        id:
+          type: integer
+          minimum: 1
+        name:
+          type: string
+        subject_id:
+          type: integer
+          minimum: 1
+        grade_level_id:
+          type: integer
+          minimum: 1
+        curriculum_version:
+          type: integer
+    ContentConfiguration:
+      type: object
+      additionalProperties: false
+      required:
+      - session_year_id
+      - school_years
+      - groups
+      - topics
+      - settings
+      - can_manage
+      - maximum_source_bytes
+      properties:
+        session_year_id:
+          type: integer
+          minimum: 1
+        school_years:
+          type: array
+          items:
+            $ref: '#/components/schemas/ContentYear'
+        groups:
+          type: array
+          items:
+            $ref: '#/components/schemas/ContentGroup'
+        topics:
+          type: array
+          items:
+            $ref: '#/components/schemas/ContentTopicChoice'
+        settings:
+          $ref: '#/components/schemas/ContentSettings'
+        can_manage:
+          type: boolean
+        maximum_source_bytes:
+          type: integer
+    ContentReceipt:
+      type: object
+      additionalProperties: false
+      required:
+      - id
+      - version_id
+      - item_revision
+      - version_revision
+      properties:
+        id:
+          type: integer
+          minimum: 1
+        version_id:
+          type:
+          - integer
+          - 'null'
+          minimum: 1
+        item_revision:
+          type: integer
+        version_revision:
+          type:
+          - integer
+          - 'null'
+    ContentSource:
+      type: object
+      additionalProperties: false
+      required:
+      - name
+      - extension
+      - mime
+      - bytes
+      - scan_state
+      - scanned_at
+      properties:
+        name:
+          type: string
+        extension:
+          type: string
+        mime:
+          type: string
+        bytes:
+          type: integer
+        scan_state:
+          type: string
+          enum:
+          - pending
+          - clean
+          - infected
+        scanned_at:
+          type:
+          - string
+          - 'null'
+          format: date-time
+    ContentVersion:
+      type: object
+      additionalProperties: false
+      required:
+      - id
+      - content_item_id
+      - number
+      - state
+      - selection
+      - markdown
+      - revision
+      - failure_code
+      - duration_seconds
+      - language
+      - created_at
+      - published_at
+      - source
+      properties:
+        id:
+          type: integer
+          minimum: 1
+        content_item_id:
+          type: integer
+          minimum: 1
+        number:
+          type: integer
+        state:
+          type: string
+          enum:
+          - queued
+          - scanning
+          - converting
+          - draft
+          - published
+          - failed
+          - quarantined
+          - superseded
+        selection:
+          $ref: '#/components/schemas/ContentSelection'
+        markdown:
+          type:
+          - string
+          - 'null'
+        revision:
+          type: integer
+        failure_code:
+          type:
+          - string
+          - 'null'
+        duration_seconds:
+          type:
+          - integer
+          - 'null'
+        language:
+          type:
+          - string
+          - 'null'
+        created_at:
+          type: string
+          format: date-time
+        published_at:
+          type:
+          - string
+          - 'null'
+          format: date-time
+        source:
+          $ref: '#/components/schemas/ContentSource'
+    ContentHistory:
+      type: object
+      additionalProperties: false
+      required:
+      - id
+      - number
+      - state
+      - title
+      - published_at
+      properties:
+        id:
+          type: integer
+          minimum: 1
+        number:
+          type: integer
+        state:
+          type: string
+          enum:
+          - queued
+          - scanning
+          - converting
+          - draft
+          - published
+          - failed
+          - quarantined
+          - superseded
+        title:
+          type: string
+        published_at:
+          type:
+          - string
+          - 'null'
+          format: date-time
+    ContentItem:
+      type: object
+      additionalProperties: false
+      required:
+      - id
+      - can_write
+      - active
+      - revision
+      - author_id
+      - draft
+      - published
+      - page
+      - last_page
+      - versions
+      properties:
+        id:
+          type: integer
+          minimum: 1
+        can_write:
+          type: boolean
+        active:
+          type: boolean
+        revision:
+          type: integer
+        author_id:
+          type: integer
+          minimum: 1
+        draft:
+          oneOf:
+          - $ref: '#/components/schemas/ContentVersion'
+          - type: 'null'
+        published:
+          oneOf:
+          - $ref: '#/components/schemas/ContentVersion'
+          - type: 'null'
+        page:
+          type: integer
+        last_page:
+          type: integer
+        versions:
+          type: array
+          items:
+            $ref: '#/components/schemas/ContentHistory'
+    ContentListItem:
+      type: object
+      additionalProperties: false
+      required:
+      - id
+      - title
+      - active
+      - draft_version_id
+      - published_version_id
+      - draft_state
+      - revision
+      - updated_at
+      properties:
+        id:
+          type: integer
+          minimum: 1
+        title:
+          type: string
+        active:
+          type: boolean
+        draft_version_id:
+          type:
+          - integer
+          - 'null'
+          minimum: 1
+        published_version_id:
+          type:
+          - integer
+          - 'null'
+          minimum: 1
+        draft_state:
+          type:
+          - string
+          - 'null'
+          enum:
+          - queued
+          - scanning
+          - converting
+          - draft
+          - published
+          - failed
+          - quarantined
+          - superseded
+          - null
+        revision:
+          type: integer
+        updated_at:
+          type: string
+          format: date-time
+    ContentList:
+      type: object
+      additionalProperties: false
+      required:
+      - page
+      - last_page
+      - items
+      properties:
+        page:
+          type: integer
+        last_page:
+          type: integer
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/ContentListItem'
+    ContentPreview:
+      type: object
+      additionalProperties: false
+      required:
+      - id
+      - content_item_id
+      - item_revision
+      - version_revision
+      - selection
+      - markdown
+      - fingerprint
+      - learner_count
+      - review_required
+      - requires_reason
+      properties:
+        id:
+          type: integer
+          minimum: 1
+        content_item_id:
+          type: integer
+          minimum: 1
+        item_revision:
+          type: integer
+        version_revision:
+          type: integer
+        selection:
+          $ref: '#/components/schemas/ContentSelection'
+        markdown:
+          type: string
+        fingerprint:
+          type: string
+          pattern: ^[a-f0-9]{64}$
+        learner_count:
+          type: integer
+        review_required:
+          type: boolean
+        requires_reason:
+          type: boolean
+    ContentLibraryItem:
+      type: object
+      additionalProperties: false
+      required:
+      - id
+      - version_id
+      - title
+      - summary
+      - subject_id
+      - subject_name
+      - published_at
+      properties:
+        id:
+          type: integer
+          minimum: 1
+        version_id:
+          type: integer
+          minimum: 1
+        title:
+          type: string
+        summary:
+          type: string
+        subject_id:
+          type: integer
+          minimum: 1
+        subject_name:
+          type: string
+        published_at:
+          type: string
+          format: date-time
+    ContentLibrary:
+      type: object
+      additionalProperties: false
+      required:
+      - learner_id
+      - page
+      - last_page
+      - items
+      properties:
+        learner_id:
+          type: integer
+          minimum: 1
+        page:
+          type: integer
+        last_page:
+          type: integer
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/ContentLibraryItem'
+    ContentTopic:
+      type: object
+      additionalProperties: false
+      required:
+      - id
+      - name
+      properties:
+        id:
+          type: integer
+          minimum: 1
+        name:
+          type: string
+    ContentReader:
+      type: object
+      additionalProperties: false
+      required:
+      - id
+      - content_item_id
+      - learner_id
+      - school_id
+      - reader_id
+      - title
+      - summary
+      - markdown
+      - body_sha256
+      - published_at
+      - topics
+      - server_time
+      - offline_until
+      properties:
+        id:
+          type: integer
+          minimum: 1
+        content_item_id:
+          type: integer
+          minimum: 1
+        learner_id:
+          type: integer
+          minimum: 1
+        school_id:
+          type: integer
+          minimum: 1
+        reader_id:
+          type: integer
+          minimum: 1
+        title:
+          type: string
+        summary:
+          type: string
+        markdown:
+          type: string
+        body_sha256:
+          type: string
+          pattern: ^[a-f0-9]{64}$
+        published_at:
+          type: string
+          format: date-time
+        topics:
+          type: array
+          items:
+            $ref: '#/components/schemas/ContentTopic'
+        server_time:
+          type: string
+          format: date-time
+        offline_until:
+          type: string
+          format: date-time
+    ContentReadReceipt:
+      type: object
+      additionalProperties: false
+      required:
+      - version_id
+      - learner_id
+      - read
+      properties:
+        version_id:
+          type: integer
+          minimum: 1
+        learner_id:
+          type: integer
+          minimum: 1
+        read:
+          type: boolean
+    ContentRevisionWrite:
+      type: object
+      additionalProperties: false
+      required:
+      - operation_id
+      - item_revision
+      - version_revision
+      properties:
+        operation_id:
+          type: string
+          format: uuid
+        item_revision:
+          type: integer
+          minimum: 1
+        version_revision:
+          type: integer
+          minimum: 1
+    ContentDraftWrite:
+      type: object
+      additionalProperties: false
+      required:
+      - operation_id
+      - item_revision
+      - version_revision
+      - selection
+      - markdown
+      properties:
+        operation_id:
+          type: string
+          format: uuid
+        item_revision:
+          type: integer
+          minimum: 1
+        version_revision:
+          type: integer
+          minimum: 1
+        selection:
+          $ref: '#/components/schemas/ContentSelection'
+        markdown:
+          type: string
+          maxLength: 2097152
+    ContentPublishWrite:
+      type: object
+      additionalProperties: false
+      required:
+      - operation_id
+      - item_revision
+      - version_revision
+      - fingerprint
+      - reviewed
+      properties:
+        operation_id:
+          type: string
+          format: uuid
+        item_revision:
+          type: integer
+          minimum: 1
+        version_revision:
+          type: integer
+          minimum: 1
+        fingerprint:
+          type: string
+          pattern: ^[a-f0-9]{64}$
+        reviewed:
+          type: boolean
+          description: 'Must be true: the publisher has explicitly reviewed the body, tags and audience.'
+        reason:
+          type:
+          - string
+          - 'null'
+          minLength: 3
+          maxLength: 2000
+    ContentArchiveWrite:
+      type: object
+      additionalProperties: false
+      required:
+      - operation_id
+      - item_revision
+      - reason
+      properties:
+        operation_id:
+          type: string
+          format: uuid
+        item_revision:
+          type: integer
+        reason:
+          type: string
+          minLength: 3
+          maxLength: 2000
+    ContentSettingsResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - code
+      - data
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        code:
+          type: integer
+        data:
+          $ref: '#/components/schemas/ContentSettings'
+    ContentConfigurationResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - code
+      - data
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        code:
+          type: integer
+        data:
+          $ref: '#/components/schemas/ContentConfiguration'
+    ContentReceiptResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - code
+      - data
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        code:
+          type: integer
+        data:
+          $ref: '#/components/schemas/ContentReceipt'
+    ContentVersionResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - code
+      - data
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        code:
+          type: integer
+        data:
+          $ref: '#/components/schemas/ContentVersion'
+    ContentItemResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - code
+      - data
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        code:
+          type: integer
+        data:
+          $ref: '#/components/schemas/ContentItem'
+    ContentListResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - code
+      - data
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        code:
+          type: integer
+        data:
+          $ref: '#/components/schemas/ContentList'
+    ContentPreviewResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - code
+      - data
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        code:
+          type: integer
+        data:
+          $ref: '#/components/schemas/ContentPreview'
+    ContentLibraryResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - code
+      - data
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        code:
+          type: integer
+        data:
+          $ref: '#/components/schemas/ContentLibrary'
+    ContentReaderResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - code
+      - data
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        code:
+          type: integer
+        data:
+          $ref: '#/components/schemas/ContentReader'
+    ContentReadReceiptResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - code
+      - data
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        code:
+          type: integer
+        data:
+          $ref: '#/components/schemas/ContentReadReceipt'

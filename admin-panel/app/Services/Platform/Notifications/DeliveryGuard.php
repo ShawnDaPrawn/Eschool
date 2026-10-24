@@ -13,9 +13,12 @@ use App\Models\Platform\NotificationDelivery;
 use App\Models\Platform\SchoolMembership;
 use App\Models\Students;
 use App\Models\User;
+use App\Policies\Academics\ContentPolicy;
 use App\Services\Academics\Attendance\RegisterRosters;
 use App\Services\Platform\Identity\GuardianService;
 use App\Services\Platform\Tenancy\CurrentSchool;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
+use Symfony\Component\HttpKernel\Exception\HttpExceptionInterface;
 
 /** Recheck mutable access and the destination immediately before transport. */
 class DeliveryGuard
@@ -58,6 +61,16 @@ class DeliveryGuard
                 }
                 if ($kind === 'absence' && ($entry->register->timetable_lesson_id !== null || $entry->state !== 'absent'
                     || isset(Leave::approvedTypesForDate($entry->register->on_date->toDateString())[$entry->learner->user_id]))) {
+                    return false;
+                }
+            }
+            if (isset($context['content_version_id'])) {
+                if ($type !== 'academics.content_published' || ! isset($context['content_learner_id'])) {
+                    return false;
+                }
+                try {
+                    app(ContentPolicy::class)->reader($user, (int) $context['content_learner_id'], (int) $context['content_version_id']);
+                } catch (HttpExceptionInterface|ModelNotFoundException) {
                     return false;
                 }
             }

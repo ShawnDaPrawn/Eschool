@@ -17,6 +17,51 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  converter:
+    name: Private academic content converter
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    defaults:
+      run:
+        working-directory: services/converter
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+      - name: Install pinned conversion and test dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends ffmpeg
+          python -m pip install --require-hashes -r requirements-dev.txt
+      - name: Audit the resolved production Python dependencies
+        run: |
+          python -m venv "$RUNNER_TEMP/converter-audit"
+          "$RUNNER_TEMP/converter-audit/bin/pip" install pip-audit==2.10.1
+          "$RUNNER_TEMP/converter-audit/bin/pip-audit" --disable-pip --no-deps -r requirements.txt
+      - name: Fetch and verify the offline model at its pinned revision
+        env:
+          HF_HUB_DISABLE_XET: '1'
+        run: python tool/download_model.py --path "$RUNNER_TEMP/converter-models/base"
+      - name: Convert actual PDF, Word, slides, audio and video and check boundaries
+        env:
+          TRANSCRIPTION_MODEL_PATH: ${{ runner.temp }}/converter-models/base
+        run: python -m pytest
+      - name: Build the private runtime
+        run: docker build --pull -t navigateed-converter-check .
+      - name: Verify authenticated ingress and a read-only offline runtime
+        run: |
+          docker run --detach --name converter-check --read-only --network none \
+            --tmpfs /tmp:rw,noexec,nosuid,size=192m,mode=1777 \
+            -e CONVERTER_SERVICE_TOKEN=test-only-converter-token-never-used-outside-ci \
+            -e CONVERTER_SOURCE_ORIGIN=https://backend.example navigateed-converter-check
+          python tool/runtime_fixtures.py "$RUNNER_TEMP/converter-smoke"
+          tar -C "$RUNNER_TEMP/converter-smoke" -cf - . | docker exec -i converter-check sh -c 'mkdir -p /tmp/smoke-inputs && tar -xf - -C /tmp/smoke-inputs'
+          docker exec -i converter-check python - < tool/runtime_smoke.py
+      - name: Remove the disposable runtime
+        if: always()
+        run: docker rm --force converter-check || true
+
   php-runtime:
     name: Patched PHP container runtime
     runs-on: ubuntu-latest
@@ -77,6 +122,27 @@ jobs:
       # Production installs can run php artisan optimize; every cache must build.
       - name: Config, routes and views cache
         run: php artisan config:cache && php artisan route:cache && php artisan view:cache && php artisan optimize:clear
+      - name: Verify real ClamAV clean and EICAR results with current definitions
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends clamav-daemon clamav-freshclam
+          sudo systemctl stop clamav-freshclam clamav-daemon || true
+          sudo freshclam --quiet
+          cat > "$RUNNER_TEMP/content-clamd.conf" <<'CLAMD'
+          DatabaseDirectory /var/lib/clamav
+          TCPSocket 3310
+          TCPAddr 127.0.0.1
+          User clamav
+          Foreground no
+          LogFile /tmp/content-clamd.log
+          StreamMaxLength 30M
+          CLAMD
+          sudo clamd --config-file="$RUNNER_TEMP/content-clamd.conf"
+          for attempt in $(seq 1 60); do
+            if php -r '$s=@stream_socket_client("tcp://127.0.0.1:3310", $e, $m, 1); if (!$s) { exit(1); } fwrite($s,"zPING\0"); exit(fread($s,16)==="PONG\0" ? 0 : 1);'; then break; fi
+            sleep 2
+          done
+          CONTENT_CLAMAV_INTEGRATION=true php artisan test tests/Unit/ClamAvIntegrationTest.php
       - run: php artisan test
       # The container's Apache answers the portals' requests for uploaded files
       # with CORS headers (docker/storage-cors.conf); the runner has apache2.

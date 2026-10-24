@@ -1,0 +1,18 @@
+FROM python:3.12.14-slim
+ENV PYTHONDONTWRITEBYTECODE=1 PYTHONUNBUFFERED=1 HF_HUB_DISABLE_XET=1
+RUN apt-get update && apt-get install -y --no-install-recommends ffmpeg ca-certificates \
+    && rm -rf /var/lib/apt/lists/* \
+    && useradd --create-home --uid 10001 converter
+WORKDIR /app
+COPY requirements.txt /app/requirements.txt
+RUN pip install --no-cache-dir --require-hashes -r requirements.txt
+COPY --chown=10001:10001 transcription-model.json /app/transcription-model.json
+COPY tool/download_model.py /app/tool/download_model.py
+RUN python tool/download_model.py --path /app/models/base \
+    && chown -R 10001:10001 /app/models
+COPY --chown=10001:10001 navigateed_converter /app/navigateed_converter
+ENV TRANSCRIPTION_MODEL_PATH=/app/models/base HF_HUB_OFFLINE=1 TRANSFORMERS_OFFLINE=1
+USER 10001:10001
+EXPOSE 8080
+HEALTHCHECK --interval=30s --timeout=3s CMD python -c "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8080/health', timeout=2)"
+CMD ["uvicorn", "navigateed_converter.app:app", "--host", "0.0.0.0", "--port", "8080", "--workers", "1", "--no-access-log", "--limit-concurrency", "4", "--timeout-keep-alive", "5"]

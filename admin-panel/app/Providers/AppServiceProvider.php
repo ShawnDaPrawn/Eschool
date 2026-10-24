@@ -6,6 +6,8 @@ namespace App\Providers;
 
 use App\Exceptions\TooManyLoginFailures;
 use App\Services\FormService;
+use App\Services\Platform\Files\ClamAv;
+use App\Services\Platform\Files\UploadScanner;
 use App\Services\Platform\Identity\PasswordPolicy;
 use App\Services\SettingsConfigService;
 use Illuminate\Auth\Events\Attempting;
@@ -25,6 +27,7 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
+        $this->app->bind(UploadScanner::class, ClamAv::class);
         $this->app->singleton('form', function ($app) {
             return new FormService;
         });

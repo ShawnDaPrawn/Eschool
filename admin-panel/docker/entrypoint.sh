@@ -8,6 +8,7 @@ cd /var/www/html
 #                   the installer seeders.
 #   worker          php artisan queue:work, restarted whenever it exits (it stops
 #                   itself after an hour); no migrations.
+#   content-worker  bounded long-running private conversion queue; no migrations.
 #   scheduler       one php artisan schedule:run, then exit: a Cloud Run Job that
 #                   Cloud Scheduler starts every minute. The schedule itself lives
 #                   only in routes/console.php.
@@ -18,8 +19,8 @@ cd /var/www/html
 #                     --update-env-vars=CONTAINER_ROLE=artisan --args=queue:retry,all
 ROLE="${CONTAINER_ROLE:-web}"
 case "$ROLE" in
-    web|worker|scheduler|scheduler-loop|artisan) ;;
-    *) echo "Unknown CONTAINER_ROLE '$ROLE' (expected web, worker, scheduler, scheduler-loop or artisan)" >&2; exit 64 ;;
+    web|worker|content-worker|scheduler|scheduler-loop|artisan) ;;
+    *) echo "Unknown CONTAINER_ROLE '$ROLE' (expected web, worker, content-worker, scheduler, scheduler-loop or artisan)" >&2; exit 64 ;;
 esac
 
 mkdir -p storage/app/public storage/framework/cache/data storage/framework/sessions storage/framework/views storage/logs bootstrap/cache
@@ -49,6 +50,10 @@ if command -v setpriv >/dev/null 2>&1; then
 fi
 
 run_worker() {
+    local queue_args=(--tries=3 --timeout=120 --sleep=3 --max-time=3600)
+    if [ "$ROLE" = content-worker ]; then
+        queue_args=(academic_content --queue=content --tries=3 --timeout=330 --sleep=3 --max-time=3600)
+    fi
     # Cloud Run sends a service traffic only on $PORT and checks that something
     # listens there; the worker has no public ingress, so this answers only
     # Cloud Run's own probes.
@@ -60,7 +65,7 @@ run_worker() {
     trap 'stopping=1; [ "$child" -gt 0 ] && kill -TERM "$child" 2>/dev/null || true' TERM INT
 
     while [ "$stopping" -eq 0 ]; do
-        "${AS_APP[@]}" php artisan queue:work --tries=3 --timeout=120 --sleep=3 --max-time=3600 &
+        "${AS_APP[@]}" php artisan queue:work "${queue_args[@]}" &
         child=$!
         local status=0
         wait "$child" || status=$?
@@ -97,7 +102,7 @@ case "$ROLE" in
         export STORAGE_CORS_ORIGINS
         exec apache2-foreground
         ;;
-    worker)
+    worker|content-worker)
         run_worker
         ;;
     scheduler)

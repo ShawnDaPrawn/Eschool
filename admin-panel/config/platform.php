@@ -1,9 +1,11 @@
 <?php
 
+use App\Listeners\Academics\NotifyContentPublished;
 use App\Listeners\Academics\NotifyMarksReleased;
 use App\Listeners\Academics\NotifyRegisterAmended;
 use App\Listeners\Academics\NotifyReportPublished;
 use App\Listeners\Academics\QueueAssessmentRecompute;
+use App\Listeners\Academics\QueueContentConversion;
 use App\Listeners\Academics\QueueMarkRecompute;
 use App\Listeners\Academics\QueueReportGeneration;
 use App\Listeners\Platform\NotifyHandleGuardians;
@@ -38,6 +40,8 @@ return [
         // App\Services\Platform\Events\OutboxListener and receives the stored
         // event. Listeners for one event run in one database transaction.
         'listeners' => [
+            'academics.content_published' => [NotifyContentPublished::class],
+            'academics.content_uploaded' => [QueueContentConversion::class],
             'academics.report_published' => [NotifyReportPublished::class],
             'academics.report_approved' => [QueueReportGeneration::class],
             'academics.assessment_published' => [QueueAssessmentRecompute::class],
