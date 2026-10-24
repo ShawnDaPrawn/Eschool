@@ -50,3 +50,7 @@ throughFriday; school managers select their actual cutoff/days before the pilot.
 Missing registers are flagged rather than guessed absent. Period attendance
 stays separate. Signed learner QR identifiers are rotatable and do not authorize
 writes or implement Phase4 card sign-in.
+
+Attendance delivery deduplicates a qualifying entry revision. Transport suppresses
+a corrected/superseded absence or later approved leave; a genuinely new absence
+after correction can notify without being blocked by an old suppressed claim.

@@ -306,3 +306,12 @@ Firebase documentation workflows passed on c8b5d7939839aa6d9c0e50d20941974bedaac
 This includes the full backend, both Android suites, web builds and Chrome flows.
 There are no unresolved timetable review threads. This is implementation/automated
 verification; physical classroom and pilot acceptance remain separate.
+
+Attendance compatibility/review follow-up:161 register/contract checks pass
+(985 assertions).19 register/old API checks pass (344 assertions), preserving
+v1 response shapes and canonical presence over old leave overlays.32 register
+and queued-delivery checks pass (244 assertions), including executing queued
+mail/push after correction and later leave approval with no transport call.
+Larastan is clean. Existing half-day rows remain visible, preserve IDs on
+correction, and retain fractional reports. App account activation does not drive
+physical/historical rosters; no account is activated by capture.

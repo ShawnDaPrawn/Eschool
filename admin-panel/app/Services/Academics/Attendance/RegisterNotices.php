@@ -56,7 +56,7 @@ class RegisterNotices
             $notifier = app(Notifier::class);
             $count = 0;
             foreach (User::whereIn('id', $guardians)->get() as $user) {
-                $key = ['attendance_entry_id' => $id, 'user_id' => (int) $user->id, 'kind' => $kind, 'revision' => $kind === 'absence' ? 0 : $entry->revision];
+                $key = ['attendance_entry_id' => $id, 'user_id' => (int) $user->id, 'kind' => $kind, 'revision' => $entry->revision];
                 if (AttendanceNotice::where($key)->exists()) {
                     continue;
                 }
@@ -65,7 +65,7 @@ class RegisterNotices
                 $title = $kind === 'absence' ? __('Absence alert') : __('Attendance updated');
                 $body = $kind === 'absence' ? __(':name was marked absent on :date.', ['name' => $name, 'date' => $date]) : __('Attendance for :name on :date was updated. Open the register to review it.', ['name' => $name, 'date' => $date]);
                 $notice = $notifier->makeNotice($kind === 'absence' ? 'attendance.absence' : 'academics.register_amended', $title, $body, '/academics/attendance');
-                $notice->delivery_payload = ['link' => '/academics/attendance', 'register_learner_id' => (int) $entry->learner_id];
+                $notice->delivery_payload = ['link' => '/academics/attendance', 'register_learner_id' => (int) $entry->learner_id, 'register_entry_id' => (int) $entry->id, 'register_entry_revision' => $entry->revision, 'register_notice_kind' => $kind];
                 $notice->save();
                 AttendanceNotice::create($key + ['notification_id' => (int) $notice->id]);
                 $channels = $notifier->send($user, $kind === 'absence' ? 'attendance.absence' : 'academics.register_amended', $title, $body, '/academics/attendance', $notice);

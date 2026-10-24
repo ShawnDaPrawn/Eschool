@@ -30,8 +30,8 @@ class AcademicAttendanceTodayEntry {
   });
 
   // minimum: 1
-  @JsonKey(name: r'register_id', required: true, includeIfNull: false)
-  final int registerId;
+  @JsonKey(name: r'register_id', required: true, includeIfNull: true)
+  final int? registerId;
 
   @JsonKey(name: r'label', required: true, includeIfNull: false)
   final String label;
@@ -61,7 +61,7 @@ class AcademicAttendanceTodayEntry {
 
   @override
   int get hashCode =>
-      registerId.hashCode +
+      (registerId == null ? 0 : registerId.hashCode) +
       label.hashCode +
       kind.hashCode +
       state.hashCode +

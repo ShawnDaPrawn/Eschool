@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Services\Academics\Attendance;
 
 use App\Models\Academics\AttendanceEntry;
+use App\Models\Attendance;
 use App\Models\ClassSection;
 use App\Models\SessionYear;
 use App\Models\User;
@@ -66,7 +67,15 @@ class RegisterQueries
         $date = app(AcademicAuthority::class)->today();
         $entries = AttendanceEntry::with('register')->where('learner_id', $learnerId)->whereHas('register', fn ($q) => $q->whereDate('on_date', $date))->get();
 
-        return ['learner_id' => $learnerId, 'on_date' => $date, 'entries' => $entries->map(fn ($entry) => ['register_id' => (int) $entry->attendance_register_id,
-            'label' => $entry->register->label, 'kind' => $entry->register->timetable_lesson_id === null ? 'homeroom' : 'period', 'state' => $entry->state, 'source' => $entry->source, 'amended_at' => $entry->amended_at?->toISOString()])->all()];
+        $rows = $entries->map(fn ($entry) => ['register_id' => (int) $entry->attendance_register_id,
+            'label' => $entry->register->label, 'kind' => $entry->register->timetable_lesson_id === null ? 'homeroom' : 'period', 'state' => $entry->state, 'source' => $entry->source, 'amended_at' => $entry->amended_at?->toISOString()])->all();
+        if (! $entries->contains(fn ($entry) => $entry->register->timetable_lesson_id === null)) {
+            $legacy = Attendance::where('student_id', $learnerId)->whereDate('date', $date)->whereNull('attendance_entry_id')->orderByDesc('id')->first();
+            if ($legacy !== null) {
+                $rows[] = ['register_id' => null, 'label' => __('Homeroom register'), 'kind' => 'homeroom', 'state' => app(RegisterLegacy::class)->state((int) $legacy->type), 'source' => 'legacy', 'amended_at' => null];
+            }
+        }
+
+        return ['learner_id' => $learnerId, 'on_date' => $date, 'entries' => $rows];
     }
 }

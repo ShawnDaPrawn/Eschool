@@ -24,7 +24,7 @@ AcademicAttendanceTodayEntry _$AcademicAttendanceTodayEntryFromJson(
       ],
     );
     final val = AcademicAttendanceTodayEntry(
-      registerId: $checkedConvert('register_id', (v) => (v as num).toInt()),
+      registerId: $checkedConvert('register_id', (v) => (v as num?)?.toInt()),
       label: $checkedConvert('label', (v) => v as String),
       kind: $checkedConvert('kind', (v) => v as String),
       state: $checkedConvert('state', (v) => v as String),

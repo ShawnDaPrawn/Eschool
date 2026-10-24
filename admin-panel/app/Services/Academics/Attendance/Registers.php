@@ -34,7 +34,7 @@ class Registers
     {
         return ['operation_id' => ['required', 'uuid'], 'base_revision' => ['required', 'integer', 'min:0'], 'roster_hash' => ['required', 'string', 'regex:/^[a-f0-9]{64}$/'],
             'reason' => ['nullable', 'string', 'max:500'], 'rows' => ['required', 'array', 'min:1', 'max:500'],
-            'rows.*.learner_id' => ['required', 'integer', 'min:1', 'distinct'], 'rows.*.state' => ['required', 'in:present,absent,late,excused'],
+            'rows.*.learner_id' => ['required', 'integer', 'min:1', 'distinct'], 'rows.*.state' => ['required', 'in:present,absent,late,excused,first_half,second_half,holiday'],
             'rows.*.expected_revision' => ['required', 'integer', 'min:0'], 'rows.*.source' => ['required', 'in:tap,qr,offline'],
             'rows.*.qr_token' => ['nullable', 'required_if:rows.*.source,qr', 'string', 'max:4096']];
     }
@@ -67,16 +67,18 @@ class Registers
         $rosters = app(RegisterRosters::class);
         $learners = $rosters->learners($register);
         $entries = AttendanceEntry::where('attendance_register_id', $id)->get()->keyBy('learner_id');
+        $legacy = app(RegisterLegacy::class)->rows($register);
         $canWrite = $register->on_date->toDateString() === app(AcademicAuthority::class)->today() || app(AcademicAuthority::class)->manages($actor)
             || app(AcademicAuthority::class)->leads($actor, 'grade_head', (int) $register->grade_level_id, (int) $register->session_year_id);
 
         return ['register_id' => (int) $register->id, 'label' => $register->label, 'session_year_id' => (int) $register->session_year_id, 'class_section_id' => $register->class_section_id === null ? null : (int) $register->class_section_id,
             'timetable_lesson_id' => $register->timetable_lesson_id === null ? null : (int) $register->timetable_lesson_id, 'on_date' => $register->on_date->toDateString(), 'revision' => $register->revision,
-            'roster_hash' => $rosters->fingerprint($register), 'can_write' => $canWrite, 'learners' => $learners->map(function ($learner) use ($entries) {
+            'roster_hash' => $rosters->fingerprint($register), 'can_write' => $canWrite, 'learners' => $learners->map(function ($learner) use ($entries, $legacy) {
                 $entry = $entries->get($learner->id);
+                $original = $legacy->get($learner->id);
 
-                return ['learner_id' => (int) $learner->id, 'name' => trim($learner->user->first_name.' '.$learner->user->last_name), 'state' => $entry?->state ?? 'unmarked',
-                    'qr_code' => app(RegisterQr::class)->issue($learner), 'revision' => $entry?->revision ?? 0, 'source' => $entry?->source, 'amended_at' => $entry?->amended_at?->toISOString()];
+                return ['learner_id' => (int) $learner->id, 'name' => trim($learner->user->first_name.' '.$learner->user->last_name), 'state' => $entry?->state ?? ($original === null ? 'unmarked' : app(RegisterLegacy::class)->state((int) $original->type)),
+                    'qr_code' => app(RegisterQr::class)->issue($learner), 'revision' => $entry?->revision ?? 0, 'source' => $entry?->source ?? ($original === null ? null : 'legacy'), 'amended_at' => $entry?->amended_at?->toISOString()];
             })->all()];
     }
 
@@ -103,6 +105,7 @@ class Registers
             $eligible = $rosters->learners($register)->pluck('id')->map(fn ($value) => (int) $value)->all();
             $saved = [];
             $amended = [];
+            $legacy = app(RegisterLegacy::class)->rows($register);
             foreach ($data['rows'] as $row) {
                 abort_unless(in_array((int) $row['learner_id'], $eligible, true), 404);
                 if ($row['source'] === 'qr') {
@@ -116,12 +119,15 @@ class Registers
 
                     continue;
                 }
+                $original = $legacy->get($row['learner_id']);
+                $legacyChanged = $entry === null && $original !== null && app(RegisterLegacy::class)->state((int) $original->type) !== $row['state'];
+                abort_if($register->timetable_lesson_id !== null && in_array($row['state'], ['first_half', 'second_half', 'holiday'], true), 422, __('Use a period attendance state for this lesson.'));
                 $reason = trim($data['reason'] ?? '');
-                if (($entry !== null || $register->on_date->toDateString() !== app(AcademicAuthority::class)->today()) && mb_strlen($reason) < 3) {
+                if (($entry !== null || $legacyChanged || $register->on_date->toDateString() !== app(AcademicAuthority::class)->today()) && mb_strlen($reason) < 3) {
                     throw ValidationException::withMessages(['reason' => __('Give a reason for the attendance correction.')]);
                 }
-                $before = $entry?->getAttributes() ?? [];
-                $isAmendment = $entry !== null;
+                $before = $entry?->getAttributes() ?? ($original === null ? [] : ['legacy_attendance_id' => (int) $original->id, 'legacy_type' => (int) $original->type]);
+                $isAmendment = $entry !== null || $legacyChanged;
                 $entry ??= new AttendanceEntry(['attendance_register_id' => $id, 'learner_id' => (int) $row['learner_id'], 'captured_by' => (int) $actor->id, 'revision' => 0]);
                 $entry->forceFill(['state' => $row['state'], 'source' => $row['source'], 'revision' => $entry->revision + 1, 'reason' => $reason === '' ? null : $reason,
                     'amended_by' => $isAmendment ? (int) $actor->id : null, 'amended_at' => $isAmendment ? now() : null])->save();
@@ -160,9 +166,9 @@ class Registers
             abort_if($existing->attendance_entry_id !== null && (int) $existing->attendance_entry_id !== (int) $entry->id, 409, __('This learner already belongs to another register for this day.'));
         }
         $projection = $rows->first() ?? new Attendance;
-        $before = $projection->getAttributes();
+        $before = array_diff_key($projection->getAttributes(), ['remark' => true]);
         $attributes = ['class_section_id' => (int) $register->class_section_id, 'student_id' => (int) $entry->learner_id, 'session_year_id' => (int) $register->session_year_id,
-            'date' => $date, 'type' => in_array($entry->state, ['present', 'late'], true) ? Attendance::TYPE_PRESENT : Attendance::TYPE_ABSENT,
+            'date' => $date, 'type' => app(RegisterLegacy::class)->type($entry->state),
             'status' => 1, 'attendance_entry_id' => (int) $entry->id, 'source' => $entry->source, 'amended_by' => $entry->amended_by, 'amended_at' => $entry->amended_at, 'updated_at' => now()];
         if ($projection->exists) {
             SchoolTable::query('attendances')->where('id', $projection->id)->update($attributes);

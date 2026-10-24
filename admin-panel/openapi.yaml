@@ -8679,7 +8679,7 @@ components:
           minimum: 1
         state:
           type: string
-          pattern: ^(present|absent|late|excused)$
+          pattern: ^(present|absent|late|excused|first_half|second_half|holiday)$
         source:
           type: string
           pattern: ^(tap|qr|offline)$
@@ -8763,7 +8763,9 @@ components:
       - amended_at
       properties:
         register_id:
-          type: integer
+          type:
+          - integer
+          - 'null'
           minimum: 1
         label:
           type: string

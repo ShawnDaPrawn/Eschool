@@ -30,7 +30,7 @@ codes only for their authorized roster to support offline scanning. Rotating the
 code invalidates cached copies; reload/review before syncing a rejected scan.
 This is attendance identification, separate from Phase4 card sign-in/payments.
 
-Absence notices are once per eligible learner/day/current guardian; approved leave
+Absence notices are once per eligible absence revision/current guardian; approved leave
 suppresses the morning alert. An amended entry has a distinct revision notice.
 Notifier enforces school module/rules/preferences and channel idempotency. Jobs
 recheck live guardianship before email/push transport; a removed link cannot
@@ -51,3 +51,12 @@ preserves the historical register. Register labels retain the captured context.
 Correction reasons are encrypted in storage; audit snapshots retain ciphertext,
 not plaintext explanation text. App offline caches require account-scoped secure
 storage in the client slice. Neither logs nor outbox events carry the reason.
+
+Mail/push transport rechecks the entry identity, current revision/state, dated
+roster and approved leave, as well as guardianship. Corrected or superseded
+queued alerts are suppressed. A new qualifying absence after a correction has a
+new revision claim, so a suppressed old alert cannot prevent the current notice.
+Existing half-day/holiday rows remain readable; corrections adopt their original
+attendance IDs and keep fractional v1 reports. Physical enrolment drives staff
+registers independently of app activation; disabled/left accounts remain in
+historical dated rosters. Capturing attendance never activates an account.

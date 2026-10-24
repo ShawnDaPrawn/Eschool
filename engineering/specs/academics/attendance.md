@@ -24,8 +24,8 @@ all absent or present without the teacher's action. Names and pending registers
 are removed from view on context change and local data is cleared on sign-out.
 
 School managers choose the absence cutoff in school time (initial editable
-10:00 default) and teaching days. The scheduler sends one current unexcused
-homeroom absence notice per learner/day to verified current guardians through
+10:00 default) and teaching days. The scheduler sends a deduplicated current unexcused
+homeroom absence notice per entry revision to verified current guardians through
 Notifier. Missing registers are flagged for follow-up, not guessed absences.
 Amendments after capture are audited and notify current guardians through the
 registered notification rule. Retried jobs do not duplicate notices. No live

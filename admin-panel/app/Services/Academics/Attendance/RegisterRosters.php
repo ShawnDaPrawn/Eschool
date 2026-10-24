@@ -59,7 +59,7 @@ class RegisterRosters
             $enrolments->where('class_section_id', $register->class_section_id);
         }
 
-        return Students::with('user')->whereIn('id', $enrolments->pluck('learner_id'))->whereHas('user', fn ($q) => $q->where('status', 1))->get()
+        return Students::with('user')->whereIn('id', $enrolments->pluck('learner_id'))->whereHas('user')->get()
             ->sortBy(fn ($learner) => mb_strtolower($learner->user->last_name.' '.$learner->user->first_name))->values();
     }
 

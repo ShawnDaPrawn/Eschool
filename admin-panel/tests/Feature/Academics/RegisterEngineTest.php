@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace Tests\Feature\Academics;
 
 use App\Imports\AttendanceImport;
+use App\Jobs\Platform\SendMail;
+use App\Jobs\Platform\SendPush;
 use App\Models\Academics\AcademicLeadership;
 use App\Models\Academics\AttendanceEntry;
 use App\Models\Academics\AttendanceNotice;
@@ -32,19 +34,23 @@ use App\Services\Academics\TimetableConfiguration;
 use App\Services\Academics\TimetableEngine;
 use App\Services\Platform\Notifications\DeliveryGuard;
 use App\Services\Platform\Notifications\DeliveryLog;
+use App\Services\Platform\Notifications\FcmClient;
 use App\Services\Platform\Tenancy\CurrentSchool;
 use Carbon\CarbonImmutable;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Queue;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 use Symfony\Component\HttpKernel\Exception\HttpExceptionInterface;
 use Tests\Concerns\UsesTwoSchools;
+use Tests\Concerns\ValidatesOpenApiResponses;
 use Tests\TestCase;
 
 class RegisterEngineTest extends TestCase
 {
-    use UsesTwoSchools;
+    use UsesTwoSchools, ValidatesOpenApiResponses;
 
     private int $year;
 
@@ -350,5 +356,100 @@ class RegisterEngineTest extends TestCase
         $this->assertSame($reason, AttendanceEntry::sole()->reason);
         $this->assertNotSame($reason, DB::table('attendance_entries')->value('reason'));
         $this->assertStringNotContainsString($reason, json_encode(DB::table('audit_log')->where('action', 'academics.register_amended')->get()->all()));
+    }
+
+    public function test_existing_half_day_registers_remain_visible_and_corrections_adopt_the_original_row(): void
+    {
+        $legacy = new Attendance;
+        $legacy->forceFill(['student_id' => $this->schoolA->ids['asha'], 'class_section_id' => $this->schoolA->ids['section_a'], 'session_year_id' => $this->year, 'date' => '2026-02-10', 'type' => Attendance::TYPE_FIRST_HALF, 'status' => 1])->save();
+        $matrix = $this->open();
+        $this->assertSame('first_half', $matrix['learners'][0]['state']);
+        $this->assertSame('legacy', $matrix['learners'][0]['source']);
+        $this->assertSame(0, AttendanceEntry::count());
+        $parent = User::findOrFail($this->schoolA->ids['farid_user']);
+        $this->app['auth']->forgetGuards();
+        $this->withToken($parent->createToken('existing-register')->plainTextToken)->withHeader('X-School-Id', '1');
+        $this->getJson('/api/v2/academics/registers/learners/'.$this->schoolA->ids['asha'].'/today')->assertOk()->assertJsonPath('data.entries.0.state', 'first_half')->assertJsonPath('data.entries.0.register_id', null);
+        try {
+            app(Registers::class)->sync($this->tara, $matrix['register_id'], $this->write($matrix));
+            $this->fail('A legacy correction needs a reason');
+        } catch (ValidationException $error) {
+            $this->assertArrayHasKey('reason', $error->errors());
+        }
+        app(Registers::class)->sync($this->tara, $matrix['register_id'], $this->write($matrix, 'present', ['reason' => 'Verified original register correction']));
+        $this->assertSame($legacy->id, Attendance::whereNotNull('attendance_entry_id')->sole()->id);
+        $this->assertSame($this->tara->id, (int) AttendanceEntry::sole()->amended_by);
+    }
+
+    public function test_half_day_capture_retains_the_existing_fractional_attendance_report_contract(): void
+    {
+        $matrix = $this->open();
+        app(Registers::class)->sync($this->tara, $matrix['register_id'], $this->write($matrix, 'second_half'));
+        $this->assertSame(Attendance::TYPE_SECOND_HALF, (int) Attendance::whereNotNull('attendance_entry_id')->sole()->type);
+        $report = Attendance::monthlyReport($this->schoolA->ids['asha'], $this->year, 2, 2026);
+        $this->assertSame(0.5, $report['total_present']);
+        $this->assertSame(0.5, $report['total_absent']);
+    }
+
+    public function test_physical_enrolment_and_historical_rosters_do_not_activate_or_hide_a_disabled_app_account(): void
+    {
+        User::whereKey($this->schoolA->ids['asha_user'])->update(['status' => 0]);
+        Enrolment::where('learner_id', $this->schoolA->ids['asha'])->update(['ends_on' => '2026-02-10']);
+        $matrix = $this->open();
+        $this->assertSame($this->schoolA->ids['asha'], $matrix['learners'][0]['learner_id']);
+        app(Registers::class)->sync($this->tara, $matrix['register_id'], $this->write($matrix));
+        $this->travelTo(CarbonImmutable::parse('2026-02-11 08:00:00', 'Africa/Johannesburg'));
+        $history = app(Registers::class)->matrix($this->tara, $matrix['register_id']);
+        $this->assertSame('present', $history['learners'][0]['state']);
+        $this->assertFalse($history['can_write']);
+        $this->assertSame(0, (int) User::findOrFail($this->schoolA->ids['asha_user'])->status);
+    }
+
+    public function test_audited_canonical_presence_is_not_replaced_by_an_old_leave_overlay_in_existing_reports(): void
+    {
+        $matrix = $this->open();
+        $leave = Leave::create(['user_id' => $this->schoolA->ids['asha_user'], 'session_year_id' => $this->year, 'from_date' => '2026-02-10', 'to_date' => '2026-02-10', 'status' => 1, 'reason' => 'Earlier approved leave']);
+        $leave->leave_detail()->create(['date' => '2026-02-10', 'type' => 'Full']);
+        app(Registers::class)->sync($this->tara, $matrix['register_id'], $this->write($matrix, 'present'));
+        $report = Attendance::monthlyReport($this->schoolA->ids['asha'], $this->year, 2, 2026);
+        $this->assertSame(1.0, $report['total_present']);
+        $this->assertSame(0.0, $report['total_absent']);
+    }
+
+    public function test_queued_absence_mail_and_push_are_suppressed_after_correction_or_later_leave_approval(): void
+    {
+        Queue::fake();
+        Mail::fake();
+        $fcm = $this->mock(FcmClient::class, fn ($mock) => $mock->shouldNotReceive('send'));
+        $parent = User::findOrFail($this->schoolA->ids['farid_user']);
+        $parent->forceFill(['email_verified_at' => now(), 'fcm_id' => 'synthetic-register-device', 'device_type' => 'android'])->save();
+        $matrix = $this->open();
+        app(Registers::class)->sync($this->tara, $matrix['register_id'], $this->write($matrix, 'absent'));
+        $this->travelTo(CarbonImmutable::parse('2026-02-10 10:01:00', 'Africa/Johannesburg'));
+        $this->assertGreaterThan(0, app(RegisterNotices::class)->due());
+        Queue::assertPushed(SendMail::class);
+        Queue::assertPushed(SendPush::class);
+        $matrix = app(Registers::class)->matrix($this->tara, $matrix['register_id']);
+        app(Registers::class)->sync($this->tara, $matrix['register_id'], $this->write($matrix, 'present', ['reason' => 'Learner arrived before delivery']));
+        foreach (Queue::pushed(SendMail::class) as $job) {
+            $job->handle();
+        }
+        foreach (Queue::pushed(SendPush::class) as $job) {
+            $job->handle($fcm);
+        }
+        Mail::assertNothingSent();
+        $matrix = app(Registers::class)->matrix($this->tara, $matrix['register_id']);
+        app(Registers::class)->sync($this->tara, $matrix['register_id'], $this->write($matrix, 'absent', ['reason' => 'A new verified absence']));
+        $this->assertGreaterThan(0, app(RegisterNotices::class)->due());
+        $this->assertSame(0, app(RegisterNotices::class)->due());
+        $leave = Leave::create(['user_id' => $this->schoolA->ids['asha_user'], 'session_year_id' => $this->year, 'from_date' => '2026-02-10', 'to_date' => '2026-02-10', 'status' => 1, 'reason' => 'Approved while notification waited']);
+        $leave->leave_detail()->create(['date' => '2026-02-10', 'type' => 'Full']);
+        foreach (Queue::pushed(SendMail::class) as $job) {
+            $job->handle();
+        }
+        foreach (Queue::pushed(SendPush::class) as $job) {
+            $job->handle($fcm);
+        }
+        Mail::assertNothingSent();
     }
 }

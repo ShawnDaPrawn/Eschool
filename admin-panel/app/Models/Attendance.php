@@ -95,14 +95,18 @@ class Attendance extends Model
             ->when($month !== null, fn ($query) => $query->whereMonth('date', $month))
             ->when($year !== null, fn ($query) => $query->whereYear('date', $year))
             ->orderBy('date')
-            ->get(['date', 'type']);
+            ->get(['date', 'type', 'attendance_entry_id']);
 
         $typeByDate = [];
+        $canonicalDates = [];
         foreach ($records as $record) {
             $date = $record->date instanceof \DateTimeInterface
                 ? $record->date->format('Y-m-d')
                 : (string) $record->date;
             $typeByDate[$date] = (int) $record->type;
+            if ($record->attendance_entry_id !== null) {
+                $canonicalDates[$date] = true;
+            }
         }
 
         // Approved leaves override whatever attendance is on record for that date, and
@@ -126,6 +130,10 @@ class Attendance extends Model
                 $date = $detail->date instanceof \DateTimeInterface
                     ? $detail->date->format('Y-m-d')
                     : (string) $detail->date;
+                // Explicit, audited canonical capture is authoritative over older leave overlays.
+                if (isset($canonicalDates[$date])) {
+                    continue;
+                }
                 $typeByDate[$date] = self::leaveTypeToType($detail->type);
             }
         }
