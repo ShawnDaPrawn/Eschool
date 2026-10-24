@@ -58,6 +58,17 @@ test('admin sets grade calendars and previews then applies a school template', a
   expect(await seriousViolations(page)).toEqual([]);
   expect(await horizontalOverflow(page)).toBeLessThanOrEqual(1);
   expect(errors).toEqual([]);
+  // An unmapped class can use a school-wide term; enabling never wipes allocations.
+  const term = await page.request.post('/term', {
+    headers: { 'X-CSRF-TOKEN': await csrfToken(page) },
+    form: { session_year_id: String(target), name: 'School-wide Term 2', starts_on: `${year + 1}-04-14`,
+      ends_on: `${year + 1}-06-20`, grade_from: '0', grade_to: '12' },
+  });
+  expect(term.ok()).toBe(true);
+  await page.goto(`/term?session_year_id=${target}`);
+  await page.getByRole('button', { name: 'Enable terms and review subjects', exact: true }).click();
+  await expect(page).toHaveURL(new RegExp(`class-subject-edit/.*session_year_id=${target}`));
+  expect((await page.request.get(`/term?session_year_id=${target}`)).status()).toBe(200);
 });
 
 test('a teacher can read calendar metadata but cannot open management', async ({ page, baseURL }) => {

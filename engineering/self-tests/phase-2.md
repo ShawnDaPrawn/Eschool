@@ -42,3 +42,8 @@ are recorded on the feature PR and must pass before merge.
 The panel flow covers grade calendars, template preview/apply, teacher refusal,
 accessibility and overflow at 1024/1280 pixels. Staging, real devices and pilot
 acceptance remain pending. No assessment-lock or report-release engine is claimed.
+
+Review follow-up: 37 term/year/academic authorization tests (507 assertions)
+passed, including non-destructive class enable, repeat submissions and foreign
+school/year/role refusal. The learner term-picker regression passed with no
+initial current term. App analysis and Larastan were rerun for these changes.

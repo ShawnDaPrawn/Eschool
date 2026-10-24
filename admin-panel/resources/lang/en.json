@@ -1874,5 +1874,12 @@
     "To grade (0 = R)": "To grade (0 = R)",
     "Use the dates below": "Use the dates below",
     "Terms added": "Terms added",
-    "Add a matching term for the grade range before carrying academic records forward.": "Add a matching term for the grade range before carrying academic records forward."
+    "Add a matching term for the grade range before carrying academic records forward.": "Add a matching term for the grade range before carrying academic records forward.",
+    "Add calendar dates covering this class grade before enabling terms.": "Add calendar dates covering this class grade before enabling terms.",
+    "Terms enabled. Existing records are retained; review the term for each subject allocation.": "Terms enabled. Existing records are retained; review the term for each subject allocation.",
+    "Class term settings": "Class term settings",
+    "Enable term-based subjects for a class in this year. Existing records are retained. Review each subject allocation after enabling; whole-year allocations are not automatically assigned to a term.": "Enable term-based subjects for a class in this year. Existing records are retained. Review each subject allocation after enabling; whole-year allocations are not automatically assigned to a term.",
+    "Terms enabled": "Terms enabled",
+    "Terms not enabled": "Terms not enabled",
+    "Enable terms and review subjects": "Enable terms and review subjects"
 }

@@ -12,6 +12,7 @@ use App\Models\SessionYear;
 use App\Models\Term;
 use App\Models\User;
 use App\Services\Academics\TermBreaks;
+use App\Services\Academics\TermCalendar;
 use App\Services\SessionYearService;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
@@ -258,6 +259,34 @@ class SchoolTermsTest extends TestCase
         $class->grade_level_id = null;
         $class->save();
         $this->getJson($url)->assertOk()->assertJsonCount(0, 'terms');
+    }
+
+    public function test_class_terms_are_enabled_without_deleting_or_reassigning_academic_records(): void
+    {
+        $this->admin();
+        $this->create();
+        $classId = $this->schoolA->ids['class_a'];
+        DB::table('class_session_configs')->where('class_id', $classId)->where('session_year_id', $this->year)->delete();
+        $before = [];
+        foreach (TermCalendar::LINKS as $table) {
+            $before[$table] = DB::table($table)->orderBy('id')->get()->toJson();
+        }
+        $this->app['auth']->forgetGuards();
+        $this->flushHeaders()->actingAs($this->superAdmin(), 'web');
+        $payload = ['class_id' => $classId, 'session_year_id' => $this->year];
+        $this->post(route('term.classes.enable'), $payload)->assertRedirect(route('class-subject-edit.index', ['id' => $classId, 'session_year_id' => $this->year]));
+        $this->assertTrue(ClassSchool::findOrFail($classId)->getIncludeTermsForSession($this->year));
+        $this->post(route('term.classes.enable'), $payload)->assertRedirect();
+        $this->assertSame(1, DB::table('audit_log')->where('action', 'academics.class_terms_enabled')->count());
+        foreach ($before as $table => $rows) {
+            $this->assertSame($rows, DB::table($table)->orderBy('id')->get()->toJson(), $table.' must be preserved');
+        }
+        $this->postJson(route('term.classes.enable'), $payload + ['school_id' => 2])->assertRedirect();
+        $this->postJson(route('term.classes.enable'), ['class_id' => $this->schoolB->ids['class_a'], 'session_year_id' => $this->year])->assertNotFound();
+        $this->postJson(route('term.classes.enable'), ['class_id' => $classId, 'session_year_id' => $this->schoolB->ids['session_year']])->assertNotFound();
+        $this->postJson(route('term.classes.enable'), ['class_id' => $classId, 'session_year_id' => $this->nextYear()->id])->assertUnprocessable();
+        $this->actingAs(User::findOrFail($this->schoolA->ids['tara_user']), 'web')
+            ->postJson(route('term.classes.enable'), $payload)->assertForbidden();
     }
 
     public function test_an_unmapped_term_cannot_silently_become_a_whole_year_allocation(): void

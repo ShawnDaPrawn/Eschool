@@ -63,8 +63,7 @@ class _ExamContainerState extends State<ExamContainer> {
                   ? const CustomBackButton()
                   : const SizedBox(),
               currentState.examFilterTabTitle == offlineKey &&
-                      doesChildHaveTermInClass &&
-                      selectedTermNotifier.value != null
+                      doesChildHaveTermInClass
                   ? Align(
                       alignment: AlignmentDirectional.topEnd,
                       child: Padding(
@@ -89,7 +88,7 @@ class _ExamContainerState extends State<ExamContainer> {
                                   builder: (_) => BlocProvider.value(
                                     value: context.read<TermsCubit>(),
                                     child: TermFilterBottomsheetContainer(
-                                      selectedTerm: selectedTermNotifier.value!,
+                                      selectedTerm: selectedTermNotifier.value,
                                     ),
                                   ),
                                 );

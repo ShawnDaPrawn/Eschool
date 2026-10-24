@@ -4,10 +4,12 @@ declare(strict_types=1);
 
 namespace App\Services\Academics;
 
+use App\Models\ClassSchool;
 use App\Models\SessionYear;
 use App\Models\Term;
 use App\Models\User;
 use App\Policies\Academics\TermPolicy;
+use App\Policies\People\ProfilePolicy;
 use App\Services\Platform\Audit\Audit;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
@@ -80,6 +82,28 @@ class TermCalendar
             }
 
             return $term;
+        });
+    }
+
+    public function enableClass(User $actor, int $yearId, int $classId): void
+    {
+        app(TermPolicy::class)->authorise($actor, 'edit');
+        DB::transaction(function () use ($actor, $yearId, $classId) {
+            SessionYear::query()->lockForUpdate()->findOrFail($yearId);
+            $class = ClassSchool::query()->lockForUpdate()->findOrFail($classId);
+            app(TermPolicy::class)->authorise($actor, 'edit');
+            $authority = app(ProfilePolicy::class);
+            abort_unless($authority->permission($authority->actor($actor), 'assign-class-subject'), 403);
+            if (! Term::query()->where('session_year_id', $yearId)->forClass($classId)->exists()) {
+                throw ValidationException::withMessages(['class_id' => __('Add calendar dates covering this class grade before enabling terms.')]);
+            }
+            $before = $class->getIncludeTermsForSession($yearId);
+            if ($before !== true) {
+                $class->syncIncludeTermsForSession($yearId, true);
+                Audit::record('academics.class_terms_enabled', $class,
+                    ['session_year_id' => $yearId, 'include_terms' => $before],
+                    ['session_year_id' => $yearId, 'include_terms' => true]);
+            }
         });
     }
 

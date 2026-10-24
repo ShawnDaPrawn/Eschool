@@ -7,7 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 class TermFilterBottomsheetContainer extends StatefulWidget {
-  final Term selectedTerm;
+  final Term? selectedTerm;
   const TermFilterBottomsheetContainer({super.key, required this.selectedTerm});
 
   @override
@@ -53,29 +53,32 @@ class _TermFilterBottomsheetContainerState
           BlocBuilder<TermsCubit, TermState>(
             builder: (context, state) {
               if (state is TermFetchSuccess) {
-                return RadioGroup<Term>(
-                  groupValue: widget.selectedTerm,
-                  onChanged: (value) {
-                    Navigator.pop(context, value);
-                  },
-                  child: ListView.builder(
-                    shrinkWrap: true,
-                    itemCount: state.terms.length,
-                    padding: EdgeInsets.zero,
-                    itemBuilder: (context, index) {
-                      final term = state.terms[index];
-                      return RadioListTile<Term>(
-                        title: Text(
-                          term.displayName,
-                          style: TextStyle(
-                            color: Theme.of(context).colorScheme.onSurface,
-                            fontSize: 16,
-                          ),
-                        ),
-                        value: term,
-                        controlAffinity: ListTileControlAffinity.trailing,
-                      );
+                return Material(
+                  color: Theme.of(context).colorScheme.surface,
+                  child: RadioGroup<Term>(
+                    groupValue: widget.selectedTerm,
+                    onChanged: (value) {
+                      Navigator.pop(context, value);
                     },
+                    child: ListView.builder(
+                      shrinkWrap: true,
+                      itemCount: state.terms.length,
+                      padding: EdgeInsets.zero,
+                      itemBuilder: (context, index) {
+                        final term = state.terms[index];
+                        return RadioListTile<Term>(
+                          title: Text(
+                            term.displayName,
+                            style: TextStyle(
+                              color: Theme.of(context).colorScheme.onSurface,
+                              fontSize: 16,
+                            ),
+                          ),
+                          value: term,
+                          controlAffinity: ListTileControlAffinity.trailing,
+                        );
+                      },
+                    ),
                   ),
                 );
               } else if (state is TermFetchFailure) {

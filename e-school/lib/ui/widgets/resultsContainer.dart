@@ -134,8 +134,7 @@ class _ResultsContainerState extends State<ResultsContainer> {
                   ? const CustomBackButton()
                   : const SizedBox.shrink(),
               currentState.resultFilterTabTitle == offlineKey &&
-                      doesChildHaveTermInClass &&
-                      selectedTermNotifier.value != null
+                      doesChildHaveTermInClass
                   ? Align(
                       alignment: AlignmentDirectional.topEnd,
                       child: Padding(
@@ -160,7 +159,7 @@ class _ResultsContainerState extends State<ResultsContainer> {
                                   builder: (_) => BlocProvider.value(
                                     value: context.read<TermsCubit>(),
                                     child: TermFilterBottomsheetContainer(
-                                      selectedTerm: selectedTermNotifier.value!,
+                                      selectedTerm: selectedTermNotifier.value,
                                     ),
                                   ),
                                 );

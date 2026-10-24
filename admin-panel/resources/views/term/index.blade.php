@@ -39,6 +39,19 @@
         @empty
             <p role="status">{{ __('No terms yet. Add dates or preview a calendar template.') }}</p>
         @endforelse
+        @can('term-edit')
+            @can('assign-class-subject')
+                <section class="m3 m3-card m3-card--outlined page-form-card"><div class="m3-card__content page-card__content">
+                    <h2>{{ __('Class term settings') }}</h2>
+                    <p>{{ __('Enable term-based subjects for a class in this year. Existing records are retained. Review each subject allocation after enabling; whole-year allocations are not automatically assigned to a term.') }}</p>
+                    <form method="POST" action="{{ route('term.classes.enable') }}">@csrf
+                        <input type="hidden" name="session_year_id" value="{{ $year->id }}">
+                        <x-page.field id="term-class" name="class_id" type="select" :label="__('Class')" :options="$classes->mapWithKeys(fn ($class) => [$class->id => $class->name.' · '.$class->medium?->name.' · '.($class->getIncludeTermsForSession($year->id) ? __('Terms enabled') : __('Terms not enabled'))])->all()" required />
+                        <button class="m3-button m3-button--outlined" type="submit">{{ __('Enable terms and review subjects') }}</button>
+                    </form>
+                </div></section>
+            @endcan
+        @endcan
         @can('term-create')
             <section class="m3 m3-card m3-card--outlined page-form-card"><div class="m3-card__content page-card__content">
                 <h2>{{ __('Add term') }}</h2>

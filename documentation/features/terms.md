@@ -38,3 +38,10 @@ than silently changed.
 Semesters have been retired under the owner's confirmation that no installed
 clients depend on them. Existing IDs and academic links migrate in place; there
 is one term calendar rather than a parallel compatibility system.
+
+School terms offers an explicit class enable action for the selected year. It
+requires term editing and class-subject allocation permission, keeps academic
+records intact, and opens the class subject editor to review allocations. Whole-year
+allocations are not automatically assigned to a term. There is no bulk wipe or
+destructive disable operation. Exam/result filters remain usable without a
+school-wide current term, including schools using only grade-band calendars.

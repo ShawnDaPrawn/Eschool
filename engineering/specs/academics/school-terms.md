@@ -104,3 +104,10 @@ no live deployment is part of the merge authorization.
 The retired semester controller no longer offers bulk class-data wiping. Year
 switches preserve historical lesson term links instead of clearing them. Curriculum
 copying/versioning remains separate from selecting a new current year.
+
+School terms offers an explicit class enable action for the selected year. It
+requires term editing and class-subject allocation permission, keeps academic
+records intact, and opens the class subject editor to review allocations. Whole-year
+allocations are not automatically assigned to a term. There is no bulk wipe or
+destructive disable operation. Exam/result filters remain usable without a
+school-wide current term, including schools using only grade-band calendars.

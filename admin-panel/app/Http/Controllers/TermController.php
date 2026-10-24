@@ -4,8 +4,10 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\Academics\EnableClassTermsRequest;
 use App\Http\Requests\Academics\TermRequest;
 use App\Http\Requests\Academics\TermTemplateRequest;
+use App\Models\ClassSchool;
 use App\Models\SessionYear;
 use App\Models\Term;
 use App\Models\TermTemplate;
@@ -28,7 +30,8 @@ class TermController extends Controller
 
         return view('term.index', ['years' => $years, 'year' => $year,
             'terms' => $year === null ? [] : $calendar->list($request->user(), $yearId)['terms'],
-            'templates' => TermTemplate::query()->orderBy('name')->get()]);
+            'templates' => TermTemplate::query()->orderBy('name')->get(),
+            'classes' => ClassSchool::query()->with('medium')->withSessionConfigFor($yearId)->orderBy('name')->get()]);
     }
 
     public function store(TermRequest $request, TermCalendar $calendar): RedirectResponse
@@ -51,6 +54,14 @@ class TermController extends Controller
         $calendar->remove($request->user(), $term);
 
         return redirect()->route('term.index', ['session_year_id' => $yearId])->with('success', __('Term removed'));
+    }
+
+    public function enableClass(EnableClassTermsRequest $request, TermCalendar $calendar): RedirectResponse
+    {
+        $calendar->enableClass($request->user(), (int) $request->input('session_year_id'), (int) $request->input('class_id'));
+
+        return redirect()->route('class-subject-edit.index', ['id' => $request->input('class_id'), 'session_year_id' => $request->input('session_year_id')])
+            ->with('success', __('Terms enabled. Existing records are retained; review the term for each subject allocation.'));
     }
 
     public function saveTemplate(TermTemplateRequest $request, TermTemplates $templates): RedirectResponse
