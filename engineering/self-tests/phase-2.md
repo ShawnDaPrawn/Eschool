@@ -582,3 +582,10 @@ edits requires comparison before writing against fresh revisions. The real
 v2 reader response passes an advancing-microsecond-clock regression: its two
 lease timestamps now use one instant (**2 backend tests, 19 assertions**).
 Pint and Larastan pass. These fixes address both inline review findings.
+
+Final #98 CI regression found one missing panel navigation label (1,461 passed,
+one daemon integration skip). Added the Learning content key to every panel
+language file; **6 focused navigation/translation/reader tests pass, 4,008
+assertions**. Also brought forward the actual reader clock regression from #99:
+server/expiry timestamps share one instant. The advancing-clock v2 response test
+passes. Final-head CI must complete before merge.
