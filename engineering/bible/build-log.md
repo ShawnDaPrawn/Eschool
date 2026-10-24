@@ -419,3 +419,14 @@ parallel run are removed from the completion scope. Retained academic, messaging
 export, language and desktop implementation proceeds to final checks and main.
 The existing reconciliation command is retained. External release evidence is
 still reported honestly; the decision does not authorize production deployment.
+
+### 24 October 2026 - concurrent Phase 3 and Phase 4 kickoff
+
+The owner authorized two isolated agent streams from main `9fc30e42`: Phase 3
+AI learning/pastoral care and Phase 4 facilitator/community. The first slices
+are the inference service/CLI gateway foundation and native app build identities
+with startup isolation. Neither phase is claimed complete. Shared contracts and
+feature dependencies are recorded in `engineering/phases/phase-3-4-coordination.md`;
+the lead reviews and integrates feature PRs. Existing transcription and teacher
+builds remain supported. External provider activation, production/store release
+and unrun acceptance evidence are not inferred from this kickoff.
