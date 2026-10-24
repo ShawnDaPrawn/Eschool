@@ -1,3 +1,4 @@
+import 'package:eschool_academics/eschool_academics.dart';
 import 'package:eschool/app/routeArguments.dart';
 import 'package:eschool/app/routes.dart';
 import 'package:eschool/utils/uiUtils.dart';
@@ -8,6 +9,11 @@ import 'package:flutter/foundation.dart';
 /// the existing route of the same screen. A route's own name works as a path
 /// too, so reloading a page in the browser lands on it again.
 const List<DeepLinkRoute> deepLinkRoutes = [
+  DeepLinkRoute(
+    Routes.academicContent,
+    Routes.academicContent,
+    arguments: contentLinkArguments,
+  ),
   DeepLinkRoute(Routes.academicReports, Routes.academicReports),
   DeepLinkRoute(Routes.academicMarks, Routes.academicMarks),
   DeepLinkRoute('/notices', Routes.noticeBoard),
@@ -100,6 +106,9 @@ void openDeepLink(DeepLinkTarget target, {required bool signedIn}) {
       _entryRoutes.contains(Routes.currentRoute)) {
     deepLinks.keepPending(target);
     return;
+  }
+  if (target.routeName == Routes.academicContent) {
+    navigator.popUntil((route) => route.isFirst);
   }
   navigator.pushNamed(target.routeName, arguments: target.arguments);
 }

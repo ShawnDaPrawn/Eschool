@@ -333,3 +333,17 @@ Dart types. The broader Phase 3 AI kernel is not represented as finished.
 Native panel workflows are included; shared app workflows follow in a separate slice; no content capability is yet
 advertised in app context. Local verification is recorded in Phase 2 self-tests;
 container/real-daemon CI and external acceptance remain separate evidence.
+
+
+### 24 October 2026 — shared content clients
+
+Added teacher upload/edit/status/retry/review/publication/history/withdrawal and
+family library/Markdown readers to the shared academic package and both shells.
+The app capability is advertised with this slice. Requests pin school/account;
+notification links validate learner/version and resolve only an authorized
+child. Uncertain writes preserve UUID/body, conflicts retain local draft text,
+and context changes close private routes. Inactive/resumed screens hide and
+refresh private content. The initial reader uses route memory; encrypted leased
+offline copies follow as a separate implementation slice before Phase 2 wrap-up.
+Automated and browser evidence is recorded in phase-2 self-tests; production,
+physical-device, human translation and full-term pilot evidence remain separate.

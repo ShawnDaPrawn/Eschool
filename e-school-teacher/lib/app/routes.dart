@@ -123,6 +123,7 @@ class Routes {
   static const String mySchool = '/my-school';
   static const String academicMarks = '/academics/marks';
   static const String academicReports = '/academics/reports';
+  static const String academicContent = '/academics/content';
   static const String academicTimetable = '/academics/timetable';
   static const String academicRegisters = '/academics/registers';
   static const String profilePicture = '/profile-picture';
@@ -313,6 +314,8 @@ class Routes {
         return academicRegistersRoute();
       case academicTimetable:
         return academicTimetableRoute();
+      case academicContent:
+        return academicContentRoute(routeSettings.arguments);
       case academicReports:
         return academicReportsRoute();
       case academicMarks:

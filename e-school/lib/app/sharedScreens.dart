@@ -179,6 +179,15 @@ List<Widget> sharedScreenEntries(
   void open(String route) => Navigator.of(context).pushNamed(route);
   return [
     if (context.watch<MeContextCubit>().context?.isFeatureOn(
+          'academic_content',
+        ) ==
+        true)
+      tile(
+        title: label('Learning content'),
+        icon: Icons.menu_book_outlined,
+        onTap: () => open(Routes.academicContent),
+      ),
+    if (context.watch<MeContextCubit>().context?.isFeatureOn(
           'academic_reports',
         ) ==
         true)
@@ -494,6 +503,125 @@ class AcademicReportsEntry extends StatelessWidget {
           title: Text(SharedUiUtils.getTranslatedLabel(context, 'reportCards')),
           trailing: const Icon(Icons.chevron_right),
           onTap: () => Navigator.of(context).pushNamed(Routes.academicReports),
+        ),
+      ),
+    );
+  }
+}
+
+Route<dynamic> academicContentRoute(Object? arguments) => AdaptivePageRoute(
+  builder: (context) => _FamilyContentRoute(
+    target: arguments is ContentLinkTarget ? arguments : null,
+  ),
+);
+
+class _FamilyContentRoute extends StatefulWidget {
+  const _FamilyContentRoute({this.target});
+  final ContentLinkTarget? target;
+  @override
+  State<_FamilyContentRoute> createState() => _FamilyContentRouteState();
+}
+
+class _FamilyContentRouteState extends State<_FamilyContentRoute> {
+  bool _ready = false, _allowed = true;
+  @override
+  void initState() {
+    super.initState();
+    _prepare();
+  }
+
+  Future<void> _prepare() async {
+    final auth = context.read<AuthCubit>();
+    final requested = widget.target?.learner;
+    try {
+      if (requested != null) {
+        if (auth.isParent()) {
+          final child = await context.read<ChildSelectionCubit>().select(
+            requested,
+          );
+          _allowed = child != null;
+        } else {
+          _allowed = requested == auth.getStudentDetails().id;
+        }
+      }
+    } catch (_) {
+      _allowed = false;
+    }
+    if (mounted) setState(() => _ready = true);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (!_ready)
+      return const ScreenScaffold(
+        title: 'Learning content',
+        body: Center(child: CircularProgressIndicator()),
+      );
+    final session = context.read<MeContextCubit>();
+    final schools = context.read<SchoolSelectionCubit>();
+    final children = context.read<ChildSelectionCubit>();
+    final me = session.context;
+    final auth = context.read<AuthCubit>();
+    final parent = auth.isParent();
+    final child = parent ? children.selected : null;
+    final learner = parent ? child?.id : auth.getStudentDetails().id;
+    final school = parent ? child?.schoolId : me?.currentSchoolId;
+    final account = me?.user?.id;
+    if (!_allowed ||
+        learner == null ||
+        learner <= 0 ||
+        school == null ||
+        school <= 0 ||
+        account == null ||
+        account <= 0 ||
+        me?.isFeatureOn('academic_content') != true) {
+      return const ScreenScaffold(
+        title: 'Learning content',
+        body: Center(child: Text('Not available for this account')),
+      );
+    }
+    final selectedSchool = schools.state.selectedId;
+    final repository = ApiAcademicContentRepository(
+      Api.client,
+      schoolId: school,
+      readerId: account,
+      contextActive: () =>
+          session.context?.user?.id == account &&
+          schools.state.selectedId == selectedSchool &&
+          (!parent || children.state.selectedId == learner),
+    );
+    return ContentContextBoundary(
+      schoolId: selectedSchool ?? school,
+      readerId: account,
+      learnerId: parent ? learner : null,
+      child: LearningContentScreen(
+        repository: repository,
+        learner: learner,
+        learnerName:
+            child?.child.name ?? auth.getStudentDetails().getFullName(),
+        initialVersion: widget.target?.version,
+      ),
+    );
+  }
+}
+
+class AcademicContentEntry extends StatelessWidget {
+  const AcademicContentEntry({super.key});
+  @override
+  Widget build(BuildContext context) {
+    if (context.watch<MeContextCubit>().context?.isFeatureOn(
+          'academic_content',
+        ) !=
+        true)
+      return const SizedBox.shrink();
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      child: Card(
+        child: ListTile(
+          leading: const Icon(Icons.menu_book_outlined),
+          title: Text(contentLabel(context, 'Learning content')),
+          trailing: const Icon(Icons.chevron_right),
+          onTap: () => Navigator.of(context).pushNamed(Routes.academicContent),
         ),
       ),
     );
