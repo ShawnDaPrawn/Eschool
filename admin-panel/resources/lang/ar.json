@@ -1721,5 +1721,7 @@
     "The file could not be saved. Please try again.": "تعذر حفظ الملف. يرجى المحاولة مرة أخرى.",
     "File saved. Refresh the profile to view it.": "تم حفظ الملف. حدّث الملف الشخصي لعرضه.",
     "File": "ملف",
+    "Curriculum plans": "خطط المناهج الدراسية",
+    "new_year_carry_curriculum": "نسخ سجل تعريفات المناهج كمسودات دون علامات أو تقارير",
     "Subject standards": "معايير المواد الدراسية"
 }

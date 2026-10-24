@@ -207,3 +207,12 @@ mapping/creation with a Material 3 page. The historical DBE-NCS-2015 baseline ha
 629 grade-specific codes and no guessed assessment weights. Existing marks and
 subject payloads remain intact. Later academic slices continue while genuine
 staging/pilot/independent-review evidence stays open.
+
+## 24 October 2026: versioned curriculum foundations
+
+Added bounded, audited curriculum/topic/task/question definitions, independent
+term publication, exact mark units, optimistic revisions and same-year provenance.
+Separate term/annual components accommodate subject-specific policy without
+inventing ratios. Material 3 editor and explicit new-year draft carry use the same
+service as v2 APIs. Source confirmation, marks engine, remaining academic screens
+and external pilot evidence continue as separate work.

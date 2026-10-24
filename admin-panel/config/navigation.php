@@ -137,6 +137,8 @@ return [
                             'keywords' => ['classes', 'class sections', 'homerooms', 'add a grade']],
                         ['key' => 'homeroom-names', 'label' => 'nav_homeroom_names', 'route' => 'section.index', 'permissions' => ['section-create'], 'module' => null,
                             'keywords' => ['sections', 'divisions', 'a b c']],
+                        ['key' => 'curriculum-plans', 'label' => 'Curriculum plans', 'route' => 'curriculum.index', 'permissions' => ['curriculum-read'], 'module' => 'academics',
+                            'keywords' => ['topics', 'assessments', 'task weights', 'question maxima']],
                         ['key' => 'subject-standards', 'label' => 'Subject standards', 'route' => 'subject-standards.index', 'permissions' => ['subject-list'], 'module' => 'academics',
                             'keywords' => ['CAPS', 'IEB', 'subject codes', 'curriculum references']],
                         ['key' => 'subjects', 'label' => 'nav_subjects', 'route' => 'subject.index', 'permissions' => ['subject-create'], 'module' => null,

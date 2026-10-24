@@ -17,7 +17,7 @@ use Illuminate\Validation\ValidationException;
 
 class TermCalendar
 {
-    public const LINKS = ['class_subjects', 'elective_subject_groups', 'timetables', 'student_subjects', 'lessons', 'assignments', 'announcements', 'class_teachers', 'subject_teachers', 'exams', 'online_exams'];
+    public const LINKS = ['curriculum_topics', 'assessment_plans', 'class_subjects', 'elective_subject_groups', 'timetables', 'student_subjects', 'lessons', 'assignments', 'announcements', 'class_teachers', 'subject_teachers', 'exams', 'online_exams'];
 
     public static function rules(): array
     {

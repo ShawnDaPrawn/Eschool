@@ -88,3 +88,14 @@ Subject standards add a global immutable public reference catalogue, with framew
 code, phase/grade bounds, source/version/effective date, optional integer component
 weights and explicit publication. subjects.standard_id is a nullable restricted
 reference, exposed by v2 mapping resources and hidden from v1 raw serialization.
+
+## Phase 2: curriculum and assessments
+
+School-owned soft-deleted curriculum_plans record subject/grade/year versions,
+source version, immutable reference snapshot, annual components, absent/rounding
+policy and optimistic draft revision. curriculum_topics belong to a term with
+stable keys and week ranges. assessment_plans hold per-term components and
+publication. assessment_tasks hold stable keys, term and annual components and
+basis-point weights, exact hundredth maximum units and optional same-year source
+task provenance. assessment_questions hold question numbers, exact maxima and
+topic links. Cross-year copies never carry task mark provenance or learner data.

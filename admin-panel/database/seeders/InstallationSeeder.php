@@ -27,6 +27,7 @@ class InstallationSeeder extends Seeder
 
         // Add Permissions
         $permissions = [
+            ['name' => 'curriculum-read'], ['name' => 'curriculum-manage'], ['name' => 'curriculum-publish'],
             ['id' => 1, 'name' => 'role-list'],
             ['id' => 2, 'name' => 'role-create'],
             ['id' => 3, 'name' => 'role-edit'],

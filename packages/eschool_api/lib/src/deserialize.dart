@@ -20,6 +20,22 @@ import 'package:eschool_api/src/model/create_learner_enrolment_request.dart';
 import 'package:eschool_api/src/model/create_profile_category_request.dart';
 import 'package:eschool_api/src/model/create_profile_field_request.dart';
 import 'package:eschool_api/src/model/current_school.dart';
+import 'package:eschool_api/src/model/curriculum_assessment.dart';
+import 'package:eschool_api/src/model/curriculum_assessment_write.dart';
+import 'package:eschool_api/src/model/curriculum_copy_write.dart';
+import 'package:eschool_api/src/model/curriculum_plan.dart';
+import 'package:eschool_api/src/model/curriculum_plan_response.dart';
+import 'package:eschool_api/src/model/curriculum_plan_summary.dart';
+import 'package:eschool_api/src/model/curriculum_plan_write.dart';
+import 'package:eschool_api/src/model/curriculum_plans_response.dart';
+import 'package:eschool_api/src/model/curriculum_plans_response_data.dart';
+import 'package:eschool_api/src/model/curriculum_publish_write.dart';
+import 'package:eschool_api/src/model/curriculum_question.dart';
+import 'package:eschool_api/src/model/curriculum_question_write.dart';
+import 'package:eschool_api/src/model/curriculum_task.dart';
+import 'package:eschool_api/src/model/curriculum_task_write.dart';
+import 'package:eschool_api/src/model/curriculum_topic.dart';
+import 'package:eschool_api/src/model/curriculum_topic_write.dart';
 import 'package:eschool_api/src/model/decide_guardian_approval_request.dart';
 import 'package:eschool_api/src/model/decide_guardian_handle_proposal_request.dart';
 import 'package:eschool_api/src/model/enrolment.dart';
@@ -188,6 +204,54 @@ ReturnType deserialize<ReturnType, BaseType>(
           as ReturnType;
     case 'CurrentSchool':
       return CurrentSchool.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'CurriculumAssessment':
+      return CurriculumAssessment.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'CurriculumAssessmentWrite':
+      return CurriculumAssessmentWrite.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'CurriculumCopyWrite':
+      return CurriculumCopyWrite.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'CurriculumPlan':
+      return CurriculumPlan.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'CurriculumPlanResponse':
+      return CurriculumPlanResponse.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'CurriculumPlanSummary':
+      return CurriculumPlanSummary.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'CurriculumPlanWrite':
+      return CurriculumPlanWrite.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'CurriculumPlansResponse':
+      return CurriculumPlansResponse.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'CurriculumPlansResponseData':
+      return CurriculumPlansResponseData.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'CurriculumPublishWrite':
+      return CurriculumPublishWrite.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'CurriculumQuestion':
+      return CurriculumQuestion.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'CurriculumQuestionWrite':
+      return CurriculumQuestionWrite.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'CurriculumTask':
+      return CurriculumTask.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'CurriculumTaskWrite':
+      return CurriculumTaskWrite.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'CurriculumTopic':
+      return CurriculumTopic.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'CurriculumTopicWrite':
+      return CurriculumTopicWrite.fromJson(value as Map<String, dynamic>)
           as ReturnType;
     case 'DecideGuardianApprovalRequest':
       return DecideGuardianApprovalRequest.fromJson(

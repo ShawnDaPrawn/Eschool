@@ -30,3 +30,11 @@ The registry is `config/notification_types.php`. Schools control optional
 portal/channel modes, humans control their optional choices, and `Notifier`
 enforces module availability, current access and precedence before delivery.
 The [specification](../specs/platform/notification-rules.md) records semantics.
+
+## Phase 2: curriculum permissions
+
+Always-on academics includes curriculum-read/manage/publish. School publishers
+manage all contexts; teacher read/manage also requires an explicit subject,
+grade-mapped homeroom and year allocation. Fresh access checks precede cached
+write replay. Plan saves, copies and publication create audit records. No new
+family notification is emitted for draft definitions.
