@@ -5,9 +5,9 @@ The existing Phase 2 local transcription adapter remains unchanged.
 
 | Candidate | Adapter in first foundation | Contracts / no training | Processing locations | Live evaluation | Enabled |
 | --- | --- | --- | --- | --- | --- |
-| OpenAI | Not implemented | Unreviewed | Unconfirmed | Not run | No |
-| Anthropic | Not implemented | Unreviewed | Unconfirmed | Not run | No |
-| DeepSeek | Not implemented | Unreviewed | Unconfirmed | Not run | No |
+| OpenAI | Completion/embedding and text moderation protocol implemented | Unreviewed | Unconfirmed | Not run | No |
+| Anthropic | Messages protocol implemented | Unreviewed | Unconfirmed | Not run | No |
+| DeepSeek | Completion protocol implemented | Unreviewed | Unconfirmed | Not run | No |
 
 Before a feature is enabled, record the exact provider/model/version, no-training
 terms and POPIA review, processing locations, credentials through approved secret
