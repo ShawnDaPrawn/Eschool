@@ -41,3 +41,21 @@ Self-test: identity/default/mismatch dispatch, unavailable screen at phone and
 laptop widths, teacher suite/analyzer, native metadata/scheme validation. Android
 Gradle and iOS Xcode builds require their toolchains and are recorded separately;
 metadata tests are not proof of a successful native build.
+
+Native iOS startup is also guarded before Dart. AppDelegate admits teacher
+services only for the signed teacher bundle identifier, then conditionally
+configures Firebase and notification delegation. Reserved/unknown identities
+skip generated plugin registration as well; plugin registration may initialize
+native services before Flutter's Dart entrypoint. The Flutter engine still
+launches to show the unavailable page. The existing teacher path is preserved.
+The metadata audit binds Info.plist to PRODUCT_BUNDLE_IDENTIFIER, checks all
+legacy/named target configurations and verifies these native guard call sites.
+This is source/configuration validation; Xcode/device verification is still pending.
+
+The native Crashlytics upload build phase also skips reserved/unknown native
+bundle identifiers before any upload command. The audit syntax-checks the full
+script and executes only its isolated leading gate for all 12 configurations,
+plus empty/unknown identities (14 cases); it never executes the upload command.
+Native teacher identity preserves its existing Firebase startup. A contradictory
+Dart FLAVOR is refused later by the Dart bootstrap; it does not prevent the
+trusted teacher native build from initializing Firebase before Dart starts.

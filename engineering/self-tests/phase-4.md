@@ -36,3 +36,33 @@ conditional Gradle branches that the default teacher CI would not exercise.
 
 Physical-device, browser integration, staging, user acceptance and production
 release are separate evidence; none is inferred from widget/source tests.
+
+### Native Firebase startup review follow-up
+
+Review found that iOS AppDelegate configured Firebase before Dart even when a
+reserved build excluded GoogleService-Info.plist. The native boundary now uses
+the signed bundle identifier, independently of Dart FLAVOR, to gate Firebase,
+notification delegation and generated plugin registration. Teacher behavior is
+retained; reserved/unknown native identities still start the Flutter engine but
+never initialize teacher services. SceneDelegate has no additional startup hook;
+Android MainActivity contains no explicit Firebase initialization and reserved
+Android variants do not apply the Google Services plugin.
+
+The native audit passes for all 12 target configurations: teacher identity and
+plist availability, reserved identities and exclusions, the Info.plist identifier
+binding, the native allowlist and guarded launch/plugin call sites. This is
+source/configuration evidence only. Actual iOS compilation and native device
+launch remain unrun because this environment has no macOS/Xcode.
+
+The native Crashlytics upload build phase also skips reserved/unknown native
+bundle identifiers before any upload command. The audit syntax-checks the full
+script and executes only its isolated leading gate for all 12 configurations,
+plus empty/unknown identities (14 cases); it never executes the upload command.
+Native teacher identity preserves its existing Firebase startup. A contradictory
+Dart FLAVOR is refused later by the Dart bootstrap; it does not prevent the
+trusted teacher native build from initializing Firebase before Dart starts.
+
+Five isolated negative audit fixtures were also rejected: unconditional Firebase
+startup, admitting the facilitator native ID, removing the native plugin guard,
+hardcoding the teacher plist identity and admitting a reserved symbol upload.
+The production source was unchanged by these temporary mutation checks.
