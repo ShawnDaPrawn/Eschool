@@ -22,6 +22,7 @@ AcademicReportConfigurationData _$AcademicReportConfigurationDataFromJson(
         'templates',
         'can_design',
         'comment_banks',
+        'subjects',
       ],
     );
     final val = AcademicReportConfigurationData(
@@ -70,6 +71,15 @@ AcademicReportConfigurationData _$AcademicReportConfigurationDataFromJson(
             )
             .toList(),
       ),
+      subjects: $checkedConvert(
+        'subjects',
+        (v) => (v as List<dynamic>)
+            .map(
+              (e) =>
+                  AcademicTimetableChoice.fromJson(e as Map<String, dynamic>),
+            )
+            .toList(),
+      ),
     );
     return val;
   },
@@ -91,4 +101,5 @@ Map<String, dynamic> _$AcademicReportConfigurationDataToJson(
   'templates': instance.templates.map((e) => e.toJson()).toList(),
   'can_design': instance.canDesign,
   'comment_banks': instance.commentBanks.map((e) => e.toJson()).toList(),
+  'subjects': instance.subjects.map((e) => e.toJson()).toList(),
 };

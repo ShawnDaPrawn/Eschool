@@ -15,6 +15,7 @@ use App\Models\ClassSection;
 use App\Models\People\Enrolment;
 use App\Models\SessionYear;
 use App\Models\Students;
+use App\Models\Subject;
 use App\Models\Term;
 use App\Models\User;
 use App\Policies\Academics\ReportPolicy;
@@ -38,6 +39,7 @@ class ReportQueries
         return ['session_year_id' => (int) $year->id, 'school_years' => $years->map(fn ($y) => ['id' => (int) $y->id, 'name' => $y->name])->all(),
             'homerooms' => $rooms->map(fn ($room) => ['id' => (int) $room->id, 'grade_level_id' => (int) $room->class->grade_level_id, 'grade_order' => (int) $room->class->gradeLevel->sort_order, 'name' => trim($room->class->name.' '.$room->section->name)])->values()->all(),
             'terms' => Term::where('session_year_id', $year->id)->orderBy('start_date')->get()->map(fn ($term) => ['id' => (int) $term->id, 'name' => $term->name, 'grade_from' => $term->grade_from, 'grade_to' => $term->grade_to])->all(),
+            'subjects' => Subject::orderBy('name')->get()->map(fn ($subject) => ['id' => (int) $subject->id, 'name' => $subject->name])->all(),
             'templates' => ReportTemplate::orderBy('name')->get()->map(fn ($t) => app(ReportDesigns::class)->data($t))->all(), 'can_design' => $authority->manages($actor),
             'comment_banks' => ReportCommentBank::orderBy('label')->get()->map(fn ($bank) => ['id' => (int) $bank->id, 'subject_id' => $bank->subject_id === null ? null : (int) $bank->subject_id, 'scope' => $bank->scope, 'label' => $bank->label, 'text' => $bank->text, 'active' => $bank->active, 'revision' => $bank->revision])->all()];
     }
@@ -102,7 +104,11 @@ class ReportQueries
             $payload = $card->payload;
             foreach ([null, ...array_column($payload['subjects'], 'subject_id')] as $subject) {
                 try {
-                    app(ReportPolicy::class)->comment($actor, $card, $subject);
+                    if (app(ReportPolicy::class)->comment($actor, $card, $subject)) {
+                        // This list is allocated work only. Leadership corrections
+                        // belong to batch review, where a reason is available.
+                        continue;
+                    }
                 } catch (HttpExceptionInterface $error) {
                     if ($error->getStatusCode() === 403) {
                         continue;

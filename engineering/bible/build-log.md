@@ -301,3 +301,10 @@ cycle, and published evidence remains immutable. Current leadership can handle
 historical reports after a year rollover; administrative comment corrections
 require an encrypted audit reason. Backend/API/SDK verification is in progress.
 Panel/shared report screens, external delivery and pilot acceptance remain open.
+
+24 October 2026: shared report screens and the native M3 panel workbench add
+design/bank editing, explicit learner previews, allocated comments with conflict
+review, ordered approval, queued PDF review/release and paged own-child history.
+Private PDFs refresh authority on open/resume/export; context changes discard
+route memory. Automated/browser verification is tracked in phase-2 self-tests.
+No production or full-term pilot acceptance is inferred from synthetic checks.

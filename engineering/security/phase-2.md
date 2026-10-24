@@ -119,3 +119,10 @@ school and staff/family purpose and require fresh access. Family list/downloads
 never query fees. Report notices deduplicate per recipient/card and recheck live
 guardianship at both queued transports. This is implementation/self-review, not
 independent staging/pilot security acceptance.
+
+Report client checks: metadata cannot redirect an authenticated PDF fetch to a
+foreign origin/card/school or duplicate signed query; private asset redirects are
+disabled. Guardian revocation clears paged history/PDF refresh state; late child
+responses are ignored. Panel retries reauthorize before encrypted, school-bound
+replay; body and receipt commit atomically. Draft comparison never auto-overwrites
+competing comments. Native panel and app checks remain tied to final CI evidence.

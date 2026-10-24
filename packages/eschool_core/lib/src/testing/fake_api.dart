@@ -18,6 +18,18 @@ class FakeResponse {
   final int status;
 }
 
+/// Synthetic authenticated file response for browser/native integration flows.
+class FakeBinaryResponse {
+  const FakeBinaryResponse(
+    this.bytes, {
+    this.contentType = 'application/pdf',
+    this.status = 200,
+  });
+  final List<int> bytes;
+  final String contentType;
+  final int status;
+}
+
 /// Answers every API call from fixtures, with no server and no network: the
 /// integration smoke flows of both apps run against it, on a phone and in a
 /// browser. Put it in the app's Dio with `Dio()..httpClientAdapter = api`.
@@ -74,6 +86,15 @@ class FakeApi implements HttpClientAdapter {
         routes['${options.method} $path'] ?? routes[path] ?? fallback;
     if (answer is Function) {
       answer = (answer as Object Function(RequestOptions))(options);
+    }
+    if (answer is FakeBinaryResponse) {
+      return ResponseBody.fromBytes(
+        answer.bytes,
+        answer.status,
+        headers: {
+          Headers.contentTypeHeader: [answer.contentType],
+        },
+      );
     }
     final FakeResponse response = answer is FakeResponse
         ? answer

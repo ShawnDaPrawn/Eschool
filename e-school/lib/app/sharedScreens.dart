@@ -179,6 +179,15 @@ List<Widget> sharedScreenEntries(
   void open(String route) => Navigator.of(context).pushNamed(route);
   return [
     if (context.watch<MeContextCubit>().context?.isFeatureOn(
+          'academic_reports',
+        ) ==
+        true)
+      tile(
+        title: label('reportCards'),
+        icon: Icons.description_outlined,
+        onTap: () => open(Routes.academicReports),
+      ),
+    if (context.watch<MeContextCubit>().context?.isFeatureOn(
           'academic_registers',
         ) ==
         true)
@@ -431,6 +440,61 @@ class AcademicTodayAttendance extends StatelessWidget {
         repository: ApiRegisterRepository(Api.client, schoolId: school),
         onOpen: () =>
             Navigator.of(context).pushNamed(Routes.academicAttendance),
+      ),
+    );
+  }
+}
+
+Route<dynamic> academicReportsRoute() => AdaptivePageRoute(
+  builder: (context) {
+    final me = context.read<MeContextCubit>().context;
+    final auth = context.read<AuthCubit>();
+    final child = auth.isParent()
+        ? context.read<ChildSelectionCubit>().selected
+        : null;
+    final learner = auth.isParent() ? child?.id : auth.getStudentDetails().id;
+    final school = auth.isParent() ? child?.schoolId : me?.currentSchoolId;
+    if (learner == null ||
+        learner <= 0 ||
+        school == null ||
+        school <= 0 ||
+        me?.isFeatureOn('academic_reports') != true) {
+      return const ScreenScaffold(
+        title: 'Report cards',
+        body: Center(child: Text('Not available yet')),
+      );
+    }
+    return AcademicContextBoundary(
+      schoolId: context.read<SchoolSelectionCubit>().state.selectedId ?? school,
+      childId: auth.isParent() ? learner : null,
+      child: FamilyReportsScreen(
+        repository: ApiReportRepository(Api.client, schoolId: school),
+        learner: learner,
+        learnerName:
+            child?.child.name ?? auth.getStudentDetails().getFullName(),
+      ),
+    );
+  },
+);
+
+class AcademicReportsEntry extends StatelessWidget {
+  const AcademicReportsEntry({super.key});
+  @override
+  Widget build(BuildContext context) {
+    if (context.watch<MeContextCubit>().context?.isFeatureOn(
+          'academic_reports',
+        ) !=
+        true)
+      return const SizedBox.shrink();
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      child: Card(
+        child: ListTile(
+          leading: const Icon(Icons.description_outlined),
+          title: Text(SharedUiUtils.getTranslatedLabel(context, 'reportCards')),
+          trailing: const Icon(Icons.chevron_right),
+          onTap: () => Navigator.of(context).pushNamed(Routes.academicReports),
+        ),
       ),
     );
   }

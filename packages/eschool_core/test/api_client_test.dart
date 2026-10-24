@@ -65,6 +65,24 @@ void main() {
     fail('expected an ApiException');
   }
 
+  test('v2 retries preserve the supplied operation key and school', () async {
+    for (var attempt = 0; attempt < 2; attempt++) {
+      await client.send(
+        method: 'POST',
+        url: 'https://school.test/api/v2/report',
+        schoolId: 2,
+        idempotencyKey: 'stable-operation',
+        data: {'revision': 3},
+      );
+    }
+    expect(adapter.requests, hasLength(2));
+    for (final request in adapter.requests) {
+      expect(request.headers['Idempotency-Key'], 'stable-operation');
+      expect(request.headers['X-School-Id'], '2');
+      expect(request.data, {'revision': 3});
+    }
+  });
+
   test('headers carry the signed-in token and ask for JSON', () {
     // Accept: application/json makes the server answer an expired token with 401.
     expect(client.headers(), {
@@ -93,6 +111,7 @@ void main() {
         [37, 80, 68, 70],
       );
       expect(adapter.requests.single.headers['X-School-Id'], '2');
+      expect(adapter.requests.single.followRedirects, isFalse);
       expect(
         adapter.requests.single.headers['Authorization'],
         'Bearer secret-token',

@@ -3,100 +3,168 @@ info:
   title: NavigateEd API v2
   version: 2.0.0
   summary: The contract for every /api/v2 endpoint.
-  description: |
-    API v2 is served by the admin panel's Laravel app under `/api/v2`, next to
+  description: 'API v2 is served by the admin panel''s Laravel app under `/api/v2`, next to
+
     v1 (`/api`), which keeps serving the installed apps unchanged. This file is
+
     the contract: `tests/Feature/Contracts` validates every v2 response against
+
     it and fails on a v2 route it does not describe, CI lints it, and
-    `packages/eschool_api` (the apps' Dart client) is generated from it.
+
+    `packages/eschool_api` (the apps'' Dart client) is generated from it.
+
 
     Change it in the same pull request as the endpoint. Fields and endpoints
+
     are only ever added: nothing is renamed or removed while an app version in
+
     use still reads it.
+
 
     ## Envelope
 
+
     Every answer is a JSON object `{error, message, data, code}`, as in v1:
+
     `error` is `false` on success and `true` on failure, `message` is a
+
     sentence the app may show, `data` is the payload (or `null`) and `code` is
+
     `200` on success and a string error code (below) on failure. Unlike v1, v2
+
     also uses real HTTP statuses: 2xx on success, 4xx or 5xx with
+
     `error: true`. A failure may carry `details` (exception text, only when
+
     the server runs in debug mode).
+
 
     ## Error codes
 
+
     | HTTP | `code` | When |
+
     | --- | --- | --- |
+
     | 400 | `bad_request` | The request could not be read |
+
     | 400 | `idempotency_key_missing` | A write that needs an `Idempotency-Key` came without one |
-    | 400 | `idempotency_key_invalid` | The `Idempotency-Key` is not 1 to 255 visible ASCII characters |
+
+    | 400 | `idempotency_key_invalid` | The `Idempotency-Key` is not 1 to 255 visible ASCII characters
+    |
+
     | 401 | `unauthenticated` | No token, or an expired or revoked one: sign the user out |
+
     | 403 | `forbidden` | Signed in, but this profile may not do this |
-    | 404 | `not_found` | No such endpoint or record (also for another school's record) |
+
+    | 404 | `not_found` | No such endpoint or record (also for another school''s record) |
+
     | 405 | `method_not_allowed` | Wrong HTTP method |
-    | 409 | `idempotency_key_in_progress` | The first request with this key is still running; retry shortly |
+
+    | 409 | `idempotency_key_in_progress` | The first request with this key is still running; retry shortly
+    |
+
     | 409 | `conflict` | A concurrent change got there first |
+
     | 413 | `payload_too_large` | The body is too large |
+
     | 419 | `session_expired` | Web portals: the CSRF token expired |
-    | 422 | `validation_failed` | Invalid input; `data.errors` lists every message by field, `message` is the first |
+
+    | 422 | `validation_failed` | Invalid input; `data.errors` lists every message by field, `message`
+    is the first |
+
     | 422 | `idempotency_key_reused` | This key was already used for a different request |
+
     | 429 | `too_many_requests` | Over a rate limit; wait `Retry-After` seconds |
+
     | 500 | `server_error` | A bug on our side; the request may be retried |
+
     | 503 | `unavailable` | Maintenance or overload |
 
+
     Any other status comes with `http_error`. Clients must accept codes they do
+
     not know (treat them by HTTP status).
+
 
     ## Authentication
 
+
     The apps send a Sanctum personal access token (`Authorization: Bearer
+
     <id>|<token>`), issued by the v1 sign-in endpoints. The web portals sign in
+
     with Sanctum cookies instead: `GET /sanctum/csrf-cookie`, then the session
+
     cookie plus an `X-XSRF-TOKEN` header. Every v2 route sits in a role group
+
     (Student, Parent, Teacher, staff, or every profile); another profile gets
+
     403.
+
 
     ## Rate limits
 
+
     | Limiter | Limit | Applies to |
+
     | --- | --- | --- |
+
     | `api` | 60 a minute per user (per address when signed out) | every route |
+
     | `auth` | 5 a minute per account and 20 per address | sign-in, one-time codes, password resets |
+
     | `money` | 30 a minute per token | money writes |
 
+
     Answers carry `X-RateLimit-Limit` and `X-RateLimit-Remaining`; a 429 adds
+
     `Retry-After` (seconds).
+
 
     ## Lists
 
+
     List endpoints take the same parameters everywhere (see
+
     `components/parameters`): `page` (from 1), `per_page` (1 to 100),
+
     `sort` (comma-separated fields, `-` for descending), `filter[<field>]`
+
     and `q` (free-text search). They answer `data: {items: [...],
+
     pagination: Pagination}`.
+
 
     ## Idempotency
 
+
     Writes accept an `Idempotency-Key` header (any unique string, a UUID is
+
     best). A retry with the same key and the same request gets the first
+
     answer again, with `Idempotent-Replayed: true`, and the work runs once.
+
     The same key with a different request is refused (422
+
     `idempotency_key_reused`). Keys are per user and kept 24 hours. Money
+
     writes require one.
+
+    '
   contact:
     name: NavigateEd engineering
 servers:
-  - url: /api/v2
-    description: The admin panel's host (for example https://admin.navigateed.co.za/api/v2)
+- url: /api/v2
+  description: The admin panel's host (for example https://admin.navigateed.co.za/api/v2)
 security:
-  - bearerAuth: []
-  - cookieAuth: []
+- bearerAuth: []
+- cookieAuth: []
 tags:
-  - name: Academics
-    description: Academic references and explicit school class mapping.
-  - name: Platform
-    description: Who is signed in and the school they work in.
+- name: Academics
+  description: Academic references and explicit school class mapping.
+- name: Platform
+  description: Who is signed in and the school they work in.
 paths:
   /academics/teaching-groups:
     get:
@@ -104,7 +172,12 @@ paths:
       tags:
       - Academics
       summary: getTeachingGroups
-      description: Academic structure management requires explicit school permission. Teachers read only allocated groups. Kind memberships requires learner_id and mark_rule; teachers requires teacher_id; homerooms requires teacher_id, class_section_id and session_year_id; leadership requires user_id, session_year_id and kind, with grade_level_id required for grade heads and omitted or null for principals. Date intervals stay within the year. Updates require revision and all context fields; history is audited. Weights and marks are not changed by an allocation.
+      description: Academic structure management requires explicit school permission. Teachers read only
+        allocated groups. Kind memberships requires learner_id and mark_rule; teachers requires teacher_id;
+        homerooms requires teacher_id, class_section_id and session_year_id; leadership requires user_id,
+        session_year_id and kind, with grade_level_id required for grade heads and omitted or null for
+        principals. Date intervals stay within the year. Updates require revision and all context fields;
+        history is audited. Weights and marks are not changed by an allocation.
       parameters:
       - $ref: '#/components/parameters/SchoolId'
       - name: session_year_id
@@ -166,7 +239,12 @@ paths:
       tags:
       - Academics
       summary: createTeachingGroup
-      description: Academic structure management requires explicit school permission. Teachers read only allocated groups. Kind memberships requires learner_id and mark_rule; teachers requires teacher_id; homerooms requires teacher_id, class_section_id and session_year_id; leadership requires user_id, session_year_id and kind, with grade_level_id required for grade heads and omitted or null for principals. Date intervals stay within the year. Updates require revision and all context fields; history is audited. Weights and marks are not changed by an allocation.
+      description: Academic structure management requires explicit school permission. Teachers read only
+        allocated groups. Kind memberships requires learner_id and mark_rule; teachers requires teacher_id;
+        homerooms requires teacher_id, class_section_id and session_year_id; leadership requires user_id,
+        session_year_id and kind, with grade_level_id required for grade heads and omitted or null for
+        principals. Date intervals stay within the year. Updates require revision and all context fields;
+        history is audited. Weights and marks are not changed by an allocation.
       parameters:
       - $ref: '#/components/parameters/SchoolId'
       responses:
@@ -204,7 +282,12 @@ paths:
       tags:
       - Academics
       summary: getTeachingGroup
-      description: Academic structure management requires explicit school permission. Teachers read only allocated groups. Kind memberships requires learner_id and mark_rule; teachers requires teacher_id; homerooms requires teacher_id, class_section_id and session_year_id; leadership requires user_id, session_year_id and kind, with grade_level_id required for grade heads and omitted or null for principals. Date intervals stay within the year. Updates require revision and all context fields; history is audited. Weights and marks are not changed by an allocation.
+      description: Academic structure management requires explicit school permission. Teachers read only
+        allocated groups. Kind memberships requires learner_id and mark_rule; teachers requires teacher_id;
+        homerooms requires teacher_id, class_section_id and session_year_id; leadership requires user_id,
+        session_year_id and kind, with grade_level_id required for grade heads and omitted or null for
+        principals. Date intervals stay within the year. Updates require revision and all context fields;
+        history is audited. Weights and marks are not changed by an allocation.
       parameters:
       - $ref: '#/components/parameters/SchoolId'
       - name: group
@@ -272,7 +355,12 @@ paths:
       tags:
       - Academics
       summary: updateTeachingGroup
-      description: Academic structure management requires explicit school permission. Teachers read only allocated groups. Kind memberships requires learner_id and mark_rule; teachers requires teacher_id; homerooms requires teacher_id, class_section_id and session_year_id; leadership requires user_id, session_year_id and kind, with grade_level_id required for grade heads and omitted or null for principals. Date intervals stay within the year. Updates require revision and all context fields; history is audited. Weights and marks are not changed by an allocation.
+      description: Academic structure management requires explicit school permission. Teachers read only
+        allocated groups. Kind memberships requires learner_id and mark_rule; teachers requires teacher_id;
+        homerooms requires teacher_id, class_section_id and session_year_id; leadership requires user_id,
+        session_year_id and kind, with grade_level_id required for grade heads and omitted or null for
+        principals. Date intervals stay within the year. Updates require revision and all context fields;
+        history is audited. Weights and marks are not changed by an allocation.
       parameters:
       - $ref: '#/components/parameters/SchoolId'
       - name: group
@@ -316,7 +404,12 @@ paths:
       tags:
       - Academics
       summary: getGroupAssignments
-      description: Academic structure management requires explicit school permission. Teachers read only allocated groups. Kind memberships requires learner_id and mark_rule; teachers requires teacher_id; homerooms requires teacher_id, class_section_id and session_year_id; leadership requires user_id, session_year_id and kind, with grade_level_id required for grade heads and omitted or null for principals. Date intervals stay within the year. Updates require revision and all context fields; history is audited. Weights and marks are not changed by an allocation.
+      description: Academic structure management requires explicit school permission. Teachers read only
+        allocated groups. Kind memberships requires learner_id and mark_rule; teachers requires teacher_id;
+        homerooms requires teacher_id, class_section_id and session_year_id; leadership requires user_id,
+        session_year_id and kind, with grade_level_id required for grade heads and omitted or null for
+        principals. Date intervals stay within the year. Updates require revision and all context fields;
+        history is audited. Weights and marks are not changed by an allocation.
       parameters:
       - $ref: '#/components/parameters/SchoolId'
       - name: group
@@ -392,7 +485,12 @@ paths:
       tags:
       - Academics
       summary: createGroupAssignment
-      description: Academic structure management requires explicit school permission. Teachers read only allocated groups. Kind memberships requires learner_id and mark_rule; teachers requires teacher_id; homerooms requires teacher_id, class_section_id and session_year_id; leadership requires user_id, session_year_id and kind, with grade_level_id required for grade heads and omitted or null for principals. Date intervals stay within the year. Updates require revision and all context fields; history is audited. Weights and marks are not changed by an allocation.
+      description: Academic structure management requires explicit school permission. Teachers read only
+        allocated groups. Kind memberships requires learner_id and mark_rule; teachers requires teacher_id;
+        homerooms requires teacher_id, class_section_id and session_year_id; leadership requires user_id,
+        session_year_id and kind, with grade_level_id required for grade heads and omitted or null for
+        principals. Date intervals stay within the year. Updates require revision and all context fields;
+        history is audited. Weights and marks are not changed by an allocation.
       parameters:
       - $ref: '#/components/parameters/SchoolId'
       - name: group
@@ -444,7 +542,12 @@ paths:
       tags:
       - Academics
       summary: updateGroupAssignment
-      description: Academic structure management requires explicit school permission. Teachers read only allocated groups. Kind memberships requires learner_id and mark_rule; teachers requires teacher_id; homerooms requires teacher_id, class_section_id and session_year_id; leadership requires user_id, session_year_id and kind, with grade_level_id required for grade heads and omitted or null for principals. Date intervals stay within the year. Updates require revision and all context fields; history is audited. Weights and marks are not changed by an allocation.
+      description: Academic structure management requires explicit school permission. Teachers read only
+        allocated groups. Kind memberships requires learner_id and mark_rule; teachers requires teacher_id;
+        homerooms requires teacher_id, class_section_id and session_year_id; leadership requires user_id,
+        session_year_id and kind, with grade_level_id required for grade heads and omitted or null for
+        principals. Date intervals stay within the year. Updates require revision and all context fields;
+        history is audited. Weights and marks are not changed by an allocation.
       parameters:
       - $ref: '#/components/parameters/SchoolId'
       - name: group
@@ -502,7 +605,12 @@ paths:
       tags:
       - Academics
       summary: getAcademicAllocations
-      description: Academic structure management requires explicit school permission. Teachers read only allocated groups. Kind memberships requires learner_id and mark_rule; teachers requires teacher_id; homerooms requires teacher_id, class_section_id and session_year_id; leadership requires user_id, session_year_id and kind, with grade_level_id required for grade heads and omitted or null for principals. Date intervals stay within the year. Updates require revision and all context fields; history is audited. Weights and marks are not changed by an allocation.
+      description: Academic structure management requires explicit school permission. Teachers read only
+        allocated groups. Kind memberships requires learner_id and mark_rule; teachers requires teacher_id;
+        homerooms requires teacher_id, class_section_id and session_year_id; leadership requires user_id,
+        session_year_id and kind, with grade_level_id required for grade heads and omitted or null for
+        principals. Date intervals stay within the year. Updates require revision and all context fields;
+        history is audited. Weights and marks are not changed by an allocation.
       parameters:
       - $ref: '#/components/parameters/SchoolId'
       - name: kind
@@ -572,7 +680,12 @@ paths:
       tags:
       - Academics
       summary: createAcademicAllocation
-      description: Academic structure management requires explicit school permission. Teachers read only allocated groups. Kind memberships requires learner_id and mark_rule; teachers requires teacher_id; homerooms requires teacher_id, class_section_id and session_year_id; leadership requires user_id, session_year_id and kind, with grade_level_id required for grade heads and omitted or null for principals. Date intervals stay within the year. Updates require revision and all context fields; history is audited. Weights and marks are not changed by an allocation.
+      description: Academic structure management requires explicit school permission. Teachers read only
+        allocated groups. Kind memberships requires learner_id and mark_rule; teachers requires teacher_id;
+        homerooms requires teacher_id, class_section_id and session_year_id; leadership requires user_id,
+        session_year_id and kind, with grade_level_id required for grade heads and omitted or null for
+        principals. Date intervals stay within the year. Updates require revision and all context fields;
+        history is audited. Weights and marks are not changed by an allocation.
       parameters:
       - $ref: '#/components/parameters/SchoolId'
       - name: kind
@@ -618,7 +731,12 @@ paths:
       tags:
       - Academics
       summary: updateAcademicAllocation
-      description: Academic structure management requires explicit school permission. Teachers read only allocated groups. Kind memberships requires learner_id and mark_rule; teachers requires teacher_id; homerooms requires teacher_id, class_section_id and session_year_id; leadership requires user_id, session_year_id and kind, with grade_level_id required for grade heads and omitted or null for principals. Date intervals stay within the year. Updates require revision and all context fields; history is audited. Weights and marks are not changed by an allocation.
+      description: Academic structure management requires explicit school permission. Teachers read only
+        allocated groups. Kind memberships requires learner_id and mark_rule; teachers requires teacher_id;
+        homerooms requires teacher_id, class_section_id and session_year_id; leadership requires user_id,
+        session_year_id and kind, with grade_level_id required for grade heads and omitted or null for
+        principals. Date intervals stay within the year. Updates require revision and all context fields;
+        history is audited. Weights and marks are not changed by an allocation.
       parameters:
       - $ref: '#/components/parameters/SchoolId'
       - name: kind
@@ -670,7 +788,9 @@ paths:
       tags:
       - Academics
       summary: List curriculum versions visible to this allocated teacher or school publisher
-      description: Published headers and term plans are immutable. Use a copy for a new version. Drafts may be incomplete; publication validates the affected term. Decimal marks are strings; weights are integer basis points (10000 = 100%).
+      description: Published headers and term plans are immutable. Use a copy for a new version. Drafts
+        may be incomplete; publication validates the affected term. Decimal marks are strings; weights
+        are integer basis points (10000 = 100%).
       parameters:
       - $ref: '#/components/parameters/SchoolId'
       - name: subject_id
@@ -734,7 +854,9 @@ paths:
       tags:
       - Academics
       summary: Save a new curriculum draft
-      description: Published headers and term plans are immutable. Use a copy for a new version. Drafts may be incomplete; publication validates the affected term. Decimal marks are strings; weights are integer basis points (10000 = 100%).
+      description: Published headers and term plans are immutable. Use a copy for a new version. Drafts
+        may be incomplete; publication validates the affected term. Decimal marks are strings; weights
+        are integer basis points (10000 = 100%).
       parameters:
       - $ref: '#/components/parameters/SchoolId'
       responses:
@@ -772,7 +894,9 @@ paths:
       tags:
       - Academics
       summary: Read a curriculum with topics, tasks and question maxima
-      description: Published headers and term plans are immutable. Use a copy for a new version. Drafts may be incomplete; publication validates the affected term. Decimal marks are strings; weights are integer basis points (10000 = 100%).
+      description: Published headers and term plans are immutable. Use a copy for a new version. Drafts
+        may be incomplete; publication validates the affected term. Decimal marks are strings; weights
+        are integer basis points (10000 = 100%).
       parameters:
       - $ref: '#/components/parameters/SchoolId'
       - name: plan
@@ -809,7 +933,9 @@ paths:
       tags:
       - Academics
       summary: Replace a draft using its current revision
-      description: Published headers and term plans are immutable. Use a copy for a new version. Drafts may be incomplete; publication validates the affected term. Decimal marks are strings; weights are integer basis points (10000 = 100%).
+      description: Published headers and term plans are immutable. Use a copy for a new version. Drafts
+        may be incomplete; publication validates the affected term. Decimal marks are strings; weights
+        are integer basis points (10000 = 100%).
       parameters:
       - $ref: '#/components/parameters/SchoolId'
       - name: plan
@@ -853,7 +979,9 @@ paths:
       tags:
       - Academics
       summary: Copy definitions to a new draft without copying marks
-      description: Published headers and term plans are immutable. Use a copy for a new version. Drafts may be incomplete; publication validates the affected term. Decimal marks are strings; weights are integer basis points (10000 = 100%).
+      description: Published headers and term plans are immutable. Use a copy for a new version. Drafts
+        may be incomplete; publication validates the affected term. Decimal marks are strings; weights
+        are integer basis points (10000 = 100%).
       parameters:
       - $ref: '#/components/parameters/SchoolId'
       - name: plan
@@ -897,7 +1025,9 @@ paths:
       tags:
       - Academics
       summary: Publish one ready term while future terms remain drafts
-      description: Published headers and term plans are immutable. Use a copy for a new version. Drafts may be incomplete; publication validates the affected term. Decimal marks are strings; weights are integer basis points (10000 = 100%).
+      description: Published headers and term plans are immutable. Use a copy for a new version. Drafts
+        may be incomplete; publication validates the affected term. Decimal marks are strings; weights
+        are integer basis points (10000 = 100%).
       parameters:
       - $ref: '#/components/parameters/SchoolId'
       - name: plan
@@ -1200,8 +1330,8 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/SchoolTermWrite'
-      description: Requires term-create. Dates must fit the year; date overlaps are refused when grade ranges intersect. Marks-lock/report dates are optional metadata
-        for the future assessment engine.
+      description: Requires term-create. Dates must fit the year; date overlaps are refused when grade
+        ranges intersect. Marks-lock/report dates are optional metadata for the future assessment engine.
   /academics/terms/{term}:
     put:
       operationId: updateSchoolTerm
@@ -1246,7 +1376,8 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/SchoolTermWrite'
-      description: Requires term-edit. The year cannot be changed. Every write repeats fresh school permission checks.
+      description: Requires term-edit. The year cannot be changed. Every write repeats fresh school permission
+        checks.
     delete:
       operationId: removeSchoolTerm
       tags:
@@ -1354,7 +1485,8 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/TermTemplateWrite'
-      description: Requires term-create. Snapshots validated dates and grade bands from a year in the current school.
+      description: Requires term-create. Snapshots validated dates and grade bands from a year in the
+        current school.
   /academics/term-templates/{template}/apply:
     post:
       operationId: applyTermTemplate
@@ -1399,16 +1531,19 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/TermTemplateApplyWrite'
-      description: Preview is the default and changes no calendar records; requires term-list. Set apply=true with term-create to add missing terms atomically. Existing
-        dates are never overwritten; exact matches are skipped and overlaps or invalid leap-day dates are refused.
+      description: Preview is the default and changes no calendar records; requires term-list. Set apply=true
+        with term-create to add missing terms atomically. Existing dates are never overwritten; exact
+        matches are skipped and overlaps or invalid leap-day dates are refused.
   /academics/reference:
     get:
       operationId: getAcademicReference
-      tags: [Academics]
+      tags:
+      - Academics
       summary: Shared grades, school phases and seven-point rating thresholds
-      description: Read-only reference for active school members. Thresholds are integer basis points, not new calculations of existing learner marks.
+      description: Read-only reference for active school members. Thresholds are integer basis points,
+        not new calculations of existing learner marks.
       parameters:
-        - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/SchoolId'
       responses:
         '200':
           description: Academic reference catalogue.
@@ -1429,17 +1564,19 @@ paths:
   /academics/classes/{class}/grade-level:
     get:
       operationId: getClassGradeLevel
-      tags: [Academics]
+      tags:
+      - Academics
       summary: Read an explicitly mapped class grade
-      description: Requires class-list or class-edit in the current school. Foreign or deleted classes return 404.
+      description: Requires class-list or class-edit in the current school. Foreign or deleted classes
+        return 404.
       parameters:
-        - $ref: '#/components/parameters/SchoolId'
-        - name: class
-          in: path
-          required: true
-          schema:
-            type: integer
-            minimum: 1
+      - $ref: '#/components/parameters/SchoolId'
+      - name: class
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
       responses:
         '200':
           description: Class grade mapping; null until explicitly set.
@@ -1459,18 +1596,20 @@ paths:
           $ref: '#/components/responses/ServerError'
     put:
       operationId: updateClassGradeLevel
-      tags: [Academics]
+      tags:
+      - Academics
       summary: Explicitly set or clear a class grade reference
-      description: Requires class-edit in the current school. Does not change class names, legacy marks or reports. Repeated identical mappings produce no additional audit entry.
+      description: Requires class-edit in the current school. Does not change class names, legacy marks
+        or reports. Repeated identical mappings produce no additional audit entry.
       parameters:
-        - $ref: '#/components/parameters/SchoolId'
-        - $ref: '#/components/parameters/IdempotencyKey'
-        - name: class
-          in: path
-          required: true
-          schema:
-            type: integer
-            minimum: 1
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/IdempotencyKey'
+      - name: class
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
       requestBody:
         required: true
         content:
@@ -1503,9 +1642,11 @@ paths:
   /me/profile/fields/{field}/file:
     post:
       operationId: uploadMyProfileFile
-      tags: [Platform]
+      tags:
+      - Platform
       summary: Upload a private attachment to an editable profile field
-      description: PDF, PNG or JPEG up to 5 MB. The upload is encrypted and returns no private metadata; refresh the profile to read permitted metadata.
+      description: PDF, PNG or JPEG up to 5 MB. The upload is encrypted and returns no private metadata;
+        refresh the profile to read permitted metadata.
       parameters:
       - $ref: '#/components/parameters/SchoolId'
       - name: field
@@ -1513,14 +1654,16 @@ paths:
         required: true
         schema:
           type: string
-          pattern: '^[a-z][a-z0-9_]{0,63}$'
+          pattern: ^[a-z][a-z0-9_]{0,63}$
       requestBody:
         required: true
         content:
           multipart/form-data:
             schema:
               type: object
-              required: [profile_type, document]
+              required:
+              - profile_type
+              - document
               properties:
                 profile_type:
                   type: string
@@ -1549,9 +1692,11 @@ paths:
   /people/{person}/profile/fields/{field}/file:
     post:
       operationId: uploadPersonProfileFile
-      tags: [Platform]
+      tags:
+      - Platform
       summary: Upload a private attachment to an editable profile field
-      description: PDF, PNG or JPEG up to 5 MB. The upload is encrypted and returns no private metadata; refresh the profile to read permitted metadata.
+      description: PDF, PNG or JPEG up to 5 MB. The upload is encrypted and returns no private metadata;
+        refresh the profile to read permitted metadata.
       parameters:
       - $ref: '#/components/parameters/SchoolId'
       - name: person
@@ -1565,14 +1710,16 @@ paths:
         required: true
         schema:
           type: string
-          pattern: '^[a-z][a-z0-9_]{0,63}$'
+          pattern: ^[a-z][a-z0-9_]{0,63}$
       requestBody:
         required: true
         content:
           multipart/form-data:
             schema:
               type: object
-              required: [profile_type, document]
+              required:
+              - profile_type
+              - document
               properties:
                 profile_type:
                   type: string
@@ -1601,9 +1748,11 @@ paths:
   /schools/{school}/my-school:
     get:
       operationId: getMySchool
-      tags: [Platform]
+      tags:
+      - Platform
       summary: Published contacts, documents and current term dates for a school
-      description: Requires active membership and the same school in X-School-Id. Document links are public school publications, not private person files.
+      description: Requires active membership and the same school in X-School-Id. Document links are public
+        school publications, not private person files.
       parameters:
       - $ref: '#/components/parameters/SchoolId'
       - name: school
@@ -1632,24 +1781,38 @@ paths:
   /me/context:
     get:
       operationId: getMeContext
-      tags: [Platform]
+      tags:
+      - Platform
       summary: The signed-in user, their schools and the current school
-      description: |
-        What an app needs to set itself up: the user and their roles, the
+      description: 'What an app needs to set itself up: the user and their roles, the
+
         schools they belong to, the current school (branding, timezone, year
+
         and terms), which modules it has on, its notification rules and
+
         feature flags, the sign-in methods it offers and, for a parent, each
-        child with that child's school. Apps fetch it at start-up, after
-        signing in and when the user changes school, and keep a cached copy. Every profile may call it. Budget: 150 ms at p95.
+
+        child with that child''s school. Apps fetch it at start-up, after
+
+        signing in and when the user changes school, and keep a cached copy. Every profile may call it.
+        Budget: 150 ms at p95.
+
 
         The answer is for the school the request works in: the one
-        `X-School-Id` names (one of the user's `schools`), or else the
-        user's first school. `user.roles` are the roles there; each entry
-        of `schools` lists the user's roles at that school. The answer is
+
+        `X-School-Id` names (one of the user''s `schools`), or else the
+
+        user''s first school. `user.roles` are the roles there; each entry
+
+        of `schools` lists the user''s roles at that school. The answer is
+
         composed by contributor classes (`config/context.php`); a key or
+
         field is only ever added.
+
+        '
       parameters:
-        - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/SchoolId'
       responses:
         '200':
           description: The context.
@@ -1756,8 +1919,7 @@ paths:
       summary: Read a private guardian invitation
       security: []
       parameters:
-      - &id001
-        name: token
+      - name: token
         in: path
         required: true
         schema:
@@ -1790,7 +1952,12 @@ paths:
       summary: Verify the invited mailbox and sign in once
       security: []
       parameters:
-      - *id001
+      - name: token
+        in: path
+        required: true
+        schema:
+          type: string
+        description: Private one-use invitation token from the emailed link.
       requestBody:
         required: true
         content:
@@ -1869,10 +2036,8 @@ paths:
       - Platform
       summary: Read a learners dated enrolment history
       parameters:
-      - &enrolmentSchool
-        $ref: '#/components/parameters/SchoolId'
-      - &enrolmentLearner
-        name: learner
+      - $ref: '#/components/parameters/SchoolId'
+      - name: learner
         in: path
         required: true
         schema:
@@ -1912,8 +2077,13 @@ paths:
       - Platform
       summary: Append a dated homeroom assignment
       parameters:
-      - *enrolmentSchool
-      - *enrolmentLearner
+      - $ref: '#/components/parameters/SchoolId'
+      - name: learner
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
       requestBody:
         required: true
         content:
@@ -2218,8 +2388,7 @@ paths:
       - name: profile_type
         in: query
         required: false
-        description: The person profile at the current school; defaults to the first
-          active profile.
+        description: The person profile at the current school; defaults to the first active profile.
         schema:
           type: string
       responses:
@@ -2307,8 +2476,7 @@ paths:
       - name: profile_type
         in: query
         required: false
-        description: The person profile at the current school; defaults to the first
-          active profile.
+        description: The person profile at the current school; defaults to the first active profile.
         schema:
           type: string
       responses:
@@ -2396,8 +2564,7 @@ paths:
       - name: profile_type
         in: query
         required: false
-        description: The person profile at the current school; defaults to the first
-          active profile.
+        description: The person profile at the current school; defaults to the first active profile.
         schema:
           type: string
       responses:
@@ -2773,11 +2940,10 @@ paths:
       tags:
       - Academics
       summary: getMarkMatrix
-      description: Fresh current school authority is checked before idempotent replay.
-        Scores are exact decimal strings with up to two decimal places. Percentages
-        are integer basis points; incomplete results remain provisional. Corrections
-        require expected_revision; locked terms return 409. Active task IDs map to a
-        year-specific canonical task; copied definitions never duplicate marks. No fee
+      description: Fresh current school authority is checked before idempotent replay. Scores are exact
+        decimal strings with up to two decimal places. Percentages are integer basis points; incomplete
+        results remain provisional. Corrections require expected_revision; locked terms return 409. Active
+        task IDs map to a year-specific canonical task; copied definitions never duplicate marks. No fee
         condition gates academic results.
       parameters:
       - $ref: '#/components/parameters/SchoolId'
@@ -2834,14 +3000,12 @@ paths:
       tags:
       - Academics
       summary: previewAcademicMarks
-      description: Fresh current school authority is checked before idempotent replay.
-        Scores are exact decimal strings with up to two decimal places. Percentages
-        are integer basis points; incomplete results remain provisional. Corrections
-        require expected_revision; locked terms return 409. Active task IDs map to a
-        year-specific canonical task; copied definitions never duplicate marks. No fee
-        condition gates academic results. Capture needs a current subject allocation.
-        Only the grade head corrects moderated marks, with a reason, and moderates.
-        Preview never saves marks.
+      description: Fresh current school authority is checked before idempotent replay. Scores are exact
+        decimal strings with up to two decimal places. Percentages are integer basis points; incomplete
+        results remain provisional. Corrections require expected_revision; locked terms return 409. Active
+        task IDs map to a year-specific canonical task; copied definitions never duplicate marks. No fee
+        condition gates academic results. Capture needs a current subject allocation. Only the grade head
+        corrects moderated marks, with a reason, and moderates. Preview never saves marks.
       parameters:
       - $ref: '#/components/parameters/SchoolId'
       - name: group
@@ -2892,14 +3056,12 @@ paths:
       tags:
       - Academics
       summary: captureAcademicMarks
-      description: Fresh current school authority is checked before idempotent replay.
-        Scores are exact decimal strings with up to two decimal places. Percentages
-        are integer basis points; incomplete results remain provisional. Corrections
-        require expected_revision; locked terms return 409. Active task IDs map to a
-        year-specific canonical task; copied definitions never duplicate marks. No fee
-        condition gates academic results. Capture needs a current subject allocation.
-        Only the grade head corrects moderated marks, with a reason, and moderates.
-        Preview never saves marks.
+      description: Fresh current school authority is checked before idempotent replay. Scores are exact
+        decimal strings with up to two decimal places. Percentages are integer basis points; incomplete
+        results remain provisional. Corrections require expected_revision; locked terms return 409. Active
+        task IDs map to a year-specific canonical task; copied definitions never duplicate marks. No fee
+        condition gates academic results. Capture needs a current subject allocation. Only the grade head
+        corrects moderated marks, with a reason, and moderates. Preview never saves marks.
       parameters:
       - $ref: '#/components/parameters/SchoolId'
       - name: group
@@ -2950,14 +3112,12 @@ paths:
       tags:
       - Academics
       summary: correctAcademicMarks
-      description: Fresh current school authority is checked before idempotent replay.
-        Scores are exact decimal strings with up to two decimal places. Percentages
-        are integer basis points; incomplete results remain provisional. Corrections
-        require expected_revision; locked terms return 409. Active task IDs map to a
-        year-specific canonical task; copied definitions never duplicate marks. No fee
-        condition gates academic results. Capture needs a current subject allocation.
-        Only the grade head corrects moderated marks, with a reason, and moderates.
-        Preview never saves marks.
+      description: Fresh current school authority is checked before idempotent replay. Scores are exact
+        decimal strings with up to two decimal places. Percentages are integer basis points; incomplete
+        results remain provisional. Corrections require expected_revision; locked terms return 409. Active
+        task IDs map to a year-specific canonical task; copied definitions never duplicate marks. No fee
+        condition gates academic results. Capture needs a current subject allocation. Only the grade head
+        corrects moderated marks, with a reason, and moderates. Preview never saves marks.
       parameters:
       - $ref: '#/components/parameters/SchoolId'
       - name: group
@@ -3008,14 +3168,12 @@ paths:
       tags:
       - Academics
       summary: moderateAcademicMarks
-      description: Fresh current school authority is checked before idempotent replay.
-        Scores are exact decimal strings with up to two decimal places. Percentages
-        are integer basis points; incomplete results remain provisional. Corrections
-        require expected_revision; locked terms return 409. Active task IDs map to a
-        year-specific canonical task; copied definitions never duplicate marks. No fee
-        condition gates academic results. Capture needs a current subject allocation.
-        Only the grade head corrects moderated marks, with a reason, and moderates.
-        Preview never saves marks.
+      description: Fresh current school authority is checked before idempotent replay. Scores are exact
+        decimal strings with up to two decimal places. Percentages are integer basis points; incomplete
+        results remain provisional. Corrections require expected_revision; locked terms return 409. Active
+        task IDs map to a year-specific canonical task; copied definitions never duplicate marks. No fee
+        condition gates academic results. Capture needs a current subject allocation. Only the grade head
+        corrects moderated marks, with a reason, and moderates. Preview never saves marks.
       parameters:
       - $ref: '#/components/parameters/SchoolId'
       - name: group
@@ -3066,15 +3224,14 @@ paths:
       tags:
       - Academics
       summary: ReleasepreviewAcademicMarks
-      description: Fresh current school authority is checked before idempotent replay.
-        Scores are exact decimal strings with up to two decimal places. Percentages
-        are integer basis points; incomplete results remain provisional. Corrections
-        require expected_revision; locked terms return 409. Active task IDs map to a
-        year-specific canonical task; copied definitions never duplicate marks. No fee
-        condition gates academic results. Release needs a grade head, principal or explicit
-        marks-release permission. Release requires the fingerprint returned by release-preview
-        and pins immutable snapshots. Official mode requires complete selected learners;
-        running mode is explicitly provisional. Other learners may continue independently.
+      description: Fresh current school authority is checked before idempotent replay. Scores are exact
+        decimal strings with up to two decimal places. Percentages are integer basis points; incomplete
+        results remain provisional. Corrections require expected_revision; locked terms return 409. Active
+        task IDs map to a year-specific canonical task; copied definitions never duplicate marks. No fee
+        condition gates academic results. Release needs a grade head, principal or explicit marks-release
+        permission. Release requires the fingerprint returned by release-preview and pins immutable snapshots.
+        Official mode requires complete selected learners; running mode is explicitly provisional. Other
+        learners may continue independently.
       parameters:
       - $ref: '#/components/parameters/SchoolId'
       - name: group
@@ -3119,15 +3276,14 @@ paths:
       tags:
       - Academics
       summary: ReleaseAcademicMarks
-      description: Fresh current school authority is checked before idempotent replay.
-        Scores are exact decimal strings with up to two decimal places. Percentages
-        are integer basis points; incomplete results remain provisional. Corrections
-        require expected_revision; locked terms return 409. Active task IDs map to a
-        year-specific canonical task; copied definitions never duplicate marks. No fee
-        condition gates academic results. Release needs a grade head, principal or explicit
-        marks-release permission. Release requires the fingerprint returned by release-preview
-        and pins immutable snapshots. Official mode requires complete selected learners;
-        running mode is explicitly provisional. Other learners may continue independently.
+      description: Fresh current school authority is checked before idempotent replay. Scores are exact
+        decimal strings with up to two decimal places. Percentages are integer basis points; incomplete
+        results remain provisional. Corrections require expected_revision; locked terms return 409. Active
+        task IDs map to a year-specific canonical task; copied definitions never duplicate marks. No fee
+        condition gates academic results. Release needs a grade head, principal or explicit marks-release
+        permission. Release requires the fingerprint returned by release-preview and pins immutable snapshots.
+        Official mode requires complete selected learners; running mode is explicitly provisional. Other
+        learners may continue independently.
       parameters:
       - $ref: '#/components/parameters/SchoolId'
       - name: group
@@ -3172,10 +3328,9 @@ paths:
       tags:
       - Academics
       summary: getReleasedMarks
-      description: Only the learner or a currently linked guardian may read. Ended guardian
-        links override older relationships. Results contain only explicitly released
-        evidence; omit term_id for year results. Staff use the scoped matrix. No fee
-        condition applies.
+      description: Only the learner or a currently linked guardian may read. Ended guardian links override
+        older relationships. Results contain only explicitly released evidence; omit term_id for year
+        results. Staff use the scoped matrix. No fee condition applies.
       parameters:
       - $ref: '#/components/parameters/SchoolId'
       - name: learner
@@ -3225,9 +3380,9 @@ paths:
       tags:
       - Academics
       summary: List released periods for this learner
-      description: Fresh own-learner or current guardian access only. At most 200 distinct
-        released year/term periods, newest release first, with school-scoped labels.
-        No unpublished periods or scores are disclosed.
+      description: Fresh own-learner or current guardian access only. At most 200 distinct released year/term
+        periods, newest release first, with school-scoped labels. No unpublished periods or scores are
+        disclosed.
       parameters:
       - $ref: '#/components/parameters/SchoolId'
       - name: learner
@@ -3265,7 +3420,11 @@ paths:
       tags:
       - Academics
       summary: List authorized report batches by school year
-      description: Fresh school, role, allocation and own-child rights precede every request and idempotent replay. Report preparation and signatures pin immutable evidence; changed sources return409 before release. Grade-head approval precedes principal approval. PDF generation is queued and private. Signed downloads expire and are requester/school bound. Fees never withhold a report. Selected learners can progress independently.
+      description: Fresh school, role, allocation and own-child rights precede every request and idempotent
+        replay. Report preparation and signatures pin immutable evidence; changed sources return409 before
+        release. Grade-head approval precedes principal approval. PDF generation is queued and private.
+        Signed downloads expire and are requester/school bound. Fees never withhold a report. Selected
+        learners can progress independently.
       parameters:
       - $ref: '#/components/parameters/SchoolId'
       - name: session_year_id
@@ -3311,7 +3470,11 @@ paths:
       tags:
       - Academics
       summary: Save a reusable school comment
-      description: Fresh school, role, allocation and own-child rights precede every request and idempotent replay. Report preparation and signatures pin immutable evidence; changed sources return409 before release. Grade-head approval precedes principal approval. PDF generation is queued and private. Signed downloads expire and are requester/school bound. Fees never withhold a report. Selected learners can progress independently.
+      description: Fresh school, role, allocation and own-child rights precede every request and idempotent
+        replay. Report preparation and signatures pin immutable evidence; changed sources return409 before
+        release. Grade-head approval precedes principal approval. PDF generation is queued and private.
+        Signed downloads expire and are requester/school bound. Fees never withhold a report. Selected
+        learners can progress independently.
       parameters:
       - $ref: '#/components/parameters/SchoolId'
       - $ref: '#/components/parameters/IdempotencyKey'
@@ -3350,7 +3513,11 @@ paths:
       tags:
       - Academics
       summary: Read only currently authorized teacher comment scopes
-      description: Fresh school, role, allocation and own-child rights precede every request and idempotent replay. Report preparation and signatures pin immutable evidence; changed sources return409 before release. Grade-head approval precedes principal approval. PDF generation is queued and private. Signed downloads expire and are requester/school bound. Fees never withhold a report. Selected learners can progress independently.
+      description: Fresh school, role, allocation and own-child rights precede every request and idempotent
+        replay. Report preparation and signatures pin immutable evidence; changed sources return409 before
+        release. Grade-head approval precedes principal approval. PDF generation is queued and private.
+        Signed downloads expire and are requester/school bound. Fees never withhold a report. Selected
+        learners can progress independently.
       parameters:
       - $ref: '#/components/parameters/SchoolId'
       - name: session_year_id
@@ -3396,7 +3563,11 @@ paths:
       tags:
       - Academics
       summary: Read school report designs and authorized reporting contexts
-      description: Fresh school, role, allocation and own-child rights precede every request and idempotent replay. Report preparation and signatures pin immutable evidence; changed sources return409 before release. Grade-head approval precedes principal approval. PDF generation is queued and private. Signed downloads expire and are requester/school bound. Fees never withhold a report. Selected learners can progress independently.
+      description: Fresh school, role, allocation and own-child rights precede every request and idempotent
+        replay. Report preparation and signatures pin immutable evidence; changed sources return409 before
+        release. Grade-head approval precedes principal approval. PDF generation is queued and private.
+        Signed downloads expire and are requester/school bound. Fees never withhold a report. Selected
+        learners can progress independently.
       parameters:
       - $ref: '#/components/parameters/SchoolId'
       - name: session_year_id
@@ -3435,7 +3606,11 @@ paths:
       tags:
       - Academics
       summary: Prepare report drafts from previewed evidence
-      description: Fresh school, role, allocation and own-child rights precede every request and idempotent replay. Report preparation and signatures pin immutable evidence; changed sources return409 before release. Grade-head approval precedes principal approval. PDF generation is queued and private. Signed downloads expire and are requester/school bound. Fees never withhold a report. Selected learners can progress independently.
+      description: Fresh school, role, allocation and own-child rights precede every request and idempotent
+        replay. Report preparation and signatures pin immutable evidence; changed sources return409 before
+        release. Grade-head approval precedes principal approval. PDF generation is queued and private.
+        Signed downloads expire and are requester/school bound. Fees never withhold a report. Selected
+        learners can progress independently.
       parameters:
       - $ref: '#/components/parameters/SchoolId'
       - $ref: '#/components/parameters/IdempotencyKey'
@@ -3474,7 +3649,11 @@ paths:
       tags:
       - Academics
       summary: Preview selected learner report evidence
-      description: Fresh school, role, allocation and own-child rights precede every request and idempotent replay. Report preparation and signatures pin immutable evidence; changed sources return409 before release. Grade-head approval precedes principal approval. PDF generation is queued and private. Signed downloads expire and are requester/school bound. Fees never withhold a report. Selected learners can progress independently.
+      description: Fresh school, role, allocation and own-child rights precede every request and idempotent
+        replay. Report preparation and signatures pin immutable evidence; changed sources return409 before
+        release. Grade-head approval precedes principal approval. PDF generation is queued and private.
+        Signed downloads expire and are requester/school bound. Fees never withhold a report. Selected
+        learners can progress independently.
       parameters:
       - $ref: '#/components/parameters/SchoolId'
       responses:
@@ -3512,7 +3691,11 @@ paths:
       tags:
       - Academics
       summary: List eligible learners for an authorized report period
-      description: Fresh school, role, allocation and own-child rights precede every request and idempotent replay. Report preparation and signatures pin immutable evidence; changed sources return409 before release. Grade-head approval precedes principal approval. PDF generation is queued and private. Signed downloads expire and are requester/school bound. Fees never withhold a report. Selected learners can progress independently.
+      description: Fresh school, role, allocation and own-child rights precede every request and idempotent
+        replay. Report preparation and signatures pin immutable evidence; changed sources return409 before
+        release. Grade-head approval precedes principal approval. PDF generation is queued and private.
+        Signed downloads expire and are requester/school bound. Fees never withhold a report. Selected
+        learners can progress independently.
       parameters:
       - $ref: '#/components/parameters/SchoolId'
       - name: session_year_id
@@ -3567,7 +3750,11 @@ paths:
       tags:
       - Academics
       summary: Save a school report design
-      description: Fresh school, role, allocation and own-child rights precede every request and idempotent replay. Report preparation and signatures pin immutable evidence; changed sources return409 before release. Grade-head approval precedes principal approval. PDF generation is queued and private. Signed downloads expire and are requester/school bound. Fees never withhold a report. Selected learners can progress independently.
+      description: Fresh school, role, allocation and own-child rights precede every request and idempotent
+        replay. Report preparation and signatures pin immutable evidence; changed sources return409 before
+        release. Grade-head approval precedes principal approval. PDF generation is queued and private.
+        Signed downloads expire and are requester/school bound. Fees never withhold a report. Selected
+        learners can progress independently.
       parameters:
       - $ref: '#/components/parameters/SchoolId'
       - $ref: '#/components/parameters/IdempotencyKey'
@@ -3606,7 +3793,11 @@ paths:
       tags:
       - Academics
       summary: Read an authorized report batch
-      description: Fresh school, role, allocation and own-child rights precede every request and idempotent replay. Report preparation and signatures pin immutable evidence; changed sources return409 before release. Grade-head approval precedes principal approval. PDF generation is queued and private. Signed downloads expire and are requester/school bound. Fees never withhold a report. Selected learners can progress independently.
+      description: Fresh school, role, allocation and own-child rights precede every request and idempotent
+        replay. Report preparation and signatures pin immutable evidence; changed sources return409 before
+        release. Grade-head approval precedes principal approval. PDF generation is queued and private.
+        Signed downloads expire and are requester/school bound. Fees never withhold a report. Selected
+        learners can progress independently.
       parameters:
       - $ref: '#/components/parameters/SchoolId'
       - name: batch
@@ -3645,7 +3836,11 @@ paths:
       tags:
       - Academics
       summary: Apply current grade-head sign-off to report evidence
-      description: Fresh school, role, allocation and own-child rights precede every request and idempotent replay. Report preparation and signatures pin immutable evidence; changed sources return409 before release. Grade-head approval precedes principal approval. PDF generation is queued and private. Signed downloads expire and are requester/school bound. Fees never withhold a report. Selected learners can progress independently.
+      description: Fresh school, role, allocation and own-child rights precede every request and idempotent
+        replay. Report preparation and signatures pin immutable evidence; changed sources return409 before
+        release. Grade-head approval precedes principal approval. PDF generation is queued and private.
+        Signed downloads expire and are requester/school bound. Fees never withhold a report. Selected
+        learners can progress independently.
       parameters:
       - $ref: '#/components/parameters/SchoolId'
       - name: batch
@@ -3691,7 +3886,11 @@ paths:
       tags:
       - Academics
       summary: Apply principal sign-off after the grade head
-      description: Fresh school, role, allocation and own-child rights precede every request and idempotent replay. Report preparation and signatures pin immutable evidence; changed sources return409 before release. Grade-head approval precedes principal approval. PDF generation is queued and private. Signed downloads expire and are requester/school bound. Fees never withhold a report. Selected learners can progress independently.
+      description: Fresh school, role, allocation and own-child rights precede every request and idempotent
+        replay. Report preparation and signatures pin immutable evidence; changed sources return409 before
+        release. Grade-head approval precedes principal approval. PDF generation is queued and private.
+        Signed downloads expire and are requester/school bound. Fees never withhold a report. Selected
+        learners can progress independently.
       parameters:
       - $ref: '#/components/parameters/SchoolId'
       - name: batch
@@ -3737,7 +3936,11 @@ paths:
       tags:
       - Academics
       summary: Refresh evidence and invalidate prior report signatures
-      description: Fresh school, role, allocation and own-child rights precede every request and idempotent replay. Report preparation and signatures pin immutable evidence; changed sources return409 before release. Grade-head approval precedes principal approval. PDF generation is queued and private. Signed downloads expire and are requester/school bound. Fees never withhold a report. Selected learners can progress independently.
+      description: Fresh school, role, allocation and own-child rights precede every request and idempotent
+        replay. Report preparation and signatures pin immutable evidence; changed sources return409 before
+        release. Grade-head approval precedes principal approval. PDF generation is queued and private.
+        Signed downloads expire and are requester/school bound. Fees never withhold a report. Selected
+        learners can progress independently.
       parameters:
       - $ref: '#/components/parameters/SchoolId'
       - name: batch
@@ -3783,7 +3986,11 @@ paths:
       tags:
       - Academics
       summary: Release approved reports and queue family notices
-      description: Fresh school, role, allocation and own-child rights precede every request and idempotent replay. Report preparation and signatures pin immutable evidence; changed sources return409 before release. Grade-head approval precedes principal approval. PDF generation is queued and private. Signed downloads expire and are requester/school bound. Fees never withhold a report. Selected learners can progress independently.
+      description: Fresh school, role, allocation and own-child rights precede every request and idempotent
+        replay. Report preparation and signatures pin immutable evidence; changed sources return409 before
+        release. Grade-head approval precedes principal approval. PDF generation is queued and private.
+        Signed downloads expire and are requester/school bound. Fees never withhold a report. Selected
+        learners can progress independently.
       parameters:
       - $ref: '#/components/parameters/SchoolId'
       - name: batch
@@ -3829,7 +4036,11 @@ paths:
       tags:
       - Academics
       summary: Preview whether approved PDFs are ready for release
-      description: Fresh school, role, allocation and own-child rights precede every request and idempotent replay. Report preparation and signatures pin immutable evidence; changed sources return409 before release. Grade-head approval precedes principal approval. PDF generation is queued and private. Signed downloads expire and are requester/school bound. Fees never withhold a report. Selected learners can progress independently.
+      description: Fresh school, role, allocation and own-child rights precede every request and idempotent
+        replay. Report preparation and signatures pin immutable evidence; changed sources return409 before
+        release. Grade-head approval precedes principal approval. PDF generation is queued and private.
+        Signed downloads expire and are requester/school bound. Fees never withhold a report. Selected
+        learners can progress independently.
       parameters:
       - $ref: '#/components/parameters/SchoolId'
       - name: batch
@@ -3868,7 +4079,11 @@ paths:
       tags:
       - Academics
       summary: Retry approved private PDF generation
-      description: Fresh school, role, allocation and own-child rights precede every request and idempotent replay. Report preparation and signatures pin immutable evidence; changed sources return409 before release. Grade-head approval precedes principal approval. PDF generation is queued and private. Signed downloads expire and are requester/school bound. Fees never withhold a report. Selected learners can progress independently.
+      description: Fresh school, role, allocation and own-child rights precede every request and idempotent
+        replay. Report preparation and signatures pin immutable evidence; changed sources return409 before
+        release. Grade-head approval precedes principal approval. PDF generation is queued and private.
+        Signed downloads expire and are requester/school bound. Fees never withhold a report. Selected
+        learners can progress independently.
       parameters:
       - $ref: '#/components/parameters/SchoolId'
       - name: batch
@@ -3914,7 +4129,11 @@ paths:
       tags:
       - Academics
       summary: Preview current evidence before refreshing a draft
-      description: Fresh school, role, allocation and own-child rights precede every request and idempotent replay. Report preparation and signatures pin immutable evidence; changed sources return409 before release. Grade-head approval precedes principal approval. PDF generation is queued and private. Signed downloads expire and are requester/school bound. Fees never withhold a report. Selected learners can progress independently.
+      description: Fresh school, role, allocation and own-child rights precede every request and idempotent
+        replay. Report preparation and signatures pin immutable evidence; changed sources return409 before
+        release. Grade-head approval precedes principal approval. PDF generation is queued and private.
+        Signed downloads expire and are requester/school bound. Fees never withhold a report. Selected
+        learners can progress independently.
       parameters:
       - $ref: '#/components/parameters/SchoolId'
       - name: batch
@@ -3953,7 +4172,11 @@ paths:
       tags:
       - Academics
       summary: Refresh an own-child report download link after fresh authorization
-      description: Fresh school, role, allocation and own-child rights precede every request and idempotent replay. Report preparation and signatures pin immutable evidence; changed sources return409 before release. Grade-head approval precedes principal approval. PDF generation is queued and private. Signed downloads expire and are requester/school bound. Fees never withhold a report. Selected learners can progress independently.
+      description: Fresh school, role, allocation and own-child rights precede every request and idempotent
+        replay. Report preparation and signatures pin immutable evidence; changed sources return409 before
+        release. Grade-head approval precedes principal approval. PDF generation is queued and private.
+        Signed downloads expire and are requester/school bound. Fees never withhold a report. Selected
+        learners can progress independently.
       parameters:
       - $ref: '#/components/parameters/SchoolId'
       - name: card
@@ -3992,7 +4215,11 @@ paths:
       tags:
       - Academics
       summary: Save an authorized report comment
-      description: Fresh school, role, allocation and own-child rights precede every request and idempotent replay. Report preparation and signatures pin immutable evidence; changed sources return409 before release. Grade-head approval precedes principal approval. PDF generation is queued and private. Signed downloads expire and are requester/school bound. Fees never withhold a report. Selected learners can progress independently.
+      description: Fresh school, role, allocation and own-child rights precede every request and idempotent
+        replay. Report preparation and signatures pin immutable evidence; changed sources return409 before
+        release. Grade-head approval precedes principal approval. PDF generation is queued and private.
+        Signed downloads expire and are requester/school bound. Fees never withhold a report. Selected
+        learners can progress independently.
       parameters:
       - $ref: '#/components/parameters/SchoolId'
       - name: card
@@ -4038,7 +4265,11 @@ paths:
       tags:
       - Academics
       summary: Download a private PDF through a signed expiring link
-      description: Fresh school, role, allocation and own-child rights precede every request and idempotent replay. Report preparation and signatures pin immutable evidence; changed sources return409 before release. Grade-head approval precedes principal approval. PDF generation is queued and private. Signed downloads expire and are requester/school bound. Fees never withhold a report. Selected learners can progress independently.
+      description: Fresh school, role, allocation and own-child rights precede every request and idempotent
+        replay. Report preparation and signatures pin immutable evidence; changed sources return409 before
+        release. Grade-head approval precedes principal approval. PDF generation is queued and private.
+        Signed downloads expire and are requester/school bound. Fees never withhold a report. Selected
+        learners can progress independently.
       parameters:
       - $ref: '#/components/parameters/SchoolId'
       - name: card
@@ -4108,7 +4339,11 @@ paths:
       tags:
       - Academics
       summary: Mark an owned released report as read
-      description: Fresh school, role, allocation and own-child rights precede every request and idempotent replay. Report preparation and signatures pin immutable evidence; changed sources return409 before release. Grade-head approval precedes principal approval. PDF generation is queued and private. Signed downloads expire and are requester/school bound. Fees never withhold a report. Selected learners can progress independently.
+      description: Fresh school, role, allocation and own-child rights precede every request and idempotent
+        replay. Report preparation and signatures pin immutable evidence; changed sources return409 before
+        release. Grade-head approval precedes principal approval. PDF generation is queued and private.
+        Signed downloads expire and are requester/school bound. Fees never withhold a report. Selected
+        learners can progress independently.
       parameters:
       - $ref: '#/components/parameters/SchoolId'
       - name: card
@@ -4148,7 +4383,11 @@ paths:
       tags:
       - Academics
       summary: List released reports for the authorized learner
-      description: Fresh school, role, allocation and own-child rights precede every request and idempotent replay. Report preparation and signatures pin immutable evidence; changed sources return409 before release. Grade-head approval precedes principal approval. PDF generation is queued and private. Signed downloads expire and are requester/school bound. Fees never withhold a report. Selected learners can progress independently.
+      description: Fresh school, role, allocation and own-child rights precede every request and idempotent
+        replay. Report preparation and signatures pin immutable evidence; changed sources return409 before
+        release. Grade-head approval precedes principal approval. PDF generation is queued and private.
+        Signed downloads expire and are requester/school bound. Fees never withhold a report. Selected
+        learners can progress independently.
       parameters:
       - $ref: '#/components/parameters/SchoolId'
       - name: learner
@@ -4194,7 +4433,12 @@ paths:
       tags:
       - Academics
       summary: Choose an authorized homeroom or period register
-      description: 'Fresh school, role and allocation/guardian rights are checked on every call. Teachers amend the school-local current day; current grade heads correct earlier days with a reason. Sync operation IDs are durable: exact retries replay after fresh authorization; changed reuse, stale rows, roster changes and out-of-order operations return409 without partial writes. QR identifiers contain no names or birth dates and never authorize attendance. Family reads contain no peer rosters. No fee condition applies.'
+      description: 'Fresh school, role and allocation/guardian rights are checked on every call. Teachers
+        amend the school-local current day; current grade heads correct earlier days with a reason. Sync
+        operation IDs are durable: exact retries replay after fresh authorization; changed reuse, stale
+        rows, roster changes and out-of-order operations return409 without partial writes. QR identifiers
+        contain no names or birth dates and never authorize attendance. Family reads contain no peer rosters.
+        No fee condition applies.'
       parameters:
       - $ref: '#/components/parameters/SchoolId'
       - name: on_date
@@ -4240,7 +4484,12 @@ paths:
       tags:
       - Academics
       summary: Open a dated academic register
-      description: 'Fresh school, role and allocation/guardian rights are checked on every call. Teachers amend the school-local current day; current grade heads correct earlier days with a reason. Sync operation IDs are durable: exact retries replay after fresh authorization; changed reuse, stale rows, roster changes and out-of-order operations return409 without partial writes. QR identifiers contain no names or birth dates and never authorize attendance. Family reads contain no peer rosters. No fee condition applies.'
+      description: 'Fresh school, role and allocation/guardian rights are checked on every call. Teachers
+        amend the school-local current day; current grade heads correct earlier days with a reason. Sync
+        operation IDs are durable: exact retries replay after fresh authorization; changed reuse, stale
+        rows, roster changes and out-of-order operations return409 without partial writes. QR identifiers
+        contain no names or birth dates and never authorize attendance. Family reads contain no peer rosters.
+        No fee condition applies.'
       parameters:
       - $ref: '#/components/parameters/SchoolId'
       responses:
@@ -4278,7 +4527,12 @@ paths:
       tags:
       - Academics
       summary: Read school attendance cutoff and teaching days
-      description: 'Fresh school, role and allocation/guardian rights are checked on every call. Teachers amend the school-local current day; current grade heads correct earlier days with a reason. Sync operation IDs are durable: exact retries replay after fresh authorization; changed reuse, stale rows, roster changes and out-of-order operations return409 without partial writes. QR identifiers contain no names or birth dates and never authorize attendance. Family reads contain no peer rosters. No fee condition applies.'
+      description: 'Fresh school, role and allocation/guardian rights are checked on every call. Teachers
+        amend the school-local current day; current grade heads correct earlier days with a reason. Sync
+        operation IDs are durable: exact retries replay after fresh authorization; changed reuse, stale
+        rows, roster changes and out-of-order operations return409 without partial writes. QR identifiers
+        contain no names or birth dates and never authorize attendance. Family reads contain no peer rosters.
+        No fee condition applies.'
       parameters:
       - $ref: '#/components/parameters/SchoolId'
       responses:
@@ -4309,7 +4563,12 @@ paths:
       tags:
       - Academics
       summary: Configure the school attendance cutoff and teaching days
-      description: 'Fresh school, role and allocation/guardian rights are checked on every call. Teachers amend the school-local current day; current grade heads correct earlier days with a reason. Sync operation IDs are durable: exact retries replay after fresh authorization; changed reuse, stale rows, roster changes and out-of-order operations return409 without partial writes. QR identifiers contain no names or birth dates and never authorize attendance. Family reads contain no peer rosters. No fee condition applies.'
+      description: 'Fresh school, role and allocation/guardian rights are checked on every call. Teachers
+        amend the school-local current day; current grade heads correct earlier days with a reason. Sync
+        operation IDs are durable: exact retries replay after fresh authorization; changed reuse, stale
+        rows, roster changes and out-of-order operations return409 without partial writes. QR identifiers
+        contain no names or birth dates and never authorize attendance. Family reads contain no peer rosters.
+        No fee condition applies.'
       parameters:
       - $ref: '#/components/parameters/SchoolId'
       - $ref: '#/components/parameters/IdempotencyKey'
@@ -4348,7 +4607,12 @@ paths:
       tags:
       - Academics
       summary: Read a signed learner QR identifier
-      description: 'Fresh school, role and allocation/guardian rights are checked on every call. Teachers amend the school-local current day; current grade heads correct earlier days with a reason. Sync operation IDs are durable: exact retries replay after fresh authorization; changed reuse, stale rows, roster changes and out-of-order operations return409 without partial writes. QR identifiers contain no names or birth dates and never authorize attendance. Family reads contain no peer rosters. No fee condition applies.'
+      description: 'Fresh school, role and allocation/guardian rights are checked on every call. Teachers
+        amend the school-local current day; current grade heads correct earlier days with a reason. Sync
+        operation IDs are durable: exact retries replay after fresh authorization; changed reuse, stale
+        rows, roster changes and out-of-order operations return409 without partial writes. QR identifiers
+        contain no names or birth dates and never authorize attendance. Family reads contain no peer rosters.
+        No fee condition applies.'
       parameters:
       - $ref: '#/components/parameters/SchoolId'
       - name: learner
@@ -4387,7 +4651,12 @@ paths:
       tags:
       - Academics
       summary: Replace a learner QR identifier and revoke the previous code
-      description: 'Fresh school, role and allocation/guardian rights are checked on every call. Teachers amend the school-local current day; current grade heads correct earlier days with a reason. Sync operation IDs are durable: exact retries replay after fresh authorization; changed reuse, stale rows, roster changes and out-of-order operations return409 without partial writes. QR identifiers contain no names or birth dates and never authorize attendance. Family reads contain no peer rosters. No fee condition applies.'
+      description: 'Fresh school, role and allocation/guardian rights are checked on every call. Teachers
+        amend the school-local current day; current grade heads correct earlier days with a reason. Sync
+        operation IDs are durable: exact retries replay after fresh authorization; changed reuse, stale
+        rows, roster changes and out-of-order operations return409 without partial writes. QR identifiers
+        contain no names or birth dates and never authorize attendance. Family reads contain no peer rosters.
+        No fee condition applies.'
       parameters:
       - $ref: '#/components/parameters/SchoolId'
       - name: learner
@@ -4427,7 +4696,12 @@ paths:
       tags:
       - Academics
       summary: Read only the authorized learner attendance today
-      description: 'Fresh school, role and allocation/guardian rights are checked on every call. Teachers amend the school-local current day; current grade heads correct earlier days with a reason. Sync operation IDs are durable: exact retries replay after fresh authorization; changed reuse, stale rows, roster changes and out-of-order operations return409 without partial writes. QR identifiers contain no names or birth dates and never authorize attendance. Family reads contain no peer rosters. No fee condition applies.'
+      description: 'Fresh school, role and allocation/guardian rights are checked on every call. Teachers
+        amend the school-local current day; current grade heads correct earlier days with a reason. Sync
+        operation IDs are durable: exact retries replay after fresh authorization; changed reuse, stale
+        rows, roster changes and out-of-order operations return409 without partial writes. QR identifiers
+        contain no names or birth dates and never authorize attendance. Family reads contain no peer rosters.
+        No fee condition applies.'
       parameters:
       - $ref: '#/components/parameters/SchoolId'
       - name: learner
@@ -4466,7 +4740,12 @@ paths:
       tags:
       - Academics
       summary: Read the current authorized roster and entry revisions
-      description: 'Fresh school, role and allocation/guardian rights are checked on every call. Teachers amend the school-local current day; current grade heads correct earlier days with a reason. Sync operation IDs are durable: exact retries replay after fresh authorization; changed reuse, stale rows, roster changes and out-of-order operations return409 without partial writes. QR identifiers contain no names or birth dates and never authorize attendance. Family reads contain no peer rosters. No fee condition applies.'
+      description: 'Fresh school, role and allocation/guardian rights are checked on every call. Teachers
+        amend the school-local current day; current grade heads correct earlier days with a reason. Sync
+        operation IDs are durable: exact retries replay after fresh authorization; changed reuse, stale
+        rows, roster changes and out-of-order operations return409 without partial writes. QR identifiers
+        contain no names or birth dates and never authorize attendance. Family reads contain no peer rosters.
+        No fee condition applies.'
       parameters:
       - $ref: '#/components/parameters/SchoolId'
       - name: register
@@ -4505,7 +4784,12 @@ paths:
       tags:
       - Academics
       summary: Atomically sync a revision-checked attendance operation
-      description: 'Fresh school, role and allocation/guardian rights are checked on every call. Teachers amend the school-local current day; current grade heads correct earlier days with a reason. Sync operation IDs are durable: exact retries replay after fresh authorization; changed reuse, stale rows, roster changes and out-of-order operations return409 without partial writes. QR identifiers contain no names or birth dates and never authorize attendance. Family reads contain no peer rosters. No fee condition applies.'
+      description: 'Fresh school, role and allocation/guardian rights are checked on every call. Teachers
+        amend the school-local current day; current grade heads correct earlier days with a reason. Sync
+        operation IDs are durable: exact retries replay after fresh authorization; changed reuse, stale
+        rows, roster changes and out-of-order operations return409 without partial writes. QR identifiers
+        contain no names or birth dates and never authorize attendance. Family reads contain no peer rosters.
+        No fee condition applies.'
       parameters:
       - $ref: '#/components/parameters/SchoolId'
       - name: register
@@ -4550,12 +4834,11 @@ paths:
       tags:
       - Academics
       summary: getTimetableConfiguration
-      description: Fresh current-school rights precede idempotent replay. Managers configure
-        and preview placements; commits require an unchanged fingerprint and no teacher,
-        room, group, homeroom or dated-learner time clash. A 409 requires a fresh preview.
-        Family reads resolve only the learner or a current guardian’s selected child.
-        Times use the school timezone; week patterns use ISO week parity. No fee condition
-        applies.
+      description: Fresh current-school rights precede idempotent replay. Managers configure and preview
+        placements; commits require an unchanged fingerprint and no teacher, room, group, homeroom or
+        dated-learner time clash. A 409 requires a fresh preview. Family reads resolve only the learner
+        or a current guardian’s selected child. Times use the school timezone; week patterns use ISO week
+        parity. No fee condition applies.
       parameters:
       - $ref: '#/components/parameters/SchoolId'
       - name: session_year_id
@@ -4593,13 +4876,13 @@ paths:
       tags:
       - Academics
       summary: getTimetableWeek
-      description: Omit starts_on for the current school-local week and omit session_year_id for its school calendar.
-      x-scope-notes: Fresh current-school rights precede idempotent replay. Managers configure
-        and preview placements; commits require an unchanged fingerprint and no teacher,
-        room, group, homeroom or dated-learner time clash. A 409 requires a fresh preview.
-        Family reads resolve only the learner or a current guardian’s selected child.
-        Times use the school timezone; week patterns use ISO week parity. No fee condition
-        applies.
+      description: Omit starts_on for the current school-local week and omit session_year_id for its school
+        calendar.
+      x-scope-notes: Fresh current-school rights precede idempotent replay. Managers configure and preview
+        placements; commits require an unchanged fingerprint and no teacher, room, group, homeroom or
+        dated-learner time clash. A 409 requires a fresh preview. Family reads resolve only the learner
+        or a current guardian’s selected child. Times use the school timezone; week patterns use ISO week
+        parity. No fee condition applies.
       parameters:
       - $ref: '#/components/parameters/SchoolId'
       - name: session_year_id
@@ -4649,12 +4932,11 @@ paths:
       tags:
       - Academics
       summary: getNextAcademicPeriod
-      description: Fresh current-school rights precede idempotent replay. Managers configure
-        and preview placements; commits require an unchanged fingerprint and no teacher,
-        room, group, homeroom or dated-learner time clash. A 409 requires a fresh preview.
-        Family reads resolve only the learner or a current guardian’s selected child.
-        Times use the school timezone; week patterns use ISO week parity. No fee condition
-        applies.
+      description: Fresh current-school rights precede idempotent replay. Managers configure and preview
+        placements; commits require an unchanged fingerprint and no teacher, room, group, homeroom or
+        dated-learner time clash. A 409 requires a fresh preview. Family reads resolve only the learner
+        or a current guardian’s selected child. Times use the school timezone; week patterns use ISO week
+        parity. No fee condition applies.
       parameters:
       - $ref: '#/components/parameters/SchoolId'
       - name: learner_id
@@ -4692,12 +4974,11 @@ paths:
       tags:
       - Academics
       summary: createAcademicRoom
-      description: Fresh current-school rights precede idempotent replay. Managers configure
-        and preview placements; commits require an unchanged fingerprint and no teacher,
-        room, group, homeroom or dated-learner time clash. A 409 requires a fresh preview.
-        Family reads resolve only the learner or a current guardian’s selected child.
-        Times use the school timezone; week patterns use ISO week parity. No fee condition
-        applies.
+      description: Fresh current-school rights precede idempotent replay. Managers configure and preview
+        placements; commits require an unchanged fingerprint and no teacher, room, group, homeroom or
+        dated-learner time clash. A 409 requires a fresh preview. Family reads resolve only the learner
+        or a current guardian’s selected child. Times use the school timezone; week patterns use ISO week
+        parity. No fee condition applies.
       parameters:
       - $ref: '#/components/parameters/SchoolId'
       - $ref: '#/components/parameters/IdempotencyKey'
@@ -4736,12 +5017,11 @@ paths:
       tags:
       - Academics
       summary: updateAcademicRoom
-      description: Fresh current-school rights precede idempotent replay. Managers configure
-        and preview placements; commits require an unchanged fingerprint and no teacher,
-        room, group, homeroom or dated-learner time clash. A 409 requires a fresh preview.
-        Family reads resolve only the learner or a current guardian’s selected child.
-        Times use the school timezone; week patterns use ISO week parity. No fee condition
-        applies.
+      description: Fresh current-school rights precede idempotent replay. Managers configure and preview
+        placements; commits require an unchanged fingerprint and no teacher, room, group, homeroom or
+        dated-learner time clash. A 409 requires a fresh preview. Family reads resolve only the learner
+        or a current guardian’s selected child. Times use the school timezone; week patterns use ISO week
+        parity. No fee condition applies.
       parameters:
       - $ref: '#/components/parameters/SchoolId'
       - name: room
@@ -4786,12 +5066,11 @@ paths:
       tags:
       - Academics
       summary: createAcademicBells
-      description: Fresh current-school rights precede idempotent replay. Managers configure
-        and preview placements; commits require an unchanged fingerprint and no teacher,
-        room, group, homeroom or dated-learner time clash. A 409 requires a fresh preview.
-        Family reads resolve only the learner or a current guardian’s selected child.
-        Times use the school timezone; week patterns use ISO week parity. No fee condition
-        applies.
+      description: Fresh current-school rights precede idempotent replay. Managers configure and preview
+        placements; commits require an unchanged fingerprint and no teacher, room, group, homeroom or
+        dated-learner time clash. A 409 requires a fresh preview. Family reads resolve only the learner
+        or a current guardian’s selected child. Times use the school timezone; week patterns use ISO week
+        parity. No fee condition applies.
       parameters:
       - $ref: '#/components/parameters/SchoolId'
       - $ref: '#/components/parameters/IdempotencyKey'
@@ -4830,12 +5109,11 @@ paths:
       tags:
       - Academics
       summary: updateAcademicBells
-      description: Fresh current-school rights precede idempotent replay. Managers configure
-        and preview placements; commits require an unchanged fingerprint and no teacher,
-        room, group, homeroom or dated-learner time clash. A 409 requires a fresh preview.
-        Family reads resolve only the learner or a current guardian’s selected child.
-        Times use the school timezone; week patterns use ISO week parity. No fee condition
-        applies.
+      description: Fresh current-school rights precede idempotent replay. Managers configure and preview
+        placements; commits require an unchanged fingerprint and no teacher, room, group, homeroom or
+        dated-learner time clash. A 409 requires a fresh preview. Family reads resolve only the learner
+        or a current guardian’s selected child. Times use the school timezone; week patterns use ISO week
+        parity. No fee condition applies.
       parameters:
       - $ref: '#/components/parameters/SchoolId'
       - name: schedule
@@ -4880,12 +5158,11 @@ paths:
       tags:
       - Academics
       summary: previewAcademicTimetable
-      description: Fresh current-school rights precede idempotent replay. Managers configure
-        and preview placements; commits require an unchanged fingerprint and no teacher,
-        room, group, homeroom or dated-learner time clash. A 409 requires a fresh preview.
-        Family reads resolve only the learner or a current guardian’s selected child.
-        Times use the school timezone; week patterns use ISO week parity. No fee condition
-        applies.
+      description: Fresh current-school rights precede idempotent replay. Managers configure and preview
+        placements; commits require an unchanged fingerprint and no teacher, room, group, homeroom or
+        dated-learner time clash. A 409 requires a fresh preview. Family reads resolve only the learner
+        or a current guardian’s selected child. Times use the school timezone; week patterns use ISO week
+        parity. No fee condition applies.
       parameters:
       - $ref: '#/components/parameters/SchoolId'
       - $ref: '#/components/parameters/IdempotencyKey'
@@ -4924,12 +5201,11 @@ paths:
       tags:
       - Academics
       summary: commitAcademicTimetable
-      description: Fresh current-school rights precede idempotent replay. Managers configure
-        and preview placements; commits require an unchanged fingerprint and no teacher,
-        room, group, homeroom or dated-learner time clash. A 409 requires a fresh preview.
-        Family reads resolve only the learner or a current guardian’s selected child.
-        Times use the school timezone; week patterns use ISO week parity. No fee condition
-        applies.
+      description: Fresh current-school rights precede idempotent replay. Managers configure and preview
+        placements; commits require an unchanged fingerprint and no teacher, room, group, homeroom or
+        dated-learner time clash. A 409 requires a fresh preview. Family reads resolve only the learner
+        or a current guardian’s selected child. Times use the school timezone; week patterns use ISO week
+        parity. No fee condition applies.
       parameters:
       - $ref: '#/components/parameters/SchoolId'
       - $ref: '#/components/parameters/IdempotencyKey'
@@ -4968,12 +5244,11 @@ paths:
       tags:
       - Academics
       summary: importAcademicTimetable
-      description: Fresh current-school rights precede idempotent replay. Managers configure
-        and preview placements; commits require an unchanged fingerprint and no teacher,
-        room, group, homeroom or dated-learner time clash. A 409 requires a fresh preview.
-        Family reads resolve only the learner or a current guardian’s selected child.
-        Times use the school timezone; week patterns use ISO week parity. No fee condition
-        applies.
+      description: Fresh current-school rights precede idempotent replay. Managers configure and preview
+        placements; commits require an unchanged fingerprint and no teacher, room, group, homeroom or
+        dated-learner time clash. A 409 requires a fresh preview. Family reads resolve only the learner
+        or a current guardian’s selected child. Times use the school timezone; week patterns use ISO week
+        parity. No fee condition applies.
       parameters:
       - $ref: '#/components/parameters/SchoolId'
       - $ref: '#/components/parameters/IdempotencyKey'
@@ -5016,20 +5291,27 @@ components:
       type: apiKey
       in: cookie
       name: e_school_session
-      description: |
-        The web portals' Sanctum session cookie (named by SESSION_COOKIE;
+      description: 'The web portals'' Sanctum session cookie (named by SESSION_COOKIE;
+
         `e_school_session` by default), with the `X-XSRF-TOKEN` header from
+
         `GET /sanctum/csrf-cookie` on writes.
+
+        '
   parameters:
     SchoolId:
       name: X-School-Id
       in: header
       required: false
-      description: |
-        The school to work in, one of the signed-in user's schools (`schools`
-        in `/me/context`). Without it the request works in the user's first
+      description: 'The school to work in, one of the signed-in user''s schools (`schools`
+
+        in `/me/context`). Without it the request works in the user''s first
+
         school. A school the user is not an active member of is refused with
+
         403. Apps send it on every call once a school is chosen.
+
+        '
       schema:
         type: integer
         minimum: 1
@@ -5053,14 +5335,16 @@ components:
     Sort:
       name: sort
       in: query
-      description: Comma-separated fields to sort by; a leading `-` sorts that field descending, for example `-created_at,name`.
+      description: Comma-separated fields to sort by; a leading `-` sorts that field descending, for example
+        `-created_at,name`.
       schema:
         type: string
-        pattern: '^-?[a-z_]+(,-?[a-z_]+)*$'
+        pattern: ^-?[a-z_]+(,-?[a-z_]+)*$
     Filter:
       name: filter
       in: query
-      description: 'Filters by field, for example `filter[status]=active&filter[class_id]=3`. Each list says which fields it filters on.'
+      description: Filters by field, for example `filter[status]=active&filter[class_id]=3`. Each list
+        says which fields it filters on.
       style: deepObject
       explode: true
       schema:
@@ -5077,12 +5361,13 @@ components:
     IdempotencyKey:
       name: Idempotency-Key
       in: header
-      description: Makes a write safe to retry. Any unique string of 1 to 255 visible ASCII characters (a UUID is best), kept 24 hours per user. Required on money writes.
+      description: Makes a write safe to retry. Any unique string of 1 to 255 visible ASCII characters
+        (a UUID is best), kept 24 hours per user. Required on money writes.
       schema:
         type: string
         minLength: 1
         maxLength: 255
-        pattern: '^[\x21-\x7E]+$'
+        pattern: ^[\x21-\x7E]+$
   headers:
     X-RateLimit-Limit:
       description: Requests allowed in the current minute.
@@ -6535,7 +6820,11 @@ components:
     AcademicReferenceResponse:
       type: object
       additionalProperties: false
-      required: [error, message, data, code]
+      required:
+      - error
+      - message
+      - data
+      - code
       properties:
         error:
           type: boolean
@@ -6548,7 +6837,9 @@ components:
     AcademicReference:
       type: object
       additionalProperties: false
-      required: [grades, rating_scale]
+      required:
+      - grades
+      - rating_scale
       properties:
         grades:
           type: array
@@ -6561,7 +6852,12 @@ components:
     AcademicGradeLevel:
       type: object
       additionalProperties: false
-      required: [id, code, name, phase, sort_order]
+      required:
+      - id
+      - code
+      - name
+      - phase
+      - sort_order
       properties:
         id:
           type: integer
@@ -6571,7 +6867,11 @@ components:
           type: string
         phase:
           type: string
-          enum: [Foundation, Intermediate, Senior, FET]
+          enum:
+          - Foundation
+          - Intermediate
+          - Senior
+          - FET
         sort_order:
           type: integer
           minimum: 0
@@ -6579,7 +6879,11 @@ components:
     AcademicRatingLevel:
       type: object
       additionalProperties: false
-      required: [level, name, min_basis_points, max_basis_points]
+      required:
+      - level
+      - name
+      - min_basis_points
+      - max_basis_points
       properties:
         level:
           type: integer
@@ -6597,15 +6901,22 @@ components:
           maximum: 10000
     ClassGradeWrite:
       type: object
-      required: [grade_level_id]
+      required:
+      - grade_level_id
       properties:
         grade_level_id:
-          type: [integer, 'null']
+          type:
+          - integer
+          - 'null'
           description: Reference ID, or explicit null to clear the mapping.
     ClassGradeResponse:
       type: object
       additionalProperties: false
-      required: [error, message, data, code]
+      required:
+      - error
+      - message
+      - data
+      - code
       properties:
         error:
           type: boolean
@@ -6618,16 +6929,28 @@ components:
     ClassGradeMapping:
       type: object
       additionalProperties: false
-      required: [class_id, grade_level_id, grade_level]
+      required:
+      - class_id
+      - grade_level_id
+      - grade_level
       properties:
         class_id:
           type: integer
         grade_level_id:
-          type: [integer, 'null']
+          type:
+          - integer
+          - 'null'
         grade_level:
-          type: [object, 'null']
+          type:
+          - object
+          - 'null'
           description: The selected grade reference, or null when unmapped.
-          required: [id, code, name, phase, sort_order]
+          required:
+          - id
+          - code
+          - name
+          - phase
+          - sort_order
           properties:
             id:
               type: integer
@@ -6637,7 +6960,11 @@ components:
               type: string
             phase:
               type: string
-              enum: [Foundation, Intermediate, Senior, FET]
+              enum:
+              - Foundation
+              - Intermediate
+              - Senior
+              - FET
             sort_order:
               type: integer
               minimum: 0
@@ -6645,7 +6972,11 @@ components:
     MySchoolResponse:
       type: object
       additionalProperties: false
-      required: [error, message, data, code]
+      required:
+      - error
+      - message
+      - data
+      - code
       properties:
         error:
           type: boolean
@@ -6660,18 +6991,32 @@ components:
     MySchoolInfo:
       type: object
       additionalProperties: false
-      required: [website, phone, email, address, documents, term_dates]
+      required:
+      - website
+      - phone
+      - email
+      - address
+      - documents
+      - term_dates
       properties:
         school:
           $ref: '#/components/schemas/SchoolSummary'
         website:
-          type: [string, 'null']
+          type:
+          - string
+          - 'null'
         phone:
-          type: [string, 'null']
+          type:
+          - string
+          - 'null'
         email:
-          type: [string, 'null']
+          type:
+          - string
+          - 'null'
         address:
-          type: [string, 'null']
+          type:
+          - string
+          - 'null'
         documents:
           type: array
           items:
@@ -6683,7 +7028,10 @@ components:
     SchoolDocument:
       type: object
       additionalProperties: false
-      required: [title, kind, url]
+      required:
+      - title
+      - kind
+      - url
       properties:
         id:
           type: string
@@ -6691,22 +7039,31 @@ components:
         title:
           type: string
         kind:
-          type: [string, 'null']
+          type:
+          - string
+          - 'null'
         url:
           type: string
           format: uri
     TermDates:
       type: object
       additionalProperties: false
-      required: [name, starts_on, ends_on]
+      required:
+      - name
+      - starts_on
+      - ends_on
       properties:
         name:
           type: string
         starts_on:
-          type: [string, 'null']
+          type:
+          - string
+          - 'null'
           format: date
         ends_on:
-          type: [string, 'null']
+          type:
+          - string
+          - 'null'
           format: date
         grade_from:
           type: integer
@@ -6716,33 +7073,37 @@ components:
           type: integer
           minimum: 0
           maximum: 12
-
     ErrorCode:
       type: string
-      description: What went wrong (see the table in the description). Clients must accept codes they do not know.
+      description: What went wrong (see the table in the description). Clients must accept codes they
+        do not know.
       enum:
-        - bad_request
-        - unauthenticated
-        - forbidden
-        - not_found
-        - method_not_allowed
-        - conflict
-        - payload_too_large
-        - session_expired
-        - validation_failed
-        - too_many_requests
-        - server_error
-        - unavailable
-        - http_error
-        - idempotency_key_missing
-        - idempotency_key_invalid
-        - idempotency_key_reused
-        - idempotency_key_in_progress
+      - bad_request
+      - unauthenticated
+      - forbidden
+      - not_found
+      - method_not_allowed
+      - conflict
+      - payload_too_large
+      - session_expired
+      - validation_failed
+      - too_many_requests
+      - server_error
+      - unavailable
+      - http_error
+      - idempotency_key_missing
+      - idempotency_key_invalid
+      - idempotency_key_reused
+      - idempotency_key_in_progress
     ErrorResponse:
       type: object
       description: The envelope of every failure.
       additionalProperties: false
-      required: [error, message, data, code]
+      required:
+      - error
+      - message
+      - data
+      - code
       properties:
         error:
           type: boolean
@@ -6753,8 +7114,8 @@ components:
         data:
           description: Every validation message by field, for `validation_failed`; otherwise null.
           oneOf:
-            - $ref: '#/components/schemas/ValidationErrors'
-            - type: 'null'
+          - $ref: '#/components/schemas/ValidationErrors'
+          - type: 'null'
         code:
           $ref: '#/components/schemas/ErrorCode'
         details:
@@ -6763,7 +7124,8 @@ components:
     ValidationErrors:
       type: object
       additionalProperties: false
-      required: [errors]
+      required:
+      - errors
       properties:
         errors:
           type: object
@@ -6776,7 +7138,11 @@ components:
       type: object
       description: 'Where a page sits in a list. List endpoints answer `data: {items, pagination}`.'
       additionalProperties: false
-      required: [page, per_page, total, last_page]
+      required:
+      - page
+      - per_page
+      - total
+      - last_page
       properties:
         page:
           type: integer
@@ -6794,7 +7160,11 @@ components:
     ContextResponse:
       type: object
       additionalProperties: false
-      required: [error, message, data, code]
+      required:
+      - error
+      - message
+      - data
+      - code
       properties:
         error:
           type: boolean
@@ -7108,13 +7478,23 @@ components:
     Context:
       type: object
       additionalProperties: false
-      required: [user, schools, current_school, modules, notification_rules, feature_flags, sign_in_methods, children]
+      required:
+      - user
+      - schools
+      - current_school
+      - modules
+      - notification_rules
+      - feature_flags
+      - sign_in_methods
+      - children
       properties:
         user:
           $ref: '#/components/schemas/ContextUser'
         schools:
           type: array
-          description: Every school the user is an active member of, with their roles there, in school order. An app offers a school switcher when there is more than one and sends the chosen school's `id` as `X-School-Id`.
+          description: Every school the user is an active member of, with their roles there, in school
+            order. An app offers a school switcher when there is more than one and sends the chosen school's
+            `id` as `X-School-Id`.
           items:
             $ref: '#/components/schemas/SchoolMembership'
         current_school:
@@ -7131,7 +7511,8 @@ components:
             $ref: '#/components/schemas/NotificationRule'
         profile_fields:
           type: array
-          description: School-specific metadata for the user's profiles; never contains person values. Missing on older servers.
+          description: School-specific metadata for the user's profiles; never contains person values.
+            Missing on older servers.
           items:
             $ref: '#/components/schemas/ProfileFieldSummary'
         feature_flags:
@@ -7141,7 +7522,8 @@ components:
             type: boolean
         sign_in_methods:
           type: array
-          description: How this user may sign in at the current school, for example `password` (passkeys, Google, Microsoft and email links arrive in Phase 1).
+          description: How this user may sign in at the current school, for example `password` (passkeys,
+            Google, Microsoft and email links arrive in Phase 1).
           items:
             type: string
         children:
@@ -7328,7 +7710,15 @@ components:
     ProfileFieldSummary:
       type: object
       additionalProperties: false
-      required: [profile_type, key, label, type, required, locked, category_key, category_label]
+      required:
+      - profile_type
+      - key
+      - label
+      - type
+      - required
+      - locked
+      - category_key
+      - category_label
       properties:
         profile_type:
           type: string
@@ -7349,7 +7739,12 @@ components:
     ProfileAttachment:
       type: object
       additionalProperties: false
-      required: [id, name, mime, size, url]
+      required:
+      - id
+      - name
+      - mime
+      - size
+      - url
       properties:
         id:
           type: string
@@ -7364,7 +7759,8 @@ components:
         url:
           type: string
           format: uri
-          description: Authenticated asset URL. It requires the same person, field and school rights on every read.
+          description: Authenticated asset URL. It requires the same person, field and school rights on
+            every read.
     ProfileValue:
       type: object
       additionalProperties: false
@@ -7383,11 +7779,11 @@ components:
           description: True clears an optional value; omit for other values.
         file:
           $ref: '#/components/schemas/ProfileAttachment'
-          description: Read-only metadata; uploads use the file action, and clear removes the current reference.
+          description: Read-only metadata; uploads use the file action, and clear removes the current
+            reference.
       minProperties: 1
       maxProperties: 1
-      description: Exactly one value member. Numbers and dates use text to preserve precision
-        and formatting.
+      description: Exactly one value member. Numbers and dates use text to preserve precision and formatting.
     ProfileValidationRules:
       type: object
       additionalProperties: false
@@ -7668,7 +8064,14 @@ components:
     ContextUser:
       type: object
       additionalProperties: false
-      required: [id, first_name, last_name, name, email, image, roles]
+      required:
+      - id
+      - first_name
+      - last_name
+      - name
+      - email
+      - image
+      - roles
       properties:
         id:
           type: integer
@@ -7683,34 +8086,50 @@ components:
           type: string
           description: The sign-in name; a learner's is their GR number.
         image:
-          type: [string, 'null']
+          type:
+          - string
+          - 'null'
           description: The profile picture's URL, or null.
         handle:
-          type: [string, 'null']
+          type:
+          - string
+          - 'null'
           description: Your platform handle, when chosen and approved.
         roles:
           type: array
-          description: The user's role names at the current school, for example `Parent`, `Teacher`, `Super Admin` or a role the school created.
+          description: The user's role names at the current school, for example `Parent`, `Teacher`, `Super
+            Admin` or a role the school created.
           items:
             type: string
     SchoolSummary:
       type: object
       additionalProperties: false
-      required: [id, name, short_name, crest_url]
+      required:
+      - id
+      - name
+      - short_name
+      - crest_url
       properties:
         id:
           type: integer
         name:
           type: string
         short_name:
-          type: [string, 'null']
+          type:
+          - string
+          - 'null'
         crest_url:
-          type: [string, 'null']
-          description: The school's crest or logo, shown beside the NavigateEd brand; null when none is uploaded.
+          type:
+          - string
+          - 'null'
+          description: The school's crest or logo, shown beside the NavigateEd brand; null when none is
+            uploaded.
     SchoolMembership:
       type: object
       additionalProperties: false
-      required: [school, roles]
+      required:
+      - school
+      - roles
       properties:
         school:
           $ref: '#/components/schemas/SchoolSummary'
@@ -7721,18 +8140,32 @@ components:
     CurrentSchool:
       type: object
       additionalProperties: false
-      required: [id, name, short_name, crest_url, tagline, branding, timezone, session_year]
+      required:
+      - id
+      - name
+      - short_name
+      - crest_url
+      - tagline
+      - branding
+      - timezone
+      - session_year
       properties:
         id:
           type: integer
         name:
           type: string
         short_name:
-          type: [string, 'null']
+          type:
+          - string
+          - 'null'
         crest_url:
-          type: [string, 'null']
+          type:
+          - string
+          - 'null'
         tagline:
-          type: [string, 'null']
+          type:
+          - string
+          - 'null'
         branding:
           $ref: '#/components/schemas/Branding'
         timezone:
@@ -7741,32 +8174,48 @@ components:
         session_year:
           description: The current school year, or null when none is set.
           oneOf:
-            - $ref: '#/components/schemas/SessionYear'
-            - type: 'null'
+          - $ref: '#/components/schemas/SessionYear'
+          - type: 'null'
     Branding:
       type: object
-      description: The school's colours as the school stored them (usually `#RRGGBB`). Shown only on the crest and the school's own page, never in place of the NavigateEd theme.
+      description: The school's colours as the school stored them (usually `#RRGGBB`). Shown only on the
+        crest and the school's own page, never in place of the NavigateEd theme.
       additionalProperties: false
-      required: [theme_color, secondary_color]
+      required:
+      - theme_color
+      - secondary_color
       properties:
         theme_color:
-          type: [string, 'null']
+          type:
+          - string
+          - 'null'
         secondary_color:
-          type: [string, 'null']
+          type:
+          - string
+          - 'null'
     SessionYear:
       type: object
       additionalProperties: false
-      required: [id, name, start_date, end_date, terms]
+      required:
+      - id
+      - name
+      - start_date
+      - end_date
+      - terms
       properties:
         id:
           type: integer
         name:
           type: string
         start_date:
-          type: [string, 'null']
+          type:
+          - string
+          - 'null'
           format: date
         end_date:
-          type: [string, 'null']
+          type:
+          - string
+          - 'null'
           format: date
         terms:
           type: array
@@ -7775,17 +8224,26 @@ components:
     Term:
       type: object
       additionalProperties: false
-      required: [id, name, start_date, end_date, current]
+      required:
+      - id
+      - name
+      - start_date
+      - end_date
+      - current
       properties:
         id:
           type: integer
         name:
           type: string
         start_date:
-          type: [string, 'null']
+          type:
+          - string
+          - 'null'
           format: date
         end_date:
-          type: [string, 'null']
+          type:
+          - string
+          - 'null'
           format: date
         current:
           type: boolean
@@ -7799,29 +8257,38 @@ components:
           minimum: 0
           maximum: 12
         marks_lock_on:
-          type: [string, 'null']
+          type:
+          - string
+          - 'null'
           format: date
         reports_on:
-          type: [string, 'null']
+          type:
+          - string
+          - 'null'
           format: date
-
     Module:
       type: object
       description: A module switched on at the school (Phase 1).
       additionalProperties: false
-      required: [key, read_only]
+      required:
+      - key
+      - read_only
       properties:
         key:
           type: string
           description: The module's key in config/modules.php, for example `fees`.
         read_only:
           type: boolean
-          description: True when the module was switched off with data left in it, so it can be seen but not changed.
+          description: True when the module was switched off with data left in it, so it can be seen but
+            not changed.
     NotificationRule:
       type: object
       description: How the school sends one notification type to this profile (Phase 1).
       additionalProperties: false
-      required: [type, channel, mode]
+      required:
+      - type
+      - channel
+      - mode
       properties:
         type:
           type: string
@@ -7835,7 +8302,14 @@ components:
     Child:
       type: object
       additionalProperties: false
-      required: [id, user_id, first_name, last_name, name, image, school]
+      required:
+      - id
+      - user_id
+      - first_name
+      - last_name
+      - name
+      - image
+      - school
       properties:
         id:
           type: integer
@@ -7849,7 +8323,9 @@ components:
         name:
           type: string
         image:
-          type: [string, 'null']
+          type:
+          - string
+          - 'null'
         student_number:
           type:
           - string
@@ -7862,7 +8338,6 @@ components:
           - 'null'
         school:
           $ref: '#/components/schemas/SchoolSummary'
-
     AcademicMarkRow:
       type: object
       required:
@@ -8515,8 +8990,10 @@ components:
       - coverage_bp
       - released_at
       properties:
-        subject_name: {type: string}
-        grade_name: {type: string}
+        subject_name:
+          type: string
+        grade_name:
+          type: string
         release_id:
           type: integer
           minimum: 1
@@ -8669,46 +9146,79 @@ components:
         data:
           $ref: '#/components/schemas/AcademicReleasedData'
       additionalProperties: false
-
     AcademicMarkCapabilities:
       type: object
-      required: [capture, correct, moderate, release]
+      required:
+      - capture
+      - correct
+      - moderate
+      - release
       properties:
-        capture: {type: boolean}
-        correct: {type: boolean}
-        moderate: {type: boolean}
-        release: {type: boolean}
+        capture:
+          type: boolean
+        correct:
+          type: boolean
+        moderate:
+          type: boolean
+        release:
+          type: boolean
       additionalProperties: false
-
     AcademicReleasePeriod:
       type: object
-      required: [session_year_id, year_name, term_id, term_name, released_at]
+      required:
+      - session_year_id
+      - year_name
+      - term_id
+      - term_name
+      - released_at
       properties:
-        session_year_id: {type: integer, minimum: 1}
-        year_name: {type: string}
-        term_id: {type: [integer, 'null']}
-        term_name: {type: [string, 'null']}
-        released_at: {type: string}
+        session_year_id:
+          type: integer
+          minimum: 1
+        year_name:
+          type: string
+        term_id:
+          type:
+          - integer
+          - 'null'
+        term_name:
+          type:
+          - string
+          - 'null'
+        released_at:
+          type: string
       additionalProperties: false
     AcademicReleasePeriodsData:
       type: object
-      required: [learner_id, periods]
+      required:
+      - learner_id
+      - periods
       properties:
-        learner_id: {type: integer, minimum: 1}
+        learner_id:
+          type: integer
+          minimum: 1
         periods:
           type: array
-          items: {$ref: '#/components/schemas/AcademicReleasePeriod'}
+          items:
+            $ref: '#/components/schemas/AcademicReleasePeriod'
       additionalProperties: false
     AcademicReleasePeriodsResponse:
       type: object
-      required: [error, message, code, data]
+      required:
+      - error
+      - message
+      - code
+      - data
       properties:
-        error: {type: boolean}
-        message: {type: string}
-        code: {type: integer}
-        data: {$ref: '#/components/schemas/AcademicReleasePeriodsData'}
+        error:
+          type: boolean
+        message:
+          type: string
+        code:
+          type: integer
+        data:
+          $ref: '#/components/schemas/AcademicReleasePeriodsData'
       additionalProperties: false
-
     AcademicRoomWrite:
       type: object
       additionalProperties: false
@@ -10664,6 +11174,7 @@ components:
       - templates
       - can_design
       - comment_banks
+      - subjects
       properties:
         session_year_id:
           type: integer
@@ -10690,6 +11201,10 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/AcademicReportCommentBank'
+        subjects:
+          type: array
+          items:
+            $ref: '#/components/schemas/AcademicTimetableChoice'
     AcademicReportBatchSummary:
       type: object
       additionalProperties: false

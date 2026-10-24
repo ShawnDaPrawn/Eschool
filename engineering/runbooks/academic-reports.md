@@ -47,3 +47,12 @@ The local synthetic PDF and fake transports do not establish pilot acceptance.
 Current grade heads may correct earlier-year registers with a reason. A teacher
 whose allocation has expired cannot use a historical report or register to regain
 access. Register corrections retain the original attendance date and audit trail.
+
+The panel and both apps expose Report cards. The panel deliberately permits
+explicit historical report operations while the legacy header shows a read-only
+year; canonical current authority, signatures and revisions remain mandatory.
+Panel writes and encrypted retry receipts commit together. API report retry keys
+are school-bound and report response bodies are encrypted in the receipt store.
+PDF clients validate the configured origin/path/signed query and refuse redirects;
+resume and explicit Save a copy refresh current access. Receipts require the same
+application encryption-key backup/rotation handling as report evidence.

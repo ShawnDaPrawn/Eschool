@@ -181,11 +181,7 @@ class ReportBatches
             $scope = $subjectId === null ? 'homeroom' : 'subject:'.$subjectId;
             $row = ReportComment::where('report_card_id', $cardId)->where('scope_key', $scope)->first() ?? new ReportComment(['report_card_id' => $cardId, 'scope_key' => $scope, 'revision' => 0]);
             abort_unless($row->revision === (int) $data['revision'], 409, __('This comment changed. Compare it before saving.'));
-            $text = $data['text'] ?? '';
-            if (isset($data['bank_id'])) {
-                $bank = ReportCommentBank::where('active', true)->where('scope', $subjectId === null ? 'homeroom' : 'subject')->where('subject_id', $subjectId)->findOrFail($data['bank_id']);
-                $text = $bank->text;
-            }
+            $text = $this->commentText($data);
             $before = $row->getAttributes();
             $row->fill(['text' => trim($text), 'author_id' => $actor->id, 'revision' => $row->revision + 1])->save();
             $this->reset($batch);
@@ -193,6 +189,17 @@ class ReportBatches
 
             return ['id' => (int) $row->id, 'revision' => $row->revision, 'batch_revision' => $batch->revision, 'fingerprint' => $batch->fingerprint, 'text' => $row->text];
         }, 3);
+    }
+
+    /** Resolve validated bank selection before displaying an explicitly reviewed draft. */
+    public function commentText(array $data): string
+    {
+        if (! isset($data['bank_id'])) {
+            return $data['text'] ?? '';
+        }
+        $subject = $data['subject_id'] === null ? null : (int) $data['subject_id'];
+
+        return ReportCommentBank::where('active', true)->where('scope', $subject === null ? 'homeroom' : 'subject')->where('subject_id', $subject)->findOrFail($data['bank_id'])->text;
     }
 
     private function evidence(ReportBatch $batch): array
