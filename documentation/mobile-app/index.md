@@ -4,7 +4,7 @@ sidebar_position: 1
 
 # Mobile Application
 
-Thank you for purchasing **e-School**. We appreciate your support. In this documentation, you will find instructions on how to set up the mobile application for e-School. This document also provides features of e-School.
+Set up NavigateEd for learners and parents, and NavigateEd Teacher for your teaching team. These guides cover app configuration, branding, Firebase, and release builds.
 
 import DocBanner from '@site/src/components/DocBanner/DocBanner';
 
@@ -13,7 +13,7 @@ import DocBanner from '@site/src/components/DocBanner/DocBanner';
 
 ## About This Documentation
 
-This documentation provides comprehensive instructions for setting up and customizing the e-School mobile application. You'll find detailed guides for:
+This documentation provides comprehensive instructions for setting up and customizing the NavigateEd mobile application. You'll find detailed guides for:
 
 - Setting up Flutter development environment
 - Customizing app appearance and branding
@@ -22,4 +22,4 @@ This documentation provides comprehensive instructions for setting up and custom
 - Generating release versions
 - And much more
 
-If you have any questions, feel free to reach out. Thank you for choosing e-School!
+For answers to common questions, visit [FAQs](/faqs/), or [contact support](/support/).

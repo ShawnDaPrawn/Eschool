@@ -1,191 +1,70 @@
-/**
- * CSS files with the .module.css suffix will be treated as CSS modules
- * and scoped locally.
- */
-
-.cursorIcon {
-  will-change: transform, opacity;
-  position: absolute;
-  pointer-events: none;
-  z-index: 1;
+.home { --ifm-container-width-xl: 1240px; }
+.hero {
+  background: var(--md-sys-color-inverse-surface);
+  color: var(--md-sys-color-on-inverse-surface);
+  padding-block: clamp(48px, 6vw, 88px);
 }
-
-.heroBanner {
-  padding: 4rem 0;
-  text-align: center;
-  position: relative;
-  overflow: hidden;
-  background-color: var(--ifm-color-primary);
-  color: white;
+.heroLayout { display: grid; grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr); align-items: center; gap: 72px; }
+.eyebrow { margin-block: 0 16px; color: var(--ifm-color-primary); font-size: 14px; font-weight: 500; letter-spacing: 0.08em; text-transform: uppercase; }
+.hero .eyebrow { color: var(--md-sys-color-inverse-primary); }
+.hero h1 { color: inherit; font-size: clamp(36px, 4vw, 56px); font-weight: 500; letter-spacing: -0.035em; line-height: 1.18; margin-block-end: 24px; }
+.intro { max-width: 570px; color: color-mix(in srgb, var(--md-sys-color-on-inverse-surface) 85%, transparent); line-height: 1.8; margin-block-end: 32px; }
+.actions { display: flex; flex-wrap: wrap; gap: 12px; }
+.startCard {
+  border: 1px solid color-mix(in srgb, var(--md-sys-color-on-inverse-surface) 24%, transparent);
+  border-radius: var(--app-radius-sheet);
+  background: color-mix(in srgb, var(--md-sys-color-on-inverse-surface) 5%, transparent);
+  padding: 32px;
 }
-
-.logoContainer {
-  display: flex;
-  justify-content: center;
-  margin-bottom: 1.5rem;
+.heroLogo { display: block; max-width: 100%; height: auto; }
+.startDivider { height: 1px; background: color-mix(in srgb, var(--md-sys-color-on-inverse-surface) 24%, transparent); margin-block: 24px; }
+.startCard .eyebrow { margin-block-end: 8px; font-size: 12px; }
+.startCard h2 { font-size: 24px; font-weight: 500; color: inherit; line-height: 1.4; }
+.startCard > p:not(.eyebrow) { color: color-mix(in srgb, var(--md-sys-color-on-inverse-surface) 85%, transparent); font-size: 14px; line-height: 1.8; }
+.startLink, .guideAction { display: inline-flex; align-items: center; gap: 12px; font-size: 14px; font-weight: 500; }
+.startLink { color: var(--md-sys-color-inverse-primary); min-height: 44px; }
+.startLink:hover { color: var(--md-sys-color-on-inverse-surface); }
+.startLink svg, .guideAction svg { width: 20px; height: 20px; flex-shrink: 0; }
+.guides { padding-block: 64px; scroll-margin-top: 96px; }
+.sectionHeading { display: flex; align-items: flex-end; justify-content: space-between; gap: 32px; margin-block-end: 32px; }
+.sectionHeading .eyebrow { margin-block-end: 8px; }
+.sectionHeading h2, .support h2 { font-size: clamp(24px, 2.5vw, 32px); font-weight: 500; line-height: 1.35; margin: 0; }
+.sectionHeading > p { max-width: 270px; margin: 0; font-size: 14px; color: var(--ifm-color-emphasis-700); }
+.guideGrid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 20px; }
+.guideCard {
+  display: flex; flex-direction: column; align-items: flex-start; padding: 24px;
+  border-radius: var(--app-radius); border-color: var(--ifm-color-emphasis-300);
+  background: var(--ifm-background-surface-color); color: var(--ifm-font-color-base);
+  transition: border-color 150ms ease, box-shadow 150ms ease;
 }
-
-.logo {
-  border-radius: 20%;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-  background-color: white;
+.guideCard:hover { color: var(--ifm-font-color-base); text-decoration: none; border-color: var(--ifm-color-primary); box-shadow: var(--md-sys-elevation-level1); }
+.guideIcon { display: inline-flex; padding: 12px; border-radius: var(--app-radius); background: var(--docs-primary-tint); color: var(--ifm-color-primary); margin-block-end: 24px; }
+.guideIcon svg { width: 26px; height: 26px; }
+.audience { margin-block-end: 8px; font-size: 12px; font-weight: 500; color: var(--ifm-color-emphasis-700); }
+.guideCard h3 { font-size: 21px; font-weight: 500; line-height: 1.4; margin-block-end: 12px; }
+.description { font-size: 14px; line-height: 1.8; color: var(--ifm-color-emphasis-700); margin-block-end: 24px; }
+.guideAction { margin-block-start: auto; color: var(--ifm-color-primary); }
+.support { padding-block: 48px; background: var(--docs-surface-container); border-top: 1px solid var(--ifm-color-emphasis-300); }
+.supportLayout { display: flex; align-items: center; justify-content: space-between; gap: 32px; }
+.support .eyebrow { margin-block-end: 8px; }
+.support p:last-child { color: var(--ifm-color-emphasis-700); margin-block: 16px 0; font-size: 14px; }
+.support .actions { flex-shrink: 0; }
+@media (max-width: 1199px) {
+  .heroLayout { gap: 40px; grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr); }
+  .guideGrid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .supportLayout { align-items: flex-start; flex-direction: column; }
 }
-
-.heroBanner h1 {
-  font-size: 3rem;
-  margin-bottom: 0.5rem;
+@media (max-width: 767px) {
+  .heroLayout { grid-template-columns: 1fr; gap: 32px; }
+  .hero { padding-block: 40px; }
+  .startCard { padding: 24px; }
+  .sectionHeading { align-items: flex-start; flex-direction: column; gap: 12px; }
+  .sectionHeading > p { max-width: none; }
+  .guides { padding-block: 40px; }
 }
-
-.heroBanner p {
-  font-size: 1.5rem;
-  margin: 0 auto 1rem;
-  max-width: 600px;
+@media (max-width: 479px) {
+  .guideGrid { grid-template-columns: 1fr; gap: 16px; }
+  .actions { flex-direction: column; align-items: stretch; }
+  .support .actions { width: 100%; }
 }
-
-@media screen and (max-width: 996px) {
-  .heroBanner {
-    padding: 2rem;
-  }
-
-  .heroBanner h1 {
-    font-size: 2.5rem;
-  }
-
-  .heroBanner p {
-    font-size: 1.25rem;
-  }
-}
-
-.buttons {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin-top: 2rem;
-}
-
-.features {
-  padding: 4rem 0;
-  width: 100%;
-}
-
-/* Modern Card styles */
-.features :global(.card) {
-  height: 100%;
-  border-radius: 12px;
-  border: 1px solid var(--ifm-color-emphasis-200);
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
-  transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-  overflow: hidden;
-  background: var(--ifm-card-background-color,
-      var(--ifm-background-surface-color));
-  position: relative;
-  padding: 0;
-}
-
-.features :global(.card:hover) {
-  transform: translateY(-8px);
-  box-shadow: 0 15px 35px rgba(0, 178, 202, 0.2);
-  border-color: var(--ifm-color-emphasis-300);
-}
-
-.features :global(.card:before) {
-  content: "";
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 4px;
-  background: var(--ifm-color-primary);
-  transform: scaleX(0);
-  transform-origin: left;
-  transition: transform 0.3s ease;
-}
-
-.features :global(.card:hover:before) {
-  transform: scaleX(1);
-}
-
-.features :global(.card__header) {
-  text-align: center;
-  padding: 2rem 1.5rem 1rem;
-  background: transparent;
-  border-bottom: 1px solid var(--ifm-color-emphasis-100);
-}
-
-.cardIcon {
-  display: inline-flex;
-  width: 60px;
-  height: 60px;
-  border-radius: 50%;
-  background: rgba(0, 178, 202, 0.1);
-  color: var(--ifm-color-primary);
-  align-items: center;
-  justify-content: center;
-  margin-bottom: 1rem;
-  border: 1px solid rgba(0, 178, 202, 0.2);
-}
-
-.features :global(.card__header h3) {
-  margin: 0;
-  color: var(--ifm-color-emphasis-900);
-  font-weight: 700;
-  font-size: 1.5rem;
-}
-
-.features :global(.card__body) {
-  padding: 1rem 1.5rem 1.5rem;
-  flex-grow: 1;
-  text-align: center;
-}
-
-.features :global(.card__body p) {
-  margin-bottom: 0;
-  color: var(--ifm-color-emphasis-700);
-  line-height: 1.6;
-}
-
-.features :global(.card__footer) {
-  text-align: center;
-  padding: 1.5rem;
-  border: none;
-  background: transparent;
-}
-
-.features :global(.card__footer .button) {
-  border-radius: 30px;
-  padding: 0.5rem 1.5rem;
-  font-weight: 500;
-  box-shadow: 0 4px 10px rgba(0, 178, 202, 0.15);
-  transition: all 0.3s ease;
-}
-
-.features :global(.card__footer .button:hover) {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 15px rgba(0, 178, 202, 0.25);
-}
-
-/* Light mode specific styles */
-html[data-theme="light"] .features :global(.card) {
-  box-shadow: 0 6px 15px rgba(0, 0, 0, 0.1);
-  border: 1px solid var(--ifm-color-emphasis-200);
-}
-
-html[data-theme="light"] .features :global(.card:hover) {
-  box-shadow: 0 12px 30px rgba(0, 178, 202, 0.2);
-}
-
-html[data-theme="light"] .cardIcon {
-  background: rgba(0, 178, 202, 0.15);
-  box-shadow: 0 4px 8px rgba(0, 178, 202, 0.1);
-}
-
-.support {
-  padding: 4rem 0;
-  background-color: var(--ifm-color-emphasis-100);
-}
-
-.featureTitle {
-  font-size: 1.5rem;
-  font-weight: 700;
-  margin-bottom: 1rem;
-}
+@media (prefers-reduced-motion: reduce) { .guideCard { transition: none; } }
