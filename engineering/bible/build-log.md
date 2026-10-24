@@ -387,3 +387,14 @@ retries, revision comparison, private lifecycle refresh and authority changes
 are covered by automated and actual Chrome flows. Saved list and role-rule
 management remains in the panel. Exports/languages and pilot tooling remain
 active implementation; external acceptance evidence is tracked separately.
+
+
+### 24 October 2026 - versioned academic export bridge
+
+Added private panel exports for dated learners, daily homeroom attendance and
+raw task scores through explicit school/year/version-bound layouts. Exact
+external identities and status codes are supplied by the operator; no universal
+SA-SAMS layout is invented. CSV and hash-bound blank XLSX rendering include a
+signed provenance manifest; unknown or incomplete source data fails visibly.
+Automated and both-width browser evidence is recorded separately from target
+SA-SAMS import qualification. Languages and pilot tooling remain active work.

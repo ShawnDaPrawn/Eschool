@@ -137,6 +137,7 @@ return [
                             'keywords' => ['classes', 'class sections', 'homerooms', 'add a grade']],
                         ['key' => 'homeroom-names', 'label' => 'nav_homeroom_names', 'route' => 'section.index', 'permissions' => ['section-create'], 'module' => null,
                             'keywords' => ['sections', 'divisions', 'a b c']],
+                        ['key' => 'academic-sasams', 'label' => 'SA-SAMS exports', 'route' => 'academic-sasams.index', 'permissions' => ['academic-structure-manage'], 'module' => 'academics', 'keywords' => ['SA-SAMS', 'learners', 'attendance', 'marks', 'export']],
                         ['key' => 'academic-transitions', 'label' => 'Mid-year learner changes', 'route' => 'academic-transitions.index', 'permissions' => ['academic-structure-manage'], 'module' => 'academics', 'keywords' => ['join', 'leave', 'subject change', 'exit package']],
                         ['key' => 'academic-content', 'label' => 'Learning content', 'route' => 'academic-content.index', 'permissions' => ['curriculum-read', 'academic-structure-manage'], 'module' => 'academics', 'keywords' => ['content', 'upload', 'markdown', 'transcript', 'curriculum topics']],
                         ['key' => 'academic-reports', 'label' => 'Academic report cards', 'route' => 'academic-reports.index', 'permissions' => ['curriculum-read', 'academic-structure-manage'], 'module' => 'academics', 'keywords' => ['reports', 'comments', 'principal', 'grade head', 'report release']],
