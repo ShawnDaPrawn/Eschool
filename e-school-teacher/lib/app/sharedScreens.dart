@@ -110,6 +110,15 @@ List<Widget> sharedScreenEntries(
   void open(String route) => Navigator.of(context).pushNamed(route);
   return [
     if (context.watch<MeContextCubit>().context?.isFeatureOn(
+          'academic_reports',
+        ) ==
+        true)
+      tile(
+        title: label('reportCards'),
+        icon: Icons.description_outlined,
+        onTap: () => open(Routes.academicReports),
+      ),
+    if (context.watch<MeContextCubit>().context?.isFeatureOn(
           'academic_registers',
         ) ==
         true)
@@ -275,6 +284,25 @@ Route<dynamic> academicRegistersRoute() => AdaptivePageRoute(
       child: RegisterHubScreen(
         repository: ApiRegisterRepository(Api.client, schoolId: school.id),
         store: () => SecureRegisterStore.open(owner),
+      ),
+    );
+  },
+);
+
+Route<dynamic> academicReportsRoute() => AdaptivePageRoute(
+  builder: (context) {
+    final me = context.read<MeContextCubit>().context;
+    final school = me?.currentSchool;
+    if (school == null || me?.isFeatureOn('academic_reports') != true) {
+      return const ScreenScaffold(
+        title: 'Report cards',
+        body: Center(child: Text('Not available yet')),
+      );
+    }
+    return AcademicContextBoundary(
+      schoolId: school.id,
+      child: ReportHubScreen(
+        repository: ApiReportRepository(Api.client, schoolId: school.id),
       ),
     );
   },

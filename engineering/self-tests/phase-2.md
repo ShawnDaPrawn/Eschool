@@ -379,3 +379,36 @@ being a string rather than a term date object. Annual roster/evidence now parse
 the explicit year dates and refuse undated years. A full annual selection through
 approval/private PDF generation passes. All 198 report/idempotency/contract checks
 pass (1,291 assertions); Larastan and formatting are clean.
+
+Report backend completion: PR #95 merged after complete CI, Security and Firebase
+documentation workflows passed on c432cd9cab2e57a30efdcdeb575561308802b1b8.
+The current-head review thread is resolved. Main includes annual reports, private
+retry receipts and history authority regressions; no production release is made.
+
+### Report clients and panel verification
+
+Shared academics: 90 tests pass; analysis clean. Family app: 45 tests pass; teacher
+app: 28 tests pass; both app analyses have no errors/warnings. Core API/fake-asset
+cohort: 28 tests pass. Regenerated SDK: 37 tests pass, no analysis errors/warnings
+(generator style infos remain). Strict OpenAPI lint, documentation build, E2E
+TypeScript and workflow validation pass.
+
+Both actual Chrome flows pass: parent sign-in, selected-child report history,
+fresh signed access and PDF rendering; teacher sign-in, Reports, allocated subject
+comment and saved revision. Family traffic is pinned to its child/school and never
+fetches staff rosters. Panel preparation, comment correction, ordered signatures,
+private PDF preview and release passed at 1024 and 1280 pixels. The separate
+teacher two-tab conflict/review flow passed; axe and overflow checks passed.
+
+Final local PHP cohort: 207 report/contract/navigation/read-only-year/route/style
+checks pass (1,836 assertions), with clean Larastan and changed-file formatting.
+It covers native replay redirects, revocation before replay, explicit historical
+batch writes despite the legacy header, and scoped restoration of rejected text.
+Browser rehearsal caught required correction reasons and test navigation/scope
+selectors. A real restoration bug was fixed: one comment's old input could fill
+another comment or a generic bank field; only the exact submitted form now restores
+its draft. The regression asserts the private draft occurs once and is not saved.
+
+Final client CI, native device acceptance and real provider delivery are separate
+checks. Synthetic browser timings do not establish classroom or full-term pilot
+acceptance. No production deployment or additional paid service was performed.

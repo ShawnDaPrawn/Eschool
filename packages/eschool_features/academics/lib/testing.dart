@@ -4,3 +4,5 @@ library;
 export 'src/testing/academic_fixtures.dart';
 export 'src/testing/timetable_fixtures.dart';
 export 'src/testing/register_fixtures.dart';
+
+export 'src/testing/report_fixtures.dart';

@@ -34,6 +34,7 @@ use App\Services\Academics\Reports\ReportFamily;
 use App\Services\Academics\Reports\ReportNotices;
 use App\Services\Academics\Reports\ReportQueries;
 use App\Services\Academics\TeachingGroups;
+use App\Services\Panel\SessionYearContext;
 use App\Services\Platform\Notifications\FcmClient;
 use App\Services\Platform\Tenancy\CurrentSchool;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
@@ -624,6 +625,109 @@ class ReportEngineTest extends TestCase
         $second = $this->putJson('/api/v2/academics/reports/templates', $input)->assertOk()->assertHeaderMissing('Idempotent-Replayed');
         $this->assertNotSame($first->json('data.id'), $second->json('data.id'));
         $this->assertSame(2, DB::table('idempotency_keys')->where('route', 'api.v2.academics.reports.templates')->count());
+    }
+
+    public function test_panel_prepares_approves_previews_and_releases_private_reports_with_exactly_once_redirects(): void
+    {
+        Storage::fake(ReportArtifacts::DISK);
+        $this->capture($this->input('5.00', '10.00'));
+        $selection = $this->selection();
+        $actor = $this->superAdmin();
+        $this->actingAs($actor)->get(route('academic-reports.index', ['session_year_id' => $this->year, 'term_id' => $this->term]))
+            ->assertOk()->assertSee('Prepare report cards')->assertHeader('Cache-Control', 'no-store, private');
+        $preview = $this->post(route('academic-reports.preview'), $selection)->assertOk()->assertSee('75.00%')->viewData('preview');
+        $body = $selection + ['fingerprint' => $preview['fingerprint'], 'operation_id' => (string) Str::uuid()];
+        $one = $this->post(route('academic-reports.prepare'), $body)->assertRedirect();
+        $this->post(route('academic-reports.prepare'), $body)->assertRedirect($one->headers->get('Location'))->assertHeader('Idempotent-Replayed', 'true');
+        $this->assertSame(1, ReportBatch::count());
+        $batch = ReportBatch::sole();
+        $action = fn (array $data): array => ['operation_id' => (string) Str::uuid(), 'batch_id' => (int) $batch->id, 'revision' => $data['revision'], 'fingerprint' => $data['fingerprint']];
+        $service = app(ReportBatches::class);
+        $this->post(route('academic-reports.action', [$batch->id, 'grade-sign']), $action($service->data($batch)))->assertForbidden();
+        $head = $this->gradeHead();
+        $this->actingAs($head)->post(route('academic-reports.action', [$batch->id, 'grade-sign']), $action($service->data($batch->fresh())))->assertRedirect();
+        AcademicLeadership::create(['user_id' => $actor->id, 'kind' => 'principal', 'grade_level_id' => null, 'session_year_id' => $this->year,
+            'starts_on' => '2026-01-01', 'ends_on' => '2026-12-31', 'reason' => 'Current principal']);
+        $this->actingAs($actor)->post(route('academic-reports.action', [$batch->id, 'principal-sign']), $action($service->data($batch->fresh())))->assertRedirect();
+        $card = ReportCard::sole();
+        app(ReportArtifacts::class)->generate((int) $card->id, $batch->fresh()->fingerprint);
+        $page = $this->get(route('academic-reports.index', ['batch_id' => $batch->id]))->assertOk()->assertSee('Preview PDF for')->assertSee('75.00%');
+        $url = $page->viewData('batch')['cards'][0]['panel_pdf'];
+        $this->get($url)->assertOk()->assertHeader('Content-Type', 'application/pdf')->assertHeader('Cache-Control', 'no-store, private');
+        $this->actingAs($this->teacher())->get($url)->assertForbidden();
+        $this->actingAs($actor);
+        $releasePreview = $this->post(route('academic-reports.action', [$batch->id, 'release-preview']), $action($service->data($batch->fresh())))->assertOk()->assertSee('Release and notify families')->viewData('releasePreview');
+        $release = $action($releasePreview);
+        $this->post(route('academic-reports.action', [$batch->id, 'release']), $release)->assertRedirect();
+        $this->post(route('academic-reports.action', [$batch->id, 'release']), $release)->assertRedirect()->assertHeader('Idempotent-Replayed', 'true');
+        $this->assertSame('released', $batch->fresh()->state);
+        $this->get(route('academic-reports.index', ['batch_id' => $batch->id]))->assertOk()->assertDontSee('Comment text');
+    }
+
+    public function test_panel_comment_conflict_keeps_the_draft_and_requires_explicit_review_with_fresh_authority(): void
+    {
+        $draft = $this->draft();
+        $card = $draft['cards'][0]['id'];
+        $this->actingAs($this->teacher())->get(route('academic-reports.index', ['session_year_id' => $this->year]))->assertOk()->assertSee('My report comments')->assertSee('Asha', false);
+        $body = ['operation_id' => (string) Str::uuid(), 'session_year_id' => $this->year, 'subject_id' => $this->schoolA->ids['maths'], 'text' => 'First saved comment', 'revision' => 0, 'batch_revision' => $draft['revision']];
+        $this->post(route('academic-reports.comment', $card), $body)->assertRedirect();
+        $stale = array_replace($body, ['operation_id' => (string) Str::uuid(), 'text' => 'My unsaved private draft']);
+        $this->post(route('academic-reports.comment', $card), $stale)->assertStatus(409)->assertSee('My unsaved private draft')->assertSee('Prepare reviewed comment draft')->assertSee('First saved comment');
+        $review = $this->post(route('academic-reports.review-comment', $card), $stale)->assertOk()->assertSee('Your reviewed comment is still a draft.');
+        $this->assertSame('First saved comment', ReportComment::sole()->text);
+        $fresh = $review->viewData('reviewedComment');
+        $this->assertSame(1, $fresh['revision']);
+        $this->post(route('academic-reports.comment', $card), array_replace($fresh, ['operation_id' => (string) Str::uuid()]))->assertRedirect();
+        $this->assertSame('My unsaved private draft', ReportComment::sole()->text);
+        TeachingAllocation::where('teaching_group_id', $this->group)->update(['ends_on' => '2026-02-09']);
+        $this->post(route('academic-reports.comment', $card), $body)->assertForbidden();
+        $foreign = User::withoutGlobalScopes()->findOrFail($this->schoolB->ids['tara_user']);
+        $this->actingAs($foreign)->postJson(route('academic-reports.comment', $card), $body)->assertNotFound();
+    }
+
+    public function test_panel_explicit_batch_actions_work_with_a_read_only_header_year_but_still_require_current_leadership(): void
+    {
+        $draft = $this->draft();
+        $past = SessionYear::forceCreate(['name' => '2025', 'start_date' => '2025-01-01', 'end_date' => '2025-12-31', 'default' => 0]);
+        $head = $this->gradeHead();
+        $body = ['batch_id' => $draft['id'], 'revision' => $draft['revision'], 'fingerprint' => $draft['fingerprint'], 'operation_id' => (string) Str::uuid()];
+        $this->actingAs($head)->withSession(['session_year' => $past->id]);
+        $this->post(route('academic-reports.action', [$draft['id'], 'grade-sign']), $body)->assertRedirect();
+        $this->assertTrue(app(SessionYearContext::class)->isReadOnly());
+        $this->assertSame('grade_signed', ReportBatch::findOrFail($draft['id'])->state);
+        AcademicLeadership::where('user_id', $head->id)->update(['ends_on' => '2026-02-09']);
+        $this->post(route('academic-reports.action', [$draft['id'], 'grade-sign']), $body)->assertForbidden();
+    }
+
+    public function test_panel_validation_restores_only_the_submitted_comment_scope(): void
+    {
+        $draft = $this->draft();
+        $card = $draft['cards'][0]['id'];
+        $subject = $this->schoolA->ids['maths'];
+        $url = route('academic-reports.index', ['batch_id' => $draft['id']]);
+        $body = ['operation_id' => (string) Str::uuid(), 'form_scope' => 'report-comment-'.$card.'-subject-'.$subject, 'session_year_id' => $this->year,
+            'batch_id' => $draft['id'], 'subject_id' => $subject, 'text' => 'Retained correction draft', 'revision' => 0, 'batch_revision' => $draft['revision']];
+        $this->actingAs($this->gradeHead())->from($url)->post(route('academic-reports.comment', $card), $body)->assertRedirect($url)->assertSessionHasErrors('reason');
+        $html = $this->get($url)->assertOk()->getContent();
+        $this->assertSame(1, substr_count($html, 'Retained correction draft'));
+        $this->assertSame(0, ReportComment::count());
+    }
+
+    public function test_panel_design_and_bank_forms_refuse_wrong_roles_and_keep_school_owned_revisions(): void
+    {
+        $design = ['name' => 'School design', 'design' => ['heading' => 'Academic report', 'introduction' => null, 'footer' => null, 'sections' => ['subjects', '', 'attendance', ''], 'show_crest' => '0'],
+            'session_year_id' => $this->year, 'operation_id' => (string) Str::uuid()];
+        $this->actingAs($this->teacher())->postJson(route('academic-reports.templates'), $design)->assertForbidden();
+        $this->actingAs($this->superAdmin())->post(route('academic-reports.templates'), $design)->assertRedirect();
+        $this->get(route('academic-reports.index', ['session_year_id' => $this->year]))->assertOk()->assertSee('School design');
+        $bank = ['scope' => 'subject', 'subject_id' => $this->schoolA->ids['maths'], 'label' => 'Steady progress', 'text' => 'Makes steady progress', 'active' => '1',
+            'session_year_id' => $this->year, 'operation_id' => (string) Str::uuid()];
+        $this->post(route('academic-reports.banks'), $bank)->assertRedirect();
+        $this->get(route('academic-reports.index', ['session_year_id' => $this->year]))->assertOk()->assertSee('Steady progress');
+        $bank['operation_id'] = (string) Str::uuid();
+        $bank['subject_id'] = $this->schoolB->ids['maths'];
+        $this->postJson(route('academic-reports.banks'), $bank)->assertNotFound();
+        $this->actingAs($this->teacher())->postJson(route('academic-reports.banks'), $bank)->assertForbidden();
     }
 
     public function test_explicit_provisional_report_can_explain_excused_or_ungraded_results_without_inventing_a_score(): void

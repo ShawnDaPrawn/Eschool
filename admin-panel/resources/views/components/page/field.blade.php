@@ -21,11 +21,12 @@
     'options' => [],
     'placeholder' => null,
     'id' => null,
+    'restoreOldInput' => true,
 ])
 @php
     $fieldId = $id ?? 'field-'.\Illuminate\Support\Str::slug(str_replace(['[', ']', '.'], '-', $name));
     $describedBy = trim(($help ? $fieldId.'-help ' : '').$fieldId.'-error');
-    $current = old(str_replace(['[', ']'], ['.', ''], $name), $value);
+    $current = $restoreOldInput ? old(str_replace(['[', ']'], ['.', ''], $name), $value) : $value;
 @endphp
 <div class="m3 page-field" data-page-field>
     <label class="m3-text-field {{ $type === 'select' ? 'm3-text-field--select' : '' }}" for="{{ $fieldId }}">

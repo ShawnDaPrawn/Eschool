@@ -34,6 +34,8 @@ class AcademicReportConfigurationData {
     required this.canDesign,
 
     required this.commentBanks,
+
+    required this.subjects,
   });
 
   // minimum: 1
@@ -58,6 +60,9 @@ class AcademicReportConfigurationData {
   @JsonKey(name: r'comment_banks', required: true, includeIfNull: false)
   final List<AcademicReportCommentBank> commentBanks;
 
+  @JsonKey(name: r'subjects', required: true, includeIfNull: false)
+  final List<AcademicTimetableChoice> subjects;
+
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -68,7 +73,8 @@ class AcademicReportConfigurationData {
           other.terms == terms &&
           other.templates == templates &&
           other.canDesign == canDesign &&
-          other.commentBanks == commentBanks;
+          other.commentBanks == commentBanks &&
+          other.subjects == subjects;
 
   @override
   int get hashCode =>
@@ -78,7 +84,8 @@ class AcademicReportConfigurationData {
       terms.hashCode +
       templates.hashCode +
       canDesign.hashCode +
-      commentBanks.hashCode;
+      commentBanks.hashCode +
+      subjects.hashCode;
 
   factory AcademicReportConfigurationData.fromJson(Map<String, dynamic> json) =>
       _$AcademicReportConfigurationDataFromJson(json);

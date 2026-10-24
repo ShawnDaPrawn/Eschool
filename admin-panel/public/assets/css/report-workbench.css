@@ -1,0 +1,15 @@
+.report-workbench { overflow-wrap: anywhere; }
+.report-fields, .report-actions { display: flex; flex-wrap: wrap; align-items: end; gap: 16px; margin-block: 16px; }
+.report-fields > * { min-width: 0; }
+.report-form { max-width: 880px; margin-block: 24px; }
+.report-workbench fieldset { min-width: 0; margin-block: 16px; }
+.report-workbench button { margin-block: 8px; }
+.report-workbench details > summary { padding-block: 16px; cursor: pointer; }
+.report-learners { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 240px), 1fr)); gap: 12px; }
+.report-learners label { display: flex; align-items: center; gap: 8px; min-height: 48px; }
+.report-scroll { overflow-x: auto; max-width: 100%; margin-block: 16px; }
+.report-results { width: 100%; min-width: 560px; border-collapse: collapse; }
+.report-results th, .report-results td { padding: 12px; border-bottom: 1px solid var(--md-sys-color-outline-variant); text-align: start; }
+.report-comment { margin-block: 16px; }
+.report-comment-text { white-space: pre-wrap; }
+.report-evidence { padding-block: 16px; border-bottom: 1px solid var(--md-sys-color-outline-variant); }

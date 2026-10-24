@@ -41,6 +41,10 @@ return [
             'new-year',
             'new-year/*',
 
+            // Reports target an explicit year/batch. Fresh canonical authority,
+            // approval order and revision checks govern historical corrections.
+            'academic-reports/*',
+
             // Settings that are the same in every year.
             'clear',
             'settings',

@@ -20,6 +20,22 @@ new version is issued. Fees never withhold a report, and reporting never activat
 an unapproved learner account. Guardians can retain report access for a disabled
 learner account while their own guardian relationship remains active.
 
-The service/API slice is implemented; the shared app and panel report screens are
-being completed separately. Actual parent delivery, device checks and the pilot's
-full-term evidence remain acceptance work.
+Open **Report cards** from Home or Settings in either app. Staff see their own
+allocated comments and any report batches their leadership role permits. Managers
+use **Designs and comment banks** to configure new reports; earlier batches keep
+the design they were prepared with. Choose **Prepare report cards**, select the
+period and learners, preview their evidence, then prepare the reviewed selection.
+Teachers save comments; grade heads and principals sign in that order. Refresh
+queued generation, open each PDF preview, then use **Preview release** and
+**Release and notify families**. The panel provides the same report workflow.
+
+If a comment changed elsewhere, compare the latest saved text beside your draft.
+Choose which text to keep before saving again. Leaving an unsaved comment requires
+a deliberate discard. A refreshed evidence set or accepted comment needs new
+sign-off. Released reports stay read-only; corrections use a new batch/version.
+
+Families open a released report to renew access and read the private PDF. Use
+**Earlier reports** for retained releases. **Save a copy** is explicit and checks
+access again; saved copies remain on that device and must be kept private.
+Switching child or school closes the prior report. Actual parent delivery,
+physical device checks and the pilot's full-term evidence remain acceptance work.

@@ -146,6 +146,7 @@ class ApiClient {
     bool useAuthToken = true,
     bool notFoundAsNull = false,
     int? schoolId,
+    String? idempotencyKey,
   }) async {
     try {
       final Dio dio = _createDio();
@@ -159,7 +160,11 @@ class ApiClient {
         options: Options(
           method: method,
           headers: useAuthToken
-              ? {...headers(), if (schoolId != null) 'X-School-Id': '$schoolId'}
+              ? {
+                  ...headers(),
+                  if (schoolId != null) 'X-School-Id': '$schoolId',
+                  if (idempotencyKey != null) 'Idempotency-Key': idempotencyKey,
+                }
               : const {'Accept': 'application/json'},
           contentType: data is FormData ? null : Headers.jsonContentType,
         ),
@@ -180,7 +185,11 @@ class ApiClient {
           body is Map &&
           body['message'] is String &&
           (body['message'] as String).isNotEmpty) {
-        throw ApiException(body['message'] as String, isApiMessage: true, statusCode: status);
+        throw ApiException(
+          body['message'] as String,
+          isApiMessage: true,
+          statusCode: status,
+        );
       }
       throw _fromDioException(e);
     } on ApiException {
@@ -197,6 +206,7 @@ class ApiClient {
         url,
         options: Options(
           responseType: ResponseType.bytes,
+          followRedirects: false,
           headers: {
             ...headers(),
             if (schoolId != null) 'X-School-Id': '$schoolId',

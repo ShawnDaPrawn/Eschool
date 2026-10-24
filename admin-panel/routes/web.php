@@ -31,6 +31,7 @@ use App\Http\Controllers\OnlineExamQuestionController;
 use App\Http\Controllers\Panel\Academics\CurriculumController;
 use App\Http\Controllers\Panel\Academics\NewYearController;
 use App\Http\Controllers\Panel\Academics\RegisterPanelController;
+use App\Http\Controllers\Panel\Academics\ReportWorkbenchController;
 use App\Http\Controllers\Panel\Academics\SubjectStandardController;
 use App\Http\Controllers\Panel\Academics\TeachingGroupController;
 use App\Http\Controllers\Panel\Academics\TimetableWorkbenchController;
@@ -209,6 +210,17 @@ Route::group(['middleware' => ['Role', 'auth', 'school.context', EnforceReadOnly
         Route::get('class-teacher-list', [ClassTeacherController::class, 'show']);
         Route::post('remove-class-teacher/{id}/{class_teacher_id}', [ClassTeacherController::class, 'removeClassTeacher']);
 
+        Route::prefix('academic-reports')->name('academic-reports.')->middleware(['module:academics', 'cache.headers:private;no_store'])->group(function () {
+            $controller = ReportWorkbenchController::class;
+            Route::get('/', [$controller, 'index'])->name('index');
+            foreach (['templates', 'banks', 'preview', 'prepare'] as $action) {
+                Route::post($action, [$controller, $action])->name($action);
+            }
+            Route::get('cards/{card}/pdf', [$controller, 'pdf'])->whereNumber('card')->name('pdf');
+            Route::post('cards/{card}/comment', [$controller, 'comment'])->whereNumber('card')->name('comment');
+            Route::post('cards/{card}/review-comment', [$controller, 'reviewComment'])->whereNumber('card')->name('review-comment');
+            Route::post('batches/{batch}/{action}', [$controller, 'action'])->whereNumber('batch')->where('action', 'source-preview|release-preview|refresh|grade-sign|principal-sign|release|retry')->name('action');
+        });
         Route::prefix('academic-registers')->name('academic-registers.')->middleware('cache.headers:private;no_store')->group(function () {
             $controller = RegisterPanelController::class;
             Route::get('/', [$controller, 'index'])->name('index');

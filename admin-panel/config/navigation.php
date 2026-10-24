@@ -137,6 +137,7 @@ return [
                             'keywords' => ['classes', 'class sections', 'homerooms', 'add a grade']],
                         ['key' => 'homeroom-names', 'label' => 'nav_homeroom_names', 'route' => 'section.index', 'permissions' => ['section-create'], 'module' => null,
                             'keywords' => ['sections', 'divisions', 'a b c']],
+                        ['key' => 'academic-reports', 'label' => 'Academic report cards', 'route' => 'academic-reports.index', 'permissions' => ['curriculum-read', 'academic-structure-manage'], 'module' => 'academics', 'keywords' => ['reports', 'comments', 'principal', 'grade head', 'report release']],
                         ['key' => 'academic-registers', 'label' => 'Academic registers', 'route' => 'academic-registers.index', 'permissions' => ['attendance-list', 'academic-structure-manage'], 'module' => 'academics', 'keywords' => ['register', 'absence', 'attendance', 'cutoff', 'qr']],
                         ['key' => 'academic-timetable', 'label' => 'Academic timetable', 'route' => 'academic-timetable.index', 'permissions' => ['academic-structure-manage'], 'module' => 'academics',
                             'keywords' => ['rooms', 'bells', 'lesson clashes', 'week editor', 'timetable import']],
