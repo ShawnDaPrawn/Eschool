@@ -600,5 +600,8 @@ class MarkEngineTest extends TestCase
         DB::table('session_years')->where('id', $this->year)->update(['deleted_at' => now()]);
         $this->getJson($periods)->assertOk()->assertJsonPath('data.periods.0.term_id', $this->term);
         $this->getJson('/api/v2/academics/marks/learners/'.$this->schoolA->ids['asha'].'?session_year_id='.$this->year.'&term_id='.$this->term)->assertOk()->assertJsonPath('data.results.0.subject_name', 'Maths');
+        $yearName = (string) SessionYear::withTrashed()->findOrFail($this->year)->name;
+        $this->api($this->superAdmin())->getJson('/api/v2/academics/teaching-groups')->assertOk()->assertJsonPath('data.groups.0.year_name', $yearName);
+        $this->getJson('/api/v2/academics/teaching-groups/'.$this->group)->assertOk()->assertJsonPath('data.year_name', $yearName);
     }
 }
