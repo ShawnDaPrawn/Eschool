@@ -6,7 +6,6 @@ import 'package:eschool_academics/testing.dart';
 import 'package:eschool_core/eschool_core.dart';
 import 'package:eschool_core/testing.dart';
 import 'package:eschool_session/eschool_session.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
 
