@@ -27,25 +27,27 @@
         @if(!$message || ($message['is_author'] && !$message['published_at'] && $message['state']!=='withdrawn'))
             @php($scopeOptions=collect($configuration['scopes'])->mapWithKeys(fn ($s)=>[$s['kind'].':'.($s['target_id'] ?? 0)=>__($s['kind']).' · '.$s['name']])->all())
             @foreach(array_filter($configuration['audiences'],fn ($a)=>$a['active']) as $list)@php($scopeOptions['custom:'.$list['id']]=__('Custom list').' · '.$list['name'])@endforeach
-            @php($selectedScope=$message ? $message['audience']['kind'].':'.($message['audience']['target_id'] ?? 0) : array_key_first($scopeOptions))
+            @php($savedScope=$message ? $message['audience']['kind'].':'.($message['audience']['target_id'] ?? 0) : array_key_first($scopeOptions))
+            @php($selectedScope=$restored['scope_selector'] ?? (isset($restored['audience']) ? $restored['audience']['kind'].':'.($restored['audience']['target_id'] ?? 0) : $savedScope))
             @if($scopeOptions)
-            <form method="POST" action="{{ $message ? route('communication-centre.save',['message'=>$message['id']]) : route('communication-centre.create') }}" class="message-form" aria-label="{{ __('Edit private message') }}" data-message-draft>@csrf
-                <input type="hidden" name="operation_id" value="{{ \Illuminate\Support\Str::uuid() }}"><input type="hidden" name="revision" value="{{ $message['revision'] ?? 0 }}"><input type="hidden" name="session_year_id" value="{{ $configuration['session_year_id'] }}">
-                <x-page.field :restore-old-input="false" name="title" :label="__('Message subject')" :value="$message['title'] ?? ''" required maxlength="191" />
+            <form method="POST" action="{{ $message ? route('communication-centre.save',['message'=>$message['id']]) : route('communication-centre.create') }}" class="message-form" aria-label="{{ __('Edit private message') }}" data-message-draft @if($restored) data-restored-draft @endif>@csrf
+                <input type="hidden" name="operation_id" value="{{ $restored['operation_id'] ?? \Illuminate\Support\Str::uuid() }}"><input type="hidden" name="revision" value="{{ $restored['revision'] ?? $message['revision'] ?? 0 }}"><input type="hidden" name="session_year_id" value="{{ $configuration['session_year_id'] }}">
+                <x-page.field :restore-old-input="false" name="title" :label="__('Message subject')" :value="$restored['title'] ?? $message['title'] ?? ''" required maxlength="191" />
                 <x-page.field type="select" :restore-old-input="false" name="scope_selector" :label="__('Audience scope')" :options="$scopeOptions" :value="$selectedScope" required />
-                <x-page.field type="select" :restore-old-input="false" name="parents" :label="__('Audience people')" :options="['0'=>__('Learners or school staff; explicit contacts for custom lists'),'1'=>__('Parents and guardians of these learners')]" :value="(int) ($message['audience']['parents'] ?? false)" />
+                <x-page.field type="select" :restore-old-input="false" name="parents" :label="__('Audience people')" :options="['0'=>__('Learners or school staff; explicit contacts for custom lists'),'1'=>__('Parents and guardians of these learners')]" :value="(int) ($restored['parents'] ?? $restored['audience']['parents'] ?? $message['audience']['parents'] ?? false)" />
                 <p>{{ __('Custom lists use the explicit contacts saved in the list. Their guardian toggle is ignored.') }}</p>
-                <fieldset><legend>{{ __('Delivery channels') }}</legend>@foreach(['in_app'=>__('In app'),'push'=>__('Push notification'),'email'=>__('Email')] as $key=>$label)<label class="message-choice"><input type="checkbox" name="channels[]" value="{{ $key }}" @checked(in_array($key,$message['channels'] ?? ['in_app'],true))>{{ $label }}</label>@endforeach</fieldset>
+                <fieldset><legend>{{ __('Delivery channels') }}</legend>@foreach(['in_app'=>__('In app'),'push'=>__('Push notification'),'email'=>__('Email')] as $key=>$label)<label class="message-choice"><input type="checkbox" name="channels[]" value="{{ $key }}" @checked(in_array($key,$restored['channels'] ?? $message['channels'] ?? ['in_app'],true))>{{ $label }}</label>@endforeach</fieldset>
                 <p>{{ __('Mandatory school channels can be added automatically. Optional channels respect each persons choices. Counts record queued attempts, not delivery receipts.') }}</p>
-                <x-page.field :restore-old-input="false" type="datetime-local" name="scheduled_local" :label="__('Schedule in school time; leave blank to send now')" :value="$message['scheduled_local'] ?? ''" />
-                <x-page.field :restore-old-input="false" type="textarea" name="markdown" :label="__('Message Markdown')" :value="$message['markdown'] ?? ''" rows="12" required maxlength="20000" />
+                <x-page.field :restore-old-input="false" type="datetime-local" name="scheduled_local" :label="__('Schedule in school time; leave blank to send now')" :value="$restored !== null ? ($restored['scheduled_local'] ?? '') : ($message['scheduled_local'] ?? '')" />
+                <x-page.field :restore-old-input="false" type="textarea" name="markdown" :label="__('Message Markdown')" :value="$restored['markdown'] ?? $message['markdown'] ?? ''" rows="12" required maxlength="20000" />
                 <p>{{ __('Formatting supports headings, lists and HTTPS links. Images and raw HTML are removed. Maximum 20,000 characters and 64 KiB.') }}</p>
                 <button class="m3-button m3-button--filled" type="submit">{{ __('Save private message') }}</button>
             </form>
             <p data-message-dirty-status hidden role="status">{{ __('Save your changes before previewing, withdrawing or submitting this message.') }}</p>
-            @else<p>{{ __('No current audience scopes are available. Ask the school to check your allocations or author rules.') }}</p>@endif
+            @else<p>{{ __('No current audience scopes are available. Ask the school to check your allocations or author rules.') }}</p>@if($restored)<h3>{{ __('Your unsaved text') }}</h3><p>{{ $restored['title'] }}</p><pre class="message-restored-text">{{ $restored['markdown'] }}</pre>@endif @endif
         @endif
         @if($message && !$message['published_at'] && in_array($message['state'],['draft','pending','approved','rejected','blocked'],true))<a class="m3-button m3-button--tonal" data-message-saved-action href="{{ route('communication-centre.index',['message_id'=>$message['id'],'preview_message'=>1]) }}">{{ __('Preview saved message') }}</a>@endif
+        @if($restored && $message && ($message['published_at'] || $message['state']==='withdrawn'))<h3>{{ __('Your unsaved text') }}</h3><p>{{ $restored['title'] }}</p><pre class="message-restored-text">{{ $restored['markdown'] }}</pre>@endif
         @if($rendered)<section class="message-rendered" aria-labelledby="message-body-heading"><h3 id="message-body-heading">{{ __('Saved message preview') }}</h3>{!! $rendered !!}</section>@endif
         @if($preview)<section aria-labelledby="message-delivery-heading"><h3 id="message-delivery-heading">{{ __('Audience and delivery preview') }}</h3>
             <p>{{ __('Current recipients') }}: {{ $preview['recipient_count'] }} · {{ $preview['requires_approval'] ? __('Approval required') : __('No approval required') }}</p>
@@ -64,12 +66,12 @@
             <input type="hidden" name="operation_id" value="{{ \Illuminate\Support\Str::uuid() }}"><input type="hidden" name="revision" value="{{ $audience?->revision ?? 0 }}"><input type="hidden" name="session_year_id" value="{{ $configuration['session_year_id'] }}">
             <x-page.field :restore-old-input="false" name="name" :label="__('Audience name')" :value="$audience?->name ?? ''" required maxlength="191" />
             <x-page.field :restore-old-input="false" type="select" name="active" :label="__('Audience availability')" :options="['1'=>__('Active'),'0'=>__('Archived')]" :value="(int) ($audience?->active ?? true)" />
-            @php($selectedContacts=$audience?->definition['user_ids'] ?? [])
+            @if($removedContacts)<p role="status">{{ __('Contacts no longer available in your scope') }}: {{ $removedContacts }}. {{ __('Saving removes these contacts. An empty list can be archived.') }}</p>@endif
             @foreach(array_diff($selectedContacts,array_column($contacts['items'],'id')) as $id)<input type="hidden" name="user_ids[]" value="{{ $id }}">@endforeach
             <fieldset><legend>{{ __('Current contacts') }}</legend>@foreach($contacts['items'] as $contact)<label class="message-choice"><input type="checkbox" name="user_ids[]" value="{{ $contact['id'] }}" @checked(in_array($contact['id'],$selectedContacts,true))>{{ $contact['name'] }}</label>@endforeach</fieldset>
             <button class="m3-button m3-button--tonal" type="submit">{{ __('Save custom audience') }}</button>
         </form>
-        <p>{{ __('Save the list before changing the contacts page. Contacts that left your authorized scope must be removed before saving.') }}</p>
+        <p>{{ __('Save the list before changing the contacts page. Contacts that left your authorized scope are removed when you save.') }}</p>
         @if($contacts['page']>1)<a href="{{ route('communication-centre.index',['audience_id'=>$audience?->id,'contact_page'=>$contacts['page']-1,'session_year_id'=>$configuration['session_year_id']]) }}">{{ __('Previous contacts') }}</a>@endif
         @if($contacts['page']<$contacts['last_page'])<a href="{{ route('communication-centre.index',['audience_id'=>$audience?->id,'contact_page'=>$contacts['page']+1,'session_year_id'=>$configuration['session_year_id']]) }}">{{ __('More contacts') }}</a>@endif
     </details>

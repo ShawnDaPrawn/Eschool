@@ -65,7 +65,7 @@ class MessageRequest extends FormRequest
             'decision' => $revision + $fingerprint + ['decision' => ['required', Rule::in(['approve', 'reject'])], 'reason' => ['required', 'string', 'min:3', 'max:2000']],
             'withdraw' => $revision + ['reason' => ['required', 'string', 'min:3', 'max:2000']],
             'audience-create','audience-save' => ['operation_id' => ['required', 'uuid'], 'revision' => ['required', 'integer', 'min:0'], 'session_year_id' => ['required', 'integer', 'min:1'],
-                'name' => ['required', 'string', 'max:191'], 'active' => ['required', 'boolean'], 'user_ids' => ['required', 'array', 'min:1', 'max:1000'], 'user_ids.*' => ['required', 'integer', 'min:1', 'distinct']],
+                'name' => ['required', 'string', 'max:191'], 'active' => ['required', 'boolean'], 'user_ids' => ['present', 'array', 'max:1000', Rule::when($this->boolean('active'), ['min:1'])], 'user_ids.*' => ['required', 'integer', 'min:1', 'distinct']],
             'rule-save' => ['operation_id' => ['required', 'uuid'], 'revision' => ['required', 'integer', 'min:0'], 'allow_school' => ['required', 'boolean'], 'requires_approval' => ['required', 'boolean']],
             'contacts','audiences' => ['session_year_id' => ['required', 'integer', 'min:1'], 'page' => ['sometimes', 'integer', 'between:1,10000']],
             default => ['session_year_id' => ['sometimes', 'integer', 'min:1'], 'page' => ['sometimes', 'integer', 'between:1,10000']],

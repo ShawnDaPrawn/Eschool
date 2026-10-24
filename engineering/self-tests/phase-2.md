@@ -666,3 +666,20 @@ Core analysis has zero errors/warnings (one existing style info).
   load, independent security, human translation or full-term pilot is claimed.
 - Shared app message screens/navigation are the following implementation slice.
   Legacy chat/notices and their API contracts remain covered by CI.
+
+
+PR #101 review: all three findings addressed. Reviewer notices use the named
+private workbench and correct query key; approval email uses the trusted panel
+host when it differs from the family portal. Failed compose validation restores
+encrypted session data bound to account/school/exact draft, preserves the
+operation/revision and an explicitly cleared schedule, and keeps unsaved-action
+protection. It never uses the global old-input bag. Stale custom contacts are
+removed from retained off-page selections, with a visible count; empty lists
+can be archived while active lists still require a contact.
+
+Final review cohort: **261 backend/contract/notification tests passed, 1,378
+assertions**; Pint and Larastan pass. Strict OpenAPI lint, pinned SDK regeneration
+(754 files), four SDK contract tests and TypeScript checks pass. **Four revised
+Chromium flows pass**: validation recovery at both widths, approval/publication/
+withdrawal with admin accessibility/layout checks, wrong-owner/school refusal and
+empty-list archival after contact revocation. Final-head public CI is pending.

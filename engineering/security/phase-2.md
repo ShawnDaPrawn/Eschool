@@ -175,3 +175,9 @@ private read state and withdrawal before transport. A school-wide sending grant
 does not give grade heads review authority outside their appointed grades.
 Generic notification payloads carry no private title/body. This is implementation
 review; the independent pre-pilot security test is still external acceptance.
+
+Failed message compose recovery is encrypted in the session and scoped to actor,
+school and exact draft. Tests cover other actor/school/draft non-disclosure,
+invalid new/edit recovery, stable operation/revision and no global old-input bag.
+Approval mail routes to the trusted panel origin; generic reader links keep the
+family portal origin. Saved audience cleanup never reintroduces out-of-scope IDs.

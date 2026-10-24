@@ -6,6 +6,8 @@ namespace Tests\Feature\Communication;
 
 use App\Jobs\Communication\ProcessMessage;
 use App\Jobs\Communication\RecoverMessages;
+use App\Jobs\Platform\SendMail;
+use App\Mail\Platform\NotificationMail;
 use App\Models\Academics\GradeLevel;
 use App\Models\Academics\TeachingAllocation;
 use App\Models\Academics\TeachingGroupMembership;
@@ -31,6 +33,7 @@ use App\Services\Communication\CommunicationRules;
 use App\Services\Communication\MessageDelivery;
 use App\Services\Communication\MessageFlow;
 use App\Services\Communication\MessageQueries;
+use App\Services\ParentPolicyService;
 use App\Services\People\EnrolmentService;
 use App\Services\Platform\Notifications\DeliveryGuard;
 use App\Services\Platform\Notifications\DeliveryLog;
@@ -504,6 +507,83 @@ class MessageEngineTest extends TestCase
         $first = $this->postJson($uri.'/read', [], $this->headers('farid'))->assertOk()->json('data');
         $this->assertSame($first, $this->postJson($uri.'/read', [], $this->headers('farid'))->assertOk()->json('data'));
         $this->getJson('/api/v2/communication/messages', $this->headers('farid'))->assertOk()->assertJsonPath('data.items.0.id', (int) $m->id)->assertJsonPath('data.items.0.read_at', $first['read_at']);
-        $this->getJson('/api/v2/communication/drafts/'.$m->id, $this->headers())->assertOk()->assertJsonPath('data.recipient_count', 3)->assertJsonPath('data.read_count',1);
+        $this->getJson('/api/v2/communication/drafts/'.$m->id, $this->headers())->assertOk()->assertJsonPath('data.recipient_count', 3)->assertJsonPath('data.read_count', 1);
+    }
+
+    public function test_invalid_new_draft_preserves_composed_values_and_same_operation_without_global_old_input(): void
+    {
+        $input = $this->data(['title' => 'Retained local subject', 'markdown' => 'PRIVATE unsaved compose text', 'channels' => []]);
+        $this->actingAs($this->teacher(), 'web');
+        $response = $this->post('/communication-centre/drafts', $input)->assertRedirect()->assertSessionHasErrors('channels')->assertSessionMissing('_old_input');
+        $this->assertStringNotContainsString('PRIVATE unsaved compose text', serialize(session()->all()));
+        $this->get($response->headers->get('Location'))->assertOk()->assertSee('PRIVATE unsaved compose text')->assertSee('Retained local subject')->assertSee('data-restored-draft', false)->assertSee('value="'.$input['operation_id'].'"', false);
+        $this->assertSame(0, Message::count());
+        $this->post('/communication-centre/drafts', array_replace($input, ['channels' => ['in_app']]))->assertRedirect();
+        $this->assertStringContainsString('PRIVATE unsaved compose text', Message::sole()->markdown);
+    }
+
+    public function test_failed_edit_keeps_local_text_original_revision_and_an_explicitly_cleared_schedule(): void
+    {
+        $m = $this->draft(null, ['scheduled_local' => '2026-02-12T10:30']);
+        $input = $this->data(['revision' => $m->revision, 'title' => 'Unsaved edit subject', 'markdown' => 'PRIVATE edited text', 'scheduled_local' => null, 'channels' => []]);
+        $this->actingAs($this->teacher(), 'web');
+        $response = $this->post('/communication-centre/drafts/'.$m->id.'/save', $input)->assertRedirect()->assertSessionHasErrors('channels');
+        $this->get($response->headers->get('Location'))->assertOk()->assertSee('PRIVATE edited text')->assertDontSee('value="2026-02-12T10:30"', false)->assertSee('data-restored-draft', false);
+        $this->assertSame(1, $m->refresh()->revision);
+        $this->assertStringNotContainsString('PRIVATE edited text', $m->markdown);
+    }
+
+    public function test_composed_recovery_is_never_reused_by_another_actor_school_or_draft(): void
+    {
+        $m = $this->draft();
+        $this->actingAs($this->teacher(), 'web');
+        $this->post('/communication-centre/drafts', $this->data(['markdown' => 'PRIVATE scoped recovery text', 'channels' => []]))->assertRedirect();
+        $this->get('/communication-centre?message_id='.$m->id)->assertOk()->assertDontSee('PRIVATE scoped recovery text');
+        $this->post('/communication-centre/drafts', $this->data(['markdown' => 'PRIVATE actor scoped text', 'channels' => []]))->assertRedirect();
+        $this->actingAs($this->person('theo'), 'web')->get('/communication-centre')->assertOk()->assertDontSee('PRIVATE actor scoped text');
+        $this->actingAs($this->superAdmin(), 'web');
+        $this->post('/communication-centre/drafts', $this->data(['markdown' => 'PRIVATE school scoped text', 'channels' => []]))->assertRedirect();
+        $admin = $this->superAdmin();
+        app(CurrentSchool::class)->run(2, function () use ($admin) {
+            $admin->unsetRelation('roles')->assignRole('Teacher');
+            ParentPolicyService::acceptCurrent($admin);
+        });
+        $this->get('/communication-centre', ['X-School-Id' => '2'])->assertOk()->assertDontSee('PRIVATE school scoped text');
+    }
+
+    public function test_stale_audience_contacts_can_be_removed_and_an_empty_list_archived(): void
+    {
+        $farid = (int) $this->person('farid')->id;
+        $mona = (int) $this->person('mona')->id;
+        $input = ['operation_id' => (string) Str::uuid(), 'revision' => 0, 'session_year_id' => $this->year, 'name' => 'Parent list', 'active' => true, 'user_ids' => [$farid, $mona]];
+        $list = app(CommunicationAudiences::class)->save($this->teacher(), null, $input);
+        GuardianLink::create(['learner_id' => $this->schoolA->ids['asha'], 'guardian_user_id' => $farid, 'status' => 'revoked', 'can_approve' => false]);
+        $this->actingAs($this->teacher(), 'web')->get('/communication-centre?audience_id='.$list['id'])->assertOk()->assertSee('Contacts no longer available in your scope')->assertDontSee('name="user_ids[]" value="'.$farid.'"', false);
+        $this->post('/communication-centre/audiences/'.$list['id'], array_replace($input, ['operation_id' => (string) Str::uuid(), 'revision' => 1, 'user_ids' => [$mona]]))->assertRedirect()->assertSessionDoesntHaveErrors();
+        $this->assertSame([$mona], Audience::findOrFail($list['id'])->definition['user_ids']);
+        GuardianLink::create(['learner_id' => $this->schoolA->ids['asha'], 'guardian_user_id' => $mona, 'status' => 'revoked', 'can_approve' => false]);
+        $this->post('/communication-centre/audiences/'.$list['id'], array_replace($input, ['operation_id' => (string) Str::uuid(), 'revision' => 2, 'active' => false, 'user_ids' => []]))->assertRedirect()->assertSessionDoesntHaveErrors();
+        $this->assertFalse(Audience::findOrFail($list['id'])->active);
+        $this->assertSame([], Audience::findOrFail($list['id'])->definition['user_ids']);
+    }
+
+    public function test_review_notifications_open_the_private_named_workbench(): void
+    {
+        $m = $this->submit($this->draft());
+        app(MessageDelivery::class)->process((int) $m->id);
+        $notice = Notification::findOrFail($m->refresh()->review_notification_id);
+        $this->assertSame(route('communication-centre.index', ['message_id' => $m->id], false), $notice->delivery_payload['link']);
+        $this->actingAs($this->superAdmin(), 'web')->get($notice->delivery_payload['link'])->assertOk()->assertSee($m->title);
+    }
+
+    public function test_approval_email_uses_the_panel_host_when_the_family_portal_has_a_different_origin(): void
+    {
+        config(['app.url' => 'https://admin.example.test', 'identity.portal_url' => 'https://family.example.test']);
+        app(NotificationRules::class)->choose($this->superAdmin(), 'communication.approval_requested', 'email', true);
+        $m = $this->submit($this->draft());
+        app(MessageDelivery::class)->process((int) $m->id);
+        Queue::assertPushed(SendMail::class, fn ($job) => $job->mailable instanceof NotificationMail
+            && $job->mailable->notificationType === 'communication.approval_requested'
+            && $job->mailable->noticeUrl === 'https://admin.example.test'.route('communication-centre.index', ['message_id' => $m->id], false));
     }
 }

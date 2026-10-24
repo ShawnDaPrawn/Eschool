@@ -117,8 +117,10 @@ publication resets it, and obsolete/withdrawn publications stop before sending.
 profiles. `communication.approval_requested` is offered to staff reviewers.
 School rules and personal choices apply; the author selects a subset of channels
 for publication. The existing `comms.message` remains the chat-module type.
-Both new types use generic text and `/communication/messages?message=<id>` with
-IDs only. Delivery checks publication identity or current pending revision plus
+Reader notices use `/communication/messages?message=<id>`. Reviewer notices use
+the named private workbench `/communication-centre?message_id=<id>`; their
+emails use the trusted panel host even when the family portal has another origin.
+Both types contain generic text and IDs only. Delivery checks publication identity or current pending revision plus
 recipient/reviewer rights immediately before transport. Withdrawals and ended
 guardian rights suppress delivery; notification contents never contain the
 private title, text, custom contacts or read statistics.

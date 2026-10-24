@@ -13,6 +13,7 @@
     const status = document.querySelector('[data-message-dirty-status]');
     if (status) status.hidden = false;
   };
+  if (draft.hasAttribute('data-restored-draft')) changed();
   draft.addEventListener('input', changed, {once: true});
   draft.addEventListener('change', changed, {once: true});
   draft.addEventListener('submit', () => { dirty = false; });

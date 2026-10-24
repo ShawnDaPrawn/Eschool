@@ -47,6 +47,6 @@ Model::unguarded(function () {
             app(TeachingGroups::class)->dated($admin, 'memberships', $dated + ['learner_id' => $learner->id, 'mark_rule' => 'catch_up'], $group->id);
         }
         $parent = User::where('email', 'parent.a@demo.navigateed.test')->firstOrFail();
-        GuardianLink::firstOrCreate(['learner_id' => $learner->id, 'guardian_user_id' => $parent->id], ['status' => 'active', 'can_approve' => false]);
+        GuardianLink::updateOrCreate(['learner_id' => $learner->id, 'guardian_user_id' => $parent->id], ['status' => 'active', 'can_approve' => false]);
     });
 });

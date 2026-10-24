@@ -110,7 +110,8 @@ class Notifier
                 } else {
                     $school = app(CurrentSchool::class)->school();
                     $mailBody = $user->email_verified_at === null ? __('Open NavigateEd to view this notice.') : $body;
-                    $mail = new NotificationMail($user->email, $type, $user->email_verified_at === null ? __('School notification') : $title, $mailBody, rtrim((string) config('identity.portal_url'), '/').$link, (string) $school?->name, $notice->delivery_payload ?? []);
+                    $mailBase = $type === 'communication.approval_requested' ? config('app.url') : config('identity.portal_url');
+                    $mail = new NotificationMail($user->email, $type, $user->email_verified_at === null ? __('School notification') : $title, $mailBody, rtrim((string) $mailBase, '/').$link, (string) $school?->name, $notice->delivery_payload ?? []);
                     if (! MailService::queue($mail, (int) $user->id)) {
                         throw new RuntimeException('A notification email could not be queued.');
                     }

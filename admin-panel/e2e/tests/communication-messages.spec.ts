@@ -23,6 +23,14 @@ for (const width of [1024,1280]) {
     await form.getByRole('combobox',{name:'Audience scope',exact:true}).selectOption({label:'Group · Message rehearsal group'});
     await form.getByRole('combobox',{name:'Audience people',exact:true}).selectOption('1');
     await form.getByRole('textbox',{name:'Message Markdown',exact:true}).fill('# Family information\n\nPlease read this **private** message.');
+    await form.getByRole('checkbox',{name:'In app',exact:true}).uncheck();
+    await form.getByRole('button',{name:'Save private message',exact:true}).click();
+    form=page.getByRole('form',{name:'Edit private message',exact:true});
+    await expect(form.getByRole('textbox',{name:'Message subject',exact:true})).toHaveValue(title);
+    await expect(form.getByRole('textbox',{name:'Message Markdown',exact:true})).toHaveValue('# Family information\n\nPlease read this **private** message.');
+    await expect(form.getByRole('checkbox',{name:'In app',exact:true})).not.toBeChecked();
+    await expect(page.getByRole('status').filter({hasText:'Save your changes'})).toBeVisible();
+    await form.getByRole('checkbox',{name:'In app',exact:true}).check();
     await form.getByRole('button',{name:'Save private message',exact:true}).click();
     await expect(page.getByRole('status').filter({hasText:'Message draft saved'})).toBeVisible();
     const url=page.url(), id=Number(new URL(url).searchParams.get('message_id'));
@@ -40,6 +48,9 @@ for (const width of [1024,1280]) {
     await page.context().clearCookies();
     await signIn(page,accounts.admin);
     await page.goto(`/communication-centre?message_id=${id}&preview_message=1`);
+    await page.getByText('Message author rules',{exact:true}).click();
+    expect(await seriousViolations(page)).toEqual([]);
+    expect(await horizontalOverflow(page)).toBeLessThanOrEqual(1);
     form=page.getByRole('form',{name:'Decide message approval',exact:true});
     await form.getByRole('textbox',{name:'Review reason',exact:true}).fill('Reviewed the synthetic audience and private message.');
     await form.getByRole('button',{name:'Approve message',exact:true}).click();
@@ -66,4 +77,23 @@ test('another teacher and another school cannot open a private message',async ({
   await page.context().clearCookies();
   await signIn(page,accounts.adminB);
   expect((await page.goto(`/communication-centre?message_id=${id}`))?.status()).toBe(404);
+});
+
+test('an audience owner can archive an empty list after its contact leaves scope',async ({page})=>{
+  await signIn(page,author);
+  await page.goto('/communication-centre');
+  await page.getByText('Saved custom audiences',{exact:true}).click();
+  let form=page.getByRole('form',{name:'Save custom audience',exact:true});
+  await form.getByRole('textbox',{name:'Audience name',exact:true}).fill(`Audience ${run}`);
+  await form.getByRole('checkbox').first().check();
+  await form.getByRole('button',{name:'Save custom audience',exact:true}).click();
+  const url=page.url();
+  php("app(\\App\\Services\\Platform\\Tenancy\\CurrentSchool::class)->run(1,function () { $learner=\\App\\Models\\Students::whereHas('user',fn($q)=>$q->where('email','message.learner@demo.navigateed.test'))->firstOrFail(); \\App\\Models\\Platform\\GuardianLink::where('learner_id',$learner->id)->update(['status'=>'revoked']); });");
+  await page.goto(url);
+  await expect(page.getByRole('status').filter({hasText:'Contacts no longer available in your scope'})).toBeVisible();
+  form=page.getByRole('form',{name:'Save custom audience',exact:true});
+  await expect(form.locator('input[name="user_ids[]"]')).toHaveCount(0);
+  await form.getByRole('combobox',{name:'Audience availability',exact:true}).selectOption('0');
+  await form.getByRole('button',{name:'Save custom audience',exact:true}).click();
+  await expect(page.getByRole('status').filter({hasText:'Audience saved'})).toBeVisible();
 });

@@ -6,12 +6,16 @@ namespace App\Http\Controllers\Panel\Communication;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Communication\MessagePanelRequest;
+use App\Services\Academics\AcademicAuthority;
 use App\Services\Academics\Content\ContentMarkdown;
 use App\Services\Communication\CommunicationAudiences;
 use App\Services\Communication\CommunicationOperations;
+use App\Services\Communication\CommunicationRecipients;
 use App\Services\Communication\CommunicationRules;
+use App\Services\Communication\MessageDraftRestoration;
 use App\Services\Communication\MessageFlow;
 use App\Services\Communication\MessageQueries;
+use Illuminate\Validation\ValidationException;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\HttpExceptionInterface;
 
@@ -25,10 +29,13 @@ class MessageWorkbenchController extends Controller
         $messages = $queries->drafts($r->user(), (int) $r->validated('page', 1));
         $contacts = $queries->contacts($r->user(), $config['session_year_id'], (int) $r->validated('contact_page', 1));
         $audience = $r->validated('audience_id') === null ? null : app(CommunicationAudiences::class)->owned($r->user(), (int) $r->validated('audience_id'));
-        $preview = $r->boolean('preview_message') && $message !== null ? app(MessageFlow::class)->preview($r->user(), $message['id']) : null;
+        $restored = app(MessageDraftRestoration::class)->read($r, $message['id'] ?? null);
+        $selectedContacts = $audience === null ? [] : array_values(array_intersect($audience->definition['user_ids'], array_keys(app(CommunicationRecipients::class)->allowed($r->user(), $config['session_year_id'], app(AcademicAuthority::class)->today()))));
+        $removedContacts = $audience === null ? 0 : count($audience->definition['user_ids']) - count($selectedContacts);
+        $preview = $restored === null && $r->boolean('preview_message') && $message !== null ? app(MessageFlow::class)->preview($r->user(), $message['id']) : null;
 
         return response()->view('communication.workbench', ['configuration' => $config, 'messages' => $messages, 'message' => $message,
-            'contacts' => $contacts, 'audience' => $audience, 'preview' => $preview,
+            'contacts' => $contacts, 'audience' => $audience, 'preview' => $preview, 'restored' => $restored, 'selectedContacts' => $selectedContacts, 'removedContacts' => $removedContacts,
             'rendered' => $message === null ? null : app(ContentMarkdown::class)->html($message['markdown']),
             'roleRules' => $config['can_manage'] ? app(CommunicationRules::class)->listing($r->user()) : []]);
     }
@@ -40,14 +47,29 @@ class MessageWorkbenchController extends Controller
 
     public function create(MessagePanelRequest $r): Response
     {
-        return $this->done(app(MessageFlow::class)->save($r->user(), null, $r->validated()), 'Message draft saved');
+        try {
+            return $this->done(app(MessageFlow::class)->save($r->user(), null, $r->validated()), 'Message draft saved');
+        } catch (ValidationException $error) {
+            return app(MessageDraftRestoration::class)->retain($r, null, $error->errors());
+        } catch (HttpExceptionInterface $error) {
+            if ($error->getStatusCode() !== 422) {
+                throw $error;
+            }
+
+            return app(MessageDraftRestoration::class)->retain($r, null, ['message' => $error->getMessage()]);
+        }
     }
 
     public function save(MessagePanelRequest $r, int $message): Response
     {
         try {
             return $this->done(app(MessageFlow::class)->save($r->user(), $message, $r->validated()), 'Message draft saved');
+        } catch (ValidationException $error) {
+            return app(MessageDraftRestoration::class)->retain($r, $message, $error->errors());
         } catch (HttpExceptionInterface $error) {
+            if ($error->getStatusCode() === 422) {
+                return app(MessageDraftRestoration::class)->retain($r, $message, ['message' => $error->getMessage()]);
+            }
             if ($error->getStatusCode() !== 409) {
                 throw $error;
             }

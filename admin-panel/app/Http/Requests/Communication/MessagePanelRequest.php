@@ -6,6 +6,9 @@ namespace App\Http\Requests\Communication;
 
 use App\Policies\Communication\MessagePolicy;
 use App\Services\Communication\CommunicationAudiences;
+use App\Services\Communication\MessageDraftRestoration;
+use Illuminate\Contracts\Validation\Validator;
+use Illuminate\Http\Exceptions\HttpResponseException;
 
 class MessagePanelRequest extends MessageRequest
 {
@@ -32,6 +35,14 @@ class MessagePanelRequest extends MessageRequest
         }
 
         return true;
+    }
+
+    protected function failedValidation(Validator $validator): void
+    {
+        if (in_array($this->action(), ['create', 'save'], true)) {
+            throw new HttpResponseException(app(MessageDraftRestoration::class)->retain($this, $this->route('message') === null ? null : (int) $this->route('message'), $validator->errors()));
+        }
+        parent::failedValidation($validator);
     }
 
     public function rules(): array

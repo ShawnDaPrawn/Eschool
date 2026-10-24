@@ -17,15 +17,18 @@ An ended guardian link overrides an old parent field.
 changing contacts pages. An owner or communication manager can edit/archive a
 list; another author can use it only within their own current contact authority.
 A draft copies the list revision and contacts, so editing the list later does not
-change an already prepared message. Remove contacts that left your scope before
-saving. An archived list cannot be selected for a new draft.
+change an already prepared message. Contacts that left your scope are identified and removed when you save.
+An empty list can be archived; an active list needs at least one current contact.
+An archived list cannot be selected for a new draft.
 
 Write the subject and Markdown, choose delivery channels and optionally schedule
 in the displayed **school timezone**. Leave the time blank for immediate sending.
 Headings, lists and safe HTTPS links are supported. Raw HTML and remote images
 are removed. Limits are 20,000 characters and 64 KiB. Save before previewing;
 unsaved edits disable send and withdrawal actions. If another session changed the
-draft, the comparison screen retains your submitted text for copying.
+draft, the comparison screen retains your submitted text for copying. Validation
+errors restore the subject, Markdown, choices and original revision for the same
+account, school and exact draft; save before previewing that restored text.
 
 **Preview saved message** shows the current recipient count, channels, schedule
 and approval requirement. **Submit previewed message** requests approval or queues

@@ -36,6 +36,7 @@ class CommunicationAudiences
             $allowed = app(CommunicationRecipients::class)->allowed($actor, (int) $data['session_year_id'], app(AcademicAuthority::class)->today());
             $ids = array_map('intval', $data['user_ids']);
             sort($ids);
+            abort_if($data['active'] && $ids === [], 422, __('An active audience needs at least one current contact.'));
             abort_unless(array_diff($ids, array_keys($allowed)) === [], 403);
             $row = $id === null ? new Audience : $this->owned($actor, $id);
             abort_unless((int) ($row->revision ?? 0) === (int) $data['revision'], 409, __('The audience changed. Refresh before saving.'));

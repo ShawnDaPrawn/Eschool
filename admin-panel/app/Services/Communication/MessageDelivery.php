@@ -59,7 +59,7 @@ class MessageDelivery
     {
         $notifier = app(Notifier::class);
         $type = $review ? 'communication.approval_requested' : 'communication.message';
-        $link = '/communication/messages?message='.$message->id;
+        $link = $review ? route('communication-centre.index', ['message_id' => $message->id], false) : '/communication/messages?message='.$message->id;
         $notice = $notifier->makeNotice($type, $review ? __('Message awaiting approval') : __('New school message'),
             $review ? __('Open Messages to review a school message.') : __('Open Messages to read a school message.'), $link);
         $notice->delivery_payload = ['link' => $link, 'communication_message_id' => (int) $message->id,
