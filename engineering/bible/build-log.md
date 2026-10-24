@@ -216,3 +216,13 @@ Separate term/annual components accommodate subject-specific policy without
 inventing ratios. Material 3 editor and explicit new-year draft carry use the same
 service as v2 APIs. Source confirmation, marks engine, remaining academic screens
 and external pilot evidence continue as separate work.
+
+## 24 October 2026: dated teaching structures
+
+Implemented school-scoped teaching groups, effective memberships and teacher /
+homeroom / leadership allocations, explicit class grade mapping forms, audited
+revision checks and interval validation. Stable existing-app projections have
+fresh date checks and preserve historical IDs. Allocated teachers can plan future
+curricula; actual capture needs a current grant. No marks are created or copied
+by assignment. Software verification continues separately from the genuine
+staging, source-policy, pilot-term and independent review evidence.

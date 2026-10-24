@@ -99,3 +99,20 @@ publication. assessment_tasks hold stable keys, term and annual components and
 basis-point weights, exact hundredth maximum units and optional same-year source
 task provenance. assessment_questions hold question numbers, exact maxima and
 topic links. Cross-year copies never carry task mark provenance or learner data.
+
+## Phase 2: dated academic allocations
+
+School-owned soft-deleted teaching_groups bind subject/grade/year and an optional
+homeroom. teaching_group_memberships retain learner, effective dates, mark rule,
+reason and revision. teaching_allocations and homeroom_allocations retain teacher,
+context and effective dates. academic_leaderships record grade-head/principal
+scope per year with dated appointments and audit history. subject_teachers and
+class_teachers have hidden nullable source allocation foreign keys for stable v1
+projections. Unmanaged legacy assignments remain independent; group capture
+requires canonical authority. Used class grade mappings cannot be reinterpreted.
+
+Mixed groups retain exact learner authority through the new group APIs. They do
+not create whole-class v1 subject assignments. Bound homeroom assignments keep
+stable v1 projections, and term-filtered teacher/chat consumers explicitly accept
+current dated assignments. Enrolment changes end incompatible group memberships
+with an audit; moving grade never projects access into the new grade's homeroom.

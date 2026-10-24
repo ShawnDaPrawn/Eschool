@@ -92,7 +92,7 @@ class ChatController extends Controller
                 foreach ($termClassSectionIds as $csi => $semId) {
                     $ids = ClassTeacher::where('class_teacher_id', $teacher->id)
                         ->where('session_year_id', $session_year_id)
-                        ->where('term_id', $semId)
+                        ->forTermOrDated($semId)
                         ->where('class_section_id', $csi)
                         ->pluck('class_section_id')->toArray();
                     $class_teacher_section_ids = array_merge($class_teacher_section_ids, $ids);
@@ -112,7 +112,7 @@ class ChatController extends Controller
                 foreach ($termClassSectionIds as $csi => $semId) {
                     $ids = SubjectTeacher::where('teacher_id', $teacher->id)
                         ->where('session_year_id', $session_year_id)
-                        ->where('term_id', $semId)
+                        ->forTermOrDated($semId)
                         ->where('class_section_id', $csi)
                         ->pluck('class_section_id')->toArray();
                     $subject_teacher_class_section_ids = array_merge($subject_teacher_class_section_ids, $ids);
@@ -523,7 +523,7 @@ class ChatController extends Controller
         foreach ($termClassSectionIds as $csi => $semId) {
             $ids = ClassTeacher::where('class_section_id', $csi)
                 ->where('session_year_id', $session_year_id)
-                ->where('term_id', $semId)
+                ->forTermOrDated($semId)
                 ->pluck('class_teacher_id')->toArray();
             $class_teachers_id = array_merge($class_teachers_id, $ids);
         }
@@ -540,7 +540,7 @@ class ChatController extends Controller
             $ids = SubjectTeacher::where('class_section_id', $csi)
                 ->where('session_year_id', $session_year_id)
                 ->whereIn('subject_id', $subject_id)
-                ->where('term_id', $semId)
+                ->forTermOrDated($semId)
                 ->pluck('teacher_id')->toArray();
             $subject_teacher_id = array_merge($subject_teacher_id, $ids);
         }

@@ -31,7 +31,7 @@ rules before they drive learner results.
 The first slice is specified in [academic-references](../specs/academics/academic-references.md).
 Automated results, staging checks and acceptance are recorded separately in
 [the self-test record](../self-tests/phase-2.md). Academic references/class mapping
-and school terms/templates are merged (#81/#82). Subject standards/mapping and curriculum plans are implemented and under CI/review; remaining academic workflows and external pilot
+and school terms/templates are merged (#81/#82). Subject standards/mapping and curriculum plans are merged (#86/#87); dated teaching structures are under verification; remaining academic workflows and external pilot
 evidence are tracked below.
 Semester compatibility is retired by the owner decision; existing IDs and academic
 links migrate to terms. Other grading and exam/result contracts stay protected.

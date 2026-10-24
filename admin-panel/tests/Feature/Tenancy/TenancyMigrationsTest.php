@@ -42,6 +42,7 @@ class TenancyMigrationsTest extends TestCase
         '2026_10_23_200000_replace_semesters_with_school_terms',
         '2026_10_24_010000_create_subject_standards',
         '2026_10_24_020000_create_curriculum_plans',
+        '2026_10_24_030000_create_teaching_groups',
     ];
 
     protected function setUp(): void

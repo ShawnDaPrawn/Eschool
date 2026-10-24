@@ -98,6 +98,572 @@ tags:
   - name: Platform
     description: Who is signed in and the school they work in.
 paths:
+  /academics/teaching-groups:
+    get:
+      operationId: getTeachingGroups
+      tags:
+      - Academics
+      summary: getTeachingGroups
+      description: Academic structure management requires explicit school permission. Teachers read only allocated groups. Kind memberships requires learner_id and mark_rule; teachers requires teacher_id; homerooms requires teacher_id, class_section_id and session_year_id; leadership requires user_id, session_year_id and kind, with grade_level_id required for grade heads and omitted or null for principals. Date intervals stay within the year. Updates require revision and all context fields; history is audited. Weights and marks are not changed by an allocation.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - name: session_year_id
+        in: query
+        schema:
+          type: integer
+          minimum: 1
+      - name: subject_id
+        in: query
+        schema:
+          type: integer
+          minimum: 1
+      - name: grade_level_id
+        in: query
+        schema:
+          type: integer
+          minimum: 1
+      - name: 'on'
+        in: query
+        schema:
+          type: string
+          pattern: ^\d{4}-\d{2}-\d{2}$
+      - name: page
+        in: query
+        schema:
+          type: integer
+          minimum: 1
+      - name: per_page
+        in: query
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 100
+      responses:
+        '200':
+          description: School-scoped academic allocation result.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TeachingGroupsResponse'
+        '400':
+          $ref: '#/components/responses/IdempotencyKeyProblem'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+    post:
+      operationId: createTeachingGroup
+      tags:
+      - Academics
+      summary: createTeachingGroup
+      description: Academic structure management requires explicit school permission. Teachers read only allocated groups. Kind memberships requires learner_id and mark_rule; teachers requires teacher_id; homerooms requires teacher_id, class_section_id and session_year_id; leadership requires user_id, session_year_id and kind, with grade_level_id required for grade heads and omitted or null for principals. Date intervals stay within the year. Updates require revision and all context fields; history is audited. Weights and marks are not changed by an allocation.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      responses:
+        '200':
+          description: School-scoped academic allocation result.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TeachingGroupResponse'
+        '400':
+          $ref: '#/components/responses/IdempotencyKeyProblem'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TeachingGroupWrite'
+  /academics/teaching-groups/{group}:
+    get:
+      operationId: getTeachingGroup
+      tags:
+      - Academics
+      summary: getTeachingGroup
+      description: Academic structure management requires explicit school permission. Teachers read only allocated groups. Kind memberships requires learner_id and mark_rule; teachers requires teacher_id; homerooms requires teacher_id, class_section_id and session_year_id; leadership requires user_id, session_year_id and kind, with grade_level_id required for grade heads and omitted or null for principals. Date intervals stay within the year. Updates require revision and all context fields; history is audited. Weights and marks are not changed by an allocation.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - name: group
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      - name: session_year_id
+        in: query
+        schema:
+          type: integer
+          minimum: 1
+      - name: subject_id
+        in: query
+        schema:
+          type: integer
+          minimum: 1
+      - name: grade_level_id
+        in: query
+        schema:
+          type: integer
+          minimum: 1
+      - name: 'on'
+        in: query
+        schema:
+          type: string
+          pattern: ^\d{4}-\d{2}-\d{2}$
+      - name: page
+        in: query
+        schema:
+          type: integer
+          minimum: 1
+      - name: per_page
+        in: query
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 100
+      responses:
+        '200':
+          description: School-scoped academic allocation result.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TeachingGroupResponse'
+        '400':
+          $ref: '#/components/responses/IdempotencyKeyProblem'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+    put:
+      operationId: updateTeachingGroup
+      tags:
+      - Academics
+      summary: updateTeachingGroup
+      description: Academic structure management requires explicit school permission. Teachers read only allocated groups. Kind memberships requires learner_id and mark_rule; teachers requires teacher_id; homerooms requires teacher_id, class_section_id and session_year_id; leadership requires user_id, session_year_id and kind, with grade_level_id required for grade heads and omitted or null for principals. Date intervals stay within the year. Updates require revision and all context fields; history is audited. Weights and marks are not changed by an allocation.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - name: group
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      responses:
+        '200':
+          description: School-scoped academic allocation result.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TeachingGroupResponse'
+        '400':
+          $ref: '#/components/responses/IdempotencyKeyProblem'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TeachingGroupWrite'
+  /academics/teaching-groups/{group}/{kind}:
+    get:
+      operationId: getGroupAssignments
+      tags:
+      - Academics
+      summary: getGroupAssignments
+      description: Academic structure management requires explicit school permission. Teachers read only allocated groups. Kind memberships requires learner_id and mark_rule; teachers requires teacher_id; homerooms requires teacher_id, class_section_id and session_year_id; leadership requires user_id, session_year_id and kind, with grade_level_id required for grade heads and omitted or null for principals. Date intervals stay within the year. Updates require revision and all context fields; history is audited. Weights and marks are not changed by an allocation.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - name: group
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      - name: kind
+        in: path
+        required: true
+        schema:
+          type: string
+          enum:
+          - memberships
+          - teachers
+      - name: session_year_id
+        in: query
+        schema:
+          type: integer
+          minimum: 1
+      - name: subject_id
+        in: query
+        schema:
+          type: integer
+          minimum: 1
+      - name: grade_level_id
+        in: query
+        schema:
+          type: integer
+          minimum: 1
+      - name: 'on'
+        in: query
+        schema:
+          type: string
+          pattern: ^\d{4}-\d{2}-\d{2}$
+      - name: page
+        in: query
+        schema:
+          type: integer
+          minimum: 1
+      - name: per_page
+        in: query
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 100
+      responses:
+        '200':
+          description: School-scoped academic allocation result.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AcademicAssignmentsResponse'
+        '400':
+          $ref: '#/components/responses/IdempotencyKeyProblem'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+    post:
+      operationId: createGroupAssignment
+      tags:
+      - Academics
+      summary: createGroupAssignment
+      description: Academic structure management requires explicit school permission. Teachers read only allocated groups. Kind memberships requires learner_id and mark_rule; teachers requires teacher_id; homerooms requires teacher_id, class_section_id and session_year_id; leadership requires user_id, session_year_id and kind, with grade_level_id required for grade heads and omitted or null for principals. Date intervals stay within the year. Updates require revision and all context fields; history is audited. Weights and marks are not changed by an allocation.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - name: group
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      - name: kind
+        in: path
+        required: true
+        schema:
+          type: string
+          enum:
+          - memberships
+          - teachers
+      responses:
+        '200':
+          description: School-scoped academic allocation result.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AcademicAssignmentResponse'
+        '400':
+          $ref: '#/components/responses/IdempotencyKeyProblem'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AcademicAssignmentWrite'
+  /academics/teaching-groups/{group}/{kind}/{entry}:
+    put:
+      operationId: updateGroupAssignment
+      tags:
+      - Academics
+      summary: updateGroupAssignment
+      description: Academic structure management requires explicit school permission. Teachers read only allocated groups. Kind memberships requires learner_id and mark_rule; teachers requires teacher_id; homerooms requires teacher_id, class_section_id and session_year_id; leadership requires user_id, session_year_id and kind, with grade_level_id required for grade heads and omitted or null for principals. Date intervals stay within the year. Updates require revision and all context fields; history is audited. Weights and marks are not changed by an allocation.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - name: group
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      - name: kind
+        in: path
+        required: true
+        schema:
+          type: string
+          enum:
+          - memberships
+          - teachers
+      - name: entry
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      responses:
+        '200':
+          description: School-scoped academic allocation result.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AcademicAssignmentResponse'
+        '400':
+          $ref: '#/components/responses/IdempotencyKeyProblem'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AcademicAssignmentWrite'
+  /academics/allocations/{kind}:
+    get:
+      operationId: getAcademicAllocations
+      tags:
+      - Academics
+      summary: getAcademicAllocations
+      description: Academic structure management requires explicit school permission. Teachers read only allocated groups. Kind memberships requires learner_id and mark_rule; teachers requires teacher_id; homerooms requires teacher_id, class_section_id and session_year_id; leadership requires user_id, session_year_id and kind, with grade_level_id required for grade heads and omitted or null for principals. Date intervals stay within the year. Updates require revision and all context fields; history is audited. Weights and marks are not changed by an allocation.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - name: kind
+        in: path
+        required: true
+        schema:
+          type: string
+          enum:
+          - homerooms
+          - leadership
+      - name: session_year_id
+        in: query
+        schema:
+          type: integer
+          minimum: 1
+      - name: subject_id
+        in: query
+        schema:
+          type: integer
+          minimum: 1
+      - name: grade_level_id
+        in: query
+        schema:
+          type: integer
+          minimum: 1
+      - name: 'on'
+        in: query
+        schema:
+          type: string
+          pattern: ^\d{4}-\d{2}-\d{2}$
+      - name: page
+        in: query
+        schema:
+          type: integer
+          minimum: 1
+      - name: per_page
+        in: query
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 100
+      responses:
+        '200':
+          description: School-scoped academic allocation result.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AcademicAssignmentsResponse'
+        '400':
+          $ref: '#/components/responses/IdempotencyKeyProblem'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+    post:
+      operationId: createAcademicAllocation
+      tags:
+      - Academics
+      summary: createAcademicAllocation
+      description: Academic structure management requires explicit school permission. Teachers read only allocated groups. Kind memberships requires learner_id and mark_rule; teachers requires teacher_id; homerooms requires teacher_id, class_section_id and session_year_id; leadership requires user_id, session_year_id and kind, with grade_level_id required for grade heads and omitted or null for principals. Date intervals stay within the year. Updates require revision and all context fields; history is audited. Weights and marks are not changed by an allocation.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - name: kind
+        in: path
+        required: true
+        schema:
+          type: string
+          enum:
+          - homerooms
+          - leadership
+      responses:
+        '200':
+          description: School-scoped academic allocation result.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AcademicAssignmentResponse'
+        '400':
+          $ref: '#/components/responses/IdempotencyKeyProblem'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AcademicAssignmentWrite'
+  /academics/allocations/{kind}/{entry}:
+    put:
+      operationId: updateAcademicAllocation
+      tags:
+      - Academics
+      summary: updateAcademicAllocation
+      description: Academic structure management requires explicit school permission. Teachers read only allocated groups. Kind memberships requires learner_id and mark_rule; teachers requires teacher_id; homerooms requires teacher_id, class_section_id and session_year_id; leadership requires user_id, session_year_id and kind, with grade_level_id required for grade heads and omitted or null for principals. Date intervals stay within the year. Updates require revision and all context fields; history is audited. Weights and marks are not changed by an allocation.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - name: kind
+        in: path
+        required: true
+        schema:
+          type: string
+          enum:
+          - homerooms
+          - leadership
+      - name: entry
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      responses:
+        '200':
+          description: School-scoped academic allocation result.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AcademicAssignmentResponse'
+        '400':
+          $ref: '#/components/responses/IdempotencyKeyProblem'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AcademicAssignmentWrite'
   /academics/curriculum-plans:
     get:
       operationId: getCurriculumPlans
@@ -2348,6 +2914,299 @@ components:
           schema:
             $ref: '#/components/schemas/ErrorResponse'
   schemas:
+    TeachingGroupWrite:
+      type: object
+      required:
+      - name
+      - subject_id
+      - grade_level_id
+      - session_year_id
+      - active
+      properties:
+        name:
+          type: string
+          maxLength: 191
+        subject_id:
+          type: integer
+          minimum: 1
+        grade_level_id:
+          type: integer
+          minimum: 1
+        session_year_id:
+          type: integer
+          minimum: 1
+        class_section_id:
+          type:
+          - integer
+          - 'null'
+          minimum: 1
+        active:
+          type: boolean
+        revision:
+          type: integer
+          minimum: 1
+      additionalProperties: false
+    TeachingGroup:
+      type: object
+      required:
+      - id
+      - name
+      - subject_id
+      - grade_level_id
+      - session_year_id
+      - class_section_id
+      - active
+      - revision
+      properties:
+        id:
+          type: integer
+          minimum: 1
+        name:
+          type: string
+          maxLength: 191
+        subject_id:
+          type: integer
+          minimum: 1
+        grade_level_id:
+          type: integer
+          minimum: 1
+        session_year_id:
+          type: integer
+          minimum: 1
+        class_section_id:
+          type:
+          - integer
+          - 'null'
+          minimum: 1
+        active:
+          type: boolean
+        revision:
+          type: integer
+          minimum: 1
+      additionalProperties: false
+    TeachingGroupResponse:
+      type: object
+      required:
+      - error
+      - message
+      - code
+      - data
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        code:
+          type: integer
+        data:
+          $ref: '#/components/schemas/TeachingGroup'
+      additionalProperties: false
+    TeachingGroupsResponse:
+      type: object
+      required:
+      - error
+      - message
+      - code
+      - data
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        code:
+          type: integer
+        data:
+          type: object
+          required:
+          - groups
+          - current_page
+          - last_page
+          - total
+          properties:
+            groups:
+              type: array
+              items:
+                $ref: '#/components/schemas/TeachingGroup'
+              maxItems: 100
+            current_page:
+              type: integer
+              minimum: 1
+            last_page:
+              type: integer
+              minimum: 1
+            total:
+              type: integer
+              minimum: 0
+          additionalProperties: false
+      additionalProperties: false
+    AcademicAssignmentWrite:
+      type: object
+      required:
+      - starts_on
+      - ends_on
+      - reason
+      properties:
+        starts_on:
+          type: string
+          pattern: ^\d{4}-\d{2}-\d{2}$
+        ends_on:
+          type: string
+          pattern: ^\d{4}-\d{2}-\d{2}$
+        reason:
+          type: string
+          maxLength: 500
+        revision:
+          type: integer
+          minimum: 1
+        learner_id:
+          type: integer
+          minimum: 1
+        teacher_id:
+          type: integer
+          minimum: 1
+        class_section_id:
+          type: integer
+          minimum: 1
+        session_year_id:
+          type: integer
+          minimum: 1
+        user_id:
+          type: integer
+          minimum: 1
+        grade_level_id:
+          type:
+          - integer
+          - 'null'
+          minimum: 1
+        kind:
+          type: string
+          enum:
+          - grade_head
+          - principal
+        mark_rule:
+          type: string
+          enum:
+          - catch_up
+          - excused
+          - carried
+      additionalProperties: false
+    AcademicAssignment:
+      type: object
+      required:
+      - id
+      - starts_on
+      - ends_on
+      - reason
+      - revision
+      - display_name
+      properties:
+        id:
+          type: integer
+          minimum: 1
+        starts_on:
+          type: string
+          pattern: ^\d{4}-\d{2}-\d{2}$
+        ends_on:
+          type: string
+          pattern: ^\d{4}-\d{2}-\d{2}$
+        reason:
+          type: string
+          maxLength: 500
+        revision:
+          type: integer
+          minimum: 1
+        learner_id:
+          type: integer
+          minimum: 1
+        teacher_id:
+          type: integer
+          minimum: 1
+        class_section_id:
+          type: integer
+          minimum: 1
+        session_year_id:
+          type: integer
+          minimum: 1
+        user_id:
+          type: integer
+          minimum: 1
+        grade_level_id:
+          type:
+          - integer
+          - 'null'
+          minimum: 1
+        kind:
+          type: string
+          enum:
+          - grade_head
+          - principal
+        mark_rule:
+          type: string
+          enum:
+          - catch_up
+          - excused
+          - carried
+        teaching_group_id:
+          type: integer
+          minimum: 1
+        display_name:
+          type: string
+      additionalProperties: false
+    AcademicAssignmentResponse:
+      type: object
+      required:
+      - error
+      - message
+      - code
+      - data
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        code:
+          type: integer
+        data:
+          $ref: '#/components/schemas/AcademicAssignment'
+      additionalProperties: false
+    AcademicAssignmentsResponse:
+      type: object
+      required:
+      - error
+      - message
+      - code
+      - data
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        code:
+          type: integer
+        data:
+          type: object
+          required:
+          - assignments
+          - current_page
+          - last_page
+          - total
+          properties:
+            assignments:
+              type: array
+              items:
+                $ref: '#/components/schemas/AcademicAssignment'
+              maxItems: 100
+            current_page:
+              type: integer
+              minimum: 1
+            last_page:
+              type: integer
+              minimum: 1
+            total:
+              type: integer
+              minimum: 0
+          additionalProperties: false
+      additionalProperties: false
     CurriculumQuestionWrite:
       type: object
       required:

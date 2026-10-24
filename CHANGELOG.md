@@ -11,6 +11,8 @@ Earlier history is kept where it was written and is not repeated here:
 
 ### Added
 
+- Manage dated teaching groups, learner memberships and teacher/homeroom/leadership assignments with explicit class-grade mappings, audited corrections and current allocation checks for existing app projections.
+
 - Prepare versioned curriculum topics and term assessment plans with exact task/question maxima, separate term and annual weights, allocated-teacher access, audited publication and explicit new-year draft copying.
 
 - Add versioned CAPS/IEB subject reference imports and school subject mapping, with source provenance, explicit publication, tenant/permission checks and a Material 3 catalogue page.

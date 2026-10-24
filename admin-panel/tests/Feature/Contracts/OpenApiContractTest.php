@@ -50,6 +50,18 @@ class OpenApiContractTest extends TestCase
     public static function scenarios(): array
     {
         return [
+            'teaching group list teacher' => ['tara', 'GET', 'api/v2/academics/teaching-groups', [], 200],
+            'teaching group list parent denied' => ['farid', 'GET', 'api/v2/academics/teaching-groups', [], 403],
+            'teaching group list auth' => [null, 'GET', 'api/v2/academics/teaching-groups', [], 401],
+            'teaching group create validates' => ['superadmin', 'POST', 'api/v2/academics/teaching-groups', [], 422],
+            'teaching group show unknown' => ['superadmin', 'GET', 'api/v2/academics/teaching-groups/999999', [], 404],
+            'teaching group update unknown' => ['superadmin', 'PUT', 'api/v2/academics/teaching-groups/999999', [], 404],
+            'teaching group rows unknown' => ['superadmin', 'GET', 'api/v2/academics/teaching-groups/999999/memberships', [], 404],
+            'teaching group assignment unknown' => ['superadmin', 'POST', 'api/v2/academics/teaching-groups/999999/teachers', [], 404],
+            'teaching group row update unknown' => ['superadmin', 'PUT', 'api/v2/academics/teaching-groups/999999/teachers/999999', [], 404],
+            'academic allocation list' => ['superadmin', 'GET', 'api/v2/academics/allocations/homerooms', [], 200],
+            'academic allocation create validates' => ['superadmin', 'POST', 'api/v2/academics/allocations/leadership', [], 422],
+            'academic allocation update validates' => ['superadmin', 'PUT', 'api/v2/academics/allocations/homerooms/999999', [], 422],
             'curriculum plans as admin' => ['superadmin', 'GET', 'api/v2/academics/curriculum-plans', [], 200],
             'curriculum plans as teacher' => ['tara', 'GET', 'api/v2/academics/curriculum-plans', [], 200],
             'curriculum plans parent denied' => ['farid', 'GET', 'api/v2/academics/curriculum-plans', [], 403],

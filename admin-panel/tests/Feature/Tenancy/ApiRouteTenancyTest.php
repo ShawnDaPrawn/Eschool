@@ -240,8 +240,7 @@ class ApiRouteTenancyTest extends TestCase
         $this->flushHeaders();
         $request = $asker === null ? $this : $this->withToken($asker);
         $request = $request->withHeaders($headers);
-        $path = '/'.preg_replace_callback('/\{([^}]+)\}/',
-            fn ($match) => (string) ($params[$match[1]] ?? ($match[1] === 'field' ? 'test_field' : 1)), $route->uri);
+        $path = $route->path($params);
 
         return $route->method === 'GET'
             ? $request->getJson($path.'?'.http_build_query($params))

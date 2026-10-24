@@ -5,6 +5,7 @@ declare(strict_types=1);
 use App\Http\Controllers\Api\V2\Academics\AcademicReferenceController;
 use App\Http\Controllers\Api\V2\Academics\CurriculumController;
 use App\Http\Controllers\Api\V2\Academics\SubjectStandardController;
+use App\Http\Controllers\Api\V2\Academics\TeachingGroupController;
 use App\Http\Controllers\Api\V2\Academics\TermCalendarController;
 use App\Http\Controllers\Api\V2\People\EnrolmentController;
 use App\Http\Controllers\Api\V2\People\ProfileConfigurationController;
@@ -19,6 +20,7 @@ use App\Http\Controllers\Api\V2\School\MySchoolController;
 use App\Http\Middleware\AuthorizeClassGrade;
 use App\Http\Middleware\AuthorizeCurriculum;
 use App\Http\Middleware\AuthorizeSubjectStandard;
+use App\Http\Middleware\AuthorizeTeachingGroup;
 use App\Http\Middleware\AuthorizeTermCalendar;
 use Illuminate\Support\Facades\Route;
 
@@ -45,6 +47,20 @@ use Illuminate\Support\Facades\Route;
 
 // Keep fresh class permissions ahead of idempotent replay as well as validation.
 Route::prefix('academics')->middleware(['auth:sanctum', 'school.context', 'role.any', 'learner.approved', 'module:academics', 'cache.headers:private;no_store'])->name('api.v2.academics.')->group(function () {
+    Route::prefix('teaching-groups')->name('teaching-groups.')->middleware(AuthorizeTeachingGroup::class)->group(function () {
+        Route::get('/', [TeachingGroupController::class, 'index'])->name('index');
+        Route::post('/', [TeachingGroupController::class, 'store'])->middleware('idempotent')->name('store');
+        Route::get('{group}', [TeachingGroupController::class, 'show'])->whereNumber('group')->name('show');
+        Route::put('{group}', [TeachingGroupController::class, 'update'])->whereNumber('group')->middleware('idempotent')->name('update');
+        Route::get('{group}/{kind}', [TeachingGroupController::class, 'rows'])->whereNumber('group')->whereIn('kind', ['memberships', 'teachers'])->name('rows');
+        Route::post('{group}/{kind}', [TeachingGroupController::class, 'saveRow'])->whereNumber('group')->whereIn('kind', ['memberships', 'teachers'])->middleware('idempotent')->name('rows.store');
+        Route::put('{group}/{kind}/{entry}', [TeachingGroupController::class, 'saveRow'])->whereNumber('group')->whereNumber('entry')->whereIn('kind', ['memberships', 'teachers'])->middleware('idempotent')->name('rows.update');
+    });
+    Route::prefix('allocations')->name('allocations.')->middleware(AuthorizeTeachingGroup::class)->group(function () {
+        Route::get('{kind}', [TeachingGroupController::class, 'rows'])->whereIn('kind', ['homerooms', 'leadership'])->name('index');
+        Route::post('{kind}', [TeachingGroupController::class, 'saveRow'])->whereIn('kind', ['homerooms', 'leadership'])->middleware('idempotent')->name('store');
+        Route::put('{kind}/{entry}', [TeachingGroupController::class, 'saveRow'])->whereNumber('entry')->whereIn('kind', ['homerooms', 'leadership'])->middleware('idempotent')->name('update');
+    });
     Route::prefix('curriculum-plans')->name('curriculum.')->group(function () {
         Route::get('/', [CurriculumController::class, 'index'])->middleware(AuthorizeCurriculum::class.':read')->name('index');
         Route::post('/', [CurriculumController::class, 'store'])->middleware([AuthorizeCurriculum::class.':manage', 'idempotent'])->name('store');

@@ -1910,5 +1910,7 @@
     "Save subject reference": "Save subject reference",
     "Map the existing school subject instead of creating a duplicate.": "Map the existing school subject instead of creating a duplicate.",
     "Curriculum plans": "Curriculum plans",
-    "new_year_carry_curriculum": "Copy curriculum definition history as drafts (no marks or reports)"
+    "new_year_carry_curriculum": "Copy curriculum definition history as drafts (no marks or reports)",
+    "Teaching groups": "Teaching groups",
+    "Academic allocations": "Academic allocations"
 }

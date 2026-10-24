@@ -325,3 +325,22 @@ copy to a new draft for revisions. A copied same-year task retains mark provenan
 only when its term/maxima/questions stay compatible; changed structures need a new
 task key. New-year carry-forward is explicit and copies definition history as
 drafts, never learner marks/reports. Review shifted dates and source versions.
+
+## Teaching groups and academic allocations
+
+Teaching groups supplies explicit class-to-grade mappings, subject/grade/year
+groups, dated learner membership and dated teachers. A matching dated enrolment
+must cover a learner's membership interval. Mixed-homeroom groups use the exact group APIs; they do not grant whole-class
+authority through older app projections. Co-teaching
+is allowed, but duplicate overlapping person/context intervals are rejected.
+
+Academic allocations appoints homeroom teachers and dated grade heads/principals.
+Grade heads are scoped to a grade and year; principals cover a year. Future teacher
+allocations allow preparing curriculum, while capture requires a current canonical
+assignment. Corrections retain history and reasons; group context is immutable.
+Used class-grade mappings cannot change the meaning of existing group history.
+
+Managed subject_teachers/class_teachers keep stable v1 IDs and refresh each minute.
+They cannot be manually edited through the old models. Read-time canonical date
+checks prevent expired grants surviving a delayed refresh. New-year teacher carry
+copies unmanaged assignments only; canonical assignments need explicit new dates.
