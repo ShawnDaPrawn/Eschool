@@ -56,3 +56,10 @@ The learner Stripe plugin uses UIKit APIs absent from that SDK; the teacher
 job's summary reported a device-build failure and a generic signing hint.
 The updated job records Xcode's version and retains verbose failure logs;
 only successful compilation counts as evidence. No signing team is fabricated.
+
+Verbose logs isolated the teacher failure to the Crashlytics symbol-upload
+build phase calling an uninstalled flutterfire CLI. Compilation artifacts now
+set SKIP_CRASHLYTICS_SYMBOL_UPLOAD=1; both project scripts skip only that upload
+when the explicit flag is present. Ordinary signed builds keep their symbol
+upload and require the FlutterFire CLI. Both shell branches were checked locally;
+the actual unsigned device compilations still must succeed in Actions.
