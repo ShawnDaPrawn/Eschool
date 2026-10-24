@@ -28,7 +28,7 @@ class InstallationSeeder extends Seeder
         // Add Permissions
         $permissions = [
             ['name' => 'marks-view-all'], ['name' => 'marks-release'],
-            ['name' => 'academic-structure-manage'],
+            ['name' => 'academic-structure-manage'], ['name' => 'communication-manage'],
             ['name' => 'curriculum-read'], ['name' => 'curriculum-manage'], ['name' => 'curriculum-publish'],
             ['id' => 1, 'name' => 'role-list'],
             ['id' => 2, 'name' => 'role-create'],

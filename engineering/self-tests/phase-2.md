@@ -632,3 +632,74 @@ no-response expiry permits offline fallback. HTTP refusals retain their status.
 27 core API tests and 24 content/offline tests pass, including a stalled
 fresh-access/library and reader flow with the actual 20-second deadline.
 Core analysis has zero errors/warnings (one existing style info).
+
+
+### School communication service and panel, 24 October 2026
+
+- Offline PR #100 merged at main 4366f43e after every final-head workflow
+  passed and the stalled-connection review thread was resolved.
+- Communication service: final **28 tests passed, 186 assertions**, including
+  actual typed published-reader/inbox/read responses, fresh author/reviewer
+  coverage, custom contact boundaries after moves, encrypted data, revisions and
+  UUID replay, immutable publication, school-local schedule, ended guardians,
+  withdrawal, preference/mandatory channel rules, durable 103-recipient batches,
+  atomic rollback/retry, suspended-school pause and retained-data rollback refusal.
+- A broader contract/tenancy/navigation cohort passed **618 tests** and found
+  one empty-navigation regression for the Finance role. The link now requires
+  teacher/leadership authority or an explicit author rule. The focused final
+  regression cohort passed **51 tests, 4,888 assertions**, including navigation,
+  translations, notification rules and the updated up/down migration rehearsal.
+  The added published-reader API case then passed in the 28-test engine cohort.
+- All 18 additive operations are described by the strict OpenAPI contract and
+  covered by route-isolation scenarios. Earlier contract cohort: **232 passed,
+  1,210 assertions**. Strict final lint passes. Generated SDK: **754 files**;
+  existing **45 tests** and **four new communication contract tests** pass. SDK
+  analysis has no errors/warnings (generated naming/style information remains).
+- Real panel Chromium flow: **three passed**. Draft/edit/dirty-action protection,
+  preview, different-actor approval, publication and withdrawal at both 1024 and
+  1280 pixels; wrong owner/school refused. No serious/critical axe violations,
+  horizontal overflow or application console errors in the checked flows.
+  Browser review caught duplicated reason-field IDs; both labels now have
+  distinct IDs. Inactive synthetic learner; in-app delivery only.
+- Pint checks affected PHP; Larastan has no errors; documentation build passes.
+  Final public CI/review must pass before merge. No live provider/device, staging
+  load, independent security, human translation or full-term pilot is claimed.
+- Shared app message screens/navigation are the following implementation slice.
+  Legacy chat/notices and their API contracts remain covered by CI.
+
+
+PR #101 review: all three findings addressed. Reviewer notices use the named
+private workbench and correct query key; approval email uses the trusted panel
+host when it differs from the family portal. Failed compose validation restores
+encrypted session data bound to account/school/exact draft, preserves the
+operation/revision and an explicitly cleared schedule, and keeps unsaved-action
+protection. It never uses the global old-input bag. Stale custom contacts are
+removed from retained off-page selections, with a visible count; empty lists
+can be archived while active lists still require a contact.
+
+Final review cohort: **261 backend/contract/notification tests passed, 1,378
+assertions**; Pint and Larastan pass. Strict OpenAPI lint, pinned SDK regeneration
+(754 files), four SDK contract tests and TypeScript checks pass. **Four revised
+Chromium flows pass**: validation recovery at both widths, approval/publication/
+withdrawal with admin accessibility/layout checks, wrong-owner/school refusal and
+empty-list archival after contact revocation. Final-head public CI is pending.
+
+PR #101 final-head CI: 1,538 PHP tests passed; the design-token unit check
+found raw fallbacks in the new message stylesheet. Both fallbacks now use the
+established Material tokens. The affected unit check and final CI are rerun.
+
+CI run 352: PHP/contract suite passed; the panel server crashed with
+`zend_mm_heap corrupted`, causing connection-refused browser failures. The
+existing Android report smoke also exposed a test-helper race: it delayed after
+finding a tappable button, then selected a button removed by a route transition.
+Both shells now tap a freshly checked target without that extra frame delay.
+The CI panel server explicitly disables reload so Laravel honors its configured
+four workers. Final-head browser/Android verification remains required.
+
+CI run 355: the configured panel workers remain healthy; **267 browser tests
+passed**. The remaining year-switch test exposed concurrent old-session child
+filter requests overwriting a newly selected year. Global changes now skip
+legacy filter reloads and stop delegated child handlers until the year is saved.
+The strengthened real Chrome year-switch flow **passes**, asserting no premature
+filter requests, correct banner/list, a 423 write refusal and switching back.
+JavaScript syntax and diff checks pass; final full CI is still required.

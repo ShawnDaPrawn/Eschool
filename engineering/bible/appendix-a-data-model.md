@@ -176,3 +176,17 @@ immutable after publication), `content_item_groups` (published audience),
 `ai_flags` (guard codes only). Private files use the existing encrypted
 `academic_private` disk; no public storage URL is introduced. Rollback refuses
 populated educational-content/usage history rather than silently dropping it.
+
+
+### School audiences and private messages
+
+`audiences` saves an encrypted name/contact definition and revision per school.
+`communication_role_rules` binds author addressing/approval defaults to the
+current school role ID; deleting/recreating a role cannot regrant an old override.
+`communication_operations` retains encrypted UUID receipts and body hashes.
+`messages` retains encrypted title/Markdown/audience/reasons, revisions, approval,
+school-local schedule normalized to UTC, immutable publication identity and
+review/delivery recovery cursors. `message_recipients` freezes a deduplicated
+user/access-reason snapshot and processing state; `message_reads` stores one
+acknowledgement per user/publication. All six use the school scope. Retained rows
+prevent rollback. Published bodies/scopes/channels cannot be overwritten.

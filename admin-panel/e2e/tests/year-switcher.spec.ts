@@ -18,11 +18,24 @@ test('last year is read-only until you switch back', async ({ page }) => {
   await expect(page.locator('.year-banner')).toHaveCount(0);
   await expect(page.getByText('Kabelo Dlamini', { exact: true })).toBeVisible();
 
+  // Switching must persist before filters send requests with the new year.
+  // Otherwise an old-session filter response can overwrite the selected year.
+  let selectingYear = false, persisted = false;
+  const prematureFilters: string[] = [];
+  page.on('response', response => {
+    if (response.url().endsWith('/set-session-year') && response.status() === 200) persisted = true;
+  });
+  page.on('request', request => {
+    const url = new URL(request.url());
+    if (selectingYear && !persisted && ['/student-class-sections', '/students-list-data'].includes(url.pathname)) prematureFilters.push(url.pathname);
+  });
   // Switch to last year from the header.
+  selectingYear = true;
   await Promise.all([page.waitForEvent('load'), page.getByRole('combobox', { name: 'School year' }).selectOption({ label: String(year - 1) })]);
   const banner = page.locator('.year-banner');
   await expect(banner).toBeVisible();
   await expect(banner).toContainText(`${year - 1} is a past year`);
+  expect(prematureFilters).toEqual([]);
   await expect(page.getByRole('combobox', { name: 'School year' })).toHaveValue(/\d+/);
 
   // The list follows the year: last year this homeroom had other learners.

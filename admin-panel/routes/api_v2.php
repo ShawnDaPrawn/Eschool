@@ -13,6 +13,7 @@ use App\Http\Controllers\Api\V2\Academics\TeachingGroupController;
 use App\Http\Controllers\Api\V2\Academics\TermCalendarController;
 use App\Http\Controllers\Api\V2\Academics\TimetableController;
 use App\Http\Controllers\Api\V2\Academics\TransitionController;
+use App\Http\Controllers\Api\V2\Communication\MessageController;
 use App\Http\Controllers\Api\V2\People\EnrolmentController;
 use App\Http\Controllers\Api\V2\People\ProfileConfigurationController;
 use App\Http\Controllers\Api\V2\People\ProfileController;
@@ -276,4 +277,24 @@ Route::post('guardians/{guardian}/invitations', [GuardianInvitationController::c
 Route::prefix('staff/learners/{learner}')->whereNumber('learner')->middleware(['auth:sanctum', 'school.context', 'staff', 'idempotent'])->group(function () {
     Route::get('enrolments', [EnrolmentController::class, 'index']);
     Route::post('enrolments', [EnrolmentController::class, 'store']);
+});
+
+Route::prefix('communication')->middleware(['auth:sanctum', 'school.context', 'role.any', 'learner.approved', 'module:communication', 'cache.headers:private;no_store'])->name('api.v2.communication.')->group(function () {
+    $c = MessageController::class;
+    foreach (['configuration', 'contacts', 'audiences', 'rules', 'drafts'] as $action) {
+        Route::get($action, [$c, $action])->name($action);
+    }
+    Route::post('audiences', [$c, 'audienceCreate'])->name('audience-create');
+    Route::put('audiences/{audience}', [$c, 'audienceSave'])->whereNumber('audience')->name('audience-save');
+    Route::put('rules/{role}', [$c, 'ruleSave'])->whereNumber('role')->name('rule-save');
+    Route::post('drafts', [$c, 'create'])->name('create');
+    Route::get('drafts/{message}', [$c, 'editor'])->whereNumber('message')->name('editor');
+    Route::put('drafts/{message}', [$c, 'save'])->whereNumber('message')->name('save');
+    Route::get('drafts/{message}/preview', [$c, 'preview'])->whereNumber('message')->name('preview');
+    foreach (['submit', 'decision', 'withdraw'] as $action) {
+        Route::post('drafts/{message}/'.$action, [$c, $action])->whereNumber('message')->name($action);
+    }
+    Route::get('messages', [$c, 'inbox'])->name('inbox');
+    Route::get('messages/{message}', [$c, 'reader'])->whereNumber('message')->name('reader');
+    Route::post('messages/{message}/read', [$c, 'read'])->whereNumber('message')->name('read');
 });
