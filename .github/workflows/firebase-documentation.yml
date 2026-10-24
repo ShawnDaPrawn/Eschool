@@ -47,16 +47,24 @@ jobs:
           DEPLOY_CREDENTIAL: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_NAVIGATEED_D8C06 }}
         run: |
           node <<'JS'
-          try {
-            const credential = JSON.parse(process.env.DEPLOY_CREDENTIAL || '');
-            if (credential.project_id !== 'navigateed-d8c06' ||
-                credential.client_email !== 'navigateed-docs-deployer@navigateed-d8c06.iam.gserviceaccount.com' ||
-                !credential.private_key) throw new Error();
-            console.log('Firebase deployment credential is configured for the expected project and service account.');
-          } catch {
-            console.error('FIREBASE_SERVICE_ACCOUNT_NAVIGATEED_D8C06 must contain the complete service-account JSON credential.');
+          function fail(message) {
+            console.error('::error::' + message);
             process.exit(1);
           }
+          const raw = process.env.DEPLOY_CREDENTIAL;
+          if (!raw || !raw.trim()) {
+            fail('Repository Actions secret FIREBASE_SERVICE_ACCOUNT_NAVIGATEED_D8C06 is missing, empty, or unavailable to this workflow.');
+          }
+          console.log('The repository deployment secret is available.');
+          let credential;
+          try { credential = JSON.parse(raw); }
+          catch { fail('The deployment secret is not valid JSON. Its value must be the entire downloaded service-account JSON file.'); }
+          if (!credential || typeof credential !== 'object') fail('The deployment secret must contain a JSON object.');
+          if (credential.project_id !== 'navigateed-d8c06') fail('The credential project_id does not match navigateed-d8c06.');
+          if (credential.type !== 'service_account' || !credential.client_email || !credential.private_key) {
+            fail('The JSON is missing service-account authentication fields. An email, account ID, or Firebase web-app config is not a deployment credential.');
+          }
+          console.log('Firebase service-account JSON is configured for the expected project.');
           JS
       - uses: actions/setup-node@v4
         with:
