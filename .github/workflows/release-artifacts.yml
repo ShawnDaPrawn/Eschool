@@ -81,16 +81,15 @@ jobs:
             prefix: ANDROID_LEARNER
           - app: e-school-teacher
             prefix: ANDROID_TEACHER
-    env:
-      KEYSTORE_BASE64: ${{ secrets[format('{0}_KEYSTORE_BASE64', matrix.prefix)] }}
-      STORE_PASSWORD: ${{ secrets[format('{0}_STORE_PASSWORD', matrix.prefix)] }}
-      KEY_ALIAS: ${{ secrets[format('{0}_KEY_ALIAS', matrix.prefix)] }}
-      KEY_PASSWORD: ${{ secrets[format('{0}_KEY_PASSWORD', matrix.prefix)] }}
     steps:
       - name: Check release signing
         id: signing
         env:
           PREFIX: ${{ matrix.prefix }}
+          KEYSTORE_BASE64: ${{ secrets[format('{0}_KEYSTORE_BASE64', matrix.prefix)] }}
+          STORE_PASSWORD: ${{ secrets[format('{0}_STORE_PASSWORD', matrix.prefix)] }}
+          KEY_ALIAS: ${{ secrets[format('{0}_KEY_ALIAS', matrix.prefix)] }}
+          KEY_PASSWORD: ${{ secrets[format('{0}_KEY_PASSWORD', matrix.prefix)] }}
         run: |
           missing=()
           [ -n "$KEYSTORE_BASE64" ] || missing+=("${PREFIX}_KEYSTORE_BASE64")
@@ -125,6 +124,11 @@ jobs:
           cache: true
       - name: Configure the existing upload key
         if: steps.signing.outputs.ready == 'true'
+        env:
+          KEYSTORE_BASE64: ${{ secrets[format('{0}_KEYSTORE_BASE64', matrix.prefix)] }}
+          STORE_PASSWORD: ${{ secrets[format('{0}_STORE_PASSWORD', matrix.prefix)] }}
+          KEY_ALIAS: ${{ secrets[format('{0}_KEY_ALIAS', matrix.prefix)] }}
+          KEY_PASSWORD: ${{ secrets[format('{0}_KEY_PASSWORD', matrix.prefix)] }}
         working-directory: ${{ matrix.app }}
         run: |
           python <<'PY'
