@@ -1,3 +1,4 @@
+import 'package:dio/dio.dart';
 import 'package:eschool/app/deepLinks.dart';
 import 'package:eschool/app/routes.dart';
 import 'package:eschool_session/eschool_session.dart';
@@ -6,6 +7,7 @@ import 'package:eschool_academics/eschool_academics.dart';
 import 'package:eschool_academics/testing.dart';
 import 'package:eschool_core/eschool_core.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:flutter/widgets.dart';
 import 'package:integration_test/integration_test.dart';
 
 import 'support/fixtures.dart';
@@ -16,6 +18,16 @@ void main() {
   testWidgets('parent opens only selected child published learning material', (
     tester,
   ) async {
+    var disconnected = false;
+    Object connected(RequestOptions request, Object data) {
+      if (disconnected)
+        throw DioException(
+          requestOptions: request,
+          type: DioExceptionType.connectionError,
+        );
+      return ok(data);
+    }
+
     final api = await startSmokeApp(tester, {
       ...parentOfTwoRoutes(),
       'GET v2/me/context': ok({
@@ -48,7 +60,8 @@ void main() {
             },
         ],
       }),
-      'GET v2/academics/content/learners/11': ok(contentLibraryFixture()),
+      'GET v2/academics/content/learners/11': (RequestOptions request) =>
+          connected(request, contentLibraryFixture()),
       'GET v2/academics/content/learners/12': ok(
         contentLibraryFixture(learner: 12),
       ),
@@ -60,9 +73,18 @@ void main() {
         'learner_id': 12,
         'read_at': '2026-10-24T10:00:00Z',
       }),
-      'GET v2/academics/content/learners/11/versions/11': ok(
-        contentReaderFixture(account: 21),
-      ),
+      'GET v2/academics/content/learners/11/versions/11': (
+        RequestOptions request,
+      ) => connected(request, contentReaderFixture(account: 21)),
+      'POST v2/academics/content/learners/11/saved-access':
+          (RequestOptions request) => connected(request, {
+            'school_id': 1,
+            'reader_id': 21,
+            'learner_id': 11,
+            'allowed_version_ids': [11],
+            'server_time': '2026-10-24T09:00:00Z',
+            'offline_until': '2026-10-25T09:00:00Z',
+          }),
       'POST v2/academics/content/learners/11/versions/11/read': ok({
         'id': 11,
         'learner_id': 11,
@@ -82,6 +104,25 @@ void main() {
     await pumpUntilFound(tester, find.byType(LearningContentScreen));
     await tapWhenReady(tester, find.text('Fractions'));
     await pumpUntilFound(tester, find.text('One half equals two quarters.'));
+    await tapWhenReady(tester, find.text('Save for offline reading'));
+    await pumpUntilFound(
+      tester,
+      find.text(
+        'Saved privately for offline reading. Copies expire within one day.',
+      ),
+    );
+    disconnected = true;
+    tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.inactive);
+    await tester.pump(const Duration(milliseconds: 100));
+    tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.resumed);
+    await pumpUntilFound(
+      tester,
+      find.text(
+        'Saved offline copy. Connect to check current access. This copy expires within one day.',
+      ),
+    );
+    expect(find.text('One half equals two quarters.'), findsOneWidget);
+    disconnected = false;
     final requests = api.requests
         .where((r) => r.uri.path.contains('/academics/content/'))
         .toList();

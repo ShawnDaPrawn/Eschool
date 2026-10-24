@@ -15,6 +15,53 @@ void main() {
   );
   const operation = 'd2160bf5-7a51-4e32-8910-f978744cc17d';
   test(
+    'saved-copy access query binds school and learner without returning bodies',
+    () async {
+      final dio = Dio(BaseOptions(baseUrl: 'https://school.example/api/v2'));
+      RequestOptions? sent;
+      dio.interceptors.add(
+        InterceptorsWrapper(
+          onRequest: (options, handler) {
+            sent = options;
+            handler.resolve(
+              Response(
+                requestOptions: options,
+                statusCode: 200,
+                data: {
+                  'error': false,
+                  'message': 'Access checked',
+                  'code': 200,
+                  'data': {
+                    'school_id': 5,
+                    'reader_id': 12,
+                    'learner_id': 7,
+                    'allowed_version_ids': [11],
+                    'server_time': '2026-10-24T09:00:00Z',
+                    'offline_until': '2026-10-25T09:00:00Z',
+                  },
+                },
+              ),
+            );
+          },
+        ),
+      );
+      final response = await AcademicsApi(dio).revalidateSavedLearnerContent(
+        learner: 7,
+        xSchoolId: 5,
+        contentSavedAccessWrite: ContentSavedAccessWrite(versionIds: {11, 12}),
+      );
+      expect(sent!.path, '/academics/content/learners/7/saved-access');
+      expect(sent!.headers['X-School-Id'], 5);
+      final body = sent!.data is String
+          ? jsonDecode(sent!.data as String)
+          : sent!.data;
+      expect(body['version_ids'], [11, 12]);
+      expect(response.data!.data.allowedVersionIds, {11});
+      expect(response.data!.data.toJson().containsKey('markdown'), false);
+    },
+  );
+
+  test(
     'multipart upload pins school, private source and reviewed selection',
     () async {
       final dio = Dio(BaseOptions(baseUrl: 'https://school.example/api/v2'));

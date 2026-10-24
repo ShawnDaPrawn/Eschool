@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'content_repository.dart';
 import 'content_cubit.dart';
+import 'content_cache.dart';
 import 'content_widgets.dart';
 
 class LearningContentScreen extends StatefulWidget {
@@ -11,12 +12,14 @@ class LearningContentScreen extends StatefulWidget {
     required this.learner,
     required this.learnerName,
     this.initialVersion,
+    this.cache,
     super.key,
   });
   final AcademicContentRepository repository;
   final int learner;
   final String learnerName;
   final int? initialVersion;
+  final ContentReaderCache? cache;
   @override
   State<LearningContentScreen> createState() => _LearningContentScreenState();
 }
@@ -25,7 +28,11 @@ class _LearningContentScreenState extends State<LearningContentScreen>
     with WidgetsBindingObserver {
   late ContentLibraryCubit _cubit;
   void _create() {
-    _cubit = ContentLibraryCubit(widget.repository, widget.learner)..load();
+    _cubit = ContentLibraryCubit(
+      widget.repository,
+      widget.learner,
+      cache: widget.cache,
+    )..load();
   }
 
   @override
@@ -48,8 +55,11 @@ class _LearningContentScreenState extends State<LearningContentScreen>
   @override
   void didUpdateWidget(covariant LearningContentScreen old) {
     super.didUpdateWidget(old);
-    if (old.repository != widget.repository || old.learner != widget.learner) {
+    if (old.repository != widget.repository ||
+        old.learner != widget.learner ||
+        old.cache != widget.cache) {
       _cubit.close();
+      if (old.cache != widget.cache) old.cache?.close();
       _create();
     }
   }
@@ -69,6 +79,7 @@ class _LearningContentScreenState extends State<LearningContentScreen>
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
     _cubit.close();
+    widget.cache?.close();
     super.dispose();
   }
 
@@ -80,6 +91,7 @@ class _LearningContentScreenState extends State<LearningContentScreen>
           learner: widget.learner,
           version: id,
           title: title,
+          cache: widget.cache,
         ),
       ),
     );
@@ -115,9 +127,16 @@ class _LearningContentScreenState extends State<LearningContentScreen>
               ),
             ),
             if (state.busy) const LinearProgressIndicator(),
+            if (state.offline)
+              ContentMessage(
+                'Offline copies only. Connect to check current access. Saved copies expire within one day.',
+              ),
             if (state.error != null)
               ContentMessage(state.error!, retry: () => _cubit.load()),
-            if (!state.busy && state.error == null && state.items.isEmpty)
+            if (!state.busy &&
+                !state.offline &&
+                state.error == null &&
+                state.items.isEmpty)
               ContentMessage(
                 'No learning material is published for your current groups yet.',
               ),
@@ -147,7 +166,9 @@ class _LearningContentScreenState extends State<LearningContentScreen>
                       child: ListTile(
                         leading: const Icon(Icons.menu_book_outlined),
                         title: Text(row.title),
-                        subtitle: Text('${row.subjectName}\n${row.summary}'),
+                        subtitle: Text(
+                          '${state.offline ? contentLabel(context, 'Saved offline') : row.subjectName}\n${row.summary}',
+                        ),
                         isThreeLine: row.summary.isNotEmpty,
                         trailing: const Icon(Icons.chevron_right),
                         onTap: () => _open(row.versionId, row.title),
@@ -170,11 +191,13 @@ class LearningContentReaderScreen extends StatefulWidget {
     required this.learner,
     required this.version,
     required this.title,
+    this.cache,
     super.key,
   });
   final AcademicContentRepository repository;
   final int learner, version;
   final String title;
+  final ContentReaderCache? cache;
   @override
   State<LearningContentReaderScreen> createState() =>
       _LearningContentReaderScreenState();
@@ -189,6 +212,7 @@ class _LearningContentReaderScreenState
       widget.repository,
       learner: widget.learner,
       version: widget.version,
+      cache: widget.cache,
     )..load();
   }
 
@@ -204,7 +228,8 @@ class _LearningContentReaderScreenState
     super.didUpdateWidget(old);
     if (old.repository != widget.repository ||
         old.learner != widget.learner ||
-        old.version != widget.version) {
+        old.version != widget.version ||
+        old.cache != widget.cache) {
       _cubit.close();
       _create();
     }
@@ -257,6 +282,50 @@ class _LearningContentReaderScreenState
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+                  if (state.offline)
+                    ContentMessage(
+                      'Saved offline copy. Connect to check current access. This copy expires within one day.',
+                    ),
+                  if (state.notice != null) ContentMessage(state.notice!),
+                  if (widget.cache?.isActive == true)
+                    Padding(
+                      padding: const EdgeInsets.only(bottom: 16),
+                      child: Wrap(
+                        spacing: 12,
+                        runSpacing: 8,
+                        children: [
+                          if (!state.offline)
+                            OutlinedButton.icon(
+                              onPressed: state.saving
+                                  ? null
+                                  : _cubit.saveOffline,
+                              icon: const Icon(
+                                Icons.download_for_offline_outlined,
+                              ),
+                              label: Text(
+                                contentLabel(
+                                  context,
+                                  state.saving
+                                      ? 'Saving private copy'
+                                      : state.saved
+                                      ? 'Refresh saved copy'
+                                      : 'Save for offline reading',
+                                ),
+                              ),
+                            ),
+                          if (state.saved)
+                            TextButton.icon(
+                              onPressed: state.saving
+                                  ? null
+                                  : _cubit.removeOffline,
+                              icon: const Icon(Icons.delete_outline),
+                              label: Text(
+                                contentLabel(context, 'Remove saved copy'),
+                              ),
+                            ),
+                        ],
+                      ),
+                    ),
                   Text(
                     reader.title,
                     style: Theme.of(context).textTheme.headlineSmall,

@@ -6395,6 +6395,45 @@ paths:
           $ref: '#/components/responses/TooManyRequests'
         '500':
           $ref: '#/components/responses/ServerError'
+  /academics/content/learners/{learner}/saved-access:
+    post:
+      operationId: revalidateSavedLearnerContent
+      tags: [Academics]
+      summary: Revalidate up to twenty saved immutable publications
+      description: Private no-store query. Checks current account, school, learner enrolment and group access using the reader policy. Omits inaccessible IDs without revealing whether they exist. Returns no Markdown or source files; a successful response renews only the listed immutable publication leases.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - name: learner
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ContentSavedAccessWrite'
+      responses:
+        '200':
+          description: Fresh authorized saved publication IDs and bounded lease.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ContentSavedAccessResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
   /academics/content/learners/{learner}/versions/{version}:
     get:
       operationId: readLearnerContent
@@ -14908,6 +14947,59 @@ components:
           type: integer
         data:
           $ref: '#/components/schemas/ContentLibrary'
+    ContentSavedAccessWrite:
+      type: object
+      additionalProperties: false
+      required: [version_ids]
+      properties:
+        version_ids:
+          type: array
+          minItems: 1
+          maxItems: 20
+          uniqueItems: true
+          items:
+            type: integer
+            minimum: 1
+    ContentSavedAccess:
+      type: object
+      additionalProperties: false
+      required: [school_id, reader_id, learner_id, allowed_version_ids, server_time, offline_until]
+      properties:
+        school_id:
+          type: integer
+          minimum: 1
+        reader_id:
+          type: integer
+          minimum: 1
+        learner_id:
+          type: integer
+          minimum: 1
+        allowed_version_ids:
+          type: array
+          maxItems: 20
+          uniqueItems: true
+          items:
+            type: integer
+            minimum: 1
+        server_time:
+          type: string
+          format: date-time
+        offline_until:
+          type: string
+          format: date-time
+    ContentSavedAccessResponse:
+      type: object
+      additionalProperties: false
+      required: [error, message, code, data]
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        code:
+          type: integer
+        data:
+          $ref: '#/components/schemas/ContentSavedAccess'
     ContentReaderResponse:
       type: object
       additionalProperties: false

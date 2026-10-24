@@ -589,3 +589,46 @@ language file; **6 focused navigation/translation/reader tests pass, 4,008
 assertions**. Also brought forward the actual reader clock regression from #99:
 server/expiry timestamps share one instant. The advancing-clock v2 response test
 passes. Final-head CI must complete before merge.
+
+
+### Encrypted offline content, 24 October 2026
+
+- Content service PR **#98** and client PR **#99** merged after all exact-head
+  workflows passed and review threads were resolved. Main is 70116033.
+- Offline branch: **222 backend/contract tests passed, 1,449 assertions**. The
+  body-free 20-ID access query shares the live reader policy and covers own
+  readers, wrong role/person/school, request bounds, withdrawal, no-store headers
+  and a precise one-day lease. Affected PHP passes Pint; Larastan has no errors.
+- Shared academic suite: **139 passed**. After adding environment isolation,
+  **16 focused offline/store/widget tests passed**. These include real encrypted
+  Hive restart/plaintext checks, school/account/environment erasure, late old
+  generations, concurrent physical bounds, clock rollback, checksum corruption,
+  transport-only fallback, revocation, visible reader expiry at 390/1280 pixels
+  and root session purging with no open library.
+- Core API: **25 tests passed**, distinguishing no-response connection/timeouts
+  from HTTP refusal/server errors, bad certificates, cancellation and other
+  failures. Existing error messages are preserved.
+- Generated SDK: **679 files**, **45 tests passed**; strict OpenAPI lint passes.
+- Full app suites: family **45 passed**, teacher **28 passed**. Both app analyzers
+  have zero errors/warnings; language key sets remain consistent. New English
+  fallbacks are not represented as reviewed Afrikaans/isiZulu translations.
+- Parent Chrome flow **passed**: sign-in, selected-child read, explicit encrypted
+  save, simulated connection loss, resume into the saved reader, unauthorized
+  link refusal and another authorized child's link. No physical-device result
+  is claimed. Physical devices, staging performance, human translation,
+  independent security and full-term parallel pilot evidence remain open.
+- A local core run was interrupted by the disk limit; generated prior build
+  artifacts were removed and the API suite then passed. The final backend
+  cohort and focused offline checks above completed successfully.
+
+Offline sign-out regression: both shells pass the targeted disconnected logout
+test after immediately invalidating local session values and handling the failed
+remote logout asynchronously. Shared/core analyzers and SDK analysis report no
+errors or warnings; documentation build passes.
+
+PR #100 review: bounded content library, reader and fresh-access calls to 20 seconds.
+The shared API cancels the stalled transport at the whole-request deadline; only
+no-response expiry permits offline fallback. HTTP refusals retain their status.
+27 core API tests and 24 content/offline tests pass, including a stalled
+fresh-access/library and reader flow with the actual 20-second deadline.
+Core analysis has zero errors/warnings (one existing style info).

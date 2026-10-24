@@ -1,3 +1,6 @@
+import 'dart:async';
+
+import 'package:eschool_academics/eschool_academics.dart';
 import 'package:eschool/data/models/parent.dart';
 import 'package:eschool/data/models/student.dart';
 import 'package:eschool/utils/api.dart';
@@ -62,12 +65,22 @@ class AuthRepository {
 
   Future<void> signOutUser() async {
     try {
-      Api.post(body: {}, url: Api.logout, useAuthToken: true);
-    } catch (e) {
-      //
+      unawaited(
+        Api.post(
+          body: {},
+          url: Api.logout,
+          useAuthToken: true,
+        ).then<void>((_) {}, onError: (Object error, StackTrace stack) {}),
+      );
+    } catch (_) {}
+    // Invalidate both in-memory session values before asynchronous cache erasure.
+    final clearLogin = setIsLogIn(false), clearToken = setJwtToken('');
+    await Future.wait([clearLogin, clearToken]);
+    try {
+      await SecureContentStore.purge();
+    } catch (_) {
+      /* Closed keys cannot serve another context. */
     }
-    setIsLogIn(false);
-    setJwtToken('');
     setStudentDetails(Student.fromJson({}));
     setParentDetails(Parent.fromJson({}));
   }

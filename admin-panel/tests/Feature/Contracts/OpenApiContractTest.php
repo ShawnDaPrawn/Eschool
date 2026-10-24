@@ -63,6 +63,7 @@ class OpenApiContractTest extends TestCase
             'retryAcademicContentConversion' => ['superadmin', 'POST', 'api/v2/academics/content/versions/999999/retry', [], 404],
             'publishAcademicContent' => ['superadmin', 'POST', 'api/v2/academics/content/versions/999999/publish', [], 404],
             'listLearnerContent' => ['farid', 'GET', 'api/v2/academics/content/learners/1', [], 200],
+            'revalidateSavedLearnerContent' => ['farid', 'POST', 'api/v2/academics/content/learners/1/saved-access', ['version_ids' => [999999]], 200],
             'readLearnerContent' => ['farid', 'GET', 'api/v2/academics/content/learners/1/versions/999999', [], 404],
             'markLearnerContentRead' => ['farid', 'POST', 'api/v2/academics/content/learners/1/versions/999999/read', [], 404],
             'getAcademicTransitionConfiguration' => ['superadmin', 'GET', 'api/v2/academics/transitions/configuration', [], 200],

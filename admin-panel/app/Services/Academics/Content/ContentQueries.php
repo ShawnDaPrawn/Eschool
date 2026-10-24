@@ -158,6 +158,16 @@ class ContentQueries
             'title' => $i->published->metadata['title'], 'summary' => $i->published->metadata['summary'], 'subject_id' => (int) $i->subject_id, 'subject_name' => $subjects->get($i->subject_id)?->name ?? __('Archived subject'), 'published_at' => $i->published->published_at->toISOString()])->values()->all()];
     }
 
+    public function savedAccess(User $actor, int $learner, array $versions): array
+    {
+        $allowed = app(ContentPolicy::class)->readableVersions($actor, $learner)->whereIn('id', $versions)->pluck('id')->map(fn ($id) => (int) $id)->all();
+        $instant = now();
+
+        return ['school_id' => app(CurrentSchool::class)->id(), 'reader_id' => (int) $actor->id, 'learner_id' => $learner,
+            'allowed_version_ids' => $allowed, 'server_time' => $instant->toISOString(),
+            'offline_until' => $instant->copy()->addHours((int) config('academic_content.offline_lease_hours'))->toISOString()];
+    }
+
     public function reader(User $actor, int $learner, int $id): array
     {
         $v = app(ContentPolicy::class)->reader($actor, $learner, $id);

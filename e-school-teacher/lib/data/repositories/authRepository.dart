@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:eschool_academics/eschool_academics.dart';
 import 'package:eschool_teacher/data/models/teacher.dart';
 import 'package:eschool_teacher/utils/api.dart';
@@ -43,17 +45,27 @@ class AuthRepository {
 
   Future<void> signOutUser() async {
     try {
-      Api.post(body: {}, url: Api.logout, useAuthToken: true);
-    } catch (e) {
-      null;
-    }
+      unawaited(
+        Api.post(
+          body: {},
+          url: Api.logout,
+          useAuthToken: true,
+        ).then<void>((_) {}, onError: (Object error, StackTrace stack) {}),
+      );
+    } catch (_) {}
+    // Invalidate both in-memory session values before asynchronous cache erasure.
+    final clearLogin = setIsLogIn(false), clearToken = setJwtToken('');
+    await Future.wait([clearLogin, clearToken]);
     try {
       await SecureRegisterStore.purge();
     } catch (_) {
-      /* A closed encrypted cache cannot be read by another account. */
+      /* A closed register key cannot serve another context. */
     }
-    setIsLogIn(false);
-    setJwtToken('');
+    try {
+      await SecureContentStore.purge();
+    } catch (_) {
+      /* Closed keys cannot serve another context. */
+    }
     setTeacherDetails(Teacher.fromJson({}));
   }
 

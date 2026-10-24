@@ -54,3 +54,18 @@ headings, tables, lists and curriculum tags. A publication notification opens th
 corresponding child and version after checking the account's access. Returning
 to the app refreshes access; changing account, school or child closes private
 material. Links open separately; original source files are not exposed.
+
+
+## Saved copies
+
+In the learner or parent reader, choose **Save for offline reading** while
+connected. This checks the current publication again and saves an encrypted copy
+on this device. **Refresh saved copy** renews an existing copy; **Remove saved
+copy** deletes it from this device.
+
+An offline library shows only your selected child's saved material. Saved copies
+expire within one day, and the app hides an expired copy even while its reader is
+open. Reconnecting checks current access and removes withdrawn or inaccessible
+versions. An offline device may retain a withdrawn copy until that lease expires.
+Signing out or changing school/account removes the saved copies. Up to 20 copies
+are retained; saving more removes older copies.

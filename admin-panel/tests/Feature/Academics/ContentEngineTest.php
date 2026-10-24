@@ -658,6 +658,33 @@ class ContentEngineTest extends TestCase
         }
     }
 
+    public function test_saved_access_is_body_free_bounded_and_rechecks_role_person_school_and_withdrawal(): void
+    {
+        $version = $this->converted();
+        $this->publish($version);
+        $uri = '/api/v2/academics/content/learners/'.$this->schoolA->ids['asha'].'/saved-access';
+        $parent = User::findOrFail($this->schoolA->ids['farid_user']);
+        $this->bearer($parent);
+        $result = $this->postJson($uri, ['version_ids' => [$version->id, 999999]])->assertOk()->assertHeader('Cache-Control', 'no-store, private')->json('data');
+        $this->assertSame([(int) $version->id], $result['allowed_version_ids']);
+        $this->assertSame((int) $parent->id, $result['reader_id']);
+        $this->assertSame(1, $result['school_id']);
+        $this->assertArrayNotHasKey('markdown', $result);
+        $this->assertArrayNotHasKey('source', $result);
+        $this->assertSame(86400000000, (int) Carbon::parse($result['server_time'])->diffInMicroseconds(Carbon::parse($result['offline_until'])));
+        $this->postJson($uri, ['version_ids' => range(1, 21)])->assertUnprocessable();
+        $this->postJson($uri, ['version_ids' => [1, 1]])->assertUnprocessable();
+        $this->postJson('/api/v2/academics/content/learners/'.$this->schoolA->ids['ben'].'/saved-access', ['version_ids' => [$version->id]])->assertNotFound();
+        $this->postJson('/api/v2/academics/content/learners/'.$this->schoolB->ids['asha'].'/saved-access', ['version_ids' => [$version->id]])->assertNotFound();
+        $this->bearer($this->teacher());
+        $this->postJson($uri, ['version_ids' => []])->assertNotFound();
+        $this->bearer(app(CurrentSchool::class)->run(2, fn () => User::findOrFail($this->schoolB->ids['tara_user'])));
+        $this->postJson($uri, ['version_ids' => [$version->id]])->assertNotFound();
+        $this->bearer($parent);
+        app(ContentFlow::class)->archive($this->teacher(), (int) $version->content_item_id, ['item_revision' => $version->item->fresh()->revision, 'operation_id' => (string) Str::uuid(), 'reason' => 'Synthetic withdrawn offline access']);
+        $this->postJson($uri, ['version_ids' => [$version->id]])->assertOk()->assertJsonPath('data.allowed_version_ids', []);
+    }
+
     public function test_unreviewed_publication_and_leadership_without_a_reason_are_refused(): void
     {
         $v = $this->converted();

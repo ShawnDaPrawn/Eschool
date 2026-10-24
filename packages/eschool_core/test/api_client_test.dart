@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
@@ -81,6 +82,79 @@ void main() {
         expect(error.statusCode, status);
       }
       expect(unauthorizedCalls, 1);
+    },
+  );
+
+  test(
+    'offline fallback distinguishes transport loss from HTTP, certificate and cancellation',
+    () async {
+      for (final type in DioExceptionType.values) {
+        useServer(
+          (request) async =>
+              throw DioException(requestOptions: request, type: type),
+        );
+        final error = await failure(
+          client.send(method: 'GET', url: 'https://school.test/api/v2/private'),
+        );
+        expect(
+          error.isTransportFailure,
+          [
+            DioExceptionType.connectionError,
+            DioExceptionType.connectionTimeout,
+            DioExceptionType.sendTimeout,
+            DioExceptionType.receiveTimeout,
+          ].contains(type),
+          reason: '$type',
+        );
+      }
+      for (final status in [401, 403, 404, 500, 503]) {
+        useServer(
+          (_) async =>
+              _json({'error': true, 'message': 'Refused'}, status: status),
+        );
+        final error = await failure(
+          client.send(method: 'GET', url: 'https://school.test/api/v2/private'),
+        );
+        expect(error.isTransportFailure, false);
+        expect(error.statusCode, status);
+      }
+    },
+  );
+
+  test(
+    'a stalled v2 transport is cancelled at its deadline and permits offline fallback',
+    () async {
+      final pending = Completer<ResponseBody>();
+      useServer((_) => pending.future);
+      final error = await failure(
+        client.send(
+          method: 'GET',
+          url: 'https://school.test/api/v2/private',
+          requestTimeout: const Duration(milliseconds: 20),
+        ),
+      );
+      expect(error.isTransportFailure, isTrue);
+      expect(error.statusCode, isNull);
+      expect(adapter.requests, hasLength(1));
+      pending.complete(_json({'error': false, 'data': 'late'}));
+    },
+  );
+
+  test(
+    'a bounded call preserves HTTP refusals rather than using offline fallback',
+    () async {
+      useServer(
+        (_) async => _json({'error': true, 'message': 'Refused'}, status: 403),
+      );
+      final error = await failure(
+        client.send(
+          method: 'GET',
+          url: 'https://school.test/api/v2/private',
+          requestTimeout: const Duration(seconds: 20),
+        ),
+      );
+      expect(error.isTransportFailure, isFalse);
+      expect(error.statusCode, 403);
     },
   );
 

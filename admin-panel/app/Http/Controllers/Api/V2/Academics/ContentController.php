@@ -86,6 +86,11 @@ class ContentController extends Controller
         return $this->response($r, app(ContentQueries::class)->library($r->user(), $learner, (int) $r->validated('page', 1)));
     }
 
+    public function savedAccess(ContentRequest $r, int $learner): JsonResponse
+    {
+        return $this->response($r, app(ContentQueries::class)->savedAccess($r->user(), $learner, $r->validated('version_ids')));
+    }
+
     public function reader(ContentRequest $r, int $learner, int $version): JsonResponse
     {
         return $this->response($r, app(ContentQueries::class)->reader($r->user(), $learner, $version));
