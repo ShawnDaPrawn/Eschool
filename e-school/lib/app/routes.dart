@@ -148,6 +148,7 @@ class Routes {
   static const String mySchool = '/my-school';
   static const String academicMarks = '/academics/marks';
   static const String academicTimetable = '/academics/timetable';
+  static const String academicAttendance = '/academics/attendance';
   static const String approvals = '/approvals';
   static const String invitation = '/invite';
   static const String profilePicture = '/profile-picture';
@@ -356,6 +357,8 @@ class Routes {
       case notificationSettings:
         return notificationSettingsRoute();
 
+      case academicAttendance:
+        return academicAttendanceRoute();
       case academicTimetable:
         return academicTimetableRoute();
       case academicMarks:

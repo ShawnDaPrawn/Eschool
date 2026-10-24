@@ -360,6 +360,7 @@ class _HomeContainerState extends State<HomeContainer> {
                 child: Column(
                   children: [
                     const AcademicNextPeriod(),
+                    const AcademicTodayAttendance(),
                     _buildAdvertisementSliders(),
                     SizedBox(height: MediaQuery.sizeOf(context).height * 0.025),
                     if (context

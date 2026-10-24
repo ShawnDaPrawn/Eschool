@@ -37,3 +37,26 @@ wrong-role/school/owner, departed rosters, timezone, revoked allocations,
 late amendments, duplicate/order/conflict sync, QR tamper and alert cutoff tests.
 Browser checks cover each panel page at1024/1280. Real35-learner tap/QR timing,
 mobile offline/device rehearsal and delivered cutoff evidence stay separate.
+
+### Register clients and panel
+
+The teacher app opens dated homeroom/lesson choices and a shared adaptive tap grid
+with QR capture. A separate account-owned AES-encrypted Hive box retains the
+original roster/revisions and ordered operation UUIDs before sync. Platform secure
+storage holds its random key. Logout/account replacement purges it; there is no
+plaintext fallback. Online reopen checks current authority first. Network failures
+retain work; 409/roster conflicts freeze it for explicit review and a new draft;
+revoked read access clears the visible roster even if cache deletion fails. An old
+offline timestamp does not grant permission to correct yesterday's register.
+
+The panel provides date selection, homeroom recorded/missing/absence totals,
+period registers, corrections, and cutoff settings. Both native form and enhanced
+JSON capture require a complete submitted roster count before filtering unmarked
+rows; truncated forms cannot partly apply. Conflict review does not write or
+silently replace revisions. QR scanning uses only the authorized roster and is
+verified again by the service. Family Home and attendance/QR screens request only
+the selected learner, refresh on resume, and discard late results on child/school
+changes. No staff roster or correction reason is exposed to family clients.
+
+Physical camera performance, real classroom timings and native platform acceptance
+remain external evidence. Chrome and synthetic fixtures do not establish them.

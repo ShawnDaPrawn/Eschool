@@ -527,5 +527,7 @@
   "profileFileClear": "محفوظ کرتے وقت فائل ہٹائیں",
   "profileFileLimit": "PDF، PNG یا JPEG، زیادہ سے زیادہ 5 MB۔",
   "assessmentMarks": "Assessment marks",
-  "academicTimetable": "Academic timetable"
+  "academicTimetable": "Academic timetable",
+  "academicRegisters": "Academic registers",
+  "attendanceAndQr": "Attendance and QR"
 }

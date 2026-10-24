@@ -24,3 +24,16 @@ are separate from future card sign-in and payments.
 The backend is implemented first. Shared tap/QR/offline screens and the panel
 register overview follow in the client slice. Real phone timing, offline/device
 rehearsal and school cutoff delivery still need staging/pilot evidence.
+
+Teachers open **Academic registers** from Home, choose the date and allocated
+homeroom or lesson, and capture by tap or learner QR. **Mark remaining present** is
+an explicit action; missing entries stay unmarked. Save before leaving the screen.
+An offline copy queues encrypted changes for retry. A conflict asks you to compare
+with the saved register; preparing a reviewed draft does not apply it until Save.
+Corrections require a reason. A grade head handles earlier-day corrections.
+
+Administrators use **Academic registers** in the panel to see recorded counts,
+missing entries and captured absences, open a register, or set the local alert
+cutoff/teaching days. Parents and learners see today's homeroom attendance on Home
+and open **Attendance and QR** for their own code and period entries. Replacing a
+QR invalidates the previous code; it never grants attendance write access.

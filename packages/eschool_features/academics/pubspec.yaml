@@ -17,6 +17,11 @@ dependencies:
     path: ../../eschool_session
   flutter_bloc: ^9.1.1
   equatable: ^2.0.8
+  hive: ^2.2.3
+  flutter_secure_storage: ^11.2.0
+  mobile_scanner: ^7.4.2
+  qr_flutter: ^4.1.0
+  uuid: ^4.6.0
 
 dev_dependencies:
   dio: ^5.9.2

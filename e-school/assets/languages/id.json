@@ -527,5 +527,7 @@
   "profileFileClear": "Hapus berkas saat menyimpan",
   "profileFileLimit": "PDF, PNG atau JPEG, hingga 5 MB.",
   "assessmentMarks": "Assessment marks",
-  "academicTimetable": "Academic timetable"
+  "academicTimetable": "Academic timetable",
+  "academicRegisters": "Academic registers",
+  "attendanceAndQr": "Attendance and QR"
 }

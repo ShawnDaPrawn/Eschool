@@ -52,7 +52,7 @@
 		</dict>
 	</dict>
 	<key>NSCameraUsageDescription</key>
-	<string>Teachers may upload the images while submitting assignments and sending items to teachers while chatting.</string>
+	<string>Use the camera to scan learner attendance QR codes or upload images for school work.</string>
 	<key>NSPhotoLibraryUsageDescription</key>
 	<string>Teacher may upload the images while creating assignments or announcements</string>
 	<key>UIApplicationSupportsIndirectInputEvents</key>

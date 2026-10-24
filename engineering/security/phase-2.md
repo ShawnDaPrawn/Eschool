@@ -84,3 +84,19 @@ provisional mode. Family reads use fresh own-child rights, including ended-link
 overrides, and never consult fees. Released legacy projections reject older model
 edits, deletes, bulk timetable inserts and publication bypasses. Outbox listeners
 select their event's school explicitly. No independent security review is claimed.
+
+## Attendance clients and panel
+
+Account-owned encrypted offline queues retain original revisions and operation
+UUIDs. Fresh server permission checks precede online restore/replay. Revoked
+access clears visible data before best-effort deletion; late callbacks cannot
+repopulate a disposed or replaced scope. Conflict review is explicit, never an
+automatic overwrite. Queue persistence failure keeps the draft visible and never
+claims successful saving. Logout and account replacement purge caches and keys.
+
+Panel captures enforce bounded request size and row counts before atomic service
+writes. Missing entries never become automatic absences. Role, school, allocation
+and earlier-day checks are service-enforced on each request. Views escape roster
+names and tokens; QR matching uses direct string comparison and DOM text output.
+Family endpoints remain own-child only and return no staff roster/reasons. Private
+no-store responses and app school/child boundaries protect scope changes.
