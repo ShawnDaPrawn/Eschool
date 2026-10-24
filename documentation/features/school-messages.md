@@ -57,3 +57,23 @@ are separate and shown only in the staff workbench.
 email/push when their worker checks access. A withdrawn notice cannot recall a
 message a person already read. Published text, scopes and channels are immutable;
 prepare a new draft for a correction. Polls, surveys and elections follow later.
+
+## Family and teacher apps
+
+Open **School messages** from Home or Settings. On a phone, select a message to
+open its private reader; a laptop shows the list beside it. The family inbox
+contains messages sent to your own current account, across your children. The
+Unread view updates when you open a message. Refresh checks current access; a
+withdrawn message disappears. Notification links open the same guarded screen.
+
+Staff can choose **New school message** or **Drafts and reviews**. Save the subject,
+audience, channels, Markdown and optional school-local schedule, then preview
+and submit. Authorized reviewers preview another author's saved message and
+enter a reason to approve it or return it for changes. Saving edits clears prior
+approval. Manage saved custom lists and role author rules in the panel.
+
+If a save loses its reply, use **Retry same message change**. It keeps the exact
+original operation. A conflict shows the saved version beside your local text;
+compare before keeping the local version and saving again. Leaving warns about
+unsaved or uncertain changes. After backgrounding, messages hide until fresh
+access checks complete. Message bodies are not saved for offline reading.

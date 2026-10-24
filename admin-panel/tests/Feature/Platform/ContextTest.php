@@ -70,7 +70,8 @@ class ContextTest extends TestCase
 
         // An object, not a list, even when there are no flags.
         $response->assertJsonPath('data.feature_flags.module_switches', true)
-            ->assertJsonPath('data.feature_flags.academic_content', true);
+            ->assertJsonPath('data.feature_flags.academic_content', true)
+            ->assertJsonPath('data.feature_flags.communication_messages', true);
     }
 
     public function test_a_parent_gets_their_own_children_each_with_their_school(): void

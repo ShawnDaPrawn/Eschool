@@ -39,6 +39,19 @@ class HomeContainer extends StatefulWidget {
 class _HomeContainerState extends State<HomeContainer> {
   List<MenuContainerDetails> get exploreAcademicsItems => [
     if (context.watch<MeContextCubit>().context?.isFeatureOn(
+              'communication_messages',
+            ) ==
+            true &&
+        allowsSchoolModule(
+          context.watch<MeContextCubit>().context,
+          'communication',
+        ))
+      MenuContainerDetails(
+        route: Routes.schoolMessages,
+        iconPath: Assets.announcementIcon,
+        titleKey: 'School messages',
+      ),
+    if (context.watch<MeContextCubit>().context?.isFeatureOn(
           'academic_content',
         ) ==
         true)
