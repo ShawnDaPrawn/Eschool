@@ -167,7 +167,10 @@ jobs:
 
   ios:
     name: Unsigned iOS build (${{ matrix.app }})
-    runs-on: macos-15
+    runs-on: macos-26
+    env:
+      # stripe_ios 14.2.0 pins Stripe 26.13.0, which uses newer UIKit APIs.
+      DEVELOPER_DIR: /Applications/Xcode_26.6.app/Contents/Developer
     timeout-minutes: 45
     strategy:
       fail-fast: false
@@ -185,8 +188,10 @@ jobs:
       - name: Build the unsigned production app
         working-directory: ${{ matrix.app }}
         run: |
+          set -o pipefail
+          xcodebuild -version
           flutter pub get --enforce-lockfile
-          flutter build ios --release --no-codesign --dart-define-from-file=config/production.json
+          flutter build ios --release --no-codesign --verbose --dart-define-from-file=config/production.json 2>&1 | tee "$RUNNER_TEMP/ios-build.log"
           ditto -c -k --keepParent build/ios/iphoneos/Runner.app "$RUNNER_TEMP/unsigned-ios.app.zip"
           printf '## iOS build: unsigned\n\nThis is a compilation artifact, not an installable IPA or an App Store release. Apple signing and distribution remain required.\n' >> "$GITHUB_STEP_SUMMARY"
       - uses: actions/upload-artifact@v7
@@ -194,4 +199,12 @@ jobs:
           name: unsigned-ios-${{ matrix.app }}-${{ github.sha }}
           path: ${{ runner.temp }}/unsigned-ios.app.zip
           if-no-files-found: error
+          retention-days: 7
+      - name: Retain iOS failure diagnostics
+        if: failure()
+        uses: actions/upload-artifact@v7
+        with:
+          name: ios-diagnostics-${{ matrix.app }}-${{ github.sha }}
+          path: ${{ runner.temp }}/ios-build.log
+          if-no-files-found: warn
           retention-days: 7

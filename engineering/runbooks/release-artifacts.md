@@ -31,7 +31,8 @@ AAB to Google Play remains a separate distribution step.
 
 ## iOS
 
-The workflow compiles both production apps with `--no-codesign` and labels their
+The workflow uses the macOS26 runner with Xcode26.6 (explicit DEVELOPER_DIR)
+and compiles both production apps with `--no-codesign` and labels their
 archives **unsigned**. These are build evidence, not installable IPAs. Neither
 project currently has an Apple development team configured. A signed App Store
 or TestFlight release needs the owner's Apple team, distribution certificate,
@@ -49,3 +50,9 @@ or replaced by this workflow.
   live smoke test or mobile store publication is claimed by an artifact build.
 - The two configured portal Hosting sites returned 404. Publish their new web
   packages only after the matching backend has deployed and passed its checks.
+
+The first artifact run failed both iOS jobs on the older macOS15 toolchain.
+The learner Stripe plugin uses UIKit APIs absent from that SDK; the teacher
+job's summary reported a device-build failure and a generic signing hint.
+The updated job records Xcode's version and retains verbose failure logs;
+only successful compilation counts as evidence. No signing team is fabricated.
