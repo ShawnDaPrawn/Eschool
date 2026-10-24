@@ -741,3 +741,13 @@ navigation, offline resume/retry text retention and revision comparison.
   build/public CI/review results are recorded before merge. Actual SA-SAMS
   import qualification against the pilot's target version/template remains an
   external evidence item; unrelated work continues.
+
+PR #103 review: export uses the current published task definition, resolves its
+canonical source task and queries marks by learner/task across capture groups.
+Undated tasks use the assessment term end date, matching MarkInputs. Final
+export/mark/curriculum cohort: **58 passed, 445 assertions**, including actual
+same-year version copy, another capture group, stale definition refusal and
+undated tasks. Pint and Larastan pass.
+
+Smoke helper follow-up: the report login/comment-save flow passes in real Chrome
+with the refreshed tap helper. Final Android and panel CI remains authoritative.

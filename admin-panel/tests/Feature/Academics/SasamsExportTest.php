@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Tests\Feature\Academics;
 
 use App\Models\Academics\AssessmentMark;
+use App\Models\Academics\AssessmentTask;
 use App\Models\Academics\AttendanceEntry;
 use App\Models\Academics\AttendanceRegister;
 use App\Models\Academics\GradeLevel;
@@ -177,13 +178,13 @@ class SasamsExportTest extends TestCase
         $this->export($this->attendance());
     }
 
-    private function task(): array
+    private function task(bool $dated = true): array
     {
         $term = $this->schoolA->ids['term'];
         $plan = app(CurriculumPlans::class)->save($this->superAdmin(), ['subject_id' => $this->schoolA->ids['maths'], 'grade_level_id' => $this->grade, 'session_year_id' => $this->year,
             'title' => 'Synthetic plan', 'annual_components' => ['sba' => 10000], 'rounding' => 'half_up', 'absent_policy' => 'incomplete', 'topics' => [],
             'assessments' => [['term_id' => $term, 'components' => ['sba' => 10000], 'tasks' => [['name' => 'Fixture task', 'type' => 'test', 'weight_bp' => 10000,
-                'annual_weight_bp' => 10000, 'component' => 'sba', 'annual_component' => 'sba', 'max_mark' => '20.00', 'due_on' => '2026-02-10', 'topic_keys' => [], 'questions' => []]]]]]);
+                'annual_weight_bp' => 10000, 'component' => 'sba', 'annual_component' => 'sba', 'max_mark' => '20.00', 'due_on' => $dated ? '2026-02-10' : null, 'topic_keys' => [], 'questions' => []]]]]]);
         $plan = app(CurriculumPlans::class)->publish($this->superAdmin(), $plan->id, $plan->assessments->sole()->id, 1);
         $group = app(TeachingGroups::class)->save($this->superAdmin(), ['name' => 'Export group', 'subject_id' => $this->schoolA->ids['maths'], 'grade_level_id' => $this->grade,
             'session_year_id' => $this->year, 'class_section_id' => $this->schoolA->ids['section_a'], 'active' => true]);
@@ -217,6 +218,36 @@ class SasamsExportTest extends TestCase
         AssessmentMark::query()->update(['mark_units' => null, 'disposition' => 'missing']);
         $this->expectException(ValidationException::class);
         $this->export($p);
+    }
+
+    public function test_undated_tasks_use_the_assessment_term_end_for_dated_membership(): void
+    {
+        $p = $this->task(false);
+        $this->assertStringContainsString('000042;15.75;20.00', $this->export($p)['content']);
+    }
+
+    public function test_revised_tasks_read_the_canonical_mark_even_when_another_group_captured_it(): void
+    {
+        $p = $this->task();
+        $task = AssessmentTask::with('assessment.curriculum')->findOrFail($p['task_id']);
+        $service = app(CurriculumPlans::class);
+        $copy = $service->copy($this->superAdmin(), $task->assessment->curriculum->id, $this->year);
+        $copy = $service->publish($this->superAdmin(), $copy->id, $copy->assessments->sole()->id, 1);
+        $current = $copy->assessments->sole()->tasks->sole();
+        $this->assertSame($task->id, (int) $current->source_task_id);
+        $p['task_id'] = $current->id;
+        $other = app(TeachingGroups::class)->save($this->superAdmin(), ['name' => 'Correction group', 'subject_id' => $this->schoolA->ids['maths'], 'grade_level_id' => $this->grade,
+            'session_year_id' => $this->year, 'class_section_id' => $this->schoolA->ids['section_a'], 'active' => true]);
+        AssessmentMark::query()->update(['teaching_group_id' => $other->id]);
+        $this->assertStringContainsString('000042;15.75;20.00', $this->export($p)['content']);
+        $this->assertSame(1, AssessmentMark::count());
+        $p['task_id'] = $task->id;
+        try {
+            $this->export($p);
+            $this->fail('Stale task definition accepted');
+        } catch (HttpExceptionInterface $e) {
+            $this->assertSame(409, $e->getStatusCode());
+        }
     }
 
     private function template(array &$p): string

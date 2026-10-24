@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace App\Services\Academics;
 
 use App\Models\Academics\AssessmentMark;
-use App\Models\Academics\AssessmentTask;
 use App\Models\Academics\AttendanceEntry;
 use App\Models\Academics\TeachingGroup;
 use App\Models\Academics\TeachingGroupMembership;
@@ -103,14 +102,16 @@ class SasamsExport
     private function marks(array $p): array
     {
         $group = TeachingGroup::where('session_year_id', $p['session_year_id'])->findOrFail($p['group_id']);
-        $task = AssessmentTask::with('assessment.curriculum')->findOrFail($p['task_id']);
+        $definitions = app(MarkDefinitions::class);
+        $task = $definitions->task($group, $p['task_id']);
         $plan = $task->assessment->curriculum;
         abort_unless((int) $plan->session_year_id === $p['session_year_id'] && (int) $plan->subject_id === (int) $group->subject_id && (int) $plan->grade_level_id === (int) $group->grade_level_id && $task->assessment->state === 'published', 422);
-        $date = $task->due_on->toDateString();
+        $canonical = $definitions->canonical($task);
+        $date = $task->due_on?->toDateString() ?? $task->assessment->term->end_date->toDateString();
         $ids = TeachingGroupMembership::where('teaching_group_id', $group->id)->whereDate('starts_on', '<=', $date)->whereDate('ends_on', '>=', $date)->pluck('learner_id');
         $ids = Enrolment::where('session_year_id', $p['session_year_id'])->onDate($date)->whereIn('learner_id', $ids)->pluck('learner_id');
         $learners = Students::with('user')->whereIn('id', $ids)->orderBy('id')->limit(10001)->get();
-        $marks = AssessmentMark::where('assessment_task_id', $task->id)->where('teaching_group_id', $group->id)->get()->keyBy('learner_id');
+        $marks = AssessmentMark::where('assessment_task_id', $canonical->id)->whereIn('learner_id', $learners->pluck('id'))->get()->keyBy('learner_id');
 
         return $learners->map(function ($learner) use ($p, $marks, $task) {
             $mark = $marks->get($learner->id);
