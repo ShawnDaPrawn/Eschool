@@ -1,0 +1,93 @@
+name: PHP backend deployment preflight
+
+on:
+  push:
+    branches: [ops/php-runtime-preflight]
+    paths: [.github/workflows/php-backend-preflight.yml]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: php-backend-preflight
+  cancel-in-progress: true
+
+jobs:
+  inspect:
+    name: Inspect the existing Cloud Run backend
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      PROJECT_ID: navigateed-d8c06
+      REGION: africa-south1
+    steps:
+      - name: Authenticate with the configured deployment account
+        uses: google-github-actions/auth@7c6bc770dae815cd3e89ee6cdf493a5fab2cc093 # v3.0.0
+        with:
+          credentials_json: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_NAVIGATEED_D8C06 }}
+          project_id: navigateed-d8c06
+      - uses: google-github-actions/setup-gcloud@aa5489c8933f4cc7a4f7d45035b3b1440c9c10db # v3.0.1
+        with:
+          version: '570.0.0'
+      - name: Inspect deployment permissions and live image
+        run: |
+          python3 <<'PY'
+          import json
+          import os
+          import subprocess
+          import urllib.error
+          import urllib.request
+
+          project = os.environ["PROJECT_ID"]
+          region = os.environ["REGION"]
+          token = subprocess.check_output(["gcloud", "auth", "print-access-token"], text=True).strip()
+
+          def request(url, payload=None):
+              data = json.dumps(payload).encode() if payload is not None else None
+              req = urllib.request.Request(
+                  url, data=data,
+                  headers={"Authorization": "Bearer " + token, "Content-Type": "application/json"})
+              try:
+                  with urllib.request.urlopen(req, timeout=30) as response:
+                      return json.load(response)
+              except urllib.error.HTTPError as error:
+                  print("::error::Google Cloud request failed with HTTP " + str(error.code)
+                        + " for " + req.full_url)
+                  raise SystemExit(1)
+
+          permissions = [
+              "run.services.get", "run.revisions.get", "run.services.update",
+              "run.jobs.get", "run.jobs.update",
+              "artifactregistry.repositories.uploadArtifacts",
+              "artifactregistry.repositories.downloadArtifacts",
+              "cloudsql.backupRuns.create", "cloudsql.backupRuns.get"]
+          granted = request(
+              "https://cloudresourcemanager.googleapis.com/v1/projects/" + project
+              + ":testIamPermissions", {"permissions": permissions}).get("permissions", [])
+          print("Deployment permission check:")
+          for permission in permissions:
+              print(permission + ": " + ("granted" if permission in granted else "missing"))
+          base = "https://run.googleapis.com/v2/projects/" + project + "/locations/" + region
+          service = request(base + "/services/navigateed-admin")
+          # Never print the full service: container environment values can contain secrets.
+          snapshot = {
+              "name": service.get("name"),
+              "uri": service.get("uri"),
+              "latestReadyRevision": service.get("latestReadyRevision"),
+              "traffic": service.get("traffic"),
+              "images": [c.get("image") for c in service.get("template", {}).get("containers", [])],
+              "runtimeServiceAccount": service.get("template", {}).get("serviceAccount"),
+          }
+          print("Current backend (selected non-secret fields):")
+          print(json.dumps(snapshot, indent=2))
+          revision = service.get("latestReadyRevision")
+          if revision:
+              state = request("https://run.googleapis.com/v2/" + revision)
+              print("Ready revision image:")
+              print(json.dumps({
+                  "name": state.get("name"),
+                  "images": [c.get("image") for c in state.get("containers", [])],
+                  "labels": state.get("labels", {}),
+              }, indent=2))
+          PY
