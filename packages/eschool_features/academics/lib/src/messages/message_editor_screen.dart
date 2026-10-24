@@ -615,7 +615,13 @@ class _SchoolMessageEditorScreenState extends State<SchoolMessageEditorScreen>
           ? body
           : ScreenScaffold(
               title: l('School message draft'),
-              body: ContentColumn(maxWidth: 1100, child: body),
+              body: ContentColumn(
+                maxWidth: 1100,
+                child: Material(
+                  color: Theme.of(context).colorScheme.surface,
+                  child: body,
+                ),
+              ),
             );
     },
   );

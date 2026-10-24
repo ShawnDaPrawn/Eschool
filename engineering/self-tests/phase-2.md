@@ -707,3 +707,10 @@ Final teacher Chrome: **passed** after replacing an eager test finder with a
 proper wait. Actual login, save, preview, submit and another-author review/
 approval passed. Final teacher route cohort: **21 passed**, including disabled
 module refusal and canonical/reviewer notification identifier validation.
+
+PR #102 review: narrow notification links now open their linked private reader
+or review editor once after current configuration loads. Retryable reload failures
+retain dirty/comparison flags so reconnection cannot hydrate over unsaved text.
+Standalone editors also provide a Material surface for list controls. Final
+message cohort: **30 passed**, including phone reader/reviewer links and back
+navigation, offline resume/retry text retention and revision comparison.

@@ -175,6 +175,30 @@ void main() {
     expect(cubit.state.uncertain, isFalse);
   });
   test(
+    'failed private reload retains local-edit flags until fresh comparison',
+    () async {
+      final repo = FakeMessageRepository();
+      final cubit = MessageEditorCubit(repo, messageId: 11);
+      addTearDown(cubit.close);
+      await cubit.load();
+      final version = cubit.state.formVersion;
+      cubit.changed();
+      repo.error = ApiException('No connection', isTransportFailure: true);
+      await cubit.load(keepLocal: true);
+      expect(cubit.state.dirty, isTrue);
+      expect(cubit.state.conflict, isTrue);
+      expect(cubit.state.validated, isFalse);
+      expect(cubit.state.editor, isNull);
+      expect(cubit.state.formVersion, version);
+      repo.error = null;
+      repo.revision = 2;
+      await cubit.load(keepLocal: cubit.state.dirty || cubit.state.conflict);
+      expect(cubit.state.formVersion, version);
+      expect(cubit.state.editor!.revision, 2);
+      expect(cubit.state.conflict, isTrue);
+    },
+  );
+  test(
     'a preview from a different revision requires reloading and comparison',
     () async {
       final repo = FakeMessageRepository();

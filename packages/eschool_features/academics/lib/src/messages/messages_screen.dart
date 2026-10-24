@@ -34,6 +34,7 @@ class _SchoolMessagesScreenState extends State<SchoolMessagesScreen>
   CommunicationConfiguration? _lastConfiguration;
   _MessageChoice? _choice;
   bool _privateEdits = false, _suspended = false;
+  bool _initialPending = false;
   int _mode = 0, _refreshEpoch = 0;
   final Set<int> _readMessages = {};
   String l(String text) => contentLabel(context, text);
@@ -43,6 +44,7 @@ class _SchoolMessagesScreenState extends State<SchoolMessagesScreen>
     _choice = widget.initialMessage == null
         ? null
         : _MessageChoice(id: widget.initialMessage, discover: true);
+    _initialPending = widget.initialMessage != null;
     _privateEdits = false;
     _mode = 0;
     _readMessages.clear();
@@ -206,6 +208,20 @@ class _SchoolMessagesScreenState extends State<SchoolMessagesScreen>
                   body: LayoutBuilder(
                     builder: (context, constraints) {
                       final wide = constraints.maxWidth >= 800;
+                      if (visible && _initialPending && _choice != null) {
+                        _initialPending = false;
+                        if (!wide) {
+                          final choice = _choice!;
+                          WidgetsBinding.instance.addPostFrameCallback((_) {
+                            if (mounted &&
+                                _repository.isActive &&
+                                !_suspended &&
+                                _cubit.state.configuration != null) {
+                              _open(choice, wide: false, staff: staff);
+                            }
+                          });
+                        }
+                      }
                       final rows = state.items
                           .where(
                             (row) =>

@@ -29,6 +29,75 @@ Finder messageField(String label) => find.byWidgetPredicate(
   (w) => w is TextField && w.decoration?.labelText == label,
 );
 void main() {
+  for (final staff in [false, true]) {
+    testWidgets(
+      'phone notification opens linked ${staff ? 'review' : 'reader'}',
+      (tester) async {
+        final repo = FakeMessageRepository()
+          ..staff = staff
+          ..author = !staff
+          ..reviewer = staff
+          ..state = staff ? 'pending' : 'sent';
+        await messageFrame(
+          tester,
+          SchoolMessagesScreen(repository: repo, initialMessage: 11),
+          390,
+        );
+        expect(
+          find.byType(
+            staff ? SchoolMessageEditorScreen : SchoolMessageReaderScreen,
+          ),
+          findsOneWidget,
+        );
+        if (staff) {
+          expect(messageField('Message Markdown'), findsNothing);
+          expect(find.text('Preview saved message'), findsOneWidget);
+        } else {
+          expect(find.textContaining('Private school text.'), findsOneWidget);
+          expect(repo.reads, 1);
+        }
+        // Rebuilding/reloading the list must not push the notification a second time.
+        await tester.pageBack();
+        await tester.pumpAndSettle();
+        expect(
+          find.byType(
+            staff ? SchoolMessageEditorScreen : SchoolMessageReaderScreen,
+          ),
+          findsNothing,
+        );
+        expect(tester.takeException(), isNull);
+      },
+    );
+  }
+  testWidgets('offline resume and retry preserve local text for comparison', (
+    tester,
+  ) async {
+    final repo = FakeMessageRepository();
+    await messageFrame(tester, SchoolMessageEditorScreen(repository: repo, id: 11), 1280);
+    await tester.enterText(
+      messageField('Message Markdown'),
+      'UNSAVED text survives offline resume',
+    );
+    repo.error = ApiException('No connection', isTransportFailure: true);
+    tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.inactive);
+    await tester.pump();
+    tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.resumed);
+    await tester.pumpAndSettle();
+    repo.error = null;
+    await messageTap(tester, find.text('Try again'));
+    expect(
+      tester
+          .widget<TextField>(messageField('Message Markdown'))
+          .controller!
+          .text,
+      'UNSAVED text survives offline resume',
+    );
+    expect(
+      find.text('Keep my local text against the current revision'),
+      findsOneWidget,
+    );
+    expect(tester.takeException(), isNull);
+  });
   for (final width in [390.0, 1024.0, 1280.0]) {
     testWidgets(
       'family reads a private message and acknowledges it at $width',
@@ -153,17 +222,13 @@ void main() {
         messageField('Message Markdown'),
         'PRIVATE local draft retained across resume',
       );
-      tester.binding.handleAppLifecycleStateChanged(
-        AppLifecycleState.inactive,
-      );
+      tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.inactive);
       await tester.pump();
       expect(
         find.text('PRIVATE local draft retained across resume'),
         findsNothing,
       );
-      tester.binding.handleAppLifecycleStateChanged(
-        AppLifecycleState.resumed,
-      );
+      tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.resumed);
       await tester.pumpAndSettle();
       expect(
         tester

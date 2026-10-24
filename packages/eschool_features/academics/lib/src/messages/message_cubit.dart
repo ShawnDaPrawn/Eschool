@@ -267,12 +267,15 @@ class MessageEditorCubit extends Cubit<MessageEditorState> {
       );
     } catch (error) {
       if (!isClosed && generation == _generation) {
-        if (messageRevoked(error)) _pending = null;
+        final revoked = messageRevoked(error);
+        if (revoked) _pending = null;
         emit(
           MessageEditorState(
             error: messageFailure(error),
             formVersion: version,
             uncertain: _pending != null,
+            dirty: keepLocal && !revoked,
+            conflict: keepLocal && !revoked && _pending == null,
           ),
         );
       }
