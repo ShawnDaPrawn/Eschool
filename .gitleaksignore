@@ -1,0 +1,4 @@
+# Exact historical SDK fixture: NEAR1.synthetic.signature is deliberately
+# unsigned test data, contains no real school/learner identity, and cannot
+# authorize a register write. Keep all other findings subject to the scan.
+40f024d63724259e5ca78e49878b9ea6854fadb5:packages/eschool_api/test/register_contract_test.dart:generic-api-key:20

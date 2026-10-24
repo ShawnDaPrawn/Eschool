@@ -272,3 +272,13 @@ Teacher/parent Chrome and1024/1280 panel flows pass; package35, SDK32, teacher28
 family45 tests pass. Local combined PHP ran1,240 tests;1,238 passed and two
 presentation checks were fixed and verified with35 targeted checks. Client
 exact-head CI and real staging/classroom/pilot acceptance remain separate.
+
+### Phase 2 academic attendance backend (24 October 2026)
+
+Dated homeroom/period registers, durable UUID/hash/revision sync, grade-head
+corrections, QR issue/rotation, protected legacy projections and school cutoff
+notices are implemented. Queued transport rechecks guardian rights. Contract,
+tenancy/migration, old API and notification checks are recorded in the Phase2
+self-test file. SDK generated from the additive contract. Shared register clients
+and panel overview remain a separate slice; actual device timing, staging
+cutoff delivery and full-term school evidence remain pending.

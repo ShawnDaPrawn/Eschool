@@ -41,3 +41,16 @@ https://www.education.gov.za/Curriculum/NationalCirculars.aspx and the linked
 S8 documents. Later circulars retain or amend portions of the programme. Keep
 source/version/effective dates visible and require an explicitly published school
 plan; do not treat one generic ratio as every subject policy.
+
+
+Attendance defaults: teacher capture/amendment is limited to school-local today;
+current grade heads correct earlier days with a reason. An offline timestamp
+never grants historical write rights. Cutoff starts editable at10:00, Monday
+throughFriday; school managers select their actual cutoff/days before the pilot.
+Missing registers are flagged rather than guessed absent. Period attendance
+stays separate. Signed learner QR identifiers are rotatable and do not authorize
+writes or implement Phase4 card sign-in.
+
+Attendance delivery deduplicates a qualifying entry revision. Transport suppresses
+a corrected/superseded absence or later approved leave; a genuinely new absence
+after correction can notify without being blocked by an old suppressed claim.

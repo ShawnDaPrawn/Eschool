@@ -9,6 +9,7 @@ use App\Models\Leave;
 use App\Models\Students;
 use App\Models\StudentSessions;
 use App\Services\AbsenceAlertService;
+use App\Services\Academics\Attendance\LegacyRegisterWrites;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;
@@ -39,6 +40,11 @@ class AttendanceImport implements ToCollection, WithHeadingRow, WithReadFilter
 
     public function collection(Collection $rows): void
     {
+        app(LegacyRegisterWrites::class)->run(fn () => $this->importRows($rows));
+    }
+
+    private function importRows(Collection $rows): void
+    {
         $sessionYearId = (int) getSettings('session_year')['session_year'];
         $enrolled = StudentSessions::where(['class_section_id' => $this->class_section_id, 'session_year_id' => $sessionYearId])
             ->pluck('student_id')->all();
@@ -63,9 +69,10 @@ class AttendanceImport implements ToCollection, WithHeadingRow, WithReadFilter
         $newlyAbsent = [];
         foreach ($rows as $row) {
             $date = date('Y-m-d', strtotime((string) $row['date']));
+            app(LegacyRegisterWrites::class)->reject((int) $this->class_section_id, $sessionYearId, $date);
             $leaveTypeByUserId = $leaveTypes[$date] ??= Leave::approvedTypesForDate($date);
 
-            $attendance = Attendance::where('date', $date)
+            $attendance = Attendance::where('date', $date)->where('session_year_id', $sessionYearId)
                 ->where('class_section_id', $this->class_section_id)
                 ->where('student_id', $row['student_id'])
                 ->first() ?? new Attendance;

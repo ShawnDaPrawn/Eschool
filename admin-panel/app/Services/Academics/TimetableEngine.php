@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Services\Academics;
 
+use App\Models\Academics\AttendanceRegister;
 use App\Models\Academics\BellPeriod;
 use App\Models\Academics\HomeroomAllocation;
 use App\Models\Academics\Room;
@@ -23,6 +24,7 @@ use App\Services\Platform\Events\Outbox;
 use App\Services\Platform\Tenancy\CurrentSchool;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\ValidationException;
 
@@ -67,6 +69,18 @@ class TimetableEngine
                 $seen[$data['id']] = true;
                 $existing = TimetableLesson::findOrFail($data['id']);
                 abort_if($existing->revision !== $data['revision'], 409, __('A lesson changed. Reload before saving.'));
+                // Preserve captured occurrences while allowing room moves and future range edits.
+                if (Schema::hasTable('attendance_registers')) {
+                    $captured = AttendanceRegister::where('timetable_lesson_id', $existing->id)->whereHas('entries')->pluck('on_date')->map(fn ($date) => substr((string) $date, 0, 10))->all();
+                    if ($captured !== [] && $data['active']) {
+                        foreach (['session_year_id', 'teaching_group_id', 'class_section_id', 'teacher_id', 'bell_period_id'] as $field) {
+                            $before = $existing->getRawOriginal($field);
+                            $value = $data[$field];
+                            abort_if(($before === null) !== ($value === null) || ($before !== null && (string) $before !== (string) $value), 409, __('Copy this lesson for a new placement; retain its captured register identity.'));
+                        }
+                        abort_if(array_diff($captured, $this->dates($data)) !== [], 409, __('Keep captured register dates in this lesson. Split future placements instead.'));
+                    }
+                }
             }
             $normal[] = $data;
         }

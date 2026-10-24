@@ -15,12 +15,14 @@ use App\Models\Parents;
 use App\Models\StaffAttendance;
 use App\Models\Students;
 use App\Services\AbsenceAlertService;
+use App\Services\Academics\Attendance\LegacyRegisterWrites;
 use App\Services\ResponseService;
 use Carbon\Carbon;
 use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
+use Symfony\Component\HttpKernel\Exception\HttpExceptionInterface;
 use Throwable;
 
 /**
@@ -235,6 +237,11 @@ class AttendanceController extends Controller
 
     public function submitAttendance(Request $request)
     {
+        return app(LegacyRegisterWrites::class)->run(fn () => $this->submitAttendanceLegacy($request));
+    }
+
+    private function submitAttendanceLegacy(Request $request)
+    {
         ResponseService::noAnyPermissionThenSendJson(['attendance-create', 'attendance-edit']);
 
         $validator = Validator::make($request->all(), [
@@ -262,7 +269,8 @@ class AttendanceController extends Controller
             }
 
             $date = date('Y-m-d', strtotime($request->date));
-            $getid = Attendance::where(['date' => $date, 'class_section_id' => $class_section_id])->get();
+            app(LegacyRegisterWrites::class)->reject((int) $class_section_id, (int) $session_year_id, $date);
+            $getid = Attendance::where(['date' => $date, 'class_section_id' => $class_section_id, 'session_year_id' => $session_year_id])->get();
 
             // Approved leaves lock the attendance type for the date (matched by user_id);
             // the leave must be rejected to change it.
@@ -315,6 +323,8 @@ class AttendanceController extends Controller
             app(AbsenceAlertService::class)->notify($absent_student_ids ?? [], $date, (int) $session_year_id);
 
             return ResponseService::successResponse('data_store_successfully');
+        } catch (HttpExceptionInterface $e) {
+            throw $e;
         } catch (Exception $e) {
             return ResponseService::errorResponse('error_occurred', null, 103, $e);
         }

@@ -70,3 +70,5 @@ Schedule::call(function () {
 
 // Canonical dates remain authoritative even if this refresh is delayed.
 Schedule::command('academics:refresh-allocations')->everyMinute()->name('academic-allocation-projections')->withoutOverlapping();
+
+Schedule::command('academics:register-absence-alerts')->everyMinute()->name('register-absence-alerts')->withoutOverlapping();

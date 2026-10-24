@@ -56,7 +56,7 @@ class Students extends Model
      *
      * @var array<int, string>
      */
-    protected $hidden = ['deleted_at', 'created_at', 'updated_at', 'student_number'];
+    protected $hidden = ['attendance_qr_version', 'deleted_at', 'created_at', 'updated_at', 'student_number'];
 
     /**
      * Get the attributes that should be cast.

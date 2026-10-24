@@ -1,6 +1,7 @@
 <?php
 
 use App\Listeners\Academics\NotifyMarksReleased;
+use App\Listeners\Academics\NotifyRegisterAmended;
 use App\Listeners\Academics\QueueAssessmentRecompute;
 use App\Listeners\Academics\QueueMarkRecompute;
 use App\Listeners\Platform\NotifyHandleGuardians;
@@ -36,6 +37,7 @@ return [
         // event. Listeners for one event run in one database transaction.
         'listeners' => [
             'academics.assessment_published' => [QueueAssessmentRecompute::class],
+            'academics.register_changed' => [NotifyRegisterAmended::class],
             'academics.marks_released' => [NotifyMarksReleased::class],
             'academics.marks_changed' => [QueueMarkRecompute::class],
             'academics.assignment_changed' => [QueueMarkRecompute::class],

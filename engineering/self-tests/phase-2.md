@@ -268,3 +268,50 @@ holds its lock. The final combined tree includes the marks clients merged in#90.
 Targeted verification after the two presentation fixes:35 tests passed
 (816 assertions), including navigation, design tokens, all timetable/context
 regressions. The timetable backend merged as#91 after31 exact-head checks passed.
+
+
+### Attendance backend verification in progress
+
+Dated homeroom/period registers, atomic durable offline operations, correction
+authority/audit, private QR issue/rotation and timezone cutoff notices are
+implemented.26 combined API compatibility, teacher-security, register and
+tenancy checks passed (869 assertions);154 register/contracts checks passed
+(878 assertions). Larastan is clean. Migration rollback/reapply is rehearsed;
+v1 snapshots are unchanged. SDK generation produced419 files; final SDK tests
+and additional alert/transport checks remain in progress. Shared tap/QR/offline
+clients and panel overview are the next slice. Physical-device timing, staging
+delivery, independent security review and full-term pilot evidence remain open.
+
+Attendance follow-up:43 register, notification and queued-delivery checks pass
+(216 assertions), including approved leave, current guardian rights before
+transport and stale amendment suppression.35 SDK tests pass; SDK analysis has
+no errors/warnings (generated informational lints remain). OpenAPI lint and
+route-cache/clear pass. Additional API choice/foreign-scope/revoked-QR replay
+assertions are being verified before the backend PR.
+
+Register provenance verification:181 combined register/timetable/contract checks
+passed (1,187 assertions). After allowing safe room/future-range edits while
+retaining captured occurrences,37 register/timetable checks pass (365 assertions).
+The existing OpenAPI paths/schemas/responses/parameters are semantically unchanged.
+Larastan remains clean. Full Pint checked929 files and found one configuration
+import-format issue; that file was formatted and its targeted style check passes.
+
+Final regenerated SDK verification:35 tests passed after register-label additions.
+
+Attendance reason privacy:14 register checks pass (92 assertions), including
+encrypted correction reasons in the database and audit snapshots.
+
+Timetable client completion:PR#92 merged after the complete CI, Security and
+Firebase documentation workflows passed on c8b5d7939839aa6d9c0e50d20941974bedaac74e.
+This includes the full backend, both Android suites, web builds and Chrome flows.
+There are no unresolved timetable review threads. This is implementation/automated
+verification; physical classroom and pilot acceptance remain separate.
+
+Attendance compatibility/review follow-up:161 register/contract checks pass
+(985 assertions).19 register/old API checks pass (344 assertions), preserving
+v1 response shapes and canonical presence over old leave overlays.32 register
+and queued-delivery checks pass (244 assertions), including executing queued
+mail/push after correction and later leave approval with no transport call.
+Larastan is clean. Existing half-day rows remain visible, preserve IDs on
+correction, and retain fractional reports. App account activation does not drive
+physical/historical rosters; no account is activated by capture.

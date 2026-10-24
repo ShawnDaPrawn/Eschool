@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Models;
 
+use App\Models\Academics\AttendanceRegister;
 use App\Services\Platform\Tenancy\BelongsToSchool;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -128,6 +129,7 @@ class ClassSection extends Model
     protected static function booted()
     {
         static::deleting(function ($classSection) {
+            abort_if(AttendanceRegister::where('class_section_id', $classSection->id)->whereHas('entries')->exists(), 409, __('Retain the homeroom used by academic registers.'));
 
             /*
         |--------------------------------------------------------------------------

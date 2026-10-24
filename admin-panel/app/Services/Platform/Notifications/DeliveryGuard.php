@@ -4,11 +4,16 @@ declare(strict_types=1);
 
 namespace App\Services\Platform\Notifications;
 
+use App\Models\Academics\AttendanceEntry;
+use App\Models\Leave;
 use App\Models\Platform\GuardianLink;
 use App\Models\Platform\HandleProposal;
 use App\Models\Platform\NotificationDelivery;
 use App\Models\Platform\SchoolMembership;
+use App\Models\Students;
 use App\Models\User;
+use App\Services\Academics\Attendance\RegisterRosters;
+use App\Services\Platform\Identity\GuardianService;
 use App\Services\Platform\Tenancy\CurrentSchool;
 
 /** Recheck mutable access and the destination immediately before transport. */
@@ -31,6 +36,27 @@ class DeliveryGuard
                 $proposal = HandleProposal::query()->where('status', 'pending')->where('expires_at', '>', now())->find($context['handle_proposal_id']);
                 if (! $proposal || ! $user->email_verified_at || ! GuardianLink::query()->where('learner_id', $proposal->learner_id)
                     ->where('guardian_user_id', $user->id)->where('status', 'active')->where('can_approve', true)->exists()) {
+                    return false;
+                }
+            }
+            if (isset($context['register_learner_id'])) {
+                $learner = Students::find($context['register_learner_id']);
+                if ($learner === null || ! app(GuardianService::class)->guardianUserIds($learner)->contains((int) $user->id)) {
+                    return false;
+                }
+            }
+            if (isset($context['register_entry_id'])) {
+                $entry = AttendanceEntry::with('register', 'learner')->find($context['register_entry_id']);
+                $kind = $context['register_notice_kind'] ?? null;
+                if ($entry === null || $entry->register === null || (int) $entry->learner_id !== (int) ($context['register_learner_id'] ?? 0)
+                    || $entry->revision !== (int) ($context['register_entry_revision'] ?? 0)
+                    || ! in_array($kind, ['absence', 'amended'], true)
+                    || $type !== ($kind === 'absence' ? 'attendance.absence' : 'academics.register_amended')
+                    || ! app(RegisterRosters::class)->learners($entry->register)->contains('id', $entry->learner_id)) {
+                    return false;
+                }
+                if ($kind === 'absence' && ($entry->register->timetable_lesson_id !== null || $entry->state !== 'absent'
+                    || isset(Leave::approvedTypesForDate($entry->register->on_date->toDateString())[$entry->learner->user_id]))) {
                     return false;
                 }
             }
