@@ -104,7 +104,11 @@ class ReportQueries
             $payload = $card->payload;
             foreach ([null, ...array_column($payload['subjects'], 'subject_id')] as $subject) {
                 try {
-                    app(ReportPolicy::class)->comment($actor, $card, $subject);
+                    if (app(ReportPolicy::class)->comment($actor, $card, $subject)) {
+                        // This list is allocated work only. Leadership corrections
+                        // belong to batch review, where a reason is available.
+                        continue;
+                    }
                 } catch (HttpExceptionInterface $error) {
                     if ($error->getStatusCode() === 403) {
                         continue;

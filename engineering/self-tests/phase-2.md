@@ -412,3 +412,10 @@ its draft. The regression asserts the private draft occurs once and is not saved
 Final client CI, native device acceptance and real provider delivery are separate
 checks. Synthetic browser timings do not establish classroom or full-term pilot
 acceptance. No production deployment or additional paid service was performed.
+
+Report client review follow-up: selected bank comments resolve to their effective
+text before conflict review, so review/save retains the attempted comment rather
+than stale textarea text. The allocated-comment list now excludes leadership
+overrides; those remain in batch review with a correction-reason field. All 190
+report/API contract checks pass (1,279 assertions), with clean Larastan and style.
+Final CI must pass on the updated head before merge.

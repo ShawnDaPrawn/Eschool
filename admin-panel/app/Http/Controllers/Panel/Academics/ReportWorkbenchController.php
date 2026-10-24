@@ -148,6 +148,8 @@ class ReportWorkbenchController extends Controller
                 throw $error;
             }
             $submitted = $request->validated() + ['card_id' => $card];
+            $submitted['text'] = app(ReportBatches::class)->commentText($submitted);
+            unset($submitted['bank_id']);
 
             return response()->view('academics.report-workbench', array_replace($this->model($request), ['conflict' => $error->getMessage(), 'submittedComment' => $submitted]), 409);
         }
@@ -161,6 +163,8 @@ class ReportWorkbenchController extends Controller
         $scope = $request->validated('subject_id') === null ? 'homeroom' : 'subject:'.$request->validated('subject_id');
         $saved = ReportComment::where('report_card_id', $card)->where('scope_key', $scope)->first();
         $draft = array_replace($request->validated(), ['card_id' => $card, 'revision' => $saved?->revision ?? 0, 'batch_revision' => $row->batch->revision]);
+        $draft['text'] = app(ReportBatches::class)->commentText($draft);
+        unset($draft['bank_id']);
 
         return response()->view('academics.report-workbench', array_replace($this->model($request), ['reviewedComment' => $draft]));
     }

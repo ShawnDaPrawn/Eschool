@@ -3,7 +3,7 @@
     $fieldPrefix = 'report-comment-'.$commentRow['card_id'].'-'.str_replace(':', '-', $scope);
     $reviewed = $reviewedComment && $reviewedComment['card_id'] === $commentRow['card_id'] && ($reviewedComment['subject_id'] === null ? null : (int) $reviewedComment['subject_id']) === $commentRow['subject_id'] ? $reviewedComment : null;
     $input = $reviewed ?? $commentRow;
-    if (!$reviewed && old('form_scope') === $fieldPrefix) $input = array_replace($input, ['text' => old('text', $input['text']), 'reason' => old('reason', '')]);
+    if (!$reviewed && old('form_scope') === $fieldPrefix) $input = array_replace($input, ['text' => old('text', $input['text']), 'reason' => old('reason', ''), 'bank_id' => old('bank_id')]);
     $bankOptions = collect($configuration['comment_banks'])->filter(fn ($bank) => $bank['active'] && $bank['subject_id'] === $commentRow['subject_id'])->mapWithKeys(fn ($bank) => [$bank['id'] => $bank['label']])->all();
 @endphp
 <article class="m3-card m3-card--outlined report-comment"><div class="m3-card__content">
@@ -14,7 +14,7 @@
         @if($batch)<input type="hidden" name="batch_id" value="{{ $batch['id'] }}">@endif
         <fieldset @disabled($conflict)><legend>{{ __('Report comment') }}</legend>
             <x-page.field name="text" type="textarea" :restore-old-input="false" :id="$fieldPrefix.'-text'" :label="__('Comment text')" :value="$input['text']" maxlength="3000" />
-            @if(count($bankOptions))<x-page.field name="bank_id" type="select" :restore-old-input="false" :id="$fieldPrefix.'-bank'" :label="__('Use a comment bank instead')" :options="$bankOptions" :placeholder="__('Keep entered text')" />@endif
+            @if(count($bankOptions))<x-page.field name="bank_id" type="select" :restore-old-input="false" :id="$fieldPrefix.'-bank'" :label="__('Use a comment bank instead')" :options="$bankOptions" :placeholder="__('Keep entered text')" :value="$input['bank_id'] ?? ''" />@endif
             @if($allowOverride)<x-page.field name="reason" :restore-old-input="false" :id="$fieldPrefix.'-reason'" :label="__('Correction reason')" :help="__('Required without this current teaching allocation. Stored privately in the audit.')" :value="$input['reason'] ?? ''" maxlength="500" />@endif
             <button type="submit" class="m3-button m3-button--filled">{{ __('Save comment') }}</button>
         </fieldset>

@@ -713,6 +713,38 @@ class ReportEngineTest extends TestCase
         $this->assertSame(0, ReportComment::count());
     }
 
+    public function test_panel_bank_conflict_resolves_the_effective_text_before_explicit_review(): void
+    {
+        $draft = $this->draft();
+        $card = $draft['cards'][0]['id'];
+        $subject = $this->schoolA->ids['maths'];
+        $bank = app(ReportDesigns::class)->bank($this->superAdmin(), ['scope' => 'subject', 'subject_id' => $subject, 'label' => 'Progress', 'text' => 'Chosen bank comment', 'active' => true]);
+        app(ReportBatches::class)->comment($this->teacher(), $card, ['subject_id' => $subject, 'text' => 'Other saved comment', 'revision' => 0, 'batch_revision' => $draft['revision']]);
+        $input = ['subject_id' => $subject, 'text' => 'Old textarea text', 'bank_id' => $bank['id'], 'revision' => 0, 'batch_revision' => $draft['revision'], 'session_year_id' => $this->year, 'operation_id' => (string) Str::uuid()];
+        $conflict = $this->actingAs($this->teacher())->post(route('academic-reports.comment', $card), $input)->assertStatus(409);
+        $submitted = $conflict->viewData('submittedComment');
+        $this->assertSame('Chosen bank comment', $submitted['text']);
+        $this->assertArrayNotHasKey('bank_id', $submitted);
+        $review = $this->post(route('academic-reports.review-comment', $card), $submitted)->assertOk();
+        $reviewed = $review->viewData('reviewedComment');
+        $this->assertSame('Chosen bank comment', $reviewed['text']);
+        $this->post(route('academic-reports.comment', $card), array_replace($reviewed, ['operation_id' => (string) Str::uuid()]))->assertRedirect();
+        $this->assertSame('Chosen bank comment', ReportComment::sole()->text);
+    }
+
+    public function test_allocated_comment_list_excludes_scopes_that_need_leadership_correction_reasons(): void
+    {
+        $draft = $this->draft();
+        $teacher = $this->teacher();
+        AcademicLeadership::create(['user_id' => $teacher->id, 'kind' => 'grade_head', 'grade_level_id' => $this->grade, 'session_year_id' => $this->year,
+            'starts_on' => '2026-01-01', 'ends_on' => '2026-12-31', 'reason' => 'Current grade head']);
+        $rows = app(ReportQueries::class)->comments($teacher, $this->year)['rows'];
+        $this->assertCount(1, $rows);
+        $this->assertSame($this->schoolA->ids['maths'], $rows[0]['subject_id']);
+        $this->actingAs($teacher)->get(route('academic-reports.index', ['session_year_id' => $this->year]))->assertOk()->assertDontSee('Report Rehearsal Learner');
+        $this->get(route('academic-reports.index', ['batch_id' => $draft['id']]))->assertOk()->assertSee('Correction reason');
+    }
+
     public function test_panel_design_and_bank_forms_refuse_wrong_roles_and_keep_school_owned_revisions(): void
     {
         $design = ['name' => 'School design', 'design' => ['heading' => 'Academic report', 'introduction' => null, 'footer' => null, 'sections' => ['subjects', '', 'attendance', ''], 'show_crest' => '0'],
