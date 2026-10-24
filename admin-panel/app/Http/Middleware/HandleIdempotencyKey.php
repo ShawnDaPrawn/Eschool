@@ -8,6 +8,7 @@ use App\Exceptions\ApiV2ExceptionRenderer;
 use App\Models\Platform\IdempotencyKey;
 use App\Services\Platform\IdempotencyOutcome;
 use App\Services\Platform\IdempotencyService;
+use App\Services\Platform\Tenancy\CurrentSchool;
 use Closure;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -54,6 +55,12 @@ class HandleIdempotencyKey
         $user = $request->user();
         if ($user === null) {
             return $next($request);
+        }
+
+        // A staff account may belong to several schools. Report retries cannot
+        // replay one school's template/payload while another school is active.
+        if (str_starts_with((string) $request->route()?->getName(), 'api.v2.academics.reports.')) {
+            $key = 'report:'.app(CurrentSchool::class)->id().':'.hash('sha256', $key);
         }
 
         [$outcome, $record] = $this->keys->begin((int) $user->getAuthIdentifier(), $key, $request);

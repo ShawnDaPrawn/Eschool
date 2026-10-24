@@ -9,6 +9,7 @@ use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Http\Request;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Arr;
+use Illuminate\Support\Facades\Crypt;
 use Symfony\Component\HttpFoundation\Response;
 
 /**
@@ -95,10 +96,18 @@ class IdempotencyService
             return;
         }
 
+        $privateReport = str_starts_with($record->route, 'api.v2.academics.reports.') || str_starts_with($record->route, 'academic-reports.');
+        $headers = array_filter(['Content-Type' => $response->headers->get('Content-Type')]);
+        if ($privateReport) {
+            $headers['__encrypted_body'] = '1';
+            if (str_starts_with($record->route, 'academic-reports.') && $response->isRedirect()) {
+                $headers['Location'] = $response->headers->get('Location');
+            }
+        }
         $record->update([
             'response_status' => $status,
-            'response_headers' => array_filter(['Content-Type' => $response->headers->get('Content-Type')]),
-            'response_body' => $content,
+            'response_headers' => $headers,
+            'response_body' => $privateReport ? Crypt::encryptString($content) : $content,
         ]);
     }
 
@@ -111,8 +120,15 @@ class IdempotencyService
     /** The stored answer, marked as a replay. */
     public function replay(IdempotencyKey $record): Response
     {
-        return response((string) $record->response_body, (int) $record->response_status, [
-            ...($record->response_headers ?? []),
+        $headers = $record->response_headers ?? [];
+        $content = (string) $record->response_body;
+        if (($headers['__encrypted_body'] ?? null) === '1') {
+            $content = Crypt::decryptString($content);
+            unset($headers['__encrypted_body']);
+        }
+
+        return response($content, (int) $record->response_status, [
+            ...$headers,
             'Idempotent-Replayed' => 'true',
         ]);
     }

@@ -368,3 +368,8 @@ detail access after a homeroom remap. The old grade head retains report history;
 the new grade head cannot see its summaries; expired appointments lose access.
 All 181 report/API contract checks pass (1,164 assertions), with clean Larastan
 and changed-file formatting. Exact updated CI must pass before merge.
+
+Report retry follow-up: 197 report/idempotency/contract checks pass (1,284
+assertions), with clean Larastan. Private report retry bodies are encrypted,
+replayed headers hide internal encryption metadata, and operation keys are bound
+to the active school even for one staff account assigned to both schools.

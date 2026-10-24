@@ -603,6 +603,29 @@ class ReportEngineTest extends TestCase
 
     }
 
+    public function test_report_retry_storage_is_encrypted_and_scoped_to_the_active_school(): void
+    {
+        $actor = $this->superAdmin();
+        $input = ['name' => 'Private report heading', 'design' => ['heading' => 'Private academic design', 'introduction' => null, 'footer' => null,
+            'sections' => ['subjects'], 'show_crest' => false]];
+        $this->api($actor)->withHeader('Idempotency-Key', 'same-report-template-key');
+        $first = $this->putJson('/api/v2/academics/reports/templates', $input)->assertOk();
+        $this->putJson('/api/v2/academics/reports/templates', $input)->assertOk()->assertHeader('Idempotent-Replayed', 'true')->assertExactJson($first->json());
+        $record = DB::table('idempotency_keys')->where('route', 'api.v2.academics.reports.templates')->first();
+        $this->assertNotNull($record);
+        $this->assertStringNotContainsString('Private academic design', $record->response_body);
+        $this->assertStringNotContainsString('Private academic design', (string) $record->response_headers);
+        app(CurrentSchool::class)->run(self::SCHOOL_B_ID, function () use ($actor): void {
+            $actor->unsetRelation('roles');
+            $actor->assignRole('Super Admin');
+            SchoolMembership::updateOrCreate(['school_id' => 2, 'user_id' => $actor->id, 'role' => 'Super Admin'], ['status' => 'active', 'starts_on' => '2026-01-01']);
+        });
+        $this->api($actor)->withHeader('X-School-Id', '2')->withHeader('Idempotency-Key', 'same-report-template-key');
+        $second = $this->putJson('/api/v2/academics/reports/templates', $input)->assertOk()->assertHeaderMissing('Idempotent-Replayed');
+        $this->assertNotSame($first->json('data.id'), $second->json('data.id'));
+        $this->assertSame(2, DB::table('idempotency_keys')->where('route', 'api.v2.academics.reports.templates')->count());
+    }
+
     public function test_explicit_provisional_report_can_explain_excused_or_ungraded_results_without_inventing_a_score(): void
     {
         Storage::fake(ReportArtifacts::DISK);
