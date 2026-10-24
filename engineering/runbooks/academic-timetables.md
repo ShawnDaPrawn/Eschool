@@ -61,3 +61,8 @@ condition. Queue outbox events with the standard worker and dispatch scheduler.
 Rehearse real vendor exports, week editing, actual room walks and school timezone
 boundaries on staging. Synthetic HTTP/contract tests do not prove classroom UX,
 1,200-learner staging performance, a full-term pilot or independent review.
+
+The new-year wizard carries only original legacy entries. A current-week canonical
+projection must never be copied into another year: create that year’s dated groups,
+allocations and bells and preview its calendar. Source-year equality also protects
+reads from historical bulk copies. This does not block other year-end transfers.

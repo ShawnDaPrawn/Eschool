@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Academics;
 
+use App\Actions\Transfers\TransferClassTimetable;
 use App\Models\Academics\BellPeriod;
 use App\Models\Academics\BellSchedule;
 use App\Models\Academics\GradeLevel;
@@ -18,6 +19,7 @@ use App\Models\Platform\GuardianLink;
 use App\Models\Platform\Role;
 use App\Models\Platform\SchoolMembership;
 use App\Models\SessionYear;
+use App\Models\SubjectTeacher;
 use App\Models\Teacher;
 use App\Models\Term;
 use App\Models\Timetable;
@@ -29,6 +31,7 @@ use App\Services\Academics\TimetableImport;
 use App\Services\Academics\TimetableProjection;
 use App\Services\Academics\TimetableQueries;
 use App\Services\Platform\Tenancy\CurrentSchool;
+use App\Services\Platform\Tenancy\SchoolTable;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
@@ -210,6 +213,34 @@ class TimetableEngineTest extends TestCase
             }
         }
         $this->assertSame('08:00', substr(Timetable::whereNotNull('timetable_lesson_id')->sole()->start_time, 0, 5));
+    }
+
+    public function test_new_year_carries_legacy_entries_without_reusing_an_old_canonical_calendar(): void
+    {
+        $this->save([$this->row()]);
+        $projection = Timetable::whereNotNull('timetable_lesson_id')->sole();
+        $year = SessionYear::create(['name' => '2027', 'start_date' => '2027-01-01', 'end_date' => '2027-12-31']);
+        $term = Term::create(['session_year_id' => $year->id, 'name' => 'Term 1', 'start_date' => '2027-01-01', 'end_date' => '2027-03-31', 'grade_from' => 0, 'grade_to' => 12]);
+        // A real target assignment ensures the carry is not merely skipped for a missing map.
+        $subject = SubjectTeacher::findOrFail($projection->subject_teacher_id);
+        $attributes = collect($subject->getAttributes())->except(['id', 'created_at', 'updated_at'])->all();
+        $attributes['session_year_id'] = $year->id;
+        $attributes['term_id'] = $subject->term_id === null ? null : $term->id;
+        $attributes['teaching_allocation_id'] = null;
+        SchoolTable::query('subject_teachers')->insert($attributes);
+        $legacy = collect($projection->getAttributes())->except(['id', 'created_at', 'updated_at'])->all();
+        $legacy['timetable_lesson_id'] = null;
+        $legacy['day'] = 'Wednesday';
+        SchoolTable::query('timetables')->insert($legacy);
+        app(TransferClassTimetable::class)->execute($this->year, $year->id);
+        $this->assertGreaterThan(0, Timetable::where('session_year_id', $year->id)->whereNull('timetable_lesson_id')->count());
+        $this->assertSame(1, Timetable::where('session_year_id', $year->id)->where('room_name', 'Room 1')->where('day', 'Wednesday')->count());
+        $this->assertSame(0, SchoolTable::query('timetables')->where('session_year_id', $year->id)->whereNotNull('timetable_lesson_id')->count());
+        // Even an old bulk writer cannot expose a projection against the wrong source year.
+        $invalid = collect($projection->getAttributes())->except(['id', 'created_at', 'updated_at'])->all();
+        $invalid['session_year_id'] = $year->id;
+        SchoolTable::query('timetables')->insert($invalid);
+        $this->assertSame(0, Timetable::where('session_year_id', $year->id)->whereNotNull('timetable_lesson_id')->count());
     }
 
     public function test_new_api_requires_fresh_permissions_and_rejects_other_school_and_other_child_ids(): void

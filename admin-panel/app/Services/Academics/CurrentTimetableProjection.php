@@ -22,6 +22,7 @@ class CurrentTimetableProjection implements Scope
         $builder->where(function ($q) use ($monday) {
             $q->whereNull('timetables.timetable_lesson_id')->orWhereExists(function ($sub) use ($monday) {
                 $sub->selectRaw('1')->from('timetable_lessons as projected_lesson')->whereColumn('projected_lesson.id', 'timetables.timetable_lesson_id')
+                    ->whereColumn('projected_lesson.session_year_id', 'timetables.session_year_id')
                     ->whereColumn('projected_lesson.school_id', 'timetables.school_id')->where('projected_lesson.active', true)->whereNull('projected_lesson.deleted_at')
                     ->whereExists(function ($group) {
                         $group->selectRaw('1')->from('teaching_groups as current_lesson_group')->whereColumn('current_lesson_group.id', 'projected_lesson.teaching_group_id')
