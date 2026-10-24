@@ -683,3 +683,7 @@ assertions**; Pint and Larastan pass. Strict OpenAPI lint, pinned SDK regenerati
 Chromium flows pass**: validation recovery at both widths, approval/publication/
 withdrawal with admin accessibility/layout checks, wrong-owner/school refusal and
 empty-list archival after contact revocation. Final-head public CI is pending.
+
+PR #101 final-head CI: 1,538 PHP tests passed; the design-token unit check
+found raw fallbacks in the new message stylesheet. Both fallbacks now use the
+established Material tokens. The affected unit check and final CI are rerun.
