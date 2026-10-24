@@ -242,7 +242,7 @@
                 if (!sessionYearId) return;
 
                 // Fetch class config to know which classes have terms
-                let configUrl = baseUrl + '/term/class-config';
+                let configUrl = baseUrl + '/term/classes';
                 ajaxRequest('GET', configUrl, { session_year_id: sessionYearId }, null, function (configResponse) {
                     termClassIds = (configResponse.data || []).map(function (c) { return String(c.id); });
 

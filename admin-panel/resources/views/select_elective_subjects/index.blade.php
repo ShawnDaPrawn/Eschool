@@ -196,7 +196,7 @@
                 if (!session_year_id) return;
 
                 // Fetch term-enabled classes for this session year
-                let configUrl = baseUrl + '/term/class-config';
+                let configUrl = baseUrl + '/term/classes';
                 ajaxRequest('GET', configUrl, {
                     session_year_id: session_year_id
                 }, null, function(response) {

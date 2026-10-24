@@ -553,6 +553,7 @@ Route::group(['middleware' => ['Role', 'auth', 'school.context', EnforceReadOnly
         Route::delete('permanent-delete/{id}', [Student\StudentController::class, 'permanentDelete'])->name('permanent-delete');
         Route::post('update-active-status', [Student\OnlineRegistrationController::class, 'updateStatus'])->name('update-active-status');
         Route::get('get-class-section-by-class/{class_id}', [Student\ClassAssignmentController::class, 'getClassSectionByClass']);
+        Route::get('term/classes', [TermController::class, 'classSettings'])->name('term.classes.index');
         Route::post('term/classes/enable', [TermController::class, 'enableClass'])->name('term.classes.enable');
         Route::post('term-templates', [TermController::class, 'saveTemplate'])->name('term.templates.store');
         Route::post('term-templates/apply', [TermController::class, 'applyTemplate'])->name('term.templates.apply');

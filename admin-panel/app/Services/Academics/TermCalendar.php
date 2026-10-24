@@ -85,6 +85,15 @@ class TermCalendar
         });
     }
 
+    public function classSettings(User $actor, int $yearId): array
+    {
+        app(TermPolicy::class)->authoriseClassSettings($actor);
+        SessionYear::query()->findOrFail($yearId);
+
+        return ClassSchool::query()->whereIncludeTermsForSession($yearId)->with('medium')->get()
+            ->map(fn ($class) => ['id' => (int) $class->id, 'name' => $class->name, 'medium_name' => $class->medium?->name ?? ''])->all();
+    }
+
     public function enableClass(User $actor, int $yearId, int $classId): void
     {
         app(TermPolicy::class)->authorise($actor, 'edit');

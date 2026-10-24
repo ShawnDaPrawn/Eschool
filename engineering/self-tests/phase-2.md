@@ -47,3 +47,10 @@ Review follow-up: 37 term/year/academic authorization tests (507 assertions)
 passed, including non-destructive class enable, repeat submissions and foreign
 school/year/role refusal. The learner term-picker regression passed with no
 initial current term. App analysis and Larastan were rerun for these changes.
+
+Consumer integration follow-up: 25 panel browser checks passed, covering exam /
+elective pages, teacher-related pages at 1024/1280, mouse/keyboard navigation and
+term/template/class-enable flows. The new class-settings read is school-scoped,
+permission-checked and tested against foreign years. The final targeted backend
+cohort passed 37 tests with 511 assertions. Old navigation URLs and removed config
+requests are retired; the full CI browser suite must pass before merge.

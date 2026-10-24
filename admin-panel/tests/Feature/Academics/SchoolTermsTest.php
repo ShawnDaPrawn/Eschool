@@ -278,6 +278,8 @@ class SchoolTermsTest extends TestCase
         $this->assertTrue(ClassSchool::findOrFail($classId)->getIncludeTermsForSession($this->year));
         $this->post(route('term.classes.enable'), $payload)->assertRedirect();
         $this->assertSame(1, DB::table('audit_log')->where('action', 'academics.class_terms_enabled')->count());
+        $this->getJson(route('term.classes.index', ['session_year_id' => $this->year]))->assertOk()->assertJsonFragment(['id' => $classId]);
+        $this->getJson(route('term.classes.index', ['session_year_id' => $this->schoolB->ids['session_year']]))->assertNotFound();
         foreach ($before as $table => $rows) {
             $this->assertSame($rows, DB::table($table)->orderBy('id')->get()->toJson(), $table.' must be preserved');
         }
@@ -287,6 +289,7 @@ class SchoolTermsTest extends TestCase
         $this->postJson(route('term.classes.enable'), ['class_id' => $classId, 'session_year_id' => $this->nextYear()->id])->assertUnprocessable();
         $this->actingAs(User::findOrFail($this->schoolA->ids['tara_user']), 'web')
             ->postJson(route('term.classes.enable'), $payload)->assertForbidden();
+        $this->getJson(route('term.classes.index', ['session_year_id' => $this->year]))->assertForbidden();
     }
 
     public function test_an_unmapped_term_cannot_silently_become_a_whole_year_allocation(): void

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\Academics\ClassTermSettingsRequest;
 use App\Http\Requests\Academics\EnableClassTermsRequest;
 use App\Http\Requests\Academics\TermRequest;
 use App\Http\Requests\Academics\TermTemplateRequest;
@@ -15,6 +16,8 @@ use App\Policies\Academics\TermPolicy;
 use App\Services\Academics\TermCalendar;
 use App\Services\Academics\TermTemplates;
 use App\Services\Platform\Tenancy\CurrentSchool;
+use App\Services\ResponseService;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
@@ -54,6 +57,11 @@ class TermController extends Controller
         $calendar->remove($request->user(), $term);
 
         return redirect()->route('term.index', ['session_year_id' => $yearId])->with('success', __('Term removed'));
+    }
+
+    public function classSettings(ClassTermSettingsRequest $request, TermCalendar $calendar): JsonResponse
+    {
+        return ResponseService::successResponse('data_fetch_successfully', $calendar->classSettings($request->user(), (int) $request->input('session_year_id')));
     }
 
     public function enableClass(EnableClassTermsRequest $request, TermCalendar $calendar): RedirectResponse
