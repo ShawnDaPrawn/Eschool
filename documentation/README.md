@@ -117,3 +117,7 @@ For a local Firebase build served on port 3010, install Python Playwright and it
 Chromium browser and run `python scripts/check_ui.py`. Set `DOCS_TEST_URL` for
 another serving URL, or `DOCS_CHROMIUM_EXECUTABLE` to use a system Chromium.
 The Poppins license is published at `licenses/poppins-OFL.txt`.
+
+Both production build commands clear Docusaurus caches before compiling. This
+prevents font and asset URLs from retaining the previous target base path when
+switching between GitHub Pages (`/Eschool/`) and Firebase (`/`).
