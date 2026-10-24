@@ -50,6 +50,16 @@ class OpenApiContractTest extends TestCase
     public static function scenarios(): array
     {
         return [
+            'curriculum plans as admin' => ['superadmin', 'GET', 'api/v2/academics/curriculum-plans', [], 200],
+            'curriculum plans as teacher' => ['tara', 'GET', 'api/v2/academics/curriculum-plans', [], 200],
+            'curriculum plans parent denied' => ['farid', 'GET', 'api/v2/academics/curriculum-plans', [], 403],
+            'curriculum plan requires auth' => [null, 'GET', 'api/v2/academics/curriculum-plans', [], 401],
+            'curriculum create validation' => ['superadmin', 'POST', 'api/v2/academics/curriculum-plans', [], 422],
+            'curriculum read unknown' => ['superadmin', 'GET', 'api/v2/academics/curriculum-plans/999999', [], 404],
+            'curriculum update unknown' => ['superadmin', 'PUT', 'api/v2/academics/curriculum-plans/999999', [], 404],
+            'curriculum copy unknown' => ['superadmin', 'POST', 'api/v2/academics/curriculum-plans/999999/copy', ['session_year_id' => 1], 404],
+            'curriculum publish unknown' => ['superadmin', 'POST', 'api/v2/academics/curriculum-plans/999999/assessments/999999/publish', ['revision' => 1], 404],
+            'curriculum publish teacher denied' => ['tara', 'POST', 'api/v2/academics/curriculum-plans/1/assessments/1/publish', ['revision' => 1], 403],
             'subject catalogue as learner' => ['asha', 'GET', 'api/v2/academics/subject-standards', [], 200],
             'subject catalogue as teacher' => ['tara', 'GET', 'api/v2/academics/subject-standards', [], 200],
             'subject catalogue requires auth' => [null, 'GET', 'api/v2/academics/subject-standards', [], 401],

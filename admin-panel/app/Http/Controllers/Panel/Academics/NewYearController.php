@@ -38,7 +38,7 @@ class NewYearController extends Controller
             return redirect()->route('session-years.index')->withErrors(['message' => trans('please_set_session_year_first')]);
         }
         $next = $this->newYear->upcomingYear($current);
-        $chosen = array_keys(NewYearService::CARRY);
+        $chosen = array_values(array_diff(array_keys(NewYearService::CARRY), ['curriculum']));
 
         return view('academics.new-year', [
             'current' => $current,

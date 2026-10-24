@@ -78,3 +78,17 @@ to recover workspace disk space, after which docs build and browser checks passe
 
 Final subject-standard regression cohort: 15 tests and 675 assertions passed,
 including the unchanged v1 snapshot test and schema rollback/ownership checks.
+
+## Curriculum and assessment definitions
+
+Implemented scoped versioned drafts, topic/task/question editing, exact maximum
+units, independent term publication, immutable headers, optimistic revisions,
+same-year source provenance and explicit new-year draft history copying.
+Local API/contract cohort: 114 tests, 775 assertions passed. Panel/navigation
+cohort: 24 tests, 648 assertions passed. Generated SDK: 21 tests passed; analysis
+has no errors/warnings (79 generator style infos). Strict OpenAPI and Larastan
+passed. Final regression, browser and CI outcomes are recorded on the feature PR.
+
+Browser setup initially needed explicit labels for dynamic selects and the
+isolated demo's public avatar symlink. Runtime access/CSRF rules were preserved.
+Staging, device and real-school policy/pilot verification remain pending.

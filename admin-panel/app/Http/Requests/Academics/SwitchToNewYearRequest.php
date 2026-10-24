@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Requests\Academics;
 
+use App\Policies\Academics\CurriculumPolicy;
 use App\Services\Academics\NewYearService;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
@@ -16,6 +17,10 @@ class SwitchToNewYearRequest extends FormRequest
 {
     public function authorize(): bool
     {
+        if (in_array('curriculum', (array) $this->input('carry', []), true)) {
+            app(CurriculumPolicy::class)->authorise($this->user(), 'publish');
+        }
+
         // The preview only reads; making a year current needs the right to edit years.
         return (bool) $this->user()?->can($this->isMethod('GET') ? 'session-year-create' : 'session-year-edit');
     }

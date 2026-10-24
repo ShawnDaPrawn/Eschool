@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace App\Providers;
 
+use App\Models\Academics\CurriculumPlan;
 use App\Models\Students;
+use App\Policies\Academics\CurriculumPolicy;
 use App\Policies\Platform\LearnerAccessPolicy;
 use Illuminate\Foundation\Support\Providers\AuthServiceProvider as ServiceProvider;
 use Illuminate\Support\Facades\Gate;
@@ -18,6 +20,7 @@ class AuthServiceProvider extends ServiceProvider
      */
     protected $policies = [
         Students::class => LearnerAccessPolicy::class,
+        CurriculumPlan::class => CurriculumPolicy::class,
     ];
 
     /**

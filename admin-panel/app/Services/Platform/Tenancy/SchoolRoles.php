@@ -33,6 +33,7 @@ class SchoolRoles
     ];
 
     private const SUPER_ADMIN_PERMISSIONS = [
+        'curriculum-read', 'curriculum-manage', 'curriculum-publish',
         'profile-person-view', 'profile-person-edit', 'profile-sensitive-view', 'profile-sensitive-export',
         'attendance-staff', 'medium-list', 'medium-create', 'medium-edit', 'medium-delete',
         'section-list', 'section-create', 'section-edit', 'section-delete', 'class-list',
@@ -70,6 +71,7 @@ class SchoolRoles
     ];
 
     private const TEACHER_PERMISSIONS = [
+        'curriculum-read', 'curriculum-manage',
         'student-list', 'subject-teacher-list', 'timetable-list', 'attendance-list',
         'attendance-create', 'attendance-edit', 'attendance-delete', 'holiday-list',
         'announcement-list', 'announcement-create', 'announcement-edit', 'announcement-delete',

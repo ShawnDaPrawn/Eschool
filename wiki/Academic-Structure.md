@@ -309,3 +309,19 @@ The bundled DBE-NCS-2015 baseline is historical public reference data, without
 assessment weights, not a declaration of current school policy. It is not loaded
 or published automatically. Review subsequent amendments and licensed IEB data
 before a live import. No school request can edit the global catalogue.
+
+## Curriculum plans
+
+Academics → Curriculum plans opens version history visible to your allocations.
+Start a draft, choose subject/grade/year and add terms, topics, tasks and optional
+questions. Enter percentages in the editor; the API keeps integer basis points.
+Maximum marks are exact decimal strings. Set annual weights separately from term
+weights: a June exam can contribute to annual SBA. Annual policy may remain
+incomplete while one prepared term is published.
+
+Save before publishing. A publisher validates each term's 100% component and
+within-component task totals and question maxima. Published headers are immutable;
+copy to a new draft for revisions. A copied same-year task retains mark provenance
+only when its term/maxima/questions stay compatible; changed structures need a new
+task key. New-year carry-forward is explicit and copies definition history as
+drafts, never learner marks/reports. Review shifted dates and source versions.

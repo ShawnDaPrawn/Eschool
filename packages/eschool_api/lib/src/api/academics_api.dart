@@ -13,6 +13,11 @@ import 'package:eschool_api/src/model/academic_reference_response.dart';
 import 'package:eschool_api/src/model/calendar_removed_response.dart';
 import 'package:eschool_api/src/model/class_grade_response.dart';
 import 'package:eschool_api/src/model/class_grade_write.dart';
+import 'package:eschool_api/src/model/curriculum_copy_write.dart';
+import 'package:eschool_api/src/model/curriculum_plan_response.dart';
+import 'package:eschool_api/src/model/curriculum_plan_write.dart';
+import 'package:eschool_api/src/model/curriculum_plans_response.dart';
+import 'package:eschool_api/src/model/curriculum_publish_write.dart';
 import 'package:eschool_api/src/model/error_response.dart';
 import 'package:eschool_api/src/model/school_subject_from_standard_write.dart';
 import 'package:eschool_api/src/model/school_subject_standard_response.dart';
@@ -134,6 +139,219 @@ class AcademicsApi {
     }
 
     return Response<TermTemplateApplyResponse>(
+      data: _responseData,
+      headers: _response.headers,
+      isRedirect: _response.isRedirect,
+      requestOptions: _response.requestOptions,
+      redirects: _response.redirects,
+      statusCode: _response.statusCode,
+      statusMessage: _response.statusMessage,
+      extra: _response.extra,
+    );
+  }
+
+  /// Copy definitions to a new draft without copying marks
+  /// Published headers and term plans are immutable. Use a copy for a new version. Drafts may be incomplete; publication validates the affected term. Decimal marks are strings; weights are integer basis points (10000 &#x3D; 100%).
+  ///
+  /// Parameters:
+  /// * [plan]
+  /// * [curriculumCopyWrite]
+  /// * [xSchoolId] - The school to work in, one of the signed-in user's schools (`schools` in `/me/context`). Without it the request works in the user's first school. A school the user is not an active member of is refused with 403. Apps send it on every call once a school is chosen.
+  /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
+  /// * [headers] - Can be used to add additional headers to the request
+  /// * [extras] - Can be used to add flags to the request
+  /// * [validateStatus] - A [ValidateStatus] callback that can be used to determine request success based on the HTTP status of the response
+  /// * [onSendProgress] - A [ProgressCallback] that can be used to get the send progress
+  /// * [onReceiveProgress] - A [ProgressCallback] that can be used to get the receive progress
+  ///
+  /// Returns a [Future] containing a [Response] with a [CurriculumPlanResponse] as data
+  /// Throws [DioException] if API call or serialization fails
+  Future<Response<CurriculumPlanResponse>> copyCurriculumPlan({
+    required int plan,
+    required CurriculumCopyWrite curriculumCopyWrite,
+    int? xSchoolId,
+    CancelToken? cancelToken,
+    Map<String, dynamic>? headers,
+    Map<String, dynamic>? extra,
+    ValidateStatus? validateStatus,
+    ProgressCallback? onSendProgress,
+    ProgressCallback? onReceiveProgress,
+  }) async {
+    final _path = r'/academics/curriculum-plans/{plan}/copy'.replaceAll(
+      '{'
+      r'plan'
+      '}',
+      plan.toString(),
+    );
+    final _options = Options(
+      method: r'POST',
+      headers: <String, dynamic>{
+        if (xSchoolId != null) r'X-School-Id': xSchoolId,
+        ...?headers,
+      },
+      extra: <String, dynamic>{
+        'secure': <Map<String, String>>[
+          {
+            'type': 'apiKey',
+            'name': 'cookieAuth',
+            'keyName': 'e_school_session',
+            'where': '',
+          },
+          {'type': 'http', 'scheme': 'bearer', 'name': 'bearerAuth'},
+        ],
+        ...?extra,
+      },
+      contentType: 'application/json',
+      validateStatus: validateStatus,
+    );
+
+    dynamic _bodyData;
+
+    try {
+      _bodyData = jsonEncode(curriculumCopyWrite);
+    } catch (error, stackTrace) {
+      throw DioException(
+        requestOptions: _options.compose(_dio.options, _path),
+        type: DioExceptionType.unknown,
+        error: error,
+        stackTrace: stackTrace,
+      );
+    }
+
+    final _response = await _dio.request<Object>(
+      _path,
+      data: _bodyData,
+      options: _options,
+      cancelToken: cancelToken,
+      onSendProgress: onSendProgress,
+      onReceiveProgress: onReceiveProgress,
+    );
+
+    CurriculumPlanResponse? _responseData;
+
+    try {
+      final rawData = _response.data;
+      _responseData = rawData == null
+          ? null
+          : deserialize<CurriculumPlanResponse, CurriculumPlanResponse>(
+              rawData,
+              'CurriculumPlanResponse',
+              growable: true,
+            );
+    } catch (error, stackTrace) {
+      throw DioException(
+        requestOptions: _response.requestOptions,
+        response: _response,
+        type: DioExceptionType.unknown,
+        error: error,
+        stackTrace: stackTrace,
+      );
+    }
+
+    return Response<CurriculumPlanResponse>(
+      data: _responseData,
+      headers: _response.headers,
+      isRedirect: _response.isRedirect,
+      requestOptions: _response.requestOptions,
+      redirects: _response.redirects,
+      statusCode: _response.statusCode,
+      statusMessage: _response.statusMessage,
+      extra: _response.extra,
+    );
+  }
+
+  /// Save a new curriculum draft
+  /// Published headers and term plans are immutable. Use a copy for a new version. Drafts may be incomplete; publication validates the affected term. Decimal marks are strings; weights are integer basis points (10000 &#x3D; 100%).
+  ///
+  /// Parameters:
+  /// * [curriculumPlanWrite]
+  /// * [xSchoolId] - The school to work in, one of the signed-in user's schools (`schools` in `/me/context`). Without it the request works in the user's first school. A school the user is not an active member of is refused with 403. Apps send it on every call once a school is chosen.
+  /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
+  /// * [headers] - Can be used to add additional headers to the request
+  /// * [extras] - Can be used to add flags to the request
+  /// * [validateStatus] - A [ValidateStatus] callback that can be used to determine request success based on the HTTP status of the response
+  /// * [onSendProgress] - A [ProgressCallback] that can be used to get the send progress
+  /// * [onReceiveProgress] - A [ProgressCallback] that can be used to get the receive progress
+  ///
+  /// Returns a [Future] containing a [Response] with a [CurriculumPlanResponse] as data
+  /// Throws [DioException] if API call or serialization fails
+  Future<Response<CurriculumPlanResponse>> createCurriculumPlan({
+    required CurriculumPlanWrite curriculumPlanWrite,
+    int? xSchoolId,
+    CancelToken? cancelToken,
+    Map<String, dynamic>? headers,
+    Map<String, dynamic>? extra,
+    ValidateStatus? validateStatus,
+    ProgressCallback? onSendProgress,
+    ProgressCallback? onReceiveProgress,
+  }) async {
+    final _path = r'/academics/curriculum-plans';
+    final _options = Options(
+      method: r'POST',
+      headers: <String, dynamic>{
+        if (xSchoolId != null) r'X-School-Id': xSchoolId,
+        ...?headers,
+      },
+      extra: <String, dynamic>{
+        'secure': <Map<String, String>>[
+          {
+            'type': 'apiKey',
+            'name': 'cookieAuth',
+            'keyName': 'e_school_session',
+            'where': '',
+          },
+          {'type': 'http', 'scheme': 'bearer', 'name': 'bearerAuth'},
+        ],
+        ...?extra,
+      },
+      contentType: 'application/json',
+      validateStatus: validateStatus,
+    );
+
+    dynamic _bodyData;
+
+    try {
+      _bodyData = jsonEncode(curriculumPlanWrite);
+    } catch (error, stackTrace) {
+      throw DioException(
+        requestOptions: _options.compose(_dio.options, _path),
+        type: DioExceptionType.unknown,
+        error: error,
+        stackTrace: stackTrace,
+      );
+    }
+
+    final _response = await _dio.request<Object>(
+      _path,
+      data: _bodyData,
+      options: _options,
+      cancelToken: cancelToken,
+      onSendProgress: onSendProgress,
+      onReceiveProgress: onReceiveProgress,
+    );
+
+    CurriculumPlanResponse? _responseData;
+
+    try {
+      final rawData = _response.data;
+      _responseData = rawData == null
+          ? null
+          : deserialize<CurriculumPlanResponse, CurriculumPlanResponse>(
+              rawData,
+              'CurriculumPlanResponse',
+              growable: true,
+            );
+    } catch (error, stackTrace) {
+      throw DioException(
+        requestOptions: _response.requestOptions,
+        response: _response,
+        type: DioExceptionType.unknown,
+        error: error,
+        stackTrace: stackTrace,
+      );
+    }
+
+    return Response<CurriculumPlanResponse>(
       data: _responseData,
       headers: _response.headers,
       isRedirect: _response.isRedirect,
@@ -536,6 +754,207 @@ class AcademicsApi {
     );
   }
 
+  /// Read a curriculum with topics, tasks and question maxima
+  /// Published headers and term plans are immutable. Use a copy for a new version. Drafts may be incomplete; publication validates the affected term. Decimal marks are strings; weights are integer basis points (10000 &#x3D; 100%).
+  ///
+  /// Parameters:
+  /// * [plan]
+  /// * [xSchoolId] - The school to work in, one of the signed-in user's schools (`schools` in `/me/context`). Without it the request works in the user's first school. A school the user is not an active member of is refused with 403. Apps send it on every call once a school is chosen.
+  /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
+  /// * [headers] - Can be used to add additional headers to the request
+  /// * [extras] - Can be used to add flags to the request
+  /// * [validateStatus] - A [ValidateStatus] callback that can be used to determine request success based on the HTTP status of the response
+  /// * [onSendProgress] - A [ProgressCallback] that can be used to get the send progress
+  /// * [onReceiveProgress] - A [ProgressCallback] that can be used to get the receive progress
+  ///
+  /// Returns a [Future] containing a [Response] with a [CurriculumPlanResponse] as data
+  /// Throws [DioException] if API call or serialization fails
+  Future<Response<CurriculumPlanResponse>> getCurriculumPlan({
+    required int plan,
+    int? xSchoolId,
+    CancelToken? cancelToken,
+    Map<String, dynamic>? headers,
+    Map<String, dynamic>? extra,
+    ValidateStatus? validateStatus,
+    ProgressCallback? onSendProgress,
+    ProgressCallback? onReceiveProgress,
+  }) async {
+    final _path = r'/academics/curriculum-plans/{plan}'.replaceAll(
+      '{'
+      r'plan'
+      '}',
+      plan.toString(),
+    );
+    final _options = Options(
+      method: r'GET',
+      headers: <String, dynamic>{
+        if (xSchoolId != null) r'X-School-Id': xSchoolId,
+        ...?headers,
+      },
+      extra: <String, dynamic>{
+        'secure': <Map<String, String>>[
+          {
+            'type': 'apiKey',
+            'name': 'cookieAuth',
+            'keyName': 'e_school_session',
+            'where': '',
+          },
+          {'type': 'http', 'scheme': 'bearer', 'name': 'bearerAuth'},
+        ],
+        ...?extra,
+      },
+      validateStatus: validateStatus,
+    );
+
+    final _response = await _dio.request<Object>(
+      _path,
+      options: _options,
+      cancelToken: cancelToken,
+      onSendProgress: onSendProgress,
+      onReceiveProgress: onReceiveProgress,
+    );
+
+    CurriculumPlanResponse? _responseData;
+
+    try {
+      final rawData = _response.data;
+      _responseData = rawData == null
+          ? null
+          : deserialize<CurriculumPlanResponse, CurriculumPlanResponse>(
+              rawData,
+              'CurriculumPlanResponse',
+              growable: true,
+            );
+    } catch (error, stackTrace) {
+      throw DioException(
+        requestOptions: _response.requestOptions,
+        response: _response,
+        type: DioExceptionType.unknown,
+        error: error,
+        stackTrace: stackTrace,
+      );
+    }
+
+    return Response<CurriculumPlanResponse>(
+      data: _responseData,
+      headers: _response.headers,
+      isRedirect: _response.isRedirect,
+      requestOptions: _response.requestOptions,
+      redirects: _response.redirects,
+      statusCode: _response.statusCode,
+      statusMessage: _response.statusMessage,
+      extra: _response.extra,
+    );
+  }
+
+  /// List curriculum versions visible to this allocated teacher or school publisher
+  /// Published headers and term plans are immutable. Use a copy for a new version. Drafts may be incomplete; publication validates the affected term. Decimal marks are strings; weights are integer basis points (10000 &#x3D; 100%).
+  ///
+  /// Parameters:
+  /// * [xSchoolId] - The school to work in, one of the signed-in user's schools (`schools` in `/me/context`). Without it the request works in the user's first school. A school the user is not an active member of is refused with 403. Apps send it on every call once a school is chosen.
+  /// * [subjectId]
+  /// * [gradeLevelId]
+  /// * [sessionYearId]
+  /// * [page]
+  /// * [perPage]
+  /// * [state]
+  /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
+  /// * [headers] - Can be used to add additional headers to the request
+  /// * [extras] - Can be used to add flags to the request
+  /// * [validateStatus] - A [ValidateStatus] callback that can be used to determine request success based on the HTTP status of the response
+  /// * [onSendProgress] - A [ProgressCallback] that can be used to get the send progress
+  /// * [onReceiveProgress] - A [ProgressCallback] that can be used to get the receive progress
+  ///
+  /// Returns a [Future] containing a [Response] with a [CurriculumPlansResponse] as data
+  /// Throws [DioException] if API call or serialization fails
+  Future<Response<CurriculumPlansResponse>> getCurriculumPlans({
+    int? xSchoolId,
+    int? subjectId,
+    int? gradeLevelId,
+    int? sessionYearId,
+    int? page,
+    int? perPage,
+    String? state,
+    CancelToken? cancelToken,
+    Map<String, dynamic>? headers,
+    Map<String, dynamic>? extra,
+    ValidateStatus? validateStatus,
+    ProgressCallback? onSendProgress,
+    ProgressCallback? onReceiveProgress,
+  }) async {
+    final _path = r'/academics/curriculum-plans';
+    final _options = Options(
+      method: r'GET',
+      headers: <String, dynamic>{
+        if (xSchoolId != null) r'X-School-Id': xSchoolId,
+        ...?headers,
+      },
+      extra: <String, dynamic>{
+        'secure': <Map<String, String>>[
+          {
+            'type': 'apiKey',
+            'name': 'cookieAuth',
+            'keyName': 'e_school_session',
+            'where': '',
+          },
+          {'type': 'http', 'scheme': 'bearer', 'name': 'bearerAuth'},
+        ],
+        ...?extra,
+      },
+      validateStatus: validateStatus,
+    );
+
+    final _queryParameters = <String, dynamic>{
+      if (subjectId != null) r'subject_id': subjectId,
+      if (gradeLevelId != null) r'grade_level_id': gradeLevelId,
+      if (sessionYearId != null) r'session_year_id': sessionYearId,
+      if (page != null) r'page': page,
+      if (perPage != null) r'per_page': perPage,
+      if (state != null) r'state': state,
+    };
+
+    final _response = await _dio.request<Object>(
+      _path,
+      options: _options,
+      queryParameters: _queryParameters,
+      cancelToken: cancelToken,
+      onSendProgress: onSendProgress,
+      onReceiveProgress: onReceiveProgress,
+    );
+
+    CurriculumPlansResponse? _responseData;
+
+    try {
+      final rawData = _response.data;
+      _responseData = rawData == null
+          ? null
+          : deserialize<CurriculumPlansResponse, CurriculumPlansResponse>(
+              rawData,
+              'CurriculumPlansResponse',
+              growable: true,
+            );
+    } catch (error, stackTrace) {
+      throw DioException(
+        requestOptions: _response.requestOptions,
+        response: _response,
+        type: DioExceptionType.unknown,
+        error: error,
+        stackTrace: stackTrace,
+      );
+    }
+
+    return Response<CurriculumPlansResponse>(
+      data: _responseData,
+      headers: _response.headers,
+      isRedirect: _response.isRedirect,
+      requestOptions: _response.requestOptions,
+      redirects: _response.redirects,
+      statusCode: _response.statusCode,
+      statusMessage: _response.statusMessage,
+      extra: _response.extra,
+    );
+  }
+
   /// Read a school subject mapping with subject-list permission
   ///
   ///
@@ -904,6 +1323,126 @@ class AcademicsApi {
     }
 
     return Response<TermTemplatesResponse>(
+      data: _responseData,
+      headers: _response.headers,
+      isRedirect: _response.isRedirect,
+      requestOptions: _response.requestOptions,
+      redirects: _response.redirects,
+      statusCode: _response.statusCode,
+      statusMessage: _response.statusMessage,
+      extra: _response.extra,
+    );
+  }
+
+  /// Publish one ready term while future terms remain drafts
+  /// Published headers and term plans are immutable. Use a copy for a new version. Drafts may be incomplete; publication validates the affected term. Decimal marks are strings; weights are integer basis points (10000 &#x3D; 100%).
+  ///
+  /// Parameters:
+  /// * [plan]
+  /// * [assessment]
+  /// * [curriculumPublishWrite]
+  /// * [xSchoolId] - The school to work in, one of the signed-in user's schools (`schools` in `/me/context`). Without it the request works in the user's first school. A school the user is not an active member of is refused with 403. Apps send it on every call once a school is chosen.
+  /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
+  /// * [headers] - Can be used to add additional headers to the request
+  /// * [extras] - Can be used to add flags to the request
+  /// * [validateStatus] - A [ValidateStatus] callback that can be used to determine request success based on the HTTP status of the response
+  /// * [onSendProgress] - A [ProgressCallback] that can be used to get the send progress
+  /// * [onReceiveProgress] - A [ProgressCallback] that can be used to get the receive progress
+  ///
+  /// Returns a [Future] containing a [Response] with a [CurriculumPlanResponse] as data
+  /// Throws [DioException] if API call or serialization fails
+  Future<Response<CurriculumPlanResponse>> publishCurriculumAssessment({
+    required int plan,
+    required int assessment,
+    required CurriculumPublishWrite curriculumPublishWrite,
+    int? xSchoolId,
+    CancelToken? cancelToken,
+    Map<String, dynamic>? headers,
+    Map<String, dynamic>? extra,
+    ValidateStatus? validateStatus,
+    ProgressCallback? onSendProgress,
+    ProgressCallback? onReceiveProgress,
+  }) async {
+    final _path =
+        r'/academics/curriculum-plans/{plan}/assessments/{assessment}/publish'
+            .replaceAll(
+              '{'
+              r'plan'
+              '}',
+              plan.toString(),
+            )
+            .replaceAll(
+              '{'
+              r'assessment'
+              '}',
+              assessment.toString(),
+            );
+    final _options = Options(
+      method: r'POST',
+      headers: <String, dynamic>{
+        if (xSchoolId != null) r'X-School-Id': xSchoolId,
+        ...?headers,
+      },
+      extra: <String, dynamic>{
+        'secure': <Map<String, String>>[
+          {
+            'type': 'apiKey',
+            'name': 'cookieAuth',
+            'keyName': 'e_school_session',
+            'where': '',
+          },
+          {'type': 'http', 'scheme': 'bearer', 'name': 'bearerAuth'},
+        ],
+        ...?extra,
+      },
+      contentType: 'application/json',
+      validateStatus: validateStatus,
+    );
+
+    dynamic _bodyData;
+
+    try {
+      _bodyData = jsonEncode(curriculumPublishWrite);
+    } catch (error, stackTrace) {
+      throw DioException(
+        requestOptions: _options.compose(_dio.options, _path),
+        type: DioExceptionType.unknown,
+        error: error,
+        stackTrace: stackTrace,
+      );
+    }
+
+    final _response = await _dio.request<Object>(
+      _path,
+      data: _bodyData,
+      options: _options,
+      cancelToken: cancelToken,
+      onSendProgress: onSendProgress,
+      onReceiveProgress: onReceiveProgress,
+    );
+
+    CurriculumPlanResponse? _responseData;
+
+    try {
+      final rawData = _response.data;
+      _responseData = rawData == null
+          ? null
+          : deserialize<CurriculumPlanResponse, CurriculumPlanResponse>(
+              rawData,
+              'CurriculumPlanResponse',
+              growable: true,
+            );
+    } catch (error, stackTrace) {
+      throw DioException(
+        requestOptions: _response.requestOptions,
+        response: _response,
+        type: DioExceptionType.unknown,
+        error: error,
+        stackTrace: stackTrace,
+      );
+    }
+
+    return Response<CurriculumPlanResponse>(
       data: _responseData,
       headers: _response.headers,
       isRedirect: _response.isRedirect,
@@ -1331,6 +1870,116 @@ class AcademicsApi {
     }
 
     return Response<ClassGradeResponse>(
+      data: _responseData,
+      headers: _response.headers,
+      isRedirect: _response.isRedirect,
+      requestOptions: _response.requestOptions,
+      redirects: _response.redirects,
+      statusCode: _response.statusCode,
+      statusMessage: _response.statusMessage,
+      extra: _response.extra,
+    );
+  }
+
+  /// Replace a draft using its current revision
+  /// Published headers and term plans are immutable. Use a copy for a new version. Drafts may be incomplete; publication validates the affected term. Decimal marks are strings; weights are integer basis points (10000 &#x3D; 100%).
+  ///
+  /// Parameters:
+  /// * [plan]
+  /// * [curriculumPlanWrite]
+  /// * [xSchoolId] - The school to work in, one of the signed-in user's schools (`schools` in `/me/context`). Without it the request works in the user's first school. A school the user is not an active member of is refused with 403. Apps send it on every call once a school is chosen.
+  /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
+  /// * [headers] - Can be used to add additional headers to the request
+  /// * [extras] - Can be used to add flags to the request
+  /// * [validateStatus] - A [ValidateStatus] callback that can be used to determine request success based on the HTTP status of the response
+  /// * [onSendProgress] - A [ProgressCallback] that can be used to get the send progress
+  /// * [onReceiveProgress] - A [ProgressCallback] that can be used to get the receive progress
+  ///
+  /// Returns a [Future] containing a [Response] with a [CurriculumPlanResponse] as data
+  /// Throws [DioException] if API call or serialization fails
+  Future<Response<CurriculumPlanResponse>> updateCurriculumPlan({
+    required int plan,
+    required CurriculumPlanWrite curriculumPlanWrite,
+    int? xSchoolId,
+    CancelToken? cancelToken,
+    Map<String, dynamic>? headers,
+    Map<String, dynamic>? extra,
+    ValidateStatus? validateStatus,
+    ProgressCallback? onSendProgress,
+    ProgressCallback? onReceiveProgress,
+  }) async {
+    final _path = r'/academics/curriculum-plans/{plan}'.replaceAll(
+      '{'
+      r'plan'
+      '}',
+      plan.toString(),
+    );
+    final _options = Options(
+      method: r'PUT',
+      headers: <String, dynamic>{
+        if (xSchoolId != null) r'X-School-Id': xSchoolId,
+        ...?headers,
+      },
+      extra: <String, dynamic>{
+        'secure': <Map<String, String>>[
+          {
+            'type': 'apiKey',
+            'name': 'cookieAuth',
+            'keyName': 'e_school_session',
+            'where': '',
+          },
+          {'type': 'http', 'scheme': 'bearer', 'name': 'bearerAuth'},
+        ],
+        ...?extra,
+      },
+      contentType: 'application/json',
+      validateStatus: validateStatus,
+    );
+
+    dynamic _bodyData;
+
+    try {
+      _bodyData = jsonEncode(curriculumPlanWrite);
+    } catch (error, stackTrace) {
+      throw DioException(
+        requestOptions: _options.compose(_dio.options, _path),
+        type: DioExceptionType.unknown,
+        error: error,
+        stackTrace: stackTrace,
+      );
+    }
+
+    final _response = await _dio.request<Object>(
+      _path,
+      data: _bodyData,
+      options: _options,
+      cancelToken: cancelToken,
+      onSendProgress: onSendProgress,
+      onReceiveProgress: onReceiveProgress,
+    );
+
+    CurriculumPlanResponse? _responseData;
+
+    try {
+      final rawData = _response.data;
+      _responseData = rawData == null
+          ? null
+          : deserialize<CurriculumPlanResponse, CurriculumPlanResponse>(
+              rawData,
+              'CurriculumPlanResponse',
+              growable: true,
+            );
+    } catch (error, stackTrace) {
+      throw DioException(
+        requestOptions: _response.requestOptions,
+        response: _response,
+        type: DioExceptionType.unknown,
+        error: error,
+        stackTrace: stackTrace,
+      );
+    }
+
+    return Response<CurriculumPlanResponse>(
       data: _responseData,
       headers: _response.headers,
       isRedirect: _response.isRedirect,

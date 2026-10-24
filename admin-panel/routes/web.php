@@ -28,6 +28,7 @@ use App\Http\Controllers\MediumController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\OnlineExamController;
 use App\Http\Controllers\OnlineExamQuestionController;
+use App\Http\Controllers\Panel\Academics\CurriculumController;
 use App\Http\Controllers\Panel\Academics\NewYearController;
 use App\Http\Controllers\Panel\Academics\SubjectStandardController;
 use App\Http\Controllers\Panel\People\LearnerInvitationController;
@@ -205,6 +206,13 @@ Route::group(['middleware' => ['Role', 'auth', 'school.context', EnforceReadOnly
         Route::get('class-teacher-list', [ClassTeacherController::class, 'show']);
         Route::post('remove-class-teacher/{id}/{class_teacher_id}', [ClassTeacherController::class, 'removeClassTeacher']);
 
+        Route::get('curriculum-plans', [CurriculumController::class, 'index'])->name('curriculum.index');
+        Route::get('curriculum-plans/new', [CurriculumController::class, 'edit'])->name('curriculum.create');
+        Route::post('curriculum-plans', [CurriculumController::class, 'store'])->name('curriculum.store');
+        Route::get('curriculum-plans/{plan}', [CurriculumController::class, 'edit'])->whereNumber('plan')->name('curriculum.edit');
+        Route::put('curriculum-plans/{plan}', [CurriculumController::class, 'update'])->whereNumber('plan')->name('curriculum.update');
+        Route::post('curriculum-plans/{plan}/copy', [CurriculumController::class, 'copy'])->whereNumber('plan')->name('curriculum.copy');
+        Route::post('curriculum-plans/{plan}/assessments/{assessment}/publish', [CurriculumController::class, 'publish'])->whereNumber('plan')->whereNumber('assessment')->name('curriculum.publish');
         Route::get('subject-standards', [SubjectStandardController::class, 'index'])->name('subject-standards.index');
         Route::post('subject-standards/subjects', [SubjectStandardController::class, 'store'])->name('subject-standards.store');
         Route::put('subject-standards/subjects/{subject}', [SubjectStandardController::class, 'update'])->whereNumber('subject')->name('subject-standards.update');

@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use App\Http\Controllers\Api\V2\Academics\AcademicReferenceController;
+use App\Http\Controllers\Api\V2\Academics\CurriculumController;
 use App\Http\Controllers\Api\V2\Academics\SubjectStandardController;
 use App\Http\Controllers\Api\V2\Academics\TermCalendarController;
 use App\Http\Controllers\Api\V2\People\EnrolmentController;
@@ -16,6 +17,7 @@ use App\Http\Controllers\Api\V2\Platform\HandleController;
 use App\Http\Controllers\Api\V2\Platform\NotificationPreferenceController;
 use App\Http\Controllers\Api\V2\School\MySchoolController;
 use App\Http\Middleware\AuthorizeClassGrade;
+use App\Http\Middleware\AuthorizeCurriculum;
 use App\Http\Middleware\AuthorizeSubjectStandard;
 use App\Http\Middleware\AuthorizeTermCalendar;
 use Illuminate\Support\Facades\Route;
@@ -43,6 +45,14 @@ use Illuminate\Support\Facades\Route;
 
 // Keep fresh class permissions ahead of idempotent replay as well as validation.
 Route::prefix('academics')->middleware(['auth:sanctum', 'school.context', 'role.any', 'learner.approved', 'module:academics', 'cache.headers:private;no_store'])->name('api.v2.academics.')->group(function () {
+    Route::prefix('curriculum-plans')->name('curriculum.')->group(function () {
+        Route::get('/', [CurriculumController::class, 'index'])->middleware(AuthorizeCurriculum::class.':read')->name('index');
+        Route::post('/', [CurriculumController::class, 'store'])->middleware([AuthorizeCurriculum::class.':manage', 'idempotent'])->name('store');
+        Route::get('{plan}', [CurriculumController::class, 'show'])->whereNumber('plan')->middleware(AuthorizeCurriculum::class.':read')->name('show');
+        Route::put('{plan}', [CurriculumController::class, 'update'])->whereNumber('plan')->middleware([AuthorizeCurriculum::class.':manage', 'idempotent'])->name('update');
+        Route::post('{plan}/copy', [CurriculumController::class, 'copy'])->whereNumber('plan')->middleware([AuthorizeCurriculum::class.':copy', 'idempotent'])->name('copy');
+        Route::post('{plan}/assessments/{assessment}/publish', [CurriculumController::class, 'publish'])->whereNumber('plan')->whereNumber('assessment')->middleware([AuthorizeCurriculum::class.':publish', 'idempotent'])->name('publish');
+    });
     Route::get('subject-standards', [SubjectStandardController::class, 'index'])->middleware(AuthorizeSubjectStandard::class.':read')->name('subject-standards.index');
     Route::get('subjects/{subject}/standard', [SubjectStandardController::class, 'show'])->whereNumber('subject')->middleware(AuthorizeSubjectStandard::class.':list')->name('subjects.standard.show');
     Route::put('subjects/{subject}/standard', [SubjectStandardController::class, 'update'])->whereNumber('subject')->middleware([AuthorizeSubjectStandard::class.':edit', 'idempotent'])->name('subjects.standard.update');

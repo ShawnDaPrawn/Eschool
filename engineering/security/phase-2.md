@@ -37,3 +37,13 @@ source/publication and no school HTTP write path. Imports validate before writes
 revision conflicts roll back the batch. School subject/medium reads use tenant
 scopes, subject permissions are refreshed before idempotent replay, and mapping
 IDs are hidden from existing raw v1 model payloads. No new person data is stored.
+
+## Curriculum implementation
+
+Fresh actor/permission/allocation checks gate reads and writes before idempotent
+replay. Nested IDs resolve under school scopes and grade/year term bounds; copied
+source IDs are server-generated. Root school serialization and draft revisions
+protect concurrent saves. Published definitions and lock dates reject writes with
+409. JSON editor output is escaped and rendered through DOM text nodes; decimal
+marks reject floats/scientific notation. School publishers alone publish/carry all
+curriculum history. No marks or reports are copied into a new year.

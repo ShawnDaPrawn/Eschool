@@ -98,6 +98,283 @@ tags:
   - name: Platform
     description: Who is signed in and the school they work in.
 paths:
+  /academics/curriculum-plans:
+    get:
+      operationId: getCurriculumPlans
+      tags:
+      - Academics
+      summary: List curriculum versions visible to this allocated teacher or school publisher
+      description: Published headers and term plans are immutable. Use a copy for a new version. Drafts may be incomplete; publication validates the affected term. Decimal marks are strings; weights are integer basis points (10000 = 100%).
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - name: subject_id
+        in: query
+        schema:
+          type: integer
+          minimum: 1
+      - name: grade_level_id
+        in: query
+        schema:
+          type: integer
+          minimum: 1
+      - name: session_year_id
+        in: query
+        schema:
+          type: integer
+          minimum: 1
+      - name: page
+        in: query
+        schema:
+          type: integer
+          minimum: 1
+      - name: per_page
+        in: query
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 100
+      - name: state
+        in: query
+        schema:
+          type: string
+          enum:
+          - draft
+          - published
+      responses:
+        '200':
+          description: Curriculum result.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CurriculumPlansResponse'
+        '400':
+          $ref: '#/components/responses/IdempotencyKeyProblem'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+    post:
+      operationId: createCurriculumPlan
+      tags:
+      - Academics
+      summary: Save a new curriculum draft
+      description: Published headers and term plans are immutable. Use a copy for a new version. Drafts may be incomplete; publication validates the affected term. Decimal marks are strings; weights are integer basis points (10000 = 100%).
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      responses:
+        '200':
+          description: Curriculum result.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CurriculumPlanResponse'
+        '400':
+          $ref: '#/components/responses/IdempotencyKeyProblem'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CurriculumPlanWrite'
+  /academics/curriculum-plans/{plan}:
+    get:
+      operationId: getCurriculumPlan
+      tags:
+      - Academics
+      summary: Read a curriculum with topics, tasks and question maxima
+      description: Published headers and term plans are immutable. Use a copy for a new version. Drafts may be incomplete; publication validates the affected term. Decimal marks are strings; weights are integer basis points (10000 = 100%).
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - name: plan
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      responses:
+        '200':
+          description: Curriculum result.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CurriculumPlanResponse'
+        '400':
+          $ref: '#/components/responses/IdempotencyKeyProblem'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+    put:
+      operationId: updateCurriculumPlan
+      tags:
+      - Academics
+      summary: Replace a draft using its current revision
+      description: Published headers and term plans are immutable. Use a copy for a new version. Drafts may be incomplete; publication validates the affected term. Decimal marks are strings; weights are integer basis points (10000 = 100%).
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - name: plan
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      responses:
+        '200':
+          description: Curriculum result.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CurriculumPlanResponse'
+        '400':
+          $ref: '#/components/responses/IdempotencyKeyProblem'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CurriculumPlanWrite'
+  /academics/curriculum-plans/{plan}/copy:
+    post:
+      operationId: copyCurriculumPlan
+      tags:
+      - Academics
+      summary: Copy definitions to a new draft without copying marks
+      description: Published headers and term plans are immutable. Use a copy for a new version. Drafts may be incomplete; publication validates the affected term. Decimal marks are strings; weights are integer basis points (10000 = 100%).
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - name: plan
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      responses:
+        '200':
+          description: Curriculum result.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CurriculumPlanResponse'
+        '400':
+          $ref: '#/components/responses/IdempotencyKeyProblem'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CurriculumCopyWrite'
+  /academics/curriculum-plans/{plan}/assessments/{assessment}/publish:
+    post:
+      operationId: publishCurriculumAssessment
+      tags:
+      - Academics
+      summary: Publish one ready term while future terms remain drafts
+      description: Published headers and term plans are immutable. Use a copy for a new version. Drafts may be incomplete; publication validates the affected term. Decimal marks are strings; weights are integer basis points (10000 = 100%).
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - name: plan
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      - name: assessment
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      responses:
+        '200':
+          description: Curriculum result.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CurriculumPlanResponse'
+        '400':
+          $ref: '#/components/responses/IdempotencyKeyProblem'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CurriculumPublishWrite'
   /academics/subject-standards:
     get:
       operationId: getSubjectStandards
@@ -1026,9 +1303,9 @@ paths:
       - Platform
       summary: Read a learners dated enrolment history
       parameters:
-      - &id001
+      - &enrolmentSchool
         $ref: '#/components/parameters/SchoolId'
-      - &id002
+      - &enrolmentLearner
         name: learner
         in: path
         required: true
@@ -1069,8 +1346,8 @@ paths:
       - Platform
       summary: Append a dated homeroom assignment
       parameters:
-      - *id001
-      - *id002
+      - *enrolmentSchool
+      - *enrolmentLearner
       requestBody:
         required: true
         content:
@@ -2071,6 +2348,574 @@ components:
           schema:
             $ref: '#/components/schemas/ErrorResponse'
   schemas:
+    CurriculumQuestionWrite:
+      type: object
+      required:
+      - number
+      - max_mark
+      - topic_keys
+      properties:
+        number:
+          type: string
+          maxLength: 24
+        max_mark:
+          type: string
+          pattern: ^\d{1,7}(\.\d{1,2})?$
+        topic_keys:
+          type: array
+          items:
+            type: string
+            format: uuid
+          maxItems: 50
+      additionalProperties: false
+    CurriculumQuestion:
+      type: object
+      required:
+      - id
+      - number
+      - max_mark
+      - topic_keys
+      properties:
+        id:
+          type: integer
+          minimum: 1
+        number:
+          type: string
+          maxLength: 24
+        max_mark:
+          type: string
+          pattern: ^\d{1,7}(\.\d{1,2})?$
+        topic_keys:
+          type: array
+          items:
+            type: string
+            format: uuid
+          maxItems: 50
+      additionalProperties: false
+    CurriculumTaskWrite:
+      type: object
+      required:
+      - name
+      - type
+      - component
+      - weight_bp
+      - max_mark
+      - topic_keys
+      - questions
+      properties:
+        key:
+          type: string
+          format: uuid
+        name:
+          type: string
+          maxLength: 191
+        type:
+          type: string
+          maxLength: 40
+        component:
+          type: string
+          pattern: ^[a-z][a-z0-9_]{0,23}$
+        annual_component:
+          type:
+          - string
+          - 'null'
+        weight_bp:
+          type: integer
+          minimum: 0
+          maximum: 10000
+        annual_weight_bp:
+          type: integer
+          minimum: 0
+          maximum: 10000
+        max_mark:
+          type: string
+          pattern: ^\d{1,7}(\.\d{1,2})?$
+        due_on:
+          type:
+          - string
+          - 'null'
+          pattern: ^\d{4}-\d{2}-\d{2}$
+        topic_keys:
+          type: array
+          items:
+            type: string
+            format: uuid
+          maxItems: 50
+        questions:
+          type: array
+          items:
+            $ref: '#/components/schemas/CurriculumQuestionWrite'
+          maxItems: 100
+      additionalProperties: false
+    CurriculumTask:
+      type: object
+      required:
+      - id
+      - source_task_id
+      - key
+      - name
+      - type
+      - component
+      - annual_component
+      - weight_bp
+      - annual_weight_bp
+      - max_mark
+      - due_on
+      - topic_keys
+      - questions
+      properties:
+        id:
+          type: integer
+          minimum: 1
+        source_task_id:
+          type:
+          - integer
+          - 'null'
+          minimum: 1
+        key:
+          type: string
+          format: uuid
+        name:
+          type: string
+          maxLength: 191
+        type:
+          type: string
+          maxLength: 40
+        component:
+          type: string
+          pattern: ^[a-z][a-z0-9_]{0,23}$
+        annual_component:
+          type:
+          - string
+          - 'null'
+        weight_bp:
+          type: integer
+          minimum: 0
+          maximum: 10000
+        annual_weight_bp:
+          type: integer
+          minimum: 0
+          maximum: 10000
+        max_mark:
+          type: string
+          pattern: ^\d{1,7}(\.\d{1,2})?$
+        due_on:
+          type:
+          - string
+          - 'null'
+          pattern: ^\d{4}-\d{2}-\d{2}$
+        topic_keys:
+          type: array
+          items:
+            type: string
+            format: uuid
+          maxItems: 50
+        questions:
+          type: array
+          items:
+            $ref: '#/components/schemas/CurriculumQuestion'
+          maxItems: 100
+      additionalProperties: false
+    CurriculumTopicWrite:
+      type: object
+      required:
+      - term_id
+      - name
+      properties:
+        key:
+          type: string
+          format: uuid
+        term_id:
+          type: integer
+          minimum: 1
+        name:
+          type: string
+          maxLength: 191
+        sort_order:
+          type: integer
+          minimum: 0
+          maximum: 10000
+        week_from:
+          type:
+          - integer
+          - 'null'
+          minimum: 1
+          maximum: 53
+        week_to:
+          type:
+          - integer
+          - 'null'
+          minimum: 1
+          maximum: 53
+      additionalProperties: false
+    CurriculumTopic:
+      type: object
+      required:
+      - id
+      - key
+      - term_id
+      - name
+      - sort_order
+      - week_from
+      - week_to
+      properties:
+        id:
+          type: integer
+          minimum: 1
+        key:
+          type: string
+          format: uuid
+        term_id:
+          type: integer
+          minimum: 1
+        name:
+          type: string
+          maxLength: 191
+        sort_order:
+          type: integer
+          minimum: 0
+          maximum: 10000
+        week_from:
+          type:
+          - integer
+          - 'null'
+          minimum: 1
+          maximum: 53
+        week_to:
+          type:
+          - integer
+          - 'null'
+          minimum: 1
+          maximum: 53
+      additionalProperties: false
+    CurriculumAssessmentWrite:
+      type: object
+      required:
+      - term_id
+      - components
+      - tasks
+      properties:
+        term_id:
+          type: integer
+          minimum: 1
+        components:
+          type: object
+          additionalProperties:
+            type: integer
+            minimum: 0
+            maximum: 10000
+          maxProperties: 8
+        tasks:
+          type: array
+          items:
+            $ref: '#/components/schemas/CurriculumTaskWrite'
+          maxItems: 100
+      additionalProperties: false
+    CurriculumAssessment:
+      type: object
+      required:
+      - id
+      - term_id
+      - components
+      - tasks
+      - state
+      - published_at
+      properties:
+        id:
+          type: integer
+          minimum: 1
+        term_id:
+          type: integer
+          minimum: 1
+        components:
+          type: object
+          additionalProperties:
+            type: integer
+            minimum: 0
+            maximum: 10000
+          maxProperties: 8
+        tasks:
+          type: array
+          items:
+            $ref: '#/components/schemas/CurriculumTask'
+          maxItems: 100
+        state:
+          type: string
+          enum:
+          - draft
+          - published
+        published_at:
+          type:
+          - string
+          - 'null'
+          format: date-time
+      additionalProperties: false
+    CurriculumPlanSummary:
+      type: object
+      required:
+      - id
+      - subject_id
+      - grade_level_id
+      - session_year_id
+      - title
+      - version
+      - revision
+      - state
+      properties:
+        id:
+          type: integer
+          minimum: 1
+        subject_id:
+          type: integer
+          minimum: 1
+        grade_level_id:
+          type: integer
+          minimum: 1
+        session_year_id:
+          type: integer
+          minimum: 1
+        title:
+          type: string
+          maxLength: 191
+        version:
+          type: integer
+          minimum: 1
+        revision:
+          type: integer
+          minimum: 1
+        state:
+          type: string
+          enum:
+          - draft
+          - published
+      additionalProperties: false
+    CurriculumPlanWrite:
+      type: object
+      required:
+      - subject_id
+      - grade_level_id
+      - session_year_id
+      - title
+      - rounding
+      - absent_policy
+      - topics
+      - assessments
+      properties:
+        subject_id:
+          type: integer
+          minimum: 1
+        grade_level_id:
+          type: integer
+          minimum: 1
+        session_year_id:
+          type: integer
+          minimum: 1
+        title:
+          type: string
+          maxLength: 191
+        revision:
+          type: integer
+          minimum: 1
+        standard_id:
+          type:
+          - integer
+          - 'null'
+          minimum: 1
+        annual_components:
+          anyOf:
+          - type: object
+            additionalProperties:
+              type: integer
+              minimum: 0
+              maximum: 10000
+            maxProperties: 8
+          - type: 'null'
+        rounding:
+          type: string
+          enum:
+          - half_up
+          - half_even
+          - floor
+        absent_policy:
+          type: string
+          enum:
+          - zero
+          - incomplete
+        topics:
+          type: array
+          items:
+            $ref: '#/components/schemas/CurriculumTopicWrite'
+          maxItems: 500
+        assessments:
+          type: array
+          items:
+            $ref: '#/components/schemas/CurriculumAssessmentWrite'
+          maxItems: 20
+      additionalProperties: false
+    CurriculumPlan:
+      type: object
+      required:
+      - id
+      - subject_id
+      - grade_level_id
+      - session_year_id
+      - title
+      - version
+      - revision
+      - state
+      - standard_id
+      - annual_components
+      - rounding
+      - absent_policy
+      - topics
+      - assessments
+      - source_plan_id
+      - standard_snapshot
+      properties:
+        id:
+          type: integer
+          minimum: 1
+        subject_id:
+          type: integer
+          minimum: 1
+        grade_level_id:
+          type: integer
+          minimum: 1
+        session_year_id:
+          type: integer
+          minimum: 1
+        title:
+          type: string
+          maxLength: 191
+        version:
+          type: integer
+          minimum: 1
+        revision:
+          type: integer
+          minimum: 1
+        state:
+          type: string
+          enum:
+          - draft
+          - published
+        standard_id:
+          type:
+          - integer
+          - 'null'
+          minimum: 1
+        annual_components:
+          anyOf:
+          - type: object
+            additionalProperties:
+              type: integer
+              minimum: 0
+              maximum: 10000
+            maxProperties: 8
+          - type: 'null'
+        rounding:
+          type: string
+          enum:
+          - half_up
+          - half_even
+          - floor
+        absent_policy:
+          type: string
+          enum:
+          - zero
+          - incomplete
+        topics:
+          type: array
+          items:
+            $ref: '#/components/schemas/CurriculumTopic'
+          maxItems: 500
+        assessments:
+          type: array
+          items:
+            $ref: '#/components/schemas/CurriculumAssessment'
+          maxItems: 20
+        source_plan_id:
+          type:
+          - integer
+          - 'null'
+          minimum: 1
+        standard_snapshot:
+          anyOf:
+          - $ref: '#/components/schemas/SubjectStandard'
+          - type: 'null'
+      additionalProperties: false
+    CurriculumPublishWrite:
+      type: object
+      required:
+      - revision
+      properties:
+        revision:
+          type: integer
+          minimum: 1
+      additionalProperties: false
+    CurriculumCopyWrite:
+      type: object
+      required:
+      - session_year_id
+      properties:
+        session_year_id:
+          type: integer
+          minimum: 1
+      additionalProperties: false
+    CurriculumPlanResponse:
+      type: object
+      required:
+      - error
+      - message
+      - code
+      - data
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        code:
+          type: integer
+        data:
+          $ref: '#/components/schemas/CurriculumPlan'
+      additionalProperties: false
+    CurriculumPlansResponse:
+      type: object
+      required:
+      - error
+      - message
+      - code
+      - data
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        code:
+          type: integer
+        data:
+          type: object
+          required:
+          - plans
+          - current_page
+          - last_page
+          - total
+          properties:
+            plans:
+              type: array
+              items:
+                $ref: '#/components/schemas/CurriculumPlanSummary'
+              maxItems: 100
+            current_page:
+              type: integer
+              minimum: 1
+            last_page:
+              type: integer
+              minimum: 1
+            total:
+              type: integer
+              minimum: 0
+          additionalProperties: false
+      additionalProperties: false
     SubjectStandard:
       type: object
       required:
