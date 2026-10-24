@@ -87,6 +87,16 @@ class AcademicAuthority
         });
     }
 
+    /** A current appointment covers retained records of this grade in earlier years. */
+    public function currentLeadership(User $actor, string $kind, int $gradeId): bool
+    {
+        $fresh = $this->staff($actor);
+        $query = AcademicLeadership::query()->where('user_id', $fresh->id)->where('kind', $kind)
+            ->whereDate('starts_on', '<=', $this->today())->whereDate('ends_on', '>=', $this->today());
+
+        return ($kind === 'principal' ? $query->whereNull('grade_level_id') : $query->where('grade_level_id', $gradeId))->exists();
+    }
+
     public function leads(User $actor, string $kind, int $gradeId, int $yearId, ?string $date = null): bool
     {
         $fresh = $this->staff($actor);

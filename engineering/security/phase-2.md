@@ -100,3 +100,22 @@ and earlier-day checks are service-enforced on each request. Views escape roster
 names and tokens; QR matching uses direct string comparison and DOM text output.
 Family endpoints remain own-child only and return no staff roster/reasons. Private
 no-store responses and app school/child boundaries protect scope changes.
+
+## Report cards
+
+Fresh scoped school/staff/leadership/allocation or own-child checks precede HTTP
+writes and idempotent replay. Current school/grade leadership governs report
+history across calendar rollover. Subject/homeroom teachers have only their own
+comment scopes; administrative corrections need an encrypted audit reason.
+Comment CAS, source fingerprints and ordered approvals prevent stale release.
+Changing signed content resets signatures; approval fingerprints include the
+signature cycle revision, so an old queued renderer cannot reuse a later approval.
+Released batches/cards/comments reject mutation and moving source references.
+
+PDF input is escaped text, with no remote/PHP/JavaScript execution; crest input is
+bounded decoded raster data re-encoded as PNG. Evidence/comments/PDF bytes are
+encrypted at rest on a private disk. Signed ten-minute downloads bind requester,
+school and staff/family purpose and require fresh access. Family list/downloads
+never query fees. Report notices deduplicate per recipient/card and recheck live
+guardianship at both queued transports. This is implementation/self-review, not
+independent staging/pilot security acceptance.

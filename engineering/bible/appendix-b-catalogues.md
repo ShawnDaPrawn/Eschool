@@ -74,3 +74,11 @@ Academic register amendment: academics.register_amended (academics module),
 current guardians, standard channel preferences; attendance.absence retains its
 mandatory-parent rule. academics.register_changed carries register/entry IDs and
 revisions through the outbox; no personal body is stored in that domain event.
+
+Reports: academics.report_approved carries batch ID/content fingerprint to queued
+per-card generation; academics.report_published carries batch ID to Notifier.
+Notification type academics.report_published uses the academics module and
+existing family channel preferences. Claims are per card/recipient; prior read
+state does not consume notification eligibility. Mail/push transport rechecks
+released evidence and fresh guardian/learner rights. No report scores, comments,
+signed download links or PDF bytes enter domain event payloads.

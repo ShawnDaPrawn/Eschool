@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Services\Platform\Notifications;
 
 use App\Models\Academics\AttendanceEntry;
+use App\Models\Academics\ReportCard;
 use App\Models\Leave;
 use App\Models\Platform\GuardianLink;
 use App\Models\Platform\HandleProposal;
@@ -57,6 +58,15 @@ class DeliveryGuard
                 }
                 if ($kind === 'absence' && ($entry->register->timetable_lesson_id !== null || $entry->state !== 'absent'
                     || isset(Leave::approvedTypesForDate($entry->register->on_date->toDateString())[$entry->learner->user_id]))) {
+                    return false;
+                }
+            }
+            if (isset($context['report_card_id'])) {
+                $card = ReportCard::with('batch')->find($context['report_card_id']);
+                $learner = $card === null ? null : Students::find($card->learner_id);
+                if ($type !== 'academics.report_published' || $card === null || $learner === null || $card->batch?->state !== 'released'
+                    || $card->generated_fingerprint !== $card->batch->fingerprint || (int) $card->learner_id !== (int) ($context['report_learner_id'] ?? 0)
+                    || ((int) $learner->user_id !== (int) $user->id && ! app(GuardianService::class)->guardianUserIds($learner)->contains((int) $user->id))) {
                     return false;
                 }
             }

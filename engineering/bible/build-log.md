@@ -289,3 +289,15 @@ Home attendance/QR, panel counts/corrections/cutoff, and bounded atomic form cap
 Local shared/app tests and teacher/parent Chrome flows pass; panel capture/conflict
 and read-only flows pass at both desktop widths with accessibility/overflow checks.
 Staging, real classroom/device timings and full-term pilot evidence remain open.
+
+### Phase 2 report service implementation (24 October 2026)
+
+School report designs and comment banks, selected learner previews, exact snapshot
+pinning, grade-head/principal signatures, queued encrypted private PDFs, explicit
+release, own-child requester-bound expiring downloads and read/notifier records
+are implemented in a dedicated branch. Independent draft comments use per-scope
+CAS; changes invalidate signatures, stale jobs cannot reuse an earlier approval
+cycle, and published evidence remains immutable. Current leadership can handle
+historical reports after a year rollover; administrative comment corrections
+require an encrypted audit reason. Backend/API/SDK verification is in progress.
+Panel/shared report screens, external delivery and pilot acceptance remain open.

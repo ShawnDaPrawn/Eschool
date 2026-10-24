@@ -69,7 +69,7 @@ class Registers
         $entries = AttendanceEntry::where('attendance_register_id', $id)->get()->keyBy('learner_id');
         $legacy = app(RegisterLegacy::class)->rows($register);
         $canWrite = $register->on_date->toDateString() === app(AcademicAuthority::class)->today() || app(AcademicAuthority::class)->manages($actor)
-            || app(AcademicAuthority::class)->leads($actor, 'grade_head', (int) $register->grade_level_id, (int) $register->session_year_id);
+            || app(AcademicAuthority::class)->currentLeadership($actor, 'grade_head', (int) $register->grade_level_id);
 
         return ['register_id' => (int) $register->id, 'label' => $register->label, 'session_year_id' => (int) $register->session_year_id, 'class_section_id' => $register->class_section_id === null ? null : (int) $register->class_section_id,
             'timetable_lesson_id' => $register->timetable_lesson_id === null ? null : (int) $register->timetable_lesson_id, 'on_date' => $register->on_date->toDateString(), 'revision' => $register->revision,
