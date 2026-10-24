@@ -188,3 +188,11 @@ withdrawal, account/school changes and backgrounding. Exact UUID/revision payloa
 freeze uncertain writes; a new preview follows any edit. No persistent cache or
 private body in notifications. Automated coverage exercises wrong identity, late
 responses, revocation and conflict/approval flows; independent review remains open.
+
+SA-SAMS exports use fresh academic management authority and tenant-scoped source
+IDs, private no-store downloads and bounded temporary files with finally cleanup.
+XLSX input rejects formulas, links, macros, embeddings, excessive expansion and
+data below the declared header. CSV expression-like values are refused without
+changing target identities; non-recorded score codes are explicit mappings.
+Audit/provenance omit learner rows and private reference maps. Cross-school/role
+checks and spreadsheet-input tests pass; independent review remains outstanding.
