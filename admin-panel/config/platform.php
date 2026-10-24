@@ -2,8 +2,10 @@
 
 use App\Listeners\Academics\NotifyMarksReleased;
 use App\Listeners\Academics\NotifyRegisterAmended;
+use App\Listeners\Academics\NotifyReportPublished;
 use App\Listeners\Academics\QueueAssessmentRecompute;
 use App\Listeners\Academics\QueueMarkRecompute;
+use App\Listeners\Academics\QueueReportGeneration;
 use App\Listeners\Platform\NotifyHandleGuardians;
 use App\Listeners\Platform\QueueNotificationFanout;
 use App\Listeners\Platform\RefreshAppContext;
@@ -36,6 +38,8 @@ return [
         // App\Services\Platform\Events\OutboxListener and receives the stored
         // event. Listeners for one event run in one database transaction.
         'listeners' => [
+            'academics.report_published' => [NotifyReportPublished::class],
+            'academics.report_approved' => [QueueReportGeneration::class],
             'academics.assessment_published' => [QueueAssessmentRecompute::class],
             'academics.register_changed' => [NotifyRegisterAmended::class],
             'academics.marks_released' => [NotifyMarksReleased::class],

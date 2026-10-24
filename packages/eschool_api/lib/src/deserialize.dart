@@ -62,6 +62,60 @@ import 'package:eschool_api/src/model/academic_release_write.dart';
 import 'package:eschool_api/src/model/academic_released_data.dart';
 import 'package:eschool_api/src/model/academic_released_response.dart';
 import 'package:eschool_api/src/model/academic_released_result.dart';
+import 'package:eschool_api/src/model/academic_report_access_data.dart';
+import 'package:eschool_api/src/model/academic_report_access_response.dart';
+import 'package:eschool_api/src/model/academic_report_action_write.dart';
+import 'package:eschool_api/src/model/academic_report_attendance.dart';
+import 'package:eschool_api/src/model/academic_report_attendance_day.dart';
+import 'package:eschool_api/src/model/academic_report_bank_saved_response.dart';
+import 'package:eschool_api/src/model/academic_report_batch_data.dart';
+import 'package:eschool_api/src/model/academic_report_batch_response.dart';
+import 'package:eschool_api/src/model/academic_report_batch_summary.dart';
+import 'package:eschool_api/src/model/academic_report_batches_data.dart';
+import 'package:eschool_api/src/model/academic_report_batches_response.dart';
+import 'package:eschool_api/src/model/academic_report_card.dart';
+import 'package:eschool_api/src/model/academic_report_comment_bank.dart';
+import 'package:eschool_api/src/model/academic_report_comment_bank_write.dart';
+import 'package:eschool_api/src/model/academic_report_comment_data.dart';
+import 'package:eschool_api/src/model/academic_report_comment_response.dart';
+import 'package:eschool_api/src/model/academic_report_comment_row.dart';
+import 'package:eschool_api/src/model/academic_report_comment_write.dart';
+import 'package:eschool_api/src/model/academic_report_comments_data.dart';
+import 'package:eschool_api/src/model/academic_report_comments_response.dart';
+import 'package:eschool_api/src/model/academic_report_configuration_data.dart';
+import 'package:eschool_api/src/model/academic_report_configuration_response.dart';
+import 'package:eschool_api/src/model/academic_report_design.dart';
+import 'package:eschool_api/src/model/academic_report_design_snapshot.dart';
+import 'package:eschool_api/src/model/academic_report_detail_card.dart';
+import 'package:eschool_api/src/model/academic_report_detail_data.dart';
+import 'package:eschool_api/src/model/academic_report_detail_response.dart';
+import 'package:eschool_api/src/model/academic_report_enrolment.dart';
+import 'package:eschool_api/src/model/academic_report_family_card.dart';
+import 'package:eschool_api/src/model/academic_report_family_data.dart';
+import 'package:eschool_api/src/model/academic_report_family_response.dart';
+import 'package:eschool_api/src/model/academic_report_homeroom.dart';
+import 'package:eschool_api/src/model/academic_report_payload.dart';
+import 'package:eschool_api/src/model/academic_report_prepare_write.dart';
+import 'package:eschool_api/src/model/academic_report_preview_data.dart';
+import 'package:eschool_api/src/model/academic_report_preview_response.dart';
+import 'package:eschool_api/src/model/academic_report_read_data.dart';
+import 'package:eschool_api/src/model/academic_report_read_response.dart';
+import 'package:eschool_api/src/model/academic_report_release_preview_data.dart';
+import 'package:eschool_api/src/model/academic_report_release_preview_response.dart';
+import 'package:eschool_api/src/model/academic_report_roster_data.dart';
+import 'package:eschool_api/src/model/academic_report_roster_response.dart';
+import 'package:eschool_api/src/model/academic_report_saved_revision.dart';
+import 'package:eschool_api/src/model/academic_report_selection.dart';
+import 'package:eschool_api/src/model/academic_report_signature.dart';
+import 'package:eschool_api/src/model/academic_report_signatures.dart';
+import 'package:eschool_api/src/model/academic_report_source_data.dart';
+import 'package:eschool_api/src/model/academic_report_source_response.dart';
+import 'package:eschool_api/src/model/academic_report_stored_comment.dart';
+import 'package:eschool_api/src/model/academic_report_subject_result.dart';
+import 'package:eschool_api/src/model/academic_report_template.dart';
+import 'package:eschool_api/src/model/academic_report_template_response.dart';
+import 'package:eschool_api/src/model/academic_report_template_write.dart';
+import 'package:eschool_api/src/model/academic_report_term.dart';
 import 'package:eschool_api/src/model/academic_room.dart';
 import 'package:eschool_api/src/model/academic_room_response.dart';
 import 'package:eschool_api/src/model/academic_room_write.dart';
@@ -437,6 +491,202 @@ ReturnType deserialize<ReturnType, BaseType>(
           as ReturnType;
     case 'AcademicReleasedResult':
       return AcademicReleasedResult.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'AcademicReportAccessData':
+      return AcademicReportAccessData.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'AcademicReportAccessResponse':
+      return AcademicReportAccessResponse.fromJson(
+            value as Map<String, dynamic>,
+          )
+          as ReturnType;
+    case 'AcademicReportActionWrite':
+      return AcademicReportActionWrite.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'AcademicReportAttendance':
+      return AcademicReportAttendance.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'AcademicReportAttendanceDay':
+      return AcademicReportAttendanceDay.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'AcademicReportBankSavedResponse':
+      return AcademicReportBankSavedResponse.fromJson(
+            value as Map<String, dynamic>,
+          )
+          as ReturnType;
+    case 'AcademicReportBatchData':
+      return AcademicReportBatchData.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'AcademicReportBatchResponse':
+      return AcademicReportBatchResponse.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'AcademicReportBatchSummary':
+      return AcademicReportBatchSummary.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'AcademicReportBatchesData':
+      return AcademicReportBatchesData.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'AcademicReportBatchesResponse':
+      return AcademicReportBatchesResponse.fromJson(
+            value as Map<String, dynamic>,
+          )
+          as ReturnType;
+    case 'AcademicReportCard':
+      return AcademicReportCard.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'AcademicReportCommentBank':
+      return AcademicReportCommentBank.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'AcademicReportCommentBankWrite':
+      return AcademicReportCommentBankWrite.fromJson(
+            value as Map<String, dynamic>,
+          )
+          as ReturnType;
+    case 'AcademicReportCommentData':
+      return AcademicReportCommentData.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'AcademicReportCommentResponse':
+      return AcademicReportCommentResponse.fromJson(
+            value as Map<String, dynamic>,
+          )
+          as ReturnType;
+    case 'AcademicReportCommentRow':
+      return AcademicReportCommentRow.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'AcademicReportCommentWrite':
+      return AcademicReportCommentWrite.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'AcademicReportCommentsData':
+      return AcademicReportCommentsData.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'AcademicReportCommentsResponse':
+      return AcademicReportCommentsResponse.fromJson(
+            value as Map<String, dynamic>,
+          )
+          as ReturnType;
+    case 'AcademicReportConfigurationData':
+      return AcademicReportConfigurationData.fromJson(
+            value as Map<String, dynamic>,
+          )
+          as ReturnType;
+    case 'AcademicReportConfigurationResponse':
+      return AcademicReportConfigurationResponse.fromJson(
+            value as Map<String, dynamic>,
+          )
+          as ReturnType;
+    case 'AcademicReportDesign':
+      return AcademicReportDesign.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'AcademicReportDesignSnapshot':
+      return AcademicReportDesignSnapshot.fromJson(
+            value as Map<String, dynamic>,
+          )
+          as ReturnType;
+    case 'AcademicReportDetailCard':
+      return AcademicReportDetailCard.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'AcademicReportDetailData':
+      return AcademicReportDetailData.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'AcademicReportDetailResponse':
+      return AcademicReportDetailResponse.fromJson(
+            value as Map<String, dynamic>,
+          )
+          as ReturnType;
+    case 'AcademicReportEnrolment':
+      return AcademicReportEnrolment.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'AcademicReportFamilyCard':
+      return AcademicReportFamilyCard.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'AcademicReportFamilyData':
+      return AcademicReportFamilyData.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'AcademicReportFamilyResponse':
+      return AcademicReportFamilyResponse.fromJson(
+            value as Map<String, dynamic>,
+          )
+          as ReturnType;
+    case 'AcademicReportHomeroom':
+      return AcademicReportHomeroom.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'AcademicReportPayload':
+      return AcademicReportPayload.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'AcademicReportPrepareWrite':
+      return AcademicReportPrepareWrite.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'AcademicReportPreviewData':
+      return AcademicReportPreviewData.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'AcademicReportPreviewResponse':
+      return AcademicReportPreviewResponse.fromJson(
+            value as Map<String, dynamic>,
+          )
+          as ReturnType;
+    case 'AcademicReportReadData':
+      return AcademicReportReadData.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'AcademicReportReadResponse':
+      return AcademicReportReadResponse.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'AcademicReportReleasePreviewData':
+      return AcademicReportReleasePreviewData.fromJson(
+            value as Map<String, dynamic>,
+          )
+          as ReturnType;
+    case 'AcademicReportReleasePreviewResponse':
+      return AcademicReportReleasePreviewResponse.fromJson(
+            value as Map<String, dynamic>,
+          )
+          as ReturnType;
+    case 'AcademicReportRosterData':
+      return AcademicReportRosterData.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'AcademicReportRosterResponse':
+      return AcademicReportRosterResponse.fromJson(
+            value as Map<String, dynamic>,
+          )
+          as ReturnType;
+    case 'AcademicReportSavedRevision':
+      return AcademicReportSavedRevision.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'AcademicReportSelection':
+      return AcademicReportSelection.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'AcademicReportSignature':
+      return AcademicReportSignature.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'AcademicReportSignatures':
+      return AcademicReportSignatures.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'AcademicReportSourceData':
+      return AcademicReportSourceData.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'AcademicReportSourceResponse':
+      return AcademicReportSourceResponse.fromJson(
+            value as Map<String, dynamic>,
+          )
+          as ReturnType;
+    case 'AcademicReportStoredComment':
+      return AcademicReportStoredComment.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'AcademicReportSubjectResult':
+      return AcademicReportSubjectResult.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'AcademicReportTemplate':
+      return AcademicReportTemplate.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'AcademicReportTemplateResponse':
+      return AcademicReportTemplateResponse.fromJson(
+            value as Map<String, dynamic>,
+          )
+          as ReturnType;
+    case 'AcademicReportTemplateWrite':
+      return AcademicReportTemplateWrite.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'AcademicReportTerm':
+      return AcademicReportTerm.fromJson(value as Map<String, dynamic>)
           as ReturnType;
     case 'AcademicRoom':
       return AcademicRoom.fromJson(value as Map<String, dynamic>) as ReturnType;

@@ -1,0 +1,84 @@
+// GENERATED CODE - DO NOT MODIFY BY HAND
+
+part of 'academic_report_release_preview_data.dart';
+
+// **************************************************************************
+// JsonSerializableGenerator
+// **************************************************************************
+
+AcademicReportReleasePreviewData _$AcademicReportReleasePreviewDataFromJson(
+  Map<String, dynamic> json,
+) => $checkedCreate(
+  'AcademicReportReleasePreviewData',
+  json,
+  ($checkedConvert) {
+    $checkKeys(
+      json,
+      requiredKeys: const [
+        'id',
+        'state',
+        'revision',
+        'fingerprint',
+        'source_fingerprint',
+        'selection',
+        'design',
+        'signatures',
+        'released_at',
+        'cards',
+        'can_release',
+      ],
+    );
+    final val = AcademicReportReleasePreviewData(
+      id: $checkedConvert('id', (v) => (v as num).toInt()),
+      state: $checkedConvert('state', (v) => v as String),
+      revision: $checkedConvert('revision', (v) => (v as num).toInt()),
+      fingerprint: $checkedConvert('fingerprint', (v) => v as String),
+      sourceFingerprint: $checkedConvert(
+        'source_fingerprint',
+        (v) => v as String,
+      ),
+      selection: $checkedConvert(
+        'selection',
+        (v) => AcademicReportSelection.fromJson(v as Map<String, dynamic>),
+      ),
+      design: $checkedConvert(
+        'design',
+        (v) => AcademicReportDesignSnapshot.fromJson(v as Map<String, dynamic>),
+      ),
+      signatures: $checkedConvert(
+        'signatures',
+        (v) => AcademicReportSignatures.fromJson(v as Map<String, dynamic>),
+      ),
+      releasedAt: $checkedConvert('released_at', (v) => v as String?),
+      cards: $checkedConvert(
+        'cards',
+        (v) => (v as List<dynamic>)
+            .map((e) => AcademicReportCard.fromJson(e as Map<String, dynamic>))
+            .toList(),
+      ),
+      canRelease: $checkedConvert('can_release', (v) => v as bool),
+    );
+    return val;
+  },
+  fieldKeyMap: const {
+    'sourceFingerprint': 'source_fingerprint',
+    'releasedAt': 'released_at',
+    'canRelease': 'can_release',
+  },
+);
+
+Map<String, dynamic> _$AcademicReportReleasePreviewDataToJson(
+  AcademicReportReleasePreviewData instance,
+) => <String, dynamic>{
+  'id': instance.id,
+  'state': instance.state,
+  'revision': instance.revision,
+  'fingerprint': instance.fingerprint,
+  'source_fingerprint': instance.sourceFingerprint,
+  'selection': instance.selection.toJson(),
+  'design': instance.design.toJson(),
+  'signatures': instance.signatures.toJson(),
+  'released_at': instance.releasedAt,
+  'cards': instance.cards.map((e) => e.toJson()).toList(),
+  'can_release': instance.canRelease,
+};

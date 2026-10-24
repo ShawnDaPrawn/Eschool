@@ -3259,6 +3259,935 @@ paths:
           $ref: '#/components/responses/TooManyRequests'
         '500':
           $ref: '#/components/responses/ServerError'
+  /academics/reports/batches:
+    get:
+      operationId: getAcademicReportBatches
+      tags:
+      - Academics
+      summary: List authorized report batches by school year
+      description: Fresh school, role, allocation and own-child rights precede every request and idempotent replay. Report preparation and signatures pin immutable evidence; changed sources return409 before release. Grade-head approval precedes principal approval. PDF generation is queued and private. Signed downloads expire and are requester/school bound. Fees never withhold a report. Selected learners can progress independently.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - name: session_year_id
+        in: query
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+        description: Explicit reporting school year.
+      - name: page
+        in: query
+        required: false
+        schema:
+          type: integer
+          minimum: 1
+        description: Comment card page (50 cards per page).
+      responses:
+        '200':
+          description: Authorized report result.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AcademicReportBatchesResponse'
+        '400':
+          $ref: '#/components/responses/IdempotencyKeyProblem'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+  /academics/reports/comment-banks:
+    put:
+      operationId: putAcademicReportCommentBank
+      tags:
+      - Academics
+      summary: Save a reusable school comment
+      description: Fresh school, role, allocation and own-child rights precede every request and idempotent replay. Report preparation and signatures pin immutable evidence; changed sources return409 before release. Grade-head approval precedes principal approval. PDF generation is queued and private. Signed downloads expire and are requester/school bound. Fees never withhold a report. Selected learners can progress independently.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/IdempotencyKey'
+      responses:
+        '200':
+          description: Authorized report result.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AcademicReportBankSavedResponse'
+        '400':
+          $ref: '#/components/responses/IdempotencyKeyProblem'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AcademicReportCommentBankWrite'
+  /academics/reports/comments:
+    get:
+      operationId: getAcademicReportComments
+      tags:
+      - Academics
+      summary: Read only currently authorized teacher comment scopes
+      description: Fresh school, role, allocation and own-child rights precede every request and idempotent replay. Report preparation and signatures pin immutable evidence; changed sources return409 before release. Grade-head approval precedes principal approval. PDF generation is queued and private. Signed downloads expire and are requester/school bound. Fees never withhold a report. Selected learners can progress independently.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - name: session_year_id
+        in: query
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+        description: Explicit reporting school year.
+      - name: page
+        in: query
+        required: false
+        schema:
+          type: integer
+          minimum: 1
+        description: Comment card page (50 cards per page).
+      responses:
+        '200':
+          description: Authorized report result.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AcademicReportCommentsResponse'
+        '400':
+          $ref: '#/components/responses/IdempotencyKeyProblem'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+  /academics/reports/configuration:
+    get:
+      operationId: getAcademicReportConfiguration
+      tags:
+      - Academics
+      summary: Read school report designs and authorized reporting contexts
+      description: Fresh school, role, allocation and own-child rights precede every request and idempotent replay. Report preparation and signatures pin immutable evidence; changed sources return409 before release. Grade-head approval precedes principal approval. PDF generation is queued and private. Signed downloads expire and are requester/school bound. Fees never withhold a report. Selected learners can progress independently.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - name: session_year_id
+        in: query
+        required: false
+        schema:
+          type: integer
+          minimum: 1
+        description: Explicit reporting school year.
+      responses:
+        '200':
+          description: Authorized report result.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AcademicReportConfigurationResponse'
+        '400':
+          $ref: '#/components/responses/IdempotencyKeyProblem'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+  /academics/reports/prepare:
+    post:
+      operationId: prepareAcademicReports
+      tags:
+      - Academics
+      summary: Prepare report drafts from previewed evidence
+      description: Fresh school, role, allocation and own-child rights precede every request and idempotent replay. Report preparation and signatures pin immutable evidence; changed sources return409 before release. Grade-head approval precedes principal approval. PDF generation is queued and private. Signed downloads expire and are requester/school bound. Fees never withhold a report. Selected learners can progress independently.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/IdempotencyKey'
+      responses:
+        '200':
+          description: Authorized report result.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AcademicReportBatchResponse'
+        '400':
+          $ref: '#/components/responses/IdempotencyKeyProblem'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AcademicReportPrepareWrite'
+  /academics/reports/preview:
+    post:
+      operationId: previewAcademicReports
+      tags:
+      - Academics
+      summary: Preview selected learner report evidence
+      description: Fresh school, role, allocation and own-child rights precede every request and idempotent replay. Report preparation and signatures pin immutable evidence; changed sources return409 before release. Grade-head approval precedes principal approval. PDF generation is queued and private. Signed downloads expire and are requester/school bound. Fees never withhold a report. Selected learners can progress independently.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      responses:
+        '200':
+          description: Authorized report result.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AcademicReportPreviewResponse'
+        '400':
+          $ref: '#/components/responses/IdempotencyKeyProblem'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AcademicReportSelection'
+  /academics/reports/roster:
+    get:
+      operationId: getAcademicReportRoster
+      tags:
+      - Academics
+      summary: List eligible learners for an authorized report period
+      description: Fresh school, role, allocation and own-child rights precede every request and idempotent replay. Report preparation and signatures pin immutable evidence; changed sources return409 before release. Grade-head approval precedes principal approval. PDF generation is queued and private. Signed downloads expire and are requester/school bound. Fees never withhold a report. Selected learners can progress independently.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - name: session_year_id
+        in: query
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+        description: Reporting year.
+      - name: class_section_id
+        in: query
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+        description: Authorized homeroom.
+      - name: term_id
+        in: query
+        required: false
+        schema:
+          type:
+          - integer
+          - 'null'
+          minimum: 1
+        description: Omit for annual reporting.
+      responses:
+        '200':
+          description: Authorized report result.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AcademicReportRosterResponse'
+        '400':
+          $ref: '#/components/responses/IdempotencyKeyProblem'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+  /academics/reports/templates:
+    put:
+      operationId: putAcademicReportTemplate
+      tags:
+      - Academics
+      summary: Save a school report design
+      description: Fresh school, role, allocation and own-child rights precede every request and idempotent replay. Report preparation and signatures pin immutable evidence; changed sources return409 before release. Grade-head approval precedes principal approval. PDF generation is queued and private. Signed downloads expire and are requester/school bound. Fees never withhold a report. Selected learners can progress independently.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/IdempotencyKey'
+      responses:
+        '200':
+          description: Authorized report result.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AcademicReportTemplateResponse'
+        '400':
+          $ref: '#/components/responses/IdempotencyKeyProblem'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AcademicReportTemplateWrite'
+  /academics/reports/batches/{batch}:
+    get:
+      operationId: getAcademicReportBatch
+      tags:
+      - Academics
+      summary: Read an authorized report batch
+      description: Fresh school, role, allocation and own-child rights precede every request and idempotent replay. Report preparation and signatures pin immutable evidence; changed sources return409 before release. Grade-head approval precedes principal approval. PDF generation is queued and private. Signed downloads expire and are requester/school bound. Fees never withhold a report. Selected learners can progress independently.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - name: batch
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+        description: Current-school batch identifier.
+      responses:
+        '200':
+          description: Authorized report result.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AcademicReportDetailResponse'
+        '400':
+          $ref: '#/components/responses/IdempotencyKeyProblem'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+  /academics/reports/batches/{batch}/grade-sign:
+    post:
+      operationId: gradeSignAcademicReports
+      tags:
+      - Academics
+      summary: Apply current grade-head sign-off to report evidence
+      description: Fresh school, role, allocation and own-child rights precede every request and idempotent replay. Report preparation and signatures pin immutable evidence; changed sources return409 before release. Grade-head approval precedes principal approval. PDF generation is queued and private. Signed downloads expire and are requester/school bound. Fees never withhold a report. Selected learners can progress independently.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - name: batch
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+        description: Current-school batch identifier.
+      - $ref: '#/components/parameters/IdempotencyKey'
+      responses:
+        '200':
+          description: Authorized report result.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AcademicReportBatchResponse'
+        '400':
+          $ref: '#/components/responses/IdempotencyKeyProblem'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AcademicReportActionWrite'
+  /academics/reports/batches/{batch}/principal-sign:
+    post:
+      operationId: principalSignAcademicReports
+      tags:
+      - Academics
+      summary: Apply principal sign-off after the grade head
+      description: Fresh school, role, allocation and own-child rights precede every request and idempotent replay. Report preparation and signatures pin immutable evidence; changed sources return409 before release. Grade-head approval precedes principal approval. PDF generation is queued and private. Signed downloads expire and are requester/school bound. Fees never withhold a report. Selected learners can progress independently.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - name: batch
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+        description: Current-school batch identifier.
+      - $ref: '#/components/parameters/IdempotencyKey'
+      responses:
+        '200':
+          description: Authorized report result.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AcademicReportBatchResponse'
+        '400':
+          $ref: '#/components/responses/IdempotencyKeyProblem'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AcademicReportActionWrite'
+  /academics/reports/batches/{batch}/refresh:
+    post:
+      operationId: refreshAcademicReports
+      tags:
+      - Academics
+      summary: Refresh evidence and invalidate prior report signatures
+      description: Fresh school, role, allocation and own-child rights precede every request and idempotent replay. Report preparation and signatures pin immutable evidence; changed sources return409 before release. Grade-head approval precedes principal approval. PDF generation is queued and private. Signed downloads expire and are requester/school bound. Fees never withhold a report. Selected learners can progress independently.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - name: batch
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+        description: Current-school batch identifier.
+      - $ref: '#/components/parameters/IdempotencyKey'
+      responses:
+        '200':
+          description: Authorized report result.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AcademicReportBatchResponse'
+        '400':
+          $ref: '#/components/responses/IdempotencyKeyProblem'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AcademicReportActionWrite'
+  /academics/reports/batches/{batch}/release:
+    post:
+      operationId: releaseAcademicReports
+      tags:
+      - Academics
+      summary: Release approved reports and queue family notices
+      description: Fresh school, role, allocation and own-child rights precede every request and idempotent replay. Report preparation and signatures pin immutable evidence; changed sources return409 before release. Grade-head approval precedes principal approval. PDF generation is queued and private. Signed downloads expire and are requester/school bound. Fees never withhold a report. Selected learners can progress independently.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - name: batch
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+        description: Current-school batch identifier.
+      - $ref: '#/components/parameters/IdempotencyKey'
+      responses:
+        '200':
+          description: Authorized report result.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AcademicReportBatchResponse'
+        '400':
+          $ref: '#/components/responses/IdempotencyKeyProblem'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AcademicReportActionWrite'
+  /academics/reports/batches/{batch}/release-preview:
+    get:
+      operationId: getAcademicReportReleasePreview
+      tags:
+      - Academics
+      summary: Preview whether approved PDFs are ready for release
+      description: Fresh school, role, allocation and own-child rights precede every request and idempotent replay. Report preparation and signatures pin immutable evidence; changed sources return409 before release. Grade-head approval precedes principal approval. PDF generation is queued and private. Signed downloads expire and are requester/school bound. Fees never withhold a report. Selected learners can progress independently.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - name: batch
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+        description: Current-school batch identifier.
+      responses:
+        '200':
+          description: Authorized report result.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AcademicReportReleasePreviewResponse'
+        '400':
+          $ref: '#/components/responses/IdempotencyKeyProblem'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+  /academics/reports/batches/{batch}/retry:
+    post:
+      operationId: retryAcademicReportGeneration
+      tags:
+      - Academics
+      summary: Retry approved private PDF generation
+      description: Fresh school, role, allocation and own-child rights precede every request and idempotent replay. Report preparation and signatures pin immutable evidence; changed sources return409 before release. Grade-head approval precedes principal approval. PDF generation is queued and private. Signed downloads expire and are requester/school bound. Fees never withhold a report. Selected learners can progress independently.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - name: batch
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+        description: Current-school batch identifier.
+      - $ref: '#/components/parameters/IdempotencyKey'
+      responses:
+        '200':
+          description: Authorized report result.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AcademicReportBatchResponse'
+        '400':
+          $ref: '#/components/responses/IdempotencyKeyProblem'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AcademicReportActionWrite'
+  /academics/reports/batches/{batch}/source-preview:
+    get:
+      operationId: getAcademicReportSourcePreview
+      tags:
+      - Academics
+      summary: Preview current evidence before refreshing a draft
+      description: Fresh school, role, allocation and own-child rights precede every request and idempotent replay. Report preparation and signatures pin immutable evidence; changed sources return409 before release. Grade-head approval precedes principal approval. PDF generation is queued and private. Signed downloads expire and are requester/school bound. Fees never withhold a report. Selected learners can progress independently.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - name: batch
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+        description: Current-school batch identifier.
+      responses:
+        '200':
+          description: Authorized report result.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AcademicReportSourceResponse'
+        '400':
+          $ref: '#/components/responses/IdempotencyKeyProblem'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+  /academics/reports/cards/{card}/access:
+    get:
+      operationId: getAcademicReportAccess
+      tags:
+      - Academics
+      summary: Refresh an own-child report download link after fresh authorization
+      description: Fresh school, role, allocation and own-child rights precede every request and idempotent replay. Report preparation and signatures pin immutable evidence; changed sources return409 before release. Grade-head approval precedes principal approval. PDF generation is queued and private. Signed downloads expire and are requester/school bound. Fees never withhold a report. Selected learners can progress independently.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - name: card
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+        description: Current-school card identifier.
+      responses:
+        '200':
+          description: Authorized report result.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AcademicReportAccessResponse'
+        '400':
+          $ref: '#/components/responses/IdempotencyKeyProblem'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+  /academics/reports/cards/{card}/comment:
+    post:
+      operationId: putAcademicReportComment
+      tags:
+      - Academics
+      summary: Save an authorized report comment
+      description: Fresh school, role, allocation and own-child rights precede every request and idempotent replay. Report preparation and signatures pin immutable evidence; changed sources return409 before release. Grade-head approval precedes principal approval. PDF generation is queued and private. Signed downloads expire and are requester/school bound. Fees never withhold a report. Selected learners can progress independently.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - name: card
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+        description: Current-school card identifier.
+      - $ref: '#/components/parameters/IdempotencyKey'
+      responses:
+        '200':
+          description: Authorized report result.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AcademicReportCommentResponse'
+        '400':
+          $ref: '#/components/responses/IdempotencyKeyProblem'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AcademicReportCommentWrite'
+  /academics/reports/cards/{card}/download:
+    get:
+      operationId: downloadAcademicReport
+      tags:
+      - Academics
+      summary: Download a private PDF through a signed expiring link
+      description: Fresh school, role, allocation and own-child rights precede every request and idempotent replay. Report preparation and signatures pin immutable evidence; changed sources return409 before release. Grade-head approval precedes principal approval. PDF generation is queued and private. Signed downloads expire and are requester/school bound. Fees never withhold a report. Selected learners can progress independently.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - name: card
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+        description: Current-school card identifier.
+      - name: school
+        in: query
+        required: true
+        schema:
+          type: string
+        description: Server-issued signed download parameter. Do not modify.
+      - name: reader
+        in: query
+        required: true
+        schema:
+          type: string
+        description: Server-issued signed download parameter. Do not modify.
+      - name: staff
+        in: query
+        required: true
+        schema:
+          type: string
+        description: Server-issued signed download parameter. Do not modify.
+      - name: expires
+        in: query
+        required: true
+        schema:
+          type: string
+        description: Server-issued signed download parameter. Do not modify.
+      - name: signature
+        in: query
+        required: true
+        schema:
+          type: string
+        description: Server-issued signed download parameter. Do not modify.
+      responses:
+        '200':
+          description: Authorized private report PDF.
+          content:
+            application/pdf:
+              schema:
+                type: string
+                format: binary
+        '400':
+          $ref: '#/components/responses/IdempotencyKeyProblem'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+  /academics/reports/cards/{card}/read:
+    post:
+      operationId: readAcademicReport
+      tags:
+      - Academics
+      summary: Mark an owned released report as read
+      description: Fresh school, role, allocation and own-child rights precede every request and idempotent replay. Report preparation and signatures pin immutable evidence; changed sources return409 before release. Grade-head approval precedes principal approval. PDF generation is queued and private. Signed downloads expire and are requester/school bound. Fees never withhold a report. Selected learners can progress independently.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - name: card
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+        description: Current-school card identifier.
+      - $ref: '#/components/parameters/IdempotencyKey'
+      responses:
+        '200':
+          description: Authorized report result.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AcademicReportReadResponse'
+        '400':
+          $ref: '#/components/responses/IdempotencyKeyProblem'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+  /academics/reports/learners/{learner}:
+    get:
+      operationId: getAcademicLearnerReports
+      tags:
+      - Academics
+      summary: List released reports for the authorized learner
+      description: Fresh school, role, allocation and own-child rights precede every request and idempotent replay. Report preparation and signatures pin immutable evidence; changed sources return409 before release. Grade-head approval precedes principal approval. PDF generation is queued and private. Signed downloads expire and are requester/school bound. Fees never withhold a report. Selected learners can progress independently.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - name: learner
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+        description: Current-school learner identifier.
+      - name: page
+        in: query
+        required: false
+        schema:
+          type: integer
+          minimum: 1
+        description: Comment card page (50 cards per page).
+      responses:
+        '200':
+          description: Authorized report result.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AcademicReportFamilyResponse'
+        '400':
+          $ref: '#/components/responses/IdempotencyKeyProblem'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
   /academics/registers/choices:
     get:
       operationId: getAcademicRegisterChoices
@@ -8920,3 +9849,1408 @@ components:
           description: Always 200.
         data:
           $ref: '#/components/schemas/AcademicAttendanceTodayData'
+    AcademicReportDesign:
+      type: object
+      additionalProperties: false
+      required:
+      - heading
+      - introduction
+      - footer
+      - sections
+      - show_crest
+      properties:
+        heading:
+          type: string
+          maxLength: 191
+        introduction:
+          type:
+          - string
+          - 'null'
+          maxLength: 3000
+        footer:
+          type:
+          - string
+          - 'null'
+          maxLength: 3000
+        sections:
+          type: array
+          items:
+            type: string
+            pattern: ^(subjects|attendance|subject_comments|homeroom_comment)$
+          minItems: 1
+          maxItems: 4
+        show_crest:
+          type: boolean
+    AcademicReportTemplate:
+      type: object
+      additionalProperties: false
+      required:
+      - id
+      - name
+      - revision
+      - design
+      properties:
+        id:
+          type: integer
+          minimum: 1
+        name:
+          type: string
+        revision:
+          type: integer
+          minimum: 1
+        design:
+          $ref: '#/components/schemas/AcademicReportDesign'
+    AcademicReportTemplateWrite:
+      type: object
+      additionalProperties: false
+      required:
+      - name
+      - design
+      properties:
+        id:
+          type: integer
+          minimum: 1
+        revision:
+          type: integer
+          minimum: 1
+        name:
+          type: string
+          maxLength: 191
+        design:
+          $ref: '#/components/schemas/AcademicReportDesign'
+    AcademicReportDesignSnapshot:
+      type: object
+      additionalProperties: false
+      required:
+      - template_id
+      - template_revision
+      - name
+      - heading
+      - introduction
+      - footer
+      - sections
+      - show_crest
+      - crest
+      properties:
+        template_id:
+          type: integer
+          minimum: 1
+        template_revision:
+          type: integer
+          minimum: 1
+        name:
+          type: string
+        heading:
+          type: string
+          maxLength: 191
+        introduction:
+          type:
+          - string
+          - 'null'
+          maxLength: 3000
+        footer:
+          type:
+          - string
+          - 'null'
+          maxLength: 3000
+        sections:
+          type: array
+          items:
+            type: string
+            pattern: ^(subjects|attendance|subject_comments|homeroom_comment)$
+          minItems: 1
+          maxItems: 4
+        show_crest:
+          type: boolean
+        crest:
+          type:
+          - string
+          - 'null'
+    AcademicReportCommentBank:
+      type: object
+      additionalProperties: false
+      required:
+      - id
+      - subject_id
+      - scope
+      - label
+      - text
+      - active
+      - revision
+      properties:
+        id:
+          type: integer
+          minimum: 1
+        subject_id:
+          type:
+          - integer
+          - 'null'
+          minimum: 1
+        scope:
+          type: string
+          pattern: ^(homeroom|subject)$
+        label:
+          type: string
+        text:
+          type: string
+        active:
+          type: boolean
+        revision:
+          type: integer
+          minimum: 1
+    AcademicReportCommentBankWrite:
+      type: object
+      additionalProperties: false
+      required:
+      - subject_id
+      - scope
+      - label
+      - text
+      - active
+      properties:
+        id:
+          type: integer
+          minimum: 1
+        revision:
+          type: integer
+          minimum: 1
+        subject_id:
+          type:
+          - integer
+          - 'null'
+          minimum: 1
+        scope:
+          type: string
+          pattern: ^(homeroom|subject)$
+        label:
+          type: string
+          maxLength: 191
+        text:
+          type: string
+          maxLength: 3000
+        active:
+          type: boolean
+    AcademicReportSavedRevision:
+      type: object
+      additionalProperties: false
+      required:
+      - id
+      - revision
+      properties:
+        id:
+          type: integer
+          minimum: 1
+        revision:
+          type: integer
+          minimum: 1
+    AcademicReportSelection:
+      type: object
+      additionalProperties: false
+      required:
+      - template_id
+      - session_year_id
+      - term_id
+      - class_section_id
+      - learner_ids
+      - mode
+      properties:
+        template_id:
+          type: integer
+          minimum: 1
+        session_year_id:
+          type: integer
+          minimum: 1
+        term_id:
+          type:
+          - integer
+          - 'null'
+          minimum: 1
+        class_section_id:
+          type: integer
+          minimum: 1
+        learner_ids:
+          type: array
+          items:
+            type: integer
+            minimum: 1
+          minItems: 1
+          maxItems: 500
+        mode:
+          type: string
+          pattern: ^(official|running)$
+    AcademicReportPrepareWrite:
+      type: object
+      additionalProperties: false
+      required:
+      - template_id
+      - session_year_id
+      - term_id
+      - class_section_id
+      - learner_ids
+      - mode
+      - fingerprint
+      properties:
+        template_id:
+          type: integer
+          minimum: 1
+        session_year_id:
+          type: integer
+          minimum: 1
+        term_id:
+          type:
+          - integer
+          - 'null'
+          minimum: 1
+        class_section_id:
+          type: integer
+          minimum: 1
+        learner_ids:
+          type: array
+          items:
+            type: integer
+            minimum: 1
+          minItems: 1
+          maxItems: 500
+        mode:
+          type: string
+          pattern: ^(official|running)$
+        fingerprint:
+          type: string
+          pattern: ^[a-f0-9]{64}$
+    AcademicReportActionWrite:
+      type: object
+      additionalProperties: false
+      required:
+      - revision
+      - fingerprint
+      properties:
+        revision:
+          type: integer
+          minimum: 1
+        fingerprint:
+          type: string
+          pattern: ^[a-f0-9]{64}$
+    AcademicReportSubjectResult:
+      type: object
+      additionalProperties: false
+      required:
+      - subject_id
+      - subject_name
+      - snapshot_id
+      - fingerprint
+      - percentage_bp
+      - rating_level
+      - coverage_bp
+      - complete
+      - ready
+      - result_status
+      properties:
+        subject_id:
+          type: integer
+          minimum: 1
+        subject_name:
+          type: string
+        snapshot_id:
+          type:
+          - integer
+          - 'null'
+          minimum: 1
+        fingerprint:
+          type:
+          - string
+          - 'null'
+          pattern: ^[a-f0-9]{64}$
+        percentage_bp:
+          type:
+          - integer
+          - 'null'
+          minimum: 0
+          maximum: 10000
+        rating_level:
+          type:
+          - integer
+          - 'null'
+          minimum: 1
+          maximum: 7
+        coverage_bp:
+          type: integer
+          minimum: 0
+          maximum: 10000
+        complete:
+          type: boolean
+        ready:
+          type: boolean
+        result_status:
+          type: string
+          pattern: ^(complete|partial|ungraded|excused|absent|catch_up|unavailable)$
+    AcademicReportAttendanceDay:
+      type: object
+      additionalProperties: false
+      required:
+      - on_date
+      - state
+      - revision
+      properties:
+        on_date:
+          type: string
+          pattern: ^\d{4}-\d{2}-\d{2}$
+        state:
+          type: string
+        revision:
+          type:
+          - integer
+          - 'null'
+          minimum: 1
+    AcademicReportAttendance:
+      type: object
+      additionalProperties: false
+      required:
+      - days_recorded
+      - present_half_days
+      - absent_half_days
+      - late_days
+      - excused_days
+      - evidence
+      properties:
+        days_recorded:
+          type: integer
+          minimum: 0
+        present_half_days:
+          type: integer
+          minimum: 0
+        absent_half_days:
+          type: integer
+          minimum: 0
+        late_days:
+          type: integer
+          minimum: 0
+        excused_days:
+          type: integer
+          minimum: 0
+        evidence:
+          type: array
+          items:
+            $ref: '#/components/schemas/AcademicReportAttendanceDay'
+    AcademicReportEnrolment:
+      type: object
+      additionalProperties: false
+      required:
+      - id
+      - starts_on
+      - ends_on
+      properties:
+        id:
+          type: integer
+          minimum: 1
+        starts_on:
+          type: string
+          pattern: ^\d{4}-\d{2}-\d{2}$
+        ends_on:
+          type:
+          - string
+          - 'null'
+          pattern: ^\d{4}-\d{2}-\d{2}$
+    AcademicReportPayload:
+      type: object
+      additionalProperties: false
+      required:
+      - learner_id
+      - learner_name
+      - school_name
+      - year_name
+      - term_name
+      - homeroom_name
+      - grade_name
+      - session_year_id
+      - term_id
+      - class_section_id
+      - grade_level_id
+      - starts_on
+      - ends_on
+      - mode
+      - provisional
+      - ready
+      - subjects
+      - attendance
+      - enrolments
+      properties:
+        learner_id:
+          type: integer
+          minimum: 1
+        learner_name:
+          type: string
+        school_name:
+          type: string
+        year_name:
+          type: string
+        term_name:
+          type:
+          - string
+          - 'null'
+        homeroom_name:
+          type: string
+        grade_name:
+          type: string
+        session_year_id:
+          type: integer
+          minimum: 1
+        term_id:
+          type:
+          - integer
+          - 'null'
+          minimum: 1
+        class_section_id:
+          type: integer
+          minimum: 1
+        grade_level_id:
+          type: integer
+          minimum: 1
+        starts_on:
+          type: string
+          pattern: ^\d{4}-\d{2}-\d{2}$
+        ends_on:
+          type: string
+          pattern: ^\d{4}-\d{2}-\d{2}$
+        mode:
+          type: string
+          pattern: ^(official|running)$
+        provisional:
+          type: boolean
+        ready:
+          type: boolean
+        subjects:
+          type: array
+          items:
+            $ref: '#/components/schemas/AcademicReportSubjectResult'
+        attendance:
+          $ref: '#/components/schemas/AcademicReportAttendance'
+        enrolments:
+          type: array
+          items:
+            $ref: '#/components/schemas/AcademicReportEnrolment'
+    AcademicReportPreviewData:
+      type: object
+      additionalProperties: false
+      required:
+      - selection
+      - fingerprint
+      - can_prepare
+      - design
+      - cards
+      properties:
+        selection:
+          $ref: '#/components/schemas/AcademicReportSelection'
+        fingerprint:
+          type: string
+          pattern: ^[a-f0-9]{64}$
+        can_prepare:
+          type: boolean
+        design:
+          $ref: '#/components/schemas/AcademicReportDesignSnapshot'
+        cards:
+          type: array
+          items:
+            $ref: '#/components/schemas/AcademicReportPayload'
+    AcademicReportSourceData:
+      type: object
+      additionalProperties: false
+      required:
+      - can_prepare
+      - cards
+      - fingerprint
+      - grade_level_id
+      properties:
+        can_prepare:
+          type: boolean
+        cards:
+          type: array
+          items:
+            $ref: '#/components/schemas/AcademicReportPayload'
+        fingerprint:
+          type: string
+          pattern: ^[a-f0-9]{64}$
+        grade_level_id:
+          type: integer
+          minimum: 1
+    AcademicReportSignature:
+      type: object
+      additionalProperties: false
+      required:
+      - name
+      - signed_at
+      - revision
+      properties:
+        name:
+          type: string
+        signed_at:
+          type: string
+        revision:
+          type: integer
+          minimum: 1
+    AcademicReportSignatures:
+      type: object
+      additionalProperties: false
+      required: []
+      properties:
+        grade_head:
+          $ref: '#/components/schemas/AcademicReportSignature'
+        principal:
+          $ref: '#/components/schemas/AcademicReportSignature'
+    AcademicReportCard:
+      type: object
+      additionalProperties: false
+      required:
+      - id
+      - learner_id
+      - payload
+      - pdf_ready
+      - generated_at
+      properties:
+        id:
+          type: integer
+          minimum: 1
+        learner_id:
+          type: integer
+          minimum: 1
+        payload:
+          $ref: '#/components/schemas/AcademicReportPayload'
+        pdf_ready:
+          type: boolean
+        generated_at:
+          type:
+          - string
+          - 'null'
+    AcademicReportBatchData:
+      type: object
+      additionalProperties: false
+      required:
+      - id
+      - state
+      - revision
+      - fingerprint
+      - source_fingerprint
+      - selection
+      - design
+      - signatures
+      - released_at
+      - cards
+      properties:
+        id:
+          type: integer
+          minimum: 1
+        state:
+          type: string
+          pattern: ^(draft|grade_signed|approved|ready|released)$
+        revision:
+          type: integer
+          minimum: 1
+        fingerprint:
+          type: string
+          pattern: ^[a-f0-9]{64}$
+        source_fingerprint:
+          type: string
+          pattern: ^[a-f0-9]{64}$
+        selection:
+          $ref: '#/components/schemas/AcademicReportSelection'
+        design:
+          $ref: '#/components/schemas/AcademicReportDesignSnapshot'
+        signatures:
+          $ref: '#/components/schemas/AcademicReportSignatures'
+        released_at:
+          type:
+          - string
+          - 'null'
+        cards:
+          type: array
+          items:
+            $ref: '#/components/schemas/AcademicReportCard'
+    AcademicReportStoredComment:
+      type: object
+      additionalProperties: false
+      required:
+      - scope_key
+      - text
+      - revision
+      properties:
+        scope_key:
+          type: string
+        text:
+          type: string
+        revision:
+          type: integer
+          minimum: 1
+    AcademicReportDetailCard:
+      type: object
+      additionalProperties: false
+      required:
+      - id
+      - learner_id
+      - payload
+      - pdf_ready
+      - generated_at
+      - comments
+      - download_url
+      properties:
+        id:
+          type: integer
+          minimum: 1
+        learner_id:
+          type: integer
+          minimum: 1
+        payload:
+          $ref: '#/components/schemas/AcademicReportPayload'
+        pdf_ready:
+          type: boolean
+        generated_at:
+          type:
+          - string
+          - 'null'
+        comments:
+          type: array
+          items:
+            $ref: '#/components/schemas/AcademicReportStoredComment'
+        download_url:
+          type:
+          - string
+          - 'null'
+    AcademicReportDetailData:
+      type: object
+      additionalProperties: false
+      required:
+      - id
+      - state
+      - revision
+      - fingerprint
+      - source_fingerprint
+      - selection
+      - design
+      - signatures
+      - released_at
+      - cards
+      - can_grade_sign
+      - can_principal_sign
+      properties:
+        id:
+          type: integer
+          minimum: 1
+        state:
+          type: string
+          pattern: ^(draft|grade_signed|approved|ready|released)$
+        revision:
+          type: integer
+          minimum: 1
+        fingerprint:
+          type: string
+          pattern: ^[a-f0-9]{64}$
+        source_fingerprint:
+          type: string
+          pattern: ^[a-f0-9]{64}$
+        selection:
+          $ref: '#/components/schemas/AcademicReportSelection'
+        design:
+          $ref: '#/components/schemas/AcademicReportDesignSnapshot'
+        signatures:
+          $ref: '#/components/schemas/AcademicReportSignatures'
+        released_at:
+          type:
+          - string
+          - 'null'
+        cards:
+          type: array
+          items:
+            $ref: '#/components/schemas/AcademicReportDetailCard'
+        can_grade_sign:
+          type: boolean
+        can_principal_sign:
+          type: boolean
+    AcademicReportReleasePreviewData:
+      type: object
+      additionalProperties: false
+      required:
+      - id
+      - state
+      - revision
+      - fingerprint
+      - source_fingerprint
+      - selection
+      - design
+      - signatures
+      - released_at
+      - cards
+      - can_release
+      properties:
+        id:
+          type: integer
+          minimum: 1
+        state:
+          type: string
+          pattern: ^(draft|grade_signed|approved|ready|released)$
+        revision:
+          type: integer
+          minimum: 1
+        fingerprint:
+          type: string
+          pattern: ^[a-f0-9]{64}$
+        source_fingerprint:
+          type: string
+          pattern: ^[a-f0-9]{64}$
+        selection:
+          $ref: '#/components/schemas/AcademicReportSelection'
+        design:
+          $ref: '#/components/schemas/AcademicReportDesignSnapshot'
+        signatures:
+          $ref: '#/components/schemas/AcademicReportSignatures'
+        released_at:
+          type:
+          - string
+          - 'null'
+        cards:
+          type: array
+          items:
+            $ref: '#/components/schemas/AcademicReportCard'
+        can_release:
+          type: boolean
+    AcademicReportHomeroom:
+      type: object
+      additionalProperties: false
+      required:
+      - id
+      - grade_level_id
+      - grade_order
+      - name
+      properties:
+        id:
+          type: integer
+          minimum: 1
+        grade_level_id:
+          type: integer
+          minimum: 1
+        grade_order:
+          type: integer
+          minimum: 0
+          maximum: 12
+        name:
+          type: string
+    AcademicReportTerm:
+      type: object
+      additionalProperties: false
+      required:
+      - id
+      - name
+      - grade_from
+      - grade_to
+      properties:
+        id:
+          type: integer
+          minimum: 1
+        name:
+          type: string
+        grade_from:
+          type: integer
+          minimum: 0
+          maximum: 12
+        grade_to:
+          type: integer
+          minimum: 0
+          maximum: 12
+    AcademicReportConfigurationData:
+      type: object
+      additionalProperties: false
+      required:
+      - session_year_id
+      - school_years
+      - homerooms
+      - terms
+      - templates
+      - can_design
+      - comment_banks
+      properties:
+        session_year_id:
+          type: integer
+          minimum: 1
+        school_years:
+          type: array
+          items:
+            $ref: '#/components/schemas/AcademicTimetableChoice'
+        homerooms:
+          type: array
+          items:
+            $ref: '#/components/schemas/AcademicReportHomeroom'
+        terms:
+          type: array
+          items:
+            $ref: '#/components/schemas/AcademicReportTerm'
+        templates:
+          type: array
+          items:
+            $ref: '#/components/schemas/AcademicReportTemplate'
+        can_design:
+          type: boolean
+        comment_banks:
+          type: array
+          items:
+            $ref: '#/components/schemas/AcademicReportCommentBank'
+    AcademicReportBatchSummary:
+      type: object
+      additionalProperties: false
+      required:
+      - id
+      - state
+      - mode
+      - class_section_id
+      - term_id
+      - learner_count
+      - created_at
+      - released_at
+      properties:
+        id:
+          type: integer
+          minimum: 1
+        state:
+          type: string
+        mode:
+          type: string
+        class_section_id:
+          type: integer
+          minimum: 1
+        term_id:
+          type:
+          - integer
+          - 'null'
+          minimum: 1
+        learner_count:
+          type: integer
+          minimum: 0
+        created_at:
+          type: string
+        released_at:
+          type:
+          - string
+          - 'null'
+    AcademicReportBatchesData:
+      type: object
+      additionalProperties: false
+      required:
+      - session_year_id
+      - page
+      - last_page
+      - batches
+      properties:
+        session_year_id:
+          type: integer
+          minimum: 1
+        page:
+          type: integer
+          minimum: 1
+        last_page:
+          type: integer
+          minimum: 1
+        batches:
+          type: array
+          items:
+            $ref: '#/components/schemas/AcademicReportBatchSummary'
+    AcademicReportCommentWrite:
+      type: object
+      additionalProperties: false
+      required:
+      - subject_id
+      - text
+      - revision
+      - batch_revision
+      properties:
+        subject_id:
+          type:
+          - integer
+          - 'null'
+          minimum: 1
+        text:
+          type:
+          - string
+          - 'null'
+          maxLength: 3000
+        bank_id:
+          type:
+          - integer
+          - 'null'
+          minimum: 1
+        revision:
+          type: integer
+          minimum: 0
+        batch_revision:
+          type: integer
+          minimum: 1
+        reason:
+          type:
+          - string
+          - 'null'
+          maxLength: 500
+    AcademicReportCommentData:
+      type: object
+      additionalProperties: false
+      required:
+      - id
+      - revision
+      - batch_revision
+      - fingerprint
+      - text
+      properties:
+        id:
+          type: integer
+          minimum: 1
+        revision:
+          type: integer
+          minimum: 1
+        batch_revision:
+          type: integer
+          minimum: 1
+        fingerprint:
+          type: string
+          pattern: ^[a-f0-9]{64}$
+        text:
+          type: string
+    AcademicReportCommentRow:
+      type: object
+      additionalProperties: false
+      required:
+      - card_id
+      - batch_id
+      - batch_revision
+      - learner_id
+      - learner_name
+      - period_name
+      - subject_id
+      - scope_label
+      - revision
+      - text
+      properties:
+        card_id:
+          type: integer
+          minimum: 1
+        batch_id:
+          type: integer
+          minimum: 1
+        batch_revision:
+          type: integer
+          minimum: 1
+        learner_id:
+          type: integer
+          minimum: 1
+        learner_name:
+          type: string
+        period_name:
+          type: string
+        subject_id:
+          type:
+          - integer
+          - 'null'
+          minimum: 1
+        scope_label:
+          type: string
+        revision:
+          type: integer
+          minimum: 0
+        text:
+          type: string
+    AcademicReportCommentsData:
+      type: object
+      additionalProperties: false
+      required:
+      - session_year_id
+      - page
+      - last_page
+      - rows
+      properties:
+        session_year_id:
+          type: integer
+          minimum: 1
+        page:
+          type: integer
+          minimum: 1
+        last_page:
+          type: integer
+          minimum: 1
+        rows:
+          type: array
+          items:
+            $ref: '#/components/schemas/AcademicReportCommentRow'
+    AcademicReportFamilyCard:
+      type: object
+      additionalProperties: false
+      required:
+      - id
+      - batch_id
+      - session_year_id
+      - term_id
+      - year_name
+      - term_name
+      - learner_name
+      - provisional
+      - released_at
+      - read_at
+      - download_url
+      properties:
+        id:
+          type: integer
+          minimum: 1
+        batch_id:
+          type: integer
+          minimum: 1
+        session_year_id:
+          type: integer
+          minimum: 1
+        term_id:
+          type:
+          - integer
+          - 'null'
+          minimum: 1
+        year_name:
+          type: string
+        term_name:
+          type:
+          - string
+          - 'null'
+        learner_name:
+          type: string
+        provisional:
+          type: boolean
+        released_at:
+          type: string
+        read_at:
+          type:
+          - string
+          - 'null'
+        download_url:
+          type: string
+    AcademicReportFamilyData:
+      type: object
+      additionalProperties: false
+      required:
+      - learner_id
+      - page
+      - last_page
+      - reports
+      properties:
+        learner_id:
+          type: integer
+          minimum: 1
+        page:
+          type: integer
+          minimum: 1
+        last_page:
+          type: integer
+          minimum: 1
+        reports:
+          type: array
+          items:
+            $ref: '#/components/schemas/AcademicReportFamilyCard'
+    AcademicReportReadData:
+      type: object
+      additionalProperties: false
+      required:
+      - id
+      - read_at
+      properties:
+        id:
+          type: integer
+          minimum: 1
+        read_at:
+          type: string
+    AcademicReportConfigurationResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - code
+      - data
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        code:
+          type: integer
+        data:
+          $ref: '#/components/schemas/AcademicReportConfigurationData'
+    AcademicReportPreviewResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - code
+      - data
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        code:
+          type: integer
+        data:
+          $ref: '#/components/schemas/AcademicReportPreviewData'
+    AcademicReportSourceResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - code
+      - data
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        code:
+          type: integer
+        data:
+          $ref: '#/components/schemas/AcademicReportSourceData'
+    AcademicReportBatchResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - code
+      - data
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        code:
+          type: integer
+        data:
+          $ref: '#/components/schemas/AcademicReportBatchData'
+    AcademicReportDetailResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - code
+      - data
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        code:
+          type: integer
+        data:
+          $ref: '#/components/schemas/AcademicReportDetailData'
+    AcademicReportReleasePreviewResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - code
+      - data
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        code:
+          type: integer
+        data:
+          $ref: '#/components/schemas/AcademicReportReleasePreviewData'
+    AcademicReportBatchesResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - code
+      - data
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        code:
+          type: integer
+        data:
+          $ref: '#/components/schemas/AcademicReportBatchesData'
+    AcademicReportCommentResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - code
+      - data
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        code:
+          type: integer
+        data:
+          $ref: '#/components/schemas/AcademicReportCommentData'
+    AcademicReportCommentsResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - code
+      - data
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        code:
+          type: integer
+        data:
+          $ref: '#/components/schemas/AcademicReportCommentsData'
+    AcademicReportFamilyResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - code
+      - data
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        code:
+          type: integer
+        data:
+          $ref: '#/components/schemas/AcademicReportFamilyData'
+    AcademicReportReadResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - code
+      - data
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        code:
+          type: integer
+        data:
+          $ref: '#/components/schemas/AcademicReportReadData'
+    AcademicReportTemplateResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - code
+      - data
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        code:
+          type: integer
+        data:
+          $ref: '#/components/schemas/AcademicReportTemplate'
+    AcademicReportBankSavedResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - code
+      - data
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        code:
+          type: integer
+        data:
+          $ref: '#/components/schemas/AcademicReportSavedRevision'
+    AcademicReportRosterData:
+      type: object
+      additionalProperties: false
+      required:
+      - session_year_id
+      - term_id
+      - class_section_id
+      - grade_level_id
+      - learners
+      properties:
+        session_year_id:
+          type: integer
+          minimum: 1
+        term_id:
+          type:
+          - integer
+          - 'null'
+          minimum: 1
+        class_section_id:
+          type: integer
+          minimum: 1
+        grade_level_id:
+          type: integer
+          minimum: 1
+        learners:
+          type: array
+          items:
+            $ref: '#/components/schemas/AcademicTimetableChoice'
+    AcademicReportRosterResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - code
+      - data
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        code:
+          type: integer
+        data:
+          $ref: '#/components/schemas/AcademicReportRosterData'
+    AcademicReportAccessData:
+      type: object
+      additionalProperties: false
+      required:
+      - id
+      - learner_id
+      - download_url
+      properties:
+        id:
+          type: integer
+          minimum: 1
+        learner_id:
+          type: integer
+          minimum: 1
+        download_url:
+          type: string
+    AcademicReportAccessResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - code
+      - data
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        code:
+          type: integer
+        data:
+          $ref: '#/components/schemas/AcademicReportAccessData'

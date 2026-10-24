@@ -6,6 +6,7 @@ use App\Http\Controllers\Api\V2\Academics\AcademicReferenceController;
 use App\Http\Controllers\Api\V2\Academics\CurriculumController;
 use App\Http\Controllers\Api\V2\Academics\MarkController;
 use App\Http\Controllers\Api\V2\Academics\RegisterController;
+use App\Http\Controllers\Api\V2\Academics\ReportController;
 use App\Http\Controllers\Api\V2\Academics\SubjectStandardController;
 use App\Http\Controllers\Api\V2\Academics\TeachingGroupController;
 use App\Http\Controllers\Api\V2\Academics\TermCalendarController;
@@ -24,6 +25,7 @@ use App\Http\Middleware\AuthorizeClassGrade;
 use App\Http\Middleware\AuthorizeCurriculum;
 use App\Http\Middleware\AuthorizeMarks;
 use App\Http\Middleware\AuthorizeRegister;
+use App\Http\Middleware\AuthorizeReport;
 use App\Http\Middleware\AuthorizeSubjectStandard;
 use App\Http\Middleware\AuthorizeTeachingGroup;
 use App\Http\Middleware\AuthorizeTermCalendar;
@@ -53,6 +55,33 @@ use Illuminate\Support\Facades\Route;
 
 // Keep fresh class permissions ahead of idempotent replay as well as validation.
 Route::prefix('academics')->middleware(['auth:sanctum', 'school.context', 'role.any', 'learner.approved', 'module:academics', 'cache.headers:private;no_store'])->name('api.v2.academics.')->group(function () {
+    Route::prefix('reports')->name('reports.')->group(function () {
+        $controller = ReportController::class;
+        $policy = AuthorizeReport::class;
+        Route::get('configuration', [$controller, 'configuration'])->middleware($policy.':staff')->name('configuration');
+        Route::get('roster', [$controller, 'roster'])->middleware($policy.':staff')->name('roster');
+        Route::put('templates', [$controller, 'templates'])->middleware([$policy.':manage', 'idempotent'])->name('templates');
+        Route::put('comment-banks', [$controller, 'banks'])->middleware([$policy.':manage', 'idempotent'])->name('comment-banks');
+        Route::post('preview', [$controller, 'preview'])->middleware($policy.':selection')->name('preview');
+        Route::post('prepare', [$controller, 'prepare'])->middleware([$policy.':selection', 'idempotent'])->name('prepare');
+        Route::get('comments', [$controller, 'comments'])->middleware($policy.':staff')->name('comments');
+        Route::get('learners/{learner}', [$controller, 'family'])->whereNumber('learner')->middleware($policy.':family')->name('family');
+        Route::post('cards/{card}/comment', [$controller, 'comment'])->whereNumber('card')->middleware([$policy.':comment', 'idempotent'])->name('comment');
+        Route::get('cards/{card}/access', [$controller, 'access'])->whereNumber('card')->middleware($policy.':family-card')->name('access');
+        Route::post('cards/{card}/read', [$controller, 'read'])->whereNumber('card')->middleware([$policy.':family-card', 'idempotent'])->name('read');
+        Route::get('cards/{card}/download', [$controller, 'download'])->whereNumber('card')->middleware($policy.':download')->name('download');
+        Route::get('batches', [$controller, 'batches'])->middleware($policy.':staff')->name('batches');
+        Route::get('batches/{batch}', [$controller, 'show'])->whereNumber('batch')->middleware($policy.':read')->name('show');
+        foreach (['source-preview' => 'source', 'release-preview' => 'releasePreview'] as $path => $action) {
+            Route::get('batches/{batch}/'.$path, [$controller, $action])->whereNumber('batch')->middleware($policy.':read')->name($path);
+        }
+        foreach (['refresh', 'release', 'retry'] as $action) {
+            Route::post('batches/{batch}/'.$action, [$controller, $action])->whereNumber('batch')->middleware([$policy.':write', 'idempotent'])->name($action);
+        }
+        foreach (['grade-sign' => ['grade', 'grade_head'], 'principal-sign' => ['principal', 'principal']] as $path => [$action, $role]) {
+            Route::post('batches/{batch}/'.$path, [$controller, $action])->whereNumber('batch')->middleware([$policy.':'.$role, 'idempotent'])->name($path);
+        }
+    });
     Route::prefix('registers')->name('registers.')->group(function () {
         $controller = RegisterController::class;
         $policy = AuthorizeRegister::class;

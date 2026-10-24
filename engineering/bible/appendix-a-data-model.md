@@ -149,3 +149,14 @@ and replay metadata; attendance_notices record per-recipient revision claims.
 attendances gains a private canonical-entry reference, amended_by/amended_at and
 source while retaining existing response types. QR versions are private learner
 metadata. All new tables have required indexed school ownership.
+
+### Report cards
+
+School-owned report_templates retain versioned section/crest designs;
+report_comment_banks hold reusable generic text. report_batches pin selected
+learners, period, design, source fingerprint, signatures and release metadata.
+report_cards encrypt copied evidence and reference private encrypted PDF artifacts;
+report_comments encrypt per-scope text with author/revision. report_recipients
+retain notification claims and per-recipient read state. All tables require
+indexed school ownership. Released batches/cards/comments reject model mutation;
+new versions retain prior releases. Fees and learner activation are not gates.

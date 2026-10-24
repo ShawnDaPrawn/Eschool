@@ -347,3 +347,35 @@ row capture remains available. The 24 targeted PHP/style checks pass. All four
 panel flows pass, including an intentionally delayed script load proving QR is
 disabled before initialization and Enter never submits attendance. Exact updated
 CI remains required before merging the client slice.
+
+Report backend local evidence (24 October 2026): the full local backend suite
+passed 1,334 tests (25,919 assertions). After adding paged retained history, fresh
+family-link access, explicit ungraded/excused provisional results and current
+grade-head correction after year rollover, the final report/register/contract
+cohort passed 204 tests (1,372 assertions). These include real private PDF output,
+ordered approvals, per-scope comment revisions, stale source/job refusal, immutable
+releases, no fee gate, own-child signed URLs and transport revocation checks.
+SDK generation is pinned to 7.25.0 (527 generated files); all 37 SDK tests pass,
+with no analysis errors/warnings (existing generator style infos remain).
+OpenAPI lint passes. Full PHP style previously passed 958 files; changed-file
+style passes after the follow-ups. Extracted synthetic PDF text contains 75.00%,
+rating 6 and escaped literal markup. Final Larastan, route-cache and complete CI
+results belong to this feature's final head. Report clients/panel are a separate
+slice. No staging, real parent delivery, device or pilot acceptance is claimed.
+
+Report review follow-up: history lists now use the saved report grade, matching
+detail access after a homeroom remap. The old grade head retains report history;
+the new grade head cannot see its summaries; expired appointments lose access.
+All 181 report/API contract checks pass (1,164 assertions), with clean Larastan
+and changed-file formatting. Exact updated CI must pass before merge.
+
+Report retry follow-up: 197 report/idempotency/contract checks pass (1,284
+assertions), with clean Larastan. Private report retry bodies are encrypted,
+replayed headers hide internal encryption metadata, and operation keys are bound
+to the active school even for one staff account assigned to both schools.
+
+Annual reporting follow-up: panel rehearsal exposed a legacy school-year date
+being a string rather than a term date object. Annual roster/evidence now parse
+the explicit year dates and refuse undated years. A full annual selection through
+approval/private PDF generation passes. All 198 report/idempotency/contract checks
+pass (1,291 assertions); Larastan and formatting are clean.

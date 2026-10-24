@@ -201,6 +201,28 @@ class RegisterEngineTest extends TestCase
         app(CurrentSchool::class)->run(2, fn () => $this->denied(404, fn () => app(RegisterQr::class)->learner($input['rows'][0]['qr_token'])));
     }
 
+    public function test_current_grade_head_can_correct_previous_year_register_but_expired_or_other_grade_cannot(): void
+    {
+        $matrix = $this->open();
+        app(Registers::class)->sync($this->tara, $matrix['register_id'], $this->write($matrix));
+        $next = SessionYear::create(['name' => '2027', 'start_date' => '2027-01-01', 'end_date' => '2027-12-31', 'default' => 0]);
+        $head = User::findOrFail($this->schoolA->ids['theo_user']);
+        $lead = AcademicLeadership::create(['user_id' => $head->id, 'kind' => 'grade_head', 'grade_level_id' => $this->grade, 'session_year_id' => $next->id,
+            'starts_on' => '2027-01-01', 'ends_on' => '2027-12-31', 'reason' => 'Current grade head']);
+        $this->travelTo(CarbonImmutable::parse('2027-01-10 08:00:00', 'Africa/Johannesburg'));
+        $this->denied(403, fn () => app(Registers::class)->matrix($this->tara, $matrix['register_id']));
+        $fresh = app(Registers::class)->matrix($head, $matrix['register_id']);
+        $this->assertTrue($fresh['can_write']);
+        $write = $this->write($fresh, 'excused', ['reason' => 'Verified historical correction']);
+        app(Registers::class)->sync($head, $matrix['register_id'], $write);
+        $this->assertSame('excused', AttendanceEntry::sole()->state);
+        $this->assertSame($head->id, (int) AttendanceEntry::sole()->amended_by);
+        $lead->update(['grade_level_id' => (int) GradeLevel::where('code', '8')->value('id')]);
+        $this->denied(403, fn () => app(Registers::class)->sync($head, $matrix['register_id'], $write));
+        $lead->update(['grade_level_id' => $this->grade, 'ends_on' => '2027-01-09']);
+        $this->denied(403, fn () => app(Registers::class)->matrix($head, $matrix['register_id']));
+    }
+
     public function test_cutoff_alerts_are_current_once_per_day_and_corrections_suppress_absence(): void
     {
         $matrix = $this->open();

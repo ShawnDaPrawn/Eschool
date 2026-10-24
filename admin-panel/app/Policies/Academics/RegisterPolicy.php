@@ -21,7 +21,7 @@ class RegisterPolicy
         $today = $authority->today();
         $date = $register->on_date->toDateString();
         abort_if($write && $date > $today, 422, __('Future attendance cannot be captured.'));
-        if ($authority->manages($fresh) || $authority->leads($fresh, 'grade_head', (int) $register->grade_level_id, (int) $register->session_year_id)) {
+        if ($authority->manages($fresh) || $authority->currentLeadership($fresh, 'grade_head', (int) $register->grade_level_id)) {
             return;
         }
         // A principal needs a grade-head appointment or academic management permission

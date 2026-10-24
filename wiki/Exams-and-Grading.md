@@ -277,3 +277,13 @@ running marks. Revision conflicts retain drafts and require comparison/reload;
 moderation and release use explicit server capabilities. Families see only
 authorized released periods, with provisional results labelled. The operational
 guide is `engineering/runbooks/academic-mark-clients.md`.
+
+## Academic report workflow
+
+The additive v2 report service pins canonical mark snapshots in encrypted report
+cards. School designs/comment banks, grade-head then principal signatures, queued
+private PDFs and explicit release sit alongside existing exam/result contracts.
+Current leadership can handle historical report years; teachers retain current
+allocation checks. Family links are expiring, requester/school bound and recheck
+own-child access. Fees never gate reports. See the academic report runbook under
+engineering/runbooks/academic-reports.md and the report-card feature guide.
