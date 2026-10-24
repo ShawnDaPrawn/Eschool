@@ -32,7 +32,12 @@ class DatedAcademicProjection implements Scope
                 if ($this->kind === 'subject') {
                     $sub->join('teaching_groups as dated_group', 'dated_group.id', '=', 'dated_grant.teaching_group_id')
                         ->whereColumn('dated_group.school_id', $table.'.school_id')->whereColumn('dated_group.subject_id', $table.'.subject_id')
-                        ->whereColumn('dated_group.session_year_id', $table.'.session_year_id')->where('dated_group.active', true)->whereNull('dated_group.deleted_at');
+                        ->whereColumn('dated_group.session_year_id', $table.'.session_year_id')->where('dated_group.active', true)->whereNull('dated_group.deleted_at')
+                        ->whereColumn('dated_group.class_section_id', $table.'.class_section_id')
+                        ->join('class_sections as dated_room', 'dated_room.id', '=', 'dated_group.class_section_id')
+                        ->join('classes as dated_class', 'dated_class.id', '=', 'dated_room.class_id')
+                        ->whereColumn('dated_room.school_id', $table.'.school_id')->whereColumn('dated_class.school_id', $table.'.school_id')
+                        ->whereNull('dated_room.deleted_at')->whereNull('dated_class.deleted_at')->whereColumn('dated_class.grade_level_id', 'dated_group.grade_level_id');
                 } else {
                     $sub->whereColumn('dated_grant.class_section_id', $table.'.class_section_id')->whereColumn('dated_grant.session_year_id', $table.'.session_year_id');
                 }

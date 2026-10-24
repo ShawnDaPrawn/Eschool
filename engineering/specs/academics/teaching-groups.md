@@ -49,3 +49,9 @@ revoked/future/ended allocation, duplicate date windows, optimistic conflict,
 projection stability and historical v1 payloads. Include migration down/up,
 contracts, admin/teacher browser accessibility at 1024/1280 and relevant app
 checks. External staging/real school acceptance remains separate evidence.
+
+Mixed groups retain exact learner authority through the new group APIs. They do
+not create whole-class v1 subject assignments. Bound homeroom assignments keep
+stable v1 projections, and term-filtered teacher/chat consumers explicitly accept
+current dated assignments. Enrolment changes end incompatible group memberships
+with an audit; moving grade never projects access into the new grade's homeroom.

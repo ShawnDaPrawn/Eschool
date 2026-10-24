@@ -4,21 +4,26 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Academics;
 
+use App\Http\Controllers\Api\Parent\ChatController;
 use App\Models\Academics\GradeLevel;
 use App\Models\Academics\TeachingAllocation;
 use App\Models\Academics\TeachingGroup;
 use App\Models\ClassSchool;
+use App\Models\ClassSessionConfig;
 use App\Models\ClassTeacher;
+use App\Models\Parents;
 use App\Models\People\Enrolment;
 use App\Models\Platform\SchoolMembership;
 use App\Models\SessionYear;
 use App\Models\SubjectTeacher;
 use App\Models\Teacher;
+use App\Models\Term;
 use App\Models\User;
 use App\Services\Academics\AcademicAccess;
 use App\Services\Academics\AcademicAuthority;
 use App\Services\Academics\AcademicProjections;
 use App\Services\Academics\TeachingGroups;
+use App\Services\People\EnrolmentService;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
@@ -308,6 +313,41 @@ class TeachingGroupsTest extends TestCase
         } catch (HttpException $e) {
             $this->assertSame(403, $e->getStatusCode());
         }
+    }
+
+    public function test_term_filtered_family_teacher_and_chat_consumers_include_current_dated_assignments(): void
+    {
+        Term::whereKey($this->schoolA->ids['term'])->update(['start_date' => '2026-01-01', 'end_date' => '2026-03-31']);
+        ClassSessionConfig::updateOrCreate(['class_id' => $this->schoolA->ids['class_a'], 'session_year_id' => $this->year], ['include_terms' => true]);
+        DB::table('class_subjects')->where('school_id', 1)->where('class_id', $this->schoolA->ids['class_a'])->where('session_year_id', $this->year)->update(['term_id' => $this->schoolA->ids['term']]);
+        DB::table('subject_teachers')->where('school_id', 1)->update(['deleted_at' => now()]);
+        DB::table('class_teachers')->where('school_id', 1)->update(['deleted_at' => now()]);
+        $group = $this->group();
+        app(TeachingGroups::class)->dated($this->superAdmin(), 'teachers', $this->dates(['teacher_id' => $this->teacher]), $group->id);
+        $this->assertTrue(SubjectTeacher::forTermOrDated($this->schoolA->ids['term'])->where('teacher_id', $this->teacher)->exists());
+        $this->api(User::findOrFail($this->schoolA->ids['farid_user']));
+        $response = $this->getJson('/api/parent/teachers?child_id='.$this->schoolA->ids['asha'])->assertOk()->assertJsonPath('error', false);
+        $this->assertContains($this->teacher, array_column($response->json('data'), 'id'));
+        $parent = Parents::where('user_id', $this->schoolA->ids['farid_user'])->firstOrFail();
+        $method = new \ReflectionMethod(ChatController::class, 'chatTeacherScope');
+        $scope = $method->invoke(app(ChatController::class), $parent, $this->year);
+        $this->assertContains($this->teacher, $scope['teacher_ids']);
+    }
+
+    public function test_mixed_groups_never_project_whole_class_authority_and_grade_moves_end_incompatible_membership(): void
+    {
+        $group = $this->group(['class_section_id' => null]);
+        $member = app(TeachingGroups::class)->dated($this->superAdmin(), 'memberships', $this->dates(['learner_id' => $this->schoolA->ids['asha'], 'mark_rule' => 'catch_up']), $group->id);
+        $allocation = app(TeachingGroups::class)->dated($this->superAdmin(), 'teachers', $this->dates(['teacher_id' => $this->teacher]), $group->id);
+        $this->assertFalse(SubjectTeacher::where('teaching_allocation_id', $allocation->id)->exists());
+        ClassSchool::whereKey($this->schoolA->ids['class_c'])->update(['grade_level_id' => $this->grade + 1]);
+        app(EnrolmentService::class)->place($this->schoolA->ids['asha'], $this->schoolA->ids['section_c'], $this->year, '2026-02-11', 'Moved to another grade');
+        $this->assertSame('2026-02-10', $member->fresh()->ends_on->toDateString());
+        $this->travelTo(now()->addDay());
+        app(AcademicProjections::class)->refresh();
+        $this->assertFalse(SubjectTeacher::where('teaching_allocation_id', $allocation->id)->exists());
+        $this->assertFalse(DB::table('subject_teachers')->where('teaching_allocation_id', $allocation->id)->where('class_section_id', $this->schoolA->ids['section_c'])->whereNull('deleted_at')->exists());
+        $this->assertSame(1, DB::table('audit_log')->where('action', 'academics.membership_enrolment_reconciled')->count());
     }
 
     public function test_homeroom_projection_has_stable_ids_hidden_source_and_cannot_be_manually_edited(): void

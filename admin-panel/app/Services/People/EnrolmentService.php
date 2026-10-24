@@ -9,10 +9,12 @@ use App\Models\People\Enrolment;
 use App\Models\SessionYear;
 use App\Models\Students;
 use App\Models\StudentSessions;
+use App\Services\Academics\AcademicMemberships;
 use App\Services\Platform\Identity\StudentNumbers;
 use App\Services\Platform\Tenancy\CurrentSchool;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Validation\ValidationException;
 
 class EnrolmentService
@@ -47,6 +49,9 @@ class EnrolmentService
                 'previous_enrolment_id' => $current?->id, 'legacy_dates' => $legacyDates,
             ]);
             app(StudentNumbers::class)->assign($learner);
+            if (! $legacyDates && Schema::hasTable('teaching_group_memberships')) {
+                app(AcademicMemberships::class)->reconcileLearner((int) $learner->id, $date);
+            }
             $this->syncProjection((int) $learner->id, (int) $year->id);
 
             return $entry;

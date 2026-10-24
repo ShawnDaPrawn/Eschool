@@ -6,7 +6,7 @@ namespace App\Services\Academics;
 
 use App\Models\Academics\HomeroomAllocation;
 use App\Models\Academics\TeachingAllocation;
-use App\Models\People\Enrolment;
+use App\Models\ClassSection;
 use App\Models\Platform\School;
 use App\Models\Platform\SchoolMembership;
 use App\Models\Teacher;
@@ -32,10 +32,11 @@ class AcademicProjections
                 if ($group === null || ! $group->active || ! isset($eligible[(int) $allocation->teacher_id])) {
                     continue;
                 }
-                $rooms = $group->class_section_id === null
-                    ? Enrolment::query()->whereIn('learner_id', $group->memberships()->whereDate('starts_on', '<=', $today)->whereDate('ends_on', '>=', $today)->select('learner_id'))
-                        ->where('session_year_id', $group->session_year_id)->onDate($today)->distinct()->pluck('class_section_id')->all()
-                    : [$group->class_section_id];
+                // A mixed group cannot grant whole-class v1 authority for a single member.
+                // Its learners/teachers use the exact group APIs instead.
+                $rooms = $group->class_section_id === null ? [] : [$group->class_section_id];
+                $rooms = ClassSection::query()->whereIn('id', $rooms)
+                    ->whereHas('class', fn ($q) => $q->where('grade_level_id', $group->grade_level_id))->pluck('id')->all();
                 foreach ($rooms as $room) {
                     $subjectIds[] = $this->put('subject_teachers', ['teaching_allocation_id' => $allocation->id, 'class_section_id' => $room],
                         ['subject_id' => $group->subject_id, 'teacher_id' => $allocation->teacher_id, 'session_year_id' => $group->session_year_id, 'term_id' => null]);

@@ -60,7 +60,7 @@ class TeacherController extends Controller
             $class_teachers_id = ClassTeacher::where('class_section_id', $class_section_id)
                 ->where('session_year_id', $session_year_id)
                 ->when($isClassHaveTerm, function ($query) use ($currentTerm) {
-                    $query->where('term_id', $currentTerm?->id);
+                    $query->forTermOrDated($currentTerm?->id);
                 })
                 ->pluck('class_teacher_id')->toArray();
 
@@ -68,7 +68,7 @@ class TeacherController extends Controller
                 ->where('session_year_id', $session_year_id)
                 ->whereIn('subject_id', $subject_id)
                 ->when($isClassHaveTerm, function ($query) use ($currentTerm) {
-                    $query->where('term_id', $currentTerm?->id);
+                    $query->forTermOrDated($currentTerm?->id);
                 })
                 ->pluck('teacher_id')->toArray();
 

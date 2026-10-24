@@ -60,3 +60,9 @@ Managed v1 projections have hidden source IDs, stable row IDs and read-time date
 scopes; ending an assignment refuses access even before refresh. Projection
 writes bypass deletion cascades and historical timetable display retains school
 scoping. Existing legacy assignments are not treated as canonical group grants.
+
+Allocation review: mixed groups do not broaden a teacher to an entire homeroom.
+Only bound homeroom groups project class authority, with grade/homeroom checks
+at refresh and read time. Grade/homeroom moves close incompatible memberships
+in the enrolment transaction and retain history. Dated whole-year assignments
+are recognized explicitly by term-filtered family teacher/chat consumers.

@@ -126,3 +126,12 @@ tenancy-route checks passed. Two browser flows passed for admin mapping/group/
 membership/teacher allocation and teacher roster/refusal, with axe and overflow
 at 1024/1280. Projection reuse adopts exact legacy IDs and flattens matching
 coexisting group grants without duplicate app assignments.
+
+Allocation review regressions passed: 31 group/enrolment tests (241 assertions),
+including actual term-filtered parent teacher responses and chat scope, and a
+mixed-group learner moving to a different grade. Mixed groups never create
+whole-class legacy authority. Bound projections recheck grade/homeroom and current
+dates. Incompatible memberships close in the enrolment transaction with audit.
+
+The existing parent/teacher API security suites passed 15 tests and 162 assertions
+after the dated-assignment term consumer and enrolment reconciliation changes.

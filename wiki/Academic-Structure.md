@@ -330,8 +330,8 @@ drafts, never learner marks/reports. Review shifted dates and source versions.
 
 Teaching groups supplies explicit class-to-grade mappings, subject/grade/year
 groups, dated learner membership and dated teachers. A matching dated enrolment
-must cover a learner's membership interval. Mixed-homeroom groups are supported;
-their current member homerooms determine the older app projections. Co-teaching
+must cover a learner's membership interval. Mixed-homeroom groups use the exact group APIs; they do not grant whole-class
+authority through older app projections. Co-teaching
 is allowed, but duplicate overlapping person/context intervals are rejected.
 
 Academic allocations appoints homeroom teachers and dated grade heads/principals.

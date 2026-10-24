@@ -30,6 +30,11 @@ class ClassTeacher extends Model
         'term_id',
     ];
 
+    public function scopeForTermOrDated($query, ?int $termId)
+    {
+        return $query->where(fn ($q) => $q->where('term_id', $termId)->orWhereNotNull('homeroom_allocation_id'));
+    }
+
     public function classSections()
     {
         return $this->belongsTo(ClassSection::class, 'class_section_id');

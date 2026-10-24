@@ -413,7 +413,7 @@ class ChatController extends Controller
         $class_teachers_id = ClassTeacher::where('class_section_id', $class_section_id)
             ->where('session_year_id', $session_year_id)
             ->when($isClassHaveTerm && $currentTerm, function ($query) use ($currentTerm) {
-                $query->where('term_id', $currentTerm?->id);
+                $query->forTermOrDated($currentTerm?->id);
             })
             ->pluck('class_teacher_id')
             ->toArray();
@@ -421,7 +421,7 @@ class ChatController extends Controller
         $subject_teacher_id = SubjectTeacher::where('class_section_id', $class_section_id)
             ->where('session_year_id', $session_year_id)
             ->when($isClassHaveTerm && $currentTerm, function ($query) use ($currentTerm) {
-                $query->where('term_id', $currentTerm?->id);
+                $query->forTermOrDated($currentTerm?->id);
             })
             ->whereIn('subject_id', $subject_id)
             ->pluck('teacher_id')

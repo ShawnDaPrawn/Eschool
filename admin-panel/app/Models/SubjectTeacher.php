@@ -17,6 +17,11 @@ class SubjectTeacher extends Model
 
     protected $hidden = ['deleted_at', 'created_at', 'updated_at', 'teaching_allocation_id'];
 
+    public function scopeForTermOrDated($query, ?int $termId)
+    {
+        return $query->where(fn ($q) => $q->where('term_id', $termId)->orWhereNotNull('teaching_allocation_id'));
+    }
+
     public function class_section()
     {
         return $this->belongsTo(ClassSection::class)->with('class.medium', 'section')->withTrashed();

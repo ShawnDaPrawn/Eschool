@@ -25,3 +25,7 @@ Their IDs remain stable, and expired assignments cannot retain access if the
 scheduled projection refresh is delayed. Edit the canonical dated allocation,
 not its older projection. Learner marks are never created or copied by assigning
 a group; capture, moderation and subject-change rules are separate workflows.
+
+Mixed groups keep work scoped to their own learners. Use the teaching-group
+screens for their academic work. A move to another grade or homeroom ends
+incompatible memberships while preserving their prior history.

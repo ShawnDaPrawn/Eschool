@@ -110,3 +110,9 @@ scope per year with dated appointments and audit history. subject_teachers and
 class_teachers have hidden nullable source allocation foreign keys for stable v1
 projections. Unmanaged legacy assignments remain independent; group capture
 requires canonical authority. Used class grade mappings cannot be reinterpreted.
+
+Mixed groups retain exact learner authority through the new group APIs. They do
+not create whole-class v1 subject assignments. Bound homeroom assignments keep
+stable v1 projections, and term-filtered teacher/chat consumers explicitly accept
+current dated assignments. Enrolment changes end incompatible group memberships
+with an audit; moving grade never projects access into the new grade's homeroom.
