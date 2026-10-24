@@ -279,10 +279,23 @@ class MarkEngineTest extends TestCase
         $again = $this->release($this->releaseInput());
         $this->assertSame($release['id'], $again['id']);
         $this->assertSame(1, MarkRelease::count());
-        $result = ExamResult::where('exact_total_units', 10000)->sole();
-        $this->assertSame(75.05, $result->obtained_marks);
+        $result = ExamResult::where('exact_total_units', 1000000)->sole();
+        $this->assertSame(7505, $result->obtained_marks);
+        $this->assertSame(10000, $result->total_marks);
         $this->assertSame(75.05, (float) $result->percentage);
         $this->assertArrayNotHasKey('exact_obtained_units', $result->toArray());
+        $fixture = json_decode((string) file_get_contents(base_path('../e-school-teacher/test/fixtures/academic_projection.json')), true, flags: JSON_THROW_ON_ERROR);
+        $this->api(User::findOrFail($this->schoolA->ids['farid_user']));
+        $legacy = $this->getJson('/api/parent/exam-marks?child_id='.$this->schoolA->ids['asha'].'&session_year_id='.$this->year)->assertOk()->assertJsonPath('error', false)->json('data');
+        $projected = collect($legacy)->first(fn ($row) => $row['result']['exam_id'] === $result->exam_id);
+        $this->assertNotNull($projected);
+        foreach ($fixture['result'] as $key => $expected) {
+            $this->assertSame($expected, $projected['result'][$key]);
+        }
+        foreach ($fixture['marks'] as $key => $expected) {
+            $this->assertSame($expected, $projected['exam_marks'][0][$key]);
+        }
+
         $family = app(ReleasedMarks::class);
         $parent = User::findOrFail($this->schoolA->ids['farid_user']);
         $view = $family->list($parent, $this->schoolA->ids['asha'], $this->year, $this->term);
@@ -290,7 +303,7 @@ class MarkEngineTest extends TestCase
         $this->capture($this->input('7.50', '12.50', 1));
         app(MarkSnapshots::class)->recompute($this->group, $this->term);
         $this->assertSame(7505, $family->list($parent, $this->schoolA->ids['asha'], $this->year, $this->term)['results'][0]['percentage_bp']);
-        $this->assertSame(75.05, $result->fresh()->obtained_marks);
+        $this->assertSame(7505, (int) $result->fresh()->obtained_marks);
         $next = $this->release($this->releaseInput());
         $this->assertSame(2, $next['version']);
         $this->assertSame(10000, $family->list($parent, $this->schoolA->ids['asha'], $this->year, $this->term)['results'][0]['percentage_bp']);
@@ -455,7 +468,7 @@ class MarkEngineTest extends TestCase
         $this->release($this->releaseInput());
         $link = AcademicExamLink::query()->sole();
         $exam = Exam::findOrFail($link->exam_id);
-        foreach ([fn () => $exam->forceFill(['name' => 'Bypass'])->save(), fn () => $exam->delete(), fn () => ExamMarks::where('exact_obtained_units', 10000)->sole()->delete()] as $attempt) {
+        foreach ([fn () => $exam->forceFill(['name' => 'Bypass'])->save(), fn () => $exam->delete(), fn () => ExamMarks::where('exact_obtained_units', 1000000)->sole()->delete()] as $attempt) {
             try {
                 $attempt();
                 $this->fail('Projected results are protected');
@@ -465,7 +478,7 @@ class MarkEngineTest extends TestCase
         }
         $this->assertSame(1, MarkRelease::count());
         $this->assertFalse($exam->fresh()->trashed());
-        $this->assertNull(ExamMarks::where('exact_obtained_units', 10000)->sole()->passing_status);
+        $this->assertNull(ExamMarks::where('exact_obtained_units', 1000000)->sole()->passing_status);
     }
 
     public function test_school_timezone_lock_applies_before_utc_midnight(): void
@@ -528,7 +541,7 @@ class MarkEngineTest extends TestCase
         $timetable = ExamTimetable::where('exam_id', $exam->id)->where('subject_id', $this->schoolA->ids['science'])->firstOrFail();
         app(MarkRecording::class)->legacy($this->teacher(), [['timetable_id' => $timetable->id, 'learner_id' => $this->schoolA->ids['asha'], 'mark' => '45.25']]);
         $mark = ExamMarks::where('exam_timetable_id', $timetable->id)->where('student_id', $this->schoolA->ids['asha'])->sole();
-        $this->assertSame(45.25, $mark->obtained_marks);
+        $this->assertSame(45, (int) $mark->obtained_marks);
         $this->assertSame(4525, (int) $mark->exact_obtained_units);
         $this->assertSame(1, DB::table('audit_log')->where('action', 'academics.legacy_mark_captured')->count());
         $exam->term_id = $this->term;
@@ -540,7 +553,7 @@ class MarkEngineTest extends TestCase
         } catch (HttpException $e) {
             $this->assertSame(409, $e->getStatusCode());
         }
-        $this->assertSame(45.25, $mark->fresh()->obtained_marks);
+        $this->assertSame(45, (int) $mark->fresh()->obtained_marks);
     }
 
     public function test_dated_principal_can_release_but_cannot_correct_or_moderate_without_grade_head_appointment(): void

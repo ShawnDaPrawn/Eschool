@@ -256,8 +256,8 @@ previews selected learners and requires its unchanged fingerprint. Official mode
 requires complete selected results; explicit running mode is provisional. Family
 reads only released evidence under current guardian/learner rights, without fees.
 Later corrections never rewrite a release. Official snapshots project the v1
-exam fields through the same service. Fractional obtained marks remain numeric
-through hidden exact-unit accessors; new projections have nullable passing fields
+exam fields through the same service. Official projection scores use integer basis points out of10,000 so older
+clients retain their whole-number contracts and exact percentage values; new projections have nullable passing fields
 because a seven-point rating alone is not a promotion rule. Legacy exams retain
 their configured grade bands and pass thresholds. Older exam editors cannot
 change protected projections.

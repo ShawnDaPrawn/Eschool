@@ -64,11 +64,11 @@ class LegacyMarks
             foreach ($prepared as [$timetable, $learner, $units, $grade, $review]) {
                 $mark = ExamMarks::where('exam_timetable_id', $timetable->id)->where('student_id', $learner->id)->where('subject_id', $timetable->subject_id)->lockForUpdate()->first() ?? new ExamMarks;
                 $updated = $updated || $mark->exists;
-                $before = $mark->exists ? $mark->toArray() : [];
+                $before = $mark->exists ? $mark->toArray() + ['exact_mark_units' => (int) ($mark->exact_obtained_units ?? (int) $mark->obtained_marks * 100)] : [];
                 $mark->forceFill(['exam_timetable_id' => $timetable->id, 'student_id' => $learner->id, 'subject_id' => $timetable->subject_id,
-                    'obtained_marks' => intdiv($units, 100), 'exact_obtained_units' => $units, 'passing_status' => $units >= (int) $timetable->passing_marks * 100 ? 1 : 0,
+                    'obtained_marks' => intdiv($units + 50, 100), 'exact_obtained_units' => $units, 'passing_status' => $units >= (int) $timetable->passing_marks * 100 ? 1 : 0,
                     'grade' => $grade, 'session_year_id' => $timetable->session_year_id])->save();
-                Audit::record('academics.legacy_mark_captured', $mark, $before, $mark->toArray());
+                Audit::record('academics.legacy_mark_captured', $mark, $before, $mark->toArray() + ['exact_mark_units' => $units]);
             }
             foreach ($exams as $exam) {
                 if ((int) $exam->publish === 1) {
@@ -130,7 +130,7 @@ class LegacyMarks
             abort_if($section === null, 409, __('Student session not found.'));
             $result = ExamResult::where('exam_id', $exam->id)->where('student_id', $learnerId)->lockForUpdate()->first() ?? new ExamResult;
             $result->forceFill(['exam_id' => $exam->id, 'student_id' => $learnerId, 'class_section_id' => $section, 'session_year_id' => $exam->session_year_id,
-                'total_marks' => intdiv($total, 100), 'obtained_marks' => intdiv($obtained, 100), 'exact_total_units' => $total, 'exact_obtained_units' => $obtained,
+                'total_marks' => intdiv($total, 100), 'obtained_marks' => intdiv($obtained + 50, 100), 'exact_total_units' => $total, 'exact_obtained_units' => $obtained,
                 'percentage' => AcademicNumbers::decimal($bp), 'grade' => $grade])->save();
         }
     }

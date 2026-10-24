@@ -127,6 +127,6 @@ mark_snapshots retain definition/input fingerprints, exact formula inputs,
 coverage, provisional/official percentages and seven-point ratings per learner /
 subject / grade / year / period. mark_releases and mark_release_entries pin
 selected immutable snapshots. academic_exam_links identify protected v1 exam
-projections. Existing exam marks/results have hidden exact-unit columns; their
-numeric obtained_marks accessors preserve fractional marks. Canonical projections
+projections. Existing exam marks/results have hidden exact-unit columns; their whole-number obtained_marks fields retain installed-client types.
+Official projections use integer scores out of10,000, preserving exact percentages. Canonical projections
 have no inferred promotion/pass decision (nullable passing fields).

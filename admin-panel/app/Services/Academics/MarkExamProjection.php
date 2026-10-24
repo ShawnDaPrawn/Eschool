@@ -68,17 +68,17 @@ class MarkExamProjection
                 (new ExamClass)->forceFill(['exam_id' => $exam->id, 'class_id' => $classId])->save();
             }
             $timetable = ExamTimetable::where('exam_id', $exam->id)->where('class_id', $classId)->where('subject_id', $group->subject_id)->first() ?? (new ExamTimetable)->forceFill(['exam_id' => $exam->id, 'class_id' => $classId, 'subject_id' => $group->subject_id]);
-            $timetable->forceFill(['total_marks' => 100, 'passing_marks' => null, 'date' => $date, 'start_time' => '00:00:00', 'end_time' => '00:00:00', 'session_year_id' => $group->session_year_id])->save();
+            $timetable->forceFill(['total_marks' => 10000, 'passing_marks' => null, 'date' => $date, 'start_time' => '00:00:00', 'end_time' => '00:00:00', 'session_year_id' => $group->session_year_id])->save();
             // Remove only this learner's previous placement projection, never other released learners.
             $oldTimetables = ExamTimetable::where('exam_id', $exam->id)->whereKeyNot($timetable->id)->pluck('id');
             ExamMarks::whereIn('exam_timetable_id', $oldTimetables)->where('student_id', $entry->learner_id)->delete();
             $bp = (int) $snapshot->percentage_bp;
             $mark = ExamMarks::where('exam_timetable_id', $timetable->id)->where('subject_id', $group->subject_id)->where('student_id', $entry->learner_id)->first() ?? (new ExamMarks)->forceFill(['exam_timetable_id' => $timetable->id, 'subject_id' => $group->subject_id, 'student_id' => $entry->learner_id]);
-            $mark->forceFill(['obtained_marks' => intdiv($bp, 100), 'exact_obtained_units' => $bp, 'passing_status' => null,
+            $mark->forceFill(['obtained_marks' => $bp, 'exact_obtained_units' => $bp * 100, 'passing_status' => null,
                 'grade' => (string) $snapshot->rating_level, 'session_year_id' => $group->session_year_id, 'teacher_review' => null])->save();
             $result = ExamResult::where('exam_id', $exam->id)->where('student_id', $entry->learner_id)->first() ?? (new ExamResult)->forceFill(['exam_id' => $exam->id, 'student_id' => $entry->learner_id]);
-            $result->forceFill(['class_section_id' => $section->id, 'total_marks' => 100, 'obtained_marks' => intdiv($bp, 100), 'exact_total_units' => 10000,
-                'exact_obtained_units' => $bp, 'percentage' => AcademicNumbers::decimal($bp), 'grade' => (string) $snapshot->rating_level, 'session_year_id' => $group->session_year_id])->save();
+            $result->forceFill(['class_section_id' => $section->id, 'total_marks' => 10000, 'obtained_marks' => $bp, 'exact_total_units' => 1000000,
+                'exact_obtained_units' => $bp * 100, 'percentage' => AcademicNumbers::decimal($bp), 'grade' => (string) $snapshot->rating_level, 'session_year_id' => $group->session_year_id])->save();
         }
     }
 }

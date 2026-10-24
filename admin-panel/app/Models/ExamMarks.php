@@ -27,13 +27,6 @@ class ExamMarks extends Model
         return $this->belongsTo(Subject::class);
     }
 
-    public function getObtainedMarksAttribute($value)
-    {
-        $units = $this->attributes['exact_obtained_units'] ?? null;
-
-        return $units === null ? $value : ((int) $units) / 100;
-    }
-
     public function student()
     {
         return $this->belongsTo(Students::class)->withTrashed();

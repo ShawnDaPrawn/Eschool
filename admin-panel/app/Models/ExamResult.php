@@ -16,13 +16,6 @@ class ExamResult extends Model
 
     protected $hidden = ['deleted_at', 'created_at', 'updated_at', 'exact_obtained_units', 'exact_total_units'];
 
-    public function getObtainedMarksAttribute($value)
-    {
-        $units = $this->attributes['exact_obtained_units'] ?? null;
-
-        return $units === null ? $value : ((int) $units) / 100;
-    }
-
     public function student()
     {
         return $this->belongsTo(Students::class, 'student_id')->with('user')->withTrashed();

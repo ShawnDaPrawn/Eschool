@@ -48,8 +48,9 @@ clients do not invent a second formula. Matrix rosters are paged at100 by defaul
 Existing v1 exam routes and payloads stay. Their writes pass through the shared
 recording/calculation service, preserving legacy grading and envelopes. Explicit
 term release writes exam_marks/exam_results projections from the same snapshots;
-legacy integer storage has hidden exact units and numeric accessors preserve
-fractional obtained marks. No promotion rule is inferred from a rating; canonical
+legacy integer storage has hidden exact units and whole-number v1 fields retain their installed-client contract. Official
+projections use a 10,000 maximum and integer basis-point scores to preserve exact
+percentages; hidden hundredth units retain exact source values. No promotion rule is inferred from a rating; canonical
 projections leave passing fields null. Projected exams cannot be edited/published
 through a bypass of canonical lock/release rules. Parents/learners see only
 explicitly released results with fresh own-child/approval checks.
