@@ -121,3 +121,15 @@ retained academic, communication, export, language and desktop work. Continue
 recording target SA-SAMS import qualification, fluent translation review, staging/
 device/performance and independent security evidence separately. The cancellation
 is not production release authorization or a spending-budget change.
+
+## Concurrent Phase 3 and Phase 4 decision (24 October 2026)
+
+The owner explicitly authorized two agents to start these phases concurrently,
+as the Build Bible schedules them. Use isolated worktrees and small feature PRs;
+the lead coordinates shared contracts and integrations. Follow
+`engineering/phases/phase-3-4-coordination.md` for ownership and dependencies.
+Missing AI/mastery/awards contracts block their consumers, not unrelated work.
+Native flavours never grant server roles or permission to reuse teacher access.
+Preserve Phase 2 transcription and academic behavior. Continue to separate tested
+implementation from external acceptance; production, stores and paid-provider
+activation are not authorized merely by this development decision.
