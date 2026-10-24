@@ -338,3 +338,12 @@ at both widths. Native/JSON row-count mismatch was found in browser rehearsal,
 fixed, and both widths rerun successfully. Documentation build passed; PHP style
 passed 933 files; Larastan clean. These are local/synthetic results, not physical
 camera, real classroom timing, staging or full-term pilot acceptance.
+
+Attendance client full CI found a Bootstrap class on the new page (1,280 other
+PHP checks passed) and an early QR Enter submission in clean browser capture.
+The page now uses scoped M3 token styles. QR/bulk enhancement starts after DOM
+readiness, and its controls stay disabled until handlers are attached; native
+row capture remains available. The 24 targeted PHP/style checks pass. All four
+panel flows pass, including an intentionally delayed script load proving QR is
+disabled before initialization and Enter never submits attendance. Exact updated
+CI remains required before merging the client slice.

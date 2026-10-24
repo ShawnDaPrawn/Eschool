@@ -36,6 +36,7 @@ for (const width of [1024, 1280]) {
     await page.getByRole('button', { name: /Open register: Grade 5/ }).first().click();
     const form = page.getByRole('form', { name: 'Capture register', exact: true });
     await expect(form.locator('[data-register-row]').first()).toBeVisible();
+    await expect(form.locator('[data-register-qr]')).toBeEnabled();
     await form.getByRole('button', { name: 'Mark remaining present', exact: true }).click();
     await form.getByRole('textbox', { name: 'Reason for correction', exact: true }).fill('Synthetic browser roll call verified');
     const qr = await form.locator('[data-register-row]').first().getAttribute('data-qr-code');
@@ -72,4 +73,25 @@ test('homeroom teacher can read earlier day but only the grade head may correct 
   await page.getByRole('button', { name: /Open register: Grade 5/ }).first().click();
   await expect(page.getByRole('status').filter({ hasText: 'Read only.' })).toBeVisible();
   await expect(page.getByRole('button', { name: 'Save register', exact: true })).toBeDisabled();
+});
+
+test('a scanner stays disabled until its handler is ready and Enter never submits the register', async ({ page }) => {
+  await signIn(page, accounts.admin);
+  await page.goto('/academic-registers');
+  await page.getByRole('button', { name: /Open register: Grade 5/ }).first().click();
+  const url = page.url();
+  let release!: () => void;
+  const hold = new Promise<void>(resolve => { release = resolve; });
+  await page.route('**/assets/js/custom/register-workbench.js', async route => { await hold; await route.continue(); });
+  await page.goto(url, { waitUntil: 'commit' });
+  const input = page.locator('[data-register-qr]');
+  await expect(input).toBeDisabled();
+  release();
+  await expect(input).toBeEnabled();
+  let writes = 0;
+  page.on('request', request => { if (request.method() === 'POST' && request.url().endsWith('/academic-registers/sync')) writes++; });
+  await input.fill((await page.locator('[data-register-row]').first().getAttribute('data-qr-code'))!);
+  await input.press('Enter');
+  await expect(page.locator('[data-qr-status]')).toContainText('Learner marked present');
+  expect(writes).toBe(0);
 });

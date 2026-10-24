@@ -51,15 +51,15 @@
                 <input type="hidden" name="register_id" value="{{ $matrix['register_id'] }}"><input type="hidden" name="operation_id" value="{{ $operationId }}"><input type="hidden" name="base_revision" value="{{ $matrix['revision'] }}"><input type="hidden" name="roster_hash" value="{{ $matrix['roster_hash'] }}"><input type="hidden" name="expected_row_count" value="{{ count($matrix['learners']) }}"><input type="hidden" name="payload" value="" data-register-payload>
                 <fieldset @disabled(!$matrix['can_write'] || $conflict)>
                     <legend>{{ __('Attendance entries') }}</legend>
-                    <button type="button" class="m3-button m3-button--outlined" data-mark-present>{{ __('Mark remaining present') }}</button>
-                    <label for="register-qr">{{ __('Scan or paste learner QR') }}</label><input id="register-qr" type="text" autocomplete="off" maxlength="4096" data-register-qr>
+                    <button type="button" class="m3-button m3-button--outlined" data-mark-present disabled>{{ __('Mark remaining present') }}</button>
+                    <label for="register-qr">{{ __('Scan or paste learner QR') }}</label><input id="register-qr" type="text" autocomplete="off" maxlength="4096" data-register-qr disabled>
                     <p role="status" data-qr-status data-found="{{ __('Learner marked present. Save the register to apply.') }}" data-unknown="{{ __('QR does not match this roster. Use the tap list or reload the register.') }}"></p>
-                    <div class="register-table" tabindex="0" role="region" aria-label="{{ __('Attendance list') }}"><table class="table"><thead><tr><th scope="col">{{ __('Learner') }}</th><th scope="col">{{ __('Attendance') }}</th><th scope="col">{{ __('Last amended') }}</th></tr></thead><tbody>
+                    <div class="register-table" tabindex="0" role="region" aria-label="{{ __('Attendance list') }}"><table class="register-data-table"><thead><tr><th scope="col">{{ __('Learner') }}</th><th scope="col">{{ __('Attendance') }}</th><th scope="col">{{ __('Last amended') }}</th></tr></thead><tbody>
                     @foreach($matrix['learners'] as $learner)
                         <tr data-register-row data-learner-id="{{ $learner['learner_id'] }}" data-revision="{{ $learner['revision'] }}" data-qr-code="{{ $learner['qr_code'] }}">
                             <th scope="row">{{ $learner['name'] }}</th><td>
-                                <label class="sr-only" for="attendance-{{ $learner['learner_id'] }}">{{ __('Attendance for') }} {{ $learner['name'] }}</label>
-                                <select id="attendance-{{ $learner['learner_id'] }}" name="records[{{ $learner['learner_id'] }}][state]" class="form-control" data-register-state>@foreach($states as $value => $label)<option value="{{ $value }}" @selected($value === ($draft[$learner['learner_id']] ?? old('records.'.$learner['learner_id'].'.state', $learner['state'])))>{{ $label }}</option>@endforeach</select>
+                                <label class="register-visually-hidden" for="attendance-{{ $learner['learner_id'] }}">{{ __('Attendance for') }} {{ $learner['name'] }}</label>
+                                <select id="attendance-{{ $learner['learner_id'] }}" name="records[{{ $learner['learner_id'] }}][state]" class="register-state-input" data-register-state>@foreach($states as $value => $label)<option value="{{ $value }}" @selected($value === ($draft[$learner['learner_id']] ?? old('records.'.$learner['learner_id'].'.state', $learner['state'])))>{{ $label }}</option>@endforeach</select>
                                 <input type="hidden" name="records[{{ $learner['learner_id'] }}][expected_revision]" value="{{ $learner['revision'] }}">
                             </td><td>{{ $learner['amended_at'] ?? '—' }}</td>
                         </tr>
