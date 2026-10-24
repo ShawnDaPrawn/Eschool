@@ -632,3 +632,37 @@ no-response expiry permits offline fallback. HTTP refusals retain their status.
 27 core API tests and 24 content/offline tests pass, including a stalled
 fresh-access/library and reader flow with the actual 20-second deadline.
 Core analysis has zero errors/warnings (one existing style info).
+
+
+### School communication service and panel, 24 October 2026
+
+- Offline PR #100 merged at main 4366f43e after every final-head workflow
+  passed and the stalled-connection review thread was resolved.
+- Communication service: final **28 tests passed, 186 assertions**, including
+  actual typed published-reader/inbox/read responses, fresh author/reviewer
+  coverage, custom contact boundaries after moves, encrypted data, revisions and
+  UUID replay, immutable publication, school-local schedule, ended guardians,
+  withdrawal, preference/mandatory channel rules, durable 103-recipient batches,
+  atomic rollback/retry, suspended-school pause and retained-data rollback refusal.
+- A broader contract/tenancy/navigation cohort passed **618 tests** and found
+  one empty-navigation regression for the Finance role. The link now requires
+  teacher/leadership authority or an explicit author rule. The focused final
+  regression cohort passed **51 tests, 4,888 assertions**, including navigation,
+  translations, notification rules and the updated up/down migration rehearsal.
+  The added published-reader API case then passed in the 28-test engine cohort.
+- All 18 additive operations are described by the strict OpenAPI contract and
+  covered by route-isolation scenarios. Earlier contract cohort: **232 passed,
+  1,210 assertions**. Strict final lint passes. Generated SDK: **754 files**;
+  existing **45 tests** and **four new communication contract tests** pass. SDK
+  analysis has no errors/warnings (generated naming/style information remains).
+- Real panel Chromium flow: **three passed**. Draft/edit/dirty-action protection,
+  preview, different-actor approval, publication and withdrawal at both 1024 and
+  1280 pixels; wrong owner/school refused. No serious/critical axe violations,
+  horizontal overflow or application console errors in the checked flows.
+  Browser review caught duplicated reason-field IDs; both labels now have
+  distinct IDs. Inactive synthetic learner; in-app delivery only.
+- Pint checks affected PHP; Larastan has no errors; documentation build passes.
+  Final public CI/review must pass before merge. No live provider/device, staging
+  load, independent security, human translation or full-term pilot is claimed.
+- Shared app message screens/navigation are the following implementation slice.
+  Legacy chat/notices and their API contracts remain covered by CI.

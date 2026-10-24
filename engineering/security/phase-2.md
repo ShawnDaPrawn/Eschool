@@ -164,3 +164,14 @@ visible expiry and clock rollback. HTTP/certificate/cancelled requests cannot
 activate offline fallback. Saved copies may remain on a disconnected device
 within their original lease; this limit is recorded in the user guide. The
 independent pre-pilot test remains external acceptance, not a claimed pass.
+
+
+Communication implementation review covers fresh audience authority, dated
+physical enrolment, compatible groups, explicit ended-guardian precedence,
+role/owner/school refusals, encrypted source data, revision/UUID replay, different
+approvers, current grade-head coverage, schedule publication checks, frozen
+recipient reasons, preference/channel filtering, rollback/retry, durable batches,
+private read state and withdrawal before transport. A school-wide sending grant
+does not give grade heads review authority outside their appointed grades.
+Generic notification payloads carry no private title/body. This is implementation
+review; the independent pre-pilot security test is still external acceptance.

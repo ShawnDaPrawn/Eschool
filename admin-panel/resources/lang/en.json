@@ -2130,5 +2130,6 @@
     "content_failure_transcription_daily_cap": "The school transcription allowance is used for today. Retry tomorrow, shorten the recording or review the school control.",
     "content_failure_transcription_disabled": "Audio/video transcription is disabled for this school. Ask the administrator or upload a text document.",
     "content_failure_transcription_duration_limit": "The recording is longer than the remaining allowance. Upload a shorter recording or review the school control.",
-    "content_failure_transcription_safeguarding_review": "The transcript was quarantined by a safeguarding guard. Review the source with the school before trying a corrected recording."
+    "content_failure_transcription_safeguarding_review": "The transcript was quarantined by a safeguarding guard. Review the source with the school before trying a corrected recording.",
+    "School messages": "School messages"
 }

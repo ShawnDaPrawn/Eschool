@@ -109,3 +109,16 @@ read state. Content upload/publication use ID-only transactional outbox events.
 Publication fanout is ID-only queued work in batches of at most 100 learners.
 A durable cursor on the current published item resumes after each batch; new
 publication resets it, and obsolete/withdrawn publications stop before sending.
+
+
+### Communication centre message types
+
+`communication.message` is an optional communication-module notice for all
+profiles. `communication.approval_requested` is offered to staff reviewers.
+School rules and personal choices apply; the author selects a subset of channels
+for publication. The existing `comms.message` remains the chat-module type.
+Both new types use generic text and `/communication/messages?message=<id>` with
+IDs only. Delivery checks publication identity or current pending revision plus
+recipient/reviewer rights immediately before transport. Withdrawals and ended
+guardian rights suppress delivery; notification contents never contain the
+private title, text, custom contacts or read statistics.

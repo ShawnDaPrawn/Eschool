@@ -2,6 +2,7 @@
 
 use App\Console\Commands\FlagDobPasswords;
 use App\Jobs\Academics\RecoverContentConversions;
+use App\Jobs\Communication\RecoverMessages;
 use App\Jobs\Platform\ApplyRetention;
 use App\Jobs\Platform\DispatchOutbox;
 use App\Models\People\Enrolment;
@@ -79,3 +80,5 @@ Schedule::command('academics:register-absence-alerts')->everyMinute()->name('reg
 Schedule::job(new ApplyRetention)->dailyAt('02:40')->name('academic-export-retention')->withoutOverlapping();
 
 Schedule::job(new RecoverContentConversions)->everyMinute()->name('content-conversion-recovery')->withoutOverlapping();
+
+Schedule::job(new RecoverMessages)->everyMinute()->name('communication-message-recovery')->withoutOverlapping();

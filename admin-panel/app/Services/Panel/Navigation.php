@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Services\Panel;
 
 use App\Models\User;
+use App\Services\Communication\CommunicationRules;
 use App\Services\Platform\Modules\ModuleGate;
 use Illuminate\Support\Facades\Route;
 
@@ -116,6 +117,9 @@ class Navigation
             return false;
         }
         if (! empty($item['roles']) && ! $user->hasAnyRole($item['roles'])) {
+            return false;
+        }
+        if (($item['communication_author'] ?? false) && ! app(CommunicationRules::class)->authorAvailable($user)) {
             return false;
         }
         $permissions = $item['permissions'] ?? [];
