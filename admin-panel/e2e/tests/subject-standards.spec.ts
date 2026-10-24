@@ -1,8 +1,14 @@
+import { execFileSync } from 'node:child_process';
+import path from 'node:path';
 import { expect, test } from '@playwright/test';
 import { accounts, csrfToken, signIn } from '../support/accounts';
 import { collectErrors, horizontalOverflow, seriousViolations } from '../support/checks';
 
 test.use({ storageState: { cookies: [], origins: [] } });
+
+test.beforeAll(() => {
+  execFileSync('php', ['artisan', 'academics:import-subject-standards', 'database/data/dbe-ncs-2015-subject-standards.json', '--publish'], { cwd: path.resolve(process.cwd(), '..'), encoding: 'utf8' });
+});
 
 test('admin browses the sourced catalogue and maps or creates a school subject', async ({ page, baseURL }) => {
   await signIn(page, accounts.adminB);

@@ -71,8 +71,8 @@ class SubjectStandards
             if ($existing) {
                 return $existing->load('standard');
             }
-            if (Subject::query()->where('medium_id', $mediumId)->where('type', $type)
-                ->where(fn ($q) => $q->where('name', $standard->name)->orWhere('code', $standard->code))->exists()) {
+            if (Subject::query()->where(fn ($q) => $q->where('code', $standard->code)
+                ->orWhere(fn ($q) => $q->where('medium_id', $mediumId)->where('type', $type)->where('name', $standard->name)))->exists()) {
                 throw ValidationException::withMessages(['standard_id' => __('Map the existing school subject instead of creating a duplicate.')]);
             }
             $subject = new Subject;

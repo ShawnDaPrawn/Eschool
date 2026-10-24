@@ -148,6 +148,20 @@ class SubjectStandardsTest extends TestCase
         $this->postJson('/api/v2/academics/subjects/from-standard', array_replace($payload, ['medium_id' => $foreign]))->assertNotFound();
     }
 
+    public function test_creation_preserves_the_existing_editors_school_wide_code_uniqueness(): void
+    {
+        $standard = $this->standard();
+        $medium = Mediums::query()->firstOrFail();
+        $payload = ['standard_id' => $standard->id, 'medium_id' => $medium->id, 'type' => 'Theory', 'bg_color' => '#22577A'];
+        $this->admin()->postJson('/api/v2/academics/subjects/from-standard', $payload)->assertOk();
+        $this->postJson('/api/v2/academics/subjects/from-standard', array_replace($payload, ['type' => 'Practical']))->assertUnprocessable();
+        $second = new Mediums;
+        $second->name = 'Another medium';
+        $second->save();
+        $this->postJson('/api/v2/academics/subjects/from-standard', array_replace($payload, ['medium_id' => $second->id]))->assertUnprocessable();
+        $this->assertSame(1, Subject::where('code', $standard->code)->count());
+    }
+
     public function test_bundled_historical_catalogue_imports_and_preserves_grade_specific_codes(): void
     {
         $this->artisan('academics:import-subject-standards', ['file' => database_path('data/dbe-ncs-2015-subject-standards.json'), '--publish' => true])->assertSuccessful();
