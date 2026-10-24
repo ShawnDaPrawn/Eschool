@@ -25,6 +25,7 @@ class TimetableCollection extends ResourceCollection
                 'link_name' => $row['link_name'],
                 'live_class_url' => $row['live_class_url'],
                 'day_name' => $row['day_name'],
+                'room_name' => $row['room_name'],
                 'subject' => $row['subject_teacher']['subject'],
                 'teacher_first_name' => $row['subject_teacher']['teacher']['user']['first_name'],
                 'teacher_last_name' => $row['subject_teacher']['teacher']['user']['last_name'],

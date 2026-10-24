@@ -44,6 +44,7 @@ class TenancyMigrationsTest extends TestCase
         '2026_10_24_020000_create_curriculum_plans',
         '2026_10_24_030000_create_teaching_groups',
         '2026_10_24_040000_create_academic_marks',
+        '2026_10_24_050000_create_timetable_engine',
     ];
 
     protected function setUp(): void

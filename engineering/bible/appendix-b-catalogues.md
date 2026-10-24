@@ -62,3 +62,9 @@ changes recompute affected histories. academics.marks_released queues generic
 family notices through Notifier with current guardian relationships and the
 existing academics.marks_released preference rules. No score/person details enter
 notification event payloads. The family API resolves current own-child rights.
+
+
+`academics.timetable_changed` records school-scoped lesson IDs transactionally
+when a placement batch commits. It contains no learner list. The normal scheduler
+refreshes compatible v1 current-week projections; the canonical timetable remains
+authoritative while a projection refresh is delayed.

@@ -240,3 +240,14 @@ releases project protected existing-app results without inventing promotion
 thresholds. Added generated v2 client models and a bounded weekly CSV comparison.
 The adaptive capture client is the next feature. Synthetic tests are software
 evidence only; real pilot/staging/security/UX/production acceptance stays open.
+
+
+### Timetable engine and import contracts — 24 October 2026
+
+Added school rooms/bell schedules, dated lessons, actual-time clashes across
+periods and school-year ranges, shared-learner conflicts, preview fingerprints,
+atomic import mappings and revision-checked cancellation. Fresh teacher/family
+week and next-period reads use dated rights. Protected v1 projections retain
+field types and stable IDs; additive room labels update the five affected API
+snapshots. The panel/shared app editor and home card follow as a client slice.
+Real vendor exports, staging, device timing and pilot acceptance remain separate.

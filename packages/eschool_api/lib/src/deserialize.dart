@@ -3,11 +3,17 @@ import 'package:eschool_api/src/model/academic_assignment_response.dart';
 import 'package:eschool_api/src/model/academic_assignment_write.dart';
 import 'package:eschool_api/src/model/academic_assignments_response.dart';
 import 'package:eschool_api/src/model/academic_assignments_response_data.dart';
+import 'package:eschool_api/src/model/academic_bell_period.dart';
+import 'package:eschool_api/src/model/academic_bell_period_write.dart';
+import 'package:eschool_api/src/model/academic_bells.dart';
+import 'package:eschool_api/src/model/academic_bells_response.dart';
+import 'package:eschool_api/src/model/academic_bells_write.dart';
 import 'package:eschool_api/src/model/academic_capture_data.dart';
 import 'package:eschool_api/src/model/academic_capture_response.dart';
 import 'package:eschool_api/src/model/academic_component_result.dart';
 import 'package:eschool_api/src/model/academic_grade_level.dart';
 import 'package:eschool_api/src/model/academic_learner_preview.dart';
+import 'package:eschool_api/src/model/academic_lesson_write.dart';
 import 'package:eschool_api/src/model/academic_mark.dart';
 import 'package:eschool_api/src/model/academic_mark_result.dart';
 import 'package:eschool_api/src/model/academic_mark_row.dart';
@@ -34,9 +40,29 @@ import 'package:eschool_api/src/model/academic_release_write.dart';
 import 'package:eschool_api/src/model/academic_released_data.dart';
 import 'package:eschool_api/src/model/academic_released_response.dart';
 import 'package:eschool_api/src/model/academic_released_result.dart';
+import 'package:eschool_api/src/model/academic_room.dart';
+import 'package:eschool_api/src/model/academic_room_response.dart';
+import 'package:eschool_api/src/model/academic_room_write.dart';
 import 'package:eschool_api/src/model/academic_stored_question.dart';
 import 'package:eschool_api/src/model/academic_task_question.dart';
 import 'package:eschool_api/src/model/academic_task_result.dart';
+import 'package:eschool_api/src/model/academic_timetable_choice.dart';
+import 'package:eschool_api/src/model/academic_timetable_clash.dart';
+import 'package:eschool_api/src/model/academic_timetable_commit_data.dart';
+import 'package:eschool_api/src/model/academic_timetable_commit_response.dart';
+import 'package:eschool_api/src/model/academic_timetable_commit_write.dart';
+import 'package:eschool_api/src/model/academic_timetable_configuration_data.dart';
+import 'package:eschool_api/src/model/academic_timetable_configuration_response.dart';
+import 'package:eschool_api/src/model/academic_timetable_import_defaults.dart';
+import 'package:eschool_api/src/model/academic_timetable_import_write.dart';
+import 'package:eschool_api/src/model/academic_timetable_lesson.dart';
+import 'package:eschool_api/src/model/academic_timetable_next_data.dart';
+import 'package:eschool_api/src/model/academic_timetable_next_response.dart';
+import 'package:eschool_api/src/model/academic_timetable_preview_data.dart';
+import 'package:eschool_api/src/model/academic_timetable_preview_response.dart';
+import 'package:eschool_api/src/model/academic_timetable_preview_write.dart';
+import 'package:eschool_api/src/model/academic_timetable_week_data.dart';
+import 'package:eschool_api/src/model/academic_timetable_week_response.dart';
 import 'package:eschool_api/src/model/accept_guardian_invitation_request.dart';
 import 'package:eschool_api/src/model/approval_learner.dart';
 import 'package:eschool_api/src/model/approval_state.dart';
@@ -194,6 +220,21 @@ ReturnType deserialize<ReturnType, BaseType>(
             value as Map<String, dynamic>,
           )
           as ReturnType;
+    case 'AcademicBellPeriod':
+      return AcademicBellPeriod.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'AcademicBellPeriodWrite':
+      return AcademicBellPeriodWrite.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'AcademicBells':
+      return AcademicBells.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'AcademicBellsResponse':
+      return AcademicBellsResponse.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'AcademicBellsWrite':
+      return AcademicBellsWrite.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
     case 'AcademicCaptureData':
       return AcademicCaptureData.fromJson(value as Map<String, dynamic>)
           as ReturnType;
@@ -208,6 +249,9 @@ ReturnType deserialize<ReturnType, BaseType>(
           as ReturnType;
     case 'AcademicLearnerPreview':
       return AcademicLearnerPreview.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'AcademicLessonWrite':
+      return AcademicLessonWrite.fromJson(value as Map<String, dynamic>)
           as ReturnType;
     case 'AcademicMark':
       return AcademicMark.fromJson(value as Map<String, dynamic>) as ReturnType;
@@ -288,6 +332,14 @@ ReturnType deserialize<ReturnType, BaseType>(
     case 'AcademicReleasedResult':
       return AcademicReleasedResult.fromJson(value as Map<String, dynamic>)
           as ReturnType;
+    case 'AcademicRoom':
+      return AcademicRoom.fromJson(value as Map<String, dynamic>) as ReturnType;
+    case 'AcademicRoomResponse':
+      return AcademicRoomResponse.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'AcademicRoomWrite':
+      return AcademicRoomWrite.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
     case 'AcademicStoredQuestion':
       return AcademicStoredQuestion.fromJson(value as Map<String, dynamic>)
           as ReturnType;
@@ -296,6 +348,79 @@ ReturnType deserialize<ReturnType, BaseType>(
           as ReturnType;
     case 'AcademicTaskResult':
       return AcademicTaskResult.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'AcademicTimetableChoice':
+      return AcademicTimetableChoice.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'AcademicTimetableClash':
+      return AcademicTimetableClash.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'AcademicTimetableCommitData':
+      return AcademicTimetableCommitData.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'AcademicTimetableCommitResponse':
+      return AcademicTimetableCommitResponse.fromJson(
+            value as Map<String, dynamic>,
+          )
+          as ReturnType;
+    case 'AcademicTimetableCommitWrite':
+      return AcademicTimetableCommitWrite.fromJson(
+            value as Map<String, dynamic>,
+          )
+          as ReturnType;
+    case 'AcademicTimetableConfigurationData':
+      return AcademicTimetableConfigurationData.fromJson(
+            value as Map<String, dynamic>,
+          )
+          as ReturnType;
+    case 'AcademicTimetableConfigurationResponse':
+      return AcademicTimetableConfigurationResponse.fromJson(
+            value as Map<String, dynamic>,
+          )
+          as ReturnType;
+    case 'AcademicTimetableImportDefaults':
+      return AcademicTimetableImportDefaults.fromJson(
+            value as Map<String, dynamic>,
+          )
+          as ReturnType;
+    case 'AcademicTimetableImportWrite':
+      return AcademicTimetableImportWrite.fromJson(
+            value as Map<String, dynamic>,
+          )
+          as ReturnType;
+    case 'AcademicTimetableLesson':
+      return AcademicTimetableLesson.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'AcademicTimetableNextData':
+      return AcademicTimetableNextData.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'AcademicTimetableNextResponse':
+      return AcademicTimetableNextResponse.fromJson(
+            value as Map<String, dynamic>,
+          )
+          as ReturnType;
+    case 'AcademicTimetablePreviewData':
+      return AcademicTimetablePreviewData.fromJson(
+            value as Map<String, dynamic>,
+          )
+          as ReturnType;
+    case 'AcademicTimetablePreviewResponse':
+      return AcademicTimetablePreviewResponse.fromJson(
+            value as Map<String, dynamic>,
+          )
+          as ReturnType;
+    case 'AcademicTimetablePreviewWrite':
+      return AcademicTimetablePreviewWrite.fromJson(
+            value as Map<String, dynamic>,
+          )
+          as ReturnType;
+    case 'AcademicTimetableWeekData':
+      return AcademicTimetableWeekData.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'AcademicTimetableWeekResponse':
+      return AcademicTimetableWeekResponse.fromJson(
+            value as Map<String, dynamic>,
+          )
           as ReturnType;
     case 'AcceptGuardianInvitationRequest':
       return AcceptGuardianInvitationRequest.fromJson(

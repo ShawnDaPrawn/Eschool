@@ -1,0 +1,109 @@
+// GENERATED CODE - DO NOT MODIFY BY HAND
+
+part of 'academic_lesson_write.dart';
+
+// **************************************************************************
+// JsonSerializableGenerator
+// **************************************************************************
+
+AcademicLessonWrite _$AcademicLessonWriteFromJson(Map<String, dynamic> json) =>
+    $checkedCreate(
+      'AcademicLessonWrite',
+      json,
+      ($checkedConvert) {
+        $checkKeys(
+          json,
+          requiredKeys: const [
+            'session_year_id',
+            'teacher_id',
+            'room_id',
+            'bell_period_id',
+            'starts_on',
+            'ends_on',
+            'weekday',
+            'week_pattern',
+            'active',
+          ],
+        );
+        final val = AcademicLessonWrite(
+          id: $checkedConvert('id', (v) => (v as num?)?.toInt()),
+          revision: $checkedConvert('revision', (v) => (v as num?)?.toInt()),
+          sessionYearId: $checkedConvert(
+            'session_year_id',
+            (v) => (v as num).toInt(),
+          ),
+          termId: $checkedConvert('term_id', (v) => (v as num?)?.toInt()),
+          teachingGroupId: $checkedConvert(
+            'teaching_group_id',
+            (v) => (v as num?)?.toInt(),
+          ),
+          classSectionId: $checkedConvert(
+            'class_section_id',
+            (v) => (v as num?)?.toInt(),
+          ),
+          teacherId: $checkedConvert('teacher_id', (v) => (v as num).toInt()),
+          roomId: $checkedConvert('room_id', (v) => (v as num).toInt()),
+          bellPeriodId: $checkedConvert(
+            'bell_period_id',
+            (v) => (v as num).toInt(),
+          ),
+          startsOn: $checkedConvert('starts_on', (v) => v as String),
+          endsOn: $checkedConvert('ends_on', (v) => v as String),
+          occursOn: $checkedConvert('occurs_on', (v) => v as String?),
+          weekday: $checkedConvert('weekday', (v) => (v as num).toInt()),
+          weekPattern: $checkedConvert(
+            'week_pattern',
+            (v) => $enumDecode(
+              _$AcademicLessonWriteWeekPatternEnumEnumMap,
+              v,
+              unknownValue:
+                  AcademicLessonWriteWeekPatternEnum.unknownDefaultOpenApi,
+            ),
+          ),
+          active: $checkedConvert('active', (v) => v as bool),
+        );
+        return val;
+      },
+      fieldKeyMap: const {
+        'sessionYearId': 'session_year_id',
+        'termId': 'term_id',
+        'teachingGroupId': 'teaching_group_id',
+        'classSectionId': 'class_section_id',
+        'teacherId': 'teacher_id',
+        'roomId': 'room_id',
+        'bellPeriodId': 'bell_period_id',
+        'startsOn': 'starts_on',
+        'endsOn': 'ends_on',
+        'occursOn': 'occurs_on',
+        'weekPattern': 'week_pattern',
+      },
+    );
+
+Map<String, dynamic> _$AcademicLessonWriteToJson(
+  AcademicLessonWrite instance,
+) => <String, dynamic>{
+  'id': ?instance.id,
+  'revision': ?instance.revision,
+  'session_year_id': instance.sessionYearId,
+  'term_id': ?instance.termId,
+  'teaching_group_id': ?instance.teachingGroupId,
+  'class_section_id': ?instance.classSectionId,
+  'teacher_id': instance.teacherId,
+  'room_id': instance.roomId,
+  'bell_period_id': instance.bellPeriodId,
+  'starts_on': instance.startsOn,
+  'ends_on': instance.endsOn,
+  'occurs_on': ?instance.occursOn,
+  'weekday': instance.weekday,
+  'week_pattern':
+      _$AcademicLessonWriteWeekPatternEnumEnumMap[instance.weekPattern]!,
+  'active': instance.active,
+};
+
+const _$AcademicLessonWriteWeekPatternEnumEnumMap = {
+  AcademicLessonWriteWeekPatternEnum.all: 'all',
+  AcademicLessonWriteWeekPatternEnum.odd: 'odd',
+  AcademicLessonWriteWeekPatternEnum.even: 'even',
+  AcademicLessonWriteWeekPatternEnum.unknownDefaultOpenApi:
+      'unknown_default_open_api',
+};

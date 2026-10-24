@@ -12,6 +12,8 @@ import 'package:dio/dio.dart';
 import 'package:eschool_api/src/model/academic_assignment_response.dart';
 import 'package:eschool_api/src/model/academic_assignment_write.dart';
 import 'package:eschool_api/src/model/academic_assignments_response.dart';
+import 'package:eschool_api/src/model/academic_bells_response.dart';
+import 'package:eschool_api/src/model/academic_bells_write.dart';
 import 'package:eschool_api/src/model/academic_capture_response.dart';
 import 'package:eschool_api/src/model/academic_mark_write.dart';
 import 'package:eschool_api/src/model/academic_matrix_response.dart';
@@ -23,6 +25,16 @@ import 'package:eschool_api/src/model/academic_release_preview_response.dart';
 import 'package:eschool_api/src/model/academic_release_response.dart';
 import 'package:eschool_api/src/model/academic_release_write.dart';
 import 'package:eschool_api/src/model/academic_released_response.dart';
+import 'package:eschool_api/src/model/academic_room_response.dart';
+import 'package:eschool_api/src/model/academic_room_write.dart';
+import 'package:eschool_api/src/model/academic_timetable_commit_response.dart';
+import 'package:eschool_api/src/model/academic_timetable_commit_write.dart';
+import 'package:eschool_api/src/model/academic_timetable_configuration_response.dart';
+import 'package:eschool_api/src/model/academic_timetable_import_write.dart';
+import 'package:eschool_api/src/model/academic_timetable_next_response.dart';
+import 'package:eschool_api/src/model/academic_timetable_preview_response.dart';
+import 'package:eschool_api/src/model/academic_timetable_preview_write.dart';
+import 'package:eschool_api/src/model/academic_timetable_week_response.dart';
 import 'package:eschool_api/src/model/calendar_removed_response.dart';
 import 'package:eschool_api/src/model/class_grade_response.dart';
 import 'package:eschool_api/src/model/class_grade_write.dart';
@@ -277,6 +289,111 @@ class AcademicsApi {
     }
 
     return Response<AcademicCaptureResponse>(
+      data: _responseData,
+      headers: _response.headers,
+      isRedirect: _response.isRedirect,
+      requestOptions: _response.requestOptions,
+      redirects: _response.redirects,
+      statusCode: _response.statusCode,
+      statusMessage: _response.statusMessage,
+      extra: _response.extra,
+    );
+  }
+
+  /// commitAcademicTimetable
+  /// Fresh current-school rights precede idempotent replay. Managers configure and preview placements; commits require an unchanged fingerprint and no teacher, room, group, homeroom or dated-learner time clash. A 409 requires a fresh preview. Family reads resolve only the learner or a current guardian’s selected child. Times use the school timezone; week patterns use ISO week parity. No fee condition applies.
+  ///
+  /// Parameters:
+  /// * [academicTimetableCommitWrite]
+  /// * [xSchoolId] - The school to work in, one of the signed-in user's schools (`schools` in `/me/context`). Without it the request works in the user's first school. A school the user is not an active member of is refused with 403. Apps send it on every call once a school is chosen.
+  /// * [idempotencyKey] - Makes a write safe to retry. Any unique string of 1 to 255 visible ASCII characters (a UUID is best), kept 24 hours per user. Required on money writes.
+  /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
+  /// * [headers] - Can be used to add additional headers to the request
+  /// * [extras] - Can be used to add flags to the request
+  /// * [validateStatus] - A [ValidateStatus] callback that can be used to determine request success based on the HTTP status of the response
+  /// * [onSendProgress] - A [ProgressCallback] that can be used to get the send progress
+  /// * [onReceiveProgress] - A [ProgressCallback] that can be used to get the receive progress
+  ///
+  /// Returns a [Future] containing a [Response] with a [AcademicTimetableCommitResponse] as data
+  /// Throws [DioException] if API call or serialization fails
+  Future<Response<AcademicTimetableCommitResponse>> commitAcademicTimetable({
+    required AcademicTimetableCommitWrite academicTimetableCommitWrite,
+    int? xSchoolId,
+    String? idempotencyKey,
+    CancelToken? cancelToken,
+    Map<String, dynamic>? headers,
+    Map<String, dynamic>? extra,
+    ValidateStatus? validateStatus,
+    ProgressCallback? onSendProgress,
+    ProgressCallback? onReceiveProgress,
+  }) async {
+    final _path = r'/academics/timetable/commit';
+    final _options = Options(
+      method: r'POST',
+      headers: <String, dynamic>{
+        if (xSchoolId != null) r'X-School-Id': xSchoolId,
+        if (idempotencyKey != null) r'Idempotency-Key': idempotencyKey,
+        ...?headers,
+      },
+      extra: <String, dynamic>{
+        'secure': <Map<String, String>>[
+          {
+            'type': 'apiKey',
+            'name': 'cookieAuth',
+            'keyName': 'e_school_session',
+            'where': '',
+          },
+          {'type': 'http', 'scheme': 'bearer', 'name': 'bearerAuth'},
+        ],
+        ...?extra,
+      },
+      contentType: 'application/json',
+      validateStatus: validateStatus,
+    );
+
+    dynamic _bodyData;
+
+    try {
+      _bodyData = jsonEncode(academicTimetableCommitWrite);
+    } catch (error, stackTrace) {
+      throw DioException(
+        requestOptions: _options.compose(_dio.options, _path),
+        type: DioExceptionType.unknown,
+        error: error,
+        stackTrace: stackTrace,
+      );
+    }
+
+    final _response = await _dio.request<Object>(
+      _path,
+      data: _bodyData,
+      options: _options,
+      cancelToken: cancelToken,
+      onSendProgress: onSendProgress,
+      onReceiveProgress: onReceiveProgress,
+    );
+
+    AcademicTimetableCommitResponse? _responseData;
+
+    try {
+      final rawData = _response.data;
+      _responseData = rawData == null
+          ? null
+          : deserialize<
+              AcademicTimetableCommitResponse,
+              AcademicTimetableCommitResponse
+            >(rawData, 'AcademicTimetableCommitResponse', growable: true);
+    } catch (error, stackTrace) {
+      throw DioException(
+        requestOptions: _response.requestOptions,
+        response: _response,
+        type: DioExceptionType.unknown,
+        error: error,
+        stackTrace: stackTrace,
+      );
+    }
+
+    return Response<AcademicTimetableCommitResponse>(
       data: _responseData,
       headers: _response.headers,
       isRedirect: _response.isRedirect,
@@ -619,6 +736,218 @@ class AcademicsApi {
     }
 
     return Response<AcademicAssignmentResponse>(
+      data: _responseData,
+      headers: _response.headers,
+      isRedirect: _response.isRedirect,
+      requestOptions: _response.requestOptions,
+      redirects: _response.redirects,
+      statusCode: _response.statusCode,
+      statusMessage: _response.statusMessage,
+      extra: _response.extra,
+    );
+  }
+
+  /// createAcademicBells
+  /// Fresh current-school rights precede idempotent replay. Managers configure and preview placements; commits require an unchanged fingerprint and no teacher, room, group, homeroom or dated-learner time clash. A 409 requires a fresh preview. Family reads resolve only the learner or a current guardian’s selected child. Times use the school timezone; week patterns use ISO week parity. No fee condition applies.
+  ///
+  /// Parameters:
+  /// * [academicBellsWrite]
+  /// * [xSchoolId] - The school to work in, one of the signed-in user's schools (`schools` in `/me/context`). Without it the request works in the user's first school. A school the user is not an active member of is refused with 403. Apps send it on every call once a school is chosen.
+  /// * [idempotencyKey] - Makes a write safe to retry. Any unique string of 1 to 255 visible ASCII characters (a UUID is best), kept 24 hours per user. Required on money writes.
+  /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
+  /// * [headers] - Can be used to add additional headers to the request
+  /// * [extras] - Can be used to add flags to the request
+  /// * [validateStatus] - A [ValidateStatus] callback that can be used to determine request success based on the HTTP status of the response
+  /// * [onSendProgress] - A [ProgressCallback] that can be used to get the send progress
+  /// * [onReceiveProgress] - A [ProgressCallback] that can be used to get the receive progress
+  ///
+  /// Returns a [Future] containing a [Response] with a [AcademicBellsResponse] as data
+  /// Throws [DioException] if API call or serialization fails
+  Future<Response<AcademicBellsResponse>> createAcademicBells({
+    required AcademicBellsWrite academicBellsWrite,
+    int? xSchoolId,
+    String? idempotencyKey,
+    CancelToken? cancelToken,
+    Map<String, dynamic>? headers,
+    Map<String, dynamic>? extra,
+    ValidateStatus? validateStatus,
+    ProgressCallback? onSendProgress,
+    ProgressCallback? onReceiveProgress,
+  }) async {
+    final _path = r'/academics/timetable/bells';
+    final _options = Options(
+      method: r'POST',
+      headers: <String, dynamic>{
+        if (xSchoolId != null) r'X-School-Id': xSchoolId,
+        if (idempotencyKey != null) r'Idempotency-Key': idempotencyKey,
+        ...?headers,
+      },
+      extra: <String, dynamic>{
+        'secure': <Map<String, String>>[
+          {
+            'type': 'apiKey',
+            'name': 'cookieAuth',
+            'keyName': 'e_school_session',
+            'where': '',
+          },
+          {'type': 'http', 'scheme': 'bearer', 'name': 'bearerAuth'},
+        ],
+        ...?extra,
+      },
+      contentType: 'application/json',
+      validateStatus: validateStatus,
+    );
+
+    dynamic _bodyData;
+
+    try {
+      _bodyData = jsonEncode(academicBellsWrite);
+    } catch (error, stackTrace) {
+      throw DioException(
+        requestOptions: _options.compose(_dio.options, _path),
+        type: DioExceptionType.unknown,
+        error: error,
+        stackTrace: stackTrace,
+      );
+    }
+
+    final _response = await _dio.request<Object>(
+      _path,
+      data: _bodyData,
+      options: _options,
+      cancelToken: cancelToken,
+      onSendProgress: onSendProgress,
+      onReceiveProgress: onReceiveProgress,
+    );
+
+    AcademicBellsResponse? _responseData;
+
+    try {
+      final rawData = _response.data;
+      _responseData = rawData == null
+          ? null
+          : deserialize<AcademicBellsResponse, AcademicBellsResponse>(
+              rawData,
+              'AcademicBellsResponse',
+              growable: true,
+            );
+    } catch (error, stackTrace) {
+      throw DioException(
+        requestOptions: _response.requestOptions,
+        response: _response,
+        type: DioExceptionType.unknown,
+        error: error,
+        stackTrace: stackTrace,
+      );
+    }
+
+    return Response<AcademicBellsResponse>(
+      data: _responseData,
+      headers: _response.headers,
+      isRedirect: _response.isRedirect,
+      requestOptions: _response.requestOptions,
+      redirects: _response.redirects,
+      statusCode: _response.statusCode,
+      statusMessage: _response.statusMessage,
+      extra: _response.extra,
+    );
+  }
+
+  /// createAcademicRoom
+  /// Fresh current-school rights precede idempotent replay. Managers configure and preview placements; commits require an unchanged fingerprint and no teacher, room, group, homeroom or dated-learner time clash. A 409 requires a fresh preview. Family reads resolve only the learner or a current guardian’s selected child. Times use the school timezone; week patterns use ISO week parity. No fee condition applies.
+  ///
+  /// Parameters:
+  /// * [academicRoomWrite]
+  /// * [xSchoolId] - The school to work in, one of the signed-in user's schools (`schools` in `/me/context`). Without it the request works in the user's first school. A school the user is not an active member of is refused with 403. Apps send it on every call once a school is chosen.
+  /// * [idempotencyKey] - Makes a write safe to retry. Any unique string of 1 to 255 visible ASCII characters (a UUID is best), kept 24 hours per user. Required on money writes.
+  /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
+  /// * [headers] - Can be used to add additional headers to the request
+  /// * [extras] - Can be used to add flags to the request
+  /// * [validateStatus] - A [ValidateStatus] callback that can be used to determine request success based on the HTTP status of the response
+  /// * [onSendProgress] - A [ProgressCallback] that can be used to get the send progress
+  /// * [onReceiveProgress] - A [ProgressCallback] that can be used to get the receive progress
+  ///
+  /// Returns a [Future] containing a [Response] with a [AcademicRoomResponse] as data
+  /// Throws [DioException] if API call or serialization fails
+  Future<Response<AcademicRoomResponse>> createAcademicRoom({
+    required AcademicRoomWrite academicRoomWrite,
+    int? xSchoolId,
+    String? idempotencyKey,
+    CancelToken? cancelToken,
+    Map<String, dynamic>? headers,
+    Map<String, dynamic>? extra,
+    ValidateStatus? validateStatus,
+    ProgressCallback? onSendProgress,
+    ProgressCallback? onReceiveProgress,
+  }) async {
+    final _path = r'/academics/timetable/rooms';
+    final _options = Options(
+      method: r'POST',
+      headers: <String, dynamic>{
+        if (xSchoolId != null) r'X-School-Id': xSchoolId,
+        if (idempotencyKey != null) r'Idempotency-Key': idempotencyKey,
+        ...?headers,
+      },
+      extra: <String, dynamic>{
+        'secure': <Map<String, String>>[
+          {
+            'type': 'apiKey',
+            'name': 'cookieAuth',
+            'keyName': 'e_school_session',
+            'where': '',
+          },
+          {'type': 'http', 'scheme': 'bearer', 'name': 'bearerAuth'},
+        ],
+        ...?extra,
+      },
+      contentType: 'application/json',
+      validateStatus: validateStatus,
+    );
+
+    dynamic _bodyData;
+
+    try {
+      _bodyData = jsonEncode(academicRoomWrite);
+    } catch (error, stackTrace) {
+      throw DioException(
+        requestOptions: _options.compose(_dio.options, _path),
+        type: DioExceptionType.unknown,
+        error: error,
+        stackTrace: stackTrace,
+      );
+    }
+
+    final _response = await _dio.request<Object>(
+      _path,
+      data: _bodyData,
+      options: _options,
+      cancelToken: cancelToken,
+      onSendProgress: onSendProgress,
+      onReceiveProgress: onReceiveProgress,
+    );
+
+    AcademicRoomResponse? _responseData;
+
+    try {
+      final rawData = _response.data;
+      _responseData = rawData == null
+          ? null
+          : deserialize<AcademicRoomResponse, AcademicRoomResponse>(
+              rawData,
+              'AcademicRoomResponse',
+              growable: true,
+            );
+    } catch (error, stackTrace) {
+      throw DioException(
+        requestOptions: _response.requestOptions,
+        response: _response,
+        type: DioExceptionType.unknown,
+        error: error,
+        stackTrace: stackTrace,
+      );
+    }
+
+    return Response<AcademicRoomResponse>(
       data: _responseData,
       headers: _response.headers,
       isRedirect: _response.isRedirect,
@@ -1890,6 +2219,98 @@ class AcademicsApi {
     );
   }
 
+  /// getNextAcademicPeriod
+  /// Fresh current-school rights precede idempotent replay. Managers configure and preview placements; commits require an unchanged fingerprint and no teacher, room, group, homeroom or dated-learner time clash. A 409 requires a fresh preview. Family reads resolve only the learner or a current guardian’s selected child. Times use the school timezone; week patterns use ISO week parity. No fee condition applies.
+  ///
+  /// Parameters:
+  /// * [xSchoolId] - The school to work in, one of the signed-in user's schools (`schools` in `/me/context`). Without it the request works in the user's first school. A school the user is not an active member of is refused with 403. Apps send it on every call once a school is chosen.
+  /// * [learnerId]
+  /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
+  /// * [headers] - Can be used to add additional headers to the request
+  /// * [extras] - Can be used to add flags to the request
+  /// * [validateStatus] - A [ValidateStatus] callback that can be used to determine request success based on the HTTP status of the response
+  /// * [onSendProgress] - A [ProgressCallback] that can be used to get the send progress
+  /// * [onReceiveProgress] - A [ProgressCallback] that can be used to get the receive progress
+  ///
+  /// Returns a [Future] containing a [Response] with a [AcademicTimetableNextResponse] as data
+  /// Throws [DioException] if API call or serialization fails
+  Future<Response<AcademicTimetableNextResponse>> getNextAcademicPeriod({
+    int? xSchoolId,
+    int? learnerId,
+    CancelToken? cancelToken,
+    Map<String, dynamic>? headers,
+    Map<String, dynamic>? extra,
+    ValidateStatus? validateStatus,
+    ProgressCallback? onSendProgress,
+    ProgressCallback? onReceiveProgress,
+  }) async {
+    final _path = r'/academics/timetable/next';
+    final _options = Options(
+      method: r'GET',
+      headers: <String, dynamic>{
+        if (xSchoolId != null) r'X-School-Id': xSchoolId,
+        ...?headers,
+      },
+      extra: <String, dynamic>{
+        'secure': <Map<String, String>>[
+          {
+            'type': 'apiKey',
+            'name': 'cookieAuth',
+            'keyName': 'e_school_session',
+            'where': '',
+          },
+          {'type': 'http', 'scheme': 'bearer', 'name': 'bearerAuth'},
+        ],
+        ...?extra,
+      },
+      validateStatus: validateStatus,
+    );
+
+    final _queryParameters = <String, dynamic>{
+      if (learnerId != null) r'learner_id': learnerId,
+    };
+
+    final _response = await _dio.request<Object>(
+      _path,
+      options: _options,
+      queryParameters: _queryParameters,
+      cancelToken: cancelToken,
+      onSendProgress: onSendProgress,
+      onReceiveProgress: onReceiveProgress,
+    );
+
+    AcademicTimetableNextResponse? _responseData;
+
+    try {
+      final rawData = _response.data;
+      _responseData = rawData == null
+          ? null
+          : deserialize<
+              AcademicTimetableNextResponse,
+              AcademicTimetableNextResponse
+            >(rawData, 'AcademicTimetableNextResponse', growable: true);
+    } catch (error, stackTrace) {
+      throw DioException(
+        requestOptions: _response.requestOptions,
+        response: _response,
+        type: DioExceptionType.unknown,
+        error: error,
+        stackTrace: stackTrace,
+      );
+    }
+
+    return Response<AcademicTimetableNextResponse>(
+      data: _responseData,
+      headers: _response.headers,
+      isRedirect: _response.isRedirect,
+      requestOptions: _response.requestOptions,
+      redirects: _response.redirects,
+      statusCode: _response.statusCode,
+      statusMessage: _response.statusMessage,
+      extra: _response.extra,
+    );
+  }
+
   /// getReleasedMarks
   /// Only the learner or a currently linked guardian may read. Ended guardian links override older relationships. Results contain only explicitly released evidence; omit term_id for year results. Staff use the scoped matrix. No fee condition applies.
   ///
@@ -2595,6 +3016,306 @@ class AcademicsApi {
     );
   }
 
+  /// getTimetableConfiguration
+  /// Fresh current-school rights precede idempotent replay. Managers configure and preview placements; commits require an unchanged fingerprint and no teacher, room, group, homeroom or dated-learner time clash. A 409 requires a fresh preview. Family reads resolve only the learner or a current guardian’s selected child. Times use the school timezone; week patterns use ISO week parity. No fee condition applies.
+  ///
+  /// Parameters:
+  /// * [sessionYearId]
+  /// * [xSchoolId] - The school to work in, one of the signed-in user's schools (`schools` in `/me/context`). Without it the request works in the user's first school. A school the user is not an active member of is refused with 403. Apps send it on every call once a school is chosen.
+  /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
+  /// * [headers] - Can be used to add additional headers to the request
+  /// * [extras] - Can be used to add flags to the request
+  /// * [validateStatus] - A [ValidateStatus] callback that can be used to determine request success based on the HTTP status of the response
+  /// * [onSendProgress] - A [ProgressCallback] that can be used to get the send progress
+  /// * [onReceiveProgress] - A [ProgressCallback] that can be used to get the receive progress
+  ///
+  /// Returns a [Future] containing a [Response] with a [AcademicTimetableConfigurationResponse] as data
+  /// Throws [DioException] if API call or serialization fails
+  Future<Response<AcademicTimetableConfigurationResponse>>
+  getTimetableConfiguration({
+    required int sessionYearId,
+    int? xSchoolId,
+    CancelToken? cancelToken,
+    Map<String, dynamic>? headers,
+    Map<String, dynamic>? extra,
+    ValidateStatus? validateStatus,
+    ProgressCallback? onSendProgress,
+    ProgressCallback? onReceiveProgress,
+  }) async {
+    final _path = r'/academics/timetable/configuration';
+    final _options = Options(
+      method: r'GET',
+      headers: <String, dynamic>{
+        if (xSchoolId != null) r'X-School-Id': xSchoolId,
+        ...?headers,
+      },
+      extra: <String, dynamic>{
+        'secure': <Map<String, String>>[
+          {
+            'type': 'apiKey',
+            'name': 'cookieAuth',
+            'keyName': 'e_school_session',
+            'where': '',
+          },
+          {'type': 'http', 'scheme': 'bearer', 'name': 'bearerAuth'},
+        ],
+        ...?extra,
+      },
+      validateStatus: validateStatus,
+    );
+
+    final _queryParameters = <String, dynamic>{
+      r'session_year_id': sessionYearId,
+    };
+
+    final _response = await _dio.request<Object>(
+      _path,
+      options: _options,
+      queryParameters: _queryParameters,
+      cancelToken: cancelToken,
+      onSendProgress: onSendProgress,
+      onReceiveProgress: onReceiveProgress,
+    );
+
+    AcademicTimetableConfigurationResponse? _responseData;
+
+    try {
+      final rawData = _response.data;
+      _responseData = rawData == null
+          ? null
+          : deserialize<
+              AcademicTimetableConfigurationResponse,
+              AcademicTimetableConfigurationResponse
+            >(
+              rawData,
+              'AcademicTimetableConfigurationResponse',
+              growable: true,
+            );
+    } catch (error, stackTrace) {
+      throw DioException(
+        requestOptions: _response.requestOptions,
+        response: _response,
+        type: DioExceptionType.unknown,
+        error: error,
+        stackTrace: stackTrace,
+      );
+    }
+
+    return Response<AcademicTimetableConfigurationResponse>(
+      data: _responseData,
+      headers: _response.headers,
+      isRedirect: _response.isRedirect,
+      requestOptions: _response.requestOptions,
+      redirects: _response.redirects,
+      statusCode: _response.statusCode,
+      statusMessage: _response.statusMessage,
+      extra: _response.extra,
+    );
+  }
+
+  /// getTimetableWeek
+  /// Fresh current-school rights precede idempotent replay. Managers configure and preview placements; commits require an unchanged fingerprint and no teacher, room, group, homeroom or dated-learner time clash. A 409 requires a fresh preview. Family reads resolve only the learner or a current guardian’s selected child. Times use the school timezone; week patterns use ISO week parity. No fee condition applies.
+  ///
+  /// Parameters:
+  /// * [sessionYearId]
+  /// * [startsOn]
+  /// * [xSchoolId] - The school to work in, one of the signed-in user's schools (`schools` in `/me/context`). Without it the request works in the user's first school. A school the user is not an active member of is refused with 403. Apps send it on every call once a school is chosen.
+  /// * [learnerId]
+  /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
+  /// * [headers] - Can be used to add additional headers to the request
+  /// * [extras] - Can be used to add flags to the request
+  /// * [validateStatus] - A [ValidateStatus] callback that can be used to determine request success based on the HTTP status of the response
+  /// * [onSendProgress] - A [ProgressCallback] that can be used to get the send progress
+  /// * [onReceiveProgress] - A [ProgressCallback] that can be used to get the receive progress
+  ///
+  /// Returns a [Future] containing a [Response] with a [AcademicTimetableWeekResponse] as data
+  /// Throws [DioException] if API call or serialization fails
+  Future<Response<AcademicTimetableWeekResponse>> getTimetableWeek({
+    required int sessionYearId,
+    required String startsOn,
+    int? xSchoolId,
+    int? learnerId,
+    CancelToken? cancelToken,
+    Map<String, dynamic>? headers,
+    Map<String, dynamic>? extra,
+    ValidateStatus? validateStatus,
+    ProgressCallback? onSendProgress,
+    ProgressCallback? onReceiveProgress,
+  }) async {
+    final _path = r'/academics/timetable/week';
+    final _options = Options(
+      method: r'GET',
+      headers: <String, dynamic>{
+        if (xSchoolId != null) r'X-School-Id': xSchoolId,
+        ...?headers,
+      },
+      extra: <String, dynamic>{
+        'secure': <Map<String, String>>[
+          {
+            'type': 'apiKey',
+            'name': 'cookieAuth',
+            'keyName': 'e_school_session',
+            'where': '',
+          },
+          {'type': 'http', 'scheme': 'bearer', 'name': 'bearerAuth'},
+        ],
+        ...?extra,
+      },
+      validateStatus: validateStatus,
+    );
+
+    final _queryParameters = <String, dynamic>{
+      r'session_year_id': sessionYearId,
+      r'starts_on': startsOn,
+      if (learnerId != null) r'learner_id': learnerId,
+    };
+
+    final _response = await _dio.request<Object>(
+      _path,
+      options: _options,
+      queryParameters: _queryParameters,
+      cancelToken: cancelToken,
+      onSendProgress: onSendProgress,
+      onReceiveProgress: onReceiveProgress,
+    );
+
+    AcademicTimetableWeekResponse? _responseData;
+
+    try {
+      final rawData = _response.data;
+      _responseData = rawData == null
+          ? null
+          : deserialize<
+              AcademicTimetableWeekResponse,
+              AcademicTimetableWeekResponse
+            >(rawData, 'AcademicTimetableWeekResponse', growable: true);
+    } catch (error, stackTrace) {
+      throw DioException(
+        requestOptions: _response.requestOptions,
+        response: _response,
+        type: DioExceptionType.unknown,
+        error: error,
+        stackTrace: stackTrace,
+      );
+    }
+
+    return Response<AcademicTimetableWeekResponse>(
+      data: _responseData,
+      headers: _response.headers,
+      isRedirect: _response.isRedirect,
+      requestOptions: _response.requestOptions,
+      redirects: _response.redirects,
+      statusCode: _response.statusCode,
+      statusMessage: _response.statusMessage,
+      extra: _response.extra,
+    );
+  }
+
+  /// importAcademicTimetable
+  /// Fresh current-school rights precede idempotent replay. Managers configure and preview placements; commits require an unchanged fingerprint and no teacher, room, group, homeroom or dated-learner time clash. A 409 requires a fresh preview. Family reads resolve only the learner or a current guardian’s selected child. Times use the school timezone; week patterns use ISO week parity. No fee condition applies.
+  ///
+  /// Parameters:
+  /// * [academicTimetableImportWrite]
+  /// * [xSchoolId] - The school to work in, one of the signed-in user's schools (`schools` in `/me/context`). Without it the request works in the user's first school. A school the user is not an active member of is refused with 403. Apps send it on every call once a school is chosen.
+  /// * [idempotencyKey] - Makes a write safe to retry. Any unique string of 1 to 255 visible ASCII characters (a UUID is best), kept 24 hours per user. Required on money writes.
+  /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
+  /// * [headers] - Can be used to add additional headers to the request
+  /// * [extras] - Can be used to add flags to the request
+  /// * [validateStatus] - A [ValidateStatus] callback that can be used to determine request success based on the HTTP status of the response
+  /// * [onSendProgress] - A [ProgressCallback] that can be used to get the send progress
+  /// * [onReceiveProgress] - A [ProgressCallback] that can be used to get the receive progress
+  ///
+  /// Returns a [Future] containing a [Response] with a [AcademicTimetablePreviewResponse] as data
+  /// Throws [DioException] if API call or serialization fails
+  Future<Response<AcademicTimetablePreviewResponse>> importAcademicTimetable({
+    required AcademicTimetableImportWrite academicTimetableImportWrite,
+    int? xSchoolId,
+    String? idempotencyKey,
+    CancelToken? cancelToken,
+    Map<String, dynamic>? headers,
+    Map<String, dynamic>? extra,
+    ValidateStatus? validateStatus,
+    ProgressCallback? onSendProgress,
+    ProgressCallback? onReceiveProgress,
+  }) async {
+    final _path = r'/academics/timetable/import';
+    final _options = Options(
+      method: r'POST',
+      headers: <String, dynamic>{
+        if (xSchoolId != null) r'X-School-Id': xSchoolId,
+        if (idempotencyKey != null) r'Idempotency-Key': idempotencyKey,
+        ...?headers,
+      },
+      extra: <String, dynamic>{
+        'secure': <Map<String, String>>[
+          {
+            'type': 'apiKey',
+            'name': 'cookieAuth',
+            'keyName': 'e_school_session',
+            'where': '',
+          },
+          {'type': 'http', 'scheme': 'bearer', 'name': 'bearerAuth'},
+        ],
+        ...?extra,
+      },
+      contentType: 'application/json',
+      validateStatus: validateStatus,
+    );
+
+    dynamic _bodyData;
+
+    try {
+      _bodyData = jsonEncode(academicTimetableImportWrite);
+    } catch (error, stackTrace) {
+      throw DioException(
+        requestOptions: _options.compose(_dio.options, _path),
+        type: DioExceptionType.unknown,
+        error: error,
+        stackTrace: stackTrace,
+      );
+    }
+
+    final _response = await _dio.request<Object>(
+      _path,
+      data: _bodyData,
+      options: _options,
+      cancelToken: cancelToken,
+      onSendProgress: onSendProgress,
+      onReceiveProgress: onReceiveProgress,
+    );
+
+    AcademicTimetablePreviewResponse? _responseData;
+
+    try {
+      final rawData = _response.data;
+      _responseData = rawData == null
+          ? null
+          : deserialize<
+              AcademicTimetablePreviewResponse,
+              AcademicTimetablePreviewResponse
+            >(rawData, 'AcademicTimetablePreviewResponse', growable: true);
+    } catch (error, stackTrace) {
+      throw DioException(
+        requestOptions: _response.requestOptions,
+        response: _response,
+        type: DioExceptionType.unknown,
+        error: error,
+        stackTrace: stackTrace,
+      );
+    }
+
+    return Response<AcademicTimetablePreviewResponse>(
+      data: _responseData,
+      headers: _response.headers,
+      isRedirect: _response.isRedirect,
+      requestOptions: _response.requestOptions,
+      redirects: _response.redirects,
+      statusCode: _response.statusCode,
+      statusMessage: _response.statusMessage,
+      extra: _response.extra,
+    );
+  }
+
   /// moderateAcademicMarks
   /// Fresh current school authority is checked before idempotent replay. Scores are exact decimal strings with up to two decimal places. Percentages are integer basis points; incomplete results remain provisional. Corrections require expected_revision; locked terms return 409. Active task IDs map to a year-specific canonical task; copied definitions never duplicate marks. No fee condition gates academic results. Capture needs a current subject allocation. Only the grade head corrects moderated marks, with a reason, and moderates. Preview never saves marks.
   ///
@@ -2828,6 +3549,111 @@ class AcademicsApi {
     }
 
     return Response<AcademicPreviewResponse>(
+      data: _responseData,
+      headers: _response.headers,
+      isRedirect: _response.isRedirect,
+      requestOptions: _response.requestOptions,
+      redirects: _response.redirects,
+      statusCode: _response.statusCode,
+      statusMessage: _response.statusMessage,
+      extra: _response.extra,
+    );
+  }
+
+  /// previewAcademicTimetable
+  /// Fresh current-school rights precede idempotent replay. Managers configure and preview placements; commits require an unchanged fingerprint and no teacher, room, group, homeroom or dated-learner time clash. A 409 requires a fresh preview. Family reads resolve only the learner or a current guardian’s selected child. Times use the school timezone; week patterns use ISO week parity. No fee condition applies.
+  ///
+  /// Parameters:
+  /// * [academicTimetablePreviewWrite]
+  /// * [xSchoolId] - The school to work in, one of the signed-in user's schools (`schools` in `/me/context`). Without it the request works in the user's first school. A school the user is not an active member of is refused with 403. Apps send it on every call once a school is chosen.
+  /// * [idempotencyKey] - Makes a write safe to retry. Any unique string of 1 to 255 visible ASCII characters (a UUID is best), kept 24 hours per user. Required on money writes.
+  /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
+  /// * [headers] - Can be used to add additional headers to the request
+  /// * [extras] - Can be used to add flags to the request
+  /// * [validateStatus] - A [ValidateStatus] callback that can be used to determine request success based on the HTTP status of the response
+  /// * [onSendProgress] - A [ProgressCallback] that can be used to get the send progress
+  /// * [onReceiveProgress] - A [ProgressCallback] that can be used to get the receive progress
+  ///
+  /// Returns a [Future] containing a [Response] with a [AcademicTimetablePreviewResponse] as data
+  /// Throws [DioException] if API call or serialization fails
+  Future<Response<AcademicTimetablePreviewResponse>> previewAcademicTimetable({
+    required AcademicTimetablePreviewWrite academicTimetablePreviewWrite,
+    int? xSchoolId,
+    String? idempotencyKey,
+    CancelToken? cancelToken,
+    Map<String, dynamic>? headers,
+    Map<String, dynamic>? extra,
+    ValidateStatus? validateStatus,
+    ProgressCallback? onSendProgress,
+    ProgressCallback? onReceiveProgress,
+  }) async {
+    final _path = r'/academics/timetable/preview';
+    final _options = Options(
+      method: r'POST',
+      headers: <String, dynamic>{
+        if (xSchoolId != null) r'X-School-Id': xSchoolId,
+        if (idempotencyKey != null) r'Idempotency-Key': idempotencyKey,
+        ...?headers,
+      },
+      extra: <String, dynamic>{
+        'secure': <Map<String, String>>[
+          {
+            'type': 'apiKey',
+            'name': 'cookieAuth',
+            'keyName': 'e_school_session',
+            'where': '',
+          },
+          {'type': 'http', 'scheme': 'bearer', 'name': 'bearerAuth'},
+        ],
+        ...?extra,
+      },
+      contentType: 'application/json',
+      validateStatus: validateStatus,
+    );
+
+    dynamic _bodyData;
+
+    try {
+      _bodyData = jsonEncode(academicTimetablePreviewWrite);
+    } catch (error, stackTrace) {
+      throw DioException(
+        requestOptions: _options.compose(_dio.options, _path),
+        type: DioExceptionType.unknown,
+        error: error,
+        stackTrace: stackTrace,
+      );
+    }
+
+    final _response = await _dio.request<Object>(
+      _path,
+      data: _bodyData,
+      options: _options,
+      cancelToken: cancelToken,
+      onSendProgress: onSendProgress,
+      onReceiveProgress: onReceiveProgress,
+    );
+
+    AcademicTimetablePreviewResponse? _responseData;
+
+    try {
+      final rawData = _response.data;
+      _responseData = rawData == null
+          ? null
+          : deserialize<
+              AcademicTimetablePreviewResponse,
+              AcademicTimetablePreviewResponse
+            >(rawData, 'AcademicTimetablePreviewResponse', growable: true);
+    } catch (error, stackTrace) {
+      throw DioException(
+        requestOptions: _response.requestOptions,
+        response: _response,
+        type: DioExceptionType.unknown,
+        error: error,
+        stackTrace: stackTrace,
+      );
+    }
+
+    return Response<AcademicTimetablePreviewResponse>(
       data: _responseData,
       headers: _response.headers,
       isRedirect: _response.isRedirect,
@@ -3606,6 +4432,232 @@ class AcademicsApi {
     }
 
     return Response<AcademicAssignmentResponse>(
+      data: _responseData,
+      headers: _response.headers,
+      isRedirect: _response.isRedirect,
+      requestOptions: _response.requestOptions,
+      redirects: _response.redirects,
+      statusCode: _response.statusCode,
+      statusMessage: _response.statusMessage,
+      extra: _response.extra,
+    );
+  }
+
+  /// updateAcademicBells
+  /// Fresh current-school rights precede idempotent replay. Managers configure and preview placements; commits require an unchanged fingerprint and no teacher, room, group, homeroom or dated-learner time clash. A 409 requires a fresh preview. Family reads resolve only the learner or a current guardian’s selected child. Times use the school timezone; week patterns use ISO week parity. No fee condition applies.
+  ///
+  /// Parameters:
+  /// * [schedule]
+  /// * [academicBellsWrite]
+  /// * [xSchoolId] - The school to work in, one of the signed-in user's schools (`schools` in `/me/context`). Without it the request works in the user's first school. A school the user is not an active member of is refused with 403. Apps send it on every call once a school is chosen.
+  /// * [idempotencyKey] - Makes a write safe to retry. Any unique string of 1 to 255 visible ASCII characters (a UUID is best), kept 24 hours per user. Required on money writes.
+  /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
+  /// * [headers] - Can be used to add additional headers to the request
+  /// * [extras] - Can be used to add flags to the request
+  /// * [validateStatus] - A [ValidateStatus] callback that can be used to determine request success based on the HTTP status of the response
+  /// * [onSendProgress] - A [ProgressCallback] that can be used to get the send progress
+  /// * [onReceiveProgress] - A [ProgressCallback] that can be used to get the receive progress
+  ///
+  /// Returns a [Future] containing a [Response] with a [AcademicBellsResponse] as data
+  /// Throws [DioException] if API call or serialization fails
+  Future<Response<AcademicBellsResponse>> updateAcademicBells({
+    required int schedule,
+    required AcademicBellsWrite academicBellsWrite,
+    int? xSchoolId,
+    String? idempotencyKey,
+    CancelToken? cancelToken,
+    Map<String, dynamic>? headers,
+    Map<String, dynamic>? extra,
+    ValidateStatus? validateStatus,
+    ProgressCallback? onSendProgress,
+    ProgressCallback? onReceiveProgress,
+  }) async {
+    final _path = r'/academics/timetable/bells/{schedule}'.replaceAll(
+      '{'
+      r'schedule'
+      '}',
+      schedule.toString(),
+    );
+    final _options = Options(
+      method: r'PUT',
+      headers: <String, dynamic>{
+        if (xSchoolId != null) r'X-School-Id': xSchoolId,
+        if (idempotencyKey != null) r'Idempotency-Key': idempotencyKey,
+        ...?headers,
+      },
+      extra: <String, dynamic>{
+        'secure': <Map<String, String>>[
+          {
+            'type': 'apiKey',
+            'name': 'cookieAuth',
+            'keyName': 'e_school_session',
+            'where': '',
+          },
+          {'type': 'http', 'scheme': 'bearer', 'name': 'bearerAuth'},
+        ],
+        ...?extra,
+      },
+      contentType: 'application/json',
+      validateStatus: validateStatus,
+    );
+
+    dynamic _bodyData;
+
+    try {
+      _bodyData = jsonEncode(academicBellsWrite);
+    } catch (error, stackTrace) {
+      throw DioException(
+        requestOptions: _options.compose(_dio.options, _path),
+        type: DioExceptionType.unknown,
+        error: error,
+        stackTrace: stackTrace,
+      );
+    }
+
+    final _response = await _dio.request<Object>(
+      _path,
+      data: _bodyData,
+      options: _options,
+      cancelToken: cancelToken,
+      onSendProgress: onSendProgress,
+      onReceiveProgress: onReceiveProgress,
+    );
+
+    AcademicBellsResponse? _responseData;
+
+    try {
+      final rawData = _response.data;
+      _responseData = rawData == null
+          ? null
+          : deserialize<AcademicBellsResponse, AcademicBellsResponse>(
+              rawData,
+              'AcademicBellsResponse',
+              growable: true,
+            );
+    } catch (error, stackTrace) {
+      throw DioException(
+        requestOptions: _response.requestOptions,
+        response: _response,
+        type: DioExceptionType.unknown,
+        error: error,
+        stackTrace: stackTrace,
+      );
+    }
+
+    return Response<AcademicBellsResponse>(
+      data: _responseData,
+      headers: _response.headers,
+      isRedirect: _response.isRedirect,
+      requestOptions: _response.requestOptions,
+      redirects: _response.redirects,
+      statusCode: _response.statusCode,
+      statusMessage: _response.statusMessage,
+      extra: _response.extra,
+    );
+  }
+
+  /// updateAcademicRoom
+  /// Fresh current-school rights precede idempotent replay. Managers configure and preview placements; commits require an unchanged fingerprint and no teacher, room, group, homeroom or dated-learner time clash. A 409 requires a fresh preview. Family reads resolve only the learner or a current guardian’s selected child. Times use the school timezone; week patterns use ISO week parity. No fee condition applies.
+  ///
+  /// Parameters:
+  /// * [room]
+  /// * [academicRoomWrite]
+  /// * [xSchoolId] - The school to work in, one of the signed-in user's schools (`schools` in `/me/context`). Without it the request works in the user's first school. A school the user is not an active member of is refused with 403. Apps send it on every call once a school is chosen.
+  /// * [idempotencyKey] - Makes a write safe to retry. Any unique string of 1 to 255 visible ASCII characters (a UUID is best), kept 24 hours per user. Required on money writes.
+  /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
+  /// * [headers] - Can be used to add additional headers to the request
+  /// * [extras] - Can be used to add flags to the request
+  /// * [validateStatus] - A [ValidateStatus] callback that can be used to determine request success based on the HTTP status of the response
+  /// * [onSendProgress] - A [ProgressCallback] that can be used to get the send progress
+  /// * [onReceiveProgress] - A [ProgressCallback] that can be used to get the receive progress
+  ///
+  /// Returns a [Future] containing a [Response] with a [AcademicRoomResponse] as data
+  /// Throws [DioException] if API call or serialization fails
+  Future<Response<AcademicRoomResponse>> updateAcademicRoom({
+    required int room,
+    required AcademicRoomWrite academicRoomWrite,
+    int? xSchoolId,
+    String? idempotencyKey,
+    CancelToken? cancelToken,
+    Map<String, dynamic>? headers,
+    Map<String, dynamic>? extra,
+    ValidateStatus? validateStatus,
+    ProgressCallback? onSendProgress,
+    ProgressCallback? onReceiveProgress,
+  }) async {
+    final _path = r'/academics/timetable/rooms/{room}'.replaceAll(
+      '{'
+      r'room'
+      '}',
+      room.toString(),
+    );
+    final _options = Options(
+      method: r'PUT',
+      headers: <String, dynamic>{
+        if (xSchoolId != null) r'X-School-Id': xSchoolId,
+        if (idempotencyKey != null) r'Idempotency-Key': idempotencyKey,
+        ...?headers,
+      },
+      extra: <String, dynamic>{
+        'secure': <Map<String, String>>[
+          {
+            'type': 'apiKey',
+            'name': 'cookieAuth',
+            'keyName': 'e_school_session',
+            'where': '',
+          },
+          {'type': 'http', 'scheme': 'bearer', 'name': 'bearerAuth'},
+        ],
+        ...?extra,
+      },
+      contentType: 'application/json',
+      validateStatus: validateStatus,
+    );
+
+    dynamic _bodyData;
+
+    try {
+      _bodyData = jsonEncode(academicRoomWrite);
+    } catch (error, stackTrace) {
+      throw DioException(
+        requestOptions: _options.compose(_dio.options, _path),
+        type: DioExceptionType.unknown,
+        error: error,
+        stackTrace: stackTrace,
+      );
+    }
+
+    final _response = await _dio.request<Object>(
+      _path,
+      data: _bodyData,
+      options: _options,
+      cancelToken: cancelToken,
+      onSendProgress: onSendProgress,
+      onReceiveProgress: onReceiveProgress,
+    );
+
+    AcademicRoomResponse? _responseData;
+
+    try {
+      final rawData = _response.data;
+      _responseData = rawData == null
+          ? null
+          : deserialize<AcademicRoomResponse, AcademicRoomResponse>(
+              rawData,
+              'AcademicRoomResponse',
+              growable: true,
+            );
+    } catch (error, stackTrace) {
+      throw DioException(
+        requestOptions: _response.requestOptions,
+        response: _response,
+        type: DioExceptionType.unknown,
+        error: error,
+        stackTrace: stackTrace,
+      );
+    }
+
+    return Response<AcademicRoomResponse>(
       data: _responseData,
       headers: _response.headers,
       isRedirect: _response.isRedirect,

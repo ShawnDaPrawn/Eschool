@@ -116,6 +116,7 @@
                     "end_time": "string",
                     "link_name": "null",
                     "live_class_url": "null",
+                    "room_name": "null",
                     "start_time": "string",
                     "subject": {
                         "bg_color": "string",

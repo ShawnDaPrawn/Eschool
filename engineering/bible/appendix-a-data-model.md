@@ -130,3 +130,13 @@ selected immutable snapshots. academic_exam_links identify protected v1 exam
 projections. Existing exam marks/results have hidden exact-unit columns; their whole-number obtained_marks fields retain installed-client types.
 Official projections use integer scores out of10,000, preserving exact percentages. Canonical projections
 have no inferred promotion/pass decision (nullable passing fields).
+
+
+### Timetable engine
+
+School-owned rooms, bell_schedules, bell_periods and timetable_lessons add
+physical room metadata, ordered section/year periods and dated recurring or
+specific-date placements. The existing lessons table remains learning content.
+Timetable lessons retain revisions and cancellation history; compatible v1
+timetables receive protected source links and additive room labels. Foreign
+keys retain schedule/room/group/teacher provenance.
