@@ -228,9 +228,9 @@ jobs:
           - app: e-school-teacher
             flow: teacher_smoke_test.dart
           - app: e-school-teacher
-            flow: academic_marks_smoke_test.dart
+            flow: teacher_academic_marks_smoke_test.dart
           - app: e-school
-            flow: academic_marks_smoke_test.dart
+            flow: family_academic_marks_smoke_test.dart
     defaults:
       run:
         working-directory: ${{ matrix.app }}
