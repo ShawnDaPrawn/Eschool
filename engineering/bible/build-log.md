@@ -308,3 +308,15 @@ review, ordered approval, queued PDF review/release and paged own-child history.
 Private PDFs refresh authority on open/resume/export; context changes discard
 route memory. Automated/browser verification is tracked in phase-2 self-tests.
 No production or full-term pilot acceptance is inferred from synthetic checks.
+
+
+### 24 October 2026 — mid-year learner changes
+
+Implemented dated join/leave/subject-change services and office workflows, grade
+policy defaults/overrides, operation UUID/fingerprint review, retained cancellation
+history, request-time learner access and private queued signed exit packages.
+No billing/activation is inferred. The owner-authorized permissive checkpoint
+approach allows joins before subject allocations and leaves from unmapped legacy
+homerooms. Added explicit copy retention without inventing an educational-record
+deletion schedule. Verification and merge evidence are recorded in Phase 2 self-tests;
+production and external pilot acceptance are separate.

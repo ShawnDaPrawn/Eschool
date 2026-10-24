@@ -54,3 +54,12 @@ writes or implement Phase4 card sign-in.
 Attendance delivery deduplicates a qualifying entry revision. Transport suppresses
 a corrected/superseded absence or later approved leave; a genuinely new absence
 after correction can notify without being blocked by an old suppressed claim.
+
+Mid-year defaults: grade join/subject-change rules start at catch-up and are
+explicitly editable by school academic managers. Join permits catch-up/excused;
+carried subject changes reuse only same-subject/grade/year canonical evidence.
+A different subject needs explicit catch-up/excused, never an invented transfer
+score. Pro-rata is an opt-in request flag for the later billing phase. Leave means
+last attended date (inclusive). Exit copies default to seven days, configurable
+1-30, with ten-minute requester-bound links. Educational history is retained until
+an approved school/platform retention schedule exists; no deletion is guessed.

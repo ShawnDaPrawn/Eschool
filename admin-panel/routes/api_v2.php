@@ -11,6 +11,7 @@ use App\Http\Controllers\Api\V2\Academics\SubjectStandardController;
 use App\Http\Controllers\Api\V2\Academics\TeachingGroupController;
 use App\Http\Controllers\Api\V2\Academics\TermCalendarController;
 use App\Http\Controllers\Api\V2\Academics\TimetableController;
+use App\Http\Controllers\Api\V2\Academics\TransitionController;
 use App\Http\Controllers\Api\V2\People\EnrolmentController;
 use App\Http\Controllers\Api\V2\People\ProfileConfigurationController;
 use App\Http\Controllers\Api\V2\People\ProfileController;
@@ -55,6 +56,20 @@ use Illuminate\Support\Facades\Route;
 
 // Keep fresh class permissions ahead of idempotent replay as well as validation.
 Route::prefix('academics')->middleware(['auth:sanctum', 'school.context', 'role.any', 'learner.approved', 'module:academics', 'cache.headers:private;no_store'])->name('api.v2.academics.')->group(function () {
+    Route::prefix('transitions')->name('transitions.')->group(function () {
+        $controller = TransitionController::class;
+        Route::get('configuration', [$controller, 'configuration'])->name('configuration');
+        Route::get('learners', [$controller, 'learners'])->name('learners');
+        Route::get('learners/{learner}', [$controller, 'learner'])->whereNumber('learner')->name('learner');
+        Route::put('policies/{grade}', [$controller, 'policy'])->whereNumber('grade')->name('policy');
+        Route::put('retention', [$controller, 'retention'])->name('retention');
+        foreach (['preview' => 'preview', 'commit' => 'commit', 'exports/preview' => 'exportPreview', 'exports/prepare' => 'exportPrepare'] as $path => $action) {
+            Route::post($path, [$controller, $action])->name(str_replace('exports/', 'export-', $path));
+        }
+        Route::get('exports/{package}', [$controller, 'exportStatus'])->whereNumber('package')->name('export-status');
+        Route::post('exports/{package}/retry', [$controller, 'exportRetry'])->whereNumber('package')->name('export-retry');
+        Route::get('exports/{package}/download', [$controller, 'exportDownload'])->whereNumber('package')->name('export-download');
+    });
     Route::prefix('reports')->name('reports.')->group(function () {
         $controller = ReportController::class;
         $policy = AuthorizeReport::class;

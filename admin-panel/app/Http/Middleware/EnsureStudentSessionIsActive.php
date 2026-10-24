@@ -3,6 +3,7 @@
 namespace App\Http\Middleware;
 
 use App\Models\StudentSessions;
+use App\Services\Academics\Transitions\LearnerAcademicAccess;
 use Closure;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -26,6 +27,10 @@ class EnsureStudentSessionIsActive
                 'data' => null,
                 'code' => Response::HTTP_FORBIDDEN,
             ], Response::HTTP_FORBIDDEN);
+        }
+
+        if (! app(LearnerAcademicAccess::class)->allows($user->student)) {
+            return response()->json(['message' => 'Your Account is Deactivate Please contact Admin for Further Help.', 'code' => 'SESSION_NOT_ACTIVE'], Response::HTTP_UNAUTHORIZED);
         }
 
         $session_year_id = getSettings('session_year')['session_year'];

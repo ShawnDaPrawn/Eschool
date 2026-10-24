@@ -25,6 +25,10 @@ Enrolment _$EnrolmentFromJson(Map<String, dynamic> json) => $checkedCreate(
       ],
     );
     final val = Enrolment(
+      cancelledAt: $checkedConvert(
+        'cancelled_at',
+        (v) => v == null ? null : DateTime.parse(v as String),
+      ),
       id: $checkedConvert('id', (v) => (v as num).toInt()),
       learnerId: $checkedConvert('learner_id', (v) => (v as num).toInt()),
       classSectionId: $checkedConvert(
@@ -53,6 +57,7 @@ Enrolment _$EnrolmentFromJson(Map<String, dynamic> json) => $checkedCreate(
     return val;
   },
   fieldKeyMap: const {
+    'cancelledAt': 'cancelled_at',
     'learnerId': 'learner_id',
     'classSectionId': 'class_section_id',
     'sessionYearId': 'session_year_id',
@@ -64,6 +69,7 @@ Enrolment _$EnrolmentFromJson(Map<String, dynamic> json) => $checkedCreate(
 );
 
 Map<String, dynamic> _$EnrolmentToJson(Enrolment instance) => <String, dynamic>{
+  'cancelled_at': ?instance.cancelledAt?.toIso8601String(),
   'id': instance.id,
   'learner_id': instance.learnerId,
   'class_section_id': instance.classSectionId,

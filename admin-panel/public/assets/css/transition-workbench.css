@@ -1,0 +1,11 @@
+.transition-workbench { overflow-wrap: anywhere; }
+.transition-fields { display: flex; flex-wrap: wrap; align-items: end; gap: 16px; margin-block: 16px; }
+.transition-fields > * { min-width: 0; }
+.transition-form { max-width: 880px; margin-block: 24px; }
+.transition-workbench fieldset { min-width: 0; margin-block: 16px; }
+.transition-workbench button { margin-block: 8px; }
+.transition-workbench summary { padding-block: 16px; cursor: pointer; }
+.transition-options { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 260px), 1fr)); gap: 12px; }
+.transition-options label { display: flex; align-items: center; gap: 8px; min-height: 48px; }
+.transition-export { padding-block: 16px; border-bottom: 1px solid var(--md-sys-color-outline-variant); }
+.transition-workbench code { color: var(--md-sys-color-on-surface); background: transparent; overflow-wrap: anywhere; }

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Services\Platform\Identity;
 
 use App\Models\User;
+use App\Services\Academics\Transitions\LearnerAcademicAccess;
 use Laravel\Sanctum\PersonalAccessToken;
 
 /**
@@ -42,6 +43,9 @@ final class AppTokens
     public static function issue(User $user, string $app): string
     {
         app(ApprovalService::class)->assertAccess($user);
+        if ($app === self::STUDENT) {
+            app(LearnerAcademicAccess::class)->assertUser($user);
+        }
         self::revokeApp($user, $app);
 
         return $user->createToken($app)->plainTextToken;

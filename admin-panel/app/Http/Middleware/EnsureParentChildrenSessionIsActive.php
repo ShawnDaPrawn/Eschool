@@ -2,8 +2,8 @@
 
 namespace App\Http\Middleware;
 
-use App\Models\Students;
 use App\Models\StudentSessions;
+use App\Services\Academics\Transitions\LearnerAcademicAccess;
 use Closure;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -21,12 +21,9 @@ class EnsureParentChildrenSessionIsActive
         }
         $session_year_id = getSettings('session_year')['session_year'];
 
-        $children = Students::where(function ($q) use ($user) {
-            $q->where('father_id', $user->parent->id)
-                ->orWhere('mother_id', $user->parent->id)
-                ->orWhere('guardian_id', $user->parent->id);
-        })
-            ->get();
+        // Fresh GuardianLinks override old parent columns, including ended rights.
+        $children = $user->parent->children()->get();
+        $hasRetainedDeparture = $children->contains(fn ($child) => app(LearnerAcademicAccess::class)->departed($child));
 
         $hasAnyValidSession = false;
         $hasAnyActiveChild = false;
@@ -49,7 +46,7 @@ class EnsureParentChildrenSessionIsActive
         }
 
         // No child has session for current year
-        if (! $hasAnyValidSession) {
+        if (! $hasAnyValidSession && ! $hasRetainedDeparture) {
             return response()->json([
                 'message' => 'Your account is not active for the current academic year because promotion to the next class has not been completed. Please contact the administration.',
                 'code' => 'SESSION_NOT_ACTIVE',
@@ -57,7 +54,7 @@ class EnsureParentChildrenSessionIsActive
         }
 
         // All children are deactivated
-        if (! $hasAnyActiveChild) {
+        if (! $hasAnyActiveChild && ! $hasRetainedDeparture) {
             return response()->json([
                 'message' => 'Your account is deactivated. Please contact admin for further help.',
                 'code' => 'ACCOUNT_DEACTIVATED',

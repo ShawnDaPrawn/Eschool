@@ -8,6 +8,7 @@ use App\Models\Platform\GuardianLink;
 use App\Models\Platform\LearnerApproval;
 use App\Models\Students;
 use App\Models\User;
+use App\Services\Academics\Transitions\LearnerAcademicAccess;
 use App\Services\Platform\Audit\Audit;
 use App\Services\Platform\Tenancy\CurrentSchool;
 use Illuminate\Database\Eloquent\Builder;
@@ -69,6 +70,7 @@ class ApprovalService
                     DB::table('sessions')->where('user_id', $user->id)->delete();
                 }
             }
+            app(LearnerAcademicAccess::class)->refreshProjection((int) $learner->id);
             Audit::record('learner.approval.'.$decision, $learner, [], ['guardian_user_id' => $guardian->id, 'consent_version' => $version]);
 
             return $this->state($learner);

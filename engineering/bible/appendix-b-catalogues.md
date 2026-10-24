@@ -82,3 +82,14 @@ existing family channel preferences. Claims are per card/recipient; prior read
 state does not consume notification eligibility. Mail/push transport rechecks
 released evidence and fresh guardian/learner rights. No report scores, comments,
 signed download links or PDF bytes enter domain event payloads.
+
+
+## Mid-year academic changes (24 October 2026)
+
+School-owned `academic_transition_policies` version grade defaults;
+`academic_transitions` stores immutable dated facts with encrypted reason/input/result;
+`academic_exit_packages` stores requester-owned queued generation attempts,
+encrypted source/manifest and private artifact receipts; `retention_rules` stores
+explicit copy expiry and source-record retention. Enrolments gain additive soft
+cancellation/history state. No new public notification type is required: generic
+context-change events refresh projections, never send private transition reasons.

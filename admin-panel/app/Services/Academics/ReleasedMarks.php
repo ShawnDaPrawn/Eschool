@@ -13,6 +13,7 @@ use App\Models\Subject;
 use App\Models\Term;
 use App\Models\User;
 use App\Policies\People\ProfilePolicy;
+use App\Services\Academics\Transitions\LearnerAcademicAccess;
 use App\Services\Platform\Identity\GuardianService;
 
 /** Family reads contain released evidence only, with fresh guardian rights. */
@@ -24,7 +25,7 @@ class ReleasedMarks
         $fresh = $policy->actor($actor);
         $learner = Students::findOrFail($learnerId);
         $roles = $policy->roles($fresh);
-        $own = in_array('Student', $roles, true) && (int) $learner->user_id === (int) $fresh->id;
+        $own = in_array('Student', $roles, true) && (int) $learner->user_id === (int) $fresh->id && app(LearnerAcademicAccess::class)->allows($learner);
         $guardian = in_array('Parent', $roles, true) && app(GuardianService::class)->guardianUserIds($learner)->contains((int) $fresh->id);
         abort_unless($own || $guardian, 404);
 

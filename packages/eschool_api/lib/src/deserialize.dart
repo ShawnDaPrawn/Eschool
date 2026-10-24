@@ -14,6 +14,17 @@ import 'package:eschool_api/src/model/academic_bells_write.dart';
 import 'package:eschool_api/src/model/academic_capture_data.dart';
 import 'package:eschool_api/src/model/academic_capture_response.dart';
 import 'package:eschool_api/src/model/academic_component_result.dart';
+import 'package:eschool_api/src/model/academic_exit_document_choice.dart';
+import 'package:eschool_api/src/model/academic_exit_document_evidence.dart';
+import 'package:eschool_api/src/model/academic_exit_issue.dart';
+import 'package:eschool_api/src/model/academic_exit_package.dart';
+import 'package:eschool_api/src/model/academic_exit_package_response.dart';
+import 'package:eschool_api/src/model/academic_exit_prepare.dart';
+import 'package:eschool_api/src/model/academic_exit_preview.dart';
+import 'package:eschool_api/src/model/academic_exit_preview_response.dart';
+import 'package:eschool_api/src/model/academic_exit_report_choice.dart';
+import 'package:eschool_api/src/model/academic_exit_report_evidence.dart';
+import 'package:eschool_api/src/model/academic_exit_selection.dart';
 import 'package:eschool_api/src/model/academic_grade_level.dart';
 import 'package:eschool_api/src/model/academic_learner_preview.dart';
 import 'package:eschool_api/src/model/academic_lesson_write.dart';
@@ -139,6 +150,35 @@ import 'package:eschool_api/src/model/academic_timetable_preview_response.dart';
 import 'package:eschool_api/src/model/academic_timetable_preview_write.dart';
 import 'package:eschool_api/src/model/academic_timetable_week_data.dart';
 import 'package:eschool_api/src/model/academic_timetable_week_response.dart';
+import 'package:eschool_api/src/model/academic_transition_assignment.dart';
+import 'package:eschool_api/src/model/academic_transition_commit.dart';
+import 'package:eschool_api/src/model/academic_transition_configuration.dart';
+import 'package:eschool_api/src/model/academic_transition_configuration_response.dart';
+import 'package:eschool_api/src/model/academic_transition_enrolment.dart';
+import 'package:eschool_api/src/model/academic_transition_fact.dart';
+import 'package:eschool_api/src/model/academic_transition_grade.dart';
+import 'package:eschool_api/src/model/academic_transition_grade_policy.dart';
+import 'package:eschool_api/src/model/academic_transition_grade_policy_response.dart';
+import 'package:eschool_api/src/model/academic_transition_group.dart';
+import 'package:eschool_api/src/model/academic_transition_homeroom.dart';
+import 'package:eschool_api/src/model/academic_transition_input.dart';
+import 'package:eschool_api/src/model/academic_transition_learner.dart';
+import 'package:eschool_api/src/model/academic_transition_learner_choice.dart';
+import 'package:eschool_api/src/model/academic_transition_learner_response.dart';
+import 'package:eschool_api/src/model/academic_transition_membership.dart';
+import 'package:eschool_api/src/model/academic_transition_policy_write.dart';
+import 'package:eschool_api/src/model/academic_transition_preview.dart';
+import 'package:eschool_api/src/model/academic_transition_preview_response.dart';
+import 'package:eschool_api/src/model/academic_transition_record.dart';
+import 'package:eschool_api/src/model/academic_transition_record_response.dart';
+import 'package:eschool_api/src/model/academic_transition_result.dart';
+import 'package:eschool_api/src/model/academic_transition_retention.dart';
+import 'package:eschool_api/src/model/academic_transition_retention_response.dart';
+import 'package:eschool_api/src/model/academic_transition_retention_write.dart';
+import 'package:eschool_api/src/model/academic_transition_search.dart';
+import 'package:eschool_api/src/model/academic_transition_search_response.dart';
+import 'package:eschool_api/src/model/academic_transition_state.dart';
+import 'package:eschool_api/src/model/academic_transition_year.dart';
 import 'package:eschool_api/src/model/accept_guardian_invitation_request.dart';
 import 'package:eschool_api/src/model/approval_learner.dart';
 import 'package:eschool_api/src/model/approval_state.dart';
@@ -332,6 +372,41 @@ ReturnType deserialize<ReturnType, BaseType>(
           as ReturnType;
     case 'AcademicComponentResult':
       return AcademicComponentResult.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'AcademicExitDocumentChoice':
+      return AcademicExitDocumentChoice.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'AcademicExitDocumentEvidence':
+      return AcademicExitDocumentEvidence.fromJson(
+            value as Map<String, dynamic>,
+          )
+          as ReturnType;
+    case 'AcademicExitIssue':
+      return AcademicExitIssue.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'AcademicExitPackage':
+      return AcademicExitPackage.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'AcademicExitPackageResponse':
+      return AcademicExitPackageResponse.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'AcademicExitPrepare':
+      return AcademicExitPrepare.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'AcademicExitPreview':
+      return AcademicExitPreview.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'AcademicExitPreviewResponse':
+      return AcademicExitPreviewResponse.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'AcademicExitReportChoice':
+      return AcademicExitReportChoice.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'AcademicExitReportEvidence':
+      return AcademicExitReportEvidence.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'AcademicExitSelection':
+      return AcademicExitSelection.fromJson(value as Map<String, dynamic>)
           as ReturnType;
     case 'AcademicGradeLevel':
       return AcademicGradeLevel.fromJson(value as Map<String, dynamic>)
@@ -777,6 +852,121 @@ ReturnType deserialize<ReturnType, BaseType>(
       return AcademicTimetableWeekResponse.fromJson(
             value as Map<String, dynamic>,
           )
+          as ReturnType;
+    case 'AcademicTransitionAssignment':
+      return AcademicTransitionAssignment.fromJson(
+            value as Map<String, dynamic>,
+          )
+          as ReturnType;
+    case 'AcademicTransitionCommit':
+      return AcademicTransitionCommit.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'AcademicTransitionConfiguration':
+      return AcademicTransitionConfiguration.fromJson(
+            value as Map<String, dynamic>,
+          )
+          as ReturnType;
+    case 'AcademicTransitionConfigurationResponse':
+      return AcademicTransitionConfigurationResponse.fromJson(
+            value as Map<String, dynamic>,
+          )
+          as ReturnType;
+    case 'AcademicTransitionEnrolment':
+      return AcademicTransitionEnrolment.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'AcademicTransitionFact':
+      return AcademicTransitionFact.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'AcademicTransitionGrade':
+      return AcademicTransitionGrade.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'AcademicTransitionGradePolicy':
+      return AcademicTransitionGradePolicy.fromJson(
+            value as Map<String, dynamic>,
+          )
+          as ReturnType;
+    case 'AcademicTransitionGradePolicyResponse':
+      return AcademicTransitionGradePolicyResponse.fromJson(
+            value as Map<String, dynamic>,
+          )
+          as ReturnType;
+    case 'AcademicTransitionGroup':
+      return AcademicTransitionGroup.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'AcademicTransitionHomeroom':
+      return AcademicTransitionHomeroom.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'AcademicTransitionInput':
+      return AcademicTransitionInput.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'AcademicTransitionLearner':
+      return AcademicTransitionLearner.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'AcademicTransitionLearnerChoice':
+      return AcademicTransitionLearnerChoice.fromJson(
+            value as Map<String, dynamic>,
+          )
+          as ReturnType;
+    case 'AcademicTransitionLearnerResponse':
+      return AcademicTransitionLearnerResponse.fromJson(
+            value as Map<String, dynamic>,
+          )
+          as ReturnType;
+    case 'AcademicTransitionMembership':
+      return AcademicTransitionMembership.fromJson(
+            value as Map<String, dynamic>,
+          )
+          as ReturnType;
+    case 'AcademicTransitionPolicyWrite':
+      return AcademicTransitionPolicyWrite.fromJson(
+            value as Map<String, dynamic>,
+          )
+          as ReturnType;
+    case 'AcademicTransitionPreview':
+      return AcademicTransitionPreview.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'AcademicTransitionPreviewResponse':
+      return AcademicTransitionPreviewResponse.fromJson(
+            value as Map<String, dynamic>,
+          )
+          as ReturnType;
+    case 'AcademicTransitionRecord':
+      return AcademicTransitionRecord.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'AcademicTransitionRecordResponse':
+      return AcademicTransitionRecordResponse.fromJson(
+            value as Map<String, dynamic>,
+          )
+          as ReturnType;
+    case 'AcademicTransitionResult':
+      return AcademicTransitionResult.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'AcademicTransitionRetention':
+      return AcademicTransitionRetention.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'AcademicTransitionRetentionResponse':
+      return AcademicTransitionRetentionResponse.fromJson(
+            value as Map<String, dynamic>,
+          )
+          as ReturnType;
+    case 'AcademicTransitionRetentionWrite':
+      return AcademicTransitionRetentionWrite.fromJson(
+            value as Map<String, dynamic>,
+          )
+          as ReturnType;
+    case 'AcademicTransitionSearch':
+      return AcademicTransitionSearch.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'AcademicTransitionSearchResponse':
+      return AcademicTransitionSearchResponse.fromJson(
+            value as Map<String, dynamic>,
+          )
+          as ReturnType;
+    case 'AcademicTransitionState':
+      return AcademicTransitionState.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'AcademicTransitionYear':
+      return AcademicTransitionYear.fromJson(value as Map<String, dynamic>)
           as ReturnType;
     case 'AcceptGuardianInvitationRequest':
       return AcceptGuardianInvitationRequest.fromJson(

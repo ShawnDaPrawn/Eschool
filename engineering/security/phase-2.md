@@ -126,3 +126,22 @@ disabled. Guardian revocation clears paged history/PDF refresh state; late child
 responses are ignored. Panel retries reauthorize before encrypted, school-bound
 replay; body and receipt commit atomically. Draft comparison never auto-overwrites
 competing comments. Native panel and app checks remain tied to final CI evidence.
+
+
+## Dated learner changes and private exit exports
+
+Office authority precedes every read/write/replay; preview fingerprints and
+actor/school-bound operation UUIDs prevent stale or duplicate changes. Dated
+learner access is enforced before token issuance and on requests, independently
+of legacy projection timing; another school and parent/staff roles remain usable.
+Reasons/input/result and export payloads are encrypted. No financial posting or
+unapproved learner activation occurs. Existing canonical marks remain unchanged.
+
+Exit archives are requester owned, fresh-sensitive-export and document-field
+checked, source-pinned, size/count bounded, signed Ed25519 and encrypted at rest.
+Links bind reader/school/expiry. Jobs recheck source/authority before and after
+building; stale attempts cannot publish. Scratch is private and cleared in finally.
+Copy expiry deletes only validated owned paths/payloads and retains source records.
+Public-key provenance requires comparison with authenticated metadata. Independent
+security review, approved wider retention schedule and actual recipient hand-off
+remain acceptance evidence; local tests do not establish those outcomes.

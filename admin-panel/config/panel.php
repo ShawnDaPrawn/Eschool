@@ -44,6 +44,8 @@ return [
             // Reports target an explicit year/batch. Fresh canonical authority,
             // approval order and revision checks govern historical corrections.
             'academic-reports/*',
+            // Dated learner changes carry an explicit school year and preview fingerprint.
+            'academic-transitions/*',
 
             // Settings that are the same in every year.
             'clear',
