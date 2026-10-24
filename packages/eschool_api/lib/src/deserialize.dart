@@ -3,6 +3,9 @@ import 'package:eschool_api/src/model/academic_assignment_response.dart';
 import 'package:eschool_api/src/model/academic_assignment_write.dart';
 import 'package:eschool_api/src/model/academic_assignments_response.dart';
 import 'package:eschool_api/src/model/academic_assignments_response_data.dart';
+import 'package:eschool_api/src/model/academic_attendance_today_data.dart';
+import 'package:eschool_api/src/model/academic_attendance_today_entry.dart';
+import 'package:eschool_api/src/model/academic_attendance_today_response.dart';
 import 'package:eschool_api/src/model/academic_bell_period.dart';
 import 'package:eschool_api/src/model/academic_bell_period_write.dart';
 import 'package:eschool_api/src/model/academic_bells.dart';
@@ -31,6 +34,21 @@ import 'package:eschool_api/src/model/academic_question_score.dart';
 import 'package:eschool_api/src/model/academic_rating_level.dart';
 import 'package:eschool_api/src/model/academic_reference.dart';
 import 'package:eschool_api/src/model/academic_reference_response.dart';
+import 'package:eschool_api/src/model/academic_register_choices_data.dart';
+import 'package:eschool_api/src/model/academic_register_choices_response.dart';
+import 'package:eschool_api/src/model/academic_register_entry_revision.dart';
+import 'package:eschool_api/src/model/academic_register_learner.dart';
+import 'package:eschool_api/src/model/academic_register_matrix_data.dart';
+import 'package:eschool_api/src/model/academic_register_matrix_response.dart';
+import 'package:eschool_api/src/model/academic_register_qr_data.dart';
+import 'package:eschool_api/src/model/academic_register_qr_response.dart';
+import 'package:eschool_api/src/model/academic_register_row_write.dart';
+import 'package:eschool_api/src/model/academic_register_settings_data.dart';
+import 'package:eschool_api/src/model/academic_register_settings_response.dart';
+import 'package:eschool_api/src/model/academic_register_sync_data.dart';
+import 'package:eschool_api/src/model/academic_register_sync_response.dart';
+import 'package:eschool_api/src/model/academic_register_sync_write.dart';
+import 'package:eschool_api/src/model/academic_register_target_write.dart';
 import 'package:eschool_api/src/model/academic_release_commit_write.dart';
 import 'package:eschool_api/src/model/academic_release_data.dart';
 import 'package:eschool_api/src/model/academic_release_learner.dart';
@@ -224,6 +242,19 @@ ReturnType deserialize<ReturnType, BaseType>(
             value as Map<String, dynamic>,
           )
           as ReturnType;
+    case 'AcademicAttendanceTodayData':
+      return AcademicAttendanceTodayData.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'AcademicAttendanceTodayEntry':
+      return AcademicAttendanceTodayEntry.fromJson(
+            value as Map<String, dynamic>,
+          )
+          as ReturnType;
+    case 'AcademicAttendanceTodayResponse':
+      return AcademicAttendanceTodayResponse.fromJson(
+            value as Map<String, dynamic>,
+          )
+          as ReturnType;
     case 'AcademicBellPeriod':
       return AcademicBellPeriod.fromJson(value as Map<String, dynamic>)
           as ReturnType;
@@ -306,6 +337,63 @@ ReturnType deserialize<ReturnType, BaseType>(
           as ReturnType;
     case 'AcademicReferenceResponse':
       return AcademicReferenceResponse.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'AcademicRegisterChoicesData':
+      return AcademicRegisterChoicesData.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'AcademicRegisterChoicesResponse':
+      return AcademicRegisterChoicesResponse.fromJson(
+            value as Map<String, dynamic>,
+          )
+          as ReturnType;
+    case 'AcademicRegisterEntryRevision':
+      return AcademicRegisterEntryRevision.fromJson(
+            value as Map<String, dynamic>,
+          )
+          as ReturnType;
+    case 'AcademicRegisterLearner':
+      return AcademicRegisterLearner.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'AcademicRegisterMatrixData':
+      return AcademicRegisterMatrixData.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'AcademicRegisterMatrixResponse':
+      return AcademicRegisterMatrixResponse.fromJson(
+            value as Map<String, dynamic>,
+          )
+          as ReturnType;
+    case 'AcademicRegisterQrData':
+      return AcademicRegisterQrData.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'AcademicRegisterQrResponse':
+      return AcademicRegisterQrResponse.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'AcademicRegisterRowWrite':
+      return AcademicRegisterRowWrite.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'AcademicRegisterSettingsData':
+      return AcademicRegisterSettingsData.fromJson(
+            value as Map<String, dynamic>,
+          )
+          as ReturnType;
+    case 'AcademicRegisterSettingsResponse':
+      return AcademicRegisterSettingsResponse.fromJson(
+            value as Map<String, dynamic>,
+          )
+          as ReturnType;
+    case 'AcademicRegisterSyncData':
+      return AcademicRegisterSyncData.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'AcademicRegisterSyncResponse':
+      return AcademicRegisterSyncResponse.fromJson(
+            value as Map<String, dynamic>,
+          )
+          as ReturnType;
+    case 'AcademicRegisterSyncWrite':
+      return AcademicRegisterSyncWrite.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'AcademicRegisterTargetWrite':
+      return AcademicRegisterTargetWrite.fromJson(value as Map<String, dynamic>)
           as ReturnType;
     case 'AcademicReleaseCommitWrite':
       return AcademicReleaseCommitWrite.fromJson(value as Map<String, dynamic>)

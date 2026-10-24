@@ -19,6 +19,7 @@ use App\Models\Students;
 use App\Models\StudentSessions;
 use App\Models\Term;
 use App\Services\AbsenceAlertService;
+use App\Services\Academics\Attendance\LegacyRegisterWrites;
 use Carbon\Carbon;
 use Exception;
 use Illuminate\Http\Request;
@@ -29,6 +30,7 @@ use Illuminate\Support\Facades\Response;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\ValidationException;
 use Maatwebsite\Excel\Facades\Excel;
+use Symfony\Component\HttpKernel\Exception\HttpExceptionInterface;
 
 class AttendanceController extends Controller
 {
@@ -273,6 +275,11 @@ class AttendanceController extends Controller
      */
     public function store(Request $request)
     {
+        return app(LegacyRegisterWrites::class)->run(fn () => $this->storeLegacy($request));
+    }
+
+    private function storeLegacy(Request $request)
+    {
         if (! Auth::user()->can('attendance-create') && ! Auth::user()->can('attendance-edit')) {
             $response = [
                 'error' => true,
@@ -301,6 +308,7 @@ class AttendanceController extends Controller
             $session_year_id = $session_year['session_year'];
             $class_section_id = $request->class_section_id;
             $date = $request->date ? date('Y-m-d', strtotime($request->date)) : Carbon::now()->toDateString();
+            app(LegacyRegisterWrites::class)->reject((int) $class_section_id, (int) $session_year_id, $date);
             $student_ids = $request->student_id;
 
             // Fetch existing attendance records for this date and class_section
@@ -353,6 +361,8 @@ class AttendanceController extends Controller
                 'error' => false,
                 'message' => trans('data_store_successfully'),
             ];
+        } catch (HttpExceptionInterface $e) {
+            throw $e;
         } catch (Exception $e) {
             report($e);
             $response = [

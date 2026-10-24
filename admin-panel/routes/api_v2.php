@@ -5,6 +5,7 @@ declare(strict_types=1);
 use App\Http\Controllers\Api\V2\Academics\AcademicReferenceController;
 use App\Http\Controllers\Api\V2\Academics\CurriculumController;
 use App\Http\Controllers\Api\V2\Academics\MarkController;
+use App\Http\Controllers\Api\V2\Academics\RegisterController;
 use App\Http\Controllers\Api\V2\Academics\SubjectStandardController;
 use App\Http\Controllers\Api\V2\Academics\TeachingGroupController;
 use App\Http\Controllers\Api\V2\Academics\TermCalendarController;
@@ -22,6 +23,7 @@ use App\Http\Controllers\Api\V2\School\MySchoolController;
 use App\Http\Middleware\AuthorizeClassGrade;
 use App\Http\Middleware\AuthorizeCurriculum;
 use App\Http\Middleware\AuthorizeMarks;
+use App\Http\Middleware\AuthorizeRegister;
 use App\Http\Middleware\AuthorizeSubjectStandard;
 use App\Http\Middleware\AuthorizeTeachingGroup;
 use App\Http\Middleware\AuthorizeTermCalendar;
@@ -51,6 +53,20 @@ use Illuminate\Support\Facades\Route;
 
 // Keep fresh class permissions ahead of idempotent replay as well as validation.
 Route::prefix('academics')->middleware(['auth:sanctum', 'school.context', 'role.any', 'learner.approved', 'module:academics', 'cache.headers:private;no_store'])->name('api.v2.academics.')->group(function () {
+    Route::prefix('registers')->name('registers.')->group(function () {
+        $controller = RegisterController::class;
+        $policy = AuthorizeRegister::class;
+        Route::get('choices', [$controller, 'choices'])->middleware($policy.':staff')->name('choices');
+        Route::post('open', [$controller, 'open'])->middleware($policy.':staff')->name('open');
+        Route::get('settings', [$controller, 'settings'])->middleware($policy.':manage')->name('settings.show');
+        Route::put('settings', [$controller, 'settings'])->middleware([$policy.':manage', 'idempotent'])->name('settings');
+        Route::get('learners/{learner}/today', [$controller, 'today'])->whereNumber('learner')->middleware($policy.':family')->name('today');
+        Route::get('learners/{learner}/qr', [$controller, 'qr'])->whereNumber('learner')->middleware($policy.':family')->name('qr');
+        Route::post('learners/{learner}/qr/rotate', [$controller, 'rotate'])->whereNumber('learner')->middleware([$policy.':family', 'idempotent'])->name('qr.rotate');
+        Route::get('{register}', [$controller, 'show'])->whereNumber('register')->middleware($policy.':read')->name('show');
+        // The durable operation UUID is the sync idempotency key. Fresh policy runs first.
+        Route::post('{register}/sync', [$controller, 'sync'])->whereNumber('register')->middleware($policy.':sync')->name('sync');
+    });
     Route::prefix('timetable')->name('timetable.')->group(function () {
         $controller = TimetableController::class;
         foreach (['week', 'next'] as $action) {

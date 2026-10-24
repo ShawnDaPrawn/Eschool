@@ -3259,6 +3259,362 @@ paths:
           $ref: '#/components/responses/TooManyRequests'
         '500':
           $ref: '#/components/responses/ServerError'
+  /academics/registers/choices:
+    get:
+      operationId: getAcademicRegisterChoices
+      tags:
+      - Academics
+      summary: Choose an authorized homeroom or period register
+      description: 'Fresh school, role and allocation/guardian rights are checked on every call. Teachers amend the school-local current day; current grade heads correct earlier days with a reason. Sync operation IDs are durable: exact retries replay after fresh authorization; changed reuse, stale rows, roster changes and out-of-order operations return409 without partial writes. QR identifiers contain no names or birth dates and never authorize attendance. Family reads contain no peer rosters. No fee condition applies.'
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - name: on_date
+        in: query
+        required: false
+        schema:
+          type: string
+          pattern: ^\d{4}-\d{2}-\d{2}$
+        description: Defaults to school-local today.
+      - name: session_year_id
+        in: query
+        required: false
+        schema:
+          type: integer
+          minimum: 1
+        description: An applicable school calendar.
+      responses:
+        '200':
+          description: Authorized academic register result.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AcademicRegisterChoicesResponse'
+        '400':
+          $ref: '#/components/responses/IdempotencyKeyProblem'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+  /academics/registers/open:
+    post:
+      operationId: openAcademicRegister
+      tags:
+      - Academics
+      summary: Open a dated academic register
+      description: 'Fresh school, role and allocation/guardian rights are checked on every call. Teachers amend the school-local current day; current grade heads correct earlier days with a reason. Sync operation IDs are durable: exact retries replay after fresh authorization; changed reuse, stale rows, roster changes and out-of-order operations return409 without partial writes. QR identifiers contain no names or birth dates and never authorize attendance. Family reads contain no peer rosters. No fee condition applies.'
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      responses:
+        '200':
+          description: Authorized academic register result.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AcademicRegisterMatrixResponse'
+        '400':
+          $ref: '#/components/responses/IdempotencyKeyProblem'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AcademicRegisterTargetWrite'
+  /academics/registers/settings:
+    get:
+      operationId: getAcademicRegisterSettings
+      tags:
+      - Academics
+      summary: Read school attendance cutoff and teaching days
+      description: 'Fresh school, role and allocation/guardian rights are checked on every call. Teachers amend the school-local current day; current grade heads correct earlier days with a reason. Sync operation IDs are durable: exact retries replay after fresh authorization; changed reuse, stale rows, roster changes and out-of-order operations return409 without partial writes. QR identifiers contain no names or birth dates and never authorize attendance. Family reads contain no peer rosters. No fee condition applies.'
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      responses:
+        '200':
+          description: Authorized academic register result.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AcademicRegisterSettingsResponse'
+        '400':
+          $ref: '#/components/responses/IdempotencyKeyProblem'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+    put:
+      operationId: putAcademicRegisterSettings
+      tags:
+      - Academics
+      summary: Configure the school attendance cutoff and teaching days
+      description: 'Fresh school, role and allocation/guardian rights are checked on every call. Teachers amend the school-local current day; current grade heads correct earlier days with a reason. Sync operation IDs are durable: exact retries replay after fresh authorization; changed reuse, stale rows, roster changes and out-of-order operations return409 without partial writes. QR identifiers contain no names or birth dates and never authorize attendance. Family reads contain no peer rosters. No fee condition applies.'
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/IdempotencyKey'
+      responses:
+        '200':
+          description: Authorized academic register result.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AcademicRegisterSettingsResponse'
+        '400':
+          $ref: '#/components/responses/IdempotencyKeyProblem'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AcademicRegisterSettingsData'
+  /academics/registers/learners/{learner}/qr:
+    get:
+      operationId: getAcademicRegisterQr
+      tags:
+      - Academics
+      summary: Read a signed learner QR identifier
+      description: 'Fresh school, role and allocation/guardian rights are checked on every call. Teachers amend the school-local current day; current grade heads correct earlier days with a reason. Sync operation IDs are durable: exact retries replay after fresh authorization; changed reuse, stale rows, roster changes and out-of-order operations return409 without partial writes. QR identifiers contain no names or birth dates and never authorize attendance. Family reads contain no peer rosters. No fee condition applies.'
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - name: learner
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+        description: Current-school learner identifier.
+      responses:
+        '200':
+          description: Authorized academic register result.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AcademicRegisterQrResponse'
+        '400':
+          $ref: '#/components/responses/IdempotencyKeyProblem'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+  /academics/registers/learners/{learner}/qr/rotate:
+    post:
+      operationId: rotateAcademicRegisterQr
+      tags:
+      - Academics
+      summary: Replace a learner QR identifier and revoke the previous code
+      description: 'Fresh school, role and allocation/guardian rights are checked on every call. Teachers amend the school-local current day; current grade heads correct earlier days with a reason. Sync operation IDs are durable: exact retries replay after fresh authorization; changed reuse, stale rows, roster changes and out-of-order operations return409 without partial writes. QR identifiers contain no names or birth dates and never authorize attendance. Family reads contain no peer rosters. No fee condition applies.'
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - name: learner
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+        description: Current-school learner identifier.
+      - $ref: '#/components/parameters/IdempotencyKey'
+      responses:
+        '200':
+          description: Authorized academic register result.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AcademicRegisterQrResponse'
+        '400':
+          $ref: '#/components/responses/IdempotencyKeyProblem'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+  /academics/registers/learners/{learner}/today:
+    get:
+      operationId: getAcademicAttendanceToday
+      tags:
+      - Academics
+      summary: Read only the authorized learner attendance today
+      description: 'Fresh school, role and allocation/guardian rights are checked on every call. Teachers amend the school-local current day; current grade heads correct earlier days with a reason. Sync operation IDs are durable: exact retries replay after fresh authorization; changed reuse, stale rows, roster changes and out-of-order operations return409 without partial writes. QR identifiers contain no names or birth dates and never authorize attendance. Family reads contain no peer rosters. No fee condition applies.'
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - name: learner
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+        description: Current-school learner identifier.
+      responses:
+        '200':
+          description: Authorized academic register result.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AcademicAttendanceTodayResponse'
+        '400':
+          $ref: '#/components/responses/IdempotencyKeyProblem'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+  /academics/registers/{register}:
+    get:
+      operationId: getAcademicRegister
+      tags:
+      - Academics
+      summary: Read the current authorized roster and entry revisions
+      description: 'Fresh school, role and allocation/guardian rights are checked on every call. Teachers amend the school-local current day; current grade heads correct earlier days with a reason. Sync operation IDs are durable: exact retries replay after fresh authorization; changed reuse, stale rows, roster changes and out-of-order operations return409 without partial writes. QR identifiers contain no names or birth dates and never authorize attendance. Family reads contain no peer rosters. No fee condition applies.'
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - name: register
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+        description: Current-school register identifier.
+      responses:
+        '200':
+          description: Authorized academic register result.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AcademicRegisterMatrixResponse'
+        '400':
+          $ref: '#/components/responses/IdempotencyKeyProblem'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+  /academics/registers/{register}/sync:
+    post:
+      operationId: syncAcademicRegister
+      tags:
+      - Academics
+      summary: Atomically sync a revision-checked attendance operation
+      description: 'Fresh school, role and allocation/guardian rights are checked on every call. Teachers amend the school-local current day; current grade heads correct earlier days with a reason. Sync operation IDs are durable: exact retries replay after fresh authorization; changed reuse, stale rows, roster changes and out-of-order operations return409 without partial writes. QR identifiers contain no names or birth dates and never authorize attendance. Family reads contain no peer rosters. No fee condition applies.'
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - name: register
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+        description: Current-school register identifier.
+      responses:
+        '200':
+          description: Authorized academic register result.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AcademicRegisterSyncResponse'
+        '400':
+          $ref: '#/components/responses/IdempotencyKeyProblem'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AcademicRegisterSyncWrite'
   /academics/timetable/configuration:
     get:
       operationId: getTimetableConfiguration
@@ -8156,3 +8512,409 @@ components:
           type: integer
         data:
           $ref: '#/components/schemas/AcademicTimetableNextData'
+    AcademicRegisterSettingsData:
+      type: object
+      additionalProperties: false
+      required:
+      - absence_cutoff
+      - teaching_days
+      properties:
+        absence_cutoff:
+          type: string
+          pattern: ^\d{2}:\d{2}$
+        teaching_days:
+          type: array
+          items:
+            type: integer
+            minimum: 1
+            maximum: 7
+    AcademicRegisterChoicesData:
+      type: object
+      additionalProperties: false
+      required:
+      - on_date
+      - session_year_id
+      - school_years
+      - homerooms
+      - periods
+      - can_manage
+      - settings
+      properties:
+        on_date:
+          type: string
+          pattern: ^\d{4}-\d{2}-\d{2}$
+        session_year_id:
+          type: integer
+          minimum: 1
+        school_years:
+          type: array
+          items:
+            $ref: '#/components/schemas/AcademicTimetableChoice'
+        homerooms:
+          type: array
+          items:
+            $ref: '#/components/schemas/AcademicTimetableChoice'
+        periods:
+          type: array
+          items:
+            $ref: '#/components/schemas/AcademicTimetableChoice'
+        can_manage:
+          type: boolean
+        settings:
+          $ref: '#/components/schemas/AcademicRegisterSettingsData'
+    AcademicRegisterLearner:
+      type: object
+      additionalProperties: false
+      required:
+      - learner_id
+      - name
+      - state
+      - revision
+      - source
+      - amended_at
+      - qr_code
+      properties:
+        learner_id:
+          type: integer
+          minimum: 1
+        name:
+          type: string
+        state:
+          type: string
+        revision:
+          type: integer
+          minimum: 0
+        source:
+          type:
+          - string
+          - 'null'
+        amended_at:
+          type:
+          - string
+          - 'null'
+        qr_code:
+          type: string
+    AcademicRegisterMatrixData:
+      type: object
+      additionalProperties: false
+      required:
+      - register_id
+      - label
+      - session_year_id
+      - class_section_id
+      - timetable_lesson_id
+      - on_date
+      - revision
+      - roster_hash
+      - can_write
+      - learners
+      properties:
+        register_id:
+          type: integer
+          minimum: 1
+        label:
+          type: string
+        session_year_id:
+          type: integer
+          minimum: 1
+        class_section_id:
+          type:
+          - integer
+          - 'null'
+          minimum: 1
+        timetable_lesson_id:
+          type:
+          - integer
+          - 'null'
+          minimum: 1
+        on_date:
+          type: string
+          pattern: ^\d{4}-\d{2}-\d{2}$
+        revision:
+          type: integer
+          minimum: 0
+        roster_hash:
+          type: string
+          pattern: ^[a-f0-9]{64}$
+        can_write:
+          type: boolean
+        learners:
+          type: array
+          items:
+            $ref: '#/components/schemas/AcademicRegisterLearner'
+    AcademicRegisterTargetWrite:
+      type: object
+      additionalProperties: false
+      required:
+      - session_year_id
+      - on_date
+      properties:
+        session_year_id:
+          type: integer
+          minimum: 1
+        on_date:
+          type: string
+          pattern: ^\d{4}-\d{2}-\d{2}$
+        class_section_id:
+          type:
+          - integer
+          - 'null'
+          minimum: 1
+        timetable_lesson_id:
+          type:
+          - integer
+          - 'null'
+          minimum: 1
+    AcademicRegisterRowWrite:
+      type: object
+      additionalProperties: false
+      required:
+      - learner_id
+      - state
+      - source
+      - expected_revision
+      properties:
+        learner_id:
+          type: integer
+          minimum: 1
+        state:
+          type: string
+          pattern: ^(present|absent|late|excused)$
+        source:
+          type: string
+          pattern: ^(tap|qr|offline)$
+        expected_revision:
+          type: integer
+          minimum: 0
+        qr_token:
+          type:
+          - string
+          - 'null'
+          maxLength: 4096
+    AcademicRegisterSyncWrite:
+      type: object
+      additionalProperties: false
+      required:
+      - operation_id
+      - base_revision
+      - roster_hash
+      - rows
+      properties:
+        operation_id:
+          type: string
+          format: uuid
+        base_revision:
+          type: integer
+          minimum: 0
+        roster_hash:
+          type: string
+          pattern: ^[a-f0-9]{64}$
+        reason:
+          type:
+          - string
+          - 'null'
+          maxLength: 500
+        rows:
+          type: array
+          items:
+            $ref: '#/components/schemas/AcademicRegisterRowWrite'
+          minItems: 1
+          maxItems: 500
+    AcademicRegisterEntryRevision:
+      type: object
+      additionalProperties: false
+      required:
+      - learner_id
+      - revision
+      properties:
+        learner_id:
+          type: integer
+          minimum: 1
+        revision:
+          type: integer
+          minimum: 1
+    AcademicRegisterSyncData:
+      type: object
+      additionalProperties: false
+      required:
+      - register_id
+      - revision
+      - entries
+      properties:
+        register_id:
+          type: integer
+          minimum: 1
+        revision:
+          type: integer
+          minimum: 1
+        entries:
+          type: array
+          items:
+            $ref: '#/components/schemas/AcademicRegisterEntryRevision'
+    AcademicAttendanceTodayEntry:
+      type: object
+      additionalProperties: false
+      required:
+      - register_id
+      - label
+      - kind
+      - state
+      - source
+      - amended_at
+      properties:
+        register_id:
+          type: integer
+          minimum: 1
+        label:
+          type: string
+        kind:
+          type: string
+          pattern: ^(homeroom|period)$
+        state:
+          type: string
+        source:
+          type: string
+        amended_at:
+          type:
+          - string
+          - 'null'
+    AcademicAttendanceTodayData:
+      type: object
+      additionalProperties: false
+      required:
+      - learner_id
+      - on_date
+      - entries
+      properties:
+        learner_id:
+          type: integer
+          minimum: 1
+        on_date:
+          type: string
+          pattern: ^\d{4}-\d{2}-\d{2}$
+        entries:
+          type: array
+          items:
+            $ref: '#/components/schemas/AcademicAttendanceTodayEntry'
+    AcademicRegisterQrData:
+      type: object
+      additionalProperties: false
+      required:
+      - qr_code
+      properties:
+        qr_code:
+          type: string
+    AcademicRegisterChoicesResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - code
+      - data
+      properties:
+        error:
+          type: boolean
+          description: Always false.
+        message:
+          type: string
+        code:
+          type: integer
+          description: Always 200.
+        data:
+          $ref: '#/components/schemas/AcademicRegisterChoicesData'
+    AcademicRegisterMatrixResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - code
+      - data
+      properties:
+        error:
+          type: boolean
+          description: Always false.
+        message:
+          type: string
+        code:
+          type: integer
+          description: Always 200.
+        data:
+          $ref: '#/components/schemas/AcademicRegisterMatrixData'
+    AcademicRegisterSyncResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - code
+      - data
+      properties:
+        error:
+          type: boolean
+          description: Always false.
+        message:
+          type: string
+        code:
+          type: integer
+          description: Always 200.
+        data:
+          $ref: '#/components/schemas/AcademicRegisterSyncData'
+    AcademicRegisterQrResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - code
+      - data
+      properties:
+        error:
+          type: boolean
+          description: Always false.
+        message:
+          type: string
+        code:
+          type: integer
+          description: Always 200.
+        data:
+          $ref: '#/components/schemas/AcademicRegisterQrData'
+    AcademicRegisterSettingsResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - code
+      - data
+      properties:
+        error:
+          type: boolean
+          description: Always false.
+        message:
+          type: string
+        code:
+          type: integer
+          description: Always 200.
+        data:
+          $ref: '#/components/schemas/AcademicRegisterSettingsData'
+    AcademicAttendanceTodayResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - code
+      - data
+      properties:
+        error:
+          type: boolean
+          description: Always false.
+        message:
+          type: string
+        code:
+          type: integer
+          description: Always 200.
+        data:
+          $ref: '#/components/schemas/AcademicAttendanceTodayData'

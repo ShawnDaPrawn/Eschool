@@ -12,6 +12,7 @@ import 'package:dio/dio.dart';
 import 'package:eschool_api/src/model/academic_assignment_response.dart';
 import 'package:eschool_api/src/model/academic_assignment_write.dart';
 import 'package:eschool_api/src/model/academic_assignments_response.dart';
+import 'package:eschool_api/src/model/academic_attendance_today_response.dart';
 import 'package:eschool_api/src/model/academic_bells_response.dart';
 import 'package:eschool_api/src/model/academic_bells_write.dart';
 import 'package:eschool_api/src/model/academic_capture_response.dart';
@@ -20,6 +21,14 @@ import 'package:eschool_api/src/model/academic_matrix_response.dart';
 import 'package:eschool_api/src/model/academic_moderation_write.dart';
 import 'package:eschool_api/src/model/academic_preview_response.dart';
 import 'package:eschool_api/src/model/academic_reference_response.dart';
+import 'package:eschool_api/src/model/academic_register_choices_response.dart';
+import 'package:eschool_api/src/model/academic_register_matrix_response.dart';
+import 'package:eschool_api/src/model/academic_register_qr_response.dart';
+import 'package:eschool_api/src/model/academic_register_settings_data.dart';
+import 'package:eschool_api/src/model/academic_register_settings_response.dart';
+import 'package:eschool_api/src/model/academic_register_sync_response.dart';
+import 'package:eschool_api/src/model/academic_register_sync_write.dart';
+import 'package:eschool_api/src/model/academic_register_target_write.dart';
 import 'package:eschool_api/src/model/academic_release_commit_write.dart';
 import 'package:eschool_api/src/model/academic_release_periods_response.dart';
 import 'package:eschool_api/src/model/academic_release_preview_response.dart';
@@ -1611,6 +1620,98 @@ class AcademicsApi {
     );
   }
 
+  /// Read only the authorized learner attendance today
+  /// Fresh school, role and allocation/guardian rights are checked on every call. Teachers amend the school-local current day; current grade heads correct earlier days with a reason. Sync operation IDs are durable: exact retries replay after fresh authorization; changed reuse, stale rows, roster changes and out-of-order operations return409 without partial writes. QR identifiers contain no names or birth dates and never authorize attendance. Family reads contain no peer rosters. No fee condition applies.
+  ///
+  /// Parameters:
+  /// * [learner] - Current-school learner identifier.
+  /// * [xSchoolId] - The school to work in, one of the signed-in user's schools (`schools` in `/me/context`). Without it the request works in the user's first school. A school the user is not an active member of is refused with 403. Apps send it on every call once a school is chosen.
+  /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
+  /// * [headers] - Can be used to add additional headers to the request
+  /// * [extras] - Can be used to add flags to the request
+  /// * [validateStatus] - A [ValidateStatus] callback that can be used to determine request success based on the HTTP status of the response
+  /// * [onSendProgress] - A [ProgressCallback] that can be used to get the send progress
+  /// * [onReceiveProgress] - A [ProgressCallback] that can be used to get the receive progress
+  ///
+  /// Returns a [Future] containing a [Response] with a [AcademicAttendanceTodayResponse] as data
+  /// Throws [DioException] if API call or serialization fails
+  Future<Response<AcademicAttendanceTodayResponse>> getAcademicAttendanceToday({
+    required int learner,
+    int? xSchoolId,
+    CancelToken? cancelToken,
+    Map<String, dynamic>? headers,
+    Map<String, dynamic>? extra,
+    ValidateStatus? validateStatus,
+    ProgressCallback? onSendProgress,
+    ProgressCallback? onReceiveProgress,
+  }) async {
+    final _path = r'/academics/registers/learners/{learner}/today'.replaceAll(
+      '{'
+      r'learner'
+      '}',
+      learner.toString(),
+    );
+    final _options = Options(
+      method: r'GET',
+      headers: <String, dynamic>{
+        if (xSchoolId != null) r'X-School-Id': xSchoolId,
+        ...?headers,
+      },
+      extra: <String, dynamic>{
+        'secure': <Map<String, String>>[
+          {
+            'type': 'apiKey',
+            'name': 'cookieAuth',
+            'keyName': 'e_school_session',
+            'where': '',
+          },
+          {'type': 'http', 'scheme': 'bearer', 'name': 'bearerAuth'},
+        ],
+        ...?extra,
+      },
+      validateStatus: validateStatus,
+    );
+
+    final _response = await _dio.request<Object>(
+      _path,
+      options: _options,
+      cancelToken: cancelToken,
+      onSendProgress: onSendProgress,
+      onReceiveProgress: onReceiveProgress,
+    );
+
+    AcademicAttendanceTodayResponse? _responseData;
+
+    try {
+      final rawData = _response.data;
+      _responseData = rawData == null
+          ? null
+          : deserialize<
+              AcademicAttendanceTodayResponse,
+              AcademicAttendanceTodayResponse
+            >(rawData, 'AcademicAttendanceTodayResponse', growable: true);
+    } catch (error, stackTrace) {
+      throw DioException(
+        requestOptions: _response.requestOptions,
+        response: _response,
+        type: DioExceptionType.unknown,
+        error: error,
+        stackTrace: stackTrace,
+      );
+    }
+
+    return Response<AcademicAttendanceTodayResponse>(
+      data: _responseData,
+      headers: _response.headers,
+      isRedirect: _response.isRedirect,
+      requestOptions: _response.requestOptions,
+      redirects: _response.redirects,
+      statusCode: _response.statusCode,
+      statusMessage: _response.statusMessage,
+      extra: _response.extra,
+    );
+  }
+
   /// Shared grades, school phases and seven-point rating thresholds
   /// Read-only reference for active school members. Thresholds are integer basis points, not new calculations of existing learner marks.
   ///
@@ -1686,6 +1787,372 @@ class AcademicsApi {
     }
 
     return Response<AcademicReferenceResponse>(
+      data: _responseData,
+      headers: _response.headers,
+      isRedirect: _response.isRedirect,
+      requestOptions: _response.requestOptions,
+      redirects: _response.redirects,
+      statusCode: _response.statusCode,
+      statusMessage: _response.statusMessage,
+      extra: _response.extra,
+    );
+  }
+
+  /// Read the current authorized roster and entry revisions
+  /// Fresh school, role and allocation/guardian rights are checked on every call. Teachers amend the school-local current day; current grade heads correct earlier days with a reason. Sync operation IDs are durable: exact retries replay after fresh authorization; changed reuse, stale rows, roster changes and out-of-order operations return409 without partial writes. QR identifiers contain no names or birth dates and never authorize attendance. Family reads contain no peer rosters. No fee condition applies.
+  ///
+  /// Parameters:
+  /// * [register] - Current-school register identifier.
+  /// * [xSchoolId] - The school to work in, one of the signed-in user's schools (`schools` in `/me/context`). Without it the request works in the user's first school. A school the user is not an active member of is refused with 403. Apps send it on every call once a school is chosen.
+  /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
+  /// * [headers] - Can be used to add additional headers to the request
+  /// * [extras] - Can be used to add flags to the request
+  /// * [validateStatus] - A [ValidateStatus] callback that can be used to determine request success based on the HTTP status of the response
+  /// * [onSendProgress] - A [ProgressCallback] that can be used to get the send progress
+  /// * [onReceiveProgress] - A [ProgressCallback] that can be used to get the receive progress
+  ///
+  /// Returns a [Future] containing a [Response] with a [AcademicRegisterMatrixResponse] as data
+  /// Throws [DioException] if API call or serialization fails
+  Future<Response<AcademicRegisterMatrixResponse>> getAcademicRegister({
+    required int register,
+    int? xSchoolId,
+    CancelToken? cancelToken,
+    Map<String, dynamic>? headers,
+    Map<String, dynamic>? extra,
+    ValidateStatus? validateStatus,
+    ProgressCallback? onSendProgress,
+    ProgressCallback? onReceiveProgress,
+  }) async {
+    final _path = r'/academics/registers/{register}'.replaceAll(
+      '{'
+      r'register'
+      '}',
+      register.toString(),
+    );
+    final _options = Options(
+      method: r'GET',
+      headers: <String, dynamic>{
+        if (xSchoolId != null) r'X-School-Id': xSchoolId,
+        ...?headers,
+      },
+      extra: <String, dynamic>{
+        'secure': <Map<String, String>>[
+          {
+            'type': 'apiKey',
+            'name': 'cookieAuth',
+            'keyName': 'e_school_session',
+            'where': '',
+          },
+          {'type': 'http', 'scheme': 'bearer', 'name': 'bearerAuth'},
+        ],
+        ...?extra,
+      },
+      validateStatus: validateStatus,
+    );
+
+    final _response = await _dio.request<Object>(
+      _path,
+      options: _options,
+      cancelToken: cancelToken,
+      onSendProgress: onSendProgress,
+      onReceiveProgress: onReceiveProgress,
+    );
+
+    AcademicRegisterMatrixResponse? _responseData;
+
+    try {
+      final rawData = _response.data;
+      _responseData = rawData == null
+          ? null
+          : deserialize<
+              AcademicRegisterMatrixResponse,
+              AcademicRegisterMatrixResponse
+            >(rawData, 'AcademicRegisterMatrixResponse', growable: true);
+    } catch (error, stackTrace) {
+      throw DioException(
+        requestOptions: _response.requestOptions,
+        response: _response,
+        type: DioExceptionType.unknown,
+        error: error,
+        stackTrace: stackTrace,
+      );
+    }
+
+    return Response<AcademicRegisterMatrixResponse>(
+      data: _responseData,
+      headers: _response.headers,
+      isRedirect: _response.isRedirect,
+      requestOptions: _response.requestOptions,
+      redirects: _response.redirects,
+      statusCode: _response.statusCode,
+      statusMessage: _response.statusMessage,
+      extra: _response.extra,
+    );
+  }
+
+  /// Choose an authorized homeroom or period register
+  /// Fresh school, role and allocation/guardian rights are checked on every call. Teachers amend the school-local current day; current grade heads correct earlier days with a reason. Sync operation IDs are durable: exact retries replay after fresh authorization; changed reuse, stale rows, roster changes and out-of-order operations return409 without partial writes. QR identifiers contain no names or birth dates and never authorize attendance. Family reads contain no peer rosters. No fee condition applies.
+  ///
+  /// Parameters:
+  /// * [xSchoolId] - The school to work in, one of the signed-in user's schools (`schools` in `/me/context`). Without it the request works in the user's first school. A school the user is not an active member of is refused with 403. Apps send it on every call once a school is chosen.
+  /// * [onDate] - Defaults to school-local today.
+  /// * [sessionYearId] - An applicable school calendar.
+  /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
+  /// * [headers] - Can be used to add additional headers to the request
+  /// * [extras] - Can be used to add flags to the request
+  /// * [validateStatus] - A [ValidateStatus] callback that can be used to determine request success based on the HTTP status of the response
+  /// * [onSendProgress] - A [ProgressCallback] that can be used to get the send progress
+  /// * [onReceiveProgress] - A [ProgressCallback] that can be used to get the receive progress
+  ///
+  /// Returns a [Future] containing a [Response] with a [AcademicRegisterChoicesResponse] as data
+  /// Throws [DioException] if API call or serialization fails
+  Future<Response<AcademicRegisterChoicesResponse>> getAcademicRegisterChoices({
+    int? xSchoolId,
+    String? onDate,
+    int? sessionYearId,
+    CancelToken? cancelToken,
+    Map<String, dynamic>? headers,
+    Map<String, dynamic>? extra,
+    ValidateStatus? validateStatus,
+    ProgressCallback? onSendProgress,
+    ProgressCallback? onReceiveProgress,
+  }) async {
+    final _path = r'/academics/registers/choices';
+    final _options = Options(
+      method: r'GET',
+      headers: <String, dynamic>{
+        if (xSchoolId != null) r'X-School-Id': xSchoolId,
+        ...?headers,
+      },
+      extra: <String, dynamic>{
+        'secure': <Map<String, String>>[
+          {
+            'type': 'apiKey',
+            'name': 'cookieAuth',
+            'keyName': 'e_school_session',
+            'where': '',
+          },
+          {'type': 'http', 'scheme': 'bearer', 'name': 'bearerAuth'},
+        ],
+        ...?extra,
+      },
+      validateStatus: validateStatus,
+    );
+
+    final _queryParameters = <String, dynamic>{
+      if (onDate != null) r'on_date': onDate,
+      if (sessionYearId != null) r'session_year_id': sessionYearId,
+    };
+
+    final _response = await _dio.request<Object>(
+      _path,
+      options: _options,
+      queryParameters: _queryParameters,
+      cancelToken: cancelToken,
+      onSendProgress: onSendProgress,
+      onReceiveProgress: onReceiveProgress,
+    );
+
+    AcademicRegisterChoicesResponse? _responseData;
+
+    try {
+      final rawData = _response.data;
+      _responseData = rawData == null
+          ? null
+          : deserialize<
+              AcademicRegisterChoicesResponse,
+              AcademicRegisterChoicesResponse
+            >(rawData, 'AcademicRegisterChoicesResponse', growable: true);
+    } catch (error, stackTrace) {
+      throw DioException(
+        requestOptions: _response.requestOptions,
+        response: _response,
+        type: DioExceptionType.unknown,
+        error: error,
+        stackTrace: stackTrace,
+      );
+    }
+
+    return Response<AcademicRegisterChoicesResponse>(
+      data: _responseData,
+      headers: _response.headers,
+      isRedirect: _response.isRedirect,
+      requestOptions: _response.requestOptions,
+      redirects: _response.redirects,
+      statusCode: _response.statusCode,
+      statusMessage: _response.statusMessage,
+      extra: _response.extra,
+    );
+  }
+
+  /// Read a signed learner QR identifier
+  /// Fresh school, role and allocation/guardian rights are checked on every call. Teachers amend the school-local current day; current grade heads correct earlier days with a reason. Sync operation IDs are durable: exact retries replay after fresh authorization; changed reuse, stale rows, roster changes and out-of-order operations return409 without partial writes. QR identifiers contain no names or birth dates and never authorize attendance. Family reads contain no peer rosters. No fee condition applies.
+  ///
+  /// Parameters:
+  /// * [learner] - Current-school learner identifier.
+  /// * [xSchoolId] - The school to work in, one of the signed-in user's schools (`schools` in `/me/context`). Without it the request works in the user's first school. A school the user is not an active member of is refused with 403. Apps send it on every call once a school is chosen.
+  /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
+  /// * [headers] - Can be used to add additional headers to the request
+  /// * [extras] - Can be used to add flags to the request
+  /// * [validateStatus] - A [ValidateStatus] callback that can be used to determine request success based on the HTTP status of the response
+  /// * [onSendProgress] - A [ProgressCallback] that can be used to get the send progress
+  /// * [onReceiveProgress] - A [ProgressCallback] that can be used to get the receive progress
+  ///
+  /// Returns a [Future] containing a [Response] with a [AcademicRegisterQrResponse] as data
+  /// Throws [DioException] if API call or serialization fails
+  Future<Response<AcademicRegisterQrResponse>> getAcademicRegisterQr({
+    required int learner,
+    int? xSchoolId,
+    CancelToken? cancelToken,
+    Map<String, dynamic>? headers,
+    Map<String, dynamic>? extra,
+    ValidateStatus? validateStatus,
+    ProgressCallback? onSendProgress,
+    ProgressCallback? onReceiveProgress,
+  }) async {
+    final _path = r'/academics/registers/learners/{learner}/qr'.replaceAll(
+      '{'
+      r'learner'
+      '}',
+      learner.toString(),
+    );
+    final _options = Options(
+      method: r'GET',
+      headers: <String, dynamic>{
+        if (xSchoolId != null) r'X-School-Id': xSchoolId,
+        ...?headers,
+      },
+      extra: <String, dynamic>{
+        'secure': <Map<String, String>>[
+          {
+            'type': 'apiKey',
+            'name': 'cookieAuth',
+            'keyName': 'e_school_session',
+            'where': '',
+          },
+          {'type': 'http', 'scheme': 'bearer', 'name': 'bearerAuth'},
+        ],
+        ...?extra,
+      },
+      validateStatus: validateStatus,
+    );
+
+    final _response = await _dio.request<Object>(
+      _path,
+      options: _options,
+      cancelToken: cancelToken,
+      onSendProgress: onSendProgress,
+      onReceiveProgress: onReceiveProgress,
+    );
+
+    AcademicRegisterQrResponse? _responseData;
+
+    try {
+      final rawData = _response.data;
+      _responseData = rawData == null
+          ? null
+          : deserialize<AcademicRegisterQrResponse, AcademicRegisterQrResponse>(
+              rawData,
+              'AcademicRegisterQrResponse',
+              growable: true,
+            );
+    } catch (error, stackTrace) {
+      throw DioException(
+        requestOptions: _response.requestOptions,
+        response: _response,
+        type: DioExceptionType.unknown,
+        error: error,
+        stackTrace: stackTrace,
+      );
+    }
+
+    return Response<AcademicRegisterQrResponse>(
+      data: _responseData,
+      headers: _response.headers,
+      isRedirect: _response.isRedirect,
+      requestOptions: _response.requestOptions,
+      redirects: _response.redirects,
+      statusCode: _response.statusCode,
+      statusMessage: _response.statusMessage,
+      extra: _response.extra,
+    );
+  }
+
+  /// Read school attendance cutoff and teaching days
+  /// Fresh school, role and allocation/guardian rights are checked on every call. Teachers amend the school-local current day; current grade heads correct earlier days with a reason. Sync operation IDs are durable: exact retries replay after fresh authorization; changed reuse, stale rows, roster changes and out-of-order operations return409 without partial writes. QR identifiers contain no names or birth dates and never authorize attendance. Family reads contain no peer rosters. No fee condition applies.
+  ///
+  /// Parameters:
+  /// * [xSchoolId] - The school to work in, one of the signed-in user's schools (`schools` in `/me/context`). Without it the request works in the user's first school. A school the user is not an active member of is refused with 403. Apps send it on every call once a school is chosen.
+  /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
+  /// * [headers] - Can be used to add additional headers to the request
+  /// * [extras] - Can be used to add flags to the request
+  /// * [validateStatus] - A [ValidateStatus] callback that can be used to determine request success based on the HTTP status of the response
+  /// * [onSendProgress] - A [ProgressCallback] that can be used to get the send progress
+  /// * [onReceiveProgress] - A [ProgressCallback] that can be used to get the receive progress
+  ///
+  /// Returns a [Future] containing a [Response] with a [AcademicRegisterSettingsResponse] as data
+  /// Throws [DioException] if API call or serialization fails
+  Future<Response<AcademicRegisterSettingsResponse>>
+  getAcademicRegisterSettings({
+    int? xSchoolId,
+    CancelToken? cancelToken,
+    Map<String, dynamic>? headers,
+    Map<String, dynamic>? extra,
+    ValidateStatus? validateStatus,
+    ProgressCallback? onSendProgress,
+    ProgressCallback? onReceiveProgress,
+  }) async {
+    final _path = r'/academics/registers/settings';
+    final _options = Options(
+      method: r'GET',
+      headers: <String, dynamic>{
+        if (xSchoolId != null) r'X-School-Id': xSchoolId,
+        ...?headers,
+      },
+      extra: <String, dynamic>{
+        'secure': <Map<String, String>>[
+          {
+            'type': 'apiKey',
+            'name': 'cookieAuth',
+            'keyName': 'e_school_session',
+            'where': '',
+          },
+          {'type': 'http', 'scheme': 'bearer', 'name': 'bearerAuth'},
+        ],
+        ...?extra,
+      },
+      validateStatus: validateStatus,
+    );
+
+    final _response = await _dio.request<Object>(
+      _path,
+      options: _options,
+      cancelToken: cancelToken,
+      onSendProgress: onSendProgress,
+      onReceiveProgress: onReceiveProgress,
+    );
+
+    AcademicRegisterSettingsResponse? _responseData;
+
+    try {
+      final rawData = _response.data;
+      _responseData = rawData == null
+          ? null
+          : deserialize<
+              AcademicRegisterSettingsResponse,
+              AcademicRegisterSettingsResponse
+            >(rawData, 'AcademicRegisterSettingsResponse', growable: true);
+    } catch (error, stackTrace) {
+      throw DioException(
+        requestOptions: _response.requestOptions,
+        response: _response,
+        type: DioExceptionType.unknown,
+        error: error,
+        stackTrace: stackTrace,
+      );
+    }
+
+    return Response<AcademicRegisterSettingsResponse>(
       data: _responseData,
       headers: _response.headers,
       isRedirect: _response.isRedirect,
@@ -3531,6 +3998,108 @@ class AcademicsApi {
     );
   }
 
+  /// Open a dated academic register
+  /// Fresh school, role and allocation/guardian rights are checked on every call. Teachers amend the school-local current day; current grade heads correct earlier days with a reason. Sync operation IDs are durable: exact retries replay after fresh authorization; changed reuse, stale rows, roster changes and out-of-order operations return409 without partial writes. QR identifiers contain no names or birth dates and never authorize attendance. Family reads contain no peer rosters. No fee condition applies.
+  ///
+  /// Parameters:
+  /// * [academicRegisterTargetWrite]
+  /// * [xSchoolId] - The school to work in, one of the signed-in user's schools (`schools` in `/me/context`). Without it the request works in the user's first school. A school the user is not an active member of is refused with 403. Apps send it on every call once a school is chosen.
+  /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
+  /// * [headers] - Can be used to add additional headers to the request
+  /// * [extras] - Can be used to add flags to the request
+  /// * [validateStatus] - A [ValidateStatus] callback that can be used to determine request success based on the HTTP status of the response
+  /// * [onSendProgress] - A [ProgressCallback] that can be used to get the send progress
+  /// * [onReceiveProgress] - A [ProgressCallback] that can be used to get the receive progress
+  ///
+  /// Returns a [Future] containing a [Response] with a [AcademicRegisterMatrixResponse] as data
+  /// Throws [DioException] if API call or serialization fails
+  Future<Response<AcademicRegisterMatrixResponse>> openAcademicRegister({
+    required AcademicRegisterTargetWrite academicRegisterTargetWrite,
+    int? xSchoolId,
+    CancelToken? cancelToken,
+    Map<String, dynamic>? headers,
+    Map<String, dynamic>? extra,
+    ValidateStatus? validateStatus,
+    ProgressCallback? onSendProgress,
+    ProgressCallback? onReceiveProgress,
+  }) async {
+    final _path = r'/academics/registers/open';
+    final _options = Options(
+      method: r'POST',
+      headers: <String, dynamic>{
+        if (xSchoolId != null) r'X-School-Id': xSchoolId,
+        ...?headers,
+      },
+      extra: <String, dynamic>{
+        'secure': <Map<String, String>>[
+          {
+            'type': 'apiKey',
+            'name': 'cookieAuth',
+            'keyName': 'e_school_session',
+            'where': '',
+          },
+          {'type': 'http', 'scheme': 'bearer', 'name': 'bearerAuth'},
+        ],
+        ...?extra,
+      },
+      contentType: 'application/json',
+      validateStatus: validateStatus,
+    );
+
+    dynamic _bodyData;
+
+    try {
+      _bodyData = jsonEncode(academicRegisterTargetWrite);
+    } catch (error, stackTrace) {
+      throw DioException(
+        requestOptions: _options.compose(_dio.options, _path),
+        type: DioExceptionType.unknown,
+        error: error,
+        stackTrace: stackTrace,
+      );
+    }
+
+    final _response = await _dio.request<Object>(
+      _path,
+      data: _bodyData,
+      options: _options,
+      cancelToken: cancelToken,
+      onSendProgress: onSendProgress,
+      onReceiveProgress: onReceiveProgress,
+    );
+
+    AcademicRegisterMatrixResponse? _responseData;
+
+    try {
+      final rawData = _response.data;
+      _responseData = rawData == null
+          ? null
+          : deserialize<
+              AcademicRegisterMatrixResponse,
+              AcademicRegisterMatrixResponse
+            >(rawData, 'AcademicRegisterMatrixResponse', growable: true);
+    } catch (error, stackTrace) {
+      throw DioException(
+        requestOptions: _response.requestOptions,
+        response: _response,
+        type: DioExceptionType.unknown,
+        error: error,
+        stackTrace: stackTrace,
+      );
+    }
+
+    return Response<AcademicRegisterMatrixResponse>(
+      data: _responseData,
+      headers: _response.headers,
+      isRedirect: _response.isRedirect,
+      requestOptions: _response.requestOptions,
+      redirects: _response.redirects,
+      statusCode: _response.statusCode,
+      statusMessage: _response.statusMessage,
+      extra: _response.extra,
+    );
+  }
+
   /// previewAcademicMarks
   /// Fresh current school authority is checked before idempotent replay. Scores are exact decimal strings with up to two decimal places. Percentages are integer basis points; incomplete results remain provisional. Corrections require expected_revision; locked terms return 409. Active task IDs map to a year-specific canonical task; copied definitions never duplicate marks. No fee condition gates academic results. Capture needs a current subject allocation. Only the grade head corrects moderated marks, with a reason, and moderates. Preview never saves marks.
   ///
@@ -3878,6 +4447,112 @@ class AcademicsApi {
     );
   }
 
+  /// Configure the school attendance cutoff and teaching days
+  /// Fresh school, role and allocation/guardian rights are checked on every call. Teachers amend the school-local current day; current grade heads correct earlier days with a reason. Sync operation IDs are durable: exact retries replay after fresh authorization; changed reuse, stale rows, roster changes and out-of-order operations return409 without partial writes. QR identifiers contain no names or birth dates and never authorize attendance. Family reads contain no peer rosters. No fee condition applies.
+  ///
+  /// Parameters:
+  /// * [academicRegisterSettingsData]
+  /// * [xSchoolId] - The school to work in, one of the signed-in user's schools (`schools` in `/me/context`). Without it the request works in the user's first school. A school the user is not an active member of is refused with 403. Apps send it on every call once a school is chosen.
+  /// * [idempotencyKey] - Makes a write safe to retry. Any unique string of 1 to 255 visible ASCII characters (a UUID is best), kept 24 hours per user. Required on money writes.
+  /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
+  /// * [headers] - Can be used to add additional headers to the request
+  /// * [extras] - Can be used to add flags to the request
+  /// * [validateStatus] - A [ValidateStatus] callback that can be used to determine request success based on the HTTP status of the response
+  /// * [onSendProgress] - A [ProgressCallback] that can be used to get the send progress
+  /// * [onReceiveProgress] - A [ProgressCallback] that can be used to get the receive progress
+  ///
+  /// Returns a [Future] containing a [Response] with a [AcademicRegisterSettingsResponse] as data
+  /// Throws [DioException] if API call or serialization fails
+  Future<Response<AcademicRegisterSettingsResponse>>
+  putAcademicRegisterSettings({
+    required AcademicRegisterSettingsData academicRegisterSettingsData,
+    int? xSchoolId,
+    String? idempotencyKey,
+    CancelToken? cancelToken,
+    Map<String, dynamic>? headers,
+    Map<String, dynamic>? extra,
+    ValidateStatus? validateStatus,
+    ProgressCallback? onSendProgress,
+    ProgressCallback? onReceiveProgress,
+  }) async {
+    final _path = r'/academics/registers/settings';
+    final _options = Options(
+      method: r'PUT',
+      headers: <String, dynamic>{
+        if (xSchoolId != null) r'X-School-Id': xSchoolId,
+        if (idempotencyKey != null) r'Idempotency-Key': idempotencyKey,
+        ...?headers,
+      },
+      extra: <String, dynamic>{
+        'secure': <Map<String, String>>[
+          {
+            'type': 'apiKey',
+            'name': 'cookieAuth',
+            'keyName': 'e_school_session',
+            'where': '',
+          },
+          {'type': 'http', 'scheme': 'bearer', 'name': 'bearerAuth'},
+        ],
+        ...?extra,
+      },
+      contentType: 'application/json',
+      validateStatus: validateStatus,
+    );
+
+    dynamic _bodyData;
+
+    try {
+      _bodyData = jsonEncode(academicRegisterSettingsData);
+    } catch (error, stackTrace) {
+      throw DioException(
+        requestOptions: _options.compose(_dio.options, _path),
+        type: DioExceptionType.unknown,
+        error: error,
+        stackTrace: stackTrace,
+      );
+    }
+
+    final _response = await _dio.request<Object>(
+      _path,
+      data: _bodyData,
+      options: _options,
+      cancelToken: cancelToken,
+      onSendProgress: onSendProgress,
+      onReceiveProgress: onReceiveProgress,
+    );
+
+    AcademicRegisterSettingsResponse? _responseData;
+
+    try {
+      final rawData = _response.data;
+      _responseData = rawData == null
+          ? null
+          : deserialize<
+              AcademicRegisterSettingsResponse,
+              AcademicRegisterSettingsResponse
+            >(rawData, 'AcademicRegisterSettingsResponse', growable: true);
+    } catch (error, stackTrace) {
+      throw DioException(
+        requestOptions: _response.requestOptions,
+        response: _response,
+        type: DioExceptionType.unknown,
+        error: error,
+        stackTrace: stackTrace,
+      );
+    }
+
+    return Response<AcademicRegisterSettingsResponse>(
+      data: _responseData,
+      headers: _response.headers,
+      isRedirect: _response.isRedirect,
+      requestOptions: _response.requestOptions,
+      redirects: _response.redirects,
+      statusCode: _response.statusCode,
+      statusMessage: _response.statusMessage,
+      extra: _response.extra,
+    );
+  }
+
   /// ReleaseAcademicMarks
   /// Fresh current school authority is checked before idempotent replay. Scores are exact decimal strings with up to two decimal places. Percentages are integer basis points; incomplete results remain provisional. Corrections require expected_revision; locked terms return 409. Active task IDs map to a year-specific canonical task; copied definitions never duplicate marks. No fee condition gates academic results. Release needs a grade head, principal or explicit marks-release permission. Release requires the fingerprint returned by release-preview and pins immutable snapshots. Official mode requires complete selected learners; running mode is explicitly provisional. Other learners may continue independently.
   ///
@@ -4199,6 +4874,103 @@ class AcademicsApi {
     );
   }
 
+  /// Replace a learner QR identifier and revoke the previous code
+  /// Fresh school, role and allocation/guardian rights are checked on every call. Teachers amend the school-local current day; current grade heads correct earlier days with a reason. Sync operation IDs are durable: exact retries replay after fresh authorization; changed reuse, stale rows, roster changes and out-of-order operations return409 without partial writes. QR identifiers contain no names or birth dates and never authorize attendance. Family reads contain no peer rosters. No fee condition applies.
+  ///
+  /// Parameters:
+  /// * [learner] - Current-school learner identifier.
+  /// * [xSchoolId] - The school to work in, one of the signed-in user's schools (`schools` in `/me/context`). Without it the request works in the user's first school. A school the user is not an active member of is refused with 403. Apps send it on every call once a school is chosen.
+  /// * [idempotencyKey] - Makes a write safe to retry. Any unique string of 1 to 255 visible ASCII characters (a UUID is best), kept 24 hours per user. Required on money writes.
+  /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
+  /// * [headers] - Can be used to add additional headers to the request
+  /// * [extras] - Can be used to add flags to the request
+  /// * [validateStatus] - A [ValidateStatus] callback that can be used to determine request success based on the HTTP status of the response
+  /// * [onSendProgress] - A [ProgressCallback] that can be used to get the send progress
+  /// * [onReceiveProgress] - A [ProgressCallback] that can be used to get the receive progress
+  ///
+  /// Returns a [Future] containing a [Response] with a [AcademicRegisterQrResponse] as data
+  /// Throws [DioException] if API call or serialization fails
+  Future<Response<AcademicRegisterQrResponse>> rotateAcademicRegisterQr({
+    required int learner,
+    int? xSchoolId,
+    String? idempotencyKey,
+    CancelToken? cancelToken,
+    Map<String, dynamic>? headers,
+    Map<String, dynamic>? extra,
+    ValidateStatus? validateStatus,
+    ProgressCallback? onSendProgress,
+    ProgressCallback? onReceiveProgress,
+  }) async {
+    final _path = r'/academics/registers/learners/{learner}/qr/rotate'
+        .replaceAll(
+          '{'
+          r'learner'
+          '}',
+          learner.toString(),
+        );
+    final _options = Options(
+      method: r'POST',
+      headers: <String, dynamic>{
+        if (xSchoolId != null) r'X-School-Id': xSchoolId,
+        if (idempotencyKey != null) r'Idempotency-Key': idempotencyKey,
+        ...?headers,
+      },
+      extra: <String, dynamic>{
+        'secure': <Map<String, String>>[
+          {
+            'type': 'apiKey',
+            'name': 'cookieAuth',
+            'keyName': 'e_school_session',
+            'where': '',
+          },
+          {'type': 'http', 'scheme': 'bearer', 'name': 'bearerAuth'},
+        ],
+        ...?extra,
+      },
+      validateStatus: validateStatus,
+    );
+
+    final _response = await _dio.request<Object>(
+      _path,
+      options: _options,
+      cancelToken: cancelToken,
+      onSendProgress: onSendProgress,
+      onReceiveProgress: onReceiveProgress,
+    );
+
+    AcademicRegisterQrResponse? _responseData;
+
+    try {
+      final rawData = _response.data;
+      _responseData = rawData == null
+          ? null
+          : deserialize<AcademicRegisterQrResponse, AcademicRegisterQrResponse>(
+              rawData,
+              'AcademicRegisterQrResponse',
+              growable: true,
+            );
+    } catch (error, stackTrace) {
+      throw DioException(
+        requestOptions: _response.requestOptions,
+        response: _response,
+        type: DioExceptionType.unknown,
+        error: error,
+        stackTrace: stackTrace,
+      );
+    }
+
+    return Response<AcademicRegisterQrResponse>(
+      data: _responseData,
+      headers: _response.headers,
+      isRedirect: _response.isRedirect,
+      requestOptions: _response.requestOptions,
+      redirects: _response.redirects,
+      statusCode: _response.statusCode,
+      statusMessage: _response.statusMessage,
+      extra: _response.extra,
+    );
+  }
+
   /// Save a school-year calendar as a template
   /// Requires term-create. Snapshots validated dates and grade bands from a year in the current school.
   ///
@@ -4406,6 +5178,115 @@ class AcademicsApi {
     }
 
     return Response<SchoolSubjectStandardResponse>(
+      data: _responseData,
+      headers: _response.headers,
+      isRedirect: _response.isRedirect,
+      requestOptions: _response.requestOptions,
+      redirects: _response.redirects,
+      statusCode: _response.statusCode,
+      statusMessage: _response.statusMessage,
+      extra: _response.extra,
+    );
+  }
+
+  /// Atomically sync a revision-checked attendance operation
+  /// Fresh school, role and allocation/guardian rights are checked on every call. Teachers amend the school-local current day; current grade heads correct earlier days with a reason. Sync operation IDs are durable: exact retries replay after fresh authorization; changed reuse, stale rows, roster changes and out-of-order operations return409 without partial writes. QR identifiers contain no names or birth dates and never authorize attendance. Family reads contain no peer rosters. No fee condition applies.
+  ///
+  /// Parameters:
+  /// * [register] - Current-school register identifier.
+  /// * [academicRegisterSyncWrite]
+  /// * [xSchoolId] - The school to work in, one of the signed-in user's schools (`schools` in `/me/context`). Without it the request works in the user's first school. A school the user is not an active member of is refused with 403. Apps send it on every call once a school is chosen.
+  /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
+  /// * [headers] - Can be used to add additional headers to the request
+  /// * [extras] - Can be used to add flags to the request
+  /// * [validateStatus] - A [ValidateStatus] callback that can be used to determine request success based on the HTTP status of the response
+  /// * [onSendProgress] - A [ProgressCallback] that can be used to get the send progress
+  /// * [onReceiveProgress] - A [ProgressCallback] that can be used to get the receive progress
+  ///
+  /// Returns a [Future] containing a [Response] with a [AcademicRegisterSyncResponse] as data
+  /// Throws [DioException] if API call or serialization fails
+  Future<Response<AcademicRegisterSyncResponse>> syncAcademicRegister({
+    required int register,
+    required AcademicRegisterSyncWrite academicRegisterSyncWrite,
+    int? xSchoolId,
+    CancelToken? cancelToken,
+    Map<String, dynamic>? headers,
+    Map<String, dynamic>? extra,
+    ValidateStatus? validateStatus,
+    ProgressCallback? onSendProgress,
+    ProgressCallback? onReceiveProgress,
+  }) async {
+    final _path = r'/academics/registers/{register}/sync'.replaceAll(
+      '{'
+      r'register'
+      '}',
+      register.toString(),
+    );
+    final _options = Options(
+      method: r'POST',
+      headers: <String, dynamic>{
+        if (xSchoolId != null) r'X-School-Id': xSchoolId,
+        ...?headers,
+      },
+      extra: <String, dynamic>{
+        'secure': <Map<String, String>>[
+          {
+            'type': 'apiKey',
+            'name': 'cookieAuth',
+            'keyName': 'e_school_session',
+            'where': '',
+          },
+          {'type': 'http', 'scheme': 'bearer', 'name': 'bearerAuth'},
+        ],
+        ...?extra,
+      },
+      contentType: 'application/json',
+      validateStatus: validateStatus,
+    );
+
+    dynamic _bodyData;
+
+    try {
+      _bodyData = jsonEncode(academicRegisterSyncWrite);
+    } catch (error, stackTrace) {
+      throw DioException(
+        requestOptions: _options.compose(_dio.options, _path),
+        type: DioExceptionType.unknown,
+        error: error,
+        stackTrace: stackTrace,
+      );
+    }
+
+    final _response = await _dio.request<Object>(
+      _path,
+      data: _bodyData,
+      options: _options,
+      cancelToken: cancelToken,
+      onSendProgress: onSendProgress,
+      onReceiveProgress: onReceiveProgress,
+    );
+
+    AcademicRegisterSyncResponse? _responseData;
+
+    try {
+      final rawData = _response.data;
+      _responseData = rawData == null
+          ? null
+          : deserialize<
+              AcademicRegisterSyncResponse,
+              AcademicRegisterSyncResponse
+            >(rawData, 'AcademicRegisterSyncResponse', growable: true);
+    } catch (error, stackTrace) {
+      throw DioException(
+        requestOptions: _response.requestOptions,
+        response: _response,
+        type: DioExceptionType.unknown,
+        error: error,
+        stackTrace: stackTrace,
+      );
+    }
+
+    return Response<AcademicRegisterSyncResponse>(
       data: _responseData,
       headers: _response.headers,
       isRedirect: _response.isRedirect,

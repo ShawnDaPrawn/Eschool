@@ -14,7 +14,16 @@ class Attendance extends Model
     use BelongsToSchool, HasFactory;
     use SoftDeletes;
 
-    protected $hidden = ['remark', 'deleted_at', 'created_at', 'updated_at'];
+    protected $hidden = ['attendance_entry_id', 'amended_by', 'amended_at', 'source', 'remark', 'deleted_at', 'created_at', 'updated_at'];
+
+    protected static function booted(): void
+    {
+        $guard = function (Attendance $row) {
+            abort_if($row->attendance_entry_id !== null || $row->getRawOriginal('attendance_entry_id') !== null, 409, __('Use the academic register to amend this attendance.'));
+        };
+        static::saving($guard);
+        static::deleting($guard);
+    }
 
     // Attendance type values (kept in sync with the `type` column comment).
     public const TYPE_ABSENT = 0;

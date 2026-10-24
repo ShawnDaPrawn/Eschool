@@ -68,3 +68,9 @@ notification event payloads. The family API resolves current own-child rights.
 when a placement batch commits. It contains no learner list. The normal scheduler
 refreshes compatible v1 current-week projections; the canonical timetable remains
 authoritative while a projection refresh is delayed.
+
+
+Academic register amendment: academics.register_amended (academics module),
+current guardians, standard channel preferences; attendance.absence retains its
+mandatory-parent rule. academics.register_changed carries register/entry IDs and
+revisions through the outbox; no personal body is stored in that domain event.

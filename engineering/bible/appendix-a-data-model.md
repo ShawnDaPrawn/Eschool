@@ -140,3 +140,12 @@ specific-date placements. The existing lessons table remains learning content.
 Timetable lessons retain revisions and cancellation history; compatible v1
 timetables receive protected source links and additive room labels. Foreign
 keys retain schedule/room/group/teacher provenance.
+
+
+Academic registers: attendance_registers bind school/year/date to a homeroom or
+lesson; attendance_entries preserve learner state/source/revision and amendment
+actor/date/reason. attendance_operations record durable actor-scoped UUID/hash
+and replay metadata; attendance_notices record per-recipient revision claims.
+attendances gains a private canonical-entry reference, amended_by/amended_at and
+source while retaining existing response types. QR versions are private learner
+metadata. All new tables have required indexed school ownership.

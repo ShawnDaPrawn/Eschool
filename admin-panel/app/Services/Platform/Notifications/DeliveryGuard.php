@@ -8,7 +8,9 @@ use App\Models\Platform\GuardianLink;
 use App\Models\Platform\HandleProposal;
 use App\Models\Platform\NotificationDelivery;
 use App\Models\Platform\SchoolMembership;
+use App\Models\Students;
 use App\Models\User;
+use App\Services\Platform\Identity\GuardianService;
 use App\Services\Platform\Tenancy\CurrentSchool;
 
 /** Recheck mutable access and the destination immediately before transport. */
@@ -31,6 +33,12 @@ class DeliveryGuard
                 $proposal = HandleProposal::query()->where('status', 'pending')->where('expires_at', '>', now())->find($context['handle_proposal_id']);
                 if (! $proposal || ! $user->email_verified_at || ! GuardianLink::query()->where('learner_id', $proposal->learner_id)
                     ->where('guardian_user_id', $user->id)->where('status', 'active')->where('can_approve', true)->exists()) {
+                    return false;
+                }
+            }
+            if (isset($context['register_learner_id'])) {
+                $learner = Students::find($context['register_learner_id']);
+                if ($learner === null || ! app(GuardianService::class)->guardianUserIds($learner)->contains((int) $user->id)) {
                     return false;
                 }
             }

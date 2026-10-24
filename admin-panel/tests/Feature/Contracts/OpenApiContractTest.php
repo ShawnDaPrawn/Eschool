@@ -50,6 +50,16 @@ class OpenApiContractTest extends TestCase
     public static function scenarios(): array
     {
         return [
+            'register choices unauthenticated' => [null, 'GET', 'api/v2/academics/registers/choices', [], 401],
+            'register choices parent denied' => ['farid', 'GET', 'api/v2/academics/registers/choices', [], 403],
+            'register open validation' => ['superadmin', 'POST', 'api/v2/academics/registers/open', [], 422],
+            'register show unknown' => ['superadmin', 'GET', 'api/v2/academics/registers/999999', [], 404],
+            'register sync unknown' => ['superadmin', 'POST', 'api/v2/academics/registers/999999/sync', [], 404],
+            'register settings read' => ['superadmin', 'GET', 'api/v2/academics/registers/settings', [], 200],
+            'register settings validation' => ['superadmin', 'PUT', 'api/v2/academics/registers/settings', [], 422],
+            'register today own learner' => ['asha', 'GET', 'api/v2/academics/registers/learners/1/today', [], 200],
+            'register qr rotate unknown learner' => ['farid', 'POST', 'api/v2/academics/registers/learners/999999/qr/rotate', [], 404],
+            'register qr unknown learner' => ['farid', 'GET', 'api/v2/academics/registers/learners/999999/qr', [], 404],
             'timetable config auth' => [null, 'GET', 'api/v2/academics/timetable/configuration', [], 401],
             'timetable config admin' => ['superadmin', 'GET', 'api/v2/academics/timetable/configuration', ['session_year_id' => 1], 200],
             'timetable week teacher' => ['tara', 'GET', 'api/v2/academics/timetable/week', ['session_year_id' => 1, 'starts_on' => '2026-02-09'], 200],
