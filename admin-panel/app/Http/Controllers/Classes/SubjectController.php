@@ -332,12 +332,6 @@ class SubjectController extends Controller
 
         $total = $sql->count();
 
-        // $currentTerm = Term::get()->first(function ($term) {
-        //     return $term->current;
-        // });
-        $currentTerm = Term::where('session_year_id', $session_year_id)
-            ->first();
-
         $sql->orderBy($sort, $order)->skip($offset)->take($limit);
         $res = $sql->get();
 
@@ -348,6 +342,7 @@ class SubjectController extends Controller
 
         foreach ($res as $row) {
             $includesTerms = $row->getIncludeTermsForSession($session_year_id);
+            $currentTerm = $includesTerms ? Term::currentForClass((int) $session_year_id, (int) $row->id) : null;
 
             if ($includesTerms !== null) {
                 // Edit the same session year the list is showing.
@@ -368,26 +363,14 @@ class SubjectController extends Controller
             $tempRow['section_names'] = $row->sections->pluck('name');
             $tempRow['include_terms'] = $includesTerms;
 
-            // if ($includesTerms && ! empty($currentTerm)) {
-            //     $tempRow['core_subjects'] = $row->coreSubject->filter(function ($data) use ($currentTerm) {
-            //         return $data->term_id == $currentTerm->id;
-            //     })->values(); // Filter subjects based on current term
-
-            //     $tempRow['elective_subject_groups'] = $row->electiveSubjectGroup->filter(function ($data) use ($currentTerm) {
-            //         return $data->term_id == $currentTerm->id;
-            //     })->values();
-            // } else {
-            //     $tempRow['core_subjects'] = $row->coreSubject;
-            //     $tempRow['elective_subject_groups'] = $row->electiveSubjectGroup;
-            // }
             if ($includesTerms) {
 
                 $tempRow['core_subjects'] = $row->coreSubject
-                    ->where('term_id', $currentTerm->id)
+                    ->where('term_id', $currentTerm?->id ?? 0)
                     ->values();
 
                 $tempRow['elective_subject_groups'] = $row->electiveSubjectGroup
-                    ->where('term_id', $currentTerm->id)
+                    ->where('term_id', $currentTerm?->id ?? 0)
                     ->values();
 
             } else {
@@ -444,9 +427,9 @@ class SubjectController extends Controller
                 },
             ])->findOrFail($class_id);
 
-            // Order chronologically (start_date) so terms read Sem 1 → Sem 2 …;
+            // Order chronologically (start_date) so terms read Term 1 → Term 2 …;
             // fall back to id for any term missing a start date.
-            $terms = Term::where('session_year_id', $session_year_id)
+            $terms = Term::where('session_year_id', $session_year_id)->forClass((int) $class->id)
                 ->orderByRaw('start_date IS NULL, start_date ASC')
                 ->orderBy('id', 'ASC')
                 ->get();
@@ -597,7 +580,7 @@ class SubjectController extends Controller
             },
         ])->findOrFail($id);
 
-        $terms = Term::where('session_year_id', $sessionYearId)->orderBy('id', 'ASC')->get();
+        $terms = Term::where('session_year_id', $sessionYearId)->forClass((int) $class->id)->orderBy('id', 'ASC')->get();
         $subjects = Subject::orderBy('id', 'ASC')->get();
         $mediums = Mediums::orderBy('id', 'ASC')->get();
         $streams = Stream::orderBy('id', 'ASC')->get();

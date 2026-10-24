@@ -239,6 +239,27 @@ class SchoolTermsTest extends TestCase
         $this->get('/term?session_year_id='.$this->schoolB->ids['session_year'])->assertNotFound();
     }
 
+    public function test_timetable_term_picker_filters_by_class_grade_without_guessing(): void
+    {
+        $this->admin();
+        $this->create(['grade_to' => 6]);
+        $upper = $this->create(['grade_from' => 7]);
+        $class = ClassSchool::query()->findOrFail($this->schoolA->ids['class_a']);
+        $class->grade_level_id = GradeLevel::query()->where('code', '7')->value('id');
+        $class->save();
+        DB::table('class_session_configs')->updateOrInsert(
+            ['class_id' => $class->id, 'session_year_id' => $this->year],
+            ['include_terms' => 1, 'school_id' => 1]
+        );
+        $this->app['auth']->forgetGuards();
+        $this->flushHeaders()->actingAs($this->superAdmin(), 'web');
+        $url = '/get-class-terms?class_id='.$class->id.'&session_year_id='.$this->year;
+        $this->getJson($url)->assertOk()->assertJsonCount(1, 'terms')->assertJsonPath('terms.0.id', $upper);
+        $class->grade_level_id = null;
+        $class->save();
+        $this->getJson($url)->assertOk()->assertJsonCount(0, 'terms');
+    }
+
     public function test_an_unmapped_term_cannot_silently_become_a_whole_year_allocation(): void
     {
         $this->assertNull(YearIdMap::term(null, []));

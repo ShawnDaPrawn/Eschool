@@ -84,10 +84,14 @@ class Term extends Model
 
     public static function currentForClass(int $yearId, ?int $classId): ?self
     {
-        $grade = $classId === null ? null : ClassSchool::query()->findOrFail($classId)->gradeLevel?->sort_order;
-
-        return self::query()->where('session_year_id', $yearId)->forGrade($grade)
+        return self::query()->where('session_year_id', $yearId)->forClass($classId)
             ->get()->first(fn ($term) => $term->current);
+    }
+
+    public function scopeForClass(Builder $query, ?int $classId): void
+    {
+        $grade = $classId === null ? null : ClassSchool::query()->findOrFail($classId)->gradeLevel?->sort_order;
+        $query->forGrade($grade);
     }
 
     public function scopeForGrade(Builder $query, ?int $grade): void

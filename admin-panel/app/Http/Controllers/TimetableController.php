@@ -171,7 +171,7 @@ class TimetableController extends Controller
         $hasTerms = $class && $class->getIncludeTermsForSession($request->session_year_id);
 
         if ($hasTerms) {
-            $terms = Term::where('session_year_id', $request->session_year_id)
+            $terms = Term::where('session_year_id', $request->session_year_id)->forClass((int) $class->id)
                 ->orderBy('id', 'ASC')
                 ->get();
         } else {
@@ -228,13 +228,13 @@ class TimetableController extends Controller
                         ->unique()
                         ->values();
 
-                    $terms = Term::where('session_year_id', $sessionYearId)
+                    $terms = Term::where('session_year_id', $sessionYearId)->forClass((int) $class->id)
                         ->whereIn('id', $termIds)
                         ->orderBy('id', 'ASC')
                         ->get();
                 } elseif ($isTeacher) {
                     // For subject-teacher scope, only show terms they are assigned to
-                    $terms = Term::where('session_year_id', $sessionYearId)
+                    $terms = Term::where('session_year_id', $sessionYearId)->forClass((int) $class->id)
                         ->whereIn('id', function ($q) use ($section, $sessionYearId, $user) {
                             $q->select('term_id')
                                 ->from('subject_teachers')
@@ -247,7 +247,7 @@ class TimetableController extends Controller
                         ->orderBy('id', 'ASC')
                         ->get();
                 } else {
-                    $terms = Term::where('session_year_id', $sessionYearId)
+                    $terms = Term::where('session_year_id', $sessionYearId)->forClass((int) $class->id)
                         ->orderBy('id', 'ASC')
                         ->get();
                 }
