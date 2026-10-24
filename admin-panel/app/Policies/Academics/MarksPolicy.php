@@ -12,6 +12,19 @@ use App\Services\Academics\AcademicAuthority;
 
 class MarksPolicy
 {
+    public function capabilities(User $actor, TeachingGroup $group): array
+    {
+        $authority = app(AcademicAuthority::class);
+        $fresh = $authority->staff($actor);
+        $head = $authority->leads($fresh, 'grade_head', (int) $group->grade_level_id, (int) $group->session_year_id);
+        $principal = $authority->leads($fresh, 'principal', (int) $group->grade_level_id, (int) $group->session_year_id);
+        $capture = $group->active && TeachingAllocation::where('teaching_group_id', $group->id)->whereIn('teacher_id', $authority->teachers($fresh))
+            ->whereDate('starts_on', '<=', $authority->today())->whereDate('ends_on', '>=', $authority->today())->exists();
+
+        return ['capture' => $capture, 'correct' => $head, 'moderate' => $head,
+            'release' => $head || $principal || app(ProfilePolicy::class)->permission($fresh, 'marks-release')];
+    }
+
     public function group(User $actor, int $groupId, string $operation): TeachingGroup
     {
         $authority = app(AcademicAuthority::class);

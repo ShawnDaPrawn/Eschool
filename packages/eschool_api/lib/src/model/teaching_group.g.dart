@@ -25,6 +25,7 @@ TeachingGroup _$TeachingGroupFromJson(Map<String, dynamic> json) =>
           ],
         );
         final val = TeachingGroup(
+          yearName: $checkedConvert('year_name', (v) => v as String?),
           id: $checkedConvert('id', (v) => (v as num).toInt()),
           name: $checkedConvert('name', (v) => v as String),
           subjectId: $checkedConvert('subject_id', (v) => (v as num).toInt()),
@@ -46,6 +47,7 @@ TeachingGroup _$TeachingGroupFromJson(Map<String, dynamic> json) =>
         return val;
       },
       fieldKeyMap: const {
+        'yearName': 'year_name',
         'subjectId': 'subject_id',
         'gradeLevelId': 'grade_level_id',
         'sessionYearId': 'session_year_id',
@@ -55,6 +57,7 @@ TeachingGroup _$TeachingGroupFromJson(Map<String, dynamic> json) =>
 
 Map<String, dynamic> _$TeachingGroupToJson(TeachingGroup instance) =>
     <String, dynamic>{
+      'year_name': ?instance.yearName,
       'id': instance.id,
       'name': instance.name,
       'subject_id': instance.subjectId,

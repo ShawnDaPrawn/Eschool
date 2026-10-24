@@ -20,6 +20,7 @@ lib/src/model/academic_component_result.dart
 lib/src/model/academic_grade_level.dart
 lib/src/model/academic_learner_preview.dart
 lib/src/model/academic_mark.dart
+lib/src/model/academic_mark_capabilities.dart
 lib/src/model/academic_mark_result.dart
 lib/src/model/academic_mark_row.dart
 lib/src/model/academic_mark_write.dart
@@ -38,6 +39,9 @@ lib/src/model/academic_reference_response.dart
 lib/src/model/academic_release_commit_write.dart
 lib/src/model/academic_release_data.dart
 lib/src/model/academic_release_learner.dart
+lib/src/model/academic_release_period.dart
+lib/src/model/academic_release_periods_data.dart
+lib/src/model/academic_release_periods_response.dart
 lib/src/model/academic_release_preview_data.dart
 lib/src/model/academic_release_preview_response.dart
 lib/src/model/academic_release_response.dart

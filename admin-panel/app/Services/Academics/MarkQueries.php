@@ -32,7 +32,7 @@ class MarkQueries
         }
         $locked = $plan->term->marks_lock_on !== null && app(AcademicAuthority::class)->today() >= $plan->term->marks_lock_on->toDateString();
 
-        return ['group_id' => $groupId, 'subject_id' => (int) $group->subject_id, 'grade_level_id' => (int) $group->grade_level_id,
+        return ['capabilities' => app(MarksPolicy::class)->capabilities($actor, $group), 'group_id' => $groupId, 'subject_id' => (int) $group->subject_id, 'grade_level_id' => (int) $group->grade_level_id,
             'session_year_id' => (int) $group->session_year_id, 'term_id' => $termId, 'assessment_plan_id' => (int) $plan->id, 'version' => (int) $plan->curriculum->version,
             'current_page' => $pagination->currentPage(), 'last_page' => $pagination->lastPage(), 'total' => $pagination->total(), 'locked' => $locked, 'marks_lock_on' => $plan->term->marks_lock_on?->toDateString(),
             'tasks' => $plan->tasks->map(function ($task) {

@@ -1,3 +1,4 @@
+import 'package:eschool_academics/eschool_academics.dart';
 import 'package:eschool/app/routes.dart';
 import 'package:eschool/cubits/authCubit.dart';
 import 'package:eschool/data/models/parent.dart';
@@ -177,6 +178,15 @@ List<Widget> sharedScreenEntries(
   String label(String key) => SharedUiUtils.getTranslatedLabel(context, key);
   void open(String route) => Navigator.of(context).pushNamed(route);
   return [
+    if (context.watch<MeContextCubit>().context?.isFeatureOn(
+          'academic_marks',
+        ) ==
+        true)
+      tile(
+        title: label('assessmentMarks'),
+        icon: Icons.grid_on_outlined,
+        onTap: () => open(Routes.academicMarks),
+      ),
     AvailableOnly(
       featureKey: profileFieldsFeature,
       probe: () => profilesDeployed(ApiProfileRepository(Api.client)),
@@ -243,3 +253,39 @@ List<Widget> sharedScreenEntries(
     ),
   ];
 }
+
+Route<dynamic> academicMarksRoute() => AdaptivePageRoute(
+  builder: (context) {
+    final me = context.read<MeContextCubit>().context;
+    final auth = context.read<AuthCubit>();
+    final child = auth.isParent()
+        ? context.read<ChildSelectionCubit>().selected
+        : null;
+    final learner = auth.isParent() ? child?.id : auth.getStudentDetails().id;
+    final school = auth.isParent() ? child?.schoolId : me?.currentSchoolId;
+    if (learner == null ||
+        learner <= 0 ||
+        school == null ||
+        school <= 0 ||
+        me?.isFeatureOn('academic_marks') != true) {
+      return ScreenScaffold(
+        title: SharedUiUtils.getTranslatedLabel(context, 'assessmentMarks'),
+        body: Center(
+          child: Text(
+            SharedUiUtils.getTranslatedLabel(context, 'notAvailableYet'),
+          ),
+        ),
+      );
+    }
+    return AcademicContextBoundary(
+      schoolId: context.read<SchoolSelectionCubit>().state.selectedId ?? school,
+      childId: auth.isParent() ? learner : null,
+      child: ReleasedMarksScreen(
+        repository: ApiMarksRepository(Api.client, schoolId: school),
+        learner: learner,
+        learnerName:
+            child?.child.name ?? auth.getStudentDetails().getFullName(),
+      ),
+    );
+  },
+);

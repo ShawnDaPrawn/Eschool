@@ -1,3 +1,4 @@
+import 'package:eschool_session/eschool_session.dart';
 import 'package:eschool_teacher/app/routes.dart';
 import 'package:eschool_teacher/cubits/dashboardCubit.dart';
 import 'package:eschool_teacher/cubits/timeTableCubit.dart';
@@ -35,7 +36,16 @@ class HomeContainer extends StatefulWidget {
 }
 
 class _HomeContainerState extends State<HomeContainer> {
-  late List<MenuContainerDetails> exploreAcademicsItems = [
+  List<MenuContainerDetails> get exploreAcademicsItems => [
+    if (context.watch<MeContextCubit>().context?.isFeatureOn(
+          'academic_marks',
+        ) ==
+        true)
+      MenuContainerDetails(
+        route: Routes.academicMarks,
+        iconPath: Assets.resultIcon,
+        titleKey: 'assessmentMarks',
+      ),
     MenuContainerDetails(
       route: Routes.assignments,
       iconPath: Assets.assignmentIcon,
@@ -235,9 +245,9 @@ class _HomeContainerState extends State<HomeContainer> {
             ),
             child: EventItemContainer(
               event: events[index],
-              backgroundColor: Theme.of(
-                context,
-              ).colorScheme.surfaceContainerLowest,
+              backgroundColor: Theme.of(context)
+                  .colorScheme
+                  .surfaceContainerLowest,
             ),
           ),
         ),
@@ -368,9 +378,8 @@ class _HomeContainerState extends State<HomeContainer> {
                               _buildTitleText(
                                 studentPendingLeaveRequestsKey,
                                 viewAllTap: () {
-                                  Navigator.of(
-                                    context,
-                                  ).pushNamed(Routes.manageStudentLeaves);
+                                  Navigator.of(context)
+                                      .pushNamed(Routes.manageStudentLeaves);
                                 },
                               ),
                               const SizedBox(height: 12),
@@ -383,9 +392,9 @@ class _HomeContainerState extends State<HomeContainer> {
                             ///[Explore Academics]
                             const SizedBox(height: 6),
                             Container(
-                              color: Theme.of(
-                                context,
-                              ).colorScheme.surfaceContainerLowest,
+                              color: Theme.of(context)
+                                  .colorScheme
+                                  .surfaceContainerLowest,
                               padding: EdgeInsets.symmetric(
                                 horizontal:
                                     MediaQuery.sizeOf(context).width * 0.075,
@@ -428,18 +437,17 @@ class _HomeContainerState extends State<HomeContainer> {
                             ///[Upcoming Exams]
                             if (state.upcomingExams.isNotEmpty) ...[
                               ColoredBox(
-                                color: Theme.of(
-                                  context,
-                                ).colorScheme.surfaceContainerLowest,
+                                color: Theme.of(context)
+                                    .colorScheme
+                                    .surfaceContainerLowest,
                                 child: Column(
                                   children: [
                                     const SizedBox(height: 16),
                                     _buildTitleText(
                                       upcomingExamsKey,
                                       viewAllTap: () {
-                                        Navigator.of(
-                                          context,
-                                        ).pushNamed(Routes.exams);
+                                        Navigator.of(context)
+                                            .pushNamed(Routes.exams);
                                       },
                                     ),
                                     const SizedBox(height: 12),
@@ -475,9 +483,8 @@ class _HomeContainerState extends State<HomeContainer> {
                               _buildTitleText(
                                 upcomingEventsKey,
                                 viewAllTap: () {
-                                  Navigator.of(
-                                    context,
-                                  ).pushNamed(Routes.academicCalendar);
+                                  Navigator.of(context)
+                                      .pushNamed(Routes.academicCalendar);
                                 },
                               ),
                               const SizedBox(height: 12),

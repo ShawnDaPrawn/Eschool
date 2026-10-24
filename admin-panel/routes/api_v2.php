@@ -52,6 +52,7 @@ Route::prefix('academics')->middleware(['auth:sanctum', 'school.context', 'role.
     Route::prefix('marks')->name('marks.')->group(function () {
         $controller = MarkController::class;
         $policy = AuthorizeMarks::class;
+        Route::get('learners/{learner}/periods', [$controller, 'periods'])->whereNumber('learner')->middleware($policy.':family')->name('periods');
         Route::get('learners/{learner}', [$controller, 'family'])->whereNumber('learner')->middleware($policy.':family')->name('family');
         Route::get('groups/{group}', [$controller, 'matrix'])->whereNumber('group')->middleware($policy.':read')->name('matrix');
         foreach (['preview', 'capture', 'correct', 'moderate'] as $action) {

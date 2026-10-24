@@ -10,6 +10,8 @@ environment:
   sdk: ">=3.13.0 <4.0.0"
 
 dependencies:
+  eschool_academics:
+    path: ../packages/eschool_features/academics
   flutter:
     sdk: flutter
   flutter_localizations:

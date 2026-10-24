@@ -58,6 +58,11 @@ class MarkController extends Controller
         return $this->response($request, app(MarkReleases::class)->release($request->user(), $group, $request->validated()));
     }
 
+    public function periods(MarkRequest $request, int $learner): JsonResponse
+    {
+        return $this->response($request, app(ReleasedMarks::class)->periods($request->user(), $learner));
+    }
+
     public function family(MarkRequest $request, int $learner): JsonResponse
     {
         $term = $request->validated('term_id');

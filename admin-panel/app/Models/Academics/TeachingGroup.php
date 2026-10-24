@@ -38,7 +38,7 @@ class TeachingGroup extends Model
 
     public function year()
     {
-        return $this->belongsTo(SessionYear::class, 'session_year_id');
+        return $this->belongsTo(SessionYear::class, 'session_year_id')->withTrashed();
     }
 
     public function homeroom()

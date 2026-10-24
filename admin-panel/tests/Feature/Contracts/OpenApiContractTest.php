@@ -50,6 +50,7 @@ class OpenApiContractTest extends TestCase
     public static function scenarios(): array
     {
         return [
+            'released mark periods unknown' => ['farid', 'GET', 'api/v2/academics/marks/learners/999999/periods', [], 404],
             'mark matrix requires auth' => [null, 'GET', 'api/v2/academics/marks/groups/999999', [], 401],
             'mark matrix unknown' => ['superadmin', 'GET', 'api/v2/academics/marks/groups/999999', [], 404],
             'mark preview unknown' => ['superadmin', 'POST', 'api/v2/academics/marks/groups/999999/tasks/999999/preview', [], 404],

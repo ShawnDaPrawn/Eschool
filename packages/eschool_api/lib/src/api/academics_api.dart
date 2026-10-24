@@ -19,6 +19,7 @@ import 'package:eschool_api/src/model/academic_moderation_write.dart';
 import 'package:eschool_api/src/model/academic_preview_response.dart';
 import 'package:eschool_api/src/model/academic_reference_response.dart';
 import 'package:eschool_api/src/model/academic_release_commit_write.dart';
+import 'package:eschool_api/src/model/academic_release_periods_response.dart';
 import 'package:eschool_api/src/model/academic_release_preview_response.dart';
 import 'package:eschool_api/src/model/academic_release_response.dart';
 import 'package:eschool_api/src/model/academic_release_write.dart';
@@ -1879,6 +1880,98 @@ class AcademicsApi {
     }
 
     return Response<AcademicMatrixResponse>(
+      data: _responseData,
+      headers: _response.headers,
+      isRedirect: _response.isRedirect,
+      requestOptions: _response.requestOptions,
+      redirects: _response.redirects,
+      statusCode: _response.statusCode,
+      statusMessage: _response.statusMessage,
+      extra: _response.extra,
+    );
+  }
+
+  /// List released periods for this learner
+  /// Fresh own-learner or current guardian access only. At most 200 distinct released year/term periods, newest release first, with school-scoped labels. No unpublished periods or scores are disclosed.
+  ///
+  /// Parameters:
+  /// * [learner]
+  /// * [xSchoolId] - The school to work in, one of the signed-in user's schools (`schools` in `/me/context`). Without it the request works in the user's first school. A school the user is not an active member of is refused with 403. Apps send it on every call once a school is chosen.
+  /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
+  /// * [headers] - Can be used to add additional headers to the request
+  /// * [extras] - Can be used to add flags to the request
+  /// * [validateStatus] - A [ValidateStatus] callback that can be used to determine request success based on the HTTP status of the response
+  /// * [onSendProgress] - A [ProgressCallback] that can be used to get the send progress
+  /// * [onReceiveProgress] - A [ProgressCallback] that can be used to get the receive progress
+  ///
+  /// Returns a [Future] containing a [Response] with a [AcademicReleasePeriodsResponse] as data
+  /// Throws [DioException] if API call or serialization fails
+  Future<Response<AcademicReleasePeriodsResponse>> getReleasedMarkPeriods({
+    required int learner,
+    int? xSchoolId,
+    CancelToken? cancelToken,
+    Map<String, dynamic>? headers,
+    Map<String, dynamic>? extra,
+    ValidateStatus? validateStatus,
+    ProgressCallback? onSendProgress,
+    ProgressCallback? onReceiveProgress,
+  }) async {
+    final _path = r'/academics/marks/learners/{learner}/periods'.replaceAll(
+      '{'
+      r'learner'
+      '}',
+      learner.toString(),
+    );
+    final _options = Options(
+      method: r'GET',
+      headers: <String, dynamic>{
+        if (xSchoolId != null) r'X-School-Id': xSchoolId,
+        ...?headers,
+      },
+      extra: <String, dynamic>{
+        'secure': <Map<String, String>>[
+          {
+            'type': 'apiKey',
+            'name': 'cookieAuth',
+            'keyName': 'e_school_session',
+            'where': '',
+          },
+          {'type': 'http', 'scheme': 'bearer', 'name': 'bearerAuth'},
+        ],
+        ...?extra,
+      },
+      validateStatus: validateStatus,
+    );
+
+    final _response = await _dio.request<Object>(
+      _path,
+      options: _options,
+      cancelToken: cancelToken,
+      onSendProgress: onSendProgress,
+      onReceiveProgress: onReceiveProgress,
+    );
+
+    AcademicReleasePeriodsResponse? _responseData;
+
+    try {
+      final rawData = _response.data;
+      _responseData = rawData == null
+          ? null
+          : deserialize<
+              AcademicReleasePeriodsResponse,
+              AcademicReleasePeriodsResponse
+            >(rawData, 'AcademicReleasePeriodsResponse', growable: true);
+    } catch (error, stackTrace) {
+      throw DioException(
+        requestOptions: _response.requestOptions,
+        response: _response,
+        type: DioExceptionType.unknown,
+        error: error,
+        stackTrace: stackTrace,
+      );
+    }
+
+    return Response<AcademicReleasePeriodsResponse>(
       data: _responseData,
       headers: _response.headers,
       isRedirect: _response.isRedirect,

@@ -19,6 +19,9 @@ class MarkRequest extends FormRequest
     public function rules(): array
     {
         $name = (string) $this->route()->getName();
+        if (str_ends_with($name, '.periods')) {
+            return [];
+        }
         if (str_ends_with($name, '.family')) {
             return ['session_year_id' => ['required', 'integer', 'min:1'], 'term_id' => ['sometimes', 'nullable', 'integer', 'min:1']];
         }

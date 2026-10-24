@@ -16,6 +16,10 @@ part 'academic_released_result.g.dart';
 class AcademicReleasedResult {
   /// Returns a new [AcademicReleasedResult] instance.
   AcademicReleasedResult({
+    this.subjectName,
+
+    this.gradeName,
+
     required this.releaseId,
 
     required this.subjectId,
@@ -38,6 +42,12 @@ class AcademicReleasedResult {
 
     required this.releasedAt,
   });
+
+  @JsonKey(name: r'subject_name', required: false, includeIfNull: false)
+  final String? subjectName;
+
+  @JsonKey(name: r'grade_name', required: false, includeIfNull: false)
+  final String? gradeName;
 
   // minimum: 1
   @JsonKey(name: r'release_id', required: true, includeIfNull: false)
@@ -83,6 +93,8 @@ class AcademicReleasedResult {
   bool operator ==(Object other) =>
       identical(this, other) ||
       other is AcademicReleasedResult &&
+          other.subjectName == subjectName &&
+          other.gradeName == gradeName &&
           other.releaseId == releaseId &&
           other.subjectId == subjectId &&
           other.gradeLevelId == gradeLevelId &&
@@ -97,6 +109,8 @@ class AcademicReleasedResult {
 
   @override
   int get hashCode =>
+      subjectName.hashCode +
+      gradeName.hashCode +
       releaseId.hashCode +
       subjectId.hashCode +
       gradeLevelId.hashCode +
