@@ -98,6 +98,7 @@ jobs:
         with:
           firebaseServiceAccount: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_NAVIGATEED_D8C06 }}
           projectId: navigateed-d8c06
+          target: docs
           channelId: ${{ github.event_name == 'workflow_dispatch' && inputs.channel == 'live' && 'live' || 'docs-ui-review' }}
           expires: 7d
       - name: Record the deployment URL
