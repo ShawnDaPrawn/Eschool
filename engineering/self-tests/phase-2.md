@@ -373,3 +373,9 @@ Report retry follow-up: 197 report/idempotency/contract checks pass (1,284
 assertions), with clean Larastan. Private report retry bodies are encrypted,
 replayed headers hide internal encryption metadata, and operation keys are bound
 to the active school even for one staff account assigned to both schools.
+
+Annual reporting follow-up: panel rehearsal exposed a legacy school-year date
+being a string rather than a term date object. Annual roster/evidence now parse
+the explicit year dates and refuse undated years. A full annual selection through
+approval/private PDF generation passes. All 198 report/idempotency/contract checks
+pass (1,291 assertions); Larastan and formatting are clean.

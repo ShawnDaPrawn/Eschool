@@ -651,4 +651,25 @@ class ReportEngineTest extends TestCase
         $this->assertStringContainsString('Excused', $html);
         $this->assertStringContainsString('Provisional running report', $html);
     }
+
+    public function test_annual_roster_and_report_use_the_school_year_dates_without_a_term(): void
+    {
+        Storage::fake(ReportArtifacts::DISK);
+        $this->capture($this->input('5.00', '10.00'));
+        $selection = $this->selection();
+        $selection['term_id'] = null;
+        $roster = app(ReportQueries::class)->roster($this->superAdmin(), $this->year, $selection['class_section_id'], null);
+        $this->assertSame([$this->schoolA->ids['asha']], array_column($roster['learners'], 'id'));
+        $service = app(ReportBatches::class);
+        $preview = $service->preview($this->superAdmin(), $selection);
+        $this->assertTrue($preview['can_prepare']);
+        $this->assertSame('2026-01-01', $preview['cards'][0]['starts_on']);
+        $this->assertSame('2026-12-31', $preview['cards'][0]['ends_on']);
+        $this->assertNull($preview['cards'][0]['term_id']);
+        $this->assertSame(7500, $preview['cards'][0]['subjects'][0]['percentage_bp']);
+        $draft = $service->prepare($this->superAdmin(), $selection + ['fingerprint' => $preview['fingerprint']]);
+        $approved = $this->sign($draft);
+        app(ReportArtifacts::class)->generate($draft['cards'][0]['id'], $approved['fingerprint']);
+        $this->assertTrue($service->releasePreview($this->superAdmin(), $draft['id'])['can_release']);
+    }
 }

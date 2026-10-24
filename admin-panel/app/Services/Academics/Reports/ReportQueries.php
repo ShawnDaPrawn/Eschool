@@ -19,6 +19,7 @@ use App\Models\Term;
 use App\Models\User;
 use App\Policies\Academics\ReportPolicy;
 use App\Services\Academics\AcademicAuthority;
+use Carbon\CarbonImmutable;
 use Symfony\Component\HttpKernel\Exception\HttpExceptionInterface;
 
 class ReportQueries
@@ -46,8 +47,9 @@ class ReportQueries
         $room = app(ReportPolicy::class)->scope($actor, $yearId, $roomId);
         $year = SessionYear::findOrFail($yearId);
         $term = $termId === null ? null : Term::where('session_year_id', $yearId)->forGrade((int) $room->class->gradeLevel->sort_order)->findOrFail($termId);
-        $start = ($term?->start_date ?? $year->start_date)->toDateString();
-        $end = ($term?->end_date ?? $year->end_date)->toDateString();
+        abort_if(! $year->start_date || ! $year->end_date, 409, __('Set the school year dates before reporting.'));
+        $start = CarbonImmutable::parse($term?->start_date ?? $year->start_date)->toDateString();
+        $end = CarbonImmutable::parse($term?->end_date ?? $year->end_date)->toDateString();
         $ids = Enrolment::where('session_year_id', $yearId)->where('class_section_id', $roomId)->whereDate('starts_on', '<=', $end)
             ->where(fn ($q) => $q->whereNull('ends_on')->orWhereDate('ends_on', '>=', $start))->pluck('learner_id');
         $learners = Students::with('user')->whereHas('user')->whereIn('id', $ids)->orderBy('id')->get();

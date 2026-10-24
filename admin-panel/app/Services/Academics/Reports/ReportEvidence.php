@@ -17,8 +17,8 @@ use App\Services\Academics\Attendance\RegisterLegacy;
 use App\Services\Academics\MarkDefinitions;
 use App\Services\Academics\MarkSnapshots;
 use App\Services\Platform\Tenancy\CurrentSchool;
+/** Canonical marks and dated physical enrolments, never a fee/account-status gate. */ use Carbon\CarbonImmutable;
 
-/** Canonical marks and dated physical enrolments, never a fee/account-status gate. */
 class ReportEvidence
 {
     public function collect(array $selection): array
@@ -27,8 +27,9 @@ class ReportEvidence
         $room = ClassSection::with('class', 'section')->findOrFail($selection['class_section_id']);
         $grade = GradeLevel::findOrFail($room->class?->grade_level_id);
         $term = $selection['term_id'] === null ? null : Term::where('session_year_id', $year->id)->forGrade((int) $grade->sort_order)->findOrFail($selection['term_id']);
-        $start = ($term?->start_date ?? $year->start_date)->toDateString();
-        $end = ($term?->end_date ?? $year->end_date)->toDateString();
+        abort_if(! $year->start_date || ! $year->end_date, 409, __('Set the school year dates before reporting.'));
+        $start = CarbonImmutable::parse($term?->start_date ?? $year->start_date)->toDateString();
+        $end = CarbonImmutable::parse($term?->end_date ?? $year->end_date)->toDateString();
         $ids = array_map('intval', $selection['learner_ids']);
         sort($ids);
         $enrolments = Enrolment::where('session_year_id', $year->id)->where('class_section_id', $room->id)->whereDate('starts_on', '<=', $end)
