@@ -98,3 +98,7 @@ Final curriculum checks passed: 180 academic/contract/ownership/migration tests
 flows covering question entry/publication/copy and teacher controls, axe and
 1024/1280 overflow, plus documentation build and E2E TypeScript checking.
 The browser checks used an isolated synthetic school database.
+
+Curriculum review follow-up: all three browser flows passed, including reopening
+empty term/annual component maps, adding percentages and saving them intact.
+The editor normalizes empty PHP arrays into JSON objects before editing.

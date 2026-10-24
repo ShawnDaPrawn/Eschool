@@ -9,6 +9,8 @@
   const state = options.definition || { subject_id: options.subjects[0]?.id, grade_level_id: options.grades[0]?.id,
     session_year_id: options.years[0]?.id, title: '', annual_components: null,
     rounding: 'half_up', absent_policy: 'incomplete', topics: [], assessments: [] };
+  if (Array.isArray(state.annual_components)) state.annual_components = {};
+  state.assessments.forEach(a => { if (Array.isArray(a.components)) a.components = {}; });
   let serial = 0;
   const node = (tag, text, cls) => { const el = document.createElement(tag); if (text !== undefined) el.textContent = text; if (cls) el.className = cls; return el; };
   const button = (parent, label, action) => { const el = node('button', label, 'm3-button m3-button--outlined'); el.type = 'button'; el.addEventListener('click', action); parent.append(el); return el; };
@@ -52,7 +54,7 @@
     host.replaceChildren();
     field(host, 'Curriculum title', state.title, v => { state.title = v; });
     field(host, 'Subject', state.subject_id, v => { state.subject_id = Number(v); }, { options: options.subjects }).disabled = !!state.id;
-    field(host, 'Grade', state.grade_level_id, v => { state.grade_level_id = Number(v); }, { options: options.grades }).disabled = !!state.id;
+    field(host, 'Grade', state.grade_level_id, v => { state.grade_level_id = Number(v); render(); }, { options: options.grades }).disabled = !!state.id;
     field(host, 'School year', state.session_year_id, v => { state.session_year_id = Number(v); render(); }, { options: options.years }).disabled = !!state.id;
     const grade = options.grades.find(g => Number(g.id) === Number(state.grade_level_id));
     const refs = options.standards.filter(s => s.grade_from <= grade?.sort_order && s.grade_to >= grade?.sort_order).map(s => ({ id: s.id, name: `${s.code} · ${s.name} · ${s.version}` }));

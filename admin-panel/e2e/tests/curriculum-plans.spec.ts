@@ -45,3 +45,27 @@ test('teacher gets an allocation-filtered list and has no publication control', 
   await expect(page.getByRole('heading', { level: 1, name: 'Curriculum plans' })).toBeVisible();
   await expect(page.getByRole('button', { name: /^Publish term:/ })).toHaveCount(0);
 });
+
+
+test('empty saved component maps can be reopened and repaired without losing weights', async ({ page }) => {
+  await signIn(page, accounts.adminB);
+  await page.goto('/curriculum-plans/new');
+  await page.getByLabel('Curriculum title', { exact: true }).fill('Empty component repair');
+  const annual = page.getByRole('group', { name: 'Annual component weights (optional until the annual plan is ready)', exact: true });
+  await annual.getByLabel('New component name (sba, exam, oral)', { exact: true }).fill('sba');
+  await annual.getByRole('button', { name: 'Add component', exact: true }).click();
+  await annual.getByRole('button', { name: 'Remove sba', exact: true }).click();
+  await page.getByRole('button', { name: 'Add a term', exact: true }).click();
+  const term = page.getByRole('group', { name: 'Term component weights', exact: true });
+  await term.getByRole('button', { name: 'Remove sba', exact: true }).click();
+  await page.getByRole('button', { name: 'Save draft', exact: true }).click();
+  await expect(page.getByRole('status').filter({ hasText: 'Curriculum draft saved' })).toBeVisible();
+  for (const group of [annual, term]) {
+    await group.getByLabel('New component name (sba, exam, oral)', { exact: true }).fill('sba');
+    await group.getByRole('button', { name: 'Add component', exact: true }).click();
+    await group.getByLabel('SBA (%)', { exact: true }).fill('100');
+  }
+  await page.getByRole('button', { name: 'Save draft', exact: true }).click();
+  await expect(annual.getByLabel('SBA (%)', { exact: true })).toHaveValue('100');
+  await expect(term.getByLabel('SBA (%)', { exact: true })).toHaveValue('100');
+});
