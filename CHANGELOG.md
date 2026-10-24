@@ -26,6 +26,8 @@ Earlier history is kept where it was written and is not repeated here:
 
 ### Developers
 
+- Narrow Phase 1 closeout to supported clients after the product owner confirmed there are no legacy clients. Legacy profile storage retirement and compatibility writes are no longer release prerequisites; existing data remains subject to privacy controls.
+
 - Integrate dependency PRs #48, #49, #50, #53, #55, #56, #57, #59 and #60, including their compatibility migrations. Pin Flutter CI and deployment builds to 3.47.7 / Dart 3.13.5 for Google Fonts 9; preserve the Material type scale and refresh all affected lockfiles. File Picker 13 supports both apps' attachments and single-file uploads. TeX 5 starts its renderer, keeps question and answer views independent, and loads its bundled browser bridge; release phones allow its device-local asset server. Image 4 supports all legacy image helpers as well as tenant uploads. Add regression checks for image encoding, school role revocation, checkout setup/cancellation, typography and rendered exam maths.
 
 ### Security

@@ -186,3 +186,14 @@ Template preview does not mutate calendars; apply adds missing rows atomically,
 retains existing dates and rejects overlap or invalid leap-day conversion.
 Staging, independent assessment/pilot acceptance and production release remain
 separate; no live migration or cloud resources are part of this implementation.
+
+On 24 October 2026 the product owner confirmed there are no legacy clients
+and removed legacy-storage retirement from Phase 1 closeout. Compatibility
+writes for those clients and archived legacy profile migration are likewise
+outside that closeout path. Existing data and public objects remain in place;
+privacy retention and access controls still apply. Phase 0 staging evidence
+and the other Phase 1 implementation and acceptance work remain open.
+
+The managed cloud environment reported no outbound identity, secret or runtime
+variable bindings on 24 October 2026. Staging resources and spend were not
+inventoried or changed; real mail, restore and worker observation remain pending.
