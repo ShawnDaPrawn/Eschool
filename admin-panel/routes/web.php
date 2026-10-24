@@ -29,6 +29,7 @@ use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\OnlineExamController;
 use App\Http\Controllers\OnlineExamQuestionController;
 use App\Http\Controllers\Panel\Academics\NewYearController;
+use App\Http\Controllers\Panel\Academics\SubjectStandardController;
 use App\Http\Controllers\Panel\People\LearnerInvitationController;
 use App\Http\Controllers\Panel\Platform\SchoolSwitchController;
 use App\Http\Controllers\Panel\SearchController;
@@ -204,6 +205,9 @@ Route::group(['middleware' => ['Role', 'auth', 'school.context', EnforceReadOnly
         Route::get('class-teacher-list', [ClassTeacherController::class, 'show']);
         Route::post('remove-class-teacher/{id}/{class_teacher_id}', [ClassTeacherController::class, 'removeClassTeacher']);
 
+        Route::get('subject-standards', [SubjectStandardController::class, 'index'])->name('subject-standards.index');
+        Route::post('subject-standards/subjects', [SubjectStandardController::class, 'store'])->name('subject-standards.store');
+        Route::put('subject-standards/subjects/{subject}', [SubjectStandardController::class, 'update'])->whereNumber('subject')->name('subject-standards.update');
         Route::resource('subject', SubjectController::class)->except(['create', 'edit']);
         Route::get('subject-list', [SubjectController::class, 'show']);
 

@@ -31,3 +31,9 @@ records; retries skip identical entries without overwriting edits.
 
 No independent staging/pilot security test is claimed. The semester compatibility
 exception comes from the explicit owner decision, not a blanket API exemption.
+
+Subject standards: global public references are immutable revisions with explicit
+source/publication and no school HTTP write path. Imports validate before writes;
+revision conflicts roll back the batch. School subject/medium reads use tenant
+scopes, subject permissions are refreshed before idempotent replay, and mapping
+IDs are hidden from existing raw v1 model payloads. No new person data is stored.

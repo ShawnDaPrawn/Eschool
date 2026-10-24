@@ -83,3 +83,8 @@ configuration uses `include_terms`. Grade bounds (0 = R through 12) default to t
 whole school; optional `marks_lock_on` and `reports_on` prepare future workflows.
 `term_templates` is school-owned and holds a named, validated calendar snapshot
 and base year for preview/seeding. No semester projection or dual writes remain.
+
+Subject standards add a global immutable public reference catalogue, with framework,
+code, phase/grade bounds, source/version/effective date, optional integer component
+weights and explicit publication. subjects.standard_id is a nullable restricted
+reference, exposed by v2 mapping resources and hidden from v1 raw serialization.

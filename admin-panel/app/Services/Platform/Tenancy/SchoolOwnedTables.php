@@ -66,6 +66,7 @@ final class SchoolOwnedTables
 
     /** Tables that belong to no one school, each with the reason. */
     public const GLOBAL = [
+        'subject_standards' => 'public versioned CAPS/IEB catalogue; only the trusted platform operator importer writes, with no school HTTP writes',
         'grade_levels' => 'shared R to 12 grade and school-phase reference; no person or school records and no API writes',
         'academic_rating_levels' => 'shared seven-point percentage reference only; no learner marks or school records',
         'notification_preferences' => 'a human controls their own channel choices across schools; each schools mandatory rules override these choices',

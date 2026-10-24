@@ -66,6 +66,10 @@ import 'package:eschool_api/src/model/profile_validation_rules.dart';
 import 'package:eschool_api/src/model/profile_value.dart';
 import 'package:eschool_api/src/model/school_document.dart';
 import 'package:eschool_api/src/model/school_membership.dart';
+import 'package:eschool_api/src/model/school_subject_from_standard_write.dart';
+import 'package:eschool_api/src/model/school_subject_standard.dart';
+import 'package:eschool_api/src/model/school_subject_standard_response.dart';
+import 'package:eschool_api/src/model/school_subject_standard_write.dart';
 import 'package:eschool_api/src/model/school_summary.dart';
 import 'package:eschool_api/src/model/school_term.dart';
 import 'package:eschool_api/src/model/school_term_draft.dart';
@@ -75,6 +79,9 @@ import 'package:eschool_api/src/model/school_terms_response.dart';
 import 'package:eschool_api/src/model/school_terms_response_data.dart';
 import 'package:eschool_api/src/model/session_year.dart';
 import 'package:eschool_api/src/model/set_my_handle_request.dart';
+import 'package:eschool_api/src/model/subject_standard.dart';
+import 'package:eschool_api/src/model/subject_standards_response.dart';
+import 'package:eschool_api/src/model/subject_standards_response_data.dart';
 import 'package:eschool_api/src/model/term.dart';
 import 'package:eschool_api/src/model/term_dates.dart';
 import 'package:eschool_api/src/model/term_template.dart';
@@ -336,6 +343,22 @@ ReturnType deserialize<ReturnType, BaseType>(
     case 'SchoolMembership':
       return SchoolMembership.fromJson(value as Map<String, dynamic>)
           as ReturnType;
+    case 'SchoolSubjectFromStandardWrite':
+      return SchoolSubjectFromStandardWrite.fromJson(
+            value as Map<String, dynamic>,
+          )
+          as ReturnType;
+    case 'SchoolSubjectStandard':
+      return SchoolSubjectStandard.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'SchoolSubjectStandardResponse':
+      return SchoolSubjectStandardResponse.fromJson(
+            value as Map<String, dynamic>,
+          )
+          as ReturnType;
+    case 'SchoolSubjectStandardWrite':
+      return SchoolSubjectStandardWrite.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
     case 'SchoolSummary':
       return SchoolSummary.fromJson(value as Map<String, dynamic>)
           as ReturnType;
@@ -360,6 +383,17 @@ ReturnType deserialize<ReturnType, BaseType>(
       return SessionYear.fromJson(value as Map<String, dynamic>) as ReturnType;
     case 'SetMyHandleRequest':
       return SetMyHandleRequest.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'SubjectStandard':
+      return SubjectStandard.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'SubjectStandardsResponse':
+      return SubjectStandardsResponse.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'SubjectStandardsResponseData':
+      return SubjectStandardsResponseData.fromJson(
+            value as Map<String, dynamic>,
+          )
           as ReturnType;
     case 'Term':
       return Term.fromJson(value as Map<String, dynamic>) as ReturnType;

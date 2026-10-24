@@ -50,6 +50,14 @@ class OpenApiContractTest extends TestCase
     public static function scenarios(): array
     {
         return [
+            'subject catalogue as learner' => ['asha', 'GET', 'api/v2/academics/subject-standards', [], 200],
+            'subject catalogue as teacher' => ['tara', 'GET', 'api/v2/academics/subject-standards', [], 200],
+            'subject catalogue requires auth' => [null, 'GET', 'api/v2/academics/subject-standards', [], 401],
+            'subject standard as admin' => ['superadmin', 'GET', 'api/v2/academics/subjects/1/standard', [], 200],
+            'subject standard cleared' => ['superadmin', 'PUT', 'api/v2/academics/subjects/1/standard', ['standard_id' => null], 200],
+            'subject standard teacher denied' => ['tara', 'PUT', 'api/v2/academics/subjects/1/standard', ['standard_id' => 1], 403],
+            'subject from standard validates input' => ['superadmin', 'POST', 'api/v2/academics/subjects/from-standard', [], 422],
+            'subject from standard parent denied' => ['farid', 'POST', 'api/v2/academics/subjects/from-standard', [], 403],
             'school terms as learner' => ['asha', 'GET', 'api/v2/academics/terms', ['session_year_id' => 1], 200],
             'school terms as parent' => ['farid', 'GET', 'api/v2/academics/terms', ['session_year_id' => 1], 200],
             'school terms as teacher' => ['tara', 'GET', 'api/v2/academics/terms', ['session_year_id' => 1], 200],
