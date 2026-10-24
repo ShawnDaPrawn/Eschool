@@ -54,3 +54,27 @@ term/template/class-enable flows. The new class-settings read is school-scoped,
 permission-checked and tested against foreign years. The final targeted backend
 cohort passed 37 tests with 511 assertions. Old navigation URLs and removed config
 requests are retired; the full CI browser suite must pass before merge.
+
+## Subject standards and school mapping
+
+Spec: ../specs/academics/subject-standards.md. The trusted operator importer and
+scoped catalogue/mapping/create APIs and panel are implemented. Local checks:
+100 feature/contract tests (674 assertions), the ownership and rollback/reapply
+cohort (12 tests, 485 assertions), generated SDK regeneration and 19 Dart tests,
+SDK analysis without errors/warnings, Larastan, strict OpenAPI lint and docs build
+passed. Final browser and CI evidence is recorded on the feature PR.
+
+The bundled 629-entry DBE-NCS-2015 catalogue is historical source data with no
+assessment weights and is not installed or published automatically. Source and
+policy confirmation remain explicit operator/school decisions; no existing mark
+or assessment plan changes from a subject mapping. Staging and external
+acceptance remain pending.
+
+The subject-standard browser flows passed for admin mapping/creation and teacher
+read/refusal, including axe and overflow at 1024/1280. The first browser retry
+needed its CSRF header on a cookie-authenticated write; production CSRF checks
+were left intact. Ignored build outputs from completed worktrees were removed
+to recover workspace disk space, after which docs build and browser checks passed.
+
+Final subject-standard regression cohort: 15 tests and 675 assertions passed,
+including the unchanged v1 snapshot test and schema rollback/ownership checks.

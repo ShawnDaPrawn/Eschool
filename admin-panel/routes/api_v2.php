@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use App\Http\Controllers\Api\V2\Academics\AcademicReferenceController;
+use App\Http\Controllers\Api\V2\Academics\SubjectStandardController;
 use App\Http\Controllers\Api\V2\Academics\TermCalendarController;
 use App\Http\Controllers\Api\V2\People\EnrolmentController;
 use App\Http\Controllers\Api\V2\People\ProfileConfigurationController;
@@ -15,6 +16,7 @@ use App\Http\Controllers\Api\V2\Platform\HandleController;
 use App\Http\Controllers\Api\V2\Platform\NotificationPreferenceController;
 use App\Http\Controllers\Api\V2\School\MySchoolController;
 use App\Http\Middleware\AuthorizeClassGrade;
+use App\Http\Middleware\AuthorizeSubjectStandard;
 use App\Http\Middleware\AuthorizeTermCalendar;
 use Illuminate\Support\Facades\Route;
 
@@ -41,6 +43,10 @@ use Illuminate\Support\Facades\Route;
 
 // Keep fresh class permissions ahead of idempotent replay as well as validation.
 Route::prefix('academics')->middleware(['auth:sanctum', 'school.context', 'role.any', 'learner.approved', 'module:academics', 'cache.headers:private;no_store'])->name('api.v2.academics.')->group(function () {
+    Route::get('subject-standards', [SubjectStandardController::class, 'index'])->middleware(AuthorizeSubjectStandard::class.':read')->name('subject-standards.index');
+    Route::get('subjects/{subject}/standard', [SubjectStandardController::class, 'show'])->whereNumber('subject')->middleware(AuthorizeSubjectStandard::class.':list')->name('subjects.standard.show');
+    Route::put('subjects/{subject}/standard', [SubjectStandardController::class, 'update'])->whereNumber('subject')->middleware([AuthorizeSubjectStandard::class.':edit', 'idempotent'])->name('subjects.standard.update');
+    Route::post('subjects/from-standard', [SubjectStandardController::class, 'store'])->middleware([AuthorizeSubjectStandard::class.':create', 'idempotent'])->name('subjects.standard.store');
     Route::get('terms', [TermCalendarController::class, 'index'])->name('terms.index');
     Route::post('terms', [TermCalendarController::class, 'store'])->middleware([AuthorizeTermCalendar::class.':create', 'idempotent'])->name('terms.store');
     Route::put('terms/{term}', [TermCalendarController::class, 'update'])->whereNumber('term')->middleware([AuthorizeTermCalendar::class.':edit', 'idempotent'])->name('terms.update');

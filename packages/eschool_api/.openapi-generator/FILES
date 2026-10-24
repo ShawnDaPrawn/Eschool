@@ -78,6 +78,10 @@ lib/src/model/profile_validation_rules.dart
 lib/src/model/profile_value.dart
 lib/src/model/school_document.dart
 lib/src/model/school_membership.dart
+lib/src/model/school_subject_from_standard_write.dart
+lib/src/model/school_subject_standard.dart
+lib/src/model/school_subject_standard_response.dart
+lib/src/model/school_subject_standard_write.dart
 lib/src/model/school_summary.dart
 lib/src/model/school_term.dart
 lib/src/model/school_term_draft.dart
@@ -87,6 +91,9 @@ lib/src/model/school_terms_response.dart
 lib/src/model/school_terms_response_data.dart
 lib/src/model/session_year.dart
 lib/src/model/set_my_handle_request.dart
+lib/src/model/subject_standard.dart
+lib/src/model/subject_standards_response.dart
+lib/src/model/subject_standards_response_data.dart
 lib/src/model/term.dart
 lib/src/model/term_dates.dart
 lib/src/model/term_template.dart

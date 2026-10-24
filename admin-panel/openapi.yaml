@@ -98,6 +98,184 @@ tags:
   - name: Platform
     description: Who is signed in and the school they work in.
 paths:
+  /academics/subject-standards:
+    get:
+      operationId: getSubjectStandards
+      tags:
+      - Academics
+      summary: Browse published CAPS and IEB reference revisions
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - name: framework
+        in: query
+        schema:
+          type: string
+          enum:
+          - CAPS
+          - IEB
+      - name: grade
+        in: query
+        schema:
+          type: integer
+          minimum: 0
+          maximum: 12
+      - name: q
+        in: query
+        schema:
+          type: string
+          maxLength: 100
+      - name: page
+        in: query
+        schema:
+          type: integer
+          minimum: 1
+      - name: per_page
+        in: query
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 100
+      responses:
+        '200':
+          description: Subject reference result.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SubjectStandardsResponse'
+        '400':
+          $ref: '#/components/responses/IdempotencyKeyProblem'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+  /academics/subjects/{subject}/standard:
+    get:
+      operationId: getSchoolSubjectStandard
+      tags:
+      - Academics
+      summary: Read a school subject mapping with subject-list permission
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - name: subject
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      responses:
+        '200':
+          description: Subject reference result.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SchoolSubjectStandardResponse'
+        '400':
+          $ref: '#/components/responses/IdempotencyKeyProblem'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+    put:
+      operationId: setSchoolSubjectStandard
+      tags:
+      - Academics
+      summary: Map or clear a school subject reference with subject-edit permission
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - name: subject
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      - $ref: '#/components/parameters/IdempotencyKey'
+      responses:
+        '200':
+          description: Subject reference result.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SchoolSubjectStandardResponse'
+        '400':
+          $ref: '#/components/responses/IdempotencyKeyProblem'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SchoolSubjectStandardWrite'
+  /academics/subjects/from-standard:
+    post:
+      operationId: createSchoolSubjectFromStandard
+      tags:
+      - Academics
+      summary: Create a school subject from a published reference with subject-create permission
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/IdempotencyKey'
+      responses:
+        '200':
+          description: Subject reference result.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SchoolSubjectStandardResponse'
+        '400':
+          $ref: '#/components/responses/IdempotencyKeyProblem'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SchoolSubjectFromStandardWrite'
   /academics/terms:
     get:
       operationId: getSchoolTerms
@@ -1893,6 +2071,188 @@ components:
           schema:
             $ref: '#/components/schemas/ErrorResponse'
   schemas:
+    SubjectStandard:
+      type: object
+      required:
+      - id
+      - framework
+      - code
+      - name
+      - phase
+      - grade_from
+      - grade_to
+      - version
+      - source_url
+      - effective_on
+      - component_weights
+      properties:
+        id:
+          type: integer
+          minimum: 1
+        framework:
+          type: string
+          enum:
+          - CAPS
+          - IEB
+        code:
+          type: string
+        name:
+          type: string
+        phase:
+          type: string
+          enum:
+          - Foundation
+          - Intermediate
+          - Senior
+          - FET
+        grade_from:
+          type: integer
+          minimum: 0
+          maximum: 12
+        grade_to:
+          type: integer
+          minimum: 0
+          maximum: 12
+        version:
+          type: string
+        source_url:
+          type: string
+          format: uri
+        effective_on:
+          type: string
+          format: date
+        component_weights:
+          type:
+          - object
+          - 'null'
+          additionalProperties:
+            type: integer
+            minimum: 0
+            maximum: 10000
+      additionalProperties: false
+    SubjectStandardsResponse:
+      type: object
+      required:
+      - error
+      - message
+      - code
+      - data
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        code:
+          type: integer
+        data:
+          type: object
+          required:
+          - standards
+          - current_page
+          - last_page
+          - total
+          properties:
+            standards:
+              type: array
+              items:
+                $ref: '#/components/schemas/SubjectStandard'
+            current_page:
+              type: integer
+              minimum: 1
+            last_page:
+              type: integer
+              minimum: 1
+            total:
+              type: integer
+              minimum: 0
+          additionalProperties: false
+      additionalProperties: false
+    SchoolSubjectStandard:
+      type: object
+      required:
+      - subject_id
+      - name
+      - code
+      - type
+      - medium_id
+      - standard_id
+      - standard
+      properties:
+        subject_id:
+          type: integer
+          minimum: 1
+        name:
+          type: string
+        code:
+          type:
+          - string
+          - 'null'
+        type:
+          type: string
+        medium_id:
+          type: integer
+          minimum: 1
+        standard_id:
+          type:
+          - integer
+          - 'null'
+          minimum: 1
+        standard:
+          anyOf:
+          - $ref: '#/components/schemas/SubjectStandard'
+          - type: 'null'
+      additionalProperties: false
+    SchoolSubjectStandardWrite:
+      type: object
+      required:
+      - standard_id
+      properties:
+        standard_id:
+          type:
+          - integer
+          - 'null'
+          minimum: 1
+      additionalProperties: false
+    SchoolSubjectFromStandardWrite:
+      type: object
+      required:
+      - standard_id
+      - medium_id
+      - type
+      - bg_color
+      properties:
+        standard_id:
+          type: integer
+          minimum: 1
+        medium_id:
+          type: integer
+          minimum: 1
+        type:
+          type: string
+          enum:
+          - Theory
+          - Practical
+        bg_color:
+          type: string
+          pattern: ^#[0-9a-fA-F]{6}$
+      additionalProperties: false
+    SchoolSubjectStandardResponse:
+      type: object
+      required:
+      - error
+      - message
+      - code
+      - data
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        code:
+          type: integer
+        data:
+          $ref: '#/components/schemas/SchoolSubjectStandard'
+      additionalProperties: false
     SchoolTermDraft:
       type: object
       required:

@@ -294,3 +294,18 @@ a shared grade explicitly through the v2 API; no class name is guessed. Reads
 require class-list or class-edit; writes require class-edit in the selected school.
 Mappings can be cleared with explicit null, and changes are audited. A panel/app
 editor, terms/term transition and subject/assessment rules follow separately.
+
+## Subject standards
+
+The global versioned subject_standards catalogue contains sourced CAPS/IEB code
+revisions and optional assessment components. Trusted operators import reviewed
+JSON with academics:import-subject-standards; --publish makes revisions readable
+by active school members. Revisions are immutable and repeatable; corrected data
+uses a new version. School subject-list/create/edit permissions control mapping
+and creation through scoped services. subjects.standard_id is nullable and hidden
+from v1 raw model payloads. New v2 resources expose the reference explicitly.
+
+The bundled DBE-NCS-2015 baseline is historical public reference data, without
+assessment weights, not a declaration of current school policy. It is not loaded
+or published automatically. Review subsequent amendments and licensed IEB data
+before a live import. No school request can edit the global catalogue.
