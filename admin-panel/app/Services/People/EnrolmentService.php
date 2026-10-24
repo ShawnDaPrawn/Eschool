@@ -10,6 +10,7 @@ use App\Models\SessionYear;
 use App\Models\Students;
 use App\Models\StudentSessions;
 use App\Services\Academics\AcademicMemberships;
+use App\Services\Academics\Transitions\LearnerAcademicAccess;
 use App\Services\Platform\Identity\StudentNumbers;
 use App\Services\Platform\Tenancy\CurrentSchool;
 use Illuminate\Support\Carbon;
@@ -87,13 +88,23 @@ class EnrolmentService
             ?? (clone $entries)->whereDate('starts_on', '>', $today)->orderBy('starts_on')->first()
             ?? $entries->orderByDesc('starts_on')->first();
         if ($entry === null) {
+            app(LearnerAcademicAccess::class)->refreshProjection($learnerId, $yearId);
+
             return;
         }
         StudentSessions::withoutEvents(fn () => StudentSessions::query()->updateOrCreate(
             ['student_id' => $learnerId, 'session_year_id' => $yearId], ['class_section_id' => $entry->class_section_id],
         ));
+        app(LearnerAcademicAccess::class)->refreshProjection($learnerId, $yearId);
         if ((int) schoolSetting('session_year') === $yearId && $entry->starts_on->toDateString() <= $today) {
-            Students::query()->whereKey($learnerId)->update(['class_section_id' => $entry->class_section_id]);
+            $room = ClassSection::with('class')->findOrFail($entry->class_section_id);
+            // Some historical imports contain a homeroom whose class is missing.
+            // Preserve their v1 section projection without inventing a foreign key.
+            $projection = ['class_section_id' => $entry->class_section_id];
+            if ($room->class !== null) {
+                $projection['class_id'] = (int) $room->class->id;
+            }
+            Students::query()->whereKey($learnerId)->update($projection);
         }
     }
 

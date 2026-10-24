@@ -5281,6 +5281,529 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/AcademicTimetableImportWrite'
+  /academics/transitions/configuration:
+    get:
+      operationId: getAcademicTransitionConfiguration
+      tags:
+      - Academics
+      summary: Read school-year choices, grade defaults and copy retention
+      description: Office academic authority is checked freshly. Changes use explicit dates, immutable operation UUIDs
+        and reviewed source fingerprints. Private exit exports additionally require sensitive-export permission and
+        remain requester owned. No learner is activated and no billing is posted. Canonical educational records are
+        retained.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - name: session_year_id
+        in: query
+        required: false
+        schema:
+          type: integer
+          minimum: 1
+        description: Optional explicit school year.
+      responses:
+        '200':
+          description: Authorized academic transition result.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AcademicTransitionConfigurationResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+  /academics/transitions/learners:
+    get:
+      operationId: searchAcademicTransitionLearners
+      tags:
+      - Academics
+      summary: Search current-school learner names
+      description: Office academic authority is checked freshly. Changes use explicit dates, immutable operation UUIDs
+        and reviewed source fingerprints. Private exit exports additionally require sensitive-export permission and
+        remain requester owned. No learner is activated and no billing is posted. Canonical educational records are
+        retained.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - name: search
+        in: query
+        required: false
+        schema:
+          type: string
+          maxLength: 100
+        description: Learner first or last name.
+      - name: page
+        in: query
+        required: false
+        schema:
+          type: integer
+          minimum: 1
+        description: Page of 50 learners.
+      responses:
+        '200':
+          description: Authorized academic transition result.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AcademicTransitionSearchResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+  /academics/transitions/learners/{learner}:
+    get:
+      operationId: getAcademicTransitionLearner
+      tags:
+      - Academics
+      summary: Read dated enrolments, change history and own export copies
+      description: Office academic authority is checked freshly. Changes use explicit dates, immutable operation UUIDs
+        and reviewed source fingerprints. Private exit exports additionally require sensitive-export permission and
+        remain requester owned. No learner is activated and no billing is posted. Canonical educational records are
+        retained.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - name: learner
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+        description: Current-school identifier.
+      - name: page
+        in: query
+        required: false
+        schema:
+          type: integer
+          minimum: 1
+        description: Page of 50 changes.
+      responses:
+        '200':
+          description: Authorized academic transition result.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AcademicTransitionLearnerResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+  /academics/transitions/policies/{grade}:
+    put:
+      operationId: saveAcademicTransitionGradePolicy
+      tags:
+      - Academics
+      summary: Save revision-checked grade defaults
+      description: Office academic authority is checked freshly. Changes use explicit dates, immutable operation UUIDs
+        and reviewed source fingerprints. Private exit exports additionally require sensitive-export permission and
+        remain requester owned. No learner is activated and no billing is posted. Canonical educational records are
+        retained.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - name: grade
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+        description: Current-school identifier.
+      responses:
+        '200':
+          description: Authorized academic transition result.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AcademicTransitionGradePolicyResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AcademicTransitionPolicyWrite'
+  /academics/transitions/retention:
+    put:
+      operationId: saveAcademicExitRetention
+      tags:
+      - Academics
+      summary: Save revision-checked retention for new export copies
+      description: Office academic authority is checked freshly. Changes use explicit dates, immutable operation UUIDs
+        and reviewed source fingerprints. Private exit exports additionally require sensitive-export permission and
+        remain requester owned. No learner is activated and no billing is posted. Canonical educational records are
+        retained.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      responses:
+        '200':
+          description: Authorized academic transition result.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AcademicTransitionRetentionResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AcademicTransitionRetentionWrite'
+  /academics/transitions/preview:
+    post:
+      operationId: previewAcademicTransition
+      tags:
+      - Academics
+      summary: Review a dated join, departure or subject change
+      description: Office academic authority is checked freshly. Changes use explicit dates, immutable operation UUIDs
+        and reviewed source fingerprints. Private exit exports additionally require sensitive-export permission and
+        remain requester owned. No learner is activated and no billing is posted. Canonical educational records are
+        retained.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      responses:
+        '200':
+          description: Authorized academic transition result.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AcademicTransitionPreviewResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AcademicTransitionInput'
+  /academics/transitions/commit:
+    post:
+      operationId: commitAcademicTransition
+      tags:
+      - Academics
+      summary: Apply the reviewed learner change once
+      description: Office academic authority is checked freshly. Changes use explicit dates, immutable operation UUIDs
+        and reviewed source fingerprints. Private exit exports additionally require sensitive-export permission and
+        remain requester owned. No learner is activated and no billing is posted. Canonical educational records are
+        retained.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      responses:
+        '200':
+          description: Authorized academic transition result.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AcademicTransitionRecordResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AcademicTransitionCommit'
+  /academics/transitions/exports/preview:
+    post:
+      operationId: previewAcademicExitPackage
+      tags:
+      - Academics
+      summary: Review explicitly selected exit evidence
+      description: Office academic authority is checked freshly. Changes use explicit dates, immutable operation UUIDs
+        and reviewed source fingerprints. Private exit exports additionally require sensitive-export permission and
+        remain requester owned. No learner is activated and no billing is posted. Canonical educational records are
+        retained.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      responses:
+        '200':
+          description: Authorized academic transition result.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AcademicExitPreviewResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AcademicExitSelection'
+  /academics/transitions/exports/prepare:
+    post:
+      operationId: prepareAcademicExitPackage
+      tags:
+      - Academics
+      summary: Queue a signed private exit package once
+      description: Office academic authority is checked freshly. Changes use explicit dates, immutable operation UUIDs
+        and reviewed source fingerprints. Private exit exports additionally require sensitive-export permission and
+        remain requester owned. No learner is activated and no billing is posted. Canonical educational records are
+        retained.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      responses:
+        '200':
+          description: Authorized academic transition result.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AcademicExitPackageResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AcademicExitPrepare'
+  /academics/transitions/exports/{package}:
+    get:
+      operationId: getAcademicExitPackage
+      tags:
+      - Academics
+      summary: Read own export status and a fresh signed download link
+      description: Office academic authority is checked freshly. Changes use explicit dates, immutable operation UUIDs
+        and reviewed source fingerprints. Private exit exports additionally require sensitive-export permission and
+        remain requester owned. No learner is activated and no billing is posted. Canonical educational records are
+        retained.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - name: package
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+        description: Current-school identifier.
+      responses:
+        '200':
+          description: Authorized academic transition result.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AcademicExitPackageResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+  /academics/transitions/exports/{package}/retry:
+    post:
+      operationId: retryAcademicExitPackage
+      tags:
+      - Academics
+      summary: Retry an unchanged failed export with fresh authority
+      description: Office academic authority is checked freshly. Changes use explicit dates, immutable operation UUIDs
+        and reviewed source fingerprints. Private exit exports additionally require sensitive-export permission and
+        remain requester owned. No learner is activated and no billing is posted. Canonical educational records are
+        retained.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - name: package
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+        description: Current-school identifier.
+      responses:
+        '200':
+          description: Authorized academic transition result.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AcademicExitPackageResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+  /academics/transitions/exports/{package}/download:
+    get:
+      operationId: downloadAcademicExitPackage
+      tags:
+      - Academics
+      summary: Download a reader-bound signed unexpired ZIP
+      description: Office academic authority is checked freshly. Changes use explicit dates, immutable operation UUIDs
+        and reviewed source fingerprints. Private exit exports additionally require sensitive-export permission and
+        remain requester owned. No learner is activated and no billing is posted. Canonical educational records are
+        retained.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - name: package
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+        description: Current-school identifier.
+      - name: reader
+        in: query
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+        description: Authenticated requester.
+      - name: school
+        in: query
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+        description: Current school.
+      - name: expires
+        in: query
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+        description: Signed URL expiry timestamp.
+      - name: signature
+        in: query
+        required: true
+        schema:
+          type: string
+        description: Server signature.
+      responses:
+        '200':
+          description: Authorized academic transition result.
+          content:
+            application/zip:
+              schema:
+                type: string
+                format: binary
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
 components:
   securitySchemes:
     bearerAuth:
@@ -7406,6 +7929,9 @@ components:
       - legacy_dates
       - previous_enrolment_id
       properties:
+        cancelled_at:
+          type: [string, "null"]
+          format: date-time
         id:
           type: integer
         learner_id:
@@ -11769,3 +12295,1123 @@ components:
           type: integer
         data:
           $ref: '#/components/schemas/AcademicReportAccessData'
+    AcademicTransitionInput:
+      type: object
+      additionalProperties: false
+      required:
+      - kind
+      - learner_id
+      - session_year_id
+      - effective_on
+      - reason
+      properties:
+        kind:
+          type: string
+          pattern: ^(join|leave|subject_change)$
+        learner_id:
+          type: integer
+          minimum: 1
+        session_year_id:
+          type: integer
+          minimum: 1
+        effective_on:
+          type: string
+          pattern: ^\d{4}-\d{2}-\d{2}$
+        reason:
+          type: string
+          minLength: 3
+          maxLength: 2000
+        class_section_id:
+          type: integer
+          minimum: 1
+        group_ids:
+          type: array
+          items:
+            type: integer
+            minimum: 1
+          maxItems: 30
+          uniqueItems: true
+        fee_prorata_requested:
+          type: boolean
+        source_membership_id:
+          type: integer
+          minimum: 1
+        target_group_id:
+          type: integer
+          minimum: 1
+        mark_rule_override:
+          type:
+          - string
+          - 'null'
+          pattern: ^(catch_up|excused|carried)$
+    AcademicTransitionCommit:
+      type: object
+      additionalProperties: false
+      required:
+      - kind
+      - learner_id
+      - session_year_id
+      - effective_on
+      - reason
+      - operation_id
+      - fingerprint
+      properties:
+        kind:
+          type: string
+          pattern: ^(join|leave|subject_change)$
+        learner_id:
+          type: integer
+          minimum: 1
+        session_year_id:
+          type: integer
+          minimum: 1
+        effective_on:
+          type: string
+          pattern: ^\d{4}-\d{2}-\d{2}$
+        reason:
+          type: string
+          minLength: 3
+          maxLength: 2000
+        class_section_id:
+          type: integer
+          minimum: 1
+        group_ids:
+          type: array
+          items:
+            type: integer
+            minimum: 1
+          maxItems: 30
+          uniqueItems: true
+        fee_prorata_requested:
+          type: boolean
+        source_membership_id:
+          type: integer
+          minimum: 1
+        target_group_id:
+          type: integer
+          minimum: 1
+        mark_rule_override:
+          type:
+          - string
+          - 'null'
+          pattern: ^(catch_up|excused|carried)$
+        operation_id:
+          type: string
+          format: uuid
+        fingerprint:
+          type: string
+          pattern: ^[a-f0-9]{64}$
+    AcademicTransitionPolicyWrite:
+      type: object
+      additionalProperties: false
+      required:
+      - join_mark_rule
+      - change_mark_rule
+      - revision
+      properties:
+        join_mark_rule:
+          type: string
+          pattern: ^(catch_up|excused)$
+        change_mark_rule:
+          type: string
+          pattern: ^(catch_up|excused|carried)$
+        revision:
+          type: integer
+          minimum: 0
+    AcademicTransitionGradePolicy:
+      type: object
+      additionalProperties: false
+      required:
+      - grade_level_id
+      - join_mark_rule
+      - change_mark_rule
+      - revision
+      properties:
+        grade_level_id:
+          type: integer
+          minimum: 1
+        join_mark_rule:
+          type: string
+          pattern: ^(catch_up|excused)$
+        change_mark_rule:
+          type: string
+          pattern: ^(catch_up|excused|carried)$
+        revision:
+          type: integer
+          minimum: 0
+    AcademicTransitionRetentionWrite:
+      type: object
+      additionalProperties: false
+      required:
+      - days
+      - revision
+      properties:
+        days:
+          type: integer
+          minimum: 1
+          maximum: 30
+        revision:
+          type: integer
+          minimum: 0
+    AcademicTransitionRetention:
+      type: object
+      additionalProperties: false
+      required:
+      - days
+      - maximum_days
+      - revision
+      - educational_records
+      properties:
+        days:
+          type: integer
+          minimum: 1
+          maximum: 30
+        maximum_days:
+          type: integer
+        revision:
+          type: integer
+          minimum: 0
+        educational_records:
+          type: string
+    AcademicTransitionEnrolment:
+      type: object
+      additionalProperties: false
+      required:
+      - id
+      - session_year_id
+      - class_section_id
+      - starts_on
+      - ends_on
+      - cancelled_at
+      properties:
+        id:
+          type: integer
+          minimum: 1
+        session_year_id:
+          type: integer
+          minimum: 1
+        class_section_id:
+          type: integer
+          minimum: 1
+        starts_on:
+          type: string
+          pattern: ^\d{4}-\d{2}-\d{2}$
+        ends_on:
+          type:
+          - string
+          - 'null'
+          pattern: ^\d{4}-\d{2}-\d{2}$
+        cancelled_at:
+          type:
+          - string
+          - 'null'
+          format: date-time
+    AcademicTransitionMembership:
+      type: object
+      additionalProperties: false
+      required:
+      - id
+      - teaching_group_id
+      - session_year_id
+      - grade_level_id
+      - revision
+      - starts_on
+      - ends_on
+      - mark_rule
+      - cancelled_at
+      properties:
+        id:
+          type: integer
+          minimum: 1
+        teaching_group_id:
+          type: integer
+          minimum: 1
+        session_year_id:
+          type:
+          - integer
+          - 'null'
+          minimum: 1
+        grade_level_id:
+          type:
+          - integer
+          - 'null'
+          minimum: 1
+        revision:
+          type: integer
+          minimum: 0
+        starts_on:
+          type: string
+          pattern: ^\d{4}-\d{2}-\d{2}$
+        ends_on:
+          type: string
+          pattern: ^\d{4}-\d{2}-\d{2}$
+        mark_rule:
+          type: string
+          pattern: ^(catch_up|excused|carried)$
+        cancelled_at:
+          type:
+          - string
+          - 'null'
+          format: date-time
+    AcademicTransitionFact:
+      type: object
+      additionalProperties: false
+      required:
+      - id
+      - kind
+      - effective_on
+      properties:
+        id:
+          type: integer
+          minimum: 1
+        kind:
+          type: string
+          pattern: ^(join|leave|subject_change)$
+        effective_on:
+          type: string
+          pattern: ^\d{4}-\d{2}-\d{2}$
+    AcademicTransitionState:
+      type: object
+      additionalProperties: false
+      required:
+      - enrolments
+      - memberships
+      - changes
+      properties:
+        enrolments:
+          type: array
+          items:
+            $ref: '#/components/schemas/AcademicTransitionEnrolment'
+        memberships:
+          type: array
+          items:
+            $ref: '#/components/schemas/AcademicTransitionMembership'
+        changes:
+          type: array
+          items:
+            $ref: '#/components/schemas/AcademicTransitionFact'
+    AcademicTransitionResult:
+      type: object
+      additionalProperties: false
+      properties:
+        enrolment_id:
+          type: integer
+          minimum: 1
+        membership_ids:
+          type: array
+          items:
+            type: integer
+            minimum: 1
+        fee_prorata_requested:
+          type: boolean
+        fee_prorata_from_on:
+          type:
+          - string
+          - 'null'
+          pattern: ^\d{4}-\d{2}-\d{2}$
+        billing_posted:
+          type: boolean
+        mark_rule:
+          type: string
+          pattern: ^(catch_up|excused|carried)$
+        ended_enrolment_ids:
+          type: array
+          items:
+            type: integer
+            minimum: 1
+        cancelled_enrolment_ids:
+          type: array
+          items:
+            type: integer
+            minimum: 1
+        ended_membership_ids:
+          type: array
+          items:
+            type: integer
+            minimum: 1
+        cancelled_membership_ids:
+          type: array
+          items:
+            type: integer
+            minimum: 1
+        records_deleted:
+          type: boolean
+        source_membership_id:
+          type: integer
+          minimum: 1
+        target_membership_id:
+          type: integer
+          minimum: 1
+        canonical_marks_reused:
+          type: boolean
+        marks_copied:
+          type: boolean
+        last_attended_on:
+          type: string
+          pattern: ^\d{4}-\d{2}-\d{2}$
+    AcademicTransitionRecord:
+      type: object
+      additionalProperties: false
+      required:
+      - id
+      - learner_id
+      - session_year_id
+      - grade_level_id
+      - kind
+      - effective_on
+      - reason
+      - operation_id
+      - result
+      - created_at
+      properties:
+        id:
+          type: integer
+          minimum: 1
+        learner_id:
+          type: integer
+          minimum: 1
+        session_year_id:
+          type: integer
+          minimum: 1
+        grade_level_id:
+          type:
+          - integer
+          - 'null'
+          minimum: 1
+        kind:
+          type: string
+          pattern: ^(join|leave|subject_change)$
+        effective_on:
+          type: string
+          pattern: ^\d{4}-\d{2}-\d{2}$
+        reason:
+          type: string
+        operation_id:
+          type: string
+          format: uuid
+        result:
+          $ref: '#/components/schemas/AcademicTransitionResult'
+        created_at:
+          type: string
+          format: date-time
+    AcademicTransitionAssignment:
+      type: object
+      additionalProperties: false
+      required:
+      - id
+      - name
+      - subject_name
+      properties:
+        id:
+          type: integer
+          minimum: 1
+        name:
+          type: string
+        subject_name:
+          type: string
+    AcademicTransitionPreview:
+      type: object
+      additionalProperties: false
+      required:
+      - input
+      - fingerprint
+      - learner_name
+      - grade_level_id
+      - homeroom_name
+      - policy
+      - mark_rule
+      - membership_ends_on
+      - group_assignments
+      - state
+      properties:
+        input:
+          $ref: '#/components/schemas/AcademicTransitionInput'
+        fingerprint:
+          type: string
+          pattern: ^[a-f0-9]{64}$
+        learner_name:
+          type: string
+        grade_level_id:
+          type:
+          - integer
+          - 'null'
+          minimum: 1
+        homeroom_name:
+          type: string
+        policy:
+          anyOf:
+          - $ref: '#/components/schemas/AcademicTransitionGradePolicy'
+          - type: 'null'
+        mark_rule:
+          type:
+          - string
+          - 'null'
+          pattern: ^(catch_up|excused|carried)$
+        membership_ends_on:
+          type: string
+          pattern: ^\d{4}-\d{2}-\d{2}$
+        group_assignments:
+          type: array
+          items:
+            $ref: '#/components/schemas/AcademicTransitionAssignment'
+        state:
+          $ref: '#/components/schemas/AcademicTransitionState'
+    AcademicTransitionYear:
+      type: object
+      additionalProperties: false
+      required:
+      - id
+      - name
+      - starts_on
+      - ends_on
+      properties:
+        id:
+          type: integer
+          minimum: 1
+        name:
+          type: string
+        starts_on:
+          type:
+          - string
+          - 'null'
+          pattern: ^\d{4}-\d{2}-\d{2}$
+        ends_on:
+          type:
+          - string
+          - 'null'
+          pattern: ^\d{4}-\d{2}-\d{2}$
+    AcademicTransitionGrade:
+      type: object
+      additionalProperties: false
+      required:
+      - id
+      - name
+      - policy
+      properties:
+        id:
+          type: integer
+          minimum: 1
+        name:
+          type: string
+        policy:
+          $ref: '#/components/schemas/AcademicTransitionGradePolicy'
+    AcademicTransitionHomeroom:
+      type: object
+      additionalProperties: false
+      required:
+      - id
+      - name
+      - grade_level_id
+      properties:
+        id:
+          type: integer
+          minimum: 1
+        name:
+          type: string
+        grade_level_id:
+          type:
+          - integer
+          - 'null'
+          minimum: 1
+    AcademicTransitionGroup:
+      type: object
+      additionalProperties: false
+      required:
+      - id
+      - name
+      - subject_name
+      - grade_level_id
+      - class_section_id
+      properties:
+        id:
+          type: integer
+          minimum: 1
+        name:
+          type: string
+        subject_name:
+          type: string
+        grade_level_id:
+          type: integer
+          minimum: 1
+        class_section_id:
+          type:
+          - integer
+          - 'null'
+          minimum: 1
+    AcademicTransitionConfiguration:
+      type: object
+      additionalProperties: false
+      required:
+      - session_year_id
+      - school_years
+      - grades
+      - homerooms
+      - groups
+      - retention
+      properties:
+        session_year_id:
+          type: integer
+          minimum: 1
+        school_years:
+          type: array
+          items:
+            $ref: '#/components/schemas/AcademicTransitionYear'
+        grades:
+          type: array
+          items:
+            $ref: '#/components/schemas/AcademicTransitionGrade'
+        homerooms:
+          type: array
+          items:
+            $ref: '#/components/schemas/AcademicTransitionHomeroom'
+        groups:
+          type: array
+          items:
+            $ref: '#/components/schemas/AcademicTransitionGroup'
+        retention:
+          $ref: '#/components/schemas/AcademicTransitionRetention'
+    AcademicTransitionLearnerChoice:
+      type: object
+      additionalProperties: false
+      required:
+      - id
+      - name
+      - student_number
+      properties:
+        id:
+          type: integer
+          minimum: 1
+        name:
+          type: string
+        student_number:
+          type:
+          - string
+          - 'null'
+    AcademicTransitionSearch:
+      type: object
+      additionalProperties: false
+      required:
+      - page
+      - last_page
+      - learners
+      properties:
+        page:
+          type: integer
+          minimum: 1
+        last_page:
+          type: integer
+          minimum: 1
+        learners:
+          type: array
+          items:
+            $ref: '#/components/schemas/AcademicTransitionLearnerChoice'
+          maxItems: 50
+    AcademicExitSelection:
+      type: object
+      additionalProperties: false
+      required:
+      - transition_id
+      - report_ids
+      - document_ids
+      properties:
+        transition_id:
+          type: integer
+          minimum: 1
+        report_ids:
+          type: array
+          items:
+            type: integer
+            minimum: 1
+          maxItems: 200
+          uniqueItems: true
+        document_ids:
+          type: array
+          items:
+            type: string
+            format: uuid
+          maxItems: 20
+          uniqueItems: true
+    AcademicExitPrepare:
+      type: object
+      additionalProperties: false
+      required:
+      - transition_id
+      - report_ids
+      - document_ids
+      - operation_id
+      - fingerprint
+      properties:
+        transition_id:
+          type: integer
+          minimum: 1
+        report_ids:
+          type: array
+          items:
+            type: integer
+            minimum: 1
+          maxItems: 200
+          uniqueItems: true
+        document_ids:
+          type: array
+          items:
+            type: string
+            format: uuid
+          maxItems: 20
+          uniqueItems: true
+        operation_id:
+          type: string
+          format: uuid
+        fingerprint:
+          type: string
+          pattern: ^[a-f0-9]{64}$
+    AcademicExitReportChoice:
+      type: object
+      additionalProperties: false
+      required:
+      - id
+      - year_name
+      - term_name
+      - released_at
+      properties:
+        id:
+          type: integer
+          minimum: 1
+        year_name:
+          type: string
+        term_name:
+          type:
+          - string
+          - 'null'
+        released_at:
+          type: string
+          format: date-time
+    AcademicExitReportEvidence:
+      type: object
+      additionalProperties: false
+      required:
+      - id
+      - year_name
+      - term_name
+      - released_at
+      - sha256
+      - fingerprint
+      properties:
+        id:
+          type: integer
+          minimum: 1
+        year_name:
+          type: string
+        term_name:
+          type:
+          - string
+          - 'null'
+        released_at:
+          type: string
+          format: date-time
+        sha256:
+          type:
+          - string
+          - 'null'
+        fingerprint:
+          type: string
+          pattern: ^[a-f0-9]{64}$
+    AcademicExitDocumentChoice:
+      type: object
+      additionalProperties: false
+      required:
+      - id
+      - definition_id
+      - name
+      - mime
+      - extension
+      - bytes
+      properties:
+        id:
+          type: string
+          format: uuid
+        definition_id:
+          type: integer
+          minimum: 1
+        name:
+          type: string
+        mime:
+          type: string
+        extension:
+          type: string
+        bytes:
+          type: integer
+          minimum: 0
+    AcademicExitDocumentEvidence:
+      type: object
+      additionalProperties: false
+      required:
+      - id
+      - definition_id
+      - name
+      - mime
+      - extension
+      - bytes
+      - source_sha256
+      properties:
+        id:
+          type: string
+          format: uuid
+        definition_id:
+          type: integer
+          minimum: 1
+        name:
+          type: string
+        mime:
+          type: string
+        extension:
+          type: string
+        bytes:
+          type: integer
+          minimum: 0
+        source_sha256:
+          type:
+          - string
+          - 'null'
+    AcademicExitIssue:
+      type: object
+      additionalProperties: false
+      required:
+      - type
+      - id
+      properties:
+        type:
+          type: string
+        id:
+          type: string
+    AcademicExitPreview:
+      type: object
+      additionalProperties: false
+      required:
+      - selection
+      - learner_id
+      - learner_name
+      - last_attended_on
+      - attendance_through
+      - reports
+      - documents
+      - released_mark_count
+      - attendance_count
+      - enrolment_count
+      - fingerprint
+      - can_prepare
+      - issues
+      - estimated_bytes
+      - retention_days
+      properties:
+        selection:
+          $ref: '#/components/schemas/AcademicExitSelection'
+        learner_id:
+          type: integer
+          minimum: 1
+        learner_name:
+          type: string
+        last_attended_on:
+          type: string
+          pattern: ^\d{4}-\d{2}-\d{2}$
+        attendance_through:
+          type: string
+          pattern: ^\d{4}-\d{2}-\d{2}$
+        reports:
+          type: array
+          items:
+            $ref: '#/components/schemas/AcademicExitReportEvidence'
+        documents:
+          type: array
+          items:
+            $ref: '#/components/schemas/AcademicExitDocumentEvidence'
+        released_mark_count:
+          type: integer
+        attendance_count:
+          type: integer
+        enrolment_count:
+          type: integer
+        fingerprint:
+          type: string
+          pattern: ^[a-f0-9]{64}$
+        can_prepare:
+          type: boolean
+        issues:
+          type: array
+          items:
+            $ref: '#/components/schemas/AcademicExitIssue'
+        estimated_bytes:
+          type: integer
+        retention_days:
+          type: integer
+    AcademicExitPackage:
+      type: object
+      additionalProperties: false
+      required:
+      - id
+      - transition_id
+      - learner_id
+      - state
+      - failure_code
+      - expires_at
+      - generated_at
+      - artifact_sha256
+      - artifact_bytes
+      - signing_public_key
+      - signing_key_id
+      - download_url
+      properties:
+        id:
+          type: integer
+          minimum: 1
+        transition_id:
+          type: integer
+          minimum: 1
+        learner_id:
+          type: integer
+          minimum: 1
+        state:
+          type: string
+          pattern: ^(queued|ready|failed|expired)$
+        failure_code:
+          type:
+          - string
+          - 'null'
+        expires_at:
+          type: string
+          format: date-time
+        generated_at:
+          type:
+          - string
+          - 'null'
+          format: date-time
+        artifact_sha256:
+          type:
+          - string
+          - 'null'
+        artifact_bytes:
+          type:
+          - integer
+          - 'null'
+        signing_public_key:
+          type:
+          - string
+          - 'null'
+        signing_key_id:
+          type:
+          - string
+          - 'null'
+        download_url:
+          type:
+          - string
+          - 'null'
+          format: uri
+    AcademicTransitionLearner:
+      type: object
+      additionalProperties: false
+      required:
+      - id
+      - name
+      - student_number
+      - state
+      - page
+      - last_page
+      - transitions
+      - can_export
+      - report_choices_truncated
+      - report_choices
+      - document_choices
+      - exports
+      properties:
+        id:
+          type: integer
+          minimum: 1
+        name:
+          type: string
+        student_number:
+          type:
+          - string
+          - 'null'
+        state:
+          $ref: '#/components/schemas/AcademicTransitionState'
+        page:
+          type: integer
+          minimum: 1
+        last_page:
+          type: integer
+          minimum: 1
+        transitions:
+          type: array
+          items:
+            $ref: '#/components/schemas/AcademicTransitionRecord'
+          maxItems: 50
+        can_export:
+          type: boolean
+        report_choices_truncated:
+          type: boolean
+        report_choices:
+          type: array
+          items:
+            $ref: '#/components/schemas/AcademicExitReportChoice'
+          maxItems: 200
+        document_choices:
+          type: array
+          items:
+            $ref: '#/components/schemas/AcademicExitDocumentChoice'
+        exports:
+          type: array
+          items:
+            $ref: '#/components/schemas/AcademicExitPackage'
+          maxItems: 50
+    AcademicTransitionConfigurationResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - code
+      - data
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        code:
+          type: integer
+        data:
+          $ref: '#/components/schemas/AcademicTransitionConfiguration'
+    AcademicTransitionSearchResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - code
+      - data
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        code:
+          type: integer
+        data:
+          $ref: '#/components/schemas/AcademicTransitionSearch'
+    AcademicTransitionLearnerResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - code
+      - data
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        code:
+          type: integer
+        data:
+          $ref: '#/components/schemas/AcademicTransitionLearner'
+    AcademicTransitionGradePolicyResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - code
+      - data
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        code:
+          type: integer
+        data:
+          $ref: '#/components/schemas/AcademicTransitionGradePolicy'
+    AcademicTransitionRetentionResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - code
+      - data
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        code:
+          type: integer
+        data:
+          $ref: '#/components/schemas/AcademicTransitionRetention'
+    AcademicTransitionPreviewResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - code
+      - data
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        code:
+          type: integer
+        data:
+          $ref: '#/components/schemas/AcademicTransitionPreview'
+    AcademicTransitionRecordResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - code
+      - data
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        code:
+          type: integer
+        data:
+          $ref: '#/components/schemas/AcademicTransitionRecord'
+    AcademicExitPreviewResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - code
+      - data
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        code:
+          type: integer
+        data:
+          $ref: '#/components/schemas/AcademicExitPreview'
+    AcademicExitPackageResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - code
+      - data
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        code:
+          type: integer
+        data:
+          $ref: '#/components/schemas/AcademicExitPackage'

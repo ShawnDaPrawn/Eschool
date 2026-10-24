@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Middleware;
 
+use App\Services\Academics\Transitions\LearnerAcademicAccess;
 use App\Services\Platform\Identity\ApprovalService;
 use Closure;
 use Illuminate\Http\Request;
@@ -15,6 +16,7 @@ class EnsureLearnerApproved
     {
         if ($request->user() !== null) {
             app(ApprovalService::class)->assertAccess($request->user());
+            app(LearnerAcademicAccess::class)->assertRequest($request);
         }
 
         return $next($request);

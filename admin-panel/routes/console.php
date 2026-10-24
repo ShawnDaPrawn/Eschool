@@ -1,6 +1,7 @@
 <?php
 
 use App\Console\Commands\FlagDobPasswords;
+use App\Jobs\Platform\ApplyRetention;
 use App\Jobs\Platform\DispatchOutbox;
 use App\Models\People\Enrolment;
 use App\Models\Platform\IdempotencyKey;
@@ -72,3 +73,6 @@ Schedule::call(function () {
 Schedule::command('academics:refresh-allocations')->everyMinute()->name('academic-allocation-projections')->withoutOverlapping();
 
 Schedule::command('academics:register-absence-alerts')->everyMinute()->name('register-absence-alerts')->withoutOverlapping();
+
+// Expire private academic exit copies; canonical records remain retained.
+Schedule::job(new ApplyRetention)->dailyAt('02:40')->name('academic-export-retention')->withoutOverlapping();

@@ -50,6 +50,19 @@ class OpenApiContractTest extends TestCase
     public static function scenarios(): array
     {
         return [
+            'getAcademicTransitionConfiguration' => ['superadmin', 'GET', 'api/v2/academics/transitions/configuration', [], 200],
+            'searchAcademicTransitionLearners' => ['superadmin', 'GET', 'api/v2/academics/transitions/learners', [], 200],
+            'getAcademicTransitionLearner' => ['superadmin', 'GET', 'api/v2/academics/transitions/learners/999999', [], 404],
+            'saveAcademicTransitionGradePolicy' => ['superadmin', 'PUT', 'api/v2/academics/transitions/policies/999999', [], 422],
+            'saveAcademicExitRetention' => ['superadmin', 'PUT', 'api/v2/academics/transitions/retention', [], 422],
+            'previewAcademicTransition' => ['superadmin', 'POST', 'api/v2/academics/transitions/preview', [], 422],
+            'commitAcademicTransition' => ['superadmin', 'POST', 'api/v2/academics/transitions/commit', [], 422],
+            'previewAcademicExitPackage' => ['superadmin', 'POST', 'api/v2/academics/transitions/exports/preview', [], 422],
+            'prepareAcademicExitPackage' => ['superadmin', 'POST', 'api/v2/academics/transitions/exports/prepare', [], 422],
+            'getAcademicExitPackage' => ['superadmin', 'GET', 'api/v2/academics/transitions/exports/999999', [], 404],
+            'retryAcademicExitPackage' => ['superadmin', 'POST', 'api/v2/academics/transitions/exports/999999/retry', [], 404],
+            'downloadAcademicExitPackage' => ['superadmin', 'GET', 'api/v2/academics/transitions/exports/999999/download', [], 403],
+            'transition config parent refusal' => ['farid', 'GET', 'api/v2/academics/transitions/configuration', [], 403],
             'report link refresh unknown card' => ['farid', 'GET', 'api/v2/academics/reports/cards/999999/access', [], 404],
             'report roster validation' => ['superadmin', 'GET', 'api/v2/academics/reports/roster', [], 422],
             'report config parent refusal' => ['farid', 'GET', 'api/v2/academics/reports/configuration', [], 403],

@@ -418,4 +418,53 @@ text before conflict review, so review/save retains the attempted comment rather
 than stale textarea text. The allocated-comment list now excludes leadership
 overrides; those remain in batch review with a correction-reason field. All 190
 report/API contract checks pass (1,279 assertions), with clean Larastan and style.
-Final CI must pass on the updated head before merge.
+Final CI #333, Security and Firebase workflows passed on 0a005bbb; PR #96 merged into main.
+
+
+### Mid-year learner changes and signed exit copies (24 October 2026)
+
+Added office join/leave/subject-change previews and commits, grade-policy CAS,
+immutable encrypted facts and retained cancellation history. Learner access ends
+on the day following the inclusive departure date, checked before issuance and
+on requests; another school and parent/staff roles remain usable. Joins may proceed
+before subject allocation, and unmapped legacy homerooms may process departures.
+No money is posted and no approval/activation is inferred. Carried canonical marks
+are reused without score copies; catch-up/excused never invent zeros.
+
+Exit evidence includes selected actual released report PDFs and permitted current
+documents, released marks, captured attendance and enrolment history. Tests verify
+real ZIP bytes, every file checksum and a detached Ed25519 manifest signature,
+encrypted private storage, reader/school/owner/field revocation, stale generation
+attempts, source changes, corruption, copy expiry and source-record retention.
+Changing retention requires re-preview for a new copy; queued copies retain their
+pinned expiry. Larger histories/files fail with a scoped-export instruction.
+
+A full local backend run completed with 1,392 passes and two failures: the new
+navigation label was absent from panel translations, and updating class projections
+exposed an old dangling-homeroom fixture. Both were fixed; the subsequent affected
+279-check cohort passed (2,728 assertions), including legacy marks, identity,
+reports, navigation, all v2 contracts and tenancy migrations. Final follow-up
+coverage adds inactive-learner office access and document-field revocation.
+
+All 40 SDK tests pass; generated SDK has 607 files and analysis has no errors or
+warnings (generator style infos remain). A real SDK test caught date-only values
+being serialized as timestamps: transition school-day fields now use explicit
+YYYY-MM-DD text. Strict OpenAPI lint, E2E TypeScript, actionlint, Composer validation,
+route cache/clear and documentation build passed. Runtime/CI explicitly require
+sodium and zip; Composer dependency package versions did not change.
+
+Actual Chrome/Playwright: full join → subject change → departure → preview → queued
+signed ZIP download passes at 1024 and 1280; ordinary teacher access returns 403.
+All three flows pass axe serious/critical, overflow and console checks. Browser
+rehearsal found and fixed the unapproved-learner document-lookup 404 and checksum
+text contrast. Rehearsals create fresh synthetic learners without deleting history
+or activating an account. CI on the published head is still required before merge.
+
+Wider Phase 1 retention-policy acceptance, real recipient hand-off, physical
+phones, full-term parallel pilot, staging load budgets and independent security
+review remain external evidence. They do not freeze independent Phase 2 work.
+No production deployment or paid provisioning was performed.
+
+Final mid-year follow-up: 219 backend checks pass (1,766 assertions), with clean
+Larastan/style after the browser fixes. This includes the inactive learner office
+page, retained-export field revocation and the retention preview race.

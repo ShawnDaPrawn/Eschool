@@ -20,7 +20,7 @@ class EnrolmentController extends Controller
     {
         $student = Students::query()->findOrFail($learner);
         Gate::authorize('viewEnrolments', $student);
-        $entries = Enrolment::query()->where('learner_id', $student->id)
+        $entries = Enrolment::withTrashed()->where('learner_id', $student->id)
             ->when($request->validated('date'), fn ($query, $date) => $query->onDate($date))
             ->orderByDesc('starts_on')->paginate((int) $request->validated('per_page', 20));
 

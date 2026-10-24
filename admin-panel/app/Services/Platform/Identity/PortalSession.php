@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Services\Platform\Identity;
 
 use App\Models\User;
+use App\Services\Academics\Transitions\LearnerAcademicAccess;
 use App\Services\Platform\Modules\ModuleGate;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -52,6 +53,10 @@ final class PortalSession
             return AppTokens::issue($user, $app);
         }
 
+        if ($app === AppTokens::STUDENT) {
+            app(LearnerAcademicAccess::class)->assertUser($user);
+        }
+
         $portal = match ($app) {
             AppTokens::PARENT => 'parent',
             AppTokens::TEACHER => 'teacher',
@@ -64,6 +69,7 @@ final class PortalSession
         // Sanctum's AuthenticateSession compares this on every request, so a
         // password change from now on ends the session.
         $request->session()->put('password_hash_web', $user->getAuthPassword());
+        $request->session()->put('portal_app', $app);
         $request->attributes->set(self::SIGNED_IN, true);
 
         return '';

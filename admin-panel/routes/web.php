@@ -35,6 +35,7 @@ use App\Http\Controllers\Panel\Academics\ReportWorkbenchController;
 use App\Http\Controllers\Panel\Academics\SubjectStandardController;
 use App\Http\Controllers\Panel\Academics\TeachingGroupController;
 use App\Http\Controllers\Panel\Academics\TimetableWorkbenchController;
+use App\Http\Controllers\Panel\Academics\TransitionWorkbenchController;
 use App\Http\Controllers\Panel\People\LearnerInvitationController;
 use App\Http\Controllers\Panel\Platform\SchoolSwitchController;
 use App\Http\Controllers\Panel\SearchController;
@@ -210,6 +211,16 @@ Route::group(['middleware' => ['Role', 'auth', 'school.context', EnforceReadOnly
         Route::get('class-teacher-list', [ClassTeacherController::class, 'show']);
         Route::post('remove-class-teacher/{id}/{class_teacher_id}', [ClassTeacherController::class, 'removeClassTeacher']);
 
+        Route::prefix('academic-transitions')->name('academic-transitions.')->middleware(['module:academics', 'cache.headers:private;no_store'])->group(function () {
+            $controller = TransitionWorkbenchController::class;
+            Route::get('/', [$controller, 'index'])->name('index');
+            foreach (['preview' => 'preview', 'commit' => 'commit', 'export-preview' => 'exportPreview', 'export-prepare' => 'exportPrepare', 'retention' => 'retention'] as $path => $action) {
+                Route::post($path, [$controller, $action])->name($path);
+            }
+            Route::post('policies/{grade}', [$controller, 'policy'])->whereNumber('grade')->name('policy');
+            Route::post('exports/{package}/retry', [$controller, 'exportRetry'])->whereNumber('package')->name('export-retry');
+            Route::get('exports/{package}/download', [$controller, 'exportDownload'])->whereNumber('package')->name('export-download');
+        });
         Route::prefix('academic-reports')->name('academic-reports.')->middleware(['module:academics', 'cache.headers:private;no_store'])->group(function () {
             $controller = ReportWorkbenchController::class;
             Route::get('/', [$controller, 'index'])->name('index');

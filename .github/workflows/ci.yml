@@ -61,7 +61,7 @@ jobs:
       - uses: shivammathur/setup-php@v2
         with:
           php-version: '8.3.36'
-          extensions: mbstring, intl, gd, zip, pdo_mysql, bcmath, exif, fileinfo
+          extensions: mbstring, intl, gd, zip, sodium, pdo_mysql, bcmath, exif, fileinfo
           coverage: none
       - run: composer validate --no-check-publish
       - run: composer install --no-interaction --prefer-dist --no-progress
@@ -350,7 +350,7 @@ jobs:
       - uses: shivammathur/setup-php@v2
         with:
           php-version: '8.3.36'
-          extensions: mbstring, intl, gd, zip, pdo_mysql, bcmath, exif, fileinfo
+          extensions: mbstring, intl, gd, zip, sodium, pdo_mysql, bcmath, exif, fileinfo
           coverage: none
       - run: composer install --no-interaction --prefer-dist --no-progress
       - run: cp .env.example .env && php artisan key:generate --force

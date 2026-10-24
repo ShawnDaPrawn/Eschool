@@ -16,6 +16,8 @@ part 'enrolment.g.dart';
 class Enrolment {
   /// Returns a new [Enrolment] instance.
   Enrolment({
+    this.cancelledAt,
+
     required this.id,
 
     required this.learnerId,
@@ -34,6 +36,9 @@ class Enrolment {
 
     required this.previousEnrolmentId,
   });
+
+  @JsonKey(name: r'cancelled_at', required: false, includeIfNull: false)
+  final DateTime? cancelledAt;
 
   @JsonKey(name: r'id', required: true, includeIfNull: false)
   final int id;
@@ -66,6 +71,7 @@ class Enrolment {
   bool operator ==(Object other) =>
       identical(this, other) ||
       other is Enrolment &&
+          other.cancelledAt == cancelledAt &&
           other.id == id &&
           other.learnerId == learnerId &&
           other.classSectionId == classSectionId &&
@@ -78,6 +84,7 @@ class Enrolment {
 
   @override
   int get hashCode =>
+      (cancelledAt == null ? 0 : cancelledAt.hashCode) +
       id.hashCode +
       learnerId.hashCode +
       classSectionId.hashCode +
