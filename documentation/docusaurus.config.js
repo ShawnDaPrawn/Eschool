@@ -10,9 +10,11 @@ import { themes as prismThemes } from 'prism-react-renderer';
 
 /** @type {import('@docusaurus/types').Config} */
 const config = {
-  title: 'eSchool Documentation',
-  tagline: 'Comprehensive documentation for eSchool covering installation, setup, features, and support.',
-  favicon: 'images/logo/logo.png',
+  title: 'NavigateEd',
+  tagline: 'Setup guides and everyday help for your connected school.',
+  favicon: 'navigateed/student-app-icon.svg',
+  // Publish the canonical brand assets without maintaining a second copy.
+  staticDirectories: ['static', '../branding'],
 
   // Set the production url of your site here. DOCS_URL and DOCS_BASE_URL
   // override both for other hosts, e.g. Firebase Hosting serves from '/'.
@@ -118,11 +120,14 @@ const config = {
     /** @type {import('@docusaurus/preset-classic').ThemeConfig} */
     ({
       // Replace with your project's social card
-      image: 'images/logo/transparent_logo.svg',
+      image: 'navigateed/primary.svg',
       navbar: {
         logo: {
-          alt: 'eSchool Logo',
-          src: 'images/logo/transparent_logo.svg',
+          alt: 'NavigateEd documentation home',
+          src: 'navigateed/primary.svg',
+          srcDark: 'navigateed/reversed.svg',
+          width: 164,
+          height: 48,
         },
         items: [
           {
@@ -130,21 +135,21 @@ const config = {
             type: 'docSidebar',
             sidebarId: 'mobileAppSidebar',
             position: 'left',
-            label: 'Mobile App',
+            label: 'Apps',
           },
           {
             docsPluginId: 'admin-panel',
             type: 'docSidebar',
             sidebarId: 'adminPanelSidebar',
             position: 'left',
-            label: 'Admin Panel',
+            label: 'Admin panel',
           },
           {
             docsPluginId: 'web-page',
             type: 'docSidebar',
             sidebarId: 'webPageSidebar',
             position: 'left',
-            label: 'Web Pages',
+            label: 'Website',
           },
           {
             docsPluginId: 'features',
@@ -154,25 +159,14 @@ const config = {
             label: 'Features',
           },
           {
-            docId: 'index',
-            docsPluginId: 'support',
-            type: 'doc',
             position: 'left',
-            label: 'Support',
-          },
-          {
-            docId: 'index',
-            docsPluginId: 'faqs',
-            type: 'doc',
-            position: 'left',
-            label: 'FAQs',
-          },
-          {
-            docId: 'index',
-            docsPluginId: 'changelog',
-            type: 'doc',
-            position: 'left',
-            label: 'Changelog',
+            label: 'Resources',
+            type: 'dropdown',
+            items: [
+              { label: 'Support', to: '/support/' },
+              { label: 'FAQs', to: '/faqs/' },
+              { label: 'Changelog', to: '/changelog/' },
+            ],
           },
           {
             type: "search",
@@ -182,7 +176,22 @@ const config = {
       },
       footer: {
         style: "dark",
-        copyright: `Copyright © ${new Date().getFullYear()} Your Company. All rights reserved.`,
+        links: [
+          { title: 'Get started', items: [
+            { label: 'Admin panel', to: '/admin-panel/' },
+            { label: 'Mobile apps', to: '/mobile-app/' },
+            { label: 'School website', to: '/web-page/' },
+          ] },
+          { title: 'Explore', items: [
+            { label: 'Feature guides', to: '/features/' },
+            { label: 'What’s new', to: '/changelog/' },
+          ] },
+          { title: 'We’re here to help', items: [
+            { label: 'Common questions', to: '/faqs/' },
+            { label: 'Support', to: '/support/' },
+          ] },
+        ],
+        copyright: `Copyright © ${new Date().getFullYear()} NavigateEd. All rights reserved.`,
       },
       prism: {
         theme: prismThemes.github,
@@ -207,10 +216,6 @@ const config = {
     ],
   ],
 
-  // Add Font Awesome for icons
-  stylesheets: [
-    "https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css",
-  ],
 };
 
 export default config;

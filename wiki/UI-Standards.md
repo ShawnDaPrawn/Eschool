@@ -276,6 +276,19 @@ Each component's file starts with a comment showing how to use it. The common ru
 `tests/Feature/M3ComponentsTest.php` renders each component and checks the markup the library and the scripts depend on. Add a case when you add a component or an option.
 
 
+## Documentation site
+
+The Docusaurus documentation uses the same generated tokens and Material 3 web
+library through `documentation/src/css/custom.css`, including local Poppins
+fonts. Its navbar and favicon use the canonical `branding/navigateed` assets.
+Light and dark reading surfaces, guide cards, buttons, navigation, search and
+article typography follow this theme. Do not add a second colour palette.
+
+The `Firebase documentation` workflow checks responsive layouts, loaded fonts
+and logos, theme switching, mobile navigation and search before publishing a
+preview. Review the screenshots and preview before a live release; see
+`documentation/README.md` for the hosting workflow.
+
 ## Changing the brand
 
 1. Edit `packages/eschool_core/lib/src/theme/brand_colors.dart`.
