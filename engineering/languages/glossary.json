@@ -398,5 +398,13 @@
   "The :attribute must contain at least one number.": {
     "af": ":attribute moet minstens een syfer bevat.",
     "zu": "I-:attribute kufanele iqukathe okungenani inombolo eyodwa."
+  },
+  "Download the sample file, fill in your questions and upload it. Set question_type to 0 for simple questions or 1 for equation based questions. For equation based questions, wrap each formula in \\( ... \\) (e.g. \\( x^2 = 25 \\)). Provide up to 6 options (option1-option6), with a minimum of 2 options. In correct_options enter the 1-based option numbers of the correct answers, separated by | for multiple correct answers (e.g. 1|3). Images are not supported via import.": {
+    "af": "Laai die voorbeeldlêer af, vul u vrae in en laai dit op. Stel question_type op 0 vir eenvoudige vrae of 1 vir vergelykingsgebaseerde vrae. Plaas elke formule vir vergelykingsgebaseerde vrae tussen \\( ... \\) (bv. \\( x^2 = 25 \\)). Verskaf tot 6 opsies (option1-option6), met minstens 2 opsies. Tik in correct_options die opsienommers van die korrekte antwoorde, getel vanaf 1 en geskei deur | vir meer as een korrekte antwoord (bv. 1|3). Beelde word nie met invoer ondersteun nie.",
+    "zu": "Landa ifayela eliyisampula, gcwalisa imibuzo yakho bese ulilayisha. Setha question_type ibe ngu-0 emibuzweni elula noma 1 emibuzweni yezibalo. Emibuzweni yezibalo, faka ifomula ngayinye phakathi kuka-\\( ... \\) (isb. \\( x^2 = 25 \\)). Nikeza izinketho ezifika kwezi-6 (option1-option6), kube nezinketho okungenani ezi-2. Ku-correct_options faka izinombolo zezinketho zezimpendulo ezifanele, uqale ku-1, uzihlukanise ngo-| uma kunezimpendulo ezifanele ezingaphezu kweyodwa (isb. 1|3). Izithombe azisekelwa ekungeniseni."
+  },
+  "School_conatct": {
+    "af": "Skoolkontak",
+    "zu": "Imininingwane yokuxhumana nesikole"
   }
 }

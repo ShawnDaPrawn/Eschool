@@ -792,3 +792,8 @@ closed through final CI/review and safe merges. Existing reconciliation remains
 available. Target SA-SAMS import qualification, fluent translation, staging/device/
 performance and independent security evidence remain accurately recorded as
 unrun release evidence; no production deployment or budget change is authorized.
+
+Language review follow-up: translated import instructions retain literal CSV
+headings (`question_type`, `option1`–`option6`, `correct_options`), template
+identifiers and math delimiters. The added regression checks all panel keys.
+The four focused panel language tests pass with 21,685 assertions; Pint passes.
