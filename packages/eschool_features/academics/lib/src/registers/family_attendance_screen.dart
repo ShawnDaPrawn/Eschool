@@ -1,3 +1,4 @@
+import '../localization/academic_text.dart';
 import 'package:eschool_api/eschool_api.dart';
 import 'package:eschool_core/eschool_core.dart';
 import 'package:flutter/material.dart';
@@ -69,18 +70,18 @@ class _FamilyAttendanceScreenState extends State<FamilyAttendanceScreen> {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Replace learner QR code?'),
-        content: const Text(
+        title: const AcademicText('Replace learner QR code?'),
+        content: const AcademicText(
           'Previous copies will stop working. Give the new code to the school before the next scan.',
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
-            child: const Text('Keep current code'),
+            child: const AcademicText('Keep current code'),
           ),
           FilledButton(
             onPressed: () => Navigator.pop(context, true),
-            child: const Text('Replace code'),
+            child: const AcademicText('Replace code'),
           ),
         ],
       ),
@@ -122,12 +123,12 @@ class _FamilyAttendanceScreenState extends State<FamilyAttendanceScreen> {
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      const Text(
+                      const AcademicText(
                         'Attendance is unavailable. Check your access and try again.',
                       ),
                       TextButton(
                         onPressed: () => setState(() => _future = _load()),
-                        child: const Text('Try again'),
+                        child: const AcademicText('Try again'),
                       ),
                     ],
                   ),
@@ -151,7 +152,9 @@ class _FamilyAttendanceScreenState extends State<FamilyAttendanceScreen> {
                   if (data.today.entries.isEmpty)
                     const Padding(
                       padding: EdgeInsets.symmetric(vertical: 16),
-                      child: Text('No attendance has been captured for today.'),
+                      child: AcademicText(
+                        'No attendance has been captured for today.',
+                      ),
                     ),
                   for (final entry in data.today.entries)
                     Card(
@@ -172,13 +175,13 @@ class _FamilyAttendanceScreenState extends State<FamilyAttendanceScreen> {
                       ),
                     ),
                   const SizedBox(height: 24),
-                  Text(
+                  AcademicText(
                     'Learner attendance QR',
                     style: Theme.of(context).textTheme.titleLarge,
                   ),
                   const Padding(
                     padding: EdgeInsets.symmetric(vertical: 8),
-                    child: Text(
+                    child: AcademicText(
                       'Show this code to the teacher for a register scan. Only authorized staff can record attendance.',
                     ),
                   ),
@@ -197,7 +200,7 @@ class _FamilyAttendanceScreenState extends State<FamilyAttendanceScreen> {
                   Center(
                     child: TextButton(
                       onPressed: _rotate,
-                      child: const Text('Replace QR code'),
+                      child: const AcademicText('Replace QR code'),
                     ),
                   ),
                 ],

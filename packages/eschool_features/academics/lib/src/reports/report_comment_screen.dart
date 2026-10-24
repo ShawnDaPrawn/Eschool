@@ -1,3 +1,4 @@
+import '../localization/academic_text.dart';
 import 'package:eschool_api/eschool_api.dart';
 import 'package:eschool_core/eschool_core.dart';
 import 'package:flutter/material.dart';
@@ -47,18 +48,18 @@ class _ReportCommentScreenState extends State<ReportCommentScreen> {
     return await showDialog<bool>(
           context: context,
           builder: (context) => AlertDialog(
-            title: const Text('Keep editing this comment?'),
-            content: const Text(
+            title: const AcademicText('Keep editing this comment?'),
+            content: const AcademicText(
               'Your unsaved comment is kept on this screen. Leaving discards it.',
             ),
             actions: [
               TextButton(
                 onPressed: () => Navigator.pop(context, false),
-                child: const Text('Keep editing'),
+                child: const AcademicText('Keep editing'),
               ),
               TextButton(
                 onPressed: () => Navigator.pop(context, true),
-                child: const Text('Discard and leave'),
+                child: const AcademicText('Discard and leave'),
               ),
             ],
           ),
@@ -125,7 +126,7 @@ class _ReportCommentScreenState extends State<ReportCommentScreen> {
       final keep = await showDialog<bool>(
         context: context,
         builder: (context) => AlertDialog(
-          title: const Text('Compare comments'),
+          title: const AcademicText('Compare comments'),
           content: SizedBox(
             width: 600,
             child: SingleChildScrollView(
@@ -133,12 +134,12 @@ class _ReportCommentScreenState extends State<ReportCommentScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  const Text('Latest saved'),
+                  const AcademicText('Latest saved'),
                   SelectableText(
                     current.text.isEmpty ? 'No comment' : current.text,
                   ),
                   const SizedBox(height: 16),
-                  const Text('Your draft'),
+                  const AcademicText('Your draft'),
                   SelectableText(_cubit.state.text),
                 ],
               ),
@@ -147,15 +148,15 @@ class _ReportCommentScreenState extends State<ReportCommentScreen> {
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(context),
-              child: const Text('Keep reviewing'),
+              child: const AcademicText('Keep reviewing'),
             ),
             TextButton(
               onPressed: () => Navigator.pop(context, false),
-              child: const Text('Use saved'),
+              child: const AcademicText('Use saved'),
             ),
             FilledButton(
               onPressed: () => Navigator.pop(context, true),
-              child: const Text('Keep my draft'),
+              child: const AcademicText('Keep my draft'),
             ),
           ],
         ),
@@ -201,7 +202,7 @@ class _ReportCommentScreenState extends State<ReportCommentScreen> {
             ),
             const Padding(
               padding: EdgeInsets.symmetric(vertical: 12),
-              child: Text(
+              child: AcademicText(
                 'Saving a changed comment clears previous signatures. Review the report again before release.',
               ),
             ),
@@ -234,8 +235,8 @@ class _ReportCommentScreenState extends State<ReportCommentScreen> {
               maxLength: 3000,
               minLines: 5,
               maxLines: 12,
-              decoration: const InputDecoration(
-                labelText: 'Report comment',
+              decoration: InputDecoration(
+                labelText: academicText(context, 'Report comment'),
                 alignLabelWithHint: true,
               ),
               onChanged: _cubit.change,
@@ -245,10 +246,12 @@ class _ReportCommentScreenState extends State<ReportCommentScreen> {
                 controller: _reason,
                 enabled: !state.busy,
                 maxLength: 500,
-                decoration: const InputDecoration(
-                  labelText: 'Correction reason',
-                  helperText:
-                      'Required if you do not hold this teaching allocation.',
+                decoration: InputDecoration(
+                  labelText: academicText(context, 'Correction reason'),
+                  helperText: academicText(
+                    context,
+                    'Required if you do not hold this teaching allocation.',
+                  ),
                 ),
               ),
             Wrap(
@@ -265,14 +268,14 @@ class _ReportCommentScreenState extends State<ReportCommentScreen> {
                 ),
                 OutlinedButton(
                   onPressed: state.busy || _reviewing ? null : _compare,
-                  child: const Text('Compare with saved'),
+                  child: const AcademicText('Compare with saved'),
                 ),
               ],
             ),
             if (!state.dirty && !state.busy)
               const Padding(
                 padding: EdgeInsets.only(top: 12),
-                child: Text('Comment matches the saved version.'),
+                child: AcademicText('Comment matches the saved version.'),
               ),
           ],
         ),

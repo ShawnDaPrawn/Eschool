@@ -1,3 +1,4 @@
+import '../localization/academic_text.dart';
 import 'package:eschool_core/eschool_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -84,14 +85,16 @@ class _ReportPdfScreenState extends State<ReportPdfScreen>
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-            content: Text('A report copy was saved to this device.'),
+            content: AcademicText('A report copy was saved to this device.'),
           ),
         );
       }
     } catch (_) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Could not save the report copy.')),
+          const SnackBar(
+            content: AcademicText('Could not save the report copy.'),
+          ),
         );
       }
     } finally {
@@ -120,17 +123,17 @@ class _ReportPdfScreenState extends State<ReportPdfScreen>
                 OutlinedButton.icon(
                   onPressed: state.busy ? null : _cubit.load,
                   icon: const Icon(Icons.refresh),
-                  label: const Text('Refresh access'),
+                  label: const AcademicText('Refresh access'),
                 ),
                 OutlinedButton.icon(
                   onPressed: state.bytes == null || !_pdfReady || _saving
                       ? null
                       : _save,
                   icon: const Icon(Icons.download_outlined),
-                  label: const Text('Save a copy'),
+                  label: const AcademicText('Save a copy'),
                 ),
-                if (_pdfReady) const Text('Report preview ready'),
-                const Text(
+                if (_pdfReady) const AcademicText('Report preview ready'),
+                const AcademicText(
                   'Saved copies remain on your device. Keep them private.',
                 ),
               ],
@@ -161,7 +164,7 @@ class _ReportPdfScreenState extends State<ReportPdfScreen>
                           ),
                           TextButton(
                             onPressed: _cubit.load,
-                            child: const Text('Try again'),
+                            child: const AcademicText('Try again'),
                           ),
                         ],
                       ),

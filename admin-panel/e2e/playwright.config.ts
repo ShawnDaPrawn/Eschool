@@ -49,7 +49,7 @@ export default defineConfig({
     },
     {
       name: 'flows',
-      testMatch: /(navigation|search|year-switcher|school-switcher|modules|notification-rules|profile-fields|school-information|school-terms|subject-standards|curriculum-plans|teaching-groups|academic-timetable|academic-registers|academic-reports|academic-transitions|academic-content|academic-sasams|communication-messages)\.spec\.ts/,
+      testMatch: /(navigation|search|year-switcher|school-switcher|modules|notification-rules|profile-fields|school-information|school-terms|subject-standards|curriculum-plans|teaching-groups|academic-timetable|academic-registers|academic-reports|academic-transitions|academic-content|academic-sasams|academic-languages|communication-messages)\.spec\.ts/,
       use: { ...desktop, viewport: { width: 1280, height: 800 } },
     },
     {

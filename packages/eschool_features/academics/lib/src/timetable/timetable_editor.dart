@@ -1,3 +1,4 @@
+import '../localization/academic_text.dart';
 import 'package:eschool_api/eschool_api.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -27,15 +28,15 @@ class _TimetableEditorState extends State<TimetableEditor> {
       final discard = await showDialog<bool>(
         context: context,
         builder: (context) => AlertDialog(
-          title: const Text('Discard placement changes?'),
+          title: const AcademicText('Discard placement changes?'),
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(context, false),
-              child: const Text('Keep editing'),
+              child: const AcademicText('Keep editing'),
             ),
             FilledButton(
               onPressed: () => Navigator.pop(context, true),
-              child: const Text('Discard'),
+              child: const AcademicText('Discard'),
             ),
           ],
         ),
@@ -59,7 +60,7 @@ class _TimetableEditorState extends State<TimetableEditor> {
       initialValue: value,
       isExpanded: true,
       itemHeight: null,
-      decoration: InputDecoration(labelText: label),
+      decoration: InputDecoration(labelText: academicText(context, label)),
       items: [
         for (final entry in options.entries)
           DropdownMenuItem(
@@ -98,10 +99,10 @@ class _TimetableEditorState extends State<TimetableEditor> {
       initialValue: value ?? '',
       readOnly: true,
       decoration: InputDecoration(
-        labelText: label,
+        labelText: academicText(context, label),
         suffixIcon: optional && value != null
             ? IconButton(
-                tooltip: 'Clear specific date',
+                tooltip: academicText(context, 'Clear specific date'),
                 onPressed: state.busy ? null : () => _change({field: null}),
                 icon: const Icon(Icons.clear),
               )
@@ -145,9 +146,11 @@ class _TimetableEditorState extends State<TimetableEditor> {
       final draft = state.draft, config = state.configuration;
       if (draft == null || config == null || state.week?.canManage != true) {
         return AlertDialog(
-          title: const Text('Timetable not available'),
+          title: const AcademicText('Timetable not available'),
           content: Text(state.error ?? 'Reload your school context.'),
-          actions: [TextButton(onPressed: _close, child: const Text('Close'))],
+          actions: [
+            TextButton(onPressed: _close, child: const AcademicText('Close')),
+          ],
         );
       }
       final groupMode =
@@ -172,13 +175,18 @@ class _TimetableEditorState extends State<TimetableEditor> {
                   key: ValueKey('scope:$groupMode'),
                   initialValue: groupMode,
                   isExpanded: true,
-                  decoration: const InputDecoration(labelText: 'Lesson for'),
+                  decoration: InputDecoration(
+                    labelText: academicText(context, 'Lesson for'),
+                  ),
                   items: const [
                     DropdownMenuItem(
                       value: true,
-                      child: Text('Teaching group'),
+                      child: AcademicText('Teaching group'),
                     ),
-                    DropdownMenuItem(value: false, child: Text('Homeroom')),
+                    DropdownMenuItem(
+                      value: false,
+                      child: AcademicText('Homeroom'),
+                    ),
                   ],
                   onChanged: enabled
                       ? (value) => _change({
@@ -264,11 +272,22 @@ class _TimetableEditorState extends State<TimetableEditor> {
                   key: ValueKey('pattern:${draft['week_pattern']}'),
                   initialValue: draft['week_pattern'] as String,
                   isExpanded: true,
-                  decoration: const InputDecoration(labelText: 'Weeks'),
+                  decoration: InputDecoration(
+                    labelText: academicText(context, 'Weeks'),
+                  ),
                   items: const [
-                    DropdownMenuItem(value: 'all', child: Text('All weeks')),
-                    DropdownMenuItem(value: 'odd', child: Text('Odd weeks')),
-                    DropdownMenuItem(value: 'even', child: Text('Even weeks')),
+                    DropdownMenuItem(
+                      value: 'all',
+                      child: AcademicText('All weeks'),
+                    ),
+                    DropdownMenuItem(
+                      value: 'odd',
+                      child: AcademicText('Odd weeks'),
+                    ),
+                    DropdownMenuItem(
+                      value: 'even',
+                      child: AcademicText('Even weeks'),
+                    ),
                   ],
                   onChanged: enabled
                       ? (value) => _change({'week_pattern': value})
@@ -288,8 +307,8 @@ class _TimetableEditorState extends State<TimetableEditor> {
                 if (widget.lesson != null)
                   SwitchListTile(
                     contentPadding: EdgeInsets.zero,
-                    title: const Text('Lesson active'),
-                    subtitle: const Text(
+                    title: const AcademicText('Lesson active'),
+                    subtitle: const AcademicText(
                       'Cancelling preserves the saved placement and its history.',
                     ),
                     value: draft['active'] as bool,
@@ -335,11 +354,11 @@ class _TimetableEditorState extends State<TimetableEditor> {
           actions: [
             TextButton(
               onPressed: state.busy ? null : _close,
-              child: const Text('Close'),
+              child: const AcademicText('Close'),
             ),
             OutlinedButton(
               onPressed: state.busy ? null : cubit.preview,
-              child: const Text('Preview placement'),
+              child: const AcademicText('Preview placement'),
             ),
             FilledButton(
               onPressed: state.busy || state.preview?.canSave != true
@@ -348,7 +367,7 @@ class _TimetableEditorState extends State<TimetableEditor> {
                       final saved = await cubit.save();
                       if (context.mounted && saved) Navigator.pop(context);
                     },
-              child: const Text('Save timetable'),
+              child: const AcademicText('Save timetable'),
             ),
           ],
         ),

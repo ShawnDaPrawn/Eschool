@@ -1,3 +1,4 @@
+import '../localization/academic_text.dart';
 import 'package:eschool_core/eschool_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -66,10 +67,10 @@ class _FamilyReportsScreenState extends State<FamilyReportsScreen> {
             TextButton.icon(
               onPressed: state.busy ? null : () => _cubit.load(),
               icon: const Icon(Icons.refresh),
-              label: const Text('Refresh reports'),
+              label: const AcademicText('Refresh reports'),
             ),
             if (state.reports.isEmpty && !state.busy)
-              const Text('No released report cards are available yet.'),
+              const AcademicText('No released report cards are available yet.'),
             for (final report in state.reports)
               Card(
                 child: ListTile(
@@ -102,7 +103,7 @@ class _FamilyReportsScreenState extends State<FamilyReportsScreen> {
             if (state.page < state.lastPage)
               OutlinedButton(
                 onPressed: state.busy ? null : () => _cubit.load(more: true),
-                child: const Text('Earlier reports'),
+                child: const AcademicText('Earlier reports'),
               ),
           ],
         ),

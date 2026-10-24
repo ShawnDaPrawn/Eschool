@@ -109,3 +109,15 @@ replacing that implementation with school terms instead of maintaining semester
 compatibility. Migrate stored IDs/references safely and update the bundled apps
 and consumers together; do not create a duplicate semester projection or bridge.
 This exception is specific to semesters, not authorization to break other APIs.
+
+## Phase 2 pilot scope decision (24 October 2026)
+
+The owner has cancelled the pilot stage and requested Phase 2 completion today.
+Pilot onboarding/import tooling, a pilot champion feedback form/status page and
+a full-term production parallel run are removed from Phase 2 completion scope.
+Keep the existing marks reconciliation command available; do not remove data or
+use the cancellation to claim unrun checks passed. Finish and safely merge the
+retained academic, communication, export, language and desktop work. Continue
+recording target SA-SAMS import qualification, fluent translation review, staging/
+device/performance and independent security evidence separately. The cancellation
+is not production release authorization or a spending-budget change.

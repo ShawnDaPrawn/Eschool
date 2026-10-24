@@ -1,3 +1,4 @@
+import '../localization/academic_text.dart';
 import 'package:eschool_api/eschool_api.dart';
 import 'package:eschool_core/eschool_core.dart';
 import 'package:flutter/material.dart';
@@ -192,7 +193,7 @@ class _RegisterHubScreenState extends State<RegisterHubScreen> {
   Widget build(BuildContext context) {
     final choices = _choices;
     final body = ScreenScaffold(
-      title: 'Academic registers',
+      title: academicText(context, 'Academic registers'),
       body: _loading
           ? const Center(child: CircularProgressIndicator())
           : choices == null
@@ -201,7 +202,10 @@ class _RegisterHubScreenState extends State<RegisterHubScreen> {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Text(_error ?? 'No registers are available.'),
-                  TextButton(onPressed: _load, child: const Text('Try again')),
+                  TextButton(
+                    onPressed: _load,
+                    child: const AcademicText('Try again'),
+                  ),
                 ],
               ),
             )
@@ -221,7 +225,7 @@ class _RegisterHubScreenState extends State<RegisterHubScreen> {
                     ),
                     TextButton(
                       onPressed: _busy ? null : _load,
-                      child: const Text('Today'),
+                      child: const AcademicText('Today'),
                     ),
                     SizedBox(
                       width: 200,
@@ -231,8 +235,8 @@ class _RegisterHubScreenState extends State<RegisterHubScreen> {
                         ),
                         initialValue: choices.sessionYearId,
                         isExpanded: true,
-                        decoration: const InputDecoration(
-                          labelText: 'School year',
+                        decoration: InputDecoration(
+                          labelText: academicText(context, 'School year'),
                         ),
                         items: choices.schoolYears
                             .map(
@@ -256,7 +260,7 @@ class _RegisterHubScreenState extends State<RegisterHubScreen> {
                 if (_offline)
                   const Padding(
                     padding: EdgeInsets.symmetric(vertical: 12),
-                    child: Text(
+                    child: AcademicText(
                       'Offline copy. Open a previously prepared register; saved changes sync after current permissions are checked.',
                     ),
                   ),
@@ -271,12 +275,14 @@ class _RegisterHubScreenState extends State<RegisterHubScreen> {
                     ),
                   ),
                 const SizedBox(height: 20),
-                Text(
+                AcademicText(
                   'Homeroom registers',
                   style: Theme.of(context).textTheme.titleLarge,
                 ),
                 if (choices.homerooms.isEmpty)
-                  const Text('No homeroom register is assigned for this day.'),
+                  const AcademicText(
+                    'No homeroom register is assigned for this day.',
+                  ),
                 for (final room in choices.homerooms)
                   Card(
                     child: ListTile(
@@ -288,12 +294,14 @@ class _RegisterHubScreenState extends State<RegisterHubScreen> {
                     ),
                   ),
                 const SizedBox(height: 20),
-                Text(
+                AcademicText(
                   'Period registers',
                   style: Theme.of(context).textTheme.titleLarge,
                 ),
                 if (choices.periods.isEmpty)
-                  const Text('No period register is assigned for this day.'),
+                  const AcademicText(
+                    'No period register is assigned for this day.',
+                  ),
                 for (final period in choices.periods)
                   Card(
                     child: ListTile(
@@ -305,7 +313,7 @@ class _RegisterHubScreenState extends State<RegisterHubScreen> {
                   ),
                 if (_cached.isNotEmpty) ...[
                   const SizedBox(height: 20),
-                  Text(
+                  AcademicText(
                     'Prepared on this device',
                     style: Theme.of(context).textTheme.titleLarge,
                   ),

@@ -1,3 +1,4 @@
+import '../localization/academic_text.dart';
 import 'package:eschool_api/eschool_api.dart';
 import 'package:eschool_core/eschool_core.dart';
 import 'package:flutter/material.dart';
@@ -139,7 +140,7 @@ class _ReportPrepareScreenState extends State<ReportPrepareScreen> {
 
   @override
   Widget build(BuildContext context) => ScreenScaffold(
-    title: 'Prepare report cards',
+    title: academicText(context, 'Prepare report cards'),
     body: ListView(
       padding: const EdgeInsets.all(16),
       children: [
@@ -149,13 +150,15 @@ class _ReportPrepareScreenState extends State<ReportPrepareScreen> {
             _error!,
             style: TextStyle(color: Theme.of(context).colorScheme.error),
           ),
-        const Text(
+        const AcademicText(
           'Choose a reporting period and learners, then preview current evidence. Fees never restrict a report.',
         ),
         DropdownButtonFormField<int>(
           initialValue: _template,
           isExpanded: true,
-          decoration: const InputDecoration(labelText: 'Report design'),
+          decoration: InputDecoration(
+            labelText: academicText(context, 'Report design'),
+          ),
           items: [
             for (final t in widget.configuration.templates)
               DropdownMenuItem(value: t.id, child: Text(t.name)),
@@ -170,7 +173,9 @@ class _ReportPrepareScreenState extends State<ReportPrepareScreen> {
         DropdownButtonFormField<int>(
           initialValue: _room,
           isExpanded: true,
-          decoration: const InputDecoration(labelText: 'Homeroom'),
+          decoration: InputDecoration(
+            labelText: academicText(context, 'Homeroom'),
+          ),
           items: [
             for (final r in widget.configuration.homerooms)
               DropdownMenuItem(value: r.id, child: Text(r.name)),
@@ -187,9 +192,14 @@ class _ReportPrepareScreenState extends State<ReportPrepareScreen> {
           key: ValueKey('term:$_room:$_term'),
           initialValue: _term ?? 0,
           isExpanded: true,
-          decoration: const InputDecoration(labelText: 'Reporting period'),
+          decoration: InputDecoration(
+            labelText: academicText(context, 'Reporting period'),
+          ),
           items: [
-            const DropdownMenuItem(value: 0, child: Text('Annual report')),
+            const DropdownMenuItem(
+              value: 0,
+              child: AcademicText('Annual report'),
+            ),
             for (final t in _terms)
               DropdownMenuItem(value: t.id, child: Text(t.name)),
           ],
@@ -203,15 +213,17 @@ class _ReportPrepareScreenState extends State<ReportPrepareScreen> {
         DropdownButtonFormField<String>(
           initialValue: _mode,
           isExpanded: true,
-          decoration: const InputDecoration(labelText: 'Report type'),
+          decoration: InputDecoration(
+            labelText: academicText(context, 'Report type'),
+          ),
           items: const [
             DropdownMenuItem(
               value: 'official',
-              child: Text('Official completed results'),
+              child: AcademicText('Official completed results'),
             ),
             DropdownMenuItem(
               value: 'running',
-              child: Text('Provisional running report'),
+              child: AcademicText('Provisional running report'),
             ),
           ],
           onChanged: _busy
@@ -222,7 +234,8 @@ class _ReportPrepareScreenState extends State<ReportPrepareScreen> {
                 }),
         ),
         const SizedBox(height: 16),
-        if (_template == null) const Text('Create a report design first.'),
+        if (_template == null)
+          const AcademicText('Create a report design first.'),
         if (_roster != null) ...[
           Text(
             '${_selected.length} of ${_roster!.learners.length} learners selected',
@@ -261,16 +274,16 @@ class _ReportPrepareScreenState extends State<ReportPrepareScreen> {
           onPressed: _busy || _selected.isEmpty || _template == null
               ? null
               : _inspect,
-          child: const Text('Preview selected reports'),
+          child: const AcademicText('Preview selected reports'),
         ),
         if (_preview != null) ...[
           const SizedBox(height: 24),
-          Text(
+          AcademicText(
             'Evidence preview',
             style: Theme.of(context).textTheme.headlineSmall,
           ),
           if (!_preview!.canPrepare)
-            const Text(
+            const AcademicText(
               'Some selected learners need published plans or completed results. Adjust the selection, complete their results, or explicitly choose a provisional report.',
             ),
           for (final payload in _preview!.cards)
@@ -282,7 +295,7 @@ class _ReportPrepareScreenState extends State<ReportPrepareScreen> {
             ),
           FilledButton(
             onPressed: _busy || !_preview!.canPrepare ? null : _prepare,
-            child: const Text('Prepare reviewed reports'),
+            child: const AcademicText('Prepare reviewed reports'),
           ),
         ],
       ],

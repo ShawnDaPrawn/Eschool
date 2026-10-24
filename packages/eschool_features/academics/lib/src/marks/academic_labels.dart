@@ -1,8 +1,9 @@
 import 'package:flutter/widgets.dart';
+import '../localization/academic_text.dart';
 
 /// Academic labels stay together so both apps use the same vocabulary.
 String academicLabel(BuildContext context, String key) =>
-    academicEnglish[key] ?? key;
+    academicText(context, academicEnglish[key] ?? key);
 const academicEnglish = <String, String>{
   'yearResults': 'Year results',
   'noReleased': 'No released results are available yet.',

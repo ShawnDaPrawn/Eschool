@@ -1,3 +1,4 @@
+import '../localization/academic_text.dart';
 import 'package:eschool_api/eschool_api.dart';
 import 'package:eschool_core/eschool_core.dart';
 import 'package:flutter/material.dart';
@@ -124,7 +125,7 @@ class _ReportHubScreenState extends State<ReportHubScreen> {
     final config = _configuration;
     return AdaptiveScaffold(
       body: ScreenScaffold(
-        title: 'Academic report cards',
+        title: academicText(context, 'Academic report cards'),
         body: ListView(
           padding: const EdgeInsets.all(16),
           children: [
@@ -139,14 +140,16 @@ class _ReportHubScreenState extends State<ReportHubScreen> {
                   ? null
                   : () => _load(year: config?.sessionYearId),
               icon: const Icon(Icons.refresh),
-              label: const Text('Refresh reports'),
+              label: const AcademicText('Refresh reports'),
             ),
             if (config != null) ...[
               DropdownButtonFormField<int>(
                 key: ValueKey(config.sessionYearId),
                 initialValue: config.sessionYearId,
                 isExpanded: true,
-                decoration: const InputDecoration(labelText: 'School year'),
+                decoration: InputDecoration(
+                  labelText: academicText(context, 'School year'),
+                ),
                 items: [
                   for (final y in config.schoolYears)
                     DropdownMenuItem(value: y.id, child: Text(y.name)),
@@ -168,7 +171,7 @@ class _ReportHubScreenState extends State<ReportHubScreen> {
                               ),
                             ),
                       icon: const Icon(Icons.add),
-                      label: const Text('Prepare report cards'),
+                      label: const AcademicText('Prepare report cards'),
                     ),
                   if (config.canDesign)
                     OutlinedButton(
@@ -180,17 +183,17 @@ class _ReportHubScreenState extends State<ReportHubScreen> {
                                 configuration: config,
                               ),
                             ),
-                      child: const Text('Designs and comment banks'),
+                      child: const AcademicText('Designs and comment banks'),
                     ),
                 ],
               ),
               const SizedBox(height: 24),
-              Text(
+              AcademicText(
                 'My report comments',
                 style: Theme.of(context).textTheme.headlineSmall,
               ),
               if (_comments.isEmpty && !_busy)
-                const Text(
+                const AcademicText(
                   'No report comments are currently allocated to you.',
                 ),
               for (final row in _comments)
@@ -217,15 +220,15 @@ class _ReportHubScreenState extends State<ReportHubScreen> {
               if (_commentPage < _commentLast)
                 TextButton(
                   onPressed: _busy ? null : () => _more(true),
-                  child: const Text('More allocated comments'),
+                  child: const AcademicText('More allocated comments'),
                 ),
               const SizedBox(height: 24),
-              Text(
+              AcademicText(
                 'Report batches',
                 style: Theme.of(context).textTheme.headlineSmall,
               ),
               if (_batches.isEmpty && !_busy)
-                const Text(
+                const AcademicText(
                   'No report batches are available in your leadership scope.',
                 ),
               for (final batch in _batches)
@@ -252,7 +255,7 @@ class _ReportHubScreenState extends State<ReportHubScreen> {
               if (_batchPage < _batchLast)
                 TextButton(
                   onPressed: _busy ? null : () => _more(false),
-                  child: const Text('Earlier report batches'),
+                  child: const AcademicText('Earlier report batches'),
                 ),
             ],
           ],

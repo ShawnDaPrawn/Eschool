@@ -47,4 +47,50 @@ void main() {
       );
     }
   });
+  test('Afrikaans and isiZulu are offered and preserve placeholders', () {
+    expect(offered, containsAll(['af', 'zu']));
+    final english = labels(defaultLanguageCode);
+    final tokens = RegExp(
+      r'\{\{[^{}]*\}\}|\{[A-Za-z_][^{}]*\}|(?<!\w):[A-Za-z_]\w*|%(?:\d+\$)?[sdif]|<[^>]+>',
+    );
+    List<String> protected(String value) =>
+        tokens.allMatches(value).map((m) => m[0]!).toList()..sort();
+    for (final code in ['af', 'zu']) {
+      final translated = labels(code);
+      for (final entry in english.entries) {
+        final value = translated[entry.key];
+        expect(value, isA<String>(), reason: '$code ${entry.key}');
+        if ((entry.value as String).trim().isNotEmpty)
+          expect(
+            (value as String).trim(),
+            isNotEmpty,
+            reason: '$code ${entry.key}',
+          );
+        expect(
+          protected(value as String),
+          protected(entry.value as String),
+          reason: '$code ${entry.key}',
+        );
+      }
+    }
+  });
+
+  test('school terminology matches the working school glossary', () {
+    final glossary = jsonDecode(
+      File('../engineering/languages/glossary.json').readAsStringSync(),
+    ) as Map<String, dynamic>;
+    final english = labels(defaultLanguageCode);
+    for (final code in ['af', 'zu']) {
+      final translated = labels(code);
+      for (final entry in english.entries) {
+        final terms = glossary[entry.value];
+        if (terms != null)
+          expect(
+            translated[entry.key],
+            terms[code],
+            reason: '$code ${entry.key}',
+          );
+      }
+    }
+  });
 }

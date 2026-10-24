@@ -266,6 +266,9 @@ class InstallationSeeder extends Seeder
             ['code' => 'en'],
             ['name' => 'English', 'file' => 'en.json', 'status' => 0, 'is_rtl' => 0],
         );
+        foreach (['af' => 'Afrikaans', 'zu' => 'isiZulu'] as $code => $name) {
+            Language::firstOrCreate(['code' => $code], ['name' => $name, 'file' => $code.'.json', 'status' => 0, 'is_rtl' => 0]);
+        }
 
         // Change system version here
         Settings::updateOrCreate(['type' => 'system_version'], ['message' => '3.5.0']);

@@ -398,3 +398,24 @@ SA-SAMS layout is invented. CSV and hash-bound blank XLSX rendering include a
 signed provenance manifest; unknown or incomplete source data fails visibly.
 Automated and both-width browser evidence is recorded separately from target
 SA-SAMS import qualification. Languages and pilot tooling remain active work.
+
+
+### 24 October 2026 - Afrikaans and isiZulu development drafts
+
+Both apps and the panel now include complete-key af/zu language files, registered
+without overwriting existing panel language metadata. Shared academic labels and
+mark vocabulary read the current app locale. Automated coverage enforces the
+locale files, placeholders, markup and working school glossary; actual asset
+widgets and both-width native panel flows pass. These are development drafts,
+with fluent and school-champion review explicitly pending, not certified
+translations. Pilot tooling and external acceptance evidence remain active work.
+
+
+### 24 October 2026 - owner cancels pilot stage
+
+The owner explicitly removed the pilot stage and requested Phase 2 completion
+today. Pilot import/onboarding, champion feedback/status tooling and the full-term
+parallel run are removed from the completion scope. Retained academic, messaging,
+export, language and desktop implementation proceeds to final checks and main.
+The existing reconciliation command is retained. External release evidence is
+still reported honestly; the decision does not authorize production deployment.

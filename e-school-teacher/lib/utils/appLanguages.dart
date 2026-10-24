@@ -10,6 +10,8 @@ const String defaultLanguageCode = 'en';
 const List<AppLanguage> appLanguages = [
   //Please add language code here and language name
   AppLanguage(languageCode: 'en', languageName: 'English'),
+  AppLanguage(languageCode: 'af', languageName: 'Afrikaans'),
+  AppLanguage(languageCode: 'zu', languageName: 'isiZulu'),
   AppLanguage(languageCode: 'ur', languageName: 'اردو - Urdu'),
   AppLanguage(languageCode: 'tr', languageName: 'Türkçe - Turkish'),
   AppLanguage(languageCode: 'ar', languageName: 'العربية - Arabic'),

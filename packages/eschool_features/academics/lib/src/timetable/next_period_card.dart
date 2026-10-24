@@ -1,3 +1,4 @@
+import '../localization/academic_text.dart';
 import 'dart:async';
 import 'package:eschool_api/eschool_api.dart';
 import 'package:flutter/material.dart';
@@ -91,10 +92,10 @@ class _NextPeriodCardState extends State<NextPeriodCard>
                     () =>
                         _next = widget.repository.next(learner: widget.learner),
                   ),
-                  child: const Text('Reload timetable'),
+                  child: const AcademicText('Reload timetable'),
                 )
               else if (lesson == null)
-                const Text('No upcoming period is scheduled.')
+                const AcademicText('No upcoming period is scheduled.')
               else ...[
                 Text('${lesson.date} · ${lesson.startsAt} · ${lesson.title}'),
                 const SizedBox(height: 4),
@@ -107,7 +108,7 @@ class _NextPeriodCardState extends State<NextPeriodCard>
               if (widget.onOpen != null)
                 TextButton(
                   onPressed: widget.onOpen,
-                  child: const Text('View week'),
+                  child: const AcademicText('View week'),
                 ),
             ],
           ),

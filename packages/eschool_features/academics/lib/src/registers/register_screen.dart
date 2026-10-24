@@ -1,3 +1,4 @@
+import '../localization/academic_text.dart';
 import 'family_attendance_screen.dart';
 import 'package:eschool_api/eschool_api.dart';
 import 'package:eschool_core/eschool_core.dart';
@@ -67,16 +68,16 @@ class _RegisterScreenState extends State<RegisterScreen>
           child: Column(
             children: [
               ListTile(
-                title: const Text('Scan learner QR codes'),
+                title: const AcademicText('Scan learner QR codes'),
                 trailing: IconButton(
-                  tooltip: 'Done scanning',
+                  tooltip: academicText(context, 'Done scanning'),
                   onPressed: () => Navigator.of(context).pop(),
                   icon: const Icon(Icons.close),
                 ),
               ),
               const Padding(
                 padding: EdgeInsets.all(12),
-                child: Text(
+                child: AcademicText(
                   'Scan each learner once. The dated roster decides who can be marked.',
                 ),
               ),
@@ -93,7 +94,7 @@ class _RegisterScreenState extends State<RegisterScreen>
                   errorBuilder: (_, _) => const Center(
                     child: Padding(
                       padding: EdgeInsets.all(24),
-                      child: Text(
+                      child: AcademicText(
                         'Camera scanning is unavailable here. Use the QR input or tap the register.',
                       ),
                     ),
@@ -135,7 +136,7 @@ class _RegisterScreenState extends State<RegisterScreen>
       context: context,
       builder: (dialogContext) => StatefulBuilder(
         builder: (_, setDialog) => AlertDialog(
-          title: const Text('Review saved changes'),
+          title: const AcademicText('Review saved changes'),
           content: SizedBox(
             width: 600,
             child: SingleChildScrollView(
@@ -143,7 +144,7 @@ class _RegisterScreenState extends State<RegisterScreen>
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text(
+                  const AcademicText(
                     'Compare the current register with your saved changes. Selected changes become a new draft; saving still checks current revisions.',
                   ),
                   if (missing > 0)
@@ -151,11 +152,11 @@ class _RegisterScreenState extends State<RegisterScreen>
                       '$missing queued learner entries are no longer on this roster and cannot be applied.',
                     ),
                   if (!current.canWrite)
-                    const Text(
+                    const AcademicText(
                       'Ask the grade head to record corrections for this day. Your saved queue is retained.',
                     ),
                   if (differences.isEmpty)
-                    const Text(
+                    const AcademicText(
                       'Your saved values already match the current register.',
                     ),
                   for (final row in differences)
@@ -182,13 +183,13 @@ class _RegisterScreenState extends State<RegisterScreen>
           actions: [
             TextButton(
               onPressed: () => Navigator.of(dialogContext).pop(),
-              child: const Text('Keep queue'),
+              child: const AcademicText('Keep queue'),
             ),
             FilledButton(
               onPressed: !current.canWrite || selected.isEmpty
                   ? null
                   : () => Navigator.of(dialogContext).pop(selected),
-              child: const Text('Use reviewed changes'),
+              child: const AcademicText('Use reviewed changes'),
             ),
           ],
         ),
@@ -204,18 +205,18 @@ class _RegisterScreenState extends State<RegisterScreen>
     final discard = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Discard saved changes?'),
-        content: const Text(
+        title: const AcademicText('Discard saved changes?'),
+        content: const AcademicText(
           'This removes the queued changes on this device after loading the current register. It does not undo attendance already saved at the school.',
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
-            child: const Text('Keep changes'),
+            child: const AcademicText('Keep changes'),
           ),
           FilledButton(
             onPressed: () => Navigator.pop(context, true),
-            child: const Text('Discard changes'),
+            child: const AcademicText('Discard changes'),
           ),
         ],
       ),
@@ -245,12 +246,18 @@ class _RegisterScreenState extends State<RegisterScreen>
     enabled: state.canEdit,
     onSelected: (value) => cubit.set(row.learner.learnerId, value),
     itemBuilder: (_) => [
-      const PopupMenuItem(value: 'late', child: Text('Late')),
-      const PopupMenuItem(value: 'excused', child: Text('Excused')),
+      const PopupMenuItem(value: 'late', child: AcademicText('Late')),
+      const PopupMenuItem(value: 'excused', child: AcademicText('Excused')),
       if (state.matrix?.timetableLessonId == null) ...const [
-        PopupMenuItem(value: 'first_half', child: Text('First half absent')),
-        PopupMenuItem(value: 'second_half', child: Text('Second half absent')),
-        PopupMenuItem(value: 'holiday', child: Text('Holiday')),
+        PopupMenuItem(
+          value: 'first_half',
+          child: AcademicText('First half absent'),
+        ),
+        PopupMenuItem(
+          value: 'second_half',
+          child: AcademicText('Second half absent'),
+        ),
+        PopupMenuItem(value: 'holiday', child: AcademicText('Holiday')),
       ],
     ],
   );
@@ -259,7 +266,7 @@ class _RegisterScreenState extends State<RegisterScreen>
       final rows = state.rows;
       if (rows.isEmpty) {
         return const Center(
-          child: Text(
+          child: AcademicText(
             'No learners are enrolled in this register on this date.',
           ),
         );
@@ -272,11 +279,11 @@ class _RegisterScreenState extends State<RegisterScreen>
               dataRowMinHeight: 64,
               dataRowMaxHeight: double.infinity,
               columns: const [
-                DataColumn(label: Text('Learner')),
-                DataColumn(label: Text('Present')),
-                DataColumn(label: Text('Absent')),
-                DataColumn(label: Text('Late')),
-                DataColumn(label: Text('Excused')),
+                DataColumn(label: AcademicText('Learner')),
+                DataColumn(label: AcademicText('Present')),
+                DataColumn(label: AcademicText('Absent')),
+                DataColumn(label: AcademicText('Late')),
+                DataColumn(label: AcademicText('Excused')),
               ],
               rows: [
                 for (final row in rows)
@@ -417,7 +424,7 @@ class _RegisterScreenState extends State<RegisterScreen>
                     Text(state.error ?? 'Register unavailable'),
                     TextButton(
                       onPressed: cubit.load,
-                      child: const Text('Try again'),
+                      child: const AcademicText('Try again'),
                     ),
                   ],
                 ),
@@ -462,9 +469,13 @@ class _RegisterScreenState extends State<RegisterScreen>
                                       ),
                                     ),
                                   if (state.draft.isNotEmpty)
-                                    const Chip(label: Text('Unsaved draft')),
+                                    const Chip(
+                                      label: AcademicText('Unsaved draft'),
+                                    ),
                                   if (state.offline)
-                                    const Chip(label: Text('Offline copy')),
+                                    const Chip(
+                                      label: AcademicText('Offline copy'),
+                                    ),
                                 ],
                               ),
                               if (state.error != null)
@@ -489,7 +500,7 @@ class _RegisterScreenState extends State<RegisterScreen>
                                   child: Text(state.notice!),
                                 ),
                               if (!matrix.canWrite)
-                                const Text(
+                                const AcademicText(
                                   'This day is read-only. Ask the grade head for corrections.',
                                 ),
                               Wrap(
@@ -503,18 +514,20 @@ class _RegisterScreenState extends State<RegisterScreen>
                                         ? null
                                         : cubit.save,
                                     icon: const Icon(Icons.save_outlined),
-                                    label: const Text('Save register'),
+                                    label: const AcademicText('Save register'),
                                   ),
                                   OutlinedButton(
                                     onPressed: state.canEdit
                                         ? cubit.remainingPresent
                                         : null,
-                                    child: const Text('Mark remaining present'),
+                                    child: const AcademicText(
+                                      'Mark remaining present',
+                                    ),
                                   ),
                                   OutlinedButton.icon(
                                     onPressed: state.canEdit ? _camera : null,
                                     icon: const Icon(Icons.qr_code_scanner),
-                                    label: const Text('Scan QR'),
+                                    label: const AcademicText('Scan QR'),
                                   ),
                                   if (state.queue.isNotEmpty &&
                                       !state.conflict &&
@@ -523,17 +536,21 @@ class _RegisterScreenState extends State<RegisterScreen>
                                       onPressed: state.busy
                                           ? null
                                           : cubit.flush,
-                                      child: const Text('Sync saved queue'),
+                                      child: const AcademicText(
+                                        'Sync saved queue',
+                                      ),
                                     ),
                                   if (state.conflict || state.blocked)
                                     TextButton(
                                       onPressed: state.busy ? null : _review,
-                                      child: const Text('Review saved changes'),
+                                      child: const AcademicText(
+                                        'Review saved changes',
+                                      ),
                                     ),
                                   if (state.conflict || state.blocked)
                                     TextButton(
                                       onPressed: state.busy ? null : _discard,
-                                      child: const Text(
+                                      child: const AcademicText(
                                         'Discard saved changes',
                                       ),
                                     ),
@@ -547,10 +564,15 @@ class _RegisterScreenState extends State<RegisterScreen>
                                       key: const ValueKey('register-qr-input'),
                                       controller: _qr,
                                       enabled: state.canEdit,
-                                      decoration: const InputDecoration(
-                                        labelText: 'QR input',
-                                        helperText:
-                                            'Scan with a QR keyboard reader or paste the learner code',
+                                      decoration: InputDecoration(
+                                        labelText: academicText(
+                                          context,
+                                          'QR input',
+                                        ),
+                                        helperText: academicText(
+                                          context,
+                                          'Scan with a QR keyboard reader or paste the learner code',
+                                        ),
                                       ),
                                       onSubmitted: (value) {
                                         cubit.scan(value);
@@ -564,10 +586,15 @@ class _RegisterScreenState extends State<RegisterScreen>
                                       controller: _reason,
                                       enabled: state.canEdit,
                                       maxLength: 500,
-                                      decoration: const InputDecoration(
-                                        labelText: 'Correction reason',
-                                        helperText:
-                                            'Required when changing an already captured entry',
+                                      decoration: InputDecoration(
+                                        labelText: academicText(
+                                          context,
+                                          'Correction reason',
+                                        ),
+                                        helperText: academicText(
+                                          context,
+                                          'Required when changing an already captured entry',
+                                        ),
                                       ),
                                       onChanged: cubit.reason,
                                     ),

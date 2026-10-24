@@ -1,60 +1,52 @@
-# Phase 2: academic core and pilot
+# Phase 2: academic core
 
-Phase 2 starts with independent, additive foundations while Phase 0/1 acceptance
-and remaining implementation stay open. Starting this phase does not certify
-those phases, authorize a production release, or raise the US$10/month additional
-staging/email budget.
+## Current completion scope
 
-## Delivery order
+On 24 October 2026 the owner cancelled the pilot stage and asked for Phase 2 to
+finish today. The retained scope is academic software, communications, exports,
+languages and shared desktop screens, with safe integration into main.
 
-1. Shared grades R–12, school phases and seven-point rating references; explicit,
-   authorized mapping of existing classes. This first slice does not infer grade
-   from class names or change existing grading/report calculations.
-2. School/year/grade calendars and templates, replacing semesters in place under the owner
-   decision of 23 October; update year preparation and academic consumers together.
-3. Confirmed subject catalogue and assessment ratios, versioned curriculum and
-   assessment plans, then task/question marks and audited moderation/locks.
-4. Dated teaching groups, rooms and clash-aware timetable; register and offline
-   attendance, corrections, mid-year learner and subject transitions.
-5. Reports and release approvals, private content conversion, audience messages,
-   exports, translations and shared desktop academic screens.
-6. Reconciliation tools, import rehearsal and full-term parallel pilot evidence.
+Pilot onboarding/import tooling, pilot champion feedback/status tooling and the
+full-term parallel production run are no longer Phase 2 deliverables or completion
+conditions. The existing `marks:reconcile` command remains available. This change
+supersedes the earlier pilot campaign; it does not remove records or authorize
+production deployment, extra spending or a claim that unrun checks passed.
 
-Each feature receives its own spec, tests and reviewable PR. Independent work
-continues while decisions or operational evidence for another feature are pending.
-Data loss, school leakage, authentication defects or unusable builds block the
-affected change. Mark weighting, rounding and subject standards require confirmed
-rules before they drive learner results.
+## Implementation register
 
-## Status
+| Retained work | Delivery |
+| --- | --- |
+| Grades/phases/ratings and class mapping; school terms/templates | #81, #82 |
+| Subject standards and versioned curriculum/assessment plans | #86, #87 |
+| Dated teaching groups and allocations | #88 |
+| Exact task/question marks, moderation, locks and reconciliation; shared capture grid | #89, #90 |
+| Rooms, bells, clash-aware timetables and shared week/editor screens | #91, #92 |
+| Registers, QR, corrections, absence alerts and offline sync | #93, #94 |
+| Report designs/comments, approvals, queued PDFs and family readers | #95, #96 |
+| Dated joins, departures, subject changes and private signed exit packages | #97 |
+| Private conversion, Markdown readers and encrypted leased offline copies | #98, #99, #100 |
+| Audiences, role approval, scheduling, private delivery/read state and panel | #101 |
+| Shared phone/two-pane message readers, composition and separate-author review | #102 |
+| Private versioned learner/attendance/task-mark exports | #103 |
+| Afrikaans/isiZulu files, shared academic localization and structural review | Language closeout PR |
 
-The first slice is specified in [academic-references](../specs/academics/academic-references.md).
-Automated results, staging checks and acceptance are recorded separately in
-[the self-test record](../self-tests/phase-2.md). Academic references/class mapping
-and school terms/templates are merged (#81/#82). Subject standards/mapping and curriculum plans are merged (#86/#87); dated teaching structures are merged (#88); the exact marks backend is merged (#89); shared mark clients are merged (#90); timetable services are merged (#91); shared timetable clients are merged (#92); attendance services and shared clients are merged (#93/#94); report services are merged (#95); shared report clients/panel are merged (#96); mid-year workflows are merged (#97); content services and shared clients are merged (#98/#99); encrypted offline reading is merged (#100); communication service/panel is under verification; remaining academic workflows and external pilot
-evidence are tracked below.
-Semester compatibility is retired by the owner decision; existing IDs and academic
-links migrate to terms. Other grading and exam/result contracts stay protected.
+The implementation is present in the corresponding feature branches/PRs. GitHub
+records final-head CI, review resolution and merge status; completion requires the
+retained source to reach main safely. Semester compatibility is retired under the
+owner's earlier decision; unrelated v1 contracts remain protected.
 
-## Remaining implementation campaign (24 October 2026)
+## Verification and release boundaries
 
-Owner instruction: complete the rest of Phase 2 autonomously, returning to the
-private Build Bible for uncertainty. References/class mapping and school terms
-are merged. The implementation follows this delivery sequence:
+Results are recorded in [the self-test record](../self-tests/phase-2.md) and
+[security evidence](../security/phase-2.md). Known data loss, school exposure,
+authentication or unusable-build risks block the affected change. Relevant
+regressions are fixed and required CI passes before merge.
 
-- Subject catalogue/mapping and versioned curriculum/assessment plans.
-- Allocations/grade-head authority, exact mark calculations, capture/moderation/locks
-  and immutable snapshots, with existing result consumers preserved.
-- Rooms, bell schedules, clash-aware timetable and dated groups/transitions.
-- Homeroom/period/QR attendance, corrections, alerts and offline sync.
-- Report templates/comments, approvals, queued PDFs and private release.
-- Private conversion/content, audiences/approved scheduled messages.
-- Shared adaptive academic clients, reviewed language infrastructure and exports.
-- Reconciliation/import rehearsal, feedback/status, security/performance/UX checks.
-
-Track each feature against its spec and distinguish implementation, automated
-verification, staging, pilot and production. The Bible requires an actual full
-school term of parallel evidence and independent security review; those cannot be
-substituted with generated fixtures. Continue all independent software work.
-No production release or spending above the existing US$10/month staging/email
-cap is authorized by the overnight instruction.
+The export bridge uses operator-supplied exact layouts/templates; a generated
+file is not certification of an actual SA-SAMS import. Language files are complete
+development drafts with automated placeholder/key checks and a working glossary;
+[fluent review](../languages/review.md) remains explicit. Staging load/UX,
+physical-device/provider and independent security evidence are also separate
+release evidence. None is fabricated or silently converted to a passed pilot.
+English stays the default. No production release or additional spending above
+the existing US$10/month staging/email ceiling is authorized.
