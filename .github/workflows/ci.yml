@@ -434,7 +434,7 @@ jobs:
       # throttling the page sweep; four workers serve the parallel browsers.
       - name: Start the panel
         run: |
-          PHP_CLI_SERVER_WORKERS=4 CACHE_DRIVER=array nohup php artisan serve --host=127.0.0.1 --port=8000 > storage/logs/serve.log 2>&1 &
+          PHP_CLI_SERVER_WORKERS=4 CACHE_DRIVER=array nohup php artisan serve --no-reload --host=127.0.0.1 --port=8000 > storage/logs/serve.log 2>&1 &
           for i in $(seq 1 30); do curl -sf -o /dev/null http://127.0.0.1:8000/login && exit 0; sleep 1; done
           cat storage/logs/serve.log
           exit 1

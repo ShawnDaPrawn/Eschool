@@ -687,3 +687,11 @@ empty-list archival after contact revocation. Final-head public CI is pending.
 PR #101 final-head CI: 1,538 PHP tests passed; the design-token unit check
 found raw fallbacks in the new message stylesheet. Both fallbacks now use the
 established Material tokens. The affected unit check and final CI are rerun.
+
+CI run 352: PHP/contract suite passed; the panel server crashed with
+`zend_mm_heap corrupted`, causing connection-refused browser failures. The
+existing Android report smoke also exposed a test-helper race: it delayed after
+finding a tappable button, then selected a button removed by a route transition.
+Both shells now tap a freshly checked target without that extra frame delay.
+The CI panel server explicitly disables reload so Laravel honors its configured
+four workers. Final-head browser/Android verification remains required.
