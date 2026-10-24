@@ -435,6 +435,88 @@ class TimetableEngineTest extends TestCase
         $this->assertSame('Room 1', app(TimetableQueries::class)->next($parent, $this->schoolA->ids['asha'])['lesson']['room_name']);
     }
 
+    public function test_default_family_and_teacher_weeks_include_their_authorized_overlapping_calendars(): void
+    {
+        $this->save([$this->row()]);
+        $firstYear = $this->year;
+        $second = SessionYear::create(['name' => 'Alternate section calendar', 'start_date' => '2026-01-01', 'end_date' => '2026-12-31']);
+        $this->year = (int) $second->id;
+        Enrolment::create(['learner_id' => $this->schoolA->ids['asha'], 'session_year_id' => $this->year, 'class_section_id' => $this->schoolA->ids['section_a'],
+            'starts_on' => '2026-01-01', 'ends_on' => '2026-12-31', 'reason' => 'Alternate calendar context']);
+        $teacher = (int) Teacher::where('user_id', $this->schoolA->ids['theo_user'])->value('id');
+        $group = $this->makeGroup('Alternate group', $this->schoolA->ids['maths'], $teacher);
+        $period = $this->makePeriod('08:45', '09:00');
+        $this->save([$this->row(['term_id' => null, 'teaching_group_id' => $group, 'teacher_id' => $teacher, 'bell_period_id' => $period, 'room_id' => $this->makeRoom('Room 2')])]);
+        $this->year = $firstYear;
+        $path = '/api/v2/academics/timetable/week';
+        $this->api(User::findOrFail($this->schoolA->ids['farid_user']))->getJson($path.'?learner_id='.$this->schoolA->ids['asha'])->assertOk()->assertJsonCount(2, 'data.lessons');
+        $this->api(User::findOrFail($this->schoolA->ids['theo_user']))->getJson($path)->assertOk()->assertJsonCount(1, 'data.lessons')->assertJsonPath('data.session_year_id', (int) $second->id);
+    }
+
+    public function test_panel_workbench_previews_and_commits_through_the_same_services_and_denies_other_roles(): void
+    {
+        $context = ['session_year_id' => $this->year, 'week_on' => '2026-02-09'];
+        $this->actingAs($this->superAdmin(), 'web')->get(route('academic-timetable.index', $context))->assertOk()->assertSee('Preview placement')->assertSee('Bell schedules');
+        $preview = $this->post(route('academic-timetable.preview'), $context + ['lesson' => $this->row()])->assertOk()->viewData('preview');
+        $this->assertTrue($preview['can_save']);
+        $this->post(route('academic-timetable.commit'), $context + ['payload' => json_encode($preview['rows']), 'fingerprint' => $preview['fingerprint']])->assertRedirect();
+        $this->assertSame(1, TimetableLesson::count());
+        $this->get(route('academic-timetable.index', $context))->assertOk()->assertSee('Room 1');
+        foreach (['tara_user', 'farid_user', 'asha_user'] as $person) {
+            $read = $this->actingAs(User::findOrFail($this->schoolA->ids[$person]), 'web')->get(route('academic-timetable.index'));
+            $this->assertContains($read->getStatusCode(), [302, 403]);
+            $read->assertDontSee('Preview placement');
+            $write = $this->post(route('academic-timetable.preview'), $context + ['lesson' => $this->row()]);
+            $this->assertContains($write->getStatusCode(), [302, 403]);
+            $this->assertSame(1, TimetableLesson::count());
+        }
+    }
+
+    public function test_panel_room_bell_and_foreign_edit_ids_remain_school_scoped(): void
+    {
+        $context = ['session_year_id' => $this->year, 'week_on' => '2026-02-09'];
+        $this->actingAs($this->superAdmin(), 'web');
+        $this->post(route('academic-timetable.room'), $context + ['name' => 'Panel room', 'type' => 'classroom', 'capacity' => 35, 'active' => true])->assertRedirect();
+        $this->post(route('academic-timetable.bells'), $context + ['name' => 'Panel bells', 'section' => 'Senior', 'periods' => [
+            ['name' => 'Period 1', 'starts_at' => '07:00', 'ends_at' => '07:45', 'is_break' => false],
+            ['name' => '', 'starts_at' => '', 'ends_at' => '', 'is_break' => false]]])->assertRedirect();
+        $this->assertSame(1, BellSchedule::where('name', 'Panel bells')->sole()->periods->count());
+        $foreign = app(CurrentSchool::class)->run(2, fn () => Room::create(['name' => 'Baobab room', 'type' => 'classroom', 'revision' => 1, 'active' => true]));
+        $this->get(route('academic-timetable.index', $context + ['room' => $foreign->id]))->assertNotFound();
+        $this->post(route('academic-timetable.room'), $context + ['room_id' => $foreign->id, 'revision' => 1, 'name' => 'Bypass', 'type' => 'classroom', 'active' => true])->assertNotFound();
+    }
+
+    public function test_panel_import_inspects_maps_and_previews_without_saving_or_rendering_sheet_markup(): void
+    {
+        $context = ['session_year_id' => $this->year, 'week_on' => '2026-02-09'];
+        $csv = "Group,Teacher,Room,Day,Period\nMaths,Tara,<script>alert(1)</script>,Tuesday,P1\n";
+        $columns = ['teaching_group_id' => 'Group', 'teacher_id' => 'Teacher', 'room_id' => 'Room', 'weekday' => 'Day', 'bell_period_id' => 'Period'];
+        $this->actingAs($this->superAdmin(), 'web')->post(route('academic-timetable.import-map'), $context + ['csv' => $csv])->assertOk()->assertSee('Match sheet columns');
+        $this->post(route('academic-timetable.import-map'), $context + ['csv' => $csv, 'columns' => $columns, 'stage' => 'values'])->assertOk()->assertSee('&lt;script&gt;', false)->assertDontSee('<script>alert(1)</script>', false);
+        $values = ['teaching_group_id' => ['Maths' => $this->group], 'teacher_id' => ['Tara' => $this->teacher], 'room_id' => ['<script>alert(1)</script>' => $this->room], 'weekday' => ['Tuesday' => 2], 'bell_period_id' => ['P1' => $this->period]];
+        $response = $this->post(route('academic-timetable.import-preview'), $context + ['csv' => $csv, 'columns' => $columns, 'values_json' => json_encode($values), 'defaults' => ['starts_on' => '2026-02-10', 'ends_on' => '2026-02-10', 'week_pattern' => 'all']])->assertOk();
+        $this->assertTrue($response->viewData('preview')['can_save']);
+        $this->assertSame(0, TimetableLesson::count());
+        $sheet = app(TimetableImport::class)->inspect($this->superAdmin(), "\xEF\xBB\xBFKamer,Onderwyser\nSaal,Müller\n");
+        $this->assertSame(['Kamer', 'Onderwyser'], $sheet['headers']);
+        $this->assertSame(['Müller'], $sheet['values']['Onderwyser']);
+    }
+
+    public function test_panel_stale_commit_preserves_the_form_and_cancellation_retains_original_placement(): void
+    {
+        $context = ['session_year_id' => $this->year, 'week_on' => '2026-02-09'];
+        $this->actingAs($this->superAdmin(), 'web');
+        $preview = $this->post(route('academic-timetable.preview'), $context + ['lesson' => $this->row()])->assertOk()->viewData('preview');
+        $this->makeRoom('Changed configuration');
+        $this->post(route('academic-timetable.commit'), $context + ['payload' => json_encode($preview['rows']), 'fingerprint' => $preview['fingerprint']])->assertStatus(409)->assertSee('Reload the week');
+        $lesson = $this->save([$this->row()])['lessons'][0];
+        User::whereKey($this->schoolA->ids['tara_user'])->update(['status' => 0]);
+        $cancel = $this->post(route('academic-timetable.preview'), $context + ['lesson' => $this->row(['id' => $lesson['id'], 'revision' => 1, 'active' => false, 'room_id' => null])])->assertOk()->viewData('preview');
+        $this->assertSame($this->room, $cancel['rows'][0]['room_id']);
+        $this->post(route('academic-timetable.commit'), $context + ['payload' => json_encode($cancel['rows']), 'fingerprint' => $cancel['fingerprint']])->assertRedirect();
+        $this->assertFalse(TimetableLesson::query()->sole()->active);
+    }
+
     private function api(User $user): self
     {
         $this->app['auth']->forgetGuards();

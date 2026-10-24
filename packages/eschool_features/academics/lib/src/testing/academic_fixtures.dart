@@ -152,7 +152,8 @@ Map<String, Object?> periodsFixture() => {
       'session_year_id': 1,
       'year_name': '2026',
       'term_id': 1,
-      'term_name': 'Term 1', 'released_at': '2026-02-01T10:00:00Z',
+      'term_name': 'Term 1',
+      'released_at': '2026-02-01T10:00:00Z',
     },
   ],
 };

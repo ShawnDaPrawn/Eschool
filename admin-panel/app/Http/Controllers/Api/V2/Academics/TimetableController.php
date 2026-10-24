@@ -7,11 +7,14 @@ namespace App\Http\Controllers\Api\V2\Academics;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Academics\TimetableRequest;
 use App\Http\Resources\Academics\TimetableResource;
+use App\Models\SessionYear;
+use App\Services\Academics\AcademicAuthority;
 use App\Services\Academics\TimetableConfiguration;
 use App\Services\Academics\TimetableEngine;
 use App\Services\Academics\TimetableImport;
 use App\Services\Academics\TimetableQueries;
 use App\Services\ResponseService;
+use Carbon\CarbonImmutable;
 use Illuminate\Http\JsonResponse;
 
 class TimetableController extends Controller
@@ -53,7 +56,32 @@ class TimetableController extends Controller
 
     public function week(TimetableRequest $request): JsonResponse
     {
-        return $this->response($request, app(TimetableQueries::class)->week($request->user(), (int) $request->validated('session_year_id'), $request->validated('starts_on'), ($request->validated('learner_id') === null ? null : (int) $request->validated('learner_id'))));
+        $starts = $request->validated('starts_on') ?? CarbonImmutable::parse(app(AcademicAuthority::class)->today())->startOfWeek()->toDateString();
+        $ends = CarbonImmutable::parse($starts)->addDays(6)->toDateString();
+        $learner = $request->validated('learner_id') === null ? null : (int) $request->validated('learner_id');
+        $queries = app(TimetableQueries::class);
+        if ($request->validated('session_year_id') !== null) {
+            return $this->response($request, $queries->week($request->user(), (int) $request->validated('session_year_id'), $starts, $learner));
+        }
+        $years = SessionYear::whereDate('start_date', '<=', $ends)->whereDate('end_date', '>=', $starts)->orderByDesc('default')->orderByDesc('id')->get();
+        abort_if($years->isEmpty(), 404, __('No school calendar covers this week.'));
+        $chosen = null;
+        $lessons = [];
+        foreach ($years as $year) {
+            $week = $queries->week($request->user(), (int) $year->id, $starts, $learner);
+            // Managers explicitly switch calendars before editing their periods.
+            if ($week['can_manage']) {
+                return $this->response($request, $week);
+            }
+            if ($chosen === null || ($chosen['lessons'] === [] && $week['lessons'] !== [])) {
+                $chosen = $week;
+            }
+            $lessons = array_merge($lessons, $week['lessons']);
+        }
+        usort($lessons, fn ($a, $b) => [$a['date'], $a['starts_at'], $a['id']] <=> [$b['date'], $b['starts_at'], $b['id']]);
+        $chosen['lessons'] = $lessons;
+
+        return $this->response($request, $chosen);
     }
 
     public function next(TimetableRequest $request): JsonResponse

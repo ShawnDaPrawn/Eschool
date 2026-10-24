@@ -60,6 +60,7 @@
             },
             "feature_flags": {
                 "academic_marks": "bool",
+                "academic_timetable": "bool",
                 "module_switches": "bool"
             },
             "modules": [

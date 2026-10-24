@@ -24,7 +24,7 @@ class TimetableRequest extends FormRequest
                 return ['learner_id' => ['sometimes', 'integer', 'min:1']];
             }
 
-            return ['session_year_id' => ['required', 'integer', 'min:1'], 'starts_on' => [str_ends_with($name, '.week') ? 'required' : 'sometimes', 'date_format:Y-m-d'], 'learner_id' => ['sometimes', 'integer', 'min:1']];
+            return ['session_year_id' => [str_ends_with($name, '.week') ? 'sometimes' : 'required', 'integer', 'min:1'], 'starts_on' => ['sometimes', 'date_format:Y-m-d'], 'learner_id' => ['sometimes', 'integer', 'min:1']];
         }
         if (str_contains($name, '.rooms.')) {
             return TimetableConfiguration::roomRules() + ($this->isMethod('PUT') ? ['revision' => ['required', 'integer', 'min:1']] : []);

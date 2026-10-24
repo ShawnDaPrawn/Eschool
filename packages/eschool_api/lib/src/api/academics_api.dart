@@ -3207,12 +3207,12 @@ class AcademicsApi {
   }
 
   /// getTimetableWeek
-  /// Fresh current-school rights precede idempotent replay. Managers configure and preview placements; commits require an unchanged fingerprint and no teacher, room, group, homeroom or dated-learner time clash. A 409 requires a fresh preview. Family reads resolve only the learner or a current guardian’s selected child. Times use the school timezone; week patterns use ISO week parity. No fee condition applies.
+  /// Omit starts_on for the current school-local week and omit session_year_id for its school calendar.
   ///
   /// Parameters:
+  /// * [xSchoolId] - The school to work in, one of the signed-in user's schools (`schools` in `/me/context`). Without it the request works in the user's first school. A school the user is not an active member of is refused with 403. Apps send it on every call once a school is chosen.
   /// * [sessionYearId]
   /// * [startsOn]
-  /// * [xSchoolId] - The school to work in, one of the signed-in user's schools (`schools` in `/me/context`). Without it the request works in the user's first school. A school the user is not an active member of is refused with 403. Apps send it on every call once a school is chosen.
   /// * [learnerId]
   /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
   /// * [headers] - Can be used to add additional headers to the request
@@ -3224,9 +3224,9 @@ class AcademicsApi {
   /// Returns a [Future] containing a [Response] with a [AcademicTimetableWeekResponse] as data
   /// Throws [DioException] if API call or serialization fails
   Future<Response<AcademicTimetableWeekResponse>> getTimetableWeek({
-    required int sessionYearId,
-    required String startsOn,
     int? xSchoolId,
+    int? sessionYearId,
+    String? startsOn,
     int? learnerId,
     CancelToken? cancelToken,
     Map<String, dynamic>? headers,
@@ -3258,8 +3258,8 @@ class AcademicsApi {
     );
 
     final _queryParameters = <String, dynamic>{
-      r'session_year_id': sessionYearId,
-      r'starts_on': startsOn,
+      if (sessionYearId != null) r'session_year_id': sessionYearId,
+      if (startsOn != null) r'starts_on': startsOn,
       if (learnerId != null) r'learner_id': learnerId,
     };
 

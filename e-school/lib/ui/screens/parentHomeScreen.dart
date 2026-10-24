@@ -1,3 +1,4 @@
+import 'package:eschool/app/sharedScreens.dart';
 import 'package:eschool/app/routeArguments.dart';
 import 'package:eschool/app/routes.dart';
 import 'package:eschool/app/sessionWatcher.dart';
@@ -726,6 +727,7 @@ class _ParentHomeScreenState extends State<ParentHomeScreen>
                                           MediaQuery.sizeOf(context).height *
                                           0.025,
                                     ),
+                                    const AcademicNextPeriod(),
                                     _buildChildrenContainer(),
                                     SizedBox(
                                       height:

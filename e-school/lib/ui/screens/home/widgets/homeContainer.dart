@@ -1,3 +1,4 @@
+import 'package:eschool/app/sharedScreens.dart';
 import 'package:eschool/app/routes.dart';
 import 'package:eschool/cubits/authCubit.dart';
 import 'package:eschool/cubits/studentDashboardCubit.dart';
@@ -358,6 +359,7 @@ class _HomeContainerState extends State<HomeContainer> {
                 ),
                 child: Column(
                   children: [
+                    const AcademicNextPeriod(),
                     _buildAdvertisementSliders(),
                     SizedBox(height: MediaQuery.sizeOf(context).height * 0.025),
                     if (context

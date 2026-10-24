@@ -179,6 +179,15 @@ List<Widget> sharedScreenEntries(
   void open(String route) => Navigator.of(context).pushNamed(route);
   return [
     if (context.watch<MeContextCubit>().context?.isFeatureOn(
+          'academic_timetable',
+        ) ==
+        true)
+      tile(
+        title: label('academicTimetable'),
+        icon: Icons.calendar_view_week_outlined,
+        onTap: () => open(Routes.academicTimetable),
+      ),
+    if (context.watch<MeContextCubit>().context?.isFeatureOn(
           'academic_marks',
         ) ==
         true)
@@ -289,3 +298,66 @@ Route<dynamic> academicMarksRoute() => AdaptivePageRoute(
     );
   },
 );
+
+Route<dynamic> academicTimetableRoute() => AdaptivePageRoute(
+  builder: (context) {
+    final me = context.read<MeContextCubit>().context;
+    final auth = context.read<AuthCubit>();
+    final child = auth.isParent()
+        ? context.read<ChildSelectionCubit>().selected
+        : null;
+    final learner = auth.isParent() ? child?.id : auth.getStudentDetails().id;
+    final school = auth.isParent() ? child?.schoolId : me?.currentSchoolId;
+    if (learner == null ||
+        learner <= 0 ||
+        school == null ||
+        school <= 0 ||
+        me?.isFeatureOn('academic_timetable') != true) {
+      return const ScreenScaffold(
+        title: 'Academic timetable',
+        body: Center(child: Text('Not available yet')),
+      );
+    }
+    return AcademicContextBoundary(
+      schoolId: context.read<SchoolSelectionCubit>().state.selectedId ?? school,
+      childId: auth.isParent() ? learner : null,
+      child: TimetableScreen.withRepository(
+        ApiTimetableRepository(Api.client, schoolId: school),
+        learner: learner,
+        title: child?.child.name ?? auth.getStudentDetails().getFullName(),
+      ),
+    );
+  },
+);
+
+class AcademicNextPeriod extends StatelessWidget {
+  const AcademicNextPeriod({super.key});
+  @override
+  Widget build(BuildContext context) {
+    final me = context.watch<MeContextCubit>().context;
+    final auth = context.read<AuthCubit>();
+    final child = auth.isParent()
+        ? context.watch<ChildSelectionCubit>().selected
+        : null;
+    final learner = auth.isParent() ? child?.id : auth.getStudentDetails().id;
+    final school = auth.isParent() ? child?.schoolId : me?.currentSchoolId;
+    if (learner == null ||
+        learner <= 0 ||
+        school == null ||
+        school <= 0 ||
+        me?.isFeatureOn('academic_timetable') != true)
+      return const SizedBox.shrink();
+    final scope = 'family:$school:$learner';
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      child: NextPeriodCard(
+        key: ValueKey(scope),
+        scope: scope,
+        learner: learner,
+        learnerName: child?.child.name,
+        repository: ApiTimetableRepository(Api.client, schoolId: school),
+        onOpen: () => Navigator.of(context).pushNamed(Routes.academicTimetable),
+      ),
+    );
+  }
+}
