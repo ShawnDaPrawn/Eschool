@@ -110,6 +110,15 @@ List<Widget> sharedScreenEntries(
   void open(String route) => Navigator.of(context).pushNamed(route);
   return [
     if (context.watch<MeContextCubit>().context?.isFeatureOn(
+          'academic_content',
+        ) ==
+        true)
+      tile(
+        title: label('Learning content'),
+        icon: Icons.menu_book_outlined,
+        onTap: () => open(Routes.academicContent),
+      ),
+    if (context.watch<MeContextCubit>().context?.isFeatureOn(
           'academic_reports',
         ) ==
         true)
@@ -303,6 +312,41 @@ Route<dynamic> academicReportsRoute() => AdaptivePageRoute(
       schoolId: school.id,
       child: ReportHubScreen(
         repository: ApiReportRepository(Api.client, schoolId: school.id),
+      ),
+    );
+  },
+);
+
+Route<dynamic> academicContentRoute(Object? arguments) => AdaptivePageRoute(
+  builder: (context) {
+    final session = context.read<MeContextCubit>();
+    final schools = context.read<SchoolSelectionCubit>();
+    final me = session.context;
+    final school = me?.currentSchoolId, account = me?.user?.id;
+    if (school == null ||
+        account == null ||
+        school <= 0 ||
+        account <= 0 ||
+        me?.isFeatureOn('academic_content') != true) {
+      return const ScreenScaffold(
+        title: 'Learning content',
+        body: Center(child: Text('Not available yet')),
+      );
+    }
+    final selectedSchool = schools.state.selectedId;
+    return ContentContextBoundary(
+      schoolId: selectedSchool ?? school,
+      readerId: account,
+      child: ContentHubScreen(
+        repository: ApiAcademicContentRepository(
+          Api.client,
+          schoolId: school,
+          readerId: account,
+          contextActive: () =>
+              session.context?.user?.id == account &&
+              session.context?.currentSchoolId == school &&
+              schools.state.selectedId == selectedSchool,
+        ),
       ),
     );
   },

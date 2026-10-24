@@ -31,7 +31,9 @@ class _AcademicContextBoundaryState extends State<AcademicContextBoundary> {
         (widget.childId != null && child != widget.childId)) {
       _valid = false;
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (mounted) Navigator.of(context).popUntil((route) => route.isFirst);
+        if (mounted && (ModalRoute.of(context)?.isActive ?? false)) {
+          Navigator.of(context).popUntil((route) => route.isFirst);
+        }
       });
     }
   }
@@ -40,7 +42,9 @@ class _AcademicContextBoundaryState extends State<AcademicContextBoundary> {
     if (!_valid) return;
     setState(() => _valid = false);
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (mounted) Navigator.of(context).popUntil((route) => route.isFirst);
+      if (mounted && (ModalRoute.of(context)?.isActive ?? false)) {
+        Navigator.of(context).popUntil((route) => route.isFirst);
+      }
     });
   }
 

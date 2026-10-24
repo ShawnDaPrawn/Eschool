@@ -359,3 +359,13 @@ Native Android dependencies added in `android/app/build.gradle.kts`: `androidx.m
 - [API-Overview](API-Overview)
 - [Notifications](Notifications)
 - [Architecture](Architecture)
+
+
+### Learning content
+
+The shared academic package supplies the teacher content hub and adaptive draft
+editor, plus the learner/parent library and Markdown reader. Both shells expose
+Learning content when `/me/context` advertises `academic_content`. Private reads
+pin school, account and selected child; context changes close pushed readers.
+Publication requires an explicit human review, and uncertain uploads reuse their
+original operation identifier. See [the user guide](../documentation/features/learning-content.md).

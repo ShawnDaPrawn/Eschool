@@ -65,6 +65,25 @@ void main() {
     fail('expected an ApiException');
   }
 
+  test(
+    'HTTP error status survives translation for private access clearing',
+    () async {
+      for (final status in [401, 403, 404, 409, 422, 500, 503]) {
+        useServer(
+          (_) async => _json({
+            'error': true,
+            'message': 'Request refused',
+          }, status: status),
+        );
+        final error = await failure(
+          client.send(method: 'GET', url: 'https://school.test/api/v2/private'),
+        );
+        expect(error.statusCode, status);
+      }
+      expect(unauthorizedCalls, 1);
+    },
+  );
+
   test('v2 retries preserve the supplied operation key and school', () async {
     for (var attempt = 0; attempt < 2; attempt++) {
       await client.send(

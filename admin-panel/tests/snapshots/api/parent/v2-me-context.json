@@ -59,6 +59,7 @@
                 "timezone": "string"
             },
             "feature_flags": {
+                "academic_content": "bool",
                 "academic_marks": "bool",
                 "academic_registers": "bool",
                 "academic_reports": "bool",

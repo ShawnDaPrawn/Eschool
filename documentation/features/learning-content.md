@@ -39,3 +39,18 @@ draft is explicitly published. Open **Private version history** to inspect earli
 versions. **Withdraw published material** removes an item from new learner library
 reads while retaining its private history. Author access is rechecked against
 current school roles and dated allocations on every action.
+
+
+## In the apps
+
+Teachers open **Learning content** from Academics or Settings. On a wide screen,
+the draft editor shows the text and readable preview side by side. On a phone,
+the same controls stack vertically. Source replacement warns before discarding
+unsaved text, and an interrupted upload offers **Retry previous request**.
+
+Learners and parents open **Learning content** on Home or in Settings. Parents
+see the child selected in the child switcher. Tap a published title to read its
+headings, tables, lists and curriculum tags. A publication notification opens the
+corresponding child and version after checking the account's access. Returning
+to the app refreshes access; changing account, school or child closes private
+material. Links open separately; original source files are not exposed.

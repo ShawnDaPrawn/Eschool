@@ -544,6 +544,45 @@ slides, spreadsheet, audio and video inside the read-only offline runtime.
 Security run 40111956196 passes after the exact public-checksum exception;
 93769303 is superseded by the review fixes, so final-head CI is still required.
 
+
+### Shared content clients, 24 October 2026
+
+- Shared academic package: **120 tests passed**. A subsequent notification/child
+  navigation fix passes **6 focused context tests**, including the prior marks
+  school/child boundary tests. School/account/child changes close pushed readers;
+  dismissed routes cannot pop a newly opened child's route.
+- Full learner/parent shell suite: **45 passed**; teacher shell: **28 passed**.
+  All language JSON files retain matching key sets. Added English fallback labels
+  are not represented as human-reviewed translations.
+- Chrome teacher flow passes sign-in, allocated private draft edit/save, preview
+  and explicit human publication. Initial parent flow passes selected-child-only
+  reads and rendered Markdown without staff API requests. The extended parent
+  flow additionally checks unauthorized targets and a different authorized child;
+  its final result is recorded below.
+- Backend context and existing API response-shape regression: **10 passed,
+  278 assertions**; affected PHP files pass Pint and Larastan reports no errors.
+  The additive capability and sorted context snapshots are updated together.
+- Shared package analyzer reports no issues. Both app analyzers report zero
+  errors/warnings (existing style information remains). Actionlint, JSON key
+  consistency, diff whitespace checks and documentation build pass.
+- Manual client review covers no remote images, HTTPS-only external links,
+  read checksum/lease binding, immutable operation retries and access-loss
+  clearing. Physical devices, staging timing, language review and independent
+  security/pilot acceptance remain open. Encrypted leased offline content is
+  explicitly the next implementation slice. No production release is authorized.
+
+Extended parent Chrome flow: **passed**, including refusal of an unauthorized
+learner target without any request for it, and opening another authorized child
+while the prior library/reader is still in the navigation stack.
+
+PR #99 review: **21 client repository/widget tests** and **24 core API tests**
+pass after preserving HTTP status for access-loss clearing and refusing
+withdrawal/preview while local edits are unsaved. Refresh/resume with local
+edits requires comparison before writing against fresh revisions. The real
+v2 reader response passes an advancing-microsecond-clock regression: its two
+lease timestamps now use one instant (**2 backend tests, 19 assertions**).
+Pint and Larastan pass. These fixes address both inline review findings.
+
 Final #98 CI regression found one missing panel navigation label (1,461 passed,
 one daemon integration skip). Added the Learning content key to every panel
 language file; **6 focused navigation/translation/reader tests pass, 4,008

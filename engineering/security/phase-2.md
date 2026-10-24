@@ -145,3 +145,13 @@ Copy expiry deletes only validated owned paths/payloads and retains source recor
 Public-key provenance requires comparison with authenticated metadata. Independent
 security review, approved wider retention schedule and actual recipient hand-off
 remain acceptance evidence; local tests do not establish those outcomes.
+
+
+24 October 2026: manually reviewed the shared content clients for scoped routes,
+late-response discard, immutable mutation retries, conflict/revocation handling,
+private lifecycle clearing and Markdown rendering. Repository tests reject wrong
+school/account/learner/checksum/lease fields; shared widgets block network images
+and restrict external links to HTTPS without user information. No source-file URL
+or generic private-response cache is introduced. This is implementation review,
+not independent security acceptance. Encrypted leased offline copies remain a
+separate slice.

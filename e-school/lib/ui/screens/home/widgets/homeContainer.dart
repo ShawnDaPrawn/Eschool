@@ -362,6 +362,7 @@ class _HomeContainerState extends State<HomeContainer> {
                     const AcademicNextPeriod(),
                     const AcademicTodayAttendance(),
                     const AcademicReportsEntry(),
+                    const AcademicContentEntry(),
                     _buildAdvertisementSliders(),
                     SizedBox(height: MediaQuery.sizeOf(context).height * 0.025),
                     if (context
