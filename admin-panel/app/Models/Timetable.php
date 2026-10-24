@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Models;
 
+use App\Services\Academics\DatedAcademicProjection;
 use App\Services\Platform\Tenancy\BelongsToSchool;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
@@ -18,7 +19,7 @@ class Timetable extends Model
 
     public function subject_teacher()
     {
-        return $this->belongsTo(SubjectTeacher::class)->with('subject', 'teacher.user:id,first_name,last_name')->withTrashed();
+        return $this->belongsTo(SubjectTeacher::class)->withoutGlobalScope(DatedAcademicProjection::class)->with('subject', 'teacher.user:id,first_name,last_name')->withTrashed();
     }
 
     public function class_section()
@@ -28,7 +29,7 @@ class Timetable extends Model
 
     public function subject()
     {
-        return $this->belongsTo(SubjectTeacher::class, 'subject_teacher_id')->with('subject')->withTrashed();
+        return $this->belongsTo(SubjectTeacher::class, 'subject_teacher_id')->withoutGlobalScope(DatedAcademicProjection::class)->with('subject')->withTrashed();
     }
 
     public function term()

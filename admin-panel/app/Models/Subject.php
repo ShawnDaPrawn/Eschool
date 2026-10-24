@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Models;
 
+use App\Models\Academics\SubjectStandard;
 use App\Services\Platform\Tenancy\BelongsToSchool;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -17,7 +18,12 @@ class Subject extends Model
     use BelongsToSchool, HasFactory;
     use SoftDeletes;
 
-    protected $hidden = ['deleted_at', 'created_at', 'updated_at'];
+    protected $hidden = ['deleted_at', 'created_at', 'updated_at', 'standard_id'];
+
+    public function standard()
+    {
+        return $this->belongsTo(SubjectStandard::class, 'standard_id');
+    }
 
     // Relationships
     public function medium()

@@ -11,6 +11,12 @@ Earlier history is kept where it was written and is not repeated here:
 
 ### Added
 
+- Manage dated teaching groups, learner memberships and teacher/homeroom/leadership assignments with explicit class-grade mappings, audited corrections and current allocation checks for existing app projections.
+
+- Prepare versioned curriculum topics and term assessment plans with exact task/question maxima, separate term and annual weights, allocated-teacher access, audited publication and explicit new-year draft copying.
+
+- Add versioned CAPS/IEB subject reference imports and school subject mapping, with source provenance, explicit publication, tenant/permission checks and a Material 3 catalogue page.
+
 - School staff can edit app contacts and branding under Settings → School information, publish PDF policies and schedules, and show current-year term dates in both apps’ My school screen. School selection is explicit on each request. Unlisting removes a publication from the screen while its public link remains valid.
 
 - Add school-specific person profile categories, protected defaults, encrypted custom values and authorised API v2 forms/configuration. Partial edits validate supplied fields without blocking on unrelated incomplete fields. School admins can arrange fields in Settings, and authorised people use the same form metadata in the panel and both apps. Saves update changed fields only. Permitted CSV exports filter sensitive values before decryption; private drafts stay out of browser/session storage. Private file fields accept encrypted PDF/PNG/JPEG attachments with authenticated previews and preserve unrelated edits. Legacy migration remains in progress. **Deploy:** preserve APP_KEY; rehearse the additive profile migration and back up profile values, attachment metadata and private ciphertext before rolling it back.
@@ -25,6 +31,8 @@ Earlier history is kept where it was written and is not repeated here:
 
 
 ### Developers
+
+- Narrow Phase 1 closeout to supported clients after the product owner confirmed there are no legacy clients. Legacy profile storage retirement and compatibility writes are no longer release prerequisites; existing data remains subject to privacy controls.
 
 - Integrate dependency PRs #48, #49, #50, #53, #55, #56, #57, #59 and #60, including their compatibility migrations. Pin Flutter CI and deployment builds to 3.47.7 / Dart 3.13.5 for Google Fonts 9; preserve the Material type scale and refresh all affected lockfiles. File Picker 13 supports both apps' attachments and single-file uploads. TeX 5 starts its renderer, keeps question and answer views independent, and loads its bundled browser bridge; release phones allow its device-local asset server. Image 4 supports all legacy image helpers as well as tenant uploads. Add regression checks for image encoding, school role revocation, checkout setup/cancellation, typography and rendered exam maths.
 

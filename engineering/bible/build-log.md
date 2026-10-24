@@ -186,3 +186,43 @@ Template preview does not mutate calendars; apply adds missing rows atomically,
 retains existing dates and rejects overlap or invalid leap-day conversion.
 Staging, independent assessment/pilot acceptance and production release remain
 separate; no live migration or cloud resources are part of this implementation.
+
+On 24 October 2026 the product owner confirmed there are no legacy clients
+and removed legacy-storage retirement from Phase 1 closeout. Compatibility
+writes for those clients and archived legacy profile migration are likewise
+outside that closeout path. Existing data and public objects remain in place;
+privacy retention and access controls still apply. Phase 0 staging evidence
+and the other Phase 1 implementation and acceptance work remain open.
+
+The managed cloud environment reported no outbound identity, secret or runtime
+variable bindings on 24 October 2026. Staging resources and spend were not
+inventoried or changed; real mail, restore and worker observation remain pending.
+
+## 24 October 2026: continue Phase 2 academic implementation
+
+The owner requested autonomous completion of remaining Phase 2 work, referring
+back to the private Build Bible. Subject catalogue/mapping adds reviewed operator
+imports, immutable sourced revisions, explicit publication and school-scoped
+mapping/creation with a Material 3 page. The historical DBE-NCS-2015 baseline has
+629 grade-specific codes and no guessed assessment weights. Existing marks and
+subject payloads remain intact. Later academic slices continue while genuine
+staging/pilot/independent-review evidence stays open.
+
+## 24 October 2026: versioned curriculum foundations
+
+Added bounded, audited curriculum/topic/task/question definitions, independent
+term publication, exact mark units, optimistic revisions and same-year provenance.
+Separate term/annual components accommodate subject-specific policy without
+inventing ratios. Material 3 editor and explicit new-year draft carry use the same
+service as v2 APIs. Source confirmation, marks engine, remaining academic screens
+and external pilot evidence continue as separate work.
+
+## 24 October 2026: dated teaching structures
+
+Implemented school-scoped teaching groups, effective memberships and teacher /
+homeroom / leadership allocations, explicit class grade mapping forms, audited
+revision checks and interval validation. Stable existing-app projections have
+fresh date checks and preserve historical IDs. Allocated teachers can plan future
+curricula; actual capture needs a current grant. No marks are created or copied
+by assignment. Software verification continues separately from the genuine
+staging, source-policy, pilot-term and independent review evidence.

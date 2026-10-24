@@ -54,3 +54,84 @@ term/template/class-enable flows. The new class-settings read is school-scoped,
 permission-checked and tested against foreign years. The final targeted backend
 cohort passed 37 tests with 511 assertions. Old navigation URLs and removed config
 requests are retired; the full CI browser suite must pass before merge.
+
+## Subject standards and school mapping
+
+Spec: ../specs/academics/subject-standards.md. The trusted operator importer and
+scoped catalogue/mapping/create APIs and panel are implemented. Local checks:
+100 feature/contract tests (674 assertions), the ownership and rollback/reapply
+cohort (12 tests, 485 assertions), generated SDK regeneration and 19 Dart tests,
+SDK analysis without errors/warnings, Larastan, strict OpenAPI lint and docs build
+passed. Final browser and CI evidence is recorded on the feature PR.
+
+The bundled 629-entry DBE-NCS-2015 catalogue is historical source data with no
+assessment weights and is not installed or published automatically. Source and
+policy confirmation remain explicit operator/school decisions; no existing mark
+or assessment plan changes from a subject mapping. Staging and external
+acceptance remain pending.
+
+The subject-standard browser flows passed for admin mapping/creation and teacher
+read/refusal, including axe and overflow at 1024/1280. The first browser retry
+needed its CSRF header on a cookie-authenticated write; production CSRF checks
+were left intact. Ignored build outputs from completed worktrees were removed
+to recover workspace disk space, after which docs build and browser checks passed.
+
+Final subject-standard regression cohort: 15 tests and 675 assertions passed,
+including the unchanged v1 snapshot test and schema rollback/ownership checks.
+
+## Curriculum and assessment definitions
+
+Implemented scoped versioned drafts, topic/task/question editing, exact maximum
+units, independent term publication, immutable headers, optimistic revisions,
+same-year source provenance and explicit new-year draft history copying.
+Local API/contract cohort: 114 tests, 775 assertions passed. Panel/navigation
+cohort: 24 tests, 648 assertions passed. Generated SDK: 21 tests passed; analysis
+has no errors/warnings (79 generator style infos). Strict OpenAPI and Larastan
+passed. Final regression, browser and CI outcomes are recorded on the feature PR.
+
+Browser setup initially needed explicit labels for dynamic selects and the
+isolated demo's public avatar symlink. Runtime access/CSRF rules were preserved.
+Staging, device and real-school policy/pilot verification remain pending.
+
+Final curriculum checks passed: 180 academic/contract/ownership/migration tests
+(12,202 assertions), 22 targeted route/tenancy tests (187 assertions), two browser
+flows covering question entry/publication/copy and teacher controls, axe and
+1024/1280 overflow, plus documentation build and E2E TypeScript checking.
+The browser checks used an isolated synthetic school database.
+
+Curriculum review follow-up: all three browser flows passed, including reopening
+empty term/annual component maps, adding percentages and saving them intact.
+The editor normalizes empty PHP arrays into JSON objects before editing.
+
+## Teaching groups and dated allocations
+
+Implemented groups, effective memberships and teacher/homeroom/leadership records,
+class mapping forms, scoped API contracts, projection refresh and canonical date
+authority. Local API/contract cohort passed 123 tests (841 assertions); panel and
+navigation passed 21 tests (676 assertions). After a workspace disk-full incident,
+96 academic/schema/authorization checks passed again (11,770 assertions). Generated
+SDK regeneration and 24 Dart tests passed; analysis has only generator style infos.
+Strict OpenAPI, Larastan and documentation build passed. Final browser/route/CI
+outcomes are recorded with the feature PR. No external staging/pilot result is
+claimed from synthetic fixtures.
+
+The disk incident stopped the disposable test database; that regression run was
+invalidated. Completed local preview servers were stopped, 875 MiB of ignored
+generated caches in clean, already-merged worktrees were removed, and the synthetic
+database was restarted before rerunning. Source files and live data were retained.
+
+Final allocation follow-up: 124 API/contract tests (852 assertions), 14 focused
+service tests (164 assertions), all eight role-matrix checks and 11 targeted
+tenancy-route checks passed. Two browser flows passed for admin mapping/group/
+membership/teacher allocation and teacher roster/refusal, with axe and overflow
+at 1024/1280. Projection reuse adopts exact legacy IDs and flattens matching
+coexisting group grants without duplicate app assignments.
+
+Allocation review regressions passed: 31 group/enrolment tests (241 assertions),
+including actual term-filtered parent teacher responses and chat scope, and a
+mixed-group learner moving to a different grade. Mixed groups never create
+whole-class legacy authority. Bound projections recheck grade/homeroom and current
+dates. Incompatible memberships close in the enrolment transaction with audit.
+
+The existing parent/teacher API security suites passed 15 tests and 162 assertions
+after the dated-assignment term consumer and enrolment reconciliation changes.

@@ -1,3 +1,8 @@
+import 'package:eschool_api/src/model/academic_assignment.dart';
+import 'package:eschool_api/src/model/academic_assignment_response.dart';
+import 'package:eschool_api/src/model/academic_assignment_write.dart';
+import 'package:eschool_api/src/model/academic_assignments_response.dart';
+import 'package:eschool_api/src/model/academic_assignments_response_data.dart';
 import 'package:eschool_api/src/model/academic_grade_level.dart';
 import 'package:eschool_api/src/model/academic_rating_level.dart';
 import 'package:eschool_api/src/model/academic_reference.dart';
@@ -20,6 +25,22 @@ import 'package:eschool_api/src/model/create_learner_enrolment_request.dart';
 import 'package:eschool_api/src/model/create_profile_category_request.dart';
 import 'package:eschool_api/src/model/create_profile_field_request.dart';
 import 'package:eschool_api/src/model/current_school.dart';
+import 'package:eschool_api/src/model/curriculum_assessment.dart';
+import 'package:eschool_api/src/model/curriculum_assessment_write.dart';
+import 'package:eschool_api/src/model/curriculum_copy_write.dart';
+import 'package:eschool_api/src/model/curriculum_plan.dart';
+import 'package:eschool_api/src/model/curriculum_plan_response.dart';
+import 'package:eschool_api/src/model/curriculum_plan_summary.dart';
+import 'package:eschool_api/src/model/curriculum_plan_write.dart';
+import 'package:eschool_api/src/model/curriculum_plans_response.dart';
+import 'package:eschool_api/src/model/curriculum_plans_response_data.dart';
+import 'package:eschool_api/src/model/curriculum_publish_write.dart';
+import 'package:eschool_api/src/model/curriculum_question.dart';
+import 'package:eschool_api/src/model/curriculum_question_write.dart';
+import 'package:eschool_api/src/model/curriculum_task.dart';
+import 'package:eschool_api/src/model/curriculum_task_write.dart';
+import 'package:eschool_api/src/model/curriculum_topic.dart';
+import 'package:eschool_api/src/model/curriculum_topic_write.dart';
 import 'package:eschool_api/src/model/decide_guardian_approval_request.dart';
 import 'package:eschool_api/src/model/decide_guardian_handle_proposal_request.dart';
 import 'package:eschool_api/src/model/enrolment.dart';
@@ -66,6 +87,10 @@ import 'package:eschool_api/src/model/profile_validation_rules.dart';
 import 'package:eschool_api/src/model/profile_value.dart';
 import 'package:eschool_api/src/model/school_document.dart';
 import 'package:eschool_api/src/model/school_membership.dart';
+import 'package:eschool_api/src/model/school_subject_from_standard_write.dart';
+import 'package:eschool_api/src/model/school_subject_standard.dart';
+import 'package:eschool_api/src/model/school_subject_standard_response.dart';
+import 'package:eschool_api/src/model/school_subject_standard_write.dart';
 import 'package:eschool_api/src/model/school_summary.dart';
 import 'package:eschool_api/src/model/school_term.dart';
 import 'package:eschool_api/src/model/school_term_draft.dart';
@@ -75,6 +100,14 @@ import 'package:eschool_api/src/model/school_terms_response.dart';
 import 'package:eschool_api/src/model/school_terms_response_data.dart';
 import 'package:eschool_api/src/model/session_year.dart';
 import 'package:eschool_api/src/model/set_my_handle_request.dart';
+import 'package:eschool_api/src/model/subject_standard.dart';
+import 'package:eschool_api/src/model/subject_standards_response.dart';
+import 'package:eschool_api/src/model/subject_standards_response_data.dart';
+import 'package:eschool_api/src/model/teaching_group.dart';
+import 'package:eschool_api/src/model/teaching_group_response.dart';
+import 'package:eschool_api/src/model/teaching_group_write.dart';
+import 'package:eschool_api/src/model/teaching_groups_response.dart';
+import 'package:eschool_api/src/model/teaching_groups_response_data.dart';
 import 'package:eschool_api/src/model/term.dart';
 import 'package:eschool_api/src/model/term_dates.dart';
 import 'package:eschool_api/src/model/term_template.dart';
@@ -114,6 +147,23 @@ ReturnType deserialize<ReturnType, BaseType>(
       return (valueString == 'true' || valueString == '1') as ReturnType;
     case 'double':
       return (value is double ? value : double.parse('$value')) as ReturnType;
+    case 'AcademicAssignment':
+      return AcademicAssignment.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'AcademicAssignmentResponse':
+      return AcademicAssignmentResponse.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'AcademicAssignmentWrite':
+      return AcademicAssignmentWrite.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'AcademicAssignmentsResponse':
+      return AcademicAssignmentsResponse.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'AcademicAssignmentsResponseData':
+      return AcademicAssignmentsResponseData.fromJson(
+            value as Map<String, dynamic>,
+          )
+          as ReturnType;
     case 'AcademicGradeLevel':
       return AcademicGradeLevel.fromJson(value as Map<String, dynamic>)
           as ReturnType;
@@ -181,6 +231,54 @@ ReturnType deserialize<ReturnType, BaseType>(
           as ReturnType;
     case 'CurrentSchool':
       return CurrentSchool.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'CurriculumAssessment':
+      return CurriculumAssessment.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'CurriculumAssessmentWrite':
+      return CurriculumAssessmentWrite.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'CurriculumCopyWrite':
+      return CurriculumCopyWrite.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'CurriculumPlan':
+      return CurriculumPlan.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'CurriculumPlanResponse':
+      return CurriculumPlanResponse.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'CurriculumPlanSummary':
+      return CurriculumPlanSummary.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'CurriculumPlanWrite':
+      return CurriculumPlanWrite.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'CurriculumPlansResponse':
+      return CurriculumPlansResponse.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'CurriculumPlansResponseData':
+      return CurriculumPlansResponseData.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'CurriculumPublishWrite':
+      return CurriculumPublishWrite.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'CurriculumQuestion':
+      return CurriculumQuestion.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'CurriculumQuestionWrite':
+      return CurriculumQuestionWrite.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'CurriculumTask':
+      return CurriculumTask.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'CurriculumTaskWrite':
+      return CurriculumTaskWrite.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'CurriculumTopic':
+      return CurriculumTopic.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'CurriculumTopicWrite':
+      return CurriculumTopicWrite.fromJson(value as Map<String, dynamic>)
           as ReturnType;
     case 'DecideGuardianApprovalRequest':
       return DecideGuardianApprovalRequest.fromJson(
@@ -336,6 +434,22 @@ ReturnType deserialize<ReturnType, BaseType>(
     case 'SchoolMembership':
       return SchoolMembership.fromJson(value as Map<String, dynamic>)
           as ReturnType;
+    case 'SchoolSubjectFromStandardWrite':
+      return SchoolSubjectFromStandardWrite.fromJson(
+            value as Map<String, dynamic>,
+          )
+          as ReturnType;
+    case 'SchoolSubjectStandard':
+      return SchoolSubjectStandard.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'SchoolSubjectStandardResponse':
+      return SchoolSubjectStandardResponse.fromJson(
+            value as Map<String, dynamic>,
+          )
+          as ReturnType;
+    case 'SchoolSubjectStandardWrite':
+      return SchoolSubjectStandardWrite.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
     case 'SchoolSummary':
       return SchoolSummary.fromJson(value as Map<String, dynamic>)
           as ReturnType;
@@ -360,6 +474,32 @@ ReturnType deserialize<ReturnType, BaseType>(
       return SessionYear.fromJson(value as Map<String, dynamic>) as ReturnType;
     case 'SetMyHandleRequest':
       return SetMyHandleRequest.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'SubjectStandard':
+      return SubjectStandard.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'SubjectStandardsResponse':
+      return SubjectStandardsResponse.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'SubjectStandardsResponseData':
+      return SubjectStandardsResponseData.fromJson(
+            value as Map<String, dynamic>,
+          )
+          as ReturnType;
+    case 'TeachingGroup':
+      return TeachingGroup.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'TeachingGroupResponse':
+      return TeachingGroupResponse.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'TeachingGroupWrite':
+      return TeachingGroupWrite.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'TeachingGroupsResponse':
+      return TeachingGroupsResponse.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'TeachingGroupsResponseData':
+      return TeachingGroupsResponseData.fromJson(value as Map<String, dynamic>)
           as ReturnType;
     case 'Term':
       return Term.fromJson(value as Map<String, dynamic>) as ReturnType;

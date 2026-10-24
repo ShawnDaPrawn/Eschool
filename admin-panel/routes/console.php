@@ -67,3 +67,6 @@ Schedule::call(function () {
         });
     });
 })->everyMinute()->name('enrolment-projections')->withoutOverlapping();
+
+// Canonical dates remain authoritative even if this refresh is delayed.
+Schedule::command('academics:refresh-allocations')->everyMinute()->name('academic-allocation-projections')->withoutOverlapping();

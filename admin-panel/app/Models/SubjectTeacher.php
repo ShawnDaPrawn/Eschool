@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Models;
 
+use App\Services\Academics\DatedAcademicProjection;
 use App\Services\Platform\Tenancy\BelongsToSchool;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -14,7 +15,12 @@ class SubjectTeacher extends Model
 {
     use BelongsToSchool, SoftDeletes;
 
-    protected $hidden = ['deleted_at', 'created_at', 'updated_at'];
+    protected $hidden = ['deleted_at', 'created_at', 'updated_at', 'teaching_allocation_id'];
+
+    public function scopeForTermOrDated($query, ?int $termId)
+    {
+        return $query->where(fn ($q) => $q->where('term_id', $termId)->orWhereNotNull('teaching_allocation_id'));
+    }
 
     public function class_section()
     {
@@ -60,7 +66,12 @@ class SubjectTeacher extends Model
 
     protected static function booted()
     {
+        static::addGlobalScope(new DatedAcademicProjection('subject'));
+        static::updating(function ($row) {
+            abort_if($row->getRawOriginal('teaching_allocation_id') !== null, 409, __('Edit the dated teaching allocation instead.'));
+        });
         static::deleting(function ($subjectTeacher) {
+            abort_if($subjectTeacher->teaching_allocation_id !== null, 409, __('Edit the dated teaching allocation instead.'));
 
             if ($subjectTeacher->isForceDeleting()) {
                 $subjectTeacher->timetables()->forceDelete();

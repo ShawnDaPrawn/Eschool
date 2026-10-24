@@ -31,3 +31,38 @@ records; retries skip identical entries without overwriting edits.
 
 No independent staging/pilot security test is claimed. The semester compatibility
 exception comes from the explicit owner decision, not a blanket API exemption.
+
+Subject standards: global public references are immutable revisions with explicit
+source/publication and no school HTTP write path. Imports validate before writes;
+revision conflicts roll back the batch. School subject/medium reads use tenant
+scopes, subject permissions are refreshed before idempotent replay, and mapping
+IDs are hidden from existing raw v1 model payloads. No new person data is stored.
+
+## Curriculum implementation
+
+Fresh actor/permission/allocation checks gate reads and writes before idempotent
+replay. Nested IDs resolve under school scopes and grade/year term bounds; copied
+source IDs are server-generated. Root school serialization and draft revisions
+protect concurrent saves. Published definitions and lock dates reject writes with
+409. JSON editor output is escaped and rendered through DOM text nodes; decimal
+marks reject floats/scientific notation. School publishers alone publish/carry all
+curriculum history. No marks or reports are copied into a new year.
+
+## Teaching groups and dated authority
+
+All nested IDs and people resolve inside the current school. Target staff need
+active membership and account status. Group/interval writes serialize on the
+school row; stale revisions and overlapping duplicate intervals are refused.
+Learner memberships need matching dated grade enrolments over the entire interval.
+Fresh management checks precede idempotent replay. Canonical teacher allocation
+controls group access; parent/learner and unallocated teacher refusal is covered.
+Managed v1 projections have hidden source IDs, stable row IDs and read-time date
+scopes; ending an assignment refuses access even before refresh. Projection
+writes bypass deletion cascades and historical timetable display retains school
+scoping. Existing legacy assignments are not treated as canonical group grants.
+
+Allocation review: mixed groups do not broaden a teacher to an entire homeroom.
+Only bound homeroom groups project class authority, with grade/homeroom checks
+at refresh and read time. Grade/homeroom moves close incompatible memberships
+in the enrolment transaction and retain history. Dated whole-year assignments
+are recognized explicitly by term-filtered family teacher/chat consumers.

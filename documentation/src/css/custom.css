@@ -1,50 +1,134 @@
-/**
- * Global CSS for Docusaurus site.
- * Infima variables customized with new color palette.
- */
+/* Consume the product's generated tokens, local fonts and Material 3 library.
+ * Change the shared theme rather than maintaining a second docs palette. */
+@import '../../../admin-panel/public/assets/css/m3-tokens.css';
+@import '../../../admin-panel/public/assets/m3/m3.css';
 
 :root {
-  --ifm-color-primary: #6d28d9;
-  --ifm-color-primary-dark: #6224c3;
-  --ifm-color-primary-darker: #5d22b8;
-  --ifm-color-primary-darkest: #4c1c98;
-  --ifm-color-primary-light: #7c3edd;
-  --ifm-color-primary-lighter: #8348df;
-  --ifm-color-primary-lightest: #9968e4;
-
-  --ifm-code-font-size: 95%;
-  --docusaurus-highlighted-code-line-bg: rgba(0, 0, 0, 0.1);
-
+  --ifm-color-primary: var(--md-sys-color-primary);
+  --ifm-color-primary-dark: color-mix(in srgb, var(--md-sys-color-primary) 90%, var(--md-sys-color-shadow));
+  --ifm-color-primary-darker: color-mix(in srgb, var(--md-sys-color-primary) 85%, var(--md-sys-color-shadow));
+  --ifm-color-primary-darkest: color-mix(in srgb, var(--md-sys-color-primary) 70%, var(--md-sys-color-shadow));
+  --ifm-color-primary-light: var(--md-sys-color-primary);
+  --ifm-color-primary-lighter: var(--md-sys-color-primary);
+  --ifm-color-primary-lightest: var(--md-sys-color-inverse-primary);
+  --ifm-background-color: var(--md-sys-color-surface);
+  --ifm-background-surface-color: var(--md-sys-color-surface);
+  --ifm-font-color-base: var(--md-sys-color-on-surface);
+  --ifm-heading-color: var(--ifm-font-color-base);
+  --ifm-font-family-base: var(--md-ref-typeface-plain);
+  --ifm-heading-font-weight: 500;
+  --ifm-font-size-base: 16px;
+  --ifm-line-height-base: 1.75;
+  --ifm-color-emphasis-100: var(--md-sys-color-surface-container-low);
+  --ifm-color-emphasis-200: var(--md-sys-color-surface-container);
+  --ifm-color-emphasis-300: var(--md-sys-color-outline-variant);
+  --ifm-color-emphasis-600: var(--md-sys-color-on-surface-variant);
+  --ifm-color-emphasis-700: color-mix(in srgb, var(--md-sys-color-on-surface-variant) 85%, var(--md-sys-color-on-surface));
+  --ifm-color-emphasis-800: var(--md-sys-color-tertiary);
+  --ifm-color-emphasis-900: var(--md-sys-color-on-surface);
+  --ifm-global-radius: var(--app-radius);
+  --ifm-card-border-radius: var(--app-radius);
+  --ifm-button-border-radius: var(--app-radius);
+  --ifm-pagination-nav-border-radius: var(--app-radius);
+  --ifm-menu-link-padding-vertical: 0.625rem;
+  --ifm-navbar-height: 80px;
+  --ifm-navbar-padding-horizontal: 24px;
+  --ifm-navbar-background-color: var(--ifm-background-surface-color);
+  --ifm-navbar-shadow: none;
+  --ifm-menu-color: var(--ifm-font-color-base);
+  --ifm-menu-color-active: var(--ifm-color-primary);
+  --ifm-menu-color-background-active: var(--docs-primary-tint);
+  --ifm-link-hover-decoration: underline;
+  --ifm-code-font-size: 90%;
+  --ifm-code-background: var(--docs-surface-container);
+  --ifm-table-stripe-background: var(--docs-surface-container);
+  --ifm-table-border-color: var(--ifm-color-emphasis-300);
+  --ifm-toc-border-color: var(--ifm-color-emphasis-300);
+  --doc-sidebar-width: 285px;
+  --docs-surface-container: var(--md-sys-color-surface-container-low);
+  --docs-primary-tint: color-mix(in srgb, var(--ifm-color-primary) 7%, var(--ifm-background-color));
+  --docusaurus-highlighted-code-line-bg: var(--docs-primary-tint);
 }
 
-[data-theme='dark'] {
-  --ifm-color-primary: #9968e4;
-  --ifm-color-primary-dark: #8348df;
-  --ifm-color-primary-darker: #7c3edd;
-  --ifm-color-primary-darkest: #6d28d9;
-  --ifm-color-primary-light: #a78bfa;
-  --ifm-color-primary-lighter: #c4b5fd;
-  --ifm-color-primary-lightest: #ddd6fe;
-
-  --docusaurus-highlighted-code-line-bg: rgba(0, 0, 0, 0.3);
+/* Dark reading surfaces stay in the same navy family; brand tokens stay intact. */
+html[data-theme='dark'] {
+  color-scheme: dark;
+  --ifm-color-primary: var(--md-sys-color-inverse-primary);
+  --ifm-color-primary-dark: var(--md-sys-color-on-primary-container);
+  --ifm-color-primary-darker: var(--md-sys-color-on-primary-container);
+  --ifm-color-primary-darkest: var(--md-sys-color-on-inverse-surface);
+  --ifm-color-primary-light: var(--md-sys-color-on-primary-container);
+  --ifm-color-primary-lighter: var(--md-sys-color-on-primary-container);
+  --ifm-color-primary-lightest: var(--md-sys-color-on-inverse-surface);
+  --ifm-background-color: color-mix(in srgb, var(--md-sys-color-inverse-surface) 40%, var(--md-sys-color-shadow));
+  --ifm-background-surface-color: color-mix(in srgb, var(--md-sys-color-inverse-surface) 65%, var(--md-sys-color-shadow));
+  --ifm-font-color-base: var(--md-sys-color-on-inverse-surface);
+  --docs-surface-container: var(--ifm-background-surface-color);
+  --ifm-color-emphasis-100: var(--ifm-background-surface-color);
+  --ifm-color-emphasis-200: color-mix(in srgb, var(--md-sys-color-inverse-surface) 85%, var(--md-sys-color-shadow));
+  --ifm-color-emphasis-300: color-mix(in srgb, var(--md-sys-color-on-inverse-surface) 22%, transparent);
+  --ifm-color-emphasis-600: color-mix(in srgb, var(--md-sys-color-on-inverse-surface) 65%, var(--ifm-background-color));
+  --ifm-color-emphasis-700: color-mix(in srgb, var(--md-sys-color-on-inverse-surface) 78%, var(--ifm-background-color));
+  --ifm-color-emphasis-800: var(--md-sys-color-on-inverse-surface);
+  --ifm-color-emphasis-900: var(--md-sys-color-on-inverse-surface);
 }
 
-/* Add styles to make YouTube videos larger */
-.container-iframe {
-  position: relative;
-  width: 100%;
-  overflow: hidden;
-  padding-top: 56.25%;
-  /* 16:9 Aspect Ratio */
+/* A literal family keeps Docusaurus' CSS optimiser from removing the shared
+ * @font-face rules when the rest of the library uses CSS variables. */
+body { font-family: 'Poppins', var(--md-ref-typeface-plain); -webkit-font-smoothing: antialiased; }
+:focus-visible { outline: 3px solid var(--ifm-color-primary); outline-offset: 3px; }
+::selection { background: var(--md-sys-color-inverse-primary); color: var(--md-sys-color-inverse-surface); }
+.navbar { border-bottom: 1px solid var(--ifm-color-emphasis-300); }
+.navbar__logo { height: 48px; }
+.navbar__logo img { width: 164px; }
+.navbar__link { font-size: 14px; font-weight: 500; }
+.navbar__item.dropdown { font-size: 14px; }
+.navbar-sidebar { background: var(--ifm-background-color); }
+.menu__link { border-radius: var(--app-radius); font-size: 14px; }
+.menu__list-item-collapsible { border-radius: var(--app-radius); }
+.table-of-contents { font-size: 12px; }
+.breadcrumbs__link { border-radius: var(--app-radius); }
+.markdown h1 { font-size: clamp(30px, 4vw, 40px); line-height: 1.25; letter-spacing: -0.025em; }
+.markdown h2 { font-size: 28px; line-height: 1.35; }
+.markdown h3 { font-size: 22px; line-height: 1.4; }
+.markdown > h2 { margin-top: 2.5rem; }
+.markdown a:not(.hash-link):not(.m3-button) { text-underline-offset: 3px; }
+.markdown img { border-radius: var(--app-radius); }
+.markdown table { font-size: 14px; }
+.pagination-nav__link { border-color: var(--ifm-color-emphasis-300); }
+.pagination-nav__sublabel { color: var(--ifm-color-emphasis-700); }
+.footer--dark {
+  --ifm-footer-background-color: var(--md-sys-color-inverse-surface);
+  --ifm-footer-color: var(--md-sys-color-on-inverse-surface);
+  --ifm-footer-link-color: var(--md-sys-color-on-inverse-surface);
+  --ifm-footer-link-hover-color: var(--md-sys-color-inverse-primary);
+  --ifm-footer-title-color: var(--md-sys-color-on-inverse-surface);
+}
+.footer { font-size: 14px; padding-block: 40px; }
+.footer__copyright { margin-top: 24px; font-size: 12px; }
+.footer__link-item { display: inline-block; padding-block: 4px; }
+.dropdown__menu { border: 1px solid var(--ifm-color-emphasis-300); background: var(--ifm-background-surface-color); box-shadow: var(--md-sys-elevation-level2); }
+.dropdown__link { border-radius: var(--app-radius); }
+.navbar .navbar__search-input {
+  background-color: var(--docs-surface-container); border: 1px solid var(--ifm-color-emphasis-600);
+  border-radius: var(--app-radius); color: var(--ifm-font-color-base); font-family: inherit; min-height: 40px;
+}
+.navbar .navbar__search-input::placeholder { color: var(--ifm-color-emphasis-700); }
+[data-theme='dark'] .m3-button--outlined:not(.m3-button--inverse),
+[data-theme='dark'] .m3-button--text { color: var(--ifm-color-primary); border-color: var(--ifm-color-emphasis-600); }
+.m3-button--filled:not(.m3-button--inverse):hover { color: var(--md-sys-color-on-primary); }
+.m3-button--outlined.m3-button--inverse:hover { color: var(--md-sys-color-on-inverse-surface); }
+.container-iframe { position: relative; width: 100%; overflow: hidden; padding-top: 56.25%; border-radius: var(--app-radius); }
+.responsive-iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: none; }
+.video-container video { max-width: 100%; height: auto; border-radius: var(--app-radius); }
+@media (max-width: 996px) {
+  :root { --ifm-navbar-height: 72px; --ifm-navbar-padding-horizontal: 16px; }
+  .navbar__logo { height: 40px; }
+  .navbar__logo img { width: 137px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
 }
 
-.responsive-iframe {
-  position: absolute;
-  top: 0;
-  left: 0;
-  bottom: 0;
-  right: 0;
-  width: 100%;
-  height: 100%;
-  border: none;
-}
+.m3-button--inverse:not(.m3-button--outlined):hover { color: var(--md-sys-color-inverse-surface); }

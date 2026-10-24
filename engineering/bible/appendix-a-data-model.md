@@ -83,3 +83,36 @@ configuration uses `include_terms`. Grade bounds (0 = R through 12) default to t
 whole school; optional `marks_lock_on` and `reports_on` prepare future workflows.
 `term_templates` is school-owned and holds a named, validated calendar snapshot
 and base year for preview/seeding. No semester projection or dual writes remain.
+
+Subject standards add a global immutable public reference catalogue, with framework,
+code, phase/grade bounds, source/version/effective date, optional integer component
+weights and explicit publication. subjects.standard_id is a nullable restricted
+reference, exposed by v2 mapping resources and hidden from v1 raw serialization.
+
+## Phase 2: curriculum and assessments
+
+School-owned soft-deleted curriculum_plans record subject/grade/year versions,
+source version, immutable reference snapshot, annual components, absent/rounding
+policy and optimistic draft revision. curriculum_topics belong to a term with
+stable keys and week ranges. assessment_plans hold per-term components and
+publication. assessment_tasks hold stable keys, term and annual components and
+basis-point weights, exact hundredth maximum units and optional same-year source
+task provenance. assessment_questions hold question numbers, exact maxima and
+topic links. Cross-year copies never carry task mark provenance or learner data.
+
+## Phase 2: dated academic allocations
+
+School-owned soft-deleted teaching_groups bind subject/grade/year and an optional
+homeroom. teaching_group_memberships retain learner, effective dates, mark rule,
+reason and revision. teaching_allocations and homeroom_allocations retain teacher,
+context and effective dates. academic_leaderships record grade-head/principal
+scope per year with dated appointments and audit history. subject_teachers and
+class_teachers have hidden nullable source allocation foreign keys for stable v1
+projections. Unmanaged legacy assignments remain independent; group capture
+requires canonical authority. Used class grade mappings cannot be reinterpreted.
+
+Mixed groups retain exact learner authority through the new group APIs. They do
+not create whole-class v1 subject assignments. Bound homeroom assignments keep
+stable v1 projections, and term-filtered teacher/chat consumers explicitly accept
+current dated assignments. Enrolment changes end incompatible group memberships
+with an audit; moving grade never projects access into the new grade's homeroom.

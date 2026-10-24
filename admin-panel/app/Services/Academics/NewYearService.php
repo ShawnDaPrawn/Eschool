@@ -8,8 +8,10 @@ use App\Actions\Transfers\TransferClassFeeType;
 use App\Actions\Transfers\TransferClassSubject;
 use App\Actions\Transfers\TransferClassTeacherAndSubjectTeacher;
 use App\Actions\Transfers\TransferClassTimetable;
+use App\Actions\Transfers\TransferCurriculumPlans;
 use App\Actions\Transfers\TransferExamGrades;
 use App\Actions\Transfers\TransferLeaveSettings;
+use App\Models\Academics\CurriculumPlan;
 use App\Models\ClassSubject;
 use App\Models\ClassTeacher;
 use App\Models\Exam;
@@ -47,6 +49,7 @@ class NewYearService
      * @var array<string, array{0: string, 1: class-string}>
      */
     public const CARRY = [
+        'curriculum' => ['new_year_carry_curriculum', TransferCurriculumPlans::class],
         'subjects' => ['new_year_carry_subjects', TransferClassSubject::class],
         'teachers' => ['new_year_carry_teachers', TransferClassTeacherAndSubjectTeacher::class],
         'timetable' => ['new_year_carry_timetable', TransferClassTimetable::class],
@@ -298,6 +301,7 @@ class NewYearService
     private function count(string $key, int $yearId): int
     {
         return match ($key) {
+            'curriculum' => CurriculumPlan::where('session_year_id', $yearId)->count(),
             'subjects' => ClassSubject::where('session_year_id', $yearId)->count(),
             'teachers' => ClassTeacher::where('session_year_id', $yearId)->count() + SubjectTeacher::where('session_year_id', $yearId)->count(),
             'timetable' => Timetable::where('session_year_id', $yearId)->count(),

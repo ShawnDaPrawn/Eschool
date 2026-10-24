@@ -164,7 +164,7 @@ trait TeacherAccess
         }
 
         if ($termId) {
-            $query->where('term_id', $termId);
+            $query->forTermOrDated((int) $termId);
         }
     }
 }

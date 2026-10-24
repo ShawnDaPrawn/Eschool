@@ -21,6 +21,8 @@ final class SchoolOwnedTables
      * and the model (where there is one) uses BelongsToSchool.
      */
     public const REQUIRED = [
+        'teaching_groups', 'teaching_group_memberships', 'teaching_allocations', 'homeroom_allocations', 'academic_leaderships',
+        'curriculum_plans', 'curriculum_topics', 'assessment_plans', 'assessment_tasks', 'assessment_questions',
         'profile_field_categories', 'profile_field_definitions', 'profile_field_values', 'profile_files', 'notification_dispatches', 'notification_rules', 'handle_proposals', 'school_modules', 'enrolments', 'guardian_links', 'learner_approvals', 'guardian_invitations',
         'term_templates', 'academic_calendars', 'announcements', 'assignment_submissions', 'assignments', 'attendances',
         'categories', 'chat_files', 'chat_members', 'chat_messages', 'chat_rooms',
@@ -66,6 +68,7 @@ final class SchoolOwnedTables
 
     /** Tables that belong to no one school, each with the reason. */
     public const GLOBAL = [
+        'subject_standards' => 'public versioned CAPS/IEB catalogue; only the trusted platform operator importer writes, with no school HTTP writes',
         'grade_levels' => 'shared R to 12 grade and school-phase reference; no person or school records and no API writes',
         'academic_rating_levels' => 'shared seven-point percentage reference only; no learner marks or school records',
         'notification_preferences' => 'a human controls their own channel choices across schools; each schools mandatory rules override these choices',

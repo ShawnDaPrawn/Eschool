@@ -1,0 +1,118 @@
+name: Firebase documentation
+
+on:
+  push:
+    branches: [codex/docs-firebase]
+  pull_request:
+    paths:
+      - 'documentation/**'
+      - 'branding/**'
+      - 'admin-panel/public/assets/css/m3-tokens.css'
+      - 'admin-panel/public/assets/m3/m3.css'
+      - 'admin-panel/public/assets/fonts/poppins/**'
+      - '.github/workflows/firebase-documentation.yml'
+  workflow_dispatch:
+    inputs:
+      channel:
+        description: 'Preview first; choose live only after accepting the preview'
+        type: choice
+        options: [preview, live]
+        default: preview
+
+permissions:
+  contents: read
+
+concurrency:
+  group: firebase-docs-${{ github.head_ref || github.ref_name }}
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    name: Build, check and deploy documentation
+    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    environment: ${{ github.event_name == 'workflow_dispatch' && inputs.channel == 'live' && 'production' || 'documentation-preview' }}
+    env:
+      GCLOUD_PROJECT: navigateed-d8c06
+      DOCS_BASE_URL: /
+      DOCS_URL: https://navigateed-d8c06.web.app
+    steps:
+      - uses: actions/checkout@v4
+      - name: Restrict live deployments to main
+        if: github.event_name == 'workflow_dispatch' && inputs.channel == 'live'
+        run: test "$GITHUB_REF" = refs/heads/main
+      - name: Check the configured service account
+        env:
+          DEPLOY_CREDENTIAL: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_NAVIGATEED_D8C06 }}
+        run: |
+          node <<'JS'
+          function fail(message) {
+            console.error('::error::' + message);
+            process.exit(1);
+          }
+          const raw = process.env.DEPLOY_CREDENTIAL;
+          if (!raw || !raw.trim()) {
+            fail('Repository Actions secret FIREBASE_SERVICE_ACCOUNT_NAVIGATEED_D8C06 is missing, empty, or unavailable to this workflow.');
+          }
+          console.log('The repository deployment secret is available.');
+          let credential;
+          try { credential = JSON.parse(raw); }
+          catch { fail('The deployment secret is not valid JSON. Its value must be the entire downloaded service-account JSON file.'); }
+          if (!credential || typeof credential !== 'object') fail('The deployment secret must contain a JSON object.');
+          if (credential.project_id !== 'navigateed-d8c06') fail('The credential project_id does not match navigateed-d8c06.');
+          if (credential.type !== 'service_account' || !credential.client_email || !credential.private_key) {
+            fail('The JSON is missing service-account authentication fields. An email, account ID, or Firebase web-app config is not a deployment credential.');
+          }
+          console.log('Firebase service-account JSON is configured for the expected project.');
+          JS
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: documentation/package-lock.json
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: npm --prefix documentation ci --no-audit --no-fund
+      - run: npm --prefix documentation run build:firebase
+      - name: Install the browser for verification
+        run: |
+          python -m pip install playwright==1.56.0
+          python -m playwright install --with-deps chromium
+      - name: Verify the built documentation
+        env:
+          DOCS_UI_EVIDENCE: ${{ runner.temp }}/docs-ui-evidence
+        run: |
+          npm --prefix documentation run serve -- --host 127.0.0.1 --port 3010 --no-open > "$RUNNER_TEMP/docs-serve.log" 2>&1 &
+          server_pid=$!
+          trap 'kill "$server_pid"' EXIT
+          for attempt in $(seq 1 30); do
+            if curl --fail --silent http://127.0.0.1:3010/ > /dev/null; then break; fi
+            sleep 1
+          done
+          python documentation/scripts/check_ui.py
+      - name: Deploy Firebase Hosting
+        id: hosting
+        uses: FirebaseExtended/action-hosting-deploy@500ac625ca2dd40cbd15f7659af953801858032a # v0
+        with:
+          firebaseServiceAccount: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_NAVIGATEED_D8C06 }}
+          projectId: navigateed-d8c06
+          target: docs
+          channelId: ${{ github.event_name == 'workflow_dispatch' && inputs.channel == 'live' && 'live' || 'docs-ui-review' }}
+          expires: 7d
+      - name: Record the deployment URL
+        env:
+          URLS: ${{ steps.hosting.outputs.urls }}
+        run: |
+          printf '## Documentation deployment\n\n%s\n' "$URLS" >> "$GITHUB_STEP_SUMMARY"
+      - name: Upload browser evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: documentation-browser-evidence
+          path: |
+            ${{ runner.temp }}/docs-ui-evidence
+            ${{ runner.temp }}/docs-serve.log
+          retention-days: 14
+          if-no-files-found: warn
