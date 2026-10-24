@@ -67,7 +67,7 @@ Map<String, Object?> dashboard() => {
         'full_name': 'Grade 7',
         'medium_id': 1,
         'medium': {'id': 1, 'name': 'English'},
-        'include_semesters': 0,
+        'include_terms': 0,
         'streams': null,
       },
       'section': {'id': 1, 'name': 'A'},

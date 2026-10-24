@@ -18,7 +18,7 @@
                 "/leave-request",
                 "/online-registration",
                 "/promote-student",
-                "/semester",
+                "/term",
                 "/settings",
                 "/sliders",
                 "/staff",
@@ -40,7 +40,7 @@
                 "/content",
                 "/fees-config",
                 "/roles/create",
-                "/semester",
+                "/term",
                 "/settings",
                 "/staff-attendance"
             ],

@@ -139,7 +139,7 @@ class _SelectSubjectsScreenState extends State<SelectSubjectsScreen> {
     final currentClass = context
         .read<AuthCubit>()
         .getStudentDetails()
-        .classSectionNameWithSemester(context: context);
+        .classSectionNameWithTerm(context: context);
     return Align(
       alignment: Alignment.topCenter,
       child: CustomAppBar(

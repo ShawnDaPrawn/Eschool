@@ -1,6 +1,6 @@
 import 'package:eschool_core/eschool_core.dart';
 import 'package:eschool/data/models/paymentOptions.dart';
-import 'package:eschool/data/models/semester.dart';
+import 'package:eschool/data/models/term.dart';
 import 'package:eschool/data/models/sessionYear.dart';
 
 class AppConfiguration {
@@ -14,9 +14,9 @@ class AppConfiguration {
     required this.isCompulsoryFeePaymentMode,
     required this.isDemo,
     required this.canStudentPayTheirFees,
-    required this.currentSemester,
+    required this.currentTerm,
     required this.paymentOptions,
-    required this.semesterBreaks,
+    required this.termBreaks,
   });
 
   AppConfiguration.fromJson(Map<String, dynamic> json) {
@@ -37,16 +37,16 @@ class AppConfiguration {
     isCompulsoryFeePaymentMode = json['compulsory_fee_payment_mode'] == '1';
     canStudentPayTheirFees = json['is_student_can_pay_fees'] == '1';
     chatSettings = ChatSettings.fromJson(json['chat_settings'] ?? {});
-    currentSemester = json['current_semester']?.isEmpty ?? true
+    currentTerm = json['current_term']?.isEmpty ?? true
         ? null
-        : Semester.fromJson(json['current_semester'] ?? {});
+        : Term.fromJson(json['current_term'] ?? {});
     paymentOptions = json.containsKey('payment_options')
         ? PaymentOptions.fromJson(json['payment_options'])
         : paymentOptions;
-    semesterBreaks = json['semester_breaks'] != null
-        ? List<SemesterBreak>.from(
-            (json['semester_breaks'] as List).map(
-              (x) => SemesterBreak.fromJson(Map<String, dynamic>.from(x)),
+    termBreaks = json['term_breaks'] != null
+        ? List<TermBreak>.from(
+            (json['term_breaks'] as List).map(
+              (x) => TermBreak.fromJson(Map<String, dynamic>.from(x)),
             ),
           )
         : null;
@@ -58,7 +58,7 @@ class AppConfiguration {
   late final String iosAppVersion;
   late final String forceAppUpdate;
   late final String appMaintenance;
-  late final Semester? currentSemester;
+  late final Term? currentTerm;
   late final SessionYear sessionYear;
   late final List<String> holidayDays;
   late final String schoolName;
@@ -69,5 +69,5 @@ class AppConfiguration {
   late final bool isCompulsoryFeePaymentMode;
   late final bool canStudentPayTheirFees;
   PaymentOptions paymentOptions = PaymentOptions();
-  late final List<SemesterBreak>? semesterBreaks;
+  late final List<TermBreak>? termBreaks;
 }

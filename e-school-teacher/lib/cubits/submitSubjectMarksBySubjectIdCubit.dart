@@ -37,7 +37,7 @@ class SubjectMarksBySubjectIdCubit extends Cubit<SubjectMarksBySubjectIdState> {
   //This method is used to submit subject marks by student Id
   Future<void> submitSubjectMarksBySubjectId({
     required int subjectId,
-    String? semesterId,
+    String? termId,
     required int examId,
     required int classSectionId,
     required List<Map<String, dynamic>> bodyParameter,
@@ -48,7 +48,7 @@ class SubjectMarksBySubjectIdCubit extends Cubit<SubjectMarksBySubjectIdState> {
       final Map<String, dynamic> result = await studentRepository
           .updateSubjectMarksBySubjectId(
             subjectId: subjectId,
-            semesterId: semesterId,
+            termId: termId,
             examId: examId,
             bodyParameter: parameter,
             classSectionId: classSectionId,

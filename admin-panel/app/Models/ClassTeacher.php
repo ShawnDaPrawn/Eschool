@@ -17,7 +17,7 @@ class ClassTeacher extends Model
         'class_section_id',
         'class_teacher_id',
         'session_year_id',
-        'semester_id',
+        'term_id',
     ];
 
     public function classSections()
@@ -30,8 +30,8 @@ class ClassTeacher extends Model
         return $this->belongsTo(Teacher::class, 'class_teacher_id');
     }
 
-    public function semester()
+    public function term()
     {
-        return $this->belongsTo(Semester::class, 'semester_id');
+        return $this->belongsTo(Term::class, 'term_id');
     }
 }

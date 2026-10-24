@@ -11,10 +11,10 @@ use App\Models\AssignmentSubmission;
 use App\Models\ClassSessionConfig;
 use App\Models\File;
 use App\Models\Notification;
-use App\Models\Semester;
 use App\Models\StudentSessions;
 use App\Models\SubjectTeacher;
 use App\Models\Teacher;
+use App\Models\Term;
 use App\Services\Platform\Files\FileNames;
 use App\Services\Platform\Notifications\Notifier;
 use App\Services\ResponseService;
@@ -65,20 +65,18 @@ class AssignmentController extends Controller
             $student_class_section_id = $student_session->class_section_id;
             $class_id = $student_session->class_section->class_id;
 
-            $isClassHaveSemester = ClassSessionConfig::classHasSemester($class_id, $session_year_id);
+            $isClassHaveTerm = ClassSessionConfig::classHasTerm($class_id, $session_year_id);
 
-            $currentSemester = null;
-            if ($isClassHaveSemester) {
-                $currentSemester = Semester::where('session_year_id', $session_year_id)
-                    ->get()
-                    ->first(fn ($s) => $s->current);
+            $currentTerm = null;
+            if ($isClassHaveTerm) {
+                $currentTerm = Term::currentForClass((int) $session_year_id, (int) $class_id);
             }
 
             $data = Assignment::where('class_section_id', $student_class_section_id)->where('session_year_id', $session_year_id)
                 ->whereIn('subject_id', $subject_id)->with(['file', 'subject', 'submission' => function ($q) use ($student) {
                     $q->where('student_id', $student->id)->with('file');
-                }])->when($currentSemester, function ($query) use ($currentSemester) {
-                    $query->where('semester_id', $currentSemester->id);
+                }])->when($currentTerm, function ($query) use ($currentTerm) {
+                    $query->where('term_id', $currentTerm?->id);
                 });
 
             if ($request->assignment_id) {

@@ -27,7 +27,7 @@ class CreateAnnouncementCubit extends Cubit<CreateAnnouncementState> {
     required List<PlatformFile> attachments,
     required int classSectionId,
     required int subjectId,
-    String? semesterId,
+    String? termId,
   }) async {
     emit(CreateAnnouncementInProgress());
     try {
@@ -37,7 +37,7 @@ class CreateAnnouncementCubit extends Cubit<CreateAnnouncementState> {
         attachments: attachments,
         classSectionId: classSectionId,
         subjectId: subjectId,
-        semesterId: semesterId,
+        termId: termId,
       );
       emit(CreateAnnouncementSuccess());
     } catch (e) {

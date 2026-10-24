@@ -15,7 +15,7 @@
                             "educational_program_id": "null",
                             "full_name": "string",
                             "id": "number",
-                            "include_semesters": "number",
+                            "include_terms": "number",
                             "medium_id": "number",
                             "name": "string",
                             "shift_id": "null",
@@ -53,7 +53,6 @@
                     "name": "string",
                     "points": "number",
                     "resubmission": "number",
-                    "semester_id": "null",
                     "session_year_id": "number",
                     "subject": {
                         "bg_color": "string",
@@ -62,10 +61,11 @@
                         "image": "string",
                         "medium_id": "number",
                         "name": "string",
-                        "semester": "null",
+                        "term": "null",
                         "type": "string"
                     },
-                    "subject_id": "number"
+                    "subject_id": "number",
+                    "term_id": "null"
                 }
             ],
             "first_page_url": "string",

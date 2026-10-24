@@ -26,9 +26,9 @@ class OnlineExam extends Model
         return $this->belongsTo(Subject::class, 'subject_id');
     }
 
-    public function semester()
+    public function term()
     {
-        return $this->belongsTo(Semester::class, 'semester_id');
+        return $this->belongsTo(Term::class, 'term_id');
     }
 
     public function question_choice()

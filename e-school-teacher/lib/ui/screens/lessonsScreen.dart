@@ -74,7 +74,7 @@ class _LessonsScreenState extends State<LessonsScreen> {
               .getClassSectionDetails(index: currentSelectedClassSection.index)
               .id,
           subjectId: subject.id,
-          semesterId: subject.semester?.id,
+          termId: subject.term?.id,
         );
       }
     }
@@ -141,13 +141,13 @@ class _LessonsScreenState extends State<LessonsScreen> {
     return Scaffold(
       floatingActionButton: FloatingActionAddButton(
         onTap: () {
-          Navigator.of(context).pushNamed<bool?>(Routes.addOrEditLesson).then((
-            value,
-          ) {
-            if (value != null && value) {
-              fetchLessons();
-            }
-          });
+          Navigator.of(context)
+              .pushNamed<bool?>(Routes.addOrEditLesson)
+              .then((value) {
+                if (value != null && value) {
+                  fetchLessons();
+                }
+              });
         },
       ),
       body: Stack(

@@ -37,9 +37,8 @@ class SubjectsContainer extends StatelessWidget {
           decoration: BoxDecoration(
             boxShadow: [
               BoxShadow(
-                color: Theme.of(
-                  context,
-                ).colorScheme.shadow.withValues(alpha: 0.05),
+                color: Theme.of(context).colorScheme.shadow
+                    .withValues(alpha: 0.05),
                 offset: const Offset(2.5, 2.5),
                 blurRadius: 10,
               ),
@@ -64,7 +63,7 @@ class SubjectsContainer extends StatelessWidget {
                   SizedBox(width: boxConstraints.maxWidth * 0.05),
                   Expanded(
                     child: Text(
-                      subject.subjectNameWithTypeAndSemester,
+                      subject.subjectNameWithTypeAndTerm,
                       overflow: TextOverflow.ellipsis,
                       maxLines: 1,
                       style: TextStyle(

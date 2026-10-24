@@ -313,7 +313,7 @@ Route::middleware('school.context:public')->group(function () {
     // Both apps ask with GET; POST is kept for any client that already uses it.
     Route::match(['get', 'post'], 'get-events-details', [ApiController::class, 'getEventsDetails']);
     Route::get('get-session-year', [ApiController::class, 'getSessionYear']);
-    Route::get('get-semesters', [ApiController::class, 'getSemesters']);
+    Route::get('get-terms', [ApiController::class, 'getTerms']);
     Route::get('get-gallery-albums', [ApiController::class, 'getGalleryAlbums']);
     Route::get('get-gallery-images', [ApiController::class, 'getGalleryImages']);
     Route::get('get-gallery-videos', [ApiController::class, 'getGalleryVideos']);

@@ -8,10 +8,10 @@ use App\Http\Controllers\Api\Parent\Concerns\ParentAccess;
 use App\Http\Controllers\Controller;
 use App\Models\ClassSessionConfig;
 use App\Models\ClassTeacher;
-use App\Models\Semester;
 use App\Models\StudentSessions;
 use App\Models\SubjectTeacher;
 use App\Models\Teacher;
+use App\Models\Term;
 use App\Services\ResponseService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
@@ -50,27 +50,25 @@ class TeacherController extends Controller
                 ->where('student_id', $children->id)->first();
             $class_section_id = $studentSession ? $studentSession->class_section_id : $studentSession->class_section_id;
 
-            $currentSemester = Semester::get()->first(function ($semester) {
-                return $semester->current;
-            });
+            $currentTerm = Term::currentForClass((int) $session_year_id, (int) $studentSession->class_section->class_id);
 
-            $isClassHaveSemester = ClassSessionConfig::classHasSemester(
+            $isClassHaveTerm = ClassSessionConfig::classHasTerm(
                 $studentSession->class_section->class_id,
                 $session_year_id
             );
 
             $class_teachers_id = ClassTeacher::where('class_section_id', $class_section_id)
                 ->where('session_year_id', $session_year_id)
-                ->when($isClassHaveSemester, function ($query) use ($currentSemester) {
-                    $query->where('semester_id', $currentSemester->id);
+                ->when($isClassHaveTerm, function ($query) use ($currentTerm) {
+                    $query->where('term_id', $currentTerm?->id);
                 })
                 ->pluck('class_teacher_id')->toArray();
 
             $subject_teacher_id = SubjectTeacher::where('class_section_id', $class_section_id)
                 ->where('session_year_id', $session_year_id)
                 ->whereIn('subject_id', $subject_id)
-                ->when($isClassHaveSemester, function ($query) use ($currentSemester) {
-                    $query->where('semester_id', $currentSemester->id);
+                ->when($isClassHaveTerm, function ($query) use ($currentTerm) {
+                    $query->where('term_id', $currentTerm?->id);
                 })
                 ->pluck('teacher_id')->toArray();
 

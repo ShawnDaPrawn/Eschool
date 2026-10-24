@@ -10,8 +10,8 @@ staging/email budget.
 1. Shared grades R–12, school phases and seven-point rating references; explicit,
    authorized mapping of existing classes. This first slice does not infer grade
    from class names or change existing grading/report calculations.
-2. School/year/grade calendars and templates, with an explicit v1 semester bridge;
-   update year preparation and academic consumers incrementally.
+2. School/year/grade calendars and templates, replacing semesters in place under the owner
+   decision of 23 October; update year preparation and academic consumers together.
 3. Confirmed subject catalogue and assessment ratios, versioned curriculum and
    assessment plans, then task/question marks and audited moderation/locks.
 4. Dated teaching groups, rooms and clash-aware timetable; register and offline
@@ -31,5 +31,5 @@ rules before they drive learner results.
 The first slice is specified in [academic-references](../specs/academics/academic-references.md).
 Automated results, staging checks and acceptance are recorded separately in
 [the self-test record](../self-tests/phase-2.md). All later slices remain pending.
-The existing v1 semester, grade and exam/result behaviour remains authoritative
-until a separately tested compatibility transition replaces each consumer.
+Semester compatibility is retired by the owner decision; existing IDs and academic
+links migrate to terms. Other grading and exam/result contracts stay protected.

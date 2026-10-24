@@ -78,14 +78,14 @@ void main() {
     });
   });
 
-  test('SemesterBreak reads its start and end', () {
-    final semesterBreak = SemesterBreak.fromJson({
+  test('TermBreak reads its start and end', () {
+    final termBreak = TermBreak.fromJson({
       'start': '2026-04-01',
       'end': '2026-04-12',
     });
 
-    expect(semesterBreak.startDate, DateTime.parse('2026-04-01'));
-    expect(semesterBreak.endDate, DateTime.parse('2026-04-12'));
+    expect(termBreak.startDate, DateTime.parse('2026-04-01'));
+    expect(termBreak.endDate, DateTime.parse('2026-04-12'));
   });
 
   group('sanitizeFileName', () {

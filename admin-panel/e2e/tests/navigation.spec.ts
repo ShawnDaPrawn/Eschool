@@ -35,7 +35,7 @@ test('a new admin finds "add a learner"', async ({ page }) => {
 
 test('a new admin finds "set up terms"', async ({ page }) => {
   await page.goto('/home');
-  await open(page, 'Academics', 'Terms', /\/semester$/);
+  await open(page, 'Academics', 'Terms', /\/term$/);
   await expect(menu(page).getByRole('button', { name: 'Academics', exact: true })).toHaveAttribute('aria-expanded', 'true');
 });
 
@@ -58,5 +58,5 @@ test('the navigation works from the keyboard', async ({ page }) => {
   await page.keyboard.press('Tab');
   await expect(menu(page).getByRole('link', { name: 'Terms', exact: true })).toBeFocused();
   await page.keyboard.press('Enter');
-  await expect(page).toHaveURL(/\/semester$/);
+  await expect(page).toHaveURL(/\/term$/);
 });

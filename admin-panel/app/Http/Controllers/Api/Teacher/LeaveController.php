@@ -15,10 +15,10 @@ use App\Models\LeaveDetail;
 use App\Models\LeaveMaster;
 use App\Models\Notification;
 use App\Models\Parents;
-use App\Models\Semester;
 use App\Models\Students;
 use App\Models\StudentSessions;
 use App\Models\Teacher;
+use App\Models\Term;
 use App\Services\Platform\Files\FileNames;
 use App\Services\Platform\Notifications\Notifier;
 use App\Services\ResponseService;
@@ -215,28 +215,28 @@ class LeaveController extends Controller
 
             $class_id = $classSection->class_id;
 
-            $classHasSemester = ClassSessionConfig::classHasSemester(
+            $classHasTerm = ClassSessionConfig::classHasTerm(
                 $class_id,
                 $request->session_year_id
             );
 
-            $teacherSemesterAccess = [];
+            $teacherTermAccess = [];
 
             /*
             |--------------------------------------------------------------------------
-            | Get Teacher Semester Access
+            | Get Teacher Term Access
             |--------------------------------------------------------------------------
             */
-            if ($classHasSemester) {
+            if ($classHasTerm) {
 
-                $teacherSemesterAccess = ClassTeacher::where(
+                $teacherTermAccess = ClassTeacher::where(
                     'class_teacher_id',
                     Auth::user()->teacher->id
                 )
                     ->where('class_section_id', $request->class_section_id)
                     ->where('session_year_id', $request->session_year_id)
-                    ->whereNotNull('semester_id')
-                    ->pluck('semester_id')
+                    ->whereNotNull('term_id')
+                    ->pluck('term_id')
                     ->toArray();
             }
 
@@ -266,24 +266,24 @@ class LeaveController extends Controller
 
             /*
             |--------------------------------------------------------------------------
-            | Semester Based Leave Filtering
+            | Term Based Leave Filtering
             |--------------------------------------------------------------------------
             |
-            | If teacher has semester access then leave from_date
-            | must fall inside ANY of the assigned semester ranges
+            | If teacher has term access then leave from_date
+            | must fall inside ANY of the assigned term ranges
             |
             */
-            if ($classHasSemester && ! empty($teacherSemesterAccess)) {
+            if ($classHasTerm && ! empty($teacherTermAccess)) {
 
-                $semesters = Semester::whereIn('id', $teacherSemesterAccess)->get();
+                $terms = Term::whereIn('id', $teacherTermAccess)->get();
 
-                $leaveQuery->where(function ($query) use ($semesters) {
+                $leaveQuery->where(function ($query) use ($terms) {
 
-                    foreach ($semesters as $semester) {
+                    foreach ($terms as $term) {
 
                         $query->orWhereBetween('from_date', [
-                            $semester->start_date,
-                            $semester->end_date,
+                            $term->start_date,
+                            $term->end_date,
                         ]);
                     }
                 });

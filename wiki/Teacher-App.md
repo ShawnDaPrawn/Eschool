@@ -84,7 +84,7 @@ All names from `Routes` in [e-school-teacher/lib/app/routes.dart](https://github
 
 Global Cubits created in `MyApp` ([e-school-teacher/lib/app/app.dart](https://github.com/ShawnDaPrawn/Eschool/blob/main/e-school-teacher/lib/app/app.dart)): `AppConfigurationCubit`, `AppLocalizationCubit`, `AuthCubit`, `DashboardCubit`, `StudentChatUsersCubit`, `ParentChatUserCubit`, `GalleryAlbumCubit`, `GalleryVideosCubit`. Screen-level Cubits are provided in each screen's `route()`.
 
-Most content screens are filtered by class section and subject using `SubjectsOfClassSectionCubit` (GET `teacher/subjects` with `class_section_id`) and the class list held by `DashboardCubit` (class-teacher classes plus subject-teacher classes). A `semester_id` is added to requests when a semester is selected.
+Most content screens are filtered by class section and subject using `SubjectsOfClassSectionCubit` (GET `teacher/subjects` with `class_section_id`) and the class list held by `DashboardCubit` (class-teacher classes plus subject-teacher classes). A `term_id` is added to requests when a term is selected.
 
 ### Classes and students
 
@@ -115,7 +115,7 @@ Staff attendance itself is recorded in the admin panel; this screen is read-only
 
 | Screen | Cubits | Repositories | Endpoints |
 |---|---|---|---|
-| `AssignmentsScreen` | `AssignmentCubit`, `DeleteAssignmentCubit`, `SubjectsOfClassSectionCubit`, `DashboardCubit` | `AssignmentRepository`, `TeacherRepository` | GET `teacher/get-assignment` (`class_section_id`, `subject_id`, `semester_id`, `page`); POST `teacher/delete-assignment` (`assignment_id`) |
+| `AssignmentsScreen` | `AssignmentCubit`, `DeleteAssignmentCubit`, `SubjectsOfClassSectionCubit`, `DashboardCubit` | `AssignmentRepository`, `TeacherRepository` | GET `teacher/get-assignment` (`class_section_id`, `subject_id`, `term_id`, `page`); POST `teacher/delete-assignment` (`assignment_id`) |
 | `AddAssignmentScreen` (create and edit) | `CreateAssignmentCubit`, `EditAssignmentCubit`, `SubjectsOfClassSectionCubit`, `DashboardCubit` | `AssignmentRepository`, `TeacherRepository` | POST `teacher/create-assignment` / `teacher/update-assignment` with `class_section_id`, `subject_id`, `name`, `instructions`, `due_date`, `points`, `resubmission`, `extra_days_for_resubmission`, `file[]` (and `assignment_id` on update) |
 | `AssignmentScreen` (submissions) | `ReviewAssignmentCubit`, `EditReviewAssignmentCubit` | `ReviewAssignmentRepository` | GET `teacher/get-assignment-submission`; POST `teacher/update-assignment-submission` (`assignment_submission_id`, `status`, `points`, `feedback`) from the accept/reject bottom sheets |
 
@@ -126,7 +126,7 @@ Attached files of an existing assignment can be removed with `DeleteStudyMateria
 | Screen | Cubits | Repositories | Endpoints |
 |---|---|---|---|
 | `LessonsScreen` | `LessonsCubit`, `LessonDeleteCubit`, `SubjectsOfClassSectionCubit`, `DashboardCubit` | `LessonRepository`, `TeacherRepository` | GET `teacher/get-lesson`; POST `teacher/delete-lesson` (`lesson_id`) |
-| `AddOrEditLessonScreen` | `CreateLessonCubit`, `EditLessonCubit` | `LessonRepository` | POST `teacher/create-lesson` / `teacher/update-lesson` (`class_section_id`, `subject_id`, `semester_id`, `name`, `description`, files) |
+| `AddOrEditLessonScreen` | `CreateLessonCubit`, `EditLessonCubit` | `LessonRepository` | POST `teacher/create-lesson` / `teacher/update-lesson` (`class_section_id`, `subject_id`, `term_id`, `name`, `description`, files) |
 | `TopicsScreen`, `TopcisByLessonScreen` | `TopicsCubit`, `DeleteTopicCubit`, `LessonsCubit` | `TopicRepository`, `LessonRepository` | GET `teacher/get-topic` (`lesson_id`); POST `teacher/delete-topic` |
 | `AddOrEditTopicScreen` | `CreateTopicCubit`, `EditTopicCubit`, `LessonsCubit` | `TopicRepository` | POST `teacher/create-topic` / `teacher/update-topic` |
 | Study material sheets (`ui/widgets/addStudyMaterialBottomSheet.dart`, `editStudyMaterialBottomSheet.dart`) | `UpdateStudyMaterialCubit`, `DeleteStudyMaterialCubit` | `StudyMaterialRepository` | POST `teacher/update-file`, POST `teacher/delete-file` |
@@ -137,7 +137,7 @@ Study material types (`PickedStudyMaterial.toJson()` and `getStudyMaterialType()
 
 | Screen | Cubits | Endpoints |
 |---|---|---|
-| `AnnouncementsScreen` | `AnnouncementsCubit`, `DeleteAnnouncementCubit`, `SubjectsOfClassSectionCubit`, `DashboardCubit` | GET `teacher/get-announcement` (`class_section_id`, `subject_id`, `semester_id`, `page`); POST `teacher/delete-announcement` |
+| `AnnouncementsScreen` | `AnnouncementsCubit`, `DeleteAnnouncementCubit`, `SubjectsOfClassSectionCubit`, `DashboardCubit` | GET `teacher/get-announcement` (`class_section_id`, `subject_id`, `term_id`, `page`); POST `teacher/delete-announcement` |
 | `AddOrEditAnnouncementScreen` | `CreateAnnouncementCubit`, `EditAnnouncementCubit` | POST `teacher/send-announcement` / `teacher/update-announcement` (`class_section_id`, `subject_id`, `title`, `description`, `file[]`, `announcement_id` on update) |
 
 ### Exams and marks
@@ -146,7 +146,7 @@ Study material types (`PickedStudyMaterial.toJson()` and `getStudyMaterialType()
 |---|---|---|
 | `ExamScreen` | `ExamDetailsCubit` | GET `teacher/get-exam-list` (`status`, `publish`, `class_section_id`, `student_id`, `get_timetable`) |
 | `ExamTimeTableScreen` | `ExamTimeTableCubit` | GET `teacher/get-exam-details` |
-| `AddResultForAllStudents` (class teacher) | `ExamDetailsCubit`, `ExamTimeTableCubit`, `StudentsByClassSectionCubit`, `SubjectMarksBySubjectIdCubit` | POST `teacher/submit-exam-marks/subject` with query `exam_id`, `subject_id`, `class_section_id`, `semester_id` and the marks in the body |
+| `AddResultForAllStudents` (class teacher) | `ExamDetailsCubit`, `ExamTimeTableCubit`, `StudentsByClassSectionCubit`, `SubjectMarksBySubjectIdCubit` | POST `teacher/submit-exam-marks/subject` with query `exam_id`, `subject_id`, `class_section_id`, `term_id` and the marks in the body |
 | `AddResultScreen` (one student) | `SubjectMarksByStudentIdCubit` | POST `teacher/submit-exam-marks/student` with query `exam_id`, `student_id`, `class_section_id` |
 | `ResultListScreen` | `StudentCompletedExamWithResultCubit`, `ExamDetailsCubit`, `DownloadResultPdfCubit` | GET `teacher/get-student-result` (`student_id`); GET `teacher/get-student-result-pdf` (`student_id`, base64 `pdf`) saved to `<app documents>/Exam Results/<prefix>_on_<timestamp>.pdf` |
 

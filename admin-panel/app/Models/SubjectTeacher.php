@@ -31,9 +31,9 @@ class SubjectTeacher extends Model
         return $this->belongsTo(Teacher::class)->with('user')->withTrashed();
     }
 
-    public function semester()
+    public function term()
     {
-        return $this->belongsTo(Semester::class);
+        return $this->belongsTo(Term::class);
     }
 
     public function timetables(): HasMany

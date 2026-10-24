@@ -14,12 +14,12 @@ use App\Models\ExamClass;
 use App\Models\ExamMarks;
 use App\Models\ExamTimetable;
 use App\Models\Grade;
-use App\Models\Semester;
 use App\Models\SessionYear;
 use App\Models\Students;
 use App\Models\Subject;
 use App\Models\SubjectTeacher;
 use App\Models\Teacher;
+use App\Models\Term;
 use App\Models\Timetable;
 use App\Services\ResponseService;
 use Barryvdh\DomPDF\Facade\Pdf;
@@ -57,18 +57,18 @@ class ExamController extends Controller
 
             $session_year_id = getSettings('session_year')['session_year'];
 
-            $teacherSemesterIds = [];
+            $teacherTermIds = [];
 
             // The sections this teacher heads or teaches a subject in (subject teachers
             // enter marks too, so they need the exam list as well).
             $assignments = ClassTeacher::where('class_teacher_id', $teacher->id)
                 ->where('session_year_id', $session_year_id)
                 ->when(isset($request->class_section_id), fn ($q) => $q->where('class_section_id', $request->class_section_id))
-                ->get(['class_section_id', 'semester_id'])
+                ->get(['class_section_id', 'term_id'])
                 ->concat(SubjectTeacher::where('teacher_id', $teacher->id)
                     ->where('session_year_id', $session_year_id)
                     ->when(isset($request->class_section_id), fn ($q) => $q->where('class_section_id', $request->class_section_id))
-                    ->get(['class_section_id', 'semester_id']));
+                    ->get(['class_section_id', 'term_id']));
 
             if (isset($request->class_section_id) && $assignments->isEmpty()) {
                 return ResponseService::errorResponse('no_permission_message');
@@ -76,7 +76,7 @@ class ExamController extends Controller
 
             $class_section_ids = $assignments->pluck('class_section_id')->unique()->values();
             $class_ids = ClassSection::whereIn('id', $class_section_ids)->pluck('class_id');
-            $teacherSemesterIds = $assignments->whereNotNull('semester_id')->pluck('semester_id')->unique()->values()->toArray();
+            $teacherTermIds = $assignments->whereNotNull('term_id')->pluck('term_id')->unique()->values()->toArray();
 
             $sql = ExamClass::with(
                 'exam.session_year:id,name',
@@ -90,21 +90,21 @@ class ExamController extends Controller
                 ->whereHas('exam', function ($q) use (
                     $session_year_id,
                     $class_ids,
-                    $teacherSemesterIds
+                    $teacherTermIds
                 ) {
 
                     $q->where('session_year_id', $session_year_id);
 
                     foreach ($class_ids as $class_id) {
 
-                        $hasSemester = ClassSessionConfig::classHasSemester(
+                        $hasTerm = ClassSessionConfig::classHasTerm(
                             $class_id,
                             $session_year_id
                         );
 
-                        if ($hasSemester) {
+                        if ($hasTerm) {
 
-                            $q->whereIn('semester_id', $teacherSemesterIds);
+                            $q->whereIn('term_id', $teacherTermIds);
                         }
                     }
                 });
@@ -245,7 +245,7 @@ class ExamController extends Controller
                 ->first();
 
             $examData = Exam::with([
-                'semester',
+                'term',
                 'timetable' => function ($query) use ($request, $classId) {
                     $query->where([
                         'exam_id' => $request->exam_id,
@@ -257,22 +257,22 @@ class ExamController extends Controller
                 ->where('session_year_id', $sessionYearId)
                 ->get();
 
-            // Transform: move semester inside subject
+            // Transform: move term inside subject
             $examData = $examData->map(function ($exam) {
 
-                $semester = $exam->semester;
+                $term = $exam->term;
 
                 if ($exam->timetable) {
-                    $exam->timetable->transform(function ($tt) use ($semester) {
+                    $exam->timetable->transform(function ($tt) use ($term) {
 
                         if ($tt->subject) {
-                            $tt->subject->semester = $semester;
+                            $tt->subject->term = $term;
                         }
 
                         return $tt;
                     });
                 }
-                unset($exam->semester);
+                unset($exam->term);
 
                 return $exam;
             });

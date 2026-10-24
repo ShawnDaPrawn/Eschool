@@ -7,8 +7,8 @@ This page documents every endpoint under `/api/student/`, served by the controll
 | Middleware | `login` and `forgot-password` are public with `throttle:login`. Every other route requires `auth:sanctum`, `role:Student` and `student.session.active` (`EnsureStudentSessionIsActive`): the user must have role Student, `users.status = 1`, a `students` row, and a `student_sessions` row for the current session year whose `status` is not 0. See [API-Overview](API-Overview#middleware-reference) for the failure responses. |
 | Current session year | `getSettings('session_year')['session_year']`. Most endpoints work only on this year; a few accept a `session_year_id` override (assignments, exam marks, online exam results, reports, leave list, transactions). |
 | Class section | Taken from the student's `student_sessions` row for the session year (not `students.class_section_id`), except where noted (`class-subjects`, `select-subjects`, parts of `announcements`). |
-| Student's subjects | `Students::subjects()`: the class's core subjects for the session (and current semester when the class uses semesters) plus the elective subjects the student picked (`student_subjects`). The private helper `studentSubjectIds()` merges both lists; many queries filter on it. |
-| Semesters | When the class has semesters for the session (`ClassSessionConfig::classHasSemester()`), lists are filtered to the current semester (`Semester::current`, computed from today's date). |
+| Student's subjects | `Students::subjects()`: the class's core subjects for the session (and current term when the class uses terms) plus the elective subjects the student picked (`student_subjects`). The private helper `studentSubjectIds()` merges both lists; many queries filter on it. |
+| Terms | When the class has terms for the session (`ClassSessionConfig::classHasTerm()`), lists are filtered to the current term (`Term::current`, computed from today's date). |
 | Request format | `GET` parameters in the query string, `POST` as form fields. Arrays use `name[0][field]` notation. |
 | Response | `ResponseService` envelope: `{error, message, data, code}`; some endpoints put extra keys at the top level (noted below). |
 
@@ -68,7 +68,7 @@ Tests for the scoping rules are in [`tests/Feature/StudentApiSecurityTest.php`](
 | [Documents](#documents-id-card-and-academic-calendar) | GET | `student/id-card-pdf` | `getIdCardPdf` |
 | | GET | `student/academic-calendar-pdf` | `getAcademicCalendarPdf` |
 
-The student app also calls the general endpoints (`settings`, `sliders`, `holidays`, `get-events-list`, `get-events-details`, `get-session-year`, `get-semesters`, `get-gallery-*`, `logout`, `change-password`); they are documented on [API-Overview](API-Overview#general-endpoints-apicontroller).
+The student app also calls the general endpoints (`settings`, `sliders`, `holidays`, `get-events-list`, `get-events-details`, `get-session-year`, `get-terms`, `get-gallery-*`, `logout`, `change-password`); they are documented on [API-Overview](API-Overview#general-endpoints-apicontroller).
 
 ## Auth and profile
 
@@ -95,7 +95,7 @@ Response: `data` is the user model, with `student` loaded, flattened by `flatten
 | `class_section_name` | `"<class> <section>"` plus the stream name when the class has one |
 | `medium_name`, `category_name` | class medium and student category |
 | `shift_id`, `shift` | the class's shift (`shift` is the `shifts` row object) |
-| `is_semester_on_in_class` | whether the class uses semesters this session |
+| `is_term_on_in_class` | whether the class uses terms this session |
 | `is_fee_payment_due` | 1 when `compulsory_fee_payment_mode` is 1, the compulsory fees are not fully paid and the due date has passed (`session_years.fee_due_date`, or with installments the first unpaid installment's due date). When `session_years.free_app_use_date` is set, nothing is due before that date; when it is not set and the student has no `fees_paids` row yet (no installments), the flag stays 0. The app uses it to lock features until fees are paid. |
 | `dynamic_fields` | the student's custom form fields as a key/value object, or `null` |
 
@@ -133,7 +133,7 @@ Returns the student's own `father`, `mother` and `guardian` (`parents` rows), ea
 | `sliders` | `sliders` with `type` 1 (app) or 3 (both) |
 | `subjects` | `Students::subjects()`: `core_subject` list and `elective_subject` (`null` when none) |
 | `announcements` | latest 3 noticeboard announcements (`table_type = ''`) of the session, with `file` |
-| `assignments` | next 2 assignments of the student's class section and subjects with `due_date` after now and no submission by the student (current semester when applicable), with `subject` and `file` |
+| `assignments` | next 2 assignments of the student's class section and subjects with `due_date` after now and no submission by the student (current term when applicable), with `subject` and `file` |
 | `timetables` | today's periods (`day_name` = today) for the student's subjects, as `TimetableCollection` rows (see [Timetable](#timetable)) |
 | `exams` | from the first 10 `exams` rows (the limit is applied before any class filter), those not yet completed for the student's class: `id`, `name`, `description`, `publish`, `session_year`, `exam_starting_date`, `exam_ending_date`, `exam_status` (`"0"` upcoming, `"1"` ongoing), `exam_timetable` (today and later papers for the student's subjects) |
 | `events` | next 3 events by `start_date` (start or end today or later), with `has_day_schedule` |
@@ -143,11 +143,11 @@ Returns the student's own `father`, `mother` and `guardian` (`parents` rows), ea
 
 ### `GET /api/student/subjects`
 
-No parameters. Returns `{core_subject: [...], elective_subject: [...] | null}` from `Students::subjects()`. Core entries are class-subject rows; elective entries are `student_subjects` rows (`subject_id`, `semester_id`, `subject`).
+No parameters. Returns `{core_subject: [...], elective_subject: [...] | null}` from `Students::subjects()`. Core entries are class-subject rows; elective entries are `student_subjects` rows (`subject_id`, `term_id`, `subject`).
 
 ### `GET /api/student/class-subjects`
 
-No parameters. Returns `{core_subject, elective_subject_group}` from `Students::classSubjects()`: the class's core subjects and its elective groups with `electiveSubjects.subject`, for the session (and current semester). Uses `students.class_section_id`. The app shows this list when the student has to pick electives.
+No parameters. Returns `{core_subject, elective_subject_group}` from `Students::classSubjects()`: the class's core subjects and its elective groups with `electiveSubjects.subject`, for the session (and current term). Uses `students.class_section_id`. The app shows this list when the student has to pick electives.
 
 ### `POST /api/student/select-subjects`
 
@@ -157,15 +157,15 @@ No parameters. Returns `{core_subject, elective_subject_group}` from `Students::
 | `subject_group.*.id` | integer | yes, an `elective_subject_groups.id` |
 | `subject_group.*.subject_id` | array of integers | yes |
 
-Rules (added in `839c9eb`): each group must be one of the class's elective groups for the session (and current semester when the class uses semesters), listed once; each subject must belong to that group, without duplicates; and the student's existing picks in the group plus the new ones may not exceed `total_selectable_subjects` (`You can select only N subjects in this group.`). Failures use `validationError` (code `null`).
+Rules (added in `839c9eb`): each group must be one of the class's elective groups for the session (and current term when the class uses terms), listed once; each subject must belong to that group, without duplicates; and the student's existing picks in the group plus the new ones may not exceed `total_selectable_subjects` (`You can select only N subjects in this group.`). Failures use `validationError` (code `null`).
 
-Effect: inserts `student_subjects` rows (`student_id`, `subject_id`, `semester_id`, `class_section_id`, `session_year_id`) for subjects not already selected. `data` is the list of inserted rows. There is no endpoint to unselect.
+Effect: inserts `student_subjects` rows (`student_id`, `subject_id`, `term_id`, `class_section_id`, `session_year_id`) for subjects not already selected. `data` is the list of inserted rows. There is no endpoint to unselect.
 
 ## Timetable
 
 `GET /api/student/timetable` — no parameters.
 
-Returns the whole week for the student's class section and session (current semester when applicable), only for periods whose subject teacher teaches one of the student's subjects, ordered by `day` and `start_time`. Each row:
+Returns the whole week for the student's class section and session (current term when applicable), only for periods whose subject teacher teaches one of the student's subjects, ordered by `day` and `start_time`. Each row:
 
 | Field | Content |
 | --- | --- |
@@ -183,7 +183,7 @@ Returns the whole week for the student's class section and session (current seme
 | `subject_id` | id | yes |
 | `lesson_id` | numeric | no, returns only that lesson |
 
-Lessons of the student's current class section for that subject (current semester when the class uses semesters), with `topic` and `file` (study material) relations.
+Lessons of the student's current class section for that subject (current term when the class uses terms), with `topic` and `file` (study material) relations.
 
 ### `GET /api/student/lesson-topics`
 
@@ -192,7 +192,7 @@ Lessons of the student's current class section for that subject (current semeste
 | `lesson_id` | numeric | yes |
 | `topic_id` | numeric | no |
 
-Topics of the lesson, with `lesson` and `file`, but only when the lesson belongs to the student's current class section (since `839c9eb`; another section's lesson returns an empty list). With semesters on, lessons of the current semester or with no semester are included. The `file` rows are the study material attached by teachers; the end-user view of lessons and topics is at https://shawndaprawn.github.io/Eschool/features/lessons-topics/ .
+Topics of the lesson, with `lesson` and `file`, but only when the lesson belongs to the student's current class section (since `839c9eb`; another section's lesson returns an empty list). With terms on, lessons of the current term or with no term are included. The `file` rows are the study material attached by teachers; the end-user view of lessons and topics is at https://shawndaprawn.github.io/Eschool/features/lessons-topics/ .
 
 ## Assignments
 
@@ -206,7 +206,7 @@ Topics of the lesson, with `lesson` and `file`, but only when the lesson belongs
 | `session_year_id` | integer | no | default current session |
 | `page` | integer | no | Laravel paginator, 15 per page |
 
-Assignments of the student's class section in that session, for the student's subjects (current semester when applicable), newest first. Each has `file`, `subject` and `submission` (the student's own submission with its `file`, or `null`). Submission `status`: 0 pending review, 1 accepted, 2 rejected, 3 resubmitted.
+Assignments of the student's class section in that session, for the student's subjects (current term when applicable), newest first. Each has `file`, `subject` and `submission` (the student's own submission with its `file`, or `null`). Submission `status`: 0 pending review, 1 accepted, 2 rejected, 3 resubmitted.
 
 ### `POST /api/student/submit-assignment`
 
@@ -292,7 +292,7 @@ Announcements of the current session with `file`, newest first:
 | omitted | school-wide (`table_type = ''`), the student's class (`App\Models\ClassSchool`), the student's class section (`App\Models\ClassSection`) and the subject-teacher rows of the student's own subjects in their section (`App\Models\SubjectTeacher`). This filter was added in `839c9eb`; before it, every announcement of the session was returned. |
 | `noticeboard` | school-wide (`table_type = ''`) plus the student's class (`App\Models\ClassSchool`) and class section (`App\Models\ClassSection`). Until `c38b7da` only `table_type = ''`, so class and class-section announcements never reached the app's notice board. |
 | `class` | only announcements for the student's class (`ClassSchool`) |
-| `subject` | announcements for the subject-teacher rows of `subject_id` in the student's class section; current semester when the class uses semesters |
+| `subject` | announcements for the subject-teacher rows of `subject_id` in the student's class section; current term when the class uses terms |
 
 The `Invalid Subject ID` branch (code `106`) cannot trigger, because it tests `empty()` on a collection; an unknown subject simply returns an empty page.
 
@@ -306,9 +306,9 @@ Offline (written) exams are set up in the admin panel; see [Exams-and-Grading](E
 | --- | --- | --- | --- |
 | `status` | 0, 1, 2 or 3 | no | 0 or omitted: all; 1: upcoming; 2: ongoing; 3: completed |
 | `get_timetable` | 0 or 1 | no | 1 adds `exam_timetable` |
-| `semester_id` | numeric, must exist | no | default: current semester of the session |
+| `term_id` | numeric, must exist | no | default: current term of the session |
 
-Exams assigned to the student's class (`exam_classes`) with at least one paper in the student's subjects (semester-filtered when the class uses semesters). Each item: `id`, `name`, `description`, `publish`, `session_year`, `exam_starting_date`, `exam_ending_date` (min/max paper date for the class), `exam_status` (`"0"` upcoming, `"1"` ongoing, `"2"` completed). With `get_timetable=1`, `exam_timetable` is the exam's full `timetable` relation with `subject`, which is not filtered to the student's class or subjects. Each row has `start_time`/`end_time` and the copies `starting_time`/`ending_time` (appended by the `ExamTimetable` model).
+Exams assigned to the student's class (`exam_classes`) with at least one paper in the student's subjects (term-filtered when the class uses terms). Each item: `id`, `name`, `description`, `publish`, `session_year`, `exam_starting_date`, `exam_ending_date` (min/max paper date for the class), `exam_status` (`"0"` upcoming, `"1"` ongoing, `"2"` completed). With `get_timetable=1`, `exam_timetable` is the exam's full `timetable` relation with `subject`, which is not filtered to the student's class or subjects. Each row has `start_time`/`end_time` and the copies `starting_time`/`ending_time` (appended by the `ExamTimetable` model).
 
 ### `GET /api/student/get-exam-details`
 
@@ -323,7 +323,7 @@ The exam's papers for the student's class and subjects, by date: `id`, `total_ma
 | Param | Type | Required | Notes |
 | --- | --- | --- | --- |
 | `session_year_id` | integer | no | default current session |
-| `semester_id` | numeric, must exist | no | must belong to the session; default current semester when no `session_year_id` is given |
+| `term_id` | numeric, must exist | no | must belong to the session; default current term when no `session_year_id` is given |
 
 Reads the student's own `exam_results` rows. These rows exist only while an exam is published (publishing in `Exam\PublishController` creates them, unpublishing deletes them), so unpublished results never appear. Each item:
 
@@ -357,7 +357,7 @@ sequenceDiagram
     API-->>App: score computed from exact matches
 ```
 
-An exam "the student may take" (`findStudentOnlineExam()`) is one of the current session, in one of the student's subjects, assigned to the student's class section (`model_type = App\Models\ClassSection`) or class (`App\Models\ClassSchool`), and in the current semester when the class uses semesters.
+An exam "the student may take" (`findStudentOnlineExam()`) is one of the current session, in one of the student's subjects, assigned to the student's class section (`model_type = App\Models\ClassSection`) or class (`App\Models\ClassSchool`), and in the current term when the class uses terms.
 
 ### `GET /api/student/get-online-exam-list`
 
@@ -547,7 +547,7 @@ Notifications of the current session that are linked to the user through `user_n
 
 ## Chat
 
-Chat is between a student and their teachers only. The allowed teachers (`chatTeacherIds()`) are the class teachers of the student's current class section and the subject teachers of the student's subjects in that section, for the session and current semester. See [Chat](Chat) for storage and cleanup, and https://shawndaprawn.github.io/Eschool/admin-panel/chat-settings/ for the limits.
+Chat is between a student and their teachers only. The allowed teachers (`chatTeacherIds()`) are the class teachers of the student's current class section and the subject teachers of the student's subjects in that section, for the session and current term. See [Chat](Chat) for storage and cleanup, and https://shawndaprawn.github.io/Eschool/admin-panel/chat-settings/ for the limits.
 
 ### `GET /api/student/get-user-list`
 
@@ -637,7 +637,7 @@ No parameters. `IdCardService::buildPdf([student id])`, base64 in the top-level 
 
 ### `GET /api/student/academic-calendar-pdf`
 
-No parameters. `AcademicCalendarService::generate([class id])` for the class of the student's current session: holidays, semester breaks, events and that class's exams, grouped by month, rendered with DomPDF and returned base64 in the top-level `pdf` key. The header uses `config('app.name')` and the `logo2` setting (since `e13ac7d`; previously `env()` values).
+No parameters. `AcademicCalendarService::generate([class id])` for the class of the student's current session: holidays, term breaks, events and that class's exams, grouped by month, rendered with DomPDF and returned base64 in the top-level `pdf` key. The header uses `config('app.name')` and the `logo2` setting (since `e13ac7d`; previously `env()` values).
 
 ## Hardening history
 

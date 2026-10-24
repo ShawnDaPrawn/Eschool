@@ -36,13 +36,13 @@
                                     </select>
                                 </div>
 
-                                <div class="form-group col-sm-12 col-md-6" id="semester_div" style="display: none;">
-                                    <label>{{ __('semester') }}</label>
-                                    <select name="semester_id" id="semester_id" class="form-control">
+                                <div class="form-group col-sm-12 col-md-6" id="term_div" style="display: none;">
+                                    <label>{{ __('term') }}</label>
+                                    <select name="term_id" id="term_id" class="form-control">
                                         <option value="">--{{ __('select') }}--</option>
                                     </select>
                                     <small class="text-info mt-1 d-block">
-                                        <i class="fa fa-info-circle"></i> {{ __('leave_unselected_for_non_semester_classes') }}
+                                        <i class="fa fa-info-circle"></i> {{ __('leave_unselected_for_non_term_classes') }}
                                     </small>
                                 </div>
 
@@ -159,13 +159,13 @@
                                     </div>
                                 </div>
                                 <div class="row">
-                                    <div class="form-group col-sm-12 col-md-6" id="edit_semester_div" style="display: none;">
-                                        <label>{{ __('semester') }}</label>
-                                        <select name="semester_id" id="edit_semester_id" class="form-control">
+                                    <div class="form-group col-sm-12 col-md-6" id="edit_term_div" style="display: none;">
+                                        <label>{{ __('term') }}</label>
+                                        <select name="term_id" id="edit_term_id" class="form-control">
                                             <option value="">--{{ __('select') }}--</option>
                                         </select>
                                         <small class="text-info mt-1 d-block">
-                                            <i class="fa fa-info-circle"></i> {{ __('leave_unselected_for_non_semester_classes') }}
+                                            <i class="fa fa-info-circle"></i> {{ __('leave_unselected_for_non_term_classes') }}
                                         </small>
                                     </div>
                                     <div class="form-group col-sm-12 col-md-6">
@@ -235,31 +235,31 @@
                 });
             });
 
-            var semesterClassIds = [];
+            var termClassIds = [];
 
-            // Fetch semesters and class config for a given session year
-            function loadSemesters(sessionYearId, semesterSelector, semesterDivSelector, callback) {
+            // Fetch terms and class config for a given session year
+            function loadTerms(sessionYearId, termSelector, termDivSelector, callback) {
                 if (!sessionYearId) return;
 
-                // Fetch class config to know which classes have semesters
-                let configUrl = baseUrl + '/semester/class-config';
+                // Fetch class config to know which classes have terms
+                let configUrl = baseUrl + '/term/classes';
                 ajaxRequest('GET', configUrl, { session_year_id: sessionYearId }, null, function (configResponse) {
-                    semesterClassIds = (configResponse.data || []).map(function (c) { return String(c.id); });
+                    termClassIds = (configResponse.data || []).map(function (c) { return String(c.id); });
 
-                    // Fetch semesters for the session year
-                    let semUrl = baseUrl + '/session-year/' + sessionYearId + '/semesters';
+                    // Fetch terms for the session year
+                    let semUrl = baseUrl + '/session-year/' + sessionYearId + '/terms';
                     ajaxRequest('GET', semUrl, null, null, function (semResponse) {
-                        var semesters = semResponse.data || [];
+                        var terms = semResponse.data || [];
                         var html = '<option value="">--{{ __('select') }}--</option>';
-                        $.each(semesters, function (i, sem) {
+                        $.each(terms, function (i, sem) {
                             html += '<option value="' + sem.id + '">' + sem.name + '</option>';
                         });
-                        $(semesterSelector).html(html);
+                        $(termSelector).html(html);
 
-                        if (semesters.length > 0 && semesterClassIds.length > 0) {
-                            $(semesterDivSelector).show();
+                        if (terms.length > 0 && termClassIds.length > 0) {
+                            $(termDivSelector).show();
                         } else {
-                            $(semesterDivSelector).hide();
+                            $(termDivSelector).hide();
                         }
 
                         if (callback) callback();
@@ -267,17 +267,17 @@
                 }, null, null, true);
             }
 
-            // Filter class options based on selected semester
-            function filterClasses(classSelector, options, selectedSemester) {
+            // Filter class options based on selected term
+            function filterClasses(classSelector, options, selectedTerm) {
                 var html = '';
                 $.each(options, function (i, opt) {
-                    var isSemesterClass = semesterClassIds.includes(String(opt.value));
-                    if (selectedSemester) {
-                        // When semester is selected, show only semester-configured classes
-                        if (!isSemesterClass) return;
+                    var isTermClass = termClassIds.includes(String(opt.value));
+                    if (selectedTerm) {
+                        // When term is selected, show only term-configured classes
+                        if (!isTermClass) return;
                     } else {
-                        // When no semester is selected, hide semester-based classes
-                        if (isSemesterClass) return;
+                        // When no term is selected, hide term-based classes
+                        if (isTermClass) return;
                     }
                     html += '<option value="' + opt.value + '" data-medium="' + opt.medium + '">' + opt.text + '</option>';
                 });
@@ -287,31 +287,31 @@
             // --- Create Form ---
             // On session year change
             $('#session_year_id').on('change', function () {
-                $('#semester_id').val('');
-                loadSemesters($(this).val(), '#semester_id', '#semester_div', function () {
+                $('#term_id').val('');
+                loadTerms($(this).val(), '#term_id', '#term_div', function () {
                     filterClasses('#exam_class_id', originalClassOptions, '');
                 });
             });
 
-            // On semester change
-            $('#semester_id').on('change', function () {
+            // On term change
+            $('#term_id').on('change', function () {
                 filterClasses('#exam_class_id', originalClassOptions, $(this).val());
             });
 
             // Initial load for create form
-            loadSemesters($('#session_year_id').val(), '#semester_id', '#semester_div', function () {
+            loadTerms($('#session_year_id').val(), '#term_id', '#term_div', function () {
                 filterClasses('#exam_class_id', originalClassOptions, '');
             });
 
             // --- Edit Form ---
             $('#edit_session_year_id').on('change', function () {
-                $('#edit_semester_id').val('');
-                loadSemesters($(this).val(), '#edit_semester_id', '#edit_semester_div', function () {
+                $('#edit_term_id').val('');
+                loadTerms($(this).val(), '#edit_term_id', '#edit_term_div', function () {
                     filterClasses('#edit_class_id', editOriginalClassOptions, '');
                 });
             });
 
-            $('#edit_semester_id').on('change', function () {
+            $('#edit_term_id').on('change', function () {
                 filterClasses('#edit_class_id', editOriginalClassOptions, $(this).val());
             });
         });

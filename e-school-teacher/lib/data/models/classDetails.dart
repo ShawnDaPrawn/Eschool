@@ -17,7 +17,7 @@ class ClassDetails {
     name = json['name'] ?? '';
     mediumId = json['medium_id'] ?? -1;
     medium = Medium.fromJson(json['medium'] ?? {});
-    includesSemester = ['1', 'true'].contains(json['include_semesters']?.toString());
+    includesTerm = ['1', 'true'].contains(json['include_terms']?.toString());
     stream = json['streams'] == null || json['streams'] == ''
         ? null
         : Stream.fromJson(Map.from(json['streams']));
@@ -28,7 +28,7 @@ class ClassDetails {
   late final int id;
   late final String name;
   late final int mediumId;
-  late final bool includesSemester;
+  late final bool includesTerm;
   late final Medium medium;
   late final Stream? stream;
   late final Shift? shift;

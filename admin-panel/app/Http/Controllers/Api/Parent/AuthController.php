@@ -244,7 +244,7 @@ class AuthController extends Controller
                 if ($studentSession) {
                     $classSectionName = $studentSession->class_section->class->name.' '.$studentSession->class_section->section->name;
 
-                    $child->is_semester_on_in_class = $studentSession->class_section->class->getIncludeSemestersForSession($session_year_id);
+                    $child->is_term_on_in_class = $studentSession->class_section->class->getIncludeTermsForSession($session_year_id);
                     // Set Stream name
                     $streamName = $studentSession->class_section->class->streams->name ?? null;
                     if ($streamName !== null) {
@@ -271,7 +271,7 @@ class AuthController extends Controller
                     // Fallback to old behavior if no student session (though it might fail the valid session check later)
                     $classSectionName = $child->class_section->class->name.' '.$child->class_section->section->name;
 
-                    $child->is_semester_on_in_class = $child->class_section->class->getIncludeSemestersForSession($session_year_id);
+                    $child->is_term_on_in_class = $child->class_section->class->getIncludeTermsForSession($session_year_id);
                     // Set Stream name
                     $streamName = $child->class_section->class->streams->name ?? null;
                     if ($streamName !== null) {

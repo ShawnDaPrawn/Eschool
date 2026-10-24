@@ -13,7 +13,7 @@
                         "educational_program_id": "null",
                         "full_name": "string",
                         "id": "number",
-                        "include_semesters": "number",
+                        "include_terms": "number",
                         "medium": {
                             "id": "number",
                             "name": "string"
@@ -125,7 +125,7 @@
                                     "educational_program_id": "null",
                                     "full_name": "string",
                                     "id": "number",
-                                    "include_semesters": "number",
+                                    "include_terms": "number",
                                     "medium": {
                                         "id": "number",
                                         "name": "string"
@@ -169,7 +169,7 @@
                             "educational_program_id": "null",
                             "full_name": "string",
                             "id": "number",
-                            "include_semesters": "number",
+                            "include_terms": "number",
                             "medium": {
                                 "id": "number",
                                 "name": "string"
@@ -197,13 +197,11 @@
                     "link_name": "null",
                     "live_class_url": "null",
                     "note": "string",
-                    "semester_id": "null",
                     "session_year_id": "number",
                     "start_time": "string",
                     "subject": {
                         "class_section_id": "number",
                         "id": "number",
-                        "semester_id": "null",
                         "session_year_id": "number",
                         "subject": {
                             "bg_color": "string",
@@ -215,9 +213,11 @@
                             "type": "string"
                         },
                         "subject_id": "number",
-                        "teacher_id": "number"
+                        "teacher_id": "number",
+                        "term_id": "null"
                     },
-                    "subject_teacher_id": "number"
+                    "subject_teacher_id": "number",
+                    "term_id": "null"
                 }
             ],
             "upcoming_exams": []

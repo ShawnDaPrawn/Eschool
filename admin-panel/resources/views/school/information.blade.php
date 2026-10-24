@@ -43,7 +43,7 @@
             <h2>{{ __('School term dates') }}</h2>
             <p>{{ __('My school uses the terms in the current school year.') }}</p>
             <dl>@foreach ($info['term_dates'] as $term)<dt>{{ $term['name'] }}</dt><dd>{{ $term['starts_on'] }} — {{ $term['ends_on'] }}</dd>@endforeach</dl>
-            @can('semester-list')<a class="m3-button m3-button--outlined" href="{{ route('semester.index') }}">{{ __('Manage term dates') }}</a>@endcan
+            @can('term-list')<a class="m3-button m3-button--outlined" href="{{ route('term.index') }}">{{ __('Manage term dates') }}</a>@endcan
         </div>
     </section>
 </div>

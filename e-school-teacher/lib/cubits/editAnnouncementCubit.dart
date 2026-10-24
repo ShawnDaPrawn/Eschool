@@ -28,7 +28,7 @@ class EditAnnouncementCubit extends Cubit<EditAnnouncementState> {
     required List<PlatformFile> attachments,
     required int classSectionId,
     required int subjectId,
-    String? semesterId,
+    String? termId,
     required int announcementId,
   }) async {
     emit(EditAnnouncementInProgress());
@@ -39,7 +39,7 @@ class EditAnnouncementCubit extends Cubit<EditAnnouncementState> {
         attachments: attachments,
         classSectionId: classSectionId,
         subjectId: subjectId,
-        semesterId: semesterId,
+        termId: termId,
         announcementId: announcementId,
       );
       emit(EditAnnouncementSuccess());

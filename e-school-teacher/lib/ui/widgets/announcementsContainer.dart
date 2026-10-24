@@ -89,7 +89,7 @@ class AnnouncementsContainer extends StatelessWidget {
                 context.read<AnnouncementsCubit>().fetchMoreAnnouncements(
                   classSectionId: classSectionDetails.id,
                   subjectId: subject.id,
-                  semesterId: subject.semester?.id,
+                  termId: subject.term?.id,
                 );
               },
             ),
@@ -156,9 +156,9 @@ class AnnouncementsContainer extends StatelessWidget {
                                   overflow: TextOverflow.ellipsis,
                                   style: TextStyle(
                                     height: 1.1,
-                                    color: Theme.of(
-                                      context,
-                                    ).colorScheme.onSurface,
+                                    color: Theme.of(context)
+                                        .colorScheme
+                                        .onSurface,
                                     fontSize: 15,
                                   ),
                                 ),
@@ -188,8 +188,7 @@ class AnnouncementsContainer extends StatelessWidget {
                                                   classSectionId:
                                                       classSectionDetails.id,
                                                   subjectId: subject.id,
-                                                  semesterId:
-                                                      subject.semester?.id,
+                                                  termId: subject.term?.id,
                                                 );
                                           }
                                         }
@@ -344,7 +343,7 @@ class AnnouncementsContainer extends StatelessWidget {
                 context.read<AnnouncementsCubit>().fetchAnnouncements(
                   classSectionId: classSectionDetails.id,
                   subjectId: subject.id,
-                  semesterId: subject.semester?.id,
+                  termId: subject.term?.id,
                 );
               },
             ),

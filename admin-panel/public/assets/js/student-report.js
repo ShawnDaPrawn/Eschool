@@ -33,10 +33,10 @@ $(function () {
             ),
             success: function (response) {
                 // Clean URL BEFORE injecting HTML so the new tab's
-                // inline <script> never reads a stale semester_id.
+                // inline <script> never reads a stale term_id.
                 var url = new URL(window.location.href);
                 url.searchParams.set("tab", tab);
-                url.searchParams.delete("semester_id");
+                url.searchParams.delete("term_id");
                 url.searchParams.delete("status_filter");
                 window.history.replaceState({}, "", url.toString());
 

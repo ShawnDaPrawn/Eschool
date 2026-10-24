@@ -47,7 +47,7 @@ class StoreSessionYearRequest extends FormRequest
             'transfer_exam_grades' => 'nullable|in:0,1',
             'transfer_class_fee_type' => 'nullable|in:0,1',
             'transfer_leave_settings' => 'nullable|in:0,1',
-            'transfer_semester' => 'nullable|in:0,1',
+            'transfer_term' => 'nullable|in:0,1',
 
             // Source session year: required only when any transfer option is checked
             'source_session_year_id' => [
@@ -59,7 +59,7 @@ class StoreSessionYearRequest extends FormRequest
                         $this->transfer_exam_grades ?? '0',
                         $this->transfer_class_fee_type ?? '0',
                         $this->transfer_leave_settings ?? '0',
-                        $this->transfer_semester ?? '0',
+                        $this->transfer_term ?? '0',
                     ]);
 
                     if ($anyTransfer && empty($value)) {
@@ -70,11 +70,11 @@ class StoreSessionYearRequest extends FormRequest
                 'exists:session_years,id',
             ],
 
-            // Semester data
-            'semester_data' => 'nullable|array',
-            'semester_data.*.name' => 'required_with:semester_data|string|max:255',
-            'semester_data.*.start_date' => 'required_with:semester_data|date_format:d-m-Y',
-            'semester_data.*.end_date' => 'required_with:semester_data|date_format:d-m-Y',
+            // Term data
+            'term_data' => 'nullable|array',
+            'term_data.*.name' => 'required_with:term_data|string|max:255',
+            'term_data.*.start_date' => 'required_with:term_data|date_format:d-m-Y',
+            'term_data.*.end_date' => 'required_with:term_data|date_format:d-m-Y',
         ];
 
         if ($this->fees_installment == '1') {

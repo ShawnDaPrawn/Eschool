@@ -62,9 +62,8 @@ class _ChildDetailsScreenState extends State<ChildDetailsScreen> {
                     ),
                     decoration: BoxDecoration(
                       border: Border.all(
-                        color: Theme.of(
-                          context,
-                        ).colorScheme.onInverseSurface.withValues(alpha: 0.1),
+                        color: Theme.of(context).colorScheme.onInverseSurface
+                            .withValues(alpha: 0.1),
                       ),
                       shape: BoxShape.circle,
                     ),
@@ -73,9 +72,8 @@ class _ChildDetailsScreenState extends State<ChildDetailsScreen> {
                     child: Container(
                       decoration: BoxDecoration(
                         border: Border.all(
-                          color: Theme.of(
-                            context,
-                          ).colorScheme.onInverseSurface.withValues(alpha: 0.1),
+                          color: Theme.of(context).colorScheme.onInverseSurface
+                              .withValues(alpha: 0.1),
                         ),
                         shape: BoxShape.circle,
                       ),
@@ -89,9 +87,8 @@ class _ChildDetailsScreenState extends State<ChildDetailsScreen> {
                   end: MediaQuery.sizeOf(context).width * (-0.15),
                   child: Container(
                     decoration: BoxDecoration(
-                      color: Theme.of(
-                        context,
-                      ).colorScheme.onInverseSurface.withValues(alpha: 0.1),
+                      color: Theme.of(context).colorScheme.onInverseSurface
+                          .withValues(alpha: 0.1),
                       shape: BoxShape.circle,
                     ),
                     width: MediaQuery.sizeOf(context).width * 0.4,
@@ -133,9 +130,9 @@ class _ChildDetailsScreenState extends State<ChildDetailsScreen> {
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                           style: TextStyle(
-                            color: Theme.of(
-                              context,
-                            ).colorScheme.onInverseSurface,
+                            color: Theme.of(context)
+                                .colorScheme
+                                .onInverseSurface,
                             fontWeight: FontWeight.w500,
                             fontSize: 15,
                           ),
@@ -143,13 +140,13 @@ class _ChildDetailsScreenState extends State<ChildDetailsScreen> {
                         ),
                         SizedBox(height: boxConstraints.maxHeight * 0.0125),
                         Text(
-                          '${UiUtils.getTranslatedLabel(context, classKey)} - ${widget.student.classSectionNameWithSemester(context: context)}',
+                          '${UiUtils.getTranslatedLabel(context, classKey)} - ${widget.student.classSectionNameWithTerm(context: context)}',
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                           style: TextStyle(
-                            color: Theme.of(
-                              context,
-                            ).colorScheme.onInverseSurface,
+                            color: Theme.of(context)
+                                .colorScheme
+                                .onInverseSurface,
                             fontWeight: FontWeight.w500,
                             fontSize: 11,
                           ),

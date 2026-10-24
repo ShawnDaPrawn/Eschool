@@ -31,7 +31,7 @@ class AcademicCalendarScreen extends StatefulWidget {
       holiday: colorScheme.tertiary,
       event: colorScheme.primary,
       exam: StatusColors.of(context).danger,
-      semesterBreak: colorScheme.outline,
+      termBreak: colorScheme.outline,
     );
   }
 
@@ -131,15 +131,14 @@ class _AcademicCalendarScreenState extends State<AcademicCalendarScreen>
                 duration: const Duration(milliseconds: 300),
                 decoration: currentTabIndex == index
                     ? BoxDecoration(
-                        color: Theme.of(
-                          context,
-                        ).colorScheme.surfaceContainerLowest,
+                        color: Theme.of(context)
+                            .colorScheme
+                            .surfaceContainerLowest,
                         borderRadius: BorderRadius.circular(4),
                         boxShadow: [
                           BoxShadow(
-                            color: Theme.of(
-                              context,
-                            ).colorScheme.shadow.withValues(alpha: 0.12),
+                            color: Theme.of(context).colorScheme.shadow
+                                .withValues(alpha: 0.12),
                             blurRadius: 1,
                           ),
                         ],
@@ -176,17 +175,14 @@ class _AcademicCalendarScreenState extends State<AcademicCalendarScreen>
                         decoration: BoxDecoration(
                           shape: BoxShape.circle,
                           color: index == 1
-                              ? AcademicCalendarScreen.highlightColors(
-                                  context,
-                                ).holiday
+                              ? AcademicCalendarScreen.highlightColors(context)
+                                    .holiday
                               : index == 2
-                              ? AcademicCalendarScreen.highlightColors(
-                                  context,
-                                ).event
+                              ? AcademicCalendarScreen.highlightColors(context)
+                                    .event
                               : index == 3
-                              ? AcademicCalendarScreen.highlightColors(
-                                  context,
-                                ).exam
+                              ? AcademicCalendarScreen.highlightColors(context)
+                                    .exam
                               : null,
                         ),
                       ),
@@ -266,10 +262,8 @@ class _AcademicCalendarScreenState extends State<AcademicCalendarScreen>
                     ),
                   ),
                 )
-              : item.data is SemesterBreak
-              ? SemesterBreakContainer(
-                  semesterBreak: item.data as SemesterBreak,
-                )
+              : item.data is TermBreak
+              ? TermBreakContainer(termBreak: item.data as TermBreak)
               : const SizedBox.shrink(),
         );
       }),
@@ -283,9 +277,8 @@ class _AcademicCalendarScreenState extends State<AcademicCalendarScreen>
         color: Theme.of(context).colorScheme.surface,
         boxShadow: [
           BoxShadow(
-            color: Theme.of(
-              context,
-            ).colorScheme.shadow.withValues(alpha: 0.075),
+            color: Theme.of(context).colorScheme.shadow
+                .withValues(alpha: 0.075),
             offset: const Offset(5, 5),
             blurRadius: 10,
           ),
@@ -424,9 +417,8 @@ class _AcademicCalendarScreenState extends State<AcademicCalendarScreen>
                           borderRadius: BorderRadius.circular(10),
                           boxShadow: [
                             BoxShadow(
-                              color: Theme.of(
-                                context,
-                              ).colorScheme.shadow.withValues(alpha: 0.075),
+                              color: Theme.of(context).colorScheme.shadow
+                                  .withValues(alpha: 0.075),
                               offset: const Offset(2.5, 2.5),
                               blurRadius: 5,
                             ),
@@ -440,9 +432,9 @@ class _AcademicCalendarScreenState extends State<AcademicCalendarScreen>
                               child: Text(
                                 '${UiUtils.getMonthName(focusedDay.month)} ${focusedDay.year}',
                                 style: TextStyle(
-                                  color: Theme.of(
-                                    context,
-                                  ).colorScheme.onSurface,
+                                  color: Theme.of(context)
+                                      .colorScheme
+                                      .onSurface,
                                   fontWeight: FontWeight.w600,
                                 ),
                               ),

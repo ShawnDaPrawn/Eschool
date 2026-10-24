@@ -259,17 +259,17 @@ class ResultController extends Controller
         $date = date('d-m-Y');
 
         $exam_id = $request->query('exam_id');
-        $semester_id = $request->query('semester_id');
+        $term_id = $request->query('term_id');
         $session_year_id = $request->query('session_year_id', $settings['session_year'] ?? null);
 
         $validator = Validator::make([
             'exam_id' => $exam_id,
             'session_year_id' => $session_year_id,
-            'semester_id' => $semester_id,
+            'term_id' => $term_id,
         ], [
             'exam_id' => 'required|exists:exams,id',
             'session_year_id' => 'required|exists:session_years,id',
-            'semester_id' => 'nullable|exists:semesters,id',
+            'term_id' => 'nullable|exists:terms,id',
         ], [
             'exam_id.required' => 'Exam not selected.',
         ]);
@@ -344,8 +344,8 @@ class ResultController extends Controller
         }])
             ->where('id', $exam_id)
             ->where('session_year_id', $session_year_id)
-            ->when($semester_id, function ($query) use ($semester_id) {
-                $query->where('semester_id', $semester_id);
+            ->when($term_id, function ($query) use ($term_id) {
+                $query->where('term_id', $term_id);
             })
             ->where('publish', 1)
             ->first();

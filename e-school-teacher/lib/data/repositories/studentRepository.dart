@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:typed_data';
+
 import 'package:eschool_teacher/data/models/exam.dart';
 import 'package:eschool_teacher/data/models/guardianDetails.dart';
 import 'package:eschool_core/eschool_core.dart';
@@ -11,7 +12,7 @@ class StudentRepository {
   Future<List<Student>> getStudentsByClassSectionAndSubject({
     required int classSectionId,
     required int? subjectId,
-    String? semesterId,
+    String? termId,
   }) async {
     try {
       final result = await Api.get(
@@ -20,8 +21,7 @@ class StudentRepository {
         queryParameters: {
           'class_section_id': classSectionId,
           if (subjectId != null) 'subject_id': subjectId,
-          if (semesterId != null && semesterId.isNotEmpty)
-            'semester_id': semesterId,
+          if (termId != null && termId.isNotEmpty) 'term_id': termId,
         },
       );
 
@@ -159,7 +159,7 @@ class StudentRepository {
   Future<Map<String, dynamic>> updateSubjectMarksBySubjectId({
     required int examId,
     required int subjectId,
-    String? semesterId,
+    String? termId,
     required Map<String, dynamic> bodyParameter,
     required int classSectionId,
   }) async {
@@ -167,7 +167,7 @@ class StudentRepository {
       'exam_id': examId,
       'subject_id': subjectId,
       'class_section_id': classSectionId,
-      if (semesterId != null) 'semester_id': semesterId,
+      if (termId != null) 'term_id': termId,
     };
     final result = await Api.post(
       body: bodyParameter,

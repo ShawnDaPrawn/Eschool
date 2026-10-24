@@ -13,11 +13,11 @@ use App\Models\ClassTeacher;
 use App\Models\Holiday;
 use App\Models\Leave;
 use App\Models\LeaveMaster;
-use App\Models\Semester;
 use App\Models\SessionYear;
 use App\Models\Staff;
 use App\Models\Students;
 use App\Models\StudentSessions;
+use App\Models\Term;
 use App\Services\AbsenceAlertService;
 use Carbon\Carbon;
 use Exception;
@@ -201,14 +201,12 @@ class AttendanceController extends Controller
         $currentSessionYear = SessionYear::find($session_year_setting['session_year']);
 
         $class_section_ids = ClassTeacher::where('class_teacher_id', $teacher_id)->where('session_year_id', $currentSessionYear->id)->pluck('class_section_id');
-        $class_sections = ClassSection::with('class', 'section', 'classTeachers', 'class.streams')->whereIn('id', $class_section_ids)->get();
+        $class_sections = ClassSection::with('class', 'section', 'classTeachers', 'class.streams', 'class.gradeLevel')->whereIn('id', $class_section_ids)->get();
 
-        $currentSemester = Semester::where('session_year_id', $currentSessionYear->id)->get()->first(function ($semester) {
-            return $semester->current;
-        });
+        $currentTerms = Term::where('session_year_id', $currentSessionYear->id)->get()->filter(fn ($term) => $term->current);
 
-        $classIdsWithSemesterIncluded = ClassSessionConfig::where('session_year_id', $currentSessionYear->id)
-            ->where('include_semesters', true)
+        $classIdsWithTermIncluded = ClassSessionConfig::where('session_year_id', $currentSessionYear->id)
+            ->where('include_terms', true)
             ->pluck('class_id')
             ->all();
 
@@ -220,30 +218,21 @@ class AttendanceController extends Controller
             ? date('d-m-Y', strtotime($currentSessionYear->end_date))
             : $currentSessionYear->end_date->format('d-m-Y');
 
-        $semesterStartDate = $currentSemester
-            ? (is_string($currentSemester->start_date)
-                ? date('d-m-Y', strtotime($currentSemester->start_date))
-                : $currentSemester->start_date->format('d-m-Y'))
-            : null;
-
-        $semesterEndDate = $currentSemester
-            ? (is_string($currentSemester->end_date)
-                ? date('d-m-Y', strtotime($currentSemester->end_date))
-                : $currentSemester->end_date->format('d-m-Y'))
-            : null;
-
         $classSectionDateLimits = [];
         foreach ($class_sections as $section) {
-            $useSemesterDates = $currentSemester && in_array($section->class_id, $classIdsWithSemesterIncluded);
+            $currentTerm = $currentTerms->first(fn ($term) => $term->coversGrade($section->class?->gradeLevel?->sort_order));
+            $termStartDate = $currentTerm?->start_date?->format('d-m-Y');
+            $termEndDate = $currentTerm?->end_date?->format('d-m-Y');
+            $useTermDates = $currentTerm && in_array($section->class_id, $classIdsWithTermIncluded);
 
             $classSectionDateLimits[$section->id] = [
-                'start_date' => $useSemesterDates ? $semesterStartDate : $sessionStartDate,
-                'end_date' => $useSemesterDates ? $semesterEndDate : $sessionEndDate,
+                'start_date' => $useTermDates ? $termStartDate : $sessionStartDate,
+                'end_date' => $useTermDates ? $termEndDate : $sessionEndDate,
             ];
         }
 
-        // return response()->json($currentSemester);
-        return view('attendance.index', compact('class_sections', 'currentSessionYear', 'currentSemester', 'classSectionDateLimits'));
+        // return response()->json($currentTerm);
+        return view('attendance.index', compact('class_sections', 'currentSessionYear', 'classSectionDateLimits'));
     }
 
     public function view()
@@ -257,7 +246,7 @@ class AttendanceController extends Controller
         }
         $teacher_id = Auth::user()->teacher->id;
         $class_section_ids = ClassTeacher::where('class_teacher_id', $teacher_id)->pluck('class_section_id');
-        $class_sections = ClassSection::with('class', 'section', 'classTeachers', 'class.streams')->whereIn('id', $class_section_ids)->get();
+        $class_sections = ClassSection::with('class', 'section', 'classTeachers', 'class.streams', 'class.gradeLevel')->whereIn('id', $class_section_ids)->get();
         $session_years = SessionYear::orderBy('id', 'ASC')->get();
 
         $session_year_setting = getSettings('session_year');
@@ -646,7 +635,7 @@ class AttendanceController extends Controller
         $teacher_id = Auth::user()->teacher->id;
         $session_year_id = getSettings('session_year')['session_year'];
         $class_section_ids = ClassTeacher::where('class_teacher_id', $teacher_id)->where('session_year_id', $session_year_id)->pluck('class_section_id');
-        $class_sections = ClassSection::with('class', 'section', 'classTeachers', 'class.streams')->whereIn('id', $class_section_ids)->get();
+        $class_sections = ClassSection::with('class', 'section', 'classTeachers', 'class.streams', 'class.gradeLevel')->whereIn('id', $class_section_ids)->get();
 
         return view('attendance.add_bulk_data', compact('class_sections'));
     }
@@ -742,7 +731,7 @@ class AttendanceController extends Controller
         if ($user->hasRole('Teacher')) {
             $teacher_id = Auth::user()->teacher->id;
             $class_section_ids = ClassTeacher::where('class_teacher_id', $teacher_id)->pluck('class_section_id');
-            $class_sections = ClassSection::with('class', 'section', 'classTeachers', 'class.streams')->whereIn('id', $class_section_ids)->get();
+            $class_sections = ClassSection::with('class', 'section', 'classTeachers', 'class.streams', 'class.gradeLevel')->whereIn('id', $class_section_ids)->get();
         } else {
             $class_sections = ClassSection::with('class', 'section', 'streams')->get();
         }
@@ -781,7 +770,7 @@ class AttendanceController extends Controller
         $total_days = 0;
         $session_year_id = $request->session_year_id;
         $class_section_id = $request->class_section_id;
-        $semester_id = $request->semester_id;
+        $term_id = $request->term_id;
 
         // Validate required parameters
         if (empty($class_section_id)) {
@@ -830,8 +819,8 @@ class AttendanceController extends Controller
                 ->where('class_teacher_id', $teacher_id)
                 ->where('session_year_id', $session_year_id);
 
-            if (! empty($semester_id)) {
-                $classTeacherQuery->where('semester_id', $semester_id);
+            if (! empty($term_id)) {
+                $classTeacherQuery->where('term_id', $term_id);
             }
 
             $isTeacherAssigned = $classTeacherQuery->exists();
@@ -850,14 +839,14 @@ class AttendanceController extends Controller
         $startDate = Carbon::parse($currentSessionYear->start_date);
         $endDate = Carbon::parse($currentSessionYear->end_date);
 
-        if (! empty($semester_id)) {
-            $selectedSemester = Semester::where('id', $semester_id)
+        if (! empty($term_id)) {
+            $selectedTerm = Term::where('id', $term_id)
                 ->where('session_year_id', $session_year_id)
                 ->first();
 
-            if ($selectedSemester) {
-                $startDate = Carbon::parse($selectedSemester->start_date);
-                $endDate = Carbon::parse($selectedSemester->end_date);
+            if ($selectedTerm) {
+                $startDate = Carbon::parse($selectedTerm->start_date);
+                $endDate = Carbon::parse($selectedTerm->end_date);
             }
         }
 
@@ -978,8 +967,8 @@ class AttendanceController extends Controller
             $tempRow['name'] = $student->user->first_name.' '.$student->user->last_name;
             $tempRow['total_days'] = $total_days ?? 0;
 
-            // Count the student's ACTUAL attendance within the selected period (semester
-            // date range when a semester is chosen, otherwise the whole session year),
+            // Count the student's ACTUAL attendance within the selected period (term
+            // date range when a term is chosen, otherwise the whole session year),
             // bounded to $rangeEndDate so the numerator spans the same window as
             // $total_days (both stop at today for an in-progress period).
             // Deliberately NOT gated by $workingDays: a day marked present/absent counts

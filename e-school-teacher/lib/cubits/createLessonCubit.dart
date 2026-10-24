@@ -24,7 +24,7 @@ class CreateLessonCubit extends Cubit<CreateLessonState> {
     required String lessonName,
     required int classSectionId,
     required int subjectId,
-    String? semesterId,
+    String? termId,
     required String lessonDescription,
     required List<PickedStudyMaterial> files,
   }) async {
@@ -39,7 +39,7 @@ class CreateLessonCubit extends Cubit<CreateLessonState> {
         lessonName: lessonName,
         classSectionId: classSectionId,
         subjectId: subjectId,
-        semesterId: semesterId,
+        termId: termId,
         lessonDescription: lessonDescription,
         files: filesJson,
       );

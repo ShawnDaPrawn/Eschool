@@ -255,7 +255,7 @@ class DemoSchoolSeeder extends Seeder
             'Term 3' => ["$year-07-21", "$year-10-02"],
             'Term 4' => ["$year-10-13", "$year-12-09"],
         ] as $term => [$start, $end]) {
-            $this->row('semesters', ['session_year_id' => $sessionYear->id, 'name' => $term], ['start_date' => $start, 'end_date' => $end]);
+            $this->row('terms', ['session_year_id' => $sessionYear->id, 'name' => $term], ['start_date' => $start, 'end_date' => $end]);
         }
 
         return $sessionYear;
@@ -313,7 +313,7 @@ class DemoSchoolSeeder extends Seeder
             $this->ids["$k.class.$grade"] = $class;
             $this->ids["$k.homeroom.$grade"] = $this->row('class_sections', ['class_id' => $class, 'section_id' => $section]);
             foreach ($years as $year) {
-                $this->row('class_session_configs', ['class_id' => $class, 'session_year_id' => $year->id], ['include_semesters' => 0]);
+                $this->row('class_session_configs', ['class_id' => $class, 'session_year_id' => $year->id], ['include_terms' => 0]);
             }
         }
 

@@ -7,7 +7,7 @@ import 'package:eschool/cubits/attendanceCubit.dart';
 import 'package:eschool/cubits/chat/chatUsersCubit.dart';
 import 'package:eschool/cubits/eventsCubit.dart';
 import 'package:eschool/cubits/resultsCubit.dart';
-import 'package:eschool/cubits/semestersCubit.dart';
+import 'package:eschool/cubits/termsCubit.dart';
 import 'package:eschool/cubits/studentParentDetailsCubit.dart';
 import 'package:eschool/cubits/timeTableCubit.dart';
 import 'package:eschool/data/repositories/assignmentRepository.dart';
@@ -428,14 +428,14 @@ class HomeScreenState extends State<HomeScreen>
         child: const AcademicCalendarScreen(hasBack: false),
       );
     } else if (homeBottomSheetMenu[_currentlyOpenMenuIndex].title == examsKey) {
-      return BlocProvider<SemestersCubit>(
-        create: (context) => SemestersCubit(),
+      return BlocProvider<TermsCubit>(
+        create: (context) => TermsCubit(),
         child: const ExamContainer(),
       );
     } else if (homeBottomSheetMenu[_currentlyOpenMenuIndex].title ==
         resultKey) {
-      return BlocProvider<SemestersCubit>(
-        create: (context) => SemestersCubit(),
+      return BlocProvider<TermsCubit>(
+        create: (context) => TermsCubit(),
         child: const ResultsContainer(),
       );
     } else if (homeBottomSheetMenu[_currentlyOpenMenuIndex].title ==

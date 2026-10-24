@@ -13,9 +13,9 @@ use App\Models\ExamClass;
 use App\Models\ExamTimetable;
 use App\Models\Leave;
 use App\Models\MultipleEvent;
-use App\Models\Semester;
 use App\Models\SubjectTeacher;
 use App\Models\Teacher;
+use App\Models\Term;
 use App\Models\Timetable;
 use App\Services\GalleryService;
 use App\Services\ResponseService;
@@ -54,7 +54,7 @@ class DashboardController extends Controller
             $class_teacher_section_ids = ClassTeacher::where('class_teacher_id', $teacher->id)->where('session_year_id', $session_year_id)->pluck('class_section_id');
 
             // Teacher assignments
-            $classTeacherAssignments = ClassTeacher::with('semester')
+            $classTeacherAssignments = ClassTeacher::with('term')
                 ->where('class_teacher_id', $teacher->id)
                 ->where('session_year_id', $session_year_id)
                 ->get();
@@ -70,8 +70,8 @@ class DashboardController extends Controller
             $student_leave_request->where(function ($mainQuery) use ($classTeacherAssignments) {
                 $mainQuery->whereRaw('1 = 0');
                 foreach ($classTeacherAssignments as $assignment) {
-                    // FULL SESSION ACCESS (No semester)
-                    if (! $assignment->semester_id) {
+                    // FULL SESSION ACCESS (No term)
+                    if (! $assignment->term_id) {
                         $mainQuery->orWhere(function ($q) use ($assignment) {
                             $q->whereHas('user.student', function ($studentQuery) use ($assignment) {
                                 $studentQuery->where('class_section_id', $assignment->class_section_id);
@@ -81,27 +81,27 @@ class DashboardController extends Controller
                         continue;
                     }
 
-                    // SEMESTER BASED ACCESS
-                    $semester = $assignment->semester;
+                    // TERM BASED ACCESS
+                    $term = $assignment->term;
 
-                    if (! $semester) {
+                    if (! $term) {
                         continue;
                     }
 
-                    // Find next semester
-                    $nextSemester = Semester::where('session_year_id', $assignment->session_year_id)
-                        ->where('start_date', '>', $semester->end_date)
+                    // Find next term
+                    $nextTerm = Term::where('session_year_id', $assignment->session_year_id)
+                        ->where('start_date', '>', $term->end_date)
                         ->orderBy('start_date', 'asc')
                         ->first();
 
                     // Effective end date including break
-                    $effectiveEndDate = $nextSemester
-                        ? Carbon::parse($nextSemester->start_date)->subDay()
-                        : $semester->end_date;
+                    $effectiveEndDate = $nextTerm
+                        ? Carbon::parse($nextTerm->start_date)->subDay()
+                        : $term->end_date;
 
                     $mainQuery->orWhere(function ($q) use (
                         $assignment,
-                        $semester,
+                        $term,
                         $effectiveEndDate
                     ) {
 
@@ -110,9 +110,9 @@ class DashboardController extends Controller
                             $studentQuery->where('class_section_id', $assignment->class_section_id);
                         });
 
-                        // Semester + break range
+                        // Term + break range
                         $q->whereBetween('from_date', [
-                            $semester->start_date,
+                            $term->start_date,
                             $effectiveEndDate,
                         ]);
                     });

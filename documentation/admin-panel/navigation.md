@@ -34,7 +34,7 @@ Some pages have plainer names now:
 | Assign new student class | **People > Learners > Place new learners in homerooms** |
 | Teacher, Staff management | **People > Teachers and staff** |
 | Session years | **Academics > School year > School years** |
-| Semester | **Academics > School year > Terms** |
+| Term | **Academics > School year > Terms** |
 | Promote student | **Academics > School year > Promote learners** |
 | Holiday list | **Academics > School year > Holidays** |
 | Class, Section | **Academics > Grades and subjects > Grades and homerooms**, **Homeroom names** |

@@ -25,6 +25,14 @@ class Term {
     required this.endDate,
 
     required this.current,
+
+    this.gradeFrom,
+
+    this.gradeTo,
+
+    this.marksLockOn,
+
+    this.reportsOn,
   });
 
   @JsonKey(name: r'id', required: true, includeIfNull: false)
@@ -43,6 +51,22 @@ class Term {
   @JsonKey(name: r'current', required: true, includeIfNull: false)
   final bool current;
 
+  // minimum: 0
+  // maximum: 12
+  @JsonKey(name: r'grade_from', required: false, includeIfNull: false)
+  final int? gradeFrom;
+
+  // minimum: 0
+  // maximum: 12
+  @JsonKey(name: r'grade_to', required: false, includeIfNull: false)
+  final int? gradeTo;
+
+  @JsonKey(name: r'marks_lock_on', required: false, includeIfNull: false)
+  final DateTime? marksLockOn;
+
+  @JsonKey(name: r'reports_on', required: false, includeIfNull: false)
+  final DateTime? reportsOn;
+
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -51,7 +75,11 @@ class Term {
           other.name == name &&
           other.startDate == startDate &&
           other.endDate == endDate &&
-          other.current == current;
+          other.current == current &&
+          other.gradeFrom == gradeFrom &&
+          other.gradeTo == gradeTo &&
+          other.marksLockOn == marksLockOn &&
+          other.reportsOn == reportsOn;
 
   @override
   int get hashCode =>
@@ -59,7 +87,11 @@ class Term {
       name.hashCode +
       (startDate == null ? 0 : startDate.hashCode) +
       (endDate == null ? 0 : endDate.hashCode) +
-      current.hashCode;
+      current.hashCode +
+      gradeFrom.hashCode +
+      gradeTo.hashCode +
+      (marksLockOn == null ? 0 : marksLockOn.hashCode) +
+      (reportsOn == null ? 0 : reportsOn.hashCode);
 
   factory Term.fromJson(Map<String, dynamic> json) => _$TermFromJson(json);
 

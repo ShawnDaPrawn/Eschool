@@ -43,7 +43,7 @@ const Map<String, Object?> appSettings = {
     'max_file_size_in_bytes': 1048576,
     'max_files_or_images_in_one_message': 5,
   },
-  'current_semester': <String, Object?>{},
+  'current_term': <String, Object?>{},
 };
 
 Map<String, Object?> student({int id = 11, String firstName = 'Thandi'}) => {
@@ -67,7 +67,7 @@ Map<String, Object?> student({int id = 11, String firstName = 'Thandi'}) => {
   'category_name': 'General',
   'is_new_admission': 0,
   'is_fee_payment_due': 0,
-  'is_semester_on_in_class': false,
+  'is_term_on_in_class': false,
 };
 
 Map<String, Object?> parent() => {

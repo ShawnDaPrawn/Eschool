@@ -37,14 +37,14 @@
                                 </div>
 
                                 <div class="form-group col-md-4">
-                                    <label>{{ __('semester') }}</label>
-                                    <select name="semester_id" id="semester_id" class="form-control select2"
+                                    <label>{{ __('term') }}</label>
+                                    <select name="term_id" id="term_id" class="form-control select2"
                                         style="width:100%;" tabindex="-1" aria-hidden="true">
-                                        <option value="">--- {{ __('select') . ' ' . __('semester') }} ---</option>
+                                        <option value="">--- {{ __('select') . ' ' . __('term') }} ---</option>
                                     </select>
                                     <small class="text-info mt-1 d-block">
                                         <i class="fa fa-info-circle"></i>
-                                        {{ __('leave_unselected_for_non_semester_classes') }}
+                                        {{ __('leave_unselected_for_non_term_classes') }}
                                     </small>
                                 </div>
                             </div>
@@ -198,11 +198,11 @@
                         <div class="row g-3 align-items-end">
                             <div class="form-group col-sm-12 col-md-2">
 
-                                <label for="filter-semester-id" class="form-label text-nowrap">
-                                    {{ __('semester') }}
+                                <label for="filter-term-id" class="form-label text-nowrap">
+                                    {{ __('term') }}
                                 </label>
-                                <select name="semester_id" id="filter-semester-id"
-                                    class="form-control select2 filter-semester-id">
+                                <select name="term_id" id="filter-term-id"
+                                    class="form-control select2 filter-term-id">
                                     <option value="">{{ __('all') }}</option>
                                 </select>
                             </div>
@@ -250,8 +250,8 @@
                                     <th scope="col" data-field="subject_name" data-sortable="false">
                                         {{ __('subject') }}
                                     </th>
-                                    <th scope="col" data-field="semester_name" data-sortable="false">
-                                        {{ __('semester') }}
+                                    <th scope="col" data-field="term_name" data-sortable="false">
+                                        {{ __('term') }}
                                     </th>
                                     <th scope="col" data-field="title" data-sortable="false">{{ __('title') }}</th>
                                     <th scope="col" data-field="exam_key" data-sortable="false" data-align="center">
@@ -299,9 +299,9 @@
                     <input type="hidden" name="edit_id" id="edit_id">
                     <div class="modal-body">
                         <div class="form-group">
-                            <label>{{ __('semester') }}</label>
-                            <input type="text" id="edit-online-exam-semester" class="form-control" readonly />
-                            <input type="hidden" id="edit-online-exam-semester-id" name="semester_id" />
+                            <label>{{ __('term') }}</label>
+                            <input type="text" id="edit-online-exam-term" class="form-control" readonly />
+                            <input type="hidden" id="edit-online-exam-term-id" name="term_id" />
                         </div>
                         <div class="form-group">
                             <label>{{ __('title') }} <span class="text-danger">*</span></label>
@@ -413,7 +413,7 @@
         }
 
         // Load everything by session year (initial + session year change)
-        // Populates: semesters, all classes (unfiltered), all class sections,
+        // Populates: terms, all classes (unfiltered), all class sections,
         // filter-class dropdown, filter-subject dropdown.
         function loadClassSectionsBySessionYear(sessionYearId, context) {
             if (!sessionYearId) return;
@@ -427,24 +427,24 @@
                 if (response.error) return;
 
                 if (context === 'create' || context === 'both') {
-                    // Populate semesters dropdown
-                    var smHtml = "<option value=''>--- {{ __('select') . ' ' . __('semester') }} ---</option>";
-                    response.data.semesters.forEach(function(item) {
+                    // Populate terms dropdown
+                    var smHtml = "<option value=''>--- {{ __('select') . ' ' . __('term') }} ---</option>";
+                    response.data.terms.forEach(function(item) {
                         smHtml += "<option value='" + item.id + "'>" + item.name + "</option>";
                     });
-                    $('#semester_id').html(smHtml).trigger('change.select2');
+                    $('#term_id').html(smHtml).trigger('change.select2');
 
-                    // Show ALL classes / sections (no semester selected yet)
+                    // Show ALL classes / sections (no term selected yet)
                     populateClassDropdowns(response.data.classes, response.data.class_sections);
                 }
 
                 if (context === 'filter' || context === 'both') {
-                    // Populate filter semester dropdown
+                    // Populate filter term dropdown
                     var filterSmHtml = "<option value=''>{{ __('all') }}</option>";
-                    response.data.semesters.forEach(function(item) {
+                    response.data.terms.forEach(function(item) {
                         filterSmHtml += "<option value='" + item.id + "'>" + item.name + "</option>";
                     });
-                    $('.filter-semester-id').html(filterSmHtml).trigger('change.select2');
+                    $('.filter-term-id').html(filterSmHtml).trigger('change.select2');
 
                     // Populate filter class dropdown
                     var filterClHtml = "<option value=''>{{ __('all') }}</option>";
@@ -465,15 +465,15 @@
             ajaxRequest('GET', url, data, null, successCallback, null, null, true);
         }
 
-        // Load classes / class-sections filtered by semester (create form only)
-        // Called every time the semester dropdown changes.
-        function loadClassSectionsBySemester(sessionYearId, semesterId) {
+        // Load classes / class-sections filtered by term (create form only)
+        // Called every time the term dropdown changes.
+        function loadClassSectionsByTerm(sessionYearId, termId) {
             if (!sessionYearId) return;
 
-            var url = baseUrl + '/get-class-sections-by-semester';
+            var url = baseUrl + '/get-class-sections-by-term';
             var data = {
                 'session_year_id': sessionYearId,
-                'semester_id': semesterId // empty string → non-semester classes
+                'term_id': termId // empty string → non-term classes
             };
 
             function successCallback(response) {
@@ -507,11 +507,11 @@
                     });
             });
 
-            // Create form: semester changes → reload classes/sections from server
-            $(document).on('change', '#semester_id', function() {
+            // Create form: term changes → reload classes/sections from server
+            $(document).on('change', '#term_id', function() {
                 var sessionYearId = $('#session_year_id').val();
-                var semesterId = $(this).val(); // may be '' for no semester
-                loadClassSectionsBySemester(sessionYearId, semesterId);
+                var termId = $(this).val(); // may be '' for no term
+                loadClassSectionsByTerm(sessionYearId, termId);
             });
 
             // Filter section: session year changes
@@ -520,8 +520,8 @@
                 $('#table_list').bootstrapTable('refresh');
             });
 
-            // Filter section: semester changes
-            $(document).on('change', '.filter-semester-id', function() {
+            // Filter section: term changes
+            $(document).on('change', '.filter-term-id', function() {
                 $('#table_list').bootstrapTable('refresh');
             });
 

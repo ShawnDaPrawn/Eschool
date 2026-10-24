@@ -8,7 +8,7 @@ This page describes the MySQL/MariaDB schema of the admin panel as it stands aft
 - **Soft deletes.** Most tables have `deleted_at`. A few models do **not** use the `SoftDeletes` trait even though their table has the column: `Staff` (`staffs`), `LessonTopic` (`lesson_topics`), `File` (`files`), `Language` (`languages`), `OnlineExamQuestionOption`, `OnlineExamQuestionAnswer`. Deleting through those models removes the row for real.
 - **String length.** `AppServiceProvider` calls `Schema::defaultStringLength(191)`, so `string()` columns are `varchar(191)` unless a length is given.
 - **Session-year scoping.** Almost every academic, attendance, exam, fee and communication table has a `session_year_id`. The "current" session year is not a column; it is the `settings` row with `type = 'session_year'` (read with `getSettings('session_year')['session_year']`). See [Academic Structure](Academic-Structure#session-years).
-- **Semester scoping.** These tables have a nullable `semester_id`: `class_subjects`, `elective_subject_groups`, `timetables`, `student_subjects`, `lessons`, `assignments`, `announcements`, `class_teachers`, `subject_teachers`, `exams`, `online_exams`.
+- **Term scoping.** These tables have a nullable `term_id`: `class_subjects`, `elective_subject_groups`, `timetables`, `student_subjects`, `lessons`, `assignments`, `announcements`, `class_teachers`, `subject_teachers`, `exams`, `online_exams`.
 - **Email reuse after delete.** `users.email` is unique. `User::booted()` and `Parents::booted()` rewrite the email of a soft-deleted row to `<first 190 chars>::deleted-<id>-<unix time>` so the address can be registered again (`User::buildDeletedEmailPlaceholder()`).
 - **Numeric status codes** are documented only in column comments; the most important ones are repeated in the tables below.
 
@@ -45,19 +45,19 @@ See [Roles and Permissions](Roles-and-Permissions) for the role and permission c
 | Table | Purpose and key columns | Relations | Notes |
 |---|---|---|---|
 | `session_years` | Academic years. `name`, `start_date`, `end_date`, `default` (1 = current), `free_app_use_date`, `include_fee_installments`, `fee_due_date`, `fee_due_charges` (percent) | Parent of nearly every scoped table | SD. The `fee_due_date` column default is the date the migration ran |
-| `semesters` | Terms inside a session year. `name`, `start_date`, `end_date`, `session_year_id` | FK `session_year_id` → `session_years` (restrict) | SD. `start_month`/`end_month` were replaced by dates in `2025_10_27_095126` (converted using the current calendar year) |
+| `terms` | Terms inside a session year. `name`, `start_date`, `end_date`, `session_year_id` | FK `session_year_id` → `session_years` (restrict) | SD. `start_month`/`end_month` were replaced by dates in `2025_10_27_095126` (converted using the current calendar year) |
 | `mediums` | Language of instruction (for example English, Afrikaans). `name` | Referenced by `classes.medium_id`, `subjects.medium_id` | SD |
 | `streams` | Optional class streams (for example Science, Commerce). `name` | Referenced by `classes.stream_id` | SD |
 | `shifts` | School shifts. `title`, `start_time`, `end_time`, `status` | Referenced by `classes.shift_id` | SD |
-| `classes` | A grade/class (model `ClassSchool`). `name`, `medium_id`, `stream_id`, `shift_id`, `educational_program_id` | FK `stream_id` → `streams` (cascade), `shift_id` → `shifts` (cascade), `educational_program_id` → `educational_programs` (restrict) | SD. `include_semesters` existed from 3.3.0 until `2026_03_20_154121` moved it to `class_session_configs` |
+| `classes` | A grade/class (model `ClassSchool`). `name`, `medium_id`, `stream_id`, `shift_id`, `educational_program_id` | FK `stream_id` → `streams` (cascade), `shift_id` → `shifts` (cascade), `educational_program_id` → `educational_programs` (restrict) | SD. `include_terms` existed from 3.3.0 until `2026_03_20_154121` moved it to `class_session_configs` |
 | `sections` | Section labels (A, B, C). `name` | | SD |
 | `class_sections` | A class plus a section; the unit students, timetables and attendance hang off. `class_id`, `section_id` | No FK constraints | SD. `class_teacher_id` was dropped in 2023-07 in favour of `class_teachers` |
-| `class_session_configs` | Per class, per session year: `include_semesters` (bool) | FK `class_id` → `classes` (cascade), `session_year_id` → `session_years` (cascade) | Unique (`class_id`, `session_year_id`) plus a non-unique index on the same pair. No soft deletes |
+| `class_session_configs` | Per class, per session year: `include_terms` (bool) | FK `class_id` → `classes` (cascade), `session_year_id` → `session_years` (cascade) | Unique (`class_id`, `session_year_id`) plus a non-unique index on the same pair. No soft deletes |
 | `subjects` | Subject catalogue per medium. `name`, `code`, `bg_color`, `image`, `medium_id`, `type` (`Theory` / `Practical`) | | SD |
-| `class_subjects` | Subjects offered by a class in a session year (and optionally a semester). `class_id`, `subject_id`, `type` (`Compulsory` / `Elective`), `elective_subject_group_id` (when Elective), `semester_id`, `session_year_id` | FK `semester_id` → `semesters` (restrict), `session_year_id` (restrict) | SD. Indexed `session_year_id` |
-| `elective_subject_groups` | A pick-N group of elective subjects for a class. `class_id`, `total_subjects`, `total_selectable_subjects`, `semester_id`, `session_year_id` | FK `semester_id` (restrict), `session_year_id` (restrict) | SD |
-| `class_teachers` | Class teacher assignment. `class_section_id`, `class_teacher_id` (a `teachers.id`), `session_year_id`, `semester_id` | FK `class_section_id` → `class_sections` (cascade), `class_teacher_id` → `teachers` (cascade), `semester_id` (cascade), `session_year_id` (restrict) | SD (dropped in 2023-07, re-added by `2026_02_05_110138`) |
-| `subject_teachers` | Who teaches a subject in a class section. `class_section_id`, `subject_id`, `teacher_id`, `session_year_id`, `semester_id` | FK `semester_id` (cascade), `session_year_id` (restrict) | SD |
+| `class_subjects` | Subjects offered by a class in a session year (and optionally a term). `class_id`, `subject_id`, `type` (`Compulsory` / `Elective`), `elective_subject_group_id` (when Elective), `term_id`, `session_year_id` | FK `term_id` → `terms` (restrict), `session_year_id` (restrict) | SD. Indexed `session_year_id` |
+| `elective_subject_groups` | A pick-N group of elective subjects for a class. `class_id`, `total_subjects`, `total_selectable_subjects`, `term_id`, `session_year_id` | FK `term_id` (restrict), `session_year_id` (restrict) | SD |
+| `class_teachers` | Class teacher assignment. `class_section_id`, `class_teacher_id` (a `teachers.id`), `session_year_id`, `term_id` | FK `class_section_id` → `class_sections` (cascade), `class_teacher_id` → `teachers` (cascade), `term_id` (cascade), `session_year_id` (restrict) | SD (dropped in 2023-07, re-added by `2026_02_05_110138`) |
+| `subject_teachers` | Who teaches a subject in a class section. `class_section_id`, `subject_id`, `teacher_id`, `session_year_id`, `term_id` | FK `term_id` (cascade), `session_year_id` (restrict) | SD |
 | `categories` | Student categories (the sample data uses General, Boarding, Day scholar and Bursary). `name`, `status` | Referenced by `students.category_id` | SD |
 | `educational_programs` | Programmes shown on the public website and optionally linked to a class. `title`, `image` | Referenced by `classes.educational_program_id` | |
 
@@ -70,7 +70,7 @@ See [Roles and Permissions](Roles-and-Permissions) for the role and permission c
 | `teachers` | Teacher profile. `user_id`, `qualification`, `dynamic_fields` | `user_id` → `users` (no FK) | SD |
 | `staffs` | Marks a user as non-teaching staff. `user_id` | FK `user_id` → `users` (restrict) | Table has `deleted_at`, but the `Staff` model does not use `SoftDeletes` |
 | `student_sessions` | One row per student per session year: `student_id`, `session_year_id`, `class_section_id` (nullable; set to null when the student leaves), `previous_session_year_id`, `result` (1 pass, 0 fail), `status` (1 continuing, 0 left) | No FK constraints | SD. Source of truth for which section a student is in for a given year. See [Academic Structure](Academic-Structure#student-sessions) |
-| `student_subjects` | Elective subjects a student picked. `student_id`, `subject_id`, `class_section_id`, `semester_id`, `session_year_id` | FK `semester_id` (restrict) | SD. Compulsory subjects are not stored here; they come from `class_subjects` |
+| `student_subjects` | Elective subjects a student picked. `student_id`, `subject_id`, `class_section_id`, `term_id`, `session_year_id` | FK `term_id` (restrict) | SD. Compulsory subjects are not stored here; they come from `class_subjects` |
 | `form_fields` | Custom registration fields. `name`, `type` (`text`, `number`, `dropdown`, `radio`, `checkbox`, `textarea`, `file` per `FormFieldController::TYPE_RULE`), `for` (1 student, 2 parent, 3 teacher, 4 online registration form), `is_required`, `default_values` (JSON), `other`, `rank` | Values stored in `dynamic_fields` of `students`, `parents`, `teachers` | SD. The column comment only lists 1 to 3; the controller also accepts 4 |
 
 ### Attendance
@@ -84,27 +84,27 @@ See [Roles and Permissions](Roles-and-Permissions) for the role and permission c
 
 | Table | Purpose and key columns | Relations | Notes |
 |---|---|---|---|
-| `timetables` | Weekly periods. `class_section_id`, `subject_teacher_id`, `day` (1 Monday to 7 Sunday), `day_name`, `start_time`, `end_time`, `note`, `link_name`, `live_class_url`, `session_year_id`, `semester_id` | FK `semester_id` (restrict), `session_year_id` (restrict) | SD |
+| `timetables` | Weekly periods. `class_section_id`, `subject_teacher_id`, `day` (1 Monday to 7 Sunday), `day_name`, `start_time`, `end_time`, `note`, `link_name`, `live_class_url`, `session_year_id`, `term_id` | FK `term_id` (restrict), `session_year_id` (restrict) | SD |
 | `holidays` | `date`, `title`, `description`, `session_year_id` | FK `session_year_id` (restrict) | No soft deletes |
 | `events` | Public/school events. `title`, `type` (default `single`), `start_date`, `end_date` (string), `start_time`, `end_time`, `image`, `description`, `session_year_id` | FK `session_year_id` (restrict) | No soft deletes. `date` was renamed to `start_date` in 2024-03 |
 | `multiple_events` | Per-day schedule rows of a multi-day event. `event_id`, `title`, `date`, `start_time`, `end_time`, `description` | FK `event_id` → `events` (cascade) | |
-| `academic_calendars` | `date`, `title`, `description`, `session_year_id` | | SD. No model uses this table. The academic calendar PDF is built by `AcademicCalendarService` from holidays, events, exam timetables and semester gaps |
+| `academic_calendars` | `date`, `title`, `description`, `session_year_id` | | SD. No model uses this table. The academic calendar PDF is built by `AcademicCalendarService` from holidays, events, exam timetables and term gaps |
 
 ### Lessons and assignments
 
 | Table | Purpose and key columns | Relations | Notes |
 |---|---|---|---|
-| `lessons` | `name`, `description`, `class_section_id`, `subject_id`, `semester_id` | FK `semester_id` (cascade) | SD |
+| `lessons` | `name`, `description`, `class_section_id`, `subject_id`, `term_id` | FK `term_id` (cascade) | SD |
 | `lesson_topics` | `lesson_id`, `name`, `description` | | SD column, but `LessonTopic` has no `SoftDeletes`. `file` column dropped in 2022-05 |
 | `files` | Polymorphic attachments for lessons, topics, assignments, submissions, announcements and leaves. `modal_type`/`modal_id`, `file_name`, `file_thumbnail`, `type` (1 file upload, 2 YouTube link, 3 video upload, 4 other link), `file_url` | Morph | SD column, but `File` has no `SoftDeletes`; `File::boot()` deletes the stored file from the `public` disk |
-| `assignments` | `class_section_id`, `subject_id`, `name`, `instructions`, `due_date`, `points`, `resubmission`, `extra_days_for_resubmission`, `session_year_id`, `semester_id` | FK `semester_id` (cascade) | SD |
+| `assignments` | `class_section_id`, `subject_id`, `name`, `instructions`, `due_date`, `points`, `resubmission`, `extra_days_for_resubmission`, `session_year_id`, `term_id` | FK `term_id` (cascade) | SD |
 | `assignment_submissions` | `assignment_id`, `student_id`, `text_submission`, `feedback`, `points`, `status` (0 pending/in review, 1 accepted, 2 rejected, 3 resubmitted), `session_year_id` | | SD |
 
 ### Exams, grades and results
 
 | Table | Purpose and key columns | Relations | Notes |
 |---|---|---|---|
-| `exams` | Offline exam header. `name`, `description`, `session_year_id`, `semester_id`, `publish` (0/1) | FK `semester_id` (cascade) | SD. `class_id` was moved to `exam_classes` in 2022-07 |
+| `exams` | Offline exam header. `name`, `description`, `session_year_id`, `term_id`, `publish` (0/1) | FK `term_id` (cascade) | SD. `class_id` was moved to `exam_classes` in 2022-07 |
 | `exam_classes` | Classes sitting an exam. `exam_id`, `class_id`, `session_year_id` | FK `session_year_id` (restrict) | SD |
 | `exam_timetables` | One paper per class per subject. `exam_id`, `class_id`, `subject_id`, `total_marks`, `passing_marks`, `date`, `start_time`, `end_time`, `session_year_id` | | SD |
 | `exam_marks` | Marks per student per paper. `exam_timetable_id`, `student_id`, `subject_id`, `obtained_marks` (int), `teacher_review`, `passing_status` (1 pass, 0 fail), `grade`, `session_year_id` | | SD |
@@ -115,7 +115,7 @@ See [Roles and Permissions](Roles-and-Permissions) for the role and permission c
 
 | Table | Purpose and key columns | Relations | Notes |
 |---|---|---|---|
-| `online_exams` | `model_type`/`model_id` (`App\Models\ClassSchool` or `App\Models\ClassSection`), `subject_id`, `title`, `exam_key` (bigint), `duration` (minutes), `start_date`, `end_date` (datetime), `session_year_id`, `semester_id` | FK `subject_id` → `subjects` (cascade), `session_year_id` (cascade), `semester_id` (cascade) | SD. Rebuilt in `2023_02_14_164618` (was keyed by `class_subject_id`) |
+| `online_exams` | `model_type`/`model_id` (`App\Models\ClassSchool` or `App\Models\ClassSection`), `subject_id`, `title`, `exam_key` (bigint), `duration` (minutes), `start_date`, `end_date` (datetime), `session_year_id`, `term_id` | FK `subject_id` → `subjects` (cascade), `session_year_id` (cascade), `term_id` (cascade) | SD. Rebuilt in `2023_02_14_164618` (was keyed by `class_subject_id`) |
 | `online_exam_questions` | Question bank. `class_subject_id`, `question_type` (0 simple, 1 equation based), `question`, `image_url`, `note`, `session_year_id` | FK `class_subject_id` → `class_subjects` (cascade), `session_year_id` (restrict) | SD |
 | `online_exam_question_options` | `question_id`, `option` | FK `question_id` (cascade) | SD column, no trait |
 | `online_exam_question_answers` | Correct options. `question_id`, `answer` (an option id) | FK `question_id` (cascade), `answer` → `online_exam_question_options` (cascade) | SD column, no trait. A question can have several correct options |
@@ -143,7 +143,7 @@ The original `fees`, `fees_sub_types` and `fees_paid` tables were dropped by `20
 
 | Table | Purpose and key columns | Relations | Notes |
 |---|---|---|---|
-| `announcements` | `title`, `description`, `table_type`/`table_id` (nullable morph: `ClassSchool`, `ClassSection`, `SubjectTeacher`, ...), `session_year_id`, `semester_id` | FK `semester_id` (cascade) | SD. Index on the morph pair |
+| `announcements` | `title`, `description`, `table_type`/`table_id` (nullable morph: `ClassSchool`, `ClassSection`, `SubjectTeacher`, ...), `session_year_id`, `term_id` | FK `term_id` (cascade) | SD. Index on the morph pair |
 | `notifications` | Push/in-app notifications. `title`, `type`, `message` (128 chars), `send_to` (1 everyone, 2 specific users), `image`, `date`, `is_custom` (1 custom, 0 generated), `session_year_id` | FK `session_year_id` (restrict) | SD |
 | `user_notifications` | Recipients of a notification. `notification_id`, `user_id` | FK both (cascade) | |
 | `chat_messages` | `modal_type`/`modal_id` (receiver; the controllers store the receiver user id with `modal_type` `App/Models/User`), `sender_id`, `body`, `date` | FK `sender_id` → `users` (cascade) | The `date` column default is the timestamp at which the migration ran |
@@ -223,7 +223,7 @@ erDiagram
     sections ||--o{ class_sections : "section_id"
     classes ||--o{ class_session_configs : "class_id"
     session_years ||--o{ class_session_configs : "session_year_id"
-    session_years ||--o{ semesters : "session_year_id"
+    session_years ||--o{ terms : "session_year_id"
     classes ||--o{ class_subjects : "class_id"
     subjects ||--o{ class_subjects : "subject_id"
     classes ||--o{ elective_subject_groups : "class_id"
@@ -241,7 +241,7 @@ erDiagram
     class_sections ||--o{ subject_teachers : "class_section_id"
     subjects ||--o{ subject_teachers : "subject_id"
     session_years ||--o{ exams : "session_year_id"
-    semesters ||--o{ exams : "semester_id"
+    terms ||--o{ exams : "term_id"
     exams ||--o{ exam_classes : "exam_id"
     classes ||--o{ exam_classes : "class_id"
     exams ||--o{ exam_timetables : "exam_id"
@@ -287,19 +287,19 @@ Columns listed in the tables above already reflect these changes. Migrations tha
 | `2024_05_28_153727` | `timetables.live_class_url`, `link_name` |
 | `2024_06_25_094803` | `session_years.free_app_use_date` |
 | `2024_07_17_181831_create_3.2.1_version` | `assignment_submissions.text_submission`; `classes.educational_program_id`; `leaves.reason` to text |
-| `2024_09_05_121951_create_3.3.0_version` | `students.class_id`, `application_type`, nullable `class_section_id`; creates `semesters`; `classes.include_semesters`; `semester_id` on `class_subjects`, `elective_subject_groups`, `timetables`, `student_subjects`; inserts the `registration` web setting |
+| `2024_09_05_121951_create_3.3.0_version` | `students.class_id`, `application_type`, nullable `class_section_id`; creates `terms`; `classes.include_terms`; `term_id` on `class_subjects`, `elective_subject_groups`, `timetables`, `student_subjects`; inserts the `registration` web setting |
 | `2024_09_23_152930_create_3.3.1_version` | `leaves.session_year_id`; `fees_paids.due_charges` |
-| `2025_10_27_095126` | Semester months converted to `start_date`/`end_date` |
+| `2025_10_27_095126` | Term months converted to `start_date`/`end_date` |
 | `2025_11_13_190706` | `leaves.reason_of_rejection` |
 | `2025_12_15_151353`, `2025_12_16_164207`, `2025_12_18_165827` | `student_sessions.previous_session_year_id`; on installs that already have a `session_year` setting the table is **truncated** and refilled with one row per student for the current session; `class_section_id` nullable |
 | `2025_12_27_152628` | Adds `attendances.status` and `paid_installment_fees.status` if missing |
 | `2025_12_27_153705` | Adds nullable, indexed `session_year_id` with an FK (restrict) to `class_subjects`, `class_teachers`, `elective_subject_groups`, `events`, `exam_classes`, `fees_classes`, `grades`, `holidays`, `leave_details`, `online_exam_questions`, `notifications`, `subject_teachers`, `timetables`, and backfills them with the current session |
 | `2026_02_05_110138` | `deleted_at` on `class_teachers`, `exam_results`, `installment_fees`, `leaves`, `leave_details`, `leave_masters`, `paid_installment_fees` |
 | `2026_03_05_115045` | `users.status` comment: 0 pending, 1 active, 2 rejected |
-| `2026_03_19_120035` | `semesters.session_year_id` (backfilled with the current session) |
-| `2026_03_20_000001` / `_000002`, `2026_03_20_154121` | Creates `class_session_configs`, copies `classes.include_semesters` into it for the default session year, then drops `classes.include_semesters` |
-| `2026_03_23_180853` | `semester_id` (FK cascade) on `lessons`, `assignments`, `announcements`, `class_teachers`, `subject_teachers`, `exams`, `online_exams` |
-| `2026_04_28_165603_semester_id_backfill` | Fills those `semester_id` columns for the current session: exams by earliest timetable date, online exams by start date, assignments by due date, subject teachers and subject-teacher announcements to the current semester, class teachers copied to every semester |
+| `2026_03_19_120035` | `terms.session_year_id` (backfilled with the current session) |
+| `2026_03_20_000001` / `_000002`, `2026_03_20_154121` | Creates `class_session_configs`, copies `classes.include_terms` into it for the default session year, then drops `classes.include_terms` |
+| `2026_03_23_180853` | `term_id` (FK cascade) on `lessons`, `assignments`, `announcements`, `class_teachers`, `subject_teachers`, `exams`, `online_exams` |
+| `2026_04_28_165603_term_id_backfill` | Fills those `term_id` columns for the current session: exams by earliest timetable date, online exams by start date, assignments by due date, subject teachers and subject-teacher announcements to the current term, class teachers copied to every term |
 | `2026_06_27_173418` | `attendances.type` comment adds 3, 4, 5 |
 | `2026_07_03_120000` | Rewrites emails of already soft-deleted `users` and `parents` to the `::deleted-` placeholder |
 | `2026_10_21_000000` | Sets `session_years.include_fee_installments = 1` for years that have `installment_fees` rows (the flag was not saved when such years were created) |
@@ -315,35 +315,35 @@ Columns listed in the tables above already reflect these changes. Migrations tha
 | Model | Table | Important relationships | Scopes, events and notes |
 |---|---|---|---|
 | `User` | `users` | `student`, `parent`, `teacher`, `staff` (hasOne by `user_id`); `leaves`; `notifications` (belongsToMany via `user_notifications`); `messages` (morphMany `ChatMessage`) | `HasRoles` (guard `web`), `HasApiTokens`, `SoftDeletes`; appends `full_name`; `image` accessor returns a full URL; `deleting` frees the email |
-| `Students` | `students` | `user`, `class_section`, `class`, `category`, `father`/`mother`/`guardian` (Parents), `exam_result`, `exam_marks`, `fees_paid` (hasOne), `student_subjects`, `studentSessions`, `attendances`, `assignmentSubmissions`, `onlineExamAnswers`, `onlineExamStatus`, `announcement` | `scopeOfTeacher` (`Super Admin`/`Admin` see all, a Teacher sees students in sections they class-teach or subject-teach, any other role sees none); `subjects()` and `classSubjects()` build the current subject list (semester-aware); `deleting` cascades to submissions, attendance, marks, results, online answers/status, sessions and elective picks; fee records are kept |
+| `Students` | `students` | `user`, `class_section`, `class`, `category`, `father`/`mother`/`guardian` (Parents), `exam_result`, `exam_marks`, `fees_paid` (hasOne), `student_subjects`, `studentSessions`, `attendances`, `assignmentSubmissions`, `onlineExamAnswers`, `onlineExamStatus`, `announcement` | `scopeOfTeacher` (`Super Admin`/`Admin` see all, a Teacher sees students in sections they class-teach or subject-teach, any other role sees none); `subjects()` and `classSubjects()` build the current subject list (term-aware); `deleting` cascades to submissions, attendance, marks, results, online answers/status, sessions and elective picks; fee records are kept |
 | `Parents` | `parents` | `user`, `fatherRelationChild`, `motherRelationChild`, `guardianRelationChild`, `children()` (single OR query over the three columns) | `deleting` frees the email |
 | `Teacher` | `teachers` | `user`, `classSections` (belongsToMany via `class_teachers`), `class_sections`/`classTeachers` (hasMany `ClassTeacher`), `subjects`/`subjectTeachers` (hasMany `SubjectTeacher`), `classes`, `attendance` (`StaffAttendance` on `user_id`) | `scopeTeachers` (a Teacher sees only themself); `deleting` cascades subject-teacher and class-teacher rows |
 | `Staff` | `staffs` | `user`, `attendance` | No `SoftDeletes` trait |
-| `SessionYear` | `session_years` | `semesters`, `exams`, `assignments`, `attendances`, `studentSessions`, `classTeacher`, `subjectTeacher`, `classSubject` (this relation points at `StudentSubject`), `electiveSubjectGroup`, `grade`, `leave`, `leaveMaster`, `onlineExamQuestion`, `onlineExam`, `feesPaids`, `feesChoiceables`, `fee_installments`, `announcements`, `events`, `holidays`, `notifications` | `deleting` throws for the default year, otherwise deletes every related row (soft or force to match) |
-| `Semester` | `semesters` | `class_subjects`, `elective_subject_groups`, `timetables`, `exams`, `assignments`, `student_subjects` | Appends `current`, `start_month_name`, `end_month_name`; `deleting` cascades to class subjects, elective groups, timetables, student subjects |
-| `ClassSchool` | `classes` | `medium`, `streams`, `shifts`, `educational_program`, `sections` (via `class_sections`), `coreSubject`, `electiveSubject`, `allSubjects`, `electiveSubjectGroup`, `fees_class`, `classSections`, `sessionConfigs` | `scopeWithSessionConfigFor($sessionYearId)`, `scopeWhereIncludeSemestersForSession()`; `getIncludeSemestersForSession()`, `syncIncludeSemestersForSession()`; appends `full_name` and `include_semesters` (accessor, current session year); `deleting` cascades to online exams, session configs, class subjects, exam classes, fee classes, class sections |
-| `ClassSection` | `class_sections` | `class`, `section` (both withTrashed), `classTeachers` (belongsToMany `Teacher`, pivot `semester_id`), `class_teachers`, `subject_teachers`, `students`, `announcement` | `scopeSubjectTeacher` (Teacher sees sections they teach); `scopeClassTeacher` is unused and still references the dropped `class_teacher_id`; appends `name`, `full_name`; `deleting` cascades to student sessions (bypassing the global scope), online exams, assignments, attendance, results, lessons, subject teachers, timetables, students |
-| `ClassSessionConfig` | `class_session_configs` | `class`, `sessionYear`, `classSections` | `classHasSemester($classId, $sessionYearId)` |
-| `ClassSubject` | `class_subjects` | `class`, `subject`, `subjectGroup`, `semester` | `scopeSubjectTeacher($classSectionId, $semesterId)`; `deleting` removes online exam questions, online exams, subject-teacher rows for that class and session, and decrements (or deletes) the elective group |
-| `ElectiveSubjectGroup` | `elective_subject_groups` | `electiveSubjects` (ClassSubject), `semester` | `deleting` removes the group's class subjects, online exams/questions and matching `student_subjects` |
+| `SessionYear` | `session_years` | `terms`, `exams`, `assignments`, `attendances`, `studentSessions`, `classTeacher`, `subjectTeacher`, `classSubject` (this relation points at `StudentSubject`), `electiveSubjectGroup`, `grade`, `leave`, `leaveMaster`, `onlineExamQuestion`, `onlineExam`, `feesPaids`, `feesChoiceables`, `fee_installments`, `announcements`, `events`, `holidays`, `notifications` | `deleting` throws for the default year, otherwise deletes every related row (soft or force to match) |
+| `Term` | `terms` | `class_subjects`, `elective_subject_groups`, `timetables`, `exams`, `assignments`, `student_subjects` | Appends `current`, `start_month_name`, `end_month_name`; `deleting` cascades to class subjects, elective groups, timetables, student subjects |
+| `ClassSchool` | `classes` | `medium`, `streams`, `shifts`, `educational_program`, `sections` (via `class_sections`), `coreSubject`, `electiveSubject`, `allSubjects`, `electiveSubjectGroup`, `fees_class`, `classSections`, `sessionConfigs` | `scopeWithSessionConfigFor($sessionYearId)`, `scopeWhereIncludeTermsForSession()`; `getIncludeTermsForSession()`, `syncIncludeTermsForSession()`; appends `full_name` and `include_terms` (accessor, current session year); `deleting` cascades to online exams, session configs, class subjects, exam classes, fee classes, class sections |
+| `ClassSection` | `class_sections` | `class`, `section` (both withTrashed), `classTeachers` (belongsToMany `Teacher`, pivot `term_id`), `class_teachers`, `subject_teachers`, `students`, `announcement` | `scopeSubjectTeacher` (Teacher sees sections they teach); `scopeClassTeacher` is unused and still references the dropped `class_teacher_id`; appends `name`, `full_name`; `deleting` cascades to student sessions (bypassing the global scope), online exams, assignments, attendance, results, lessons, subject teachers, timetables, students |
+| `ClassSessionConfig` | `class_session_configs` | `class`, `sessionYear`, `classSections` | `classHasTerm($classId, $sessionYearId)` |
+| `ClassSubject` | `class_subjects` | `class`, `subject`, `subjectGroup`, `term` | `scopeSubjectTeacher($classSectionId, $termId)`; `deleting` removes online exam questions, online exams, subject-teacher rows for that class and session, and decrements (or deletes) the elective group |
+| `ElectiveSubjectGroup` | `elective_subject_groups` | `electiveSubjects` (ClassSubject), `term` | `deleting` removes the group's class subjects, online exams/questions and matching `student_subjects` |
 | `Subject` | `subjects` | `medium`, `assignments`, `classSubjects`, `examMarks`, `examTimetables`, `studentSubjects`, `subjectTeachers` | `scopeSubjectTeacher`; `deleting` cascades to all listed relations |
-| `ClassTeacher` | `class_teachers` | `classSections`, `classTeachers` (Teacher), `semester` | |
-| `SubjectTeacher` | `subject_teachers` | `class_section`, `subject`, `teacher`, `semester`, `timetables`, `announcement` | `scopeSubjectTeacher`; `deleting` cascades to timetables and announcements |
+| `ClassTeacher` | `class_teachers` | `classSections`, `classTeachers` (Teacher), `term` | |
+| `SubjectTeacher` | `subject_teachers` | `class_section`, `subject`, `teacher`, `term`, `timetables`, `announcement` | `scopeSubjectTeacher`; `deleting` cascades to timetables and announcements |
 | `StudentSessions` | `student_sessions` | `student` (withTrashed), `class_section` | Global scope `active_student_only` (only rows whose student is not soft-deleted); `withoutStudentScope()` bypasses it |
 | `StudentSubject` | `student_subjects` | `subject` | |
-| `Timetable` | `timetables` | `subject_teacher`, `class_section`, `subject` (the SubjectTeacher with its subject), `semester` | |
+| `Timetable` | `timetables` | `subject_teacher`, `class_section`, `subject` (the SubjectTeacher with its subject), `term` | |
 | `Mediums`, `Section`, `Stream`, `Shift`, `Category` | `mediums`, `sections`, `streams`, `shifts`, `categories` | `Section::classes`, `Category::students` | `Mediums` deleting cascades to classes and subjects; `Category` deleting deletes its students |
 | `Attendance` | `attendances` | `student`, `class_section` | `TYPE_*` constants, `leaveTypeToType()`, `monthlyReport()` |
 | `StaffAttendance` | `staff_attendances` | `user`, `sessionYear` | |
-| `Lesson` / `LessonTopic` | `lessons` / `lesson_topics` | `subject`, `class_section`, `file`, `topic`, `semester` / `file`, `lesson` | `scopeLessonTeachers` (exact class-section and subject pair taught by the teacher), `scopeLessonTopicTeachers`; deleting removes files |
+| `Lesson` / `LessonTopic` | `lessons` / `lesson_topics` | `subject`, `class_section`, `file`, `topic`, `term` / `file`, `lesson` | `scopeLessonTeachers` (exact class-section and subject pair taught by the teacher), `scopeLessonTopicTeachers`; deleting removes files |
 | `File` | `files` | `modal` (morphTo) | URL accessors; deleting removes the stored file |
-| `Assignment` / `AssignmentSubmission` | `assignments` / `assignment_submissions` | `subject`, `semester`, `submissions`, `class_section`, `file`, `session_year` / `file`, `assignment`, `student` | `scopeAssignmentTeachers` (semester-aware, exact pair), `scopeAssignmentSubmissionTeachers`; deleting removes files and submissions |
-| `Exam` | `exams` | `exam_classes`, `session_year`, `semester`, `marks` (hasManyThrough `ExamMarks` via `ExamTimetable`), `timetable`, `results` | `deleting` cascades to marks, timetables, results, exam classes |
+| `Assignment` / `AssignmentSubmission` | `assignments` / `assignment_submissions` | `subject`, `term`, `submissions`, `class_section`, `file`, `session_year` / `file`, `assignment`, `student` | `scopeAssignmentTeachers` (term-aware, exact pair), `scopeAssignmentSubmissionTeachers`; deleting removes files and submissions |
+| `Exam` | `exams` | `exam_classes`, `session_year`, `term`, `marks` (hasManyThrough `ExamMarks` via `ExamTimetable`), `timetable`, `results` | `deleting` cascades to marks, timetables, results, exam classes |
 | `ExamClass`, `ExamTimetable`, `ExamMarks`, `ExamResult`, `Grade` | exam tables | See [Exams and Grading](Exams-and-Grading) | `Grade` has no relations |
-| `OnlineExam` | `online_exams` | `model` (morphTo), `subject`, `semester`, `question_choice`, `student_attempt` | `deleting` cascades to choices, student answers and statuses |
+| `OnlineExam` | `online_exams` | `model` (morphTo), `subject`, `term`, `question_choice`, `student_attempt` | `deleting` cascades to choices, student answers and statuses |
 | `OnlineExamQuestion`, `OnlineExamQuestionOption`, `OnlineExamQuestionAnswer`, `OnlineExamQuestionChoice`, `OnlineExamStudentAnswer`, `StudentOnlineExamStatus` | online exam tables | `class_subject`, `options`, `answers`; `question_option`; `online_exam`, `questions`; `student_data` | Question and choice deletes cascade to student answers |
 | `FeesType`, `FeesClass`, `FeesChoiceable`, `FeesPaid`, `InstallmentFee`, `PaidInstallmentFee`, `PaymentTransaction` | fee tables | `fees_class`, `fees_type`, `class`, `student`, `session_year`, `payment_transaction`, `paidInstallments`, `installment_fee`, `parent` | `FeesType` and `FeesClass` deletes cascade to fee choiceables; `InstallmentFee` cascades to paid installments and formats `due_date` with the `date_formate` setting |
-| `Announcement` | `announcements` | `table` (morphTo, withTrashed), `file`, `semester` | Deleting removes files |
+| `Announcement` | `announcements` | `table` (morphTo, withTrashed), `file`, `term` | Deleting removes files |
 | `Notification`, `UserNotification` | `notifications`, `user_notifications` | `users`; `notification`, `user` | |
 | `ChatRoom`, `ChatMember`, `ChatMessage`, `ChatFile`, `ReadMessage` | chat tables | `members`, `messages`; `chatRoom`; `modal`, `file`; `message` | |
 | `Leave`, `LeaveDetail`, `LeaveMaster` | leave tables | `user`, `leave_detail`, `leave_master`, `file`; `leave`; `session_year`, `leave` | `Leave::approvedTypesForDate($date)`; deleting a leave deletes its details and files |

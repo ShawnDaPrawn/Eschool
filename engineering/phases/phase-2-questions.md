@@ -15,3 +15,7 @@ The first reference catalogue does not apply a new rating to existing marks,
 change learner promotion, or calculate term/year results. Percentage thresholds
 use integer basis points (100 basis points = 1 percent) to cover decimal marks
 without gaps or floating-point boundary ambiguity.
+
+The owner confirmed no installed semester clients and authorized retirement on
+23 October. Terms replace that runtime in place; no v1 bridge is built. Dates for
+marks lock and reports remain optional metadata until the assessment workflow.

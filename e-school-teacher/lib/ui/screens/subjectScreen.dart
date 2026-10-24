@@ -64,12 +64,12 @@ class _SubjectScreenState extends State<SubjectScreen> {
         context.read<LessonsCubit>().fetchLessons(
           classSectionId: widget.classSectionDetails.id,
           subjectId: widget.subject.id,
-          semesterId: widget.subject.semester?.id,
+          termId: widget.subject.term?.id,
         );
         context.read<AnnouncementsCubit>().fetchAnnouncements(
           classSectionId: widget.classSectionDetails.id,
           subjectId: widget.subject.id,
-          semesterId: widget.subject.semester?.id,
+          termId: widget.subject.term?.id,
         );
       }
     });
@@ -81,7 +81,7 @@ class _SubjectScreenState extends State<SubjectScreen> {
       if (context.read<AnnouncementsCubit>().hasMore()) {
         context.read<AnnouncementsCubit>().fetchMoreAnnouncements(
           subjectId: widget.subject.id,
-          semesterId: widget.subject.semester?.id,
+          termId: widget.subject.term?.id,
           classSectionId: widget
               .classSectionDetails
               .id, //widget.classSectionDetails.classTeacherId
@@ -121,13 +121,13 @@ class _SubjectScreenState extends State<SubjectScreen> {
                 context.read<LessonsCubit>().fetchLessons(
                   classSectionId: widget.classSectionDetails.id,
                   subjectId: widget.subject.id,
-                  semesterId: widget.subject.semester?.id,
+                  termId: widget.subject.term?.id,
                 );
               } else {
                 context.read<AnnouncementsCubit>().fetchAnnouncements(
                   classSectionId: widget.classSectionDetails.id,
                   subjectId: widget.subject.id,
-                  semesterId: widget.subject.semester?.id,
+                  termId: widget.subject.term?.id,
                 );
               }
             }
@@ -159,7 +159,7 @@ class _SubjectScreenState extends State<SubjectScreen> {
                 ),
                 AppBarTitleContainer(
                   boxConstraints: boxConstraints,
-                  title: widget.subject.subjectNameWithTypeAndSemester,
+                  title: widget.subject.subjectNameWithTypeAndTerm,
                 ),
                 AppBarSubTitleContainer(
                   boxConstraints: boxConstraints,
@@ -220,13 +220,13 @@ class _SubjectScreenState extends State<SubjectScreen> {
                   context.read<LessonsCubit>().fetchLessons(
                     classSectionId: widget.classSectionDetails.id,
                     subjectId: widget.subject.id,
-                    semesterId: widget.subject.semester?.id,
+                    termId: widget.subject.term?.id,
                   );
                 } else {
                   context.read<AnnouncementsCubit>().fetchAnnouncements(
                     classSectionId: widget.classSectionDetails.id,
                     subjectId: widget.subject.id,
-                    semesterId: widget.subject.semester?.id,
+                    termId: widget.subject.term?.id,
                   );
                 }
               },

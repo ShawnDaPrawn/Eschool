@@ -18,3 +18,16 @@ This is source review and automated evidence, not a completed independent
 security assessment or staging penetration test. Those checks and the broader
 Phase 2 pilot security/operational checks remain pending; independent development
 continues under the recorded delivery policy.
+
+## School terms
+
+Term and template operations resolve the current school before lookup, repeat
+fresh permission checks before retry replay and inside locked writes, and audit
+changes. Year locks serialize calendar writers; grade/date overlaps are validated
+together. Permission IDs/grants and academic links survive the in-place rename.
+Referenced terms cannot be removed or narrowed to a different grade range; SQL
+foreign keys restrict physical deletion. Template previews do not change calendar
+records; retries skip identical entries without overwriting edits.
+
+No independent staging/pilot security test is claimed. The semester compatibility
+exception comes from the explicit owner decision, not a blanket API exemption.

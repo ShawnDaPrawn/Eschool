@@ -24,7 +24,7 @@ class CreateAssignmentCubit extends Cubit<CreateAssignmentState> {
   Future<void> createAssignment({
     required int classId,
     required int subjectId,
-    String? semesterId,
+    String? termId,
     required String name,
     required String instruction,
     required String datetime,
@@ -39,7 +39,7 @@ class CreateAssignmentCubit extends Cubit<CreateAssignmentState> {
           .createAssignment(
             classId: classId,
             subjectId: subjectId,
-            semesterId: semesterId,
+            termId: termId,
             name: name,
             datetime: datetime,
             resubmission: resubmission,

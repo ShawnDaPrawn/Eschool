@@ -24,11 +24,11 @@ use App\Models\Notification;
 use App\Models\OnlineExam;
 use App\Models\OnlineExamQuestion;
 use App\Models\PaymentTransaction;
-use App\Models\Semester;
 use App\Models\SessionYear;
 use App\Models\StudentSessions;
 use App\Models\StudentSubject;
 use App\Models\SubjectTeacher;
+use App\Models\Term;
 use App\Services\ResponseService;
 use App\Services\SessionYearService;
 use Illuminate\Http\Request;
@@ -518,16 +518,16 @@ class SessionYearController extends Controller
         }
     }
 
-    public function semesters($id)
+    public function terms($id)
     {
-        $semesters = Semester::where('session_year_id', $id)
+        $terms = Term::where('session_year_id', $id)
             ->select('id', 'name', 'start_date', 'end_date')
             ->orderBy('start_date', 'ASC')
             ->get();
 
         return response()->json([
             'status' => true,
-            'data' => $semesters,
+            'data' => $terms,
         ]);
     }
 

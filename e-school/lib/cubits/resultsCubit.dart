@@ -53,7 +53,7 @@ class ResultsCubit extends Cubit<ResultsState> {
   Future<void> fetchResults({
     required bool useParentApi,
     int? childId,
-    String? semesterId,
+    String? termId,
     int? sessionYearId,
   }) async {
     try {
@@ -61,7 +61,7 @@ class ResultsCubit extends Cubit<ResultsState> {
       final result = await _studentRepository.fetchExamResults(
         childId: childId ?? 0,
         useParentApi: useParentApi,
-        semesterId: semesterId,
+        termId: termId,
         sessionYearId: sessionYearId,
       );
 
@@ -90,7 +90,7 @@ class ResultsCubit extends Cubit<ResultsState> {
   Future<void> fetchMoreResults({
     required bool useParentApi,
     int? childId,
-    String? semesterId,
+    String? termId,
     int? sessionYearId,
   }) async {
     if (state is ResultsFetchSuccess) {
@@ -108,7 +108,7 @@ class ResultsCubit extends Cubit<ResultsState> {
           childId: childId ?? 0,
           useParentApi: useParentApi,
           page: (state as ResultsFetchSuccess).currentPage + 1,
-          semesterId: semesterId,
+          termId: termId,
           sessionYearId: sessionYearId,
         );
 
