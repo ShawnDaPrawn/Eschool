@@ -8,6 +8,7 @@ use App\Http\Controllers\Api\V2\Academics\MarkController;
 use App\Http\Controllers\Api\V2\Academics\SubjectStandardController;
 use App\Http\Controllers\Api\V2\Academics\TeachingGroupController;
 use App\Http\Controllers\Api\V2\Academics\TermCalendarController;
+use App\Http\Controllers\Api\V2\Academics\TimetableController;
 use App\Http\Controllers\Api\V2\People\EnrolmentController;
 use App\Http\Controllers\Api\V2\People\ProfileConfigurationController;
 use App\Http\Controllers\Api\V2\People\ProfileController;
@@ -24,6 +25,7 @@ use App\Http\Middleware\AuthorizeMarks;
 use App\Http\Middleware\AuthorizeSubjectStandard;
 use App\Http\Middleware\AuthorizeTeachingGroup;
 use App\Http\Middleware\AuthorizeTermCalendar;
+use App\Http\Middleware\AuthorizeTimetable;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -49,6 +51,22 @@ use Illuminate\Support\Facades\Route;
 
 // Keep fresh class permissions ahead of idempotent replay as well as validation.
 Route::prefix('academics')->middleware(['auth:sanctum', 'school.context', 'role.any', 'learner.approved', 'module:academics', 'cache.headers:private;no_store'])->name('api.v2.academics.')->group(function () {
+    Route::prefix('timetable')->name('timetable.')->group(function () {
+        $controller = TimetableController::class;
+        foreach (['week', 'next'] as $action) {
+            Route::get($action, [$controller, $action])->middleware(AuthorizeTimetable::class.':read')->name($action);
+        }
+        Route::middleware(AuthorizeTimetable::class.':manage')->group(function () use ($controller) {
+            Route::get('configuration', [$controller, 'configuration'])->name('configuration');
+            Route::post('rooms', [$controller, 'room'])->middleware('idempotent')->name('rooms.store');
+            Route::put('rooms/{room}', [$controller, 'room'])->whereNumber('room')->middleware('idempotent')->name('rooms.update');
+            Route::post('bells', [$controller, 'bells'])->middleware('idempotent')->name('bells.store');
+            Route::put('bells/{schedule}', [$controller, 'bells'])->whereNumber('schedule')->middleware('idempotent')->name('bells.update');
+            foreach (['preview', 'commit', 'import'] as $action) {
+                Route::post($action, [$controller, $action])->middleware('idempotent')->name($action);
+            }
+        });
+    });
     Route::prefix('marks')->name('marks.')->group(function () {
         $controller = MarkController::class;
         $policy = AuthorizeMarks::class;

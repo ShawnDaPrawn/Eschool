@@ -50,6 +50,18 @@ class OpenApiContractTest extends TestCase
     public static function scenarios(): array
     {
         return [
+            'timetable config auth' => [null, 'GET', 'api/v2/academics/timetable/configuration', [], 401],
+            'timetable config admin' => ['superadmin', 'GET', 'api/v2/academics/timetable/configuration', ['session_year_id' => 1], 200],
+            'timetable week teacher' => ['tara', 'GET', 'api/v2/academics/timetable/week', ['session_year_id' => 1, 'starts_on' => '2026-02-09'], 200],
+            'timetable next learner' => ['asha', 'GET', 'api/v2/academics/timetable/next', [], 200],
+            'timetable room create validation' => ['superadmin', 'POST', 'api/v2/academics/timetable/rooms', [], 422],
+            'timetable room update validation' => ['superadmin', 'PUT', 'api/v2/academics/timetable/rooms/999999', [], 422],
+            'timetable bell create validation' => ['superadmin', 'POST', 'api/v2/academics/timetable/bells', [], 422],
+            'timetable bell update validation' => ['superadmin', 'PUT', 'api/v2/academics/timetable/bells/999999', [], 422],
+            'timetable preview validation' => ['superadmin', 'POST', 'api/v2/academics/timetable/preview', [], 422],
+            'timetable commit validation' => ['superadmin', 'POST', 'api/v2/academics/timetable/commit', [], 422],
+            'timetable import validation' => ['superadmin', 'POST', 'api/v2/academics/timetable/import', [], 422],
+            'timetable parent management denied' => ['farid', 'POST', 'api/v2/academics/timetable/rooms', [], 403],
             'released mark periods unknown' => ['farid', 'GET', 'api/v2/academics/marks/learners/999999/periods', [], 404],
             'mark matrix requires auth' => [null, 'GET', 'api/v2/academics/marks/groups/999999', [], 401],
             'mark matrix unknown' => ['superadmin', 'GET', 'api/v2/academics/marks/groups/999999', [], 404],

@@ -18,7 +18,8 @@ class TransferClassTimetable
         $terms = YearIdMap::terms($fromSessionId, $toSessionId);
         $subjectTeachers = YearIdMap::subjectTeachers($fromSessionId, $toSessionId, $terms);
 
-        Timetable::where('session_year_id', $fromSessionId)
+        // Canonical rows are a derived current-week view, not a new-year calendar.
+        Timetable::where('session_year_id', $fromSessionId)->whereNull('timetable_lesson_id')
             ->chunkById(500, function ($rows) use ($toSessionId, $terms, $subjectTeachers) {
                 $data = $rows
                     ->filter(fn ($row) => $row->subject_teacher_id === null || isset($subjectTeachers[$row->subject_teacher_id]))

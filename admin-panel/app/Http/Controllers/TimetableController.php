@@ -9,15 +9,18 @@ use App\Models\ClassSection;
 use App\Models\ClassSessionConfig;
 use App\Models\ClassSubject;
 use App\Models\ClassTeacher;
+use App\Models\Platform\School;
 use App\Models\SessionYear;
 use App\Models\Subject;
 use App\Models\SubjectTeacher;
 use App\Models\Teacher;
 use App\Models\Term;
 use App\Models\Timetable;
+use App\Services\Platform\Tenancy\CurrentSchool;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Facades\Validator;
 use Throwable;
@@ -89,41 +92,44 @@ class TimetableController extends Controller
                 $day = 7;
             }
             $a = $day_name.'_group';
-            foreach ($request->$a as $data) {
-                if (isset($data['id']) && $data['id'] != '') {
-                    $timetable = Timetable::find($data['id']);
-                } else {
-                    $timetable = new Timetable;
+            DB::transaction(function () use ($request, $a, $day, $day_name, $class_section_id) {
+                School::query()->lockForUpdate()->findOrFail(app(CurrentSchool::class)->id());
+                foreach ($request->$a as $data) {
+                    if (isset($data['id']) && $data['id'] != '') {
+                        $timetable = Timetable::find($data['id']);
+                    } else {
+                        $timetable = new Timetable;
+                    }
+
+                    $class_id = ClassSection::where('id', $class_section_id)->value('class_id');
+                    $session_year_id = getSettings('session_year')['session_year'];
+
+                    $currentTerm = Term::currentForClass((int) $session_year_id, (int) $class_id);
+
+                    $isClassHaveTerm = ClassSessionConfig::classHasTerm($class_id, $session_year_id);
+
+                    $subject_teacher_id = SubjectTeacher::select('id')->where('subject_id', $data['subject_id'])
+                        ->where('teacher_id', $data['teacher_id'])
+                        ->when($isClassHaveTerm, function ($q) use ($currentTerm) {
+                            if ($currentTerm) {
+                                $q->where('term_id', $currentTerm->id);
+                            }
+                        })
+                        ->pluck('id')->first();
+
+                    $timetable->subject_teacher_id = ($subject_teacher_id) ? ($subject_teacher_id) : 0;
+                    $timetable->class_section_id = $class_section_id;
+                    $timetable->session_year_id = $request->session_year_id;
+                    $timetable->term_id = $request->term_id ?? null;
+                    $timetable->start_time = $data['start_time'];
+                    $timetable->end_time = $data['end_time'];
+                    $timetable->day = $day;
+                    $timetable->day_name = $day_name;
+                    $timetable->live_class_url = $data['live_class_url'];
+                    $timetable->link_name = $data['link_name'];
+                    $timetable->save();
                 }
-
-                $class_id = ClassSection::where('id', $class_section_id)->value('class_id');
-                $session_year_id = getSettings('session_year')['session_year'];
-
-                $currentTerm = Term::currentForClass((int) $session_year_id, (int) $class_id);
-
-                $isClassHaveTerm = ClassSessionConfig::classHasTerm($class_id, $session_year_id);
-
-                $subject_teacher_id = SubjectTeacher::select('id')->where('subject_id', $data['subject_id'])
-                    ->where('teacher_id', $data['teacher_id'])
-                    ->when($isClassHaveTerm, function ($q) use ($currentTerm) {
-                        if ($currentTerm) {
-                            $q->where('term_id', $currentTerm->id);
-                        }
-                    })
-                    ->pluck('id')->first();
-
-                $timetable->subject_teacher_id = ($subject_teacher_id) ? ($subject_teacher_id) : 0;
-                $timetable->class_section_id = $class_section_id;
-                $timetable->session_year_id = $request->session_year_id;
-                $timetable->term_id = $request->term_id ?? null;
-                $timetable->start_time = $data['start_time'];
-                $timetable->end_time = $data['end_time'];
-                $timetable->day = $day;
-                $timetable->day_name = $day_name;
-                $timetable->live_class_url = $data['live_class_url'];
-                $timetable->link_name = $data['link_name'];
-                $timetable->save();
-            }
+            }, 3);
 
             return redirect()->back()->with('success', trans('data_store_successfully'));
         } catch (Throwable $e) {

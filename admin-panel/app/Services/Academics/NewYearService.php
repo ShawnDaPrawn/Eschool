@@ -304,7 +304,7 @@ class NewYearService
             'curriculum' => CurriculumPlan::where('session_year_id', $yearId)->count(),
             'subjects' => ClassSubject::where('session_year_id', $yearId)->count(),
             'teachers' => ClassTeacher::where('session_year_id', $yearId)->count() + SubjectTeacher::where('session_year_id', $yearId)->count(),
-            'timetable' => Timetable::where('session_year_id', $yearId)->count(),
+            'timetable' => Timetable::where('session_year_id', $yearId)->whereNull('timetable_lesson_id')->count(),
             'grading' => Grade::where('session_year_id', $yearId)->count(),
             'fees' => FeesClass::where('session_year_id', $yearId)->count(),
             'leave' => LeaveMaster::where('session_year_id', $yearId)->count(),

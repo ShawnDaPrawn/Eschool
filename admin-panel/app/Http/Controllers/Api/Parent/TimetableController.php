@@ -64,7 +64,7 @@ class TimetableController extends Controller
             $timetables = Timetable::where('class_section_id', $class_section_id)
                 ->where('session_year_id', $session_year_id)
                 ->when($isClassHaveTerm, function ($query) use ($currentTerm) {
-                    $query->where('term_id', $currentTerm->id);
+                    $query->where('term_id', $currentTerm?->id);
                 })
                 ->with(['subject_teacher' => function ($q) use ($subject_id) {
                     $q->whereIn('subject_id', $subject_id);

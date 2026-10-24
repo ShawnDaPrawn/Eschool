@@ -164,6 +164,7 @@
                                         </li>
                                     @endforeach
                                 </ul>
+                                <p class="new-year-note">{{ __('Only legacy timetable entries are carried forward. Build the new year academic timetable using its dated teaching groups and bell schedules.') }}</p>
                                 <p class="new-year-note">{{ __('new_year_carry_promotions') }}</p>
                             </fieldset>
                             <div class="page-form-actions">

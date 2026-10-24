@@ -187,6 +187,29 @@ installed int-only score field. The source review and final CI continue on this
 updated commit; earlier green checks alone do not authorize merging a changed head.
 
 
+## Timetable engine backend
+
+Implemented rooms, bell schedules/periods, dated lessons, actual-time clashes,
+explicit CSV label mappings, atomic preview fingerprints, audited revisions and
+cancellation, scoped week/next-period reads and protected v1 projections. The
+shared app/panel editor is the following client slice.
+
+Local checks:15 timetable tests passed (199 assertions), including cross-school
+configuration IDs, own-child reads and guardian revocation, fresh permissions
+before idempotency replay, homerooms, overlapping calendars, shared learners,
+legacy conflicts/protection, alternate weeks, stale previews, cancellation and
+used-period provenance. Earlier140 timetable/OpenAPI checks passed (854
+assertions); after expanding coverage,145 timetable/API checks passed (1,079
+assertions). Five v1 snapshots add only nullable room_name; internal source IDs
+are hidden. Migration rollback/reapply passed in the wider regression run, whose
+initial API-shape failure was the intended room label and was then updated and
+verified without snapshot-update mode. SDK regeneration,32 SDK tests, strict
+OpenAPI and Larastan passed. The initial inline-array enum was replaced in the
+contract with documented string clash codes after generator validation failed;
+generated Dart was never edited by hand.
+
+Full final CI, staging, real vendor export rehearsal, classroom timing, physical
+devices, independent review and pilot acceptance remain unclaimed here.
 ## Shared mark capture and released-result clients
 
 Implemented the shared academics package, teacher Home/Settings entry points and
@@ -209,3 +232,14 @@ only the intentional academic_marks capability flag.
 These are synthetic local checks. Classroom capture timing, physical devices,
 staging performance, real pilot sheets and independent review remain pending.
 No production deployment or Phase2 acceptance is claimed.
+
+
+Timetable follow-up: the first full backend run passed1,226 tests (24,924
+assertions). Four review findings then received fixes: current-term projection
+for year-wide lessons, exact-provenance cancellation after teacher/group changes,
+a school lock covering the entire projection refresh, and earliest authorized
+next-period reads across overlapping calendars. Managers retain visibility of
+obsolete placements to cancel them; family reads stay scoped. All19 focused
+review checks passed (217 assertions), including both real installed-family API
+paths and a competing second MySQL connection that times out while refresh
+holds its lock. The final combined tree includes the marks clients merged in#90.

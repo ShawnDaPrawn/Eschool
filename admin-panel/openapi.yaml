@@ -3259,6 +3259,467 @@ paths:
           $ref: '#/components/responses/TooManyRequests'
         '500':
           $ref: '#/components/responses/ServerError'
+  /academics/timetable/configuration:
+    get:
+      operationId: getTimetableConfiguration
+      tags:
+      - Academics
+      summary: getTimetableConfiguration
+      description: Fresh current-school rights precede idempotent replay. Managers configure
+        and preview placements; commits require an unchanged fingerprint and no teacher,
+        room, group, homeroom or dated-learner time clash. A 409 requires a fresh preview.
+        Family reads resolve only the learner or a current guardian’s selected child.
+        Times use the school timezone; week patterns use ISO week parity. No fee condition
+        applies.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - name: session_year_id
+        in: query
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      responses:
+        '200':
+          description: School-scoped timetable result.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AcademicTimetableConfigurationResponse'
+        '400':
+          $ref: '#/components/responses/IdempotencyKeyProblem'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+  /academics/timetable/week:
+    get:
+      operationId: getTimetableWeek
+      tags:
+      - Academics
+      summary: getTimetableWeek
+      description: Fresh current-school rights precede idempotent replay. Managers configure
+        and preview placements; commits require an unchanged fingerprint and no teacher,
+        room, group, homeroom or dated-learner time clash. A 409 requires a fresh preview.
+        Family reads resolve only the learner or a current guardian’s selected child.
+        Times use the school timezone; week patterns use ISO week parity. No fee condition
+        applies.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - name: session_year_id
+        in: query
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      - name: starts_on
+        in: query
+        required: true
+        schema:
+          type: string
+          pattern: ^\d{4}-\d{2}-\d{2}$
+      - name: learner_id
+        in: query
+        required: false
+        schema:
+          type: integer
+          minimum: 1
+      responses:
+        '200':
+          description: School-scoped timetable result.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AcademicTimetableWeekResponse'
+        '400':
+          $ref: '#/components/responses/IdempotencyKeyProblem'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+  /academics/timetable/next:
+    get:
+      operationId: getNextAcademicPeriod
+      tags:
+      - Academics
+      summary: getNextAcademicPeriod
+      description: Fresh current-school rights precede idempotent replay. Managers configure
+        and preview placements; commits require an unchanged fingerprint and no teacher,
+        room, group, homeroom or dated-learner time clash. A 409 requires a fresh preview.
+        Family reads resolve only the learner or a current guardian’s selected child.
+        Times use the school timezone; week patterns use ISO week parity. No fee condition
+        applies.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - name: learner_id
+        in: query
+        required: false
+        schema:
+          type: integer
+          minimum: 1
+      responses:
+        '200':
+          description: School-scoped timetable result.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AcademicTimetableNextResponse'
+        '400':
+          $ref: '#/components/responses/IdempotencyKeyProblem'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+  /academics/timetable/rooms:
+    post:
+      operationId: createAcademicRoom
+      tags:
+      - Academics
+      summary: createAcademicRoom
+      description: Fresh current-school rights precede idempotent replay. Managers configure
+        and preview placements; commits require an unchanged fingerprint and no teacher,
+        room, group, homeroom or dated-learner time clash. A 409 requires a fresh preview.
+        Family reads resolve only the learner or a current guardian’s selected child.
+        Times use the school timezone; week patterns use ISO week parity. No fee condition
+        applies.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/IdempotencyKey'
+      responses:
+        '200':
+          description: School-scoped timetable result.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AcademicRoomResponse'
+        '400':
+          $ref: '#/components/responses/IdempotencyKeyProblem'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AcademicRoomWrite'
+  /academics/timetable/rooms/{room}:
+    put:
+      operationId: updateAcademicRoom
+      tags:
+      - Academics
+      summary: updateAcademicRoom
+      description: Fresh current-school rights precede idempotent replay. Managers configure
+        and preview placements; commits require an unchanged fingerprint and no teacher,
+        room, group, homeroom or dated-learner time clash. A 409 requires a fresh preview.
+        Family reads resolve only the learner or a current guardian’s selected child.
+        Times use the school timezone; week patterns use ISO week parity. No fee condition
+        applies.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - name: room
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      - $ref: '#/components/parameters/IdempotencyKey'
+      responses:
+        '200':
+          description: School-scoped timetable result.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AcademicRoomResponse'
+        '400':
+          $ref: '#/components/responses/IdempotencyKeyProblem'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AcademicRoomWrite'
+  /academics/timetable/bells:
+    post:
+      operationId: createAcademicBells
+      tags:
+      - Academics
+      summary: createAcademicBells
+      description: Fresh current-school rights precede idempotent replay. Managers configure
+        and preview placements; commits require an unchanged fingerprint and no teacher,
+        room, group, homeroom or dated-learner time clash. A 409 requires a fresh preview.
+        Family reads resolve only the learner or a current guardian’s selected child.
+        Times use the school timezone; week patterns use ISO week parity. No fee condition
+        applies.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/IdempotencyKey'
+      responses:
+        '200':
+          description: School-scoped timetable result.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AcademicBellsResponse'
+        '400':
+          $ref: '#/components/responses/IdempotencyKeyProblem'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AcademicBellsWrite'
+  /academics/timetable/bells/{schedule}:
+    put:
+      operationId: updateAcademicBells
+      tags:
+      - Academics
+      summary: updateAcademicBells
+      description: Fresh current-school rights precede idempotent replay. Managers configure
+        and preview placements; commits require an unchanged fingerprint and no teacher,
+        room, group, homeroom or dated-learner time clash. A 409 requires a fresh preview.
+        Family reads resolve only the learner or a current guardian’s selected child.
+        Times use the school timezone; week patterns use ISO week parity. No fee condition
+        applies.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - name: schedule
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      - $ref: '#/components/parameters/IdempotencyKey'
+      responses:
+        '200':
+          description: School-scoped timetable result.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AcademicBellsResponse'
+        '400':
+          $ref: '#/components/responses/IdempotencyKeyProblem'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AcademicBellsWrite'
+  /academics/timetable/preview:
+    post:
+      operationId: previewAcademicTimetable
+      tags:
+      - Academics
+      summary: previewAcademicTimetable
+      description: Fresh current-school rights precede idempotent replay. Managers configure
+        and preview placements; commits require an unchanged fingerprint and no teacher,
+        room, group, homeroom or dated-learner time clash. A 409 requires a fresh preview.
+        Family reads resolve only the learner or a current guardian’s selected child.
+        Times use the school timezone; week patterns use ISO week parity. No fee condition
+        applies.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/IdempotencyKey'
+      responses:
+        '200':
+          description: School-scoped timetable result.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AcademicTimetablePreviewResponse'
+        '400':
+          $ref: '#/components/responses/IdempotencyKeyProblem'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AcademicTimetablePreviewWrite'
+  /academics/timetable/commit:
+    post:
+      operationId: commitAcademicTimetable
+      tags:
+      - Academics
+      summary: commitAcademicTimetable
+      description: Fresh current-school rights precede idempotent replay. Managers configure
+        and preview placements; commits require an unchanged fingerprint and no teacher,
+        room, group, homeroom or dated-learner time clash. A 409 requires a fresh preview.
+        Family reads resolve only the learner or a current guardian’s selected child.
+        Times use the school timezone; week patterns use ISO week parity. No fee condition
+        applies.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/IdempotencyKey'
+      responses:
+        '200':
+          description: School-scoped timetable result.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AcademicTimetableCommitResponse'
+        '400':
+          $ref: '#/components/responses/IdempotencyKeyProblem'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AcademicTimetableCommitWrite'
+  /academics/timetable/import:
+    post:
+      operationId: importAcademicTimetable
+      tags:
+      - Academics
+      summary: importAcademicTimetable
+      description: Fresh current-school rights precede idempotent replay. Managers configure
+        and preview placements; commits require an unchanged fingerprint and no teacher,
+        room, group, homeroom or dated-learner time clash. A 409 requires a fresh preview.
+        Family reads resolve only the learner or a current guardian’s selected child.
+        Times use the school timezone; week patterns use ISO week parity. No fee condition
+        applies.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/IdempotencyKey'
+      responses:
+        '200':
+          description: School-scoped timetable result.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AcademicTimetablePreviewResponse'
+        '400':
+          $ref: '#/components/responses/IdempotencyKeyProblem'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AcademicTimetableImportWrite'
 components:
   securitySchemes:
     bearerAuth:
@@ -6961,3 +7422,731 @@ components:
         code: {type: integer}
         data: {$ref: '#/components/schemas/AcademicReleasePeriodsData'}
       additionalProperties: false
+
+    AcademicRoomWrite:
+      type: object
+      additionalProperties: false
+      required:
+      - name
+      - type
+      - active
+      properties:
+        name:
+          type: string
+          maxLength: 191
+        building:
+          type:
+          - string
+          - 'null'
+          maxLength: 191
+        capacity:
+          type:
+          - integer
+          - 'null'
+          minimum: 1
+          maximum: 5000
+        type:
+          type: string
+          maxLength: 64
+        active:
+          type: boolean
+        revision:
+          type: integer
+          minimum: 1
+    AcademicRoom:
+      type: object
+      additionalProperties: false
+      required:
+      - name
+      - building
+      - capacity
+      - type
+      - active
+      - id
+      - revision
+      properties:
+        name:
+          type: string
+          maxLength: 191
+        building:
+          type:
+          - string
+          - 'null'
+          maxLength: 191
+        capacity:
+          type:
+          - integer
+          - 'null'
+          minimum: 1
+          maximum: 5000
+        type:
+          type: string
+          maxLength: 64
+        active:
+          type: boolean
+        id:
+          type: integer
+          minimum: 1
+        revision:
+          type: integer
+          minimum: 1
+    AcademicBellPeriodWrite:
+      type: object
+      additionalProperties: false
+      required:
+      - name
+      - starts_at
+      - ends_at
+      - is_break
+      properties:
+        name:
+          type: string
+          maxLength: 100
+        starts_at:
+          type: string
+          pattern: ^\d{2}:\d{2}$
+        ends_at:
+          type: string
+          pattern: ^\d{2}:\d{2}$
+        is_break:
+          type: boolean
+    AcademicBellPeriod:
+      type: object
+      additionalProperties: false
+      required:
+      - name
+      - starts_at
+      - ends_at
+      - is_break
+      - id
+      - position
+      properties:
+        name:
+          type: string
+          maxLength: 100
+        starts_at:
+          type: string
+          pattern: ^\d{2}:\d{2}$
+        ends_at:
+          type: string
+          pattern: ^\d{2}:\d{2}$
+        is_break:
+          type: boolean
+        id:
+          type: integer
+          minimum: 1
+        position:
+          type: integer
+          minimum: 1
+    AcademicBellsWrite:
+      type: object
+      additionalProperties: false
+      required:
+      - name
+      - section
+      - session_year_id
+      - periods
+      properties:
+        name:
+          type: string
+          maxLength: 191
+        section:
+          type: string
+          maxLength: 100
+        session_year_id:
+          type: integer
+          minimum: 1
+        periods:
+          type: array
+          items:
+            $ref: '#/components/schemas/AcademicBellPeriodWrite'
+          minItems: 1
+          maxItems: 30
+        revision:
+          type: integer
+          minimum: 1
+    AcademicBells:
+      type: object
+      additionalProperties: false
+      required:
+      - name
+      - section
+      - session_year_id
+      - periods
+      - id
+      - revision
+      properties:
+        name:
+          type: string
+          maxLength: 191
+        section:
+          type: string
+          maxLength: 100
+        session_year_id:
+          type: integer
+          minimum: 1
+        periods:
+          type: array
+          items:
+            $ref: '#/components/schemas/AcademicBellPeriod'
+        id:
+          type: integer
+          minimum: 1
+        revision:
+          type: integer
+          minimum: 1
+    AcademicLessonWrite:
+      type: object
+      additionalProperties: false
+      required:
+      - session_year_id
+      - teacher_id
+      - room_id
+      - bell_period_id
+      - starts_on
+      - ends_on
+      - weekday
+      - week_pattern
+      - active
+      properties:
+        id:
+          type:
+          - integer
+          - 'null'
+          minimum: 1
+        revision:
+          type:
+          - integer
+          - 'null'
+          minimum: 1
+        session_year_id:
+          type: integer
+          minimum: 1
+        term_id:
+          type:
+          - integer
+          - 'null'
+          minimum: 1
+        teaching_group_id:
+          type:
+          - integer
+          - 'null'
+          minimum: 1
+        class_section_id:
+          type:
+          - integer
+          - 'null'
+          minimum: 1
+        teacher_id:
+          type: integer
+          minimum: 1
+        room_id:
+          type: integer
+          minimum: 1
+        bell_period_id:
+          type: integer
+          minimum: 1
+        starts_on:
+          type: string
+          pattern: ^\d{4}-\d{2}-\d{2}$
+        ends_on:
+          type: string
+          pattern: ^\d{4}-\d{2}-\d{2}$
+        occurs_on:
+          type:
+          - string
+          - 'null'
+          pattern: ^\d{4}-\d{2}-\d{2}$
+        weekday:
+          type: integer
+          minimum: 1
+          maximum: 7
+        week_pattern:
+          type: string
+          enum:
+          - all
+          - odd
+          - even
+        active:
+          type: boolean
+    AcademicTimetableLesson:
+      type: object
+      additionalProperties: false
+      required:
+      - id
+      - revision
+      - session_year_id
+      - term_id
+      - teaching_group_id
+      - class_section_id
+      - teacher_id
+      - room_id
+      - bell_period_id
+      - starts_on
+      - ends_on
+      - occurs_on
+      - weekday
+      - week_pattern
+      - active
+      - teacher_name
+      - room_name
+      - building
+      - period_name
+      - starts_at
+      - ends_at
+      - title
+      - subject_name
+      - date
+      properties:
+        id:
+          type: integer
+          minimum: 1
+        revision:
+          type: integer
+          minimum: 1
+        session_year_id:
+          type: integer
+          minimum: 1
+        term_id:
+          type:
+          - integer
+          - 'null'
+          minimum: 1
+        teaching_group_id:
+          type:
+          - integer
+          - 'null'
+          minimum: 1
+        class_section_id:
+          type:
+          - integer
+          - 'null'
+          minimum: 1
+        teacher_id:
+          type: integer
+          minimum: 1
+        room_id:
+          type: integer
+          minimum: 1
+        bell_period_id:
+          type: integer
+          minimum: 1
+        starts_on:
+          type: string
+          pattern: ^\d{4}-\d{2}-\d{2}$
+        ends_on:
+          type: string
+          pattern: ^\d{4}-\d{2}-\d{2}$
+        occurs_on:
+          type:
+          - string
+          - 'null'
+          pattern: ^\d{4}-\d{2}-\d{2}$
+        weekday:
+          type: integer
+          minimum: 1
+          maximum: 7
+        week_pattern:
+          type: string
+          enum:
+          - all
+          - odd
+          - even
+        active:
+          type: boolean
+        teacher_name:
+          type: string
+        room_name:
+          type: string
+        building:
+          type:
+          - string
+          - 'null'
+        period_name:
+          type: string
+        starts_at:
+          type: string
+          pattern: ^\d{2}:\d{2}$
+        ends_at:
+          type: string
+          pattern: ^\d{2}:\d{2}$
+        title:
+          type: string
+        subject_name:
+          type:
+          - string
+          - 'null'
+        date:
+          type:
+          - string
+          - 'null'
+          pattern: ^\d{4}-\d{2}-\d{2}$
+    AcademicTimetableClash:
+      type: object
+      additionalProperties: false
+      required:
+      - row
+      - lesson_id
+      - date
+      - reasons
+      properties:
+        row:
+          type: integer
+          minimum: 0
+        lesson_id:
+          type:
+          - integer
+          - 'null'
+          minimum: 1
+        date:
+          type:
+          - string
+          - 'null'
+          pattern: ^\d{4}-\d{2}-\d{2}$
+        reasons:
+          type: array
+          items:
+            type: string
+            description: 'Clash codes: teacher, room, group, homeroom, learner or legacy_time_needs_review.'
+    AcademicTimetablePreviewWrite:
+      type: object
+      additionalProperties: false
+      required:
+      - rows
+      properties:
+        rows:
+          type: array
+          items:
+            $ref: '#/components/schemas/AcademicLessonWrite'
+          minItems: 1
+          maxItems: 300
+    AcademicTimetableCommitWrite:
+      type: object
+      additionalProperties: false
+      required:
+      - rows
+      - fingerprint
+      properties:
+        rows:
+          type: array
+          items:
+            $ref: '#/components/schemas/AcademicLessonWrite'
+          minItems: 1
+          maxItems: 300
+        fingerprint:
+          type: string
+          pattern: ^[a-f0-9]{64}$
+    AcademicTimetablePreviewData:
+      type: object
+      additionalProperties: false
+      required:
+      - rows
+      - conflicts
+      - can_save
+      - fingerprint
+      properties:
+        rows:
+          type: array
+          items:
+            $ref: '#/components/schemas/AcademicLessonWrite'
+        conflicts:
+          type: array
+          items:
+            $ref: '#/components/schemas/AcademicTimetableClash'
+        can_save:
+          type: boolean
+        fingerprint:
+          type: string
+        imported_rows:
+          type: integer
+          minimum: 1
+    AcademicTimetableCommitData:
+      type: object
+      additionalProperties: false
+      required:
+      - lessons
+      properties:
+        lessons:
+          type: array
+          items:
+            $ref: '#/components/schemas/AcademicTimetableLesson'
+    AcademicTimetableWeekData:
+      type: object
+      additionalProperties: false
+      required:
+      - session_year_id
+      - starts_on
+      - ends_on
+      - can_manage
+      - lessons
+      properties:
+        session_year_id:
+          type: integer
+          minimum: 1
+        starts_on:
+          type: string
+          pattern: ^\d{4}-\d{2}-\d{2}$
+        ends_on:
+          type: string
+          pattern: ^\d{4}-\d{2}-\d{2}$
+        can_manage:
+          type: boolean
+        lessons:
+          type: array
+          items:
+            $ref: '#/components/schemas/AcademicTimetableLesson'
+    AcademicTimetableNextData:
+      type: object
+      additionalProperties: false
+      required:
+      - lesson
+      properties:
+        lesson:
+          oneOf:
+          - $ref: '#/components/schemas/AcademicTimetableLesson'
+          - type: 'null'
+    AcademicTimetableChoice:
+      type: object
+      additionalProperties: false
+      required:
+      - id
+      - name
+      properties:
+        id:
+          type: integer
+          minimum: 1
+        name:
+          type: string
+    AcademicTimetableConfigurationData:
+      type: object
+      additionalProperties: false
+      required:
+      - rooms
+      - bell_schedules
+      - teachers
+      - homerooms
+      properties:
+        rooms:
+          type: array
+          items:
+            $ref: '#/components/schemas/AcademicRoom'
+        bell_schedules:
+          type: array
+          items:
+            $ref: '#/components/schemas/AcademicBells'
+        teachers:
+          type: array
+          items:
+            $ref: '#/components/schemas/AcademicTimetableChoice'
+        homerooms:
+          type: array
+          items:
+            $ref: '#/components/schemas/AcademicTimetableChoice'
+    AcademicTimetableImportDefaults:
+      type: object
+      additionalProperties: false
+      required: []
+      properties:
+        id:
+          type:
+          - integer
+          - 'null'
+          minimum: 1
+        revision:
+          type:
+          - integer
+          - 'null'
+          minimum: 1
+        session_year_id:
+          type: integer
+          minimum: 1
+        term_id:
+          type:
+          - integer
+          - 'null'
+          minimum: 1
+        teaching_group_id:
+          type:
+          - integer
+          - 'null'
+          minimum: 1
+        class_section_id:
+          type:
+          - integer
+          - 'null'
+          minimum: 1
+        teacher_id:
+          type: integer
+          minimum: 1
+        room_id:
+          type: integer
+          minimum: 1
+        bell_period_id:
+          type: integer
+          minimum: 1
+        starts_on:
+          type: string
+          pattern: ^\d{4}-\d{2}-\d{2}$
+        ends_on:
+          type: string
+          pattern: ^\d{4}-\d{2}-\d{2}$
+        occurs_on:
+          type:
+          - string
+          - 'null'
+          pattern: ^\d{4}-\d{2}-\d{2}$
+        weekday:
+          type: integer
+          minimum: 1
+          maximum: 7
+        week_pattern:
+          type: string
+          enum:
+          - all
+          - odd
+          - even
+        active:
+          type: boolean
+    AcademicTimetableImportWrite:
+      type: object
+      additionalProperties: false
+      required:
+      - csv
+      - session_year_id
+      properties:
+        csv:
+          type: string
+          maxLength: 524288
+        session_year_id:
+          type: integer
+          minimum: 1
+        defaults:
+          $ref: '#/components/schemas/AcademicTimetableImportDefaults'
+        columns:
+          type: object
+          additionalProperties:
+            type: string
+        values:
+          type: object
+          additionalProperties:
+            type: object
+            additionalProperties: true
+    AcademicRoomResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - code
+      - data
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        code:
+          type: integer
+        data:
+          $ref: '#/components/schemas/AcademicRoom'
+    AcademicBellsResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - code
+      - data
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        code:
+          type: integer
+        data:
+          $ref: '#/components/schemas/AcademicBells'
+    AcademicTimetableConfigurationResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - code
+      - data
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        code:
+          type: integer
+        data:
+          $ref: '#/components/schemas/AcademicTimetableConfigurationData'
+    AcademicTimetablePreviewResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - code
+      - data
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        code:
+          type: integer
+        data:
+          $ref: '#/components/schemas/AcademicTimetablePreviewData'
+    AcademicTimetableCommitResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - code
+      - data
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        code:
+          type: integer
+        data:
+          $ref: '#/components/schemas/AcademicTimetableCommitData'
+    AcademicTimetableWeekResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - code
+      - data
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        code:
+          type: integer
+        data:
+          $ref: '#/components/schemas/AcademicTimetableWeekData'
+    AcademicTimetableNextResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - code
+      - data
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        code:
+          type: integer
+        data:
+          $ref: '#/components/schemas/AcademicTimetableNextData'

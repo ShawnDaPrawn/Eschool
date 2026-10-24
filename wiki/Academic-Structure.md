@@ -344,3 +344,13 @@ Managed subject_teachers/class_teachers keep stable v1 IDs and refresh each minu
 They cannot be manually edited through the old models. Read-time canonical date
 checks prevent expired grants surviving a delayed refresh. New-year teacher carry
 copies unmanaged assignments only; canonical assignments need explicit new dates.
+
+
+## Timetable engine
+
+Physical rooms and section/year bell schedules feed canonical dated timetable
+lessons. Placement preview and commit share actual-time clash checks, including
+shared learners and overlapping calendars. CSV import uses explicit school value
+mappings and an atomic preview fingerprint. V1 retains stable compatible
+projections and adds room labels. See the academic-timetables runbook under
+engineering/runbooks for setup, import, recovery and access rules.

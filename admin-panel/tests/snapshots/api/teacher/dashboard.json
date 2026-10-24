@@ -197,6 +197,7 @@
                     "link_name": "null",
                     "live_class_url": "null",
                     "note": "string",
+                    "room_name": "null",
                     "session_year_id": "number",
                     "start_time": "string",
                     "subject": {
