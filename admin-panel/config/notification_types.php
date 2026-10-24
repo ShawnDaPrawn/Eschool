@@ -19,6 +19,8 @@ return [
     'safeguarding.alert' => ['label' => 'Safeguarding alert', 'module' => 'wellbeing', 'portals' => ['admin', 'teacher'], 'channels' => $required, 'locked' => ['admin', 'teacher'], 'permission' => 'safeguarding-alerts'],
     'comms.notice' => ['label' => 'School notice', 'module' => 'communication', 'portals' => $all, 'channels' => $on],
     'comms.urgent' => ['label' => 'Urgent school notice', 'module' => 'communication', 'portals' => $all, 'channels' => $required, 'locked' => $all],
+    'communication.message' => ['label' => 'School message', 'module' => 'communication', 'portals' => $all, 'channels' => $on],
+    'communication.approval_requested' => ['label' => 'Message awaiting approval', 'module' => 'communication', 'portals' => ['teacher', 'admin'], 'channels' => $on],
     'comms.message' => ['label' => 'Direct message', 'module' => 'chat', 'portals' => $all, 'channels' => $on],
     'academics.assignment_published' => ['label' => 'Assignment published', 'module' => 'academics', 'portals' => ['learner', 'parent'], 'channels' => $on],
     'academics.submission' => ['label' => 'Assignment submission', 'module' => 'academics', 'portals' => ['teacher', 'admin'], 'channels' => $on],

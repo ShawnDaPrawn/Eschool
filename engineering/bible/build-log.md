@@ -362,3 +362,16 @@ an unexpired copy; HTTP, certificate and cancellation failures do not qualify.
 Automated evidence is in Phase 2 self-tests; no pilot or production acceptance
 is inferred. Remaining implementation is communication, exports/languages and
 pilot/verification tooling.
+
+
+### 24 October 2026 — communication service and panel
+
+Implemented school/grade/homeroom/group/guardian and saved custom audiences,
+role author/approval rules with the grade-head exemption, revision/UUID drafts,
+separate review, sanitized previews, school-local schedules, immutable recipient
+publication, generic Notifier delivery, selected channels, durable 100-recipient
+batches, recovery, transport revocation, own-reader/read state and a native
+two-pane panel. The additive contract and pinned SDK are generated together.
+Shared app navigation/screens, exports/languages and pilot tooling remain active
+implementation work. Automated evidence belongs in Phase 2 self-tests; no
+staging, full-term pilot, human translation or independent review is inferred.

@@ -161,6 +161,8 @@ security:
 - bearerAuth: []
 - cookieAuth: []
 tags:
+- name: Communication
+  description: Private school audiences and approved scheduled messages.
 - name: Academics
   description: Academic references and explicit school class mapping.
 - name: Platform
@@ -6508,6 +6510,723 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ContentReadReceiptResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+  /communication/configuration:
+    get:
+      operationId: getCommunicationConfiguration
+      tags:
+      - Communication
+      summary: Get current message identity, scopes and author rules
+      description: Private no-store school messages. Fresh school, role, owner and audience checks run before
+        validation and operation-UUID replay. Published bodies and recipient snapshots are immutable. Notifications
+        contain generic text only.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - name: session_year_id
+        in: query
+        required: false
+        schema:
+          type: integer
+          minimum: 1
+      responses:
+        '200':
+          description: Get current message identity, scopes and author rules.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CommunicationConfigurationResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+  /communication/contacts:
+    get:
+      operationId: listCommunicationContacts
+      tags:
+      - Communication
+      summary: List current permitted contacts without addresses
+      description: Private no-store school messages. Fresh school, role, owner and audience checks run before
+        validation and operation-UUID replay. Published bodies and recipient snapshots are immutable. Notifications
+        contain generic text only.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - name: session_year_id
+        in: query
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      - name: page
+        in: query
+        required: false
+        schema:
+          type: integer
+          minimum: 1
+      responses:
+        '200':
+          description: List current permitted contacts without addresses.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CommunicationContactListResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+  /communication/audiences:
+    get:
+      operationId: listCommunicationAudiences
+      tags:
+      - Communication
+      summary: List permitted saved school audiences
+      description: Private no-store school messages. Fresh school, role, owner and audience checks run before
+        validation and operation-UUID replay. Published bodies and recipient snapshots are immutable. Notifications
+        contain generic text only.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - name: session_year_id
+        in: query
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      responses:
+        '200':
+          description: List permitted saved school audiences.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CommunicationAudienceListResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+    post:
+      operationId: createCommunicationAudience
+      tags:
+      - Communication
+      summary: Save a custom audience
+      description: Private no-store school messages. Fresh school, role, owner and audience checks run before
+        validation and operation-UUID replay. Published bodies and recipient snapshots are immutable. Notifications
+        contain generic text only.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      responses:
+        '200':
+          description: Save a custom audience.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CommunicationAudienceReceiptResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CommunicationAudienceWrite'
+  /communication/audiences/{audience}:
+    put:
+      operationId: saveCommunicationAudience
+      tags:
+      - Communication
+      summary: Revise an owned custom audience
+      description: Private no-store school messages. Fresh school, role, owner and audience checks run before
+        validation and operation-UUID replay. Published bodies and recipient snapshots are immutable. Notifications
+        contain generic text only.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - name: audience
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      responses:
+        '200':
+          description: Revise an owned custom audience.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CommunicationAudienceReceiptResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CommunicationAudienceWrite'
+  /communication/rules:
+    get:
+      operationId: listCommunicationRoleRules
+      tags:
+      - Communication
+      summary: List management message author rules
+      description: Private no-store school messages. Fresh school, role, owner and audience checks run before
+        validation and operation-UUID replay. Published bodies and recipient snapshots are immutable. Notifications
+        contain generic text only.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      responses:
+        '200':
+          description: List management message author rules.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CommunicationRuleListResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+  /communication/rules/{role}:
+    put:
+      operationId: saveCommunicationRoleRule
+      tags:
+      - Communication
+      summary: Revise a staff role approval rule
+      description: Private no-store school messages. Fresh school, role, owner and audience checks run before
+        validation and operation-UUID replay. Published bodies and recipient snapshots are immutable. Notifications
+        contain generic text only.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - name: role
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      responses:
+        '200':
+          description: Revise a staff role approval rule.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CommunicationRoleRuleResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CommunicationRuleWrite'
+  /communication/drafts:
+    get:
+      operationId: listSchoolMessageDrafts
+      tags:
+      - Communication
+      summary: List owned drafts and messages requiring authorized review
+      description: Private no-store school messages. Fresh school, role, owner and audience checks run before
+        validation and operation-UUID replay. Published bodies and recipient snapshots are immutable. Notifications
+        contain generic text only.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - name: page
+        in: query
+        required: false
+        schema:
+          type: integer
+          minimum: 1
+      responses:
+        '200':
+          description: List owned drafts and messages requiring authorized review.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CommunicationMessageListResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+    post:
+      operationId: createSchoolMessageDraft
+      tags:
+      - Communication
+      summary: Create a private message draft
+      description: Private no-store school messages. Fresh school, role, owner and audience checks run before
+        validation and operation-UUID replay. Published bodies and recipient snapshots are immutable. Notifications
+        contain generic text only.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      responses:
+        '200':
+          description: Create a private message draft.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CommunicationMessageReceiptResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CommunicationMessageWrite'
+  /communication/drafts/{message}:
+    get:
+      operationId: getSchoolMessageEditor
+      tags:
+      - Communication
+      summary: Read an owned or reviewable message draft
+      description: Private no-store school messages. Fresh school, role, owner and audience checks run before
+        validation and operation-UUID replay. Published bodies and recipient snapshots are immutable. Notifications
+        contain generic text only.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - name: message
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      responses:
+        '200':
+          description: Read an owned or reviewable message draft.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CommunicationMessageEditorResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+    put:
+      operationId: saveSchoolMessageDraft
+      tags:
+      - Communication
+      summary: Revise a private message and invalidate previous approval
+      description: Private no-store school messages. Fresh school, role, owner and audience checks run before
+        validation and operation-UUID replay. Published bodies and recipient snapshots are immutable. Notifications
+        contain generic text only.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - name: message
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      responses:
+        '200':
+          description: Revise a private message and invalidate previous approval.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CommunicationMessageReceiptResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CommunicationMessageWrite'
+  /communication/drafts/{message}/preview:
+    get:
+      operationId: previewSchoolMessage
+      tags:
+      - Communication
+      summary: Preview sanitized text, current recipient count and required approval
+      description: Private no-store school messages. Fresh school, role, owner and audience checks run before
+        validation and operation-UUID replay. Published bodies and recipient snapshots are immutable. Notifications
+        contain generic text only.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - name: message
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      responses:
+        '200':
+          description: Preview sanitized text, current recipient count and required approval.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CommunicationMessagePreviewResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+  /communication/drafts/{message}/submit:
+    post:
+      operationId: submitSchoolMessage
+      tags:
+      - Communication
+      summary: Submit the previewed message for approval or delivery
+      description: Private no-store school messages. Fresh school, role, owner and audience checks run before
+        validation and operation-UUID replay. Published bodies and recipient snapshots are immutable. Notifications
+        contain generic text only.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - name: message
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      responses:
+        '200':
+          description: Submit the previewed message for approval or delivery.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CommunicationMessageReceiptResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CommunicationSubmitWrite'
+  /communication/drafts/{message}/decision:
+    post:
+      operationId: decideSchoolMessage
+      tags:
+      - Communication
+      summary: Approve or reject another authorized authors message
+      description: Private no-store school messages. Fresh school, role, owner and audience checks run before
+        validation and operation-UUID replay. Published bodies and recipient snapshots are immutable. Notifications
+        contain generic text only.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - name: message
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      responses:
+        '200':
+          description: Approve or reject another authorized authors message.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CommunicationMessageReceiptResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CommunicationDecisionWrite'
+  /communication/drafts/{message}/withdraw:
+    post:
+      operationId: withdrawSchoolMessage
+      tags:
+      - Communication
+      summary: Withdraw a message and stop further private access and transport
+      description: Private no-store school messages. Fresh school, role, owner and audience checks run before
+        validation and operation-UUID replay. Published bodies and recipient snapshots are immutable. Notifications
+        contain generic text only.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - name: message
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      responses:
+        '200':
+          description: Withdraw a message and stop further private access and transport.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CommunicationMessageReceiptResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CommunicationWithdrawWrite'
+  /communication/messages:
+    get:
+      operationId: listSchoolMessageInbox
+      tags:
+      - Communication
+      summary: List authorized frozen message recipients inbox
+      description: Private no-store school messages. Fresh school, role, owner and audience checks run before
+        validation and operation-UUID replay. Published bodies and recipient snapshots are immutable. Notifications
+        contain generic text only.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - name: page
+        in: query
+        required: false
+        schema:
+          type: integer
+          minimum: 1
+      responses:
+        '200':
+          description: List authorized frozen message recipients inbox.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CommunicationMessageListResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+  /communication/messages/{message}:
+    get:
+      operationId: readSchoolMessage
+      tags:
+      - Communication
+      summary: Read a currently authorized private message
+      description: Private no-store school messages. Fresh school, role, owner and audience checks run before
+        validation and operation-UUID replay. Published bodies and recipient snapshots are immutable. Notifications
+        contain generic text only.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - name: message
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      responses:
+        '200':
+          description: Read a currently authorized private message.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CommunicationMessageReaderResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+  /communication/messages/{message}/read:
+    post:
+      operationId: markSchoolMessageRead
+      tags:
+      - Communication
+      summary: Acknowledge own read once
+      description: Private no-store school messages. Fresh school, role, owner and audience checks run before
+        validation and operation-UUID replay. Published bodies and recipient snapshots are immutable. Notifications
+        contain generic text only.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - name: message
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      responses:
+        '200':
+          description: Acknowledge own read once.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CommunicationReadReceiptResponse'
         '401':
           $ref: '#/components/responses/Unauthenticated'
         '403':
@@ -15034,3 +15753,977 @@ components:
           type: integer
         data:
           $ref: '#/components/schemas/ContentReadReceipt'
+    CommunicationAudienceSelection:
+      type: object
+      additionalProperties: false
+      required:
+      - kind
+      - session_year_id
+      - parents
+      properties:
+        kind:
+          type: string
+          enum:
+          - school
+          - grade
+          - homeroom
+          - group
+          - custom
+        session_year_id:
+          type: integer
+          minimum: 1
+        target_id:
+          type:
+          - integer
+          - 'null'
+          minimum: 1
+        parents:
+          type: boolean
+    CommunicationAudienceSnapshot:
+      type: object
+      additionalProperties: false
+      required:
+      - kind
+      - session_year_id
+      - target_id
+      - parents
+      properties:
+        kind:
+          type: string
+          enum:
+          - school
+          - grade
+          - homeroom
+          - group
+          - custom
+        session_year_id:
+          type: integer
+          minimum: 1
+        target_id:
+          type:
+          - integer
+          - 'null'
+          minimum: 1
+        parents:
+          type: boolean
+        user_ids:
+          type: array
+          items:
+            type: integer
+            minimum: 1
+          uniqueItems: true
+        name:
+          type: string
+        audience_revision:
+          type: integer
+          minimum: 1
+    CommunicationAudience:
+      type: object
+      additionalProperties: false
+      required:
+      - id
+      - name
+      - revision
+      - active
+      - editable
+      - user_ids
+      properties:
+        id:
+          type: integer
+          minimum: 1
+        name:
+          type: string
+        revision:
+          type: integer
+          minimum: 1
+        active:
+          type: boolean
+        editable:
+          type: boolean
+        user_ids:
+          type: array
+          items:
+            type: integer
+            minimum: 1
+          uniqueItems: true
+    CommunicationAudienceList:
+      type: object
+      additionalProperties: false
+      required:
+      - items
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/CommunicationAudience'
+    CommunicationAudienceWrite:
+      type: object
+      additionalProperties: false
+      required:
+      - operation_id
+      - revision
+      - session_year_id
+      - name
+      - active
+      - user_ids
+      properties:
+        operation_id:
+          type: string
+          format: uuid
+        revision:
+          type: integer
+          minimum: 0
+        session_year_id:
+          type: integer
+          minimum: 1
+        name:
+          type: string
+          maxLength: 191
+        active:
+          type: boolean
+        user_ids:
+          type: array
+          items:
+            type: integer
+            minimum: 1
+          minItems: 0
+          maxItems: 1000
+          uniqueItems: true
+    CommunicationAudienceReceipt:
+      type: object
+      additionalProperties: false
+      required:
+      - id
+      - revision
+      properties:
+        id:
+          type: integer
+          minimum: 1
+        revision:
+          type: integer
+          minimum: 1
+    CommunicationEffectiveRules:
+      type: object
+      additionalProperties: false
+      required:
+      - allow_school
+      - requires_approval
+      - grade_head_exempt
+      - head_grades
+      - versions
+      properties:
+        allow_school:
+          type: boolean
+        requires_approval:
+          type: boolean
+        grade_head_exempt:
+          type: boolean
+        head_grades:
+          type: array
+          items:
+            type: integer
+            minimum: 1
+          uniqueItems: true
+        versions:
+          type: array
+          items:
+            type: array
+            items:
+              type: integer
+              minimum: 0
+            minItems: 2
+            maxItems: 2
+    CommunicationRoleRule:
+      type: object
+      additionalProperties: false
+      required:
+      - role_id
+      - role
+      - allow_school
+      - requires_approval
+      - revision
+      properties:
+        role_id:
+          type: integer
+          minimum: 1
+        role:
+          type: string
+        allow_school:
+          type: boolean
+        requires_approval:
+          type: boolean
+        revision:
+          type: integer
+          minimum: 0
+    CommunicationRuleList:
+      type: object
+      additionalProperties: false
+      required:
+      - items
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/CommunicationRoleRule'
+    CommunicationRuleWrite:
+      type: object
+      additionalProperties: false
+      required:
+      - operation_id
+      - revision
+      - allow_school
+      - requires_approval
+      properties:
+        operation_id:
+          type: string
+          format: uuid
+        revision:
+          type: integer
+          minimum: 0
+        allow_school:
+          type: boolean
+        requires_approval:
+          type: boolean
+    CommunicationScope:
+      type: object
+      additionalProperties: false
+      required:
+      - kind
+      - target_id
+      - name
+      properties:
+        kind:
+          type: string
+          enum:
+          - school
+          - grade
+          - homeroom
+          - group
+          - custom
+        target_id:
+          type:
+          - integer
+          - 'null'
+          minimum: 1
+        name:
+          type: string
+    CommunicationConfiguration:
+      type: object
+      additionalProperties: false
+      required:
+      - school_id
+      - reader_id
+      - timezone
+      - staff_available
+      - can_manage
+      - session_year_id
+      - years
+      - scopes
+      - audiences
+      - rules
+      - channels
+      properties:
+        school_id:
+          type: integer
+          minimum: 1
+        reader_id:
+          type: integer
+          minimum: 1
+        timezone:
+          type: string
+        staff_available:
+          type: boolean
+        can_manage:
+          type: boolean
+        session_year_id:
+          type:
+          - integer
+          - 'null'
+          minimum: 1
+        years:
+          type: array
+          items:
+            type: object
+            additionalProperties: false
+            required:
+            - id
+            - name
+            properties:
+              id:
+                type: integer
+                minimum: 1
+              name:
+                type: string
+        scopes:
+          type: array
+          items:
+            $ref: '#/components/schemas/CommunicationScope'
+        audiences:
+          type: array
+          items:
+            $ref: '#/components/schemas/CommunicationAudience'
+        rules:
+          anyOf:
+          - $ref: '#/components/schemas/CommunicationEffectiveRules'
+          - type: 'null'
+        channels:
+          type: array
+          items:
+            type: string
+            pattern: ^(in_app|push|email)$
+    CommunicationSummary:
+      type: object
+      additionalProperties: false
+      required:
+      - id
+      - title
+      - state
+      - revision
+      - published_at
+      - scheduled_at
+      - updated_at
+      properties:
+        id:
+          type: integer
+          minimum: 1
+        title:
+          type: string
+        state:
+          type: string
+          enum:
+          - draft
+          - pending
+          - approved
+          - dispatching
+          - sent
+          - rejected
+          - blocked
+          - withdrawn
+        revision:
+          type: integer
+          minimum: 1
+        published_at:
+          type:
+          - string
+          - 'null'
+          format: date-time
+        scheduled_at:
+          type:
+          - string
+          - 'null'
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+        read_at:
+          type:
+          - string
+          - 'null'
+          format: date-time
+        is_author:
+          type: boolean
+        can_review:
+          type: boolean
+    CommunicationMessageList:
+      type: object
+      additionalProperties: false
+      required:
+      - page
+      - last_page
+      - items
+      properties:
+        page:
+          type: integer
+          minimum: 1
+        last_page:
+          type: integer
+          minimum: 1
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/CommunicationSummary'
+    CommunicationContactList:
+      type: object
+      additionalProperties: false
+      required:
+      - page
+      - last_page
+      - items
+      properties:
+        page:
+          type: integer
+          minimum: 1
+        last_page:
+          type: integer
+          minimum: 1
+        items:
+          type: array
+          items:
+            type: object
+            additionalProperties: false
+            required:
+            - id
+            - name
+            properties:
+              id:
+                type: integer
+                minimum: 1
+              name:
+                type: string
+    CommunicationMessageWrite:
+      type: object
+      additionalProperties: false
+      required:
+      - operation_id
+      - revision
+      - title
+      - markdown
+      - channels
+      - audience
+      properties:
+        operation_id:
+          type: string
+          format: uuid
+        revision:
+          type: integer
+          minimum: 0
+        title:
+          type: string
+          maxLength: 191
+        markdown:
+          type: string
+          maxLength: 20000
+        channels:
+          type: array
+          items:
+            type: string
+            pattern: ^(in_app|push|email)$
+          minItems: 1
+          maxItems: 3
+          uniqueItems: true
+        scheduled_local:
+          type:
+          - string
+          - 'null'
+          pattern: ^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$
+        audience:
+          $ref: '#/components/schemas/CommunicationAudienceSelection'
+    CommunicationMessageReceipt:
+      type: object
+      additionalProperties: false
+      required:
+      - id
+      - revision
+      - state
+      properties:
+        id:
+          type: integer
+          minimum: 1
+        revision:
+          type: integer
+          minimum: 1
+        state:
+          type: string
+          enum:
+          - draft
+          - pending
+          - approved
+          - dispatching
+          - sent
+          - rejected
+          - blocked
+          - withdrawn
+    CommunicationMessageEditor:
+      type: object
+      additionalProperties: false
+      required:
+      - id
+      - title
+      - state
+      - revision
+      - published_at
+      - scheduled_at
+      - updated_at
+      - markdown
+      - audience
+      - channels
+      - scheduled_local
+      - requires_approval
+      - submitted_at
+      - approved_at
+      - decision_reason
+      - blocked_code
+      - withdrawal_reason
+      - is_author
+      - can_review
+      - recipient_count
+      - read_count
+      properties:
+        id:
+          type: integer
+          minimum: 1
+        title:
+          type: string
+        state:
+          type: string
+          enum:
+          - draft
+          - pending
+          - approved
+          - dispatching
+          - sent
+          - rejected
+          - blocked
+          - withdrawn
+        revision:
+          type: integer
+          minimum: 1
+        published_at:
+          type:
+          - string
+          - 'null'
+          format: date-time
+        scheduled_at:
+          type:
+          - string
+          - 'null'
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+        markdown:
+          type: string
+        audience:
+          $ref: '#/components/schemas/CommunicationAudienceSnapshot'
+        channels:
+          type: array
+          items:
+            type: string
+            pattern: ^(in_app|push|email)$
+          minItems: 1
+          maxItems: 3
+          uniqueItems: true
+        scheduled_local:
+          type:
+          - string
+          - 'null'
+        requires_approval:
+          type: boolean
+        submitted_at:
+          type:
+          - string
+          - 'null'
+          format: date-time
+        approved_at:
+          type:
+          - string
+          - 'null'
+          format: date-time
+        decision_reason:
+          type:
+          - string
+          - 'null'
+        blocked_code:
+          type:
+          - string
+          - 'null'
+        withdrawal_reason:
+          type:
+          - string
+          - 'null'
+        is_author:
+          type: boolean
+        can_review:
+          type: boolean
+        recipient_count:
+          type: integer
+          minimum: 0
+        read_count:
+          type: integer
+          minimum: 0
+    CommunicationMessagePreview:
+      type: object
+      additionalProperties: false
+      required:
+      - id
+      - revision
+      - recipient_count
+      - requires_approval
+      - fingerprint
+      - html
+      - channels
+      - scheduled_at
+      - timezone
+      properties:
+        id:
+          type: integer
+          minimum: 1
+        revision:
+          type: integer
+          minimum: 1
+        recipient_count:
+          type: integer
+          minimum: 0
+        requires_approval:
+          type: boolean
+        fingerprint:
+          type: string
+          pattern: ^[a-f0-9]{64}$
+        html:
+          type: string
+        channels:
+          type: array
+          items:
+            type: string
+            pattern: ^(in_app|push|email)$
+          minItems: 1
+          maxItems: 3
+          uniqueItems: true
+        scheduled_at:
+          type:
+          - string
+          - 'null'
+          format: date-time
+        timezone:
+          type: string
+    CommunicationSubmitWrite:
+      type: object
+      additionalProperties: false
+      required:
+      - revision
+      - operation_id
+      - fingerprint
+      properties:
+        revision:
+          type: integer
+          minimum: 1
+        operation_id:
+          type: string
+          format: uuid
+        fingerprint:
+          type: string
+          pattern: ^[a-f0-9]{64}$
+    CommunicationDecisionWrite:
+      type: object
+      additionalProperties: false
+      required:
+      - revision
+      - operation_id
+      - fingerprint
+      - decision
+      - reason
+      properties:
+        revision:
+          type: integer
+          minimum: 1
+        operation_id:
+          type: string
+          format: uuid
+        fingerprint:
+          type: string
+          pattern: ^[a-f0-9]{64}$
+        decision:
+          type: string
+          enum:
+          - approve
+          - reject
+        reason:
+          type: string
+          minLength: 3
+          maxLength: 2000
+    CommunicationWithdrawWrite:
+      type: object
+      additionalProperties: false
+      required:
+      - revision
+      - operation_id
+      - reason
+      properties:
+        revision:
+          type: integer
+          minimum: 1
+        operation_id:
+          type: string
+          format: uuid
+        reason:
+          type: string
+          minLength: 3
+          maxLength: 2000
+    CommunicationMessageReader:
+      type: object
+      additionalProperties: false
+      required:
+      - id
+      - title
+      - state
+      - revision
+      - published_at
+      - scheduled_at
+      - updated_at
+      - school_id
+      - reader_id
+      - markdown
+      - read_at
+      properties:
+        id:
+          type: integer
+          minimum: 1
+        title:
+          type: string
+        state:
+          type: string
+          enum:
+          - draft
+          - pending
+          - approved
+          - dispatching
+          - sent
+          - rejected
+          - blocked
+          - withdrawn
+        revision:
+          type: integer
+          minimum: 1
+        published_at:
+          type:
+          - string
+          - 'null'
+          format: date-time
+        scheduled_at:
+          type:
+          - string
+          - 'null'
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+        school_id:
+          type: integer
+          minimum: 1
+        reader_id:
+          type: integer
+          minimum: 1
+        markdown:
+          type: string
+        read_at:
+          type:
+          - string
+          - 'null'
+          format: date-time
+    CommunicationReadReceipt:
+      type: object
+      additionalProperties: false
+      required:
+      - id
+      - read_at
+      properties:
+        id:
+          type: integer
+          minimum: 1
+        read_at:
+          type: string
+          format: date-time
+    CommunicationAudienceListResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - code
+      - data
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        code:
+          type: integer
+        data:
+          $ref: '#/components/schemas/CommunicationAudienceList'
+    CommunicationAudienceReceiptResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - code
+      - data
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        code:
+          type: integer
+        data:
+          $ref: '#/components/schemas/CommunicationAudienceReceipt'
+    CommunicationRoleRuleResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - code
+      - data
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        code:
+          type: integer
+        data:
+          $ref: '#/components/schemas/CommunicationRoleRule'
+    CommunicationRuleListResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - code
+      - data
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        code:
+          type: integer
+        data:
+          $ref: '#/components/schemas/CommunicationRuleList'
+    CommunicationConfigurationResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - code
+      - data
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        code:
+          type: integer
+        data:
+          $ref: '#/components/schemas/CommunicationConfiguration'
+    CommunicationMessageListResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - code
+      - data
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        code:
+          type: integer
+        data:
+          $ref: '#/components/schemas/CommunicationMessageList'
+    CommunicationContactListResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - code
+      - data
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        code:
+          type: integer
+        data:
+          $ref: '#/components/schemas/CommunicationContactList'
+    CommunicationMessageReceiptResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - code
+      - data
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        code:
+          type: integer
+        data:
+          $ref: '#/components/schemas/CommunicationMessageReceipt'
+    CommunicationMessageEditorResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - code
+      - data
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        code:
+          type: integer
+        data:
+          $ref: '#/components/schemas/CommunicationMessageEditor'
+    CommunicationMessagePreviewResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - code
+      - data
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        code:
+          type: integer
+        data:
+          $ref: '#/components/schemas/CommunicationMessagePreview'
+    CommunicationMessageReaderResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - code
+      - data
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        code:
+          type: integer
+        data:
+          $ref: '#/components/schemas/CommunicationMessageReader'
+    CommunicationReadReceiptResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - code
+      - data
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        code:
+          type: integer
+        data:
+          $ref: '#/components/schemas/CommunicationReadReceipt'

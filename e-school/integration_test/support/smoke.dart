@@ -69,10 +69,21 @@ Future<void> tapWhenReady(WidgetTester tester, Finder finder) async {
   FocusManager.instance.primaryFocus?.unfocus();
   await tester.pump(const Duration(milliseconds: 300));
   await pumpUntilFound(tester, finder);
-  if (finder.hitTestable().evaluate().isEmpty) {
-    await tester.ensureVisible(finder.first);
-    await tester.pump(const Duration(milliseconds: 300));
+  final end = DateTime.now().add(const Duration(seconds: 30));
+  while (true) {
+    final target = finder.hitTestable();
+    if (target.evaluate().isNotEmpty) {
+      // No frame pump between checking this target and tapping it: a route can
+      // remove a previously found button during the settling delay.
+      await tester.tap(target.first);
+      return;
+    }
+    if (DateTime.now().isAfter(end)) {
+      throw TestFailure('Timed out waiting to tap $finder');
+    }
+    if (finder.evaluate().isNotEmpty) {
+      await tester.ensureVisible(finder.first);
+    }
+    await tester.pump(const Duration(milliseconds: 100));
   }
-  await pumpUntilFound(tester, finder.hitTestable());
-  await tester.tap(finder.hitTestable().first);
 }

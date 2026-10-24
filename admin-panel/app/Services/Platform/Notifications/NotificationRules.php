@@ -130,6 +130,11 @@ class NotificationRules
         return $rows;
     }
 
+    public function mandatory(User $user, string $type, string $channel): bool
+    {
+        return $this->offered($user, $type) && $this->effectiveMode($user, $type, $channel) === 'mandatory';
+    }
+
     public function allows(User $user, string $type, string $channel): bool
     {
         if (! $this->offered($user, $type)) {

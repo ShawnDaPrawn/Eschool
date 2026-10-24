@@ -190,6 +190,43 @@ import 'package:eschool_api/src/model/class_grade_mapping.dart';
 import 'package:eschool_api/src/model/class_grade_mapping_grade_level.dart';
 import 'package:eschool_api/src/model/class_grade_response.dart';
 import 'package:eschool_api/src/model/class_grade_write.dart';
+import 'package:eschool_api/src/model/communication_audience.dart';
+import 'package:eschool_api/src/model/communication_audience_list.dart';
+import 'package:eschool_api/src/model/communication_audience_list_response.dart';
+import 'package:eschool_api/src/model/communication_audience_receipt.dart';
+import 'package:eschool_api/src/model/communication_audience_receipt_response.dart';
+import 'package:eschool_api/src/model/communication_audience_selection.dart';
+import 'package:eschool_api/src/model/communication_audience_snapshot.dart';
+import 'package:eschool_api/src/model/communication_audience_write.dart';
+import 'package:eschool_api/src/model/communication_configuration.dart';
+import 'package:eschool_api/src/model/communication_configuration_response.dart';
+import 'package:eschool_api/src/model/communication_configuration_years_inner.dart';
+import 'package:eschool_api/src/model/communication_contact_list.dart';
+import 'package:eschool_api/src/model/communication_contact_list_response.dart';
+import 'package:eschool_api/src/model/communication_decision_write.dart';
+import 'package:eschool_api/src/model/communication_effective_rules.dart';
+import 'package:eschool_api/src/model/communication_message_editor.dart';
+import 'package:eschool_api/src/model/communication_message_editor_response.dart';
+import 'package:eschool_api/src/model/communication_message_list.dart';
+import 'package:eschool_api/src/model/communication_message_list_response.dart';
+import 'package:eschool_api/src/model/communication_message_preview.dart';
+import 'package:eschool_api/src/model/communication_message_preview_response.dart';
+import 'package:eschool_api/src/model/communication_message_reader.dart';
+import 'package:eschool_api/src/model/communication_message_reader_response.dart';
+import 'package:eschool_api/src/model/communication_message_receipt.dart';
+import 'package:eschool_api/src/model/communication_message_receipt_response.dart';
+import 'package:eschool_api/src/model/communication_message_write.dart';
+import 'package:eschool_api/src/model/communication_read_receipt.dart';
+import 'package:eschool_api/src/model/communication_read_receipt_response.dart';
+import 'package:eschool_api/src/model/communication_role_rule.dart';
+import 'package:eschool_api/src/model/communication_role_rule_response.dart';
+import 'package:eschool_api/src/model/communication_rule_list.dart';
+import 'package:eschool_api/src/model/communication_rule_list_response.dart';
+import 'package:eschool_api/src/model/communication_rule_write.dart';
+import 'package:eschool_api/src/model/communication_scope.dart';
+import 'package:eschool_api/src/model/communication_submit_write.dart';
+import 'package:eschool_api/src/model/communication_summary.dart';
+import 'package:eschool_api/src/model/communication_withdraw_write.dart';
 import 'package:eschool_api/src/model/content_archive_write.dart';
 import 'package:eschool_api/src/model/content_configuration.dart';
 import 'package:eschool_api/src/model/content_configuration_response.dart';
@@ -1036,6 +1073,149 @@ ReturnType deserialize<ReturnType, BaseType>(
           as ReturnType;
     case 'ClassGradeWrite':
       return ClassGradeWrite.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'CommunicationAudience':
+      return CommunicationAudience.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'CommunicationAudienceList':
+      return CommunicationAudienceList.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'CommunicationAudienceListResponse':
+      return CommunicationAudienceListResponse.fromJson(
+            value as Map<String, dynamic>,
+          )
+          as ReturnType;
+    case 'CommunicationAudienceReceipt':
+      return CommunicationAudienceReceipt.fromJson(
+            value as Map<String, dynamic>,
+          )
+          as ReturnType;
+    case 'CommunicationAudienceReceiptResponse':
+      return CommunicationAudienceReceiptResponse.fromJson(
+            value as Map<String, dynamic>,
+          )
+          as ReturnType;
+    case 'CommunicationAudienceSelection':
+      return CommunicationAudienceSelection.fromJson(
+            value as Map<String, dynamic>,
+          )
+          as ReturnType;
+    case 'CommunicationAudienceSnapshot':
+      return CommunicationAudienceSnapshot.fromJson(
+            value as Map<String, dynamic>,
+          )
+          as ReturnType;
+    case 'CommunicationAudienceWrite':
+      return CommunicationAudienceWrite.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'CommunicationConfiguration':
+      return CommunicationConfiguration.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'CommunicationConfigurationResponse':
+      return CommunicationConfigurationResponse.fromJson(
+            value as Map<String, dynamic>,
+          )
+          as ReturnType;
+    case 'CommunicationConfigurationYearsInner':
+      return CommunicationConfigurationYearsInner.fromJson(
+            value as Map<String, dynamic>,
+          )
+          as ReturnType;
+    case 'CommunicationContactList':
+      return CommunicationContactList.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'CommunicationContactListResponse':
+      return CommunicationContactListResponse.fromJson(
+            value as Map<String, dynamic>,
+          )
+          as ReturnType;
+    case 'CommunicationDecisionWrite':
+      return CommunicationDecisionWrite.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'CommunicationEffectiveRules':
+      return CommunicationEffectiveRules.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'CommunicationMessageEditor':
+      return CommunicationMessageEditor.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'CommunicationMessageEditorResponse':
+      return CommunicationMessageEditorResponse.fromJson(
+            value as Map<String, dynamic>,
+          )
+          as ReturnType;
+    case 'CommunicationMessageList':
+      return CommunicationMessageList.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'CommunicationMessageListResponse':
+      return CommunicationMessageListResponse.fromJson(
+            value as Map<String, dynamic>,
+          )
+          as ReturnType;
+    case 'CommunicationMessagePreview':
+      return CommunicationMessagePreview.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'CommunicationMessagePreviewResponse':
+      return CommunicationMessagePreviewResponse.fromJson(
+            value as Map<String, dynamic>,
+          )
+          as ReturnType;
+    case 'CommunicationMessageReader':
+      return CommunicationMessageReader.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'CommunicationMessageReaderResponse':
+      return CommunicationMessageReaderResponse.fromJson(
+            value as Map<String, dynamic>,
+          )
+          as ReturnType;
+    case 'CommunicationMessageReceipt':
+      return CommunicationMessageReceipt.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'CommunicationMessageReceiptResponse':
+      return CommunicationMessageReceiptResponse.fromJson(
+            value as Map<String, dynamic>,
+          )
+          as ReturnType;
+    case 'CommunicationMessageWrite':
+      return CommunicationMessageWrite.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'CommunicationReadReceipt':
+      return CommunicationReadReceipt.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'CommunicationReadReceiptResponse':
+      return CommunicationReadReceiptResponse.fromJson(
+            value as Map<String, dynamic>,
+          )
+          as ReturnType;
+    case 'CommunicationRoleRule':
+      return CommunicationRoleRule.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'CommunicationRoleRuleResponse':
+      return CommunicationRoleRuleResponse.fromJson(
+            value as Map<String, dynamic>,
+          )
+          as ReturnType;
+    case 'CommunicationRuleList':
+      return CommunicationRuleList.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'CommunicationRuleListResponse':
+      return CommunicationRuleListResponse.fromJson(
+            value as Map<String, dynamic>,
+          )
+          as ReturnType;
+    case 'CommunicationRuleWrite':
+      return CommunicationRuleWrite.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'CommunicationScope':
+      return CommunicationScope.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'CommunicationSubmitWrite':
+      return CommunicationSubmitWrite.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'CommunicationSummary':
+      return CommunicationSummary.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'CommunicationWithdrawWrite':
+      return CommunicationWithdrawWrite.fromJson(value as Map<String, dynamic>)
           as ReturnType;
     case 'ContentArchiveWrite':
       return ContentArchiveWrite.fromJson(value as Map<String, dynamic>)

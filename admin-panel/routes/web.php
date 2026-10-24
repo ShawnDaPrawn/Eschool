@@ -37,6 +37,7 @@ use App\Http\Controllers\Panel\Academics\SubjectStandardController;
 use App\Http\Controllers\Panel\Academics\TeachingGroupController;
 use App\Http\Controllers\Panel\Academics\TimetableWorkbenchController;
 use App\Http\Controllers\Panel\Academics\TransitionWorkbenchController;
+use App\Http\Controllers\Panel\Communication\MessageWorkbenchController;
 use App\Http\Controllers\Panel\People\LearnerInvitationController;
 use App\Http\Controllers\Panel\Platform\SchoolSwitchController;
 use App\Http\Controllers\Panel\SearchController;
@@ -214,6 +215,17 @@ Route::group(['middleware' => ['Role', 'auth', 'school.context', EnforceReadOnly
         Route::get('class-teacher-list', [ClassTeacherController::class, 'show']);
         Route::post('remove-class-teacher/{id}/{class_teacher_id}', [ClassTeacherController::class, 'removeClassTeacher']);
 
+        Route::prefix('communication-centre')->name('communication-centre.')->middleware(['module:communication', 'cache.headers:private;no_store'])->group(function () {
+            $c = MessageWorkbenchController::class;
+            Route::get('/', [$c, 'index'])->name('index');
+            Route::post('drafts', [$c, 'create'])->name('create');
+            foreach (['save', 'submit', 'decision', 'withdraw'] as $action) {
+                Route::post('drafts/{message}/'.$action, [$c, $action])->whereNumber('message')->name($action);
+            }
+            Route::post('audiences', [$c, 'audienceCreate'])->name('audience-create');
+            Route::post('audiences/{audience}', [$c, 'audienceSave'])->whereNumber('audience')->name('audience-save');
+            Route::post('rules/{role}', [$c, 'ruleSave'])->whereNumber('role')->name('rule-save');
+        });
         Route::prefix('academic-content')->name('academic-content.')->middleware(['module:academics', PrivateAcademicContent::class])->group(function () {
             $controller = ContentWorkbenchController::class;
             Route::get('/', [$controller, 'index'])->name('index');

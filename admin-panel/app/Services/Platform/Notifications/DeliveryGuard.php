@@ -15,6 +15,7 @@ use App\Models\Students;
 use App\Models\User;
 use App\Policies\Academics\ContentPolicy;
 use App\Services\Academics\Attendance\RegisterRosters;
+use App\Services\Communication\MessageDelivery;
 use App\Services\Platform\Identity\GuardianService;
 use App\Services\Platform\Tenancy\CurrentSchool;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
@@ -63,6 +64,9 @@ class DeliveryGuard
                     || isset(Leave::approvedTypesForDate($entry->register->on_date->toDateString())[$entry->learner->user_id]))) {
                     return false;
                 }
+            }
+            if (str_starts_with($type, 'communication.') && ! app(MessageDelivery::class)->allows($user, $type, $context)) {
+                return false;
             }
             if (isset($context['content_version_id'])) {
                 if ($type !== 'academics.content_published' || ! isset($context['content_learner_id'])) {

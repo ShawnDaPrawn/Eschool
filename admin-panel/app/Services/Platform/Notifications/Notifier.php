@@ -68,7 +68,7 @@ class Notifier
     }
 
     /** Each allowed channel is claimed independently, so retrying a fanout never repeats earlier recipients. */
-    public function send(User $user, string $type, string $title, string $body, ?string $link = null, ?Notification $notice = null): array
+    public function send(User $user, string $type, string $title, string $body, ?string $link = null, ?Notification $notice = null, ?array $channels = null): array
     {
         if (! $this->eligible($user) || ! $this->rules->offered($user, $type)) {
             return [];
@@ -83,7 +83,7 @@ class Notifier
         abort_unless((int) $notice->school_id === app(CurrentSchool::class)->id(), 404);
         $sent = [];
         foreach (NotificationRules::CHANNELS as $channel) {
-            if (! $this->rules->allows($user, $type, $channel)) {
+            if (($channels !== null && ! in_array($channel, $channels, true) && ! $this->rules->mandatory($user, $type, $channel)) || ! $this->rules->allows($user, $type, $channel)) {
                 continue;
             }
             if ($channel === 'email' && filter_var($user->email, FILTER_VALIDATE_EMAIL) === false) {
@@ -110,7 +110,8 @@ class Notifier
                 } else {
                     $school = app(CurrentSchool::class)->school();
                     $mailBody = $user->email_verified_at === null ? __('Open NavigateEd to view this notice.') : $body;
-                    $mail = new NotificationMail($user->email, $type, $user->email_verified_at === null ? __('School notification') : $title, $mailBody, rtrim((string) config('identity.portal_url'), '/').$link, (string) $school?->name, $notice->delivery_payload ?? []);
+                    $mailBase = $type === 'communication.approval_requested' ? config('app.url') : config('identity.portal_url');
+                    $mail = new NotificationMail($user->email, $type, $user->email_verified_at === null ? __('School notification') : $title, $mailBody, rtrim((string) $mailBase, '/').$link, (string) $school?->name, $notice->delivery_payload ?? []);
                     if (! MailService::queue($mail, (int) $user->id)) {
                         throw new RuntimeException('A notification email could not be queued.');
                     }

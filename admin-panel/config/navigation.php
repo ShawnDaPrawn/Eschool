@@ -259,6 +259,7 @@ return [
                 'messages' => [
                     'label' => 'nav_group_messages',
                     'items' => [
+                        ['key' => 'school-messages', 'communication_author' => true, 'label' => 'School messages', 'route' => 'communication-centre.index', 'permissions' => [], 'module' => 'communication', 'keywords' => ['audiences', 'messages', 'approval', 'scheduled message']],
                         ['key' => 'notices', 'label' => 'nav_notices', 'route' => 'announcement.index', 'permissions' => ['announcement-create'], 'module' => null,
                             'keywords' => ['send a notice', 'announcement', 'notice board', 'message parents', 'newsletter']],
                         ['key' => 'push-notifications', 'label' => 'nav_push_notifications', 'route' => 'notifications.index', 'permissions' => ['notification-create'], 'module' => null,

@@ -239,3 +239,16 @@ Notifier enforces membership, modules, preferences and per-channel delivery clai
 Notification bodies contain no scores or child names; opening the marks link
 requires current own-child authorization. Draft, capture and recompute events
 do not publish results or send family notices.
+
+
+## Approved school messages
+
+Communication → School messages provides standard/custom audiences, role approval,
+school-local scheduling and private read acknowledgements. It uses
+`communication.message` and `communication.approval_requested`; direct chat keeps
+`comms.message`. The selected channels still respect existing school/personal
+choices. Recovery resumes durable batches after worker interruption. Generic
+notices carry no private subject/body; access, current guardian rights, publication
+identity and withdrawal are checked before transport. See the
+[operator guide](https://github.com/ShawnDaPrawn/Eschool/blob/main/engineering/specs/communication/operations.md)
+and [school messages guide](https://shawndaprawn.github.io/Eschool/features/school-messages/).
