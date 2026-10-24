@@ -22,7 +22,8 @@ reserved, failed and quarantined operations cannot be silently re-dispatched.
 Unknown provider outcomes consume the full reservation. Known pre-dispatch
 refusals release it. A new UUID cannot evade already charged daily usage.
 
-Input and output require a configured moderation implementation. Stable flags
+Input and output require a configured moderation implementation. Callback results
+recheck tenant/authority before quarantine writes as well as before output release. Stable flags
 create quarantine records and suppress output; no raw flagged content is exposed
 through a review endpoint. Output protocol validation rejects malformed/non-finite
 embeddings, oversized content and invalid token reports. Fresh membership,

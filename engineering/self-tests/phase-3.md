@@ -35,3 +35,9 @@ observation or production acceptance is claimed. Prompt/model provenance is
 stored for completed inference, but the sample prompt is only a staff-draft
 foundation, not an approved tutor or parent prompt. The two-case evaluation
 fixture and test-only adapter responses are protocol evidence only.
+
+Review follow-up: moderation callbacks can also change the current school.
+Both input/output moderation results now recheck the original school and fresh
+authority before any quarantine flag is written. Final focused run: **16 tests
+passed, 93 assertions**, including both callback directions, zero foreign flags,
+original-school settlement and suppressed output. Changed-file Pint passes.

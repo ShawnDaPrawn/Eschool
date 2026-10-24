@@ -42,6 +42,7 @@ class InferenceFoundationTest extends TestCase
         TestProvider::$after = null;
         TestModerator::$flags = [];
         TestModerator::$failure = false;
+        TestModerator::$after = [];
         config(['ai.inference.enabled' => true, 'ai.inference.features.staff_draft' => [
             'enabled' => true, 'roles' => ['Teacher'], 'capabilities' => ['complete', 'embed', 'vision'],
             'provider' => 'test-only', 'provider_class' => TestProvider::class, 'moderator' => TestModerator::class,
@@ -245,6 +246,27 @@ class InferenceFoundationTest extends TestCase
         });
     }
 
+    public function test_moderator_context_replacement_cannot_write_foreign_quarantine_flags(): void
+    {
+        $other = School::create(['name' => 'Other', 'slug' => 'moderator-context', 'status' => 'active', 'timezone' => 'Africa/Johannesburg']);
+        foreach (['input', 'output'] as $direction) {
+            app(CurrentSchool::class)->set(1);
+            TestModerator::$flags = [$direction => ['safeguarding_review']];
+            TestModerator::$after = [$direction => fn () => app(CurrentSchool::class)->set($other)];
+            $request = $this->request();
+            $this->refusal(fn () => app(AiGateway::class)->complete($this->actor(), $request), 'inference_context_changed');
+            $this->assertSame(0, DB::table('ai_flags')->count());
+            $this->assertSame(0, AiUsage::count());
+            app(CurrentSchool::class)->run(1, function () use ($direction, $request) {
+                $usage = AiUsage::where('operation_id', $request->operationId)->firstOrFail();
+                $this->assertSame('failed', $usage->state);
+                $this->assertNull($usage->inference_output);
+                $this->assertSame($direction === 'input', $usage->used_units === 0);
+            });
+        }
+        $this->assertCount(1, TestProvider::$calls);
+    }
+
     public function test_empty_inference_migration_can_rollback_and_reapply(): void
     {
         // DDL commits on MySQL; explicitly restore the trait's outer transaction.
@@ -316,6 +338,8 @@ class TestProvider implements InferenceProvider
 
 class TestModerator implements InferenceModerator
 {
+    public static array $after = [];
+
     public static array $flags = [];
 
     public static bool $failure = false;
@@ -324,6 +348,10 @@ class TestModerator implements InferenceModerator
     {
         if (self::$failure) {
             throw new \RuntimeException('Unavailable moderator');
+        }
+
+        if (isset(self::$after[$direction])) {
+            (self::$after[$direction])();
         }
 
         return self::$flags[$direction] ?? [];

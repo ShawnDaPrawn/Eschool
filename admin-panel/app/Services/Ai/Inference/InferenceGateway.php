@@ -77,15 +77,17 @@ class InferenceGateway
             if (! $moderator instanceof InferenceModerator || ! $provider instanceof InferenceProvider) {
                 throw new AiUnavailable('adapter_unavailable');
             }
-            $this->quarantine($usage, $moderator->flags($capability, 'input', $request->input));
+            $inputFlags = $moderator->flags($capability, 'input', $request->input);
             $this->freshContext($schoolId, $actor, $capability, $request->feature, $config);
+            $this->quarantine($usage, $inputFlags);
             $anonymous = hash_hmac('sha256', app(CurrentSchool::class)->id().':'.$actor->id, (string) config('app.key'));
             $dispatched = true;
             $result = $provider->infer(new ProviderRequest($capability, $request->operationId, $config['model'], $anonymous, $prompt['system'], $request->input, $config['maximum_output_tokens'], $reserve));
             $this->freshContext($schoolId, $actor, $capability, $request->feature, $config);
             $this->validResult($capability, $result, $reserve);
-            $this->quarantine($usage, $moderator->flags($capability, 'output', $result->output));
+            $outputFlags = $moderator->flags($capability, 'output', $result->output);
             $this->freshContext($schoolId, $actor, $capability, $request->feature, $config);
+            $this->quarantine($usage, $outputFlags);
             $usage->update(['state' => 'completed', 'reserved_units' => 0, 'used_units' => $result->tokens, 'reserved_cost_cents' => 0,
                 'cost_cents' => $this->cost($result->tokens, $config['cents_per_million_tokens']), 'inference_output' => ['output' => $result->output],
                 'output_sha256' => hash('sha256', json_encode($result->output, JSON_THROW_ON_ERROR)), 'completed_at' => now()]);
