@@ -1,3 +1,4 @@
+import '../localization/academic_text.dart';
 import 'dart:convert';
 import 'package:eschool_api/eschool_api.dart';
 import 'package:eschool_core/eschool_core.dart';
@@ -414,7 +415,7 @@ class _SchoolMessageEditorScreenState extends State<SchoolMessageEditorScreen>
                         labelText: l(
                           'Schedule in school time; leave blank to send now',
                         ),
-                        hintText: 'YYYY-MM-DDTHH:mm',
+                        hintText: academicText(context, 'YYYY-MM-DDTHH:mm'),
                         suffixIcon: IconButton(
                           tooltip: l('Choose school date and time'),
                           onPressed: enabled ? _pickSchedule : null,

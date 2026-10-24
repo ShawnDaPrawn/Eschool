@@ -196,3 +196,10 @@ data below the declared header. CSV expression-like values are refused without
 changing target identities; non-recorded score codes are explicit mappings.
 Audit/provenance omit learner rows and private reference maps. Cross-school/role
 checks and spreadsheet-input tests pass; independent review remains outstanding.
+
+
+Owner update, 24 October 2026: the pilot stage is cancelled. Earlier references
+to a required pre-pilot independent test are historical, not a current Phase 2
+pilot gate. Automated/source security checks remain necessary for safe merges;
+independent security and staging evidence are separately recorded before any
+production release. No unrun review is reported as passed.

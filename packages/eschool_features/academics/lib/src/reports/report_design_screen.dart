@@ -1,3 +1,4 @@
+import '../localization/academic_text.dart';
 import 'package:eschool_api/eschool_api.dart';
 import 'package:eschool_core/eschool_core.dart';
 import 'package:flutter/material.dart';
@@ -158,7 +159,7 @@ class _ReportDesignScreenState extends State<ReportDesignScreen> {
 
   @override
   Widget build(BuildContext context) => ScreenScaffold(
-    title: 'Report design and comment banks',
+    title: academicText(context, 'Report design and comment banks'),
     body: ListView(
       padding: const EdgeInsets.all(16),
       children: [
@@ -169,14 +170,19 @@ class _ReportDesignScreenState extends State<ReportDesignScreen> {
             style: TextStyle(color: Theme.of(context).colorScheme.error),
           ),
         if (_notice != null) Text(_notice!),
-        Text('Report design', style: Theme.of(context).textTheme.headlineSmall),
+        AcademicText(
+          'Report design',
+          style: Theme.of(context).textTheme.headlineSmall,
+        ),
         DropdownButtonFormField<int>(
           key: ValueKey('design:${_template?.id}'),
           initialValue: _template?.id ?? 0,
           isExpanded: true,
-          decoration: const InputDecoration(labelText: 'Design to edit'),
+          decoration: InputDecoration(
+            labelText: academicText(context, 'Design to edit'),
+          ),
           items: [
-            const DropdownMenuItem(value: 0, child: Text('New design')),
+            const DropdownMenuItem(value: 0, child: AcademicText('New design')),
             for (final t in _templates)
               DropdownMenuItem(value: t.id, child: Text(t.name)),
           ],
@@ -190,13 +196,17 @@ class _ReportDesignScreenState extends State<ReportDesignScreen> {
           controller: _name,
           enabled: !_busy,
           maxLength: 191,
-          decoration: const InputDecoration(labelText: 'Design name'),
+          decoration: InputDecoration(
+            labelText: academicText(context, 'Design name'),
+          ),
         ),
         TextField(
           controller: _heading,
           enabled: !_busy,
           maxLength: 191,
-          decoration: const InputDecoration(labelText: 'Report heading'),
+          decoration: InputDecoration(
+            labelText: academicText(context, 'Report heading'),
+          ),
         ),
         TextField(
           controller: _intro,
@@ -204,7 +214,9 @@ class _ReportDesignScreenState extends State<ReportDesignScreen> {
           maxLength: 3000,
           minLines: 2,
           maxLines: 5,
-          decoration: const InputDecoration(labelText: 'Introduction'),
+          decoration: InputDecoration(
+            labelText: academicText(context, 'Introduction'),
+          ),
         ),
         TextField(
           controller: _footer,
@@ -212,14 +224,16 @@ class _ReportDesignScreenState extends State<ReportDesignScreen> {
           maxLength: 3000,
           minLines: 2,
           maxLines: 5,
-          decoration: const InputDecoration(labelText: 'Footer'),
+          decoration: InputDecoration(
+            labelText: academicText(context, 'Footer'),
+          ),
         ),
         SwitchListTile(
-          title: const Text('Include school crest'),
+          title: const AcademicText('Include school crest'),
           value: _crest,
           onChanged: _busy ? null : (value) => setState(() => _crest = value),
         ),
-        const Text(
+        const AcademicText(
           'Choose sections. Move enabled sections into their printed order.',
         ),
         for (final entry in reportSectionNames.entries)
@@ -242,7 +256,7 @@ class _ReportDesignScreenState extends State<ReportDesignScreen> {
             trailing: Wrap(
               children: [
                 IconButton(
-                  tooltip: 'Move section up',
+                  tooltip: academicText(context, 'Move section up'),
                   onPressed: _busy || index == 0
                       ? null
                       : () => setState(() {
@@ -252,7 +266,7 @@ class _ReportDesignScreenState extends State<ReportDesignScreen> {
                   icon: const Icon(Icons.arrow_upward),
                 ),
                 IconButton(
-                  tooltip: 'Move section down',
+                  tooltip: academicText(context, 'Move section down'),
                   onPressed: _busy || index == _sections.length - 1
                       ? null
                       : () => setState(() {
@@ -266,20 +280,28 @@ class _ReportDesignScreenState extends State<ReportDesignScreen> {
           ),
         FilledButton(
           onPressed: _busy ? null : () => _save(true),
-          child: const Text('Save design'),
+          child: const AcademicText('Save design'),
         ),
         const SizedBox(height: 32),
-        Text('Comment banks', style: Theme.of(context).textTheme.headlineSmall),
-        const Text(
+        AcademicText(
+          'Comment banks',
+          style: Theme.of(context).textTheme.headlineSmall,
+        ),
+        const AcademicText(
           'Keep reusable comments generic. Do not put learner details in a bank.',
         ),
         DropdownButtonFormField<int>(
           key: ValueKey('bank:${_bank?.id}'),
           initialValue: _bank?.id ?? 0,
           isExpanded: true,
-          decoration: const InputDecoration(labelText: 'Comment bank to edit'),
+          decoration: InputDecoration(
+            labelText: academicText(context, 'Comment bank to edit'),
+          ),
           items: [
-            const DropdownMenuItem(value: 0, child: Text('New bank entry')),
+            const DropdownMenuItem(
+              value: 0,
+              child: AcademicText('New bank entry'),
+            ),
             for (final b in _banks)
               DropdownMenuItem(value: b.id, child: Text(b.label)),
           ],
@@ -291,9 +313,11 @@ class _ReportDesignScreenState extends State<ReportDesignScreen> {
           key: ValueKey('subject:$_subject'),
           initialValue: _subject ?? 0,
           isExpanded: true,
-          decoration: const InputDecoration(labelText: 'Comment scope'),
+          decoration: InputDecoration(
+            labelText: academicText(context, 'Comment scope'),
+          ),
           items: [
-            const DropdownMenuItem(value: 0, child: Text('Homeroom')),
+            const DropdownMenuItem(value: 0, child: AcademicText('Homeroom')),
             for (final subject in widget.configuration.subjects)
               DropdownMenuItem(value: subject.id, child: Text(subject.name)),
           ],
@@ -305,7 +329,9 @@ class _ReportDesignScreenState extends State<ReportDesignScreen> {
           controller: _bankLabel,
           enabled: !_busy,
           maxLength: 191,
-          decoration: const InputDecoration(labelText: 'Bank label'),
+          decoration: InputDecoration(
+            labelText: academicText(context, 'Bank label'),
+          ),
         ),
         TextField(
           controller: _bankText,
@@ -313,16 +339,18 @@ class _ReportDesignScreenState extends State<ReportDesignScreen> {
           maxLength: 3000,
           minLines: 3,
           maxLines: 6,
-          decoration: const InputDecoration(labelText: 'Reusable comment'),
+          decoration: InputDecoration(
+            labelText: academicText(context, 'Reusable comment'),
+          ),
         ),
         SwitchListTile(
-          title: const Text('Available for comments'),
+          title: const AcademicText('Available for comments'),
           value: _active,
           onChanged: _busy ? null : (value) => setState(() => _active = value),
         ),
         FilledButton(
           onPressed: _busy ? null : () => _save(false),
-          child: const Text('Save bank entry'),
+          child: const AcademicText('Save bank entry'),
         ),
       ],
     ),

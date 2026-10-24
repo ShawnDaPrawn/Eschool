@@ -1,3 +1,4 @@
+import '../localization/academic_text.dart';
 import 'dart:async';
 import 'package:eschool_api/eschool_api.dart';
 import 'package:eschool_core/eschool_core.dart';
@@ -84,7 +85,7 @@ class _ReportBatchScreenState extends State<ReportBatchScreen> {
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(context, false),
-              child: const Text('Keep reviewing'),
+              child: const AcademicText('Keep reviewing'),
             ),
             FilledButton(
               onPressed: () => Navigator.pop(context, true),
@@ -118,7 +119,7 @@ class _ReportBatchScreenState extends State<ReportBatchScreen> {
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text(
+                  const AcademicText(
                     'Review the current evidence. Refresh clears all signatures and requires new approval.',
                   ),
                   for (final payload in source.cards)
@@ -259,7 +260,7 @@ class _ReportBatchScreenState extends State<ReportBatchScreen> {
           TextButton.icon(
             onPressed: _busy ? null : _load,
             icon: const Icon(Icons.refresh),
-            label: const Text('Refresh batch'),
+            label: const AcademicText('Refresh batch'),
           ),
           if (detail != null) ...[
             Text(
@@ -272,7 +273,7 @@ class _ReportBatchScreenState extends State<ReportBatchScreen> {
             if (detail.signatures.principal != null)
               Text('Principal: ${detail.signatures.principal!.name}'),
             if (detail.state == 'approved')
-              const Text(
+              const AcademicText(
                 'Private PDFs are being generated. This page refreshes while the jobs run.',
               ),
             Wrap(
@@ -282,27 +283,27 @@ class _ReportBatchScreenState extends State<ReportBatchScreen> {
                 if (detail.state != 'released')
                   OutlinedButton(
                     onPressed: _busy ? null : () => _action('refresh'),
-                    child: const Text('Review current evidence'),
+                    child: const AcademicText('Review current evidence'),
                   ),
                 if (detail.state == 'draft' && detail.canGradeSign)
                   FilledButton(
                     onPressed: _busy ? null : () => _action('grade-sign'),
-                    child: const Text('Grade-head sign-off'),
+                    child: const AcademicText('Grade-head sign-off'),
                   ),
                 if (detail.state == 'grade_signed' && detail.canPrincipalSign)
                   FilledButton(
                     onPressed: _busy ? null : () => _action('principal-sign'),
-                    child: const Text('Principal sign-off'),
+                    child: const AcademicText('Principal sign-off'),
                   ),
                 if (['approved', 'ready'].contains(detail.state))
                   OutlinedButton(
                     onPressed: _busy ? null : () => _action('retry'),
-                    child: const Text('Retry PDF generation'),
+                    child: const AcademicText('Retry PDF generation'),
                   ),
                 if (detail.state == 'ready')
                   FilledButton(
                     onPressed: _busy ? null : () => _action('release'),
-                    child: const Text('Preview release'),
+                    child: const AcademicText('Preview release'),
                   ),
               ],
             ),
@@ -341,14 +342,14 @@ class _ReportBatchScreenState extends State<ReportBatchScreen> {
                                       ),
                                     ),
                               icon: const Icon(Icons.picture_as_pdf_outlined),
-                              label: const Text('Preview PDF'),
+                              label: const AcademicText('Preview PDF'),
                             ),
                           if (detail.state != 'released') ...[
                             TextButton(
                               onPressed: _busy
                                   ? null
                                   : () => _comment(card, null, 'Homeroom'),
-                              child: const Text('Homeroom comment'),
+                              child: const AcademicText('Homeroom comment'),
                             ),
                             for (final subject in card.payload.subjects)
                               TextButton(

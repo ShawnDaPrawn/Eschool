@@ -1,0 +1,402 @@
+{
+  "School messages": {
+    "af": "Skoolboodskappe",
+    "zu": "Imiyalezo yesikole"
+  },
+  "School terms": {
+    "af": "Skoolkwartale",
+    "zu": "Amathemu esikole"
+  },
+  "School term": {
+    "af": "Skoolkwartaal",
+    "zu": "Ithemu lesikole"
+  },
+  "Term": {
+    "af": "Kwartaal",
+    "zu": "Ithemu"
+  },
+  "Terms": {
+    "af": "Kwartale",
+    "zu": "Amathemu"
+  },
+  "School year": {
+    "af": "Skooljaar",
+    "zu": "Unyaka wesikole"
+  },
+  "Session Year": {
+    "af": "Skooljaar",
+    "zu": "Unyaka wesikole"
+  },
+  "Learner": {
+    "af": "Leerder",
+    "zu": "Umfundi"
+  },
+  "Learners": {
+    "af": "Leerders",
+    "zu": "Abafundi"
+  },
+  "Student": {
+    "af": "Leerder",
+    "zu": "Umfundi"
+  },
+  "Students": {
+    "af": "Leerders",
+    "zu": "Abafundi"
+  },
+  "Teacher": {
+    "af": "Onderwyser",
+    "zu": "Uthisha"
+  },
+  "Teachers": {
+    "af": "Onderwysers",
+    "zu": "Othisha"
+  },
+  "Parent": {
+    "af": "Ouer",
+    "zu": "Umzali"
+  },
+  "Parents": {
+    "af": "Ouers",
+    "zu": "Abazali"
+  },
+  "Guardian": {
+    "af": "Voog",
+    "zu": "Umnakekeli"
+  },
+  "Guardians": {
+    "af": "Voogde",
+    "zu": "Abanakekeli"
+  },
+  "Grade head": {
+    "af": "Graadhoof",
+    "zu": "Inhloko yebanga"
+  },
+  "Principal": {
+    "af": "Skoolhoof",
+    "zu": "Uthishanhloko"
+  },
+  "Homeroom": {
+    "af": "Registerklas",
+    "zu": "Ikilasi lokubhalisa"
+  },
+  "Homeroom register": {
+    "af": "Registerklas se bywoningsregister",
+    "zu": "Irejista yekilasi lokubhalisa"
+  },
+  "Teaching group": {
+    "af": "Onderriggroep",
+    "zu": "Iqembu lokufundisa"
+  },
+  "Teaching groups": {
+    "af": "Onderriggroepe",
+    "zu": "Amaqembu okufundisa"
+  },
+  "Subject": {
+    "af": "Vak",
+    "zu": "Isifundo"
+  },
+  "Subjects": {
+    "af": "Vakke",
+    "zu": "Izifundo"
+  },
+  "Assessment marks": {
+    "af": "Assesseringspunte",
+    "zu": "Amamaki okuhlola"
+  },
+  "Marks": {
+    "af": "Punte",
+    "zu": "Amamaki"
+  },
+  "Mark": {
+    "af": "Punt",
+    "zu": "Imaki"
+  },
+  "Save marks": {
+    "af": "Stoor punte",
+    "zu": "Londoloza amamaki"
+  },
+  "Marks saved": {
+    "af": "Punte gestoor",
+    "zu": "Amamaki alondoloziwe"
+  },
+  "Running mark": {
+    "af": "Lopende punt",
+    "zu": "Imaki eliqhubekayo"
+  },
+  "Task": {
+    "af": "Taak",
+    "zu": "Umsebenzi"
+  },
+  "Question": {
+    "af": "Vraag",
+    "zu": "Umbuzo"
+  },
+  "Maximum": {
+    "af": "Maksimum",
+    "zu": "Okuphezulu kakhulu"
+  },
+  "Recorded": {
+    "af": "Vasgelê",
+    "zu": "Kurekhodiwe"
+  },
+  "Missing": {
+    "af": "Ontbreek",
+    "zu": "Akukho"
+  },
+  "Absent": {
+    "af": "Afwesig",
+    "zu": "Akekho"
+  },
+  "Present": {
+    "af": "Teenwoordig",
+    "zu": "Ukhona"
+  },
+  "Late": {
+    "af": "Laat",
+    "zu": "Ufike sekwephuzile"
+  },
+  "Excused": {
+    "af": "Vrygestel",
+    "zu": "Uxolelwe"
+  },
+  "Catch-up": {
+    "af": "Inhaalwerk",
+    "zu": "Umsebenzi wokubuyekeza okuphuthelwe"
+  },
+  "Incomplete": {
+    "af": "Onvolledig",
+    "zu": "Akuphelele"
+  },
+  "Read only": {
+    "af": "Leesalleen",
+    "zu": "Okokufunda kuphela"
+  },
+  "View only": {
+    "af": "Slegs bekyk",
+    "zu": "Buka kuphela"
+  },
+  "Reason": {
+    "af": "Rede",
+    "zu": "Isizathu"
+  },
+  "Save": {
+    "af": "Stoor",
+    "zu": "Londoloza"
+  },
+  "Cancel": {
+    "af": "Kanselleer",
+    "zu": "Khansela"
+  },
+  "Apply": {
+    "af": "Pas toe",
+    "zu": "Sebenzisa"
+  },
+  "Continue": {
+    "af": "Gaan voort",
+    "zu": "Qhubeka"
+  },
+  "Try again": {
+    "af": "Probeer weer",
+    "zu": "Zama futhi"
+  },
+  "Sign in": {
+    "af": "Meld aan",
+    "zu": "Ngena ngemvume"
+  },
+  "Sign out": {
+    "af": "Meld af",
+    "zu": "Phuma"
+  },
+  "Email or handle": {
+    "af": "E-posadres of gebruikersnaam",
+    "zu": "I-imeyili noma igama lomsebenzisi"
+  },
+  "Password": {
+    "af": "Wagwoord",
+    "zu": "Iphasiwedi"
+  },
+  "Home": {
+    "af": "Tuis",
+    "zu": "Ikhaya"
+  },
+  "Settings": {
+    "af": "Instellings",
+    "zu": "Izilungiselelo"
+  },
+  "Timetable": {
+    "af": "Rooster",
+    "zu": "Uhlelo lwezifundo"
+  },
+  "Attendance": {
+    "af": "Bywoning",
+    "zu": "Ukuya esikoleni"
+  },
+  "Daily attendance": {
+    "af": "Daaglikse bywoning",
+    "zu": "Ukuya esikoleni kwansuku zonke"
+  },
+  "Report cards": {
+    "af": "Skoolrapporte",
+    "zu": "Imibiko yabafundi"
+  },
+  "Report card": {
+    "af": "Skoolrapport",
+    "zu": "Umbiko womfundi"
+  },
+  "Learning content": {
+    "af": "Leermateriaal",
+    "zu": "Izinsiza zokufunda"
+  },
+  "Year results": {
+    "af": "Jaaruitslae",
+    "zu": "Imiphumela yonyaka"
+  },
+  "Grade-head correction": {
+    "af": "Graadhoof se regstelling",
+    "zu": "Ukulungisa kwenhloko yebanga"
+  },
+  "Preview release": {
+    "af": "Bekyk vrystelling vooraf",
+    "zu": "Buka kuqala ukukhishwa kwemiphumela"
+  },
+  "Release selected results": {
+    "af": "Stel gekose uitslae vry",
+    "zu": "Khipha imiphumela ekhethiwe"
+  },
+  "Official results": {
+    "af": "Amptelike uitslae",
+    "zu": "Imiphumela esemthethweni"
+  },
+  "Provisional": {
+    "af": "Voorlopig",
+    "zu": "Okwesikhashana"
+  },
+  "Provisional running results": {
+    "af": "Voorlopige lopende uitslae",
+    "zu": "Imiphumela eqhubekayo yesikhashana"
+  },
+  "Results released": {
+    "af": "Uitslae vrygestel",
+    "zu": "Imiphumela ikhishiwe"
+  },
+  "Disposition and reason": {
+    "af": "Puntstatus en rede",
+    "zu": "Isimo semaki nesizathu"
+  },
+  "Unsaved entries": {
+    "af": "Ongestoorde inskrywings",
+    "zu": "Okufakiwe okungalondoloziwe"
+  },
+  "Inbox": {
+    "af": "Inkassie",
+    "zu": "Ibhokisi lemiyalezo engenayo"
+  },
+  "Unread": {
+    "af": "Ongelees",
+    "zu": "Akufundiwe"
+  },
+  "Read": {
+    "af": "Gelees",
+    "zu": "Kufundiwe"
+  },
+  "Drafts and reviews": {
+    "af": "Konsepte en hersienings",
+    "zu": "Okusalungiswa nokubuyekezwa"
+  },
+  "Approve message": {
+    "af": "Keur boodskap goed",
+    "zu": "Gunyaza umlayezo"
+  },
+  "Withdraw message": {
+    "af": "Trek boodskap terug",
+    "zu": "Hoxisa umlayezo"
+  },
+  "School timezone": {
+    "af": "Skool se tydsone",
+    "zu": "Indawo yesikhathi yesikole"
+  },
+  "Parents and guardians of these learners": {
+    "af": "Ouers en voogde van hierdie leerders",
+    "zu": "Abazali nabanakekeli balaba bafundi"
+  },
+  "SA-SAMS exports": {
+    "af": "SA-SAMS-uitvoere",
+    "zu": "Ukukhipha idatha ye-SA-SAMS"
+  },
+  "Approve": {
+    "af": "Keur goed",
+    "zu": "Gunyaza"
+  },
+  "Reject": {
+    "af": "Keur af",
+    "zu": "Yenqaba"
+  },
+  "YYYY-MM-DDTHH:mm": {
+    "af": "YYYY-MM-DDTHH:mm",
+    "zu": "YYYY-MM-DDTHH:mm"
+  },
+  "English": {
+    "af": "Engels",
+    "zu": "IsiNgisi"
+  },
+  "Afrikaans": {
+    "af": "Afrikaans",
+    "zu": "IsiBhunu"
+  },
+  "isiZulu": {
+    "af": "isiZulu",
+    "zu": "isiZulu"
+  },
+  "Submission Details & Review": {
+    "af": "Indieningsbesonderhede en hersiening",
+    "zu": "Imininingwane Yokuthunyelwa Nokubuyekeza"
+  },
+  "Submit between one and 300 lessons.": {
+    "af": "Dien tussen een en 300 lesse in.",
+    "zu": "Thumela phakathi kwesifundo esisodwa nezingama-300."
+  },
+  "Submit each question once.": {
+    "af": "Dien elke vraag een keer in.",
+    "zu": "Thumela umbuzo ngamunye kanye."
+  },
+  "Submitted Markdown to copy": {
+    "af": "Ingediende Markdown om te kopieer",
+    "zu": "Kuthunyelwe i-Markdown ukuze ikopishwe"
+  },
+  "Successfully Created Assignment": {
+    "af": "Opdrag suksesvol geskep",
+    "zu": "Kudalwe Ngempumelelo Umsebenzi ozokwenziwa"
+  },
+  "Table, scroll sideways for more columns": {
+    "af": "Tabel; rol sywaarts vir meer kolomme",
+    "zu": "Ithebula, skrola emaceleni ukuze uthole amakholomu engeziwe"
+  },
+  "Term dates must be within session dates": {
+    "af": "Kwartaal se datums moet binne die skooljaar val",
+    "zu": "Amadethi esikhathi kufanele abe phakathi nezinsuku zeseshini"
+  },
+  "Terms will be automatically assigned to": {
+    "af": "Kwartale sal outomaties toegeken word aan",
+    "zu": "Imigomo izonikezwa ngokuzenzakalelayo"
+  },
+  "The :attribute field is required.": {
+    "af": "Die :attribute-veld is verpligtend.",
+    "zu": "Inkambu ye-:attribute iyadingeka."
+  },
+  "The :attribute must be a number.": {
+    "af": ":attribute moet ’n getal wees.",
+    "zu": "I-:attribute kufanele kube inombolo."
+  },
+  "The :attribute must be between :min and :max.": {
+    "af": ":attribute moet tussen :min en :max wees.",
+    "zu": "I-:attribute kufanele ibe phakathi kwe-:min ne-:max."
+  },
+  "The :attribute must contain at least one letter.": {
+    "af": ":attribute moet minstens een letter bevat.",
+    "zu": "I-:attribute kufanele iqukathe okungenani uhlamvu olulodwa."
+  },
+  "The :attribute must contain at least one number.": {
+    "af": ":attribute moet minstens een syfer bevat.",
+    "zu": "I-:attribute kufanele iqukathe okungenani inombolo eyodwa."
+  }
+}

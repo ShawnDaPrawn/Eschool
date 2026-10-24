@@ -1,3 +1,4 @@
+import '../localization/academic_text.dart';
 import 'dart:async';
 import 'package:eschool_api/eschool_api.dart';
 import 'package:flutter/material.dart';
@@ -91,10 +92,10 @@ class _TodayAttendanceCardState extends State<TodayAttendanceCard>
               else if (snapshot.hasError)
                 TextButton(
                   onPressed: _reload,
-                  child: const Text('Reload attendance'),
+                  child: const AcademicText('Reload attendance'),
                 )
               else if (homeroom == null || homeroom.isEmpty)
-                const Text('No morning register has been captured yet.')
+                const AcademicText('No morning register has been captured yet.')
               else
                 Text(
                   attendanceStateLabel(homeroom.first.state),
@@ -103,7 +104,7 @@ class _TodayAttendanceCardState extends State<TodayAttendanceCard>
               if (widget.onOpen != null)
                 TextButton(
                   onPressed: widget.onOpen,
-                  child: const Text('Attendance and QR'),
+                  child: const AcademicText('Attendance and QR'),
                 ),
             ],
           );

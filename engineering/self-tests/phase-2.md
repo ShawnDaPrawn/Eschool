@@ -759,3 +759,36 @@ undated tasks. Pint and Larastan pass.
 
 Smoke helper follow-up: the report login/comment-save flow passes in real Chrome
 with the refreshed tap helper. Final Android and panel CI remains authoritative.
+
+### Afrikaans and isiZulu, 24 October 2026
+
+- Both apps offer `af` and `zu` with **990 keys per locale**; the panel registers
+  both on installation/upgrade and has **2,707 keys per locale**. Existing
+  configuration is retained. These are complete development drafts; fluent
+  review and school terminology acceptance remain pending in the review record.
+- Shared static academic labels and mark vocabulary now use the existing locale;
+  authored names/comments/Markdown remain unchanged. **172 shared academic tests
+  passed**, including actual-asset Afrikaans/isiZulu widget checks.
+- Full family suite **50 passed**, full teacher suite **33 passed**. Both include
+  required locale/key coverage, placeholders/markup and working glossary tests.
+  The larger complete assets exposed an existing test-clock race; the term-picker
+  test now awaits real asset decoding and injects the loaded delegate synchronously.
+- Panel language/translation/navigation cohort **15 passed, 26,786 assertions**;
+  Pint passes. Both app/shared analyzers have zero errors/warnings (style infos
+  remain). TypeScript and documentation builds pass.
+- **Four real Chromium flows passed**: both locales at 1024 and 1280, each checking
+  registers, timetable and messages. Correct headings/document language, no
+  serious/critical axe violation, horizontal overflow or app console errors.
+- No fluent review, physical devices, staging performance or production release
+  is inferred. Existing eight locales retain English fallbacks for the added
+  academic keys. The af/zu files have full structural coverage.
+
+### Owner scope update: pilot cancelled, 24 October 2026
+
+The owner removed the pilot stage and requested completion today. Pilot import/
+onboarding, champion feedback/status tooling and the full-term parallel run
+are no longer Phase 2 completion requirements. Retained feature work is being
+closed through final CI/review and safe merges. Existing reconciliation remains
+available. Target SA-SAMS import qualification, fluent translation, staging/device/
+performance and independent security evidence remain accurately recorded as
+unrun release evidence; no production deployment or budget change is authorized.

@@ -1,3 +1,4 @@
+import '../localization/academic_text.dart';
 import 'package:eschool_api/eschool_api.dart';
 import 'package:flutter/material.dart';
 
@@ -30,7 +31,7 @@ class ReportResults extends StatelessWidget {
       Text(
         '${payload.homeroomName} · ${payload.yearName} · ${payload.termName ?? 'Annual report'}',
       ),
-      if (payload.provisional) const Text('Provisional running report'),
+      if (payload.provisional) const AcademicText('Provisional running report'),
       for (final subject in payload.subjects)
         Padding(
           padding: const EdgeInsets.symmetric(vertical: 6),

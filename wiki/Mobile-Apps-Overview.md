@@ -375,3 +375,9 @@ The family content reader now supports explicit encrypted offline copies, bounde
 to one day and 20 items per environment/account/school. It rechecks current
 publication access online, expires visible readers and clears keys on scope
 replacement. Offline opens do not claim a server read acknowledgement.
+
+
+Afrikaans and isiZulu development drafts are available in both apps. Shared
+academic labels use the selected locale; school-authored content is unchanged.
+See `documentation/features/languages.md` and `engineering/languages/review.md`
+for coverage and outstanding fluent/device acceptance. English is the default.

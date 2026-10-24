@@ -1,3 +1,4 @@
+import '../localization/academic_text.dart';
 import 'dart:math' as math;
 import 'package:eschool_api/eschool_api.dart';
 import 'package:eschool_core/eschool_core.dart';
@@ -57,7 +58,7 @@ class TimetableScreen extends StatelessWidget {
           if (manage)
             TextButton(
               onPressed: () => _edit(context, lesson),
-              child: const Text('Edit lesson'),
+              child: const AcademicText('Edit lesson'),
             ),
         ],
       ),
@@ -94,7 +95,7 @@ class TimetableScreen extends StatelessWidget {
                     Text(state.error ?? 'No timetable is available.'),
                     TextButton(
                       onPressed: cubit.load,
-                      child: const Text('Try again'),
+                      child: const AcademicText('Try again'),
                     ),
                   ],
                 ),
@@ -109,7 +110,7 @@ class TimetableScreen extends StatelessWidget {
                       crossAxisAlignment: WrapCrossAlignment.center,
                       children: [
                         IconButton(
-                          tooltip: 'Previous week',
+                          tooltip: academicText(context, 'Previous week'),
                           onPressed: state.busy
                               ? null
                               : () => cubit.load(
@@ -129,7 +130,7 @@ class TimetableScreen extends StatelessWidget {
                           style: Theme.of(context).textTheme.titleMedium,
                         ),
                         IconButton(
-                          tooltip: 'Next week',
+                          tooltip: academicText(context, 'Next week'),
                           onPressed: state.busy
                               ? null
                               : () => cubit.load(
@@ -146,7 +147,7 @@ class TimetableScreen extends StatelessWidget {
                         ),
                         TextButton(
                           onPressed: state.busy ? null : cubit.load,
-                          child: const Text('This week'),
+                          child: const AcademicText('This week'),
                         ),
                         if (manage &&
                             state.configuration?.schoolYears?.isNotEmpty ==
@@ -157,8 +158,8 @@ class TimetableScreen extends StatelessWidget {
                               key: ValueKey('calendar:${week.sessionYearId}'),
                               initialValue: week.sessionYearId,
                               isExpanded: true,
-                              decoration: const InputDecoration(
-                                labelText: 'School year',
+                              decoration: InputDecoration(
+                                labelText: academicText(context, 'School year'),
                               ),
                               items: state.configuration!.schoolYears!
                                   .map(
@@ -187,7 +188,7 @@ class TimetableScreen extends StatelessWidget {
                           FilledButton.icon(
                             onPressed: state.busy ? null : () => _edit(context),
                             icon: const Icon(Icons.add),
-                            label: const Text('Place lesson'),
+                            label: const AcademicText('Place lesson'),
                           ),
                       ],
                     ),
@@ -195,7 +196,7 @@ class TimetableScreen extends StatelessWidget {
                   if (state.saved)
                     const Padding(
                       padding: EdgeInsets.all(8),
-                      child: Text('Timetable saved'),
+                      child: AcademicText('Timetable saved'),
                     ),
                   Expanded(
                     child: LayoutBuilder(
@@ -220,7 +221,7 @@ class TimetableScreen extends StatelessWidget {
                                 if (!week.lessons.any(
                                   (lesson) => lesson.date == day,
                                 ))
-                                  const Text('No lessons'),
+                                  const AcademicText('No lessons'),
                                 for (final lesson in week.lessons.where(
                                   (lesson) => lesson.date == day,
                                 ))
@@ -260,7 +261,9 @@ class TimetableScreen extends StatelessWidget {
                                                       lesson.date == day,
                                                 ))
                                                   const Center(
-                                                    child: Text('No lessons'),
+                                                    child: AcademicText(
+                                                      'No lessons',
+                                                    ),
                                                   ),
                                                 for (final lesson
                                                     in week.lessons.where(
