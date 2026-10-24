@@ -9,6 +9,16 @@ import 'package:flutter/foundation.dart';
 /// too, so reloading a page in the browser lands on it again.
 const List<DeepLinkRoute> deepLinkRoutes = [
   DeepLinkRoute(
+    Routes.schoolMessages,
+    Routes.schoolMessages,
+    arguments: messageLinkArguments,
+  ),
+  DeepLinkRoute(
+    '/communication-centre',
+    Routes.schoolMessages,
+    arguments: messageLinkArguments,
+  ),
+  DeepLinkRoute(
     Routes.academicContent,
     Routes.academicContent,
     arguments: contentLinkArguments,

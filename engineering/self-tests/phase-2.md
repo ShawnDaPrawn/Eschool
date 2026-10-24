@@ -687,3 +687,23 @@ empty-list archival after contact revocation. Final-head public CI is pending.
 PR #101 final-head CI: 1,538 PHP tests passed; the design-token unit check
 found raw fallbacks in the new message stylesheet. Both fallbacks now use the
 established Material tokens. The affected unit check and final CI are rerun.
+
+### Shared school messages, 24 October 2026
+
+- Shared academic suite: **166 tests passed**, including 26 new repository, cubit
+  and widget cases. Checked family reader/read state and staff compose/preview/
+  submit at 390, 1024 and 1280 widths, separate-author review, uncertain retry,
+  conflict comparison, authority loss, withdrawal refresh and background drafts.
+- Family full unit suite: **46 passed**; teacher full unit suite: **29 passed**
+  before the additional canonical message route assertions.
+- Both app analyzers have zero errors/warnings; backend context/contract cohort
+  **10 passed, 279 assertions**. Only three additive v2 context flag snapshots
+  change; v1 contracts are retained. CI includes both new Chrome message flows.
+- Real Chrome family login/read/acknowledgement, withdrawal refresh and unauthorized
+  notification refusal passed. Teacher Chrome and final route checks recorded
+  below when completed. No device/provider/staging/human review is claimed.
+
+Final teacher Chrome: **passed** after replacing an eager test finder with a
+proper wait. Actual login, save, preview, submit and another-author review/
+approval passed. Final teacher route cohort: **21 passed**, including disabled
+module refusal and canonical/reviewer notification identifier validation.

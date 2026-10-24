@@ -1,3 +1,4 @@
+import 'package:eschool_academics/eschool_academics.dart';
 import 'package:eschool/app/deepLinks.dart';
 import 'package:eschool/app/routeArguments.dart';
 import 'package:eschool/app/routes.dart';
@@ -5,11 +6,20 @@ import 'package:eschool/data/models/student.dart';
 import 'package:eschool/data/models/subject.dart';
 import 'package:eschool_core/eschool_core.dart';
 import 'package:eschool_session/eschool_session.dart';
-import 'package:flutter/widgets.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 Route<dynamic> open(String name, [Object? arguments]) =>
     Routes.onGenerateRouted(RouteSettings(name: name, arguments: arguments));
+
+class _MessageContextRepository implements MeContextRepository {
+  @override
+  Future<MeContext?> fetchContext() async => MeContext.fromJson({
+    'feature_flags': {'module_switches': true, 'communication_messages': true},
+    'modules': <Map<String, Object?>>[],
+  });
+}
 
 void main() {
   final student = Student.fromJson({'id': 4});
@@ -163,6 +173,56 @@ void main() {
       }
       expect(open(Routes.invitation, 't0k3n'), isA<PageRoute<dynamic>>());
     });
+
+    testWidgets('disabled communication refuses the direct message route', (
+      tester,
+    ) async {
+      final cubit = MeContextCubit(
+        repository: _MessageContextRepository(),
+        cache: InMemoryMeContextCache(),
+      );
+      addTearDown(cubit.close);
+      await cubit.load();
+      await tester.pumpWidget(
+        BlocProvider.value(
+          value: cubit,
+          child: MaterialApp(
+            onGenerateRoute: (_) =>
+                open(Routes.schoolMessages, const MessageLinkTarget(17)),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+      expect(
+        find.text('This feature is unavailable at your school.'),
+        findsOneWidget,
+      );
+      expect(find.byType(SchoolMessagesScreen), findsNothing);
+    });
+
+    test(
+      'message links carry typed identifiers into the communication module',
+      () {
+        final parser = DeepLinkParser(routes: deepLinkRoutes);
+        for (final path in [
+          '/communication/messages?message=17',
+          '/communication-centre?message_id=17',
+        ]) {
+          final target = parser.parsePath(path)!;
+          expect(target.routeName, Routes.schoolMessages);
+          expect((target.arguments as MessageLinkTarget).id, 17);
+          expect(
+            open(target.routeName, target.arguments),
+            isA<PageRoute<dynamic>>(),
+          );
+        }
+        expect(parser.parsePath('/communication/messages?message=-1'), isNull);
+        expect(
+          parser.parsePath('/communication/messages?message=17&message_id=18'),
+          isNull,
+        );
+      },
+    );
 
     test('every link opens a route the app has', () {
       for (final route in deepLinkRoutes) {

@@ -375,3 +375,15 @@ two-pane panel. The additive contract and pinned SDK are generated together.
 Shared app navigation/screens, exports/languages and pilot tooling remain active
 implementation work. Automated evidence belongs in Phase 2 self-tests; no
 staging, full-term pilot, human translation or independent review is inferred.
+
+
+### 24 October 2026 - shared communication clients
+
+Both existing apps now expose guarded School messages with adaptive phone and
+two-pane layouts. Shared staff composition, current-scope audiences, saved
+preview/submission, separate-author approval and withdrawal use the additive
+contract. Family readers acknowledge only their own authorized messages. UUID
+retries, revision comparison, private lifecycle refresh and authority changes
+are covered by automated and actual Chrome flows. Saved list and role-rule
+management remains in the panel. Exports/languages and pilot tooling remain
+active implementation; external acceptance evidence is tracked separately.

@@ -181,3 +181,10 @@ school and exact draft. Tests cover other actor/school/draft non-disclosure,
 invalid new/edit recovery, stable operation/revision and no global old-input bag.
 Approval mail routes to the trusted panel origin; generic reader links keep the
 family portal origin. Saved audience cleanup never reintroduces out-of-scope IDs.
+
+Shared messages: private views bind account/school/token and module/feature
+authority before and after transport. Clear stale bodies on lost read authority,
+withdrawal, account/school changes and backgrounding. Exact UUID/revision payloads
+freeze uncertain writes; a new preview follows any edit. No persistent cache or
+private body in notifications. Automated coverage exercises wrong identity, late
+responses, revocation and conflict/approval flows; independent review remains open.
