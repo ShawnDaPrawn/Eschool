@@ -326,6 +326,14 @@ class ApiClient {
           ? ApiErrorCodes.noInternet
           : ApiErrorCodes.defaultError,
       statusCode: e.response?.statusCode,
+      isTransportFailure:
+          e.response == null &&
+          const {
+            DioExceptionType.connectionError,
+            DioExceptionType.connectionTimeout,
+            DioExceptionType.sendTimeout,
+            DioExceptionType.receiveTimeout,
+          }.contains(e.type),
     );
   }
 }

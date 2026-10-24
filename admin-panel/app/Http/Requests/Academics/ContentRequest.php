@@ -24,7 +24,7 @@ class ContentRequest extends FormRequest
         $action = $this->action();
         $policy = app(ContentPolicy::class);
         $actor = $this->user();
-        if (in_array($action, ['library', 'reader', 'read'], true)) {
+        if (in_array($action, ['library', 'reader', 'read', 'saved-access'], true)) {
             $policy->learnerGroups($actor, (int) $this->route('learner'));
             if ($this->route('version') !== null) {
                 $policy->reader($actor, (int) $this->route('learner'), (int) $this->route('version'));
@@ -56,6 +56,7 @@ class ContentRequest extends FormRequest
         return match ($this->action()) {
             'create','upload' => ['selection' => ['required', 'string', 'json', 'max:32768'], 'source' => ['required', 'file', 'max:25600'], 'operation_id' => ['required', 'uuid']] + ($this->action() === 'upload' ? $revision : []),
             'save' => $selection + $revision + ['markdown' => ['required', 'string', 'max:2097152']],
+            'saved-access' => ['version_ids' => ['required', 'array', 'min:1', 'max:20'], 'version_ids.*' => ['required', 'integer', 'min:1', 'distinct']],
             'retry' => $revision,
             'publish' => $revision + ['fingerprint' => ['required', 'string', 'regex:/^[a-f0-9]{64}$/'], 'reviewed' => ['required', 'accepted'], 'reason' => ['sometimes', 'nullable', 'string', 'min:3', 'max:2000']],
             'archive' => ['item_revision' => ['required', 'integer', 'min:1'], 'operation_id' => ['required', 'uuid'], 'reason' => ['required', 'string', 'min:3', 'max:2000']],

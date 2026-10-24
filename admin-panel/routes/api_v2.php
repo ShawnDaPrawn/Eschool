@@ -74,6 +74,7 @@ Route::prefix('academics')->middleware(['auth:sanctum', 'school.context', 'role.
             Route::post('versions/{version}/'.$action, [$controller, $action])->whereNumber('version')->name($action);
         }
         Route::get('learners/{learner}', [$controller, 'library'])->whereNumber('learner')->name('library');
+        Route::post('learners/{learner}/saved-access', [$controller, 'savedAccess'])->whereNumber('learner')->name('saved-access');
         Route::get('learners/{learner}/versions/{version}', [$controller, 'reader'])->whereNumber('learner')->whereNumber('version')->name('reader');
         Route::post('learners/{learner}/versions/{version}/read', [$controller, 'read'])->whereNumber('learner')->whereNumber('version')->name('read');
     });

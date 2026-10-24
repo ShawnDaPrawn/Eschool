@@ -214,6 +214,9 @@ import 'package:eschool_api/src/model/content_reader_response.dart';
 import 'package:eschool_api/src/model/content_receipt.dart';
 import 'package:eschool_api/src/model/content_receipt_response.dart';
 import 'package:eschool_api/src/model/content_revision_write.dart';
+import 'package:eschool_api/src/model/content_saved_access.dart';
+import 'package:eschool_api/src/model/content_saved_access_response.dart';
+import 'package:eschool_api/src/model/content_saved_access_write.dart';
 import 'package:eschool_api/src/model/content_selection.dart';
 import 'package:eschool_api/src/model/content_settings.dart';
 import 'package:eschool_api/src/model/content_settings_response.dart';
@@ -1104,6 +1107,15 @@ ReturnType deserialize<ReturnType, BaseType>(
           as ReturnType;
     case 'ContentRevisionWrite':
       return ContentRevisionWrite.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'ContentSavedAccess':
+      return ContentSavedAccess.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'ContentSavedAccessResponse':
+      return ContentSavedAccessResponse.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'ContentSavedAccessWrite':
+      return ContentSavedAccessWrite.fromJson(value as Map<String, dynamic>)
           as ReturnType;
     case 'ContentSelection':
       return ContentSelection.fromJson(value as Map<String, dynamic>)

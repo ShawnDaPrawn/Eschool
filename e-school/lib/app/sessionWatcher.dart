@@ -1,3 +1,5 @@
+import 'package:eschool_academics/eschool_academics.dart';
+
 import 'dart:async';
 
 import 'package:eschool/app/deepLinks.dart';
@@ -176,7 +178,7 @@ class _SessionWatcherState extends State<SessionWatcher> {
             context.read<AuthCubit>().state is Authenticated,
         takeChangeNotice: () =>
             const NotificationPreferences().takeContextChanged(),
-        child: widget.child,
+        child: ContentCacheSessionGuard(child: widget.child),
       ),
     );
   }

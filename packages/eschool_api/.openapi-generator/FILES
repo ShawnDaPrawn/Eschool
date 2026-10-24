@@ -225,6 +225,9 @@ lib/src/model/content_reader_response.dart
 lib/src/model/content_receipt.dart
 lib/src/model/content_receipt_response.dart
 lib/src/model/content_revision_write.dart
+lib/src/model/content_saved_access.dart
+lib/src/model/content_saved_access_response.dart
+lib/src/model/content_saved_access_write.dart
 lib/src/model/content_selection.dart
 lib/src/model/content_settings.dart
 lib/src/model/content_settings_response.dart

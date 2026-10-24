@@ -631,5 +631,17 @@
   "The source could not be processed safely. Check the file, retry after service restoration or contact the school.": "The source could not be processed safely. Check the file, retry after service restoration or contact the school.",
   "The source failed its malware scan. Upload a corrected file and contact the school.": "The source failed its malware scan. Upload a corrected file and contact the school.",
   "The source or author allocation is no longer available. Ask the school to review access.": "The source or author allocation is no longer available. Ask the school to review access.",
-  "Upload for conversion": "Upload for conversion"
+  "Upload for conversion": "Upload for conversion",
+  "Offline copies only. Connect to check current access. Saved copies expire within one day.": "Offline copies only. Connect to check current access. Saved copies expire within one day.",
+  "Saved offline": "Saved offline",
+  "Saved offline copy. Connect to check current access. This copy expires within one day.": "Saved offline copy. Connect to check current access. This copy expires within one day.",
+  "Saving private copy": "Saving private copy",
+  "Refresh saved copy": "Refresh saved copy",
+  "Save for offline reading": "Save for offline reading",
+  "Remove saved copy": "Remove saved copy",
+  "Saved privately for offline reading. Copies expire within one day.": "Saved privately for offline reading. Copies expire within one day.",
+  "Could not save a fresh offline copy. Check your connection and device storage.": "Could not save a fresh offline copy. Check your connection and device storage.",
+  "Saved copy removed. Connect to open this material again.": "Saved copy removed. Connect to open this material again.",
+  "Saved copy removed.": "Saved copy removed.",
+  "Could not remove the saved copy. Try again.": "Could not remove the saved copy. Try again."
 }

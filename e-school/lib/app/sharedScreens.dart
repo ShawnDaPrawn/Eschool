@@ -590,6 +590,15 @@ class _FamilyContentRouteState extends State<_FamilyContentRoute> {
           schools.state.selectedId == selectedSchool &&
           (!parent || children.state.selectedId == learner),
     );
+    late ContentReaderCache cache;
+    cache = ContentReaderCache(
+      repository,
+      store: () => SecureContentStore.open(
+        account,
+        school,
+        active: () => cache.isActive,
+      ),
+    );
     return ContentContextBoundary(
       schoolId: selectedSchool ?? school,
       readerId: account,
@@ -600,6 +609,7 @@ class _FamilyContentRouteState extends State<_FamilyContentRoute> {
         learnerName:
             child?.child.name ?? auth.getStudentDetails().getFullName(),
         initialVersion: widget.target?.version,
+        cache: cache,
       ),
     );
   }

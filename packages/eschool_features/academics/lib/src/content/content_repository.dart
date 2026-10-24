@@ -41,6 +41,7 @@ abstract interface class AcademicContentRepository {
   Future<ContentLibrary> library(int learner, {int page = 1});
   Future<ContentReader> reader(int learner, int version);
   Future<void> read(int learner, int version);
+  Future<ContentSavedAccess> savedAccess(int learner, Set<int> versions);
 }
 
 class ApiAcademicContentRepository implements AcademicContentRepository {
@@ -240,6 +241,18 @@ class ApiAcademicContentRepository implements AcademicContentRepository {
     }
     return data;
   }
+
+  @override
+  Future<ContentSavedAccess> savedAccess(
+    int learner,
+    Set<int> versions,
+  ) async => ContentSavedAccess.fromJson(
+    await _send(
+      'learners/$learner/saved-access',
+      method: 'POST',
+      data: {'version_ids': versions.toList()},
+    ),
+  );
 
   @override
   Future<void> read(int learner, int version) async {

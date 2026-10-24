@@ -31,7 +31,7 @@ rules before they drive learner results.
 The first slice is specified in [academic-references](../specs/academics/academic-references.md).
 Automated results, staging checks and acceptance are recorded separately in
 [the self-test record](../self-tests/phase-2.md). Academic references/class mapping
-and school terms/templates are merged (#81/#82). Subject standards/mapping and curriculum plans are merged (#86/#87); dated teaching structures are merged (#88); the exact marks backend is merged (#89); shared mark clients are merged (#90); timetable services are merged (#91); shared timetable clients are merged (#92); attendance services and shared clients are merged (#93/#94); report services are merged (#95); shared report clients/panel are merged (#96); mid-year workflows are under verification; remaining academic workflows and external pilot
+and school terms/templates are merged (#81/#82). Subject standards/mapping and curriculum plans are merged (#86/#87); dated teaching structures are merged (#88); the exact marks backend is merged (#89); shared mark clients are merged (#90); timetable services are merged (#91); shared timetable clients are merged (#92); attendance services and shared clients are merged (#93/#94); report services are merged (#95); shared report clients/panel are merged (#96); mid-year workflows are merged (#97); content services and shared clients are merged (#98/#99); encrypted offline reading is under verification; remaining academic workflows and external pilot
 evidence are tracked below.
 Semester compatibility is retired by the owner decision; existing IDs and academic
 links migrate to terms. Other grading and exam/result contracts stay protected.
@@ -40,7 +40,7 @@ links migrate to terms. Other grading and exam/result contracts stay protected.
 
 Owner instruction: complete the rest of Phase 2 autonomously, returning to the
 private Build Bible for uncertainty. References/class mapping and school terms
-are merged. Continue feature branches in this order:
+are merged. The implementation follows this delivery sequence:
 
 - Subject catalogue/mapping and versioned curriculum/assessment plans.
 - Allocations/grade-head authority, exact mark calculations, capture/moderation/locks

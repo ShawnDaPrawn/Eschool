@@ -1,9 +1,11 @@
+import 'dart:async';
 import 'dart:convert';
 import 'package:eschool_api/eschool_api.dart';
 import 'package:eschool_core/eschool_core.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:uuid/uuid.dart';
 import 'content_repository.dart';
+import 'content_cache.dart';
 
 String contentFailure(Object error) =>
     error is ApiException && error.isApiMessage
@@ -11,6 +13,36 @@ String contentFailure(Object error) =>
     : 'Could not load learning content. Check your connection and access, then try again.';
 bool contentRevoked(Object error) =>
     error is ApiException && [401, 403, 404].contains(error.statusCode);
+bool contentOffline(Object error) =>
+    error is ApiException && error.isTransportFailure;
+
+class ContentLibraryRow {
+  const ContentLibraryRow({
+    required this.id,
+    required this.versionId,
+    required this.title,
+    required this.summary,
+    this.subjectName = '',
+    this.expiresAt,
+  });
+  factory ContentLibraryRow.api(ContentLibraryItem row) => ContentLibraryRow(
+    id: row.id,
+    versionId: row.versionId,
+    title: row.title,
+    summary: row.summary,
+    subjectName: row.subjectName,
+  );
+  factory ContentLibraryRow.saved(SavedContent row) => ContentLibraryRow(
+    id: row.reader.contentItemId,
+    versionId: row.reader.id,
+    title: row.reader.title,
+    summary: row.reader.summary,
+    expiresAt: row.expiresAt,
+  );
+  final int id, versionId;
+  final String title, summary, subjectName;
+  final DateTime? expiresAt;
+}
 
 class ContentLibraryState {
   const ContentLibraryState({
@@ -18,29 +50,36 @@ class ContentLibraryState {
     this.page = 0,
     this.lastPage = 1,
     this.busy = false,
+    this.offline = false,
     this.error,
   });
-  final List<ContentLibraryItem> items;
+  final List<ContentLibraryRow> items;
   final int page, lastPage;
-  final bool busy;
+  final bool busy, offline;
   final String? error;
 }
 
 class ContentLibraryCubit extends Cubit<ContentLibraryState> {
-  ContentLibraryCubit(this.repository, this.learner)
+  ContentLibraryCubit(this.repository, this.learner, {this.cache})
     : super(const ContentLibraryState());
   final AcademicContentRepository repository;
+  final ContentReaderCache? cache;
   final int learner;
   int _generation = 0;
+  Timer? _expiry;
   void clear() {
     _generation++;
+    _expiry?.cancel();
     if (!isClosed) emit(const ContentLibraryState());
   }
 
   Future<void> load({bool more = false}) async {
-    if (more && (state.busy || state.page >= state.lastPage)) return;
+    if (isClosed || more && (state.busy || state.page >= state.lastPage)) {
+      return;
+    }
+    _expiry?.cancel();
     final generation = ++_generation, page = more ? state.page + 1 : 1;
-    final previous = more ? state.items : <ContentLibraryItem>[];
+    final previous = more ? state.items : <ContentLibraryRow>[];
     emit(
       ContentLibraryState(
         items: previous,
@@ -50,6 +89,14 @@ class ContentLibraryCubit extends Cubit<ContentLibraryState> {
       ),
     );
     try {
+      if (!more && cache?.isActive == true) {
+        try {
+          await cache!.revalidate(learner);
+        } catch (error) {
+          if (error is ApiException) rethrow;
+          cache!.close();
+        }
+      }
       final data = await repository.library(learner, page: page);
       if (isClosed || generation != _generation) return;
       if (!repository.isActive ||
@@ -60,13 +107,51 @@ class ContentLibraryCubit extends Cubit<ContentLibraryState> {
       emit(
         ContentLibraryState(
           items: {
-            for (final row in [...previous, ...data.items]) row.id: row,
+            for (final row in [
+              ...previous,
+              ...data.items.map(ContentLibraryRow.api),
+            ])
+              row.id: row,
           }.values.toList(),
           page: data.page,
           lastPage: data.lastPage,
         ),
       );
     } catch (error) {
+      if (isClosed || generation != _generation) return;
+      if (contentRevoked(error)) {
+        try {
+          await cache?.removeLearner(learner);
+        } catch (_) {}
+      }
+      if (isClosed || generation != _generation) return;
+      if (contentOffline(error) &&
+          repository.isActive &&
+          cache?.isActive == true) {
+        try {
+          final copies = await cache!.list(learner);
+          if (isClosed || generation != _generation || !repository.isActive) {
+            return;
+          }
+          emit(
+            ContentLibraryState(
+              items: copies.map(ContentLibraryRow.saved).toList(),
+              page: 1,
+              lastPage: 1,
+              offline: true,
+            ),
+          );
+          if (copies.isNotEmpty) {
+            final first = copies
+                .map((r) => r.expiresAt)
+                .reduce((a, b) => a.isBefore(b) ? a : b);
+            _expiry = Timer(first.difference(cache!.clock().toUtc()), () {
+              if (!isClosed && generation == _generation) load();
+            });
+          }
+          return;
+        } catch (_) {}
+      }
       if (!isClosed && generation == _generation) {
         emit(ContentLibraryState(error: contentFailure(error)));
       }
@@ -76,15 +161,24 @@ class ContentLibraryCubit extends Cubit<ContentLibraryState> {
   @override
   Future<void> close() {
     _generation++;
+    _expiry?.cancel();
     return super.close();
   }
 }
 
 class ContentReaderState {
-  const ContentReaderState({this.reader, this.busy = false, this.error});
+  const ContentReaderState({
+    this.reader,
+    this.busy = false,
+    this.saving = false,
+    this.saved = false,
+    this.offline = false,
+    this.error,
+    this.notice,
+  });
   final ContentReader? reader;
-  final bool busy;
-  final String? error;
+  final bool busy, saving, saved, offline;
+  final String? error, notice;
 }
 
 class ContentReaderCubit extends Cubit<ContentReaderState> {
@@ -92,35 +186,197 @@ class ContentReaderCubit extends Cubit<ContentReaderState> {
     this.repository, {
     required this.learner,
     required this.version,
+    this.cache,
   }) : super(const ContentReaderState());
   final AcademicContentRepository repository;
+  final ContentReaderCache? cache;
   final int learner, version;
   int _generation = 0;
+  Timer? _expiry;
+  DateTime? _displayExpiry;
+  DateTime now() => cache?.clock().toUtc() ?? DateTime.now().toUtc();
   void clear() {
     _generation++;
+    _expiry?.cancel();
     if (!isClosed) emit(const ContentReaderState());
   }
 
+  bool _current(int generation) =>
+      !isClosed && generation == _generation && repository.isActive;
+  void _verify(ContentReader data) {
+    if (!repository.isActive ||
+        data.id != version ||
+        data.learnerId != learner ||
+        data.schoolId != repository.schoolId ||
+        data.readerId != repository.readerId) {
+      throw ApiException('content_scope_changed', statusCode: 403);
+    }
+  }
+
+  void _expire(DateTime instant, int generation) {
+    if (cache == null) return;
+    _displayExpiry = instant;
+    _expiry?.cancel();
+    _expiry = Timer(instant.difference(now()), () {
+      if (_current(generation)) load();
+    });
+  }
+
   Future<void> load() async {
-    final generation = ++_generation;
+    if (isClosed) return;
+    _expiry?.cancel();
+    final generation = ++_generation, start = now();
     emit(const ContentReaderState(busy: true));
     try {
       final data = await repository.reader(learner, version);
-      if (isClosed || generation != _generation) return;
-      if (!repository.isActive ||
-          data.id != version ||
-          data.learnerId != learner ||
-          data.schoolId != repository.schoolId ||
-          data.readerId != repository.readerId) {
-        throw ApiException('content_scope_changed', statusCode: 403);
+      if (!_current(generation)) return;
+      _verify(data);
+      var saved = false;
+      if (cache?.isActive == true) {
+        try {
+          saved = await cache!.read(learner, version) != null;
+          if (!_current(generation)) return;
+          if (saved) await cache!.save(data, requestedAt: start);
+        } catch (_) {
+          saved = false;
+        }
       }
-      emit(ContentReaderState(reader: data));
+      if (!_current(generation)) return;
+      emit(ContentReaderState(reader: data, saved: saved));
+      final relative = start.add(data.offlineUntil.difference(data.serverTime));
+      _expire(
+        relative.isBefore(data.offlineUntil) ? relative : data.offlineUntil,
+        generation,
+      );
       try {
         await repository.read(learner, version);
       } catch (_) {}
     } catch (error) {
+      if (isClosed || generation != _generation) return;
+      if (contentRevoked(error)) {
+        try {
+          await cache?.remove(learner, version);
+        } catch (_) {}
+      }
+      if (contentOffline(error) &&
+          _current(generation) &&
+          cache?.isActive == true) {
+        try {
+          final copy = await cache!.read(learner, version);
+          if (!_current(generation)) return;
+          if (copy != null) {
+            _verify(copy.reader);
+            emit(
+              ContentReaderState(
+                reader: copy.reader,
+                saved: true,
+                offline: true,
+              ),
+            );
+            _expire(copy.expiresAt, generation);
+            return;
+          }
+        } catch (_) {}
+      }
       if (!isClosed && generation == _generation) {
         emit(ContentReaderState(error: contentFailure(error)));
+      }
+    }
+  }
+
+  Future<void> saveOffline() async {
+    if (state.reader == null ||
+        state.busy ||
+        state.saving ||
+        state.offline ||
+        cache?.isActive != true) {
+      return;
+    }
+    final previous = state, generation = ++_generation, start = now();
+    final previousExpiry = _displayExpiry ?? previous.reader!.offlineUntil;
+    emit(
+      ContentReaderState(
+        reader: previous.reader,
+        saved: previous.saved,
+        saving: true,
+      ),
+    );
+    _expire(previousExpiry, generation);
+    try {
+      final fresh = await repository.reader(learner, version);
+      if (!_current(generation)) return;
+      _verify(fresh);
+      await cache!.save(fresh, requestedAt: start);
+      if (!_current(generation)) return;
+      emit(
+        ContentReaderState(
+          reader: fresh,
+          saved: true,
+          notice:
+              'Saved privately for offline reading. Copies expire within one day.',
+        ),
+      );
+      final copy = await cache!.read(learner, version);
+      if (_current(generation) && copy != null) {
+        _expire(copy.expiresAt, generation);
+      }
+    } catch (error) {
+      if (!_current(generation)) return;
+      if (contentRevoked(error)) {
+        try {
+          await cache!.remove(learner, version);
+        } catch (_) {}
+        if (_current(generation)) {
+          emit(ContentReaderState(error: contentFailure(error)));
+        }
+      } else {
+        emit(
+          ContentReaderState(
+            reader: previous.reader,
+            saved: previous.saved,
+            notice:
+                'Could not save a fresh offline copy. Check your connection and device storage.',
+          ),
+        );
+        _expire(previousExpiry, generation);
+      }
+    }
+  }
+
+  Future<void> removeOffline() async {
+    if (state.saving || cache?.isActive != true) return;
+    final previous = state, generation = _generation;
+    try {
+      await cache!.remove(learner, version);
+      if (!_current(generation)) return;
+      if (previous.offline) {
+        _expiry?.cancel();
+        emit(
+          const ContentReaderState(
+            error: 'Saved copy removed. Connect to open this material again.',
+          ),
+        );
+      } else {
+        emit(
+          ContentReaderState(
+            reader: previous.reader,
+            notice: 'Saved copy removed.',
+          ),
+        );
+        if (previous.reader != null) {
+          _expire(_displayExpiry ?? previous.reader!.offlineUntil, generation);
+        }
+      }
+    } catch (_) {
+      if (_current(generation)) {
+        emit(
+          ContentReaderState(
+            reader: previous.reader,
+            offline: previous.offline,
+            saved: previous.saved,
+            notice: 'Could not remove the saved copy. Try again.',
+          ),
+        );
       }
     }
   }
@@ -128,6 +384,7 @@ class ContentReaderCubit extends Cubit<ContentReaderState> {
   @override
   Future<void> close() {
     _generation++;
+    _expiry?.cancel();
     return super.close();
   }
 }

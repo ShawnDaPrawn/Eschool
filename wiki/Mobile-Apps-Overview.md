@@ -369,3 +369,9 @@ Learning content when `/me/context` advertises `academic_content`. Private reads
 pin school, account and selected child; context changes close pushed readers.
 Publication requires an explicit human review, and uncertain uploads reuse their
 original operation identifier. See [the user guide](../documentation/features/learning-content.md).
+
+
+The family content reader now supports explicit encrypted offline copies, bounded
+to one day and 20 items per environment/account/school. It rechecks current
+publication access online, expires visible readers and clears keys on scope
+replacement. Offline opens do not claim a server read acknowledgement.

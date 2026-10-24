@@ -155,3 +155,12 @@ and restrict external links to HTTPS without user information. No source-file UR
 or generic private-response cache is introduced. This is implementation review,
 not independent security acceptance. Encrypted leased offline copies remain a
 separate slice.
+
+
+Encrypted offline content adds a body-free current-policy access check and
+explicit local copies only. Tested identity/checksum/lease validation, physical
+20-copy bounds, environment/school/account key erasure, stale-write refusal,
+visible expiry and clock rollback. HTTP/certificate/cancelled requests cannot
+activate offline fallback. Saved copies may remain on a disconnected device
+within their original lease; this limit is recorded in the user guide. The
+independent pre-pilot test remains external acceptance, not a claimed pass.

@@ -84,6 +84,19 @@ void main() {
     },
   );
 
+  test('offline fallback distinguishes transport loss from HTTP, certificate and cancellation', () async {
+    for (final type in DioExceptionType.values) {
+      useServer((request) async => throw DioException(requestOptions: request, type: type));
+      final error = await failure(client.send(method: 'GET', url: 'https://school.test/api/v2/private'));
+      expect(error.isTransportFailure, [DioExceptionType.connectionError, DioExceptionType.connectionTimeout, DioExceptionType.sendTimeout, DioExceptionType.receiveTimeout].contains(type), reason: '$type');
+    }
+    for (final status in [401, 403, 404, 500, 503]) {
+      useServer((_) async => _json({'error': true, 'message': 'Refused'}, status: status));
+      final error = await failure(client.send(method: 'GET', url: 'https://school.test/api/v2/private'));
+      expect(error.isTransportFailure, false); expect(error.statusCode, status);
+    }
+  });
+
   test('v2 retries preserve the supplied operation key and school', () async {
     for (var attempt = 0; attempt < 2; attempt++) {
       await client.send(

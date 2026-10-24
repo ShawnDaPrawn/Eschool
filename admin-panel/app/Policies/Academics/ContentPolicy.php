@@ -15,6 +15,7 @@ use App\Services\Academics\AcademicAuthority;
 use App\Services\Academics\ReleasedMarks;
 use App\Services\Academics\Transitions\LearnerAcademicAccess;
 use App\Services\Platform\Tenancy\CurrentSchool;
+use Illuminate\Database\Eloquent\Builder;
 
 class ContentPolicy
 {
@@ -99,11 +100,16 @@ class ContentPolicy
             })->pluck('teaching_group_id')->map(fn ($id) => (int) $id)->unique()->values()->all();
     }
 
-    public function reader(User $actor, int $learner, int $version): ContentVersion
+    public function readableVersions(User $actor, int $learner): Builder
     {
         $groups = $this->learnerGroups($actor, $learner);
 
-        return ContentVersion::with('item')->where('state', 'published')->whereHas('item', fn ($q) => $q->where('active', true)
-            ->whereColumn('content_items.published_version_id', 'content_versions.id')->whereHas('audienceGroups', fn ($g) => $g->whereIn('teaching_group_id', $groups)))->findOrFail($version);
+        return ContentVersion::where('state', 'published')->whereHas('item', fn ($q) => $q->where('active', true)
+            ->whereColumn('content_items.published_version_id', 'content_versions.id')->whereHas('audienceGroups', fn ($g) => $g->whereIn('teaching_group_id', $groups)));
+    }
+
+    public function reader(User $actor, int $learner, int $version): ContentVersion
+    {
+        return $this->readableVersions($actor, $learner)->with('item')->findOrFail($version);
     }
 }

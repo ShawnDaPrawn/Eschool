@@ -347,3 +347,18 @@ refresh private content. The initial reader uses route memory; encrypted leased
 offline copies follow as a separate implementation slice before Phase 2 wrap-up.
 Automated and browser evidence is recorded in phase-2 self-tests; production,
 physical-device, human translation and full-term pilot evidence remain separate.
+
+
+### 24 October 2026 — content merges and encrypted offline reading
+
+The private converter/service/panel (#98) and shared teacher/family clients (#99)
+are merged to main after green final CI and resolved review findings. A separate
+offline slice implements explicit encrypted copies, fresh bounded batch access
+checks, at-most-one-day server/request deadlines, visible expiry, clock rollback
+and corruption refusal, 20-copy physical bounds and environment/school/account
+key erasure with late-write generation checks. Global session listeners handle
+scope changes even after a library closes. Only a transport failure can select
+an unexpired copy; HTTP, certificate and cancellation failures do not qualify.
+Automated evidence is in Phase 2 self-tests; no pilot or production acceptance
+is inferred. Remaining implementation is communication, exports/languages and
+pilot/verification tooling.
