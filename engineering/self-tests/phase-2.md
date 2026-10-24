@@ -703,3 +703,30 @@ legacy filter reloads and stop delegated child handlers until the year is saved.
 The strengthened real Chrome year-switch flow **passes**, asserting no premature
 filter requests, correct banner/list, a 423 write refusal and switching back.
 JavaScript syntax and diff checks pass; final full CI is still required.
+
+### Shared school messages, 24 October 2026
+
+- Shared academic suite: **166 tests passed**, including 26 new repository, cubit
+  and widget cases. Checked family reader/read state and staff compose/preview/
+  submit at 390, 1024 and 1280 widths, separate-author review, uncertain retry,
+  conflict comparison, authority loss, withdrawal refresh and background drafts.
+- Family full unit suite: **46 passed**; teacher full unit suite: **29 passed**
+  before the additional canonical message route assertions.
+- Both app analyzers have zero errors/warnings; backend context/contract cohort
+  **10 passed, 279 assertions**. Only three additive v2 context flag snapshots
+  change; v1 contracts are retained. CI includes both new Chrome message flows.
+- Real Chrome family login/read/acknowledgement, withdrawal refresh and unauthorized
+  notification refusal passed. Teacher Chrome and final route checks recorded
+  below when completed. No device/provider/staging/human review is claimed.
+
+Final teacher Chrome: **passed** after replacing an eager test finder with a
+proper wait. Actual login, save, preview, submit and another-author review/
+approval passed. Final teacher route cohort: **21 passed**, including disabled
+module refusal and canonical/reviewer notification identifier validation.
+
+PR #102 review: narrow notification links now open their linked private reader
+or review editor once after current configuration loads. Retryable reload failures
+retain dirty/comparison flags so reconnection cannot hydrate over unsaved text.
+Standalone editors also provide a Material surface for list controls. Final
+message cohort: **30 passed**, including phone reader/reviewer links and back
+navigation, offline resume/retry text retention and revision comparison.

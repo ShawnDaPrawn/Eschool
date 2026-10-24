@@ -10,6 +10,16 @@ import 'package:flutter/foundation.dart';
 /// too, so reloading a page in the browser lands on it again.
 const List<DeepLinkRoute> deepLinkRoutes = [
   DeepLinkRoute(
+    Routes.schoolMessages,
+    Routes.schoolMessages,
+    arguments: messageLinkArguments,
+  ),
+  DeepLinkRoute(
+    '/communication-centre',
+    Routes.schoolMessages,
+    arguments: messageLinkArguments,
+  ),
+  DeepLinkRoute(
     Routes.academicContent,
     Routes.academicContent,
     arguments: contentLinkArguments,
@@ -107,7 +117,8 @@ void openDeepLink(DeepLinkTarget target, {required bool signedIn}) {
     deepLinks.keepPending(target);
     return;
   }
-  if (target.routeName == Routes.academicContent) {
+  if (target.routeName == Routes.academicContent ||
+      target.routeName == Routes.schoolMessages) {
     navigator.popUntil((route) => route.isFirst);
   }
   navigator.pushNamed(target.routeName, arguments: target.arguments);

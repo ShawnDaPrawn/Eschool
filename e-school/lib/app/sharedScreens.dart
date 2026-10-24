@@ -179,6 +179,19 @@ List<Widget> sharedScreenEntries(
   void open(String route) => Navigator.of(context).pushNamed(route);
   return [
     if (context.watch<MeContextCubit>().context?.isFeatureOn(
+              'communication_messages',
+            ) ==
+            true &&
+        allowsSchoolModule(
+          context.watch<MeContextCubit>().context,
+          'communication',
+        ))
+      tile(
+        title: label('School messages'),
+        icon: Icons.forum_outlined,
+        onTap: () => open(Routes.schoolMessages),
+      ),
+    if (context.watch<MeContextCubit>().context?.isFeatureOn(
           'academic_content',
         ) ==
         true)
@@ -636,4 +649,75 @@ class AcademicContentEntry extends StatelessWidget {
       ),
     );
   }
+}
+
+Route<dynamic> schoolMessagesRoute(Object? arguments) => AdaptivePageRoute(
+  contentColumn: false,
+  builder: (context) {
+    final session = context.read<MeContextCubit>();
+    final schools = context.read<SchoolSelectionCubit>();
+    final me = session.context;
+    final school = me?.currentSchoolId, account = me?.user?.id;
+    if (school == null ||
+        account == null ||
+        school <= 0 ||
+        account <= 0 ||
+        me?.isFeatureOn('communication_messages') != true ||
+        !allowsSchoolModule(me, 'communication')) {
+      return ScreenScaffold(
+        title: SharedUiUtils.getTranslatedLabel(context, 'School messages'),
+        body: Center(
+          child: Text(
+            SharedUiUtils.getTranslatedLabel(
+              context,
+              'Not available for this account',
+            ),
+          ),
+        ),
+      );
+    }
+    return ContentContextBoundary(
+      schoolId: school,
+      readerId: account,
+      child: SchoolMessagesScreen(
+        repository: ApiSchoolMessageRepository(
+          Api.client,
+          schoolId: school,
+          readerId: account,
+          contextActive: () =>
+              session.context?.user?.id == account &&
+              session.context?.currentSchoolId == school &&
+              (schools.state.selectedId == null ||
+                  schools.state.selectedId == school) &&
+              session.context?.isFeatureOn('communication_messages') == true &&
+              allowsSchoolModule(session.context, 'communication'),
+        ),
+        initialMessage: arguments is MessageLinkTarget ? arguments.id : null,
+      ),
+    );
+  },
+);
+
+class SchoolMessagesEntry extends StatelessWidget {
+  const SchoolMessagesEntry({super.key});
+  @override
+  Widget build(BuildContext context) =>
+      BlocBuilder<MeContextCubit, MeContextState>(
+        builder: (context, state) {
+          if (state.context?.isFeatureOn('communication_messages') != true ||
+              !allowsSchoolModule(state.context, 'communication'))
+            return const SizedBox.shrink();
+          return Card(
+            child: ListTile(
+              leading: const Icon(Icons.forum_outlined),
+              title: Text(
+                SharedUiUtils.getTranslatedLabel(context, 'School messages'),
+              ),
+              trailing: const Icon(Icons.chevron_right),
+              onTap: () =>
+                  Navigator.of(context).pushNamed(Routes.schoolMessages),
+            ),
+          );
+        },
+      );
 }

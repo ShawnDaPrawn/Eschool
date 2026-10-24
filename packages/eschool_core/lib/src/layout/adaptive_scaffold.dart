@@ -37,6 +37,7 @@ class AdaptiveScaffold extends StatelessWidget {
     required this.onDestinationSelected,
     this.bottomNavigationBar,
     this.overlays = const [],
+    this.maxContentWidth = Breakpoints.contentMaxWidth,
     super.key,
   });
 
@@ -48,6 +49,9 @@ class AdaptiveScaffold extends StatelessWidget {
   final int selectedIndex;
   final ValueChanged<int> onDestinationSelected;
   final List<Widget> overlays;
+
+  /// Wider working screens opt in while existing phone-width content keeps its default.
+  final double maxContentWidth;
 
   @override
   Widget build(BuildContext context) {
@@ -114,7 +118,9 @@ class AdaptiveScaffold extends StatelessWidget {
               thickness: 1,
               color: colors.outlineVariant,
             ),
-            Expanded(child: ContentColumn(child: body)),
+            Expanded(
+              child: ContentColumn(maxWidth: maxContentWidth, child: body),
+            ),
           ],
         ),
         ...overlays,
