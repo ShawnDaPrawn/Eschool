@@ -722,3 +722,22 @@ retain dirty/comparison flags so reconnection cannot hydrate over unsaved text.
 Standalone editors also provide a Material surface for list controls. Final
 message cohort: **30 passed**, including phone reader/reviewer links and back
 navigation, offline resume/retry text retention and revision comparison.
+
+### SA-SAMS export bridge, 24 October 2026
+
+- Canonical learner/daily-register/task-score extraction with explicit versioned
+  target layouts and learner/code maps; CSV and exact-hash blank XLSX rendering.
+  No official target profile or successful target import is claimed.
+- Final **17 export tests passed, 39 assertions**. Earlier **34 passed, 623
+  assertions** including panel navigation, historical-year controls and design
+  tokens. Covered exact decimals/leading zeros, wrong roles/school/year, missing
+  identities/marks/daily entries, explicit codes, template mismatch, formulas,
+  macros and compressed expansion, private ZIP and provenance without learner rows.
+- **Three real Chromium checks passed**: private native upload/download at 1024
+  and 1280 pixels, plus another-school manager's layout refused. No serious/
+  critical axe violation, horizontal overflow or app console errors. The browser
+  fixture uses an inactive synthetic learner and a dedicated explicit year.
+- Pint (nine files), Larastan (zero errors) and TypeScript pass. Documentation
+  build/public CI/review results are recorded before merge. Actual SA-SAMS
+  import qualification against the pilot's target version/template remains an
+  external evidence item; unrelated work continues.

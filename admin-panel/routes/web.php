@@ -33,6 +33,7 @@ use App\Http\Controllers\Panel\Academics\CurriculumController;
 use App\Http\Controllers\Panel\Academics\NewYearController;
 use App\Http\Controllers\Panel\Academics\RegisterPanelController;
 use App\Http\Controllers\Panel\Academics\ReportWorkbenchController;
+use App\Http\Controllers\Panel\Academics\SasamsExportController;
 use App\Http\Controllers\Panel\Academics\SubjectStandardController;
 use App\Http\Controllers\Panel\Academics\TeachingGroupController;
 use App\Http\Controllers\Panel\Academics\TimetableWorkbenchController;
@@ -214,6 +215,12 @@ Route::group(['middleware' => ['Role', 'auth', 'school.context', EnforceReadOnly
         Route::post('class/teacher/store', [ClassTeacherController::class, 'assign_teacher'])->name('class.teacher.store');
         Route::get('class-teacher-list', [ClassTeacherController::class, 'show']);
         Route::post('remove-class-teacher/{id}/{class_teacher_id}', [ClassTeacherController::class, 'removeClassTeacher']);
+
+        Route::prefix('academic-sasams')->name('academic-sasams.')->middleware(['module:academics', 'cache.headers:private;no_store'])->group(function () {
+            $c = SasamsExportController::class;
+            Route::get('/', [$c, 'index'])->name('index');
+            Route::post('download', [$c, 'download'])->name('download');
+        });
 
         Route::prefix('communication-centre')->name('communication-centre.')->middleware(['module:communication', 'cache.headers:private;no_store'])->group(function () {
             $c = MessageWorkbenchController::class;
