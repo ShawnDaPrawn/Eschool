@@ -1,0 +1,197 @@
+name: Build release artifacts
+
+on:
+  push:
+    branches: ['release/**']
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: release-artifacts-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  server:
+    name: Server image
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - name: Build the production image
+        run: |
+          docker build --pull --build-arg APP_RELEASE="$GITHUB_SHA" \
+            --label org.opencontainers.image.revision="$GITHUB_SHA" \
+            -t "navigateed-admin:$GITHUB_SHA" admin-panel
+          docker run --rm --entrypoint composer "navigateed-admin:$GITHUB_SHA" check-platform-reqs --no-dev
+          docker run --rm --entrypoint apache2ctl "navigateed-admin:$GITHUB_SHA" configtest
+          mkdir -p "$RUNNER_TEMP/release"
+          docker save "navigateed-admin:$GITHUB_SHA" | gzip > "$RUNNER_TEMP/release/admin-panel-image.tar.gz"
+          printf '%s\n' "$GITHUB_SHA" > "$RUNNER_TEMP/release/source-commit.txt"
+          (cd "$RUNNER_TEMP/release" && sha256sum admin-panel-image.tar.gz > SHA256SUMS)
+      - uses: actions/upload-artifact@v7
+        with:
+          name: server-image-${{ github.sha }}
+          path: ${{ runner.temp }}/release/
+          if-no-files-found: error
+          retention-days: 7
+
+  web:
+    name: Web package (${{ matrix.app }})
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    strategy:
+      fail-fast: false
+      matrix:
+        app: [e-school, e-school-teacher]
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.47.7'
+          channel: stable
+          cache: true
+      - name: Build the production web package
+        working-directory: ${{ matrix.app }}
+        run: |
+          flutter pub get --enforce-lockfile
+          flutter build web --release --dart-define-from-file=config/production.json
+          printf '%s\n' "$GITHUB_SHA" > build/web/source-commit.txt
+      - uses: actions/upload-artifact@v7
+        with:
+          name: web-${{ matrix.app }}-${{ github.sha }}
+          path: ${{ matrix.app }}/build/web/
+          if-no-files-found: error
+          retention-days: 7
+
+  android:
+    name: Android release (${{ matrix.app }})
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - app: e-school
+            prefix: ANDROID_LEARNER
+          - app: e-school-teacher
+            prefix: ANDROID_TEACHER
+    env:
+      KEYSTORE_BASE64: ${{ secrets[format('{0}_KEYSTORE_BASE64', matrix.prefix)] }}
+      STORE_PASSWORD: ${{ secrets[format('{0}_STORE_PASSWORD', matrix.prefix)] }}
+      KEY_ALIAS: ${{ secrets[format('{0}_KEY_ALIAS', matrix.prefix)] }}
+      KEY_PASSWORD: ${{ secrets[format('{0}_KEY_PASSWORD', matrix.prefix)] }}
+    steps:
+      - name: Check release signing
+        id: signing
+        env:
+          PREFIX: ${{ matrix.prefix }}
+        run: |
+          missing=()
+          [ -n "$KEYSTORE_BASE64" ] || missing+=("${PREFIX}_KEYSTORE_BASE64")
+          [ -n "$STORE_PASSWORD" ] || missing+=("${PREFIX}_STORE_PASSWORD")
+          [ -n "$KEY_ALIAS" ] || missing+=("${PREFIX}_KEY_ALIAS")
+          [ -n "$KEY_PASSWORD" ] || missing+=("${PREFIX}_KEY_PASSWORD")
+          if [ ${#missing[@]} -gt 0 ]; then
+            echo 'ready=false' >> "$GITHUB_OUTPUT"
+            {
+              printf '## Android release blocked: %s\n\nMissing repository Actions secrets:\n\n' "$PREFIX"
+              printf -- '- `%s`\n' "${missing[@]}"
+              printf '\nNo Android package was built or published.\n'
+            } >> "$GITHUB_STEP_SUMMARY"
+            echo '::warning::Android store signing is not configured; no release package will be produced.'
+          else
+            echo 'ready=true' >> "$GITHUB_OUTPUT"
+          fi
+      - uses: actions/checkout@v7
+        if: steps.signing.outputs.ready == 'true'
+        with:
+          persist-credentials: false
+      - uses: actions/setup-java@v6
+        if: steps.signing.outputs.ready == 'true'
+        with:
+          distribution: temurin
+          java-version: '17'
+      - uses: subosito/flutter-action@v2
+        if: steps.signing.outputs.ready == 'true'
+        with:
+          flutter-version: '3.47.7'
+          channel: stable
+          cache: true
+      - name: Configure the existing upload key
+        if: steps.signing.outputs.ready == 'true'
+        working-directory: ${{ matrix.app }}
+        run: |
+          python <<'PY'
+          import base64
+          import os
+          from pathlib import Path
+          key = Path(os.environ['RUNNER_TEMP']) / 'upload-keystore.jks'
+          key.write_bytes(base64.b64decode(''.join(os.environ['KEYSTORE_BASE64'].split()), validate=True))
+          key.chmod(0o600)
+          def escape(value):
+              encoded = value.encode('utf-16-be')
+              return ''.join('\\u' + encoded[i:i+2].hex() for i in range(0, len(encoded), 2))
+          fields = {'storeFile': str(key), 'storePassword': os.environ['STORE_PASSWORD'],
+                    'keyAlias': os.environ['KEY_ALIAS'], 'keyPassword': os.environ['KEY_PASSWORD']}
+          properties = Path('android/key.properties')
+          properties.write_text(''.join(k + '=' + escape(v) + '\n' for k, v in fields.items()))
+          properties.chmod(0o600)
+          PY
+      - name: Build signed APK and app bundle
+        if: steps.signing.outputs.ready == 'true'
+        working-directory: ${{ matrix.app }}
+        run: |
+          flutter pub get --enforce-lockfile
+          flutter build apk --release --dart-define-from-file=config/production.json
+          flutter build appbundle --release --dart-define-from-file=config/production.json
+      - uses: actions/upload-artifact@v7
+        if: steps.signing.outputs.ready == 'true'
+        with:
+          name: android-${{ matrix.app }}-${{ github.sha }}
+          path: |
+            ${{ matrix.app }}/build/app/outputs/flutter-apk/app-release.apk
+            ${{ matrix.app }}/build/app/outputs/bundle/release/app-release.aab
+          if-no-files-found: error
+          retention-days: 7
+      - name: Remove signing files
+        if: always() && steps.signing.outputs.ready == 'true'
+        env:
+          APP_DIRECTORY: ${{ matrix.app }}
+        run: rm -f "$RUNNER_TEMP/upload-keystore.jks" "$APP_DIRECTORY/android/key.properties"
+
+  ios:
+    name: Unsigned iOS build (${{ matrix.app }})
+    runs-on: macos-15
+    timeout-minutes: 45
+    strategy:
+      fail-fast: false
+      matrix:
+        app: [e-school, e-school-teacher]
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.47.7'
+          channel: stable
+          cache: true
+      - name: Build the unsigned production app
+        working-directory: ${{ matrix.app }}
+        run: |
+          flutter pub get --enforce-lockfile
+          flutter build ios --release --no-codesign --dart-define-from-file=config/production.json
+          ditto -c -k --keepParent build/ios/iphoneos/Runner.app "$RUNNER_TEMP/unsigned-ios.app.zip"
+          printf '## iOS build: unsigned\n\nThis is a compilation artifact, not an installable IPA or an App Store release. Apple signing and distribution remain required.\n' >> "$GITHUB_STEP_SUMMARY"
+      - uses: actions/upload-artifact@v7
+        with:
+          name: unsigned-ios-${{ matrix.app }}-${{ github.sha }}
+          path: ${{ runner.temp }}/unsigned-ios.app.zip
+          if-no-files-found: error
+          retention-days: 7
