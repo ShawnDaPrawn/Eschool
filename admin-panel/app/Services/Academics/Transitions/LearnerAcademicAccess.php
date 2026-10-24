@@ -37,6 +37,16 @@ class LearnerAcademicAccess
         return Enrolment::where('learner_id', $learner->id)->onDate($date)->exists();
     }
 
+    /** Departure closes learner entry, not a current guardian's retained records. */
+    public function departed(Students $learner, ?string $date = null): bool
+    {
+        $date ??= app(AcademicAuthority::class)->today();
+        $latest = AcademicTransition::where('learner_id', $learner->id)->whereIn('kind', ['join', 'leave'])
+            ->whereDate('effective_on', '<=', $date)->orderByDesc('effective_on')->orderByDesc('id')->first();
+
+        return $latest?->kind === 'leave' && $latest->effective_on->toDateString() < $date;
+    }
+
     public function assertUser(User $user): void
     {
         $learner = Students::where('user_id', $user->id)->first();

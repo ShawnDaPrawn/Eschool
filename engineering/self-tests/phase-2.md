@@ -468,3 +468,9 @@ No production deployment or paid provisioning was performed.
 Final mid-year follow-up: 219 backend checks pass (1,766 assertions), with clean
 Larastan/style after the browser fixes. This includes the inactive learner office
 page, retained-export field revocation and the retention preview race.
+
+PR #97 review follow-up: the legacy parent session gate now uses fresh guardian
+rights and preserves retained-record access after the only child departs, including
+a later year without a session. Ended links and unrelated manual deactivation still
+refuse access. Join fingerprints include year dates and the reviewed membership
+end. All 35 mid-year/parent security/policy checks pass (359 assertions).

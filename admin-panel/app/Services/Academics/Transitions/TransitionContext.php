@@ -71,7 +71,7 @@ class TransitionContext
             abort_if(AcademicTransition::where('learner_id', $learner->id)->where('kind', 'leave')->whereDate('effective_on', $data['effective_on'])->exists(), 409, __('This departure is already recorded. Open its exit package.'));
         }
         $state = $this->state($data['learner_id']);
-        $fingerprint = hash('sha256', json_encode([$data, $state, $policy, ['room_id' => $room->id, 'grade_id' => $grade], array_map(fn ($g) => [$g->id, $g->revision, $g->active, $g->class_section_id, $g->subject_id], $groups)], JSON_THROW_ON_ERROR));
+        $fingerprint = hash('sha256', json_encode([$data, $state, $policy, ['year_starts_on' => $start, 'year_ends_on' => substr((string) $year->end_date, 0, 10), 'membership_ends_on' => $end], ['room_id' => $room->id, 'grade_id' => $grade], array_map(fn ($g) => [$g->id, $g->revision, $g->active, $g->class_section_id, $g->subject_id], $groups)], JSON_THROW_ON_ERROR));
 
         return compact('data', 'learner', 'year', 'room', 'grade', 'policy', 'rule', 'groups', 'source', 'target', 'end', 'state', 'fingerprint');
     }

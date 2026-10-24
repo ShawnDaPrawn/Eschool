@@ -21,6 +21,7 @@ use App\Models\Platform\ProfileFile;
 use App\Models\Platform\RetentionRule;
 use App\Models\Platform\SchoolMembership;
 use App\Models\SessionYear;
+use App\Models\Settings;
 use App\Models\Students;
 use App\Models\StudentSessions;
 use App\Models\Teacher;
@@ -40,6 +41,7 @@ use App\Services\Academics\Transitions\LearnerAcademicAccess;
 use App\Services\Academics\Transitions\TransitionFlow;
 use App\Services\Academics\Transitions\TransitionPolicies;
 use App\Services\Academics\Transitions\TransitionQueries;
+use App\Services\ParentPolicyService;
 use App\Services\People\EnrolmentService;
 use App\Services\People\Profiles\ProfileDefinitions;
 use App\Services\People\Profiles\ProfileFiles;
@@ -578,5 +580,55 @@ class TransitionEngineTest extends TestCase
         $this->assertSame([], $data['document_choices']);
         $this->actingAs($this->superAdmin(), 'web')->get('/academic-transitions?learner_id='.$this->schoolA->ids['ben'])->assertOk()->assertSee('Preview learner change');
         $this->assertSame(0, (int) User::findOrFail($this->schoolA->ids['ben_user'])->status);
+    }
+
+    public function test_year_end_changes_invalidate_the_reviewed_join_interval(): void
+    {
+        $flow = app(TransitionFlow::class);
+        $input = $this->input('join', ['learner_id' => $this->schoolA->ids['ben'], 'class_section_id' => $this->schoolA->ids['section_a'], 'group_ids' => [$this->group], 'fee_prorata_requested' => false]);
+        $preview = $flow->preview($this->superAdmin(), $input);
+        $this->assertSame('2026-12-31', $preview['membership_ends_on']);
+        SessionYear::whereKey($this->year)->update(['end_date' => '2026-12-10']);
+        $this->denied(409, fn () => $flow->commit($this->superAdmin(), $input + ['operation_id' => (string) Str::uuid(), 'fingerprint' => $preview['fingerprint']]));
+        $this->assertSame(0, AcademicTransition::count());
+        $this->assertSame('2026-12-10', $flow->preview($this->superAdmin(), $input)['membership_ends_on']);
+    }
+
+    private function guardianWithOnlyAsha(): User
+    {
+        $parent = User::findOrFail($this->schoolA->ids['farid_user']);
+        foreach ($parent->parent->children()->get() as $child) {
+            GuardianLink::updateOrCreate(['learner_id' => $child->id, 'guardian_user_id' => $parent->id], ['relationship' => 'father', 'status' => (int) $child->id === $this->schoolA->ids['asha'] ? 'active' : 'ended', 'can_approve' => true, 'can_see_fees' => true]);
+        }
+        $policies = app(ParentPolicyService::class);
+        $policies->accept($parent, 'navigateed', $policies->status($parent)['navigateed']['version']);
+
+        return $parent;
+    }
+
+    public function test_only_child_departure_retains_parent_v1_records_but_ended_guardian_rights_still_refuse(): void
+    {
+        $parent = $this->guardianWithOnlyAsha();
+        $token = AppTokens::issue($parent, AppTokens::PARENT);
+        $this->execute($this->input('leave', ['effective_on' => '2026-02-09']));
+        $this->assertSame(0, (int) StudentSessions::where('student_id', $this->schoolA->ids['asha'])->where('session_year_id', $this->year)->value('status'));
+        $this->withToken($token)->getJson('/api/parent/get-profile-data')->assertOk()->assertJsonPath('error', false);
+        $this->getJson('/api/parent/attendance?child_id='.$this->schoolA->ids['asha'])->assertOk()->assertJsonPath('error', false);
+        $this->getJson('/api/parent/fees-transactions-list')->assertOk()->assertJsonPath('error', false);
+        $this->getJson('/api/v2/academics/reports/learners/'.$this->schoolA->ids['asha'])->assertOk();
+        // Retained departure rights do not require a session in a later school year.
+        $next = SessionYear::forceCreate(['name' => '2027', 'start_date' => '2027-01-01', 'end_date' => '2027-12-31', 'default' => 0]);
+        Settings::where('type', 'session_year')->update(['message' => (string) $next->id]);
+        $this->getJson('/api/parent/get-profile-data')->assertOk()->assertJsonPath('error', false);
+        GuardianLink::where('learner_id', $this->schoolA->ids['asha'])->where('guardian_user_id', $parent->id)->update(['status' => 'ended']);
+        $this->getJson('/api/parent/get-profile-data')->assertUnauthorized()->assertJsonPath('code', 'SESSION_NOT_ACTIVE');
+        $this->getJson('/api/v2/academics/reports/learners/'.$this->schoolA->ids['asha'])->assertNotFound();
+    }
+
+    public function test_manual_session_deactivation_without_a_departure_is_not_bypassed_for_parent(): void
+    {
+        $parent = $this->guardianWithOnlyAsha();
+        StudentSessions::where('student_id', $this->schoolA->ids['asha'])->where('session_year_id', $this->year)->update(['status' => 0]);
+        $this->withToken(AppTokens::issue($parent, AppTokens::PARENT))->getJson('/api/parent/get-profile-data')->assertUnauthorized()->assertJsonPath('code', 'ACCOUNT_DEACTIVATED');
     }
 }
